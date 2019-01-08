@@ -1,0 +1,68 @@
+.context-menu-overlay {
+  position: fixed;
+  top: 0px;
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  z-index: 10;
+}
+
+.command-menu {
+  position: fixed;
+  background-color: var(--floater, rgba(67, 67, 61, 1));
+  border: 2px solid rgba(66, 66, 60, 1);
+  color: var(--fg, rgb(216, 216, 216));
+  font-size: 14px;
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+  /* border-radius: 4px; */
+  overflow: hidden;
+}
+.command-menu.--boundary_bottom_right, .command-menu.--boundary_right_bottom, .command-menu.--point_bottom_right {
+  border-top-left-radius: 0px;
+}
+.command-menu.--boundary_bottom_left, .command-menu.--boundary_left_bottom, .command-menu.--point_bottom_left {
+  border-top-right-radius: 0px;
+}
+.command-menu.--boundary_top_right, .command-menu.--boundary_right_top, .command-menu.--point_top_right {
+  border-bottom-left-radius: 0px;
+}
+.command-menu.--boundary_top_left, .command-menu.--boundary_left_top, .command-menu.--point_top_left {
+  border-bottom-right-radius: 0px;
+}
+.command-menu .menuitem {
+  white-space: nowrap;
+  padding: 5px 20px;
+  cursor: pointer;
+  min-width: 150px;
+}
+.command-menu .menuitem:not(.--not_selectable):not(.--is_selected):hover {
+  background: var(--floaterHover, rgba(0, 0, 0, 0.2));
+}
+.command-menu .menuitem.--is_selected {
+  background: var(--floaterActive, rgba(0, 0, 0, 0.25));
+}
+.command-menu .menuitem:not(.--non_selection_item).--not_selectable {
+  color: var(--fgFade7, rgba(255, 255, 255, 0.3));
+  cursor: unset;
+}
+.command-menu .menuitem.entry {
+  display: flex;
+}
+.command-menu .menuitem.spacer {
+  padding-left: 0px;
+  padding-right: 0px;
+}
+.command-menu .menuitem.spacer > hr {
+  margin: 0px;
+  border: none;
+  background: var(--fgFade7, rgba(47, 47, 41, 1));
+  opacity: 0.4;
+  height: 1px;
+}
+
+.command-menu .menuitem.entry > .keybind {
+	margin-left: auto;
+	padding-left: 50px;
+  font-size: 12px;
+  opacity: 0.6;
+}

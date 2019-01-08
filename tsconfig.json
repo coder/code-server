@@ -1,0 +1,26 @@
+{
+	"compilerOptions": {
+		"target": "esnext",
+		"module": "commonjs",
+		"baseUrl": ".",
+		"rootDir": ".",
+		"outDir": "dist",
+		"declaration": true,
+		"sourceMap": true,
+		"strict": true,
+		"experimentalDecorators": true,
+		"paths": {
+			"@coder/*": [
+				"./packages/*/src"
+			],
+			"vs/*": [
+				"./lib/vscode/src/vs/*"
+			]
+		},
+		"plugins": [
+			{
+				"name": "tslint-language-service"
+			}
+		]
+	}
+}

@@ -1,0 +1,1 @@
+exports.orangeColor = require("./subfolder/oranges").orange;

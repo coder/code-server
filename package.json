@@ -1,0 +1,19 @@
+{
+  "name": "@coder/vscode-cloud",
+  "repository": "https://github.com/codercom/vscode-cloud",
+  "author": "Coder",
+  "license": "TBD",
+  "description": "VS Code in the cloud.",
+  "scripts": {
+    "vscode:clone": "mkdir -p ./lib && test -d ./lib/vscode || git clone https://github.com/Microsoft/vscode/ ./lib/vscode",
+    "vscode:install": "cd ./lib/vscode && git checkout tags/1.30.1 && yarn",
+    "vscode": "npm-run-all vscode:*",
+    "packages:install": "cd ./packages && yarn",
+    "postinstall": "npm-run-all --parallel vscode packages:install",
+    "start": "webpack-dev-server --config ./webpack.config.app.js",
+    "test": "cd ./packages && yarn test"
+  },
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

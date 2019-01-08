@@ -1,0 +1,4 @@
+{
+  "name": "@coder/vscode",
+  "description": "VS Code implementation of the browser-based IDE client."
+}

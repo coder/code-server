@@ -1,0 +1,4 @@
+{
+  "name": "@coder/disposable",
+  "main": "src/disposable.ts"
+}

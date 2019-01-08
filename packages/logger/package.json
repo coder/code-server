@@ -1,0 +1,5 @@
+{
+  "name": "@coder/logger",
+  "description": "Beautiful client logging inspired by https://github.com/uber-go/zap.",
+  "main": "src/index.ts"
+}

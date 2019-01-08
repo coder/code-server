@@ -1,0 +1,1 @@
+exports = coder.test;

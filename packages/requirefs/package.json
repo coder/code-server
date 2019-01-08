@@ -1,0 +1,20 @@
+{
+  "name": "requirefs",
+  "description": "",
+  "main": "src/index.ts",
+  "scripts": {
+    "benchmark": "ts-node ./test/*.bench.ts"
+  },
+  "dependencies": {
+    "jszip": "2.6.0",
+    "path": "0.12.7",
+    "resolve": "1.8.1"
+  },
+  "devDependencies": {
+    "@types/benchmark": "^1.0.31",
+    "@types/jszip": "3.1.4",
+    "@types/resolve": "0.0.8",
+    "benchmark": "^2.1.4",
+    "text-encoding": "0.6.4"
+  }
+}
