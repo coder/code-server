@@ -36,4 +36,14 @@ describe("Evaluate", () => {
 
 		expect(value[0]).toEqual("readFileSync");
 	}, 100);
+
+	it("should resolve with promise", async () => {
+		const value = await client.evaluate(async () => {
+			await new Promise((r) => setTimeout(r, 100));
+
+			return "donkey";
+		});
+
+		expect(value).toEqual("donkey");
+	}, 250);
 });

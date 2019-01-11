@@ -51,14 +51,10 @@ export const evaluate = async (connection: SendableConnection, message: NewEvalM
         connection.send(serverMsg.serializeBinary());
     };
     try {
-        const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { require }, {
+        const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { require, setTimeout }, {
             timeout: message.getTimeout() || 30000,
         });
-        let responder: any = value;
-        if (value instanceof Promise) {
-            responder = await value;
-        }
-        sendResp(responder);
+        sendResp(await value);
     } catch (ex) {
         sendErr(EvalFailedMessage.Reason.EXCEPTION, ex.toString());
     }
