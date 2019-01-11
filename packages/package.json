@@ -27,8 +27,8 @@
     ],
     "moduleNameMapper": {
       "^.+\\.(s?css|png|svg)$": "<rootDir>/scripts/src/dummy.js",
-      "@coder/(.*)/testing": "<rootDir>/packages/$1/testing",
-      "@coder/(.*)": "<rootDir>/packages/$1/src"
+      "@coder/(.*)/testing": "<rootDir>/$1/testing",
+      "@coder/(.*)": "<rootDir>/$1/src"
     },
     "transform": {
       "^.+\\.tsx?$": "ts-jest"

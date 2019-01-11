@@ -1,0 +1,12 @@
+{
+    "name": "server",
+    "dependencies": {
+        "express": "^4.16.4",
+        "ws": "^6.1.2"
+    },
+    "devDependencies": {
+        "@types/express": "^4.16.0",
+        "@types/ws": "^6.0.1",
+        "ts-protoc-gen": "^0.8.0"
+    }
+}

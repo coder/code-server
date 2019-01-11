@@ -1,0 +1,31 @@
+syntax = "proto3";
+import "command.proto";
+import "node.proto";
+
+message ClientMessage {
+    oneof msg {
+        // command.proto
+        NewSessionMessage new_session = 1;
+        ShutdownSessionMessage shutdown_session = 2;
+        WriteToSessionMessage write_to_session = 3;
+        CloseSessionInputMessage close_session_input = 4;
+        ResizeSessionTTYMessage resize_session_tty = 5;
+    
+        // node.proto
+        NewEvalMessage new_eval = 6;
+
+    }
+}
+
+message ServerMessage {
+    oneof msg {
+        // command.proto
+        NewSessionFailureMessage new_session_failure = 1;
+        SessionDoneMessage session_done = 2;
+        SessionOutputMessage session_output = 3;
+    
+        // node.proto
+        EvalFailedMessage eval_failed = 4;
+        EvalDoneMessage eval_done = 5;
+    }
+}

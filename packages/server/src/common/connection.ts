@@ -1,0 +1,9 @@
+export interface SendableConnection {
+	send(data: Buffer | Uint8Array): void;
+}
+
+export interface ReadWriteConnection extends SendableConnection {
+	onMessage(cb: (data: Uint8Array | Buffer) => void): void;
+	onClose(cb: () => void): void;
+	close(): void;
+}
