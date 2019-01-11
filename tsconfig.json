@@ -16,11 +16,6 @@
 			"vs/*": [
 				"./lib/vscode/src/vs/*"
 			]
-		},
-		"plugins": [
-			{
-				"name": "tslint-language-service"
-			}
-		]
+		}
 	}
 }

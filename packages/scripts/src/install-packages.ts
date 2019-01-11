@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { existsSync, readdirSync } from "fs";
 import { join, resolve } from "path";
-import { logger, field } from "../logger";
+import { logger, field } from "../../logger";
 
 /**
  * Install dependencies for a single package.

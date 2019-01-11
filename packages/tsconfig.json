@@ -1,0 +1,10 @@
+{
+	"extends": "../tsconfig.json",
+	"compilerOptions": {
+		"plugins": [
+			{
+				"name": "tslint-language-service"
+			}
+		]
+	}
+}

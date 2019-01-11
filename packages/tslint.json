@@ -1,5 +1,5 @@
 {
-	"rulesDirectory": "./packages/rules/dist",
+	"rulesDirectory": "./rules/dist",
 	"rules": {
 		"only-arrow-functions": true,
 		"curly-statement-newlines": true,
