@@ -11,6 +11,15 @@ describe("Evaluate", () => {
 		expect(value).toEqual("hi");
 	}, 100);
 
+	it("should compute from string", async () => {
+		const start = "ban\%\$\"``a,,,,asdasd";
+		const value = await client.evaluate((a) => {
+			return a;
+		}, start);
+
+		expect(value).toEqual(start);
+	}, 100);
+
 	it("should compute from object", async () => {
 		const value = await client.evaluate((arg) => {
 			return arg.bananas * 2;
