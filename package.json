@@ -14,6 +14,9 @@
     "test": "cd ./packages && yarn test"
   },
   "devDependencies": {
-    "npm-run-all": "^4.1.5"
+    "@types/node": "^10.12.18",
+    "fuse-box": "^3.6.0",
+    "npm-run-all": "^4.1.5",
+    "typescript": "^3.2.2"
   }
 }
