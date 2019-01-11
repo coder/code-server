@@ -71,16 +71,6 @@
 			<div class="message">
 			</div>
 		</div>
-		<script>
-			const overlay = document.getElementById("overlay");
-			const logo = document.getElementById("logo");
-			overlay.addEventListener("mousemove", (event) => {
-				const xPos = ((event.clientX - logo.offsetLeft) / 24).toFixed(2);
-				const yPos = ((logo.offsetTop - event.clientY) / 24).toFixed(2);
-
-				logo.style.transform = `perspective(200px) rotateX(${yPos}deg) rotateY(${xPos}deg)`;
-			});
-		</script>
 	</body>
 
 </html>

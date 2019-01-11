@@ -10,7 +10,7 @@
     "vscode": "npm-run-all vscode:*",
     "packages:install": "cd ./packages && yarn",
     "postinstall": "npm-run-all --parallel vscode packages:install",
-    "start": "webpack-dev-server --config ./webpack.config.app.js",
+    "start": "node fuse.js",
     "test": "cd ./packages && yarn test"
   },
   "devDependencies": {
