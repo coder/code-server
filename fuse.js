@@ -1,23 +1,19 @@
-const { FuseBox, SassPlugin, CSSPlugin, CSSResourcePlugin } = require("fuse-box");
+const {
+	FuseBox, SassPlugin, CSSPlugin, WebIndexPlugin,
+} = require("fuse-box");
 
 const fuse = FuseBox.init({
 	homeDir: ".",
 	output: "dist/$name.js",
 	plugins: [
-		[
-			SassPlugin(),
-			CSSResourcePlugin({ dist: "dist/css-resources" }),
-			CSSPlugin(),
-		],
+		WebIndexPlugin({ template: "packages/app/src/index.html" }),
+		[ SassPlugin(), CSSPlugin() ],
 	],
 });
 
 fuse.dev();
 
-fuse
-	.bundle("app")
-	.instructions("> packages/app/src/index.ts")
-	.hmr()
-	.watch();
+fuse.bundle("app").hmr().watch()
+	.instructions(">packages/app/src/index.ts");
 
 fuse.run();

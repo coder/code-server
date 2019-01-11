@@ -8,7 +8,13 @@
 		"declaration": true,
 		"sourceMap": true,
 		"strict": true,
+		"importHelpers": true,
 		"experimentalDecorators": true,
+		"plugins": [
+			{
+				"name": "tslint-language-service"
+			}
+		],
 		"paths": {
 			"@coder/*": [
 				"./packages/*/src"

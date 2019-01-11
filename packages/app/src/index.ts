@@ -1,3 +1,5 @@
+import "./index.scss";
+
 const overlay = document.getElementById("overlay");
 const logo = document.getElementById("logo");
 if (overlay && logo) {
