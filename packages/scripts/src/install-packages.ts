@@ -39,4 +39,4 @@ const handlePackages = (dir: string): void => {
 	});
 };
 
-handlePackages(resolve(__dirname, ".."));
+handlePackages(resolve(__dirname, "..", ".."));
