@@ -2,11 +2,14 @@
     "name": "server",
     "dependencies": {
         "express": "^4.16.4",
+        "node-pty": "^0.8.0",
         "ws": "^6.1.2"
     },
     "devDependencies": {
         "@types/express": "^4.16.0",
+        "@types/text-encoding": "^0.0.35",
         "@types/ws": "^6.0.1",
+        "text-encoding": "^0.7.0",
         "ts-protoc-gen": "^0.8.0"
     }
 }

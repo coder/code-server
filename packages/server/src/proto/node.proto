@@ -1,36 +1,36 @@
 syntax = "proto3";
 
 message TypedValue {
-    enum Type {
-        String = 0;
-        Number = 1;
-        Object = 2;
-        Boolean = 3;
-    }
-    Type type = 1;
-    string value = 2;
+	enum Type {
+		String = 0;
+		Number = 1;
+		Object = 2;
+		Boolean = 3;
+	}
+	Type type = 1;
+	string value = 2;
 }
 
 message NewEvalMessage {
-    uint64 id = 1;
-    string function = 2;
-    repeated string args = 3;
-    // Timeout in ms
-    uint32 timeout = 4;
+	uint64 id = 1;
+	string function = 2;
+	repeated string args = 3;
+	// Timeout in ms
+	uint32 timeout = 4;
 }
 
 message EvalFailedMessage {
-    uint64 id = 1;
-    enum Reason {
-        Timeout = 0;
-        Exception = 1;
-        Conflict = 2;
-    }
-    Reason reason = 2;
-    string message = 3;
+	uint64 id = 1;
+	enum Reason {
+		Timeout = 0;
+		Exception = 1;
+		Conflict = 2;
+	}
+	Reason reason = 2;
+	string message = 3;
 }
 
 message EvalDoneMessage {
-    uint64 id = 1;
-    TypedValue response = 2;
+	uint64 id = 1;
+	TypedValue response = 2;
 }

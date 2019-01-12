@@ -465,7 +465,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ServerMessage.oneofGroups_ = [[1,2,3,4,5]];
+proto.ServerMessage.oneofGroups_ = [[1,2,3,4,5,6]];
 
 /**
  * @enum {number}
@@ -475,8 +475,9 @@ proto.ServerMessage.MsgCase = {
   NEW_SESSION_FAILURE: 1,
   SESSION_DONE: 2,
   SESSION_OUTPUT: 3,
-  EVAL_FAILED: 4,
-  EVAL_DONE: 5
+  IDENTIFY_SESSION: 4,
+  EVAL_FAILED: 5,
+  EVAL_DONE: 6
 };
 
 /**
@@ -517,6 +518,7 @@ proto.ServerMessage.toObject = function(includeInstance, msg) {
     newSessionFailure: (f = msg.getNewSessionFailure()) && command_pb.NewSessionFailureMessage.toObject(includeInstance, f),
     sessionDone: (f = msg.getSessionDone()) && command_pb.SessionDoneMessage.toObject(includeInstance, f),
     sessionOutput: (f = msg.getSessionOutput()) && command_pb.SessionOutputMessage.toObject(includeInstance, f),
+    identifySession: (f = msg.getIdentifySession()) && command_pb.IdentifySessionMessage.toObject(includeInstance, f),
     evalFailed: (f = msg.getEvalFailed()) && node_pb.EvalFailedMessage.toObject(includeInstance, f),
     evalDone: (f = msg.getEvalDone()) && node_pb.EvalDoneMessage.toObject(includeInstance, f)
   };
@@ -571,11 +573,16 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
       msg.setSessionOutput(value);
       break;
     case 4:
+      var value = new command_pb.IdentifySessionMessage;
+      reader.readMessage(value,command_pb.IdentifySessionMessage.deserializeBinaryFromReader);
+      msg.setIdentifySession(value);
+      break;
+    case 5:
       var value = new node_pb.EvalFailedMessage;
       reader.readMessage(value,node_pb.EvalFailedMessage.deserializeBinaryFromReader);
       msg.setEvalFailed(value);
       break;
-    case 5:
+    case 6:
       var value = new node_pb.EvalDoneMessage;
       reader.readMessage(value,node_pb.EvalDoneMessage.deserializeBinaryFromReader);
       msg.setEvalDone(value);
@@ -642,10 +649,18 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
       command_pb.SessionOutputMessage.serializeBinaryToWriter
     );
   }
-  f = this.getEvalFailed();
+  f = this.getIdentifySession();
   if (f != null) {
     writer.writeMessage(
       4,
+      f,
+      command_pb.IdentifySessionMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getEvalFailed();
+  if (f != null) {
+    writer.writeMessage(
+      5,
       f,
       node_pb.EvalFailedMessage.serializeBinaryToWriter
     );
@@ -653,7 +668,7 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
   f = this.getEvalDone();
   if (f != null) {
     writer.writeMessage(
-      5,
+      6,
       f,
       node_pb.EvalDoneMessage.serializeBinaryToWriter
     );
@@ -761,18 +776,48 @@ proto.ServerMessage.prototype.hasSessionOutput = function() {
 
 
 /**
- * optional EvalFailedMessage eval_failed = 4;
+ * optional IdentifySessionMessage identify_session = 4;
+ * @return {proto.IdentifySessionMessage}
+ */
+proto.ServerMessage.prototype.getIdentifySession = function() {
+  return /** @type{proto.IdentifySessionMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.IdentifySessionMessage, 4));
+};
+
+
+/** @param {proto.IdentifySessionMessage|undefined} value  */
+proto.ServerMessage.prototype.setIdentifySession = function(value) {
+  jspb.Message.setOneofWrapperField(this, 4, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearIdentifySession = function() {
+  this.setIdentifySession(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ServerMessage.prototype.hasIdentifySession = function() {
+  return jspb.Message.getField(this, 4) != null;
+};
+
+
+/**
+ * optional EvalFailedMessage eval_failed = 5;
  * @return {proto.EvalFailedMessage}
  */
 proto.ServerMessage.prototype.getEvalFailed = function() {
   return /** @type{proto.EvalFailedMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalFailedMessage, 4));
+    jspb.Message.getWrapperField(this, node_pb.EvalFailedMessage, 5));
 };
 
 
 /** @param {proto.EvalFailedMessage|undefined} value  */
 proto.ServerMessage.prototype.setEvalFailed = function(value) {
-  jspb.Message.setOneofWrapperField(this, 4, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 5, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -786,23 +831,23 @@ proto.ServerMessage.prototype.clearEvalFailed = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasEvalFailed = function() {
-  return jspb.Message.getField(this, 4) != null;
+  return jspb.Message.getField(this, 5) != null;
 };
 
 
 /**
- * optional EvalDoneMessage eval_done = 5;
+ * optional EvalDoneMessage eval_done = 6;
  * @return {proto.EvalDoneMessage}
  */
 proto.ServerMessage.prototype.getEvalDone = function() {
   return /** @type{proto.EvalDoneMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalDoneMessage, 5));
+    jspb.Message.getWrapperField(this, node_pb.EvalDoneMessage, 6));
 };
 
 
 /** @param {proto.EvalDoneMessage|undefined} value  */
 proto.ServerMessage.prototype.setEvalDone = function(value) {
-  jspb.Message.setOneofWrapperField(this, 5, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 6, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -816,7 +861,7 @@ proto.ServerMessage.prototype.clearEvalDone = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasEvalDone = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 6) != null;
 };
 
 

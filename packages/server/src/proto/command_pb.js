@@ -78,7 +78,9 @@ proto.NewSessionMessage.toObject = function(includeInstance, msg) {
     command: msg.getCommand(),
     argsList: jspb.Message.getField(msg, 3),
     envMap: (f = msg.getEnvMap(true)) ? f.toArray() : [],
-    ttyDimensions: (f = msg.getTtyDimensions()) && proto.TTYDimensions.toObject(includeInstance, f)
+    cwd: msg.getCwd(),
+    ttyDimensions: (f = msg.getTtyDimensions()) && proto.TTYDimensions.toObject(includeInstance, f),
+    isFork: msg.getIsFork()
   };
 
   if (includeInstance) {
@@ -135,9 +137,17 @@ proto.NewSessionMessage.deserializeBinaryFromReader = function(msg, reader) {
          });
       break;
     case 5:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCwd(value);
+      break;
+    case 6:
       var value = new proto.TTYDimensions;
       reader.readMessage(value,proto.TTYDimensions.deserializeBinaryFromReader);
       msg.setTtyDimensions(value);
+      break;
+    case 7:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsFork(value);
       break;
     default:
       reader.skipField();
@@ -202,12 +212,26 @@ proto.NewSessionMessage.prototype.serializeBinaryToWriter = function (writer) {
   if (f && f.getLength() > 0) {
     f.serializeBinary(4, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
+  f = this.getCwd();
+  if (f.length > 0) {
+    writer.writeString(
+      5,
+      f
+    );
+  }
   f = this.getTtyDimensions();
   if (f != null) {
     writer.writeMessage(
-      5,
+      6,
       f,
       proto.TTYDimensions.serializeBinaryToWriter
+    );
+  }
+  f = this.getIsFork();
+  if (f) {
+    writer.writeBool(
+      7,
+      f
     );
   }
 };
@@ -288,18 +312,33 @@ proto.NewSessionMessage.prototype.getEnvMap = function(opt_noLazyCreate) {
 
 
 /**
- * optional TTYDimensions tty_dimensions = 5;
+ * optional string cwd = 5;
+ * @return {string}
+ */
+proto.NewSessionMessage.prototype.getCwd = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 5, ""));
+};
+
+
+/** @param {string} value  */
+proto.NewSessionMessage.prototype.setCwd = function(value) {
+  jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * optional TTYDimensions tty_dimensions = 6;
  * @return {proto.TTYDimensions}
  */
 proto.NewSessionMessage.prototype.getTtyDimensions = function() {
   return /** @type{proto.TTYDimensions} */ (
-    jspb.Message.getWrapperField(this, proto.TTYDimensions, 5));
+    jspb.Message.getWrapperField(this, proto.TTYDimensions, 6));
 };
 
 
 /** @param {proto.TTYDimensions|undefined} value  */
 proto.NewSessionMessage.prototype.setTtyDimensions = function(value) {
-  jspb.Message.setWrapperField(this, 5, value);
+  jspb.Message.setWrapperField(this, 6, value);
 };
 
 
@@ -313,7 +352,24 @@ proto.NewSessionMessage.prototype.clearTtyDimensions = function() {
  * @return{!boolean}
  */
 proto.NewSessionMessage.prototype.hasTtyDimensions = function() {
-  return jspb.Message.getField(this, 5) != null;
+  return jspb.Message.getField(this, 6) != null;
+};
+
+
+/**
+ * optional bool is_fork = 7;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.NewSessionMessage.prototype.getIsFork = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldProto3(this, 7, false));
+};
+
+
+/** @param {boolean} value  */
+proto.NewSessionMessage.prototype.setIsFork = function(value) {
+  jspb.Message.setField(this, 7, value);
 };
 
 
@@ -1528,7 +1584,8 @@ proto.ShutdownSessionMessage.prototype.toObject = function(opt_includeInstance) 
  */
 proto.ShutdownSessionMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: msg.getId()
+    id: msg.getId(),
+    signal: msg.getSignal()
   };
 
   if (includeInstance) {
@@ -1568,6 +1625,10 @@ proto.ShutdownSessionMessage.deserializeBinaryFromReader = function(msg, reader)
     case 1:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setSignal(value);
       break;
     default:
       reader.skipField();
@@ -1614,6 +1675,13 @@ proto.ShutdownSessionMessage.prototype.serializeBinaryToWriter = function (write
       f
     );
   }
+  f = this.getSignal();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -1638,6 +1706,21 @@ proto.ShutdownSessionMessage.prototype.getId = function() {
 /** @param {number} value  */
 proto.ShutdownSessionMessage.prototype.setId = function(value) {
   jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * optional string signal = 2;
+ * @return {string}
+ */
+proto.ShutdownSessionMessage.prototype.getSignal = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 2, ""));
+};
+
+
+/** @param {string} value  */
+proto.ShutdownSessionMessage.prototype.setSignal = function(value) {
+  jspb.Message.setField(this, 2, value);
 };
 
 

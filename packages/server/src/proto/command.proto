@@ -6,70 +6,73 @@ syntax = "proto3";
 // If env is provided, the environment variables will be set.
 // If tty_dimensions is included, we will spawn a tty for the command using the given dimensions.
 message NewSessionMessage {
-    uint64 id = 1;
-    string command = 2;
-    repeated string args = 3;
-    map<string, string> env = 4;
-    TTYDimensions tty_dimensions = 5;
+	uint64 id = 1;
+	string command = 2;
+	repeated string args = 3;
+	map<string, string> env = 4;
+	string cwd = 5;
+	TTYDimensions tty_dimensions = 6;
+	bool is_fork = 7;
 }
 
 // Sent when starting a session failed.
 message NewSessionFailureMessage {
-    uint64 id = 1;
-    enum Reason {
-        Prohibited = 0;
-        ResourceShortage = 1;
-    }
-    Reason reason = 2;
-    string message = 3;
+	uint64 id = 1;
+	enum Reason {
+		Prohibited = 0;
+		ResourceShortage = 1;
+	}
+	Reason reason = 2;
+	string message = 3;
 }
 
 // Sent when a session has completed
 message SessionDoneMessage {
-    uint64 id = 1;
-    int64 exit_status = 2;
+	uint64 id = 1;
+	int64 exit_status = 2;
 }
 
 // Identifies a session with a PID.
 message IdentifySessionMessage {
-    uint64 id = 1;
-    uint64 pid = 2;
+	uint64 id = 1;
+	uint64 pid = 2;
 }
 
 // Writes data to a session.
 message WriteToSessionMessage {
-    uint64 id = 1;
-    bytes data = 2;
+	uint64 id = 1;
+	bytes data = 2;
 }
 
 // Resizes the TTY of the session identified by the id.
 // The connection will be closed if a TTY was not requested when the session was created.
 message ResizeSessionTTYMessage {
-    uint64 id = 1;
-    TTYDimensions tty_dimensions = 2;
+	uint64 id = 1;
+	TTYDimensions tty_dimensions = 2;
 }
 
 // CloseSessionInputMessage closes the stdin of the session by the ID.
 message CloseSessionInputMessage {
-    uint64 id = 1;
+	uint64 id = 1;
 }
 
 message ShutdownSessionMessage {
-    uint64 id = 1;
+	uint64 id = 1;
+	string signal = 2;
 }
 
 // SessionOutputMessage carries data read from the stdout or stderr of the session identified by the id.
 message SessionOutputMessage {
-    uint64 id = 1;
-    enum FD {
-        Stdout = 0;
-        Stderr = 1;
-    }
-    FD fd = 2;
-    bytes data = 3;
+	uint64 id = 1;
+	enum FD {
+		Stdout = 0;
+		Stderr = 1;
+	}
+	FD fd = 2;
+	bytes data = 3;
 }
 
 message TTYDimensions {
-    uint32 height = 1;
-    uint32 width = 2;
+	uint32 height = 1;
+	uint32 width = 2;
 }

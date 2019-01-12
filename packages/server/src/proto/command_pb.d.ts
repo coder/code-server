@@ -17,10 +17,16 @@ export class NewSessionMessage extends jspb.Message {
 
   getEnvMap(): jspb.Map<string, string>;
   clearEnvMap(): void;
+  getCwd(): string;
+  setCwd(value: string): void;
+
   hasTtyDimensions(): boolean;
   clearTtyDimensions(): void;
   getTtyDimensions(): TTYDimensions | undefined;
   setTtyDimensions(value?: TTYDimensions): void;
+
+  getIsFork(): boolean;
+  setIsFork(value: boolean): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): NewSessionMessage.AsObject;
@@ -38,7 +44,9 @@ export namespace NewSessionMessage {
     command: string,
     argsList: Array<string>,
     envMap: Array<[string, string]>,
+    cwd: string,
     ttyDimensions?: TTYDimensions.AsObject,
+    isFork: boolean,
   }
 }
 
@@ -199,6 +207,9 @@ export class ShutdownSessionMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
 
+  getSignal(): string;
+  setSignal(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ShutdownSessionMessage.AsObject;
   static toObject(includeInstance: boolean, msg: ShutdownSessionMessage): ShutdownSessionMessage.AsObject;
@@ -212,6 +223,7 @@ export class ShutdownSessionMessage extends jspb.Message {
 export namespace ShutdownSessionMessage {
   export type AsObject = {
     id: number,
+    signal: string,
   }
 }
 

@@ -84,6 +84,11 @@ export class ServerMessage extends jspb.Message {
   getSessionOutput(): command_pb.SessionOutputMessage | undefined;
   setSessionOutput(value?: command_pb.SessionOutputMessage): void;
 
+  hasIdentifySession(): boolean;
+  clearIdentifySession(): void;
+  getIdentifySession(): command_pb.IdentifySessionMessage | undefined;
+  setIdentifySession(value?: command_pb.IdentifySessionMessage): void;
+
   hasEvalFailed(): boolean;
   clearEvalFailed(): void;
   getEvalFailed(): node_pb.EvalFailedMessage | undefined;
@@ -110,6 +115,7 @@ export namespace ServerMessage {
     newSessionFailure?: command_pb.NewSessionFailureMessage.AsObject,
     sessionDone?: command_pb.SessionDoneMessage.AsObject,
     sessionOutput?: command_pb.SessionOutputMessage.AsObject,
+    identifySession?: command_pb.IdentifySessionMessage.AsObject,
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
   }
@@ -119,8 +125,9 @@ export namespace ServerMessage {
     NEW_SESSION_FAILURE = 1,
     SESSION_DONE = 2,
     SESSION_OUTPUT = 3,
-    EVAL_FAILED = 4,
-    EVAL_DONE = 5,
+    IDENTIFY_SESSION = 4,
+    EVAL_FAILED = 5,
+    EVAL_DONE = 6,
   }
 }
 
