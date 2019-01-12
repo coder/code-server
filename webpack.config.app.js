@@ -1,11 +1,10 @@
 const path = require("path");
 
-const sourcePath = "./src";
-const entryFile = "./coder/entry.ts";
-const isCi = typeof process.env.CI !== "undefined";
 const environment = process.env.NODE_ENV || "development";
+const isCi = typeof process.env.CI !== "undefined";
 const minify = isCi;
 const compatibility = isCi;
+
 const HappyPack = require("happypack");
 const webpack = require("webpack");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
@@ -16,154 +15,121 @@ const WriteFilePlugin = require("write-file-webpack-plugin");
 const PreloadWebpackPlugin = require("preload-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
+const root = __dirname;
+const nodeFills = path.join(root, "packages", "node-browser", "src");
+const vscodeFills = path.join(root, "packages", "vscode", "src", "fill");
+
 module.exports = {
-	context: path.join(__dirname, sourcePath),
-	devtool: "eval", // "cheap-module-eval-source-map",
-	entry: entryFile,
+	context: root,
+	devtool: "eval",
+	entry: "./packages/app/src/index.ts",
 	mode: isCi ? "production" : "development",
 	output: {
 		chunkFilename: "[name]-[hash:6].bundle.js",
-		path: path.resolve(__dirname, "./dist"),
-		publicPath: process.env.BUILD_ID ? `/${process.env.BUILD_ID}/ide/` : "/ide/",
+		path: path.join(root, "dist"),
 		filename: "[hash:6].bundle.js",
-		globalObject: "this",
 	},
 	module: {
-		rules: [
-			{
-				loader: "string-replace-loader",
-				test: /\.(js|ts)/,
-				options: {
-					multiple: [
-						{
-							search: "require\\.toUrl\\(",
-							replace: "requireToUrl(",
-							flags: "g",
-						},
-						{
-							search: "require\\.__\\$__nodeRequire",
-							replace: "require",
-							flags: "g",
-						},
-					],
-				},
-			},
-			{
-				test: /\.(js)/,
-				exclude: /test/,
-			},
-			{
-				test: /\.(node|txt|d\.ts|test.ts|perf.data.js|jxs)/,
+		rules: [{
+			test: /\.(js)/,
+			exclude: /test/,
+		}, {
+			test: /\.(node|txt|d\.ts|test.ts|perf.data.js|jxs)/,
+			use: [{
 				loader: "ignore-loader",
-			},
-			{
-				use: [{
-					loader: "happypack/loader?id=ts",
-				}],
-				test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
+			}],
+		}, {
+			use: [{
+				loader: "happypack/loader?id=ts",
+			}],
+			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
+		}, {
+			exclude: /test/,
+			test: /\.s?css$/,
+			// This is required otherwise it'll fail to resolve CSS in common.
+			include: root,
+			use: [{
+				loader: MiniCssExtractPlugin.loader,
 			}, {
-				exclude: /test/,
-				test: /\.s?css$/,
-				// This is required otherwise it'll fail to resolve
-				// CSS in common
-				include: __dirname,
-				use: [true ? {
-					loader: MiniCssExtractPlugin.loader,
-				} : "style-loader", require.resolve("css-loader"), require.resolve("sass-loader")],
+				loader: "css-loader",
 			}, {
-				test: /\.(svg|png|ttf|woff|eot)$/,
-				use: ["file-loader"]
-			}, {
-				test: /\.wasm$/,
-				type: "javascript/auto",
-			}
-		],
-		noParse: /(\.test\.tsx?)|(\.test\.jsx?)/,
-	},
-	node: {
-		// electron: "empty",
-		// fs: "empty",
-		// child_process: "empty",
-
-		module: "empty",
-		// net: "empty",
-		crypto: "empty",
-		tls: "empty",
+				loader: "sass-loader",
+			}],
+		}, {
+			test: /\.(svg|png|ttf|woff|eot)$/,
+			use: [{
+				loader: "file-loader",
+			}],
+		}, {
+			test: /\.wasm$/,
+			type: "javascript/auto",
+		}],
+		noParse: /\.test\.(j|t)sx?/,
 	},
 	resolve: {
 		alias: {
-			"gc-signals": path.resolve(__dirname, "./fill/empty.ts"),
-			"native-keymap": path.resolve(__dirname, "./fill/native-keymap.ts"),
-			"windows-process-tree": path.resolve(__dirname, "./fill/empty.ts"),
-			"windows-mutex": path.resolve(__dirname, "./fill/empty.ts"),
-			"selenium-webdriver": path.resolve(__dirname, "./fill/empty.ts"),
-			"windows-foreground-love": path.resolve(__dirname, "./fill/empty.ts"),
-			"vscode-fsevents": path.resolve(__dirname, "./fill/empty.ts"),
-			"vsda": path.resolve(__dirname, "./fill/empty.ts"),
-			"vscode": path.resolve(__dirname, "./fill/empty.ts"),
-			"coder$": path.resolve(__dirname, "./fill/empty.ts"),
+			"native-keymap": path.join(vscodeFills, "native-keymap.ts"),
+			"node-pty": path.join(vscodeFills, "node-pty.ts"),
+
+			"gc-signals": path.join(nodeFills, "empty.ts"),
+			"selenium-webdriver": path.join(nodeFills, "empty.ts"),
+			"vscode": path.join(nodeFills, "empty.ts"),
+			"vscode-fsevents": path.join(nodeFills, "empty.ts"),
+			"vsda": path.join(nodeFills, "empty.ts"),
+			"windows-foreground-love": path.join(nodeFills, "empty.ts"),
+			"windows-mutex": path.join(nodeFills, "empty.ts"),
+			"windows-process-tree": path.join(nodeFills, "empty.ts"),
 
 			"crypto": "crypto-browserify",
-			"spdlog": path.resolve(__dirname, "./fill/spdlog.ts"),
-			"child_process": path.resolve(__dirname, "./fill/child_process.ts"),
-			"electron": path.resolve(__dirname, "./fill/electron.ts"),
-			"fs": path.resolve(__dirname, "./fill/fs.ts"),
 			"http": "http-browserify",
-			"node-pty": path.resolve(__dirname, "./fill/node-pty.ts"),
 			"os": "os-browserify",
-			"net": path.resolve(__dirname, "./fill/net.ts"),
-			"coder": path.resolve(__dirname, "./src/coder"),
-			"vs": path.resolve(__dirname, "./src/vs"),
-			"util": path.resolve(__dirname, "./node_modules/util"),
-			"@coder": path.resolve(__dirname, "../../"),
+			"util": path.join(root, "node_modules", "util"),
+
+			"child_process": path.join(nodeFills, "child_process.ts"),
+			"fs": path.join(nodeFills, "fs.ts"),
+			"net": path.join(nodeFills, "net.ts"),
+
+			"electron": path.join(root, "packages", "electron-browser", "src", "electron.ts"),
+
+			"@coder": path.join(root, "packages"),
+			"vs": path.join(root, "lib", "vscode", "src", "vs"),
 		},
 		extensions: [".js", ".jsx", ".ts", ".tsx", ".json", ".css"],
 		mainFiles: [
 			"index",
 			"src/index",
 		],
-		modules: [
-			path.resolve(__dirname, "./node_modules"),
-			"../node_modules",
-			path.resolve(__dirname, "../../../"),
-		],
 	},
 	resolveLoader: {
 		alias: {
-			"vs/css": path.resolve(__dirname, "./fill/css.js"),
+			"vs/css": path.join(vscodeFills, "css.js"),
 		},
 		modules: [
-			path.resolve(__dirname, "./node_modules"),
+			path.join(root, "node_modules"),
 		],
 	},
 	devServer: {
-		contentBase: sourcePath,
-		compress: true,
-		host: "0.0.0.0",
 		hot: true,
-		historyApiFallback: true,
-		port: 9966,
-		inline: true,
-		disableHostCheck: true,
+		port: 3000,
 		stats: {
-			warnings: false
+			all: false, // Fallback for options not defined.
+			errors: true,
+			warnings: true,
 		},
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: "./index.html",
+			template: "packages/app/src/index.html",
 		}),
 		new HappyPack({
 			id: "ts",
 			threads: 2,
-			loaders: [
-				{
-					path: "ts-loader",
-					query: {
-						happyPackMode: true,
-					},
-				}
-			],
+			loaders: [{
+				path: "ts-loader",
+				query: {
+					happyPackMode: true,
+				},
+			}],
 		}),
 		// new BundleAnalyzerPlugin(),
 		new WriteFilePlugin({
@@ -174,7 +140,7 @@ module.exports = {
 			as: "script",
 		}),
 		new webpack.DefinePlugin({
-			'process.env.NODE_ENV': `"${environment}"`,
+			"process.env.NODE_ENV": `"${environment}"`,
 		}),
 		new MiniCssExtractPlugin({
 			filename: "[name].css",
@@ -187,8 +153,13 @@ module.exports = {
 		// }) : undefined,
 		// new ForkTsCheckerWebpackPlugin({
 		// 	checkSyntacticErrors: true,
-		// 	tsconfig: path.resolve(__dirname, "./src/tsconfig.json"),
+		// 	tsconfig: path.join(root, "./src/tsconfig.json"),
 		// }),
 	],
 	target: "web",
+	stats: {
+		all: false, // Fallback for options not defined.
+		errors: true,
+		warnings: true,
+	},
 };

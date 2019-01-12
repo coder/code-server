@@ -1,4 +1,5 @@
 {
   "name": "@coder/vscode",
-  "description": "VS Code implementation of the browser-based IDE client."
+  "description": "VS Code implementation of the browser-based IDE client.",
+  "main": "src/index.ts"
 }

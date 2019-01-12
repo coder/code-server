@@ -10,14 +10,32 @@
     "vscode": "npm-run-all vscode:*",
     "packages:install": "cd ./packages && yarn",
     "postinstall": "npm-run-all --parallel vscode packages:install",
-    "start": "node fuse.js",
+    "start": "webpack-dev-server --hot --config ./webpack.config.app.js",
     "test": "cd ./packages && yarn test"
   },
   "devDependencies": {
     "@types/node": "^10.12.18",
-    "fuse-box": "^3.6.0",
+    "crypto-browserify": "^3.12.0",
+    "css-loader": "^2.1.0",
+    "file-loader": "^3.0.1",
+    "fork-ts-checker-webpack-plugin": "^0.5.2",
+    "happypack": "^5.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "http-browserify": "^1.7.0",
+    "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
-    "typescript": "^3.2.2"
+    "os-browserify": "^0.3.0",
+    "preload-webpack-plugin": "^3.0.0-beta.2",
+    "sass-loader": "^7.1.0",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^5.3.3",
+    "typescript": "^3.2.2",
+    "uglifyjs-webpack-plugin": "^2.1.1",
+    "webpack": "^4.28.4",
+    "webpack-bundle-analyzer": "^3.0.3",
+    "webpack-cli": "^3.2.1",
+    "webpack-dev-server": "^3.1.14",
+    "write-file-webpack-plugin": "^4.5.0"
   }
 }

@@ -1,4 +1,7 @@
+import { logger } from "@coder/logger";
 import "./index.scss";
+
+logger.info("Starting app");
 
 const overlay = document.getElementById("overlay");
 const logo = document.getElementById("logo");
@@ -10,3 +13,5 @@ if (overlay && logo) {
 		logo.style.transform = `perspective(200px) rotateX(${yPos}deg) rotateY(${xPos}deg)`;
 	});
 }
+
+import "@coder/vscode";
