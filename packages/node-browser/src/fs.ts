@@ -30,7 +30,7 @@ class ReaddirQueue extends Queue<ReaddirCallback> {
 			const stdio = await promisify(exec)(`bash -c '${keys.map((key) => `cd ${escapePath(key)} && ls -1a; echo;`).join(" ")}'`);
 			stdio.stdout.trim().split("\n\n").forEach((split, index) => {
 				const path = keys[index];
-				const cbs = items.get(path);
+				const cbs = items.get(path)!;
 				if (split.indexOf("does not exist") !== -1) {
 					cbs.forEach((cb) => {
 						cb({
@@ -262,7 +262,7 @@ function appendFile(
 			// @ts-ignore not sure how to make this work.
 			return callback(new Error("not open"), undefined as any); // tslint:disable-line no-any
 		}
-		path = openFiles.get(path).path;
+		path = openFiles.get(path)!.path;
 	}
 
 	const process = exec(`${data ? "cat >>" : "touch"} ${escapePath(path.toString())}`, (error) => {
@@ -310,7 +310,7 @@ function fstat(fd: number, callback: (err: NodeJS.ErrnoException, stats: fs.Stat
 	if (!openFiles.has(fd)) {
 		return callback(new Error("not open"), null as any); // tslint:disable-line no-any
 	}
-	stat(openFiles.get(fd).path, callback);
+	stat(openFiles.get(fd)!.path, callback);
 }
 
 function futimes(
@@ -323,7 +323,7 @@ function futimes(
 		return callback(new Error("not opened"));
 	}
 
-	const openFile = openFiles.get(fd);
+	const openFile = openFiles.get(fd)!;
 	const command = [
 		{ flag: "a", time: atime },
 		{ flag: "m", time: mtime },
@@ -344,7 +344,7 @@ function lstat(path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: 
 }
 
 function mkdir(
-	path: fs.PathLike, mode: number | string | undefined | null | ((err: NodeJS.ErrnoException) => void),
+	path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null | ((err: NodeJS.ErrnoException) => void),
 	callback?: (err: NodeJS.ErrnoException) => void,
 ): void {
 	execAndCallback(
@@ -391,7 +391,7 @@ function open(
 	});
 }
 
-function read<TBuffer extends Buffer | Uint8Array>(
+function read<TBuffer extends fs.BinaryData>(
 	fd: number,
 	buffer: TBuffer,
 	offset: number,
@@ -409,7 +409,7 @@ function read<TBuffer extends Buffer | Uint8Array>(
 	}
 
 	const hasPosition = typeof position === "number";
-	const openFile = openFiles.get(fd);
+	const openFile = openFiles.get(fd)!;
 
 	if (!hasPosition) {
 		position = openFile.position || 0;
@@ -427,6 +427,7 @@ function read<TBuffer extends Buffer | Uint8Array>(
 
 		const output = data.slice(position!, position! + length);
 		if (output.length !== 0) {
+			// TODO: seems to be no more set with v10, but need to decide if we'll be running v10.
 			buffer.set(output, offset);
 		}
 
@@ -459,7 +460,7 @@ function readFile(
 			// @ts-ignore not sure how to make this work.
 			return callback(new Error("not open"), undefined as any); // tslint:disable-line no-any
 		}
-		path = openFiles.get(path).path;
+		path = openFiles.get(path)!.path;
 	}
 
 	readFileQueue.add(path.toString(), (error, result) => {
@@ -473,8 +474,8 @@ function readFile(
 
 function readdir(
 	path: fs.PathLike,
-	options: { encoding?: string | null } | string | undefined | null | ((err: NodeJS.ErrnoException, files: string[]) => void),
-	callback?: ((err: NodeJS.ErrnoException, files: string[]) => void) | ((err: NodeJS.ErrnoException, files: Buffer[]) => void) | ((err: NodeJS.ErrnoException, files: Array<string | Buffer>) => void),
+	options: { encoding?: string | null, withFileTypes?: boolean } | string | undefined | null | ((err: NodeJS.ErrnoException, files: string[]) => void),
+	callback?: ((err: NodeJS.ErrnoException, files: string[]) => void) | ((err: NodeJS.ErrnoException, files: Buffer[]) => void) | ((err: NodeJS.ErrnoException, files: fs.Dirent[]) => void)
 ): void {
 	if (typeof options === "function") {
 		callback = options;
@@ -596,7 +597,7 @@ function writeFile(
 			// @ts-ignore not sure how to make this work.
 			return callback(new Error("not open"), undefined as any); // tslint:disable-line no-any
 		}
-		path = openFiles.get(path).path;
+		path = openFiles.get(path)!.path;
 	}
 
 	const process = exec(`${data ? "cat >" : "touch"} ${escapePath(path.toString())}`, (error) => {
@@ -627,6 +628,7 @@ rmdir.__promisify__ = undefined as any;
 stat.__promisify__ = undefined as any;
 unlink.__promisify__ = undefined as any;
 writeFile.__promisify__ = undefined as any;
+realpath.native = undefined as any;
 // tslint:enable no-any
 
 const exp: typeof fs = {
@@ -634,6 +636,8 @@ const exp: typeof fs = {
 	Stats: fs.Stats,
 	ReadStream: fs.ReadStream,
 	WriteStream: fs.WriteStream,
+	Dirent: fs.Dirent,
+	promises: fs.promises,
 
 	access: throwUnimplementedError,
 	accessSync: throwSyncError,

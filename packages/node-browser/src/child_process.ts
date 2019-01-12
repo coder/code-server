@@ -161,7 +161,7 @@ function fork(modulePath: string): cp.ChildProcess {
 	}));
 }
 
-function spawn(_command: string, _args?: ReadonlyArray<string>, _options?: cp.SpawnOptions): cp.ChildProcess {
+function spawn(_command: string, _args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess {
 	throw new Error("not implemented");
 }
 // tslint:enable only-arrow-functions

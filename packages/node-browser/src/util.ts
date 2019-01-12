@@ -10,6 +10,8 @@ throwUnimplementedError.link = undefined as any;
 export const throwSyncError = (): any => {
 	throw new Error("sync is not supported");
 };
+// realpath & realpathSync.
+throwSyncError.native = undefined as any;
 // tslint:enable no-any
 
 /**
