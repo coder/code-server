@@ -2,7 +2,6 @@ import * as cp from "child_process";
 import * as stream from "stream";
 import * as events from "events";
 import * as net from "net";
-import { wush, Session } from "@coder/wush";
 import { useBuffer, throwUnimplementedError, throwSyncError } from "./util";
 
 /**
@@ -34,7 +33,7 @@ class ChildProcess extends events.EventEmitter implements cp.ChildProcess {
 
 	private emitter = new events.EventEmitter();
 
-	public constructor(private session: Session) {
+	public constructor(private session) {
 		super();
 
 		this.emitter = new events.EventEmitter();

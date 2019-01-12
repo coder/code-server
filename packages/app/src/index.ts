@@ -1,10 +1,16 @@
-import { logger } from "@coder/logger";
+import { logger, field, time } from "@coder/logger";
+import { load } from "@coder/vscode";
 import "./index.scss";
 
-logger.info("Starting app");
+const loadTime = time(2500);
+logger.info("Loading IDE...");
 
 const overlay = document.getElementById("overlay");
 const logo = document.getElementById("logo");
+const msgElement = overlay
+	? overlay.querySelector(".message") as HTMLElement
+	: undefined;
+
 if (overlay && logo) {
 	overlay.addEventListener("mousemove", (event) => {
 		const xPos = ((event.clientX - logo.offsetLeft) / 24).toFixed(2);
@@ -14,4 +20,24 @@ if (overlay && logo) {
 	});
 }
 
-import "@coder/vscode";
+load().then(() => {
+	if (overlay) {
+		overlay.style.opacity = "0";
+		overlay.addEventListener("transitionend", () => {
+			overlay.remove();
+		});
+	}
+}).catch((error: Error) => {
+	logger.error(error.message);
+	if (overlay) {
+		overlay.classList.add("error");
+	}
+	if (msgElement) {
+		msgElement.innerText = `Failed to load: ${error.message}. Retrying in 3 seconds...`;
+	}
+	setTimeout(() => {
+		location.reload();
+	}, 3000);
+}).finally(() => {
+	logger.info("Load completed", field("duration", loadTime));
+});

@@ -59,7 +59,6 @@ export abstract class Queue<T> {
 
 	public constructor(max?: number) {
 		this.items = new Map();
-		this.run = run;
 		this.max = max;
 	}
 
