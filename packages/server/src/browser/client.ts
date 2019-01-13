@@ -4,6 +4,9 @@ import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ChildProcess, SpawnOptions, ServerProcess } from "./command";
 
+/**
+ * Client accepts an arbitrary connection intended to communicate with the Server.
+ */
 export class Client {
 	private evalId: number = 0;
 	private evalDoneEmitter: Emitter<EvalDoneMessage> = new Emitter();
@@ -12,6 +15,9 @@ export class Client {
 	private sessionId: number = 0;
 	private sessions: Map<number, ServerProcess> = new Map();
 
+	/**
+	 * @param connection Established connection to the server
+	 */
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 	) {
@@ -31,6 +37,18 @@ export class Client {
 	public evaluate<R, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => R, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
 	public evaluate<R, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
 	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
+	/**
+	 * Evaluates a function on the server.
+	 * To pass variables, ensure they are serializable and passed through the included function.
+	 * @example
+	 * const returned = await this.client.evaluate((value) => {
+	 *     return value;
+	 * }, "hi");
+	 * console.log(returned);
+	 * // output: "hi"
+	 * @param func Function to evaluate
+	 * @returns {Promise} Promise rejected or resolved from the evaluated function
+	 */
 	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
 		const newEval = new NewEvalMessage();
 		const id = this.evalId++;
@@ -98,6 +116,10 @@ export class Client {
 
 	/**
 	 * Spawns a process from a command. _Somewhat_ reflects the "child_process" API.
+	 * @example
+	 * const cp = this.client.spawn("echo", ["test"]);
+	 * cp.stdout.on("data", (data) => console.log(data.toString()));
+	 * cp.on("exit", (code) => console.log("exited with", code));
 	 * @param command
 	 * @param args Arguments
 	 * @param options Options to execute for the command
@@ -108,7 +130,7 @@ export class Client {
 
 	/**
 	 * Fork a module.
-	 * @param modulePath Path of the module 
+	 * @param modulePath Path of the module
 	 * @param args Args to add for the module
 	 * @param options Options to execute
 	 */
@@ -156,6 +178,10 @@ export class Client {
 		return serverProc;
 	}
 
+	/**
+	 * Handles a message from the server. All incoming server messages should be
+	 * routed through here.
+	 */
 	private handleMessage(message: ServerMessage): void {
 		if (message.hasEvalDone()) {
 			this.evalDoneEmitter.emit(message.getEvalDone()!);
