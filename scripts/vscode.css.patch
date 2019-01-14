@@ -1,0 +1,32 @@
+diff --git a/src/vs/base/browser/ui/iconLabel/iconlabel.css b/src/vs/base/browser/ui/iconLabel/iconlabel.css
+index 651843fcc9..aa31b52cb9 100644
+--- a/src/vs/base/browser/ui/iconLabel/iconlabel.css
++++ b/src/vs/base/browser/ui/iconLabel/iconlabel.css
+@@ -32,6 +32,7 @@
+ .monaco-icon-label > .monaco-icon-label-description-container {
+ 	overflow: hidden; /* this causes the label/description to shrink first if decorations are enabled */
+ 	text-overflow: ellipsis;
++	margin-right: auto;
+ }
+
+ .monaco-icon-label > .monaco-icon-label-description-container > .label-name {
+@@ -39,6 +40,12 @@
+ 	white-space: pre; /* enable to show labels that include multiple whitespaces */
+ }
+
++.monaco-icon-label > .decorations-wrapper {
++	display: flex;
++	flex-direction: row;
++	padding-right: 12px;
++}
++
+ .monaco-icon-label > .monaco-icon-label-description-container > .label-description {
+ 	opacity: .7;
+ 	margin-left: 0.5em;
+@@ -56,6 +63,5 @@
+ 	font-size: 90%;
+ 	font-weight: 600;
+ 	padding: 0 12px 0 5px;
+-	margin-left: auto;
+ 	text-align: center;
+ }

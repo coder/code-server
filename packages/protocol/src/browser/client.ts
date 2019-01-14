@@ -30,13 +30,13 @@ export class Client {
 		});
 	}
 
-	public evaluate<R>(func: () => R): Promise<R>;
-	public evaluate<R, T1>(func: (a1: T1) => R, a1: T1): Promise<R>;
-	public evaluate<R, T1, T2>(func: (a1: T1, a2: T2) => R, a1: T1, a2: T2): Promise<R>;
-	public evaluate<R, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => R, a1: T1, a2: T2, a3: T3): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => R, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
+	public evaluate<R>(func: () => R | Promise<R>): Promise<R>;
+	public evaluate<R, T1>(func: (a1: T1) => R | Promise<R>, a1: T1): Promise<R>;
+	public evaluate<R, T1, T2>(func: (a1: T1, a2: T2) => R | Promise<R>, a1: T1, a2: T2): Promise<R>;
+	public evaluate<R, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => R | Promise<R>, a1: T1, a2: T2, a3: T3): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
 	/**
 	 * Evaluates a function on the server.
 	 * To pass variables, ensure they are serializable and passed through the included function.
@@ -49,7 +49,7 @@ export class Client {
 	 * @param func Function to evaluate
 	 * @returns {Promise} Promise rejected or resolved from the evaluated function
 	 */
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
+		public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
 		const newEval = new NewEvalMessage();
 		const id = this.evalId++;
 		newEval.setId(id);

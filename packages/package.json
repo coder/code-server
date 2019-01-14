@@ -1,16 +1,11 @@
 {
   "scripts": {
-    "build:rules": "cd ./rules && yarn build",
-    "postinstall": "ts-node ./scripts/src/install-packages.ts && yarn build:rules",
     "test": "jest"
   },
   "devDependencies": {
     "@types/jest": "^23.3.12",
     "jest": "^23.6.0",
-    "ts-jest": "^23.10.5",
-    "ts-node": "^7.0.1",
-    "tslint": "^5.12.1",
-    "typescript-tslint-plugin": "^0.2.1"
+    "ts-jest": "^23.10.5"
   },
   "dependencies": {
     "xmlhttprequest": "1.8.0"
@@ -23,10 +18,10 @@
       "json"
     ],
     "setupFiles": [
-      "<rootDir>/scripts/src/test-setup.js"
+      "<rootDir>/../scripts/test-setup.js"
     ],
     "moduleNameMapper": {
-      "^.+\\.(s?css|png|svg)$": "<rootDir>/scripts/src/dummy.js",
+      "^.+\\.(s?css|png|svg)$": "<rootDir>/../scripts/dummy.js",
       "@coder/(.*)/testing": "<rootDir>/$1/testing",
       "@coder/(.*)": "<rootDir>/$1/src"
     },

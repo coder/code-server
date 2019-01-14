@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { existsSync, readdirSync } from "fs";
 import { join, resolve } from "path";
-import { logger, field } from "../../logger";
+import { logger, field } from "../packages/logger";
 
 /**
  * Install dependencies for a single package.
@@ -39,4 +39,4 @@ const handlePackages = (dir: string): void => {
 	});
 };
 
-handlePackages(resolve(__dirname, "..", ".."));
+handlePackages(resolve(__dirname, "..", "packages"));

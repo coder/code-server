@@ -1,5 +1,0 @@
-{
-  "name": "@coder/node-browser",
-  "description": "A browser implementation of async Node APIs.",
-  "main": "src/index.ts"
-}

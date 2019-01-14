@@ -1,14 +1,15 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { field, logger, time, Time } from "@coder/logger";
-import { escapePath } from "@coder/node-browser";
+import { escapePath } from "@coder/server";
+import { retry } from "./retry";
 
 export interface IClientOptions {
 	mkDirs?: string[];
 }
 
 /**
- * Client represents a general abstraction of an IDE client.
+ * A general abstraction of an IDE client.
  *
  * Everything the client provides is asynchronous so you can wait on what
  * you need from it without blocking anything else.
@@ -35,6 +36,11 @@ export class Client {
 			if (options.mkDirs && options.mkDirs.length > 0) {
 				await promisify(exec)(`mkdir -p ${options.mkDirs.map(escapePath).join(" ")}`);
 			}
+		});
+
+		// Prevent Firefox from trying to reconnect when the page unloads.
+		window.addEventListener("unload", () => {
+			retry.block();
 		});
 	}
 

@@ -13,14 +13,14 @@ const load = (): Promise<void> => {
 			parse: (raw: string): IURI => URI.parse(raw),
 		});
 
-		reject(new Error("not finished"));
+		const client = new Client({
+			mkDirs: [
+				"~/vscode/extensions",
+				"~/.config/User",
+			],
+		});
 
-		// export const client = new Client({
-		// 	mkDirs: [
-		// 		"~/vscode/extensions",
-		// 		"~/.config/User",
-		// 	],
-		// });
+		resolve();
 
 		// const importTime = time(1500);
 		// import(/* webpackPrefetch: true */ "./workbench").then((module) => {

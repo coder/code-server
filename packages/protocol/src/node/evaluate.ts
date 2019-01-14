@@ -51,7 +51,7 @@ export const evaluate = async (connection: SendableConnection, message: NewEvalM
 		connection.send(serverMsg.serializeBinary());
 	};
 	try {
-		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { require, setTimeout }, {
+		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { Buffer, require, setTimeout }, {
 			timeout: message.getTimeout() || 30000,
 		});
 		sendResp(await value);

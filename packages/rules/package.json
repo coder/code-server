@@ -1,7 +1,0 @@
-{
-	"name": "@coder/rules",
-	"description": "Custom linting rules.",
-	"scripts": {
-    "build": "tsc -p ."
-	}
-}

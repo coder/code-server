@@ -1,5 +1,6 @@
 {
-    "name": "server",
+    "name": "@coder/server",
+    "main": "src/index.ts",
     "dependencies": {
         "express": "^4.16.4",
         "node-pty": "^0.8.0",

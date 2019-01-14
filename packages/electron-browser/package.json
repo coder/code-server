@@ -1,8 +1,0 @@
-{
-  "name": "@coder/electron-browser",
-  "description": "A browser implementation of Electron's API.",
-  "main": "src/index.ts",
-  "devDependencies": {
-    "electron": "^4.0.1"
-  }
-}

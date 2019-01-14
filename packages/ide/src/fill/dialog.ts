@@ -1,5 +1,5 @@
 import { IDisposable } from "@coder/disposable";
-import { Emitter } from "@coder/emitter";
+import { Emitter } from "@coder/events";
 
 import "./dialog.scss";
 
@@ -36,11 +36,11 @@ export class Dialog {
 
 	private options: IDialogOptions;
 	private overlay: HTMLElement;
-	private cachedActiveElement: HTMLElement;
-	private input: HTMLInputElement;
+	private cachedActiveElement: HTMLElement | undefined;
+	private input: HTMLInputElement | undefined;
 	private actionEmitter: Emitter<IDialogAction>;
 	private errors: HTMLElement;
-	private buttons: HTMLElement[];
+	private buttons: HTMLElement[] | undefined;
 
 	public constructor(options: IDialogOptions) {
 		this.options = options;
@@ -105,9 +105,8 @@ export class Dialog {
 			msgBox.appendChild(buttonWrapper);
 		}
 
-
 		this.overlay = document.createElement("div");
-		this.overlay.style.cssText = `display: flex; align-items: center; justify-content: center; top: 0; left: 0; right: 0; bottom: 0; z-index: 15; position: absolute; background: rgba(0, 0, 0, 0.4); opacity: 0; transition: 300ms opacity ease;`;
+		this.overlay.className = "msgbox-overlay";
 		this.overlay.appendChild(msgBox);
 
 		setTimeout(() => {
@@ -125,7 +124,7 @@ export class Dialog {
 	/**
 	 * Input value if this dialog has an input.
 	 */
-	public get inputValue(): string {
+	public get inputValue(): string | undefined {
 		return this.input ? this.input.value : undefined;
 	}
 
@@ -153,10 +152,10 @@ export class Dialog {
 			document.addEventListener("keydown", this.onKeydown);
 			if (this.input) {
 				this.input.focus();
-				if (this.options.input.selection) {
+				if (this.options.input && this.options.input.selection) {
 					this.input.setSelectionRange(
 						this.options.input.selection.start,
-						this.options.input.selection.end
+						this.options.input.selection.end,
 					);
 				}
 			} else if (this.buttons) {
@@ -173,7 +172,7 @@ export class Dialog {
 			this.overlay.remove();
 			document.removeEventListener("keydown", this.onKeydown);
 			this.cachedActiveElement.focus();
-			this.cachedActiveElement = null;
+			this.cachedActiveElement = undefined;
 		}
 	}
 

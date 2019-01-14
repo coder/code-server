@@ -16,12 +16,12 @@ const PreloadWebpackPlugin = require("preload-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const root = __dirname;
-const nodeFills = path.join(root, "packages", "node-browser", "src");
+const fills = path.join(root, "packages", "ide", "src", "fill");
 const vscodeFills = path.join(root, "packages", "vscode", "src", "fill");
 
 module.exports = {
 	context: root,
-	devtool: "eval",
+	devtool: "source-map",
 	entry: "./packages/app/src/index.ts",
 	mode: isCi ? "production" : "development",
 	output: {
@@ -71,25 +71,25 @@ module.exports = {
 			"native-keymap": path.join(vscodeFills, "native-keymap.ts"),
 			"node-pty": path.join(vscodeFills, "node-pty.ts"),
 
-			"gc-signals": path.join(nodeFills, "empty.ts"),
-			"selenium-webdriver": path.join(nodeFills, "empty.ts"),
-			"vscode": path.join(nodeFills, "empty.ts"),
-			"vscode-fsevents": path.join(nodeFills, "empty.ts"),
-			"vsda": path.join(nodeFills, "empty.ts"),
-			"windows-foreground-love": path.join(nodeFills, "empty.ts"),
-			"windows-mutex": path.join(nodeFills, "empty.ts"),
-			"windows-process-tree": path.join(nodeFills, "empty.ts"),
+			"gc-signals": path.join(fills, "empty.ts"),
+			"selenium-webdriver": path.join(fills, "empty.ts"),
+			"vscode": path.join(fills, "empty.ts"),
+			"vscode-fsevents": path.join(fills, "empty.ts"),
+			"vsda": path.join(fills, "empty.ts"),
+			"windows-foreground-love": path.join(fills, "empty.ts"),
+			"windows-mutex": path.join(fills, "empty.ts"),
+			"windows-process-tree": path.join(fills, "empty.ts"),
 
 			"crypto": "crypto-browserify",
 			"http": "http-browserify",
 			"os": "os-browserify",
-			"util": path.join(root, "node_modules", "util"),
 
-			"child_process": path.join(nodeFills, "child_process.ts"),
-			"fs": path.join(nodeFills, "fs.ts"),
-			"net": path.join(nodeFills, "net.ts"),
+			"child_process": path.join(fills, "child_process.ts"),
+			"fs": path.join(fills, "fs.ts"),
+			"net": path.join(fills, "net.ts"),
+			"util": path.join(fills, "util.ts"),
 
-			"electron": path.join(root, "packages", "electron-browser", "src", "electron.ts"),
+			"electron": path.join(fills, "electron.ts"),
 
 			"@coder": path.join(root, "packages"),
 			"vs": path.join(root, "lib", "vscode", "src", "vs"),

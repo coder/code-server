@@ -66,3 +66,18 @@
 .msgbox > .button-wrapper > button:not(:last-child) {
 	margin-right: 8px;
 }
+
+.msgbox-overlay {
+	align-items: center;
+	background: rgba(0, 0, 0, 0.4);
+	bottom: 0;
+	display: flex;
+	justify-content: center;
+	left: 0;
+	opacity: 0;
+	position: absolute;
+	right: 0;
+	top: 0;
+	transition: 300ms opacity ease;
+	z-index: 15;
+}
