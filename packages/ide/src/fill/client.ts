@@ -115,7 +115,9 @@ class Connection implements ReadWriteConnection {
 	 */
 	private async openSocket(): Promise<WebSocket> {
 		this.dispose();
-		const socket = new WebSocket("websocket");
+		const socket = new WebSocket(
+			`${location.protocol === "https" ? "wss" : "ws"}://${location.host}/websocket`,
+		);
 		socket.binaryType = "arraybuffer";
 		this.activeSocket = socket;
 

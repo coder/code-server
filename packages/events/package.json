@@ -1,0 +1,4 @@
+{
+  "name": "@coder/events",
+  "main": "./src/index.ts"
+}

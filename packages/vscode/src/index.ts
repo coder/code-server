@@ -4,7 +4,7 @@ import { URI } from "vs/base/common/uri";
 import "./firefox";
 
 const load = (): Promise<void> => {
-	return new Promise((resolve, reject) => {
+	return new Promise((resolve, reject): void => {
 		setUriFactory({
 			// TODO: not sure why this is an error.
 			// tslint:disable-next-line no-any
@@ -20,19 +20,22 @@ const load = (): Promise<void> => {
 			],
 		});
 
-		resolve();
+		client.mkDirs.then(() => {
+			resolve();
+		});
 
-		// const importTime = time(1500);
-		// import(/* webpackPrefetch: true */ "./workbench").then((module) => {
-		// 	logger.info("Loaded workbench bundle", field("duration", importTime));
-		// 	const initTime = time(1500);
+		const importTime = time(1500);
+		import(/* webpackPrefetch: true */ "./workbench").then((module) => {
+			logger.info("Loaded workbench bundle", field("duration", importTime));
+			const initTime = time(1500);
 
-		// 	return module.initialize(client).then(() => {
-		// 		logger.info("Initialized workbench", field("duration", initTime));
-		//
-		// 	});
-		// }).catch((error) => {
-		// });
+			return module.initialize(client).then(() => {
+				logger.info("Initialized workbench", field("duration", initTime));
+				resolve();
+			});
+		}).catch((error) => {
+			reject(error);
+		});
 	});
 };
 

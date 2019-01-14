@@ -29,7 +29,7 @@ export class Client {
 		this.tasks = [];
 		this.finishedTaskCount = 0;
 		this.progressElement = typeof document !== "undefined"
-			? document.querySelector("#status > #progress > #fill") as HTMLElement
+			? document.querySelector("#fill") as HTMLElement
 			: undefined;
 
 		this.mkDirs = this.wrapTask("Creating directories", 100, async () => {

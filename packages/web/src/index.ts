@@ -3,7 +3,7 @@ import { load } from "@coder/vscode";
 import "./index.scss";
 
 const loadTime = time(2500);
-logger.info("Loading IDE...");
+logger.info("Loading IDE");
 
 const overlay = document.getElementById("overlay");
 const logo = document.getElementById("logo");
@@ -33,11 +33,15 @@ load().then(() => {
 		overlay.classList.add("error");
 	}
 	if (msgElement) {
-		msgElement.innerText = `Failed to load: ${error.message}. Retrying in 3 seconds...`;
+		const button = document.createElement("div");
+		button.className = "reload-button";
+		button.innerText = "Reload";
+		button.addEventListener("click", () => {
+			location.reload();
+		});
+		msgElement.innerText = `Failed to load: ${error.message}.`;
+		msgElement.parentElement!.appendChild(button);
 	}
-	setTimeout(() => {
-		location.reload();
-	}, 3000);
 }).finally(() => {
 	logger.info("Load completed", field("duration", loadTime));
 });

@@ -30,18 +30,18 @@ html, body {
 	z-index: 2;
 }
 
-#overlay>.message {
+#overlay > .message {
 	color: white;
 	margin-top: 10px;
 	opacity: 0.5;
 }
 
-#overlay.error>.message {
+#overlay.error > .message {
 	color: white;
 	opacity: 0.3;
 }
 
-#overlay>.activitybar {
+#overlay > .activitybar {
 	background-color: rgb(44, 44, 44);
 	bottom: 0;
 	height: 100%;
@@ -51,14 +51,14 @@ html, body {
 	width: 50px;
 }
 
-#overlay>.activitybar svg {
+#overlay > .activitybar svg {
 	fill: white;
 	margin-left: 2px;
 	margin-top: 2px;
 	opacity: 0.3;
 }
 
-#overlay.error>#status {
+#overlay.error > #status {
 	opacity: 0;
 }
 
@@ -76,7 +76,7 @@ html, body {
 	transform-style: preserve-3d;
 }
 
-#logo>svg {
+#logo > svg {
 	fill: rgb(0, 122, 204);
 	opacity: 1;
 	width: 100px;
@@ -94,7 +94,7 @@ html, body {
 	transition: 300ms opacity ease;
 }
 
-#status>#progress {
+#progress {
 	background: rgba(0, 0, 0, 0.2);
 	border-bottom-left-radius: 5px;
 	border-bottom-right-radius: 5px;
@@ -134,11 +134,19 @@ html, body {
 	}
 }
 
-#status>#progress>#fill {
+#fill {
 	animation: statusProgress 2s ease infinite;
 	background-size: 400% 400%;
 	background: linear-gradient(270deg, #007acc, #0016cc);
 	height: 100%;
 	transition: 500ms width ease;
 	width: 0%;
+}
+
+.reload-button {
+	background-color: #007acc;
+	border-radius: 2px;
+	cursor: pointer;
+	margin-top: 10px;
+	padding: 6px 10px;
 }

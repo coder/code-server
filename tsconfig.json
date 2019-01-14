@@ -17,7 +17,7 @@
 		],
 		"paths": {
 			"@coder/*": [
-				"./packages/*/src"
+				"./packages/*"
 			],
 			"vs/*": [
 				"./lib/vscode/src/vs/*"

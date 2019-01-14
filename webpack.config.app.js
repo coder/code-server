@@ -21,7 +21,7 @@ const vscodeFills = path.join(root, "packages", "vscode", "src", "fill");
 
 module.exports = {
 	context: root,
-	devtool: "source-map",
+	devtool: "eval",
 	entry: "./packages/web/src/index.ts",
 	mode: isCi ? "production" : "development",
 	output: {
@@ -111,6 +111,7 @@ module.exports = {
 	devServer: {
 		hot: true,
 		port: 3000,
+		disableHostCheck: true,
 		stats: {
 			all: false, // Fallback for options not defined.
 			errors: true,

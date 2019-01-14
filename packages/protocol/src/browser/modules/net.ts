@@ -1,32 +1,5 @@
 import * as net from "net";
 
-/**
- * Implementation of Socket for the browser.
- */
-class Socket extends net.Socket {
-
-	public connect(): this {
-		throw new Error("not implemented");
-	}
-
-}
-
-/**
- * Implementation of Server for the browser.
- */
-class Server extends net.Server {
-
-	public listen(
-		_port?: number | any | net.ListenOptions, // tslint:disable-line no-any so we can match the Node API.
-		_hostname?: string | number | Function,
-		_backlog?: number | Function,
-		_listeningListener?: Function,
-	): this {
-		throw new Error("not implemented");
-	}
-
-}
-
 type NodeNet = typeof net;
 
 /**
@@ -35,11 +8,11 @@ type NodeNet = typeof net;
 export class Net implements NodeNet {
 
 	public get Socket(): typeof net.Socket {
-		return Socket;
+		throw new Error("not implemented");
 	}
 
 	public get Server(): typeof net.Server {
-		return Server;
+		throw new Error("not implemented");
 	}
 
 	public connect(): net.Socket {
@@ -65,8 +38,8 @@ export class Net implements NodeNet {
 	public createServer(
 		_options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean } | ((socket: net.Socket) => void),
 		_connectionListener?: (socket: net.Socket) => void,
-	): Server {
-		return new Server();
+	): net.Server {
+		throw new Error("not implemented");
 	}
 
 }

@@ -8,11 +8,11 @@ export class CP {
 		private readonly client: Client,
 	) { }
 
-	public exec(
+	public exec = (
 		command: string,
 		options?: { encoding?: BufferEncoding | string | "buffer" | null } & cp.ExecOptions | null | ((error: Error | null, stdout: string, stderr: string) => void) | ((error: Error | null, stdout: Buffer, stderr: Buffer) => void),
 		callback?: ((error: Error | null, stdout: string, stderr: string) => void) | ((error: Error | null, stdout: Buffer, stderr: Buffer) => void),
-	): cp.ChildProcess {
+	): cp.ChildProcess => {
 		const process = this.client.spawn(command);
 
 		let stdout = "";
@@ -41,11 +41,11 @@ export class CP {
 		return process;
 	}
 
-	public fork(modulePath: string): cp.ChildProcess {
+	public fork = (modulePath: string): cp.ChildProcess => {
 		return this.client.fork(modulePath);
 	}
 
-	public spawn(command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess {
+	public spawn = (command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess => {
 		return this.client.spawn(command, args, options);
 	}
 
