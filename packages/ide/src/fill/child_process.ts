@@ -1,4 +1,4 @@
-import { CP } from "@coder/server";
+import { CP } from "@coder/protocol";
 import { client } from "./client";
 
 export = new CP(client);

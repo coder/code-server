@@ -1,6 +1,6 @@
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { Client, ReadWriteConnection } from "@coder/server";
+import { Client, ReadWriteConnection } from "@coder/protocol";
 import { retry } from "../retry";
 
 /**

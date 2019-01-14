@@ -2,7 +2,7 @@ import { exec } from "child_process";
 import { appendFile } from "fs";
 import { promisify } from "util";
 import { logger, Logger } from "@coder/logger";
-import { escapePath } from "@coder/server";
+import { escapePath } from "@coder/protocol";
 import { IURI } from "./uri";
 
 /**

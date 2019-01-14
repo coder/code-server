@@ -22,7 +22,7 @@ const vscodeFills = path.join(root, "packages", "vscode", "src", "fill");
 module.exports = {
 	context: root,
 	devtool: "source-map",
-	entry: "./packages/app/src/index.ts",
+	entry: "./packages/web/src/index.ts",
 	mode: isCi ? "production" : "development",
 	output: {
 		chunkFilename: "[name]-[hash:6].bundle.js",
@@ -119,7 +119,7 @@ module.exports = {
 	},
 	plugins: [
 		new HtmlWebpackPlugin({
-			template: "packages/app/src/index.html",
+			template: "packages/web/src/index.html",
 		}),
 		new HappyPack({
 			id: "ts",

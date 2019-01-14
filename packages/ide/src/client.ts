@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { promisify } from "util";
 import { field, logger, time, Time } from "@coder/logger";
-import { escapePath } from "@coder/server";
+import { escapePath } from "@coder/protocol";
 import { retry } from "./retry";
 
 export interface IClientOptions {

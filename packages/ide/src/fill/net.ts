@@ -1,3 +1,3 @@
-import { Net } from "@coder/server";
+import { Net } from "@coder/protocol";
 
 export = new Net();

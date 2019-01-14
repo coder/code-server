@@ -1,5 +1,5 @@
 {
-    "name": "@coder/server",
+    "name": "@coder/protocol",
     "main": "src/index.ts",
     "dependencies": {
         "express": "^4.16.4",
