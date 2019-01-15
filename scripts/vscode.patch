@@ -1,4 +1,3 @@
-\ No newline at end of file
 diff --git a/src/bootstrap-fork.js b/src/bootstrap-fork.js
 index e30cadb0fc..120de744ca 100644
 --- a/src/bootstrap-fork.js
@@ -63,18 +62,6 @@ index 362a2e1e6f..64c7289377 100644
 +
  	return URI.parse(requirefn.toUrl(relativePath)).fsPath;
  }
-diff --git a/src/vs/base/common/async.ts b/src/vs/base/common/async.ts
-index f6a2fee985..45d77884dc 100644
---- a/src/vs/base/common/async.ts
-+++ b/src/vs/base/common/async.ts
-@@ -45,6 +45,7 @@ export function createCancelablePromise<T>(callback: (token: CancellationToken)
- 		});
- 	});
-
-+	// @ts-ignore
- 	return new class implements CancelablePromise<T> {
- 		cancel() {
- 			source.cancel();
 diff --git a/src/vs/base/common/labels.ts b/src/vs/base/common/labels.ts
 index 41dd989c5f..012d265683 100644
 --- a/src/vs/base/common/labels.ts
@@ -256,28 +243,6 @@ index d1ed967b22..b182c9f969 100644
  }
 
  export function encodeStream(encoding: string, options?: { addBOM?: boolean }): NodeJS.ReadWriteStream {
-@@ -194,7 +195,7 @@ const IGNORE_ENCODINGS = ['ascii', 'utf-8', 'utf-16', 'utf-32'];
-  * Guesses the encoding from buffer.
-  */
- export function guessEncodingByBuffer(buffer: Buffer): TPromise<string> {
--	return TPromise.wrap(import('jschardet')).then(jschardet => {
-+	return TPromise.wrap(require('jschardet')).then(jschardet => {
- 		jschardet.Constants.MINIMUM_THRESHOLD = MINIMUM_THRESHOLD;
-
- 		const guessed = jschardet.detect(buffer);
-diff --git a/src/vs/base/node/id.ts b/src/vs/base/node/id.ts
-index c4c5a8ee43..cee84772fc 100644
---- a/src/vs/base/node/id.ts
-+++ b/src/vs/base/node/id.ts
-@@ -84,7 +84,7 @@ export function getMachineId(): TPromise<string> {
-
- function getMacMachineId(): TPromise<string> {
- 	return new TPromise<string>(resolve => {
--		TPromise.join([import('crypto'), import('getmac')]).then(([crypto, getmac]) => {
-+		TPromise.join([Promise.resolve(require('crypto')), Promise.resolve(require('getmac'))]).then(([crypto, getmac]) => {
- 			try {
- 				getmac.getMac((error, macAddress) => {
- 					if (!error) {
 diff --git a/src/vs/base/node/paths.ts b/src/vs/base/node/paths.ts
 index 66930cdaf4..4f00a4982e 100644
 --- a/src/vs/base/node/paths.ts
@@ -306,47 +271,6 @@ index 66930cdaf4..4f00a4982e 100644
 +// const paths = require.__$__nodeRequire<IPaths>(pathsPath);
 +export const getAppDataPath = () => "/tmp" // paths.getAppDataPath;
 +export const getDefaultUserDataPath = (arg?: string) => "/tmp" // paths.getDefaultUserDataPath;
-diff --git a/src/vs/base/node/proxy.ts b/src/vs/base/node/proxy.ts
-index d3d525ce0d..58ab1dd489 100644
---- a/src/vs/base/node/proxy.ts
-+++ b/src/vs/base/node/proxy.ts
-@@ -46,8 +46,8 @@ export async function getProxyAgent(rawRequestURL: string, options: IOptions = {
- 	};
-
- 	const Ctor = requestURL.protocol === 'http:'
--		? await import('http-proxy-agent')
--		: await import('https-proxy-agent');
-+		? require('http-proxy-agent')
-+		: require('https-proxy-agent');
-
- 	return new Ctor(opts);
- }
-diff --git a/src/vs/base/node/ps.ts b/src/vs/base/node/ps.ts
-index 488f8bf9bb..3e8df64db9 100644
---- a/src/vs/base/node/ps.ts
-+++ b/src/vs/base/node/ps.ts
-@@ -134,7 +134,7 @@ export function listProcesses(rootPid: number): Promise<ProcessItem> {
- 				}
- 			};
-
--			(import('windows-process-tree')).then(windowsProcessTree => {
-+			Promise.resolve(require('windows-process-tree')).then(windowsProcessTree => {
- 				windowsProcessTree.getProcessList(rootPid, (processList) => {
- 					windowsProcessTree.getProcessCpuUsage(processList, (completeProcessList) => {
- 						const processItems: Map<number, ProcessItem> = new Map();
-diff --git a/src/vs/base/node/request.ts b/src/vs/base/node/request.ts
-index 23da75d32a..645c8d5ba3 100644
---- a/src/vs/base/node/request.ts
-+++ b/src/vs/base/node/request.ts
-@@ -53,7 +53,7 @@ export interface IRequestFunction {
-
- async function getNodeRequest(options: IRequestOptions): Promise<IRawRequestFunction> {
- 	const endpoint = parseUrl(options.url);
--	const module = endpoint.protocol === 'https:' ? await import('https') : await import('http');
-+	const module = endpoint.protocol === 'https:' ? require('https') : require('http');
- 	return module.request;
- }
-
 diff --git a/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts b/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts
 index 5afeaad9c1..3529dbb97b 100644
 --- a/src/vs/base/parts/contextmenu/electron-main/contextmenu.ts
@@ -549,38 +473,6 @@ index c802f0bd42..ea6ef313ac 100644
  	private static readonly _headerLen = 4;
 
  	private _isDisposed: boolean;
-diff --git a/src/vs/base/worker/workerMain.ts b/src/vs/base/worker/workerMain.ts
-index 9bf45f0b20..763bbd09c8 100644
---- a/src/vs/base/worker/workerMain.ts
-+++ b/src/vs/base/worker/workerMain.ts
-@@ -3,6 +3,7 @@
-  *  Licensed under the MIT License. See License.txt in the project root for license information.
-  *--------------------------------------------------------------------------------------------*/
-
-+
- (function () {
- 	'use strict';
-
-@@ -10,6 +11,7 @@
- 	let monacoBaseUrl = MonacoEnvironment && MonacoEnvironment.baseUrl ? MonacoEnvironment.baseUrl : '../../../';
-
- 	if (typeof (<any>self).define !== 'function' || !(<any>self).define.amd) {
-+		// @ts-ignore
- 		importScripts(monacoBaseUrl + 'vs/loader.js');
- 	}
-
-diff --git a/src/vs/code/electron-browser/issue/issueReporterMain.ts b/src/vs/code/electron-browser/issue/issueReporterMain.ts
-index 790b2886a7..9f440b754c 100644
---- a/src/vs/code/electron-browser/issue/issueReporterMain.ts
-+++ b/src/vs/code/electron-browser/issue/issueReporterMain.ts
-@@ -5,7 +5,6 @@
-
- 'use strict';
-
--import 'vs/css!./media/issueReporter';
- import { shell, ipcRenderer, webFrame, clipboard } from 'electron';
- import { localize } from 'vs/nls';
- import { $ } from 'vs/base/browser/dom';
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 index ff48ec7cb6..9c65419c8e 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
@@ -669,23 +561,6 @@ index ff48ec7cb6..9c65419c8e 100644
  }
 
  interface ISharedProcessInitData {
-@@ -148,7 +190,8 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
- function setupIPC(hook: string): Thenable<Server> {
- 	function setup(retry: boolean): Thenable<Server> {
- 		return serve(hook).then(null, err => {
--			if (!retry || platform.isWindows || err.code !== 'EADDRINUSE') {
-+			// NOTE@coder: it's never Windows.
-+			if (!retry || /*platform.isWindows ||*/ err.code !== 'EADDRINUSE') {
- 				return Promise.reject(err);
- 			}
-
-@@ -190,4 +233,4 @@ function handshake(configuration: ISharedProcessConfiguration): TPromise<void> {
- 	return startHandshake()
- 		.then(data => setupIPC(data.sharedIPCHandle).then(server => main(server, data, configuration)))
- 		.then(() => ipcRenderer.send('handshake:im ready'));
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/code/electron-main/app.ts b/src/vs/code/electron-main/app.ts
 index 4ade1e0175..549b95ca34 100644
 --- a/src/vs/code/electron-main/app.ts
@@ -721,59 +596,6 @@ index 4ade1e0175..549b95ca34 100644
 
  		const issueService = accessor.get(IIssueService);
  		const issueChannel = new IssueChannel(issueService);
-diff --git a/src/vs/code/electron-main/main.ts b/src/vs/code/electron-main/main.ts
-index 46007f71cf..0954448ff4 100644
---- a/src/vs/code/electron-main/main.ts
-+++ b/src/vs/code/electron-main/main.ts
-@@ -336,8 +336,13 @@ function main() {
- 		assign(process.env, instanceEnv);
-
- 		// Startup
--		return instantiationService.invokeFunction(a => createPaths(a.get(IEnvironmentService)))
--			.then(() => instantiationService.invokeFunction(setupIPC))
-+		console.log("GEtting here");
-+		return instantiationService.invokeFunction(a => {
-+			return createPaths(a.get(IEnvironmentService));
-+		}).then(() => {
-+			console.log("INVoked stetup ipc");
-+			return instantiationService.invokeFunction(setupIPC);
-+		})
- 			.then(mainIpcServer => {
- 				bufferLogService.logger = createSpdLogService('main', bufferLogService.getLevel(), environmentService.logsPath);
- 				return instantiationService.createInstance(CodeApplication, mainIpcServer, instanceEnv).startup();
-diff --git a/src/vs/code/electron-main/windows.ts b/src/vs/code/electron-main/windows.ts
-index a67b887acd..c6d82e01e3 100644
---- a/src/vs/code/electron-main/windows.ts
-+++ b/src/vs/code/electron-main/windows.ts
-@@ -1718,6 +1718,7 @@ export class WindowsManager implements IWindowsMainService {
- 	}
-
- 	showOpenDialog(options: Electron.OpenDialogOptions, win?: ICodeWindow): TPromise<string[]> {
-+		console.log("GETTING HERE R0135 showOpen");
- 		return this.dialogs.showOpenDialog(options, win);
- 	}
-
-@@ -1877,6 +1878,7 @@ class Dialogs {
- 	}
-
- 	showOpenDialog(options: Electron.OpenDialogOptions, window?: ICodeWindow): TPromise<string[]> {
-+		console.log("8ugr8w GETTING OPEN DIALOG CALLD");
-
- 		function normalizePaths(paths: string[]): string[] {
- 			if (paths && paths.length > 0 && isMacintosh) {
-diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
-index 94b66896ed..6112b83ab2 100644
---- a/src/vs/code/node/cli.ts
-+++ b/src/vs/code/node/cli.ts
-@@ -273,7 +273,7 @@ export async function main(argv: string[]): Promise<any> {
- 			processCallbacks.push(async _child => {
- 				try {
- 					// load and start profiler
--					const profiler = await import('v8-inspect-profiler');
-+					const profiler = require('v8-inspect-profiler');
- 					const main = await profiler.startProfiling({ port: portMain });
- 					const renderer = await profiler.startProfiling({ port: portRenderer, tries: 200 });
- 					const extHost = await profiler.startProfiling({ port: portExthost, tries: 300 });
 diff --git a/src/vs/editor/browser/services/codeEditorServiceImpl.ts b/src/vs/editor/browser/services/codeEditorServiceImpl.ts
 index 7b006da43e..d69df8f07f 100644
 --- a/src/vs/editor/browser/services/codeEditorServiceImpl.ts
@@ -1011,19 +833,6 @@ index 925ea03a57..44207f8afa 100644
  	reload(): TPromise<void> {
  		return new TPromise(c => this.userConfigModelWatcher.reload(() => c(null)));
  	}
-diff --git a/src/vs/platform/credentials/test/node/keytar.test.ts b/src/vs/platform/credentials/test/node/keytar.test.ts
-index f75689a147..6b3a63cb9b 100644
---- a/src/vs/platform/credentials/test/node/keytar.test.ts
-+++ b/src/vs/platform/credentials/test/node/keytar.test.ts
-@@ -16,7 +16,7 @@ suite('Keytar', () => {
- 			return;
- 		}
- 		(async () => {
--			const keytar = await import('keytar');
-+			const keytar = require('keytar');
- 			const name = `VSCode Test ${Math.floor(Math.random() * 1e9)}`;
- 			try {
- 				await keytar.setPassword(name, 'foo', 'bar');
 diff --git a/src/vs/platform/dialogs/node/dialogService.ts b/src/vs/platform/dialogs/node/dialogService.ts
 index 4304af5518..b12d48b18d 100644
 --- a/src/vs/platform/dialogs/node/dialogService.ts
@@ -1564,7 +1373,7 @@ diff --git a/src/vs/platform/windows/electron-browser/windowService.ts b/src/vs/
 index ab83d870ea..321c7f0a17 100644
 --- a/src/vs/platform/windows/electron-browser/windowService.ts
 +++ b/src/vs/platform/windows/electron-browser/windowService.ts
-@@ -67,6 +67,12 @@ export class WindowService implements IWindowService {
+@@ -67,7 +67,13 @@ export class WindowService implements IWindowService {
  	}
 
  	reloadWindow(args?: ParsedArgs): TPromise<void> {
@@ -1576,26 +1385,6 @@ index ab83d870ea..321c7f0a17 100644
 +
  		return this.windowsService.reloadWindow(this.windowId, args);
  	}
-
-@@ -159,6 +165,7 @@ export class WindowService implements IWindowService {
- 	}
-
- 	showOpenDialog(options: Electron.OpenDialogOptions): TPromise<string[]> {
-+		console.log("ODKAJ(%(% GETTING CALLED OPEN", this.windowsService);
- 		return this.windowsService.showOpenDialog(this.windowId, options);
- 	}
-
-diff --git a/src/vs/platform/windows/electron-main/windowsService.ts b/src/vs/platform/windows/electron-main/windowsService.ts
-index 0deb6db442..8c7f849e48 100644
---- a/src/vs/platform/windows/electron-main/windowsService.ts
-+++ b/src/vs/platform/windows/electron-main/windowsService.ts
-@@ -104,6 +104,7 @@ export class WindowsService implements IWindowsService, IURLHandler, IDisposable
- 	}
-
- 	showOpenDialog(windowId: number, options: Electron.OpenDialogOptions): TPromise<string[]> {
-+		console.log("WE ARTE OUT HERE 092ti24t", windowId);
- 		this.logService.trace('windowsService#showOpenDialog', windowId);
- 		const codeWindow = this.windowsMainService.getWindowById(windowId);
 
 diff --git a/src/vs/platform/windows/node/windowsIpc.ts b/src/vs/platform/windows/node/windowsIpc.ts
 index f5546a0161..df12e2e5d5 100644
@@ -2245,7 +2034,7 @@ index 1fd525bf8a..f2ff8ed7e7 100644
 
  		super(name, false, file, proxy);
  		this._appender = new OutputAppender(fileName, file.fsPath);
-@@ -113,7 +113,7 @@ export class ExtHostOutputService {
+@@ -113,8 +113,8 @@ export class ExtHostOutputService {
  	private _outputDir: string;
 
  	constructor(logsLocation: URI, mainContext: IMainContext) {
@@ -2254,23 +2043,6 @@ index 1fd525bf8a..f2ff8ed7e7 100644
  		this._proxy = mainContext.getProxy(MainContext.MainThreadOutputService);
  	}
 
-diff --git a/src/vs/workbench/api/node/extHostSearch.fileIndex.ts b/src/vs/workbench/api/node/extHostSearch.fileIndex.ts
-index 4cc7e4d150..543c47931c 100644
---- a/src/vs/workbench/api/node/extHostSearch.fileIndex.ts
-+++ b/src/vs/workbench/api/node/extHostSearch.fileIndex.ts
-@@ -682,10 +682,12 @@ export class FileIndexSearchManager {
- 	}
-
- 	private preventCancellation<C>(promise: CancelablePromise<C>): CancelablePromise<C> {
-+		// @ts-ignore
- 		return new class implements CancelablePromise<C> {
- 			cancel() {
- 				// Do nothing
- 			}
-+			// @ts-ignore
- 			then(resolve, reject) {
- 				return promise.then(resolve, reject);
- 			}
 diff --git a/src/vs/workbench/api/node/extHostTerminalService.ts b/src/vs/workbench/api/node/extHostTerminalService.ts
 index 82b27ae509..02d90fe31d 100644
 --- a/src/vs/workbench/api/node/extHostTerminalService.ts
@@ -2419,13 +2191,6 @@ index 02499b9f40..69102d2ea8 100644
  	}
 
  	setActivity(activity: IActivity): void {
-@@ -253,4 +253,4 @@ registerThemingParticipant((theme: ITheme, collector: ICssStyleCollector) => {
- 				`);
- 		}
- 	}
--});
-\ No newline at end of file
-+});
 diff --git a/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts b/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
 index 4ef749c3fd..45f003e2fd 100644
 --- a/src/vs/workbench/browser/parts/activitybar/activitybarPart.ts
@@ -2462,152 +2227,6 @@ index 4ef749c3fd..45f003e2fd 100644
  			} else {
  				s.iconUrl = void 0;
  			}
-diff --git a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css b/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
-index 5a92b2e1f5..1d3c735e75 100644
---- a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
-+++ b/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
-@@ -4,25 +4,130 @@
-  *--------------------------------------------------------------------------------------------*/
-
- .monaco-workbench > .part.activitybar {
--	width: 50px;
-+    width: 50px;
- }
-
- .monaco-workbench > .activitybar > .content {
--	height: 100%;
--	display: flex;
--	flex-direction: column;
--	justify-content: space-between;
-+    height: 100%;
-+    display: flex;
-+    flex-direction: column;
-+    justify-content: space-between;
- }
-
- .monaco-workbench > .activitybar > .content .monaco-action-bar {
--	text-align: left;
--	background-color: inherit;
-+    text-align: left;
-+    background-color: inherit;
- }
-
- .monaco-workbench > .activitybar .action-item:focus {
--	outline: 0 !important; /* activity bar indicates focus custom */
-+    outline: 0 !important; /* activity bar indicates focus custom */
- }
-
- .monaco-workbench .activitybar > .content > .composite-bar > .monaco-action-bar .action-label.toggle-more {
--	-webkit-mask: url('ellipsis-global.svg') no-repeat 50% 50%;
--}
-\ No newline at end of file
-+    -webkit-mask: url("ellipsis-global.svg") no-repeat 50% 50%;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar {
-+    flex: 1;
-+    display: flex;
-+    flex-direction: column;
-+    overflow: visible;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .toggle-terminal {
-+    transition: 500ms color ease;
-+    opacity: 0.65;
-+    filter: brightness(115%);
-+    padding-top: 10px;
-+    padding-bottom: 10px;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .toggle-terminal:hover {
-+    opacity: 1;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .toggle-terminal.disabled {
-+    cursor: disabled;
-+    opacity: 0.45 !important;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .toggle-terminal > .icon {
-+    text-align: center;
-+    display: block;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .toggle-terminal > .icon > svg {
-+    width: 29px;
-+    fill: currentColor;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime {
-+    transition: 500ms color ease;
-+    opacity: 0.65;
-+    filter: brightness(115%);
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime:hover {
-+    opacity: 1;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime.disabled {
-+    cursor: disabled;
-+    opacity: 0.45 !important;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime > .icon {
-+    text-align: center;
-+    display: block;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime > .icon > svg {
-+    width: 22px;
-+    fill: currentColor;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime > .text {
-+    font-size: 12px;
-+    text-align: center;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .fasttime > .text.unknown {
-+    font-size: 8px;
-+    opacity: 0;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar > .feedback {
-+    transition: 500ms color ease;
-+    padding-top: 10px;
-+	padding-bottom: 10px;
-+	margin-left: 0px;
-+	margin-top: auto;
-+	flex: 0;
-+	cursor: default;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .feedback > .icon {
-+	text-align: center;
-+    display: block;
-+    opacity: 0.65;
-+	filter: brightness(115%);
-+	cursor: pointer;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .feedback .feedback {
-+	position: initial;
-+	margin-left: 0px;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .feedback .feedback-dropdown {
-+	bottom: -63px;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .feedback:hover > .icon {
-+    opacity: 1;
-+}
-+
-+.monaco-workbench .activitybar > .content > .extras-bar .feedback > .icon > svg {
-+    width: 29px;
-+    fill: currentColor;
-+}
 diff --git a/src/vs/workbench/browser/parts/compositeBar.ts b/src/vs/workbench/browser/parts/compositeBar.ts
 index 3cc6b830a8..51cf0560ac 100644
 --- a/src/vs/workbench/browser/parts/compositeBar.ts
@@ -8637,17 +8256,3 @@ index ce9193eb9c..4da9379e26 100644
 +	URI,
 +	startup,
 +};
-diff --git a/test/smoke/tsconfig.json b/test/smoke/tsconfig.json
-index 1b0b03c2d6..2b86b7ecc0 100644
---- a/test/smoke/tsconfig.json
-+++ b/test/smoke/tsconfig.json
-@@ -13,6 +13,9 @@
- 		"lib": [
- 			"es2016",
- 			"dom"
-+		],
-+		"typeRoots": [
-+			"./node_modules/@types"
- 		]
- 	},
- 	"exclude": [

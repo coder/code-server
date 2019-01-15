@@ -20,10 +20,6 @@ const load = (): Promise<void> => {
 			],
 		});
 
-		client.mkDirs.then(() => {
-			resolve();
-		});
-
 		const importTime = time(1500);
 		import(/* webpackPrefetch: true */ "./workbench").then((module) => {
 			logger.info("Loaded workbench bundle", field("duration", importTime));

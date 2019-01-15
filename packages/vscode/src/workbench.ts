@@ -1,40 +1,19 @@
-import * as fs from "fs";
-import {
-	Client, Emitter, getFactory, IPosition, IFileConflict, ConflictResolution,
-	Event,
-	IDisposable,
-	IDocumentContentChangedEvent, IURI, IRange, escapePath,
-	IOrphanedChangedEvent,
-} from 'coder/common';
-import { Protocol } from 'vs/base/parts/ipc/node/ipc.net';
-import { IModelService } from 'vs/editor/common/services/modelService';
-import { ICodeEditorService } from 'vs/editor/browser/services/codeEditorService';
-import { ShutdownReason } from 'vs/platform/lifecycle/common/lifecycle';
-import { TPromise } from 'vs/base/common/winjs.base';
-import { ITextModel, TrackedRangeStickiness, IModelDeltaDecoration } from 'vs/editor/common/model';
-import { Position } from 'vs/editor/common/core/position';
-import { Selection } from 'vs/editor/common/core/selection';
-import { ICodeEditor } from 'vs/editor/browser/editorBrowser';
-import { registerContextMenuListener } from 'vs/base/parts/contextmenu/electron-main/contextmenu';
-import { Workbench } from 'vs/workbench/electron-browser/workbench';
-import { StorageService } from 'coder/storageService';
-import { IContentData, IFileService, FileOperationError, FileOperationResult, FileSystemProviderCapabilities, IStat, FileType } from 'vs/platform/files/common/files';
-import { onInstantiation as onFileServiceInstantiation } from 'vs/workbench/services/files/electron-browser/fileService';
-import { URI } from 'vs/base/common/uri';
-import { EventEmitter } from 'events';
-import { Range } from 'vs/editor/common/core/range';
-import product from 'vs/platform/node/product';
-import { CONFLICT_RESOLUTION_SCHEME } from 'vs/workbench/parts/files/electron-browser/saveErrorHandler';
-import { ITextFileService, ModelState } from 'vs/workbench/services/textfile/common/textfiles';
-import { field, logger } from 'coder/logger';
-import { events } from 'coder/analytics';
-import { IDecorationsService } from 'vs/workbench/services/decorations/browser/decorations';
-import { registerCollaboratorDecorations } from 'coder/collaborators';
-import { IInitData as ISharedProcessInitData } from 'vs/code/electron-browser/sharedProcess/sharedProcessClient';
-import { LogLevel } from 'vs/platform/log/common/log';
-import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
-import { toLocalISOString } from 'vs/base/common/date';
-import { RawContextKey, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
+import { Client } from "@coder/ide";
+import { Emitter } from "@coder/events";
+import { logger } from "@coder/logger";
+
+import { Protocol } from "vs/base/parts/ipc/node/ipc.net";
+import { IModelService } from "vs/editor/common/services/modelService";
+import { ICodeEditorService } from "vs/editor/browser/services/codeEditorService";
+import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
+import { Workbench } from "vs/workbench/electron-browser/workbench";
+import { IDecorationsService } from "vs/workbench/services/decorations/browser/decorations";
+import { LogLevel } from "vs/platform/log/common/log";
+import { INotificationService, Severity } from "vs/platform/notification/common/notification";
+import { toLocalISOString } from "vs/base/common/date";
+import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
+
+import { StorageService } from "./storageService";
 
 let protoResolve: (protocol: Protocol) => void;
 export const protocolPromise = new Promise<Protocol>((res) => {
@@ -79,14 +58,6 @@ function getCodeEditorService(): ICodeEditorService {
 	return workbench.workbenchParams.serviceCollection.get(ICodeEditorService) as ICodeEditorService;
 }
 
-function getFileService(): IFileService {
-	return workbench.workbenchParams.serviceCollection.get(IFileService) as IFileService;
-}
-
-function getTextFileService(): ITextFileService {
-	return workbench.workbenchParams.serviceCollection.get(ITextFileService) as ITextFileService;
-}
-
 function getNotificationService(): INotificationService {
 	return workbench.workbenchParams.serviceCollection.get(INotificationService) as INotificationService;
 }
@@ -96,6 +67,7 @@ export const initialize = async (client: Client): Promise<void> {
 		event.preventDefault();
 	});
 
+	// TODO: Fetch configuration.
 	const storageServicePromise = client.wrapTask("Set configurations", 5, async (state) => {
 		const storageService = new StorageService(state.global, state.workspace);
 		storageResolve(storageService);
@@ -239,7 +211,14 @@ export const initialize = async (client: Client): Promise<void> {
 		await registerCollaboratorDecorations(client, decorations);
 
 		return workbenchShell;
-	}, client.workspace.then((w) => w.connect()), mountPromise, client.mkDirs);
+	}, client.mkDirs);
+
+	client.wrapTask("Set up saving state", 5, async () => {
+		if (!navigator.sendBeacon) {
+			throw new Error("cannot save state");
+		}
+		// TODO: save storageSevice.globalObject and storageService.workspaceObject
+	});
 
 	await workbenchPromise;
 };
