@@ -2,6 +2,7 @@ import * as vm from "vm";
 import { NewEvalMessage, TypedValue, EvalFailedMessage, EvalDoneMessage, ServerMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
 
+declare var __non_webpack_require__: typeof require;
 export const evaluate = async (connection: SendableConnection, message: NewEvalMessage): Promise<void> => {
 	const argStr: string[] = [];
 	message.getArgsList().forEach((value) => {
@@ -51,7 +52,7 @@ export const evaluate = async (connection: SendableConnection, message: NewEvalM
 		connection.send(serverMsg.serializeBinary());
 	};
 	try {
-		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { Buffer, require, setTimeout }, {
+		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { Buffer, require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require, setTimeout }, {
 			timeout: message.getTimeout() || 30000,
 		});
 		sendResp(await value);

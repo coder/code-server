@@ -27,5 +27,20 @@ message ServerMessage {
 		// node.proto
 		EvalFailedMessage eval_failed = 5;
 		EvalDoneMessage eval_done = 6;
+
+		InitMessage init = 7;
 	}
+}
+
+message InitMessage {
+	string home_directory = 1;
+	string tmp_directory = 2;
+	string data_directory = 3;
+	string working_directory = 4;
+	enum OperatingSystem {
+		Windows = 0;
+		Linux = 1;
+		Mac = 2;
+	}
+	OperatingSystem operating_system = 5;
 }

@@ -41,5 +41,9 @@
     "webpack-cli": "^3.2.1",
     "webpack-dev-server": "^3.1.14",
     "write-file-webpack-plugin": "^4.5.0"
+  },
+  "dependencies": {
+    "node-loader": "^0.6.0",
+    "webpack-merge": "^4.2.1"
   }
 }

@@ -38,14 +38,18 @@ export class CP {
 			);
 		});
 
+		// @ts-ignore
 		return process;
 	}
 
-	public fork = (modulePath: string): cp.ChildProcess => {
+	public fork(modulePath: string): cp.ChildProcess {
+		//@ts-ignore
 		return this.client.fork(modulePath);
 	}
 
-	public spawn = (command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess => {
+	public spawn(command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess {
+		// TODO: fix this ignore. Should check for args or options here
+		//@ts-ignore
 		return this.client.spawn(command, args, options);
 	}
 

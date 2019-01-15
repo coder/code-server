@@ -117,6 +117,8 @@ export abstract class Formatter {
 	public abstract push(arg: string, color?: string, weight?: string): void;
 	public abstract push(arg: any): void; // tslint:disable-line no-any
 
+	public abstract fields(fields: Array<Field<any>>): void;
+
 	/**
 	 * Flush out the built arguments.
 	 */
@@ -149,12 +151,12 @@ export abstract class Formatter {
  */
 export class BrowserFormatter extends Formatter {
 
-	public tag(name: string, color:string): void {
+	public tag(name: string, color: string): void {
 		this.format += `%c ${name} `;
 		this.args.push(
 			`border: 1px solid #222; background-color: ${color}; padding-top: 1px;`
-				+ " padding-bottom: 1px; font-size: 12px; font-weight: bold; color: white;"
-				+ (name.length === 4 ? "padding-left: 3px; padding-right: 4px;" : ""),
+			+ " padding-bottom: 1px; font-size: 12px; font-weight: bold; color: white;"
+			+ (name.length === 4 ? "padding-left: 3px; padding-right: 4px;" : ""),
 		);
 	}
 
@@ -170,6 +172,20 @@ export class BrowserFormatter extends Formatter {
 		this.args.push(arg);
 	}
 
+	public fields(fields: Array<Field<any>>): void {
+		console.groupCollapsed(...this.flush());
+		fields.forEach((field) => {
+			this.push(field.identifier, "#3794ff", "bold");
+			if (typeof field.value !== "undefined" && field.value.constructor && field.value.constructor.name) {
+				this.push(` (${field.value.constructor.name})`);
+			}
+			this.push(": ");
+			this.push(field.value);
+			console.log(...this.flush());
+		});
+		console.groupEnd();
+	}
+
 }
 
 /**
@@ -179,8 +195,11 @@ export class ServerFormatter extends Formatter {
 
 	public tag(name: string, color: string): void {
 		const [r, g, b] = hexToRgb(color);
+		while (name.length < 5) {
+			name += " ";
+		}
 		this.format += "\u001B[1m";
-		this.format += `\u001B[48;2;${r};${g};${b}m ${name} \u001B[0m`;
+		this.format += `\u001B[38;2;${r};${g};${b}m ${name} \u001B[0m`;
 	}
 
 	public push(arg: any, color?: string, weight?: string): void { // tslint:disable-line no-any
@@ -196,6 +215,16 @@ export class ServerFormatter extends Formatter {
 			this.format += "\u001B[0m";
 		}
 		this.args.push(arg);
+	}
+
+	public fields(fields: Array<Field<any>>): void {
+		const obj = {} as any;
+		this.format += "\u001B[38;2;140;140;140m"
+		fields.forEach((field) => {
+			obj[field.identifier] = field.value;
+		});
+		this.args.push(JSON.stringify(obj));
+		console.log(...this.flush());
 	}
 
 }
@@ -250,7 +279,7 @@ export class Logger {
 			type: "warn",
 			message: msg,
 			fields,
-			tagColor: "#919E00",
+			tagColor: "#FF9D00",
 		});
 	}
 
@@ -325,7 +354,7 @@ export class Logger {
 			this._formatter.push(" ");
 			this._formatter.tag(this.name.toUpperCase(), this.nameColor);
 		}
-		this._formatter.push(" " + options.message);
+		this._formatter.push(options.message);
 		if (times.length > 0) {
 			times.forEach((time) => {
 				const diff = now - time.value.ms;
@@ -341,17 +370,7 @@ export class Logger {
 
 		// tslint:disable no-console
 		if (hasFields) {
-			console.groupCollapsed(...this._formatter.flush());
-			fields.forEach((field) => {
-				this._formatter.push(field.identifier, "#3794ff", "bold");
-				if (typeof field.value !== "undefined" && field.value.constructor && field.value.constructor.name) {
-					this._formatter.push(` (${field.value.constructor.name})`);
-				}
-				this._formatter.push(": ");
-				this._formatter.push(field.value);
-				console.log(...this._formatter.flush());
-			});
-			console.groupEnd();
+			this._formatter.fields(fields);
 		} else {
 			console.log(...this._formatter.flush());
 		}

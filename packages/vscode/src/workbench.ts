@@ -62,7 +62,7 @@ function getNotificationService(): INotificationService {
 	return workbench.workbenchParams.serviceCollection.get(INotificationService) as INotificationService;
 }
 
-export const initialize = async (client: Client): Promise<void> {
+export const initialize = async (client: Client): Promise<void> => {
 	window.addEventListener("contextmenu", (event) => {
 		event.preventDefault();
 	});

@@ -7,3 +7,17 @@ export interface ReadWriteConnection extends SendableConnection {
 	onClose(cb: () => void): void;
 	close(): void;
 }
+
+export enum OperatingSystem {
+	Windows,
+	Linux,
+	Mac,
+}
+
+export interface InitData {
+	readonly os: OperatingSystem;
+	readonly dataDirectory: string;
+	readonly workingDirectory: string;
+	readonly homeDirectory: string;
+	readonly tmpDirectory: string;
+}

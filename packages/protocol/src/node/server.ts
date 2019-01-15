@@ -1,9 +1,15 @@
 import { logger, field } from "@coder/logger";
+import * as os from "os";
 import { TextDecoder } from "text-encoding";
-import { ClientMessage } from "../proto";
+import { ClientMessage, InitMessage, ServerMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
 import { Process, handleNewSession } from "./command";
+
+export interface ServerOptions {
+	readonly workingDirectory: string;
+	readonly dataDirectory: string;
+}
 
 export class Server {
 
@@ -11,6 +17,7 @@ export class Server {
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
+		options?: ServerOptions,
 	) {
 		this.sessions = new Map();
 
@@ -21,6 +28,37 @@ export class Server {
 				logger.error("Failed to handle client message", field("length", data.byteLength), field("exception", ex));
 			}
 		});
+
+		if (!options) {
+			logger.warn("No server options provided. InitMessage will not be sent.");
+
+			return;
+		}
+
+		const initMsg = new InitMessage();
+		initMsg.setDataDirectory(options.dataDirectory);
+		initMsg.setWorkingDirectory(options.workingDirectory);
+		initMsg.setHomeDirectory(os.homedir());
+		initMsg.setTmpDirectory(os.tmpdir());
+		const platform = os.platform();
+		let operatingSystem: InitMessage.OperatingSystem;
+		switch (platform) {
+			case "win32":
+				operatingSystem = InitMessage.OperatingSystem.WINDOWS;
+				break;
+			case "linux":
+				operatingSystem = InitMessage.OperatingSystem.LINUX;
+				break;
+			case "darwin":
+				operatingSystem = InitMessage.OperatingSystem.MAC;
+				break;
+			default:
+				throw new Error(`unrecognized platform "${platform}"`);
+		}
+		initMsg.setOperatingSystem(operatingSystem);
+		const srvMsg = new ServerMessage();
+		srvMsg.setInit(initMsg);
+		connection.send(srvMsg.serializeBinary());
 	}
 
 	private handleMessage(message: ClientMessage): void {

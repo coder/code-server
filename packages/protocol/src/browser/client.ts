@@ -1,6 +1,6 @@
-import { ReadWriteConnection } from "../common/connection";
-import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage } from "../proto";
-import { Emitter } from "@coder/events";
+import { ReadWriteConnection, InitData, OperatingSystem } from "../common/connection";
+import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, InitMessage } from "../proto";
+import { Emitter, Event } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ChildProcess, SpawnOptions, ServerProcess } from "./command";
 
@@ -15,12 +15,17 @@ export class Client {
 	private sessionId: number = 0;
 	private sessions: Map<number, ServerProcess> = new Map();
 
+	private _initData: InitData | undefined;
+	private initDataEmitter: Emitter<InitData> = new Emitter();
+
 	/**
 	 * @param connection Established connection to the server
 	 */
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 	) {
+		this.initDataEmitter = new Emitter();
+
 		connection.onMessage((data) => {
 			try {
 				this.handleMessage(ServerMessage.deserializeBinary(data));
@@ -28,6 +33,14 @@ export class Client {
 				logger.error("Failed to handle server message", field("length", data.byteLength), field("exception", ex));
 			}
 		});
+	}
+
+	public get onInitData(): Event<InitData> {
+		return this.initDataEmitter.event;
+	}
+
+	public get initData(): InitData | undefined {
+		return this._initData;
 	}
 
 	public evaluate<R>(func: () => R | Promise<R>): Promise<R>;
@@ -47,7 +60,7 @@ export class Client {
 	 * console.log(returned);
 	 * // output: "hi"
 	 * @param func Function to evaluate
-	 * @returns {Promise} Promise rejected or resolved from the evaluated function
+	 * @returns Promise rejected or resolved from the evaluated function
 	 */
 		public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
 		const newEval = new NewEvalMessage();
@@ -61,8 +74,8 @@ export class Client {
 		this.connection.send(clientMsg.serializeBinary());
 
 		let res: (value?: R) => void;
-		let rej: (err?: any) => void;
-		const prom = new Promise<R>((r, e) => {
+		let rej: (err?: Error) => void;
+		const prom = new Promise<R>((r, e): void => {
 			res = r;
 			rej = e;
 		});
@@ -80,6 +93,7 @@ export class Client {
 				}
 
 				const rt = resp.getType();
+				// tslint:disable-next-line
 				let val: any;
 				switch (rt) {
 					case TypedValue.Type.BOOLEAN:
@@ -107,7 +121,7 @@ export class Client {
 				d1.dispose();
 				d2.dispose();
 
-				rej(failedMsg.getMessage());
+				rej(new Error(failedMsg.getMessage()));
 			}
 		});
 
@@ -120,7 +134,6 @@ export class Client {
 	 * const cp = this.client.spawn("echo", ["test"]);
 	 * cp.stdout.on("data", (data) => console.log(data.toString()));
 	 * cp.on("exit", (code) => console.log("exited with", code));
-	 * @param command
 	 * @param args Arguments
 	 * @param options Options to execute for the command
 	 */
@@ -167,7 +180,6 @@ export class Client {
 
 		const serverProc = new ServerProcess(this.connection, id, options ? options.tty !== undefined : false);
 		serverProc.stdin.on("close", () => {
-			console.log("stdin closed");
 			const c = new CloseSessionInputMessage();
 			c.setId(id);
 			const cm = new ClientMessage();
@@ -175,6 +187,7 @@ export class Client {
 			this.connection.send(cm.serializeBinary());
 		});
 		this.sessions.set(id, serverProc);
+
 		return serverProc;
 	}
 
@@ -183,7 +196,31 @@ export class Client {
 	 * routed through here.
 	 */
 	private handleMessage(message: ServerMessage): void {
-		if (message.hasEvalDone()) {
+		if (message.hasInit()) {
+			const init = message.getInit()!;
+			let opSys: OperatingSystem;
+			switch (init.getOperatingSystem()) {
+				case InitMessage.OperatingSystem.WINDOWS:
+					opSys = OperatingSystem.Windows;
+					break;
+				case InitMessage.OperatingSystem.LINUX:
+					opSys = OperatingSystem.Linux;
+					break;
+				case InitMessage.OperatingSystem.MAC:
+					opSys = OperatingSystem.Mac;
+					break;
+				default:
+					throw new Error(`unsupported operating system ${init.getOperatingSystem()}`);
+			}
+			this._initData = {
+				dataDirectory: init.getDataDirectory(),
+				homeDirectory: init.getHomeDirectory(),
+				tmpDirectory: init.getTmpDirectory(),
+				workingDirectory: init.getWorkingDirectory(),
+				os: opSys,
+			};
+			this.initDataEmitter.emit(this._initData);
+		} else if (message.hasEvalDone()) {
 			this.evalDoneEmitter.emit(message.getEvalDone()!);
 		} else if (message.hasEvalFailed()) {
 			this.evalFailedEmitter.emit(message.getEvalFailed()!);

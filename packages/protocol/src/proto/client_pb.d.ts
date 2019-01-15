@@ -99,6 +99,11 @@ export class ServerMessage extends jspb.Message {
   getEvalDone(): node_pb.EvalDoneMessage | undefined;
   setEvalDone(value?: node_pb.EvalDoneMessage): void;
 
+  hasInit(): boolean;
+  clearInit(): void;
+  getInit(): InitMessage | undefined;
+  setInit(value?: InitMessage): void;
+
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServerMessage.AsObject;
@@ -118,6 +123,7 @@ export namespace ServerMessage {
     identifySession?: command_pb.IdentifySessionMessage.AsObject,
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
+    init?: InitMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -128,6 +134,49 @@ export namespace ServerMessage {
     IDENTIFY_SESSION = 4,
     EVAL_FAILED = 5,
     EVAL_DONE = 6,
+    INIT = 7,
+  }
+}
+
+export class InitMessage extends jspb.Message {
+  getHomeDirectory(): string;
+  setHomeDirectory(value: string): void;
+
+  getTmpDirectory(): string;
+  setTmpDirectory(value: string): void;
+
+  getDataDirectory(): string;
+  setDataDirectory(value: string): void;
+
+  getWorkingDirectory(): string;
+  setWorkingDirectory(value: string): void;
+
+  getOperatingSystem(): InitMessage.OperatingSystem;
+  setOperatingSystem(value: InitMessage.OperatingSystem): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): InitMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: InitMessage): InitMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: InitMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): InitMessage;
+  static deserializeBinaryFromReader(message: InitMessage, reader: jspb.BinaryReader): InitMessage;
+}
+
+export namespace InitMessage {
+  export type AsObject = {
+    homeDirectory: string,
+    tmpDirectory: string,
+    dataDirectory: string,
+    workingDirectory: string,
+    operatingSystem: InitMessage.OperatingSystem,
+  }
+
+  export enum OperatingSystem {
+    WINDOWS = 0,
+    LINUX = 1,
+    MAC = 2,
   }
 }
 
