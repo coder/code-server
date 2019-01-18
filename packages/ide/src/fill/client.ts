@@ -1,5 +1,5 @@
 import { Emitter } from "@coder/events";
-import { logger, field } from "@coder/logger";
+import { field, logger } from "@coder/logger";
 import { Client, ReadWriteConnection } from "@coder/protocol";
 import { retry } from "../retry";
 
@@ -10,27 +10,20 @@ import { retry } from "../retry";
 class Connection implements ReadWriteConnection {
 
 	private activeSocket: WebSocket | undefined;
-	private readonly messageEmitter: Emitter<Uint8Array>;
-	private readonly closeEmitter: Emitter<void>;
-	private readonly upEmitter: Emitter<void>;
-	private readonly downEmitter: Emitter<void>;
-	private readonly messageBuffer: Uint8Array[];
+	private readonly messageEmitter: Emitter<Uint8Array> = new Emitter();
+	private readonly closeEmitter: Emitter<void> = new Emitter();
+	private readonly upEmitter: Emitter<void> = new Emitter();
+	private readonly downEmitter: Emitter<void> = new Emitter();
+	private readonly messageBuffer: Uint8Array[] = [];
 	private socketTimeoutDelay = 60 * 1000;
 	private retryName = "Web socket";
-	private isUp: boolean | undefined;
-	private closed: boolean | undefined;
+	private isUp: boolean = false;
+	private closed: boolean = false;
 
 	public constructor() {
-		this.messageEmitter = new Emitter();
-		this.closeEmitter = new Emitter();
-		this.upEmitter = new Emitter();
-		this.downEmitter = new Emitter();
-		this.messageBuffer = [];
 		retry.register(this.retryName, () => this.connect());
-		this.connect().catch(() => {
-			retry.block(this.retryName);
-			retry.run(this.retryName);
-		});
+		retry.block(this.retryName);
+		retry.run(this.retryName);
 	}
 
 	/**
@@ -72,7 +65,7 @@ class Connection implements ReadWriteConnection {
 		this.closeEmitter.emit();
 	}
 
-/**
+	/**
 	 * Connect to the server.
 	 */
 	private async connect(): Promise<void> {
@@ -116,7 +109,7 @@ class Connection implements ReadWriteConnection {
 	private async openSocket(): Promise<WebSocket> {
 		this.dispose();
 		const socket = new WebSocket(
-			`${location.protocol === "https" ? "wss" : "ws"}://${location.host}/websocket`,
+			`${location.protocol === "https" ? "wss" : "ws"}://${location.host}`,
 		);
 		socket.binaryType = "arraybuffer";
 		this.activeSocket = socket;
@@ -153,7 +146,5 @@ class Connection implements ReadWriteConnection {
 
 }
 
-/**
- * A client for proxying Node APIs based on web sockets.
- */
+// Global instance so all fills can use the same client.
 export const client = new Client(new Connection());

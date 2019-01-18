@@ -7,7 +7,7 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const root = path.join(__dirname, "..");
 
-module.exports = {
+module.exports = (options = {}) => ({
 	context: root,
 	devtool: "source-map",
 	// entry: "./packages/app/src/index.ts",
@@ -67,15 +67,6 @@ module.exports = {
 			path.join(root, "node_modules"),
 		],
 	},
-	devServer: {
-		hot: true,
-		port: 3000,
-		stats: {
-			all: false, // Fallback for options not defined.
-			errors: true,
-			warnings: true,
-		},
-	},
 	plugins: [
 		new HappyPack({
 			id: "ts",
@@ -84,6 +75,7 @@ module.exports = {
 				path: "ts-loader",
 				query: {
 					happyPackMode: true,
+					compilerOptions: options.typescriptCompilerOptions,
 				},
 			}],
 		}),
@@ -101,4 +93,4 @@ module.exports = {
 		errors: true,
 		warnings: true,
 	},
-};
+});

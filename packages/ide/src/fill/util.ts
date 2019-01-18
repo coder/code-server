@@ -1,5 +1,4 @@
-import { implementation as promisify } from "util.promisify";
+export * from "../../../../node_modules/util";
+import { implementation } from "util.promisify";
 
-export {
-	promisify,
-}
+export const promisify = implementation;

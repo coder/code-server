@@ -1,3 +1,5 @@
+import * as net from "net";
+import * as os from "os";
 import * as path from "path";
 import { TextEncoder, TextDecoder } from "text-encoding";
 import { createClient } from "./helpers";
@@ -5,7 +7,7 @@ import { createClient } from "./helpers";
 (<any>global).TextDecoder = TextDecoder;
 (<any>global).TextEncoder = TextEncoder;
 
-describe("Command", () => {
+describe("spawn", () => {
 	const client = createClient();
 
 	it("should execute command and return output", (done) => {
@@ -128,5 +130,61 @@ describe("Command", () => {
 			expect(data).toEqual("test");
 		});
 		proc.on("exit", () => done());
+	});
+});
+
+describe("createConnection", () => {
+	const client = createClient();
+	const tmpPath = path.join(os.tmpdir(), Math.random().toString()); 
+	let server: net.Server;
+	beforeAll(async () => {
+		await new Promise((r) => {
+			server = net.createServer().listen(tmpPath, () => {
+				r();
+			});
+		});
+	});
+
+	afterAll(() => {
+		server.close();
+	});
+
+	it("should connect to socket", (done) => {
+		const socket = client.createConnection(tmpPath, () => {
+			socket.end();
+			socket.addListener("close", () => {
+				done();
+			});
+		});
+	});
+
+	it("should get data from server", (done) => {
+		server.once("connection", (socket: net.Socket) => {
+			socket.write("hi how r u");
+		});
+
+		const socket = client.createConnection(tmpPath);
+
+		socket.addListener("data", (data) => {
+			expect(data.toString()).toEqual("hi how r u");
+			socket.end();
+			socket.addListener("close", () => {
+				done();
+			});
+		});
+	});
+
+	it("should send data to server", (done) => {
+		const clientSocket = client.createConnection(tmpPath);
+		clientSocket.write(Buffer.from("bananas"));
+		server.once("connection", (socket: net.Socket) => {
+			socket.addListener("data", (data) => {
+				expect(data.toString()).toEqual("bananas");
+				socket.end();
+				clientSocket.addListener("end", () => {
+					done();
+				});
+			});
+		});
 	});
 });

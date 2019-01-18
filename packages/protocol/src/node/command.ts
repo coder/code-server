@@ -1,8 +1,9 @@
 import * as cp from "child_process";
+import * as net from "net";
 import * as nodePty from "node-pty";
 import * as stream from "stream";
 import { TextEncoder } from "text-encoding";
-import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, ShutdownSessionMessage, IdentifySessionMessage, ClientMessage } from "../proto";
+import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, ShutdownSessionMessage, IdentifySessionMessage, ClientMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
 
 export interface Process {
@@ -59,7 +60,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 		};
 	}
 
-	const sendOutput = (fd: SessionOutputMessage.FD, msg: string | Uint8Array): void => {
+	const sendOutput = (_fd: SessionOutputMessage.FD, msg: string | Uint8Array): void => {
 		const serverMsg = new ServerMessage();
 		const d = new SessionOutputMessage();
 		d.setId(newSession.getId());
@@ -90,7 +91,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	sm.setIdentifySession(id);
 	connection.send(sm.serializeBinary());
 
-	process.on("exit", (code, signal) => {
+	process.on("exit", (code) => {
 		const serverMsg = new ServerMessage();
 		const exit = new SessionDoneMessage();
 		exit.setId(newSession.getId());
@@ -103,3 +104,61 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 
 	return process;
 };
+
+export const handleNewConnection = (connection: SendableConnection, newConnection: NewConnectionMessage, onExit: () => void): net.Socket => {
+	const id = newConnection.getId();
+	let socket: net.Socket;	
+	let didConnect = false;
+	const connectCallback = () => {
+		didConnect = true;
+		const estab = new ConnectionEstablishedMessage();
+		estab.setId(id);
+		const servMsg = new ServerMessage();
+		servMsg.setConnectionEstablished(estab);
+		connection.send(servMsg.serializeBinary());
+	};
+
+	if (newConnection.getPath()) {
+		socket = net.createConnection(newConnection.getPath(), connectCallback);
+	} else if (newConnection.getPort()) {
+		socket = net.createConnection(newConnection.getPort(), undefined, connectCallback);
+	} else {
+		throw new Error("No path or port provided for new connection");
+	}
+
+	socket.addListener("error", (err) => {
+		if (!didConnect) {
+			const errMsg = new NewConnectionFailureMessage();
+			errMsg.setId(id);
+			errMsg.setMessage(err.message);
+			const servMsg = new ServerMessage();
+			servMsg.setConnectionFailure(errMsg);
+			connection.send(servMsg.serializeBinary());
+		
+			onExit();
+		}
+	});
+
+	socket.addListener("close", () => {
+		if (didConnect) {
+			const closed = new ConnectionCloseMessage();
+			closed.setId(id);
+			const servMsg = new ServerMessage();
+			servMsg.setConnectionClose(closed);
+			connection.send(servMsg.serializeBinary());
+
+			onExit();
+		}
+	});
+
+	socket.addListener("data", (data) => {
+		const dataMsg = new ConnectionOutputMessage();
+		dataMsg.setId(id);
+		dataMsg.setData(data);
+		const servMsg = new ServerMessage();
+		servMsg.setConnectionOutput(dataMsg);
+		connection.send(servMsg.serializeBinary());
+	});
+
+	return socket;
+}

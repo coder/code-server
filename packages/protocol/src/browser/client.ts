@@ -1,8 +1,8 @@
 import { ReadWriteConnection, InitData, OperatingSystem } from "../common/connection";
-import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, InitMessage } from "../proto";
-import { Emitter, Event } from "@coder/events";
+import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, NewConnectionMessage } from "../proto";
+import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { ChildProcess, SpawnOptions, ServerProcess } from "./command";
+import { ChildProcess, SpawnOptions, ServerProcess, ServerSocket, Socket } from "./command";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.
@@ -13,10 +13,14 @@ export class Client {
 	private evalFailedEmitter: Emitter<EvalFailedMessage> = new Emitter();
 
 	private sessionId: number = 0;
-	private sessions: Map<number, ServerProcess> = new Map();
+	private readonly sessions: Map<number, ServerProcess> = new Map();
+
+	private connectionId: number = 0;
+	private readonly connections: Map<number, ServerSocket> = new Map();
 
 	private _initData: InitData | undefined;
 	private initDataEmitter: Emitter<InitData> = new Emitter();
+	private initDataPromise: Promise<InitData>;
 
 	/**
 	 * @param connection Established connection to the server
@@ -33,14 +37,14 @@ export class Client {
 				logger.error("Failed to handle server message", field("length", data.byteLength), field("exception", ex));
 			}
 		});
+
+		this.initDataPromise = new Promise((resolve): void => {
+			this.initDataEmitter.event(resolve);
+		});
 	}
 
-	public get onInitData(): Event<InitData> {
-		return this.initDataEmitter.event;
-	}
-
-	public get initData(): InitData | undefined {
-		return this._initData;
+	public get initData(): Promise<InitData> {
+		return this.initDataPromise;
 	}
 
 	public evaluate<R>(func: () => R | Promise<R>): Promise<R>;
@@ -62,7 +66,7 @@ export class Client {
 	 * @param func Function to evaluate
 	 * @returns Promise rejected or resolved from the evaluated function
 	 */
-		public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
+	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
 		const newEval = new NewEvalMessage();
 		const id = this.evalId++;
 		newEval.setId(id);
@@ -151,6 +155,27 @@ export class Client {
 		return this.doSpawn(modulePath, args, options, true);
 	}
 
+	public createConnection(path: string, callback?: () => void): Socket;
+	public createConnection(port: number, callback?: () => void): Socket;
+	public createConnection(target: string | number, callback?: () => void): Socket {
+		const id = this.connectionId++;
+		const newCon = new NewConnectionMessage();
+		newCon.setId(id);
+		if (typeof target === "string") {
+			newCon.setPath(target);
+		} else {
+			newCon.setPort(target);
+		}
+		const clientMsg = new ClientMessage();
+		clientMsg.setNewConnection(newCon);
+		this.connection.send(clientMsg.serializeBinary());
+
+		const socket = new ServerSocket(this.connection, id, callback);
+		this.connections.set(id, socket);
+
+		return socket;
+	}
+
 	private doSpawn(command: string, args: string[] = [], options?: SpawnOptions, isFork: boolean = false): ChildProcess {
 		const id = this.sessionId++;
 		const newSess = new NewSessionMessage();
@@ -200,13 +225,13 @@ export class Client {
 			const init = message.getInit()!;
 			let opSys: OperatingSystem;
 			switch (init.getOperatingSystem()) {
-				case InitMessage.OperatingSystem.WINDOWS:
+				case WorkingInitMessage.OperatingSystem.WINDOWS:
 					opSys = OperatingSystem.Windows;
 					break;
-				case InitMessage.OperatingSystem.LINUX:
+				case WorkingInitMessage.OperatingSystem.LINUX:
 					opSys = OperatingSystem.Linux;
 					break;
-				case InitMessage.OperatingSystem.MAC:
+				case WorkingInitMessage.OperatingSystem.MAC:
 					opSys = OperatingSystem.Mac;
 					break;
 				default:
@@ -253,6 +278,33 @@ export class Client {
 				return;
 			}
 			s.pid = message.getIdentifySession()!.getPid();
+		} else if (message.hasConnectionEstablished()) {
+			const c = this.connections.get(message.getConnectionEstablished()!.getId());
+			if (!c) {
+				return;
+			}
+			c.emit("connect");
+		} else if (message.hasConnectionOutput()) {
+			const c = this.connections.get(message.getConnectionOutput()!.getId());
+			if (!c) {
+				return;
+			}
+			c.emit("data", Buffer.from(message.getConnectionOutput()!.getData_asU8()));
+		} else if (message.hasConnectionClose()) {
+			const c = this.connections.get(message.getConnectionClose()!.getId());
+			if (!c) {
+				return;
+			}
+			c.emit("close");
+			c.emit("end");
+			this.connections.delete(message.getConnectionClose()!.getId());
+		} else if (message.hasConnectionFailure()) {
+			const c = this.connections.get(message.getConnectionFailure()!.getId());
+			if (!c) {
+				return;
+			}
+			c.emit("end");
+			this.connections.delete(message.getConnectionFailure()!.getId());
 		}
 	}
 }

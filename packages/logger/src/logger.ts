@@ -158,6 +158,8 @@ export class BrowserFormatter extends Formatter {
 			+ " padding-bottom: 1px; font-size: 12px; font-weight: bold; color: white;"
 			+ (name.length === 4 ? "padding-left: 3px; padding-right: 4px;" : ""),
 		);
+		// A space to separate the tag from the title.
+		this.push(" ");
 	}
 
 	public push(arg: any, color: string = "inherit", weight: string = "normal"): void { // tslint:disable-line no-any

@@ -70,4 +70,4 @@ const ptyType: nodePtyType = {
 
 };
 
-module.exports = ptyType;
+exports = ptyType;

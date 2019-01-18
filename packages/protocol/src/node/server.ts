@@ -1,10 +1,14 @@
-import { logger, field } from "@coder/logger";
 import * as os from "os";
+import * as path from "path";
+import { mkdir } from "fs";
+import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
-import { ClientMessage, InitMessage, ServerMessage } from "../proto";
+import { logger, field } from "@coder/logger";
+import { ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
-import { Process, handleNewSession } from "./command";
+import { Process, handleNewSession, handleNewConnection } from "./command";
+import * as net from "net";
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
@@ -13,14 +17,13 @@ export interface ServerOptions {
 
 export class Server {
 
-	private readonly sessions: Map<number, Process>;
+	private readonly sessions: Map<number, Process> = new Map();
+	private readonly connections: Map<number, net.Socket> = new Map();
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 		options?: ServerOptions,
 	) {
-		this.sessions = new Map();
-
 		connection.onMessage((data) => {
 			try {
 				this.handleMessage(ClientMessage.deserializeBinary(data));
@@ -35,22 +38,43 @@ export class Server {
 			return;
 		}
 
-		const initMsg = new InitMessage();
+		// Ensure the data directory exists.
+		const mkdirP = async (path: string): Promise<void> => {
+			const split = path.replace(/^\/*|\/*$/g, "").split("/");
+			let dir = "";
+			while (split.length > 0) {
+				dir += "/" + split.shift();
+				try {
+					await promisify(mkdir)(dir);
+				} catch (error) {
+					if (error.code !== "EEXIST") {
+						throw error;
+					}
+				}
+			}
+		};
+		Promise.all([ mkdirP(path.join(options.dataDirectory, "User", "workspaceStorage")) ]).then(() => {
+			logger.info("Created data directory");
+		}).catch((error) => {
+			logger.error(error.message, field("error", error));
+		});
+
+		const initMsg = new WorkingInitMessage();
 		initMsg.setDataDirectory(options.dataDirectory);
 		initMsg.setWorkingDirectory(options.workingDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
 		const platform = os.platform();
-		let operatingSystem: InitMessage.OperatingSystem;
+		let operatingSystem: WorkingInitMessage.OperatingSystem;
 		switch (platform) {
 			case "win32":
-				operatingSystem = InitMessage.OperatingSystem.WINDOWS;
+				operatingSystem = WorkingInitMessage.OperatingSystem.WINDOWS;
 				break;
 			case "linux":
-				operatingSystem = InitMessage.OperatingSystem.LINUX;
+				operatingSystem = WorkingInitMessage.OperatingSystem.LINUX;
 				break;
 			case "darwin":
-				operatingSystem = InitMessage.OperatingSystem.MAC;
+				operatingSystem = WorkingInitMessage.OperatingSystem.MAC;
 				break;
 			default:
 				throw new Error(`unrecognized platform "${platform}"`);
@@ -66,9 +90,8 @@ export class Server {
 			evaluate(this.connection, message.getNewEval()!);
 		} else if (message.hasNewSession()) {
 			const session = handleNewSession(this.connection, message.getNewSession()!, () => {
-				this.sessions.delete(message.getNewSession()!.getId());				
+				this.sessions.delete(message.getNewSession()!.getId());
 			});
-
 			this.sessions.set(message.getNewSession()!.getId(), session);
 		} else if (message.hasCloseSessionInput()) {
 			const s = this.getSession(message.getCloseSessionInput()!.getId());
@@ -95,7 +118,28 @@ export class Server {
 				return;
 			}
 			s.write(new TextDecoder().decode(message.getWriteToSession()!.getData_asU8()));
+		} else if (message.hasNewConnection()) {
+			const socket = handleNewConnection(this.connection, message.getNewConnection()!, () => {
+				this.connections.delete(message.getNewConnection()!.getId());
+			});
+			this.connections.set(message.getNewConnection()!.getId(), socket);
+		} else if (message.hasConnectionOutput()) {
+			const c = this.getConnection(message.getConnectionOutput()!.getId());
+			if (!c) {
+				return;
+			}
+			c.write(Buffer.from(message.getConnectionOutput()!.getData_asU8()));
+		} else if (message.hasConnectionClose()) {
+			const c = this.getConnection(message.getConnectionClose()!.getId());
+			if (!c) {
+				return;
+			}
+			c.end();
 		}
+	}
+
+	private getConnection(id: number): net.Socket | undefined {
+		return this.connections.get(id);
 	}
 
 	private getSession(id: number): Process | undefined {

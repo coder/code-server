@@ -1,8 +1,13 @@
-module.exports = {
-	getCurrentKeyboardLayout: (): null => {
+class NativeKeymap {
+
+	public getCurrentKeyboardLayout(): null {
 		return null;
-	},
-	getKeyMap: (): undefined[] => {
+	}
+
+	public getKeyMap(): undefined[] {
 		return [];
-	},
-};
+	}
+
+}
+
+export = new NativeKeymap();

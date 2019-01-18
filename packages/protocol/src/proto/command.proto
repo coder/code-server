@@ -76,3 +76,32 @@ message TTYDimensions {
 	uint32 height = 1;
 	uint32 width = 2;
 }
+
+// Initializes a new connection to a port or path
+message NewConnectionMessage {
+	uint64 id = 1;
+	uint64 port = 2;
+	string path = 3;
+}
+
+// Sent when a connection has successfully established
+message ConnectionEstablishedMessage {
+	uint64 id = 1;
+}
+
+// Sent when a connection fails
+message NewConnectionFailureMessage {
+	uint64 id = 1;
+	string message = 2;
+}
+
+// Sent for connection output
+message ConnectionOutputMessage {
+	uint64 id = 1;
+	bytes data = 2;	
+}
+
+// Sent to close a connection
+message ConnectionCloseMessage {
+	uint64 id = 1;
+}

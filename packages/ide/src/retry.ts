@@ -209,7 +209,7 @@ export class Retry {
 
 		const item = this.items.get(name)!;
 		if (typeof item.timeout === "undefined" && !item.running && typeof item.count !== "undefined") {
-			logger.info(`Recovered connection to ${name.toLowerCase()}`);
+			logger.info(`Connected to ${name.toLowerCase()}`);
 			item.delay = undefined;
 			item.count = undefined;
 		}
@@ -228,7 +228,7 @@ export class Retry {
 		const retryCountText = item.count <= this.maxImmediateRetries
 			? `[${item.count}/${this.maxImmediateRetries}]`
 			: `[${item.count}]`;
-		logger.info(`Retrying ${name.toLowerCase()} ${retryCountText}...`);
+		logger.info(`Trying ${name.toLowerCase()} ${retryCountText}...`);
 
 		const endItem = (): void => {
 			this.stopItem(item);
@@ -341,4 +341,6 @@ export class Retry {
 
 }
 
+// Global instance so we can block other retries when retrying the main
+// connection.
 export const retry = new Retry();

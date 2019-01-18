@@ -286,3 +286,121 @@ export namespace TTYDimensions {
   }
 }
 
+export class NewConnectionMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getPort(): number;
+  setPort(value: number): void;
+
+  getPath(): string;
+  setPath(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NewConnectionMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NewConnectionMessage): NewConnectionMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NewConnectionMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NewConnectionMessage;
+  static deserializeBinaryFromReader(message: NewConnectionMessage, reader: jspb.BinaryReader): NewConnectionMessage;
+}
+
+export namespace NewConnectionMessage {
+  export type AsObject = {
+    id: number,
+    port: number,
+    path: string,
+  }
+}
+
+export class ConnectionEstablishedMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConnectionEstablishedMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ConnectionEstablishedMessage): ConnectionEstablishedMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConnectionEstablishedMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConnectionEstablishedMessage;
+  static deserializeBinaryFromReader(message: ConnectionEstablishedMessage, reader: jspb.BinaryReader): ConnectionEstablishedMessage;
+}
+
+export namespace ConnectionEstablishedMessage {
+  export type AsObject = {
+    id: number,
+  }
+}
+
+export class NewConnectionFailureMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NewConnectionFailureMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NewConnectionFailureMessage): NewConnectionFailureMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NewConnectionFailureMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NewConnectionFailureMessage;
+  static deserializeBinaryFromReader(message: NewConnectionFailureMessage, reader: jspb.BinaryReader): NewConnectionFailureMessage;
+}
+
+export namespace NewConnectionFailureMessage {
+  export type AsObject = {
+    id: number,
+    message: string,
+  }
+}
+
+export class ConnectionOutputMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getData(): Uint8Array | string;
+  getData_asU8(): Uint8Array;
+  getData_asB64(): string;
+  setData(value: Uint8Array | string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConnectionOutputMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ConnectionOutputMessage): ConnectionOutputMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConnectionOutputMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConnectionOutputMessage;
+  static deserializeBinaryFromReader(message: ConnectionOutputMessage, reader: jspb.BinaryReader): ConnectionOutputMessage;
+}
+
+export namespace ConnectionOutputMessage {
+  export type AsObject = {
+    id: number,
+    data: Uint8Array | string,
+  }
+}
+
+export class ConnectionCloseMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ConnectionCloseMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ConnectionCloseMessage): ConnectionCloseMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ConnectionCloseMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ConnectionCloseMessage;
+  static deserializeBinaryFromReader(message: ConnectionCloseMessage, reader: jspb.BinaryReader): ConnectionCloseMessage;
+}
+
+export namespace ConnectionCloseMessage {
+  export type AsObject = {
+    id: number,
+  }
+}
+

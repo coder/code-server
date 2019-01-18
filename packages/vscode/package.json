@@ -1,5 +1,12 @@
 {
   "name": "@coder/vscode",
   "description": "VS Code implementation of the browser-based IDE client.",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "scripts": {
+    "build:bootstrap-fork": "../../node_modules/.bin/webpack --config ./webpack.config.bootstrap.js"
+  },
+  "dependencies": {
+    "spdlog": "^0.7.2",
+    "string-replace-loader": "^2.1.1"
+  }
 }

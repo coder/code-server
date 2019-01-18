@@ -29,8 +29,7 @@ export const evaluate = async (connection: SendableConnection, message: NewEvalM
 					t = TypedValue.Type.NUMBER;
 					break;
 				default:
-					sendErr(EvalFailedMessage.Reason.EXCEPTION, `unsupported response type ${tof}`);
-					return;
+					return sendErr(EvalFailedMessage.Reason.EXCEPTION, `unsupported response type ${tof}`);
 			}
 			tv.setValue(tof === "string" ? resp : JSON.stringify(resp));
 			tv.setType(t);
@@ -52,7 +51,13 @@ export const evaluate = async (connection: SendableConnection, message: NewEvalM
 		connection.send(serverMsg.serializeBinary());
 	};
 	try {
-		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, { Buffer, require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require, setTimeout }, {
+		const value = vm.runInNewContext(`(${message.getFunction()})(${argStr.join(",")})`, {
+			Buffer,
+			require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
+			_require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
+			tslib_1: require("tslib"), // TODO: is there a better way to do this?
+			setTimeout,
+		}, {
 			timeout: message.getTimeout() || 30000,
 		});
 		sendResp(await value);

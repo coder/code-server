@@ -4,6 +4,7 @@
 import * as jspb from "google-protobuf";
 import * as command_pb from "./command_pb";
 import * as node_pb from "./node_pb";
+import * as vscode_pb from "./vscode_pb";
 
 export class ClientMessage extends jspb.Message {
   hasNewSession(): boolean;
@@ -31,10 +32,30 @@ export class ClientMessage extends jspb.Message {
   getResizeSessionTty(): command_pb.ResizeSessionTTYMessage | undefined;
   setResizeSessionTty(value?: command_pb.ResizeSessionTTYMessage): void;
 
+  hasNewConnection(): boolean;
+  clearNewConnection(): void;
+  getNewConnection(): command_pb.NewConnectionMessage | undefined;
+  setNewConnection(value?: command_pb.NewConnectionMessage): void;
+
+  hasConnectionOutput(): boolean;
+  clearConnectionOutput(): void;
+  getConnectionOutput(): command_pb.ConnectionOutputMessage | undefined;
+  setConnectionOutput(value?: command_pb.ConnectionOutputMessage): void;
+
+  hasConnectionClose(): boolean;
+  clearConnectionClose(): void;
+  getConnectionClose(): command_pb.ConnectionCloseMessage | undefined;
+  setConnectionClose(value?: command_pb.ConnectionCloseMessage): void;
+
   hasNewEval(): boolean;
   clearNewEval(): void;
   getNewEval(): node_pb.NewEvalMessage | undefined;
   setNewEval(value?: node_pb.NewEvalMessage): void;
+
+  hasSharedProcessInit(): boolean;
+  clearSharedProcessInit(): void;
+  getSharedProcessInit(): vscode_pb.SharedProcessInitMessage | undefined;
+  setSharedProcessInit(value?: vscode_pb.SharedProcessInitMessage): void;
 
   getMsgCase(): ClientMessage.MsgCase;
   serializeBinary(): Uint8Array;
@@ -54,7 +75,11 @@ export namespace ClientMessage {
     writeToSession?: command_pb.WriteToSessionMessage.AsObject,
     closeSessionInput?: command_pb.CloseSessionInputMessage.AsObject,
     resizeSessionTty?: command_pb.ResizeSessionTTYMessage.AsObject,
+    newConnection?: command_pb.NewConnectionMessage.AsObject,
+    connectionOutput?: command_pb.ConnectionOutputMessage.AsObject,
+    connectionClose?: command_pb.ConnectionCloseMessage.AsObject,
     newEval?: node_pb.NewEvalMessage.AsObject,
+    sharedProcessInit?: vscode_pb.SharedProcessInitMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -64,7 +89,11 @@ export namespace ClientMessage {
     WRITE_TO_SESSION = 3,
     CLOSE_SESSION_INPUT = 4,
     RESIZE_SESSION_TTY = 5,
-    NEW_EVAL = 6,
+    NEW_CONNECTION = 6,
+    CONNECTION_OUTPUT = 7,
+    CONNECTION_CLOSE = 8,
+    NEW_EVAL = 9,
+    SHARED_PROCESS_INIT = 10,
   }
 }
 
@@ -89,6 +118,26 @@ export class ServerMessage extends jspb.Message {
   getIdentifySession(): command_pb.IdentifySessionMessage | undefined;
   setIdentifySession(value?: command_pb.IdentifySessionMessage): void;
 
+  hasConnectionFailure(): boolean;
+  clearConnectionFailure(): void;
+  getConnectionFailure(): command_pb.NewConnectionFailureMessage | undefined;
+  setConnectionFailure(value?: command_pb.NewConnectionFailureMessage): void;
+
+  hasConnectionOutput(): boolean;
+  clearConnectionOutput(): void;
+  getConnectionOutput(): command_pb.ConnectionOutputMessage | undefined;
+  setConnectionOutput(value?: command_pb.ConnectionOutputMessage): void;
+
+  hasConnectionClose(): boolean;
+  clearConnectionClose(): void;
+  getConnectionClose(): command_pb.ConnectionCloseMessage | undefined;
+  setConnectionClose(value?: command_pb.ConnectionCloseMessage): void;
+
+  hasConnectionEstablished(): boolean;
+  clearConnectionEstablished(): void;
+  getConnectionEstablished(): command_pb.ConnectionEstablishedMessage | undefined;
+  setConnectionEstablished(value?: command_pb.ConnectionEstablishedMessage): void;
+
   hasEvalFailed(): boolean;
   clearEvalFailed(): void;
   getEvalFailed(): node_pb.EvalFailedMessage | undefined;
@@ -101,8 +150,8 @@ export class ServerMessage extends jspb.Message {
 
   hasInit(): boolean;
   clearInit(): void;
-  getInit(): InitMessage | undefined;
-  setInit(value?: InitMessage): void;
+  getInit(): WorkingInitMessage | undefined;
+  setInit(value?: WorkingInitMessage): void;
 
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
@@ -121,9 +170,13 @@ export namespace ServerMessage {
     sessionDone?: command_pb.SessionDoneMessage.AsObject,
     sessionOutput?: command_pb.SessionOutputMessage.AsObject,
     identifySession?: command_pb.IdentifySessionMessage.AsObject,
+    connectionFailure?: command_pb.NewConnectionFailureMessage.AsObject,
+    connectionOutput?: command_pb.ConnectionOutputMessage.AsObject,
+    connectionClose?: command_pb.ConnectionCloseMessage.AsObject,
+    connectionEstablished?: command_pb.ConnectionEstablishedMessage.AsObject,
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
-    init?: InitMessage.AsObject,
+    init?: WorkingInitMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -132,13 +185,17 @@ export namespace ServerMessage {
     SESSION_DONE = 2,
     SESSION_OUTPUT = 3,
     IDENTIFY_SESSION = 4,
-    EVAL_FAILED = 5,
-    EVAL_DONE = 6,
-    INIT = 7,
+    CONNECTION_FAILURE = 5,
+    CONNECTION_OUTPUT = 6,
+    CONNECTION_CLOSE = 7,
+    CONNECTION_ESTABLISHED = 8,
+    EVAL_FAILED = 9,
+    EVAL_DONE = 10,
+    INIT = 11,
   }
 }
 
-export class InitMessage extends jspb.Message {
+export class WorkingInitMessage extends jspb.Message {
   getHomeDirectory(): string;
   setHomeDirectory(value: string): void;
 
@@ -151,26 +208,26 @@ export class InitMessage extends jspb.Message {
   getWorkingDirectory(): string;
   setWorkingDirectory(value: string): void;
 
-  getOperatingSystem(): InitMessage.OperatingSystem;
-  setOperatingSystem(value: InitMessage.OperatingSystem): void;
+  getOperatingSystem(): WorkingInitMessage.OperatingSystem;
+  setOperatingSystem(value: WorkingInitMessage.OperatingSystem): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): InitMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: InitMessage): InitMessage.AsObject;
+  toObject(includeInstance?: boolean): WorkingInitMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: WorkingInitMessage): WorkingInitMessage.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: InitMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): InitMessage;
-  static deserializeBinaryFromReader(message: InitMessage, reader: jspb.BinaryReader): InitMessage;
+  static serializeBinaryToWriter(message: WorkingInitMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WorkingInitMessage;
+  static deserializeBinaryFromReader(message: WorkingInitMessage, reader: jspb.BinaryReader): WorkingInitMessage;
 }
 
-export namespace InitMessage {
+export namespace WorkingInitMessage {
   export type AsObject = {
     homeDirectory: string,
     tmpDirectory: string,
     dataDirectory: string,
     workingDirectory: string,
-    operatingSystem: InitMessage.OperatingSystem,
+    operatingSystem: WorkingInitMessage.OperatingSystem,
   }
 
   export enum OperatingSystem {

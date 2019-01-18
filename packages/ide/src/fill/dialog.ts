@@ -131,7 +131,7 @@ export class Dialog {
 	/**
 	 * Display or remove an error.
 	 */
-	public set error(error: string) {
+	public set error(error: string | undefined) {
 		while (this.errors.lastChild) {
 			this.errors.removeChild(this.errors.lastChild);
 		}

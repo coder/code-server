@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "postinstall": "../node_modules/.bin/ts-node ../scripts/install-packages.ts",
     "test": "jest"
   },
   "devDependencies": {

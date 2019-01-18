@@ -1,6 +1,7 @@
 syntax = "proto3";
 import "command.proto";
 import "node.proto";
+import "vscode.proto";
 
 message ClientMessage {
 	oneof msg {
@@ -10,9 +11,14 @@ message ClientMessage {
 		WriteToSessionMessage write_to_session = 3;
 		CloseSessionInputMessage close_session_input = 4;
 		ResizeSessionTTYMessage resize_session_tty = 5;
-	
+		NewConnectionMessage new_connection = 6;
+		ConnectionOutputMessage connection_output = 7;
+		ConnectionCloseMessage connection_close = 8;
+
 		// node.proto
-		NewEvalMessage new_eval = 6;
+		NewEvalMessage new_eval = 9;
+
+		SharedProcessInitMessage shared_process_init = 10;
 	}
 }
 
@@ -23,16 +29,20 @@ message ServerMessage {
 		SessionDoneMessage session_done = 2;
 		SessionOutputMessage session_output = 3;
 		IdentifySessionMessage identify_session = 4;
+		NewConnectionFailureMessage connection_failure = 5;
+		ConnectionOutputMessage connection_output = 6;
+		ConnectionCloseMessage connection_close = 7;
+		ConnectionEstablishedMessage connection_established = 8;
 	
 		// node.proto
-		EvalFailedMessage eval_failed = 5;
-		EvalDoneMessage eval_done = 6;
+		EvalFailedMessage eval_failed = 9;
+		EvalDoneMessage eval_done = 10;
 
-		InitMessage init = 7;
+		WorkingInitMessage init = 11;
 	}
 }
 
-message InitMessage {
+message WorkingInitMessage {
 	string home_directory = 1;
 	string tmp_directory = 2;
 	string data_directory = 3;

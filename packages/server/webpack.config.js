@@ -2,9 +2,10 @@ const path = require("path");
 const webpack = require("webpack");
 const merge = require("webpack-merge");
 const StringReplacePlugin = require("string-replace-webpack-plugin");
+const HappyPack = require("happypack");
 
 module.exports = merge({
-	devtool: 'none',
+	devtool: "none",
 	module: {
 		rules: [
 			{
@@ -35,14 +36,15 @@ module.exports = merge({
 		__dirname: false,
 		setImmediate: false
 	},
-	externals: ["node-pty"],
+	externals: ["node-pty", "spdlog"],
 	entry: "./packages/server/src/cli.ts",
 	target: "node",
 	plugins: [
 		new webpack.DefinePlugin({
 			"process.env.BUILD_DIR": `"${__dirname}"`,
+			"process.env.CLI": `"${process.env.CLI ? "true" : "false"}"`,
 		}),
 	],
-}, require("../../scripts/webpack.general.config"), {
+}, require("../../scripts/webpack.general.config")(), {
 	mode: "development",
 });

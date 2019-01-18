@@ -9,9 +9,9 @@
     "vscode:clone": "mkdir -p ./lib && test -d ./lib/vscode || git clone https://github.com/Microsoft/vscode/ ./lib/vscode",
     "vscode:install": "cd ./lib/vscode && git checkout tags/1.30.1 && yarn",
     "vscode": "npm-run-all vscode:*",
-    "packages:install": "cd ./packages && yarn && ts-node ../scripts/install-packages.ts",
+    "packages:install": "cd ./packages && yarn",
     "postinstall": "npm-run-all --parallel vscode packages:install build:rules",
-    "start": "webpack-dev-server --hot --config ./webpack.config.app.js",
+    "start": "cd ./packages/server && yarn start",
     "test": "cd ./packages && yarn test"
   },
   "devDependencies": {
@@ -26,9 +26,9 @@
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
-    "os-browserify": "^0.3.0",
     "preload-webpack-plugin": "^3.0.0-beta.2",
     "sass-loader": "^7.1.0",
+    "string-replace-loader": "^2.1.1",
     "style-loader": "^0.23.1",
     "ts-loader": "^5.3.3",
     "ts-node": "^7.0.1",
@@ -39,7 +39,9 @@
     "webpack": "^4.28.4",
     "webpack-bundle-analyzer": "^3.0.3",
     "webpack-cli": "^3.2.1",
+    "webpack-dev-middleware": "^3.5.0",
     "webpack-dev-server": "^3.1.14",
+    "webpack-hot-middleware": "^2.24.3",
     "write-file-webpack-plugin": "^4.5.0"
   },
   "dependencies": {

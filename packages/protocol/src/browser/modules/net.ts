@@ -1,4 +1,5 @@
 import * as net from "net";
+import { Client } from '../client';
 
 type NodeNet = typeof net;
 
@@ -6,6 +7,10 @@ type NodeNet = typeof net;
  * Implementation of net for the browser.
  */
 export class Net implements NodeNet {
+
+	public constructor(
+		private readonly client: Client,
+	) {}
 
 	public get Socket(): typeof net.Socket {
 		throw new Error("not implemented");
@@ -19,8 +24,9 @@ export class Net implements NodeNet {
 		throw new Error("not implemented");
 	}
 
-	public createConnection(): net.Socket {
-		throw new Error("not implemented");
+	public createConnection(...args: any[]): net.Socket {
+		//@ts-ignore
+		return this.client.createConnection(...args) as net.Socket;
 	}
 
 	public isIP(_input: string): number {

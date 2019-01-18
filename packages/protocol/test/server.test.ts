@@ -9,7 +9,7 @@ describe("Server", () => {
 	});
 
 	it("should get init msg", (done) => {
-		client.onInitData((data) => {
+		client.initData.then((data) => {
 			expect(data.dataDirectory).toEqual(dataDirectory);
 			expect(data.workingDirectory).toEqual(workingDirectory);
 			done();

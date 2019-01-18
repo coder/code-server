@@ -4,10 +4,12 @@
 	"bin": "./out/cli.js",
 	"files": [],
 	"scripts": {
-		"start": "ts-node -r tsconfig-paths/register src/cli.ts",
-		"build:webpack": "rm -rf ./out && ../../node_modules/.bin/webpack --config ./webpack.config.js",
+		"start": "NODE_ENV=development ts-node -r tsconfig-paths/register src/cli.ts",
+		"build:webpack": "rm -rf ./out && export CLI=true && ../../node_modules/.bin/webpack --config ./webpack.config.js",
 		"build:nexe": "node scripts/nexe.js",
-		"build": "npm run build:webpack && npm run build:nexe"
+		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; cp ./bin/bootstrap-fork.js ../server/build/bootstrap-fork.js",
+		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/build/extensions/",
+		"build": "npm run build:bootstrap-fork && npm run build:webpack && npm run build:nexe"
 	},
 	"dependencies": {
 		"@oclif/config": "^1.10.4",
@@ -16,6 +18,7 @@
 		"express": "^4.16.4",
 		"nexe": "^2.0.0-rc.34",
 		"node-pty": "^0.8.0",
+		"spdlog": "^0.7.2",
 		"ws": "^6.1.2"
 	},
 	"devDependencies": {
@@ -23,6 +26,7 @@
 		"@types/ws": "^6.0.1",
 		"string-replace-webpack-plugin": "^0.1.3",
 		"ts-node": "^7.0.1",
-		"tsconfig-paths": "^3.7.0"
+		"tsconfig-paths": "^3.7.0",
+		"typescript": "^3.2.2"
 	}
 }

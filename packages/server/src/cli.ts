@@ -1,9 +1,12 @@
+import { SharedProcessInitMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import { logger, field } from "@coder/logger";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { createApp } from './server';
+import { requireModule } from "./vscode/bootstrapFork";
+import { createApp } from "./server";
+import { SharedProcess } from './vscode/sharedProcess';
 
 export class Entry extends Command {
 
@@ -17,23 +20,65 @@ export class Entry extends Command {
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8080, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
+
+		// Dev flags
+		"bootstrap-fork": flags.string({ hidden: true }),
 	};
 	public static args = [{
 		name: "workdir",
 		description: "Specify working dir",
-		default: () => process.cwd(),
+		default: (): string => process.cwd(),
 	}];
 
 	public async run(): Promise<void> {
+		try {
+			/**
+			 * Suuuper janky
+			 * Comes from - https://github.com/nexe/nexe/issues/524
+			 * Seems to cleanup by removing this path immediately
+			 * If any native module is added its assumed this pathname
+			 * will change.
+			 */
+			require("spdlog");
+			const nodePath = path.join(process.cwd(), "e91a410b");
+			fs.unlinkSync(path.join(nodePath, "spdlog.node"));
+			fs.rmdirSync(nodePath);
+		} catch (ex) {
+			logger.warn("Failed to remove extracted dependency.", field("dependency", "spdlog"), field("error", ex.message));
+		}
+
 		const { args, flags } = this.parse(Entry);
 
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), `.vscode-online`);
+		if (flags["bootstrap-fork"]) {
+			const modulePath = flags["bootstrap-fork"];
+			if (!modulePath) {
+				logger.error("No module path specified to fork!");
+				process.exit(1);
+			}
+
+			requireModule(modulePath);
+			return;
+		}
+
+		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-online");
 		const workingDir = args["workdir"];
 
 		logger.info("\u001B[1mvscode-remote v1.0.0");
 		// TODO: fill in appropriate doc url
 		logger.info("Additional documentation: https://coder.com/docs");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir));
+		const sharedProcess = new SharedProcess(dataDir);
+		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
+		sharedProcess.onWillRestart(() => {
+			logger.info("Restarting shared process...");
+
+			sharedProcess.ready.then(() => {
+				logger.info("Shared process has restarted!");
+			});
+		});
+		sharedProcess.ready.then(() => {
+			logger.info("Shared process has started up!");
+		});
 
 		const app = createApp((app) => {
 			app.use((req, res, next) => {
@@ -43,17 +88,33 @@ export class Entry extends Command {
 
 				next();
 			});
+			if (process.env.CLI === "false" || !process.env.CLI) {
+				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.dev.config.js"));
+				const compiler = require("webpack")(webpackConfig);
+				app.use(require("webpack-dev-middleware")(compiler, {
+					logger,
+					publicPath: webpackConfig.output.publicPath,
+					stats: webpackConfig.stats,
+				}));
+				app.use(require("webpack-hot-middleware")(compiler));
+			}
 		}, {
-			dataDirectory: dataDir,
-			workingDirectory: workingDir,
-		});
+				dataDirectory: dataDir,
+				workingDirectory: workingDir,
+			});
 
-		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port))
+		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
 		let clientId = 1;
 		app.wss.on("connection", (ws, req) => {
 			const id = clientId++;
-			logger.info(`WebSocket opened \u001B[0m${req.url}`, field("client", id), field("ip", req.socket.remoteAddress));
+			const spm = (<any>req).sharedProcessInit as SharedProcessInitMessage;
+			if (!spm) {
+				logger.warn("Received a socket without init data. Not sure how this happened.");
+
+				return;
+			}
+			logger.info(`WebSocket opened \u001B[0m${req.url}`, field("client", id), field("ip", req.socket.remoteAddress), field("window_id", spm.getWindowId()), field("log_directory", spm.getLogDirectory()));
 
 			ws.on("close", (code) => {
 				logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
@@ -73,9 +134,10 @@ export class Entry extends Command {
 		logger.info(`http://localhost:${flags.port}/`);
 		logger.info(" ");
 	}
+
 }
 
 Entry.run(undefined, {
-	root: process.env.BUILD_DIR as string,
+	root: process.env.BUILD_DIR as string || __dirname,
 	//@ts-ignore
 }).catch(require("@oclif/errors/handle"));

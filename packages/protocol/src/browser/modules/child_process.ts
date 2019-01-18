@@ -1,6 +1,6 @@
 import * as cp from "child_process";
 import { Client } from "../client";
-import { useBuffer } from "./util";
+import { useBuffer } from "../../common/util";
 
 export class CP {
 
@@ -13,19 +13,21 @@ export class CP {
 		options?: { encoding?: BufferEncoding | string | "buffer" | null } & cp.ExecOptions | null | ((error: Error | null, stdout: string, stderr: string) => void) | ((error: Error | null, stdout: Buffer, stderr: Buffer) => void),
 		callback?: ((error: Error | null, stdout: string, stderr: string) => void) | ((error: Error | null, stdout: Buffer, stderr: Buffer) => void),
 	): cp.ChildProcess => {
-		const process = this.client.spawn(command);
+		// TODO: Probably should add an `exec` instead of using `spawn`, especially
+		// since bash might not be available.
+		const childProcess = this.client.spawn("bash", ["-c", command.replace(/"/g, "\\\"")]);
 
 		let stdout = "";
-		process.stdout.on("data", (data) => {
+		childProcess.stdout.on("data", (data) => {
 			stdout += data.toString();
 		});
 
 		let stderr = "";
-		process.stderr.on("data", (data) => {
+		childProcess.stderr.on("data", (data) => {
 			stderr += data.toString();
 		});
 
-		process.on("exit", (exitCode) => {
+		childProcess.on("exit", (exitCode) => {
 			const error = exitCode !== 0 ? new Error(stderr) : null;
 			if (typeof options === "function") {
 				callback = options;
@@ -39,15 +41,15 @@ export class CP {
 		});
 
 		// @ts-ignore
-		return process;
+		return childProcess;
 	}
 
-	public fork(modulePath: string): cp.ChildProcess {
+	public fork = (modulePath: string, args?: ReadonlyArray<string> | cp.ForkOptions, options?: cp.ForkOptions): cp.ChildProcess => {
 		//@ts-ignore
-		return this.client.fork(modulePath);
+		return this.client.fork(modulePath, args, options);
 	}
 
-	public spawn(command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, _options?: cp.SpawnOptions): cp.ChildProcess {
+	public spawn = (command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, options?: cp.SpawnOptions): cp.ChildProcess => {
 		// TODO: fix this ignore. Should check for args or options here
 		//@ts-ignore
 		return this.client.spawn(command, args, options);

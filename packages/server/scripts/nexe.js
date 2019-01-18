@@ -28,14 +28,22 @@ nexe.compile({
 			additionalFiles: [
 				'./node_modules/node-pty/build/Release/pty',
 			],
-		}
+		},
+		"spdlog": {
+			additionalFiles: [
+				'spdlog.node',
+			],
+		},
 	},
 	targets: ["linux"],
 	/**
 	 * To include native extensions, do NOT install node_modules for each one. They
 	 * are not required as each extension is built using webpack.
 	 */
-	resources: [path.join(__dirname, "../package.json")],
+	resources: [
+		path.join(__dirname, "../package.json"),
+		path.join(__dirname, "../build/**"),
+	],
 });
 
 /**
