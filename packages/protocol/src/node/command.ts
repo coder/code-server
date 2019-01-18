@@ -5,6 +5,7 @@ import * as stream from "stream";
 import { TextEncoder } from "text-encoding";
 import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, ShutdownSessionMessage, IdentifySessionMessage, ClientMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
+import { ServerOptions } from "./server";
 
 export interface Process {
 	stdin?: stream.Writable;
@@ -22,7 +23,7 @@ export interface Process {
 	title?: number;
 }
 
-export const handleNewSession = (connection: SendableConnection, newSession: NewSessionMessage, onExit: () => void): Process => {
+export const handleNewSession = (connection: SendableConnection, newSession: NewSessionMessage, serverOptions: ServerOptions | undefined, onExit: () => void): Process => {
 	let process: Process;
 
 	const env = {} as any;
@@ -44,7 +45,15 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 		};
 		let proc: cp.ChildProcess;
 		if (newSession.getIsFork()) {
-			proc = cp.fork(newSession.getCommand(), newSession.getArgsList());
+			if (!serverOptions) {
+				throw new Error("No forkProvider set for bootstrap-fork request");
+			}
+
+			if (!serverOptions.forkProvider) {
+				throw new Error("No forkProvider set for server options");
+			}
+
+			proc = serverOptions.forkProvider(newSession);
 		} else {
 			proc = cp.spawn(newSession.getCommand(), newSession.getArgsList(), options);
 		}
@@ -107,7 +116,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 
 export const handleNewConnection = (connection: SendableConnection, newConnection: NewConnectionMessage, onExit: () => void): net.Socket => {
 	const id = newConnection.getId();
-	let socket: net.Socket;	
+	let socket: net.Socket;
 	let didConnect = false;
 	const connectCallback = () => {
 		didConnect = true;
@@ -134,7 +143,7 @@ export const handleNewConnection = (connection: SendableConnection, newConnectio
 			const servMsg = new ServerMessage();
 			servMsg.setConnectionFailure(errMsg);
 			connection.send(servMsg.serializeBinary());
-		
+
 			onExit();
 		}
 	});

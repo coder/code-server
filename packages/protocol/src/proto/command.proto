@@ -13,6 +13,9 @@ message NewSessionMessage {
 	string cwd = 5;
 	TTYDimensions tty_dimensions = 6;
 	bool is_fork = 7;
+	
+	// Janky, but required for having custom handling of the bootstrap fork
+	bool is_bootstrap_fork = 8;
 }
 
 // Sent when starting a session failed.

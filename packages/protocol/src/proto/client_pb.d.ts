@@ -52,11 +52,6 @@ export class ClientMessage extends jspb.Message {
   getNewEval(): node_pb.NewEvalMessage | undefined;
   setNewEval(value?: node_pb.NewEvalMessage): void;
 
-  hasSharedProcessInit(): boolean;
-  clearSharedProcessInit(): void;
-  getSharedProcessInit(): vscode_pb.SharedProcessInitMessage | undefined;
-  setSharedProcessInit(value?: vscode_pb.SharedProcessInitMessage): void;
-
   getMsgCase(): ClientMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ClientMessage.AsObject;
@@ -79,7 +74,6 @@ export namespace ClientMessage {
     connectionOutput?: command_pb.ConnectionOutputMessage.AsObject,
     connectionClose?: command_pb.ConnectionCloseMessage.AsObject,
     newEval?: node_pb.NewEvalMessage.AsObject,
-    sharedProcessInit?: vscode_pb.SharedProcessInitMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -93,7 +87,6 @@ export namespace ClientMessage {
     CONNECTION_OUTPUT = 7,
     CONNECTION_CLOSE = 8,
     NEW_EVAL = 9,
-    SHARED_PROCESS_INIT = 10,
   }
 }
 
@@ -153,6 +146,11 @@ export class ServerMessage extends jspb.Message {
   getInit(): WorkingInitMessage | undefined;
   setInit(value?: WorkingInitMessage): void;
 
+  hasSharedProcessActive(): boolean;
+  clearSharedProcessActive(): void;
+  getSharedProcessActive(): vscode_pb.SharedProcessActiveMessage | undefined;
+  setSharedProcessActive(value?: vscode_pb.SharedProcessActiveMessage): void;
+
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServerMessage.AsObject;
@@ -177,6 +175,7 @@ export namespace ServerMessage {
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
     init?: WorkingInitMessage.AsObject,
+    sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -192,6 +191,7 @@ export namespace ServerMessage {
     EVAL_FAILED = 9,
     EVAL_DONE = 10,
     INIT = 11,
+    SHARED_PROCESS_ACTIVE = 12,
   }
 }
 

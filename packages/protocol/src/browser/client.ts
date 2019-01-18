@@ -155,6 +155,15 @@ export class Client {
 		return this.doSpawn(modulePath, args, options, true);
 	}
 
+	/**
+	 * VS Code specific.
+	 * Forks a module from bootstrap-fork
+	 * @param modulePath Path of the module
+	 */
+	public bootstrapFork(modulePath: string): ChildProcess {
+		return this.doSpawn(modulePath, [], undefined, true, true);
+	}
+
 	public createConnection(path: string, callback?: () => void): Socket;
 	public createConnection(port: number, callback?: () => void): Socket;
 	public createConnection(target: string | number, callback?: () => void): Socket {
@@ -176,13 +185,14 @@ export class Client {
 		return socket;
 	}
 
-	private doSpawn(command: string, args: string[] = [], options?: SpawnOptions, isFork: boolean = false): ChildProcess {
+	private doSpawn(command: string, args: string[] = [], options?: SpawnOptions, isFork: boolean = false, isBootstrapFork: boolean = true): ChildProcess {
 		const id = this.sessionId++;
 		const newSess = new NewSessionMessage();
 		newSess.setId(id);
 		newSess.setCommand(command);
 		newSess.setArgsList(args);
 		newSess.setIsFork(isFork);
+		newSess.setIsBootstrapFork(isBootstrapFork);
 		if (options) {
 			if (options.cwd) {
 				newSess.setCwd(options.cwd);

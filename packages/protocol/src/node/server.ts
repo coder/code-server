@@ -1,10 +1,11 @@
 import * as os from "os";
+import * as cp from "child_process";
 import * as path from "path";
 import { mkdir } from "fs";
 import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
 import { logger, field } from "@coder/logger";
-import { ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
+import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
 import { Process, handleNewSession, handleNewConnection } from "./command";
@@ -13,6 +14,8 @@ import * as net from "net";
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
+
+	forkProvider?(message: NewSessionMessage): cp.ChildProcess;
 }
 
 export class Server {
@@ -22,7 +25,7 @@ export class Server {
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
-		options?: ServerOptions,
+		private readonly options?: ServerOptions,
 	) {
 		connection.onMessage((data) => {
 			try {
@@ -89,7 +92,7 @@ export class Server {
 		if (message.hasNewEval()) {
 			evaluate(this.connection, message.getNewEval()!);
 		} else if (message.hasNewSession()) {
-			const session = handleNewSession(this.connection, message.getNewSession()!, () => {
+			const session = handleNewSession(this.connection, message.getNewSession()!, this.options, () => {
 				this.sessions.delete(message.getNewSession()!.getId());
 			});
 			this.sessions.set(message.getNewSession()!.getId(), session);

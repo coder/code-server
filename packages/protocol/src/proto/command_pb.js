@@ -85,7 +85,8 @@ proto.NewSessionMessage.toObject = function(includeInstance, msg) {
     envMap: (f = msg.getEnvMap(true)) ? f.toArray() : [],
     cwd: msg.getCwd(),
     ttyDimensions: (f = msg.getTtyDimensions()) && proto.TTYDimensions.toObject(includeInstance, f),
-    isFork: msg.getIsFork()
+    isFork: msg.getIsFork(),
+    isBootstrapFork: msg.getIsBootstrapFork()
   };
 
   if (includeInstance) {
@@ -153,6 +154,10 @@ proto.NewSessionMessage.deserializeBinaryFromReader = function(msg, reader) {
     case 7:
       var value = /** @type {boolean} */ (reader.readBool());
       msg.setIsFork(value);
+      break;
+    case 8:
+      var value = /** @type {boolean} */ (reader.readBool());
+      msg.setIsBootstrapFork(value);
       break;
     default:
       reader.skipField();
@@ -236,6 +241,13 @@ proto.NewSessionMessage.prototype.serializeBinaryToWriter = function (writer) {
   if (f) {
     writer.writeBool(
       7,
+      f
+    );
+  }
+  f = this.getIsBootstrapFork();
+  if (f) {
+    writer.writeBool(
+      8,
       f
     );
   }
@@ -375,6 +387,23 @@ proto.NewSessionMessage.prototype.getIsFork = function() {
 /** @param {boolean} value  */
 proto.NewSessionMessage.prototype.setIsFork = function(value) {
   jspb.Message.setField(this, 7, value);
+};
+
+
+/**
+ * optional bool is_bootstrap_fork = 8;
+ * Note that Boolean fields may be set to 0/1 when serialized from a Java server.
+ * You should avoid comparisons like {@code val === true/false} in those cases.
+ * @return {boolean}
+ */
+proto.NewSessionMessage.prototype.getIsBootstrapFork = function() {
+  return /** @type {boolean} */ (jspb.Message.getFieldProto3(this, 8, false));
+};
+
+
+/** @param {boolean} value  */
+proto.NewSessionMessage.prototype.setIsBootstrapFork = function(value) {
+  jspb.Message.setField(this, 8, value);
 };
 
 

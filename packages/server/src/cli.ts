@@ -1,12 +1,13 @@
-import { SharedProcessInitMessage } from "@coder/protocol/src/proto";
+import { field, logger } from "@coder/logger";
+import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
-import { logger, field } from "@coder/logger";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import { requireModule } from "./vscode/bootstrapFork";
+import * as WebSocket from "ws";
 import { createApp } from "./server";
-import { SharedProcess } from './vscode/sharedProcess';
+import { requireModule } from "./vscode/bootstrapFork";
+import { SharedProcess, SharedProcessState } from './vscode/sharedProcess';
 
 export class Entry extends Command {
 
@@ -69,15 +70,22 @@ export class Entry extends Command {
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir));
 		const sharedProcess = new SharedProcess(dataDir);
 		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
-		sharedProcess.onWillRestart(() => {
-			logger.info("Restarting shared process...");
-
-			sharedProcess.ready.then(() => {
-				logger.info("Shared process has restarted!");
-			});
-		});
-		sharedProcess.ready.then(() => {
-			logger.info("Shared process has started up!");
+		const sendSharedProcessReady = (socket: WebSocket) => {
+			const active = new SharedProcessActiveMessage();
+			active.setSocketPath(sharedProcess.socketPath);
+			const serverMessage = new ServerMessage();
+			serverMessage.setSharedProcessActive(active);
+			socket.send(serverMessage.serializeBinary());
+		};
+		sharedProcess.onState((event) => {
+			if (event.state === SharedProcessState.Stopped) {
+				logger.error("Shared process stopped. Restarting...", field("error", event.error));
+			} else if (event.state === SharedProcessState.Starting) {
+				logger.info("Starting shared process...");
+			} else if (event.state === SharedProcessState.Ready) {
+				logger.info("Shared process is ready!");
+				app.wss.clients.forEach((c) => sendSharedProcessReady(c));
+			}
 		});
 
 		const app = createApp((app) => {
@@ -108,13 +116,12 @@ export class Entry extends Command {
 		let clientId = 1;
 		app.wss.on("connection", (ws, req) => {
 			const id = clientId++;
-			const spm = (<any>req).sharedProcessInit as SharedProcessInitMessage;
-			if (!spm) {
-				logger.warn("Received a socket without init data. Not sure how this happened.");
 
-				return;
+			if (sharedProcess.state === SharedProcessState.Ready) {
+				sendSharedProcessReady(ws);
 			}
-			logger.info(`WebSocket opened \u001B[0m${req.url}`, field("client", id), field("ip", req.socket.remoteAddress), field("window_id", spm.getWindowId()), field("log_directory", spm.getLogDirectory()));
+
+			logger.info(`WebSocket opened \u001B[0m${req.url}`, field("client", id), field("ip", req.socket.remoteAddress));
 
 			ws.on("close", (code) => {
 				logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));

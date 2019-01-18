@@ -1,9 +1,6 @@
 syntax = "proto3";
 
-message SharedProcessInitMessage {
-	uint64 window_id = 1;
-	string log_directory = 2;
-
-	// Maps to `"vs/platform/log/common/log".LogLevel`
-	uint32 log_level = 3;
+// Sent when a shared process becomes active
+message SharedProcessActiveMessage {
+	string socket_path = 1;
 }

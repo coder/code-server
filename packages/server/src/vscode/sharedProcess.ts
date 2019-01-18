@@ -9,40 +9,46 @@ import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { LogLevel } from "vs/platform/log/common/log";
 import { Emitter, Event } from '@coder/events/src';
 
+export enum SharedProcessState {
+	Stopped,
+	Starting,
+	Ready,
+}
+
+export type SharedProcessEvent = {
+	readonly state: SharedProcessState.Ready | SharedProcessState.Starting;
+} | {
+	readonly state: SharedProcessState.Stopped;
+	readonly error: string;
+}
+
 export class SharedProcess {
 	public readonly socketPath: string = path.join(os.tmpdir(), `.vscode-online${Math.random().toString()}`);
-	private _ready: Promise<void> | undefined;
+	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
-	private readonly willRestartEmitter: Emitter<void>;
+	private readonly onStateEmitter: Emitter<SharedProcessEvent>;
 
 	public constructor(
 		private readonly userDataDir: string,
 	) {
-		this.willRestartEmitter = new Emitter();
+		this.onStateEmitter = new Emitter();
 
 		this.restart();
 	}
 
-	public get onWillRestart(): Event<void> {
-		return this.willRestartEmitter.event;
+	public get onState(): Event<SharedProcessEvent> {
+		return this.onStateEmitter.event;
 	}
 
-	public get ready(): Promise<void> {
-		return this._ready!;
+	public get state(): SharedProcessState {
+		return this._state;
 	}
 
 	public restart(): void {
-		if (this.activeProcess) {
-			this.willRestartEmitter.emit();
-		}
-
 		if (this.activeProcess && !this.activeProcess.killed) {
 			this.activeProcess.kill();
 		}
-
-		let resolve: () => void;
-		let reject: (err: Error) => void;
 
 		const extensionsDir = path.join(this.userDataDir, "extensions");
 		const mkdir = (dir: string): void => {
@@ -57,14 +63,18 @@ export class SharedProcess {
 		mkdir(this.userDataDir);
 		mkdir(extensionsDir);
 
-		this._ready = new Promise<void>((res, rej) => {
-			resolve = res;
-			reject = rej;
+		this.setState({
+			state: SharedProcessState.Starting,
 		});
-
 		let resolved: boolean = false;
 		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain");
-		this.activeProcess.on("exit", () => {
+		this.activeProcess.on("exit", (err) => {
+			if (this._state !== SharedProcessState.Stopped) {
+				this.setState({
+					error: `Exited with ${err}`,
+					state: SharedProcessState.Stopped,
+				});
+			}
 			this.restart();
 		});
 		this.ipcHandler = new StdioIpcHandler(this.activeProcess);
@@ -86,11 +96,20 @@ export class SharedProcess {
 		});
 		this.ipcHandler.once("handshake:im ready", () => {
 			resolved = true;
-			resolve();
+			this.setState({
+				state: SharedProcessState.Ready,
+			});
 		});
 		this.activeProcess.stderr.on("data", (data) => {
 			if (!resolved) {
-				reject(data.toString());
+				this.setState({
+					error: data.toString(),
+					state: SharedProcessState.Stopped,
+				});
+				if (!this.activeProcess) {
+					return;
+				}
+				this.activeProcess.kill();
 			} else {
 				logger.named("SHRD PROC").debug("stderr", field("message", data.toString()));
 			}
@@ -102,5 +121,10 @@ export class SharedProcess {
 			this.ipcHandler.send("handshake:goodbye");
 		}
 		this.ipcHandler = undefined;
+	}
+
+	private setState(event: SharedProcessEvent): void {
+		this._state = event.state;
+		this.onStateEmitter.emit(event);
 	}
 }

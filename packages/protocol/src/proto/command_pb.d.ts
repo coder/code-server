@@ -28,6 +28,9 @@ export class NewSessionMessage extends jspb.Message {
   getIsFork(): boolean;
   setIsFork(value: boolean): void;
 
+  getIsBootstrapFork(): boolean;
+  setIsBootstrapFork(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): NewSessionMessage.AsObject;
   static toObject(includeInstance: boolean, msg: NewSessionMessage): NewSessionMessage.AsObject;
@@ -47,6 +50,7 @@ export namespace NewSessionMessage {
     cwd: string,
     ttyDimensions?: TTYDimensions.AsObject,
     isFork: boolean,
+    isBootstrapFork: boolean,
   }
 }
 

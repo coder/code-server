@@ -1,10 +1,11 @@
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
+import { NewSessionMessage } from '@coder/protocol/src/proto';
+import { ChildProcess } from "child_process";
 import * as express from "express";
 import * as http from "http";
 import * as ws from "ws";
-import * as url from "url";
-import { ClientMessage, SharedProcessInitMessage } from '@coder/protocol/src/proto';
+import { forkModule } from "./vscode/bootstrapFork";
 
 export const createApp = (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions): {
 	readonly express: express.Application;
@@ -19,27 +20,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 	const wss = new ws.Server({ server });
 
 	wss.shouldHandle = (req): boolean => {
-		if (typeof req.url === "undefined") {
-			return false;
-		}
-
-		const parsedUrl = url.parse(req.url, true);
-		const sharedProcessInit = parsedUrl.query["shared_process_init"];
-		if (typeof sharedProcessInit === "undefined" || Array.isArray(sharedProcessInit)) {
-			return false;
-		}
-
-		try {
-			const msg = ClientMessage.deserializeBinary(Buffer.from(sharedProcessInit, "base64"));
-			if (!msg.hasSharedProcessInit()) {
-				return false;
-			}
-			const spm = msg.getSharedProcessInit()!;
-			(<any>req).sharedProcessInit = spm;
-		} catch (ex) {
-			return false;
-		}
-
+		// Should handle auth here
 		return true;
 	};
 
@@ -59,7 +40,20 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};
 
-		const server = new Server(connection, options);
+		const server = new Server(connection, options ? {
+			...options,
+			forkProvider: (message: NewSessionMessage): ChildProcess => {
+				let proc: ChildProcess;
+				
+				if (message.getIsBootstrapFork()) {
+					proc = forkModule(message.getCommand());
+				} else {
+					throw new Error("No support for non bootstrap-forking yet");
+				}
+
+				return proc;
+			},
+		} : undefined);
 	});
 
 	/**
