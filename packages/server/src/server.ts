@@ -25,12 +25,6 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 	};
 
 	wss.on("connection", (ws: WebSocket, req) => {
-		const spm = (<any>req).sharedProcessInit as SharedProcessInitMessage;
-		if (!spm) {
-			ws.close();
-			return;
-		}
-
 		const connection: ReadWriteConnection = {
 			onMessage: (cb): void => {
 				ws.addEventListener("message", (event) => cb(event.data));
@@ -44,7 +38,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			...options,
 			forkProvider: (message: NewSessionMessage): ChildProcess => {
 				let proc: ChildProcess;
-				
+
 				if (message.getIsBootstrapFork()) {
 					proc = forkModule(message.getCommand());
 				} else {

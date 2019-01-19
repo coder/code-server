@@ -1,6 +1,6 @@
-import { ReadWriteConnection, InitData, OperatingSystem } from "../common/connection";
+import { ReadWriteConnection, InitData, OperatingSystem, ISharedProcessData } from "../common/connection";
 import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, NewConnectionMessage } from "../proto";
-import { Emitter } from "@coder/events";
+import { Emitter, Event } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ChildProcess, SpawnOptions, ServerProcess, ServerSocket, Socket } from "./command";
 
@@ -19,8 +19,10 @@ export class Client {
 	private readonly connections: Map<number, ServerSocket> = new Map();
 
 	private _initData: InitData | undefined;
-	private initDataEmitter: Emitter<InitData> = new Emitter();
+	private initDataEmitter = new Emitter<InitData>();
 	private initDataPromise: Promise<InitData>;
+
+	private sharedProcessActiveEmitter = new Emitter<ISharedProcessData>();
 
 	/**
 	 * @param connection Established connection to the server
@@ -28,8 +30,6 @@ export class Client {
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 	) {
-		this.initDataEmitter = new Emitter();
-
 		connection.onMessage((data) => {
 			try {
 				this.handleMessage(ServerMessage.deserializeBinary(data));
@@ -45,6 +45,10 @@ export class Client {
 
 	public get initData(): Promise<InitData> {
 		return this.initDataPromise;
+	}
+
+	public get onSharedProcessActive(): Event<ISharedProcessData> {
+		return this.sharedProcessActiveEmitter.event;
 	}
 
 	public evaluate<R>(func: () => R | Promise<R>): Promise<R>;
@@ -315,6 +319,10 @@ export class Client {
 			}
 			c.emit("end");
 			this.connections.delete(message.getConnectionFailure()!.getId());
+		} else if (message.hasSharedProcessActive()) {
+			this.sharedProcessActiveEmitter.emit({
+				socketPath: message.getSharedProcessActive()!.getSocketPath(),
+			});
 		}
 	}
 }

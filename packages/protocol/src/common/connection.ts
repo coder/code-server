@@ -21,3 +21,7 @@ export interface InitData {
 	readonly homeDirectory: string;
 	readonly tmpDirectory: string;
 }
+
+export interface ISharedProcessData {
+	readonly socketPath: string;
+}

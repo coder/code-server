@@ -1,5 +1,6 @@
+import { Event } from "@coder/events";
 import { field, logger, time, Time } from "@coder/logger";
-import { InitData } from "@coder/protocol";
+import { InitData, ISharedProcessData } from "@coder/protocol";
 import { retry, Retry } from "./retry";
 import { client } from "./fill/client";
 import { Clipboard, clipboard } from "./fill/clipboard";
@@ -165,6 +166,10 @@ export abstract class Client {
 	 */
 	public get initData(): Promise<InitData> {
 		return client.initData;
+	}
+
+	public get onSharedProcessActive(): Event<ISharedProcessData> {
+		return client.onSharedProcessActive;
 	}
 
 	/**

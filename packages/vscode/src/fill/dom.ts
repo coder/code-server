@@ -1,5 +1,4 @@
-import "./firefox.scss";
-
+// Firefox has no implementation of toElement.
 if (!("toElement" in MouseEvent.prototype)) {
 	Object.defineProperty(MouseEvent.prototype, "toElement", {
 		get: function (): EventTarget | null {

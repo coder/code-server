@@ -1,5 +1,5 @@
 import * as net from "net";
-import { Client } from '../client';
+import { Client } from "../client";
 
 type NodeNet = typeof net;
 
@@ -24,6 +24,7 @@ export class Net implements NodeNet {
 		throw new Error("not implemented");
 	}
 
+	// tslint:disable-next-line no-any
 	public createConnection(...args: any[]): net.Socket {
 		//@ts-ignore
 		return this.client.createConnection(...args) as net.Socket;

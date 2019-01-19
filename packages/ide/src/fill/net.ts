@@ -1,3 +1,4 @@
 import { Net } from "@coder/protocol";
+import { client } from "./client";
 
-export = new Net();
+export = new Net(client);

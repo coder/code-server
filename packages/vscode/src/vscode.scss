@@ -1,7 +1,14 @@
+// These use -webkit-margin-before/after which don't work.
+.monaco-workbench > .part > .title > .title-label h2,
+.monaco-panel-view .panel > .panel-header h3.title {
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
 // Using @supports to keep the Firefox fixes completely separate from vscode's
 // CSS that is tailored for Chrome.
 @supports (-moz-appearance:none) {
-	/* Fix buttons getting cut off on notifications. */
+	// Fix buttons getting cut off on notifications.
 	.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-button.monaco-text-button {
 		max-width: 100%;
 		width: auto;

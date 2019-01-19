@@ -117,9 +117,11 @@ export class Entry extends Command {
 		app.wss.on("connection", (ws, req) => {
 			const id = clientId++;
 
-			if (sharedProcess.state === SharedProcessState.Ready) {
-				sendSharedProcessReady(ws);
-			}
+			ws.on("open", () => {
+				if (sharedProcess.state === SharedProcessState.Ready) {
+					sendSharedProcessReady(ws);
+				}
+			});
 
 			logger.info(`WebSocket opened \u001B[0m${req.url}`, field("client", id), field("ip", req.socket.remoteAddress));
 

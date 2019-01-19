@@ -38,6 +38,11 @@ module.exports = merge({
 			},
 		}],
 	},
+	node: {
+		module: "empty",
+		crypto: "empty",
+		tls: "empty",
+	},
 	resolve: {
 		alias: {
 			"gc-signals": path.join(fills, "empty.ts"),
@@ -51,6 +56,10 @@ module.exports = merge({
 			"vscode-sqlite3": path.join(fills, "empty.ts"),
 			"tls": path.join(fills, "empty.ts"),
 			"native-is-elevated": path.join(fills, "empty.ts"),
+			"native-watchdog": path.join(fills, "empty.ts"),
+			"dns": path.join(fills, "empty.ts"),
+			"console": path.join(fills, "empty.ts"),
+			"readline": path.join(fills, "empty.ts"),
 
 			"crypto": "crypto-browserify",
 			"http": "http-browserify",

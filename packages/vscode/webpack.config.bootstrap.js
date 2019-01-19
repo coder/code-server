@@ -45,37 +45,6 @@ module.exports = (env) => {
 					],
 				},
 			}, {
-				loader: "string-replace-loader",
-				test: /vs\/loader\.js/,
-				options: {
-					multiple: [
-						{
-							search: "var recorder = moduleManager.getRecorder\\(\\);",
-							replace: `
-var recorder = moduleManager.getRecorder();
-const context = require.context("../", true, /.*/);
-if (scriptSrc.indexOf("file:///") !== -1) {
-	const vsSrc = scriptSrc.split("file:///")[1].split(".js")[0];
-	if (vsSrc && vsSrc.startsWith("vs/")) {
-		scriptSrc = \`node|./\${vsSrc}\`;
-	}
-}
-`,
-							flags: "g",
-						},
-						{
-							search: "nodeRequire\\(",
-							replace: "require(",
-							flags: "g",
-						},
-						{
-							search: "moduleExports_1 = require\\(",
-							replace: "moduleExports_1 = context(",
-							flags: "g",
-						},
-					],
-				},
-			}, {
 				test: /\.wasm$/,
 				type: "javascript/auto",
 			}, {

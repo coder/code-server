@@ -1,3 +1,99 @@
+diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
+index 457818a975..ad45ffe58a 100644
+--- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
++++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
+@@ -194,3 +194,5 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
+ 	main(server, data, configuration);
+ 	ipcRenderer.send('handshake:im ready');
+ }
++
++startup({ machineId: "1" });
+diff --git a/src/vs/loader.js b/src/vs/loader.js
+index 2bf7fe37d7..81cc668f12 100644
+--- a/src/vs/loader.js
++++ b/src/vs/loader.js
+@@ -667,10 +667,10 @@ var AMDLoader;
+             }
+             this._didInitialize = true;
+             // capture node modules
+-            this._fs = nodeRequire('fs');
+-            this._vm = nodeRequire('vm');
+-            this._path = nodeRequire('path');
+-            this._crypto = nodeRequire('crypto');
++            this._fs = require('fs');
++            this._vm = require('vm');
++            this._path = require('path');
++            this._crypto = require('crypto');
+         };
+         // patch require-function of nodejs such that we can manually create a script
+         // from cached data. this is done by overriding the `Module._compile` function
+@@ -731,11 +731,18 @@ var AMDLoader;
+             this._init(nodeRequire);
+             this._initNodeRequire(nodeRequire, moduleManager);
+             var recorder = moduleManager.getRecorder();
++            const context = require.context("../", true, /.*/);
++            if (scriptSrc.indexOf("file:///") !== -1) {
++                const vsSrc = scriptSrc.split("file:///")[1].split(".js")[0];
++                if (vsSrc && vsSrc.startsWith("vs/")) {
++                  scriptSrc = `node|./${vsSrc}`;
++                }
++            }
+             if (/^node\|/.test(scriptSrc)) {
+                 var pieces = scriptSrc.split('|');
+                 var moduleExports_1 = null;
+                 try {
+-                    moduleExports_1 = nodeRequire(pieces[1]);
++                    moduleExports_1 = context(pieces[1]);
+                 }
+                 catch (err) {
+                     errorback(err);
+diff --git a/src/vs/platform/storage/node/storageService.ts b/src/vs/platform/storage/node/storageService.ts
+index 9e6a94bbd2..9e7f9cb595 100644
+--- a/src/vs/platform/storage/node/storageService.ts
++++ b/src/vs/platform/storage/node/storageService.ts
+@@ -89,6 +89,9 @@ export class StorageService extends Disposable implements IStorageService {
+ 	private initializeGlobalStorage(): Thenable<void> {
+ 		mark('willInitGlobalStorage');
+ 
++		// TODO: shouldn't reject
++		return Promise.reject(new Error("nope"));
++
+ 		return this.globalStorage.init().then(() => {
+ 			mark('didInitGlobalStorage');
+ 		}, error => {
+@@ -605,4 +608,4 @@ export class DelegatingStorageService extends Disposable implements IStorageServ
+ 	private convertScope(scope: StorageScope): StorageLegacyScope {
+ 		return scope === StorageScope.GLOBAL ? StorageLegacyScope.GLOBAL : StorageLegacyScope.WORKSPACE;
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
+index a43d63aa51..4c6df2fcd9 100644
+--- a/src/vs/workbench/electron-browser/main.ts
++++ b/src/vs/workbench/electron-browser/main.ts
+@@ -147,13 +147,14 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
+ 				shell.open();
+ 
+ 				// Inform user about loading issues from the loader
+-				(<any>self).require.config({
+-					onError: err => {
+-						if (err.errorCode === 'load') {
+-							shell.onUnexpectedError(new Error(nls.localize('loaderErrorNative', "Failed to load a required file. Please restart the application to try again. Details: {0}", JSON.stringify(err))));
+-						}
+-					}
+-				});
++				// TODO: how to make this work
++				// (<any>self).require.config({
++				// 	onError: err => {
++				// 		if (err.errorCode === 'load') {
++				// 			shell.onUnexpectedError(new Error(nls.localize('loaderErrorNative', "Failed to load a required file. Please restart the application to try again. Details: {0}", JSON.stringify(err))));
++				// 		}
++				// 	}
++				// });
+ 			});
+ 		});
+ 	});
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..8f26dc2f28 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts

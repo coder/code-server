@@ -1,4 +1,4 @@
-const paths = {
+export const paths = {
 	appData: "/tmp",
 	defaultUserData: "/tmp",
 };
