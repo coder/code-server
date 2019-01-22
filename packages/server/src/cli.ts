@@ -7,7 +7,7 @@ import * as path from "path";
 import * as WebSocket from "ws";
 import { createApp } from "./server";
 import { requireModule } from "./vscode/bootstrapFork";
-import { SharedProcess, SharedProcessState } from './vscode/sharedProcess';
+import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 
 export class Entry extends Command {
 
@@ -91,7 +91,7 @@ export class Entry extends Command {
 		const app = createApp((app) => {
 			app.use((req, res, next) => {
 				res.on("finish", () => {
-					logger.info(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
+					logger.debug(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
 				});
 
 				next();

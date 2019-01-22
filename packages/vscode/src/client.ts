@@ -1,11 +1,11 @@
 import "./fill/require";
+import * as paths from "./fill/paths";
 import "./fill/storageDatabase";
 import "./fill/windowsService";
-import * as paths from "./fill/paths";
+import "./fill/environmentService";
 import "./fill/dom";
 import "./vscode.scss";
 
-import { createConnection } from "net";
 import { Client as IDEClient, IURI, IURIFactory } from "@coder/ide";
 
 import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
@@ -28,41 +28,32 @@ export class Client extends IDEClient {
 		this.protocolPromise = new Promise((resolve): void => {
 			this.protoResolve = resolve;
 		});
+		this.sharedProcessData.then((data) => {
+			paths._paths.socketPath = data.socketPath;
+		});
+		this.initData.then((data) => {
+			paths._paths.appData = data.dataDirectory;
+			paths._paths.defaultUserData = data.dataDirectory;
+		});
 	}
 
 	protected initialize(): Promise<void> {
-		this.task("Connect to shared process", 5, async () => {
-			await new Promise((resolve, reject): void => {
-				const listener = this.onSharedProcessActive((data) => {
-					listener.dispose();
-					const socket = createConnection(data.socketPath, resolve);
-					socket.once("error", () => {
-						reject();
-					});
-					this.protoResolve!(new Protocol(socket));
-				});
-			});
-		}).catch(() => undefined);
-
 		registerContextMenuListener();
 
-		return this.task("Start workbench", 1000, async (initData) => {
-			paths.paths.appData = initData.dataDirectory;
-			paths.paths.defaultUserData = initData.dataDirectory;
-
+		return this.task("Start workbench", 1000, async (data) => {
 			const { startup } = require("./startup");
 			await startup({
 				machineId: "1",
 				windowId: this.windowId,
 				logLevel: LogLevel.Info,
 				mainPid: 1,
-				appRoot: initData.dataDirectory,
-				execPath: initData.tmpDirectory,
+				appRoot: data.dataDirectory,
+				execPath: data.tmpDirectory,
 				userEnv: {},
-				nodeCachedDataDir: initData.tmpDirectory,
+				nodeCachedDataDir: data.tmpDirectory,
 				perfEntries: [],
 				_: [],
-				folderUri: URI.file(initData.dataDirectory),
+				folderUri: URI.file(data.dataDirectory),
 			});
 
 			// TODO: Set notification service for retrying.

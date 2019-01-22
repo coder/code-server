@@ -42,11 +42,16 @@ export abstract class Client {
 	private tasks: string[] = [];
 	private finishedTaskCount = 0;
 	private readonly loadTime: Time;
+	private sharedProcessDataPromise: Promise<ISharedProcessData>;
 
 	public constructor() {
 		logger.info("Loading IDE");
 
 		this.loadTime = time(2500);
+
+		this.sharedProcessDataPromise = new Promise((resolve): void => {
+			client.onSharedProcessActive(resolve);
+		});
 
 		const overlay = document.getElementById("overlay");
 		const logo = document.getElementById("logo");
@@ -168,8 +173,18 @@ export abstract class Client {
 		return client.initData;
 	}
 
+	/**
+	 * An event that fires every time the shared process (re-)starts.
+	 */
 	public get onSharedProcessActive(): Event<ISharedProcessData> {
 		return client.onSharedProcessActive;
+	}
+
+	/**
+	 * A promise that resolves with *initial* shared process data.
+	 */
+	public get sharedProcessData(): Promise<ISharedProcessData> {
+		return this.sharedProcessDataPromise;
 	}
 
 	/**

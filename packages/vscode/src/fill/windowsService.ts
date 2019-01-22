@@ -7,10 +7,7 @@ import { IWorkspaceIdentifier, IWorkspaceFolderCreationData, ISingleFolderWorksp
 import { URI } from "vs/base/common/uri";
 import { IRecentlyOpened } from "vs/platform/history/common/history";
 import { ISerializableCommandAction } from "vs/platform/actions/common/actions";
-
-// TODO: Might make sense to hook these straight in if we can.
-// import { WindowsService as VSWindowsService } from "vs/platform/windows/electron-main/windowsService";
-// import { WindowsManager } from "vs/code/electron-main/windows";
+import { client } from "../client";
 
 /**
  * Instead of going to the shared process, we'll directly run these methods on
@@ -199,9 +196,8 @@ class WindowsService implements IWindowsService {
 	}
 
 	// Shared process
-	public whenSharedProcessReady(): Promise<void> {
-		// TODO: Update once shared process is tied in.
-		return Promise.resolve();
+	public async whenSharedProcessReady(): Promise<void> {
+		await client.sharedProcessData;
 	}
 
 	public toggleSharedProcess(): Promise<void> {

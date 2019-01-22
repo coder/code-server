@@ -1,7 +1,8 @@
-export const paths = {
+export const _paths = {
 	appData: "/tmp",
 	defaultUserData: "/tmp",
+	socketPath: "/tmp/vscode-online.sock",
 };
 
-export let getAppDataPath = (): string => paths.appData;
-export let getDefaultUserDataPath = (): string => paths.defaultUserData;
+export const getAppDataPath = (): string => _paths.appData;
+export const getDefaultUserDataPath = (): string => _paths.defaultUserData;
