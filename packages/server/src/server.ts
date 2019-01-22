@@ -1,3 +1,4 @@
+import { field, logger } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import { NewSessionMessage } from '@coder/protocol/src/proto';
@@ -24,13 +25,19 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		return true;
 	};
 
-	wss.on("connection", (ws: WebSocket, req) => {
+	wss.on("connection", (ws) => {
 		const connection: ReadWriteConnection = {
 			onMessage: (cb): void => {
 				ws.addEventListener("message", (event) => cb(event.data));
 			},
 			close: (): void => ws.close(),
-			send: (data): void => ws.send(data),
+			send: (data): void => {
+				try {
+					ws.send(data);
+				} catch (error) {
+					logger.error(error.message, field("error", error));
+				}
+			},
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};
 
