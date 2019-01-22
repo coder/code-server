@@ -20,7 +20,6 @@ export class Entry extends Command {
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8080, description: "Port to bind on" }),
-		logLevel: flags.enum({ char: "l", options: [ "debug", "info", "warn", "error" ]}),
 		version: flags.version({ char: "v" }),
 
 		// Dev flags
@@ -50,15 +49,6 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
-
-		if (flags.logLevel) {
-			switch (flags.logLevel) {
-				case "debug": logger.level = Level.Debug; break;
-				case "info": logger.level = Level.Info; break;
-				case "warn": logger.level = Level.Warn; break;
-				case "error": logger.level = Level.Error; break;
-			}
-		}
 
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];

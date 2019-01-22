@@ -260,6 +260,15 @@ export class Logger {
 		if (name) {
 			this.nameColor = hashStringToColor(name);
 		}
+		this.info(`Log level: ${process.env.LOG_LEVEL || "info"}`);
+		if (process.env.LOG_LEVEL) {
+			switch (process.env.LOG_LEVEL) {
+				case "debug": this.level = Level.Debug; break;
+				case "info": this.level = Level.Info; break;
+				case "warn": this.level = Level.Warn; break;
+				case "error": this.level = Level.Error; break;
+			}
+		}
 	}
 
 	public set formatter(formatter: Formatter) {
@@ -335,7 +344,6 @@ export class Logger {
 	 */
 	public named(name: string, ...fields: FieldArray): Logger {
 		const l = new Logger(this._formatter, name, fields);
-		l.level = this.level;
 		if (this.muted) {
 			l.mute();
 		}
