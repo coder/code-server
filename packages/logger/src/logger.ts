@@ -211,7 +211,7 @@ export class ServerFormatter extends Formatter {
 			name += " ";
 		}
 		this.format += "\u001B[1m";
-		this.format += `\u001B[38;2;${r};${g};${b}m ${name} \u001B[0m`;
+		this.format += `\u001B[38;2;${r};${g};${b}m${name} \u001B[0m`;
 	}
 
 	public push(arg: any, color?: string, weight?: string): void { // tslint:disable-line no-any
@@ -373,7 +373,6 @@ export class Logger {
 		//   field2 (type)?: value
 		this._formatter.tag(options.type.toUpperCase(), options.tagColor);
 		if (this.name && this.nameColor) {
-			this._formatter.push(" ");
 			this._formatter.tag(this.name.toUpperCase(), this.nameColor);
 		}
 		this._formatter.push(options.message);

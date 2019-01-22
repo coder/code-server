@@ -122,7 +122,6 @@ export interface Socket {
 	emit(event: "end"): boolean;
 }
 
-
 export class ServerSocket extends events.EventEmitter implements Socket {
 
 	public writable: boolean = true;
