@@ -186,7 +186,7 @@ export class FS {
 				};
 			});
 		}, fd).then((stats) => {
-			callback(undefined!, Stats.fromObject(stats));
+			callback(undefined!, new Stats(stats));
 		}).catch((ex) => {
 			callback(ex, undefined!);
 		});
@@ -292,7 +292,7 @@ export class FS {
 				};
 			});
 		}, path).then((stats) => {
-			callback(undefined!, Stats.fromObject(stats));
+			callback(undefined!, new Stats(stats));
 		}).catch((ex) => {
 			callback(ex, undefined!);
 		});
@@ -483,7 +483,7 @@ export class FS {
 				};
 			});
 		}, path).then((stats) => {
-			callback(undefined!, Stats.fromObject(stats));
+			callback(undefined!, new Stats(stats));
 		}).catch((ex) => {
 			callback(ex, undefined!);
 		});
@@ -652,94 +652,92 @@ class Watcher extends EventEmitter implements fs.FSWatcher {
 
 }
 
+interface IStats {
+	dev: number;
+	ino: number;
+	mode: number;
+	nlink: number;
+	uid: number;
+	gid: number;
+	rdev: number;
+	size: number;
+	blksize: number;
+	blocks: number;
+	atimeMs: number;
+	mtimeMs: number;
+	ctimeMs: number;
+	birthtimeMs: number;
+	atime: string;
+	mtime: string;
+	ctime: string;
+	birthtime: string;
+	_isFile: boolean;
+	_isDirectory: boolean;
+	_isBlockDevice: boolean;
+	_isCharacterDevice: boolean;
+	_isSymbolicLink: boolean;
+	_isFIFO: boolean;
+	_isSocket: boolean;
+}
+
 class Stats implements fs.Stats {
 
-	// tslint:disable-next-line no-any
-	public static fromObject(object: any): Stats {
-		return new Stats(object);
-	}
-
-	// @ts-ignore
-	public readonly dev: number;
-	// @ts-ignore
-	public readonly ino: number;
-	// @ts-ignore
-	public readonly mode: number;
-	// @ts-ignore
-	public readonly nlink: number;
-	// @ts-ignore
-	public readonly uid: number;
-	// @ts-ignore
-	public readonly gid: number;
-	// @ts-ignore
-	public readonly rdev: number;
-	// @ts-ignore
-	public readonly size: number;
-	// @ts-ignore
-	public readonly blksize: number;
-	// @ts-ignore
-	public readonly blocks: number;
-	// @ts-ignore
-	public readonly atimeMs: number;
-	// @ts-ignore
-	public readonly mtimeMs: number;
-	// @ts-ignore
-	public readonly ctimeMs: number;
-	// @ts-ignore
-	public readonly birthtimeMs: number;
-	// @ts-ignore
 	public readonly atime: Date;
-	// @ts-ignore
 	public readonly mtime: Date;
-	// @ts-ignore
 	public readonly ctime: Date;
-	// @ts-ignore
 	public readonly birthtime: Date;
-	// @ts-ignore
-	private readonly _isFile: boolean;
-	// @ts-ignore
-	private readonly _isDirectory: boolean;
-	// @ts-ignore
-	private readonly _isBlockDevice: boolean;
-	// @ts-ignore
-	private readonly _isCharacterDevice: boolean;
-	// @ts-ignore
-	private readonly _isSymbolicLink: boolean;
-	// @ts-ignore
-	private readonly _isFIFO: boolean;
-	// @ts-ignore
-	private readonly _isSocket: boolean;
 
-	private constructor(stats: object) {
-		Object.assign(this, stats);
+	private constructor(private readonly stats: IStats) {
+		this.atime = new Date(stats.atime);
+		this.mtime = new Date(stats.mtime);
+		this.ctime = new Date(stats.ctime);
+		this.birthtime = new Date(stats.birthtime);
 	}
+
+	public get dev(): number {
+		return this.stats.dev;
+	}
+
+	public get ino(): number { return this.stats.ino; }
+	public get mode(): number { return this.stats.mode; }
+	public get nlink(): number { return this.stats.nlink; }
+	public get uid(): number { return this.stats.uid; }
+	public get gid(): number { return this.stats.gid; }
+	public get rdev(): number { return this.stats.rdev; }
+	public get size(): number { return this.stats.size; }
+	public get blksize(): number { return this.stats.blksize; }
+	public get blocks(): number { return this.stats.blocks; }
+	public get atimeMs(): number { return this.stats.atimeMs; }
+	public get mtimeMs(): number { return this.stats.mtimeMs; }
+	public get ctimeMs(): number { return this.stats.ctimeMs; }
+	public get birthtimeMs(): number { return this.stats.birthtimeMs; }
 
 	public isFile(): boolean {
-		return this._isFile;
+		return this.stats._isFile;
 	}
 
 	public isDirectory(): boolean {
-		return this._isDirectory;
+		return this.stats._isDirectory;
 	}
 
 	public isBlockDevice(): boolean {
-		return this._isBlockDevice;
+		return this.stats._isBlockDevice;
 	}
 
 	public isCharacterDevice(): boolean {
-		return this._isCharacterDevice;
+		return this.stats._isCharacterDevice;
 	}
 
 	public isSymbolicLink(): boolean {
-		return this._isSymbolicLink;
+		return this.stats._isSymbolicLink;
 	}
 
 	public isFIFO(): boolean {
-		return this._isFIFO;
+		return this.stats._isFIFO;
 	}
 
 	public isSocket(): boolean {
-		return this._isSocket;
+		return this.stats._isSocket;
 	}
 
 	public toObject(): object {
