@@ -20,20 +20,21 @@ export type SharedProcessEvent = {
 } | {
 	readonly state: SharedProcessState.Stopped;
 	readonly error: string;
-}
+};
 
 export class SharedProcess {
+
 	public readonly socketPath: string = path.join(os.tmpdir(), `.vscode-online${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
 	private readonly onStateEmitter: Emitter<SharedProcessEvent>;
+	private readonly logger = logger.named("SHDR PROC");
 
 	public constructor(
 		private readonly userDataDir: string,
 	) {
 		this.onStateEmitter = new Emitter();
-
 		this.restart();
 	}
 
@@ -100,7 +101,11 @@ export class SharedProcess {
 				state: SharedProcessState.Ready,
 			});
 		});
+		this.activeProcess.stdout.on("data", (data) => {
+			this.logger.debug("stdout", field("message", data.toString()));
+		});
 		this.activeProcess.stderr.on("data", (data) => {
+			this.logger.debug("stderr", field("message", data.toString()));
 			if (!resolved) {
 				this.setState({
 					error: data.toString(),
@@ -110,8 +115,6 @@ export class SharedProcess {
 					return;
 				}
 				this.activeProcess.kill();
-			} else {
-				logger.named("SHRD PROC").debug("stderr", field("message", data.toString()));
 			}
 		});
 	}

@@ -246,7 +246,7 @@ export class ServerFormatter extends Formatter {
  */
 export class Logger {
 
-	public level = Level.Debug;
+	public level = Level.Info;
 
 	private readonly nameColor?: string;
 	private muted: boolean;
@@ -335,6 +335,7 @@ export class Logger {
 	 */
 	public named(name: string, ...fields: FieldArray): Logger {
 		const l = new Logger(this._formatter, name, fields);
+		l.level = this.level;
 		if (this.muted) {
 			l.mute();
 		}
