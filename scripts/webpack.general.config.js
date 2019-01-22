@@ -22,7 +22,7 @@ module.exports = (options = {}) => ({
 				loader: "ignore-loader",
 			}],
 		}, {
-			test: /electron-browser.+\.html$/,
+			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css/,
 			use: [{
 				loader: "ignore-loader",
 			}],
@@ -35,7 +35,9 @@ module.exports = (options = {}) => ({
 			}],
 			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
 		}, {
-			exclude: /test/,
+			// The CSS in code/electron-browser is supposed to be served in separate
+			// pages so including it interferes with styles in vscode.
+			exclude: /test|code\/electron-browser\/.+\.css/,
 			test: /\.s?css$/,
 			// This is required otherwise it'll fail to resolve CSS in common.
 			include: root,
