@@ -17,7 +17,12 @@ module.exports = (options = {}) => ({
 			test: /\.(js)/,
 			exclude: /test/,
 		}, {
-			test: /\.(txt|d\.ts|test.ts|perf.data.js|jxs)/,
+			test: /\.(txt|d\.ts|test.ts|perf.data.js|jxs|md|scpt|exe|sh|less)$/,
+			use: [{
+				loader: "ignore-loader",
+			}],
+		}, {
+			test: /electron-browser.+\.html$/,
 			use: [{
 				loader: "ignore-loader",
 			}],
@@ -50,7 +55,7 @@ module.exports = (options = {}) => ({
 			test: /\.wasm$/,
 			type: "javascript/auto",
 		}],
-		noParse: /\.test\.(j|t)sx?/,
+		noParse: /\/test\/|\.test\.jsx?|\.test\.tsx?|tsconfig.+\.json$/,
 	},
 	resolve: {
 		alias: {

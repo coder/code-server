@@ -23,6 +23,7 @@
     "happypack": "^5.0.1",
     "html-webpack-plugin": "^3.2.0",
     "http-browserify": "^1.7.0",
+    "ignore-loader": "^0.1.2",
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
