@@ -1,4 +1,4 @@
-import { field, logger } from "@coder/logger";
+import { field, logger, Level } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import * as fs from "fs";
@@ -20,6 +20,7 @@ export class Entry extends Command {
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8080, description: "Port to bind on" }),
+		logLevel: flags.enum({ char: "l", options: [ "debug", "info", "warn", "error" ]}),
 		version: flags.version({ char: "v" }),
 
 		// Dev flags
@@ -50,6 +51,15 @@ export class Entry extends Command {
 
 		const { args, flags } = this.parse(Entry);
 
+		if (flags.logLevel) {
+			switch (flags.logLevel) {
+				case "debug": logger.level = Level.Debug; break;
+				case "info": logger.level = Level.Info; break;
+				case "warn": logger.level = Level.Warn; break;
+				case "error": logger.level = Level.Error; break;
+			}
+		}
+
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
 			if (!modulePath) {
@@ -57,8 +67,7 @@ export class Entry extends Command {
 				process.exit(1);
 			}
 
-			requireModule(modulePath);
-			return;
+			return requireModule(modulePath);
 		}
 
 		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-online");
@@ -70,7 +79,7 @@ export class Entry extends Command {
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir));
 		const sharedProcess = new SharedProcess(dataDir);
 		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
-		const sendSharedProcessReady = (socket: WebSocket) => {
+		const sendSharedProcessReady = (socket: WebSocket): void => {
 			const active = new SharedProcessActiveMessage();
 			active.setSocketPath(sharedProcess.socketPath);
 			const serverMessage = new ServerMessage();

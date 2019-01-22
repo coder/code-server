@@ -1,4 +1,14 @@
 /**
+ * Log level.
+ */
+export enum Level {
+	Debug = 0,
+	Info = 1,
+	Warn = 2,
+	Error = 3,
+}
+
+/**
  * A field to log.
  */
 export class Field<T> {
@@ -221,12 +231,12 @@ export class ServerFormatter extends Formatter {
 
 	public fields(fields: Array<Field<any>>): void {
 		const obj = {} as any;
-		this.format += "\u001B[38;2;140;140;140m"
+		this.format += "\u001B[38;2;140;140;140m";
 		fields.forEach((field) => {
 			obj[field.identifier] = field.value;
 		});
 		this.args.push(JSON.stringify(obj));
-		console.log(...this.flush());
+		console.log(...this.flush()); // tslint:disable-line no-console
 	}
 
 }
@@ -235,6 +245,8 @@ export class ServerFormatter extends Formatter {
  * Class for logging.
  */
 export class Logger {
+
+	public level = Level.Debug;
 
 	private readonly nameColor?: string;
 	private muted: boolean;
@@ -265,48 +277,56 @@ export class Logger {
 	 * Outputs information.
 	 */
 	public info(msg: string, ...fields: FieldArray): void {
-		this.handle({
-			type: "info",
-			message: msg,
-			fields,
-			tagColor: "#008FBF",
-		});
+		if (this.level <= Level.Info) {
+			this.handle({
+				type: "info",
+				message: msg,
+				fields,
+				tagColor: "#008FBF",
+			});
+		}
 	}
 
 	/**
 	 * Outputs a warning.
 	 */
 	public warn(msg: string, ...fields: FieldArray): void {
-		this.handle({
-			type: "warn",
-			message: msg,
-			fields,
-			tagColor: "#FF9D00",
-		});
+		if (this.level <= Level.Warn) {
+			this.handle({
+				type: "warn",
+				message: msg,
+				fields,
+				tagColor: "#FF9D00",
+			});
+		}
 	}
 
 	/**
 	 * Outputs a debug message.
 	 */
 	public debug(msg: string, ...fields: FieldArray): void {
-		this.handle({
-			type: "debug",
-			message: msg,
-			fields,
-			tagColor: "#84009E",
-		});
+		if (this.level <= Level.Debug) {
+			this.handle({
+				type: "debug",
+				message: msg,
+				fields,
+				tagColor: "#84009E",
+			});
+		}
 	}
 
 	/**
 	 * Outputs an error.
 	 */
 	public error(msg: string, ...fields: FieldArray): void {
-		this.handle({
-			type: "error",
-			message: msg,
-			fields,
-			tagColor: "#B00000",
-		});
+		if (this.level <= Level.Error) {
+			this.handle({
+				type: "error",
+				message: msg,
+				fields,
+				tagColor: "#B00000",
+			});
+		}
 	}
 
 	/**
