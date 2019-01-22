@@ -1,15 +1,22 @@
 import { readFile, writeFile } from "fs";
+import * as path from "path";
 import { promisify } from "util";
+import { IDisposable } from "@coder/disposable";
 import { Event } from "vs/base/common/event";
-import * as storage from "vs/base/node/storage";
+import * as workspaceStorage from "vs/base/node/storage";
+import * as globalStorage from "vs/platform/storage/node/storageIpc";
+import * as paths from "./paths";
+import { logger, field } from "@coder/logger";
 
-export class StorageDatabase implements storage.IStorageDatabase {
+export class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 	public readonly onDidChangeItemsExternal = Event.None;
 	private items = new Map<string, string>();
 	private fetched: boolean = false;
 
 	public constructor(private readonly path: string) {
+		path = path.replace(/\.vscdb$/, ".json");
+		logger.debug("Setting up storage", field("path", path));
 		window.addEventListener("unload", () => {
 			if (!navigator.sendBeacon) {
 				throw new Error("cannot save state");
@@ -43,7 +50,7 @@ export class StorageDatabase implements storage.IStorageDatabase {
 		return this.items;
 	}
 
-	public updateItems(request: storage.IUpdateRequest): Promise<void> {
+	public updateItems(request: workspaceStorage.IUpdateRequest): Promise<void> {
 		if (request.insert) {
 			request.insert.forEach((value, key) => this.items.set(key, value));
 		}
@@ -74,5 +81,19 @@ export class StorageDatabase implements storage.IStorageDatabase {
 
 }
 
+export class GlobalStorageDatabase extends StorageDatabase implements IDisposable {
+
+	public constructor() {
+		super(path.join(paths.getAppDataPath(), "globalStorage", "state.vscdb"));
+	}
+
+	public dispose(): void {
+		// Nothing to do.
+	}
+
+}
+
 // @ts-ignore
-storage.SQLiteStorageDatabase = StorageDatabase;
+workspaceStorage.SQLiteStorageDatabase = StorageDatabase;
+// @ts-ignore
+globalStorage.GlobalStorageDatabaseChannelClient = GlobalStorageDatabase;

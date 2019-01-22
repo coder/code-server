@@ -47,34 +47,13 @@ index 2bf7fe37d7..81cc668f12 100644
                  }
                  catch (err) {
                      errorback(err);
-diff --git a/src/vs/platform/storage/node/storageService.ts b/src/vs/platform/storage/node/storageService.ts
-index 9e6a94bbd2..9e7f9cb595 100644
---- a/src/vs/platform/storage/node/storageService.ts
-+++ b/src/vs/platform/storage/node/storageService.ts
-@@ -89,6 +89,9 @@ export class StorageService extends Disposable implements IStorageService {
- 	private initializeGlobalStorage(): Thenable<void> {
- 		mark('willInitGlobalStorage');
- 
-+		// TODO: shouldn't reject
-+		return Promise.reject(new Error("nope"));
-+
- 		return this.globalStorage.init().then(() => {
- 			mark('didInitGlobalStorage');
- 		}, error => {
-@@ -605,4 +608,4 @@ export class DelegatingStorageService extends Disposable implements IStorageServ
- 	private convertScope(scope: StorageScope): StorageLegacyScope {
- 		return scope === StorageScope.GLOBAL ? StorageLegacyScope.GLOBAL : StorageLegacyScope.WORKSPACE;
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
 index a43d63aa51..4c6df2fcd9 100644
 --- a/src/vs/workbench/electron-browser/main.ts
 +++ b/src/vs/workbench/electron-browser/main.ts
 @@ -147,13 +147,14 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
  				shell.open();
- 
+
  				// Inform user about loading issues from the loader
 -				(<any>self).require.config({
 -					onError: err => {
