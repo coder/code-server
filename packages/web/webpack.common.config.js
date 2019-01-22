@@ -2,7 +2,6 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const PreloadWebpackPlugin = require("preload-webpack-plugin");
-const HappyPack = require("happypack");
 const root = path.resolve(__dirname, "..", "..");
 const fills = path.join(root, "packages", "ide", "src", "fill");
 const vsFills = path.join(root, "packages", "vscode", "src", "fill");
@@ -96,17 +95,12 @@ module.exports = merge({
 			rel: "preload",
 			as: "script",
 		}),
-		new HappyPack({
-			id: "ts",
-			threads: 2,
-			loaders: [{
-				path: "ts-loader",
-				query: {
-					happyPackMode: true,
-					configFile: path.join(__dirname, "tsconfig.json"),
-				},
-			}],
-		}),
 	],
 	target: "web",
-}, require(path.join(root, "scripts", "webpack.general.config.js"))());
+}, require(path.join(root, "scripts", "webpack.general.config.js"))({
+	typescriptCompilerOptions: {
+		"target": "es5",
+		"lib": ["dom", "esnext"],
+		"importHelpers": true,
+	},
+}));

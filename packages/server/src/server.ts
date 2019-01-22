@@ -35,7 +35,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 				try {
 					ws.send(data);
 				} catch (error) {
-					logger.error(error.message, field("error", error));
+					logger.error(error.message);
 				}
 			},
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
