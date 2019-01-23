@@ -260,7 +260,6 @@ export class Logger {
 		if (name) {
 			this.nameColor = hashStringToColor(name);
 		}
-		this.info(`Log level: ${process.env.LOG_LEVEL || "info"}`);
 		if (process.env.LOG_LEVEL) {
 			switch (process.env.LOG_LEVEL) {
 				case "debug": this.level = Level.Debug; break;

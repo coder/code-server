@@ -1,6 +1,6 @@
 import * as events from "events";
 import * as stream from "stream";
-import { SendableConnection } from "../common/connection";
+import { ReadWriteConnection } from "../common/connection";
 import { ShutdownSessionMessage, ClientMessage, WriteToSessionMessage, ResizeSessionTTYMessage, TTYDimensions as ProtoTTYDimensions, ConnectionOutputMessage, ConnectionCloseMessage } from "../proto";
 
 export interface TTYDimensions {
@@ -40,11 +40,14 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 	private _killed: boolean = false;
 
 	public constructor(
-		private readonly connection: SendableConnection,
+		private readonly connection: ReadWriteConnection,
 		private readonly id: number,
 		private readonly hasTty: boolean = false,
 	) {
 		super();
+		this.connection.onMessage((message) => {
+			this.emit("message", message);
+		});
 
 		if (!this.hasTty) {
 			delete this.resize;
@@ -131,7 +134,7 @@ export class ServerSocket extends events.EventEmitter implements Socket {
 	private _connecting: boolean = true;
 
 	public constructor(
-		private readonly connection: SendableConnection,
+		private readonly connection: ReadWriteConnection,
 		private readonly id: number,
 		connectCallback?: () => void,
 	) {

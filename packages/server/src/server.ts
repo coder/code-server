@@ -44,13 +44,32 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		const server = new Server(connection, options ? {
 			...options,
 			forkProvider: (message: NewSessionMessage): ChildProcess => {
-				let proc: ChildProcess;
+				const command = message.getCommand();
+				const childLogger = logger.named(command.split("/").pop()!);
+				childLogger.debug("Forking...", field("module", command));
 
+				let proc: ChildProcess;
 				if (message.getIsBootstrapFork()) {
-					proc = forkModule(message.getCommand());
+					proc = forkModule(command);
 				} else {
 					throw new Error("No support for non bootstrap-forking yet");
 				}
+
+				proc.stdout.on("data", (message) => {
+					childLogger.debug("stdout", field("message", message.toString().trim()));
+				});
+
+				proc.stderr.on("data", (message) => {
+					childLogger.debug("stderr", field("message", message.toString().trim()));
+				});
+
+				proc.stdin.on("data", (message) => {
+					childLogger.debug("stdin", field("message", message.toString().trim()));
+				});
+
+				proc.on("exit", (exitCode) => {
+					childLogger.debug(`Exited with ${exitCode}`);
+				});
 
 				return proc;
 			},

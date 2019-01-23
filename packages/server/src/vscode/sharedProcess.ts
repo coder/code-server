@@ -29,7 +29,7 @@ export class SharedProcess {
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
 	private readonly onStateEmitter: Emitter<SharedProcessEvent>;
-	private readonly logger = logger.named("SHDR PROC");
+	private readonly logger = logger.named("SHRD PROC");
 
 	public constructor(
 		private readonly userDataDir: string,

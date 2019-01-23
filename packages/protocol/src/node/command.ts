@@ -3,7 +3,7 @@ import * as net from "net";
 import * as nodePty from "node-pty";
 import * as stream from "stream";
 import { TextEncoder } from "text-encoding";
-import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, ShutdownSessionMessage, IdentifySessionMessage, ClientMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage } from "../proto";
+import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, IdentifySessionMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
 import { ServerOptions } from "./server";
 
@@ -16,7 +16,7 @@ export interface Process {
 	killed?: boolean;
 
 	on(event: "data", cb: (data: string) => void): void;
-	on(event: 'exit', listener: (exitCode: number, signal?: number) => void): void;
+	on(event: "exit", listener: (exitCode: number, signal?: number) => void): void;
 	write(data: string | Uint8Array): void;
 	resize?(cols: number, rows: number): void;
 	kill(signal?: string): void;
@@ -170,4 +170,4 @@ export const handleNewConnection = (connection: SendableConnection, newConnectio
 	});
 
 	return socket;
-}
+};
