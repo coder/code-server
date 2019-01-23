@@ -1,15 +1,14 @@
 const path = require("path");
 const webpack = require("webpack");
 
-const root = path.resolve(__dirname, "..", "..");
-const fills = path.join(root, "packages", "ide", "src", "fill");
-const vscodeFills = path.join(root, "packages", "vscode", "src", "fill");
+const root = path.resolve(__dirname, "../..");
+const fills = path.join(root, "packages/ide/src/fill");
+const vscodeFills = path.join(root, "packages/vscode/src/fill");
 
 const merge = require("webpack-merge");
 
 module.exports = (env) => {
-	const afterCompileCommand = env && env.afterCompileCommand;
-	return merge(require(path.join(root, "scripts", "webpack.general.config.js"))({
+	return merge(require(path.join(root, "scripts/webpack.general.config.js"))({
 		typescriptCompilerOptions: {
 			target: "es5",
 		},
@@ -77,16 +76,5 @@ module.exports = (env) => {
 				"vs/css": path.resolve(vscodeFills, "css.js"),
 			},
 		},
-		plugins: [
-			new webpack.ProgressPlugin((percentage, msg) => {
-				if (percentage === 1) {
-					if (afterCompileCommand) {
-						require("child_process").execSync(afterCompileCommand, {
-							stdio: "inherit"
-						});
-					}
-				}
-			}),
-		],
 	});
 };

@@ -2,9 +2,9 @@ const path = require("path");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 const PreloadWebpackPlugin = require("preload-webpack-plugin");
-const root = path.resolve(__dirname, "..", "..");
-const fills = path.join(root, "packages", "ide", "src", "fill");
-const vsFills = path.join(root, "packages", "vscode", "src", "fill");
+const root = path.resolve(__dirname, "../..");
+const fills = path.join(root, "packages/ide/src/fill");
+const vsFills = path.join(root, "packages/vscode/src/fill");
 
 const merge = require("webpack-merge");
 
@@ -74,6 +74,7 @@ module.exports = merge({
 			"node-pty": path.join(vsFills, "node-pty.ts"),
 			"graceful-fs": path.join(vsFills, "graceful-fs.ts"),
 			"spdlog": path.join(vsFills, "spdlog.ts"),
+			"iconv-lite": path.join(vsFills, "iconv-lite.ts"),
 
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
