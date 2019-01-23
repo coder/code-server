@@ -4,7 +4,6 @@ import * as os from "os";
 import * as path from "path";
 import { forkModule } from "./bootstrapFork";
 import { StdioIpcHandler } from "../ipc";
-import { logger, field } from "@coder/logger/src";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { LogLevel } from "vs/platform/log/common/log";
 import { Emitter, Event } from '@coder/events/src';
@@ -29,7 +28,6 @@ export class SharedProcess {
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
 	private readonly onStateEmitter: Emitter<SharedProcessEvent>;
-	private readonly logger = logger.named("SHRD PROC");
 
 	public constructor(
 		private readonly userDataDir: string,
@@ -68,7 +66,7 @@ export class SharedProcess {
 			state: SharedProcessState.Starting,
 		});
 		let resolved: boolean = false;
-		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain");
+		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", true);
 		this.activeProcess.on("exit", (err) => {
 			if (this._state !== SharedProcessState.Stopped) {
 				this.setState({
@@ -101,11 +99,7 @@ export class SharedProcess {
 				state: SharedProcessState.Ready,
 			});
 		});
-		this.activeProcess.stdout.on("data", (data) => {
-			this.logger.debug("stdout", field("message", data.toString()));
-		});
 		this.activeProcess.stderr.on("data", (data) => {
-			this.logger.debug("stderr", field("message", data.toString()));
 			if (!resolved) {
 				this.setState({
 					error: data.toString(),
