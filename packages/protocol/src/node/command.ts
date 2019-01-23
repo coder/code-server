@@ -63,6 +63,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 			stdin: proc.stdin,
 			stderr: proc.stderr,
 			stdout: proc.stdout,
+			stdio: proc.stdio,
 			on: (...args: any[]) => (<any>proc.on)(...args),
 			write: (d) => proc.stdin.write(d),
 			kill: (s) => proc.kill(s || "SIGTERM"),

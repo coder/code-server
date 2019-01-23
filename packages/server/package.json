@@ -4,7 +4,7 @@
 	"bin": "./out/cli.js",
 	"files": [],
 	"scripts": {
-		"start": "NODE_ENV=development ts-node -r tsconfig-paths/register src/cli.ts",
+		"start": "ts-node -r tsconfig-paths/register src/cli.ts",
 		"build:webpack": "rm -rf ./out && export CLI=true && ../../node_modules/.bin/webpack --config ./webpack.config.js",
 		"build:nexe": "node scripts/nexe.js",
 		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; cp ./bin/bootstrap-fork.js ../server/build/bootstrap-fork.js",

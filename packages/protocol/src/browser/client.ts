@@ -217,7 +217,7 @@ export class Client {
 		clientMsg.setNewSession(newSess);
 		this.connection.send(clientMsg.serializeBinary());
 
-		const serverProc = new ServerProcess(this.connection, id, options ? options.tty !== undefined : false);
+		const serverProc = new ServerProcess(this.connection, id, options ? options.tty !== undefined : false, isBootstrapFork);
 		serverProc.stdin.on("close", () => {
 			const c = new CloseSessionInputMessage();
 			c.setId(id);

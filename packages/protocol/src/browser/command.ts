@@ -38,19 +38,34 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 	public readonly stdin = new stream.Writable();
 	public readonly stdout = new stream.Readable({ read: (): boolean => true });
 	public readonly stderr = new stream.Readable({ read: (): boolean => true });
-	public pid: number | undefined;
 
+	private _pid: number | undefined;
 	private _killed: boolean = false;
+	private _connected: boolean = false;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 		private readonly id: number,
 		private readonly hasTty: boolean = false,
+		private readonly ipc: boolean = false,
 	) {
 		super();
 		if (!this.hasTty) {
 			delete this.resize;
 		}
+	}
+
+	public get pid(): number | undefined {
+		return this._pid;
+	}
+
+	public set pid(pid: number | undefined) {
+		this._pid = pid;
+		this._connected = true;
+	}
+
+	public get connected(): boolean {
+		return this._connected;
 	}
 
 	public get killed(): boolean {
@@ -68,9 +83,10 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 		this.connection.send(client.serializeBinary());
 
 		this._killed = true;
+		this._connected = false;
 	}
 
-	public send(message: string | Uint8Array | any, ipc: boolean = false): void {
+	public send(message: string | Uint8Array | any, ipc: boolean = this.ipc): void {
 		const send = new WriteToSessionMessage();
 		send.setId(this.id);
 		send.setSource(ipc ? WriteToSessionMessage.Source.IPC : WriteToSessionMessage.Source.STDIN);

@@ -46,7 +46,7 @@ export class CP {
 
 	public fork = (modulePath: string, args?: ReadonlyArray<string> | cp.ForkOptions, options?: cp.ForkOptions): cp.ChildProcess => {
 		//@ts-ignore
-		return this.client.fork(options && options.env && options.env.AMD_ENTRYPOINT || modulePath, args, options);
+		return this.client.bootstrapFork(options && options.env && options.env.AMD_ENTRYPOINT || modulePath);
 	}
 
 	public spawn = (command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, options?: cp.SpawnOptions): cp.ChildProcess => {
