@@ -284,8 +284,18 @@ export class Client {
 				return;
 			}
 			const data = new TextDecoder().decode(output.getData_asU8());
-			const stream = output.getFd() === SessionOutputMessage.FD.STDOUT ? s.stdout : s.stderr;
-			stream.emit("data", data);
+			const source = output.getSource();
+			switch (source) {
+				case SessionOutputMessage.Source.STDOUT:
+				case SessionOutputMessage.Source.STDERR:
+					(source === SessionOutputMessage.Source.STDOUT ? s.stdout : s.stderr).emit("data", data);
+					break;
+				case SessionOutputMessage.Source.IPC:
+					s.emit("message", JSON.parse(data));
+					break;
+				default:
+					throw new Error(`Unknown source ${source}`);
+			}
 		} else if (message.hasIdentifySession()) {
 			const s = this.sessions.get(message.getIdentifySession()!.getId());
 			if (!s) {

@@ -1,11 +1,11 @@
 import * as os from "os";
 import * as cp from "child_process";
 import * as path from "path";
-import { mkdir } from "fs";
+import { mkdir, WriteStream } from "fs";
 import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
 import { logger, field } from "@coder/logger";
-import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage } from "../proto";
+import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
 import { Process, handleNewSession, handleNewConnection } from "./command";
@@ -120,7 +120,16 @@ export class Server {
 			if (!s) {
 				return;
 			}
-			s.write(new TextDecoder().decode(message.getWriteToSession()!.getData_asU8()));
+			const data = new TextDecoder().decode(message.getWriteToSession()!.getData_asU8());
+			const source = message.getWriteToSession()!.getSource();
+			if (source === WriteToSessionMessage.Source.IPC) {
+				if (!s.stdio || !s.stdio[3]) {
+					throw new Error("Cannot send message via IPC to process without IPC");
+				}
+				(s.stdio[3] as WriteStream).write(data);
+			} else {
+				s.write(data);
+			}
 		} else if (message.hasNewConnection()) {
 			const socket = handleNewConnection(this.connection, message.getNewConnection()!, () => {
 				this.connections.delete(message.getNewConnection()!.getId());

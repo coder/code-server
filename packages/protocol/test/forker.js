@@ -1,1 +1,3 @@
-console.log("test");
+process.on("message", (data) => {
+	process.send(data);
+});

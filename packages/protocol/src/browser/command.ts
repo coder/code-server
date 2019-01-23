@@ -23,8 +23,11 @@ export interface ChildProcess {
 	readonly pid: number | undefined;
 
 	kill(signal?: string): void;
-	send(message: string | Uint8Array): void;
 
+	send(message: string | Uint8Array, ipc?: false): void;
+	send(message: any, ipc: true): void;
+
+	on(event: "message", listener: (data: any) => void): void;
 	on(event: "error", listener: (err: Error) => void): void;
 	on(event: "exit", listener: (code: number, signal: string) => void): void;
 
@@ -45,10 +48,6 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 		private readonly hasTty: boolean = false,
 	) {
 		super();
-		this.connection.onMessage((message) => {
-			this.emit("message", message);
-		});
-
 		if (!this.hasTty) {
 			delete this.resize;
 		}
@@ -71,10 +70,15 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 		this._killed = true;
 	}
 
-	public send(message: string | Uint8Array): void {
+	public send(message: string | Uint8Array | any, ipc: boolean = false): void {
 		const send = new WriteToSessionMessage();
 		send.setId(this.id);
-		send.setData(typeof message === "string" ? new TextEncoder().encode(message) : message);
+		send.setSource(ipc ? WriteToSessionMessage.Source.IPC : WriteToSessionMessage.Source.STDIN);
+		if (ipc) {
+			send.setData(new TextEncoder().encode(JSON.stringify(message)));
+		} else {
+			send.setData(typeof message === "string" ? new TextEncoder().encode(message) : message);
+		}
 		const client = new ClientMessage();
 		client.setWriteToSession(send);
 		this.connection.send(client.serializeBinary());

@@ -8,6 +8,7 @@ import { SendableConnection } from "../common/connection";
 import { ServerOptions } from "./server";
 
 export interface Process {
+	stdio?: Array<stream.Readable | stream.Writable>;
 	stdin?: stream.Writable;
 	stdout?: stream.Readable;
 	stderr?: stream.Readable;
@@ -69,27 +70,34 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 		};
 	}
 
-	const sendOutput = (_fd: SessionOutputMessage.FD, msg: string | Uint8Array): void => {
+	const sendOutput = (_source: SessionOutputMessage.Source, msg: string | Uint8Array): void => {
 		const serverMsg = new ServerMessage();
 		const d = new SessionOutputMessage();
 		d.setId(newSession.getId());
 		d.setData(typeof msg === "string" ? new TextEncoder().encode(msg) : msg);
-		d.setFd(SessionOutputMessage.FD.STDOUT);
+		d.setSource(_source);
 		serverMsg.setSessionOutput(d);
 		connection.send(serverMsg.serializeBinary());
 	};
 
 	if (process.stdout && process.stderr) {
 		process.stdout.on("data", (data) => {
-			sendOutput(SessionOutputMessage.FD.STDOUT, data);
+			sendOutput(SessionOutputMessage.Source.STDOUT, data);
 		});
 
 		process.stderr.on("data", (data) => {
-			sendOutput(SessionOutputMessage.FD.STDERR, data);
+			sendOutput(SessionOutputMessage.Source.STDERR, data);
 		});
 	} else {
 		process.on("data", (data) => {
-			sendOutput(SessionOutputMessage.FD.STDOUT, Buffer.from(data));
+			sendOutput(SessionOutputMessage.Source.STDOUT, Buffer.from(data));
+		});
+	}
+
+	if (process.stdio && process.stdio[3]) {
+		// We have ipc fd
+		process.stdio[3].on("data", (data) => {
+			sendOutput(SessionOutputMessage.Source.IPC, data);
 		});
 	}
 

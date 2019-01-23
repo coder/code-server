@@ -144,6 +144,9 @@ export class WriteToSessionMessage extends jspb.Message {
   getData_asB64(): string;
   setData(value: Uint8Array | string): void;
 
+  getSource(): WriteToSessionMessage.Source;
+  setSource(value: WriteToSessionMessage.Source): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WriteToSessionMessage.AsObject;
   static toObject(includeInstance: boolean, msg: WriteToSessionMessage): WriteToSessionMessage.AsObject;
@@ -158,6 +161,12 @@ export namespace WriteToSessionMessage {
   export type AsObject = {
     id: number,
     data: Uint8Array | string,
+    source: WriteToSessionMessage.Source,
+  }
+
+  export enum Source {
+    STDIN = 0,
+    IPC = 1,
   }
 }
 
@@ -235,8 +244,8 @@ export class SessionOutputMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
 
-  getFd(): SessionOutputMessage.FD;
-  setFd(value: SessionOutputMessage.FD): void;
+  getSource(): SessionOutputMessage.Source;
+  setSource(value: SessionOutputMessage.Source): void;
 
   getData(): Uint8Array | string;
   getData_asU8(): Uint8Array;
@@ -256,13 +265,14 @@ export class SessionOutputMessage extends jspb.Message {
 export namespace SessionOutputMessage {
   export type AsObject = {
     id: number,
-    fd: SessionOutputMessage.FD,
+    source: SessionOutputMessage.Source,
     data: Uint8Array | string,
   }
 
-  export enum FD {
+  export enum Source {
     STDOUT = 0,
     STDERR = 1,
+    IPC = 2,
   }
 }
 

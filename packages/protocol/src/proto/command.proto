@@ -45,6 +45,11 @@ message IdentifySessionMessage {
 message WriteToSessionMessage {
 	uint64 id = 1;
 	bytes data = 2;
+	enum Source {
+		Stdin = 0;
+		Ipc = 1;
+	}
+	Source source = 3;
 }
 
 // Resizes the TTY of the session identified by the id.
@@ -67,11 +72,12 @@ message ShutdownSessionMessage {
 // SessionOutputMessage carries data read from the stdout or stderr of the session identified by the id.
 message SessionOutputMessage {
 	uint64 id = 1;
-	enum FD {
+	enum Source {
 		Stdout = 0;
 		Stderr = 1;
+		Ipc = 2;
 	}
-	FD fd = 2;
+	Source source = 2;
 	bytes data = 3;
 }
 

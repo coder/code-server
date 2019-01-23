@@ -1,3 +1,4 @@
+import * as cp from "child_process";
 import * as net from "net";
 import * as os from "os";
 import * as path from "path";
@@ -8,7 +9,15 @@ import { createClient } from "./helpers";
 (<any>global).TextEncoder = TextEncoder;
 
 describe("spawn", () => {
-	const client = createClient();
+	const client = createClient({
+		dataDirectory: "",
+		workingDirectory: "",
+		forkProvider: (msg) => {
+			return cp.spawn(msg.getCommand(), msg.getArgsList(), {
+				stdio: [null, null, null, "pipe"],
+			});
+		},
+	});
 
 	it("should execute command and return output", (done) => {
 		const proc = client.spawn("echo", ["test"]);
@@ -124,11 +133,13 @@ describe("spawn", () => {
 		proc.on("exit", () => done());
 	});
 	
-	it("should fork", (done) => {
+	it("should fork and echo messages", (done) => {
 		const proc = client.fork(path.join(__dirname, "forker.js"));
-		proc.stdout.on("data", (data) => {
-			expect(data).toEqual("test");
+		proc.on("message", (msg) => {
+			expect(msg.bananas).toBeTruthy();
+			proc.kill();
 		});
+		proc.send({ bananas: true }, true);
 		proc.on("exit", () => done());
 	});
 });

@@ -1,5 +1,6 @@
 import * as cp from "child_process";
 import * as fs from "fs";
+import * as net from "net";
 import * as path from "path";
 import { logger, field } from "@coder/logger/src";
 
@@ -8,6 +9,18 @@ declare var __non_webpack_require__: typeof require;
 export const requireModule = (modulePath: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
 	process.env.VSCODE_ALLOW_IO = "true";
+
+	if (!process.send) {
+		const socket = new net.Socket({ fd: 3 });
+		socket.on("data", (data) => {
+			process.emit("message", JSON.parse(data.toString()), undefined);
+		});
+
+		process.send = (message: any): void => {
+			socket.write(JSON.stringify(message));
+		};
+	}
+
 	const content = fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build/bootstrap-fork.js"));
 	eval(content.toString());
 };
@@ -36,13 +49,13 @@ export const forkModule = (modulePath: string, stdio?: boolean): cp.ChildProcess
 	let proc: cp.ChildProcess | undefined;
 
 	const args = ["--bootstrap-fork", modulePath];
+	const options: cp.SpawnOptions = {
+		stdio: [null, null, null, "pipe"],
+	};
 	if (process.env.CLI === "true") {
-		proc = stdio ? cp.spawn(process.execPath, args) : cp.fork(process.execPath, args);
-	} else if (stdio) {
-		proc = cp.spawn("npm", ["start", "--scripts-prepend-node-path", "--", ...args]);
+		proc = stdio ? cp.spawn(process.execPath, args, options) : cp.fork(process.execPath, args, options);
 	} else {
-		// TODO: need to fork somehow so we get send/onMessage.
-		proc = cp.spawn("npm", ["start", "--scripts-prepend-node-path", "--", ...args]);
+		proc = cp.spawn(process.execArgv[0], ["-r", "tsconfig-paths/register", process.argv[1], ...args], options);
 	}
 
 	proc.stdout.on("data", (message) => {
