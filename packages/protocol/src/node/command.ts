@@ -3,7 +3,7 @@ import * as net from "net";
 import * as nodePty from "node-pty";
 import * as stream from "stream";
 import { TextEncoder } from "text-encoding";
-import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, IdentifySessionMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage } from "../proto";
+import { NewSessionMessage, ServerMessage, SessionDoneMessage, SessionOutputMessage, IdentifySessionMessage, NewConnectionMessage, ConnectionEstablishedMessage, NewConnectionFailureMessage, ConnectionCloseMessage, ConnectionOutputMessage, NewServerMessage, ServerEstablishedMessage, NewServerFailureMessage, ServerCloseMessage, ServerConnectionEstablishedMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
 import { ServerOptions } from "./server";
 
@@ -179,4 +179,49 @@ export const handleNewConnection = (connection: SendableConnection, newConnectio
 	});
 
 	return socket;
+};
+
+export const handleNewServer = (connection: SendableConnection, newServer: NewServerMessage, addSocket: (socket: net.Socket) => number, onExit: () => void): net.Server => {
+	const s = net.createServer();
+
+	try {
+		s.listen(newServer.getPath() ? newServer.getPath() : newServer.getPort(), () => {
+			const se = new ServerEstablishedMessage();
+			se.setId(newServer.getId());
+			const sm = new ServerMessage();
+			sm.setServerEstablished(se);
+			connection.send(sm.serializeBinary());
+		});
+	} catch (ex) {
+		const sf = new NewServerFailureMessage();
+		sf.setId(newServer.getId());
+		const sm = new ServerMessage();
+		sm.setServerFailure(sf);
+		connection.send(sm.serializeBinary());
+	
+		onExit();
+	}
+
+	s.on("close", () => {
+		const sc = new ServerCloseMessage();
+		sc.setId(newServer.getId());
+		const sm = new ServerMessage();
+		sm.setServerClose(sc);
+		connection.send(sm.serializeBinary());
+
+		onExit();
+	});
+
+	s.on("connection", (socket) => {
+		const socketId = addSocket(socket);
+
+		const sock = new ServerConnectionEstablishedMessage();
+		sock.setServerId(newServer.getId());
+		sock.setConnectionId(socketId);
+		const sm = new ServerMessage();
+		sm.setServerConnectionEstablished(sock);
+		connection.send(sm.serializeBinary());
+	});
+
+	return s;
 };

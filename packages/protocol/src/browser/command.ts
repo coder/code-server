@@ -1,7 +1,7 @@
 import * as events from "events";
 import * as stream from "stream";
 import { ReadWriteConnection } from "../common/connection";
-import { ShutdownSessionMessage, ClientMessage, WriteToSessionMessage, ResizeSessionTTYMessage, TTYDimensions as ProtoTTYDimensions, ConnectionOutputMessage, ConnectionCloseMessage } from "../proto";
+import { ShutdownSessionMessage, ClientMessage, WriteToSessionMessage, ResizeSessionTTYMessage, TTYDimensions as ProtoTTYDimensions, ConnectionOutputMessage, ConnectionCloseMessage, ServerCloseMessage, NewServerMessage } from "../proto";
 
 export interface TTYDimensions {
 	readonly columns: number;
@@ -235,5 +235,85 @@ export class ServerSocket extends events.EventEmitter implements Socket {
 
 	public setDefaultEncoding(encoding: string): this {
 		throw new Error("Method not implemented.");
+	}
+}
+
+export interface Server {
+	addListener(event: "close", listener: () => void): this;
+	addListener(event: "connect", listener: (socket: Socket) => void): this;
+	addListener(event: "error", listener: (err: Error) => void): this;
+
+	on(event: "close", listener: () => void): this;
+	on(event: "connection", listener: (socket: Socket) => void): this;
+	on(event: "error", listener: (err: Error) => void): this;
+
+	once(event: "close", listener: () => void): this;
+	once(event: "connection", listener: (socket: Socket) => void): this;
+	once(event: "error", listener: (err: Error) => void): this;
+
+	removeListener(event: "close", listener: () => void): this;
+	removeListener(event: "connection", listener: (socket: Socket) => void): this;
+	removeListener(event: "error", listener: (err: Error) => void): this;
+
+	emit(event: "close"): boolean;
+	emit(event: "connection"): boolean;
+	emit(event: "error"): boolean;
+
+	listen(path: string, listeningListener?: () => void): this;
+	close(callback?: () => void): this;
+
+	readonly listening: boolean;
+}
+
+export class ServerListener extends events.EventEmitter implements Server {
+	private _listening: boolean = false;
+
+	public constructor(
+		private readonly connection: ReadWriteConnection,
+		private readonly id: number,
+		connectCallback?: () => void,
+	) {
+		super();
+
+		this.on("connect", () => {
+			this._listening = true;
+			if (connectCallback) {
+				connectCallback();
+			}
+		});
+	}
+
+	public get listening(): boolean {
+		return this._listening;
+	}
+
+	public listen(path: string, listener?: () => void): this {
+		const ns = new NewServerMessage();
+		ns.setId(this.id);
+		ns.setPath(path!);
+		const cm = new ClientMessage();
+		cm.setNewServer(ns);
+		this.connection.send(cm.serializeBinary());
+
+		if (typeof listener !== "undefined") {
+			this.once("connect", listener);
+		}
+
+		return this;
+	}
+
+	public close(callback?: Function | undefined): this {
+		const closeMsg = new ServerCloseMessage();
+		closeMsg.setId(this.id);
+		closeMsg.setReason("Manually closed");
+		const clientMsg = new ClientMessage();
+		clientMsg.setServerClose(closeMsg);
+		this.connection.send(clientMsg.serializeBinary());
+	
+		if (callback) {
+			callback();
+		}
+
+		return this;
 	}
 }

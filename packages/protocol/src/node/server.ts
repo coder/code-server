@@ -8,7 +8,7 @@ import { logger, field } from "@coder/logger";
 import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
-import { Process, handleNewSession, handleNewConnection } from "./command";
+import { Process, handleNewSession, handleNewConnection, handleNewServer } from "./command";
 import * as net from "net";
 
 export interface ServerOptions {
@@ -22,6 +22,9 @@ export class Server {
 
 	private readonly sessions: Map<number, Process> = new Map();
 	private readonly connections: Map<number, net.Socket> = new Map();
+	private readonly servers: Map<number, net.Server> = new Map();
+
+	private connectionId: number = Number.MAX_SAFE_INTEGER;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -147,7 +150,26 @@ export class Server {
 				return;
 			}
 			c.end();
+		} else if (message.hasNewServer()) {
+			const s = handleNewServer(this.connection, message.getNewServer()!, (socket) => {
+				const id = this.connectionId--;
+				this.connections.set(id, socket);
+				return id;
+			}, () => {
+				this.connections.delete(message.getNewServer()!.getId());
+			});
+			this.servers.set(message.getNewServer()!.getId(), s);
+		} else if (message.hasServerClose()) {
+			const s = this.getServer(message.getServerClose()!.getId());
+			if (!s) {
+				return;
+			}
+			s.close();
 		}
+	}
+
+	private getServer(id: number): net.Server | undefined {
+		return this.servers.get(id);
 	}
 
 	private getConnection(id: number): net.Socket | undefined {

@@ -47,6 +47,16 @@ export class ClientMessage extends jspb.Message {
   getConnectionClose(): command_pb.ConnectionCloseMessage | undefined;
   setConnectionClose(value?: command_pb.ConnectionCloseMessage): void;
 
+  hasNewServer(): boolean;
+  clearNewServer(): void;
+  getNewServer(): command_pb.NewServerMessage | undefined;
+  setNewServer(value?: command_pb.NewServerMessage): void;
+
+  hasServerClose(): boolean;
+  clearServerClose(): void;
+  getServerClose(): command_pb.ServerCloseMessage | undefined;
+  setServerClose(value?: command_pb.ServerCloseMessage): void;
+
   hasNewEval(): boolean;
   clearNewEval(): void;
   getNewEval(): node_pb.NewEvalMessage | undefined;
@@ -73,6 +83,8 @@ export namespace ClientMessage {
     newConnection?: command_pb.NewConnectionMessage.AsObject,
     connectionOutput?: command_pb.ConnectionOutputMessage.AsObject,
     connectionClose?: command_pb.ConnectionCloseMessage.AsObject,
+    newServer?: command_pb.NewServerMessage.AsObject,
+    serverClose?: command_pb.ServerCloseMessage.AsObject,
     newEval?: node_pb.NewEvalMessage.AsObject,
   }
 
@@ -86,7 +98,9 @@ export namespace ClientMessage {
     NEW_CONNECTION = 6,
     CONNECTION_OUTPUT = 7,
     CONNECTION_CLOSE = 8,
-    NEW_EVAL = 9,
+    NEW_SERVER = 9,
+    SERVER_CLOSE = 10,
+    NEW_EVAL = 11,
   }
 }
 
@@ -131,6 +145,26 @@ export class ServerMessage extends jspb.Message {
   getConnectionEstablished(): command_pb.ConnectionEstablishedMessage | undefined;
   setConnectionEstablished(value?: command_pb.ConnectionEstablishedMessage): void;
 
+  hasServerFailure(): boolean;
+  clearServerFailure(): void;
+  getServerFailure(): command_pb.NewServerFailureMessage | undefined;
+  setServerFailure(value?: command_pb.NewServerFailureMessage): void;
+
+  hasServerEstablished(): boolean;
+  clearServerEstablished(): void;
+  getServerEstablished(): command_pb.ServerEstablishedMessage | undefined;
+  setServerEstablished(value?: command_pb.ServerEstablishedMessage): void;
+
+  hasServerClose(): boolean;
+  clearServerClose(): void;
+  getServerClose(): command_pb.ServerCloseMessage | undefined;
+  setServerClose(value?: command_pb.ServerCloseMessage): void;
+
+  hasServerConnectionEstablished(): boolean;
+  clearServerConnectionEstablished(): void;
+  getServerConnectionEstablished(): command_pb.ServerConnectionEstablishedMessage | undefined;
+  setServerConnectionEstablished(value?: command_pb.ServerConnectionEstablishedMessage): void;
+
   hasEvalFailed(): boolean;
   clearEvalFailed(): void;
   getEvalFailed(): node_pb.EvalFailedMessage | undefined;
@@ -172,6 +206,10 @@ export namespace ServerMessage {
     connectionOutput?: command_pb.ConnectionOutputMessage.AsObject,
     connectionClose?: command_pb.ConnectionCloseMessage.AsObject,
     connectionEstablished?: command_pb.ConnectionEstablishedMessage.AsObject,
+    serverFailure?: command_pb.NewServerFailureMessage.AsObject,
+    serverEstablished?: command_pb.ServerEstablishedMessage.AsObject,
+    serverClose?: command_pb.ServerCloseMessage.AsObject,
+    serverConnectionEstablished?: command_pb.ServerConnectionEstablishedMessage.AsObject,
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
     init?: WorkingInitMessage.AsObject,
@@ -188,10 +226,14 @@ export namespace ServerMessage {
     CONNECTION_OUTPUT = 6,
     CONNECTION_CLOSE = 7,
     CONNECTION_ESTABLISHED = 8,
-    EVAL_FAILED = 9,
-    EVAL_DONE = 10,
-    INIT = 11,
-    SHARED_PROCESS_ACTIVE = 12,
+    SERVER_FAILURE = 9,
+    SERVER_ESTABLISHED = 10,
+    SERVER_CLOSE = 11,
+    SERVER_CONNECTION_ESTABLISHED = 12,
+    EVAL_FAILED = 13,
+    EVAL_DONE = 14,
+    INIT = 15,
+    SHARED_PROCESS_ACTIVE = 16,
   }
 }
 

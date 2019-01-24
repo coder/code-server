@@ -418,3 +418,123 @@ export namespace ConnectionCloseMessage {
   }
 }
 
+export class NewServerMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getPort(): number;
+  setPort(value: number): void;
+
+  getPath(): string;
+  setPath(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NewServerMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NewServerMessage): NewServerMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NewServerMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NewServerMessage;
+  static deserializeBinaryFromReader(message: NewServerMessage, reader: jspb.BinaryReader): NewServerMessage;
+}
+
+export namespace NewServerMessage {
+  export type AsObject = {
+    id: number,
+    port: number,
+    path: string,
+  }
+}
+
+export class NewServerFailureMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getMessage(): string;
+  setMessage(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NewServerFailureMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NewServerFailureMessage): NewServerFailureMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NewServerFailureMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NewServerFailureMessage;
+  static deserializeBinaryFromReader(message: NewServerFailureMessage, reader: jspb.BinaryReader): NewServerFailureMessage;
+}
+
+export namespace NewServerFailureMessage {
+  export type AsObject = {
+    id: number,
+    message: string,
+  }
+}
+
+export class ServerEstablishedMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ServerEstablishedMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ServerEstablishedMessage): ServerEstablishedMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ServerEstablishedMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ServerEstablishedMessage;
+  static deserializeBinaryFromReader(message: ServerEstablishedMessage, reader: jspb.BinaryReader): ServerEstablishedMessage;
+}
+
+export namespace ServerEstablishedMessage {
+  export type AsObject = {
+    id: number,
+  }
+}
+
+export class ServerCloseMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getReason(): string;
+  setReason(value: string): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ServerCloseMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ServerCloseMessage): ServerCloseMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ServerCloseMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ServerCloseMessage;
+  static deserializeBinaryFromReader(message: ServerCloseMessage, reader: jspb.BinaryReader): ServerCloseMessage;
+}
+
+export namespace ServerCloseMessage {
+  export type AsObject = {
+    id: number,
+    reason: string,
+  }
+}
+
+export class ServerConnectionEstablishedMessage extends jspb.Message {
+  getServerId(): number;
+  setServerId(value: number): void;
+
+  getConnectionId(): number;
+  setConnectionId(value: number): void;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): ServerConnectionEstablishedMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: ServerConnectionEstablishedMessage): ServerConnectionEstablishedMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: ServerConnectionEstablishedMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): ServerConnectionEstablishedMessage;
+  static deserializeBinaryFromReader(message: ServerConnectionEstablishedMessage, reader: jspb.BinaryReader): ServerConnectionEstablishedMessage;
+}
+
+export namespace ServerConnectionEstablishedMessage {
+  export type AsObject = {
+    serverId: number,
+    connectionId: number,
+  }
+}
+

@@ -114,3 +114,28 @@ message ConnectionOutputMessage {
 message ConnectionCloseMessage {
 	uint64 id = 1;
 }
+
+message NewServerMessage {
+	uint64 id = 1;
+	uint64 port = 2;
+	string path = 3;
+}
+
+message NewServerFailureMessage {
+	uint64 id = 1;
+	string message = 2;
+}
+
+message ServerEstablishedMessage {
+	uint64 id = 1;
+}
+
+message ServerCloseMessage {
+	uint64 id = 1;
+	string reason = 2;
+}
+
+message ServerConnectionEstablishedMessage {
+	uint64 server_id = 1;
+	uint64 connection_id = 2;
+}

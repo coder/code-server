@@ -42,7 +42,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ClientMessage.oneofGroups_ = [[1,2,3,4,5,6,7,8,9]];
+proto.ClientMessage.oneofGroups_ = [[1,2,3,4,5,6,7,8,9,10,11]];
 
 /**
  * @enum {number}
@@ -57,7 +57,9 @@ proto.ClientMessage.MsgCase = {
   NEW_CONNECTION: 6,
   CONNECTION_OUTPUT: 7,
   CONNECTION_CLOSE: 8,
-  NEW_EVAL: 9
+  NEW_SERVER: 9,
+  SERVER_CLOSE: 10,
+  NEW_EVAL: 11
 };
 
 /**
@@ -103,6 +105,8 @@ proto.ClientMessage.toObject = function(includeInstance, msg) {
     newConnection: (f = msg.getNewConnection()) && command_pb.NewConnectionMessage.toObject(includeInstance, f),
     connectionOutput: (f = msg.getConnectionOutput()) && command_pb.ConnectionOutputMessage.toObject(includeInstance, f),
     connectionClose: (f = msg.getConnectionClose()) && command_pb.ConnectionCloseMessage.toObject(includeInstance, f),
+    newServer: (f = msg.getNewServer()) && command_pb.NewServerMessage.toObject(includeInstance, f),
+    serverClose: (f = msg.getServerClose()) && command_pb.ServerCloseMessage.toObject(includeInstance, f),
     newEval: (f = msg.getNewEval()) && node_pb.NewEvalMessage.toObject(includeInstance, f)
   };
 
@@ -181,6 +185,16 @@ proto.ClientMessage.deserializeBinaryFromReader = function(msg, reader) {
       msg.setConnectionClose(value);
       break;
     case 9:
+      var value = new command_pb.NewServerMessage;
+      reader.readMessage(value,command_pb.NewServerMessage.deserializeBinaryFromReader);
+      msg.setNewServer(value);
+      break;
+    case 10:
+      var value = new command_pb.ServerCloseMessage;
+      reader.readMessage(value,command_pb.ServerCloseMessage.deserializeBinaryFromReader);
+      msg.setServerClose(value);
+      break;
+    case 11:
       var value = new node_pb.NewEvalMessage;
       reader.readMessage(value,node_pb.NewEvalMessage.deserializeBinaryFromReader);
       msg.setNewEval(value);
@@ -287,10 +301,26 @@ proto.ClientMessage.prototype.serializeBinaryToWriter = function (writer) {
       command_pb.ConnectionCloseMessage.serializeBinaryToWriter
     );
   }
-  f = this.getNewEval();
+  f = this.getNewServer();
   if (f != null) {
     writer.writeMessage(
       9,
+      f,
+      command_pb.NewServerMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getServerClose();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      command_pb.ServerCloseMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getNewEval();
+  if (f != null) {
+    writer.writeMessage(
+      11,
       f,
       node_pb.NewEvalMessage.serializeBinaryToWriter
     );
@@ -548,18 +578,78 @@ proto.ClientMessage.prototype.hasConnectionClose = function() {
 
 
 /**
- * optional NewEvalMessage new_eval = 9;
+ * optional NewServerMessage new_server = 9;
+ * @return {proto.NewServerMessage}
+ */
+proto.ClientMessage.prototype.getNewServer = function() {
+  return /** @type{proto.NewServerMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.NewServerMessage, 9));
+};
+
+
+/** @param {proto.NewServerMessage|undefined} value  */
+proto.ClientMessage.prototype.setNewServer = function(value) {
+  jspb.Message.setOneofWrapperField(this, 9, proto.ClientMessage.oneofGroups_[0], value);
+};
+
+
+proto.ClientMessage.prototype.clearNewServer = function() {
+  this.setNewServer(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ClientMessage.prototype.hasNewServer = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional ServerCloseMessage server_close = 10;
+ * @return {proto.ServerCloseMessage}
+ */
+proto.ClientMessage.prototype.getServerClose = function() {
+  return /** @type{proto.ServerCloseMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.ServerCloseMessage, 10));
+};
+
+
+/** @param {proto.ServerCloseMessage|undefined} value  */
+proto.ClientMessage.prototype.setServerClose = function(value) {
+  jspb.Message.setOneofWrapperField(this, 10, proto.ClientMessage.oneofGroups_[0], value);
+};
+
+
+proto.ClientMessage.prototype.clearServerClose = function() {
+  this.setServerClose(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ClientMessage.prototype.hasServerClose = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional NewEvalMessage new_eval = 11;
  * @return {proto.NewEvalMessage}
  */
 proto.ClientMessage.prototype.getNewEval = function() {
   return /** @type{proto.NewEvalMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.NewEvalMessage, 9));
+    jspb.Message.getWrapperField(this, node_pb.NewEvalMessage, 11));
 };
 
 
 /** @param {proto.NewEvalMessage|undefined} value  */
 proto.ClientMessage.prototype.setNewEval = function(value) {
-  jspb.Message.setOneofWrapperField(this, 9, proto.ClientMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 11, proto.ClientMessage.oneofGroups_[0], value);
 };
 
 
@@ -573,7 +663,7 @@ proto.ClientMessage.prototype.clearNewEval = function() {
  * @return{!boolean}
  */
 proto.ClientMessage.prototype.hasNewEval = function() {
-  return jspb.Message.getField(this, 9) != null;
+  return jspb.Message.getField(this, 11) != null;
 };
 
 
@@ -603,7 +693,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ServerMessage.oneofGroups_ = [[1,2,3,4,5,6,7,8,9,10,11,12]];
+proto.ServerMessage.oneofGroups_ = [[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16]];
 
 /**
  * @enum {number}
@@ -618,10 +708,14 @@ proto.ServerMessage.MsgCase = {
   CONNECTION_OUTPUT: 6,
   CONNECTION_CLOSE: 7,
   CONNECTION_ESTABLISHED: 8,
-  EVAL_FAILED: 9,
-  EVAL_DONE: 10,
-  INIT: 11,
-  SHARED_PROCESS_ACTIVE: 12
+  SERVER_FAILURE: 9,
+  SERVER_ESTABLISHED: 10,
+  SERVER_CLOSE: 11,
+  SERVER_CONNECTION_ESTABLISHED: 12,
+  EVAL_FAILED: 13,
+  EVAL_DONE: 14,
+  INIT: 15,
+  SHARED_PROCESS_ACTIVE: 16
 };
 
 /**
@@ -667,6 +761,10 @@ proto.ServerMessage.toObject = function(includeInstance, msg) {
     connectionOutput: (f = msg.getConnectionOutput()) && command_pb.ConnectionOutputMessage.toObject(includeInstance, f),
     connectionClose: (f = msg.getConnectionClose()) && command_pb.ConnectionCloseMessage.toObject(includeInstance, f),
     connectionEstablished: (f = msg.getConnectionEstablished()) && command_pb.ConnectionEstablishedMessage.toObject(includeInstance, f),
+    serverFailure: (f = msg.getServerFailure()) && command_pb.NewServerFailureMessage.toObject(includeInstance, f),
+    serverEstablished: (f = msg.getServerEstablished()) && command_pb.ServerEstablishedMessage.toObject(includeInstance, f),
+    serverClose: (f = msg.getServerClose()) && command_pb.ServerCloseMessage.toObject(includeInstance, f),
+    serverConnectionEstablished: (f = msg.getServerConnectionEstablished()) && command_pb.ServerConnectionEstablishedMessage.toObject(includeInstance, f),
     evalFailed: (f = msg.getEvalFailed()) && node_pb.EvalFailedMessage.toObject(includeInstance, f),
     evalDone: (f = msg.getEvalDone()) && node_pb.EvalDoneMessage.toObject(includeInstance, f),
     init: (f = msg.getInit()) && proto.WorkingInitMessage.toObject(includeInstance, f),
@@ -748,21 +846,41 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
       msg.setConnectionEstablished(value);
       break;
     case 9:
+      var value = new command_pb.NewServerFailureMessage;
+      reader.readMessage(value,command_pb.NewServerFailureMessage.deserializeBinaryFromReader);
+      msg.setServerFailure(value);
+      break;
+    case 10:
+      var value = new command_pb.ServerEstablishedMessage;
+      reader.readMessage(value,command_pb.ServerEstablishedMessage.deserializeBinaryFromReader);
+      msg.setServerEstablished(value);
+      break;
+    case 11:
+      var value = new command_pb.ServerCloseMessage;
+      reader.readMessage(value,command_pb.ServerCloseMessage.deserializeBinaryFromReader);
+      msg.setServerClose(value);
+      break;
+    case 12:
+      var value = new command_pb.ServerConnectionEstablishedMessage;
+      reader.readMessage(value,command_pb.ServerConnectionEstablishedMessage.deserializeBinaryFromReader);
+      msg.setServerConnectionEstablished(value);
+      break;
+    case 13:
       var value = new node_pb.EvalFailedMessage;
       reader.readMessage(value,node_pb.EvalFailedMessage.deserializeBinaryFromReader);
       msg.setEvalFailed(value);
       break;
-    case 10:
+    case 14:
       var value = new node_pb.EvalDoneMessage;
       reader.readMessage(value,node_pb.EvalDoneMessage.deserializeBinaryFromReader);
       msg.setEvalDone(value);
       break;
-    case 11:
+    case 15:
       var value = new proto.WorkingInitMessage;
       reader.readMessage(value,proto.WorkingInitMessage.deserializeBinaryFromReader);
       msg.setInit(value);
       break;
-    case 12:
+    case 16:
       var value = new vscode_pb.SharedProcessActiveMessage;
       reader.readMessage(value,vscode_pb.SharedProcessActiveMessage.deserializeBinaryFromReader);
       msg.setSharedProcessActive(value);
@@ -869,10 +987,42 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
       command_pb.ConnectionEstablishedMessage.serializeBinaryToWriter
     );
   }
-  f = this.getEvalFailed();
+  f = this.getServerFailure();
   if (f != null) {
     writer.writeMessage(
       9,
+      f,
+      command_pb.NewServerFailureMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getServerEstablished();
+  if (f != null) {
+    writer.writeMessage(
+      10,
+      f,
+      command_pb.ServerEstablishedMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getServerClose();
+  if (f != null) {
+    writer.writeMessage(
+      11,
+      f,
+      command_pb.ServerCloseMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getServerConnectionEstablished();
+  if (f != null) {
+    writer.writeMessage(
+      12,
+      f,
+      command_pb.ServerConnectionEstablishedMessage.serializeBinaryToWriter
+    );
+  }
+  f = this.getEvalFailed();
+  if (f != null) {
+    writer.writeMessage(
+      13,
       f,
       node_pb.EvalFailedMessage.serializeBinaryToWriter
     );
@@ -880,7 +1030,7 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
   f = this.getEvalDone();
   if (f != null) {
     writer.writeMessage(
-      10,
+      14,
       f,
       node_pb.EvalDoneMessage.serializeBinaryToWriter
     );
@@ -888,7 +1038,7 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
   f = this.getInit();
   if (f != null) {
     writer.writeMessage(
-      11,
+      15,
       f,
       proto.WorkingInitMessage.serializeBinaryToWriter
     );
@@ -896,7 +1046,7 @@ proto.ServerMessage.prototype.serializeBinaryToWriter = function (writer) {
   f = this.getSharedProcessActive();
   if (f != null) {
     writer.writeMessage(
-      12,
+      16,
       f,
       vscode_pb.SharedProcessActiveMessage.serializeBinaryToWriter
     );
@@ -1154,18 +1304,138 @@ proto.ServerMessage.prototype.hasConnectionEstablished = function() {
 
 
 /**
- * optional EvalFailedMessage eval_failed = 9;
+ * optional NewServerFailureMessage server_failure = 9;
+ * @return {proto.NewServerFailureMessage}
+ */
+proto.ServerMessage.prototype.getServerFailure = function() {
+  return /** @type{proto.NewServerFailureMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.NewServerFailureMessage, 9));
+};
+
+
+/** @param {proto.NewServerFailureMessage|undefined} value  */
+proto.ServerMessage.prototype.setServerFailure = function(value) {
+  jspb.Message.setOneofWrapperField(this, 9, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearServerFailure = function() {
+  this.setServerFailure(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ServerMessage.prototype.hasServerFailure = function() {
+  return jspb.Message.getField(this, 9) != null;
+};
+
+
+/**
+ * optional ServerEstablishedMessage server_established = 10;
+ * @return {proto.ServerEstablishedMessage}
+ */
+proto.ServerMessage.prototype.getServerEstablished = function() {
+  return /** @type{proto.ServerEstablishedMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.ServerEstablishedMessage, 10));
+};
+
+
+/** @param {proto.ServerEstablishedMessage|undefined} value  */
+proto.ServerMessage.prototype.setServerEstablished = function(value) {
+  jspb.Message.setOneofWrapperField(this, 10, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearServerEstablished = function() {
+  this.setServerEstablished(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ServerMessage.prototype.hasServerEstablished = function() {
+  return jspb.Message.getField(this, 10) != null;
+};
+
+
+/**
+ * optional ServerCloseMessage server_close = 11;
+ * @return {proto.ServerCloseMessage}
+ */
+proto.ServerMessage.prototype.getServerClose = function() {
+  return /** @type{proto.ServerCloseMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.ServerCloseMessage, 11));
+};
+
+
+/** @param {proto.ServerCloseMessage|undefined} value  */
+proto.ServerMessage.prototype.setServerClose = function(value) {
+  jspb.Message.setOneofWrapperField(this, 11, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearServerClose = function() {
+  this.setServerClose(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ServerMessage.prototype.hasServerClose = function() {
+  return jspb.Message.getField(this, 11) != null;
+};
+
+
+/**
+ * optional ServerConnectionEstablishedMessage server_connection_established = 12;
+ * @return {proto.ServerConnectionEstablishedMessage}
+ */
+proto.ServerMessage.prototype.getServerConnectionEstablished = function() {
+  return /** @type{proto.ServerConnectionEstablishedMessage} */ (
+    jspb.Message.getWrapperField(this, command_pb.ServerConnectionEstablishedMessage, 12));
+};
+
+
+/** @param {proto.ServerConnectionEstablishedMessage|undefined} value  */
+proto.ServerMessage.prototype.setServerConnectionEstablished = function(value) {
+  jspb.Message.setOneofWrapperField(this, 12, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearServerConnectionEstablished = function() {
+  this.setServerConnectionEstablished(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return{!boolean}
+ */
+proto.ServerMessage.prototype.hasServerConnectionEstablished = function() {
+  return jspb.Message.getField(this, 12) != null;
+};
+
+
+/**
+ * optional EvalFailedMessage eval_failed = 13;
  * @return {proto.EvalFailedMessage}
  */
 proto.ServerMessage.prototype.getEvalFailed = function() {
   return /** @type{proto.EvalFailedMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalFailedMessage, 9));
+    jspb.Message.getWrapperField(this, node_pb.EvalFailedMessage, 13));
 };
 
 
 /** @param {proto.EvalFailedMessage|undefined} value  */
 proto.ServerMessage.prototype.setEvalFailed = function(value) {
-  jspb.Message.setOneofWrapperField(this, 9, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 13, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -1179,23 +1449,23 @@ proto.ServerMessage.prototype.clearEvalFailed = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasEvalFailed = function() {
-  return jspb.Message.getField(this, 9) != null;
+  return jspb.Message.getField(this, 13) != null;
 };
 
 
 /**
- * optional EvalDoneMessage eval_done = 10;
+ * optional EvalDoneMessage eval_done = 14;
  * @return {proto.EvalDoneMessage}
  */
 proto.ServerMessage.prototype.getEvalDone = function() {
   return /** @type{proto.EvalDoneMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalDoneMessage, 10));
+    jspb.Message.getWrapperField(this, node_pb.EvalDoneMessage, 14));
 };
 
 
 /** @param {proto.EvalDoneMessage|undefined} value  */
 proto.ServerMessage.prototype.setEvalDone = function(value) {
-  jspb.Message.setOneofWrapperField(this, 10, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 14, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -1209,23 +1479,23 @@ proto.ServerMessage.prototype.clearEvalDone = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasEvalDone = function() {
-  return jspb.Message.getField(this, 10) != null;
+  return jspb.Message.getField(this, 14) != null;
 };
 
 
 /**
- * optional WorkingInitMessage init = 11;
+ * optional WorkingInitMessage init = 15;
  * @return {proto.WorkingInitMessage}
  */
 proto.ServerMessage.prototype.getInit = function() {
   return /** @type{proto.WorkingInitMessage} */ (
-    jspb.Message.getWrapperField(this, proto.WorkingInitMessage, 11));
+    jspb.Message.getWrapperField(this, proto.WorkingInitMessage, 15));
 };
 
 
 /** @param {proto.WorkingInitMessage|undefined} value  */
 proto.ServerMessage.prototype.setInit = function(value) {
-  jspb.Message.setOneofWrapperField(this, 11, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 15, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -1239,23 +1509,23 @@ proto.ServerMessage.prototype.clearInit = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasInit = function() {
-  return jspb.Message.getField(this, 11) != null;
+  return jspb.Message.getField(this, 15) != null;
 };
 
 
 /**
- * optional SharedProcessActiveMessage shared_process_active = 12;
+ * optional SharedProcessActiveMessage shared_process_active = 16;
  * @return {proto.SharedProcessActiveMessage}
  */
 proto.ServerMessage.prototype.getSharedProcessActive = function() {
   return /** @type{proto.SharedProcessActiveMessage} */ (
-    jspb.Message.getWrapperField(this, vscode_pb.SharedProcessActiveMessage, 12));
+    jspb.Message.getWrapperField(this, vscode_pb.SharedProcessActiveMessage, 16));
 };
 
 
 /** @param {proto.SharedProcessActiveMessage|undefined} value  */
 proto.ServerMessage.prototype.setSharedProcessActive = function(value) {
-  jspb.Message.setOneofWrapperField(this, 12, proto.ServerMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 16, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
@@ -1269,7 +1539,7 @@ proto.ServerMessage.prototype.clearSharedProcessActive = function() {
  * @return{!boolean}
  */
 proto.ServerMessage.prototype.hasSharedProcessActive = function() {
-  return jspb.Message.getField(this, 12) != null;
+  return jspb.Message.getField(this, 16) != null;
 };
 
 

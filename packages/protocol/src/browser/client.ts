@@ -1,8 +1,8 @@
 import { ReadWriteConnection, InitData, OperatingSystem, ISharedProcessData } from "../common/connection";
-import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, NewConnectionMessage } from "../proto";
+import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, NewConnectionMessage, NewServerMessage } from "../proto";
 import { Emitter, Event } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { ChildProcess, SpawnOptions, ServerProcess, ServerSocket, Socket } from "./command";
+import { ChildProcess, SpawnOptions, ServerProcess, ServerSocket, Socket, ServerListener, Server } from "./command";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.
@@ -17,6 +17,9 @@ export class Client {
 
 	private connectionId: number = 0;
 	private readonly connections: Map<number, ServerSocket> = new Map();
+
+	private serverId: number = 0;
+	private readonly servers: Map<number, ServerListener> = new Map();
 
 	private _initData: InitData | undefined;
 	private initDataEmitter = new Emitter<InitData>();
@@ -189,6 +192,14 @@ export class Client {
 		return socket;
 	}
 
+	public createServer(callback?: () => void): Server {
+		const id = this.serverId++;
+		const server = new ServerListener(this.connection, id, callback);
+		this.servers.set(id, server);
+
+		return server;
+	}
+
 	private doSpawn(command: string, args: string[] = [], options?: SpawnOptions, isFork: boolean = false, isBootstrapFork: boolean = true): ChildProcess {
 		const id = this.sessionId++;
 		const newSess = new NewSessionMessage();
@@ -333,6 +344,36 @@ export class Client {
 			this.sharedProcessActiveEmitter.emit({
 				socketPath: message.getSharedProcessActive()!.getSocketPath(),
 			});
+		} else if (message.hasServerEstablished()) {
+			const s = this.servers.get(message.getServerEstablished()!.getId());
+			if (!s) {
+				return;
+			}
+			s.emit("connect");
+		} else if (message.hasServerConnectionEstablished()) {
+			const s = this.servers.get(message.getServerConnectionEstablished()!.getServerId());
+			if (!s) {
+				return;
+			}
+			const conId = message.getServerConnectionEstablished()!.getConnectionId();
+			const serverSocket = new ServerSocket(this.connection, conId);
+			serverSocket.emit("connect");
+			this.connections.set(conId, serverSocket);
+			s.emit("connection", serverSocket);
+		} else if (message.getServerFailure()) {
+			const s = this.servers.get(message.getServerFailure()!.getId());
+			if (!s) {
+				return;
+			}
+			s.emit("error", new Error(message.getNewSessionFailure()!.getReason().toString()));
+			this.servers.delete(message.getNewSessionFailure()!.getId());
+		} else if (message.hasServerClose()) {
+			const s = this.servers.get(message.getServerClose()!.getId());
+			if (!s) {
+				return;
+			}
+			s.emit("close");
+			this.servers.delete(message.getServerClose()!.getId());
 		}
 	}
 }

@@ -14,9 +14,11 @@ message ClientMessage {
 		NewConnectionMessage new_connection = 6;
 		ConnectionOutputMessage connection_output = 7;
 		ConnectionCloseMessage connection_close = 8;
+		NewServerMessage new_server = 9;
+		ServerCloseMessage server_close = 10;
 
 		// node.proto
-		NewEvalMessage new_eval = 9;
+		NewEvalMessage new_eval = 11;
 	}
 }
 
@@ -31,15 +33,19 @@ message ServerMessage {
 		ConnectionOutputMessage connection_output = 6;
 		ConnectionCloseMessage connection_close = 7;
 		ConnectionEstablishedMessage connection_established = 8;
+		NewServerFailureMessage server_failure = 9;
+		ServerEstablishedMessage server_established = 10;
+		ServerCloseMessage server_close = 11;
+		ServerConnectionEstablishedMessage server_connection_established = 12;
 	
 		// node.proto
-		EvalFailedMessage eval_failed = 9;
-		EvalDoneMessage eval_done = 10;
+		EvalFailedMessage eval_failed = 13;
+		EvalDoneMessage eval_done = 14;
 
-		WorkingInitMessage init = 11;
+		WorkingInitMessage init = 15;
 
 		// vscode.proto
-		SharedProcessActiveMessage shared_process_active = 12;
+		SharedProcessActiveMessage shared_process_active = 16;
 	}
 }
 

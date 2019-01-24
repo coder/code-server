@@ -199,3 +199,38 @@ describe("createConnection", () => {
 		});
 	});
 });
+
+describe("createServer", () => {
+	const client = createClient();
+	const tmpPath = path.join(os.tmpdir(), Math.random().toString()); 
+
+	it("should connect to server", (done) => {
+		const s = client.createServer(() => {
+			s.close();
+		});
+		s.on("close", () => {
+			done();
+		});
+		s.listen(tmpPath);
+	});
+
+	it("should connect to server and get socket connection", (done) => {
+		const s = client.createServer();
+		s.listen(tmpPath, () => {
+			net.createConnection(tmpPath, () => {
+				checks++;
+				s.close();
+			});
+		});
+		let checks = 0;
+		s.on("connection", (con) => {
+			expect(checks).toEqual(1);
+			con.end();
+			checks++;
+		});
+		s.on("close", () => {
+			expect(checks).toEqual(2);
+			done();
+		});
+	});
+});
