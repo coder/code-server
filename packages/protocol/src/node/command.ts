@@ -198,7 +198,7 @@ export const handleNewServer = (connection: SendableConnection, newServer: NewSe
 		const sm = new ServerMessage();
 		sm.setServerFailure(sf);
 		connection.send(sm.serializeBinary());
-	
+
 		onExit();
 	}
 

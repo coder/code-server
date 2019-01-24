@@ -2,20 +2,6 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as net from "net";
 import * as path from "path";
-import { Logger, logger, field } from "@coder/logger/src";
-
-const getChildLogger = (modulePath: string): Logger => {
-	const basename = modulePath.split("/").pop()!;
-	let i = 0;
-	for (; i < basename.length; i++) {
-		const character = basename.charAt(i);
-		if (character === character.toUpperCase()) {
-			break;
-		}
-	}
-
-	return  logger.named(basename.substring(0, i));
-};
 
 export const requireModule = (modulePath: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
@@ -46,9 +32,6 @@ export const requireModule = (modulePath: string): void => {
  * @param modulePath Path of the VS Code module to load.
  */
 export const forkModule = (modulePath: string): cp.ChildProcess => {
-	const childLogger = getChildLogger(modulePath);
-	childLogger.debug("Forking...", field("module", modulePath));
-
 	let proc: cp.ChildProcess | undefined;
 
 	const args = ["--bootstrap-fork", modulePath];
@@ -60,10 +43,6 @@ export const forkModule = (modulePath: string): cp.ChildProcess => {
 	} else {
 		proc = cp.spawn(process.execArgv[0], ["-r", "tsconfig-paths/register", process.argv[1], ...args], options);
 	}
-
-	proc.on("exit", (exitCode) => {
-		childLogger.debug(`Exited with ${exitCode}`);
-	});
 
 	return proc;
 };

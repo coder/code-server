@@ -4,7 +4,7 @@ import * as path from "path";
 import { mkdir, WriteStream } from "fs";
 import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
-import { logger, field } from "@coder/logger";
+import { Logger, logger, field } from "@coder/logger";
 import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
@@ -95,8 +95,12 @@ export class Server {
 		if (message.hasNewEval()) {
 			evaluate(this.connection, message.getNewEval()!);
 		} else if (message.hasNewSession()) {
-			const session = handleNewSession(this.connection, message.getNewSession()!, this.options, () => {
-				this.sessions.delete(message.getNewSession()!.getId());
+			const sessionMessage = message.getNewSession()!;
+			const childLogger = this.getChildLogger(sessionMessage.getCommand());
+			childLogger.debug(sessionMessage.getIsFork() ? "Forking" : "Spawning", field("args", sessionMessage.getArgsList()));
+			const session = handleNewSession(this.connection, sessionMessage, this.options, () => {
+				childLogger.debug("Exited");
+				this.sessions.delete(sessionMessage.getId());
 			});
 			this.sessions.set(message.getNewSession()!.getId(), session);
 		} else if (message.hasCloseSessionInput()) {
@@ -134,10 +138,15 @@ export class Server {
 				s.write(data);
 			}
 		} else if (message.hasNewConnection()) {
-			const socket = handleNewConnection(this.connection, message.getNewConnection()!, () => {
-				this.connections.delete(message.getNewConnection()!.getId());
+			const connectionMessage = message.getNewConnection()!;
+			const name = connectionMessage.getPath() || `${connectionMessage.getPort()}`;
+			const childLogger = this.getChildLogger(name, ">");
+			childLogger.debug("Connecting", field("path", connectionMessage.getPath()), field("port", connectionMessage.getPort()));
+			const socket = handleNewConnection(this.connection, connectionMessage, () => {
+				childLogger.debug("Disconnected");
+				this.connections.delete(connectionMessage.getId());
 			});
-			this.connections.set(message.getNewConnection()!.getId(), socket);
+			this.connections.set(connectionMessage.getId(), socket);
 		} else if (message.hasConnectionOutput()) {
 			const c = this.getConnection(message.getConnectionOutput()!.getId());
 			if (!c) {
@@ -151,14 +160,21 @@ export class Server {
 			}
 			c.end();
 		} else if (message.hasNewServer()) {
-			const s = handleNewServer(this.connection, message.getNewServer()!, (socket) => {
+			const serverMessage = message.getNewServer()!;
+			const name = serverMessage.getPath() || `${serverMessage.getPort()}`;
+			const childLogger = this.getChildLogger(name);
+			childLogger.debug("Listening", field("path", serverMessage.getPath()), field("port", serverMessage.getPort()));
+			const s = handleNewServer(this.connection, serverMessage, (socket) => {
 				const id = this.connectionId--;
 				this.connections.set(id, socket);
+				childLogger.debug("Got connection", field("id", id));
+
 				return id;
 			}, () => {
-				this.connections.delete(message.getNewServer()!.getId());
+				childLogger.debug("Stopped");
+				this.connections.delete(serverMessage.getId());
 			});
-			this.servers.set(message.getNewServer()!.getId(), s);
+			this.servers.set(serverMessage.getId(), s);
 		} else if (message.hasServerClose()) {
 			const s = this.getServer(message.getServerClose()!.getId());
 			if (!s) {
@@ -178,6 +194,28 @@ export class Server {
 
 	private getSession(id: number): Process | undefined {
 		return this.sessions.get(id);
+	}
+
+	private getChildLogger(command: string, prefix: string = ""): Logger {
+		// TODO: Temporary, for debugging. Should probably ask for a name?
+		let name: string;
+		if (command.includes("vscode-ipc")) {
+			name = "exthost";
+		} else if (command.includes("vscode-online")) {
+			name = "shared";
+		} else {
+			const basename = command.split("/").pop()!;
+			let i = 0;
+			for (; i < basename.length; i++) {
+				const character = basename.charAt(i);
+				if (character === character.toUpperCase()) {
+					break;
+				}
+			}
+			name = basename.substring(0, i);
+		}
+
+		return logger.named(prefix + name);
 	}
 
 }
