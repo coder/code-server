@@ -46,7 +46,7 @@ export class Net implements NodeNet {
 		_options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean } | ((socket: net.Socket) => void),
 		_connectionListener?: (socket: net.Socket) => void,
 	): net.Server {
-		throw new Error("not implemented");
+		return this.client.createServer() as net.Server;
 	}
 
 }
