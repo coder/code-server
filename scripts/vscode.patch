@@ -53,7 +53,7 @@ index a43d63aa51..4c6df2fcd9 100644
 +++ b/src/vs/workbench/electron-browser/main.ts
 @@ -147,13 +147,14 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
  				shell.open();
-
+ 
  				// Inform user about loading issues from the loader
 -				(<any>self).require.config({
 -					onError: err => {
@@ -73,6 +73,19 @@ index a43d63aa51..4c6df2fcd9 100644
  			});
  		});
  	});
+diff --git a/src/vs/workbench/node/extensionHostProcess.ts b/src/vs/workbench/node/extensionHostProcess.ts
+index 8d182d18d9..69d51e1aea 100644
+--- a/src/vs/workbench/node/extensionHostProcess.ts
++++ b/src/vs/workbench/node/extensionHostProcess.ts
+@@ -129,7 +129,7 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
+ 			// Kill oneself if one's parent dies. Much drama.
+ 			setInterval(function () {
+ 				try {
+-					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
++					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+ 				} catch (e) {
+ 					onTerminate();
+ 				}
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..8f26dc2f28 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
