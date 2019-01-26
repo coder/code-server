@@ -64,6 +64,7 @@ module.exports = (env) => {
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
 
 				"electron": path.join(vscodeFills, "stdioElectron.ts"),
+				"native-watchdog": path.join(vscodeFills, "native-watchdog.ts"),
 				"vs/platform/node/product": path.resolve(vscodeFills, "product.ts"),
 				"vs/platform/node/package": path.resolve(vscodeFills, "package.ts"),
 				"vs/base/node/paths": path.resolve(vscodeFills, "paths.ts"),

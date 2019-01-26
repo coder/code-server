@@ -358,9 +358,9 @@ export class FS {
 			return util.promisify(fs.read)(fd, buffer, 0, length, position).then((resp) => {
 				return {
 					bytesRead: resp.bytesRead,
-					content: buffer.toString("utf8"),
+					content: (resp.bytesRead < buffer.length ? buffer.slice(0, resp.bytesRead) : buffer).toString("utf8"),
 				};
-			}):
+			});
 		}, fd, length, position).then((resp) => {
 			const newBuf = Buffer.from(resp.content, "utf8");
 			buffer.set(newBuf, offset);

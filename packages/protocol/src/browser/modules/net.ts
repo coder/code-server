@@ -13,7 +13,8 @@ export class Net implements NodeNet {
 	) {}
 
 	public get Socket(): typeof net.Socket {
-		throw new Error("not implemented");
+		// @ts-ignore
+		return this.client.Socket;
 	}
 
 	public get Server(): typeof net.Server {
@@ -24,10 +25,12 @@ export class Net implements NodeNet {
 		throw new Error("not implemented");
 	}
 
-	// tslint:disable-next-line no-any
-	public createConnection(...args: any[]): net.Socket {
-		//@ts-ignore
-		return this.client.createConnection(...args) as net.Socket;
+	public createConnection(target: string | number | net.NetConnectOpts, host?: string | Function, callback?: Function): net.Socket {
+		if (typeof target === "object") {
+			throw new Error("not implemented");
+		}
+
+		return this.client.createConnection(target, typeof host === "function" ? host : callback) as net.Socket;
 	}
 
 	public isIP(_input: string): number {

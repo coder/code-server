@@ -4,7 +4,7 @@ import * as path from "path";
 import { mkdir, WriteStream } from "fs";
 import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
-import { Logger, logger, field } from "@coder/logger";
+import { logger, field } from "@coder/logger";
 import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
 import { evaluate } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
@@ -93,42 +93,50 @@ export class Server {
 
 	private handleMessage(message: ClientMessage): void {
 		if (message.hasNewEval()) {
-			evaluate(this.connection, message.getNewEval()!);
+			const evalMessage = message.getNewEval()!;
+			logger.debug("EvalMessage", field("id", evalMessage.getId()));
+			evaluate(this.connection, evalMessage);
 		} else if (message.hasNewSession()) {
 			const sessionMessage = message.getNewSession()!;
-			const childLogger = this.getChildLogger(sessionMessage.getCommand());
-			childLogger.debug(sessionMessage.getIsFork() ? "Forking" : "Spawning", field("args", sessionMessage.getArgsList()));
+			logger.debug("NewSession", field("id", sessionMessage.getId()));
 			const session = handleNewSession(this.connection, sessionMessage, this.options, () => {
-				childLogger.debug("Exited");
 				this.sessions.delete(sessionMessage.getId());
 			});
-			this.sessions.set(message.getNewSession()!.getId(), session);
+			this.sessions.set(sessionMessage.getId(), session);
 		} else if (message.hasCloseSessionInput()) {
-			const s = this.getSession(message.getCloseSessionInput()!.getId());
+			const closeSessionMessage = message.getCloseSessionInput()!;
+			logger.debug("CloseSessionInput", field("id", closeSessionMessage.getId()));
+			const s = this.getSession(closeSessionMessage.getId());
 			if (!s || !s.stdin) {
 				return;
 			}
 			s.stdin.end();
 		} else if (message.hasResizeSessionTty()) {
-			const s = this.getSession(message.getResizeSessionTty()!.getId());
+			const resizeSessionTtyMessage = message.getResizeSessionTty()!;
+			logger.debug("ResizeSessionTty", field("id", resizeSessionTtyMessage.getId()));
+			const s = this.getSession(resizeSessionTtyMessage.getId());
 			if (!s || !s.resize) {
 				return;
 			}
-			const tty = message.getResizeSessionTty()!.getTtyDimensions()!;
+			const tty = resizeSessionTtyMessage.getTtyDimensions()!;
 			s.resize(tty.getWidth(), tty.getHeight());
 		} else if (message.hasShutdownSession()) {
-			const s = this.getSession(message.getShutdownSession()!.getId());
+			const shutdownSessionMessage = message.getShutdownSession()!;
+			logger.debug("ShutdownSession", field("id", shutdownSessionMessage.getId()));
+			const s = this.getSession(shutdownSessionMessage.getId());
 			if (!s) {
 				return;
 			}
-			s.kill(message.getShutdownSession()!.getSignal());
+			s.kill(shutdownSessionMessage.getSignal());
 		} else if (message.hasWriteToSession()) {
-			const s = this.getSession(message.getWriteToSession()!.getId());
+			const writeToSessionMessage = message.getWriteToSession()!;
+			logger.debug("WriteToSession", field("id", writeToSessionMessage.getId()));
+			const s = this.getSession(writeToSessionMessage.getId());
 			if (!s) {
 				return;
 			}
-			const data = new TextDecoder().decode(message.getWriteToSession()!.getData_asU8());
-			const source = message.getWriteToSession()!.getSource();
+			const data = new TextDecoder().decode(writeToSessionMessage.getData_asU8());
+			const source = writeToSessionMessage.getSource();
 			if (source === WriteToSessionMessage.Source.IPC) {
 				if (!s.stdio || !s.stdio[3]) {
 					throw new Error("Cannot send message via IPC to process without IPC");
@@ -139,48 +147,57 @@ export class Server {
 			}
 		} else if (message.hasNewConnection()) {
 			const connectionMessage = message.getNewConnection()!;
-			const name = connectionMessage.getPath() || `${connectionMessage.getPort()}`;
-			const childLogger = this.getChildLogger(name, ">");
-			childLogger.debug("Connecting", field("path", connectionMessage.getPath()), field("port", connectionMessage.getPort()));
+			logger.debug("NewConnection", field("id", connectionMessage.getId()));
+			if (this.connections.has(connectionMessage.getId())) {
+				throw new Error(`connect EISCONN ${connectionMessage.getPath() || connectionMessage.getPort()}`);
+			}
 			const socket = handleNewConnection(this.connection, connectionMessage, () => {
-				childLogger.debug("Disconnected");
 				this.connections.delete(connectionMessage.getId());
 			});
 			this.connections.set(connectionMessage.getId(), socket);
 		} else if (message.hasConnectionOutput()) {
-			const c = this.getConnection(message.getConnectionOutput()!.getId());
+			const connectionOutputMessage = message.getConnectionOutput()!;
+			logger.debug("ConnectionOuput", field("id", connectionOutputMessage.getId()));
+			const c = this.getConnection(connectionOutputMessage.getId());
 			if (!c) {
 				return;
 			}
-			c.write(Buffer.from(message.getConnectionOutput()!.getData_asU8()));
+			c.write(Buffer.from(connectionOutputMessage.getData_asU8()));
 		} else if (message.hasConnectionClose()) {
-			const c = this.getConnection(message.getConnectionClose()!.getId());
+			const connectionCloseMessage = message.getConnectionClose()!;
+			logger.debug("ConnectionClose", field("id", connectionCloseMessage.getId()));
+			const c = this.getConnection(connectionCloseMessage.getId());
 			if (!c) {
 				return;
 			}
 			c.end();
 		} else if (message.hasNewServer()) {
 			const serverMessage = message.getNewServer()!;
-			const name = serverMessage.getPath() || `${serverMessage.getPort()}`;
-			const childLogger = this.getChildLogger(name);
-			childLogger.debug("Listening", field("path", serverMessage.getPath()), field("port", serverMessage.getPort()));
+			logger.debug("NewServer", field("id", serverMessage.getId()));
+			if (this.servers.has(serverMessage.getId())) {
+				throw new Error("multiple listeners not supported");
+			}
 			const s = handleNewServer(this.connection, serverMessage, (socket) => {
 				const id = this.connectionId--;
 				this.connections.set(id, socket);
-				childLogger.debug("Got connection", field("id", id));
 
 				return id;
 			}, () => {
-				childLogger.debug("Stopped");
 				this.connections.delete(serverMessage.getId());
+			}, (id) => {
+				this.connections.delete(id);
 			});
 			this.servers.set(serverMessage.getId(), s);
 		} else if (message.hasServerClose()) {
-			const s = this.getServer(message.getServerClose()!.getId());
+			const serverCloseMessage = message.getServerClose()!;
+			logger.debug("ServerClose", field("id", serverCloseMessage.getId()));
+			const s = this.getServer(serverCloseMessage.getId());
 			if (!s) {
 				return;
 			}
 			s.close();
+		} else {
+			logger.debug("Received unknown message type");
 		}
 	}
 
@@ -194,28 +211,6 @@ export class Server {
 
 	private getSession(id: number): Process | undefined {
 		return this.sessions.get(id);
-	}
-
-	private getChildLogger(command: string, prefix: string = ""): Logger {
-		// TODO: Temporary, for debugging. Should probably ask for a name?
-		let name: string;
-		if (command.includes("vscode-ipc")) {
-			name = "exthost";
-		} else if (command.includes("vscode-online")) {
-			name = "shared";
-		} else {
-			const basename = command.split("/").pop()!;
-			let i = 0;
-			for (; i < basename.length; i++) {
-				const character = basename.charAt(i);
-				if (character === character.toUpperCase()) {
-					break;
-				}
-			}
-			name = basename.substring(0, i);
-		}
-
-		return logger.named(prefix + name);
 	}
 
 }

@@ -5,7 +5,9 @@ import * as path from "path";
 
 export const requireModule = (modulePath: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
-	process.env.VSCODE_ALLOW_IO = "true";
+
+	// Always do this so we can see console.logs.
+	// process.env.VSCODE_ALLOW_IO = "true";
 
 	if (!process.send) {
 		const socket = new net.Socket({ fd: 3 });
@@ -31,10 +33,13 @@ export const requireModule = (modulePath: string): void => {
  * cp.stderr.on("data", (data) => console.log(data.toString("utf8")));
  * @param modulePath Path of the VS Code module to load.
  */
-export const forkModule = (modulePath: string): cp.ChildProcess => {
+export const forkModule = (modulePath: string, env?: NodeJS.ProcessEnv): cp.ChildProcess => {
 	let proc: cp.ChildProcess | undefined;
 
 	const args = ["--bootstrap-fork", modulePath];
+	if (env) {
+		args.push("--env", JSON.stringify(env));
+	}
 	const options: cp.SpawnOptions = {
 		stdio: [null, null, null, "pipe"],
 	};

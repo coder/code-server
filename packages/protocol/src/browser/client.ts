@@ -1,13 +1,16 @@
 import { ReadWriteConnection, InitData, OperatingSystem, ISharedProcessData } from "../common/connection";
-import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, NewConnectionMessage, NewServerMessage } from "../proto";
+import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage } from "../proto";
 import { Emitter, Event } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { ChildProcess, SpawnOptions, ServerProcess, ServerSocket, Socket, ServerListener, Server } from "./command";
+import { ChildProcess, SpawnOptions, ForkOptions, ServerProcess, ServerSocket, Socket, ServerListener, Server } from "./command";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.
  */
 export class Client {
+
+	public Socket: typeof ServerSocket;
+
 	private evalId: number = 0;
 	private evalDoneEmitter: Emitter<EvalDoneMessage> = new Emitter();
 	private evalFailedEmitter: Emitter<EvalFailedMessage> = new Emitter();
@@ -40,6 +43,15 @@ export class Client {
 				logger.error("Failed to handle server message", field("length", data.byteLength), field("exception", ex));
 			}
 		});
+
+		const that = this;
+		this.Socket = class extends ServerSocket {
+
+			public constructor() {
+				super(that.connection, that.connectionId++, that.registerConnection);
+			}
+
+		};
 
 		this.initDataPromise = new Promise((resolve): void => {
 			this.initDataEmitter.event(resolve);
@@ -77,7 +89,7 @@ export class Client {
 		const newEval = new NewEvalMessage();
 		const id = this.evalId++;
 		newEval.setId(id);
-		newEval.setArgsList([a1, a2, a3, a4, a5, a6].filter(a => a).map(a => JSON.stringify(a)));
+		newEval.setArgsList([a1, a2, a3, a4, a5, a6].filter(a => typeof a !== "undefined").map(a => JSON.stringify(a)));
 		newEval.setFunction(func.toString());
 
 		const clientMsg = new ClientMessage();
@@ -158,7 +170,7 @@ export class Client {
 	 * @param args Args to add for the module
 	 * @param options Options to execute
 	 */
-	public fork(modulePath: string, args: string[] = [], options?: SpawnOptions): ChildProcess {
+	public fork(modulePath: string, args: string[] = [], options?: ForkOptions): ChildProcess {
 		return this.doSpawn(modulePath, args, options, true);
 	}
 
@@ -167,27 +179,17 @@ export class Client {
 	 * Forks a module from bootstrap-fork
 	 * @param modulePath Path of the module
 	 */
-	public bootstrapFork(modulePath: string): ChildProcess {
-		return this.doSpawn(modulePath, [], undefined, true, true);
+	public bootstrapFork(modulePath: string, args: string[] = [], options?: ForkOptions): ChildProcess {
+		return this.doSpawn(modulePath, args, options, true, true);
 	}
 
-	public createConnection(path: string, callback?: () => void): Socket;
-	public createConnection(port: number, callback?: () => void): Socket;
-	public createConnection(target: string | number, callback?: () => void): Socket {
+	public createConnection(path: string, callback?: Function): Socket;
+	public createConnection(port: number, callback?: Function): Socket;
+	public createConnection(target: string | number, callback?: Function): Socket;
+	public createConnection(target: string | number, callback?: Function): Socket {
 		const id = this.connectionId++;
-		const newCon = new NewConnectionMessage();
-		newCon.setId(id);
-		if (typeof target === "string") {
-			newCon.setPath(target);
-		} else {
-			newCon.setPort(target);
-		}
-		const clientMsg = new ClientMessage();
-		clientMsg.setNewConnection(newCon);
-		this.connection.send(clientMsg.serializeBinary());
-
-		const socket = new ServerSocket(this.connection, id, callback);
-		this.connections.set(id, socket);
+		const socket = new ServerSocket(this.connection, id, this.registerConnection);
+		socket.connect(target, callback);
 
 		return socket;
 	}
@@ -214,7 +216,9 @@ export class Client {
 			}
 			if (options.env) {
 				Object.keys(options.env).forEach((envKey) => {
-					newSess.getEnvMap().set(envKey, options.env![envKey]);
+					if (options.env![envKey]) {
+						newSess.getEnvMap().set(envKey, options.env![envKey].toString());
+					}
 				});
 			}
 			if (options.tty) {
@@ -356,9 +360,9 @@ export class Client {
 				return;
 			}
 			const conId = message.getServerConnectionEstablished()!.getConnectionId();
-			const serverSocket = new ServerSocket(this.connection, conId);
+			const serverSocket = new ServerSocket(this.connection, conId, this.registerConnection);
+			this.registerConnection(conId, serverSocket);
 			serverSocket.emit("connect");
-			this.connections.set(conId, serverSocket);
 			s.emit("connection", serverSocket);
 		} else if (message.getServerFailure()) {
 			const s = this.servers.get(message.getServerFailure()!.getId());
@@ -376,4 +380,12 @@ export class Client {
 			this.servers.delete(message.getServerClose()!.getId());
 		}
 	}
+
+	private registerConnection = (id: number, socket: ServerSocket): void => {
+		if (this.connections.has(id)) {
+			throw new Error(`${id} is already registered`);
+		}
+		this.connections.set(id, socket);
+	}
+
 }

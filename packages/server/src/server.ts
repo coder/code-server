@@ -1,10 +1,11 @@
-import { field, logger } from "@coder/logger";
+import { logger } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import { NewSessionMessage } from '@coder/protocol/src/proto';
 import { ChildProcess } from "child_process";
 import * as express from "express";
 import * as http from "http";
+import * as path from "path";
 import * as ws from "ws";
 import { forkModule } from "./vscode/bootstrapFork";
 
@@ -46,7 +47,11 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			forkProvider: (message: NewSessionMessage): ChildProcess => {
 				let proc: ChildProcess;
 				if (message.getIsBootstrapFork()) {
-					proc = forkModule(message.getCommand());
+					const env: NodeJS.ProcessEnv = {};
+					message.getEnvMap().forEach((value, key) => {
+						env[key] = value;
+					});
+					proc = forkModule(message.getCommand(), env);
 				} else {
 					throw new Error("No support for non bootstrap-forking yet");
 				}
@@ -56,14 +61,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		} : undefined);
 	});
 
-	/**
-	 * We should static-serve the `web` package at this point.
-	 */
-	app.get("/", (req, res, next) => {
-		res.write("Example! :)");
-		res.status(200);
-		res.end();
-	});
+	app.use(express.static(path.join(__dirname, "../build/web")));
 
 	return {
 		express: app,

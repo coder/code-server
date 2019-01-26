@@ -24,6 +24,7 @@ export class Entry extends Command {
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
+		env: flags.string({ hidden: true }),
 	};
 	public static args = [{
 		name: "workdir",
@@ -49,6 +50,10 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
+
+		if (flags.env) {
+			Object.assign(process.env, JSON.parse(flags.env));
+		}
 
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
@@ -95,7 +100,7 @@ export class Entry extends Command {
 
 				next();
 			});
-			if (process.env.CLI === "false" || !process.env.CLI) {
+			if ((process.env.CLI === "false" || !process.env.CLI) && !process.env.SERVE_STATIC) {
 				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.dev.config.js"));
 				const compiler = require("webpack")(webpackConfig);
 				app.use(require("webpack-dev-middleware")(compiler, {

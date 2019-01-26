@@ -88,7 +88,8 @@ export class Dialog {
 		if (this.options.buttons && this.options.buttons.length > 0) {
 			this.buttons = this.options.buttons.map((buttonText, buttonIndex) => {
 				const button = document.createElement("button");
-				button.innerText = buttonText;
+				// TODO: support mnemonics.
+				button.innerText = buttonText.replace("_", "");
 				button.addEventListener("click", () => {
 					this.actionEmitter.emit({
 						buttonIndex,

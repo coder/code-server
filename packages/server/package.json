@@ -9,6 +9,7 @@
 		"build:nexe": "node scripts/nexe.js",
 		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; cp ./bin/bootstrap-fork.js ../server/build/bootstrap-fork.js",
 		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/build/extensions/",
+		"build:web": "cd ../web && npm run build; mkdir ../server/build/web && cp ./out/* ../server/build/web",
 		"build": "npm run build:bootstrap-fork && npm run build:webpack && npm run build:nexe"
 	},
 	"dependencies": {
@@ -17,7 +18,7 @@
 		"@oclif/plugin-help": "^2.1.4",
 		"express": "^4.16.4",
 		"nexe": "^2.0.0-rc.34",
-		"node-pty": "^0.8.0",
+		"node-pty": "^0.8.1",
 		"spdlog": "^0.7.2",
 		"ws": "^6.1.2"
 	},

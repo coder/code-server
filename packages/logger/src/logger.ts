@@ -42,7 +42,12 @@ export class Time {
 
 }
 
-export type FieldArray = Array<Field<any>>; // tslint:disable-line no-any
+// tslint:disable-next-line no-any
+export type FieldArray = Array<Field<any>>;
+
+// Functions can be used to remove the need to perform operations when the
+// logging level won't output the result anyway.
+export type LogCallback = () => [string, ...FieldArray];
 
 /**
  * Creates a time field
@@ -127,6 +132,7 @@ export abstract class Formatter {
 	public abstract push(arg: string, color?: string, weight?: string): void;
 	public abstract push(arg: any): void; // tslint:disable-line no-any
 
+	// tslint:disable-next-line no-any
 	public abstract fields(fields: Array<Field<any>>): void;
 
 	/**
@@ -184,7 +190,9 @@ export class BrowserFormatter extends Formatter {
 		this.args.push(arg);
 	}
 
+	// tslint:disable-next-line no-any
 	public fields(fields: Array<Field<any>>): void {
+		// tslint:disable-next-line no-console
 		console.groupCollapsed(...this.flush());
 		fields.forEach((field) => {
 			this.push(field.identifier, "#3794ff", "bold");
@@ -193,8 +201,10 @@ export class BrowserFormatter extends Formatter {
 			}
 			this.push(": ");
 			this.push(field.value);
+			// tslint:disable-next-line no-console
 			console.log(...this.flush());
 		});
+		// tslint:disable-next-line no-console
 		console.groupEnd();
 	}
 
@@ -229,8 +239,10 @@ export class ServerFormatter extends Formatter {
 		this.args.push(arg);
 	}
 
+	// tslint:disable-next-line no-any
 	public fields(fields: Array<Field<any>>): void {
-		const obj = {} as any;
+		// tslint:disable-next-line no-any
+		const obj: { [key: string]: any} = {};
 		this.format += "\u001B[38;2;140;140;140m";
 		fields.forEach((field) => {
 			obj[field.identifier] = field.value;
@@ -284,57 +296,61 @@ export class Logger {
 	/**
 	 * Outputs information.
 	 */
-	public info(msg: string, ...fields: FieldArray): void {
-		if (this.level <= Level.Info) {
-			this.handle({
-				type: "info",
-				message: msg,
-				fields,
-				tagColor: "#008FBF",
-			});
-		}
+	public info(fn: LogCallback): void;
+	public info(message: string, ...fields: FieldArray): void;
+	public info(message: LogCallback | string, ...fields: FieldArray): void {
+		this.handle({
+			type: "info",
+			message,
+			fields,
+			tagColor: "#008FBF",
+			level: Level.Info,
+		});
 	}
 
 	/**
 	 * Outputs a warning.
 	 */
-	public warn(msg: string, ...fields: FieldArray): void {
-		if (this.level <= Level.Warn) {
-			this.handle({
-				type: "warn",
-				message: msg,
-				fields,
-				tagColor: "#FF9D00",
-			});
-		}
+	public warn(fn: LogCallback): void;
+	public warn(message: string, ...fields: FieldArray): void;
+	public warn(message: LogCallback | string, ...fields: FieldArray): void {
+		this.handle({
+			type: "warn",
+			message,
+			fields,
+			tagColor: "#FF9D00",
+			level: Level.Warn,
+		});
 	}
 
 	/**
 	 * Outputs a debug message.
 	 */
-	public debug(msg: string, ...fields: FieldArray): void {
-		if (this.level <= Level.Debug) {
-			this.handle({
-				type: "debug",
-				message: msg,
-				fields,
-				tagColor: "#84009E",
-			});
-		}
+	public debug(fn: LogCallback): void;
+	public debug(message: string, ...fields: FieldArray): void;
+	public debug(message: LogCallback | string, ...fields: FieldArray): void {
+		this.handle({
+			type: "debug",
+			message,
+			fields,
+			tagColor: "#84009E",
+			level: Level.Debug,
+		});
 	}
 
 	/**
 	 * Outputs an error.
 	 */
-	public error(msg: string, ...fields: FieldArray): void {
-		if (this.level <= Level.Error) {
-			this.handle({
-				type: "error",
-				message: msg,
-				fields,
-				tagColor: "#B00000",
-			});
-		}
+	public error(fn: LogCallback): void;
+	public error(message: string, ...fields: FieldArray): void;
+	public error(message: LogCallback | string, ...fields: FieldArray): void {
+		this.handle({
+			type: "error",
+			message,
+			fields,
+			tagColor: "#B00000",
+			level: Level.Error,
+		});
 	}
 
 	/**
@@ -355,15 +371,22 @@ export class Logger {
 	 */
 	private handle(options: {
 		type: "info" | "warn" | "debug" | "error";
-		message: string;
+		message: string | LogCallback;
 		fields?: FieldArray;
+		level: Level;
 		tagColor: string;
 	}): void {
-		if (this.muted) {
+		if (this.level > options.level || this.muted) {
 			return;
 		}
 
-		const passedFields = options.fields || [];
+		let passedFields = options.fields || [];
+		if (typeof options.message === "function") {
+			const values = options.message();
+			options.message = values.shift() as string;
+			passedFields = values as FieldArray;
+		}
+
 		const fields = this.defaultFields
 			? passedFields.concat(this.defaultFields)
 			: passedFields;

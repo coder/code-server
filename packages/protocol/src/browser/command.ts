@@ -1,7 +1,7 @@
 import * as events from "events";
 import * as stream from "stream";
 import { ReadWriteConnection } from "../common/connection";
-import { ShutdownSessionMessage, ClientMessage, WriteToSessionMessage, ResizeSessionTTYMessage, TTYDimensions as ProtoTTYDimensions, ConnectionOutputMessage, ConnectionCloseMessage, ServerCloseMessage, NewServerMessage } from "../proto";
+import { NewConnectionMessage, ShutdownSessionMessage, ClientMessage, WriteToSessionMessage, ResizeSessionTTYMessage, TTYDimensions as ProtoTTYDimensions, ConnectionOutputMessage, ConnectionCloseMessage, ServerCloseMessage, NewServerMessage } from "../proto";
 
 export interface TTYDimensions {
 	readonly columns: number;
@@ -10,8 +10,13 @@ export interface TTYDimensions {
 
 export interface SpawnOptions {
 	cwd?: string;
-	env?: { readonly [key: string]: string };
+	env?: { [key: string]: string };
 	tty?: TTYDimensions;
+}
+
+export interface ForkOptions {
+	cwd?: string;
+	env?: { [key: string]: string };
 }
 
 export interface ChildProcess {
@@ -119,6 +124,9 @@ export interface Socket {
 	write(buffer: Buffer): void;
 	end(): void;
 
+	connect(path: string, callback?: () => void): void;
+	connect(port: number, callback?: () => void): void;
+
 	addListener(event: "data", listener: (data: Buffer) => void): this;
 	addListener(event: "close", listener: (hasError: boolean) => void): this;
 	addListener(event: "connect", listener: () => void): this;
@@ -151,21 +159,37 @@ export class ServerSocket extends events.EventEmitter implements Socket {
 	public readable: boolean = true;
 
 	private _destroyed: boolean = false;
-	private _connecting: boolean = true;
+	private _connecting: boolean = false;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
 		private readonly id: number,
-		connectCallback?: () => void,
+		private readonly beforeConnect: (id: number, socket: ServerSocket) => void,
 	) {
 		super();
+	}
 
-		if (connectCallback) {
-			this.once("connect", () => {
-				this._connecting = false;
-				connectCallback();
-			});
+	public connect(target: string | number, callback?: Function): void {
+		this._connecting = true;
+		this.beforeConnect(this.id, this);
+
+		this.once("connect", () => {
+			this._connecting = false;
+			if (callback) {
+				callback();
+			}
+		});
+
+		const newCon = new NewConnectionMessage();
+		newCon.setId(this.id);
+		if (typeof target === "string") {
+			newCon.setPath(target);
+		} else {
+			newCon.setPort(target);
 		}
+		const clientMsg = new ClientMessage();
+		clientMsg.setNewConnection(newCon);
+		this.connection.send(clientMsg.serializeBinary());
 	}
 
 	public get destroyed(): boolean {
@@ -236,6 +260,7 @@ export class ServerSocket extends events.EventEmitter implements Socket {
 	public setDefaultEncoding(encoding: string): this {
 		throw new Error("Method not implemented.");
 	}
+
 }
 
 export interface Server {
@@ -266,6 +291,7 @@ export interface Server {
 }
 
 export class ServerListener extends events.EventEmitter implements Server {
+
 	private _listening: boolean = false;
 
 	public constructor(
@@ -309,11 +335,12 @@ export class ServerListener extends events.EventEmitter implements Server {
 		const clientMsg = new ClientMessage();
 		clientMsg.setServerClose(closeMsg);
 		this.connection.send(clientMsg.serializeBinary());
-	
+
 		if (callback) {
 			callback();
 		}
 
 		return this;
 	}
+
 }

@@ -1,0 +1,6 @@
+{
+	"name": "@coder/web",
+	"scripts": {
+		"build": "../../node_modules/.bin/webpack --config ./webpack.dev.config.js"
+	}
+}

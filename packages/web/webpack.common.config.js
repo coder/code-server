@@ -55,7 +55,6 @@ module.exports = merge({
 			"vscode-sqlite3": path.join(fills, "empty.ts"),
 			"tls": path.join(fills, "empty.ts"),
 			"native-is-elevated": path.join(fills, "empty.ts"),
-			"native-watchdog": path.join(fills, "empty.ts"),
 			"dns": path.join(fills, "empty.ts"),
 			"console": path.join(fills, "empty.ts"),
 			"readline": path.join(fills, "empty.ts"),
@@ -74,6 +73,7 @@ module.exports = merge({
 			"node-pty": path.join(vsFills, "node-pty.ts"),
 			"graceful-fs": path.join(vsFills, "graceful-fs.ts"),
 			"spdlog": path.join(vsFills, "spdlog.ts"),
+			"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 			"iconv-lite": path.join(vsFills, "iconv-lite.ts"),
 
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),

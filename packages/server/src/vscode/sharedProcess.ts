@@ -66,7 +66,9 @@ export class SharedProcess {
 			state: SharedProcessState.Starting,
 		});
 		let resolved: boolean = false;
-		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", true);
+		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", {
+			VSCODE_ALLOW_IO: "true",
+		});
 		this.activeProcess.on("exit", (err) => {
 			if (this._state !== SharedProcessState.Stopped) {
 				this.setState({

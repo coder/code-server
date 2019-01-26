@@ -51,16 +51,31 @@ class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public showMessageBox(_windowId: number, _options: MessageBoxOptions): Promise<IMessageBoxResult> {
-		throw new Error("not implemented");
+	public showMessageBox(windowId: number, options: MessageBoxOptions): Promise<IMessageBoxResult> {
+		return new Promise((resolve): void => {
+			electron.dialog.showMessageBox(this.getWindowById(windowId), options, (response, checkboxChecked) => {
+				resolve({
+					button: response,
+					checkboxChecked,
+				});
+			});
+		});
 	}
 
-	public showSaveDialog(_windowId: number, _options: SaveDialogOptions): Promise<string> {
-		throw new Error("not implemented");
+	public showSaveDialog(windowId: number, options: SaveDialogOptions): Promise<string> {
+		return new Promise((resolve): void => {
+			electron.dialog.showSaveDialog(this.getWindowById(windowId), options, (filename, _bookmark) => {
+				resolve(filename);
+			});
+		});
 	}
 
-	public showOpenDialog(_windowId: number, _options: OpenDialogOptions): Promise<string[]> {
-		throw new Error("not implemented");
+	public showOpenDialog(windowId: number, options: OpenDialogOptions): Promise<string[]> {
+		return new Promise((resolve): void => {
+			electron.dialog.showOpenDialog(this.getWindowById(windowId), options, (filePaths, _bookmarks) => {
+				resolve(filePaths);
+			});
+		});
 	}
 
 	public reloadWindow(windowId: number, _args?: ParsedArgs): Promise<void> {

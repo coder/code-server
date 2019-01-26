@@ -4,15 +4,16 @@ import * as os from "os";
 import * as path from "path";
 import { TextEncoder, TextDecoder } from "text-encoding";
 import { createClient } from "./helpers";
+import { Net } from "../src/browser/modules/net";
 
-(<any>global).TextDecoder = TextDecoder;
-(<any>global).TextEncoder = TextEncoder;
+(global as any).TextDecoder = TextDecoder; // tslint:disable-line no-any
+(global as any).TextEncoder = TextEncoder; // tslint:disable-line no-any
 
 describe("spawn", () => {
 	const client = createClient({
 		dataDirectory: "",
 		workingDirectory: "",
-		forkProvider: (msg) => {
+		forkProvider: (msg): cp.ChildProcess => {
 			return cp.spawn(msg.getCommand(), msg.getArgsList(), {
 				stdio: [null, null, null, "pipe"],
 			});
@@ -24,7 +25,7 @@ describe("spawn", () => {
 		proc.stdout.on("data", (data) => {
 			expect(data).toEqual("test\n");
 		});
-		proc.on("exit", (code) => {
+		proc.on("exit", (): void => {
 			done();
 		});
 	});
@@ -41,6 +42,7 @@ describe("spawn", () => {
 			if (first) {
 				// First piece of data is a welcome msg. Second is the prompt
 				first = false;
+
 				return;
 			}
 			expect(data.toString().endsWith("$ ")).toBeTruthy();
@@ -92,6 +94,7 @@ describe("spawn", () => {
 
 			if (output === 2) {
 				proc.send("tput lines\n");
+
 				return;
 			}
 
@@ -106,6 +109,7 @@ describe("spawn", () => {
 					columns: 10,
 					rows: 50,
 				});
+
 				return;
 			}
 
@@ -116,6 +120,7 @@ describe("spawn", () => {
 
 			if (output === 6) {
 				proc.send("tput lines\n");
+
 				return;
 			}
 
@@ -123,7 +128,7 @@ describe("spawn", () => {
 				// Echo of tput lines
 				return;
 			}
-			
+
 			if (output === 8) {
 				expect(data.toString().trim()).toEqual("50");
 				proc.kill();
@@ -132,7 +137,7 @@ describe("spawn", () => {
 		});
 		proc.on("exit", () => done());
 	});
-	
+
 	it("should fork and echo messages", (done) => {
 		const proc = client.fork(path.join(__dirname, "forker.js"));
 		proc.on("message", (msg) => {
@@ -146,10 +151,10 @@ describe("spawn", () => {
 
 describe("createConnection", () => {
 	const client = createClient();
-	const tmpPath = path.join(os.tmpdir(), Math.random().toString()); 
+	const tmpPath = path.join(os.tmpdir(), Math.random().toString());
 	let server: net.Server;
 	beforeAll(async () => {
-		await new Promise((r) => {
+		await new Promise((r): void => {
 			server = net.createServer().listen(tmpPath, () => {
 				r();
 			});
@@ -160,11 +165,23 @@ describe("createConnection", () => {
 		server.close();
 	});
 
-	it("should connect to socket", (done) => {
-		const socket = client.createConnection(tmpPath, () => {
-			socket.end();
-			socket.addListener("close", () => {
-				done();
+	it("should connect to socket", async () => {
+		await new Promise((resolve): void => {
+			const socket = client.createConnection(tmpPath, () => {
+				socket.end();
+				socket.addListener("close", () => {
+					resolve();
+				});
+			});
+		});
+
+		await new Promise((resolve): void => {
+			const socket = new (new Net(client)).Socket();
+			socket.connect(tmpPath, () => {
+				socket.end();
+				socket.addListener("close", () => {
+					resolve();
+				});
 			});
 		});
 	});
@@ -202,7 +219,7 @@ describe("createConnection", () => {
 
 describe("createServer", () => {
 	const client = createClient();
-	const tmpPath = path.join(os.tmpdir(), Math.random().toString()); 
+	const tmpPath = path.join(os.tmpdir(), Math.random().toString());
 
 	it("should connect to server", (done) => {
 		const s = client.createServer(() => {

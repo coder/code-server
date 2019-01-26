@@ -40,19 +40,38 @@ export class CP {
 			);
 		});
 
-		// @ts-ignore
+		// @ts-ignore TODO: not fully implemented
 		return childProcess;
 	}
 
-	public fork = (modulePath: string, args?: ReadonlyArray<string> | cp.ForkOptions, options?: cp.ForkOptions): cp.ChildProcess => {
-		//@ts-ignore
-		return this.client.bootstrapFork(options && options.env && options.env.AMD_ENTRYPOINT || modulePath);
+	public fork = (modulePath: string, args?: string[] | cp.ForkOptions, options?: cp.ForkOptions): cp.ChildProcess => {
+		if (options && options.env && options.env.AMD_ENTRYPOINT) {
+			// @ts-ignore TODO: not fully implemented
+			return this.client.bootstrapFork(
+				options.env.AMD_ENTRYPOINT,
+				Array.isArray(args) ? args : [],
+				// @ts-ignore TODO: env is a different type
+				Array.isArray(args) || !args ? options : args,
+			);
+		}
+
+		// @ts-ignore TODO: not fully implemented
+		return this.client.fork(
+			modulePath,
+			Array.isArray(args) ? args : [],
+			// @ts-ignore TODO: env is a different type
+			Array.isArray(args) || !args ? options : args,
+		);
 	}
 
-	public spawn = (command: string, args?: ReadonlyArray<string> | cp.SpawnOptions, options?: cp.SpawnOptions): cp.ChildProcess => {
-		// TODO: fix this ignore. Should check for args or options here
-		//@ts-ignore
-		return this.client.spawn(command, args, options);
+	public spawn = (command: string, args?: string[] | cp.SpawnOptions, options?: cp.SpawnOptions): cp.ChildProcess => {
+		// @ts-ignore TODO: not fully implemented
+		return this.client.spawn(
+			command,
+			Array.isArray(args) ? args : [],
+			// @ts-ignore TODO: env is a different type
+			Array.isArray(args) || !args ? options : args,
+		);
 	}
 
 }
