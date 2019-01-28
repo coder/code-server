@@ -253,6 +253,9 @@ export class WorkingInitMessage extends jspb.Message {
   getOperatingSystem(): WorkingInitMessage.OperatingSystem;
   setOperatingSystem(value: WorkingInitMessage.OperatingSystem): void;
 
+  getShell(): string;
+  setShell(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WorkingInitMessage.AsObject;
   static toObject(includeInstance: boolean, msg: WorkingInitMessage): WorkingInitMessage.AsObject;
@@ -270,6 +273,7 @@ export namespace WorkingInitMessage {
     dataDirectory: string,
     workingDirectory: string,
     operatingSystem: WorkingInitMessage.OperatingSystem,
+    shell: string,
   }
 
   export enum OperatingSystem {

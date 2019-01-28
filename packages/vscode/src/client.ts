@@ -3,6 +3,7 @@ import * as paths from "./fill/paths";
 import "./fill/storageDatabase";
 import "./fill/windowsService";
 import "./fill/environmentService";
+import "./fill/vscodeTextmate";
 import "./fill/dom";
 import "./vscode.scss";
 
@@ -22,18 +23,21 @@ export class Client extends IDEClient {
 
 	public readonly protocolPromise: Promise<Protocol>;
 	public protoResolve: ((protocol: Protocol) => void) | undefined;
+	private readonly pathSets: Promise<void>;
 
 	public constructor() {
 		super();
 		this.protocolPromise = new Promise((resolve): void => {
 			this.protoResolve = resolve;
 		});
-		this.sharedProcessData.then((data) => {
+		this.pathSets = this.sharedProcessData.then((data) => {
 			paths._paths.socketPath = data.socketPath;
+			process.env.VSCODE_LOGS = data.logPath;
 		});
 		this.initData.then((data) => {
 			paths._paths.appData = data.dataDirectory;
 			paths._paths.defaultUserData = data.dataDirectory;
+			process.env.SHELL = data.shell;
 		});
 	}
 
@@ -53,7 +57,7 @@ export class Client extends IDEClient {
 				nodeCachedDataDir: data.tmpDirectory,
 				perfEntries: [],
 				_: [],
-				folderUri: URI.file(data.dataDirectory),
+				folderUri: URI.file(data.workingDirectory),
 			});
 
 			// TODO: Set notification service for retrying.
@@ -92,7 +96,7 @@ export class Client extends IDEClient {
 			// 	bounded.set(enabled);
 			// });
 			this.clipboard.initialize();
-		}, this.initData);
+		}, this.initData, this.pathSets);
 	}
 
 	protected createUriFactory(): IURIFactory {

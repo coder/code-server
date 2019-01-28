@@ -1593,7 +1593,8 @@ proto.WorkingInitMessage.toObject = function(includeInstance, msg) {
     tmpDirectory: msg.getTmpDirectory(),
     dataDirectory: msg.getDataDirectory(),
     workingDirectory: msg.getWorkingDirectory(),
-    operatingSystem: msg.getOperatingSystem()
+    operatingSystem: msg.getOperatingSystem(),
+    shell: msg.getShell()
   };
 
   if (includeInstance) {
@@ -1649,6 +1650,10 @@ proto.WorkingInitMessage.deserializeBinaryFromReader = function(msg, reader) {
     case 5:
       var value = /** @type {!proto.WorkingInitMessage.OperatingSystem} */ (reader.readEnum());
       msg.setOperatingSystem(value);
+      break;
+    case 6:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setShell(value);
       break;
     default:
       reader.skipField();
@@ -1720,6 +1725,13 @@ proto.WorkingInitMessage.prototype.serializeBinaryToWriter = function (writer) {
   if (f !== 0.0) {
     writer.writeEnum(
       5,
+      f
+    );
+  }
+  f = this.getShell();
+  if (f.length > 0) {
+    writer.writeString(
+      6,
       f
     );
   }
@@ -1807,6 +1819,21 @@ proto.WorkingInitMessage.prototype.getOperatingSystem = function() {
 /** @param {!proto.WorkingInitMessage.OperatingSystem} value  */
 proto.WorkingInitMessage.prototype.setOperatingSystem = function(value) {
   jspb.Message.setField(this, 5, value);
+};
+
+
+/**
+ * optional string shell = 6;
+ * @return {string}
+ */
+proto.WorkingInitMessage.prototype.getShell = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 6, ""));
+};
+
+
+/** @param {string} value  */
+proto.WorkingInitMessage.prototype.setShell = function(value) {
+  jspb.Message.setField(this, 6, value);
 };
 
 

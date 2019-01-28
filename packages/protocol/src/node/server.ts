@@ -86,6 +86,9 @@ export class Server {
 				throw new Error(`unrecognized platform "${platform}"`);
 		}
 		initMsg.setOperatingSystem(operatingSystem);
+		if (process.env.SHELL) {
+			initMsg.setShell(process.env.SHELL);
+		}
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);
 		connection.send(srvMsg.serializeBinary());

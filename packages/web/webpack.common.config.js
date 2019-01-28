@@ -58,6 +58,7 @@ module.exports = merge({
 			"dns": path.join(fills, "empty.ts"),
 			"console": path.join(fills, "empty.ts"),
 			"readline": path.join(fills, "empty.ts"),
+			"oniguruma": path.join(fills, "empty.ts"),
 
 			"crypto": "crypto-browserify",
 			"http": "http-browserify",

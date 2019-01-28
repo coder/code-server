@@ -68,15 +68,24 @@ export class Entry extends Command {
 		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-online");
 		const workingDir = args["workdir"];
 
+		if (process.env.BUILD_DIR && process.env.BUILD_DIR.startsWith(workingDir)) {
+			logger.error("Cannot run binary inside of BUILD_DIR", field("build_dir", process.env.BUILD_DIR), field("cwd", process.cwd()));
+			process.exit(1);
+		}
+
+		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
+		process.env.VSCODE_LOGS = logDir;
+
 		logger.info("\u001B[1mvscode-remote v1.0.0");
 		// TODO: fill in appropriate doc url
 		logger.info("Additional documentation: https://coder.com/docs");
-		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir));
+		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
 		const sharedProcess = new SharedProcess(dataDir);
 		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
 		const sendSharedProcessReady = (socket: WebSocket): void => {
 			const active = new SharedProcessActiveMessage();
 			active.setSocketPath(sharedProcess.socketPath);
+			active.setLogPath(logDir);
 			const serverMessage = new ServerMessage();
 			serverMessage.setSharedProcessActive(active);
 			socket.send(serverMessage.serializeBinary());

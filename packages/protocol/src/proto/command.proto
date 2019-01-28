@@ -35,10 +35,12 @@ message SessionDoneMessage {
 	int64 exit_status = 2;
 }
 
-// Identifies a session with a PID.
+// Identifies a session with a PID and a title.
+// Can be sent multiple times when title changes.
 message IdentifySessionMessage {
 	uint64 id = 1;
 	uint64 pid = 2;
+	string title = 3;
 }
 
 // Writes data to a session.

@@ -3,4 +3,5 @@ syntax = "proto3";
 // Sent when a shared process becomes active
 message SharedProcessActiveMessage {
 	string socket_path = 1;
+	string log_path = 2;
 }

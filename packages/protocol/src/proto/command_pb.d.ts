@@ -118,6 +118,9 @@ export class IdentifySessionMessage extends jspb.Message {
   getPid(): number;
   setPid(value: number): void;
 
+  getTitle(): string;
+  setTitle(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): IdentifySessionMessage.AsObject;
   static toObject(includeInstance: boolean, msg: IdentifySessionMessage): IdentifySessionMessage.AsObject;
@@ -132,6 +135,7 @@ export namespace IdentifySessionMessage {
   export type AsObject = {
     id: number,
     pid: number,
+    title: string,
   }
 }
 

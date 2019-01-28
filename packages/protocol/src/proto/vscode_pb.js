@@ -56,7 +56,8 @@ proto.SharedProcessActiveMessage.prototype.toObject = function(opt_includeInstan
  */
 proto.SharedProcessActiveMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    socketPath: msg.getSocketPath()
+    socketPath: msg.getSocketPath(),
+    logPath: msg.getLogPath()
   };
 
   if (includeInstance) {
@@ -96,6 +97,10 @@ proto.SharedProcessActiveMessage.deserializeBinaryFromReader = function(msg, rea
     case 1:
       var value = /** @type {string} */ (reader.readString());
       msg.setSocketPath(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setLogPath(value);
       break;
     default:
       reader.skipField();
@@ -142,6 +147,13 @@ proto.SharedProcessActiveMessage.prototype.serializeBinaryToWriter = function (w
       f
     );
   }
+  f = this.getLogPath();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -166,6 +178,21 @@ proto.SharedProcessActiveMessage.prototype.getSocketPath = function() {
 /** @param {string} value  */
 proto.SharedProcessActiveMessage.prototype.setSocketPath = function(value) {
   jspb.Message.setField(this, 1, value);
+};
+
+
+/**
+ * optional string log_path = 2;
+ * @return {string}
+ */
+proto.SharedProcessActiveMessage.prototype.getLogPath = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 2, ""));
+};
+
+
+/** @param {string} value  */
+proto.SharedProcessActiveMessage.prototype.setLogPath = function(value) {
+  jspb.Message.setField(this, 2, value);
 };
 
 

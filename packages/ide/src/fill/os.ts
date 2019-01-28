@@ -33,6 +33,16 @@ class OS {
 		this._tmpdir = data.tmpDirectory;
 	}
 
+	public platform(): NodeJS.Platform {
+		if (navigator.appVersion.indexOf("Win") != -1) {
+			return "win32";
+		}
+		if (navigator.appVersion.indexOf("Mac") != -1) {
+			return "darwin";
+		}
+		return "linux";
+	}
+
 }
 
 export = new OS();

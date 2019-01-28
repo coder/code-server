@@ -26,6 +26,7 @@ export interface ChildProcess {
 
 	readonly killed?: boolean;
 	readonly pid: number | undefined;
+	readonly title?: string;
 
 	kill(signal?: string): void;
 
@@ -45,6 +46,7 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 	public readonly stderr = new stream.Readable({ read: (): boolean => true });
 
 	private _pid: number | undefined;
+	private _title: string | undefined;
 	private _killed: boolean = false;
 	private _connected: boolean = false;
 
@@ -67,6 +69,14 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 	public set pid(pid: number | undefined) {
 		this._pid = pid;
 		this._connected = true;
+	}
+
+	public get title(): string | undefined {
+		return this._title;
+	}
+
+	public set title(title: string | undefined) {
+		this._title = title;
 	}
 
 	public get connected(): boolean {

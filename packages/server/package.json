@@ -21,7 +21,8 @@
 		"nexe": "^2.0.0-rc.34",
 		"node-pty": "^0.8.1",
 		"spdlog": "^0.7.2",
-		"ws": "^6.1.2"
+		"ws": "^6.1.2",
+		"xhr2": "^0.1.4"
 	},
 	"devDependencies": {
 		"@types/express": "^4.16.0",

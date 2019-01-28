@@ -44,9 +44,6 @@ module.exports = (env) => {
 					],
 				},
 			}, {
-				test: /\.wasm$/,
-				type: "javascript/auto",
-			}, {
 				// Ignore a bunch of file types we don't have loaders for. Also ignore
 				// test directories, some files with invalid JSON, and files we don't
 				// actually require but throw warnings or errors. This all seems to be a

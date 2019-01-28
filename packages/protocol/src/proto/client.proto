@@ -60,4 +60,5 @@ message WorkingInitMessage {
 		Mac = 2;
 	}
 	OperatingSystem operating_system = 5;
+	string shell = 6;
 }

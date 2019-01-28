@@ -36,6 +36,9 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			},
 			close: (): void => ws.close(),
 			send: (data): void => {
+				if (ws.readyState !== ws.OPEN) {
+					return;
+				}
 				try {
 					ws.send(data);
 				} catch (error) {
@@ -64,15 +67,15 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		} : undefined);
 	});
 
-	app.use(express.static(path.join(__dirname, "../build/web")));
+	app.use(express.static(path.join(process.env.BUILD_DIR || path.join(__dirname, ".."), "build/web")));
 
 	app.get("/resource/:url(*)", async (req, res) => {
 		try {
 			const fullPath = `/${req.params.url}`;
-			const relative = path.relative(options!.dataDirectory, fullPath);
-			if (relative.startsWith("..")) {
-				return res.status(403).end();
-			}
+			// const relative = path.relative(options!.dataDirectory, fullPath);
+			// if (relative.startsWith("..")) {
+			// 	return res.status(403).end();
+			// }
 			const exists = await util.promisify(fs.exists)(fullPath);
 			if (!exists) {
 				res.status(404).end();

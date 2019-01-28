@@ -1,6 +1,7 @@
-import * as cp from "child_process";
+import { client } from "@coder/ide/src/fill/client";
 import { EventEmitter } from "events";
 import * as nodePty from "node-pty";
+import { ChildProcess } from "@coder/protocol/src/browser/command";
 
 type nodePtyType = typeof nodePty;
 
@@ -10,38 +11,32 @@ type nodePtyType = typeof nodePty;
 class Pty implements nodePty.IPty {
 
 	private readonly emitter: EventEmitter;
+	private readonly cp: ChildProcess;
 
 	public constructor(file: string, args: string[] | string, options: nodePty.IPtyForkOptions) {
 		this.emitter = new EventEmitter();
-		const session = wush.execute({
-			command: `${file} ${Array.isArray(args) ? args.join(" ") : args}`,
-			directory: options.cwd,
-			environment: {
-				...(options.env || {}),
-				TERM: "xterm-color",
+		this.cp = client.spawn(file, Array.isArray(args) ? args : [args], {
+			...options,
+			tty: {
+				columns: options.cols || 100,
+				rows: options.rows || 100,
 			},
-			size: options && options.cols && options.rows ? {
-				columns: options.cols,
-				rows: options.rows,
-			} : {
-					columns: 100,
-					rows: 100,
-				},
 		});
-		this.on("write", (data) => session.sendStdin(data));
-		this.on("kill", (exitCode) => session.close());
-		this.on("resize", (columns, rows) => session.setSize({ columns, rows }));
-		session.onStdout((data) => this.emitter.emit("data", data));
-		session.onStderr((data) => this.emitter.emit("data", data));
-		session.onDone((exitCode) => this.emitter.emit("exit", exitCode));
+		this.on("write", (d) => this.cp.send(d));
+		this.on("kill", (exitCode) => this.cp.kill(exitCode));
+		this.on("resize", (cols, rows) => this.cp.resize!({ columns: cols, rows }));
+
+		this.cp.stdout.on("data", (data) => this.emitter.emit("data", data));
+		this.cp.stderr.on("data", (data) => this.emitter.emit("data", data));
+		this.cp.on("exit", (code) => this.emitter.emit("exit", code));
 	}
 
 	public get pid(): number {
-		return 1;
+		return this.cp.pid!;
 	}
 
 	public get process(): string {
-		return "unknown";
+		return this.cp.title!;
 	}
 
 	public on(event: string, listener: (...args) => void): void {
@@ -70,4 +65,4 @@ const ptyType: nodePtyType = {
 
 };
 
-exports = ptyType;
+module.exports = ptyType;

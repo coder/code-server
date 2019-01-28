@@ -35,6 +35,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	]);
 
 	let process: Process;
+	let processTitle: string | undefined;
 
 	const env: { [key: string]: string } = {};
 	newSession.getEnvMap().forEach((value, key) => {
@@ -42,12 +43,31 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	});
 	if (newSession.getTtyDimensions()) {
 		// Spawn with node-pty
-		process = nodePty.spawn(newSession.getCommand(), newSession.getArgsList(), {
+		const ptyProc = nodePty.spawn(newSession.getCommand(), newSession.getArgsList(), {
 			cols: newSession.getTtyDimensions()!.getWidth(),
 			rows: newSession.getTtyDimensions()!.getHeight(),
 			cwd: newSession.getCwd(),
 			env,
 		});
+
+		const timer = setInterval(() => {
+			if (ptyProc.process !== processTitle) {
+				processTitle = ptyProc.process;
+				const id = new IdentifySessionMessage();
+				id.setId(newSession.getId());
+				id.setTitle(processTitle);
+				const sm = new ServerMessage();
+				sm.setIdentifySession(id);
+				connection.send(sm.serializeBinary());
+			}
+		}, 200);
+		
+		ptyProc.on("exit", () => {
+			clearTimeout(timer);
+		});
+
+		process = ptyProc;
+		processTitle = ptyProc.process;
 	} else {
 		const options = {
 			cwd: newSession.getCwd(),
@@ -129,6 +149,9 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	const id = new IdentifySessionMessage();
 	id.setId(newSession.getId());
 	id.setPid(process.pid);
+	if (processTitle) {
+		id.setTitle(processTitle);
+	}
 	const sm = new ServerMessage();
 	sm.setIdentifySession(id);
 	connection.send(sm.serializeBinary());

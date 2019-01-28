@@ -20,8 +20,10 @@ export interface InitData {
 	readonly workingDirectory: string;
 	readonly homeDirectory: string;
 	readonly tmpDirectory: string;
+	readonly shell: string;
 }
 
 export interface ISharedProcessData {
 	readonly socketPath: string;
+	readonly logPath: string;
 }

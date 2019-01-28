@@ -113,7 +113,7 @@ export class FS {
 	}
 
 	public createWriteStream = (): void => {
-		throw new Error("not implemented");
+		throw new Error("createWriteStream not implemented");
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {

@@ -6,6 +6,10 @@ import * as path from "path";
 export const requireModule = (modulePath: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
 
+	const xml = require("xhr2");
+
+	(<any>global).XMLHttpRequest = xml.XMLHttpRequest;
+
 	// Always do this so we can see console.logs.
 	// process.env.VSCODE_ALLOW_IO = "true";
 

@@ -7,6 +7,9 @@ export class SharedProcessActiveMessage extends jspb.Message {
   getSocketPath(): string;
   setSocketPath(value: string): void;
 
+  getLogPath(): string;
+  setLogPath(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): SharedProcessActiveMessage.AsObject;
   static toObject(includeInstance: boolean, msg: SharedProcessActiveMessage): SharedProcessActiveMessage.AsObject;
@@ -20,6 +23,7 @@ export class SharedProcessActiveMessage extends jspb.Message {
 export namespace SharedProcessActiveMessage {
   export type AsObject = {
     socketPath: string,
+    logPath: string,
   }
 }
 

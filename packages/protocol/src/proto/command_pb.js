@@ -867,7 +867,8 @@ proto.IdentifySessionMessage.prototype.toObject = function(opt_includeInstance) 
 proto.IdentifySessionMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: msg.getId(),
-    pid: msg.getPid()
+    pid: msg.getPid(),
+    title: msg.getTitle()
   };
 
   if (includeInstance) {
@@ -911,6 +912,10 @@ proto.IdentifySessionMessage.deserializeBinaryFromReader = function(msg, reader)
     case 2:
       var value = /** @type {number} */ (reader.readUint64());
       msg.setPid(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTitle(value);
       break;
     default:
       reader.skipField();
@@ -964,6 +969,13 @@ proto.IdentifySessionMessage.prototype.serializeBinaryToWriter = function (write
       f
     );
   }
+  f = this.getTitle();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -1003,6 +1015,21 @@ proto.IdentifySessionMessage.prototype.getPid = function() {
 /** @param {number} value  */
 proto.IdentifySessionMessage.prototype.setPid = function(value) {
   jspb.Message.setField(this, 2, value);
+};
+
+
+/**
+ * optional string title = 3;
+ * @return {string}
+ */
+proto.IdentifySessionMessage.prototype.getTitle = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 3, ""));
+};
+
+
+/** @param {string} value  */
+proto.IdentifySessionMessage.prototype.setTitle = function(value) {
+  jspb.Message.setField(this, 3, value);
 };
 
 

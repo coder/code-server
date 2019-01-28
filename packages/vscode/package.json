@@ -7,7 +7,11 @@
   },
   "dependencies": {
     "iconv-lite": "^0.4.24",
+    "onigasm": "^2.2.1",
     "spdlog": "^0.7.2",
     "string-replace-loader": "^2.1.1"
+  },
+  "devDependencies": {
+    "vscode-textmate": "^4.0.1"
   }
 }

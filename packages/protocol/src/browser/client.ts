@@ -161,7 +161,7 @@ export class Client {
 	 * @param options Options to execute for the command
 	 */
 	public spawn(command: string, args: string[] = [], options?: SpawnOptions): ChildProcess {
-		return this.doSpawn(command, args, options, false);
+		return this.doSpawn(command, args, options, false, false);
 	}
 
 	/**
@@ -272,6 +272,7 @@ export class Client {
 				tmpDirectory: init.getTmpDirectory(),
 				workingDirectory: init.getWorkingDirectory(),
 				os: opSys,
+				shell: init.getShell(),
 			};
 			this.initDataEmitter.emit(this._initData);
 		} else if (message.hasEvalDone()) {
@@ -316,7 +317,14 @@ export class Client {
 			if (!s) {
 				return;
 			}
-			s.pid = message.getIdentifySession()!.getPid();
+			const pid = message.getIdentifySession()!.getPid();
+			if (typeof pid !== "undefined") {
+				s.pid = pid;
+			}
+			const title = message.getIdentifySession()!.getTitle();
+			if (typeof title !== "undefined") {
+				s.title = title;
+			}
 		} else if (message.hasConnectionEstablished()) {
 			const c = this.connections.get(message.getConnectionEstablished()!.getId());
 			if (!c) {
@@ -347,6 +355,7 @@ export class Client {
 		} else if (message.hasSharedProcessActive()) {
 			this.sharedProcessActiveEmitter.emit({
 				socketPath: message.getSharedProcessActive()!.getSocketPath(),
+				logPath: message.getSharedProcessActive()!.getLogPath(),
 			});
 		} else if (message.hasServerEstablished()) {
 			const s = this.servers.get(message.getServerEstablished()!.getId());
