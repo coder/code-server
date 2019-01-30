@@ -1,6 +1,5 @@
 import * as cp from "child_process";
 import * as fs from "fs";
-import * as net from "net";
 import * as path from "path";
 
 export const requireModule = (modulePath: string): void => {
@@ -8,22 +7,11 @@ export const requireModule = (modulePath: string): void => {
 
 	const xml = require("xhr2");
 
-	(<any>global).XMLHttpRequest = xml.XMLHttpRequest;
+	// tslint:disable-next-line no-any this makes installing extensions work.
+	(global as any).XMLHttpRequest = xml.XMLHttpRequest;
 
 	// Always do this so we can see console.logs.
 	// process.env.VSCODE_ALLOW_IO = "true";
-
-	if (!process.send) {
-		const socket = new net.Socket({ fd: 3 });
-		socket.on("data", (data) => {
-			process.emit("message", JSON.parse(data.toString()), undefined);
-		});
-
-		// tslint:disable-next-line no-any
-		process.send = (message: any): void => {
-			socket.write(JSON.stringify(message));
-		};
-	}
 
 	const content = fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build/bootstrap-fork.js"));
 	eval(content.toString());
@@ -45,7 +33,7 @@ export const forkModule = (modulePath: string, env?: NodeJS.ProcessEnv): cp.Chil
 		args.push("--env", JSON.stringify(env));
 	}
 	const options: cp.SpawnOptions = {
-		stdio: [null, null, null, "pipe"],
+		stdio: [null, null, null, "ipc"],
 	};
 	if (process.env.CLI === "true") {
 		proc = cp.spawn(process.execPath, args, options);

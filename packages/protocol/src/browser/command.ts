@@ -30,8 +30,8 @@ export interface ChildProcess {
 
 	kill(signal?: string): void;
 
-	send(message: string | Uint8Array, ipc?: false): void;
-	send(message: any, ipc: true): void;
+	send(message: string | Uint8Array, callback?: () => void, ipc?: false): void;
+	send(message: any, callback: undefined | (() => void), ipc: true): void;
 
 	on(event: "message", listener: (data: any) => void): void;
 	on(event: "error", listener: (err: Error) => void): void;
@@ -101,7 +101,7 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 		this._connected = false;
 	}
 
-	public send(message: string | Uint8Array | any, ipc: boolean = this.ipc): void {
+	public send(message: string | Uint8Array | any, callback?: (error: Error | null) => void, ipc: boolean = this.ipc): boolean {
 		const send = new WriteToSessionMessage();
 		send.setId(this.id);
 		send.setSource(ipc ? WriteToSessionMessage.Source.IPC : WriteToSessionMessage.Source.STDIN);
@@ -113,6 +113,12 @@ export class ServerProcess extends events.EventEmitter implements ChildProcess {
 		const client = new ClientMessage();
 		client.setWriteToSession(send);
 		this.connection.send(client.serializeBinary());
+		// TODO: properly implement?
+		if (callback) {
+			callback(null);
+		}
+
+		return true;
 	}
 
 	public resize(dimensions: TTYDimensions): void {

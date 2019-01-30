@@ -13,11 +13,12 @@ export interface Process {
 	stdin?: stream.Writable;
 	stdout?: stream.Readable;
 	stderr?: stream.Readable;
+	send?: (message: string) => void;
 
 	pid: number;
 	killed?: boolean;
 
-	on(event: "data", cb: (data: string) => void): void;
+	on(event: "data" | "message", cb: (data: string) => void): void;
 	on(event: "exit", listener: (exitCode: number, signal?: number) => void): void;
 	write(data: string | Uint8Array): void;
 	resize?(cols: number, rows: number): void;
@@ -61,7 +62,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 				connection.send(sm.serializeBinary());
 			}
 		}, 200);
-		
+
 		ptyProc.on("exit", () => {
 			clearTimeout(timer);
 		});
@@ -93,6 +94,9 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 			stderr: proc.stderr,
 			stdout: proc.stdout,
 			stdio: proc.stdio,
+			send: (message): void => {
+				proc.send(message);
+			},
 			on: (...args: any[]): void => ((proc as any).on)(...args), // tslint:disable-line no-any
 			write: (d): boolean => proc.stdin.write(d),
 			kill: (s): void => proc.kill(s || "SIGTERM"),
@@ -105,7 +109,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 
 			let data = msg.toString();
 			if (_source === SessionOutputMessage.Source.IPC) {
-				data = Buffer.from(msg.toString(), "base64").toString();
+				// data = Buffer.from(msg.toString(), "base64").toString();
 			}
 
 			return [
@@ -139,10 +143,10 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 		});
 	}
 
-	if (process.stdio && process.stdio[3]) {
-		// We have ipc fd
-		process.stdio[3].on("data", (data) => {
-			sendOutput(SessionOutputMessage.Source.IPC, data);
+	// IPC.
+	if (process.send) {
+		process.on("message", (data) => {
+			sendOutput(SessionOutputMessage.Source.IPC, JSON.stringify(data));
 		});
 	}
 

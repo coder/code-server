@@ -1,7 +1,7 @@
 import * as os from "os";
 import * as cp from "child_process";
 import * as path from "path";
-import { mkdir, WriteStream } from "fs";
+import { mkdir } from "fs";
 import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
 import { logger, field } from "@coder/logger";
@@ -36,6 +36,17 @@ export class Server {
 			} catch (ex) {
 				logger.error("Failed to handle client message", field("length", data.byteLength), field("exception", ex));
 			}
+		});
+		connection.onClose(() => {
+			this.sessions.forEach((s) => {
+				s.kill();
+			});
+			this.connections.forEach((c) => {
+				c.destroy();
+			});
+			this.servers.forEach((s) => {
+				s.close();
+			});
 		});
 
 		if (!options) {
@@ -97,7 +108,12 @@ export class Server {
 	private handleMessage(message: ClientMessage): void {
 		if (message.hasNewEval()) {
 			const evalMessage = message.getNewEval()!;
-			logger.debug("EvalMessage", field("id", evalMessage.getId()));
+			logger.debug(() => [
+				"EvalMessage",
+				field("id", evalMessage.getId()),
+				field("args", evalMessage.getArgsList()),
+				field("function", evalMessage.getFunction()),
+			]);
 			evaluate(this.connection, evalMessage);
 		} else if (message.hasNewSession()) {
 			const sessionMessage = message.getNewSession()!;
@@ -141,10 +157,10 @@ export class Server {
 			const data = new TextDecoder().decode(writeToSessionMessage.getData_asU8());
 			const source = writeToSessionMessage.getSource();
 			if (source === WriteToSessionMessage.Source.IPC) {
-				if (!s.stdio || !s.stdio[3]) {
+				if (!s.send) {
 					throw new Error("Cannot send message via IPC to process without IPC");
 				}
-				(s.stdio[3] as WriteStream).write(data);
+				s.send(JSON.parse(data));
 			} else {
 				s.write(data);
 			}

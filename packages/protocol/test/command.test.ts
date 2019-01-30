@@ -15,7 +15,7 @@ describe("spawn", () => {
 		workingDirectory: "",
 		forkProvider: (msg): cp.ChildProcess => {
 			return cp.spawn(msg.getCommand(), msg.getArgsList(), {
-				stdio: [null, null, null, "pipe"],
+				stdio: [null, null, null, "ipc"],
 			});
 		},
 	});
@@ -144,7 +144,7 @@ describe("spawn", () => {
 			expect(msg.bananas).toBeTruthy();
 			proc.kill();
 		});
-		proc.send({ bananas: true }, true);
+		proc.send({ bananas: true }, undefined, true);
 		proc.on("exit", () => done());
 	});
 });
