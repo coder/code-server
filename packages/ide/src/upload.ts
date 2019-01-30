@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { logger, Logger } from "@coder/logger";
 import { escapePath } from "@coder/protocol";
 import { IURI } from "./fill/uri";
-import { INotificationService, IProgressService, IProgress, Severity } from "./fill/notification";
+import { NotificationService, INotificationService, ProgressService, IProgressService, IProgress, Severity } from "./fill/notification";
 
 /**
  * Represents an uploadable directory, so we can query for existing files once.
@@ -355,3 +355,6 @@ export class Upload {
 	}
 
 }
+
+// Global instance.
+export const upload = new Upload(new NotificationService(), new ProgressService());

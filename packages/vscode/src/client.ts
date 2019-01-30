@@ -4,6 +4,7 @@ import "./fill/storageDatabase";
 import "./fill/windowsService";
 import "./fill/environmentService";
 import "./fill/vscodeTextmate";
+import { PasteAction } from "./fill/paste";
 import "./fill/dom";
 import "./vscode.scss";
 import { Client as IDEClient, IURI, IURIFactory, IProgress, INotificationHandle } from "@coder/ide";
@@ -19,8 +20,6 @@ import { IEditorGroup } from "vs/workbench/services/group/common/editorGroupsSer
 import { IWindowsService } from "vs/platform/windows/common/windows";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
-import { Action } from "vs/base/common/actions";
-import * as nls from "vs/nls";
 
 export class Client extends IDEClient {
 
@@ -78,27 +77,8 @@ export class Client extends IDEClient {
 	/**
 	 * Create a paste action for use in text inputs.
 	 */
-	public get pasteAction(): Action {
-		const getLabel = (enabled: boolean): string => {
-			return enabled
-				? nls.localize("paste", "Paste")
-				: nls.localize("pasteWithKeybind", "Paste (must use keybind)");
-		};
-
-		const pasteAction = new Action(
-			"editor.action.clipboardPasteAction",
-			getLabel(this.clipboard.isEnabled),
-			undefined,
-			this.clipboard.isEnabled,
-			async (): Promise<boolean> => this.clipboard.paste(),
-		);
-
-		this.clipboard.onPermissionChange((enabled) => {
-			pasteAction.label = getLabel(enabled);
-			pasteAction.enabled = enabled;
-		});
-
-		return pasteAction;
+	public get pasteAction(): PasteAction {
+		return new PasteAction();
 	}
 
 	public get serviceCollection(): ServiceCollection {

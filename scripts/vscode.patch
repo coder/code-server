@@ -229,6 +229,31 @@ index e600fb2f78..5d65a3124e 100644
  		const droppedResources = extractResources(originalEvent.browserEvent as DragEvent, true);
  
  		// Check for dropped external files to be folders
+diff --git a/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts b/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+index 2975294e75..73ffb6362d 100644
+--- a/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
++++ b/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
+@@ -38,6 +38,7 @@ import { TerminalPanel } from 'vs/workbench/parts/terminal/electron-browser/term
+ import { TerminalPickerHandler } from 'vs/workbench/parts/terminal/browser/terminalQuickOpen';
+ import { setupTerminalCommands, TERMINAL_COMMAND_ID } from 'vs/workbench/parts/terminal/common/terminalCommands';
+ import { setupTerminalMenu } from 'vs/workbench/parts/terminal/common/terminalMenu';
++import { client } from "../../../../../../../../packages/vscode";
+ 
+ const quickOpenRegistry = (Registry.as<IQuickOpenRegistry>(QuickOpenExtensions.Quickopen));
+ 
+@@ -434,9 +435,11 @@ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(FocusPreviousTer
+ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(TerminalPasteAction, TerminalPasteAction.ID, TerminalPasteAction.LABEL, {
+ 	primary: KeyMod.CtrlCmd | KeyCode.KEY_V,
+ 	linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_V },
++	win: { primary: KeyMod.CtrlCmd | KeyCode.KEY_V },
+ 	// Don't apply to Mac since cmd+v works
+ 	mac: { primary: 0 }
+-}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Paste into Active Terminal', category);
++// }, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Paste into Active Terminal', category);
++}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FOCUS, client.clipboardContextKey)), 'Terminal: Paste into Active Terminal', category);
+ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(SelectAllTerminalAction, SelectAllTerminalAction.ID, SelectAllTerminalAction.LABEL, {
+ 	// Don't use ctrl+a by default as that would override the common go to start
+ 	// of prompt shell binding
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..8f26dc2f28 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
