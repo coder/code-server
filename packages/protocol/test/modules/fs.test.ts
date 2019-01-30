@@ -117,6 +117,23 @@ describe("fs", () => {
 		});
 	});
 
+	describe("createWriteStream", () => {
+		it("should write to file", (done) => {
+			const file = tmpFile();
+			const content = "howdy\nhow\nr\nu";
+			const stream = fs.createWriteStream(file);
+			stream.on("open", (fd) => {
+				expect(fd).toBeDefined();
+				stream.write(content);
+				stream.close();
+			});
+			stream.on("close", () => {
+				expect(nativeFs.readFileSync(file).toString()).toEqual(content);
+				done();
+			});
+		});
+	});
+
 	describe("exists", () => {
 		it("should output file exists", (done) => {
 			fs.exists(testFile, (exists) => {

@@ -55,4 +55,18 @@ describe("Evaluate", () => {
 
 		expect(value).toEqual("donkey");
 	}, 250);
+
+	it("should do active process", (done) => {
+		const runner = client.run((ae) => {
+			ae.on("1", () => {
+				ae.emit("2");
+				ae.on("3", () => {
+					ae.emit("close");
+				});
+			});
+		});
+		runner.emit("1");
+		runner.on("2", () => runner.emit("3"));
+		runner.on("close", () => done());
+	});
 });

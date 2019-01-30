@@ -6,7 +6,7 @@ import { promisify } from "util";
 import { TextDecoder } from "text-encoding";
 import { logger, field } from "@coder/logger";
 import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
-import { evaluate } from "./evaluate";
+import { evaluate, ActiveEvaluation } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
 import { Process, handleNewSession, handleNewConnection, handleNewServer } from "./command";
 import * as net from "net";
@@ -23,6 +23,7 @@ export class Server {
 	private readonly sessions: Map<number, Process> = new Map();
 	private readonly connections: Map<number, net.Socket> = new Map();
 	private readonly servers: Map<number, net.Server> = new Map();
+	private readonly evals: Map<number, ActiveEvaluation> = new Map();
 
 	private connectionId: number = Number.MAX_SAFE_INTEGER;
 
@@ -114,7 +115,18 @@ export class Server {
 				field("args", evalMessage.getArgsList()),
 				field("function", evalMessage.getFunction()),
 			]);
-			evaluate(this.connection, evalMessage);
+			const resp = evaluate(this.connection, evalMessage, () => {
+				this.evals.delete(evalMessage.getId());
+			});
+			if (resp) {
+				this.evals.set(evalMessage.getId(), resp);
+			}
+		} else if (message.hasEvalEvent()) {
+			const e = this.evals.get(message.getEvalEvent()!.getId());
+			if (!e) {
+				return;
+			}
+			e.onEvent(message.getEvalEvent()!);
 		} else if (message.hasNewSession()) {
 			const sessionMessage = message.getNewSession()!;
 			logger.debug("NewSession", field("id", sessionMessage.getId()));

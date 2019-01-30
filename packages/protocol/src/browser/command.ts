@@ -360,3 +360,11 @@ export class ServerListener extends events.EventEmitter implements Server {
 	}
 
 }
+
+export interface ActiveEval {
+	emit(event: string, ...args: any[]): void;
+
+	on(event: "close", cb: () => void): void;
+	on(event: "error", cb: (err: Error) => void): void;
+	on(event: string, cb: (...args: any[]) => void): void;
+}

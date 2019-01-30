@@ -1,6 +1,7 @@
 import { exec, ChildProcess } from "child_process";
 import { EventEmitter } from "events";
 import * as fs from "fs";
+import * as stream from "stream";
 import { IEncodingOptions, IEncodingOptionsCallback, escapePath, useBuffer } from "../../common/util";
 import { Client } from "../client";
 
@@ -112,8 +113,51 @@ export class FS {
 		});
 	}
 
-	public createWriteStream = (): void => {
-		throw new Error("createWriteStream not implemented");
+	/**
+	 * This should NOT be used for long-term writes.
+	 * The runnable will be killed after the timeout specified in evaluate.ts
+	 */
+	public createWriteStream = (path: fs.PathLike, options?: any): fs.WriteStream => {
+		const ae = this.client.run((ae, path, options) => {
+			const fs = _require("fs") as typeof import("fs");
+			const str = fs.createWriteStream(path, options);
+			ae.on("write", (d, e) => str.write(Buffer.from(d, e)));
+			ae.on("close", () => str.close());
+			str.on("close", () => ae.emit("close"));
+			str.on("open", (fd) => ae.emit("open", fd));
+			str.on("error", (err) => ae.emit(err));
+		}, path, options);
+
+		return new (class WriteStream extends stream.Writable implements fs.WriteStream {
+
+			private _bytesWritten: number = 0;
+
+			public constructor() {
+				super({
+					write: (data, encoding, cb) => {
+						this._bytesWritten += data.length;
+						ae.emit("write", Buffer.from(data, encoding), encoding);
+						cb();
+					},
+				});
+
+				ae.on("open", (a) => this.emit("open", a));
+				ae.on("close", () => this.emit("close"));
+			}
+
+			public get bytesWritten(): number {
+				return this._bytesWritten;
+			}
+
+			public get path(): string | Buffer {
+				return "";
+			}
+
+			public close(): void {
+				ae.emit("close");
+			}
+
+		}) as fs.WriteStream;
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
@@ -667,10 +711,10 @@ interface IStats {
 	mtimeMs: number;
 	ctimeMs: number;
 	birthtimeMs: number;
-	atime: string;
-	mtime: string;
-	ctime: string;
-	birthtime: string;
+	atime: Date | string;
+	mtime: Date | string;
+	ctime: Date | string;
+	birthtime: Date | string;
 	_isFile: boolean;
 	_isDirectory: boolean;
 	_isBlockDevice: boolean;
@@ -687,7 +731,7 @@ class Stats implements fs.Stats {
 	public readonly ctime: Date;
 	public readonly birthtime: Date;
 
-	private constructor(private readonly stats: IStats) {
+	public constructor(private readonly stats: IStats) {
 		this.atime = new Date(stats.atime);
 		this.mtime = new Date(stats.mtime);
 		this.ctime = new Date(stats.ctime);

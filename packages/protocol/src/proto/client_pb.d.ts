@@ -62,6 +62,11 @@ export class ClientMessage extends jspb.Message {
   getNewEval(): node_pb.NewEvalMessage | undefined;
   setNewEval(value?: node_pb.NewEvalMessage): void;
 
+  hasEvalEvent(): boolean;
+  clearEvalEvent(): void;
+  getEvalEvent(): node_pb.EvalEventMessage | undefined;
+  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+
   getMsgCase(): ClientMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ClientMessage.AsObject;
@@ -86,6 +91,7 @@ export namespace ClientMessage {
     newServer?: command_pb.NewServerMessage.AsObject,
     serverClose?: command_pb.ServerCloseMessage.AsObject,
     newEval?: node_pb.NewEvalMessage.AsObject,
+    evalEvent?: node_pb.EvalEventMessage.AsObject,
   }
 
   export enum MsgCase {
@@ -101,6 +107,7 @@ export namespace ClientMessage {
     NEW_SERVER = 9,
     SERVER_CLOSE = 10,
     NEW_EVAL = 11,
+    EVAL_EVENT = 12,
   }
 }
 
@@ -175,6 +182,11 @@ export class ServerMessage extends jspb.Message {
   getEvalDone(): node_pb.EvalDoneMessage | undefined;
   setEvalDone(value?: node_pb.EvalDoneMessage): void;
 
+  hasEvalEvent(): boolean;
+  clearEvalEvent(): void;
+  getEvalEvent(): node_pb.EvalEventMessage | undefined;
+  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+
   hasInit(): boolean;
   clearInit(): void;
   getInit(): WorkingInitMessage | undefined;
@@ -212,6 +224,7 @@ export namespace ServerMessage {
     serverConnectionEstablished?: command_pb.ServerConnectionEstablishedMessage.AsObject,
     evalFailed?: node_pb.EvalFailedMessage.AsObject,
     evalDone?: node_pb.EvalDoneMessage.AsObject,
+    evalEvent?: node_pb.EvalEventMessage.AsObject,
     init?: WorkingInitMessage.AsObject,
     sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
   }
@@ -232,8 +245,9 @@ export namespace ServerMessage {
     SERVER_CONNECTION_ESTABLISHED = 12,
     EVAL_FAILED = 13,
     EVAL_DONE = 14,
-    INIT = 15,
-    SHARED_PROCESS_ACTIVE = 16,
+    EVAL_EVENT = 15,
+    INIT = 16,
+    SHARED_PROCESS_ACTIVE = 17,
   }
 }
 

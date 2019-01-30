@@ -19,6 +19,7 @@ message ClientMessage {
 
 		// node.proto
 		NewEvalMessage new_eval = 11;
+		EvalEventMessage eval_event = 12;
 	}
 }
 
@@ -41,11 +42,12 @@ message ServerMessage {
 		// node.proto
 		EvalFailedMessage eval_failed = 13;
 		EvalDoneMessage eval_done = 14;
+		EvalEventMessage eval_event = 15;
 
-		WorkingInitMessage init = 15;
+		WorkingInitMessage init = 16;
 
 		// vscode.proto
-		SharedProcessActiveMessage shared_process_active = 16;
+		SharedProcessActiveMessage shared_process_active = 17;
 	}
 }
 

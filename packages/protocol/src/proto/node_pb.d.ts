@@ -49,6 +49,9 @@ export class NewEvalMessage extends jspb.Message {
   getTimeout(): number;
   setTimeout(value: number): void;
 
+  getActive(): boolean;
+  setActive(value: boolean): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): NewEvalMessage.AsObject;
   static toObject(includeInstance: boolean, msg: NewEvalMessage): NewEvalMessage.AsObject;
@@ -65,6 +68,37 @@ export namespace NewEvalMessage {
     pb_function: string,
     argsList: Array<string>,
     timeout: number,
+    active: boolean,
+  }
+}
+
+export class EvalEventMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getEvent(): string;
+  setEvent(value: string): void;
+
+  clearArgsList(): void;
+  getArgsList(): Array<string>;
+  setArgsList(value: Array<string>): void;
+  addArgs(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EvalEventMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: EvalEventMessage): EvalEventMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EvalEventMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EvalEventMessage;
+  static deserializeBinaryFromReader(message: EvalEventMessage, reader: jspb.BinaryReader): EvalEventMessage;
+}
+
+export namespace EvalEventMessage {
+  export type AsObject = {
+    id: number,
+    event: string,
+    argsList: Array<string>,
   }
 }
 

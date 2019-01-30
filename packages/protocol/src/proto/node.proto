@@ -17,6 +17,15 @@ message NewEvalMessage {
 	repeated string args = 3;
 	// Timeout in ms
 	uint32 timeout = 4;
+	// Create active eval message.
+	// Allows for dynamic communication for an eval
+	bool active = 5;
+}
+
+message EvalEventMessage {
+	uint64 id = 1;
+	string event = 2;
+	repeated string args = 3;
 }
 
 message EvalFailedMessage {
