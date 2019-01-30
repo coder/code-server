@@ -11,13 +11,12 @@ import { Client as IDEClient, IURI, IURIFactory } from "@coder/ide";
 
 import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
 import { LogLevel } from "vs/platform/log/common/log";
-import { toLocalISOString } from "vs/base/common/date";
 // import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { URI } from "vs/base/common/uri";
 
 export class Client extends IDEClient {
 
-	private readonly windowId = parseInt(toLocalISOString(new Date()).replace(/[-:.TZ]/g, ""), 10);
+	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 
 	protected initialize(): Promise<void> {
 		registerContextMenuListener();
