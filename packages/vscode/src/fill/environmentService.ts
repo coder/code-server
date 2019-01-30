@@ -9,5 +9,5 @@ export class EnvironmentService extends environment.EnvironmentService {
 
 }
 
-// @ts-ignore
-environment.EnvironmentService = EnvironmentService;
+const target = environment as typeof environment;
+target.EnvironmentService = EnvironmentService;
