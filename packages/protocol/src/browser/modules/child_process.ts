@@ -32,12 +32,14 @@ export class CP {
 			if (typeof options === "function") {
 				callback = options;
 			}
-			// @ts-ignore not sure how to make this work.
-			callback(
-				error,
-				useBuffer(options) ? Buffer.from(stdout) : stdout,
-				useBuffer(options) ? Buffer.from(stderr) : stderr,
-			);
+			if (callback) {
+				// @ts-ignore not sure how to make this work.
+				callback(
+					error,
+					useBuffer(options) ? Buffer.from(stdout) : stdout,
+					useBuffer(options) ? Buffer.from(stderr) : stderr,
+				);
+			}
 		});
 
 		// @ts-ignore TODO: not fully implemented
