@@ -37,6 +37,30 @@ export class Clipboard {
 	}
 
 	/**
+	 * Paste currently copied text.
+	 */
+	public async paste(): Promise<boolean> {
+		if (this.isEnabled) {
+			try {
+				const element = document.activeElement as HTMLInputElement | HTMLTextAreaElement;
+				const start = element.selectionStart || 0;
+				const end = element.selectionEnd;
+				const allText = element.value;
+				const newText = allText.substring(0, start)
+					+ (await this.readText())
+					+ allText.substring(end || start);
+				element.value = newText;
+
+				return true;
+			} catch (ex) {
+				// Will try execCommand below.
+			}
+		}
+
+		return document.execCommand("paste");
+	}
+
+	/**
 	 * Return true if the native clipboard is supported.
 	 */
 	public get isSupported(): boolean {

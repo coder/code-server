@@ -9,7 +9,6 @@ import "./vscode.scss";
 import { Client as IDEClient, IURI, IURIFactory, IProgress, INotificationHandle } from "@coder/ide";
 import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
 import { LogLevel } from "vs/platform/log/common/log";
-// import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { URI } from "vs/base/common/uri";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IProgressService2, ProgressLocation } from "vs/platform/progress/common/progress";
@@ -19,11 +18,15 @@ import { IEditorService, IResourceEditor } from "vs/workbench/services/editor/co
 import { IEditorGroup } from "vs/workbench/services/group/common/editorGroupsService";
 import { IWindowsService } from "vs/platform/windows/common/windows";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
+import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
+import { Action } from "vs/base/common/actions";
+import * as nls from "vs/nls";
 
 export class Client extends IDEClient {
 
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
+	private _clipboardContextKey: RawContextKey<boolean> | undefined;
 
 	public async handleExternalDrop(target: ExplorerItem | Model, originalEvent: DragMouseEvent): Promise<void> {
 		await this.upload.uploadDropped(
@@ -55,6 +58,47 @@ export class Client extends IDEClient {
 				});
 			});
 		});
+	}
+
+	/**
+	 * Use to toggle the paste option inside editors based on the native clipboard.
+	 */
+	public get clipboardContextKey(): RawContextKey<boolean> {
+		if (!this._clipboardContextKey) {
+			throw new Error("Trying to access clipboard context key before it has been set");
+		}
+
+		return this._clipboardContextKey;
+	}
+
+	public get clipboardText(): Promise<string> {
+		return this.clipboard.readText();
+	}
+
+	/**
+	 * Create a paste action for use in text inputs.
+	 */
+	public get pasteAction(): Action {
+		const getLabel = (enabled: boolean): string => {
+			return enabled
+				? nls.localize("paste", "Paste")
+				: nls.localize("pasteWithKeybind", "Paste (must use keybind)");
+		};
+
+		const pasteAction = new Action(
+			"editor.action.clipboardPasteAction",
+			getLabel(this.clipboard.isEnabled),
+			undefined,
+			this.clipboard.isEnabled,
+			async (): Promise<boolean> => this.clipboard.paste(),
+		);
+
+		this.clipboard.onPermissionChange((enabled) => {
+			pasteAction.label = getLabel(enabled);
+			pasteAction.enabled = enabled;
+		});
+
+		return pasteAction;
 	}
 
 	public get serviceCollection(): ServiceCollection {
@@ -134,6 +178,8 @@ export class Client extends IDEClient {
 			process.env.VSCODE_LOGS = data.logPath;
 		});
 
+		this._clipboardContextKey = new RawContextKey("nativeClipboard", this.clipboard.isEnabled);
+
 		return this.task("Start workbench", 1000, async (data) => {
 			paths._paths.appData = data.dataDirectory;
 			paths._paths.defaultUserData = data.dataDirectory;
@@ -154,14 +200,11 @@ export class Client extends IDEClient {
 				folderUri: URI.file(data.workingDirectory),
 			});
 
-			// TODO: Set up clipboard context.
-			// const workbench = workbenchShell.workbench;
-			// const contextKeys = workbench.workbenchParams.serviceCollection.get(IContextKeyService) as IContextKeyService;
-			// const clipboardContextKey = new RawContextKey("nativeClipboard", this.clipboard.isSupported);
-			// const bounded = clipboardContextKey.bindTo(contextKeys);
-			// this.clipboard.onPermissionChange((enabled) => {
-			// 	bounded.set(enabled);
-			// });
+			const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
+			const bounded = this.clipboardContextKey.bindTo(contextKeys);
+			this.clipboard.onPermissionChange((enabled) => {
+				bounded.set(enabled);
+			});
 			this.clipboard.initialize();
 		}, this.initData, pathSets);
 	}

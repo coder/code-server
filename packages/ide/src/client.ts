@@ -4,7 +4,7 @@ import { InitData, ISharedProcessData } from "@coder/protocol";
 import { retry } from "./retry";
 import { Upload } from "./upload";
 import { client } from "./fill/client";
-import { Clipboard, clipboard } from "./fill/clipboard";
+import { clipboard } from "./fill/clipboard";
 import { INotificationService, NotificationService, IProgressService, ProgressService } from "./fill/notification";
 import { IURIFactory } from "./fill/uri";
 
@@ -19,7 +19,7 @@ import { IURIFactory } from "./fill/uri";
 export abstract class Client {
 
 	public readonly retry = retry;
-	public readonly clipboard: Clipboard = clipboard;
+	public readonly clipboard = clipboard;
 	public readonly uriFactory: IURIFactory;
 	public readonly upload = new Upload(new NotificationService(), new ProgressService());
 	private start: Time | undefined;

@@ -8,6 +8,67 @@ index 457818a975..ad45ffe58a 100644
  }
 +
 +startup({ machineId: "1" });
+diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
+index 5e43f1b39e..7775e3b6da 100644
+--- a/src/vs/editor/contrib/clipboard/clipboard.ts
++++ b/src/vs/editor/contrib/clipboard/clipboard.ts
+@@ -16,6 +16,10 @@ import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
+ import { MenuId } from 'vs/platform/actions/common/actions';
+ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
+ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
++import { CodeEditorWidget } from "vs/editor/browser/widget/codeEditorWidget";
++import { Handler } from "vs/editor/common/editorCommon";
++import { ContextKeyExpr } from "vs/platform/contextkey/common/contextkey";
++import { client } from "../../../../../../../packages/vscode";
+ 
+ const CLIPBOARD_CONTEXT_MENU_GROUP = '9_cutcopypaste';
+ 
+@@ -26,7 +30,8 @@ const supportsCopyWithSyntaxHighlighting = (supportsCopy && !browser.isEdgeOrIE)
+ // Chrome incorrectly returns true for document.queryCommandSupported('paste')
+ // when the paste feature is available but the calling script has insufficient
+ // privileges to actually perform the action
+-const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
++// const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
++const supportsPaste = true;
+ 
+ type ExecCommand = 'cut' | 'copy' | 'paste';
+ 
+@@ -178,7 +183,7 @@ class ExecCommandPasteAction extends ExecCommandAction {
+ 			id: 'editor.action.clipboardPasteAction',
+ 			label: nls.localize('actions.clipboard.pasteLabel', "Paste"),
+ 			alias: 'Paste',
+-			precondition: EditorContextKeys.writable,
++			precondition: ContextKeyExpr.and(EditorContextKeys.writable, client.clipboardContextKey),
+ 			kbOpts: kbOpts,
+ 			menuOpts: {
+ 				group: CLIPBOARD_CONTEXT_MENU_GROUP,
+@@ -188,10 +193,25 @@ class ExecCommandPasteAction extends ExecCommandAction {
+ 				menuId: MenuId.MenubarEditMenu,
+ 				group: '2_ccp',
+ 				title: nls.localize({ key: 'miPaste', comment: ['&& denotes a mnemonic'] }, "&&Paste"),
+-				order: 3
++				order: 3,
++				when: client.clipboardContextKey,
+ 			}
+ 		});
+ 	}
++
++	public async run(accessor, editor: ICodeEditor): Promise<void> {
++		if (editor instanceof CodeEditorWidget) {
++			try {
++				editor.trigger('', Handler.Paste, {
++					text: await client.clipboardText,
++				});
++			} catch (ex) {
++				super.run(accessor, editor);
++			}
++		} else {
++			super.run(accessor, editor);
++		}
++	}
+ }
+ 
+ class ExecCommandCopyWithSyntaxHighlightingAction extends ExecCommandAction {
 diff --git a/src/vs/loader.js b/src/vs/loader.js
 index 2bf7fe37d7..81cc668f12 100644
 --- a/src/vs/loader.js
@@ -94,6 +155,27 @@ index a43d63aa51..4c6df2fcd9 100644
  			});
  		});
  	});
+diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
+index ea348f3a04..7c943a71c2 100644
+--- a/src/vs/workbench/electron-browser/window.ts
++++ b/src/vs/workbench/electron-browser/window.ts
+@@ -38,6 +38,7 @@ import { AccessibilitySupport, isRootUser, isWindows, isMacintosh } from 'vs/bas
+ import product from 'vs/platform/node/product';
+ import { INotificationService } from 'vs/platform/notification/common/notification';
+ import { EditorServiceImpl } from 'vs/workbench/browser/parts/editor/editor';
++import { client } from "../../../../../../packages/vscode";
+ 
+ const TextInputActions: IAction[] = [
+ 	new Action('undo', nls.localize('undo', "Undo"), null, true, () => document.execCommand('undo') && Promise.resolve(true)),
+@@ -45,7 +46,7 @@ const TextInputActions: IAction[] = [
+ 	new Separator(),
+ 	new Action('editor.action.clipboardCutAction', nls.localize('cut', "Cut"), null, true, () => document.execCommand('cut') && Promise.resolve(true)),
+ 	new Action('editor.action.clipboardCopyAction', nls.localize('copy', "Copy"), null, true, () => document.execCommand('copy') && Promise.resolve(true)),
+-	new Action('editor.action.clipboardPasteAction', nls.localize('paste', "Paste"), null, true, () => document.execCommand('paste') && Promise.resolve(true)),
++	client.pasteAction,
+ 	new Separator(),
+ 	new Action('editor.action.selectAll', nls.localize('selectAll', "Select All"), null, true, () => document.execCommand('selectAll') && Promise.resolve(true))
+ ];
 diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
 index 35bc4a82b3..9cc84bdf28 100644
 --- a/src/vs/workbench/electron-browser/workbench.ts
