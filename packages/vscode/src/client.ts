@@ -15,36 +15,23 @@ import { toLocalISOString } from "vs/base/common/date";
 // import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { URI } from "vs/base/common/uri";
 
-import { Protocol } from "vs/base/parts/ipc/node/ipc.net";
-
 export class Client extends IDEClient {
 
 	private readonly windowId = parseInt(toLocalISOString(new Date()).replace(/[-:.TZ]/g, ""), 10);
 
-	public readonly protocolPromise: Promise<Protocol>;
-	public protoResolve: ((protocol: Protocol) => void) | undefined;
-	private readonly pathSets: Promise<void>;
-
-	public constructor() {
-		super();
-		this.protocolPromise = new Promise((resolve): void => {
-			this.protoResolve = resolve;
-		});
-		this.pathSets = this.sharedProcessData.then((data) => {
-			paths._paths.socketPath = data.socketPath;
-			process.env.VSCODE_LOGS = data.logPath;
-		});
-		this.initData.then((data) => {
-			paths._paths.appData = data.dataDirectory;
-			paths._paths.defaultUserData = data.dataDirectory;
-			process.env.SHELL = data.shell;
-		});
-	}
-
 	protected initialize(): Promise<void> {
 		registerContextMenuListener();
 
+		const pathSets = this.sharedProcessData.then((data) => {
+			paths._paths.socketPath = data.socketPath;
+			process.env.VSCODE_LOGS = data.logPath;
+		});
+
 		return this.task("Start workbench", 1000, async (data) => {
+			paths._paths.appData = data.dataDirectory;
+			paths._paths.defaultUserData = data.dataDirectory;
+			process.env.SHELL = data.shell;
+
 			const { startup } = require("./startup");
 			await startup({
 				machineId: "1",
@@ -96,7 +83,7 @@ export class Client extends IDEClient {
 			// 	bounded.set(enabled);
 			// });
 			this.clipboard.initialize();
-		}, this.initData, this.pathSets);
+		}, this.initData, pathSets);
 	}
 
 	protected createUriFactory(): IURIFactory {
