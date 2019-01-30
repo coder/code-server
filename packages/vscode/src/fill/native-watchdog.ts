@@ -1,7 +1,7 @@
 class Watchdog {
 
 	public start(): void {
-		// TODO: Should it do something?
+		// No action required.
 	}
 
 }
