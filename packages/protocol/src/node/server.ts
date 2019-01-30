@@ -122,11 +122,13 @@ export class Server {
 				this.evals.set(evalMessage.getId(), resp);
 			}
 		} else if (message.hasEvalEvent()) {
-			const e = this.evals.get(message.getEvalEvent()!.getId());
+			const evalEventMessage = message.getEvalEvent()!;
+			logger.debug("EvalEventMessage", field("id", evalEventMessage.getId()));
+			const e = this.evals.get(evalEventMessage.getId());
 			if (!e) {
 				return;
 			}
-			e.onEvent(message.getEvalEvent()!);
+			e.onEvent(evalEventMessage);
 		} else if (message.hasNewSession()) {
 			const sessionMessage = message.getNewSession()!;
 			logger.debug("NewSession", field("id", sessionMessage.getId()));

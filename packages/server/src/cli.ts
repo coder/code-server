@@ -1,4 +1,4 @@
-import { field, logger, Level } from "@coder/logger";
+import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import * as fs from "fs";

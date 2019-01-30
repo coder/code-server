@@ -1,56 +1,5 @@
 import { logger } from "@coder/logger";
-
-/**
- * Handle for a notification that allows it to be closed and updated.
- */
-export interface INotificationHandle {
-
-	/**
-	 * Closes the notification.
-	 */
-	close(): void;
-
-	/**
-	 * Update the message.
-	 */
-	updateMessage(message: string): void;
-
-	/**
-	 * Update the buttons.
-	 */
-	updateButtons(buttons: INotificationButton[]): void;
-
-}
-
-/**
- * Notification severity.
- */
-enum Severity {
-	Ignore = 0,
-	Info = 1,
-	Warning = 2,
-	Error = 3,
-}
-
-/**
- * Notification button.
- */
-export interface INotificationButton {
-	label: string;
-	run(): void;
-}
-
-/**
- * Optional notification service.
- */
-export interface INotificationService {
-
-	/**
-	 * Show a notification.
-	 */
-	prompt(severity: Severity, message: string, buttons: INotificationButton[], onCancel: () => void): INotificationHandle;
-
-}
+import { NotificationService, INotificationHandle, INotificationService, Severity } from "./fill/notification";
 
 interface IRetryItem {
 	count?: number;
@@ -91,15 +40,16 @@ export class Retry {
 	// for reasoning.)
 	private waitDelay = 50;
 
-	public constructor(private notificationService?: INotificationService) {
+	public constructor(private _notificationService: INotificationService) {
 		this.items = new Map();
 	}
 
-	/**
-	 * Set notification service.
-	 */
-	public setNotificationService(notificationService?: INotificationService): void {
-		this.notificationService = notificationService;
+	public set notificationService(service: INotificationService) {
+		this._notificationService = service;
+	}
+
+	public get notificationService(): INotificationService {
+		return this._notificationService;
 	}
 
 	/**
@@ -262,10 +212,6 @@ export class Retry {
 	 * Update, close, or show the notification.
 	 */
 	private updateNotification(): void {
-		if (!this.notificationService) {
-			return;
-		}
-
 		// tslint:disable-next-line no-any because NodeJS.Timer is valid.
 		clearTimeout(this.updateTimeout as any);
 
@@ -343,4 +289,4 @@ export class Retry {
 
 // Global instance so we can block other retries when retrying the main
 // connection.
-export const retry = new Retry();
+export const retry = new Retry(new NotificationService());

@@ -281,5 +281,6 @@ class WindowsService implements IWindowsService {
 
 }
 
-// @ts-ignore
-windowsIpc.WindowsChannelClient = WindowsService;
+const target = windowsIpc as typeof windowsIpc;
+// @ts-ignore TODO: don't ignore it.
+target.WindowsChannelClient = WindowsService;

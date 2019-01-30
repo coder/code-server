@@ -59,7 +59,7 @@ const decodeStream = (encoding: string): NodeJS.ReadWriteStream => {
 	return new IconvLiteDecoderStream({ encoding });
 };
 
-// @ts-ignore
-iconv.decodeStream = decodeStream;
+const target = iconv as typeof iconv;
+target.decodeStream = decodeStream;
 
-export = iconv;
+export = target;

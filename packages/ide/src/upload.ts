@@ -3,7 +3,8 @@ import { appendFile } from "fs";
 import { promisify } from "util";
 import { logger, Logger } from "@coder/logger";
 import { escapePath } from "@coder/protocol";
-import { IURI } from "./uri";
+import { IURI } from "./fill/uri";
+import { INotificationService, IProgressService, IProgress, Severity } from "./fill/notification";
 
 /**
  * Represents an uploadable directory, so we can query for existing files once.
@@ -28,47 +29,6 @@ interface IEntry {
 }
 
 /**
- * Updatable progress.
- */
-interface IProgress {
-
-	/**
-	 * Report progress. Progress is the completed percentage from 0 to 100.
-	 */
-	report(progress: number): void;
-
-}
-
-/**
- * Service for reporting progress.
- */
-interface IProgressService {
-
-	/**
-	 * Start a new progress bar that resolves & disappears when the task finishes.
-	 */
-	start<T>(title:string, task: (progress: IProgress) => Promise<T>): Promise<T>;
-
-}
-
-/**
- * Service for notifications.
- */
-interface INotificationService {
-
-	/**
-	 * Display an error message.
-	 */
-	error(error: Error): void;
-
-	/**
-	 * Ask for a decision.
-	 */
-	prompt(message: string, choices: string[]): Promise<string>;
-
-}
-
-/**
  * Handles file uploads.
  */
 export class Upload {
@@ -76,8 +36,6 @@ export class Upload {
 	private readonly maxParallelUploads = 100;
 	private readonly readSize = 32000; // ~32kb max while reading in the file.
 	private readonly packetSize = 32000; // ~32kb max when writing.
-	private readonly notificationService: INotificationService;
-	private readonly progressService: IProgressService;
 	private readonly logger: Logger;
 	private readonly currentlyUploadingFiles: Map<string, File>;
 	private readonly queueByDirectory: Map<string, IUploadableDirectory>;
@@ -88,15 +46,32 @@ export class Upload {
 	private uploadedFilePaths: string[];
 	private total: number;
 
-	public constructor(notificationService: INotificationService, progressService: IProgressService) {
-		this.notificationService = notificationService;
-		this.progressService = progressService;
+	public constructor(
+		private _notificationService: INotificationService,
+		private _progressService: IProgressService,
+	) {
 		this.logger = logger.named("Upload");
 		this.currentlyUploadingFiles = new Map();
 		this.queueByDirectory = new Map();
 		this.uploadedFilePaths = [];
 		this.finished = 0;
 		this.total = 0;
+	}
+
+	public set notificationService(service: INotificationService) {
+		this._notificationService = service;
+	}
+
+	public get notificationService(): INotificationService {
+		return this._notificationService;
+	}
+
+	public set progressService(service: IProgressService) {
+		this._progressService = service;
+	}
+
+	public get progressService(): IProgressService {
+		return this._progressService;
 	}
 
 	/**
@@ -125,6 +100,8 @@ export class Upload {
 						resolve(uploaded);
 					};
 				});
+			}, () => {
+				this.cancel();
 			});
 		}
 		this.uploadFiles();
@@ -214,8 +191,21 @@ export class Upload {
 	 */
 	private async uploadFile(path: string, file: File, existingFiles: string[]): Promise<void> {
 		if (existingFiles.includes(path)) {
-			const choice = await this.notificationService.prompt(`${path} already exists. Overwrite?`, ["Yes", "No"]);
-			if (choice !== "Yes") {
+			const shouldOverwrite = await new Promise((resolve): void => {
+				this.notificationService.prompt(
+					Severity.Error,
+					`${path} already exists. Overwrite?`,
+					[{
+						label: "Yes",
+						run: (): void => resolve(true),
+					}, {
+						label: "No",
+						run: (): void => resolve(false),
+					}],
+					() => resolve(false),
+				);
+			});
+			if (!shouldOverwrite) {
 				return;
 			}
 		}

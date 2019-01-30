@@ -8,7 +8,7 @@ import * as globalStorage from "vs/platform/storage/node/storageIpc";
 import * as paths from "./paths";
 import { logger, field } from "@coder/logger";
 
-export class StorageDatabase implements workspaceStorage.IStorageDatabase {
+class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 	public readonly onDidChangeItemsExternal = Event.None;
 	private items = new Map<string, string>();
@@ -81,7 +81,7 @@ export class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 }
 
-export class GlobalStorageDatabase extends StorageDatabase implements IDisposable {
+class GlobalStorageDatabase extends StorageDatabase implements IDisposable {
 
 	public constructor() {
 		super(path.join(paths.getAppDataPath(), "globalStorage", "state.vscdb"));
@@ -93,7 +93,10 @@ export class GlobalStorageDatabase extends StorageDatabase implements IDisposabl
 
 }
 
-// @ts-ignore
-workspaceStorage.SQLiteStorageDatabase = StorageDatabase;
-// @ts-ignore
-globalStorage.GlobalStorageDatabaseChannelClient = GlobalStorageDatabase;
+const workspaceTarget = workspaceStorage as typeof workspaceStorage;
+// @ts-ignore TODO: don't ignore it.
+workspaceTarget.SQLiteStorageDatabase = StorageDatabase;
+
+const globalTarget = globalStorage as typeof globalStorage;
+// @ts-ignore TODO: don't ignore it.
+globalTarget.GlobalStorageDatabaseChannelClient = GlobalStorageDatabase;

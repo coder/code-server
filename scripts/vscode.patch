@@ -47,6 +47,27 @@ index 2bf7fe37d7..81cc668f12 100644
                  }
                  catch (err) {
                      errorback(err);
+diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
+index 38bf337a61..aae3a68ff5 100644
+--- a/src/vs/workbench/browser/dnd.ts
++++ b/src/vs/workbench/browser/dnd.ts
+@@ -31,6 +31,7 @@ import { IEditorService, IResourceEditor } from 'vs/workbench/services/editor/co
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { addDisposableListener, EventType } from 'vs/base/browser/dom';
+ import { IEditorGroup } from 'vs/workbench/services/group/common/editorGroupsService';
++import { client } from "../../../../../../packages/vscode";
+ 
+ export interface IDraggedResource {
+ 	resource: URI;
+@@ -168,7 +169,7 @@ export class ResourcesDropHandler {
+ 	handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup, afterDrop: (targetGroup: IEditorGroup) => void, targetIndex?: number): void {
+ 		const untitledOrFileResources = extractResources(event).filter(r => this.fileService.canHandleResource(r.resource) || r.resource.scheme === Schemas.untitled);
+ 		if (!untitledOrFileResources.length) {
+-			return;
++			return client.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
+ 		}
+ 
+ 		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
 index a43d63aa51..4c6df2fcd9 100644
 --- a/src/vs/workbench/electron-browser/main.ts
@@ -73,6 +94,26 @@ index a43d63aa51..4c6df2fcd9 100644
  			});
  		});
  	});
+diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
+index 35bc4a82b3..9cc84bdf28 100644
+--- a/src/vs/workbench/electron-browser/workbench.ts
++++ b/src/vs/workbench/electron-browser/workbench.ts
+@@ -114,6 +114,7 @@ import { IWorkbenchThemeService } from 'vs/workbench/services/themes/common/work
+ import { IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
+ import { FileDialogService } from 'vs/workbench/services/dialogs/electron-browser/dialogService';
+ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
++import { client } from "../../../../../../packages/vscode";
+ 
+ interface WorkbenchParams {
+ 	configuration: IWindowConfiguration;
+@@ -248,6 +249,7 @@ export class Workbench extends Disposable implements IPartService {
+ 		super();
+ 
+ 		this.workbenchParams = { configuration, serviceCollection };
++		client.serviceCollection = serviceCollection;
+ 
+ 		this.hasInitialFilesToOpen =
+ 			(configuration.filesToCreate && configuration.filesToCreate.length > 0) ||
 diff --git a/src/vs/workbench/node/extensionHostProcess.ts b/src/vs/workbench/node/extensionHostProcess.ts
 index 8d182d18d9..69d51e1aea 100644
 --- a/src/vs/workbench/node/extensionHostProcess.ts
@@ -86,6 +127,26 @@ index 8d182d18d9..69d51e1aea 100644
  				} catch (e) {
  					onTerminate();
  				}
+diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
+index e600fb2f78..5d65a3124e 100644
+--- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
++++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
+@@ -55,6 +55,7 @@ import { IDialogService, IConfirmationResult, IConfirmation, getConfirmMessage }
+ import { INotificationService } from 'vs/platform/notification/common/notification';
+ import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from 'vs/workbench/services/editor/common/editorService';
+ import { fillInContextMenuActions } from 'vs/platform/actions/browser/menuItemActionItem';
++import { client } from "../../../../../../../../../packages/vscode";
+ 
+ export class FileDataSource implements IDataSource {
+ 	constructor(
+@@ -932,6 +933,7 @@ export class FileDragAndDrop extends SimpleFileResourceDragAndDrop {
+ 	}
+ 
+ 	private handleExternalDrop(tree: ITree, data: DesktopDragAndDropData, target: ExplorerItem | Model, originalEvent: DragMouseEvent): TPromise<void> {
++		return client.handleExternalDrop(target, originalEvent);
+ 		const droppedResources = extractResources(originalEvent.browserEvent as DragEvent, true);
+ 
+ 		// Check for dropped external files to be folders
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..8f26dc2f28 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
@@ -101,3 +162,16 @@ index 7b4e8721ac..8f26dc2f28 100644
  				try {
  					resolve(content.default());
  				} catch (err) {
+diff --git a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
+index 5b4136989f..25ccc0fe9e 100644
+--- a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
++++ b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
+@@ -178,7 +178,7 @@ function _processIconThemeDocument(id: string, iconThemeDocumentLocation: URI, i
+ 
+ 	const iconThemeDocumentLocationDirname = resources.dirname(iconThemeDocumentLocation);
+ 	function resolvePath(path: string) {
+-		return resources.joinPath(iconThemeDocumentLocationDirname, path);
++		return "/resource" + resources.joinPath(iconThemeDocumentLocationDirname, path).path;
+ 	}
+ 
+ 	function collectSelectors(associations: IconsAssociation, baseThemeClassName?: string) {

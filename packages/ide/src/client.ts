@@ -1,28 +1,12 @@
 import { Event } from "@coder/events";
 import { field, logger, time, Time } from "@coder/logger";
 import { InitData, ISharedProcessData } from "@coder/protocol";
-import { retry, Retry } from "./retry";
+import { retry } from "./retry";
+import { Upload } from "./upload";
 import { client } from "./fill/client";
 import { Clipboard, clipboard } from "./fill/clipboard";
-
-export interface IURI {
-
-	readonly path: string;
-	readonly fsPath: string;
-	readonly scheme: string;
-
-}
-
-export interface IURIFactory {
-
-	/**
-	 * Convert the object to an instance of a real URI.
-	 */
-	create<T extends IURI>(uri: IURI): T;
-	file(path: string): IURI;
-	parse(raw: string): IURI;
-
-}
+import { INotificationService, NotificationService, IProgressService, ProgressService } from "./fill/notification";
+import { IURIFactory } from "./fill/uri";
 
 /**
  * A general abstraction of an IDE client.
@@ -34,9 +18,10 @@ export interface IURIFactory {
  */
 export abstract class Client {
 
-	public readonly retry: Retry = retry;
+	public readonly retry = retry;
 	public readonly clipboard: Clipboard = clipboard;
 	public readonly uriFactory: IURIFactory;
+	public readonly upload = new Upload(new NotificationService(), new ProgressService());
 	private start: Time | undefined;
 	private readonly progressElement: HTMLElement | undefined;
 	private tasks: string[] = [];
@@ -185,6 +170,15 @@ export abstract class Client {
 	 */
 	public get sharedProcessData(): Promise<ISharedProcessData> {
 		return this.sharedProcessDataPromise;
+	}
+
+	public set notificationService(service: INotificationService) {
+		this.retry.notificationService = service;
+		this.upload.notificationService = service;
+	}
+
+	public set progressService(service: IProgressService) {
+		this.upload.progressService = service;
 	}
 
 	/**

@@ -16,7 +16,7 @@ class Connection implements ReadWriteConnection {
 	private readonly downEmitter: Emitter<void> = new Emitter();
 	private readonly messageBuffer: Uint8Array[] = [];
 	private socketTimeoutDelay = 60 * 1000;
-	private retryName = "Web socket";
+	private retryName = "Socket";
 	private isUp: boolean = false;
 	private closed: boolean = false;
 
