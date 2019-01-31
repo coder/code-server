@@ -161,7 +161,12 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	connection.send(sm.serializeBinary());
 
 	process.on("exit", (code) => {
-		childLogger.debug("Exited", field("id", newSession.getId()));
+		childLogger.debug(() => [
+			"Exited",
+			field("id", newSession.getId()),
+			field("command", newSession.getCommand()),
+			field("args", newSession.getArgsList()),
+		]);
 		const serverMsg = new ServerMessage();
 		const exit = new SessionDoneMessage();
 		exit.setId(newSession.getId());
