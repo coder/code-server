@@ -5,7 +5,7 @@ import { retry } from "./retry";
 import { upload } from "./upload";
 import { client } from "./fill/client";
 import { clipboard } from "./fill/clipboard";
-import { INotificationService, NotificationService, IProgressService, ProgressService } from "./fill/notification";
+import { INotificationService, IProgressService } from "./fill/notification";
 import { IURIFactory } from "./fill/uri";
 
 /**

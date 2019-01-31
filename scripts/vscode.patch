@@ -108,6 +108,20 @@ index 2bf7fe37d7..81cc668f12 100644
                  }
                  catch (err) {
                      errorback(err);
+diff --git a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
+index e3efb95b75..03e85113a0 100644
+--- a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
++++ b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
+@@ -55,6 +55,9 @@ export class HeapService implements IHeapService {
+ 
+ 	private _doTrackRecursive(obj: any): Promise<any> {
+ 
++		// cannot control GC in the browser.
++		return Promise.resolve(obj);
++
+ 		if (isNullOrUndefined(obj)) {
+ 			return Promise.resolve(obj);
+ 		}
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 38bf337a61..aae3a68ff5 100644
 --- a/src/vs/workbench/browser/dnd.ts
