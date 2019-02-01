@@ -1,3 +1,45 @@
+diff --git a/src/vs/base/browser/mouseEvent.ts b/src/vs/base/browser/mouseEvent.ts
+index 89ff65ec49..bc0cf2b08c 100644
+--- a/src/vs/base/browser/mouseEvent.ts
++++ b/src/vs/base/browser/mouseEvent.ts
+@@ -147,12 +147,15 @@ export class StandardWheelEvent {
+ 		if (e) {
+ 			let e1 = <IWebKitMouseWheelEvent><any>e;
+ 			let e2 = <IGeckoMouseWheelEvent><any>e;
++			let e3 = <MouseWheelEvent><any>e;
+ 
+ 			// vertical delta scroll
+ 			if (typeof e1.wheelDeltaY !== 'undefined') {
+ 				this.deltaY = e1.wheelDeltaY / 120;
+ 			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
+ 				this.deltaY = -e2.detail / 3;
++			} else if (typeof e3.deltaY !== "undefined") {
++				this.deltaY = -e3.deltaY / 3;
+ 			}
+ 
+ 			// horizontal delta scroll
+@@ -164,6 +167,8 @@ export class StandardWheelEvent {
+ 				}
+ 			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
+ 				this.deltaX = -e.detail / 3;
++			} else if (typeof e3.deltaX !== "undefined") {
++				this.deltaX = -e3.deltaX / 3;
+ 			}
+ 
+ 			// Assume a vertical scroll if nothing else worked
+diff --git a/src/vs/base/browser/ui/scrollbar/scrollableElement.ts b/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
+index a6256deeba..69819e0f3a 100644
+--- a/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
++++ b/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
+@@ -311,7 +311,7 @@ export abstract class AbstractScrollableElement extends Widget {
+ 				this._onMouseWheel(new StandardWheelEvent(browserEvent));
+ 			};
+ 
+-			this._mouseWheelToDispose.push(dom.addDisposableListener(this._listenOnDomNode, 'mousewheel', onMouseWheel));
++			this._mouseWheelToDispose.push(dom.addDisposableListener(this._listenOnDomNode, 'wheel', onMouseWheel));
+ 		}
+ 	}
+ 
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 index 457818a975..ad45ffe58a 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
@@ -8,6 +50,19 @@ index 457818a975..ad45ffe58a 100644
  }
 +
 +startup({ machineId: "1" });
+diff --git a/src/vs/editor/browser/controller/mouseHandler.ts b/src/vs/editor/browser/controller/mouseHandler.ts
+index 1a8af35373..ae45e08aeb 100644
+--- a/src/vs/editor/browser/controller/mouseHandler.ts
++++ b/src/vs/editor/browser/controller/mouseHandler.ts
+@@ -121,7 +121,7 @@ export class MouseHandler extends ViewEventHandler {
+ 				e.stopPropagation();
+ 			}
+ 		};
+-		this._register(dom.addDisposableListener(this.viewHelper.viewDomNode, 'mousewheel', onMouseWheel, true));
++		this._register(dom.addDisposableListener(this.viewHelper.viewDomNode, 'wheel', onMouseWheel, true));
+ 
+ 		this._context.addEventHandler(this);
+ 	}
 diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
 index 5e43f1b39e..7775e3b6da 100644
 --- a/src/vs/editor/contrib/clipboard/clipboard.ts
