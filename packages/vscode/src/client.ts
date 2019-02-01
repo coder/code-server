@@ -5,6 +5,7 @@ import "./fill/storageDatabase";
 import "./fill/windowsService";
 import "./fill/environmentService";
 import "./fill/vscodeTextmate";
+import "./fill/codeEditor";
 import { PasteAction } from "./fill/paste";
 import "./fill/dom";
 import "./vscode.scss";
