@@ -109,14 +109,14 @@ index 2bf7fe37d7..81cc668f12 100644
                  catch (err) {
                      errorback(err);
 diff --git a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
-index e3efb95b75..03e85113a0 100644
+index e3efb95b75..163bc4c994 100644
 --- a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
 +++ b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
 @@ -55,6 +55,9 @@ export class HeapService implements IHeapService {
  
  	private _doTrackRecursive(obj: any): Promise<any> {
  
-+		// cannot control GC in the browser.
++		// Cannot control GC in the browser.
 +		return Promise.resolve(obj);
 +
  		if (isNullOrUndefined(obj)) {
@@ -144,10 +144,10 @@ index 38bf337a61..aae3a68ff5 100644
  
  		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
-index a43d63aa51..4c6df2fcd9 100644
+index a43d63aa51..438d0a8245 100644
 --- a/src/vs/workbench/electron-browser/main.ts
 +++ b/src/vs/workbench/electron-browser/main.ts
-@@ -147,13 +147,14 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
+@@ -147,13 +147,13 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
  				shell.open();
  
  				// Inform user about loading issues from the loader
@@ -158,7 +158,6 @@ index a43d63aa51..4c6df2fcd9 100644
 -						}
 -					}
 -				});
-+				// TODO: how to make this work
 +				// (<any>self).require.config({
 +				// 	onError: err => {
 +				// 		if (err.errorCode === 'load') {
@@ -269,20 +268,66 @@ index 2975294e75..73ffb6362d 100644
  	// Don't use ctrl+a by default as that would override the common go to start
  	// of prompt shell binding
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
-index 7b4e8721ac..8f26dc2f28 100644
+index 7b4e8721ac..96d612f940 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 +++ b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
-@@ -28,7 +28,9 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
+@@ -28,14 +28,16 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
  	public provideTextContent(resource: URI): Thenable<ITextModel> {
  		const query = resource.query ? JSON.parse(resource.query) : {};
  		const content: Thenable<string | ITextBufferFactory> = (query.moduleId ? new Promise<string>((resolve, reject) => {
 -			require([query.moduleId], content => {
-+			// Webpack needs this to be static or it can't include it.
+-				try {
+-					resolve(content.default());
+-				} catch (err) {
+-					reject(err);
+-				}
++			// This works because the only walkthrough that is a module is the welcome page.
++			// We have to explicitly import it or Webpack won't pick it up.
 +			import("vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page").then((content) => {
-+			// require([query.moduleId], content => {
- 				try {
- 					resolve(content.default());
- 				} catch (err) {
++				resolve(content.default());
++			}).catch((err) => {
++				reject(err);
+ 			});
+-		}) : this.textFileService.resolveTextContent(URI.file(resource.fsPath)).then(content => content.value));
++		}) : (resource.scheme !== "file"
++			? fetch(resource.path).then((res) => res.text())
++			: this.textFileService.resolveTextContent(URI.file(resource.fsPath)).then(content => content.value)));
+ 		return content.then(content => {
+ 			let codeEditorModel = this.modelService.getModel(resource);
+ 			if (!codeEditorModel) {
+@@ -61,7 +63,7 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+ 	}
+ 
+ 	public provideTextContent(resource: URI): Thenable<ITextModel> {
+-		return this.textFileService.resolveTextContent(URI.file(resource.fsPath)).then(content => {
++		return fetch(resource.path).then((res) => res.text()).then((content) => {
+ 			let codeEditorModel = this.modelService.getModel(resource);
+ 			if (!codeEditorModel) {
+ 				const j = parseInt(resource.fragment);
+@@ -78,17 +80,17 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+ 					return '';
+ 				};
+ 
+-				const textBuffer = content.value.create(DefaultEndOfLine.LF);
+-				const lineCount = textBuffer.getLineCount();
+-				const range = new Range(1, 1, lineCount, textBuffer.getLineLength(lineCount) + 1);
+-				const markdown = textBuffer.getValueInRange(range, EndOfLinePreference.TextDefined);
+-				marked(markdown, { renderer });
++				// const textBuffer = content.value.create(DefaultEndOfLine.LF);
++				// const lineCount = textBuffer.getLineCount();
++				// const range = new Range(1, 1, lineCount, textBuffer.getLineLength(lineCount) + 1);
++				// const markdown = textBuffer.getValueInRange(range, EndOfLinePreference.TextDefined);
++				marked(content, { renderer });
+ 
+ 				const languageId = this.modeService.getModeIdForLanguageName(languageName);
+ 				const languageSelection = this.modeService.create(languageId);
+ 				codeEditorModel = this.modelService.createModel(codeSnippet, languageSelection, resource);
+ 			} else {
+-				this.modelService.updateModel(codeEditorModel, content.value);
++				this.modelService.updateModel(codeEditorModel, content);
+ 			}
+ 
+ 			return codeEditorModel;
 diff --git a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
 index 5b4136989f..25ccc0fe9e 100644
 --- a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts

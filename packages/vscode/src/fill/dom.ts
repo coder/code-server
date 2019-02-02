@@ -22,6 +22,7 @@ if (!("toElement" in MouseEvent.prototype)) {
 }
 
 const _addDisposableListener = dom.addDisposableListener;
+// tslint:disable-next-line no-any
 const addDisposableListener = (node: Element | Window | Document, type: string, handler: (event: any) => void, useCapture?: boolean): IDisposable => {
 	return _addDisposableListener(node, type === "mousewheel" ? "wheel" : type, handler, useCapture);
 };

@@ -22,8 +22,10 @@ module.exports = merge({
 			test: /\.(j|t)s/,
 			options: {
 				multiple: [{
-					search: "require\\.toUrl\\(",
-					replace: "requireToUrl(",
+					// These will be handled by file-loader. We need the location because
+					// they are parsed as URIs and will throw errors if not fully formed.
+					search: "require\\.toUrl",
+					replace: "location.protocol + '//' + location.host + '/' + require",
 					flags: "g",
 				}, {
 					search: "require\\.__\\$__nodeRequire",

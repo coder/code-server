@@ -7,5 +7,5 @@ export const getPathFromAmdModule = (_: typeof require, relativePath: string): s
 		return process.mainModule.filename.slice(0, index);
 	}
 
-	return relativePath ? URI.parse(require.toUrl(relativePath)).fsPath : "";
+	return relativePath ? URI.file(relativePath).fsPath : "";
 };

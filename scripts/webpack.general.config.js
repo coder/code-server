@@ -17,7 +17,7 @@ module.exports = (options = {}) => ({
 			test: /\.(js)/,
 			exclude: /test/,
 		}, {
-			test: /\.(txt|d\.ts|test.ts|perf.data.js|jxs|md|scpt|exe|sh|less)$/,
+			test: /\.(txt|d\.ts|test.ts|perf.data.js|jxs|scpt|exe|sh|less)$/,
 			use: [{
 				loader: "ignore-loader",
 			}],
@@ -49,9 +49,12 @@ module.exports = (options = {}) => ({
 				loader: "sass-loader",
 			}],
 		}, {
-			test: /\.(svg|png|ttf|woff|eot)$/,
+			test: /\.(svg|png|ttf|woff|eot|md)$/,
 			use: [{
 				loader: "file-loader",
+				options: {
+					name: "[path][name].[ext]",
+				},
 			}],
 		}, {
 			test: /\.wasm$/,
