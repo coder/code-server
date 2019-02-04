@@ -20,8 +20,9 @@ module.exports = (options = {}) => ({
 				multiple: [{
 					// These will be handled by file-loader. We need the location because
 					// they are parsed as URIs and will throw errors if not fully formed.
+					// The !! prefix causes it to ignore other loaders (doesn't work).
 					search: "require\\.toUrl\\(",
-					replace: "location.protocol + '//' + location.host + '/' + require('file-loader?name=[path][name].[ext]!' + ",
+					replace: "location.protocol + '//' + location.host + '/' + require('!!file-loader?name=[path][name].[ext]!' + ",
 					flags: "g",
 				}, {
 					search: "require\\.__\\$__nodeRequire",
@@ -59,8 +60,10 @@ module.exports = (options = {}) => ({
 			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
 		}, {
 			// Test CSS isn't required. The rest is supposed to be served in separate
-			// pages or iframes so we don't need to include it here.
-			exclude: /test|code\/electron-browser\/.+\.css$/,
+			// pages or iframes so we don't need to include it here. Also excluding
+			// markdown.css because even though it uses the file-loader as shown above
+			// in the string replace, it's still making its way into the main CSS.
+			exclude: /test|code\/electron-browser\/.+\.css$|markdown.css$/,
 			test: /\.s?css$/,
 			// This is required otherwise it'll fail to resolve CSS in common.
 			include: root,
