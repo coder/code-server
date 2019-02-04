@@ -87,7 +87,7 @@ class WindowsService implements IWindowsService {
 	}
 
 	public toggleDevTools(_windowId: number): Promise<void> {
-		throw new Error("not implemented");
+		throw new Error("Toggling developer tools from JavaScript is not supported.");
 	}
 
 	public closeWorkspace(_windowId: number): Promise<void> {
