@@ -27,23 +27,6 @@ module.exports = (env) => {
 		},
 		module: {
 			rules: [{
-				loader: "string-replace-loader",
-				test: /\.(js|ts)$/,
-				options: {
-					multiple: [
-						{
-							search: "require\\.toUrl\\(",
-							replace: "requireToUrl(",
-							flags: "g",
-						},
-						{
-							search: "require\\.__\\$__nodeRequire",
-							replace: "require",
-							flags: "g",
-						},
-					],
-				},
-			}, {
 				// Ignore a bunch of file types we don't have loaders for. Also ignore
 				// test directories, some files with invalid JSON, and files we don't
 				// actually require but throw warnings or errors. This all seems to be a

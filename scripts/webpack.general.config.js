@@ -14,6 +14,26 @@ module.exports = (options = {}) => ({
 	mode: isCi ? "production" : "development",
 	module: {
 		rules: [{
+			loader: "string-replace-loader",
+			test: /\.(j|t)s/,
+			options: {
+				multiple: [{
+					// These will be handled by file-loader. We need the location because
+					// they are parsed as URIs and will throw errors if not fully formed.
+					search: "require\\.toUrl\\(",
+					replace: "location.protocol + '//' + location.host + '/' + require('file-loader?name=[path][name].[ext]!' + ",
+					flags: "g",
+				}, {
+					search: "require\\.__\\$__nodeRequire",
+					replace: "require",
+					flags: "g",
+				}, {
+					search: "\\.attributes\\[([^\\]]+)\\] = ([^;]+)",
+					replace: ".setAttribute($1, $2)",
+					flags: "g",
+				}],
+			},
+		}, {
 			test: /\.(js)/,
 			exclude: /test/,
 		}, {
@@ -22,12 +42,12 @@ module.exports = (options = {}) => ({
 				loader: "ignore-loader",
 			}],
 		}, {
-			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css$|markdown\.css$/,
+			// These are meant to run in separate pages, like the issue reporter or
+			// process explorer. Ignoring for now since otherwise their CSS is
+			// included in the main CSS.
+			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css$/,
 			use: [{
-				loader: "file-loader",
-				options: {
-					name: "[path][name].[ext]",
-				},
+				loader: "ignore-loader",
 			}],
 		}, {
 			test: /\.node$/,
@@ -39,9 +59,8 @@ module.exports = (options = {}) => ({
 			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
 		}, {
 			// Test CSS isn't required. The rest is supposed to be served in separate
-			// pages or iframes, so we need to skip it here and serve it with the file
-			// loader instead.
-			exclude: /test|code\/electron-browser\/.+\.css|markdown\.css$/,
+			// pages or iframes so we don't need to include it here.
+			exclude: /test|code\/electron-browser\/.+\.css$/,
 			test: /\.s?css$/,
 			// This is required otherwise it'll fail to resolve CSS in common.
 			include: root,
@@ -53,7 +72,7 @@ module.exports = (options = {}) => ({
 				loader: "sass-loader",
 			}],
 		}, {
-			test: /\.(svg|png|ttf|woff|eot|md)$/,
+			test: /\.(svg|png|ttf|woff|eot)$/,
 			use: [{
 				loader: "file-loader",
 				options: {

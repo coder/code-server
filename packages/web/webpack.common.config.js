@@ -16,29 +16,6 @@ module.exports = merge({
 		path: path.join(root, "dist"),
 		filename: "[hash:6].bundle.js",
 	},
-	module: {
-		rules: [{
-			loader: "string-replace-loader",
-			test: /\.(j|t)s/,
-			options: {
-				multiple: [{
-					// These will be handled by file-loader. We need the location because
-					// they are parsed as URIs and will throw errors if not fully formed.
-					search: "require\\.toUrl",
-					replace: "location.protocol + '//' + location.host + '/' + require",
-					flags: "g",
-				}, {
-					search: "require\\.__\\$__nodeRequire",
-					replace: "require",
-					flags: "g",
-				}, {
-					search: "\\.attributes\\[([^\\]]+)\\] = ([^;]+)",
-					replace: ".setAttribute($1, $2)",
-					flags: "g",
-				}],
-			},
-		}],
-	},
 	node: {
 		module: "empty",
 		crypto: "empty",
