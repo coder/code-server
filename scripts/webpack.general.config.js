@@ -22,9 +22,12 @@ module.exports = (options = {}) => ({
 				loader: "ignore-loader",
 			}],
 		}, {
-			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css/,
+			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css$|markdown\.css$/,
 			use: [{
-				loader: "ignore-loader",
+				loader: "file-loader",
+				options: {
+					name: "[path][name].[ext]",
+				},
 			}],
 		}, {
 			test: /\.node$/,
@@ -35,9 +38,10 @@ module.exports = (options = {}) => ({
 			}],
 			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
 		}, {
-			// The CSS in code/electron-browser is supposed to be served in separate
-			// pages so including it interferes with styles in vscode.
-			exclude: /test|code\/electron-browser\/.+\.css/,
+			// Test CSS isn't required. The rest is supposed to be served in separate
+			// pages or iframes, so we need to skip it here and serve it with the file
+			// loader instead.
+			exclude: /test|code\/electron-browser\/.+\.css|markdown\.css$/,
 			test: /\.s?css$/,
 			// This is required otherwise it'll fail to resolve CSS in common.
 			include: root,
