@@ -2,7 +2,7 @@
   "name": "@coder/vscode-cloud",
   "repository": "https://github.com/codercom/vscode-cloud",
   "author": "Coder",
-  "license": "TBD",
+  "license": "MIT",
   "description": "VS Code in the cloud.",
   "scripts": {
     "build:rules": "cd ./rules && tsc -p .",
