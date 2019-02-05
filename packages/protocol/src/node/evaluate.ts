@@ -76,7 +76,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 					connection.send(serverMsg.serializeBinary());
 				},
 			} : undefined,
-			Buffer,
+			_Buffer: Buffer,
 			require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
 			_require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
 			tslib_1: require("tslib"), // TODO: is there a better way to do this?
@@ -98,7 +98,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 			onDispose();
 		}
 	} catch (ex) {
-		sendErr(EvalFailedMessage.Reason.EXCEPTION, ex.toString());
+		sendErr(EvalFailedMessage.Reason.EXCEPTION, ex.toString() + " " + ex.stack);
 	}
 
 	return eventEmitter ? {

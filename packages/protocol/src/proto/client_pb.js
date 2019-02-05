@@ -1684,7 +1684,8 @@ proto.WorkingInitMessage.toObject = function(includeInstance, msg) {
     dataDirectory: msg.getDataDirectory(),
     workingDirectory: msg.getWorkingDirectory(),
     operatingSystem: msg.getOperatingSystem(),
-    shell: msg.getShell()
+    shell: msg.getShell(),
+    builtinExtensionsDir: msg.getBuiltinExtensionsDir()
   };
 
   if (includeInstance) {
@@ -1744,6 +1745,10 @@ proto.WorkingInitMessage.deserializeBinaryFromReader = function(msg, reader) {
     case 6:
       var value = /** @type {string} */ (reader.readString());
       msg.setShell(value);
+      break;
+    case 7:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setBuiltinExtensionsDir(value);
       break;
     default:
       reader.skipField();
@@ -1822,6 +1827,13 @@ proto.WorkingInitMessage.prototype.serializeBinaryToWriter = function (writer) {
   if (f.length > 0) {
     writer.writeString(
       6,
+      f
+    );
+  }
+  f = this.getBuiltinExtensionsDir();
+  if (f.length > 0) {
+    writer.writeString(
+      7,
       f
     );
   }
@@ -1924,6 +1936,21 @@ proto.WorkingInitMessage.prototype.getShell = function() {
 /** @param {string} value  */
 proto.WorkingInitMessage.prototype.setShell = function(value) {
   jspb.Message.setField(this, 6, value);
+};
+
+
+/**
+ * optional string builtin_extensions_dir = 7;
+ * @return {string}
+ */
+proto.WorkingInitMessage.prototype.getBuiltinExtensionsDir = function() {
+  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 7, ""));
+};
+
+
+/** @param {string} value  */
+proto.WorkingInitMessage.prototype.setBuiltinExtensionsDir = function(value) {
+  jspb.Message.setField(this, 7, value);
 };
 
 

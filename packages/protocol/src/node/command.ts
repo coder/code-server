@@ -1,6 +1,5 @@
 import * as cp from "child_process";
 import * as net from "net";
-import * as nodePty from "node-pty";
 import * as stream from "stream";
 import { TextEncoder } from "text-encoding";
 import { Logger, logger, field } from "@coder/logger";
@@ -44,6 +43,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 	});
 	if (newSession.getTtyDimensions()) {
 		// Spawn with node-pty
+		const nodePty = require("node-pty") as typeof import("node-pty");
 		const ptyProc = nodePty.spawn(newSession.getCommand(), newSession.getArgsList(), {
 			cols: newSession.getTtyDimensions()!.getWidth(),
 			rows: newSession.getTtyDimensions()!.getHeight(),
@@ -56,7 +56,7 @@ export const handleNewSession = (connection: SendableConnection, newSession: New
 				processTitle = ptyProc.process;
 				const id = new IdentifySessionMessage();
 				id.setId(newSession.getId());
-				id.setTitle(processTitle);
+				id.setTitle(processTitle!);
 				const sm = new ServerMessage();
 				sm.setIdentifySession(id);
 				connection.send(sm.serializeBinary());

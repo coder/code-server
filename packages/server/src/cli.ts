@@ -8,6 +8,8 @@ import * as WebSocket from "ws";
 import { createApp } from "./server";
 import { requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
+import { setup as setupNativeModules } from './modules';
+import { fillFs } from './fill';
 
 export class Entry extends Command {
 
@@ -49,12 +51,17 @@ export class Entry extends Command {
 			logger.warn("Failed to remove extracted dependency.", field("dependency", "spdlog"), field("error", ex.message));
 		}
 
+		if (process.env.CLI) {
+			fillFs();
+		}
+
 		const { args, flags } = this.parse(Entry);
 
 		if (flags.env) {
 			Object.assign(process.env, JSON.parse(flags.env));
 		}
 
+		const builtInExtensionsDir = path.join(process.env.BUILD_DIR || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
 			if (!modulePath) {
@@ -62,7 +69,7 @@ export class Entry extends Command {
 				process.exit(1);
 			}
 
-			return requireModule(modulePath);
+			return requireModule(modulePath, builtInExtensionsDir);
 		}
 
 		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-online");
@@ -73,6 +80,11 @@ export class Entry extends Command {
 			process.exit(1);
 		}
 
+		if (!fs.existsSync(dataDir)) {
+			fs.mkdirSync(dataDir);
+		}
+		setupNativeModules(dataDir);
+
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;
 
@@ -80,7 +92,7 @@ export class Entry extends Command {
 		// TODO: fill in appropriate doc url
 		logger.info("Additional documentation: https://coder.com/docs");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
-		const sharedProcess = new SharedProcess(dataDir);
+		const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
 		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
 		const sendSharedProcessReady = (socket: WebSocket): void => {
 			const active = new SharedProcessActiveMessage();
@@ -120,6 +132,7 @@ export class Entry extends Command {
 				app.use(require("webpack-hot-middleware")(compiler));
 			}
 		}, {
+				builtInExtensionsDirectory: builtInExtensionsDir,
 				dataDirectory: dataDir,
 				workingDirectory: workingDir,
 			});

@@ -1,19 +1,50 @@
 import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
+import * as zlib from "zlib";
+import * as vm from "vm";
 
-export const requireModule = (modulePath: string): void => {
+export const requireModule = (modulePath: string, builtInExtensionsDir: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
-
 	const xml = require("xhr2");
-
 	// tslint:disable-next-line no-any this makes installing extensions work.
 	(global as any).XMLHttpRequest = xml.XMLHttpRequest;
+
+	const mod = require("module") as typeof import("module");
+	/**
+	 * Used for loading extensions. Using __non_webpack_require__ didn't work
+	 * as it was not resolving to the FS.
+	 */
+	(global as any).nativeNodeRequire = (id: string) => {
+		const customMod = new mod.Module(id);
+		customMod.filename = id;
+		customMod.paths = (<any>mod)._nodeModulePaths(path.dirname(id));
+
+		if (id.startsWith(builtInExtensionsDir)) {
+			customMod.loaded = true;
+			const req = vm.runInThisContext(mod.wrap(fs.readFileSync(id + ".js").toString()), {
+				displayErrors: true,
+				filename: id + ".js",
+			});
+			req(customMod.exports, customMod.require.bind(customMod), customMod, __filename, path.dirname(id));
+			return customMod.exports;
+		}
+
+		return customMod.require(id);
+	};
 
 	// Always do this so we can see console.logs.
 	// process.env.VSCODE_ALLOW_IO = "true";
 
-	const content = fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build/bootstrap-fork.js"));
+	let content: Buffer | undefined;
+	const readFile = (name: string): Buffer => {
+		return fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", name));
+	};
+	if (process.env.CLI) {
+		content = zlib.gunzipSync(readFile("bootstrap-fork.js.gz"));
+	} else {
+		content = readFile("../resources/bootstrap-fork.js");
+	}
 	eval(content.toString());
 };
 
@@ -36,9 +67,9 @@ export const forkModule = (modulePath: string, env?: NodeJS.ProcessEnv): cp.Chil
 		stdio: [null, null, null, "ipc"],
 	};
 	if (process.env.CLI === "true") {
-		proc = cp.spawn(process.execPath, args, options);
+		proc = cp.execFile(process.execPath, args, options);
 	} else {
-		proc = cp.spawn(process.execArgv[0], ["-r", "tsconfig-paths/register", process.argv[1], ...args], options);
+		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...args], options);
 	}
 
 	return proc;

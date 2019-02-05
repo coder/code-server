@@ -63,4 +63,5 @@ message WorkingInitMessage {
 	}
 	OperatingSystem operating_system = 5;
 	string shell = 6;
+	string builtin_extensions_dir = 7;
 }

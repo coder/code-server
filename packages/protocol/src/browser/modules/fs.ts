@@ -8,6 +8,7 @@ import { Client } from "../client";
 // Use this to get around Webpack inserting our fills.
 // TODO: is there a better way?
 declare var _require: typeof require;
+declare var _Buffer: typeof Buffer;
 
 /**
  * Implements the native fs module
@@ -121,7 +122,7 @@ export class FS {
 		const ae = this.client.run((ae, path, options) => {
 			const fs = _require("fs") as typeof import("fs");
 			const str = fs.createWriteStream(path, options);
-			ae.on("write", (d, e) => str.write(Buffer.from(d, e)));
+			ae.on("write", (d, e) => str.write(_Buffer.from(d, "utf8")));
 			ae.on("close", () => str.close());
 			str.on("close", () => ae.emit("close"));
 			str.on("open", (fd) => ae.emit("open", fd));
@@ -216,18 +217,18 @@ export class FS {
 		this.client.evaluate((fd) => {
 			const fs = _require("fs") as typeof import("fs");
 			const util = _require("util") as typeof import("util");
+			const tslib = _require("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.fstat)(fd).then((stats) => {
-				return {
-					...stats,
-					_isBlockDevice: stats.isBlockDevice(),
-					_isCharacterDevice: stats.isCharacterDevice(),
+				return tslib.__assign(stats, {
+					_isBlockDevice: stats.isBlockDevice ? stats.isBlockDevice() : false,
+					_isCharacterDevice: stats.isCharacterDevice ? stats.isCharacterDevice() : false,
 					_isDirectory: stats.isDirectory(),
-					_isFIFO: stats.isFIFO(),
+					_isFIFO: stats.isFIFO ? stats.isFIFO() : false,
 					_isFile: stats.isFile(),
-					_isSocket: stats.isSocket(),
-					_isSymbolicLink: stats.isSymbolicLink(),
-				};
+					_isSocket: stats.isSocket ? stats.isSocket() : false,
+					_isSymbolicLink: stats.isSymbolicLink ? stats.isSymbolicLink() : false,
+				});
 			});
 		}, fd).then((stats) => {
 			callback(undefined!, new Stats(stats));
@@ -322,18 +323,18 @@ export class FS {
 		this.client.evaluate((path) => {
 			const fs = _require("fs") as typeof import("fs");
 			const util = _require("util") as typeof import("util");
+			const tslib = _require("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.lstat)(path).then((stats) => {
-				return {
-					...stats,
-					_isBlockDevice: stats.isBlockDevice(),
-					_isCharacterDevice: stats.isCharacterDevice(),
+				return tslib.__assign(stats, {
+					_isBlockDevice: stats.isBlockDevice ? stats.isBlockDevice() : false,
+					_isCharacterDevice: stats.isCharacterDevice ? stats.isCharacterDevice() : false,
 					_isDirectory: stats.isDirectory(),
-					_isFIFO: stats.isFIFO(),
+					_isFIFO: stats.isFIFO ? stats.isFIFO() : false,
 					_isFile: stats.isFile(),
-					_isSocket: stats.isSocket(),
-					_isSymbolicLink: stats.isSymbolicLink(),
-				};
+					_isSocket: stats.isSocket ? stats.isSocket() : false,
+					_isSymbolicLink: stats.isSymbolicLink ? stats.isSymbolicLink() : false,
+				});
 			});
 		}, path).then((stats) => {
 			callback(undefined!, new Stats(stats));
@@ -397,7 +398,7 @@ export class FS {
 		this.client.evaluate((fd, length, position) => {
 			const fs = _require("fs") as typeof import("fs");
 			const util = _require("util") as typeof import("util");
-			const buffer = new Buffer(length);
+			const buffer = new _Buffer(length);
 
 			return util.promisify(fs.read)(fd, buffer, 0, length, position).then((resp) => {
 				return {
@@ -513,18 +514,22 @@ export class FS {
 		this.client.evaluate((path) => {
 			const fs = _require("fs") as typeof import("fs");
 			const util = _require("util") as typeof import("util");
+			const tslib = _require("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.stat)(path).then((stats) => {
-				return {
-					...stats,
-					_isBlockDevice: stats.isBlockDevice(),
-					_isCharacterDevice: stats.isCharacterDevice(),
+				return tslib.__assign(stats, {
+					/**
+					 * We need to check if functions exist because nexe's implemented FS
+					 * lib doesnt implement fs.stats properly
+					 */
+					_isBlockDevice: stats.isBlockDevice ? stats.isBlockDevice() : false,
+					_isCharacterDevice: stats.isCharacterDevice ? stats.isCharacterDevice() : false,
 					_isDirectory: stats.isDirectory(),
-					_isFIFO: stats.isFIFO(),
+					_isFIFO: stats.isFIFO ? stats.isFIFO() : false,
 					_isFile: stats.isFile(),
-					_isSocket: stats.isSocket(),
-					_isSymbolicLink: stats.isSymbolicLink(),
-				};
+					_isSocket: stats.isSocket ? stats.isSocket() : false,
+					_isSymbolicLink: stats.isSymbolicLink ? stats.isSymbolicLink() : false,
+				});
 			});
 		}, path).then((stats) => {
 			callback(undefined!, new Stats(stats));
@@ -602,7 +607,7 @@ export class FS {
 			const fs = _require("fs") as typeof import("fs");
 			const util = _require("util") as typeof import("util");
 
-			return util.promisify(fs.write)(fd, Buffer.from(buffer, "utf8"), offset, length, position).then((resp) => {
+			return util.promisify(fs.write)(fd, _Buffer.from(buffer, "utf8"), offset, length, position).then((resp) => {
 				return {
 					bytesWritten: resp.bytesWritten,
 					content: resp.buffer.toString("utf8"),

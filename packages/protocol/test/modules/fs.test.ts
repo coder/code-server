@@ -536,12 +536,23 @@ describe("fs", () => {
 	});
 
 	describe("stat", () => {
-		it("should stat", (done) => {
+		it("should stat file", (done) => {
 			fs.stat(testFile, (err, stats) => {
 				expect(err).toBeUndefined();
 				expect(stats.size).toBeGreaterThan(0);
 				expect(stats.isFile()).toBeTruthy();
 				expect(stats.isFIFO()).toBeFalsy();
+				done();
+			});
+		});
+
+		it("should stat folder", (done) => {
+			const dir = tmpFile();
+			nativeFs.mkdirSync(dir);
+
+			fs.stat(dir, (err, stats) => {
+				expect(err).toBeUndefined();
+				expect(stats.isDirectory()).toBeTruthy();
 				done();
 			});
 		});

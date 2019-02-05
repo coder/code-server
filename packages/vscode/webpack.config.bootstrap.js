@@ -16,7 +16,7 @@ module.exports = (env) => {
 		entry: path.join(root, "lib/vscode/src/bootstrap-fork.js"),
 		mode: "development",
 		target: "node",
-		externals: ["node-pty", "spdlog"],
+		externals: ["spdlog"],
 		output: {
 			chunkFilename: "[name].bundle.js",
 			path: path.resolve(__dirname, "./bin"),
@@ -42,6 +42,7 @@ module.exports = (env) => {
 				"gc-signals": path.join(fills, "empty.ts"),
 				"native-keymap": path.join(fills, "native-keymap.ts"),
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
+				"node-pty": path.resolve(fills, "empty.ts"),
 
 				"electron": path.join(vscodeFills, "stdioElectron.ts"),
 				"native-watchdog": path.join(vscodeFills, "native-watchdog.ts"),

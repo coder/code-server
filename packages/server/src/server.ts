@@ -4,6 +4,8 @@ import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import { NewSessionMessage } from '@coder/protocol/src/proto';
 import { ChildProcess } from "child_process";
 import * as express from "express";
+//@ts-ignore
+import * as expressStaticGzip from "express-static-gzip";
 import * as fs from "fs";
 import * as http from "http";
 import * as mime from "mime-types";
@@ -67,8 +69,12 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		} : undefined);
 	});
 
-	app.use(express.static(path.join(process.env.BUILD_DIR || path.join(__dirname, ".."), "build/web")));
-
+	const baseDir = process.env.BUILD_DIR || path.join(__dirname, "..");
+	if (process.env.CLI) {
+		app.use(expressStaticGzip(path.join(baseDir, "build/web")));
+	} else {
+		app.use(express.static(path.join(baseDir, "resources/web")));
+	}
 	app.get("/resource/:url(*)", async (req, res) => {
 		try {
 			const fullPath = `/${req.params.url}`;
@@ -76,7 +82,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			// if (relative.startsWith("..")) {
 			// 	return res.status(403).end();
 			// }
-			const exists = await util.promisify(fs.exists)(fullPath);
+			const exists = fs.existsSync(fullPath);
 			if (!exists) {
 				res.status(404).end();
 				return;

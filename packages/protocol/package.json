@@ -4,7 +4,8 @@
     "dependencies": {
         "express": "^4.16.4",
         "google-protobuf": "^3.6.1",
-        "node-pty": "^0.8.0",
+        "node-pty": "^0.8.1",
+        "tslib": "^1.9.3",
         "ws": "^6.1.2"
     },
     "devDependencies": {

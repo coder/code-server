@@ -9,7 +9,7 @@
 		"class-name": true,
 		"eofline": true,
 		"import-spacing": true,
-		"no-angle-bracket-type-assertion": true,
+		"no-angle-bracket-type-assertion": false,
 		"no-bitwise": false,
 		"no-any": true,
 		"newline-before-return": true,

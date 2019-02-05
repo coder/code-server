@@ -270,6 +270,9 @@ export class WorkingInitMessage extends jspb.Message {
   getShell(): string;
   setShell(value: string): void;
 
+  getBuiltinExtensionsDir(): string;
+  setBuiltinExtensionsDir(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WorkingInitMessage.AsObject;
   static toObject(includeInstance: boolean, msg: WorkingInitMessage): WorkingInitMessage.AsObject;
@@ -288,6 +291,7 @@ export namespace WorkingInitMessage {
     workingDirectory: string,
     operatingSystem: WorkingInitMessage.OperatingSystem,
     shell: string,
+    builtinExtensionsDir: string,
   }
 
   export enum OperatingSystem {

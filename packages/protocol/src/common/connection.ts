@@ -21,6 +21,7 @@ export interface InitData {
 	readonly homeDirectory: string;
 	readonly tmpDirectory: string;
 	readonly shell: string;
+	readonly builtInExtensionsDirectory: string;
 }
 
 export interface ISharedProcessData {

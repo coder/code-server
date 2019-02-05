@@ -327,6 +327,7 @@ export class Client {
 				workingDirectory: init.getWorkingDirectory(),
 				os: opSys,
 				shell: init.getShell(),
+				builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
 			};
 			this.initDataEmitter.emit(this._initData);
 		} else if (message.hasEvalDone()) {

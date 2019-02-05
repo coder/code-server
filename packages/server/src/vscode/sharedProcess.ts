@@ -31,6 +31,7 @@ export class SharedProcess {
 
 	public constructor(
 		private readonly userDataDir: string,
+		private readonly builtInExtensionsDir: string,
 	) {
 		this.onStateEmitter = new Emitter();
 		this.restart();
@@ -87,7 +88,7 @@ export class SharedProcess {
 				logLevel: LogLevel;
 			} = {
 				args: {
-					"builtin-extensions-dir": path.join(process.env.BUILD_DIR || path.join(__dirname, "../.."), "build/extensions"),
+					"builtin-extensions-dir": this.builtInExtensionsDir,
 					"user-data-dir": this.userDataDir,
 					"extensions-dir": extensionsDir,
 				} as any,

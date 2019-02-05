@@ -4,12 +4,12 @@
 	"bin": "./out/cli.js",
 	"files": [],
 	"scripts": {
-		"start": "ts-node -r tsconfig-paths/register src/cli.ts",
+		"start": "node --max-old-space-size=32384 --require ts-node/register --require tsconfig-paths/register src/cli.ts",
 		"build:webpack": "rm -rf ./out && export CLI=true && ../../node_modules/.bin/webpack --config ./webpack.config.js",
 		"build:nexe": "node scripts/nexe.js",
-		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; cp ./bin/bootstrap-fork.js ../server/build/bootstrap-fork.js",
-		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/build/extensions/",
-		"build:web": "cd ../web && npm run build; mkdir ../server/build/web && cp ./out/* ../server/build/web",
+		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; mkdir -p ./packages/server/resources; cp ./bin/bootstrap-fork.js ../server/resources/bootstrap-fork.js",
+		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && mkdir -p ./packages/server/resources; cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/resources/extensions/",
+		"build:web": "cd ../web; rm -rf ./out; NODE_ENV=production npm run build; rm -rf ../server/resources/web; mkdir -p ../server/resources/web; cp -r ./out/* ../server/resources/web",
 		"build": "npm run build:bootstrap-fork && npm run build:webpack && npm run build:nexe"
 	},
 	"dependencies": {
@@ -17,17 +17,20 @@
 		"@oclif/errors": "^1.2.2",
 		"@oclif/plugin-help": "^2.1.4",
 		"express": "^4.16.4",
+		"express-static-gzip": "^1.1.3",
 		"mime-types": "^2.1.21",
 		"nexe": "^2.0.0-rc.34",
-		"node-pty": "^0.8.1",
+		"segfault-handler": "^1.0.1",
 		"spdlog": "^0.7.2",
 		"ws": "^6.1.2",
 		"xhr2": "^0.1.4"
 	},
 	"devDependencies": {
 		"@types/express": "^4.16.0",
+		"@types/fs-extra": "^5.0.4",
 		"@types/mime-types": "^2.1.0",
 		"@types/ws": "^6.0.1",
+		"fs-extra": "^7.0.1",
 		"string-replace-webpack-plugin": "^0.1.3",
 		"ts-node": "^7.0.1",
 		"tsconfig-paths": "^3.7.0",

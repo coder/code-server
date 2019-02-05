@@ -14,6 +14,7 @@ import * as net from "net";
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
+	readonly builtInExtensionsDirectory: string;
 
 	forkProvider?(message: NewSessionMessage): cp.ChildProcess;
 }
@@ -35,7 +36,10 @@ export class Server {
 			try {
 				this.handleMessage(ClientMessage.deserializeBinary(data));
 			} catch (ex) {
-				logger.error("Failed to handle client message", field("length", data.byteLength), field("exception", ex));
+				logger.error("Failed to handle client message", field("length", data.byteLength), field("exception", {
+					message: ex.message,
+					stack: ex.stack,
+				}));
 			}
 		});
 		connection.onClose(() => {
@@ -80,6 +84,7 @@ export class Server {
 		const initMsg = new WorkingInitMessage();
 		initMsg.setDataDirectory(options.dataDirectory);
 		initMsg.setWorkingDirectory(options.workingDirectory);
+		initMsg.setBuiltinExtensionsDir(options.builtInExtensionsDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
 		const platform = os.platform();
@@ -98,8 +103,8 @@ export class Server {
 				throw new Error(`unrecognized platform "${platform}"`);
 		}
 		initMsg.setOperatingSystem(operatingSystem);
-		if (process.env.SHELL) {
-			initMsg.setShell(process.env.SHELL);
+		if (global.process.env.SHELL) {
+			initMsg.setShell(global.process.env.SHELL);
 		}
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);

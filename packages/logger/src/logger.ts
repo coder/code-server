@@ -272,8 +272,9 @@ export class Logger {
 		if (name) {
 			this.nameColor = hashStringToColor(name);
 		}
-		if (process.env.LOG_LEVEL) {
-			switch (process.env.LOG_LEVEL) {
+		const envLevel = typeof global !== "undefined" && typeof global.process !== "undefined" ? global.process.env.LOG_LEVEL : process.env.LOG_LEVEL;
+		if (envLevel) {
+			switch (envLevel) {
 				case "debug": this.level = Level.Debug; break;
 				case "info": this.level = Level.Info; break;
 				case "warn": this.level = Level.Warn; break;

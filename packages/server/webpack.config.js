@@ -20,6 +20,17 @@ module.exports = merge({
 					]
 				}),
 			},
+			{
+				test: /node\-pty\/lib\/index\.js/,
+				loader: StringReplacePlugin.replace({
+					replacements: [
+						{
+							pattern: /exports\.native.*;/,
+							replacement: () => "exports.native = null;",
+						}
+					]
+				}),
+			},
 		],
 	},
 	output: {
@@ -36,7 +47,7 @@ module.exports = merge({
 		__dirname: false,
 		setImmediate: false
 	},
-	externals: ["node-pty", "spdlog"],
+	externals: ["spdlog", "tslib"],
 	entry: "./packages/server/src/cli.ts",
 	target: "node",
 	plugins: [
