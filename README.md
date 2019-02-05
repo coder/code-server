@@ -1,19 +1,19 @@
-# vscode-cloud
+# vscode-remote
 
-Run VS Code in the cloud.
+Run VS Code remotely.
 
 ## Contributing
 
 ### Getting the source
 
 ```
-git clone https://github.com/codercom/vscode-cloud
+git clone https://github.com/codercom/vscode-remote
 ```
 
 ### Installing dependencies
 
 ```
-cd vscode-cloud
+cd vscode-remote
 yarn
 ```
 

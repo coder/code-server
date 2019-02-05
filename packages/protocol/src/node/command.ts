@@ -331,7 +331,7 @@ const getChildLogger = (command: string, prefix: string = ""): Logger => {
 	let name: string;
 	if (command.includes("vscode-ipc") || command.includes("extensionHost")) {
 		name = "exthost";
-	} else if (command.includes("vscode-online")) {
+	} else if (command.includes("vscode-remote")) {
 		name = "shared";
 	} else {
 		const basename = command.split("/").pop()!;

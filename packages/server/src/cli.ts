@@ -72,7 +72,7 @@ export class Entry extends Command {
 			return requireModule(modulePath, builtInExtensionsDir);
 		}
 
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-online");
+		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
 		const workingDir = args["workdir"];
 
 		if (process.env.BUILD_DIR && process.env.BUILD_DIR.startsWith(workingDir)) {
@@ -122,7 +122,7 @@ export class Entry extends Command {
 				next();
 			});
 			if ((process.env.CLI === "false" || !process.env.CLI) && !process.env.SERVE_STATIC) {
-				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.dev.config.js"));
+				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
 				const compiler = require("webpack")(webpackConfig);
 				app.use(require("webpack-dev-middleware")(compiler, {
 					logger,

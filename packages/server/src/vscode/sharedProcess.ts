@@ -23,7 +23,7 @@ export type SharedProcessEvent = {
 
 export class SharedProcess {
 
-	public readonly socketPath: string = path.join(os.tmpdir(), `.vscode-online${Math.random().toString()}`);
+	public readonly socketPath: string = path.join(os.tmpdir(), `.vscode-remote${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;

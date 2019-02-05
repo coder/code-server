@@ -1,9 +1,9 @@
 {
-  "name": "@coder/vscode-cloud",
-  "repository": "https://github.com/codercom/vscode-cloud",
+  "name": "@coder/vscode-remote",
+  "repository": "https://github.com/codercom/vscode-remote",
   "author": "Coder",
   "license": "MIT",
-  "description": "VS Code in the cloud.",
+  "description": "Run VS Code remotely.",
   "scripts": {
     "build:rules": "cd ./rules && tsc -p .",
     "vscode:clone": "mkdir -p ./lib && test -d ./lib/vscode || git clone https://github.com/Microsoft/vscode/ ./lib/vscode",

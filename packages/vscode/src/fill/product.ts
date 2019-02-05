@@ -2,8 +2,8 @@ import { IProductConfiguration } from "vs/platform/node/product";
 
 const product = {
 	nameShort: "VSCode",
-	nameLong: "vscode online",
-	dataFolderName: ".vscode-online",
+	nameLong: "VSCode Remote",
+	dataFolderName: ".vscode-remote",
 	extensionsGallery: {
 		serviceUrl: "https://marketplace.visualstudio.com/_apis/public/gallery",
 		cacheUrl: "https://vscode.blob.core.windows.net/gallery/index",
