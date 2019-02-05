@@ -1,4 +1,3 @@
-lib/vscode*
-lib/VSCode*
+lib
 node_modules
 dist
