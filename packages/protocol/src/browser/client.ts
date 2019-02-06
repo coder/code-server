@@ -1,4 +1,4 @@
-import { ReadWriteConnection, InitData, OperatingSystem, ISharedProcessData } from "../common/connection";
+import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
 import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
@@ -30,7 +30,7 @@ export class Client {
 	private readonly initDataEmitter = new Emitter<InitData>();
 	private readonly initDataPromise: Promise<InitData>;
 
-	private readonly sharedProcessActiveEmitter = new Emitter<ISharedProcessData>();
+	private readonly sharedProcessActiveEmitter = new Emitter<SharedProcessData>();
 	public readonly onSharedProcessActive = this.sharedProcessActiveEmitter.event;
 
 	/**

@@ -24,7 +24,7 @@ export interface InitData {
 	readonly builtInExtensionsDirectory: string;
 }
 
-export interface ISharedProcessData {
+export interface SharedProcessData {
 	readonly socketPath: string;
 	readonly logPath: string;
 }

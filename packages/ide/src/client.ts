@@ -1,5 +1,5 @@
 import { field, logger, time, Time } from "@coder/logger";
-import { ISharedProcessData } from "@coder/protocol";
+import { SharedProcessData } from "@coder/protocol";
 import { retry } from "./retry";
 import { upload } from "./upload";
 import { client } from "./fill/client";
@@ -25,7 +25,7 @@ export abstract class IdeClient {
 	private readonly loadTime: Time;
 
 	public readonly initData = client.initData;
-	public readonly sharedProcessData: Promise<ISharedProcessData>;
+	public readonly sharedProcessData: Promise<SharedProcessData>;
 	public readonly onSharedProcessActive = client.onSharedProcessActive;
 
 	public constructor() {

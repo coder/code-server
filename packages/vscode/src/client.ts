@@ -156,16 +156,10 @@ export class Client extends IdeClient {
 	protected initialize(): Promise<void> {
 		registerContextMenuListener();
 
-		const pathSets = this.sharedProcessData.then((data) => {
-			paths._paths.socketPath = data.socketPath;
-			process.env.VSCODE_LOGS = data.logPath;
-		});
-
 		this._clipboardContextKey = new RawContextKey("nativeClipboard", this.clipboard.isEnabled);
 
-		return this.task("Start workbench", 1000, async (data) => {
-			paths._paths.appData = data.dataDirectory;
-			paths._paths.defaultUserData = data.dataDirectory;
+		return this.task("Start workbench", 1000, async (data, sharedData) => {
+			paths._paths.initialize(data, sharedData);
 			this._builtInExtensionsDirectory = data.builtInExtensionsDirectory;
 			process.env.SHELL = data.shell;
 
@@ -190,7 +184,7 @@ export class Client extends IdeClient {
 				bounded.set(enabled);
 			});
 			this.clipboard.initialize();
-		}, this.initData, pathSets);
+		}, this.initData, this.sharedProcessData);
 	}
 }
 
