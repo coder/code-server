@@ -131,10 +131,10 @@ export class Entry extends Command {
 				app.use(require("webpack-hot-middleware")(compiler));
 			}
 		}, {
-				builtInExtensionsDirectory: builtInExtensionsDir,
-				dataDirectory: dataDir,
-				workingDirectory: workingDir,
-			});
+			builtInExtensionsDirectory: builtInExtensionsDir,
+			dataDirectory: dataDir,
+			workingDirectory: workingDir,
+		});
 
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
