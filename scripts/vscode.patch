@@ -69,6 +69,13 @@ index e3efb95b75..163bc4c994 100644
 +		// Cannot control GC in the browser.
 +		return Promise.resolve(obj);
 +
+diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
+index 7841dcdaa2..f5665f0db3 100644
+--- a/src/vs/workbench/api/node/extHostExtensionService.ts
++++ b/src/vs/workbench/api/node/extHostExtensionService.ts
+@@ -654 +654 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
+-		r = require.__$__nodeRequire<T>(modulePath);
++		r = (global as any).nativeNodeRequire(modulePath);
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 38bf337a61..a6ee664a20 100644
 --- a/src/vs/workbench/browser/dnd.ts
