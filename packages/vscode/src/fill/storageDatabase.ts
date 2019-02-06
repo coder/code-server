@@ -10,7 +10,7 @@ import { logger, field } from "@coder/logger";
 
 class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	public readonly onDidChangeItemsExternal = Event.None;
-	private items = new Map<string, string>();
+	private readonly items = new Map<string, string>();
 	private fetched: boolean = false;
 
 	public constructor(private readonly path: string) {

@@ -20,12 +20,12 @@ export interface ServerOptions {
 }
 
 export class Server {
-	private readonly sessions: Map<number, Process> = new Map();
-	private readonly connections: Map<number, net.Socket> = new Map();
-	private readonly servers: Map<number, net.Server> = new Map();
-	private readonly evals: Map<number, ActiveEvaluation> = new Map();
+	private readonly sessions = new Map<number, Process>();
+	private readonly connections = new Map<number, net.Socket>();
+	private readonly servers = new Map<number, net.Server>();
+	private readonly evals = new Map<number, ActiveEvaluation>();
 
-	private connectionId: number = Number.MAX_SAFE_INTEGER;
+	private connectionId = Number.MAX_SAFE_INTEGER;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,

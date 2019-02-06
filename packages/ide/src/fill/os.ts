@@ -13,7 +13,7 @@ class OS {
 
 	public homedir(): string {
 		if (typeof this._homedir === "undefined") {
-			throw new Error("not initialized");
+			throw new Error("trying to access homedir before it has been set");
 		}
 
 		return this._homedir;
@@ -21,7 +21,7 @@ class OS {
 
 	public tmpdir(): string {
 		if (typeof this._tmpdir === "undefined") {
-			throw new Error("not initialized");
+			throw new Error("trying to access tmpdir before it has been set");
 		}
 
 		return this._tmpdir;

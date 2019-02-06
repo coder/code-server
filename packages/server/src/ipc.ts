@@ -3,7 +3,7 @@ import { ChildProcess } from "child_process";
 
 export interface IpcMessage {
 	readonly event: string;
-	readonly args: any[];
+	readonly args: any[]; // tslint:disable-line no-any
 }
 
 export class StdioIpcHandler extends EventEmitter {
@@ -15,21 +15,28 @@ export class StdioIpcHandler extends EventEmitter {
 		super();
 	}
 
+	// tslint:disable-next-line no-any
 	public on(event: string, cb: (...args: any[]) => void): this {
 		this.listen();
+
 		return super.on(event, cb);
 	}
 
+	// tslint:disable-next-line no-any
 	public once(event: string, cb: (...args: any[]) => void): this {
 		this.listen();
+
 		return super.once(event, cb);
 	}
 
+	// tslint:disable-next-line no-any
 	public addListener(event: string, cb: (...args: any[]) => void): this {
 		this.listen();
+
 		return super.addListener(event, cb);
 	}
 
+	// tslint:disable-next-line no-any
 	public send(event: string, ...args: any[]): void {
 		const msg: IpcMessage = {
 			event,
@@ -47,7 +54,8 @@ export class StdioIpcHandler extends EventEmitter {
 		if (this.isListening) {
 			return;
 		}
-		const onData = (data: any) => {
+		// tslint:disable-next-line no-any
+		const onData = (data: any): void => {
 			try {
 				const d = JSON.parse(data.toString()) as IpcMessage;
 				this.emit(d.event, ...d.args);

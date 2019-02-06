@@ -1,4 +1,3 @@
-import { IDisposable } from "@coder/disposable";
 import { Emitter } from "@coder/events";
 
 import "./dialog.scss";
@@ -27,19 +26,16 @@ export enum IKey {
 }
 
 export class Dialog {
-	private options: IDialogOptions;
-	private overlay: HTMLElement;
+	private readonly overlay: HTMLElement;
 	private cachedActiveElement: HTMLElement | undefined;
 	private input: HTMLInputElement | undefined;
-	private actionEmitter: Emitter<IDialogAction>;
 	private errors: HTMLElement;
 	private buttons: HTMLElement[] | undefined;
 
-	public constructor(options: IDialogOptions) {
-		this.options = options;
+	private actionEmitter = new Emitter<IDialogAction>();
+	public onAction = this.actionEmitter.event;
 
-		this.actionEmitter = new Emitter();
-
+	public constructor(private readonly options: IDialogOptions) {
 		const msgBox = document.createElement("div");
 		msgBox.classList.add("msgbox");
 
@@ -106,13 +102,6 @@ export class Dialog {
 		setTimeout(() => {
 			this.overlay.style.opacity = "1";
 		});
-	}
-
-	/**
-	 * Register a function to be called when the user performs an action.
-	 */
-	public onAction(callback: (action: IDialogAction) => void): IDisposable {
-		return this.actionEmitter.event(callback);
 	}
 
 	/**

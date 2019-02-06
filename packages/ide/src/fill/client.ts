@@ -9,34 +9,26 @@ import { retry } from "../retry";
  */
 class Connection implements ReadWriteConnection {
 	private activeSocket: WebSocket | undefined;
-	private readonly messageEmitter: Emitter<Uint8Array> = new Emitter();
-	private readonly closeEmitter: Emitter<void> = new Emitter();
-	private readonly upEmitter: Emitter<void> = new Emitter();
-	private readonly downEmitter: Emitter<void> = new Emitter();
-	private readonly messageBuffer: Uint8Array[] = [];
-	private socketTimeoutDelay = 60 * 1000;
-	private retryName = "Socket";
+	private readonly messageBuffer = <Uint8Array[]>[];
+	private readonly socketTimeoutDelay = 60 * 1000;
+	private readonly retryName = "Socket";
 	private isUp: boolean = false;
 	private closed: boolean = false;
+
+	private readonly messageEmitter = new Emitter<Uint8Array>();
+	private readonly closeEmitter = new Emitter<void>();
+	private readonly upEmitter = new Emitter<void>();
+	private readonly downEmitter = new Emitter<void>();
+
+	public readonly onUp = this.upEmitter.event;
+	public readonly onClose = this.closeEmitter.event;
+	public readonly onDown = this.downEmitter.event;
+	public readonly onMessage = this.messageEmitter.event;
 
 	public constructor() {
 		retry.register(this.retryName, () => this.connect());
 		retry.block(this.retryName);
 		retry.run(this.retryName);
-	}
-
-	/**
-	 * Register a function to be called when the connection goes up.
-	 */
-	public onUp(cb: () => void): void {
-		this.upEmitter.event(cb);
-	}
-
-	/**
-	 * Register a function to be called when the connection goes down.
-	 */
-	public onDown(cb: () => void): void {
-		this.downEmitter.event(cb);
 	}
 
 	public send(data: Buffer | Uint8Array): void {
@@ -48,14 +40,6 @@ class Connection implements ReadWriteConnection {
 		} else {
 			this.activeSocket.send(data);
 		}
-	}
-
-	public onMessage(cb: (data: Uint8Array | Buffer) => void): void {
-		this.messageEmitter.event(cb);
-	}
-
-	public onClose(cb: () => void): void {
-		this.closeEmitter.event(cb);
 	}
 
 	public close(): void {

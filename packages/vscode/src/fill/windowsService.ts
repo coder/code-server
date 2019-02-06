@@ -17,21 +17,21 @@ class WindowsService implements IWindowsService {
 	// tslint:disable-next-line no-any
 	public _serviceBrand: any;
 
-	private openEmitter = new Emitter<number>();
-	private focusEmitter = new Emitter<number>();
-	private blurEmitter = new Emitter<number>();
-	private maximizeEmitter = new Emitter<number>();
-	private unmaximizeEmitter = new Emitter<number>();
-	private recentlyOpenedChangeEmitter = new Emitter<void>();
+	private readonly openEmitter = new Emitter<number>();
+	private readonly focusEmitter = new Emitter<number>();
+	private readonly blurEmitter = new Emitter<number>();
+	private readonly maximizeEmitter = new Emitter<number>();
+	private readonly unmaximizeEmitter = new Emitter<number>();
+	private readonly recentlyOpenedChangeEmitter = new Emitter<void>();
 
-	public onWindowOpen = this.openEmitter.event;
-	public onWindowFocus = this.focusEmitter.event;
-	public onWindowBlur = this.blurEmitter.event;
-	public onWindowMaximize = this.maximizeEmitter.event;
-	public onWindowUnmaximize = this.unmaximizeEmitter.event;
-	public onRecentlyOpenedChange = this.recentlyOpenedChangeEmitter.event;
+	public readonly onWindowOpen = this.openEmitter.event;
+	public readonly onWindowFocus = this.focusEmitter.event;
+	public readonly onWindowBlur = this.blurEmitter.event;
+	public readonly onWindowMaximize = this.maximizeEmitter.event;
+	public readonly onWindowUnmaximize = this.unmaximizeEmitter.event;
+	public readonly onRecentlyOpenedChange = this.recentlyOpenedChangeEmitter.event;
 
-	private window = new electron.BrowserWindow();
+	private readonly window = new electron.BrowserWindow();
 
 	// Dialogs
 	public pickFileFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {

@@ -9,27 +9,28 @@ import { EventEmitter } from "events";
  * Client accepts an arbitrary connection intended to communicate with the Server.
  */
 export class Client {
-	public Socket: typeof ServerSocket;
+	public readonly Socket: typeof ServerSocket;
 
-	private evalId: number = 0;
-	private evalDoneEmitter: Emitter<EvalDoneMessage> = new Emitter();
-	private evalFailedEmitter: Emitter<EvalFailedMessage> = new Emitter();
-	private evalEventEmitter: Emitter<EvalEventMessage> = new Emitter();
+	private evalId = 0;
+	private readonly evalDoneEmitter = new Emitter<EvalDoneMessage>();
+	private readonly evalFailedEmitter = new Emitter<EvalFailedMessage>();
+	private readonly evalEventEmitter = new Emitter<EvalEventMessage>();
 
-	private sessionId: number = 0;
-	private readonly sessions: Map<number, ServerProcess> = new Map();
+	private sessionId = 0;
+	private readonly sessions = new Map<number, ServerProcess>();
 
-	private connectionId: number = 0;
-	private readonly connections: Map<number, ServerSocket> = new Map();
+	private connectionId = 0;
+	private readonly connections = new Map<number, ServerSocket>();
 
-	private serverId: number = 0;
-	private readonly servers: Map<number, ServerListener> = new Map();
+	private serverId = 0;
+	private readonly servers = new Map<number, ServerListener>();
 
 	private _initData: InitData | undefined;
-	private initDataEmitter = new Emitter<InitData>();
-	private initDataPromise: Promise<InitData>;
+	private readonly initDataEmitter = new Emitter<InitData>();
+	private readonly initDataPromise: Promise<InitData>;
 
-	private sharedProcessActiveEmitter = new Emitter<ISharedProcessData>();
+	private readonly sharedProcessActiveEmitter = new Emitter<ISharedProcessData>();
+	public readonly onSharedProcessActive = this.sharedProcessActiveEmitter.event;
 
 	/**
 	 * @param connection Established connection to the server
@@ -63,10 +64,6 @@ export class Client {
 		return this.initDataPromise;
 	}
 
-	public get onSharedProcessActive(): Event<ISharedProcessData> {
-		return this.sharedProcessActiveEmitter.event;
-	}
-
 	public run(func: (ae: ActiveEval) => void | Promise<void>): ActiveEval;
 	public run<T1>(func: (ae: ActiveEval, a1: T1) => void | Promise<void>, a1: T1): ActiveEval;
 	public run<T1, T2>(func: (ae: ActiveEval, a1: T1, a2: T2) => void | Promise<void>, a1: T1, a2: T2): ActiveEval;
@@ -95,8 +92,8 @@ export class Client {
 		});
 
 		return {
-			on: (event: string, cb: (...args: any[]) => void) => eventEmitter.on(event, cb),
-			emit: (event: string, ...args: any[]) => {
+			on: (event: string, cb: (...args: any[]) => void): EventEmitter => eventEmitter.on(event, cb),
+			emit: (event: string, ...args: any[]): void => {
 				const eventsMsg = new EvalEventMessage();
 				eventsMsg.setId(doEval.id);
 				eventsMsg.setEvent(event);

@@ -113,8 +113,8 @@ const hashStringToColor = (str: string): string => {
  * currently built items and appends to that.
  */
 export abstract class Formatter {
-	protected format: string = "";
-	protected args: string[] = [];
+	protected format = "";
+	protected args = <string[]>[];
 
 	/**
 	 * Add a tag.
@@ -250,14 +250,13 @@ export class Logger {
 	public level = Level.Info;
 
 	private readonly nameColor?: string;
-	private muted: boolean;
+	private muted: boolean = false;
 
 	public constructor(
 		private _formatter: Formatter,
 		private readonly name?: string,
 		private readonly defaultFields?: FieldArray,
 	) {
-		this.muted = false;
 		if (name) {
 			this.nameColor = hashStringToColor(name);
 		}
@@ -388,10 +387,6 @@ export class Logger {
 			times = fields.filter((f) => f.value instanceof Time);
 		}
 
-		// Format is:
-		// [TAG] [NAME?] MESSAGE TIME?
-		//   field1 (type)?: value
-		//   field2 (type)?: value
 		this._formatter.tag(options.type.toUpperCase(), options.tagColor);
 		if (this.name && this.nameColor) {
 			this._formatter.tag(this.name.toUpperCase(), this.nameColor);

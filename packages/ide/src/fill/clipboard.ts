@@ -1,11 +1,11 @@
-import { IDisposable } from "@coder/disposable";
 import { Emitter } from "@coder/events";
 
 /**
  * Wrapper around the native clipboard with some fallbacks.
  */
 export class Clipboard {
-	private readonly enableEmitter: Emitter<boolean> = new Emitter();
+	private readonly enableEmitter = new Emitter<boolean>();
+	public readonly onPermissionChange = this.enableEmitter.event;
 	private _isEnabled: boolean = false;
 
 	/**
@@ -68,14 +68,6 @@ export class Clipboard {
 			&& typeof (navigator as any).clipboard !== "undefined"
 			&& typeof (navigator as any).clipboard.readText !== "undefined";
 		// tslint:enable no-any
-	}
-
-	/**
-	 * Register a function to be called when the native clipboard is
-	 * enabled/disabled.
-	 */
-	public onPermissionChange(cb: (enabled: boolean) => void): IDisposable {
-		return this.enableEmitter.event(cb);
 	}
 
 	/**

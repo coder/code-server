@@ -26,18 +26,14 @@ export class SharedProcess {
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
-	private readonly onStateEmitter: Emitter<SharedProcessEvent>;
+	private readonly onStateEmitter = new Emitter<SharedProcessEvent>();
+	public readonly onState = this.onStateEmitter.event;
 
 	public constructor(
 		private readonly userDataDir: string,
 		private readonly builtInExtensionsDir: string,
 	) {
-		this.onStateEmitter = new Emitter();
 		this.restart();
-	}
-
-	public get onState(): Event<SharedProcessEvent> {
-		return this.onStateEmitter.event;
 	}
 
 	public get state(): SharedProcessState {

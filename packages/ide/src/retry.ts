@@ -21,7 +21,7 @@ interface IRetryItem {
  * to the user explaining what is happening with an option to immediately retry.
  */
 export class Retry {
-	private items: Map<string, IRetryItem>;
+	private items = new Map<string, IRetryItem>();
 
 	// Times are in seconds.
 	private readonly retryMinDelay = 1;
@@ -31,17 +31,15 @@ export class Retry {
 	private blocked: string | boolean | undefined;
 
 	private notificationHandle: INotificationHandle | undefined;
-	private updateDelay = 1;
+	private readonly updateDelay = 1;
 	private updateTimeout: number | NodeJS.Timer | undefined;
-	private notificationThreshold = 3;
+	private readonly notificationThreshold = 3;
 
 	// Time in milliseconds to wait before restarting a service. (See usage below
 	// for reasoning.)
-	private waitDelay = 50;
+	private readonly waitDelay = 50;
 
-	public constructor(private _notificationService: INotificationService) {
-		this.items = new Map();
-	}
+	public constructor(private _notificationService: INotificationService) {}
 
 	public set notificationService(service: INotificationService) {
 		this._notificationService = service;

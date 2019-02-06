@@ -9,11 +9,10 @@ type nodePtyType = typeof nodePty;
  * Implementation of nodePty for the browser.
  */
 class Pty implements nodePty.IPty {
-	private readonly emitter: EventEmitter;
+	private readonly emitter = new EventEmitter();
 	private readonly cp: ChildProcess;
 
 	public constructor(file: string, args: string[] | string, options: nodePty.IPtyForkOptions) {
-		this.emitter = new EventEmitter();
 		this.cp = client.spawn(file, Array.isArray(args) ? args : [args], {
 			...options,
 			tty: {
@@ -38,7 +37,8 @@ class Pty implements nodePty.IPty {
 		return this.cp.title!;
 	}
 
-	public on(event: string, listener: (...args) => void): void {
+	// tslint:disable-next-line no-any
+	public on(event: string, listener: (...args: any[]) => void): void {
 		this.emitter.on(event, listener);
 	}
 

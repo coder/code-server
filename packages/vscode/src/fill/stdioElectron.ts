@@ -4,11 +4,13 @@ import { IpcRenderer } from "electron";
 export * from "@coder/ide/src/fill/electron";
 
 class StdioIpcRenderer extends StdioIpcHandler implements IpcRenderer {
-	public sendTo(windowId: number, channel: string, ...args: any[]): void {
+	// tslint:disable-next-line no-any
+	public sendTo(_windowId: number, _channel: string, ..._args: any[]): void {
 		throw new Error("Method not implemented.");
 	}
 
-	public sendToHost(channel: string, ...args: any[]): void {
+	// tslint:disable-next-line no-any
+	public sendToHost(_channel: string, ..._args: any[]): void {
 		throw new Error("Method not implemented.");
 	}
 

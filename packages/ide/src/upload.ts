@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { appendFile } from "fs";
 import { promisify } from "util";
-import { logger, Logger } from "@coder/logger";
+import { logger } from "@coder/logger";
 import { escapePath } from "@coder/protocol";
 import { NotificationService, INotificationService, ProgressService, IProgressService, IProgress, Severity } from "./fill/notification";
 
@@ -40,27 +40,20 @@ export class Upload {
 	private readonly maxParallelUploads = 100;
 	private readonly readSize = 32000; // ~32kb max while reading in the file.
 	private readonly packetSize = 32000; // ~32kb max when writing.
-	private readonly logger: Logger;
-	private readonly currentlyUploadingFiles: Map<string, File>;
-	private readonly queueByDirectory: Map<string, IUploadableDirectory>;
+	private readonly logger = logger.named("Upload");
+	private readonly currentlyUploadingFiles = new Map<string, File>();
+	private readonly queueByDirectory = new Map<string, IUploadableDirectory>();
 	private progress: IProgress | undefined;
 	private uploadPromise: Promise<string[]> | undefined;
 	private resolveUploadPromise: (() => void) | undefined;
-	private finished: number;
-	private uploadedFilePaths: string[];
-	private total: number;
+	private finished = 0;
+	private uploadedFilePaths = <string[]>[];
+	private total = 0;
 
 	public constructor(
 		private _notificationService: INotificationService,
 		private _progressService: IProgressService,
-	) {
-		this.logger = logger.named("Upload");
-		this.currentlyUploadingFiles = new Map();
-		this.queueByDirectory = new Map();
-		this.uploadedFilePaths = [];
-		this.finished = 0;
-		this.total = 0;
-	}
+	) {}
 
 	public set notificationService(service: INotificationService) {
 		this._notificationService = service;
