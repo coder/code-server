@@ -4,7 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import { TextEncoder, TextDecoder } from "text-encoding";
 import { createClient } from "./helpers";
-import { Net } from "../src/browser/modules/net";
+import { ChildProcess } from "../src/browser/command";
 
 (global as any).TextDecoder = TextDecoder; // tslint:disable-line no-any
 (global as any).TextEncoder = TextEncoder; // tslint:disable-line no-any
@@ -13,12 +13,44 @@ describe("spawn", () => {
 	const client = createClient({
 		dataDirectory: "",
 		workingDirectory: "",
+		builtInExtensionsDirectory: "",
 		forkProvider: (msg): cp.ChildProcess => {
 			return cp.spawn(msg.getCommand(), msg.getArgsList(), {
 				stdio: [null, null, null, "ipc"],
 			});
 		},
 	});
+
+	/**
+	 * Returns a function that when called returns a promise that resolves with
+	 * the next chunk of data from the process.
+	 */
+	const promisifyData = (proc: ChildProcess): (() => Promise<string>) => {
+		// Use a persistent callback instead of creating it in the promise since
+		// otherwise we could lose data that comes in while no promise is listening.
+		let onData: (() => void) | undefined;
+		let buffer: string | undefined;
+		proc.stdout.on("data", (data) => {
+			// Remove everything that isn't a letter, number, or $ to avoid issues
+			// with ANSI escape codes printing inside the test output.
+			buffer = (buffer || "") + data.toString().replace(/[^a-zA-Z0-9$]/g, "");
+			if (onData) {
+				onData();
+			}
+		});
+
+		return (): Promise<string> => new Promise((resolve): void => {
+			onData = (): void => {
+				if (typeof buffer !== "undefined") {
+					const data = buffer;
+					buffer = undefined;
+					onData = undefined;
+					resolve(data);
+				}
+			};
+			onData();
+		});
+	};
 
 	it("should execute command and return output", (done) => {
 		const proc = client.spawn("echo", ["test"]);
@@ -30,25 +62,30 @@ describe("spawn", () => {
 		});
 	});
 
-	it("should create shell", (done) => {
-		const proc = client.spawn("/bin/bash", [], {
+	it("should create shell", async () => {
+		// Setting the config file to something that shouldn't exist so the test
+		// isn't affected by custom configuration.
+		const proc = client.spawn("/bin/bash", ["--rcfile", "/tmp/test/nope/should/not/exist"], {
 			tty: {
 				columns: 100,
 				rows: 10,
 			},
 		});
-		let first = true;
-		proc.stdout.on("data", (data) => {
-			if (first) {
-				// First piece of data is a welcome msg. Second is the prompt
-				first = false;
 
-				return;
-			}
-			expect(data.toString().endsWith("$ ")).toBeTruthy();
-			proc.kill();
+		const getData = promisifyData(proc);
+
+		// First it outputs @hostname:cwd
+		expect((await getData()).length).toBeGreaterThan(1);
+
+		// Then it seems to overwrite that with a shorter prompt in the format of
+		// [hostname@user]$
+		expect((await getData())).toContain("$");
+
+		proc.kill();
+
+		await new Promise((resolve): void => {
+			proc.on("exit", resolve);
 		});
-		proc.on("exit", () => done());
 	});
 
 	it("should cat", (done) => {
@@ -74,68 +111,46 @@ describe("spawn", () => {
 		});
 	});
 
-	it("should resize", (done) => {
-		// Requires the `tput lines` cmd to be available
-
-		const proc = client.spawn("/bin/bash", [], {
+	it("should resize", async () => {
+		// Requires the `tput lines` cmd to be available.
+		// Setting the config file to something that shouldn't exist so the test
+		// isn't affected by custom configuration.
+		const proc = client.spawn("/bin/bash", ["--rcfile", "/tmp/test/nope/should/not/exist"], {
 			tty: {
 				columns: 10,
 				rows: 10,
 			},
 		});
-		let output: number = 0; // Number of outputs parsed
-		proc.stdout.on("data", (data) => {
-			output++;
 
-			if (output === 1) {
-				// First is welcome msg
-				return;
-			}
+		const getData = promisifyData(proc);
 
-			if (output === 2) {
-				proc.send("tput lines\n");
+		// We've already tested these first two bits of output; see shell test.
+		await getData();
+		await getData();
 
-				return;
-			}
+		proc.send("tput lines\n");
+		expect(await getData()).toContain("tput");
 
-			if (output === 3) {
-				// Echo of tput lines
-				return;
-			}
-
-			if (output === 4) {
-				expect(data.toString().trim()).toEqual("10");
-				proc.resize!({
-					columns: 10,
-					rows: 50,
-				});
-
-				return;
-			}
-
-			if (output === 5) {
-				// Primpt
-				return;
-			}
-
-			if (output === 6) {
-				proc.send("tput lines\n");
-
-				return;
-			}
-
-			if (output === 7) {
-				// Echo of tput lines
-				return;
-			}
-
-			if (output === 8) {
-				expect(data.toString().trim()).toEqual("50");
-				proc.kill();
-				expect(proc.killed).toBeTruthy();
-			}
+		expect((await getData()).trim()).toContain("10");
+		proc.resize!({
+			columns: 10,
+			rows: 50,
 		});
-		proc.on("exit", () => done());
+
+		// The prompt again.
+		await getData();
+		await getData();
+
+		proc.send("tput lines\n");
+		expect(await getData()).toContain("tput");
+
+		expect((await getData())).toContain("50");
+
+		proc.kill();
+		expect(proc.killed).toBeTruthy();
+		await new Promise((resolve): void => {
+			proc.on("exit", resolve);
+		});
 	});
 
 	it("should fork and echo messages", (done) => {
@@ -176,7 +191,7 @@ describe("createConnection", () => {
 		});
 
 		await new Promise((resolve): void => {
-			const socket = new (new Net(client)).Socket();
+			const socket = new client.Socket();
 			socket.connect(tmpPath, () => {
 				socket.end();
 				socket.addListener("close", () => {

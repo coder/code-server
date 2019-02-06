@@ -13,7 +13,6 @@ class Net implements NodeNet {
 	) {}
 
 	public get Socket(): typeof net.Socket {
-		// @ts-ignore
 		return this.client.Socket;
 	}
 

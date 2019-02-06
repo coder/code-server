@@ -221,7 +221,7 @@ export class Upload {
 
 			await rm();
 
-			reader.addEventListener("load", async () => {
+			const load = async (): Promise<void> => {
 				const buffer = new Uint8Array(reader.result as ArrayBuffer);
 				let bufferOffset = 0;
 
@@ -259,7 +259,9 @@ export class Upload {
 				}
 
 				seek();
-			});
+			};
+
+			reader.addEventListener("load", load);
 
 			seek();
 		});

@@ -57,57 +57,6 @@ export const field = <T>(name: string, value: T): Field<T> => {
 };
 
 /**
- * Hashes a string.
- */
-const djb2 = (str: string): number => {
-	let hash = 5381;
-	for (let i = 0; i < str.length; i++) {
-		hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
-	}
-
-	return hash;
-};
-
-/**
- * Convert rgb to hex.
- */
-const rgbToHex = (r: number, g: number, b: number): string => {
-	const integer = ((Math.round(r) & 0xFF) << 16)
-		+ ((Math.round(g) & 0xFF) << 8)
-		+ (Math.round(b) & 0xFF);
-
-	const str = integer.toString(16);
-
-	return "#" + "000000".substring(str.length) + str;
-};
-
-/**
- * Convert fully-formed hex to rgb.
- */
-const hexToRgb = (hex: string): [number, number, number] => {
-	const integer = parseInt(hex.substr(1), 16);
-
-	return [
-		(integer >> 16) & 0xFF,
-		(integer >> 8) & 0xFF,
-		integer & 0xFF,
-	];
-};
-
-/**
- * Generates a deterministic color from a string using hashing.
- */
-const hashStringToColor = (str: string): string => {
-	const hash = djb2(str);
-
-	return rgbToHex(
-		(hash & 0xFF0000) >> 16,
-		(hash & 0x00FF00) >> 8,
-		hash & 0x0000FF,
-	);
-};
-
-/**
  * This formats & builds text for logging.
  * It should only be used to build one log item at a time since it stores the
  * currently built items and appends to that.
@@ -207,7 +156,7 @@ export class BrowserFormatter extends Formatter {
  */
 export class ServerFormatter extends Formatter {
 	public tag(name: string, color: string): void {
-		const [r, g, b] = hexToRgb(color);
+		const [r, g, b] = this.hexToRgb(color);
 		while (name.length < 5) {
 			name += " ";
 		}
@@ -220,7 +169,7 @@ export class ServerFormatter extends Formatter {
 			this.format += "\u001B[1m";
 		}
 		if (color) {
-			const [r, g, b] = hexToRgb(color);
+			const [r, g, b] = this.hexToRgb(color);
 			this.format += `\u001B[38;2;${r};${g};${b}m`;
 		}
 		this.format += this.getType(arg);
@@ -241,6 +190,19 @@ export class ServerFormatter extends Formatter {
 		this.args.push(JSON.stringify(obj));
 		console.log(...this.flush()); // tslint:disable-line no-console
 	}
+
+	/**
+	 * Convert fully-formed hex to rgb.
+	 */
+	private hexToRgb(hex: string): [number, number, number] {
+		const integer = parseInt(hex.substr(1), 16);
+
+		return [
+			(integer >> 16) & 0xFF,
+			(integer >> 8) & 0xFF,
+			integer & 0xFF,
+		];
+	}
 }
 
 /**
@@ -258,7 +220,7 @@ export class Logger {
 		private readonly defaultFields?: FieldArray,
 	) {
 		if (name) {
-			this.nameColor = hashStringToColor(name);
+			this.nameColor = this.hashStringToColor(name);
 		}
 		const envLevel = typeof global !== "undefined" && typeof global.process !== "undefined" ? global.process.env.LOG_LEVEL : process.env.LOG_LEVEL;
 		if (envLevel) {
@@ -401,7 +363,7 @@ export class Logger {
 				const green = expPer < 1 ? max : min;
 				const red = expPer >= 1 ? max : min;
 				this._formatter.push(` ${time.identifier}=`, "#3794ff");
-				this._formatter.push(`${diff}ms`, rgbToHex(red > 0 ? red : 0, green > 0 ? green : 0, 0));
+				this._formatter.push(`${diff}ms`, this.rgbToHex(red > 0 ? red : 0, green > 0 ? green : 0, 0));
 			});
 		}
 
@@ -412,6 +374,44 @@ export class Logger {
 			console.log(...this._formatter.flush());
 		}
 		// tslint:enable no-console
+	}
+
+	/**
+	 * Hashes a string.
+	 */
+	private djb2(str: string): number {
+		let hash = 5381;
+		for (let i = 0; i < str.length; i++) {
+			hash = ((hash << 5) + hash) + str.charCodeAt(i); /* hash * 33 + c */
+		}
+
+		return hash;
+	}
+
+	/**
+	 * Convert rgb to hex.
+	 */
+	private rgbToHex(r: number, g: number, b: number): string {
+		const integer = ((Math.round(r) & 0xFF) << 16)
+			+ ((Math.round(g) & 0xFF) << 8)
+			+ (Math.round(b) & 0xFF);
+
+		const str = integer.toString(16);
+
+		return "#" + "000000".substring(str.length) + str;
+	}
+
+	/**
+	 * Generates a deterministic color from a string using hashing.
+	 */
+	private hashStringToColor(str: string): string {
+		const hash = this.djb2(str);
+
+		return this.rgbToHex(
+			(hash & 0xFF0000) >> 16,
+			(hash & 0x00FF00) >> 8,
+			hash & 0x0000FF,
+		);
 	}
 }
 

@@ -13,8 +13,10 @@ import { clipboard } from "./clipboard";
 	return [];
 };
 
+// This is required to make the fill load in Node without erroring.
 if (typeof document === "undefined") {
-	(<any>global).document = {} as any;
+	// tslint:disable-next-line no-any
+	(global as any).document = {} as any;
 }
 
 const oldCreateElement: <K extends keyof HTMLElementTagNameMap>(
@@ -52,7 +54,7 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 					if (view.contentDocument) {
 						view.contentDocument.body.id = frameID;
 						view.contentDocument.body.parentElement!.style.overflow = "hidden";
-						const script = document.createElement("script");
+						const script = createElement("script");
 						script.src = url;
 						view.contentDocument.head.appendChild(script);
 					}

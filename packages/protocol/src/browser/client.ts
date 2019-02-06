@@ -1,15 +1,16 @@
 import { ReadWriteConnection, InitData, OperatingSystem, ISharedProcessData } from "../common/connection";
 import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, TypedValue, ClientMessage, NewSessionMessage, TTYDimensions, SessionOutputMessage, CloseSessionInputMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
-import { Emitter, Event } from "@coder/events";
+import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ChildProcess, SpawnOptions, ForkOptions, ServerProcess, ServerSocket, Socket, ServerListener, Server, ActiveEval } from "./command";
 import { EventEmitter } from "events";
+import { Socket as NetSocket } from "net";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.
  */
 export class Client {
-	public readonly Socket: typeof ServerSocket;
+	public readonly Socket: typeof NetSocket;
 
 	private evalId = 0;
 	private readonly evalDoneEmitter = new Emitter<EvalDoneMessage>();
@@ -47,12 +48,11 @@ export class Client {
 		});
 
 		const that = this;
+		// @ts-ignore NOTE: this doesn't fully implement net.Socket.
 		this.Socket = class extends ServerSocket {
-
 			public constructor() {
 				super(that.connection, that.connectionId++, that.registerConnection);
 			}
-
 		};
 
 		this.initDataPromise = new Promise((resolve): void => {
@@ -151,39 +151,39 @@ export class Client {
 		});
 
 		const d1 = this.evalDoneEmitter.event((doneMsg) => {
-			if (doneMsg.getId() === id) {
-				d1.dispose();
-				d2.dispose();
-
-				const resp = doneMsg.getResponse();
-				if (!resp) {
-					res();
-
-					return;
-				}
-
-				const rt = resp.getType();
-				// tslint:disable-next-line
-				let val: any;
-				switch (rt) {
-					case TypedValue.Type.BOOLEAN:
-						val = resp.getValue() === "true";
-						break;
-					case TypedValue.Type.NUMBER:
-						val = parseInt(resp.getValue(), 10);
-						break;
-					case TypedValue.Type.OBJECT:
-						val = JSON.parse(resp.getValue());
-						break;
-					case TypedValue.Type.STRING:
-						val = resp.getValue();
-						break;
-					default:
-						throw new Error(`unsupported typed value ${rt}`);
-				}
-
-				res(val);
+			if (doneMsg.getId() !== id) {
+				return;
 			}
+
+			d1.dispose();
+			d2.dispose();
+
+			const resp = doneMsg.getResponse();
+			if (!resp) {
+				return res();
+			}
+
+			const rt = resp.getType();
+			// tslint:disable-next-line no-any
+			let val: any;
+			switch (rt) {
+				case TypedValue.Type.BOOLEAN:
+					val = resp.getValue() === "true";
+					break;
+				case TypedValue.Type.NUMBER:
+					val = parseInt(resp.getValue(), 10);
+					break;
+				case TypedValue.Type.OBJECT:
+					val = JSON.parse(resp.getValue());
+					break;
+				case TypedValue.Type.STRING:
+					val = resp.getValue();
+					break;
+				default:
+					throw new Error(`unsupported typed value ${rt}`);
+			}
+
+			res(val);
 		});
 
 		const d2 = this.evalFailedEmitter.event((failedMsg) => {
