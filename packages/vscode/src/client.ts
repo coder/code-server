@@ -1,3 +1,4 @@
+import "./fill/require";
 import * as paths from "./fill/paths";
 import "./fill/platform";
 import "./fill/storageDatabase";

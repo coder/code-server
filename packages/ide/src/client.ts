@@ -23,11 +23,10 @@ export abstract class IdeClient {
 	public readonly upload = upload;
 
 	private start: Time | undefined;
-	private readonly progressElement: HTMLElement | undefined;
-	private tasks: string[] = [];
+	private readonly tasks = <string[]>[];
 	private finishedTaskCount = 0;
 	private readonly loadTime: Time;
-	private sharedProcessDataPromise: Promise<ISharedProcessData>;
+	private readonly sharedProcessDataPromise: Promise<ISharedProcessData>;
 
 	public constructor() {
 		logger.info("Loading IDE");
@@ -37,27 +36,6 @@ export abstract class IdeClient {
 		this.sharedProcessDataPromise = new Promise((resolve): void => {
 			client.onSharedProcessActive(resolve);
 		});
-
-		const overlay = document.getElementById("overlay");
-		const logo = document.getElementById("logo");
-		const msgElement = overlay
-			? overlay.querySelector(".message") as HTMLElement
-			: undefined;
-
-		if (overlay && logo) {
-			overlay.addEventListener("mousemove", (event) => {
-				const xPos = ((event.clientX - logo.offsetLeft) / 24).toFixed(2);
-				const yPos = ((logo.offsetTop - event.clientY) / 24).toFixed(2);
-
-				logo.style.transform = `perspective(200px) rotateX(${yPos}deg) rotateY(${xPos}deg)`;
-			});
-		}
-
-		this.progressElement = typeof document !== "undefined"
-			? document.querySelector("#fill") as HTMLElement
-			: undefined;
-
-		require("path").posix = require("path");
 
 		window.addEventListener("contextmenu", (event) => {
 			event.preventDefault();
@@ -72,28 +50,9 @@ export abstract class IdeClient {
 		this.uriFactory = this.createUriFactory();
 
 		this.initialize().then(() => {
-			if (overlay) {
-				overlay.style.opacity = "0";
-				overlay.addEventListener("transitionend", () => {
-					overlay.remove();
-				});
-			}
 			logger.info("Load completed", field("duration", this.loadTime));
 		}).catch((error) => {
 			logger.error(error.message);
-			if (overlay) {
-				overlay.classList.add("error");
-			}
-			if (msgElement) {
-				const button = document.createElement("div");
-				button.className = "reload-button";
-				button.innerText = "Reload";
-				button.addEventListener("click", () => {
-					location.reload();
-				});
-				msgElement.innerText = `Failed to load: ${error.message}.`;
-				msgElement.parentElement!.appendChild(button);
-			}
 			logger.warn("Load completed with errors", field("duration", this.loadTime));
 		});
 	}
@@ -116,12 +75,6 @@ export abstract class IdeClient {
 		if (!this.start) {
 			this.start = time(1000);
 		}
-		const updateProgress = (): void => {
-			if (this.progressElement) {
-				this.progressElement.style.width = `${Math.round((this.finishedTaskCount / (this.tasks.length + this.finishedTaskCount)) * 100)}%`;
-			}
-		};
-		updateProgress();
 
 		let start: Time | undefined;
 		try {
@@ -135,7 +88,6 @@ export abstract class IdeClient {
 				this.tasks.splice(index, 1);
 			}
 			++this.finishedTaskCount;
-			updateProgress();
 			if (this.tasks.length === 0) {
 				logger.info("Finished all queued tasks", field("duration", this.start), field("count", this.finishedTaskCount));
 				this.start = undefined;
@@ -144,9 +96,6 @@ export abstract class IdeClient {
 			return value;
 		} catch (error) {
 			logger.error(`Failed "${description}"`, field("duration", typeof start !== "undefined" ? start : "not started"), field("error", error));
-			if (this.progressElement) {
-				this.progressElement.style.backgroundColor = "red";
-			}
 			throw error;
 		}
 	}
