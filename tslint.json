@@ -26,6 +26,7 @@
 		"no-redundant-jsdoc": true,
 		"no-implicit-dependencies": false,
 		"no-boolean-literal-compare": true,
+		"prefer-readonly": true,
 		"deprecation": true,
 		"semicolon": true,
 		"one-line": [

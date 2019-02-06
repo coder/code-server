@@ -6,7 +6,6 @@ import { upload } from "./upload";
 import { client } from "./fill/client";
 import { clipboard } from "./fill/clipboard";
 import { INotificationService, IProgressService } from "./fill/notification";
-import { IURIFactory } from "./fill/uri";
 
 /**
  * A general abstraction of an IDE client.
@@ -19,7 +18,6 @@ import { IURIFactory } from "./fill/uri";
 export abstract class IdeClient {
 	public readonly retry = retry;
 	public readonly clipboard = clipboard;
-	public readonly uriFactory: IURIFactory;
 	public readonly upload = upload;
 
 	private start: Time | undefined;
@@ -46,8 +44,6 @@ export abstract class IdeClient {
 			this.retry.block();
 			logger.info("Unloaded");
 		});
-
-		this.uriFactory = this.createUriFactory();
 
 		this.initialize().then(() => {
 			logger.info("Load completed", field("duration", this.loadTime));
@@ -134,9 +130,4 @@ export abstract class IdeClient {
 	 * Initialize the IDE.
 	 */
 	protected abstract initialize(): Promise<void>;
-
-	/**
-	 * Create URI factory.
-	 */
-	protected abstract createUriFactory(): IURIFactory;
 }

@@ -12,7 +12,7 @@ import "./fill/workbenchRegistry";
 import { PasteAction } from "./fill/paste";
 import "./fill/dom";
 import "./vscode.scss";
-import { IdeClient, IURI, IURIFactory, IProgress, INotificationHandle } from "@coder/ide";
+import { IdeClient, IProgress, INotificationHandle } from "@coder/ide";
 import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
 import { LogLevel } from "vs/platform/log/common/log";
 import { URI } from "vs/base/common/uri";
@@ -141,16 +141,6 @@ export class Client extends IdeClient {
 					}),
 				};
 			},
-		};
-	}
-
-	protected createUriFactory(): IURIFactory {
-		return {
-			// TODO: not sure why this is an error.
-			// tslint:disable-next-line no-any
-			create: <URI>(uri: IURI): URI => URI.from(uri) as any,
-			file: (path: string): IURI => URI.file(path),
-			parse: (raw: string): IURI => URI.parse(raw),
 		};
 	}
 

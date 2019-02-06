@@ -3,8 +3,13 @@ import { appendFile } from "fs";
 import { promisify } from "util";
 import { logger, Logger } from "@coder/logger";
 import { escapePath } from "@coder/protocol";
-import { IURI } from "./fill/uri";
 import { NotificationService, INotificationService, ProgressService, IProgressService, IProgress, Severity } from "./fill/notification";
+
+export interface IURI {
+	readonly path: string;
+	readonly fsPath: string;
+	readonly scheme: string;
+}
 
 /**
  * Represents an uploadable directory, so we can query for existing files once.
