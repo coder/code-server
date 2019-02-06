@@ -6,7 +6,7 @@ import { forkModule } from "./bootstrapFork";
 import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { LogLevel } from "vs/platform/log/common/log";
-import { Emitter, Event } from '@coder/events/src';
+import { Emitter, Event } from "@coder/events/src";
 
 export enum SharedProcessState {
 	Stopped,
@@ -22,7 +22,6 @@ export type SharedProcessEvent = {
 };
 
 export class SharedProcess {
-
 	public readonly socketPath: string = path.join(os.tmpdir(), `.vscode-remote${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;

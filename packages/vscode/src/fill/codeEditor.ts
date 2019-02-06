@@ -6,7 +6,6 @@ import { IDecorationRenderOptions } from "vs/editor/common/editorCommon";
  * This converts icon paths for decorations to the correct URL.
  */
 abstract class CodeEditorServiceImpl extends editor.CodeEditorServiceImpl {
-
 	public registerDecorationType(key: string, options: IDecorationRenderOptions, parentTypeKey?: string): void {
 		super.registerDecorationType(key, options ? {
 			...options,
@@ -18,7 +17,6 @@ abstract class CodeEditorServiceImpl extends editor.CodeEditorServiceImpl {
 			} :options.gutterIconPath,
 		} : {}, parentTypeKey);
 	}
-
 }
 
 const target = editor as typeof editor;

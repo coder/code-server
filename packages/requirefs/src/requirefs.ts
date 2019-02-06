@@ -13,7 +13,6 @@ export interface IFileReader {
  * RequireFS allows users to require from a file system.
  */
 export class RequireFS {
-
 	private readonly reader: IFileReader;
 	private readonly customModules: Map<string, { exports: object }>;
 	private readonly requireCache: Map<string, { exports: object }>;
@@ -126,7 +125,6 @@ export class RequireFS {
 
 		return stripPrefix(resolvedPath);
 	}
-
 }
 
 export const fromTar = (content: Uint8Array): RequireFS => {

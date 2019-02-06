@@ -8,7 +8,6 @@ import { retry } from "../retry";
  * messages during connection.
  */
 class Connection implements ReadWriteConnection {
-
 	private activeSocket: WebSocket | undefined;
 	private readonly messageEmitter: Emitter<Uint8Array> = new Emitter();
 	private readonly closeEmitter: Emitter<void> = new Emitter();
@@ -143,7 +142,6 @@ class Connection implements ReadWriteConnection {
 			this.activeSocket.close();
 		}
 	}
-
 }
 
 // Global instance so all fills can use the same client.

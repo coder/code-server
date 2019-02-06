@@ -3,9 +3,6 @@ import { Emitter } from "@coder/events";
 
 import "./dialog.scss";
 
-/**
- * Dialog options.
- */
 export interface IDialogOptions {
 	message?: string;
 	detail?: string;
@@ -24,16 +21,12 @@ export interface IDialogAction {
 	key?: IKey;
 }
 
-/**
- * Pressed keys.
- */
 export enum IKey {
 	Enter = "Enter",
 	Escape = "Escape",
 }
 
 export class Dialog {
-
 	private options: IDialogOptions;
 	private overlay: HTMLElement;
 	private cachedActiveElement: HTMLElement | undefined;
@@ -190,5 +183,4 @@ export class Dialog {
 			});
 		}
 	}
-
 }

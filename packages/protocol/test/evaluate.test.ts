@@ -7,7 +7,7 @@ describe("Evaluate", () => {
 		const value = await client.evaluate(function () {
 			return "hi";
 		});
-		
+
 		expect(value).toEqual("hi");
 	}, 100);
 
@@ -24,7 +24,7 @@ describe("Evaluate", () => {
 		const value = await client.evaluate((arg) => {
 			return arg.bananas * 2;
 		}, { bananas: 1 });
-		
+
 		expect(value).toEqual(2);
 	}, 100);
 
@@ -32,14 +32,14 @@ describe("Evaluate", () => {
 		const value = await client.evaluate(() => {
 			return { alpha: "beta" };
 		});
-		
+
 		expect(value.alpha).toEqual("beta");
 	}, 100);
 
 	it("should require", async () => {
 		const value = await client.evaluate(() => {
 			const fs = require("fs") as typeof import("fs");
-		
+
 			return Object.keys(fs).filter((f) => f === "readFileSync");
 		});
 

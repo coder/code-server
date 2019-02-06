@@ -9,7 +9,6 @@ type nodePtyType = typeof nodePty;
  * Implementation of nodePty for the browser.
  */
 class Pty implements nodePty.IPty {
-
 	private readonly emitter: EventEmitter;
 	private readonly cp: ChildProcess;
 
@@ -54,15 +53,12 @@ class Pty implements nodePty.IPty {
 	public kill(signal?: string): void {
 		this.emitter.emit("kill", signal);
 	}
-
 }
 
 const ptyType: nodePtyType = {
-
 	spawn: (file: string, args: string[] | string, options: nodePty.IPtyForkOptions): nodePty.IPty => {
 		return new Pty(file, args, options);
 	},
-
 };
 
 module.exports = ptyType;

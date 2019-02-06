@@ -1,5 +1,5 @@
 import * as vm from "vm";
-import { NewEvalMessage, TypedValue, EvalFailedMessage, EvalDoneMessage, ServerMessage, EvalEventMessage, ClientMessage } from "../proto";
+import { NewEvalMessage, TypedValue, EvalFailedMessage, EvalDoneMessage, ServerMessage, EvalEventMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
 import { EventEmitter } from "events";
 

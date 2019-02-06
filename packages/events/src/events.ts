@@ -8,7 +8,6 @@ export interface Event<T> {
  * Emitter typecasts for a single event type
  */
 export class Emitter<T> {
-
 	private listeners: Array<(e: T) => void> | undefined;
 
 	public constructor() {
@@ -56,5 +55,4 @@ export class Emitter<T> {
 	public get hasListeners(): boolean {
 		return !!this.listeners && this.listeners.length > 0;
 	}
-
 }

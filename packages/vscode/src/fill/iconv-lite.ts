@@ -2,7 +2,6 @@ import * as iconv from "../../node_modules/iconv-lite";
 import { Transform, TransformCallback } from "stream";
 
 class IconvLiteDecoderStream extends Transform {
-
 	// tslint:disable-next-line no-any
 	private conv: any;
 	private encoding: string;

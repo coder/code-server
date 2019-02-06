@@ -2,7 +2,6 @@ import { InitData } from "@coder/protocol";
 import { client } from "./client";
 
 class OS {
-
 	private _homedir: string | undefined;
 	private _tmpdir: string | undefined;
 
@@ -40,9 +39,9 @@ class OS {
 		if (navigator.appVersion.indexOf("Mac") != -1) {
 			return "darwin";
 		}
+
 		return "linux";
 	}
-
 }
 
 export = new OS();

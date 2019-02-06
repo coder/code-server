@@ -84,7 +84,6 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 document.createElement = newCreateElement;
 
 class Clipboard {
-
 	public has(): boolean {
 		return false;
 	}
@@ -92,21 +91,17 @@ class Clipboard {
 	public writeText(value: string): Promise<void> {
 		return clipboard.writeText(value);
 	}
-
 }
 
 class Shell {
-
 	public async moveItemToTrash(path: string): Promise<void> {
 		await promisify(exec)(
 			`trash-put --trash-dir ${escapePath("~/.Trash")} ${escapePath(path)}`,
 		);
 	}
-
 }
 
 class App extends EventEmitter {
-
 	public isAccessibilitySupportEnabled(): boolean {
 		return false;
 	}
@@ -114,11 +109,9 @@ class App extends EventEmitter {
 	public setAsDefaultProtocolClient(): void {
 		throw new Error("not implemented");
 	}
-
 }
 
 class Dialog {
-
 	public showSaveDialog(_: void, options: Electron.SaveDialogOptions, callback: (filename: string | undefined) => void): void {
 		const defaultPath = options.defaultPath || "/untitled";
 		const fileIndex = defaultPath.lastIndexOf("/");
@@ -203,11 +196,9 @@ class Dialog {
 		});
 		dialog.show();
 	}
-
 }
 
 class WebFrame {
-
 	public getZoomFactor(): number {
 		return 1;
 	}
@@ -219,19 +210,15 @@ class WebFrame {
 	public setZoomLevel(): void {
 		// Nothing.
 	}
-
 }
 
 class Screen {
-
 	public getAllDisplays(): [] {
 		return [];
 	}
-
 }
 
 class WebRequest extends EventEmitter {
-
 	public onBeforeRequest(): void {
 		throw new Error("not implemented");
 	}
@@ -243,28 +230,22 @@ class WebRequest extends EventEmitter {
 	public onHeadersReceived(): void {
 		throw new Error("not implemented");
 	}
-
 }
 
 class Session extends EventEmitter {
-
 	public webRequest = new WebRequest();
 
 	public resolveProxy(url: string, callback: (proxy: string) => void): void {
 		// TODO: not sure what this actually does.
 		callback(url);
 	}
-
 }
 
 class WebContents extends EventEmitter {
-
 	public session = new Session();
-
 }
 
 class BrowserWindow extends EventEmitter {
-
 	public webContents = new WebContents();
 	private representedFilename: string = "";
 
@@ -323,7 +304,6 @@ class BrowserWindow extends EventEmitter {
 	public setTitle(value: string): void {
 		document.title = value;
 	}
-
 }
 
 /**
@@ -331,7 +311,6 @@ class BrowserWindow extends EventEmitter {
  * example returns a boolean while we need a promise.
  */
 class ElectronFill {
-
 	public readonly shell = new Shell();
 	public readonly clipboard = new Clipboard();
 	public readonly app = new App();
@@ -382,7 +361,6 @@ class ElectronFill {
 		};
 	}
 	// tslint:enable no-any
-
 }
 
 module.exports = new ElectronFill();

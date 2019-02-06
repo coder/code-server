@@ -26,7 +26,6 @@ import { ServiceCollection } from "vs/platform/instantiation/common/serviceColle
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 
 export class Client extends IDEClient {
-
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
@@ -192,7 +191,6 @@ export class Client extends IDEClient {
 			this.clipboard.initialize();
 		}, this.initData, pathSets);
 	}
-
 }
 
 export const client = new Client();

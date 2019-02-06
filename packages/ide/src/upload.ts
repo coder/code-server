@@ -32,7 +32,6 @@ interface IEntry {
  * Handles file uploads.
  */
 export class Upload {
-
 	private readonly maxParallelUploads = 100;
 	private readonly readSize = 32000; // ~32kb max while reading in the file.
 	private readonly packetSize = 32000; // ~32kb max when writing.
@@ -353,7 +352,6 @@ export class Upload {
 			});
 		}
 	}
-
 }
 
 // Global instance.

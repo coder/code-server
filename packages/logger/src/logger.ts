@@ -12,7 +12,6 @@ export enum Level {
  * A field to log.
  */
 export class Field<T> {
-
 	public constructor(
 		public readonly identifier: string,
 		public readonly value: T,
@@ -27,19 +26,16 @@ export class Field<T> {
 			value: this.value,
 		};
 	}
-
 }
 
 /**
  * Represents the time something takes.
  */
 export class Time {
-
 	public constructor(
 		public readonly expected: number,
 		public readonly ms: number,
 	) { }
-
 }
 
 // tslint:disable-next-line no-any
@@ -117,7 +113,6 @@ const hashStringToColor = (str: string): string => {
  * currently built items and appends to that.
  */
 export abstract class Formatter {
-
 	protected format: string = "";
 	protected args: string[] = [];
 
@@ -159,14 +154,12 @@ export abstract class Formatter {
 				return "%s";
 		}
 	}
-
 }
 
 /**
  * Browser formatter.
  */
 export class BrowserFormatter extends Formatter {
-
 	public tag(name: string, color: string): void {
 		this.format += `%c ${name} `;
 		this.args.push(
@@ -207,14 +200,12 @@ export class BrowserFormatter extends Formatter {
 		// tslint:disable-next-line no-console
 		console.groupEnd();
 	}
-
 }
 
 /**
  * Server (Node) formatter.
  */
 export class ServerFormatter extends Formatter {
-
 	public tag(name: string, color: string): void {
 		const [r, g, b] = hexToRgb(color);
 		while (name.length < 5) {
@@ -250,14 +241,12 @@ export class ServerFormatter extends Formatter {
 		this.args.push(JSON.stringify(obj));
 		console.log(...this.flush()); // tslint:disable-line no-console
 	}
-
 }
 
 /**
  * Class for logging.
  */
 export class Logger {
-
 	public level = Level.Info;
 
 	private readonly nameColor?: string;
@@ -429,7 +418,6 @@ export class Logger {
 		}
 		// tslint:enable no-console
 	}
-
 }
 
 export const logger = new Logger(

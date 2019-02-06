@@ -14,7 +14,6 @@ import { client } from "../client";
  * the client. This setup means we can only control the current window.
  */
 class WindowsService implements IWindowsService {
-
 	// tslint:disable-next-line no-any
 	public _serviceBrand: any;
 
@@ -278,7 +277,6 @@ class WindowsService implements IWindowsService {
 	private getWindowById(_windowId: number): electron.BrowserWindow {
 		return this.window;
 	}
-
 }
 
 const target = windowsIpc as typeof windowsIpc;

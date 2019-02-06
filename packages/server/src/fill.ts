@@ -3,7 +3,7 @@ import * as util from "util";
 
 const oldAccess = fs.access;
 const existsWithinBinary = (path: fs.PathLike): Promise<boolean> => {
-	return new Promise<boolean>((resolve) => {
+	return new Promise<boolean>((resolve): void => {
 		if (typeof path === "number") {
 			if (path < 0) {
 				return resolve(true);
@@ -18,7 +18,7 @@ const existsWithinBinary = (path: fs.PathLike): Promise<boolean> => {
 	});
 };
 
-export const fillFs = () => {
+export const fillFs = (): void => {
 	/**
 	 * Refer to https://github.com/nexe/nexe/blob/master/src/fs/patch.ts
 	 * For impls

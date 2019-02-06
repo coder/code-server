@@ -5,7 +5,6 @@ const textDecoder = new (typeof TextDecoder === "undefined" ? require("text-enco
  * Tar represents a tar archive.
  */
 export class Tar {
-
 	/**
 	 * Return a tar object from a Uint8Array.
 	 */
@@ -42,14 +41,12 @@ export class Tar {
 	public get files(): ReadonlyMap<string, TarFile> {
 		return this._files;
 	}
-
 }
 
 /**
  * Represents a tar files location within a reader
  */
 export class TarFile {
-
 	/**
 	 * Locate a tar file from a reader.
 	 */
@@ -186,14 +183,12 @@ export class TarFile {
 	public read(): Uint8Array {
 		return this.reader.jump(this.data.offset).read(this.data.size);
 	}
-
 }
 
 /**
  * Reads within a Uint8Array.
  */
 export class Reader {
-
 	private array: Uint8Array;
 	private _offset: number;
 	private lastClamp: number;
@@ -281,5 +276,4 @@ export class Reader {
 
 		return data;
 	}
-
 }

@@ -9,7 +9,6 @@ import * as paths from "./paths";
 import { logger, field } from "@coder/logger";
 
 class StorageDatabase implements workspaceStorage.IStorageDatabase {
-
 	public readonly onDidChangeItemsExternal = Event.None;
 	private items = new Map<string, string>();
 	private fetched: boolean = false;
@@ -78,11 +77,9 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 		return promisify(writeFile)(this.path, JSON.stringify(json));
 	}
-
 }
 
 class GlobalStorageDatabase extends StorageDatabase implements IDisposable {
-
 	public constructor() {
 		super(path.join(paths.getAppDataPath(), "globalStorage", "state.vscdb"));
 	}
@@ -90,7 +87,6 @@ class GlobalStorageDatabase extends StorageDatabase implements IDisposable {
 	public dispose(): void {
 		// Nothing to do.
 	}
-
 }
 
 const workspaceTarget = workspaceStorage as typeof workspaceStorage;

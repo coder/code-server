@@ -20,7 +20,6 @@ export interface ServerOptions {
 }
 
 export class Server {
-
 	private readonly sessions: Map<number, Process> = new Map();
 	private readonly connections: Map<number, net.Socket> = new Map();
 	private readonly servers: Map<number, net.Server> = new Map();
@@ -250,5 +249,4 @@ export class Server {
 	private getSession(id: number): Process | undefined {
 		return this.sessions.get(id);
 	}
-
 }

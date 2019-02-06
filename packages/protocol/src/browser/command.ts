@@ -170,7 +170,6 @@ export interface Socket {
 }
 
 export class ServerSocket extends events.EventEmitter implements Socket {
-
 	public writable: boolean = true;
 	public readable: boolean = true;
 
@@ -276,7 +275,6 @@ export class ServerSocket extends events.EventEmitter implements Socket {
 	public setDefaultEncoding(encoding: string): this {
 		throw new Error("Method not implemented.");
 	}
-
 }
 
 export interface Server {
@@ -307,7 +305,6 @@ export interface Server {
 }
 
 export class ServerListener extends events.EventEmitter implements Server {
-
 	private _listening: boolean = false;
 
 	public constructor(
@@ -358,7 +355,6 @@ export class ServerListener extends events.EventEmitter implements Server {
 
 		return this;
 	}
-
 }
 
 export interface ActiveEval {

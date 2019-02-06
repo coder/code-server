@@ -1,5 +1,4 @@
 class NativeKeymap {
-
 	public getCurrentKeyboardLayout(): null {
 		return null;
 	}
@@ -7,7 +6,6 @@ class NativeKeymap {
 	public getKeyMap(): undefined[] {
 		return [];
 	}
-
 }
 
 export = new NativeKeymap();

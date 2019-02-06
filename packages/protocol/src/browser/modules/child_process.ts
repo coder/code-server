@@ -3,7 +3,6 @@ import { Client } from "../client";
 import { useBuffer } from "../../common/util";
 
 export class CP {
-
 	public constructor(
 		private readonly client: Client,
 	) { }
@@ -75,5 +74,4 @@ export class CP {
 			Array.isArray(args) || !args ? options : args,
 		);
 	}
-
 }

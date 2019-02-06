@@ -9,7 +9,6 @@ import { escapePath } from "@coder/protocol";
 // use that for the logging. Or maybe create an instance when the server starts,
 // and just always use that one (make it part of the protocol).
 export class RotatingLogger implements NodeRotatingLogger {
-
 	private format = true;
 	private buffer = "";
 	private flushPromise: Promise<void> | undefined;
@@ -178,7 +177,6 @@ export class RotatingLogger implements NodeRotatingLogger {
 			await this.rotate();
 		}
 	}
-
 }
 
 export const setAsyncMode = (): void => {

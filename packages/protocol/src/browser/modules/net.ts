@@ -7,7 +7,6 @@ type NodeNet = typeof net;
  * Implementation of net for the browser.
  */
 export class Net implements NodeNet {
-
 	public constructor(
 		private readonly client: Client,
 	) {}
@@ -51,5 +50,4 @@ export class Net implements NodeNet {
 	): net.Server {
 		return this.client.createServer() as net.Server;
 	}
-
 }

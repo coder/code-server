@@ -13,7 +13,6 @@ const getLabel = (key: string, enabled: boolean): string => {
 };
 
 export class PasteAction extends Action {
-
 	private static readonly KEY = "paste";
 
 	public constructor() {
@@ -30,11 +29,9 @@ export class PasteAction extends Action {
 			this.enabled = enabled;
 		});
 	}
-
 }
 
 class TerminalPasteAction extends Action {
-
 	private static readonly KEY = "workbench.action.terminal.paste";
 
 	public static readonly ID = TERMINAL_COMMAND_ID.PASTE;
@@ -61,11 +58,9 @@ class TerminalPasteAction extends Action {
 
 		return Promise.resolve();
 	}
-
 }
 
 class TerminalInstance extends instance.TerminalInstance {
-
 	public async paste(): Promise<void> {
 		this.focus();
 		if (clipboard.isEnabled) {
@@ -75,7 +70,6 @@ class TerminalInstance extends instance.TerminalInstance {
 			document.execCommand("paste");
 		}
 	}
-
 }
 
 const actionsTarget = actions as typeof actions;

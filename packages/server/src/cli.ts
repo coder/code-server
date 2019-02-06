@@ -8,11 +8,10 @@ import * as WebSocket from "ws";
 import { createApp } from "./server";
 import { requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
-import { setup as setupNativeModules } from './modules';
-import { fillFs } from './fill';
+import { setup as setupNativeModules } from "./modules";
+import { fillFs } from "./fill";
 
 export class Entry extends Command {
-
 	public static description = "Start your own self-hosted browser-accessible VS Code";
 	public static flags = {
 		cert: flags.string(),
@@ -167,7 +166,6 @@ export class Entry extends Command {
 		logger.info(`http://localhost:${flags.port}/`);
 		logger.info(" ");
 	}
-
 }
 
 Entry.run(undefined, {

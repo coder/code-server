@@ -4,7 +4,6 @@ import { IpcRenderer } from "electron";
 export * from "@coder/ide/src/fill/electron";
 
 class StdioIpcRenderer extends StdioIpcHandler implements IpcRenderer {
-
 	public sendTo(windowId: number, channel: string, ...args: any[]): void {
 		throw new Error("Method not implemented.");
 	}
@@ -16,7 +15,6 @@ class StdioIpcRenderer extends StdioIpcHandler implements IpcRenderer {
 	public eventNames(): string[] {
 		return super.eventNames() as string[];
 	}
-
 }
 
 export const ipcRenderer = new StdioIpcRenderer();

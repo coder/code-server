@@ -7,7 +7,6 @@ export interface IpcMessage {
 }
 
 export class StdioIpcHandler extends EventEmitter {
-
 	private isListening: boolean = false;
 
 	public constructor(
@@ -66,5 +65,4 @@ export class StdioIpcHandler extends EventEmitter {
 			process.stdin.on("data", onData);
 		}
 	}
-
 }

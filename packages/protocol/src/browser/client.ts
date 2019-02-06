@@ -9,7 +9,6 @@ import { EventEmitter } from "events";
  * Client accepts an arbitrary connection intended to communicate with the Server.
  */
 export class Client {
-
 	public Socket: typeof ServerSocket;
 
 	private evalId: number = 0;
@@ -453,5 +452,4 @@ export class Client {
 		}
 		this.connections.set(id, socket);
 	}
-
 }

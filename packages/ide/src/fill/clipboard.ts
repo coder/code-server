@@ -2,10 +2,9 @@ import { IDisposable } from "@coder/disposable";
 import { Emitter } from "@coder/events";
 
 /**
- * Native clipboard.
+ * Wrapper around the native clipboard with some fallbacks.
  */
 export class Clipboard {
-
 	private readonly enableEmitter: Emitter<boolean> = new Emitter();
 	private _isEnabled: boolean = false;
 
@@ -149,7 +148,6 @@ export class Clipboard {
 
 		return Promise.resolve();
 	}
-
 }
 
 // Global clipboard instance since it's used in the Electron fill.

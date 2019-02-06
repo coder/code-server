@@ -21,7 +21,6 @@ interface IRetryItem {
  * to the user explaining what is happening with an option to immediately retry.
  */
 export class Retry {
-
 	private items: Map<string, IRetryItem>;
 
 	// Times are in seconds.
@@ -284,7 +283,6 @@ export class Retry {
 		item.timeout = undefined;
 		item.end = undefined;
 	}
-
 }
 
 // Global instance so we can block other retries when retrying the main

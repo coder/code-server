@@ -19,7 +19,6 @@ declare var _Buffer: typeof Buffer;
  * _this somehow which the __awaiter helper uses.
  */
 export class FS {
-
 	public constructor(
 		private readonly client: Client,
 	) { }
@@ -686,11 +685,9 @@ export class FS {
 
 		return watcher;
 	}
-
 }
 
 class Watcher extends EventEmitter implements fs.FSWatcher {
-
 	public constructor(private readonly process: ChildProcess) {
 		super();
 	}
@@ -698,7 +695,6 @@ class Watcher extends EventEmitter implements fs.FSWatcher {
 	public close(): void {
 		this.process.kill();
 	}
-
 }
 
 interface IStats {
@@ -730,7 +726,6 @@ interface IStats {
 }
 
 class Stats implements fs.Stats {
-
 	public readonly atime: Date;
 	public readonly mtime: Date;
 	public readonly ctime: Date;
@@ -768,7 +763,6 @@ class Stats implements fs.Stats {
 	public toObject(): object {
 		return JSON.parse(JSON.stringify(this));
 	}
-
 }
 
 /**
@@ -776,7 +770,6 @@ class Stats implements fs.Stats {
  * Assumes that messages are split by newlines.
  */
 export class NewlineInputBuffer {
-
 	private callback: (msg: string) => void;
 	private buffer: string | undefined;
 
@@ -804,5 +797,4 @@ export class NewlineInputBuffer {
 			this.callback(lines[i]);
 		}
 	}
-
 }

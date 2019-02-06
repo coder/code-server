@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
-import { NewSessionMessage } from '@coder/protocol/src/proto';
+import { NewSessionMessage } from "@coder/protocol/src/proto";
 import { ChildProcess } from "child_process";
 import * as express from "express";
 //@ts-ignore
