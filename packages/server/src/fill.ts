@@ -138,17 +138,17 @@ export const fillFs = (): void => {
 		bytesRead: number;
 		buffer: Buffer;
 	}> => {
-			return new Promise((res, rej) => {
-				fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
-					if (err) {
-						return rej(err);
-					}
+		return new Promise((res, rej) => {
+			fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
+				if (err) {
+					return rej(err);
+				}
 
-					res({
-						bytesRead,
-						buffer,
-					});
+				res({
+					bytesRead,
+					buffer,
 				});
 			});
 		});
+	});
 };
