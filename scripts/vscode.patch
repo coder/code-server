@@ -9,21 +9,10 @@ index 457818a975..ad45ffe58a 100644
 +
 +startup({ machineId: "1" });
 diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
-index 5e43f1b39e..7775e3b6da 100644
+index 5e43f1b39e..a008d3ac7e 100644
 --- a/src/vs/editor/contrib/clipboard/clipboard.ts
 +++ b/src/vs/editor/contrib/clipboard/clipboard.ts
-@@ -16,6 +16,10 @@ import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
- import { MenuId } from 'vs/platform/actions/common/actions';
- import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
- import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
-+import { CodeEditorWidget } from "vs/editor/browser/widget/codeEditorWidget";
-+import { Handler } from "vs/editor/common/editorCommon";
-+import { ContextKeyExpr } from "vs/platform/contextkey/common/contextkey";
-+import { client } from "../../../../../../../packages/vscode";
- 
- const CLIPBOARD_CONTEXT_MENU_GROUP = '9_cutcopypaste';
- 
-@@ -26,7 +30,8 @@ const supportsCopyWithSyntaxHighlighting = (supportsCopy && !browser.isEdgeOrIE)
+@@ -26,7 +26,8 @@ const supportsCopyWithSyntaxHighlighting = (supportsCopy && !browser.isEdgeOrIE)
  // Chrome incorrectly returns true for document.queryCommandSupported('paste')
  // when the paste feature is available but the calling script has insufficient
  // privileges to actually perform the action
@@ -33,16 +22,21 @@ index 5e43f1b39e..7775e3b6da 100644
  
  type ExecCommand = 'cut' | 'copy' | 'paste';
  
-@@ -178,7 +183,7 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -174,11 +175,12 @@ class ExecCommandPasteAction extends ExecCommandAction {
+ 			kbOpts = null;
+ 		}
+ 
++		const { client } = require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode');
+ 		super('paste', {
  			id: 'editor.action.clipboardPasteAction',
  			label: nls.localize('actions.clipboard.pasteLabel', "Paste"),
  			alias: 'Paste',
 -			precondition: EditorContextKeys.writable,
-+			precondition: ContextKeyExpr.and(EditorContextKeys.writable, client.clipboardContextKey),
++			precondition: (require('vs/platform/contextkey/common/contextkey') as typeof import('vs/platform/contextkey/common/contextkey')).ContextKeyExpr.and(EditorContextKeys.writable, client.clipboardContextKey),
  			kbOpts: kbOpts,
  			menuOpts: {
  				group: CLIPBOARD_CONTEXT_MENU_GROUP,
-@@ -188,10 +193,25 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -188,10 +190,25 @@ class ExecCommandPasteAction extends ExecCommandAction {
  				menuId: MenuId.MenubarEditMenu,
  				group: '2_ccp',
  				title: nls.localize({ key: 'miPaste', comment: ['&& denotes a mnemonic'] }, "&&Paste"),
@@ -54,10 +48,10 @@ index 5e43f1b39e..7775e3b6da 100644
  	}
 +
 +	public async run(accessor, editor: ICodeEditor): Promise<void> {
-+		if (editor instanceof CodeEditorWidget) {
++		if (editor instanceof (require('vs/editor/browser/widget/codeEditorWidget') as typeof import('vs/editor/browser/widget/codeEditorWidget')).CodeEditorWidget) {
 +			try {
-+				editor.trigger('', Handler.Paste, {
-+					text: await client.clipboardText,
++				editor.trigger('', (require('vs/editor/common/editorCommon') as typeof import ('vs/editor/common/editorCommon')).Handler.Paste, {
++					text: await (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.clipboardText,
 +				});
 +			} catch (ex) {
 +				super.run(accessor, editor);
@@ -123,23 +117,15 @@ index e3efb95b75..163bc4c994 100644
  			return Promise.resolve(obj);
  		}
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index 38bf337a61..aae3a68ff5 100644
+index 38bf337a61..a6ee664a20 100644
 --- a/src/vs/workbench/browser/dnd.ts
 +++ b/src/vs/workbench/browser/dnd.ts
-@@ -31,6 +31,7 @@ import { IEditorService, IResourceEditor } from 'vs/workbench/services/editor/co
- import { Disposable } from 'vs/base/common/lifecycle';
- import { addDisposableListener, EventType } from 'vs/base/browser/dom';
- import { IEditorGroup } from 'vs/workbench/services/group/common/editorGroupsService';
-+import { client } from "../../../../../../packages/vscode";
- 
- export interface IDraggedResource {
- 	resource: URI;
-@@ -168,7 +169,7 @@ export class ResourcesDropHandler {
+@@ -168,7 +168,7 @@ export class ResourcesDropHandler {
  	handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup, afterDrop: (targetGroup: IEditorGroup) => void, targetIndex?: number): void {
  		const untitledOrFileResources = extractResources(event).filter(r => this.fileService.canHandleResource(r.resource) || r.resource.scheme === Schemas.untitled);
  		if (!untitledOrFileResources.length) {
 -			return;
-+			return client.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
++			return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
  		}
  
  		// Make the window active to handle the drop properly within
@@ -169,43 +155,27 @@ index a43d63aa51..438d0a8245 100644
  		});
  	});
 diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
-index ea348f3a04..7c943a71c2 100644
+index ea348f3a04..ada0003fea 100644
 --- a/src/vs/workbench/electron-browser/window.ts
 +++ b/src/vs/workbench/electron-browser/window.ts
-@@ -38,6 +38,7 @@ import { AccessibilitySupport, isRootUser, isWindows, isMacintosh } from 'vs/bas
- import product from 'vs/platform/node/product';
- import { INotificationService } from 'vs/platform/notification/common/notification';
- import { EditorServiceImpl } from 'vs/workbench/browser/parts/editor/editor';
-+import { client } from "../../../../../../packages/vscode";
- 
- const TextInputActions: IAction[] = [
- 	new Action('undo', nls.localize('undo', "Undo"), null, true, () => document.execCommand('undo') && Promise.resolve(true)),
-@@ -45,7 +46,7 @@ const TextInputActions: IAction[] = [
+@@ -45,7 +45,7 @@ const TextInputActions: IAction[] = [
  	new Separator(),
  	new Action('editor.action.clipboardCutAction', nls.localize('cut', "Cut"), null, true, () => document.execCommand('cut') && Promise.resolve(true)),
  	new Action('editor.action.clipboardCopyAction', nls.localize('copy', "Copy"), null, true, () => document.execCommand('copy') && Promise.resolve(true)),
 -	new Action('editor.action.clipboardPasteAction', nls.localize('paste', "Paste"), null, true, () => document.execCommand('paste') && Promise.resolve(true)),
-+	client.pasteAction,
++	(require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.pasteAction,
  	new Separator(),
  	new Action('editor.action.selectAll', nls.localize('selectAll', "Select All"), null, true, () => document.execCommand('selectAll') && Promise.resolve(true))
  ];
 diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
-index 35bc4a82b3..9cc84bdf28 100644
+index 35bc4a82b3..45e96001b6 100644
 --- a/src/vs/workbench/electron-browser/workbench.ts
 +++ b/src/vs/workbench/electron-browser/workbench.ts
-@@ -114,6 +114,7 @@ import { IWorkbenchThemeService } from 'vs/workbench/services/themes/common/work
- import { IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
- import { FileDialogService } from 'vs/workbench/services/dialogs/electron-browser/dialogService';
- import { LogStorageAction } from 'vs/platform/storage/node/storageService';
-+import { client } from "../../../../../../packages/vscode";
- 
- interface WorkbenchParams {
- 	configuration: IWindowConfiguration;
-@@ -248,6 +249,7 @@ export class Workbench extends Disposable implements IPartService {
+@@ -248,6 +248,7 @@ export class Workbench extends Disposable implements IPartService {
  		super();
  
  		this.workbenchParams = { configuration, serviceCollection };
-+		client.serviceCollection = serviceCollection;
++		(require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.serviceCollection = serviceCollection;
  
  		this.hasInitialFilesToOpen =
  			(configuration.filesToCreate && configuration.filesToCreate.length > 0) ||
@@ -223,50 +193,17 @@ index 8d182d18d9..69d51e1aea 100644
  					onTerminate();
  				}
 diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-index e600fb2f78..5d65a3124e 100644
+index e600fb2f78..1e0dc9a220 100644
 --- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-@@ -55,6 +55,7 @@ import { IDialogService, IConfirmationResult, IConfirmation, getConfirmMessage }
- import { INotificationService } from 'vs/platform/notification/common/notification';
- import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from 'vs/workbench/services/editor/common/editorService';
- import { fillInContextMenuActions } from 'vs/platform/actions/browser/menuItemActionItem';
-+import { client } from "../../../../../../../../../packages/vscode";
- 
- export class FileDataSource implements IDataSource {
- 	constructor(
-@@ -932,6 +933,7 @@ export class FileDragAndDrop extends SimpleFileResourceDragAndDrop {
+@@ -932,6 +932,7 @@ export class FileDragAndDrop extends SimpleFileResourceDragAndDrop {
  	}
  
  	private handleExternalDrop(tree: ITree, data: DesktopDragAndDropData, target: ExplorerItem | Model, originalEvent: DragMouseEvent): TPromise<void> {
-+		return client.handleExternalDrop(target, originalEvent);
++		return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent);
  		const droppedResources = extractResources(originalEvent.browserEvent as DragEvent, true);
  
  		// Check for dropped external files to be folders
-diff --git a/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts b/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
-index 2975294e75..73ffb6362d 100644
---- a/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
-+++ b/src/vs/workbench/parts/terminal/electron-browser/terminal.contribution.ts
-@@ -38,6 +38,7 @@ import { TerminalPanel } from 'vs/workbench/parts/terminal/electron-browser/term
- import { TerminalPickerHandler } from 'vs/workbench/parts/terminal/browser/terminalQuickOpen';
- import { setupTerminalCommands, TERMINAL_COMMAND_ID } from 'vs/workbench/parts/terminal/common/terminalCommands';
- import { setupTerminalMenu } from 'vs/workbench/parts/terminal/common/terminalMenu';
-+import { client } from "../../../../../../../../packages/vscode";
- 
- const quickOpenRegistry = (Registry.as<IQuickOpenRegistry>(QuickOpenExtensions.Quickopen));
- 
-@@ -434,9 +435,11 @@ actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(FocusPreviousTer
- actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(TerminalPasteAction, TerminalPasteAction.ID, TerminalPasteAction.LABEL, {
- 	primary: KeyMod.CtrlCmd | KeyCode.KEY_V,
- 	linux: { primary: KeyMod.CtrlCmd | KeyMod.Shift | KeyCode.KEY_V },
-+	win: { primary: KeyMod.CtrlCmd | KeyCode.KEY_V },
- 	// Don't apply to Mac since cmd+v works
- 	mac: { primary: 0 }
--}, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Paste into Active Terminal', category);
-+// }, KEYBINDING_CONTEXT_TERMINAL_FOCUS), 'Terminal: Paste into Active Terminal', category);
-+}, ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FOCUS, client.clipboardContextKey)), 'Terminal: Paste into Active Terminal', category);
- actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(SelectAllTerminalAction, SelectAllTerminalAction.ID, SelectAllTerminalAction.LABEL, {
- 	// Don't use ctrl+a by default as that would override the common go to start
- 	// of prompt shell binding
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..96d612f940 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
@@ -329,15 +266,14 @@ index 7b4e8721ac..96d612f940 100644
  
  			return codeEditorModel;
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-index 4cb7a231f3..d5a9c26673 100644
+index 4cb7a231f3..78c87d13f6 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-@@ -31,6 +31,8 @@ interface IExtensionCacheData {
+@@ -31,6 +31,7 @@ interface IExtensionCacheData {
  
  let _SystemExtensionsRoot: string | null = null;
  function getSystemExtensionsRoot(): string {
-+	const { client } = require("../../../../../../../../packages/vscode") as typeof import ("../../../../../../../../packages/vscode");
-+	return client.builtInExtensionsDirectory;
++	return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.builtInExtensionsDirectory;
  	if (!_SystemExtensionsRoot) {
  		_SystemExtensionsRoot = path.normalize(path.join(getPathFromAmdModule(require, ''), '..', 'extensions'));
  	}
