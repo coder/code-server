@@ -1,6 +1,5 @@
 const path = require("path");
 const environment = process.env.NODE_ENV || "development";
-const isCi = typeof process.env.CI !== "undefined";
 const HappyPack = require("happypack");
 const webpack = require("webpack");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
@@ -10,8 +9,6 @@ const root = path.join(__dirname, "..");
 module.exports = (options = {}) => ({
 	context: root,
 	devtool: "source-map",
-	// entry: "./packages/app/src/index.ts",
-	mode: isCi ? "production" : "development",
 	module: {
 		rules: [{
 			loader: "string-replace-loader",

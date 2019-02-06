@@ -9,7 +9,6 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 const merge = require("webpack-merge");
 
 module.exports = merge({
-	devtool: "source-map",
 	entry: "./packages/web/src/index.ts",
 	output: {
 		chunkFilename: "[name]-[hash:6].bundle.js",

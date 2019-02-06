@@ -6,6 +6,7 @@ const HappyPack = require("happypack");
 
 module.exports = merge({
 	devtool: "none",
+	mode: "development",
 	module: {
 		rules: [
 			{
@@ -56,6 +57,4 @@ module.exports = merge({
 			"process.env.CLI": `"${process.env.CLI ? "true" : "false"}"`,
 		}),
 	],
-}, require("../../scripts/webpack.general.config")(), {
-	mode: "development",
-});
+}, require("../../scripts/webpack.general.config")());
