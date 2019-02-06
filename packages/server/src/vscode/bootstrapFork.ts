@@ -33,9 +33,6 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
 		return customMod.require(id);
 	};
 
-	// Always do this so we can see console.logs.
-	// process.env.VSCODE_ALLOW_IO = "true";
-
 	let content: Buffer | undefined;
 	const readFile = (name: string): Buffer => {
 		return fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", name));
