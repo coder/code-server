@@ -1,4 +1,5 @@
 const path = require("path");
+const os = require("os");
 const environment = process.env.NODE_ENV || "development";
 const HappyPack = require("happypack");
 const webpack = require("webpack");
@@ -103,7 +104,7 @@ module.exports = (options = {}) => ({
 	plugins: [
 		new HappyPack({
 			id: "ts",
-			threads: 10,
+			threads: os.cpus().length - 1,
 			loaders: [{
 				path: "ts-loader",
 				query: {
