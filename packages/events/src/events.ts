@@ -5,14 +5,10 @@ export interface Event<T> {
 }
 
 /**
- * Emitter typecasts for a single event type
+ * Emitter typecasts for a single event type.
  */
 export class Emitter<T> {
-	private listeners: Array<(e: T) => void> | undefined;
-
-	public constructor() {
-		this.listeners = [];
-	}
+	private listeners = <Array<(e: T) => void>>[];
 
 	public get event(): Event<T> {
 		return (cb: (e: T) => void): IDisposable => {
@@ -34,7 +30,7 @@ export class Emitter<T> {
 	}
 
 	/**
-	 * Emit a value
+	 * Emit an event with a value.
 	 */
 	public emit(value: T): void {
 		if (this.listeners) {
@@ -43,16 +39,9 @@ export class Emitter<T> {
 	}
 
 	/**
-	 * Disposes the event emitter
+	 * Dispose the current events.
 	 */
 	public dispose(): void {
-		this.listeners = undefined;
-	}
-
-	/**
-	 * Whether the event has listeners.
-	 */
-	public get hasListeners(): boolean {
-		return !!this.listeners && this.listeners.length > 0;
+		this.listeners = [];
 	}
 }
