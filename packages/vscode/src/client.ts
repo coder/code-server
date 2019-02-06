@@ -30,6 +30,15 @@ export class Client extends IdeClient {
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
+	private _builtInExtensionsDirectory: string | undefined;
+
+	public get builtInExtensionsDirectory(): string {
+		if (!this._builtInExtensionsDirectory) {
+			throw new Error("trying to access builtin extensions directory before it has been set");
+		}
+
+		return this._builtInExtensionsDirectory;
+	}
 
 	public async handleExternalDrop(target: ExplorerItem | Model, originalEvent: DragMouseEvent): Promise<void> {
 		await this.upload.uploadDropped(
@@ -157,6 +166,7 @@ export class Client extends IdeClient {
 		return this.task("Start workbench", 1000, async (data) => {
 			paths._paths.appData = data.dataDirectory;
 			paths._paths.defaultUserData = data.dataDirectory;
+			this._builtInExtensionsDirectory = data.builtInExtensionsDirectory;
 			process.env.SHELL = data.shell;
 
 			const { startup } = require("./startup");

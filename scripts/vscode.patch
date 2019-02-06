@@ -328,6 +328,19 @@ index 7b4e8721ac..96d612f940 100644
  			}
  
  			return codeEditorModel;
+diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
+index 4cb7a231f3..d5a9c26673 100644
+--- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
++++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
+@@ -31,6 +31,8 @@ interface IExtensionCacheData {
+ 
+ let _SystemExtensionsRoot: string | null = null;
+ function getSystemExtensionsRoot(): string {
++	const { client } = require("../../../../../../../../packages/vscode") as typeof import ("../../../../../../../../packages/vscode");
++	return client.builtInExtensionsDirectory;
+ 	if (!_SystemExtensionsRoot) {
+ 		_SystemExtensionsRoot = path.normalize(path.join(getPathFromAmdModule(require, ''), '..', 'extensions'));
+ 	}
 diff --git a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
 index 5b4136989f..25ccc0fe9e 100644
 --- a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
