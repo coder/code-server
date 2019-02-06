@@ -16,7 +16,7 @@ import { IURIFactory } from "./fill/uri";
  *
  * It also provides task management to help asynchronously load and time code.
  */
-export abstract class Client {
+export abstract class IdeClient {
 	public readonly retry = retry;
 	public readonly clipboard = clipboard;
 	public readonly uriFactory: IURIFactory;

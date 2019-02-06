@@ -11,7 +11,7 @@ import "./fill/workbenchRegistry";
 import { PasteAction } from "./fill/paste";
 import "./fill/dom";
 import "./vscode.scss";
-import { Client as IDEClient, IURI, IURIFactory, IProgress, INotificationHandle } from "@coder/ide";
+import { IdeClient, IURI, IURIFactory, IProgress, INotificationHandle } from "@coder/ide";
 import { registerContextMenuListener } from "vs/base/parts/contextmenu/electron-main/contextmenu";
 import { LogLevel } from "vs/platform/log/common/log";
 import { URI } from "vs/base/common/uri";
@@ -25,7 +25,7 @@ import { IWindowsService } from "vs/platform/windows/common/windows";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 
-export class Client extends IDEClient {
+export class Client extends IdeClient {
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
