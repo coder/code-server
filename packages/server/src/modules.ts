@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import { isCli, buildDir } from "./constants";
 
 declare var __non_webpack_require__: typeof require;
 
@@ -7,7 +8,7 @@ declare var __non_webpack_require__: typeof require;
  * Handling of native modules within the CLI
  */
 export const setup = (dataDirectory: string): void => {
-	if (!process.env.CLI) {
+	if (!isCli) {
 		return;
 	}
 
@@ -20,7 +21,7 @@ export const setup = (dataDirectory: string): void => {
 	}
 
 	const unpackModule = (moduleName: string): void => {
-		const memFile = path.join(process.env.BUILD_DIR!, "build/modules", moduleName + ".node");
+		const memFile = path.join(buildDir!, "build/modules", moduleName + ".node");
 		const diskFile = path.join(dataDirectory, "modules", moduleName + ".node");
 		if (!fs.existsSync(diskFile)) {
 			fs.writeFileSync(diskFile, fs.readFileSync(memFile));

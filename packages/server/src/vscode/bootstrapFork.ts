@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as zlib from "zlib";
 import * as vm from "vm";
+import { isCli } from "../constants";
 
 export const requireModule = (modulePath: string, builtInExtensionsDir: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
@@ -37,7 +38,7 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
 	const readFile = (name: string): Buffer => {
 		return fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", name));
 	};
-	if (process.env.CLI) {
+	if (isCli) {
 		content = zlib.gunzipSync(readFile("bootstrap-fork.js.gz"));
 	} else {
 		content = readFile("../resources/bootstrap-fork.js");
@@ -63,7 +64,7 @@ export const forkModule = (modulePath: string, env?: NodeJS.ProcessEnv): cp.Chil
 	const options: cp.SpawnOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
-	if (process.env.CLI === "true") {
+	if (isCli) {
 		proc = cp.execFile(process.execPath, args, options);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...args], options);

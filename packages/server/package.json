@@ -8,7 +8,7 @@
 		"build:webpack": "rm -rf ./out && export CLI=true && ../../node_modules/.bin/webpack --config ./webpack.config.js",
 		"build:nexe": "node scripts/nexe.js",
 		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; mkdir -p ./packages/server/resources; cp ./bin/bootstrap-fork.js ../server/resources/bootstrap-fork.js",
-		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && mkdir -p ./packages/server/resources; cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/resources/extensions/",
+		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && mkdir -p ./packages/server/resources/extensions; cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/resources/extensions/",
 		"build:web": "cd ../web; rm -rf ./out; NODE_ENV=production npm run build; rm -rf ../server/resources/web; mkdir -p ../server/resources/web; cp -r ./out/* ../server/resources/web",
 		"build": "npm run build:bootstrap-fork && npm run build:webpack && npm run build:nexe"
 	},

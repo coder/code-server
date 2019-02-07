@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as util from "util";
+import { isCli } from "./constants";
 
 const oldAccess = fs.access;
 const existsWithinBinary = (path: fs.PathLike): Promise<boolean> => {
@@ -24,7 +25,7 @@ export const fillFs = (): void => {
 	 * For impls
 	 */
 
-	if (!process.env.CLI) {
+	if (!isCli) {
 		throw new Error("Should not fill FS when not in CLI");
 	}
 

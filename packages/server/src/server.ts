@@ -13,6 +13,7 @@ import * as path from "path";
 import * as util from "util";
 import * as ws from "ws";
 import { forkModule } from "./vscode/bootstrapFork";
+import { isCli, buildDir } from "./constants";
 
 export const createApp = (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions): {
 	readonly express: express.Application;
@@ -69,8 +70,8 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 		} : undefined);
 	});
 
-	const baseDir = process.env.BUILD_DIR || path.join(__dirname, "..");
-	if (process.env.CLI) {
+	const baseDir = buildDir || path.join(__dirname, "..");
+	if (isCli) {
 		app.use(expressStaticGzip(path.join(baseDir, "build/web")));
 	} else {
 		app.use(express.static(path.join(baseDir, "resources/web")));
@@ -84,16 +85,14 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			// }
 			const exists = fs.existsSync(fullPath);
 			if (!exists) {
-				res.status(404).end();
-				return;
+				return res.status(404).end();
 			}
 			const stat = await util.promisify(fs.stat)(fullPath);
 			if (!stat.isFile()) {
 				res.write("Resource must be a file.");
 				res.status(422);
-				res.end();
 
-				return;
+				return res.end();
 			}
 			let mimeType = mime.lookup(fullPath);
 			if (mimeType === false) {

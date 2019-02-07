@@ -10,6 +10,7 @@ import { requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
+import { isCli, serveStatic, buildDir } from "./constants";
 
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
@@ -50,7 +51,7 @@ export class Entry extends Command {
 			logger.warn("Failed to remove extracted dependency.", field("dependency", "spdlog"), field("error", ex.message));
 		}
 
-		if (process.env.CLI) {
+		if (isCli) {
 			fillFs();
 		}
 
@@ -60,7 +61,7 @@ export class Entry extends Command {
 			Object.assign(process.env, JSON.parse(flags.env));
 		}
 
-		const builtInExtensionsDir = path.join(process.env.BUILD_DIR || path.join(__dirname, ".."), "build/extensions");
+		const builtInExtensionsDir = path.join(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
 			if (!modulePath) {
@@ -74,8 +75,8 @@ export class Entry extends Command {
 		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
 		const workingDir = args["workdir"];
 
-		if (process.env.BUILD_DIR && process.env.BUILD_DIR.startsWith(workingDir)) {
-			logger.error("Cannot run binary inside of BUILD_DIR", field("build_dir", process.env.BUILD_DIR), field("cwd", process.cwd()));
+		if (buildDir && buildDir.startsWith(workingDir)) {
+			logger.error("Cannot run binary inside of BUILD_DIR", field("build_dir", buildDir), field("cwd", process.cwd()));
 			process.exit(1);
 		}
 
@@ -114,7 +115,7 @@ export class Entry extends Command {
 
 				next();
 			});
-			if ((process.env.CLI === "false" || !process.env.CLI) && !process.env.SERVE_STATIC) {
+			if (!isCli && !serveStatic) {
 				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
 				const compiler = require("webpack")(webpackConfig);
 				app.use(require("webpack-dev-middleware")(compiler, {
@@ -163,6 +164,6 @@ export class Entry extends Command {
 }
 
 Entry.run(undefined, {
-	root: process.env.BUILD_DIR as string || __dirname,
+	root: buildDir || __dirname,
 	//@ts-ignore
 }).catch(require("@oclif/errors/handle"));

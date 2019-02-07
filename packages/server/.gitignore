@@ -1,5 +1,6 @@
 out
 cli*
+!cli.ts
 build
 resources
 
