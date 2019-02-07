@@ -79,11 +79,10 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 			_Buffer: Buffer,
 			require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
 			_require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
-			tslib_1: require("tslib"), // TODO: is there a better way to do this?
 			setTimeout,
 		}, {
-				timeout: message.getTimeout() || 15000,
-			});
+			timeout: message.getTimeout() || 15000,
+		});
 		if (eventEmitter) {
 			// Is an active evaluation and should NOT be ended
 			eventEmitter.on("close", () => onDispose());

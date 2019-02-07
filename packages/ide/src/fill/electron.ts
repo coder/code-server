@@ -1,12 +1,13 @@
 /// <reference path="../../../../lib/vscode/src/typings/electron.d.ts" />
-import { exec } from "child_process";
 import { EventEmitter } from "events";
 import * as fs from "fs";
-import { promisify } from "util";
 import { logger, field } from "@coder/logger";
-import { escapePath } from "@coder/protocol";
 import { IKey, Dialog as DialogBox } from "./dialog";
 import { clipboard } from "./clipboard";
+import { client } from "./client";
+
+// Use this to get around Webpack inserting our fills.
+declare var _require: typeof require;
 
 // tslint:disable-next-line no-any
 (global as any).getOpenUrls = (): string[] => {
@@ -97,9 +98,11 @@ class Clipboard {
 
 class Shell {
 	public async moveItemToTrash(path: string): Promise<void> {
-		await promisify(exec)(
-			`trash-put --trash-dir ${escapePath("~/.Trash")} ${escapePath(path)}`,
-		);
+		await client.evaluate((path) => {
+			const trash = _require("trash") as typeof import("trash");
+
+			return trash(path);
+		}, path);
 	}
 }
 

@@ -48,7 +48,7 @@ module.exports = merge({
 		__dirname: false,
 		setImmediate: false
 	},
-	externals: ["spdlog", "tslib"],
+	externals: ["spdlog", "tslib", "trash"],
 	entry: "./packages/server/src/cli.ts",
 	target: "node",
 	plugins: [
