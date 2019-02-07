@@ -41,20 +41,30 @@ export interface IProgressService {
 }
 
 /**
- * Temporary notification service.
+ * Console-based notification service.
  */
 export class NotificationService implements INotificationService {
 	public error(error: Error): void {
 		logger.error(error.message, field("error", error));
 	}
 
-	public prompt(_severity: Severity, message: string, _buttons: INotificationButton[], _onCancel: () => void): INotificationHandle {
-		throw new Error(`cannot prompt using the console: ${message}`);
+	public prompt(severity: Severity, message: string, _buttons: INotificationButton[], _onCancel: () => void): INotificationHandle {
+		switch (severity) {
+			case Severity.Info: logger.info(message); break;
+			case Severity.Warning: logger.warn(message); break;
+			case Severity.Error: logger.error(message); break;
+		}
+
+		return {
+			close: (): void => undefined,
+			updateMessage: (): void => undefined,
+			updateButtons: (): void => undefined,
+		};
 	}
 }
 
 /**
- * Temporary progress service.
+ * Console-based progress service.
  */
 export class ProgressService implements IProgressService {
 	public start<T>(title: string, task: (progress: IProgress) => Promise<T>): Promise<T> {

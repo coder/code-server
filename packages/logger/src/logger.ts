@@ -38,8 +38,10 @@ export class Time {
 	) { }
 }
 
+// `undefined` is allowed to make it easy to conditionally display a field.
+// For example: `error && field("error", error)`
 // tslint:disable-next-line no-any
-export type FieldArray = Array<Field<any>>;
+export type FieldArray = Array<Field<any> | undefined>;
 
 // Functions can be used to remove the need to perform operations when the
 // logging level won't output the result anyway.
@@ -338,9 +340,9 @@ export class Logger {
 			passedFields = values as FieldArray;
 		}
 
-		const fields = this.defaultFields
-			? passedFields.concat(this.defaultFields)
-			: passedFields;
+		const fields = (this.defaultFields
+			? passedFields.filter((f) => !!f).concat(this.defaultFields)
+			: passedFields.filter((f) => !!f)) as Array<Field<any>>; // tslint:disable-line no-any
 
 		const now = Date.now();
 		let times: Array<Field<Time>> = [];

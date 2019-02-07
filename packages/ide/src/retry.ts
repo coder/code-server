@@ -1,4 +1,4 @@
-import { logger } from "@coder/logger";
+import { logger, field } from "@coder/logger";
 import { NotificationService, INotificationHandle, INotificationService, Severity } from "./fill/notification";
 
 interface IRetryItem {
@@ -105,7 +105,7 @@ export class Retry {
 	/**
 	 * Retry a service.
 	 */
-	public run(name: string): void {
+	public run(name: string, error?: Error): void {
 		if (!this.items.has(name)) {
 			throw new Error(`"${name}" is not registered`);
 		}
@@ -117,7 +117,7 @@ export class Retry {
 
 		item.running = true;
 		// This timeout is for the case when the connection drops; this allows time
-		// for the Wush service to come in and block everything because some other
+		// for the socket service to come in and block everything because some other
 		// services might make it here first and try to restart, which will fail.
 		setTimeout(() => {
 			if (this.blocked && this.blocked !== name) {
@@ -125,7 +125,7 @@ export class Retry {
 			}
 
 			if (!item.count || item.count < this.maxImmediateRetries) {
-				return this.runItem(name, item);
+				return this.runItem(name, item, error);
 			}
 
 			if (!item.delay) {
@@ -137,10 +137,10 @@ export class Retry {
 				}
 			}
 
-			logger.info(`Retrying ${name.toLowerCase()} in ${item.delay}s`);
+			logger.info(`Retrying ${name.toLowerCase()} in ${item.delay}s`, error && field("error", error.message));
 			const itemDelayMs = item.delay * 1000;
 			item.end = Date.now() + itemDelayMs;
-			item.timeout = setTimeout(() => this.runItem(name, item), itemDelayMs);
+			item.timeout = setTimeout(() => this.runItem(name, item, error), itemDelayMs);
 
 			this.updateNotification();
 		}, this.waitDelay);
@@ -165,7 +165,7 @@ export class Retry {
 	/**
 	 * Run an item.
 	 */
-	private runItem(name: string, item: IRetryItem): void {
+	private runItem(name: string, item: IRetryItem, error?: Error): void {
 		if (!item.count) {
 			item.count = 1;
 		} else {
@@ -175,7 +175,7 @@ export class Retry {
 		const retryCountText = item.count <= this.maxImmediateRetries
 			? `[${item.count}/${this.maxImmediateRetries}]`
 			: `[${item.count}]`;
-		logger.info(`Trying ${name.toLowerCase()} ${retryCountText}...`);
+		logger.info(`Starting ${name.toLowerCase()} ${retryCountText}...`, error && field("error", error.message));
 
 		const endItem = (): void => {
 			this.stopItem(item);

@@ -6,7 +6,8 @@ import { forkModule } from "./bootstrapFork";
 import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { LogLevel } from "vs/platform/log/common/log";
-import { Emitter, Event } from "@coder/events/src";
+import { Emitter } from "@coder/events/src";
+import { retry } from "@coder/ide/src/retry";
 
 export enum SharedProcessState {
 	Stopped,
@@ -28,12 +29,14 @@ export class SharedProcess {
 	private ipcHandler: StdioIpcHandler | undefined;
 	private readonly onStateEmitter = new Emitter<SharedProcessEvent>();
 	public readonly onState = this.onStateEmitter.event;
+	private readonly retryName = "Shared process";
 
 	public constructor(
 		private readonly userDataDir: string,
 		private readonly builtInExtensionsDir: string,
 	) {
-		this.restart();
+		retry.register(this.retryName, () => this.restart());
+		retry.run(this.retryName);
 	}
 
 	public get state(): SharedProcessState {
@@ -73,7 +76,7 @@ export class SharedProcess {
 					state: SharedProcessState.Stopped,
 				});
 			}
-			this.restart();
+			retry.run(this.retryName, new Error(`Exited with ${err}`));
 		});
 		this.ipcHandler = new StdioIpcHandler(this.activeProcess);
 		this.ipcHandler.once("handshake:hello", () => {
@@ -94,6 +97,7 @@ export class SharedProcess {
 		});
 		this.ipcHandler.once("handshake:im ready", () => {
 			resolved = true;
+			retry.recover(this.retryName);
 			this.setState({
 				state: SharedProcessState.Ready,
 			});

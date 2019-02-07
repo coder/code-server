@@ -92,7 +92,6 @@ export class Entry extends Command {
 		logger.info("Additional documentation: https://coder.com/docs");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
 		const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
-		logger.info("Starting shared process...", field("socket", sharedProcess.socketPath));
 		const sendSharedProcessReady = (socket: WebSocket): void => {
 			const active = new SharedProcessActiveMessage();
 			active.setSocketPath(sharedProcess.socketPath);
@@ -102,12 +101,7 @@ export class Entry extends Command {
 			socket.send(serverMessage.serializeBinary());
 		};
 		sharedProcess.onState((event) => {
-			if (event.state === SharedProcessState.Stopped) {
-				logger.error("Shared process stopped. Restarting...", field("error", event.error));
-			} else if (event.state === SharedProcessState.Starting) {
-				logger.info("Starting shared process...");
-			} else if (event.state === SharedProcessState.Ready) {
-				logger.info("Shared process is ready!");
+			if (event.state === SharedProcessState.Ready) {
 				app.wss.clients.forEach((c) => sendSharedProcessReady(c));
 			}
 		});
