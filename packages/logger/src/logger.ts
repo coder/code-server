@@ -2,10 +2,11 @@
  * Log level.
  */
 export enum Level {
-	Debug = 0,
-	Info = 1,
-	Warn = 2,
-	Error = 3,
+	Trace,
+	Debug,
+	Info,
+	Warning,
+	Error,
 }
 
 /**
@@ -229,7 +230,7 @@ export class Logger {
 			switch (envLevel) {
 				case "debug": this.level = Level.Debug; break;
 				case "info": this.level = Level.Info; break;
-				case "warn": this.level = Level.Warn; break;
+				case "warn": this.level = Level.Warning; break;
 				case "error": this.level = Level.Error; break;
 			}
 		}
@@ -272,7 +273,7 @@ export class Logger {
 			message,
 			fields,
 			tagColor: "#FF9D00",
-			level: Level.Warn,
+			level: Level.Warning,
 		});
 	}
 

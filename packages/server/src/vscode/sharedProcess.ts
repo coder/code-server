@@ -5,9 +5,9 @@ import * as path from "path";
 import { forkModule } from "./bootstrapFork";
 import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
-import { LogLevel } from "vs/platform/log/common/log";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
+import { logger, Level } from "@coder/logger";
 
 export enum SharedProcessState {
 	Stopped,
@@ -80,30 +80,17 @@ export class SharedProcess {
 		});
 		this.ipcHandler = new StdioIpcHandler(this.activeProcess);
 		this.ipcHandler.once("handshake:hello", () => {
-			let logLevel = LogLevel.Warning;
-			const envLevel = typeof global !== "undefined" && typeof global.process !== "undefined" ? global.process.env.LOG_LEVEL : process.env.LOG_LEVEL;
-			if (envLevel) {
-				switch (envLevel) {
-					case "trace": logLevel = LogLevel.Trace; break;
-					case "debug": logLevel = LogLevel.Debug; break;
-					case "info": logLevel = LogLevel.Info; break;
-					case "warn": logLevel = LogLevel.Warning; break;
-					case "error": logLevel = LogLevel.Error; break;
-					case "critical": logLevel = LogLevel.Critical; break;
-					case "off": logLevel = LogLevel.Off; break;
-				}
-			}
 			const data: {
 				sharedIPCHandle: string;
 				args: Partial<ParsedArgs>;
-				logLevel: LogLevel;
+				logLevel: Level;
 			} = {
 				args: {
 					"builtin-extensions-dir": this.builtInExtensionsDir,
 					"user-data-dir": this.userDataDir,
 					"extensions-dir": extensionsDir,
 				},
-				logLevel,
+				logLevel: logger.level,
 				sharedIPCHandle: this.socketPath,
 			};
 			this.ipcHandler!.send("handshake:hey there", "", data);
