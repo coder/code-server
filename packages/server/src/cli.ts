@@ -115,6 +115,8 @@ export class Entry extends Command {
 
 				next();
 			});
+			// If we're not running from the binary and we aren't serving the static
+			// pre-built version, use webpack to serve the web files.
 			if (!isCli && !serveStatic) {
 				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
 				const compiler = require("webpack")(webpackConfig);
