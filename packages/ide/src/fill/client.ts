@@ -7,7 +7,7 @@ import { retry } from "../retry";
  * A connection based on a web socket. Automatically reconnects and buffers
  * messages during connection.
  */
-class Connection implements ReadWriteConnection {
+class WebsocketConnection implements ReadWriteConnection {
 	private activeSocket: WebSocket | undefined;
 	private readonly messageBuffer = <Uint8Array[]>[];
 	private readonly socketTimeoutDelay = 60 * 1000;
@@ -129,4 +129,4 @@ class Connection implements ReadWriteConnection {
 }
 
 // Global instance so all fills can use the same client.
-export const client = new Client(new Connection());
+export const client = new Client(new WebsocketConnection());

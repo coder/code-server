@@ -116,7 +116,7 @@ class FS {
 		const ae = this.client.run((ae, path, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const str = fs.createWriteStream(path, options);
-			ae.on("write", (d) => str.write(_Buffer.from(d, "utf8")));
+			ae.on("write", (d: string) => str.write(_Buffer.from(d, "utf8")));
 			ae.on("close", () => str.close());
 			str.on("close", () => ae.emit("close"));
 			str.on("open", (fd) => ae.emit("open", fd));
@@ -141,7 +141,7 @@ class FS {
 					},
 				});
 
-				ae.on("open", (a) => this.emit("open", a));
+				ae.on("open", (fd: number) => this.emit("open", fd));
 				ae.on("close", () => this.emit("close"));
 			}
 
@@ -597,7 +597,15 @@ class FS {
 		});
 	}
 
-	public write = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number | undefined, length: number | undefined, position: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), callback?: (err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void): void => {
+	public write = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), length: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), position: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), callback?: (err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void): void => {
+		if (typeof offset === "function") {
+			callback = offset;
+			offset = undefined;
+		}
+		if (typeof length === "function") {
+			callback = length;
+			length = undefined;
+		}
 		if (typeof position === "function") {
 			callback = position;
 			position = undefined;
@@ -662,9 +670,9 @@ class FS {
 		return new class Watcher extends EventEmitter implements fs.FSWatcher {
 			public constructor() {
 				super();
-				ae.on("change", (event, filename) => this.emit("change", event, filename));
-				ae.on("error", (error) => this.emit("error", error));
-				ae.on("listener", (event, filename) => listener && listener(event, filename));
+				ae.on("change", (event: string, filename: string) => this.emit("change", event, filename));
+				ae.on("error", (error: Error) => this.emit("error", error));
+				ae.on("listener", (event: string, filename: string) => listener && listener(event, filename));
 			}
 
 			public close(): void {

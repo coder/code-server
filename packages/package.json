@@ -23,7 +23,7 @@
     ],
     "moduleNameMapper": {
       "^.+\\.(s?css|png|svg)$": "<rootDir>/../scripts/dummy.js",
-      "@coder/(.*)/testing": "<rootDir>/$1/testing",
+      "@coder/(.*)/test": "<rootDir>/$1/test",
       "@coder/(.*)": "<rootDir>/$1/src"
     },
     "transform": {

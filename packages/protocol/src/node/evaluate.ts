@@ -80,7 +80,14 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 			// tslint:enable no-any
 		} : undefined,
 		_Buffer: Buffer,
+		// When the client is ran from Webpack, it will replace
+		// __non_webpack_require__ with require, which we then need to provide to
+		// the sandbox. Since the server might also be using Webpack, we need to set
+		// it to the non-Webpack version when that's the case. Then we need to also
+		// provide __non_webpack_require__ for when the client doesn't run through
+		// Webpack meaning it doesn't get replaced with require (Jest for example).
 		require: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
+		__non_webpack_require__: typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require,
 		setTimeout,
 		setInterval,
 		clearTimeout,

@@ -1,4 +1,4 @@
 export * from "./browser/client";
-export { ActiveEval } from "./browser/command";
+export * from "./browser/evaluate";
 export * from "./common/connection";
 export * from "./common/util";

@@ -1,5 +1,10 @@
 {
   "name": "@coder/ide",
   "description": "Browser-based IDE client abstraction.",
-  "main": "src/index.ts"
+  "main": "src/index.ts",
+  "dependencies": {},
+  "devDependencies": {
+    "@types/rimraf": "^2.0.2",
+    "rimraf": "^2.6.3"
+  }
 }
