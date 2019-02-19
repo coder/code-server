@@ -1,22 +1,9 @@
 syntax = "proto3";
-import "command.proto";
 import "node.proto";
 import "vscode.proto";
 
 message ClientMessage {
 	oneof msg {
-		// command.proto
-		NewSessionMessage new_session = 1;
-		ShutdownSessionMessage shutdown_session = 2;
-		WriteToSessionMessage write_to_session = 3;
-		CloseSessionInputMessage close_session_input = 4;
-		ResizeSessionTTYMessage resize_session_tty = 5;
-		NewConnectionMessage new_connection = 6;
-		ConnectionOutputMessage connection_output = 7;
-		ConnectionCloseMessage connection_close = 8;
-		NewServerMessage new_server = 9;
-		ServerCloseMessage server_close = 10;
-
 		// node.proto
 		NewEvalMessage new_eval = 11;
 		EvalEventMessage eval_event = 12;
@@ -25,20 +12,6 @@ message ClientMessage {
 
 message ServerMessage {
 	oneof msg {
-		// command.proto
-		NewSessionFailureMessage new_session_failure = 1;
-		SessionDoneMessage session_done = 2;
-		SessionOutputMessage session_output = 3;
-		IdentifySessionMessage identify_session = 4;
-		NewConnectionFailureMessage connection_failure = 5;
-		ConnectionOutputMessage connection_output = 6;
-		ConnectionCloseMessage connection_close = 7;
-		ConnectionEstablishedMessage connection_established = 8;
-		NewServerFailureMessage server_failure = 9;
-		ServerEstablishedMessage server_established = 10;
-		ServerCloseMessage server_close = 11;
-		ServerConnectionEstablishedMessage server_connection_established = 12;
-	
 		// node.proto
 		EvalFailedMessage eval_failed = 13;
 		EvalDoneMessage eval_done = 14;

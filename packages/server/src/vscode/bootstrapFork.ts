@@ -16,10 +16,11 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
 	 * Used for loading extensions. Using __non_webpack_require__ didn't work
 	 * as it was not resolving to the FS.
 	 */
-	(global as any).nativeNodeRequire = (id: string) => {
+	(global as any).nativeNodeRequire = (id: string): any => {// tslint:disable-line no-any
 		const customMod = new mod.Module(id);
 		customMod.filename = id;
-		customMod.paths = (<any>mod)._nodeModulePaths(path.dirname(id));
+		// tslint:disable-next-line no-any
+		customMod.paths = (mod as any)._nodeModulePaths(path.dirname(id));
 
 		if (id.startsWith(builtInExtensionsDir)) {
 			customMod.loaded = true;
@@ -28,6 +29,7 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
 				filename: id + ".js",
 			});
 			req(customMod.exports, customMod.require.bind(customMod), customMod, __filename, path.dirname(id));
+
 			return customMod.exports;
 		}
 
@@ -54,20 +56,24 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
  * cp.stderr.on("data", (data) => console.log(data.toString("utf8")));
  * @param modulePath Path of the VS Code module to load.
  */
-export const forkModule = (modulePath: string, env?: NodeJS.ProcessEnv): cp.ChildProcess => {
-	let proc: cp.ChildProcess | undefined;
-
-	const args = ["--bootstrap-fork", modulePath];
-	if (env) {
-		args.push("--env", JSON.stringify(env));
+export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions): cp.ChildProcess => {
+	let proc: cp.ChildProcess;
+	const forkArgs = ["--bootstrap-fork", modulePath];
+	if (args) {
+		forkArgs.push("--args", JSON.stringify(args));
 	}
-	const options: cp.SpawnOptions = {
+	if (options.env) {
+		// This prevents vscode from trying to load original-fs from electron.
+		delete options.env.ELECTRON_RUN_AS_NODE;
+		forkArgs.push("--env", JSON.stringify(options.env));
+	}
+	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
 	if (isCli) {
-		proc = cp.execFile(process.execPath, args, options);
+		proc = cp.execFile(process.execPath, forkArgs, forkOptions);
 	} else {
-		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...args], options);
+		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
 	}
 
 	return proc;

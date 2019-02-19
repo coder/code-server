@@ -1,8 +1,6 @@
 import { logger } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
-import { NewSessionMessage } from "@coder/protocol/src/proto";
-import { ChildProcess } from "child_process";
 import * as express from "express";
 //@ts-ignore
 import * as expressStaticGzip from "express-static-gzip";
@@ -12,7 +10,6 @@ import * as mime from "mime-types";
 import * as path from "path";
 import * as util from "util";
 import * as ws from "ws";
-import { forkModule } from "./vscode/bootstrapFork";
 import { isCli, buildDir } from "./constants";
 
 export const createApp = (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions): {
@@ -51,23 +48,7 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};
 
-		const server = new Server(connection, options ? {
-			...options,
-			forkProvider: (message: NewSessionMessage): ChildProcess => {
-				let proc: ChildProcess;
-				if (message.getIsBootstrapFork()) {
-					const env: NodeJS.ProcessEnv = {};
-					message.getEnvMap().forEach((value, key) => {
-						env[key] = value;
-					});
-					proc = forkModule(message.getCommand(), env);
-				} else {
-					throw new Error("No support for non bootstrap-forking yet");
-				}
-
-				return proc;
-			},
-		} : undefined);
+		const server = new Server(connection, options);
 	});
 
 	const baseDir = buildDir || path.join(__dirname, "..");

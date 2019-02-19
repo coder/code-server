@@ -1,13 +1,11 @@
-import { exec, ChildProcess } from "child_process";
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as stream from "stream";
-import { Client, IEncodingOptions, IEncodingOptionsCallback, escapePath, useBuffer } from "@coder/protocol";
+import { Client, IEncodingOptions, IEncodingOptionsCallback } from "@coder/protocol";
 import { client } from "./client";
+import { promisify } from "util";
 
-// Use this to get around Webpack inserting our fills.
-// TODO: is there a better way?
-declare var _require: typeof require;
+declare var __non_webpack_require__: typeof require;
 declare var _Buffer: typeof Buffer;
 
 /**
@@ -29,8 +27,8 @@ class FS {
 			mode = undefined;
 		}
 		this.client.evaluate((path, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.access)(path, mode);
 		}, path, mode).then(() => {
@@ -47,8 +45,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((path, data, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.appendFile)(path, data, options);
 		}, file, data, options).then(() => {
@@ -60,8 +58,8 @@ class FS {
 
 	public chmod = (path: fs.PathLike, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.chmod)(path, mode);
 		}, path, mode).then(() => {
@@ -73,8 +71,8 @@ class FS {
 
 	public chown = (path: fs.PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path, uid, gid) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.chown)(path, uid, gid);
 		}, path, uid, gid).then(() => {
@@ -86,8 +84,8 @@ class FS {
 
 	public close = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.close)(fd);
 		}, fd).then(() => {
@@ -102,8 +100,8 @@ class FS {
 			callback = flags;
 		}
 		this.client.evaluate((src, dest, flags) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.copyFile)(src, dest, flags);
 		}, src, dest, typeof flags !== "function" ? flags : undefined).then(() => {
@@ -113,19 +111,21 @@ class FS {
 		});
 	}
 
-	/**
-	 * This should NOT be used for long-term writes.
-	 * The runnable will be killed after the timeout specified in evaluate.ts
-	 */
+	// tslint:disable-next-line no-any
 	public createWriteStream = (path: fs.PathLike, options?: any): fs.WriteStream => {
 		const ae = this.client.run((ae, path, options) => {
-			const fs = _require("fs") as typeof import("fs");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const str = fs.createWriteStream(path, options);
-			ae.on("write", (d, e) => str.write(_Buffer.from(d, "utf8")));
+			ae.on("write", (d) => str.write(_Buffer.from(d, "utf8")));
 			ae.on("close", () => str.close());
 			str.on("close", () => ae.emit("close"));
 			str.on("open", (fd) => ae.emit("open", fd));
 			str.on("error", (err) => ae.emit(err));
+
+			return {
+				onDidDispose: (cb): fs.WriteStream => str.on("close", cb),
+				dispose: (): void => str.close(),
+			};
 		}, path, options);
 
 		return new (class WriteStream extends stream.Writable implements fs.WriteStream {
@@ -134,7 +134,7 @@ class FS {
 
 			public constructor() {
 				super({
-					write: (data, encoding, cb) => {
+					write: (data, encoding, cb): void => {
 						this._bytesWritten += data.length;
 						ae.emit("write", Buffer.from(data, encoding), encoding);
 						cb();
@@ -162,8 +162,8 @@ class FS {
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
 		this.client.evaluate((path) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.exists)(path);
 		}, path).then((r) => {
@@ -175,8 +175,8 @@ class FS {
 
 	public fchmod = (fd: number, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.fchmod)(fd, mode);
 		}, fd, mode).then(() => {
@@ -188,8 +188,8 @@ class FS {
 
 	public fchown = (fd: number, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd, uid, gid) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.fchown)(fd, uid, gid);
 		}, fd, uid, gid).then(() => {
@@ -201,8 +201,8 @@ class FS {
 
 	public fdatasync = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.fdatasync)(fd);
 		}, fd).then(() => {
@@ -214,9 +214,9 @@ class FS {
 
 	public fstat = (fd: number, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
 		this.client.evaluate((fd) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
-			const tslib = _require("tslib") as typeof import("tslib");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
+			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.fstat)(fd).then((stats) => {
 				return tslib.__assign(stats, {
@@ -238,8 +238,8 @@ class FS {
 
 	public fsync = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.fsync)(fd);
 		}, fd).then(() => {
@@ -255,8 +255,8 @@ class FS {
 			len = undefined;
 		}
 		this.client.evaluate((fd, len) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.ftruncate)(fd, len);
 		}, fd, len).then(() => {
@@ -268,8 +268,8 @@ class FS {
 
 	public futimes = (fd: number, atime: string | number | Date, mtime: string | number | Date, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((fd, atime, mtime) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.futimes)(fd, atime, mtime);
 		}, fd, atime, mtime).then(() => {
@@ -281,8 +281,8 @@ class FS {
 
 	public lchmod = (path: fs.PathLike, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.lchmod)(path, mode);
 		}, path, mode).then(() => {
@@ -294,8 +294,8 @@ class FS {
 
 	public lchown = (path: fs.PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path, uid, gid) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.lchown)(path, uid, gid);
 		}, path, uid, gid).then(() => {
@@ -307,8 +307,8 @@ class FS {
 
 	public link = (existingPath: fs.PathLike, newPath: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((existingPath, newPath) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.link)(existingPath, newPath);
 		}, existingPath, newPath).then(() => {
@@ -320,9 +320,9 @@ class FS {
 
 	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
 		this.client.evaluate((path) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
-			const tslib = _require("tslib") as typeof import("tslib");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
+			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.lstat)(path).then((stats) => {
 				return tslib.__assign(stats, {
@@ -348,8 +348,8 @@ class FS {
 			mode = undefined;
 		}
 		this.client.evaluate((path, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.mkdir)(path, mode);
 		}, path, mode).then(() => {
@@ -365,8 +365,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((prefix, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.mkdtemp)(prefix, options);
 		}, prefix, options).then((folder) => {
@@ -382,8 +382,8 @@ class FS {
 			mode = undefined;
 		}
 		this.client.evaluate((path, flags, mode) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.open)(path, flags, mode);
 		}, path, flags, mode).then((fd) => {
@@ -395,8 +395,8 @@ class FS {
 
 	public read = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException, bytesRead: number, buffer: TBuffer) => void): void => {
 		this.client.evaluate((fd, length, position) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 			const buffer = new _Buffer(length);
 
 			return util.promisify(fs.read)(fd, buffer, 0, length, position).then((resp) => {
@@ -420,8 +420,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((path, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.readFile)(path, options).then((value) => value.toString());
 		}, path, options).then((buffer) => {
@@ -438,8 +438,8 @@ class FS {
 		}
 		// TODO: options can also take `withFileTypes` but the types aren't working.
 		this.client.evaluate((path, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.readdir)(path, options);
 		}, path, options).then((files) => {
@@ -455,8 +455,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((path, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.readlink)(path, options);
 		}, path, options).then((linkString) => {
@@ -472,8 +472,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((path, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.realpath)(path, options);
 		}, path, options).then((resolvedPath) => {
@@ -485,8 +485,8 @@ class FS {
 
 	public rename = (oldPath: fs.PathLike, newPath: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((oldPath, newPath) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.rename)(oldPath, newPath);
 		}, oldPath, newPath).then(() => {
@@ -498,8 +498,8 @@ class FS {
 
 	public rmdir = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.rmdir)(path);
 		}, path).then(() => {
@@ -511,9 +511,9 @@ class FS {
 
 	public stat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
 		this.client.evaluate((path) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
-			const tslib = _require("tslib") as typeof import("tslib");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
+			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
 
 			return util.promisify(fs.stat)(path).then((stats) => {
 				return tslib.__assign(stats, {
@@ -543,8 +543,8 @@ class FS {
 			type = undefined;
 		}
 		this.client.evaluate((target, path, type) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.symlink)(target, path, type);
 		}, target, path, type).then(() => {
@@ -560,8 +560,8 @@ class FS {
 			len = undefined;
 		}
 		this.client.evaluate((path, len) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.truncate)(path, len);
 		}, path, len).then(() => {
@@ -573,8 +573,8 @@ class FS {
 
 	public unlink = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.unlink)(path);
 		}, path).then(() => {
@@ -586,8 +586,8 @@ class FS {
 
 	public utimes = (path: fs.PathLike, atime: string | number | Date, mtime: string | number | Date, callback: (err: NodeJS.ErrnoException) => void): void => {
 		this.client.evaluate((path, atime, mtime) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.utimes)(path, atime, mtime);
 		}, path, atime, mtime).then(() => {
@@ -603,8 +603,8 @@ class FS {
 			position = undefined;
 		}
 		this.client.evaluate((fd, buffer, offset, length, position) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.write)(fd, _Buffer.from(buffer, "utf8"), offset, length, position).then((resp) => {
 				return {
@@ -626,8 +626,8 @@ class FS {
 			options = undefined;
 		}
 		this.client.evaluate((path, data, options) => {
-			const fs = _require("fs") as typeof import("fs");
-			const util = _require("util") as typeof import("util");
+			const fs = __non_webpack_require__("fs") as typeof import("fs");
+			const util = __non_webpack_require__("util") as typeof import("util");
 
 			return util.promisify(fs.writeFile)(path, data, options);
 		}, path, data, options).then(() => {
@@ -637,63 +637,40 @@ class FS {
 		});
 	}
 
-	public watch = (filename: fs.PathLike, options: IEncodingOptions, listener?: ((event: string, filename: string) => void) | ((event: string, filename: Buffer) => void)): fs.FSWatcher => {
-		// TODO: can we modify `evaluate` for long-running processes like watch?
-		// Especially since inotifywait might not be available.
-		const buffer = new NewlineInputBuffer((msg): void => {
-			msg = msg.trim();
-			const index = msg.lastIndexOf(":");
-			const events = msg.substring(index + 1).split(",");
-			const baseFilename = msg.substring(0, index).split("/").pop();
-			events.forEach((event) => {
-				switch (event) {
-					// Rename is emitted when a file appears or disappears in the directory.
-					case "CREATE":
-					case "DELETE":
-					case "MOVED_FROM":
-					case "MOVED_TO":
-						watcher.emit("rename", baseFilename);
-						break;
-					case "CLOSE_WRITE":
-						watcher.emit("change", baseFilename);
-						break;
-				}
-			});
-		});
-
-		// TODO: `exec` is undefined for some reason.
-		const process = exec(`inotifywait ${escapePath(filename.toString())} -m --format "%w%f:%e"`);
-		process.on("exit", (exitCode) => {
-			watcher.emit("error", new Error(`process terminated unexpectedly with code ${exitCode}`));
-		});
-		process.stdout.on("data", (data) => {
-			buffer.push(data);
-		});
-
-		const watcher = new Watcher(process);
-		if (listener) {
-			const l = listener;
-			watcher.on("change", (filename) => {
-				// @ts-ignore not sure how to make this work.
-				l("change", useBuffer(options) ? Buffer.from(filename) : filename);
-			});
-			watcher.on("rename", (filename) => {
-				// @ts-ignore not sure how to make this work.
-				l("rename", useBuffer(options) ? Buffer.from(filename) : filename);
-			});
+	public watch = (filename: fs.PathLike, options?: IEncodingOptions | ((event: string, filename: string | Buffer) => void), listener?: ((event: string, filename: string | Buffer) => void)): fs.FSWatcher => {
+		if (typeof options === "function") {
+			listener = options;
+			options = undefined;
 		}
 
-		return watcher;
-	}
-}
+		const ae = this.client.run((ae, filename, hasListener, options) => {
+			const fs = __non_webpack_require__("fs") as typeof import ("fs");
+			// tslint:disable-next-line no-any
+			const watcher = fs.watch(filename, options as any, hasListener ? (event, filename): void => {
+				ae.emit("listener", event, filename);
+			} : undefined);
+			watcher.on("change", (event, filename) => ae.emit("change", event, filename));
+			watcher.on("error", (error) => ae.emit("error", error));
+			ae.on("close", () => watcher.close());
 
-class Watcher extends EventEmitter implements fs.FSWatcher {
-	public constructor(private readonly process: ChildProcess) {
-		super();
-	}
+			return {
+				onDidDispose: (cb): void => ae.on("close", cb),
+				dispose: (): void => watcher.close(),
+			};
+		}, filename.toString(), !!listener, options);
 
-	public close(): void {
-		this.process.kill();
+		return new class Watcher extends EventEmitter implements fs.FSWatcher {
+			public constructor() {
+				super();
+				ae.on("change", (event, filename) => this.emit("change", event, filename));
+				ae.on("error", (error) => this.emit("error", error));
+				ae.on("listener", (event, filename) => listener && listener(event, filename));
+			}
+
+			public close(): void {
+				ae.emit("close");
+			}
+		};
 	}
 }
 
@@ -765,38 +742,10 @@ class Stats implements fs.Stats {
 	}
 }
 
-/**
- * Class for safely taking input and turning it into separate messages.
- * Assumes that messages are split by newlines.
- */
-class NewlineInputBuffer {
-	private callback: (msg: string) => void;
-	private buffer: string | undefined;
-
-	public constructor(callback: (msg: string) => void) {
-		this.callback = callback;
-	}
-
-	/**
-	 * Add data to be buffered.
-	 */
-	public push(data: string | Uint8Array): void {
-		let input = typeof data === "string" ? data : data.toString();
-		if (this.buffer) {
-			input = this.buffer + input;
-			this.buffer = undefined;
-		}
-		const lines = input.split("\n");
-		const length = lines.length - 1;
-		const lastLine = lines[length];
-		if (lastLine.length > 0) {
-			this.buffer = lastLine;
-		}
-		lines.pop(); // This is either the line we buffered or an empty string.
-		for (let i = 0; i < length; ++i) {
-			this.callback(lines[i]);
-		}
-	}
-}
-
-export = new FS(client);
+const fillFs = new FS(client);
+// Methods that don't follow the standard callback pattern (an error followed
+// by a single result) need to provide a custom promisify function.
+Object.defineProperty(fillFs.exists, promisify.custom, {
+	value: (path: fs.PathLike): Promise<boolean> => new Promise((resolve): void => fillFs.exists(path, resolve)),
+});
+export = fillFs;

@@ -48,7 +48,7 @@ describe("Evaluate", () => {
 
 	it("should resolve with promise", async () => {
 		const value = await client.evaluate(async () => {
-			await new Promise((r) => setTimeout(r, 100));
+			await new Promise((r): number => setTimeout(r, 100));
 
 			return "donkey";
 		});
@@ -64,6 +64,11 @@ describe("Evaluate", () => {
 					ae.emit("close");
 				});
 			});
+
+			return {
+				onDidDispose: (): void => undefined,
+				dispose: (): void => undefined,
+			};
 		});
 		runner.emit("1");
 		runner.on("2", () => runner.emit("3"));

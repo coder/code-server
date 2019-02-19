@@ -1,31 +1,20 @@
 import * as os from "os";
-import * as cp from "child_process";
 import * as path from "path";
 import { mkdir } from "fs";
 import { promisify } from "util";
-import { TextDecoder } from "text-encoding";
 import { logger, field } from "@coder/logger";
-import { ClientMessage, WorkingInitMessage, ServerMessage, NewSessionMessage, WriteToSessionMessage } from "../proto";
+import { ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate, ActiveEvaluation } from "./evaluate";
 import { ReadWriteConnection } from "../common/connection";
-import { Process, handleNewSession, handleNewConnection, handleNewServer } from "./command";
-import * as net from "net";
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
 	readonly builtInExtensionsDirectory: string;
-
-	forkProvider?(message: NewSessionMessage): cp.ChildProcess;
 }
 
 export class Server {
-	private readonly sessions = new Map<number, Process>();
-	private readonly connections = new Map<number, net.Socket>();
-	private readonly servers = new Map<number, net.Server>();
 	private readonly evals = new Map<number, ActiveEvaluation>();
-
-	private connectionId = Number.MAX_SAFE_INTEGER;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -42,18 +31,10 @@ export class Server {
 			}
 		});
 		connection.onClose(() => {
-			this.sessions.forEach((s) => {
-				s.kill();
-			});
-			this.connections.forEach((c) => {
-				c.destroy();
-			});
-			this.servers.forEach((s) => {
-				s.close();
-			});
+			this.evals.forEach((e) => e.dispose());
 		});
 
-		if (!options) {
+		if (!this.options) {
 			logger.warn("No server options provided. InitMessage will not be sent.");
 
 			return;
@@ -74,16 +55,16 @@ export class Server {
 				}
 			}
 		};
-		Promise.all([ mkdirP(path.join(options.dataDirectory, "User", "workspaceStorage")) ]).then(() => {
+		Promise.all([ mkdirP(path.join(this.options.dataDirectory, "User", "workspaceStorage")) ]).then(() => {
 			logger.info("Created data directory");
 		}).catch((error) => {
 			logger.error(error.message, field("error", error));
 		});
 
 		const initMsg = new WorkingInitMessage();
-		initMsg.setDataDirectory(options.dataDirectory);
-		initMsg.setWorkingDirectory(options.workingDirectory);
-		initMsg.setBuiltinExtensionsDir(options.builtInExtensionsDirectory);
+		initMsg.setDataDirectory(this.options.dataDirectory);
+		initMsg.setWorkingDirectory(this.options.workingDirectory);
+		initMsg.setBuiltinExtensionsDir(this.options.builtInExtensionsDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
 		const platform = os.platform();
@@ -113,7 +94,7 @@ export class Server {
 	private handleMessage(message: ClientMessage): void {
 		if (message.hasNewEval()) {
 			const evalMessage = message.getNewEval()!;
-			logger.debug(() => [
+			logger.trace(() => [
 				"EvalMessage",
 				field("id", evalMessage.getId()),
 				field("args", evalMessage.getArgsList()),
@@ -121,132 +102,22 @@ export class Server {
 			]);
 			const resp = evaluate(this.connection, evalMessage, () => {
 				this.evals.delete(evalMessage.getId());
+				logger.trace(() => [
+					`dispose ${evalMessage.getId()}, ${this.evals.size} left`,
+				]);
 			});
 			if (resp) {
 				this.evals.set(evalMessage.getId(), resp);
 			}
 		} else if (message.hasEvalEvent()) {
 			const evalEventMessage = message.getEvalEvent()!;
-			logger.debug("EvalEventMessage", field("id", evalEventMessage.getId()));
 			const e = this.evals.get(evalEventMessage.getId());
 			if (!e) {
 				return;
 			}
 			e.onEvent(evalEventMessage);
-		} else if (message.hasNewSession()) {
-			const sessionMessage = message.getNewSession()!;
-			logger.debug("NewSession", field("id", sessionMessage.getId()));
-			const session = handleNewSession(this.connection, sessionMessage, this.options, () => {
-				this.sessions.delete(sessionMessage.getId());
-			});
-			this.sessions.set(sessionMessage.getId(), session);
-		} else if (message.hasCloseSessionInput()) {
-			const closeSessionMessage = message.getCloseSessionInput()!;
-			logger.debug("CloseSessionInput", field("id", closeSessionMessage.getId()));
-			const s = this.getSession(closeSessionMessage.getId());
-			if (!s || !s.stdin) {
-				return;
-			}
-			s.stdin.end();
-		} else if (message.hasResizeSessionTty()) {
-			const resizeSessionTtyMessage = message.getResizeSessionTty()!;
-			logger.debug("ResizeSessionTty", field("id", resizeSessionTtyMessage.getId()));
-			const s = this.getSession(resizeSessionTtyMessage.getId());
-			if (!s || !s.resize) {
-				return;
-			}
-			const tty = resizeSessionTtyMessage.getTtyDimensions()!;
-			s.resize(tty.getWidth(), tty.getHeight());
-		} else if (message.hasShutdownSession()) {
-			const shutdownSessionMessage = message.getShutdownSession()!;
-			logger.debug("ShutdownSession", field("id", shutdownSessionMessage.getId()));
-			const s = this.getSession(shutdownSessionMessage.getId());
-			if (!s) {
-				return;
-			}
-			s.kill(shutdownSessionMessage.getSignal());
-		} else if (message.hasWriteToSession()) {
-			const writeToSessionMessage = message.getWriteToSession()!;
-			logger.debug("WriteToSession", field("id", writeToSessionMessage.getId()));
-			const s = this.getSession(writeToSessionMessage.getId());
-			if (!s) {
-				return;
-			}
-			const data = new TextDecoder().decode(writeToSessionMessage.getData_asU8());
-			const source = writeToSessionMessage.getSource();
-			if (source === WriteToSessionMessage.Source.IPC) {
-				if (!s.send) {
-					throw new Error("Cannot send message via IPC to process without IPC");
-				}
-				s.send(JSON.parse(data));
-			} else {
-				s.write(data);
-			}
-		} else if (message.hasNewConnection()) {
-			const connectionMessage = message.getNewConnection()!;
-			logger.debug("NewConnection", field("id", connectionMessage.getId()));
-			if (this.connections.has(connectionMessage.getId())) {
-				throw new Error(`connect EISCONN ${connectionMessage.getPath() || connectionMessage.getPort()}`);
-			}
-			const socket = handleNewConnection(this.connection, connectionMessage, () => {
-				this.connections.delete(connectionMessage.getId());
-			});
-			this.connections.set(connectionMessage.getId(), socket);
-		} else if (message.hasConnectionOutput()) {
-			const connectionOutputMessage = message.getConnectionOutput()!;
-			logger.debug("ConnectionOuput", field("id", connectionOutputMessage.getId()));
-			const c = this.getConnection(connectionOutputMessage.getId());
-			if (!c) {
-				return;
-			}
-			c.write(Buffer.from(connectionOutputMessage.getData_asU8()));
-		} else if (message.hasConnectionClose()) {
-			const connectionCloseMessage = message.getConnectionClose()!;
-			logger.debug("ConnectionClose", field("id", connectionCloseMessage.getId()));
-			const c = this.getConnection(connectionCloseMessage.getId());
-			if (!c) {
-				return;
-			}
-			c.end();
-		} else if (message.hasNewServer()) {
-			const serverMessage = message.getNewServer()!;
-			logger.debug("NewServer", field("id", serverMessage.getId()));
-			if (this.servers.has(serverMessage.getId())) {
-				throw new Error("multiple listeners not supported");
-			}
-			const s = handleNewServer(this.connection, serverMessage, (socket) => {
-				const id = this.connectionId--;
-				this.connections.set(id, socket);
-
-				return id;
-			}, () => {
-				this.connections.delete(serverMessage.getId());
-			}, (id) => {
-				this.connections.delete(id);
-			});
-			this.servers.set(serverMessage.getId(), s);
-		} else if (message.hasServerClose()) {
-			const serverCloseMessage = message.getServerClose()!;
-			logger.debug("ServerClose", field("id", serverCloseMessage.getId()));
-			const s = this.getServer(serverCloseMessage.getId());
-			if (!s) {
-				return;
-			}
-			s.close();
 		} else {
-			logger.debug("Received unknown message type");
+			throw new Error("unknown message type");
 		}
-	}
-
-	private getServer(id: number): net.Server | undefined {
-		return this.servers.get(id);
-	}
-
-	private getConnection(id: number): net.Socket | undefined {
-		return this.connections.get(id);
-	}
-
-	private getSession(id: number): Process | undefined {
-		return this.sessions.get(id);
 	}
 }

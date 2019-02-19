@@ -1,6 +1,8 @@
 /**
  * @fileoverview
  * @enhanceable
+ * @suppress {messageConventions} JS Compiler reports an error if a variable or
+ *     field starts with 'MSG_' and isn't a translatable message.
  * @public
  */
 // GENERATED CODE -- DO NOT EDIT!
@@ -53,11 +55,12 @@ proto.SharedProcessActiveMessage.prototype.toObject = function(opt_includeInstan
  *     http://goto/soy-param-migration
  * @param {!proto.SharedProcessActiveMessage} msg The msg instance to transform.
  * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.SharedProcessActiveMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    socketPath: msg.getSocketPath(),
-    logPath: msg.getLogPath()
+    socketPath: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    logPath: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -112,42 +115,33 @@ proto.SharedProcessActiveMessage.deserializeBinaryFromReader = function(msg, rea
 
 
 /**
- * Class method variant: serializes the given message to binary data
- * (in protobuf wire format), writing to the given BinaryWriter.
- * @param {!proto.SharedProcessActiveMessage} message
- * @param {!jspb.BinaryWriter} writer
- */
-proto.SharedProcessActiveMessage.serializeBinaryToWriter = function(message, writer) {
-  message.serializeBinaryToWriter(writer);
-};
-
-
-/**
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
 proto.SharedProcessActiveMessage.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  this.serializeBinaryToWriter(writer);
+  proto.SharedProcessActiveMessage.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
 
 /**
- * Serializes the message to binary data (in protobuf wire format),
- * writing to the given BinaryWriter.
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.SharedProcessActiveMessage} message
  * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.SharedProcessActiveMessage.prototype.serializeBinaryToWriter = function (writer) {
+proto.SharedProcessActiveMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = this.getSocketPath();
+  f = message.getSocketPath();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = this.getLogPath();
+  f = message.getLogPath();
   if (f.length > 0) {
     writer.writeString(
       2,
@@ -158,26 +152,17 @@ proto.SharedProcessActiveMessage.prototype.serializeBinaryToWriter = function (w
 
 
 /**
- * Creates a deep clone of this proto. No data is shared with the original.
- * @return {!proto.SharedProcessActiveMessage} The clone.
- */
-proto.SharedProcessActiveMessage.prototype.cloneMessage = function() {
-  return /** @type {!proto.SharedProcessActiveMessage} */ (jspb.Message.cloneMessage(this));
-};
-
-
-/**
  * optional string socket_path = 1;
  * @return {string}
  */
 proto.SharedProcessActiveMessage.prototype.getSocketPath = function() {
-  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 1, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
-/** @param {string} value  */
+/** @param {string} value */
 proto.SharedProcessActiveMessage.prototype.setSocketPath = function(value) {
-  jspb.Message.setField(this, 1, value);
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
@@ -186,13 +171,13 @@ proto.SharedProcessActiveMessage.prototype.setSocketPath = function(value) {
  * @return {string}
  */
 proto.SharedProcessActiveMessage.prototype.getLogPath = function() {
-  return /** @type {string} */ (jspb.Message.getFieldProto3(this, 2, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
-/** @param {string} value  */
+/** @param {string} value */
 proto.SharedProcessActiveMessage.prototype.setLogPath = function(value) {
-  jspb.Message.setField(this, 2, value);
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

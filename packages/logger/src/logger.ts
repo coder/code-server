@@ -228,6 +228,7 @@ export class Logger {
 		const envLevel = typeof global !== "undefined" && typeof global.process !== "undefined" ? global.process.env.LOG_LEVEL : process.env.LOG_LEVEL;
 		if (envLevel) {
 			switch (envLevel) {
+				case "trace": this.level = Level.Trace; break;
 				case "debug": this.level = Level.Debug; break;
 				case "info": this.level = Level.Info; break;
 				case "warn": this.level = Level.Warning; break;
@@ -278,6 +279,21 @@ export class Logger {
 	}
 
 	/**
+	 * Outputs a trace message.
+	 */
+	public trace(fn: LogCallback): void;
+	public trace(message: string, ...fields: FieldArray): void;
+	public trace(message: LogCallback | string, ...fields: FieldArray): void {
+		this.handle({
+			type: "trace",
+			message,
+			fields,
+			tagColor: "#888888",
+			level: Level.Trace,
+		});
+	}
+
+	/**
 	 * Outputs a debug message.
 	 */
 	public debug(fn: LogCallback): void;
@@ -324,7 +340,7 @@ export class Logger {
 	 * Outputs a message.
 	 */
 	private handle(options: {
-		type: "info" | "warn" | "debug" | "error";
+		type: "trace" | "info" | "warn" | "debug" | "error";
 		message: string | LogCallback;
 		fields?: FieldArray;
 		level: Level;

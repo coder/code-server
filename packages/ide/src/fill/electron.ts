@@ -6,8 +6,7 @@ import { IKey, Dialog as DialogBox } from "./dialog";
 import { clipboard } from "./clipboard";
 import { client } from "./client";
 
-// Use this to get around Webpack inserting our fills.
-declare var _require: typeof require;
+declare var __non_webpack_require__: typeof require;
 
 // tslint:disable-next-line no-any
 (global as any).getOpenUrls = (): string[] => {
@@ -99,7 +98,7 @@ class Clipboard {
 class Shell {
 	public async moveItemToTrash(path: string): Promise<void> {
 		await client.evaluate((path) => {
-			const trash = _require("trash") as typeof import("trash");
+			const trash = __non_webpack_require__("trash") as typeof import("trash");
 
 			return trash(path);
 		}, path);

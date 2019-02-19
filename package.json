@@ -28,6 +28,7 @@
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
+    "path-browserify": "^1.0.0",
     "preload-webpack-plugin": "^3.0.0-beta.2",
     "sass-loader": "^7.1.0",
     "string-replace-loader": "^2.1.1",
@@ -48,6 +49,7 @@
   },
   "dependencies": {
     "node-loader": "^0.6.0",
+    "spdlog": "^0.7.2",
     "trash": "^4.3.0",
     "webpack-merge": "^4.2.1"
   }

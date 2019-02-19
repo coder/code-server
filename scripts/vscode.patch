@@ -122,12 +122,37 @@ index 8d182d18d9..69d51e1aea 100644
 @@ -132 +132 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+diff --git a/src/vs/workbench/parts/debug/node/debugAdapter.ts b/src/vs/workbench/parts/debug/node/debugAdapter.ts
+index 2d798bf2df..9ccadacb3a 100644
+--- a/src/vs/workbench/parts/debug/node/debugAdapter.ts
++++ b/src/vs/workbench/parts/debug/node/debugAdapter.ts
+@@ -315 +315 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
+-		return new Promise<void>((resolve, reject) => {
++		return new Promise<void>(async (resolve, reject) => {
+@@ -320 +320 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
+-					if (!fs.existsSync(this.adapterExecutable.command)) {
++					if (!(await require("util").promisify(fs.exists)(this.adapterExecutable.command))) {
 diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 index e600fb2f78..1e0dc9a220 100644
 --- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 @@ -934,0 +935 @@ export class FileDragAndDrop extends SimpleFileResourceDragAndDrop {
 +		return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent);
+diff --git a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts b/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
+index 4015c9cd5d..bebdb25f6c 100644
+--- a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
++++ b/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
+@@ -31 +31,2 @@ class LogOutputChannels extends Disposable implements IWorkbenchContribution {
+-		outputChannelRegistry.registerChannel({ id: Constants.mainLogChannelId, label: nls.localize('mainLog', "Main"), file: URI.file(join(environmentService.logsPath, `main.log`)), log: true });
++		// This channel only seems to be used when loading the app and we skip all of that, so it is never actually created or written to.
++		// outputChannelRegistry.registerChannel({ id: Constants.mainLogChannelId, label: nls.localize('mainLog', "Main"), file: URI.file(join(environmentService.logsPath, `main.log`)), log: true });
+diff --git a/src/vs/workbench/parts/output/common/outputLinkProvider.ts b/src/vs/workbench/parts/output/common/outputLinkProvider.ts
+index 63437034c9..acd82c8375 100644
+--- a/src/vs/workbench/parts/output/common/outputLinkProvider.ts
++++ b/src/vs/workbench/parts/output/common/outputLinkProvider.ts
+@@ -77,0 +78,2 @@ export class OutputLinkProvider {
++		// TODO@coder: get this working.
++		return Promise.resolve([]);
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 7b4e8721ac..96d612f940 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts

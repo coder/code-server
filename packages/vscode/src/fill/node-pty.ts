@@ -1,40 +1,79 @@
 import { client } from "@coder/ide/src/fill/client";
 import { EventEmitter } from "events";
 import * as nodePty from "node-pty";
-import { ChildProcess } from "@coder/protocol/src/browser/command";
+import { ActiveEval } from "@coder/protocol";
 
-type nodePtyType = typeof nodePty;
+// Use this to prevent Webpack from hijacking require.
+declare var __non_webpack_require__: typeof require;
 
 /**
  * Implementation of nodePty for the browser.
  */
 class Pty implements nodePty.IPty {
 	private readonly emitter = new EventEmitter();
-	private readonly cp: ChildProcess;
+	private readonly ae: ActiveEval;
+	private _pid = -1;
+	private _process = "";
 
 	public constructor(file: string, args: string[] | string, options: nodePty.IPtyForkOptions) {
-		this.cp = client.spawn(file, Array.isArray(args) ? args : [args], {
+		this.ae = client.run((ae, file, args, options) => {
+			const nodePty = __non_webpack_require__("node-pty") as typeof import("node-pty");
+			const { preserveEnv } = __non_webpack_require__("@coder/ide/src/fill/evaluation") as typeof import("@coder/ide/src/fill/evaluation");
+
+			preserveEnv(options);
+
+			const ptyProc = nodePty.spawn(file, args, options);
+
+			let process = ptyProc.process;
+			ae.emit("process", process);
+			ae.emit("pid", ptyProc.pid);
+
+			const timer = setInterval(() => {
+				if (ptyProc.process !== process) {
+					process = ptyProc.process;
+					ae.emit("process", process);
+				}
+			}, 200);
+
+			ptyProc.on("exit", (code, signal) => {
+				clearTimeout(timer);
+				ae.emit("exit", code, signal);
+			});
+
+			ptyProc.on("data", (data) => ae.emit("data", data));
+
+			ae.on("resize", (cols, rows) => ptyProc.resize(cols, rows));
+			ae.on("write", (data) => ptyProc.write(data));
+			ae.on("kill", (signal) => ptyProc.kill(signal));
+
+			return {
+				onDidDispose: (cb): void => ptyProc.on("exit", cb),
+				dispose: (): void => {
+					ptyProc.kill();
+					setTimeout(() => ptyProc.kill("SIGKILL"), 5000); // Double tap.
+				},
+			};
+		}, file, Array.isArray(args) ? args : [args], {
 			...options,
 			tty: {
 				columns: options.cols || 100,
 				rows: options.rows || 100,
 			},
-		});
-		this.on("write", (d) => this.cp.send(d));
-		this.on("kill", (exitCode) => this.cp.kill(exitCode));
-		this.on("resize", (cols, rows) => this.cp.resize!({ columns: cols, rows }));
+		}, file, args, options);
 
-		this.cp.stdout.on("data", (data) => this.emitter.emit("data", data));
-		this.cp.stderr.on("data", (data) => this.emitter.emit("data", data));
-		this.cp.on("exit", (code) => this.emitter.emit("exit", code));
+		this.ae.on("pid", (pid) => this._pid = pid);
+		this.ae.on("process", (process) => this._process = process);
+
+		this.ae.on("exit", (code, signal) => this.emitter.emit("exit", code, signal));
+		this.ae.on("data", (data) => this.emitter.emit("data", data));
 	}
 
 	public get pid(): number {
-		return this.cp.pid!;
+		return this._pid;
 	}
 
 	public get process(): string {
-		return this.cp.title!;
+		return this._process;
 	}
 
 	// tslint:disable-next-line no-any
@@ -43,19 +82,19 @@ class Pty implements nodePty.IPty {
 	}
 
 	public resize(columns: number, rows: number): void {
-		this.emitter.emit("resize", columns, rows);
+		this.ae.emit("resize", columns, rows);
 	}
 
 	public write(data: string): void {
-		this.emitter.emit("write", data);
+		this.ae.emit("write", data);
 	}
 
 	public kill(signal?: string): void {
-		this.emitter.emit("kill", signal);
+		this.ae.emit("kill", signal);
 	}
 }
 
-const ptyType: nodePtyType = {
+const ptyType: typeof nodePty = {
 	spawn: (file: string, args: string[] | string, options: nodePty.IPtyForkOptions): nodePty.IPty => {
 		return new Pty(file, args, options);
 	},

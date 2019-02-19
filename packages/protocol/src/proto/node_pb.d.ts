@@ -3,37 +3,6 @@
 
 import * as jspb from "google-protobuf";
 
-export class TypedValue extends jspb.Message {
-  getType(): TypedValue.Type;
-  setType(value: TypedValue.Type): void;
-
-  getValue(): string;
-  setValue(value: string): void;
-
-  serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): TypedValue.AsObject;
-  static toObject(includeInstance: boolean, msg: TypedValue): TypedValue.AsObject;
-  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
-  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: TypedValue, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): TypedValue;
-  static deserializeBinaryFromReader(message: TypedValue, reader: jspb.BinaryReader): TypedValue;
-}
-
-export namespace TypedValue {
-  export type AsObject = {
-    type: TypedValue.Type,
-    value: string,
-  }
-
-  export enum Type {
-    STRING = 0,
-    NUMBER = 1,
-    OBJECT = 2,
-    BOOLEAN = 3,
-  }
-}
-
 export class NewEvalMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
@@ -140,10 +109,8 @@ export class EvalDoneMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
 
-  hasResponse(): boolean;
-  clearResponse(): void;
-  getResponse(): TypedValue | undefined;
-  setResponse(value?: TypedValue): void;
+  getResponse(): string;
+  setResponse(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EvalDoneMessage.AsObject;
@@ -158,7 +125,7 @@ export class EvalDoneMessage extends jspb.Message {
 export namespace EvalDoneMessage {
   export type AsObject = {
     id: number,
-    response?: TypedValue.AsObject,
+    response: string,
   }
 }
 

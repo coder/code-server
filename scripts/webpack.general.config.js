@@ -44,7 +44,7 @@ module.exports = (options = {}) => ({
 			// These are meant to run in separate pages, like the issue reporter or
 			// process explorer. Ignoring for now since otherwise their CSS is
 			// included in the main CSS.
-			test: /electron-browser.+\.html$|code\/electron-browser\/.+\.css$/,
+			test: /test|electron-browser.+\.html$|code\/electron-browser\/.+\.css$/,
 			use: [{
 				loader: "ignore-loader",
 			}],

@@ -1,3 +1,5 @@
+import { IDisposable } from "@coder/disposable";
+
 /**
  * Return true if we're in a browser environment (including web workers).
  */
@@ -25,10 +27,54 @@ export type IEncodingOptions = {
 export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoException, ...args: any[]) => void);
 
 /**
- * Return true if the options specify to use a Buffer instead of string.
+ * Stringify an event argument.
  */
-export const useBuffer = (options: IEncodingOptionsCallback): boolean => {
-	return options === "buffer"
-		|| (!!options && typeof options !== "string" && typeof options !== "function"
-				&& (options.encoding === "buffer" || options.encoding === null));
+export const stringify = (arg: any): string => { // tslint:disable-line no-any
+	if (arg instanceof Error) {
+		return JSON.stringify({
+			type: "Error",
+			data: {
+				message: arg.message,
+				name: arg.name,
+				stack: arg.stack,
+			},
+		});
+	}
+
+	return JSON.stringify(arg);
 };
+/**
+ * Parse an event argument.
+ */
+export const parse = (arg: string): any => { // tslint:disable-line no-any
+	if (!arg) {
+		return arg;
+	}
+
+	const result = JSON.parse(arg);
+
+	if (result && result.data && result.type) {
+		switch (result.type) {
+			// JSON.stringify turns a Buffer into an object but JSON.parse doesn't
+			// turn it back, it just remains an object.
+			case "Buffer":
+				if (Array.isArray(result.data)) {
+					return Buffer.from(result);
+				}
+				break;
+			// Errors apparently can't be stringified, so we do something similar to
+			// what happens to buffers and stringify them as regular objects.
+			case "Error":
+				if (result.data.message) {
+					return new Error(result.data.message);
+				}
+				break;
+		}
+	}
+
+	return result;
+};
+
+export interface Disposer extends IDisposable {
+	onDidDispose: (cb: () => void) => void;
+}

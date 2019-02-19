@@ -27,6 +27,7 @@ export class Entry extends Command {
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
 		env: flags.string({ hidden: true }),
+		args: flags.string({ hidden: true }),
 	};
 	public static args = [{
 		name: "workdir",
@@ -57,10 +58,6 @@ export class Entry extends Command {
 
 		const { args, flags } = this.parse(Entry);
 
-		if (flags.env) {
-			Object.assign(process.env, JSON.parse(flags.env));
-		}
-
 		const builtInExtensionsDir = path.join(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
@@ -68,6 +65,13 @@ export class Entry extends Command {
 				logger.error("No module path specified to fork!");
 				process.exit(1);
 			}
+
+			Object.assign(process.env, flags.env ? JSON.parse(flags.env) : {});
+			((flags.args ? JSON.parse(flags.args) : []) as string[]).forEach((arg, i) => {
+				// [0] contains the binary running the script (`node` for example) and
+				// [1] contains the script name, so the arguments come after that.
+				process.argv[i + 2] = arg;
+			});
 
 			return requireModule(modulePath, builtInExtensionsDir);
 		}
@@ -110,7 +114,7 @@ export class Entry extends Command {
 		const app = createApp((app) => {
 			app.use((req, res, next) => {
 				res.on("finish", () => {
-					logger.debug(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
+					logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
 				});
 
 				next();

@@ -1,16 +1,5 @@
 syntax = "proto3";
 
-message TypedValue {
-	enum Type {
-		String = 0;
-		Number = 1;
-		Object = 2;
-		Boolean = 3;
-	}
-	Type type = 1;
-	string value = 2;
-}
-
 message NewEvalMessage {
 	uint64 id = 1;
 	string function = 2;
@@ -41,5 +30,5 @@ message EvalFailedMessage {
 
 message EvalDoneMessage {
 	uint64 id = 1;
-	TypedValue response = 2;
+	string response = 2;
 }
