@@ -4,7 +4,7 @@ describe("Evaluate", () => {
 	const client = createClient();
 
 	it("should transfer string", async () => {
-		const value = await client.evaluate(function () {
+		const value = await client.evaluate(() => {
 			return "hi";
 		});
 
@@ -58,20 +58,27 @@ describe("Evaluate", () => {
 
 	it("should do active process", (done) => {
 		const runner = client.run((ae) => {
-			ae.on("1", () => {
-				ae.emit("2");
-				ae.on("3", () => {
-					ae.emit("close");
-				});
+			ae.on("first", () => {
+				ae.emit("first:response");
+				ae.on("second", () => ae.emit("second:response"));
 			});
 
+			const disposeCallbacks = <Array<() => void>>[];
+			const dispose = (): void => {
+				disposeCallbacks.forEach((cb) => cb());
+				ae.emit("disposed");
+			};
+
 			return {
-				onDidDispose: (): void => undefined,
-				dispose: (): void => undefined,
+				onDidDispose: (cb: () => void): number => disposeCallbacks.push(cb),
+				dispose,
 			};
 		});
-		runner.emit("1");
-		runner.on("2", () => runner.emit("3"));
-		runner.on("close", () => done());
+
+		runner.emit("first");
+		runner.on("first:response", () => runner.emit("second"));
+		runner.on("second:response", () => client.dispose());
+
+		runner.on("disposed", () => done());
 	});
 });

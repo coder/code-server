@@ -48,6 +48,10 @@ export class Client {
 		});
 	}
 
+	public dispose(): void {
+		this.connection.close();
+	}
+
 	public get initData(): Promise<InitData> {
 		return this.initDataPromise;
 	}
