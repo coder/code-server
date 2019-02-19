@@ -42,9 +42,9 @@ class Pty implements nodePty.IPty {
 
 			ptyProc.on("data", (data) => ae.emit("data", data));
 
-			ae.on("resize", (cols, rows) => ptyProc.resize(cols, rows));
-			ae.on("write", (data) => ptyProc.write(data));
-			ae.on("kill", (signal) => ptyProc.kill(signal));
+			ae.on("resize", (cols: number, rows: number) => ptyProc.resize(cols, rows));
+			ae.on("write", (data: string) => ptyProc.write(data));
+			ae.on("kill", (signal: string) => ptyProc.kill(signal));
 
 			return {
 				onDidDispose: (cb): void => ptyProc.on("exit", cb),

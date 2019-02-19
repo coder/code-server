@@ -60,9 +60,9 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 			}
 
 			ae.on("disconnect", () => childProcess.disconnect());
-			ae.on("kill", (signal) => childProcess.kill(signal));
+			ae.on("kill", (signal: string) => childProcess.kill(signal));
 			ae.on("ref", () => childProcess.ref());
-			ae.on("send", (message, callbackId) => childProcess.send(message, maybeCallback(ae, callbackId)));
+			ae.on("send", (message: string, callbackId: number) => childProcess.send(message, maybeCallback(ae, callbackId)));
 			ae.on("unref", () => childProcess.unref());
 
 			ae.emit("pid", childProcess.pid);
@@ -72,9 +72,15 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 			childProcess.on("exit", (code, signal) => ae.emit("exit", code, signal));
 			childProcess.on("message", (message) => ae.emit("message", message));
 
-			bindWritable(createUniqueEval(ae, "stdin"), childProcess.stdin);
-			bindReadable(createUniqueEval(ae, "stdout"), childProcess.stdout);
-			bindReadable(createUniqueEval(ae, "stderr"), childProcess.stderr);
+			if (childProcess.stdin) {
+				bindWritable(createUniqueEval(ae, "stdin"), childProcess.stdin);
+			}
+			if (childProcess.stdout) {
+				bindReadable(createUniqueEval(ae, "stdout"), childProcess.stdout);
+			}
+			if (childProcess.stderr) {
+				bindReadable(createUniqueEval(ae, "stderr"), childProcess.stderr);
+			}
 
 			return {
 				onDidDispose: (cb): cp.ChildProcess => childProcess.on("close", cb),

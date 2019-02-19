@@ -9,22 +9,22 @@ const ae = client.run((ae) => {
 	const spdlog = __non_webpack_require__("spdlog") as typeof import("spdlog");
 	const loggers = new Map<number, NodeRotatingLogger>();
 
-	ae.on("new", (id, name, filePath, fileSize, fileCount) => {
+	ae.on("new", (id: number, name: string, filePath: string, fileSize: number, fileCount: number) => {
 		const logger = new spdlog.RotatingLogger(name, filePath, fileSize, fileCount);
 		loggers.set(id, logger);
 	});
 
-	ae.on("clearFormatters", (id) => loggers.get(id)!.clearFormatters());
-	ae.on("critical", (id, message) => loggers.get(id)!.critical(message));
-	ae.on("debug", (id, message) => loggers.get(id)!.debug(message));
-	ae.on("drop", (id) => loggers.get(id)!.drop());
-	ae.on("errorLog", (id, message) => loggers.get(id)!.error(message));
-	ae.on("flush", (id) => loggers.get(id)!.flush());
-	ae.on("info", (id, message) => loggers.get(id)!.info(message));
-	ae.on("setAsyncMode", (bufferSize, flushInterval) => spdlog.setAsyncMode(bufferSize, flushInterval));
-	ae.on("setLevel", (id, level) => loggers.get(id)!.setLevel(level));
-	ae.on("trace", (id, message) => loggers.get(id)!.trace(message));
-	ae.on("warn", (id, message) => loggers.get(id)!.warn(message));
+	ae.on("clearFormatters", (id: number) => loggers.get(id)!.clearFormatters());
+	ae.on("critical", (id: number, message: string) => loggers.get(id)!.critical(message));
+	ae.on("debug", (id: number, message: string) => loggers.get(id)!.debug(message));
+	ae.on("drop", (id: number) => loggers.get(id)!.drop());
+	ae.on("errorLog", (id: number, message: string) => loggers.get(id)!.error(message));
+	ae.on("flush", (id: number) => loggers.get(id)!.flush());
+	ae.on("info", (id: number, message: string) => loggers.get(id)!.info(message));
+	ae.on("setAsyncMode", (bufferSize: number, flushInterval: number) => spdlog.setAsyncMode(bufferSize, flushInterval));
+	ae.on("setLevel", (id: number, level: number) => loggers.get(id)!.setLevel(level));
+	ae.on("trace", (id: number, message: string) => loggers.get(id)!.trace(message));
+	ae.on("warn", (id: number, message: string) => loggers.get(id)!.warn(message));
 
 	const disposeCallbacks = <Array<() => void>>[];
 
@@ -40,7 +40,7 @@ const ae = client.run((ae) => {
 
 const spdLogger = logger.named("spdlog");
 ae.on("close", () => spdLogger.error("session closed prematurely"));
-ae.on("error", (error) => spdLogger.error(error.message));
+ae.on("error", (error: Error) => spdLogger.error(error.message));
 
 let id = 0;
 export class RotatingLogger implements NodeRotatingLogger {
