@@ -53,12 +53,6 @@ class Pty implements nodePty.IPty {
 					setTimeout(() => ptyProc.kill("SIGKILL"), 5000); // Double tap.
 				},
 			};
-		}, file, Array.isArray(args) ? args : [args], {
-			...options,
-			tty: {
-				columns: options.cols || 100,
-				rows: options.rows || 100,
-			},
 		}, file, args, options);
 
 		this.ae.on("pid", (pid) => this._pid = pid);
