@@ -7,7 +7,7 @@ import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
-import { logger, Level } from "@coder/logger";
+import { logger, field, Level } from "@coder/logger";
 
 export enum SharedProcessState {
 	Stopped,
@@ -30,6 +30,7 @@ export class SharedProcess {
 	private readonly onStateEmitter = new Emitter<SharedProcessEvent>();
 	public readonly onState = this.onStateEmitter.event;
 	private readonly retryName = "Shared process";
+	private readonly logger = logger.named("shared");
 
 	public constructor(
 		private readonly userDataDir: string,
@@ -65,11 +66,33 @@ export class SharedProcess {
 			state: SharedProcessState.Starting,
 		});
 		let resolved: boolean = false;
+		const maybeStop = (error: string): void => {
+			if (resolved) {
+				return;
+			}
+			this.setState({
+				error,
+				state: SharedProcessState.Stopped,
+			});
+			if (!this.activeProcess) {
+				return;
+			}
+			this.activeProcess.kill();
+		};
 		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], {
 			env: {
 				VSCODE_ALLOW_IO: "true",
 				VSCODE_LOGS: process.env.VSCODE_LOGS,
 			},
+		});
+		if (this.logger.level <= Level.Trace) {
+			this.activeProcess.stdout.on("data", (data) => {
+				this.logger.trace(() => ["stdout", field("data", data.toString())]);
+			});
+		}
+		this.activeProcess.on("error", (error) => {
+			this.logger.error("error", field("error", error));
+			maybeStop(error.message);
 		});
 		this.activeProcess.on("exit", (err) => {
 			if (this._state !== SharedProcessState.Stopped) {
@@ -92,7 +115,7 @@ export class SharedProcess {
 					"user-data-dir": this.userDataDir,
 					"extensions-dir": extensionsDir,
 				},
-				logLevel: logger.level,
+				logLevel: this.logger.level,
 				sharedIPCHandle: this.socketPath,
 			};
 			this.ipcHandler!.send("handshake:hey there", "", data);
@@ -105,16 +128,8 @@ export class SharedProcess {
 			});
 		});
 		this.activeProcess.stderr.on("data", (data) => {
-			if (!resolved) {
-				this.setState({
-					error: data.toString(),
-					state: SharedProcessState.Stopped,
-				});
-				if (!this.activeProcess) {
-					return;
-				}
-				this.activeProcess.kill();
-			}
+			this.logger.error("stderr", field("data", data.toString()));
+			maybeStop(data.toString());
 		});
 	}
 
