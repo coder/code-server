@@ -1,2 +1,2 @@
-// TODO: obtain this in a reasonable way.
-export default { name: "vscode", version: "1.31.1" };
+import * as packageJson from "../../../../lib/vscode/package.json";
+export default { name: "vscode", version: packageJson.version };
