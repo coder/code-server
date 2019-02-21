@@ -1,6 +1,7 @@
 import { register, run } from "@coder/runner";
 import * as fs from "fs";
 import * as fse from "fs-extra";
+import * as os from "os";
 import * as path from "path";
 import * as zlib from "zlib";
 
@@ -30,9 +31,45 @@ const buildServerBinaryPackage = register("build:server:binary:package", async (
 		throw new Error("Cannot build binary without web bundle built");
 	}
 	await buildServerBinaryCopy();
+	await dependencyNexeBinary();
 	const resp = await runner.execute("npm", ["run", "build:nexe"]);
 	if (resp.exitCode !== 0) {
 		throw new Error(`Failed to package binary: ${resp.stderr}`);
+	}
+});
+
+const dependencyNexeBinary = register("dependency:nexe", async (runner) => {
+	if (os.platform() === "linux") {
+		const nexeDir = path.join(os.homedir(), ".nexe");
+		const targetBinaryName = `${os.platform()}-${os.arch()}-${process.version.substr(1)}`;
+		const targetBinaryPath = path.join(nexeDir, targetBinaryName);
+		if (!fs.existsSync(targetBinaryPath)) {
+			/**
+			 * We create a binary with nexe
+			 * so we can compress it
+			 */
+			fse.mkdirpSync(nexeDir);
+			runner.cwd = nexeDir;
+			await runner.execute("wget", [`https://github.com/nexe/nexe/releases/download/v3.0.0-beta.15/${targetBinaryName}`]);
+			await runner.execute("chmod", ["+x", targetBinaryPath]);
+		}
+		if (fs.statSync(targetBinaryPath).size >= 20000000) {
+			// Compress w/ upx
+			const upxFolder = path.join(os.tmpdir(), "upx");
+			const upxBinary = path.join(upxFolder, "upx");
+			if (!fs.existsSync(upxBinary)) {
+				fse.mkdirpSync(upxFolder);
+				runner.cwd = upxFolder;
+				const upxExtract = await runner.execute("bash", ["-c", "curl -L https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz | tar xJ --strip-components=1"]);
+				if (upxExtract.exitCode !== 0) {
+					throw new Error(`Failed to extract upx: ${upxExtract.stderr}`);
+				}
+			}
+			if (!fs.existsSync(upxBinary)) {
+				throw new Error("Not sure how, but the UPX binary does not exist");
+			}
+			await runner.execute(upxBinary, [targetBinaryPath]);
+		}
 	}
 });
 
