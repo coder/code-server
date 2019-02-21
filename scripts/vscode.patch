@@ -129,11 +129,11 @@ index 81954344b9..2bdce9603e 100644
 -					if (!fs.existsSync(this.adapterExecutable.command)) {
 +					if (!(await require("util").promisify(fs.exists)(this.adapterExecutable.command))) {
 diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-index e66f74f034..aca6f509b0 100644
+index e66f74f034..759ffe0cef 100644
 --- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 @@ -586,0 +587 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
-+		return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent as any);
++		return (require('vs/../../../../packages/vscode') as typeof import('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent);
 diff --git a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts b/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
 index 4015c9cd5d..bebdb25f6c 100644
 --- a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
