@@ -32,6 +32,13 @@ export abstract class IdeClient {
 		logger.info("Loading IDE");
 		this.loadTime = time(2500);
 
+		let appWindow: Window | undefined;
+		window.addEventListener("message", (event) => {
+			if (event.data === "app") {
+				appWindow = event.source as Window;
+			}
+		});
+
 		this.sharedProcessData = new Promise((resolve): void => {
 			client.onSharedProcessActive(resolve);
 		});
@@ -48,6 +55,9 @@ export abstract class IdeClient {
 
 		this.initialize().then(() => {
 			logger.info("Load completed", field("duration", this.loadTime));
+			if (appWindow) {
+				appWindow.postMessage("loaded", "*");
+			}
 		}).catch((error) => {
 			logger.error(error.message);
 			logger.warn("Load completed with errors", field("duration", this.loadTime));

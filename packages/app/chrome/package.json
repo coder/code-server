@@ -1,0 +1,9 @@
+{
+	"name": "@coder/chrome-app",
+	"dependencies": {
+		"@types/chrome": "^0.0.79"
+	},
+	"scripts": {
+		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js"
+	}
+}

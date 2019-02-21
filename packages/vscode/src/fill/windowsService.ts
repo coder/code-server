@@ -1,13 +1,14 @@
 import * as electron from "electron";
 import { Emitter } from "@coder/events";
 import * as windowsIpc from "vs/platform/windows/node/windowsIpc";
-import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions } from "vs/platform/windows/common/windows";
+import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions, IOpenFileRequest, IAddFoldersRequest } from "vs/platform/windows/common/windows";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { IWorkspaceIdentifier, IWorkspaceFolderCreationData, ISingleFolderWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
 import { URI } from "vs/base/common/uri";
 import { IRecentlyOpened } from "vs/platform/history/common/history";
 import { ISerializableCommandAction } from "vs/platform/actions/common/actions";
 import { client } from "../client";
+import { showOpenDialog } from "../dialog";
 
 /**
  * Instead of going to the shared process, we'll directly run these methods on
@@ -34,20 +35,70 @@ class WindowsService implements IWindowsService {
 	private readonly window = new electron.BrowserWindow();
 
 	// Dialogs
-	public pickFileFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
-		throw new Error("not implemented");
+	public async pickFileFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+		showOpenDialog({
+			...(_options.dialogOptions || {}),
+			properties: {
+				openFile: true,
+				openDirectory: true,
+			},
+		}).then((path) => {
+			// tslint:disable-next-line:no-any
+			(<any>electron.ipcMain).send("vscode:openFiles", {
+				filesToOpen: [{
+					fileUri: URI.file(path),
+				}],
+			} as IOpenFileRequest);
+		}).catch((ex) => {
+			//
+		});
 	}
 
-	public pickFileAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
-		throw new Error("not implemented");
+	public async pickFileAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+		showOpenDialog({
+			...(_options.dialogOptions || {}),
+			properties: {
+				openFile: true,
+			},
+		}).then((path) => {
+			// tslint:disable-next-line:no-any
+			(<any>electron.ipcMain).send("vscode:openFiles", {
+				filesToOpen: [{
+					fileUri: URI.file(path),
+				}],
+			} as IOpenFileRequest);
+		}).catch((ex) => {
+			//
+		});
 	}
 
-	public pickFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
-		throw new Error("not implemented");
+	public async pickFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+		showOpenDialog({
+			...(_options.dialogOptions || {}),
+			properties: {
+				openDirectory: true,
+			},
+		}).then((path) => {
+			client.workspace = URI.file(path);
+		}).catch((ex) => {
+			//
+		});
 	}
 
-	public pickWorkspaceAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
-		throw new Error("not implemented");
+	public async pickWorkspaceAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+		showOpenDialog({
+			...(_options.dialogOptions || {}),
+			properties: {
+				openDirectory: true,
+			},
+		}).then((path) => {
+			// tslint:disable-next-line:no-any
+			(<any>electron.ipcMain).send("vscode:addFolders", {
+				foldersToAdd: [URI.file(path)],
+			} as IAddFoldersRequest);
+		}).catch((ex) => {
+			//
+		});
 	}
 
 	public showMessageBox(windowId: number, options: MessageBoxOptions): Promise<IMessageBoxResult> {
@@ -70,10 +121,14 @@ class WindowsService implements IWindowsService {
 	}
 
 	public showOpenDialog(windowId: number, options: OpenDialogOptions): Promise<string[]> {
-		return new Promise((resolve): void => {
-			electron.dialog.showOpenDialog(this.getWindowById(windowId), options, (filePaths, _bookmarks) => {
-				resolve(filePaths);
-			});
+		return showOpenDialog({
+			...(options || {}),
+			properties: {
+				openDirectory: true,
+				openFile: true,
+			},
+		}).then((path) => {
+			return [path];
 		});
 	}
 
@@ -93,8 +148,17 @@ class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public enterWorkspace(_windowId: number, _path: string): Promise<IEnterWorkspaceResult> {
-		throw new Error("not implemented");
+	public enterWorkspace(_windowId: number, _path: URI): Promise<IEnterWorkspaceResult> {
+		if (_path.path.endsWith(".json")) {
+			client.workspace = {
+				id: "Untitled",
+				configPath: _path.path,
+			};
+		} else {
+			client.workspace = _path;
+		}
+
+		return undefined!;
 	}
 
 	public createAndEnterWorkspace(_windowId: number, _folders?: IWorkspaceFolderCreationData[], _path?: string): Promise<IEnterWorkspaceResult> {
@@ -251,8 +315,8 @@ class WindowsService implements IWindowsService {
 		return Promise.resolve(1);
 	}
 
-	public openExternal(_url: string): Promise<boolean> {
-		throw new Error("not implemented");
+	public async openExternal(_url: string): Promise<boolean> {
+		return typeof window.open(_url, "_blank") !== "undefined";
 	}
 
 	public startCrashReporter(_config: CrashReporterStartOptions): Promise<void> {

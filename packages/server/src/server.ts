@@ -1,4 +1,4 @@
-import { logger } from "@coder/logger";
+import { logger, field } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import * as express from "express";
@@ -6,30 +6,116 @@ import * as express from "express";
 import * as expressStaticGzip from "express-static-gzip";
 import * as fs from "fs";
 import * as http from "http";
+//@ts-ignore
+import * as httpolyglot from "httpolyglot";
+import * as https from "https";
 import * as mime from "mime-types";
+import * as net from "net";
 import * as path from "path";
+import * as pem from "pem";
 import * as util from "util";
 import * as ws from "ws";
-import { isCli, buildDir } from "./constants";
+import { TunnelCloseCode } from "@coder/tunnel/src/common";
+import { handle as handleTunnel } from "@coder/tunnel/src/server";
+import { createPortScanner } from "./portScanner";
+import { buildDir, isCli } from "./constants";
 
-export const createApp = (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions): {
+export const createApp = async (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions, password?: string, httpsOptions?: https.ServerOptions): Promise<{
 	readonly express: express.Application;
 	readonly server: http.Server;
 	readonly wss: ws.Server;
-} => {
+}> => {
+	const parseCookies = (req: http.IncomingMessage): { [key: string]: string } => {
+		const cookies: { [key: string]: string } = {};
+		const rc = req.headers.cookie;
+		if (rc) {
+			rc.split(";").forEach((cook) => {
+				const parts = cook.split("=");
+				cookies[parts.shift()!.trim()] = decodeURI(parts.join("="));
+			});
+		}
+
+		return cookies;
+	};
+
+	const isAuthed = (req: http.IncomingMessage): boolean => {
+		try {
+			if (!password || !isCli) {
+				return true;
+			}
+
+			// Try/catch placed here just in case
+			const cookies = parseCookies(req);
+			if (cookies.password && cookies.password === password) {
+				return true;
+			}
+		} catch (ex) {
+			logger.error("Failed to parse cookies", field("error", ex));
+		}
+
+		return false;
+	};
+
+	const isEncrypted = (socket: net.Socket): boolean => {
+		// tslint:disable-next-line:no-any
+		return (socket as any).encrypted;
+	};
+
 	const app = express();
 	if (registerMiddleware) {
 		registerMiddleware(app);
 	}
-	const server = http.createServer(app);
+
+	const certs = await new Promise<pem.CertificateCreationResult>((res, rej): void => {
+		pem.createCertificate({
+			selfSigned: true,
+		}, (err, result) => {
+			if (err) {
+				rej(err);
+
+				return;
+			}
+
+			res(result);
+		});
+	});
+
+	const server = httpolyglot.createServer({
+		key: certs.serviceKey,
+		cert: certs.certificate,
+	}, app) as http.Server;
 	const wss = new ws.Server({ server });
 
 	wss.shouldHandle = (req): boolean => {
-		// Should handle auth here
-		return true;
+		return isAuthed(req);
 	};
 
-	wss.on("connection", (ws) => {
+	const portScanner = createPortScanner();
+	wss.on("connection", (ws, req) => {
+		if (req.url && req.url.startsWith("/tunnel")) {
+			try {
+				const rawPort = req.url.split("/").pop();
+				const port = Number.parseInt(rawPort!, 10);
+
+				handleTunnel(ws, port);
+			} catch (ex) {
+				ws.close(TunnelCloseCode.Error, ex.toString());
+			}
+
+			return;
+		}
+
+		if (req.url && req.url.startsWith("/ports")) {
+			const onAdded = portScanner.onAdded((added) => ws.send(JSON.stringify({ added })));
+			const onRemoved = portScanner.onRemoved((removed) => ws.send(JSON.stringify({ removed })));
+			ws.on("close", () => {
+				onAdded.dispose();
+				onRemoved.dispose();
+			});
+
+			return ws.send(JSON.stringify({ ports: portScanner.ports }));
+		}
+
 		const connection: ReadWriteConnection = {
 			onMessage: (cb): void => {
 				ws.addEventListener("message", (event) => cb(event.data));
@@ -52,11 +138,17 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 	});
 
 	const baseDir = buildDir || path.join(__dirname, "..");
-	if (isCli) {
-		app.use(expressStaticGzip(path.join(baseDir, "build/web")));
-	} else {
-		app.use(express.static(path.join(baseDir, "resources/web")));
-	}
+	const authStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/auth"));
+	const unauthStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/unauth"));
+	app.use((req, res, next) => {
+		if (isAuthed(req)) {
+			// We can serve the actual VSCode bin
+			authStaticFunc(req, res, next);
+		} else {
+			// Serve only the unauthed version
+			unauthStaticFunc(req, res, next);
+		}
+	});
 	app.get("/resource/:url(*)", async (req, res) => {
 		try {
 			const fullPath = `/${req.params.url}`;
@@ -85,6 +177,28 @@ export const createApp = (registerMiddleware?: (app: express.Application) => voi
 			res.write(content);
 			res.status(200);
 			res.end();
+		} catch (ex) {
+			res.write(ex.toString());
+			res.status(500);
+			res.end();
+		}
+	});
+	app.post("/resource/:url(*)", async (req, res) => {
+		try {
+			const fullPath = `/${req.params.url}`;
+
+			const data: string[] = [];
+			req.setEncoding("utf8");
+			req.on("data", (chunk) => {
+				data.push(chunk);
+			});
+			req.on("end", () => {
+				const body = data.join("");
+				fs.writeFileSync(fullPath, body);
+				logger.debug("Wrote resource", field("path", fullPath), field("content-length", body.length));
+				res.status(200);
+				res.end();
+			});
 		} catch (ex) {
 			res.write(ex.toString());
 			res.status(500);

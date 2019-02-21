@@ -32,6 +32,10 @@ class OS {
 		this._tmpdir = data.tmpDirectory;
 	}
 
+	public release(): string {
+		return "Unknown";
+	}
+
 	public platform(): NodeJS.Platform {
 		if (navigator.appVersion.indexOf("Win") != -1) {
 			return "win32";

@@ -2,6 +2,7 @@ import * as paths from "./fill/paths";
 import "./fill/platform";
 import "./fill/storageDatabase";
 import "./fill/windowsService";
+import "./fill/workspacesService";
 import "./fill/environmentService";
 import "./fill/vscodeTextmate";
 import "./fill/codeEditor";
@@ -17,13 +18,14 @@ import { LogLevel } from "vs/platform/log/common/log";
 import { URI } from "vs/base/common/uri";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IProgressService2, ProgressLocation } from "vs/platform/progress/common/progress";
-import { ExplorerItem, Model } from "vs/workbench/parts/files/common/explorerModel";
+import { ExplorerItem, ExplorerModel } from "vs/workbench/parts/files/common/explorerModel";
 import { DragMouseEvent } from "vs/base/browser/mouseEvent";
 import { IEditorService, IResourceEditor } from "vs/workbench/services/editor/common/editorService";
 import { IEditorGroup } from "vs/workbench/services/group/common/editorGroupsService";
-import { IWindowsService } from "vs/platform/windows/common/windows";
+import { IWindowsService, IWindowConfiguration } from "vs/platform/windows/common/windows";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
+import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
 
 export class Client extends IdeClient {
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
@@ -39,7 +41,7 @@ export class Client extends IdeClient {
 		return this._builtInExtensionsDirectory;
 	}
 
-	public async handleExternalDrop(target: ExplorerItem | Model, originalEvent: DragMouseEvent): Promise<void> {
+	public async handleExternalDrop(target: ExplorerItem | ExplorerModel, originalEvent: DragMouseEvent): Promise<void> {
 		await this.upload.uploadDropped(
 			originalEvent.browserEvent as DragEvent,
 			(target instanceof ExplorerItem ? target : target.roots[0]).resource,
@@ -91,6 +93,25 @@ export class Client extends IdeClient {
 	 */
 	public get pasteAction(): PasteAction {
 		return new PasteAction();
+	}
+
+	public set workspace(ws: IWorkspaceIdentifier | ISingleFolderWorkspaceIdentifier | undefined) {
+		if (typeof ws === "undefined") {
+			window.localStorage.removeItem("workspace");
+		} else {
+			window.localStorage.setItem("workspace", JSON.stringify(ws));
+		}
+
+		location.reload();
+	}
+
+	public get workspace(): undefined | IWorkspaceIdentifier | ISingleFolderWorkspaceIdentifier {
+		const ws = window.localStorage.getItem("workspace");
+		try {
+			return JSON.parse(ws!);
+		} catch (ex) {
+			return undefined;
+		}
 	}
 
 	public get serviceCollection(): ServiceCollection {
@@ -162,8 +183,9 @@ export class Client extends IdeClient {
 			this._builtInExtensionsDirectory = data.builtInExtensionsDirectory;
 			process.env.SHELL = data.shell;
 
-			const { startup } = require("./startup");
-			await startup({
+			const workspace = this.workspace || URI.file(data.workingDirectory);
+			const { startup } = require("./startup") as typeof import("vs/workbench/electron-browser/main");
+			const config: IWindowConfiguration = {
 				machineId: "1",
 				windowId: this.windowId,
 				logLevel: LogLevel.Info,
@@ -174,9 +196,13 @@ export class Client extends IdeClient {
 				nodeCachedDataDir: data.tmpDirectory,
 				perfEntries: [],
 				_: [],
-				folderUri: URI.file(data.workingDirectory),
-			});
-
+			};
+			if ((workspace as IWorkspaceIdentifier).configPath) {
+				config.workspace = workspace as IWorkspaceIdentifier;
+			} else {
+				config.folderUri = workspace as URI;
+			}
+			await startup(config);
 			const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 			const bounded = this.clipboardContextKey.bindTo(contextKeys);
 			this.clipboard.onPermissionChange((enabled) => {

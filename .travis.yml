@@ -1,0 +1,23 @@
+language: node_js
+node_js:
+- 8.9.3
+matrix:
+  include:
+  - os: linux
+    dist: ubuntu
+  - os: osx
+  - os: windows
+before_install:
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev libsecret-1-dev;
+  fi
+script:
+- scripts/build.sh
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: T/yqCIeqLifteriv8D3CnehNFzSBP309GZqeUfyx8Q+xSQEttA9Enxl+Qw9GkdedYTN4J56iucHIac6CwcvKSKIXqk80CeSEW0BNxZs5wIgv4rRMMy/GAX0NBWKNOkoGlH8M6VyQcM7eY2iGAn1EX755PHalk6rWwfsauRANOQyb2DXQBan5C0YUnogq2qcW1xkIwlXH7l0Ekbtego0f6QPv0rSyOcL1LKm6xk0Aq+xLNKJkT6TSL6xYpkPlZLjnql09Nspkqs6NehWlft2n09bHqAtjNnWw9OYCvxp8mdHeTE5uShuEqYPzdYU5LVFoE7wElI8uqS66noaA18ytZYGw2IrY6GZcn+wtR6WyM2+YXl2HclL1/Fs6Vn8+zwq2IBZchBNv3KJSn1dxiqLlD/s6YQyni17x/9FhtFoNUvsbY5zSC1xrnNQBQWFg0TRnoC9rPR+7hQtT1+5+CvRxpvcNWnPuA22919PFE79ejJulPmsnyF+YLs9c6APJgOpOO1f6fKt5Mcb02dubPqGcQ9NbqUUNTl4IUvEtjG0LnFAgEGerxAcsdnUTxzBVf0LJLlhRKW1BigUTbRwfUJL1DN0mWg9cg7fL5VqrogvNq3uRguxOsYr+bcHDbimQSAY3No3fAkTTqQSJh56Dx57/Un18KxuOTiRB9de1RtiudsI=
+  file: packages/server/cli-$TRAVIS_OS_NAME
+  on:
+    repo: codercom/vscode-online
+    all_branches: true

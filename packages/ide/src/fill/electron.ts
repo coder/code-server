@@ -19,14 +19,58 @@ if (typeof document === "undefined") {
 	(global as any).document = {} as any;
 }
 
-const oldCreateElement: <K extends keyof HTMLElementTagNameMap>(
-	tagName: K, options?: ElementCreationOptions,
-) => HTMLElementTagNameMap[K] = document.createElement;
-
+const oldCreateElement = document.createElement;
 const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HTMLElementTagNameMap[K] => {
 	const createElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HTMLElementTagNameMap[K] => {
-		return oldCreateElement.call(document, tagName);
+		// tslint:disable-next-line:no-any
+		return oldCreateElement.call(document, tagName as any);
 	};
+
+	if (tagName === "style") {
+		const style = createElement("style");
+		// tslint:disable-next-line:no-any
+		const getPropertyDescriptor = (object: any, id: string): PropertyDescriptor | undefined => {
+			let op = Object.getPrototypeOf(object);
+			while (!Object.getOwnPropertyDescriptor(op, id)) {
+				op = Object.getPrototypeOf(op);
+			}
+
+			return Object.getOwnPropertyDescriptor(op, id);
+		};
+		const oldInnerHtml = getPropertyDescriptor(style, "innerHTML");
+		if (!oldInnerHtml) {
+			throw new Error("Failed to find innerHTML property");
+		}
+		Object.defineProperty(style, "innerHTML", {
+			get: (): string => {
+				return oldInnerHtml!.get!.call(style);
+			},
+			set: (value: string): void => {
+				value = value.replace(/file:\/\//g, "/resource");
+				oldInnerHtml!.set!.call(style, value);
+			},
+		});
+		let overridden = false;
+		const oldSheet = getPropertyDescriptor(style, "sheet");
+		Object.defineProperty(style, "sheet", {
+			// tslint:disable-next-line:no-any
+			get: (): any => {
+				const sheet = oldSheet!.get!.call(style);
+				if (sheet && !overridden) {
+					const oldInsertRule = sheet.insertRule;
+					sheet.insertRule = (rule: string, index?: number): void => {
+						rule = rule.replace(/file:\/\//g, "/resource");
+						oldInsertRule.call(sheet, rule, index);
+					};
+					overridden = true;
+				}
+
+				return sheet;
+			},
+		});
+
+		return style;
+	}
 
 	if (tagName === "webview") {
 		const view = createElement("iframe") as HTMLIFrameElement;
@@ -56,8 +100,19 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 						view.contentDocument.body.parentElement!.style.overflow = "hidden";
 						const script = createElement("script");
 						script.src = url;
+						script.addEventListener("load", () => {
+							view.contentDocument!.dispatchEvent(new Event("DOMContentLoaded", {
+								bubbles: true,
+								cancelable: true,
+							}));
+							// const e = new CustomEvent("ipc-message");
+							// (e as any).channel = "webview-ready"; // tslint:disable-line no-any
+							// (e as any).args = [frameID]; // tslint:disable-line no-any
+							// view.dispatchEvent(e);
+						});
 						view.contentDocument.head.appendChild(script);
 					}
+
 				};
 			},
 		});
@@ -65,8 +120,8 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 		(view as any).send = (channel: string, ...args: any[]): void => { // tslint:disable-line no-any
 			if (args[0] && typeof args[0] === "object" && args[0].contents) {
 				// TODO
-				// args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m) => `"${getFetchUrl(m)}"`);
-				// args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m) => `"${getFetchUrl(m)}"`);
+				args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m1) => `"/resource${m1}"`);
+				args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m, m1) => `"/resource${m1}"`);
 			}
 			if (view.contentWindow) {
 				view.contentWindow.postMessage({

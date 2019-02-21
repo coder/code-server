@@ -4,6 +4,7 @@
 		"module": "commonjs",
 		"baseUrl": ".",
 		"rootDir": ".",
+		"jsx": "react",
 		"outDir": "dist",
 		"declaration": true,
 		"sourceMap": true,

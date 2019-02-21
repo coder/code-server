@@ -1,0 +1,4 @@
+{
+	"name": "@coder/tunnel",
+	"main": "src/tunnel.ts"
+}

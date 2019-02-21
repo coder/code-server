@@ -1,4 +1,4 @@
-import { readFile, writeFile } from "fs";
+import { readFile, writeFile, mkdir } from "fs";
 import * as path from "path";
 import { promisify } from "util";
 import { IDisposable } from "@coder/disposable";
@@ -7,6 +7,8 @@ import * as workspaceStorage from "vs/base/node/storage";
 import * as globalStorage from "vs/platform/storage/node/storageIpc";
 import * as paths from "./paths";
 import { logger, field } from "@coder/logger";
+import { client } from "@coder/vscode/src/client";
+import { IStorageService, WillSaveStateReason } from "vs/platform/storage/common/storage";
 
 class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	public readonly onDidChangeItemsExternal = Event.None;
@@ -20,11 +22,9 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 			if (!navigator.sendBeacon) {
 				throw new Error("cannot save state");
 			}
-			// TODO: Need to use navigator.sendBeacon instead of the web socket, or we
-			// need to save when there is a change. Should we save as a sqlite3
-			// database instead of JSON? Could send to the server the way the global
-			// storage works. Or maybe fill `vscode-sqlite3` to do that.
-			this.save();
+
+			this.triggerFlush(WillSaveStateReason.SHUTDOWN);
+			navigator.sendBeacon(`/resource${this.path}`, this.content);
 		});
 	}
 
@@ -58,7 +58,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 			request.delete.forEach(key => this.items.delete(key));
 		}
 
-		return Promise.resolve();
+		return this.save();
 	}
 
 	public close(): Promise<void> {
@@ -69,13 +69,38 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 		return Promise.resolve("ok");
 	}
 
-	private save(): Promise<void> {
+	private async save(): Promise<void> {
+		try {
+			await promisify(mkdir)(path.dirname(this.path));
+		} catch (ex) {}
+
+		return promisify(writeFile)(this.path, this.content);
+	}
+
+	private triggerFlush(reason: WillSaveStateReason = WillSaveStateReason.NONE): boolean {
+		// tslint:disable-next-line:no-any
+		const storageService = client.serviceCollection.get<IStorageService>(IStorageService) as any;
+		if (reason === WillSaveStateReason.SHUTDOWN && storageService.close) {
+			storageService.close();
+
+			return true;
+		}
+		if (storageService._onWillSaveState) {
+			storageService._onWillSaveState.fire({ reason });
+
+			return true;
+		}
+
+		return false;
+	}
+
+	private get content(): string {
 		const json: { [key: string]: string } = {};
 		this.items.forEach((value, key) => {
 			json[key] = value;
 		});
 
-		return promisify(writeFile)(this.path, JSON.stringify(json));
+		return JSON.stringify(json);
 	}
 }
 

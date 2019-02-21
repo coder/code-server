@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger";
 import { IDisposable } from "vs/base/common/lifecycle";
 import * as actions from "vs/platform/actions/common/actions";
-import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions";
+import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions/developerActions";
 
 // Intercept appending menu items so we can skip items that won't work.
 const originalAppend = actions.MenuRegistry.appendMenuItem.bind(actions.MenuRegistry);

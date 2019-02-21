@@ -1,0 +1,10 @@
+{
+	"name": "@coder/app",
+	"scripts": {
+		"start": "../../../node_modules/.bin/webpack-dev-server --config ./webpack.config.js",
+		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js"
+	},
+	"dependencies": {
+		"material-components-web": "^0.44.0"
+	}
+}

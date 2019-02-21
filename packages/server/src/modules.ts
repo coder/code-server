@@ -35,8 +35,10 @@ export const setup = (dataDirectory: string): void => {
 	 */
 	unpackModule("pty");
 	const nodePtyUtils = require("../../protocol/node_modules/node-pty/lib/utils") as typeof import("../../protocol/node_modules/node-pty/src/utils");
-	nodePtyUtils.loadNative = (modName: string) => {
+	// tslint:disable-next-line:no-any
+	nodePtyUtils.loadNative = (modName: string): any => {
 		return __non_webpack_require__(path.join(dataDirectory, "modules", modName + ".node"));
 	};
+	// tslint:disable-next-line:no-unused-expression
 	require("../../protocol/node_modules/node-pty/lib/index") as typeof import("../../protocol/node_modules/node-pty/src/index");
 };

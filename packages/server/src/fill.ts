@@ -49,7 +49,11 @@ export const fillFs = (): void => {
 			}
 		};
 		if (customPromisify) {
-			(<any>fs[propertyName])[util.promisify.custom] = customPromisify;
+			(<any>fs[propertyName])[util.promisify.custom] = (...args: any[]) => {
+				return customPromisify(...args).catch((ex) => {
+					throw ex;
+				});
+			};
 		}
 	};
 
@@ -113,13 +117,6 @@ export const fillFs = (): void => {
 
 		const fileDesc = fds.get(fd)!;
 
-		/**
-		 * `readFile` is filled within nexe, but `read` is not
-		 * https://github.com/nexe/nexe/blob/master/src/fs/patch.ts#L199
-		 * We can simulate a real _read_ by reading the entire file.
-		 * Efficiency can be improved here by storing the entire file in memory
-		 * until it has been closed.
-		 */
 		return fs.readFile(fileDesc.path, (err, rb) => {
 			if (err) {
 				return callOld();

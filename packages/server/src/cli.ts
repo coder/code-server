@@ -6,7 +6,7 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { createApp } from "./server";
-import { requireModule } from "./vscode/bootstrapFork";
+import { requireModule, requireFork } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
@@ -26,6 +26,8 @@ export class Entry extends Command {
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
+		"fork": flags.string({ hidden: true }),
+
 		env: flags.string({ hidden: true }),
 		args: flags.string({ hidden: true }),
 	};
@@ -76,6 +78,12 @@ export class Entry extends Command {
 			return requireModule(modulePath, builtInExtensionsDir);
 		}
 
+		if (flags["fork"]) {
+			const modulePath = flags["fork"];
+
+			return requireFork(modulePath, JSON.parse(flags.args!), builtInExtensionsDir);
+		}
+
 		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
 		const workingDir = args["workdir"];
 
@@ -91,6 +99,38 @@ export class Entry extends Command {
 
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;
+
+		const certPath = flags.cert;
+		const certKeyPath = flags["cert-key"];
+
+		if (certPath && !certKeyPath) {
+			logger.error("'--cert-key' flag is required when specifying a certificate!");
+			process.exit(1);
+		}
+
+		if (!certPath && certKeyPath) {
+			logger.error("'--cert' flag is required when specifying certificate key!");
+			process.exit(1);
+		}
+
+		let certData: Buffer | undefined;
+		let certKeyData: Buffer | undefined;
+
+		if (typeof certPath !== "undefined" && typeof certKeyPath !== "undefined") {
+			try {
+				certData = fs.readFileSync(certPath);
+			} catch (ex) {
+				logger.error(`Failed to read certificate: ${ex.message}`);
+				process.exit(1);
+			}
+
+			try {
+				certKeyData = fs.readFileSync(certKeyPath);
+			} catch (ex) {
+				logger.error(`Failed to read certificate key: ${ex.message}`);
+				process.exit(1);
+			}
+		}
 
 		logger.info("\u001B[1mvscode-remote v1.0.0");
 		// TODO: fill in appropriate doc url
@@ -111,7 +151,9 @@ export class Entry extends Command {
 			}
 		});
 
-		const app = createApp((app) => {
+		const password = "023450wf0951";
+		const hasCustomHttps = certData && certKeyData;
+		const app = await createApp((app) => {
 			app.use((req, res, next) => {
 				res.on("finish", () => {
 					logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
@@ -132,10 +174,13 @@ export class Entry extends Command {
 				app.use(require("webpack-hot-middleware")(compiler));
 			}
 		}, {
-			builtInExtensionsDirectory: builtInExtensionsDir,
-			dataDirectory: dataDir,
-			workingDirectory: workingDir,
-		});
+				builtInExtensionsDirectory: builtInExtensionsDir,
+				dataDirectory: dataDir,
+				workingDirectory: workingDir,
+			}, password, hasCustomHttps ? {
+				key: certKeyData,
+				cert: certData,
+			} : undefined);
 
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
@@ -161,7 +206,7 @@ export class Entry extends Command {
 		}
 
 		logger.info(" ");
-		logger.info("Password:\u001B[1m 023450wf09");
+		logger.info(`Password:\u001B[1m ${password}`);
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
 		logger.info(`http://localhost:${flags.port}/`);

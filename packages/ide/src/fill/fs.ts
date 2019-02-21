@@ -118,6 +118,7 @@ class FS {
 			const str = fs.createWriteStream(path, options);
 			ae.on("write", (d: string) => str.write(_Buffer.from(d, "utf8")));
 			ae.on("close", () => str.close());
+			ae.on("destroy", () => str.destroy());
 			str.on("close", () => ae.emit("close"));
 			str.on("open", (fd) => ae.emit("open", fd));
 			str.on("error", (err) => ae.emit(err));
@@ -155,6 +156,10 @@ class FS {
 
 			public close(): void {
 				ae.emit("close");
+			}
+
+			public destroy(): void {
+				ae.emit("destroy");
 			}
 
 		}) as fs.WriteStream;

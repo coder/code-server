@@ -1,0 +1,14 @@
+{
+	"name": "@coder/dns",
+	"main": "out/main.js",
+	"scripts": {
+		"build": "../../node_modules/.bin/webpack --config ./webpack.config.js"
+	},
+	"dependencies": {
+		"node-named": "^0.0.1"
+	},
+	"devDependencies": {
+		"ip-address": "^5.8.9",
+		"@types/ip-address": "^5.8.2"
+	}
+}

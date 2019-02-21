@@ -1,8 +1,8 @@
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index 457818a975..ad45ffe58a 100644
+index a342222d04..c731e82591 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-@@ -196,0 +197,2 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
+@@ -195,0 +196,2 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +
 +startup({ machineId: "1" });
 diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
@@ -38,10 +38,10 @@ index 5e43f1b39e..a008d3ac7e 100644
 +		}
 +	}
 diff --git a/src/vs/loader.js b/src/vs/loader.js
-index 2bf7fe37d7..81cc668f12 100644
+index 4eddcab3a0..5d80768406 100644
 --- a/src/vs/loader.js
 +++ b/src/vs/loader.js
-@@ -670,4 +670,4 @@ var AMDLoader;
+@@ -671,4 +671,4 @@ var AMDLoader;
 -            this._fs = nodeRequire('fs');
 -            this._vm = nodeRequire('vm');
 -            this._path = nodeRequire('path');
@@ -50,7 +50,7 @@ index 2bf7fe37d7..81cc668f12 100644
 +            this._vm = require('vm');
 +            this._path = require('path');
 +            this._crypto = require('crypto');
-@@ -733,0 +734,7 @@ var AMDLoader;
+@@ -736,0 +737,7 @@ var AMDLoader;
 +            const context = require.context("../", true, /.*/);
 +            if (scriptSrc.indexOf("file:///") !== -1) {
 +                const vsSrc = scriptSrc.split("file:///")[1].split(".js")[0];
@@ -58,11 +58,11 @@ index 2bf7fe37d7..81cc668f12 100644
 +                  scriptSrc = `node|./${vsSrc}`;
 +                }
 +            }
-@@ -738 +745 @@ var AMDLoader;
+@@ -741 +748 @@ var AMDLoader;
 -                    moduleExports_1 = nodeRequire(pieces[1]);
 +                    moduleExports_1 = context(pieces[1]);
 diff --git a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
-index e3efb95b75..163bc4c994 100644
+index 6c52cbc937..09adbe7f51 100644
 --- a/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
 +++ b/src/vs/workbench/api/electron-browser/mainThreadHeapService.ts
 @@ -57,0 +58,3 @@ export class HeapService implements IHeapService {
@@ -70,24 +70,24 @@ index e3efb95b75..163bc4c994 100644
 +		return Promise.resolve(obj);
 +
 diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
-index 7841dcdaa2..f5665f0db3 100644
+index 1f4a1e100b..1bf605a064 100644
 --- a/src/vs/workbench/api/node/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/node/extHostExtensionService.ts
-@@ -654 +654 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
+@@ -719 +719 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
 -		r = require.__$__nodeRequire<T>(modulePath);
 +		r = (global as any).nativeNodeRequire(modulePath);
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index 38bf337a61..a6ee664a20 100644
+index e73acff052..bd65fcbd6c 100644
 --- a/src/vs/workbench/browser/dnd.ts
 +++ b/src/vs/workbench/browser/dnd.ts
 @@ -171 +171 @@ export class ResourcesDropHandler {
 -			return;
 +			return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
 diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
-index a43d63aa51..438d0a8245 100644
+index 1e6333c731..0a7bdeeb9b 100644
 --- a/src/vs/workbench/electron-browser/main.ts
 +++ b/src/vs/workbench/electron-browser/main.ts
-@@ -150,7 +150,7 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
+@@ -147,7 +147,7 @@ function openWorkbench(configuration: IWindowConfiguration): Promise<void> {
 -				(<any>self).require.config({
 -					onError: err => {
 -						if (err.errorCode === 'load') {
@@ -103,27 +103,23 @@ index a43d63aa51..438d0a8245 100644
 +				// 	}
 +				// });
 diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
-index ea348f3a04..ada0003fea 100644
+index c0aff6bd4b..4f3b1e3984 100644
 --- a/src/vs/workbench/electron-browser/window.ts
 +++ b/src/vs/workbench/electron-browser/window.ts
-@@ -48 +48 @@ const TextInputActions: IAction[] = [
--	new Action('editor.action.clipboardPasteAction', nls.localize('paste', "Paste"), null, true, () => document.execCommand('paste') && Promise.resolve(true)),
+@@ -49 +49 @@ const TextInputActions: IAction[] = [
+-	new Action('editor.action.clipboardPasteAction', nls.localize('paste', "Paste"), undefined, true, () => Promise.resolve(document.execCommand('paste'))),
 +	(require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.pasteAction,
+@@ -263 +263 @@ export class ElectronWindow extends Themable {
+-		(<any>window).open = function (url: string, target: string, features: string, replace: boolean): any {
++		(<any>window).openInvalid = function (url: string, target: string, features: string, replace: boolean): any {
 diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
-index 35bc4a82b3..45e96001b6 100644
+index d82db96296..c9bd4e0325 100644
 --- a/src/vs/workbench/electron-browser/workbench.ts
 +++ b/src/vs/workbench/electron-browser/workbench.ts
-@@ -250,0 +251 @@ export class Workbench extends Disposable implements IPartService {
+@@ -272,0 +273 @@ export class Workbench extends Disposable implements IPartService {
 +		(require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.serviceCollection = serviceCollection;
-diff --git a/src/vs/workbench/node/extensionHostProcess.ts b/src/vs/workbench/node/extensionHostProcess.ts
-index 8d182d18d9..69d51e1aea 100644
---- a/src/vs/workbench/node/extensionHostProcess.ts
-+++ b/src/vs/workbench/node/extensionHostProcess.ts
-@@ -132 +132 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
--					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
-+					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 diff --git a/src/vs/workbench/parts/debug/node/debugAdapter.ts b/src/vs/workbench/parts/debug/node/debugAdapter.ts
-index 2d798bf2df..9ccadacb3a 100644
+index 81954344b9..2bdce9603e 100644
 --- a/src/vs/workbench/parts/debug/node/debugAdapter.ts
 +++ b/src/vs/workbench/parts/debug/node/debugAdapter.ts
 @@ -315 +315 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
@@ -133,11 +129,11 @@ index 2d798bf2df..9ccadacb3a 100644
 -					if (!fs.existsSync(this.adapterExecutable.command)) {
 +					if (!(await require("util").promisify(fs.exists)(this.adapterExecutable.command))) {
 diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-index e600fb2f78..1e0dc9a220 100644
+index e66f74f034..aca6f509b0 100644
 --- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-@@ -934,0 +935 @@ export class FileDragAndDrop extends SimpleFileResourceDragAndDrop {
-+		return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent);
+@@ -586,0 +587 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
++		return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.handleExternalDrop(target, originalEvent as any);
 diff --git a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts b/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
 index 4015c9cd5d..bebdb25f6c 100644
 --- a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
@@ -147,14 +143,62 @@ index 4015c9cd5d..bebdb25f6c 100644
 +		// This channel only seems to be used when loading the app and we skip all of that, so it is never actually created or written to.
 +		// outputChannelRegistry.registerChannel({ id: Constants.mainLogChannelId, label: nls.localize('mainLog', "Main"), file: URI.file(join(environmentService.logsPath, `main.log`)), log: true });
 diff --git a/src/vs/workbench/parts/output/common/outputLinkProvider.ts b/src/vs/workbench/parts/output/common/outputLinkProvider.ts
-index 63437034c9..acd82c8375 100644
+index 6d9451401a..510f5131ce 100644
 --- a/src/vs/workbench/parts/output/common/outputLinkProvider.ts
 +++ b/src/vs/workbench/parts/output/common/outputLinkProvider.ts
 @@ -77,0 +78,2 @@ export class OutputLinkProvider {
-+		// TODO@coder: get this working.
++
 +		return Promise.resolve([]);
+diff --git a/src/vs/workbench/parts/webview/electron-browser/webview-pre.js b/src/vs/workbench/parts/webview/electron-browser/webview-pre.js
+index 29593dc6b6..dd3d25098d 100644
+--- a/src/vs/workbench/parts/webview/electron-browser/webview-pre.js
++++ b/src/vs/workbench/parts/webview/electron-browser/webview-pre.js
+@@ -10 +10,19 @@
+-	const ipcRenderer = require('electron').ipcRenderer;
++	const ipcRenderer = {
++		on: (channel, callback) => {
++			window.addEventListener("message", (event) => {
++				if (event.data.channel === channel) {
++					callback(event.data.channel, ...event.data.data);
++				}
++			});
++		},
++		sendToHost: (channel, ...args) => {
++			window.parent.postMessage({
++				channel,
++				data: args,
++				id: document.body.id,
++			}, "*");
++		},
++	};
++	const process = {
++		pid: undefined,
++	};
+@@ -22,7 +40,7 @@
+-			require('electron').webFrame.registerURLSchemeAsPrivileged('vscode-resource', {
+-				secure: true,
+-				bypassCSP: false,
+-				allowServiceWorkers: false,
+-				supportFetchAPI: true,
+-				corsEnabled: true
+-			});
++			// require('electron').webFrame.registerURLSchemeAsPrivileged('vscode-resource', {
++			// 	secure: true,
++			// 	bypassCSP: false,
++			// 	allowServiceWorkers: false,
++			// 	supportFetchAPI: true,
++			// 	corsEnabled: true
++			// });
+diff --git a/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts b/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
+index 5d9110300f..ecdc40b0eb 100644
+--- a/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
++++ b/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
+@@ -261,0 +262,3 @@ export class WebviewElement extends Disposable {
++		Object.defineProperty(this._options, 'useSameOriginForRoot', {
++			value: true,
++		});
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
-index 7b4e8721ac..96d612f940 100644
+index 147f05b246..fa89583203 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 +++ b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 @@ -31,6 +31,6 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
@@ -193,15 +237,22 @@ index 7b4e8721ac..96d612f940 100644
 -				this.modelService.updateModel(codeEditorModel, content.value);
 +				this.modelService.updateModel(codeEditorModel, content);
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-index 4cb7a231f3..78c87d13f6 100644
+index 29cbfd65c4..1091dc3c8a 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 @@ -33,0 +34 @@ function getSystemExtensionsRoot(): string {
 +	return (require('vs/../../../../packages/vscode') as typeof import ('vs/../../../../packages/vscode')).client.builtInExtensionsDirectory;
-diff --git a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
-index 5b4136989f..25ccc0fe9e 100644
---- a/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
-+++ b/src/vs/workbench/services/themes/electron-browser/fileIconThemeData.ts
-@@ -181 +181 @@ function _processIconThemeDocument(id: string, iconThemeDocumentLocation: URI, i
--		return resources.joinPath(iconThemeDocumentLocationDirname, path);
-+		return "/resource" + resources.joinPath(iconThemeDocumentLocationDirname, path).path;
+diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts b/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
+index 5f2935618c..af5498d7ac 100644
+--- a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
++++ b/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
+@@ -132 +132 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
+-					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
++					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+diff --git a/src/vs/workbench/workbench.main.ts b/src/vs/workbench/workbench.main.ts
+index 1ad274696d..f52d1e0d2e 100644
+--- a/src/vs/workbench/workbench.main.ts
++++ b/src/vs/workbench/workbench.main.ts
+@@ -25 +25 @@ import 'vs/workbench/browser/actions/navigationActions';
+-import 'vs/workbench/browser/parts/quickopen/quickopenActions';
++import 'vs/workbench/browser/parts/quickopen/quickOpenActions';
