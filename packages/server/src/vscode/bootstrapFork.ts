@@ -22,7 +22,7 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
 	const customMod = new mod.Module(id);
 	customMod.filename = id;
 	// tslint:disable-next-line:no-any
-	customMod.paths = [(<any>mod)._nodeModulePaths(path.dirname(id)), path.join(__dirname, "../../../../lib/vscode/node_modules")];
+	customMod.paths = (<any>mod)._nodeModulePaths(path.dirname(id));
 
 	if (id.startsWith(builtInExtensionsDir)) {
 		customMod.loaded = true;
