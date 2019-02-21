@@ -14,10 +14,11 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	public readonly onDidChangeItemsExternal = Event.None;
 	private readonly items = new Map<string, string>();
 	private fetched: boolean = false;
+	private readonly path: string;
 
-	public constructor(private readonly path: string) {
-		path = path.replace(/\.vscdb$/, ".json");
-		logger.debug("Setting up storage", field("path", path));
+	public constructor(path: string) {
+		this.path = path.replace(/\.vscdb$/, ".json");
+		logger.debug("Setting up storage", field("path", this.path));
 		window.addEventListener("unload", () => {
 			if (!navigator.sendBeacon) {
 				throw new Error("cannot save state");
@@ -39,7 +40,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 				this.items.set(key, json[key]);
 			});
 		} catch (error) {
-			if (error.code && error.code !== "ENOENT") {
+			if (error.code !== "ENOENT") {
 				throw error;
 			}
 		}
