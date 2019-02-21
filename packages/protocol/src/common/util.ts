@@ -31,6 +31,7 @@ export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoExc
  */
 export const stringify = (arg: any): string => { // tslint:disable-line no-any
 	if (arg instanceof Error) {
+		// Errors don't stringify at all. They just become "{}".
 		return JSON.stringify({
 			type: "Error",
 			data: {
@@ -38,6 +39,15 @@ export const stringify = (arg: any): string => { // tslint:disable-line no-any
 				name: arg.name,
 				stack: arg.stack,
 			},
+		});
+	} else if (arg instanceof Uint8Array) {
+		// With stringify, these get turned into objects with each index becoming a
+		// key for some reason. Then trying to do something like write that data
+		// results in [object Object] being written. Stringify them like a Buffer
+		// instead.
+		return JSON.stringify({
+			type: "Buffer",
+			data: Array.from(arg),
 		});
 	}
 

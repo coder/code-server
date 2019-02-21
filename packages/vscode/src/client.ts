@@ -41,9 +41,9 @@ export class Client extends IdeClient {
 		return this._builtInExtensionsDirectory;
 	}
 
-	public async handleExternalDrop(target: ExplorerItem | ExplorerModel, originalEvent: DragMouseEvent): Promise<void> {
+	public async handleExternalDrop(target: ExplorerItem | ExplorerModel, originalEvent: DragEvent): Promise<void> {
 		await this.upload.uploadDropped(
-			originalEvent.browserEvent as DragEvent,
+			originalEvent,
 			(target instanceof ExplorerItem ? target : target.roots[0]).resource,
 		);
 	}

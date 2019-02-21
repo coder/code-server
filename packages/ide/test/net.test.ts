@@ -12,10 +12,17 @@ const net = require("../src/fill/net") as typeof import("net");
 
 describe("net", () => {
 	let i = 0;
-	const coderDir = path.join(os.tmpdir(), "coder");
+	const coderDir = path.join(os.tmpdir(), "coder", "net");
 	const tmpFile = (): string => path.join(coderDir, `socket.${i++}`);
 
 	beforeAll(async () => {
+		try {
+			await util.promisify(fs.mkdir)(path.dirname(coderDir));
+		} catch (error) {
+			if (error.code !== "EEXIST") {
+				throw error;
+			}
+		}
 		await util.promisify(rimraf)(coderDir);
 		await util.promisify(fs.mkdir)(coderDir);
 	});

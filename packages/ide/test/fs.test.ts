@@ -11,7 +11,7 @@ const fs = require("../src/fill/fs") as typeof import("fs");
 
 describe("fs", () => {
 	let i = 0;
-	const coderDir = path.join(os.tmpdir(), "coder");
+	const coderDir = path.join(os.tmpdir(), "coder", "fs");
 	const testFile = path.join(__dirname, "fs.test.ts");
 	const tmpFile = (): string => path.join(coderDir, `${i++}`);
 	const createTmpFile = async (): Promise<string> => {
@@ -22,6 +22,13 @@ describe("fs", () => {
 	};
 
 	beforeAll(async () => {
+		try {
+			await util.promisify(nativeFs.mkdir)(path.dirname(coderDir));
+		} catch (error) {
+			if (error.code !== "EEXIST") {
+				throw error;
+			}
+		}
 		await util.promisify(rimraf)(coderDir);
 		await util.promisify(nativeFs.mkdir)(coderDir);
 	});
@@ -332,7 +339,7 @@ describe("fs", () => {
 	describe("mkdtemp", () => {
 		it("should create temp dir", async () => {
 			await expect(util.promisify(fs.mkdtemp)(coderDir + "/"))
-				.resolves.toMatch(/^\/tmp\/coder\/[a-zA-Z0-9]{6}/);
+				.resolves.toMatch(/^\/tmp\/coder\/fs\/[a-zA-Z0-9]{6}/);
 		});
 	});
 

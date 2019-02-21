@@ -4,7 +4,7 @@ import { logger, field } from "@coder/logger";
 import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
 import { Disposer, stringify, parse } from "../common/util";
 import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, ClientMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
-import { ActiveEval } from "./command";
+import { ActiveEval } from "./evaluate";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.

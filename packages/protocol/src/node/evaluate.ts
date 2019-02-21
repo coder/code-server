@@ -12,11 +12,6 @@ export interface ActiveEvaluation {
 
 declare var __non_webpack_require__: typeof require;
 export const evaluate = (connection: SendableConnection, message: NewEvalMessage, onDispose: () => void): ActiveEvaluation | void => {
-	const argStr: string[] = [];
-	message.getArgsList().forEach((value) => {
-		argStr.push(value);
-	});
-
 	/**
 	 * Send the response and call onDispose.
 	 */
@@ -94,11 +89,12 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 		process: {
 			env: process.env,
 		},
+		args: message.getArgsList().map(parse),
 	};
 
 	let value: any; // tslint:disable-line no-any
 	try {
-		const code = `(${message.getFunction()})(${eventEmitter ? "eventEmitter, " : ""}${argStr.join(",")});`;
+		const code = `(${message.getFunction()})(${eventEmitter ? "eventEmitter, " : ""}...args);`;
 		value = vm.runInNewContext(code, sandbox, {
 			// If the code takes longer than this to return, it is killed and throws.
 			timeout: message.getTimeout() || 15000,
