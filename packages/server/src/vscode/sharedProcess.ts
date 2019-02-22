@@ -84,7 +84,7 @@ export class SharedProcess {
 				VSCODE_ALLOW_IO: "true",
 				VSCODE_LOGS: process.env.VSCODE_LOGS,
 			},
-		});
+		}, this.userDataDir);
 		if (this.logger.level <= Level.Trace) {
 			this.activeProcess.stdout.on("data", (data) => {
 				this.logger.trace(() => ["stdout", field("data", data.toString())]);

@@ -38,28 +38,15 @@ export class Entry extends Command {
 	}];
 
 	public async run(): Promise<void> {
-		try {
-			/**
-			 * Suuuper janky
-			 * Comes from - https://github.com/nexe/nexe/issues/524
-			 * Seems to cleanup by removing this path immediately
-			 * If any native module is added its assumed this pathname
-			 * will change.
-			 */
-			require("spdlog");
-			const nodePath = path.join(process.cwd(), "e91a410b");
-			fs.unlinkSync(path.join(nodePath, "spdlog.node"));
-			fs.rmdirSync(nodePath);
-		} catch (ex) {
-			logger.warn("Failed to remove extracted dependency.", field("dependency", "spdlog"), field("error", ex.message));
-		}
-
 		if (isCli) {
 			fillFs();
 		}
 
 		const { args, flags } = this.parse(Entry);
+		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
+		const workingDir = args["workdir"];
 
+		setupNativeModules(dataDir);
 		const builtInExtensionsDir = path.join(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
@@ -75,7 +62,7 @@ export class Entry extends Command {
 				process.argv[i + 2] = arg;
 			});
 
-			return requireModule(modulePath, builtInExtensionsDir);
+			return requireModule(modulePath, dataDir, builtInExtensionsDir);
 		}
 
 		if (flags["fork"]) {
@@ -83,9 +70,6 @@ export class Entry extends Command {
 
 			return requireFork(modulePath, JSON.parse(flags.args!), builtInExtensionsDir);
 		}
-
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
-		const workingDir = args["workdir"];
 
 		if (buildDir && buildDir.startsWith(workingDir)) {
 			logger.error("Cannot run binary inside of BUILD_DIR", field("build_dir", buildDir), field("cwd", process.cwd()));
@@ -95,7 +79,7 @@ export class Entry extends Command {
 		if (!fs.existsSync(dataDir)) {
 			fs.mkdirSync(dataDir);
 		}
-		setupNativeModules(dataDir);
+		require("spdlog");
 
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;

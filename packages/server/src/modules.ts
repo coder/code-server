@@ -34,11 +34,14 @@ export const setup = (dataDirectory: string): void => {
 	 * for this is unknown ATM, but this patch works around it.
 	 */
 	unpackModule("pty");
+	unpackModule("spdlog");
 	const nodePtyUtils = require("../../protocol/node_modules/node-pty/lib/utils") as typeof import("../../protocol/node_modules/node-pty/src/utils");
 	// tslint:disable-next-line:no-any
 	nodePtyUtils.loadNative = (modName: string): any => {
 		return __non_webpack_require__(path.join(dataDirectory, "modules", modName + ".node"));
 	};
+	// tslint:disable-next-line:no-any
+	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "modules", "spdlog.node");
 	// tslint:disable-next-line:no-unused-expression
 	require("../../protocol/node_modules/node-pty/lib/index") as typeof import("../../protocol/node_modules/node-pty/src/index");
 };

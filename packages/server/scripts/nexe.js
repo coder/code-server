@@ -9,13 +9,6 @@ nexe.compile({
 	input: path.join(__dirname, "../out/cli.js"),
 	output: `cli-${process.env.TRAVIS_OS_NAME || os.platform()}`,
 	targets: [os.platform()],
-	native: {
-		spdlog: {
-			additionalFiles: [
-				'spdlog.node'
-			],
-		},
-	},
 	/**
 	 * To include native extensions, do NOT install node_modules for each one. They
 	 * are not required as each extension is built using webpack.

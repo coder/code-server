@@ -82,9 +82,13 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty", "build", "Release", "pty.node");
+	const spdlogModule = path.join(pkgsPath, "server", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 
 	if (!fs.existsSync(nodePtyModule)) {
 		throw new Error("Could not find pty.node. Ensure all packages have been installed");
+	}
+	if (!fs.existsSync(spdlogModule)) {
+		throw new Error("Could not find spdlog.node. Ensure all packages have been installed");
 	}
 	if (!fs.existsSync(webOutputPath)) {
 		throw new Error("Web bundle must be built");
@@ -114,6 +118,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
 	fse.mkdirpSync(path.join(cliBuildPath, "modules"));
 	fse.copySync(nodePtyModule, path.join(cliBuildPath, "modules", "pty.node"));
+	fse.copySync(spdlogModule, path.join(cliBuildPath, "modules", "spdlog.node"));
 });
 
 const buildServerBundle = register("build:server:bundle", async (runner) => {

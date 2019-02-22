@@ -71,7 +71,7 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 	}
 };
 
-export const requireModule = (modulePath: string, builtInExtensionsDir: string): void => {
+export const requireModule = (modulePath: string, dataDir: string, builtInExtensionsDir: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
 	const xml = require("xhr2");
 	xml.XMLHttpRequest.prototype._restrictedHeaders["user-agent"] = false;
@@ -96,7 +96,7 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
 		 */
 		// tslint:disable-next-line:no-any
 		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args)], {
+			return cp.spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
 				...options,
 				stdio: [null, null, null, "ipc"],
 			});
@@ -123,7 +123,7 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
  * cp.stderr.on("data", (data) => console.log(data.toString("utf8")));
  * @param modulePath Path of the VS Code module to load.
  */
-export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions): cp.ChildProcess => {
+export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
 	let proc: cp.ChildProcess;
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
@@ -133,6 +133,9 @@ export const forkModule = (modulePath: string, args: string[], options: cp.ForkO
 		// This prevents vscode from trying to load original-fs from electron.
 		delete options.env.ELECTRON_RUN_AS_NODE;
 		forkArgs.push("--env", JSON.stringify(options.env));
+	}
+	if (dataDir) {
+		forkArgs.push("--data-dir", dataDir);
 	}
 	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],

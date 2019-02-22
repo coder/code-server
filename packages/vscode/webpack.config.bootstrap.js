@@ -16,7 +16,6 @@ module.exports = (env) => {
 		entry: path.join(root, "lib/vscode/src/bootstrap-fork.js"),
 		mode: "development",
 		target: "node",
-		externals: ["spdlog"],
 		output: {
 			chunkFilename: "[name].bundle.js",
 			path: path.resolve(__dirname, "./bin"),
