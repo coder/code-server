@@ -7,7 +7,7 @@ import { logger } from "@coder/logger";
 
 // tslint:disable no-any
 
-export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions, dataDir?: string) => ChildProcess;
+export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions) => ChildProcess;
 
 export interface Disposer extends IDisposable {
 	onDidDispose: (cb: () => void) => void;
