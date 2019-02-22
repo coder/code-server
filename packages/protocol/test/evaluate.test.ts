@@ -13,7 +13,7 @@ describe("Evaluate", () => {
 
 	it("should compute from string", async () => {
 		const start = "ban\%\$\"``a,,,,asdasd";
-		const value = await client.evaluate((a) => {
+		const value = await client.evaluate((_helper, a) => {
 			return a;
 		}, start);
 
@@ -21,7 +21,7 @@ describe("Evaluate", () => {
 	}, 100);
 
 	it("should compute from object", async () => {
-		const value = await client.evaluate((arg) => {
+		const value = await client.evaluate((_helper, arg) => {
 			return arg.bananas * 2;
 		}, { bananas: 1 });
 

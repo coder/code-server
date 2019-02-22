@@ -1,12 +1,13 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
+import { fork, ForkOptions, ChildProcess } from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { createApp } from "./server";
-import { requireModule, requireFork } from "./vscode/bootstrapFork";
+import { requireModule, requireFork, forkModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
@@ -158,13 +159,20 @@ export class Entry extends Command {
 				app.use(require("webpack-hot-middleware")(compiler));
 			}
 		}, {
-				builtInExtensionsDirectory: builtInExtensionsDir,
-				dataDirectory: dataDir,
-				workingDirectory: workingDir,
-			}, password, hasCustomHttps ? {
-				key: certKeyData,
-				cert: certData,
-			} : undefined);
+			builtInExtensionsDirectory: builtInExtensionsDir,
+			dataDirectory: dataDir,
+			workingDirectory: workingDir,
+			fork: (modulePath: string, args: string[], options: ForkOptions, dataDir?: string): ChildProcess => {
+				if (options && options.env && options.env.AMD_ENTRYPOINT) {
+					return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
+				}
+
+				return fork(modulePath, args, options);
+			},
+		}, password, hasCustomHttps ? {
+			key: certKeyData,
+			cert: certData,
+		} : undefined);
 
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);

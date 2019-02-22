@@ -5,12 +5,14 @@ import { promisify } from "util";
 import { logger, field } from "@coder/logger";
 import { ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate, ActiveEvaluation } from "./evaluate";
+import { ForkProvider } from "../common/helpers";
 import { ReadWriteConnection } from "../common/connection";
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
 	readonly builtInExtensionsDirectory: string;
+	readonly fork?: ForkProvider;
 }
 
 export class Server {
@@ -105,7 +107,7 @@ export class Server {
 				logger.trace(() => [
 					`dispose ${evalMessage.getId()}, ${this.evals.size} left`,
 				]);
-			});
+			}, this.options ? this.options.fork : undefined);
 			if (resp) {
 				this.evals.set(evalMessage.getId(), resp);
 			}

@@ -152,7 +152,7 @@ class Clipboard {
 
 class Shell {
 	public async moveItemToTrash(path: string): Promise<void> {
-		await client.evaluate((path) => {
+		await client.evaluate((_helper, path) => {
 			const trash = __non_webpack_require__("trash") as typeof import("trash");
 
 			return trash(path);

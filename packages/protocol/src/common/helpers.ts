@@ -1,154 +1,215 @@
-import { SpawnOptions, ForkOptions } from "child_process";
+import { ChildProcess, SpawnOptions, ForkOptions } from "child_process";
 import { EventEmitter } from "events";
 import { Socket } from "net";
 import { Duplex, Readable, Writable } from "stream";
+import { IDisposable } from "@coder/disposable";
 import { logger } from "@coder/logger";
-import { ActiveEval, Disposer } from "@coder/protocol";
 
 // tslint:disable no-any
-/**
- * If there is a callback ID, return a function that emits the callback event on
- * the active evaluation with that ID and all arguments passed to it. Otherwise,
- * return undefined.
- */
-export const maybeCallback = (ae: ActiveEval, callbackId?: number): ((...args: any[])  => void) | undefined => {
-	return typeof callbackId !== "undefined" ? (...args: any[]): void => {
-		ae.emit("callback", callbackId, ...args);
-	} : undefined;
-};
 
-// Some spawn code tries to preserve the env (the debug adapter for
-// instance) but the env is mostly blank (since we're in the browser), so
-// we'll just always preserve the main process.env here, otherwise it
-// won't have access to PATH, etc.
-// TODO: An alternative solution would be to send the env to the browser?
-export const preserveEnv = (options: SpawnOptions | ForkOptions): void => {
-	if (options && options.env) {
-		options.env = { ...process.env, ...options.env };
+export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions, dataDir?: string) => ChildProcess;
+
+export interface Disposer extends IDisposable {
+	onDidDispose: (cb: () => void) => void;
+}
+
+interface ActiveEvalEmitter {
+	removeAllListeners(event?: string): void;
+	emit(event: string, ...args: any[]): void;
+	on(event: string, cb: (...args: any[]) => void): void;
+}
+
+/**
+ * Helper class for evaluations.
+ */
+export class EvalHelper {
+	/**
+	 * Some spawn code tries to preserve the env (the debug adapter for instance)
+	 * but the env is mostly blank (since we're in the browser), so we'll just
+	 * always preserve the main process.env here, otherwise it won't have access
+	 * to PATH, etc.
+	 * TODO: An alternative solution would be to send the env to the browser?
+	*/
+	public preserveEnv(options: SpawnOptions | ForkOptions): void {
+		if (options && options.env) {
+			options.env = { ...process.env, ...options.env };
+		}
 	}
-};
+}
 
 /**
- * Bind a socket to an active evaluation.
+ * Helper class for active evaluations.
  */
-export const bindSocket = (ae: ActiveEval, socket: Socket): Disposer => {
-	socket.on("connect", () => ae.emit("connect"));
-	socket.on("lookup", (error, address, family, host) => ae.emit("lookup", error, address, family, host));
-	socket.on("timeout", () => ae.emit("timeout"));
-
-	ae.on("connect", (options, callbackId) => socket.connect(options, maybeCallback(ae, callbackId)));
-	ae.on("ref", () => socket.ref());
-	ae.on("setKeepAlive", (enable, initialDelay) => socket.setKeepAlive(enable, initialDelay));
-	ae.on("setNoDelay", (noDelay) => socket.setNoDelay(noDelay));
-	ae.on("setTimeout", (timeout, callbackId) => socket.setTimeout(timeout, maybeCallback(ae, callbackId)));
-	ae.on("unref", () => socket.unref());
-
-	bindReadable(ae, socket);
-	bindWritable(ae, socket);
-
-	return {
-		onDidDispose: (cb): Socket => socket.on("close", cb),
-		dispose: (): void => {
-			socket.removeAllListeners();
-			socket.end();
-			socket.destroy();
-			socket.unref();
-		},
-	};
-};
-
-/**
- * Bind a writable stream to an active evaluation.
- */
-export const bindWritable = (ae: ActiveEval, writable: Writable | Duplex): void => {
-	if (!((writable as Readable).read)) { // To avoid binding twice.
-		writable.on("close", () => ae.emit("close"));
-		writable.on("error", (error) => ae.emit("error", error));
-
-		ae.on("destroy", () => writable.destroy());
+export class ActiveEvalHelper extends EvalHelper implements ActiveEvalEmitter {
+	public constructor(private readonly emitter: ActiveEvalEmitter) {
+		super();
 	}
 
-	writable.on("drain", () => ae.emit("drain"));
-	writable.on("finish", () => ae.emit("finish"));
-	writable.on("pipe", () => ae.emit("pipe"));
-	writable.on("unpipe", () => ae.emit("unpipe"));
+	public removeAllListeners(event?: string): void {
+		this.emitter.removeAllListeners(event);
+	}
 
-	ae.on("cork", () => writable.cork());
-	ae.on("end", (chunk, encoding, callbackId) => writable.end(chunk, encoding, maybeCallback(ae, callbackId)));
-	ae.on("setDefaultEncoding", (encoding) => writable.setDefaultEncoding(encoding));
-	ae.on("uncork", () => writable.uncork());
-	// Sockets can pass an fd instead of a callback but streams cannot.
-	ae.on("write", (chunk, encoding, fd, callbackId) => writable.write(chunk, encoding, maybeCallback(ae, callbackId) || fd));
-};
+	public emit(event: string, ...args: any[]): void {
+		this.emitter.emit(event, ...args);
+	}
 
-/**
- * Bind a readable stream to an active evaluation.
- */
-export const bindReadable = (ae: ActiveEval, readable: Readable): void => {
-	// Streams don't have an argument on close but sockets do.
-	readable.on("close", (...args: any[]) => ae.emit("close", ...args));
-	readable.on("data", (data) => ae.emit("data", data));
-	readable.on("end", () => ae.emit("end"));
-	readable.on("error", (error) => ae.emit("error", error));
-	readable.on("readable", () => ae.emit("readable"));
+	public on(event: string, cb: (...args: any[]) => void): void {
+		this.emitter.on(event, cb);
+	}
 
-	ae.on("destroy", () => readable.destroy());
-	ae.on("pause", () => readable.pause());
-	ae.on("push", (chunk, encoding) => readable.push(chunk, encoding));
-	ae.on("resume", () => readable.resume());
-	ae.on("setEncoding", (encoding) => readable.setEncoding(encoding));
-	ae.on("unshift", (chunk) => readable.unshift(chunk));
-};
+	/**
+	 * Create a new helper to make unique events for an item.
+	 */
+	public createUnique(id: number | "stdout" | "stderr" | "stdin"): ActiveEvalHelper {
+		return new ActiveEvalHelper(this.createUniqueEmitter(id));
+	}
 
-/**
- * Wrap an evaluation emitter to make unique events for an item to prevent
- * conflicts when it shares that emitter with other items.
- */
-export const createUniqueEval = (ae: ActiveEval, id: number | "stdout" | "stderr" | "stdin"): ActiveEval => {
-	let events = <string[]>[];
+	/**
+	 * Wrap the evaluation emitter to make unique events for an item to prevent
+	 * conflicts when it shares that emitter with other items.
+	 */
+	protected createUniqueEmitter(id: number | "stdout" | "stderr" | "stdin"): ActiveEvalEmitter {
+		let events = <string[]>[];
 
-	return {
-		removeAllListeners: (event?: string): void => {
-			if (!event) {
-				events.forEach((e) => ae.removeAllListeners(e));
-				events = [];
-			} else {
-				const index = events.indexOf(event);
-				if (index !== -1) {
-					events.splice(index, 1);
-					ae.removeAllListeners(`${event}:${id}`);
+		return {
+			removeAllListeners: (event?: string): void => {
+				if (!event) {
+					events.forEach((e) => this.removeAllListeners(e));
+					events = [];
+				} else {
+					const index = events.indexOf(event);
+					if (index !== -1) {
+						events.splice(index, 1);
+						this.removeAllListeners(`${event}:${id}`);
+					}
 				}
-			}
-		},
-		emit: (event: string, ...args: any[]): void => {
-			ae.emit(`${event}:${id}`, ...args);
-		},
-		on: (event: string, cb: (...args: any[]) => void): void => {
-			if (!events.includes(event)) {
-				events.push(event);
-			}
-			ae.on(`${event}:${id}`, cb);
-		},
-	};
-};
+			},
+			emit: (event: string, ...args: any[]): void => {
+				this.emit(`${event}:${id}`, ...args);
+			},
+			on: (event: string, cb: (...args: any[]) => void): void => {
+				if (!events.includes(event)) {
+					events.push(event);
+				}
+				this.on(`${event}:${id}`, cb);
+			},
+		};
+	}
+}
+
+/**
+ * Helper class for server-side active evaluations.
+ */
+export class ServerActiveEvalHelper extends ActiveEvalHelper {
+	public constructor(emitter: ActiveEvalEmitter, public readonly fork: ForkProvider) {
+		super(emitter);
+	}
+
+	/**
+	 * If there is a callback ID, return a function that emits the callback event
+	 * on the active evaluation with that ID and all arguments passed to it.
+	 * Otherwise, return undefined.
+	 */
+	public maybeCallback(callbackId?: number): ((...args: any[])  => void) | undefined {
+		return typeof callbackId !== "undefined" ? (...args: any[]): void => {
+			this.emit("callback", callbackId, ...args);
+		} : undefined;
+	}
+
+	/**
+	 * Bind a socket to an active evaluation and returns a disposer.
+	 */
+	public bindSocket(socket: Socket): Disposer {
+		socket.on("connect", () => this.emit("connect"));
+		socket.on("lookup", (error, address, family, host) => this.emit("lookup", error, address, family, host));
+		socket.on("timeout", () => this.emit("timeout"));
+
+		this.on("connect", (options, callbackId) => socket.connect(options, this.maybeCallback(callbackId)));
+		this.on("ref", () => socket.ref());
+		this.on("setKeepAlive", (enable, initialDelay) => socket.setKeepAlive(enable, initialDelay));
+		this.on("setNoDelay", (noDelay) => socket.setNoDelay(noDelay));
+		this.on("setTimeout", (timeout, callbackId) => socket.setTimeout(timeout, this.maybeCallback(callbackId)));
+		this.on("unref", () => socket.unref());
+
+		this.bindReadable(socket);
+		this.bindWritable(socket);
+
+		return {
+			onDidDispose: (cb): Socket => socket.on("close", cb),
+			dispose: (): void => {
+				socket.removeAllListeners();
+				socket.end();
+				socket.destroy();
+				socket.unref();
+			},
+		};
+	}
+
+	/**
+	 * Bind a writable stream to the active evaluation.
+	 */
+	public bindWritable(writable: Writable | Duplex): void {
+		if (!((writable as Readable).read)) { // To avoid binding twice.
+			writable.on("close", () => this.emit("close"));
+			writable.on("error", (error) => this.emit("error", error));
+
+			this.on("destroy", () => writable.destroy());
+		}
+
+		writable.on("drain", () => this.emit("drain"));
+		writable.on("finish", () => this.emit("finish"));
+		writable.on("pipe", () => this.emit("pipe"));
+		writable.on("unpipe", () => this.emit("unpipe"));
+
+		this.on("cork", () => writable.cork());
+		this.on("end", (chunk, encoding, callbackId) => writable.end(chunk, encoding, this.maybeCallback(callbackId)));
+		this.on("setDefaultEncoding", (encoding) => writable.setDefaultEncoding(encoding));
+		this.on("uncork", () => writable.uncork());
+		// Sockets can pass an fd instead of a callback but streams cannot.
+		this.on("write", (chunk, encoding, fd, callbackId) => writable.write(chunk, encoding, this.maybeCallback(callbackId) || fd));
+	}
+
+	/**
+	 * Bind a readable stream to the active evaluation.
+	 */
+	public bindReadable(readable: Readable): void {
+		// Streams don't have an argument on close but sockets do.
+		readable.on("close", (...args: any[]) => this.emit("close", ...args));
+		readable.on("data", (data) => this.emit("data", data));
+		readable.on("end", () => this.emit("end"));
+		readable.on("error", (error) => this.emit("error", error));
+		readable.on("readable", () => this.emit("readable"));
+
+		this.on("destroy", () => readable.destroy());
+		this.on("pause", () => readable.pause());
+		this.on("push", (chunk, encoding) => readable.push(chunk, encoding));
+		this.on("resume", () => readable.resume());
+		this.on("setEncoding", (encoding) => readable.setEncoding(encoding));
+		this.on("unshift", (chunk) => readable.unshift(chunk));
+	}
+
+	public createUnique(id: number | "stdout" | "stderr" | "stdin"): ServerActiveEvalHelper {
+		return new ServerActiveEvalHelper(this.createUniqueEmitter(id), this.fork);
+	}
+}
 
 /**
  * An event emitter that can store callbacks with IDs in a map so we can pass
  * them back and forth through an active evaluation using those IDs.
  */
 export class CallbackEmitter extends EventEmitter {
-	private _ae: ActiveEval | undefined;
+	private _ae: ActiveEvalHelper | undefined;
 	private callbackId = 0;
 	private readonly callbacks = new Map<number, Function>();
 
-	public constructor(ae?: ActiveEval) {
+	public constructor(ae?: ActiveEvalHelper) {
 		super();
 		if (ae) {
 			this.ae = ae;
 		}
 	}
 
-	protected get ae(): ActiveEval {
+	protected get ae(): ActiveEvalHelper {
 		if (!this._ae) {
 			throw new Error("trying to access active evaluation before it has been set");
 		}
@@ -156,7 +217,7 @@ export class CallbackEmitter extends EventEmitter {
 		return this._ae;
 	}
 
-	protected set ae(ae: ActiveEval) {
+	protected set ae(ae: ActiveEvalHelper) {
 		if (this._ae) {
 			throw new Error("cannot override active evaluation");
 		}
@@ -195,7 +256,7 @@ export class CallbackEmitter extends EventEmitter {
  * A writable stream over an active evaluation.
  */
 export class ActiveEvalWritable extends CallbackEmitter implements Writable {
-	public constructor(ae: ActiveEval) {
+	public constructor(ae: ActiveEvalHelper) {
 		super(ae);
 		// Streams don't have an argument on close but sockets do.
 		this.ae.on("close", (...args: any[]) => this.emit("close", ...args));
@@ -249,7 +310,7 @@ export class ActiveEvalWritable extends CallbackEmitter implements Writable {
  * A readable stream over an active evaluation.
  */
 export class ActiveEvalReadable extends CallbackEmitter implements Readable {
-	public constructor(ae: ActiveEval) {
+	public constructor(ae: ActiveEvalHelper) {
 		super(ae);
 		this.ae.on("close", () => this.emit("close"));
 		this.ae.on("data", (data) => this.emit("data", data));
@@ -290,7 +351,7 @@ export class ActiveEvalReadable extends CallbackEmitter implements Readable {
  */
 export class ActiveEvalDuplex extends ActiveEvalReadable implements Duplex {
 	// Some unfortunate duplication here since we can't have multiple extends.
-	public constructor(ae: ActiveEval) {
+	public constructor(ae: ActiveEvalHelper) {
 		super(ae);
 		this.ae.on("drain", () => this.emit("drain"));
 		this.ae.on("finish", () => this.emit("finish"));

@@ -1,6 +1,5 @@
 import * as net from "net";
-import { ActiveEval } from "@coder/protocol";
-import { CallbackEmitter, ActiveEvalDuplex, createUniqueEval } from "./evaluation";
+import { CallbackEmitter, ActiveEvalDuplex, ActiveEvalHelper } from "@coder/protocol";
 import { client } from "./client";
 
 declare var __non_webpack_require__: typeof require;
@@ -9,12 +8,11 @@ class Socket extends ActiveEvalDuplex implements net.Socket {
 	private _connecting: boolean = false;
 	private _destroyed: boolean = false;
 
-	public constructor(options?: net.SocketConstructorOpts, ae?: ActiveEval) {
+	public constructor(options?: net.SocketConstructorOpts, ae?: ActiveEvalHelper) {
 		super(ae || client.run((ae, options) => {
 			const net = __non_webpack_require__("net") as typeof import("net");
-			const { bindSocket } = __non_webpack_require__("@coder/ide/src/fill/evaluation") as typeof import("@coder/ide/src/fill/evaluation");
 
-			return bindSocket(ae, new net.Socket(options));
+			return ae.bindSocket(new net.Socket(options));
 		}, options));
 
 		this.ae.on("connect", () => {
@@ -94,14 +92,14 @@ class Server extends CallbackEmitter implements net.Server {
 
 		this.ae = client.run((ae, options, callbackId) => {
 			const net = __non_webpack_require__("net") as typeof import("net");
-			const { maybeCallback, bindSocket, createUniqueEval } = __non_webpack_require__("@coder/ide/src/fill/evaluation") as typeof import("@coder/ide/src/fill/evaluation");
 
 			let connectionId = 0;
 			const sockets = new Map<number, net.Socket>();
 			const storeSocket = (socket: net.Socket): number => {
 				const socketId = connectionId++;
 				sockets.set(socketId, socket);
-				const disposer = bindSocket(createUniqueEval(ae, socketId), socket);
+				const socketAe = ae.createUnique(socketId);
+				const disposer = socketAe.bindSocket(socket);
 				socket.on("close", () => {
 					disposer.dispose();
 					sockets.delete(socketId);
@@ -110,7 +108,7 @@ class Server extends CallbackEmitter implements net.Server {
 				return socketId;
 			};
 
-			const callback = maybeCallback(ae, callbackId);
+			const callback = ae.maybeCallback(callbackId);
 			let server = new net.Server(options, typeof callback !== "undefined" ? (socket): void => {
 				callback(storeSocket(socket));
 			} : undefined);
@@ -120,7 +118,7 @@ class Server extends CallbackEmitter implements net.Server {
 			server.on("error", (error) => ae.emit("error", error));
 			server.on("listening", () => ae.emit("listening"));
 
-			ae.on("close", (callbackId: number) => server.close(maybeCallback(ae, callbackId)));
+			ae.on("close", (callbackId: number) => server.close(ae.maybeCallback(callbackId)));
 			ae.on("listen", (handle?: net.ListenOptions | number | string) => server.listen(handle));
 			ae.on("ref", () => server.ref());
 			ae.on("unref", () => server.unref());
@@ -147,7 +145,8 @@ class Server extends CallbackEmitter implements net.Server {
 		});
 
 		this.ae.on("connection", (socketId) => {
-			const socket = new Socket(undefined, createUniqueEval(this.ae, socketId));
+			const socketAe = this.ae.createUnique(socketId);
+			const socket = new Socket(undefined, socketAe);
 			this.sockets.set(socketId, socket);
 			socket.on("close", () => this.sockets.delete(socketId));
 			if (connectionListener) {

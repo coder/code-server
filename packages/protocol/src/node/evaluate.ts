@@ -1,8 +1,10 @@
+import { fork as cpFork } from "child_process";
 import { EventEmitter } from "events";
 import * as vm from "vm";
 import { logger, field } from "@coder/logger";
 import { NewEvalMessage, EvalFailedMessage, EvalDoneMessage, ServerMessage, EvalEventMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
+import { ServerActiveEvalHelper, EvalHelper, ForkProvider } from "../common/helpers";
 import { stringify, parse } from "../common/util";
 
 export interface ActiveEvaluation {
@@ -11,7 +13,7 @@ export interface ActiveEvaluation {
 }
 
 declare var __non_webpack_require__: typeof require;
-export const evaluate = (connection: SendableConnection, message: NewEvalMessage, onDispose: () => void): ActiveEvaluation | void => {
+export const evaluate = (connection: SendableConnection, message: NewEvalMessage, onDispose: () => void, fork?: ForkProvider): ActiveEvaluation | void => {
 	/**
 	 * Send the response and call onDispose.
 	 */
@@ -46,7 +48,10 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 
 	let eventEmitter = message.getActive() ? new EventEmitter(): undefined;
 	const sandbox = {
-		eventEmitter: eventEmitter ? {
+		helper: eventEmitter ? new ServerActiveEvalHelper({
+			removeAllListeners: (event?: string): void => {
+				eventEmitter!.removeAllListeners(event);
+			},
 			// tslint:disable no-any
 			on: (event: string, cb: (...args: any[]) => void): void => {
 				eventEmitter!.on(event, (...args: any[]) => {
@@ -73,7 +78,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 				connection.send(serverMsg.serializeBinary());
 			},
 			// tslint:enable no-any
-		} : undefined,
+		}, fork || cpFork) : new EvalHelper(),
 		_Buffer: Buffer,
 		// When the client is ran from Webpack, it will replace
 		// __non_webpack_require__ with require, which we then need to provide to
@@ -94,7 +99,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 
 	let value: any; // tslint:disable-line no-any
 	try {
-		const code = `(${message.getFunction()})(${eventEmitter ? "eventEmitter, " : ""}...args);`;
+		const code = `(${message.getFunction()})(helper, ...args);`;
 		value = vm.runInNewContext(code, sandbox, {
 			// If the code takes longer than this to return, it is killed and throws.
 			timeout: message.getTimeout() || 15000,

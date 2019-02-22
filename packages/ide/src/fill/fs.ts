@@ -26,7 +26,7 @@ class FS {
 			callback = mode;
 			mode = undefined;
 		}
-		this.client.evaluate((path, mode) => {
+		this.client.evaluate((_helper, path, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -44,7 +44,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((path, data, options) => {
+		this.client.evaluate((_helper, path, data, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -57,7 +57,7 @@ class FS {
 	}
 
 	public chmod = (path: fs.PathLike, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path, mode) => {
+		this.client.evaluate((_helper, path, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -70,7 +70,7 @@ class FS {
 	}
 
 	public chown = (path: fs.PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path, uid, gid) => {
+		this.client.evaluate((_helper, path, uid, gid) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -83,7 +83,7 @@ class FS {
 	}
 
 	public close = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd) => {
+		this.client.evaluate((_helper, fd) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -99,7 +99,7 @@ class FS {
 		if (typeof flags === "function") {
 			callback = flags;
 		}
-		this.client.evaluate((src, dest, flags) => {
+		this.client.evaluate((_helper, src, dest, flags) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -166,7 +166,7 @@ class FS {
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
-		this.client.evaluate((path) => {
+		this.client.evaluate((_helper, path) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -179,7 +179,7 @@ class FS {
 	}
 
 	public fchmod = (fd: number, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd, mode) => {
+		this.client.evaluate((_helper, fd, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -192,7 +192,7 @@ class FS {
 	}
 
 	public fchown = (fd: number, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd, uid, gid) => {
+		this.client.evaluate((_helper, fd, uid, gid) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -205,7 +205,7 @@ class FS {
 	}
 
 	public fdatasync = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd) => {
+		this.client.evaluate((_helper, fd) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -218,7 +218,7 @@ class FS {
 	}
 
 	public fstat = (fd: number, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		this.client.evaluate((fd) => {
+		this.client.evaluate((_helper, fd) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
@@ -242,7 +242,7 @@ class FS {
 	}
 
 	public fsync = (fd: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd) => {
+		this.client.evaluate((_helper, fd) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -259,7 +259,7 @@ class FS {
 			callback = len;
 			len = undefined;
 		}
-		this.client.evaluate((fd, len) => {
+		this.client.evaluate((_helper, fd, len) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -272,7 +272,7 @@ class FS {
 	}
 
 	public futimes = (fd: number, atime: string | number | Date, mtime: string | number | Date, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((fd, atime, mtime) => {
+		this.client.evaluate((_helper, fd, atime, mtime) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -285,7 +285,7 @@ class FS {
 	}
 
 	public lchmod = (path: fs.PathLike, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path, mode) => {
+		this.client.evaluate((_helper, path, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -298,7 +298,7 @@ class FS {
 	}
 
 	public lchown = (path: fs.PathLike, uid: number, gid: number, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path, uid, gid) => {
+		this.client.evaluate((_helper, path, uid, gid) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -311,7 +311,7 @@ class FS {
 	}
 
 	public link = (existingPath: fs.PathLike, newPath: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((existingPath, newPath) => {
+		this.client.evaluate((_helper, existingPath, newPath) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -324,7 +324,7 @@ class FS {
 	}
 
 	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		this.client.evaluate((path) => {
+		this.client.evaluate((_helper, path) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
@@ -352,7 +352,7 @@ class FS {
 			callback = mode;
 			mode = undefined;
 		}
-		this.client.evaluate((path, mode) => {
+		this.client.evaluate((_helper, path, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -369,7 +369,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((prefix, options) => {
+		this.client.evaluate((_helper, prefix, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -386,7 +386,7 @@ class FS {
 			callback = mode;
 			mode = undefined;
 		}
-		this.client.evaluate((path, flags, mode) => {
+		this.client.evaluate((_helper, path, flags, mode) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -399,7 +399,7 @@ class FS {
 	}
 
 	public read = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException, bytesRead: number, buffer: TBuffer) => void): void => {
-		this.client.evaluate((fd, length, position) => {
+		this.client.evaluate((_helper, fd, length, position) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 			const buffer = new _Buffer(length);
@@ -424,7 +424,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((path, options) => {
+		this.client.evaluate((_helper, path, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -442,7 +442,7 @@ class FS {
 			options = undefined;
 		}
 		// TODO: options can also take `withFileTypes` but the types aren't working.
-		this.client.evaluate((path, options) => {
+		this.client.evaluate((_helper, path, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -459,7 +459,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((path, options) => {
+		this.client.evaluate((_helper, path, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -476,7 +476,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((path, options) => {
+		this.client.evaluate((_helper, path, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -489,7 +489,7 @@ class FS {
 	}
 
 	public rename = (oldPath: fs.PathLike, newPath: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((oldPath, newPath) => {
+		this.client.evaluate((_helper, oldPath, newPath) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -502,7 +502,7 @@ class FS {
 	}
 
 	public rmdir = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path) => {
+		this.client.evaluate((_helper, path) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -515,7 +515,7 @@ class FS {
 	}
 
 	public stat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		this.client.evaluate((path) => {
+		this.client.evaluate((_helper, path) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 			const tslib = __non_webpack_require__("tslib") as typeof import("tslib");
@@ -547,7 +547,7 @@ class FS {
 			callback = type;
 			type = undefined;
 		}
-		this.client.evaluate((target, path, type) => {
+		this.client.evaluate((_helper, target, path, type) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -564,7 +564,7 @@ class FS {
 			callback = len;
 			len = undefined;
 		}
-		this.client.evaluate((path, len) => {
+		this.client.evaluate((_helper, path, len) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -577,7 +577,7 @@ class FS {
 	}
 
 	public unlink = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path) => {
+		this.client.evaluate((_helper, path) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -590,7 +590,7 @@ class FS {
 	}
 
 	public utimes = (path: fs.PathLike, atime: string | number | Date, mtime: string | number | Date, callback: (err: NodeJS.ErrnoException) => void): void => {
-		this.client.evaluate((path, atime, mtime) => {
+		this.client.evaluate((_helper, path, atime, mtime) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -615,7 +615,7 @@ class FS {
 			callback = position;
 			position = undefined;
 		}
-		this.client.evaluate((fd, buffer, offset, length, position) => {
+		this.client.evaluate((_helper, fd, buffer, offset, length, position) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 
@@ -638,7 +638,7 @@ class FS {
 			callback = options;
 			options = undefined;
 		}
-		this.client.evaluate((path, data, options) => {
+		this.client.evaluate((_helper, path, data, options) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 

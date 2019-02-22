@@ -380,7 +380,7 @@ class Dialog {
 	}
 
 	private async list(directory: string): Promise<ReadonlyArray<DialogEntry>> {
-		return ideClient.evaluate((directory) => {
+		return ideClient.evaluate((_helper, directory) => {
 			const fs = __non_webpack_require__("fs") as typeof import("fs");
 			const util = __non_webpack_require__("util") as typeof import("util");
 			const path = __non_webpack_require__("path") as typeof import("path");

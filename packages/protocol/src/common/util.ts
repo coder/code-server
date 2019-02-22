@@ -1,5 +1,3 @@
-import { IDisposable } from "@coder/disposable";
-
 /**
  * Return true if we're in a browser environment (including web workers).
  */
@@ -84,7 +82,3 @@ export const parse = (arg: string): any => { // tslint:disable-line no-any
 
 	return result;
 };
-
-export interface Disposer extends IDisposable {
-	onDidDispose: (cb: () => void) => void;
-}

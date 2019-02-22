@@ -1,10 +1,10 @@
 import { EventEmitter } from "events";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
-import { Disposer, stringify, parse } from "../common/util";
 import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, ClientMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
-import { ActiveEval } from "./evaluate";
+import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
+import { ActiveEvalHelper, EvalHelper, Disposer, ServerActiveEvalHelper } from "../common/helpers";
+import { stringify, parse } from "../common/util";
 
 /**
  * Client accepts an arbitrary connection intended to communicate with the Server.
@@ -56,13 +56,13 @@ export class Client {
 		return this.initDataPromise;
 	}
 
-	public run(func: (ae: ActiveEval) => Disposer): ActiveEval;
-	public run<T1>(func: (ae: ActiveEval, a1: T1) => Disposer, a1: T1): ActiveEval;
-	public run<T1, T2>(func: (ae: ActiveEval, a1: T1, a2: T2) => Disposer, a1: T1, a2: T2): ActiveEval;
-	public run<T1, T2, T3>(func: (ae: ActiveEval, a1: T1, a2: T2, a3: T3) => Disposer, a1: T1, a2: T2, a3: T3): ActiveEval;
-	public run<T1, T2, T3, T4>(func: (ae: ActiveEval, a1: T1, a2: T2, a3: T3, a4: T4) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4): ActiveEval;
-	public run<T1, T2, T3, T4, T5>(func: (ae: ActiveEval, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): ActiveEval;
-	public run<T1, T2, T3, T4, T5, T6>(func: (ae: ActiveEval, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): ActiveEval;
+	public run(func: (helper: ServerActiveEvalHelper) => Disposer): ActiveEvalHelper;
+	public run<T1>(func: (helper: ServerActiveEvalHelper, a1: T1) => Disposer, a1: T1): ActiveEvalHelper;
+	public run<T1, T2>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2) => Disposer, a1: T1, a2: T2): ActiveEvalHelper;
+	public run<T1, T2, T3>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3) => Disposer, a1: T1, a2: T2, a3: T3): ActiveEvalHelper;
+	public run<T1, T2, T3, T4>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4): ActiveEvalHelper;
+	public run<T1, T2, T3, T4, T5>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): ActiveEvalHelper;
+	public run<T1, T2, T3, T4, T5, T6>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): ActiveEvalHelper;
 	/**
 	 * Run a function on the server and provide an event emitter which allows
 	 * listening and emitting to the emitter provided to that function. The
@@ -70,7 +70,7 @@ export class Client {
 	 * disconnects and for notifying when disposal has happened outside manual
 	 * activation.
 	 */
-	public run<T1, T2, T3, T4, T5, T6>(func: (ae: ActiveEval, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => Disposer, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): ActiveEval {
+	public run<T1, T2, T3, T4, T5, T6>(func: (helper: ServerActiveEvalHelper, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => Disposer, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): ActiveEvalHelper {
 		const doEval = this.doEvaluate(func, a1, a2, a3, a4, a5, a6, true);
 
 		// This takes server events and emits them to the client's emitter.
@@ -89,9 +89,9 @@ export class Client {
 			eventEmitter.emit("error", ex);
 		});
 
-		// This takes client events and emits them to the server's emitter and
-		// listens to events received from the server (via the event hook above).
-		return {
+		return new ActiveEvalHelper({
+			// This takes client events and emits them to the server's emitter and
+			// listens to events received from the server (via the event hook above).
 			// tslint:disable no-any
 			on: (event: string, cb: (...args: any[]) => void): EventEmitter => eventEmitter.on(event, cb),
 			emit: (event: string, ...args: any[]): void => {
@@ -105,21 +105,21 @@ export class Client {
 			},
 			removeAllListeners: (event: string): EventEmitter => eventEmitter.removeAllListeners(event),
 			// tslint:enable no-any
-		};
+		});
 	}
 
-	public evaluate<R>(func: () => R | Promise<R>): Promise<R>;
-	public evaluate<R, T1>(func: (a1: T1) => R | Promise<R>, a1: T1): Promise<R>;
-	public evaluate<R, T1, T2>(func: (a1: T1, a2: T2) => R | Promise<R>, a1: T1, a2: T2): Promise<R>;
-	public evaluate<R, T1, T2, T3>(func: (a1: T1, a2: T2, a3: T3) => R | Promise<R>, a1: T1, a2: T2, a3: T3): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4>(func: (a1: T1, a2: T2, a3: T3, a4: T4) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
+	public evaluate<R>(func: (helper: EvalHelper) => R | Promise<R>): Promise<R>;
+	public evaluate<R, T1>(func: (helper: EvalHelper, a1: T1) => R | Promise<R>, a1: T1): Promise<R>;
+	public evaluate<R, T1, T2>(func: (helper: EvalHelper, a1: T1, a2: T2) => R | Promise<R>, a1: T1, a2: T2): Promise<R>;
+	public evaluate<R, T1, T2, T3>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3) => R | Promise<R>, a1: T1, a2: T2, a3: T3): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4, T5>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
+	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
 	/**
 	 * Evaluates a function on the server.
 	 * To pass variables, ensure they are serializable and passed through the included function.
 	 * @example
-	 * const returned = await this.client.evaluate((value) => {
+	 * const returned = await this.client.evaluate((helper, value) => {
 	 *     return value;
 	 * }, "hi");
 	 * console.log(returned);
@@ -127,7 +127,7 @@ export class Client {
 	 * @param func Function to evaluate
 	 * @returns Promise rejected or resolved from the evaluated function
 	 */
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
+	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (helper: EvalHelper, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
 		return this.doEvaluate(func, a1, a2, a3, a4, a5, a6, false).completed;
 	}
 

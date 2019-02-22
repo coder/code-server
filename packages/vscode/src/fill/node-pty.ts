@@ -1,7 +1,7 @@
 import { client } from "@coder/ide/src/fill/client";
 import { EventEmitter } from "events";
 import * as nodePty from "node-pty";
-import { ActiveEval } from "@coder/protocol";
+import { ActiveEvalHelper } from "@coder/protocol";
 
 // Use this to prevent Webpack from hijacking require.
 declare var __non_webpack_require__: typeof require;
@@ -11,16 +11,15 @@ declare var __non_webpack_require__: typeof require;
  */
 class Pty implements nodePty.IPty {
 	private readonly emitter = new EventEmitter();
-	private readonly ae: ActiveEval;
+	private readonly ae: ActiveEvalHelper;
 	private _pid = -1;
 	private _process = "";
 
 	public constructor(file: string, args: string[] | string, options: nodePty.IPtyForkOptions) {
 		this.ae = client.run((ae, file, args, options) => {
 			const nodePty = __non_webpack_require__("node-pty") as typeof import("node-pty");
-			const { preserveEnv } = __non_webpack_require__("@coder/ide/src/fill/evaluation") as typeof import("@coder/ide/src/fill/evaluation");
 
-			preserveEnv(options);
+			ae.preserveEnv(options);
 
 			const ptyProc = nodePty.spawn(file, args, options);
 

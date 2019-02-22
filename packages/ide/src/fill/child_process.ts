@@ -1,7 +1,7 @@
 import * as cp from "child_process";
 import * as net from "net";
 import * as stream from "stream";
-import { CallbackEmitter, ActiveEvalReadable, ActiveEvalWritable, createUniqueEval } from "./evaluation";
+import { CallbackEmitter, ActiveEvalReadable, ActiveEvalWritable } from "@coder/protocol";
 import { client } from "./client";
 import { promisify } from "util";
 
@@ -33,27 +33,19 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 
 		this.ae = client.run((ae, command, method, args, options, callbackId) => {
 			const cp = __non_webpack_require__("child_process") as typeof import("child_process");
-			const { maybeCallback, createUniqueEval, bindWritable, bindReadable, preserveEnv } = __non_webpack_require__("@coder/ide/src/fill/evaluation") as typeof import("@coder/ide/src/fill/evaluation");
 
-			preserveEnv(options);
+			ae.preserveEnv(options);
 
 			let childProcess: cp.ChildProcess;
 			switch (method) {
 				case "exec":
-					childProcess = cp.exec(command, options, maybeCallback(ae, callbackId));
+					childProcess = cp.exec(command, options, ae.maybeCallback(callbackId));
 					break;
 				case "spawn":
 					childProcess = cp.spawn(command, args, options);
 					break;
 				case "fork":
-					const forkOptions = options as cp.ForkOptions;
-					if (forkOptions && forkOptions.env && forkOptions.env.AMD_ENTRYPOINT) {
-						// TODO: This is vscode-specific and should be abstracted.
-						const { forkModule } = __non_webpack_require__("@coder/server/src/vscode/bootstrapFork") as typeof import ("@coder/server/src/vscode/bootstrapFork");
-						childProcess = forkModule(forkOptions.env.AMD_ENTRYPOINT, args, forkOptions);
-					} else {
-						childProcess = cp.fork(command, args, options);
-					}
+					childProcess = ae.fork(command, args, options);
 					break;
 				default:
 					throw new Error(`invalid method ${method}`);
@@ -62,7 +54,7 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 			ae.on("disconnect", () => childProcess.disconnect());
 			ae.on("kill", (signal: string) => childProcess.kill(signal));
 			ae.on("ref", () => childProcess.ref());
-			ae.on("send", (message: string, callbackId: number) => childProcess.send(message, maybeCallback(ae, callbackId)));
+			ae.on("send", (message: string, callbackId: number) => childProcess.send(message, ae.maybeCallback(callbackId)));
 			ae.on("unref", () => childProcess.unref());
 
 			ae.emit("pid", childProcess.pid);
@@ -73,13 +65,16 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 			childProcess.on("message", (message) => ae.emit("message", message));
 
 			if (childProcess.stdin) {
-				bindWritable(createUniqueEval(ae, "stdin"), childProcess.stdin);
+				const stdinAe = ae.createUnique("stdin");
+				stdinAe.bindWritable(childProcess.stdin);
 			}
 			if (childProcess.stdout) {
-				bindReadable(createUniqueEval(ae, "stdout"), childProcess.stdout);
+				const stdoutAe = ae.createUnique("stdout");
+				stdoutAe.bindReadable(childProcess.stdout);
 			}
 			if (childProcess.stderr) {
-				bindReadable(createUniqueEval(ae, "stderr"), childProcess.stderr);
+				const stderrAe = ae.createUnique("stderr");
+				stderrAe.bindReadable(childProcess.stderr);
 			}
 
 			return {
@@ -96,9 +91,9 @@ class ChildProcess extends CallbackEmitter implements cp.ChildProcess {
 			this._connected = true;
 		});
 
-		this.stdin = new ActiveEvalWritable(createUniqueEval(this.ae, "stdin"));
-		this.stdout = new ActiveEvalReadable(createUniqueEval(this.ae, "stdout"));
-		this.stderr = new ActiveEvalReadable(createUniqueEval(this.ae, "stderr"));
+		this.stdin = new ActiveEvalWritable(this.ae.createUnique("stdin"));
+		this.stdout = new ActiveEvalReadable(this.ae.createUnique("stdout"));
+		this.stderr = new ActiveEvalReadable(this.ae.createUnique("stderr"));
 
 		this.ae.on("close", (code, signal) => this.emit("close", code, signal));
 		this.ae.on("disconnect", () => this.emit("disconnect"));
