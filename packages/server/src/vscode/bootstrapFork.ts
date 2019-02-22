@@ -141,7 +141,7 @@ export const forkModule = (modulePath: string, args: string[], options: cp.ForkO
 		stdio: [null, null, null, "ipc"],
 	};
 	if (isCli) {
-		proc = cp.spawn(process.execPath, forkArgs, options);
+		proc = cp.spawn(process.execPath, forkArgs, forkOptions);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
 	}
