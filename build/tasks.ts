@@ -154,6 +154,7 @@ const extDirPath = path.join("lib", "vscode-default-extensions");
 const copyForDefaultExtensions = register("build:copy-vscode", async (runner) => {
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await ensureClean();
+		await ensureInstalled();
 		fse.removeSync(extDirPath);
 		fse.copySync(vscodePath, extDirPath);
 	}

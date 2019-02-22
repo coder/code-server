@@ -5,7 +5,7 @@ import { MDCCheckbox } from "@material/checkbox";
 import "material-components-web/dist/material-components-web.css";
 import "./app.scss";
 
-document.querySelectorAll(".mdc-text-field").forEach((d) => window["t"] = new MDCTextField(d));
+document.querySelectorAll(".mdc-text-field").forEach((d) => new MDCTextField(d));
 document.querySelectorAll(".mdc-checkbox").forEach((d) => new MDCCheckbox(d));
 
 window.addEventListener("message", (event) => {

@@ -5,6 +5,8 @@
 		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js"
 	},
 	"dependencies": {
+		"@material/checkbox": "^0.44.1",
+		"@material/textfield": "^0.44.1",
 		"material-components-web": "^0.44.0"
 	}
 }
