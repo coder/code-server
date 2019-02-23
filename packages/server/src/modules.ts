@@ -8,13 +8,18 @@ declare var __non_webpack_require__: typeof require;
  * Handling of native modules within the CLI
  */
 export const setup = (dataDirectory: string): void => {
-	try {
-		fs.mkdirSync(path.join(dataDirectory, "modules"));
-	} catch (ex) {
-		if (ex.code !== "EEXIST") {
-			throw ex;
+	path.resolve(dataDirectory, "modules").split(path.sep).reduce((parentDir, childDir) => {
+		const currentDir = path.join(parentDir, childDir);
+		try {
+			fs.mkdirSync(currentDir);
+		} catch (ex) {
+			if (ex.code !== "EEXIST") {
+				throw ex;
+			}
 		}
-	}
+
+		return currentDir;
+	}, path.sep);
 
 	const unpackModule = (moduleName: string): void => {
 		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/modules", moduleName + ".node");
