@@ -3,10 +3,8 @@ import { RotatingLogger as NodeRotatingLogger } from "spdlog";
 import { logger } from "@coder/logger";
 import { client } from "@coder/ide/src/fill/client";
 
-declare var __non_webpack_require__: typeof require;
-
 const ae = client.run((ae) => {
-	const spdlog = __non_webpack_require__("spdlog") as typeof import("spdlog");
+	const spdlog = ae.require("spdlog") as typeof import("spdlog");
 	const loggers = new Map<number, NodeRotatingLogger>();
 
 	ae.on("new", (id: number, name: string, filePath: string, fileSize: number, fileCount: number) => {

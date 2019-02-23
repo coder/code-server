@@ -7,6 +7,9 @@ import { logger } from "@coder/logger";
 
 // tslint:disable no-any
 
+declare var __non_webpack_require__: typeof require;
+declare var __webpack_require__: typeof require;
+
 export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions) => ChildProcess;
 
 export interface Disposer extends IDisposable {
@@ -20,7 +23,7 @@ interface ActiveEvalEmitter {
 }
 
 /**
- * Helper class for evaluations.
+ * Helper class for server-side evaluations.
  */
 export class EvalHelper {
 	/**
@@ -35,15 +38,36 @@ export class EvalHelper {
 			options.env = { ...process.env, ...options.env };
 		}
 	}
+
+	/**
+	 * Try a non-webpack require, then a webpack require if that fails.
+	 */
+	public require(modulePath: string): any {
+		logger.info(`Attempting to require ${modulePath}`);
+		try {
+			return __non_webpack_require__(modulePath);
+		} catch (error) { /* Nothing. */ }
+
+		logger.warn(`Non-webpack require failed for ${modulePath}`);
+		try {
+			return __webpack_require__(modulePath);
+		} catch (error) { /* Nothing. */ }
+
+		logger.warn(`Webpack require failed for ${modulePath}`);
+		try {
+			return require(modulePath);
+		} catch (error) {
+			logger.error(`Failed to require ${modulePath}`);
+			throw error;
+		}
+	}
 }
 
 /**
- * Helper class for active evaluations.
+ * Helper class for client-side active evaluations.
  */
-export class ActiveEvalHelper extends EvalHelper implements ActiveEvalEmitter {
-	public constructor(private readonly emitter: ActiveEvalEmitter) {
-		super();
-	}
+export class ActiveEvalHelper implements ActiveEvalEmitter {
+	public constructor(private readonly emitter: ActiveEvalEmitter) {}
 
 	public removeAllListeners(event?: string): void {
 		this.emitter.removeAllListeners(event);
@@ -100,9 +124,19 @@ export class ActiveEvalHelper extends EvalHelper implements ActiveEvalEmitter {
 /**
  * Helper class for server-side active evaluations.
  */
-export class ServerActiveEvalHelper extends ActiveEvalHelper {
+export class ServerActiveEvalHelper extends ActiveEvalHelper implements EvalHelper {
+	private readonly evalHelper: EvalHelper;
 	public constructor(emitter: ActiveEvalEmitter, public readonly fork: ForkProvider) {
 		super(emitter);
+		this.evalHelper = new EvalHelper();
+	}
+
+	public preserveEnv(options: SpawnOptions | ForkOptions): void {
+		this.evalHelper.preserveEnv(options);
+	}
+
+	public require(modulePath: string): any {
+		return this.evalHelper.require(modulePath);
 	}
 
 	/**
