@@ -91,15 +91,33 @@ module.exports = (options = {}) => ({
 			loader: "string-replace-loader",
 			options: {
 				multiple: [{
-					// These will be handled by file-loader. We need the location because
-					// they are parsed as URIs and will throw errors if not fully formed.
-					// The !! prefix causes it to ignore other loaders (doesn't work).
 					search: "const spdlog.*;",
 					replace: "const spdlog = __non_webpack_require__(global.SPDLOG_LOCATION);",
 					flags: "g",
 				}],
 			},
-		},],
+		}, {
+			// This is required otherwise it attempts to require("package.json")
+			test: /@oclif\/command\/lib\/index\.js/,
+			loader: "string-replace-loader",
+			options: {
+				multiple: [{
+					search: "checkNodeVersion\\(\\);",
+					replace: "",
+					flags: "g",
+				}],
+			},
+		}, {
+			test: /node\-pty\/lib\/index\.js/,
+			loader: "string-replace-loader",
+			options: {
+				multiple: [{
+					search: "exports\\.native.*;",
+					replace: "exports.native = null;",
+					flags: "g",
+				}],
+			},
+		}],
 		noParse: /\/test\/|\.test\.jsx?|\.test\.tsx?|tsconfig.+\.json$/,
 	},
 	resolve: {
