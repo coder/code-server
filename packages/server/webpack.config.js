@@ -4,7 +4,7 @@ const merge = require("webpack-merge");
 
 module.exports = merge({
 	devtool: "none",
-	mode: "development",
+	mode: "production",
 	output: {
 		filename: "cli.js",
 		path: path.join(__dirname, "./out"),

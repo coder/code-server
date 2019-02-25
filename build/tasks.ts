@@ -190,7 +190,7 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	if (fs.existsSync(vscodePath)) {
 		await ensureClean();
 	} else {
-		fs.mkdirSync(libPath);
+		fse.mkdirpSync(libPath);
 		runner.cwd = libPath;
 		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode"]);
 		if (clone.exitCode !== 0) {

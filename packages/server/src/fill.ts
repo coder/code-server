@@ -1,7 +1,10 @@
 import * as fs from "fs";
+import * as path from "path";
 import * as util from "util";
-import { isCli } from "./constants";
+import { isCli, buildDir } from "./constants";
 
+// tslint:disable:no-any
+const nativeFs = (<any>global).nativeFs as typeof fs || {};
 const oldAccess = fs.access;
 const existsWithinBinary = (path: fs.PathLike): Promise<boolean> => {
 	return new Promise<boolean>((resolve): void => {
@@ -39,7 +42,7 @@ export const fillFs = (): void => {
 
 	const replaceNative = <T extends keyof typeof fs>(propertyName: T, func: (callOld: () => void, ...args: any[]) => any, customPromisify?: (...args: any[]) => Promise<any>): void => {
 		const oldFunc = (<any>fs)[propertyName];
-		fs[propertyName] = (...args: any[]) => {
+		fs[propertyName] = (...args: any[]): any => {
 			try {
 				return func(() => {
 					return oldFunc(...args);
@@ -49,7 +52,7 @@ export const fillFs = (): void => {
 			}
 		};
 		if (customPromisify) {
-			(<any>fs[propertyName])[util.promisify.custom] = (...args: any[]) => {
+			(<any>fs[propertyName])[util.promisify.custom] = (...args: any[]): any => {
 				return customPromisify(...args).catch((ex) => {
 					throw ex;
 				});
@@ -75,7 +78,7 @@ export const fillFs = (): void => {
 
 			return callOld();
 		});
-	}, (path) => new Promise((res) => fs.exists(path, res)));
+	}, (path) => new Promise((res): void => fs.exists(path, res)));
 
 	replaceNative("open", (callOld, path: fs.PathLike, flags: string | Number, mode: any, callback: any) => {
 		existsWithinBinary(path).then((exists) => {
@@ -110,7 +113,7 @@ export const fillFs = (): void => {
 		callback();
 	});
 
-	replaceNative("read", (callOld, fd: number, buffer: Buffer, offset: number, length: number, position: number | null, callback?: (err: NodeJS.ErrnoException, bytesRead: number, buffer: Buffer) => void, ) => {
+	replaceNative("read", (callOld, fd: number, buffer: Buffer, offset: number, length: number, position: number | null, callback?: (err: NodeJS.ErrnoException, bytesRead: number, buffer: Buffer) => void) => {
 		if (!fds.has(fd)) {
 			return callOld();
 		}
@@ -136,7 +139,7 @@ export const fillFs = (): void => {
 		bytesRead: number;
 		buffer: Buffer;
 	}> => {
-		return new Promise((res, rej) => {
+		return new Promise((res, rej): void => {
 			fs.read(fd, buffer, offset, length, position, (err, bytesRead, buffer) => {
 				if (err) {
 					return rej(err);
@@ -148,5 +151,14 @@ export const fillFs = (): void => {
 				});
 			});
 		});
+	});
+
+	replaceNative("readdir", (callOld, directory: string, callback: (err: NodeJS.ErrnoException, paths: string[]) => void) => {
+		const relative = path.relative(directory, buildDir!);
+		if (relative.startsWith("..")) {
+			return callOld();
+		}
+
+		return nativeFs.readdir(directory, callback);
 	});
 };

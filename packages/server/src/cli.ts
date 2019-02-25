@@ -72,11 +72,6 @@ export class Entry extends Command {
 			return requireFork(modulePath, JSON.parse(flags.args!), builtInExtensionsDir);
 		}
 
-		if (buildDir && buildDir.startsWith(workingDir)) {
-			logger.error("Cannot run binary inside of BUILD_DIR", field("build_dir", buildDir), field("cwd", process.cwd()));
-			process.exit(1);
-		}
-
 		if (!fs.existsSync(dataDir)) {
 			fs.mkdirSync(dataDir);
 		}
