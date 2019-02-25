@@ -24,7 +24,6 @@
 		"node-netstat": "^1.6.0",
 		"pem": "^1.14.1",
 		"promise.prototype.finally": "^3.1.0",
-		"spdlog": "^0.7.2",
 		"ws": "^6.1.2",
 		"xhr2": "^0.1.4"
 	},

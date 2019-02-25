@@ -1,3 +1,4 @@
+/// <reference path="../../../../lib/vscode/src/typings/spdlog.d.ts" />
 import { ChildProcess, SpawnOptions, ForkOptions } from "child_process";
 import { EventEmitter } from "events";
 import { Socket } from "net";
@@ -6,9 +7,6 @@ import { IDisposable } from "@coder/disposable";
 import { logger } from "@coder/logger";
 
 // tslint:disable no-any
-
-declare var __non_webpack_require__: typeof require;
-declare var __webpack_require__: typeof require;
 
 export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions) => ChildProcess;
 
@@ -26,6 +24,19 @@ interface ActiveEvalEmitter {
  * Helper class for server-side evaluations.
  */
 export class EvalHelper {
+	// For any non-external modules that are not built in, we need to require and
+	// access them here. A require on the client-side won't work since that code
+	// won't exist on the server (and bloat the client with an unused import), and
+	// we can't manually import on the server-side and then call
+	// `__webpack_require__` on the client-side because Webpack stores modules by
+	// their paths which would require us to hard-code the path. These aren't
+	// required immediately so we have a chance to unpack the .node files and set
+	// their locations.
+	public modules = {
+		spdlog: require("spdlog") as typeof import("spdlog"),
+		pty: require("node-pty") as typeof import("node-pty"),
+	};
+
 	/**
 	 * Some spawn code tries to preserve the env (the debug adapter for instance)
 	 * but the env is mostly blank (since we're in the browser), so we'll just
@@ -36,29 +47,6 @@ export class EvalHelper {
 	public preserveEnv(options: SpawnOptions | ForkOptions): void {
 		if (options && options.env) {
 			options.env = { ...process.env, ...options.env };
-		}
-	}
-
-	/**
-	 * Try a non-webpack require, then a webpack require if that fails.
-	 */
-	public require(modulePath: string): any {
-		logger.info(`Attempting to require ${modulePath}`);
-		try {
-			return __non_webpack_require__(modulePath);
-		} catch (error) { /* Nothing. */ }
-
-		logger.warn(`Non-webpack require failed for ${modulePath}`);
-		try {
-			return __webpack_require__(modulePath);
-		} catch (error) { /* Nothing. */ }
-
-		logger.warn(`Webpack require failed for ${modulePath}`);
-		try {
-			return require(modulePath);
-		} catch (error) {
-			logger.error(`Failed to require ${modulePath}`);
-			throw error;
 		}
 	}
 }
@@ -125,18 +113,15 @@ export class ActiveEvalHelper implements ActiveEvalEmitter {
  * Helper class for server-side active evaluations.
  */
 export class ServerActiveEvalHelper extends ActiveEvalHelper implements EvalHelper {
-	private readonly evalHelper: EvalHelper;
+	private readonly evalHelper = new EvalHelper();
+	public modules = this.evalHelper.modules;
+
 	public constructor(emitter: ActiveEvalEmitter, public readonly fork: ForkProvider) {
 		super(emitter);
-		this.evalHelper = new EvalHelper();
 	}
 
 	public preserveEnv(options: SpawnOptions | ForkOptions): void {
 		this.evalHelper.preserveEnv(options);
-	}
-
-	public require(modulePath: string): any {
-		return this.evalHelper.require(modulePath);
 	}
 
 	/**

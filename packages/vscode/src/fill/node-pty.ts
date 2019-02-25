@@ -15,11 +15,9 @@ class Pty implements nodePty.IPty {
 
 	public constructor(file: string, args: string[] | string, options: nodePty.IPtyForkOptions) {
 		this.ae = client.run((ae, file, args, options) => {
-			const nodePty = ae.require("node-pty") as typeof import("node-pty");
-
 			ae.preserveEnv(options);
 
-			const ptyProc = nodePty.spawn(file, args, options);
+			const ptyProc = ae.modules.pty.spawn(file, args, options);
 
 			let process = ptyProc.process;
 			ae.emit("process", process);

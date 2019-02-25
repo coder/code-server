@@ -82,7 +82,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty", "build", "Release", "pty.node");
-	const spdlogModule = path.join(pkgsPath, "server", "node_modules", "spdlog", "build", "Release", "spdlog.node");
+	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 
 	if (!fs.existsSync(nodePtyModule)) {
 		throw new Error("Could not find pty.node. Ensure all packages have been installed");

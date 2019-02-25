@@ -50,7 +50,6 @@
   },
   "dependencies": {
     "node-loader": "^0.6.0",
-    "spdlog": "^0.7.2",
     "trash": "^4.3.0",
     "webpack-merge": "^4.2.1"
   }

@@ -80,7 +80,6 @@ export class Entry extends Command {
 		if (!fs.existsSync(dataDir)) {
 			fs.mkdirSync(dataDir);
 		}
-		require("spdlog");
 
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;

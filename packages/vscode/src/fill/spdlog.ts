@@ -1,14 +1,12 @@
-/// <reference path="../../../../lib/vscode/src/typings/spdlog.d.ts" />
 import { RotatingLogger as NodeRotatingLogger } from "spdlog";
 import { logger } from "@coder/logger";
 import { client } from "@coder/ide/src/fill/client";
 
 const ae = client.run((ae) => {
-	const spdlog = ae.require("spdlog") as typeof import("spdlog");
 	const loggers = new Map<number, NodeRotatingLogger>();
 
 	ae.on("new", (id: number, name: string, filePath: string, fileSize: number, fileCount: number) => {
-		const logger = new spdlog.RotatingLogger(name, filePath, fileSize, fileCount);
+		const logger = new ae.modules.spdlog.RotatingLogger(name, filePath, fileSize, fileCount);
 		loggers.set(id, logger);
 	});
 
@@ -19,7 +17,7 @@ const ae = client.run((ae) => {
 	ae.on("errorLog", (id: number, message: string) => loggers.get(id)!.error(message));
 	ae.on("flush", (id: number) => loggers.get(id)!.flush());
 	ae.on("info", (id: number, message: string) => loggers.get(id)!.info(message));
-	ae.on("setAsyncMode", (bufferSize: number, flushInterval: number) => spdlog.setAsyncMode(bufferSize, flushInterval));
+	ae.on("setAsyncMode", (bufferSize: number, flushInterval: number) => ae.modules.spdlog.setAsyncMode(bufferSize, flushInterval));
 	ae.on("setLevel", (id: number, level: number) => loggers.get(id)!.setLevel(level));
 	ae.on("trace", (id: number, message: string) => loggers.get(id)!.trace(message));
 	ae.on("warn", (id: number, message: string) => loggers.get(id)!.warn(message));
