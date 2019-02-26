@@ -20,7 +20,15 @@ import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import { createPortScanner } from "./portScanner";
 import { buildDir, isCli } from "./constants";
 
-export const createApp = async (registerMiddleware?: (app: express.Application) => void, options?: ServerOptions, password?: string, httpsOptions?: https.ServerOptions): Promise<{
+interface CreateAppOptions {
+	registerMiddleware?: (app: express.Application) => void;
+	serverOptions?: ServerOptions;
+	password?: string;
+	httpsOptions?: https.ServerOptions;
+	bypassAuth?: boolean;
+}
+
+export const createApp = async (options: CreateAppOptions): Promise<{
 	readonly express: express.Application;
 	readonly server: http.Server;
 	readonly wss: ws.Server;
@@ -38,15 +46,26 @@ export const createApp = async (registerMiddleware?: (app: express.Application) 
 		return cookies;
 	};
 
+	const ensureAuthed = (req: http.IncomingMessage, res: express.Response): boolean => {
+		if (!isAuthed(req)) {
+			res.status(401);
+			res.end();
+
+			return false;
+		}
+
+		return true;
+	};
+
 	const isAuthed = (req: http.IncomingMessage): boolean => {
 		try {
-			if (!password || !isCli) {
+			if (!options.password || options.bypassAuth) {
 				return true;
 			}
 
 			// Try/catch placed here just in case
 			const cookies = parseCookies(req);
-			if (cookies.password && cookies.password === password) {
+			if (cookies.password && cookies.password === options.password) {
 				return true;
 			}
 		} catch (ex) {
@@ -62,8 +81,8 @@ export const createApp = async (registerMiddleware?: (app: express.Application) 
 	};
 
 	const app = express();
-	if (registerMiddleware) {
-		registerMiddleware(app);
+	if (options.registerMiddleware) {
+		options.registerMiddleware(app);
 	}
 
 	const certs = await new Promise<pem.CertificateCreationResult>((res, rej): void => {
@@ -134,7 +153,7 @@ export const createApp = async (registerMiddleware?: (app: express.Application) 
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};
 
-		const server = new Server(connection, options);
+		const server = new Server(connection, options.serverOptions);
 	});
 
 	const baseDir = buildDir || path.join(__dirname, "..");
@@ -150,6 +169,10 @@ export const createApp = async (registerMiddleware?: (app: express.Application) 
 		}
 	});
 	app.get("/resource/:url(*)", async (req, res) => {
+		if (!ensureAuthed(req, res)) {
+			return;
+		}
+
 		try {
 			const fullPath = `/${req.params.url}`;
 			// const relative = path.relative(options!.dataDirectory, fullPath);
@@ -184,6 +207,10 @@ export const createApp = async (registerMiddleware?: (app: express.Application) 
 		}
 	});
 	app.post("/resource/:url(*)", async (req, res) => {
+		if (!ensureAuthed(req, res)) {
+			return;
+		}
+
 		try {
 			const fullPath = `/${req.params.url}`;
 

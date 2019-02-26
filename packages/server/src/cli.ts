@@ -24,6 +24,7 @@ export class Entry extends Command {
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8080, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
+		"no-auth": flags.boolean({ default: false }),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
@@ -132,41 +133,47 @@ export class Entry extends Command {
 
 		const password = "023450wf0951";
 		const hasCustomHttps = certData && certKeyData;
-		const app = await createApp((app) => {
-			app.use((req, res, next) => {
-				res.on("finish", () => {
-					logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
+		const app = await createApp({
+			bypassAuth: flags["no-auth"],
+			registerMiddleware: (app): void => {
+				app.use((req, res, next) => {
+					res.on("finish", () => {
+						logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
+					});
+
+					next();
 				});
-
-				next();
-			});
-			// If we're not running from the binary and we aren't serving the static
-			// pre-built version, use webpack to serve the web files.
-			if (!isCli && !serveStatic) {
-				const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
-				const compiler = require("webpack")(webpackConfig);
-				app.use(require("webpack-dev-middleware")(compiler, {
-					logger,
-					publicPath: webpackConfig.output.publicPath,
-					stats: webpackConfig.stats,
-				}));
-				app.use(require("webpack-hot-middleware")(compiler));
-			}
-		}, {
-			builtInExtensionsDirectory: builtInExtensionsDir,
-			dataDirectory: dataDir,
-			workingDirectory: workingDir,
-			fork: (modulePath: string, args: string[], options: ForkOptions): ChildProcess => {
-				if (options && options.env && options.env.AMD_ENTRYPOINT) {
-					return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
+				// If we're not running from the binary and we aren't serving the static
+				// pre-built version, use webpack to serve the web files.
+				if (!isCli && !serveStatic) {
+					const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
+					const compiler = require("webpack")(webpackConfig);
+					app.use(require("webpack-dev-middleware")(compiler, {
+						logger,
+						publicPath: webpackConfig.output.publicPath,
+						stats: webpackConfig.stats,
+					}));
+					app.use(require("webpack-hot-middleware")(compiler));
 				}
-
-				return fork(modulePath, args, options);
 			},
-		}, password, hasCustomHttps ? {
-			key: certKeyData,
-			cert: certData,
-		} : undefined);
+			serverOptions: {
+				builtInExtensionsDirectory: builtInExtensionsDir,
+				dataDirectory: dataDir,
+				workingDirectory: workingDir,
+				fork: (modulePath: string, args: string[], options: ForkOptions): ChildProcess => {
+					if (options && options.env && options.env.AMD_ENTRYPOINT) {
+						return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
+					}
+
+					return fork(modulePath, args, options);
+				},
+			},
+			password,
+			httpsOptions: hasCustomHttps ? {
+				key: certKeyData,
+				cert: certData,
+			} : undefined,
+		});
 
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
@@ -191,8 +198,12 @@ export class Entry extends Command {
 			logger.warn("Documentation on securing your setup: https://coder.com/docs");
 		}
 
-		logger.info(" ");
-		logger.info(`Password:\u001B[1m ${password}`);
+		if (!flags["no-auth"]) {
+			logger.info(" ");
+			logger.info(`Password:\u001B[1m ${password}`);
+		} else {
+			logger.warn("Launched without authentication.");
+		}
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
 		logger.info(`http://localhost:${flags.port}/`);

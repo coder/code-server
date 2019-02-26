@@ -40,3 +40,4 @@ const handlePackages = (dir: string): void => {
 };
 
 handlePackages(resolve(__dirname, "..", "packages"));
+handlePackages(resolve(__dirname, "..", "packages", "app"));
