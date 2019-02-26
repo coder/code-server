@@ -312,14 +312,6 @@ index 667b47218a..36dd5ddd3e 100644
 @@ -9 +9 @@ import { URI } from 'vs/base/common/uri';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
-diff --git a/src/vs/platform/launch/electron-main/launchService.ts b/src/vs/platform/launch/electron-main/launchService.ts
-index ba14b19533..d1590f50ef 100644
---- a/src/vs/platform/launch/electron-main/launchService.ts
-+++ b/src/vs/platform/launch/electron-main/launchService.ts
-@@ -9 +9,2 @@ import { IURLService } from 'vs/platform/url/common/url';
--import { IProcessEnvironment, isMacintosh } from 'vs/base/common/platform';
-+import { IProcessEnvironment } from 'vs/base/common/platform';
-+import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/platform/windows/common/windows.ts b/src/vs/platform/windows/common/windows.ts
 index 56eaeef6f4..ec8a6e5960 100644
 --- a/src/vs/platform/windows/common/windows.ts

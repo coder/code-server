@@ -49,6 +49,7 @@ module.exports = merge(
 				"node-pty": path.resolve(fills, "empty.ts"),
 				"windows-mutex": path.resolve(fills, "empty.ts"),
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
+				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
 				"electron": path.join(vsFills, "stdioElectron.ts"),
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
