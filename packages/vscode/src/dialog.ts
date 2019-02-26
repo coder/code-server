@@ -1,8 +1,7 @@
-import { Emitter, Event } from "@coder/events";
-import { client as ideClient } from "@coder/ide/src/fill/client";
-import { client } from "@coder/vscode/src/client";
 import * as fs from "fs";
 import * as path from "path";
+import { Emitter, Event } from "@coder/events";
+import { client as ideClient } from "@coder/ide/src/fill/client";
 import { $, addClass, append } from "vs/base/browser/dom";
 import { HighlightedLabel } from "vs/base/browser/ui/highlightedlabel/highlightedLabel";
 import { ObjectTree } from "vs/base/browser/ui/tree/objectTree";
@@ -13,8 +12,9 @@ import { getIconClasses } from "vs/editor/common/services/getIconClasses";
 import { IModelService } from "vs/editor/common/services/modelService";
 import { IModeService } from "vs/editor/common/services/modeService";
 import { FileKind } from "vs/platform/files/common/files";
-import "./dialog.scss";
 import { IThemeService } from "vs/platform/theme/common/themeService";
+import { workbench } from "./workbench";
+import "./dialog.scss";
 
 declare var __non_webpack_require__: typeof require;
 
@@ -115,7 +115,7 @@ class Dialog {
 
 		const setProperty = (vari: string, id: string): void => {
 			const getColor = (id: string): string | undefined => {
-				const ts = client.serviceCollection.get<IThemeService>(IThemeService) as IThemeService;
+				const ts = workbench.serviceCollection.get<IThemeService>(IThemeService) as IThemeService;
 				const c = ts.getTheme().getColor(id);
 				if (!c) {
 					return;
@@ -444,8 +444,8 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 	public renderElement(node: ITreeNode<DialogEntry, string>, index: number, templateData: DialogEntryData): void {
 		templateData.icon.className = "dialog-entry-icon monaco-icon-label";
 		const classes = getIconClasses(
-			client.serviceCollection.get<IModelService>(IModelService) as IModelService,
-			client.serviceCollection.get<IModeService>(IModeService) as IModeService,
+			workbench.serviceCollection.get<IModelService>(IModelService) as IModelService,
+			workbench.serviceCollection.get<IModeService>(IModeService) as IModeService,
 			URI.file(node.element.name),
 			node.element.isDirectory ? FileKind.FOLDER : FileKind.FILE,
 		);
