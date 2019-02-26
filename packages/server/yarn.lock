@@ -3336,6 +3336,13 @@ source-map@~0.1.38:
   dependencies:
     amdefine ">=0.0.4"
 
+sourcemap-blender@1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/sourcemap-blender/-/sourcemap-blender-1.0.5.tgz#d361f3d12381c4e477178113878fdf984a91bdbc"
+  integrity sha512-GPhjCmDtJ8YY6zt1L6kP6WtBg6WrdWt5hw2Wmgt9rwC3yiwLo9vEuabh/YYSZ5KmFV20hVkGdkTwpXtT2E65TA==
+  dependencies:
+    source-map "^0.7.3"
+
 split-string@^3.0.1, split-string@^3.0.2:
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/split-string/-/split-string-3.1.0.tgz#7cb09dda3a86585705c64b39a6466038682e8fe2"

@@ -1,14 +1,13 @@
-import { InitData } from "@coder/protocol";
+import { OperatingSystem, InitData } from "@coder/protocol";
 import { client } from "./client";
 
 class OS {
 	private _homedir: string | undefined;
 	private _tmpdir: string | undefined;
+	private _platform: NodeJS.Platform | undefined;
 
 	public constructor() {
-		client.initData.then((data) => {
-			this.initialize(data);
-		});
+		client.initData.then((d) => this.initialize(d));
 	}
 
 	public homedir(): string {
@@ -30,6 +29,11 @@ class OS {
 	public initialize(data: InitData): void {
 		this._homedir = data.homeDirectory;
 		this._tmpdir = data.tmpDirectory;
+		switch (data.os) {
+			case OperatingSystem.Windows: this._platform = "win32"; break;
+			case OperatingSystem.Mac: this._platform = "darwin"; break;
+			default: this._platform = "linux"; break;
+		}
 	}
 
 	public release(): string {
@@ -37,14 +41,11 @@ class OS {
 	}
 
 	public platform(): NodeJS.Platform {
-		if (navigator.appVersion.indexOf("Win") != -1) {
-			return "win32";
-		}
-		if (navigator.appVersion.indexOf("Mac") != -1) {
-			return "darwin";
+		if (typeof this._platform === "undefined") {
+			throw new Error("trying to access platform before it has been set");
 		}
 
-		return "linux";
+		return this._platform;
 	}
 }
 

@@ -8,7 +8,7 @@ import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions/deve
 import { TerminalPasteAction } from "vs/workbench/parts/terminal/electron-browser/terminalActions";
 import { KEYBINDING_CONTEXT_TERMINAL_FOCUS } from "vs/workbench/parts/terminal/common/terminal";
 import { KeyCode, KeyMod } from "vs/base/common/keyCodes";
-import { client } from "../client";
+import { workbench } from "../workbench";
 
 // Intercept adding workbench actions so we can skip actions that won't work or
 // modify actions that need different conditions, keybindings, etc.
@@ -32,7 +32,7 @@ registry.registerWorkbenchAction = (descriptor: SyncActionDescriptor, alias: str
 				mac: { primary: 0 },
 			};
 			// tslint:disable-next-line no-any override private
-			(descriptor as any)._keybindingContext = ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FOCUS, client.clipboardContextKey);
+			(descriptor as any)._keybindingContext = ContextKeyExpr.and(KEYBINDING_CONTEXT_TERMINAL_FOCUS, workbench.clipboardContextKey);
 	}
 
 	return originalRegister(descriptor, alias, category, when);

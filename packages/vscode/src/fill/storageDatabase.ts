@@ -2,13 +2,13 @@ import { readFile, writeFile, mkdir } from "fs";
 import * as path from "path";
 import { promisify } from "util";
 import { IDisposable } from "@coder/disposable";
+import { logger, field } from "@coder/logger";
 import { Event } from "vs/base/common/event";
 import * as workspaceStorage from "vs/base/node/storage";
 import * as globalStorage from "vs/platform/storage/node/storageIpc";
-import * as paths from "./paths";
-import { logger, field } from "@coder/logger";
-import { client } from "@coder/vscode/src/client";
 import { IStorageService, WillSaveStateReason } from "vs/platform/storage/common/storage";
+import * as paths from "./paths";
+import { workbench } from "../workbench";
 
 class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	public readonly onDidChangeItemsExternal = Event.None;
@@ -80,7 +80,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 	private triggerFlush(reason: WillSaveStateReason = WillSaveStateReason.NONE): boolean {
 		// tslint:disable-next-line:no-any
-		const storageService = client.serviceCollection.get<IStorageService>(IStorageService) as any;
+		const storageService = workbench.serviceCollection.get<IStorageService>(IStorageService) as any;
 		if (reason === WillSaveStateReason.SHUTDOWN && storageService.close) {
 			storageService.close();
 

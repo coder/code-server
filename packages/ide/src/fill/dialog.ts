@@ -78,7 +78,7 @@ export class Dialog {
 			this.buttons = this.options.buttons.map((buttonText, buttonIndex) => {
 				const button = document.createElement("button");
 				// TODO: support mnemonics.
-				button.innerText = buttonText.replace("_", "");
+				button.innerText = buttonText.replace("&&", "");
 				button.addEventListener("click", () => {
 					this.actionEmitter.emit({
 						buttonIndex,

@@ -145,6 +145,14 @@ class Clipboard {
 		return false;
 	}
 
+	public readFindText(): string {
+		return "";
+	}
+
+	public writeFindText(_text: string): void {
+		// Nothing.
+	}
+
 	public writeText(value: string): Promise<void> {
 		return clipboard.writeText(value);
 	}

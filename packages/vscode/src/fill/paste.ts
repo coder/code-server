@@ -4,7 +4,7 @@ import { TERMINAL_COMMAND_ID } from "vs/workbench/parts/terminal/common/terminal
 import { ITerminalService } from "vs/workbench/parts/terminal/common/terminal";
 import * as actions from "vs/workbench/parts/terminal/electron-browser/terminalActions";
 import * as instance from "vs/workbench/parts/terminal/electron-browser/terminalInstance";
-import { clipboard } from "@coder/ide";
+import { client } from "../client";
 
 const getLabel = (key: string, enabled: boolean): string => {
 	return enabled
@@ -18,13 +18,13 @@ export class PasteAction extends Action {
 	public constructor() {
 		super(
 			"editor.action.clipboardPasteAction",
-			getLabel(PasteAction.KEY, clipboard.isEnabled),
+			getLabel(PasteAction.KEY, client.clipboard.isEnabled),
 			undefined,
-			clipboard.isEnabled,
-			async (): Promise<boolean> => clipboard.paste(),
+			client.clipboard.isEnabled,
+			async (): Promise<boolean> => client.clipboard.paste(),
 		);
 
-		clipboard.onPermissionChange((enabled) => {
+		client.clipboard.onPermissionChange((enabled) => {
 			this.label = getLabel(PasteAction.KEY, enabled);
 			this.enabled = enabled;
 		});
@@ -36,17 +36,17 @@ class TerminalPasteAction extends Action {
 
 	public static readonly ID = TERMINAL_COMMAND_ID.PASTE;
 	public static readonly LABEL = nls.localize("workbench.action.terminal.paste", "Paste into Active Terminal");
-	public static readonly SHORT_LABEL = getLabel(TerminalPasteAction.KEY, clipboard.isEnabled);
+	public static readonly SHORT_LABEL = getLabel(TerminalPasteAction.KEY, client.clipboard.isEnabled);
 
 	public constructor(
 		id: string, label: string,
 		@ITerminalService private terminalService: ITerminalService,
 	) {
 		super(id, label);
-		clipboard.onPermissionChange((enabled) => {
+		client.clipboard.onPermissionChange((enabled) => {
 			this._setLabel(getLabel(TerminalPasteAction.KEY, enabled));
 		});
-		this._setLabel(getLabel(TerminalPasteAction.KEY, clipboard.isEnabled));
+		this._setLabel(getLabel(TerminalPasteAction.KEY, client.clipboard.isEnabled));
 	}
 
 	public run(): Promise<void> {
@@ -63,8 +63,8 @@ class TerminalPasteAction extends Action {
 class TerminalInstance extends instance.TerminalInstance {
 	public async paste(): Promise<void> {
 		this.focus();
-		if (clipboard.isEnabled) {
-			const text = await clipboard.readText();
+		if (client.clipboard.isEnabled) {
+			const text = await client.clipboard.readText();
 			this.sendText(text, false);
 		} else {
 			document.execCommand("paste");

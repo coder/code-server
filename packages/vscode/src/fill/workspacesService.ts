@@ -4,7 +4,7 @@ import { ILogService } from "vs/platform/log/common/log";
 import { IWorkspaceFolderCreationData, IWorkspaceIdentifier, IWorkspacesService } from "vs/platform/workspaces/common/workspaces";
 import { WorkspacesMainService } from "vs/platform/workspaces/electron-main/workspacesMainService";
 import * as workspacesIpc from "vs/platform/workspaces/node/workspacesIpc";
-import { client } from "../client";
+import { workbench } from "../workbench";
 
 /**
  * Instead of going to the shared process, we'll directly run these methods on
@@ -16,8 +16,8 @@ class WorkspacesService implements IWorkspacesService {
 
 	public createUntitledWorkspace(folders?: IWorkspaceFolderCreationData[] | undefined): Promise<IWorkspaceIdentifier> {
 		const mainService = new WorkspacesMainService(
-			client.serviceCollection.get<IEnvironmentService>(IEnvironmentService) as IEnvironmentService,
-			client.serviceCollection.get<ILogService>(ILogService) as ILogService,
+			workbench.serviceCollection.get<IEnvironmentService>(IEnvironmentService) as IEnvironmentService,
+			workbench.serviceCollection.get<ILogService>(ILogService) as ILogService,
 		);
 
 		// lib/vscode/src/vs/platform/workspaces/node/workspacesIpc.ts

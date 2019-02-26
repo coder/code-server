@@ -9,6 +9,7 @@ import { IRecentlyOpened } from "vs/platform/history/common/history";
 import { ISerializableCommandAction } from "vs/platform/actions/common/actions";
 import { client } from "../client";
 import { showOpenDialog } from "../dialog";
+import { workbench } from "../workbench";
 
 /**
  * Instead of going to the shared process, we'll directly run these methods on
@@ -79,7 +80,7 @@ class WindowsService implements IWindowsService {
 				openDirectory: true,
 			},
 		}).then((path) => {
-			client.workspace = URI.file(path);
+			workbench.workspace = URI.file(path);
 		}).catch((ex) => {
 			//
 		});
@@ -150,12 +151,12 @@ class WindowsService implements IWindowsService {
 
 	public enterWorkspace(_windowId: number, _path: URI): Promise<IEnterWorkspaceResult> {
 		if (_path.path.endsWith(".json")) {
-			client.workspace = {
+			workbench.workspace = {
 				id: "Untitled",
 				configPath: _path.path,
 			};
 		} else {
-			client.workspace = _path;
+			workbench.workspace = _path;
 		}
 
 		return undefined!;

@@ -5,6 +5,7 @@ import { upload } from "./upload";
 import { client } from "./fill/client";
 import { clipboard } from "./fill/clipboard";
 import { INotificationService, IProgressService } from "./fill/notification";
+import "./fill/os"; // Ensure it fills before anything else waiting on initData.
 
 /**
  * A general abstraction of an IDE client.
