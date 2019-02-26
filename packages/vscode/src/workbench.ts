@@ -29,8 +29,6 @@ import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { URI } from "vs/base/common/uri";
 
-import "vs/loader";
-
 export class Workbench {
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;

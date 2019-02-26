@@ -28,7 +28,7 @@ const buildServerBinaryPackage = register("build:server:binary:package", async (
 	const cliPath = path.join(pkgsPath, "server");
 	runner.cwd = cliPath;
 	if (!fs.existsSync(path.join(cliPath, "out"))) {
-		throw new Error("Cannot build binary without web bundle built");
+		throw new Error("Cannot build binary without server bundle built");
 	}
 	await buildServerBinaryCopy();
 	await dependencyNexeBinary();
@@ -78,7 +78,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const cliBuildPath = path.join(cliPath, "build");
 	fse.removeSync(cliBuildPath);
 	fse.mkdirpSync(path.join(cliBuildPath, "extensions"));
-	const bootstrapForkPath = path.join(pkgsPath, "vscode", "bin", "bootstrap-fork.js");
+	const bootstrapForkPath = path.join(pkgsPath, "vscode", "out", "bootstrap-fork.js");
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty", "build", "Release", "pty.node");
@@ -124,7 +124,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 const buildServerBundle = register("build:server:bundle", async (runner) => {
 	const cliPath = path.join(pkgsPath, "server");
 	runner.cwd = cliPath;
-	await runner.execute("npm", ["run", "build:webpack"]);
+	await runner.execute("npm", ["run", "build"]);
 });
 
 const buildBootstrapFork = register("build:bootstrap-fork", async (runner) => {

@@ -3,13 +3,12 @@ const os = require("os");
 const environment = process.env.NODE_ENV || "development";
 const HappyPack = require("happypack");
 const webpack = require("webpack");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 const root = path.join(__dirname, "..");
 
 module.exports = (options = {}) => ({
 	context: root,
-	devtool: "source-map",
+	devtool: "none",
 	module: {
 		rules: [{
 			loader: "string-replace-loader",
@@ -33,22 +32,6 @@ module.exports = (options = {}) => ({
 				}],
 			},
 		}, {
-			test: /\.(js|css)/,
-			exclude: /test/,
-		}, {
-			test: /\.(txt|d\.ts|test.ts|perf.data.js|jxs|scpt|exe|sh|less)$/,
-			use: [{
-				loader: "ignore-loader",
-			}],
-		}, {
-			// These are meant to run in separate pages, like the issue reporter or
-			// process explorer. Ignoring for now since otherwise their CSS is
-			// included in the main CSS.
-			test: /test|electron-browser.+\.html$|code\/electron-browser\/.+\.css$/,
-			use: [{
-				loader: "ignore-loader",
-			}],
-		}, {
 			test: /\.node$/,
 			use: "node-loader",
 		}, {
@@ -57,36 +40,10 @@ module.exports = (options = {}) => ({
 			}],
 			test: /(^.?|\.[^d]|[^.]d|[^.][^d])\.tsx?$/,
 		}, {
-			// Test CSS isn't required. The rest is supposed to be served in separate
-			// pages or iframes so we don't need to include it here. Also excluding
-			// markdown.css because even though it uses the file-loader as shown above
-			// in the string replace, it's still making its way into the main CSS.
-			exclude: /test|code\/electron-browser\/.+\.css$/,
-			test: /\.s?css$/,
-			// This is required otherwise it'll fail to resolve CSS in common.
-			include: root,
-			use: [{
-				loader: MiniCssExtractPlugin.loader,
-			}, {
-				loader: "css-loader",
-			}, {
-				loader: "sass-loader",
-			}],
-		}, {
-			test: /\.(svg|png|ttf|woff|eot|woff2)$/,
-			use: [{
-				loader: "file-loader",
-				options: {
-					name: "[path][name].[ext]",
-				},
-			}],
-		}, {
 			test: /\.wasm$/,
 			type: "javascript/auto",
 		}, {
-			/**
-			 * Fixes spdlog
-			 */
+			// Fixes spdlog.
 			test: /spdlog\/index\.js/,
 			loader: "string-replace-loader",
 			options: {
@@ -118,7 +75,6 @@ module.exports = (options = {}) => ({
 				}],
 			},
 		}],
-		noParse: /\/test\/|\.test\.jsx?|\.test\.tsx?|tsconfig.+\.json$/,
 	},
 	resolve: {
 		alias: {
@@ -151,12 +107,7 @@ module.exports = (options = {}) => ({
 			"process.env.NODE_ENV": `"${environment}"`,
 			"process.env.LOG_LEVEL": `"${process.env.LOG_LEVEL || ""}"`,
 		}),
-		new MiniCssExtractPlugin({
-			filename: "[name].css",
-			chunkFilename: "[id].css",
-		}),
 	],
-	// target: "web",
 	stats: {
 		all: false, // Fallback for options not defined.
 		errors: true,

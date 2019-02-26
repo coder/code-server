@@ -5,12 +5,8 @@
 	"files": [],
 	"scripts": {
 		"start": "node --max-old-space-size=32384 --require ts-node/register --require tsconfig-paths/register src/cli.ts",
-		"build:webpack": "rm -rf ./out && export CLI=true && UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js",
-		"build:nexe": "node scripts/nexe.js",
-		"build:bootstrap-fork": "cd ../vscode && npm run build:bootstrap-fork; mkdir -p ./packages/server/resources; cp ./bin/bootstrap-fork.js ../server/resources/bootstrap-fork.js",
-		"build:default-extensions": "cd ../../lib/vscode && npx gulp vscode-linux-arm && cd ../.. && mkdir -p ./packages/server/resources/extensions; cp -r ./lib/VSCode-linux-arm/resources/app/extensions/* ./packages/server/resources/extensions/",
-		"build:web": "cd ../web; rm -rf ./out; NODE_ENV=production npm run build; rm -rf ../server/resources/web; mkdir -p ../server/resources/web; cp -r ./out/* ../server/resources/web",
-		"build": "npm run build:bootstrap-fork && npm run build:webpack && npm run build:nexe"
+		"build": "rm -rf ./out && export CLI=true && UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js",
+		"build:nexe": "node scripts/nexe.js"
 	},
 	"dependencies": {
 		"@oclif/config": "^1.10.4",

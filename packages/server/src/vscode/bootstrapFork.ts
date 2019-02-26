@@ -110,7 +110,7 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 	if (isCli) {
 		content = zlib.gunzipSync(readFile("bootstrap-fork.js.gz"));
 	} else {
-		content = readFile("../../vscode/bin/bootstrap-fork.js");
+		content = readFile("../../vscode/out/bootstrap-fork.js");
 	}
 	eval(content.toString());
 };
