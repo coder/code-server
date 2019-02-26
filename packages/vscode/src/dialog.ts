@@ -167,10 +167,6 @@ class Dialog {
 		navItems.appendChild(this.pathNode);
 		this.root.appendChild(navItems);
 
-		const fileAreaNode = document.createElement("div");
-		fileAreaNode.classList.add("file-area");
-		fileAreaNode.classList.add("show-file-icons");
-
 		const headingsNode = document.createElement("div");
 		headingsNode.className = "headings dialog-grid";
 		["Name", "Size", "Last Modified"].forEach(e => {
@@ -178,10 +174,14 @@ class Dialog {
 			header.innerText = e;
 			headingsNode.appendChild(header);
 		});
+		this.root.appendChild(headingsNode);
+
+		const fileAreaNode = document.createElement("div");
+		fileAreaNode.classList.add("file-area");
+		fileAreaNode.classList.add("show-file-icons");
 
 		this.filesNode = document.createElement("div");
 		this.filesNode.className = "files-list";
-		fileAreaNode.appendChild(headingsNode);
 		this.entryList = new ObjectTree<DialogEntry, string>(this.filesNode, {
 			getHeight: (entry: DialogEntry): number => {
 				return 20;
