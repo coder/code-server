@@ -19,13 +19,7 @@ message EvalEventMessage {
 
 message EvalFailedMessage {
 	uint64 id = 1;
-	enum Reason {
-		Timeout = 0;
-		Exception = 1;
-		Conflict = 2;
-	}
-	Reason reason = 2;
-	string message = 3;
+	string response = 2;
 }
 
 message EvalDoneMessage {

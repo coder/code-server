@@ -75,11 +75,8 @@ export class EvalFailedMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
 
-  getReason(): EvalFailedMessage.Reason;
-  setReason(value: EvalFailedMessage.Reason): void;
-
-  getMessage(): string;
-  setMessage(value: string): void;
+  getResponse(): string;
+  setResponse(value: string): void;
 
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): EvalFailedMessage.AsObject;
@@ -94,14 +91,7 @@ export class EvalFailedMessage extends jspb.Message {
 export namespace EvalFailedMessage {
   export type AsObject = {
     id: number,
-    reason: EvalFailedMessage.Reason,
-    message: string,
-  }
-
-  export enum Reason {
-    TIMEOUT = 0,
-    EXCEPTION = 1,
-    CONFLICT = 2,
+    response: string,
   }
 }
 

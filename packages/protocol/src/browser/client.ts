@@ -98,7 +98,7 @@ export class Client {
 				const eventsMsg = new EvalEventMessage();
 				eventsMsg.setId(doEval.id);
 				eventsMsg.setEvent(event);
-				eventsMsg.setArgsList(args.map(stringify));
+				eventsMsg.setArgsList(args.map((a) => stringify(a)));
 				const clientMsg = new ClientMessage();
 				clientMsg.setEvalEvent(eventsMsg);
 				this.connection.send(clientMsg.serializeBinary());
@@ -140,7 +140,7 @@ export class Client {
 		const id = this.evalId++;
 		newEval.setId(id);
 		newEval.setActive(active);
-		newEval.setArgsList([a1, a2, a3, a4, a5, a6].map(stringify));
+		newEval.setArgsList([a1, a2, a3, a4, a5, a6].map((a) => stringify(a)));
 		newEval.setFunction(func.toString());
 
 		const clientMsg = new ClientMessage();
@@ -155,16 +155,15 @@ export class Client {
 
 			const d1 = this.evalDoneEmitter.event((doneMsg) => {
 				if (doneMsg.getId() === id) {
-					const resp = doneMsg.getResponse();
 					dispose();
-					resolve(parse(resp));
+					resolve(parse(doneMsg.getResponse()));
 				}
 			});
 
 			const d2 = this.evalFailedEmitter.event((failedMsg) => {
 				if (failedMsg.getId() === id) {
 					dispose();
-					reject(new Error(failedMsg.getMessage()));
+					reject(parse(failedMsg.getResponse()));
 				}
 			});
 		});

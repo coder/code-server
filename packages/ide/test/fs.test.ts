@@ -496,8 +496,9 @@ describe("fs", () => {
 		});
 
 		it("should fail to stat nonexistent file", async () => {
-			await expect(util.promisify(fs.stat)(tmpFile()))
-				.rejects.toThrow("ENOENT");
+			const error = await util.promisify(fs.stat)(tmpFile()).catch((e) => e);
+			expect(error.message).toContain("ENOENT");
+			expect(error.code).toBe("ENOENT");
 		});
 	});
 

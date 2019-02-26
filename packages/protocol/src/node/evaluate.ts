@@ -36,8 +36,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 	const sendException = (error: Error): void => {
 		const evalFailed = new EvalFailedMessage();
 		evalFailed.setId(message.getId());
-		evalFailed.setReason(EvalFailedMessage.Reason.EXCEPTION);
-		evalFailed.setMessage(error.toString() + " " + error.stack);
+		evalFailed.setResponse(stringify(error, true));
 
 		const serverMsg = new ServerMessage();
 		serverMsg.setEvalFailed(evalFailed);
@@ -58,7 +57,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 					logger.trace(() => [
 						`${event}`,
 						field("id", message.getId()),
-						field("args", args.map(stringify)),
+						field("args", args.map((a) => stringify(a))),
 					]);
 					cb(...args);
 				});
@@ -67,11 +66,11 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 				logger.trace(() => [
 					`emit ${event}`,
 					field("id", message.getId()),
-					field("args", args.map(stringify)),
+					field("args", args.map((a) => stringify(a))),
 				]);
 				const eventMsg = new EvalEventMessage();
 				eventMsg.setEvent(event);
-				eventMsg.setArgsList(args.map(stringify));
+				eventMsg.setArgsList(args.map((a) => stringify(a)));
 				eventMsg.setId(message.getId());
 				const serverMsg = new ServerMessage();
 				serverMsg.setEvalEvent(eventMsg);

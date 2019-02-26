@@ -14,7 +14,6 @@ var global = Function('return this')();
 goog.exportSymbol('proto.EvalDoneMessage', null, global);
 goog.exportSymbol('proto.EvalEventMessage', null, global);
 goog.exportSymbol('proto.EvalFailedMessage', null, global);
-goog.exportSymbol('proto.EvalFailedMessage.Reason', null, global);
 goog.exportSymbol('proto.NewEvalMessage', null, global);
 
 /**
@@ -554,8 +553,7 @@ proto.EvalFailedMessage.prototype.toObject = function(opt_includeInstance) {
 proto.EvalFailedMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    reason: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    message: jspb.Message.getFieldWithDefault(msg, 3, "")
+    response: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -597,12 +595,8 @@ proto.EvalFailedMessage.deserializeBinaryFromReader = function(msg, reader) {
       msg.setId(value);
       break;
     case 2:
-      var value = /** @type {!proto.EvalFailedMessage.Reason} */ (reader.readEnum());
-      msg.setReason(value);
-      break;
-    case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setMessage(value);
+      msg.setResponse(value);
       break;
     default:
       reader.skipField();
@@ -640,31 +634,15 @@ proto.EvalFailedMessage.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getReason();
-  if (f !== 0.0) {
-    writer.writeEnum(
+  f = message.getResponse();
+  if (f.length > 0) {
+    writer.writeString(
       2,
       f
     );
   }
-  f = message.getMessage();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
 };
 
-
-/**
- * @enum {number}
- */
-proto.EvalFailedMessage.Reason = {
-  TIMEOUT: 0,
-  EXCEPTION: 1,
-  CONFLICT: 2
-};
 
 /**
  * optional uint64 id = 1;
@@ -682,32 +660,17 @@ proto.EvalFailedMessage.prototype.setId = function(value) {
 
 
 /**
- * optional Reason reason = 2;
- * @return {!proto.EvalFailedMessage.Reason}
- */
-proto.EvalFailedMessage.prototype.getReason = function() {
-  return /** @type {!proto.EvalFailedMessage.Reason} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
-};
-
-
-/** @param {!proto.EvalFailedMessage.Reason} value */
-proto.EvalFailedMessage.prototype.setReason = function(value) {
-  jspb.Message.setProto3EnumField(this, 2, value);
-};
-
-
-/**
- * optional string message = 3;
+ * optional string response = 2;
  * @return {string}
  */
-proto.EvalFailedMessage.prototype.getMessage = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.EvalFailedMessage.prototype.getResponse = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.EvalFailedMessage.prototype.setMessage = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
+proto.EvalFailedMessage.prototype.setResponse = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

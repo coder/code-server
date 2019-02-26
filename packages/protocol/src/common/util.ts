@@ -25,17 +25,19 @@ export type IEncodingOptions = {
 export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoException, ...args: any[]) => void);
 
 /**
- * Stringify an event argument.
+ * Stringify an event argument. isError is because although methods like
+ * `fs.stat` are supposed to throw Error objects, they currently throw regular
+ * objects when running tests through Jest.
  */
-export const stringify = (arg: any): string => { // tslint:disable-line no-any
-	if (arg instanceof Error) {
+export const stringify = (arg: any, isError?: boolean): string => { // tslint:disable-line no-any
+	if (arg instanceof Error || isError) {
 		// Errors don't stringify at all. They just become "{}".
 		return JSON.stringify({
 			type: "Error",
 			data: {
 				message: arg.message,
-				name: arg.name,
 				stack: arg.stack,
+				code: (arg as NodeJS.ErrnoException).code,
 			},
 		});
 	} else if (arg instanceof Uint8Array) {
@@ -74,7 +76,16 @@ export const parse = (arg: string): any => { // tslint:disable-line no-any
 			// what happens to buffers and stringify them as regular objects.
 			case "Error":
 				if (result.data.message) {
-					return new Error(result.data.message);
+					const error = new Error(result.data.message);
+					// TODO: Can we set the stack? Doing so seems to make it into an
+					// "invalid object".
+					if (typeof result.data.code !== "undefined") {
+						(error as NodeJS.ErrnoException).code = result.data.code;
+					}
+					// tslint:disable-next-line no-any
+					(error as any).originalStack = result.data.stack;
+
+					return error;
 				}
 				break;
 		}
