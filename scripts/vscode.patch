@@ -528,12 +528,12 @@ index bc02c150a7..4ef622f669 100644
 @@ -632 +632,0 @@ configurationRegistry.registerConfiguration({
 -
 diff --git a/src/vs/workbench/electron-browser/shell.ts b/src/vs/workbench/electron-browser/shell.ts
-index fd95939506..5ed6fb52b2 100644
+index fd95939506..2f32077a15 100644
 --- a/src/vs/workbench/electron-browser/shell.ts
 +++ b/src/vs/workbench/electron-browser/shell.ts
 @@ -548 +548 @@ export class Shell extends Disposable {
 -		addClasses(this.container, 'monaco-shell', platform.isWindows ? 'windows' : platform.isLinux ? 'linux' : 'mac');
-+		addClasses(this.container, 'web monaco-shell', platform.isWindows ? 'windows' : platform.isLinux ? 'linux' : 'mac');
++		addClasses(this.container, 'web monaco-shell', browser.isWindows ? 'windows' : browser.isLinux ? 'linux' : 'mac');
 diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
 index c0aff6bd4b..15af61a9ec 100644
 --- a/src/vs/workbench/electron-browser/window.ts
