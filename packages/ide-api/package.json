@@ -1,0 +1,7 @@
+{
+	"name": "@coder/ide-api",
+	"typings": "api.d.ts",
+	"author": "Coder",
+	"license": "MIT",
+	"description": "API for interfacing with the API created for content-scripts"
+}

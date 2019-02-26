@@ -1,4 +1,5 @@
 import { IdeClient } from "@coder/ide";
+import { client as ideClientInstance } from "@coder/ide/src/fill/client";
 import * as paths from "./fill/paths";
 import "./vscode.scss";
 // NOTE: shouldn't import anything from VS Code here or anything that will
@@ -14,6 +15,19 @@ class VSClient extends IdeClient {
 			// callback, meaning we are safe to include everything from VS Code now.
 			const { workbench } = require("./workbench") as typeof import("./workbench");
 			await workbench.initialize();
+
+			window.ide = {
+				client: ideClientInstance,
+				workbench: {
+					// tslint:disable-next-line:no-any
+					getService: <T>(id: any): T => workbench.serviceCollection.get<T>(id) as T,
+				},
+			};
+
+			const event = new CustomEvent("ide-ready");
+			// tslint:disable-next-line:no-any
+			(<any>event).ide = window.ide;
+			window.dispatchEvent(event);
 		}, this.initData, this.sharedProcessData);
 	}
 }
