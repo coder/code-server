@@ -1,5 +1,8 @@
 import { IdeClient } from "@coder/ide";
 import { client as ideClientInstance } from "@coder/ide/src/fill/client";
+import Severity from "vs/base/common/severity";
+import { INotificationService } from "vs/platform/notification/common/notification";
+import { IStatusbarService } from "vs/platform/statusbar/common/statusbar";
 import * as paths from "./fill/paths";
 import "./vscode.scss";
 // NOTE: shouldn't import anything from VS Code here or anything that will
@@ -16,12 +19,17 @@ class VSClient extends IdeClient {
 			const { workbench } = require("./workbench") as typeof import("./workbench");
 			await workbench.initialize();
 
+			// tslint:disable-next-line:no-any
+			const getService = <T>(id: any): T => workbench.serviceCollection.get<T>(id) as T;
+			enum StatusbarAlignment { LEFT, RIGHT }
 			window.ide = {
 				client: ideClientInstance,
 				workbench: {
-					// tslint:disable-next-line:no-any
-					getService: <T>(id: any): T => workbench.serviceCollection.get<T>(id) as T,
+					statusbarService: getService<IStatusbarService>(IStatusbarService),
+					notificationService: getService<INotificationService>(INotificationService),
 				},
+				Severity: Severity,
+				StatusbarAlignment: StatusbarAlignment,
 			};
 
 			const event = new CustomEvent("ide-ready");
