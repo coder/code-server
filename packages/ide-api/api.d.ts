@@ -127,6 +127,6 @@ declare global {
 	interface Window {
 		ide?: typeof ide;
 	
-		addEventListener(event: "ide-ready", callback: (ide: CustomEvent & { readonly ide: IdeApi }) => void): void;
+		addEventListener(event: "ide-ready", callback: (ide: CustomEvent & { readonly ide: typeof ide }) => void): void;
 	}
 }
