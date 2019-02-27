@@ -2,9 +2,11 @@ import { IdeClient } from "@coder/ide";
 import { client as ideClientInstance } from "@coder/ide/src/fill/client";
 import Severity from "vs/base/common/severity";
 import { INotificationService } from "vs/platform/notification/common/notification";
-import { IStatusbarService } from "vs/platform/statusbar/common/statusbar";
+import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
 import * as paths from "./fill/paths";
 import "./vscode.scss";
+import { MenuId, MenuRegistry } from "vs/platform/actions/common/actions";
+import { CommandsRegistry } from "vs/platform/commands/common/commands";
 // NOTE: shouldn't import anything from VS Code here or anything that will
 // depend on a synchronous fill like `os`.
 
@@ -21,15 +23,25 @@ class VSClient extends IdeClient {
 
 			// tslint:disable-next-line:no-any
 			const getService = <T>(id: any): T => workbench.serviceCollection.get<T>(id) as T;
-			enum StatusbarAlignment { LEFT, RIGHT }
 			window.ide = {
 				client: ideClientInstance,
 				workbench: {
-					statusbarService: getService<IStatusbarService>(IStatusbarService),
+					commandRegistry: CommandsRegistry,
+					// tslint:disable-next-line:no-any
+					menuRegistry: MenuRegistry as any,
+					// tslint:disable-next-line:no-any
+					statusbarService: getService<IStatusbarService>(IStatusbarService) as any,
 					notificationService: getService<INotificationService>(INotificationService),
 				},
-				Severity: Severity,
-				StatusbarAlignment: StatusbarAlignment,
+
+				// @ts-ignore
+				// tslint:disable-next-line:no-any
+				MenuId: MenuId as any,
+				// tslint:disable-next-line:no-any
+				Severity: Severity as any,
+				// @ts-ignore
+				// tslint:disable-next-line:no-any
+				StatusbarAlignment: StatusbarAlignment as any,
 			};
 
 			const event = new CustomEvent("ide-ready");

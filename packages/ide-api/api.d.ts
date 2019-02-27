@@ -1,4 +1,4 @@
-interface EvalHelper { }
+export interface EvalHelper { }
 interface ActiveEvalEmitter {
 	removeAllListeners(event?: string): void;
 	emit(event: string, ...args: any[]): void;
@@ -32,7 +32,7 @@ interface IStatusbarEntry {
 	readonly showBeak?: boolean;
 }
 interface IStatusbarService {
-	addEntry(entry: IStatusbarEntry, alignment: StatusbarAlignment, priority?: number): IDisposable;
+	addEntry(entry: IStatusbarEntry, alignment: ide.StatusbarAlignment, priority?: number): IDisposable;
 	setStatusMessage(message: string, autoDisposeAfter?: number, delayBy?: number): IDisposable;
 }
 type NotificationMessage = string | Error;
@@ -41,7 +41,7 @@ interface INotificationProperties {
 	silent?: boolean;
 }
 interface INotification extends INotificationProperties {
-	severity: Severity;
+	severity: ide.Severity;
 	message: NotificationMessage;
 	source?: string;
 	actions?: INotificationActions;
@@ -58,32 +58,80 @@ interface INotificationProgress {
 	done(): void;
 }
 
-export interface INotificationHandle {
+interface INotificationHandle {
 	readonly onDidClose: Event<void>;
 	readonly progress: INotificationProgress;
-	updateSeverity(severity: Severity): void;
+	updateSeverity(severity: ide.Severity): void;
 	updateMessage(message: NotificationMessage): void;
 	updateActions(actions?: INotificationActions): void;
 	close(): void;
 }
 
-export interface IPromptChoice {
+interface IPromptChoice {
 	label: string;
 	isSecondary?: boolean;
 	keepOpen?: boolean;
 	run: () => void;
 }
 
-export interface IPromptOptions extends INotificationProperties {
+interface IPromptOptions extends INotificationProperties {
 	onCancel?: () => void;
 }
 
-export interface INotificationService {
+interface INotificationService {
 	notify(notification: INotification): INotificationHandle;
 	info(message: NotificationMessage | NotificationMessage[]): void;
 	warn(message: NotificationMessage | NotificationMessage[]): void;
 	error(message: NotificationMessage | NotificationMessage[]): void;
-	prompt(severity: Severity, message: string, choices: IPromptChoice[], options?: IPromptOptions): INotificationHandle;
+	prompt(severity: ide.Severity, message: string, choices: IPromptChoice[], options?: IPromptOptions): INotificationHandle;
+}
+
+interface IBaseCommandAction {
+	id: string;
+	title: string;
+	category?: string;
+}
+
+interface ICommandAction extends IBaseCommandAction {
+	// iconLocation?: { dark: URI; light?: URI; };
+	// precondition?: ContextKeyExpr;
+	// toggled?: ContextKeyExpr;
+}
+
+interface ISerializableCommandAction extends IBaseCommandAction {
+	// iconLocation?: { dark: UriComponents; light?: UriComponents; };
+}
+
+interface IMenuItem {
+	command: ICommandAction;
+	alt?: ICommandAction;
+	// when?: ContextKeyExpr;
+	group?: 'navigation' | string;
+	order?: number;
+}
+
+interface IMenuRegistry {
+	appendMenuItem(menu: ide.MenuId, item: IMenuItem): IDisposable;
+}
+
+export interface ICommandHandler {
+	(accessor: any, ...args: any[]): void;
+}
+
+export interface ICommand {
+	id: string;
+	handler: ICommandHandler;
+	description?: ICommandHandlerDescription | null;
+}
+
+export interface ICommandHandlerDescription {
+	description: string;
+	args: { name: string; description?: string; }[];
+	returns?: string;
+}
+
+interface ICommandRegistry {
+	registerCommand(command: ICommand): IDisposable;
 }
 
 declare namespace ide {
@@ -108,6 +156,8 @@ declare namespace ide {
 	export const workbench: {
 		readonly statusbarService: IStatusbarService;
 		readonly notificationService: INotificationService;
+		readonly menuRegistry: IMenuRegistry;
+		readonly commandRegistry: ICommandRegistry;
 	};
 
 	export enum Severity {
@@ -120,6 +170,46 @@ declare namespace ide {
 	export enum StatusbarAlignment {
 		LEFT = 0,
 		RIGHT = 1,
+	}
+
+	export enum MenuId {
+		CommandPalette,
+		DebugBreakpointsContext,
+		DebugCallStackContext,
+		DebugConsoleContext,
+		DebugVariablesContext,
+		DebugWatchContext,
+		EditorContext,
+		EditorTitle,
+		EditorTitleContext,
+		EmptyEditorGroupContext,
+		ExplorerContext,
+		MenubarAppearanceMenu,
+		MenubarDebugMenu,
+		MenubarEditMenu,
+		MenubarFileMenu,
+		MenubarGoMenu,
+		MenubarHelpMenu,
+		MenubarLayoutMenu,
+		MenubarNewBreakpointMenu,
+		MenubarPreferencesMenu,
+		MenubarRecentMenu,
+		MenubarSelectionMenu,
+		MenubarSwitchEditorMenu,
+		MenubarSwitchGroupMenu,
+		MenubarTerminalMenu,
+		MenubarViewMenu,
+		OpenEditorsContext,
+		ProblemsPanelContext,
+		SCMChangeContext,
+		SCMResourceContext,
+		SCMResourceGroupContext,
+		SCMSourceControl,
+		SCMTitle,
+		SearchContext,
+		TouchBarContext,
+		ViewItemContext,
+		ViewTitle,
 	}
 }
 
