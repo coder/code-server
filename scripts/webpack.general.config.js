@@ -9,6 +9,7 @@ const root = path.join(__dirname, "..");
 module.exports = (options = {}) => ({
 	context: root,
 	devtool: "none",
+	externals: ["fsevents"],
 	module: {
 		rules: [{
 			loader: "string-replace-loader",
