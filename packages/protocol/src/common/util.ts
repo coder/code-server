@@ -57,39 +57,43 @@ export const stringify = (arg: any, isError?: boolean): string => { // tslint:di
  * Parse an event argument.
  */
 export const parse = (arg: string): any => { // tslint:disable-line no-any
-	if (!arg) {
-		return arg;
-	}
-
-	const result = JSON.parse(arg);
-
-	if (result && result.data && result.type) {
-		switch (result.type) {
-			// JSON.stringify turns a Buffer into an object but JSON.parse doesn't
-			// turn it back, it just remains an object.
-			case "Buffer":
-				if (Array.isArray(result.data)) {
-					return Buffer.from(result);
-				}
-				break;
-			// Errors apparently can't be stringified, so we do something similar to
-			// what happens to buffers and stringify them as regular objects.
-			case "Error":
-				if (result.data.message) {
-					const error = new Error(result.data.message);
-					// TODO: Can we set the stack? Doing so seems to make it into an
-					// "invalid object".
-					if (typeof result.data.code !== "undefined") {
-						(error as NodeJS.ErrnoException).code = result.data.code;
+	const convert = (value: any): any => { // tslint:disable-line no-any
+		if (value && value.data && value.type) {
+			switch (value.type) {
+				// JSON.stringify turns a Buffer into an object but JSON.parse doesn't
+				// turn it back, it just remains an object.
+				case "Buffer":
+					if (Array.isArray(value.data)) {
+						return Buffer.from(value);
 					}
-					// tslint:disable-next-line no-any
-					(error as any).originalStack = result.data.stack;
+					break;
+				// Errors apparently can't be stringified, so we do something similar to
+				// what happens to buffers and stringify them as regular objects.
+				case "Error":
+					if (value.data.message) {
+						const error = new Error(value.data.message);
+						// TODO: Can we set the stack? Doing so seems to make it into an
+						// "invalid object".
+						if (typeof value.data.code !== "undefined") {
+							(error as NodeJS.ErrnoException).code = value.data.code;
+						}
+						// tslint:disable-next-line no-any
+						(error as any).originalStack = value.data.stack;
 
-					return error;
-				}
-				break;
+						return error;
+					}
+					break;
+			}
 		}
-	}
 
-	return result;
+		if (value && typeof value === "object") {
+			Object.keys(value).forEach((key) => {
+				value[key] = convert(value[key]);
+			});
+		}
+
+		return value;
+	};
+
+	return arg ? convert(JSON.parse(arg)) : arg;
 };

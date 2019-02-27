@@ -10,7 +10,7 @@ class IconvLiteDecoderStream extends Transform {
 		super(options);
 		// tslint:disable-next-line no-any
 		this.conv = (iconv as any).getDecoder(options.encoding, undefined);
-		options.encoding = this.encoding = "utf8";
+		this.encoding = options.encoding;
 	}
 
 	// tslint:disable-next-line no-any

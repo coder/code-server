@@ -19,6 +19,12 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 	 */
 	// tslint:disable-next-line no-any
 	const sendResp = (resp: any): void => {
+		logger.trace(() => [
+			"resolve",
+			field("id", message.getId()),
+			field("response", stringify(resp)),
+		]);
+
 		const evalDone = new EvalDoneMessage();
 		evalDone.setId(message.getId());
 		evalDone.setResponse(stringify(resp));
@@ -34,6 +40,12 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 	 * Send an exception and call onDispose.
 	 */
 	const sendException = (error: Error): void => {
+		logger.trace(() => [
+			"reject",
+			field("id", message.getId()),
+			field("response", stringify(error, true)),
+		]);
+
 		const evalFailed = new EvalFailedMessage();
 		evalFailed.setId(message.getId());
 		evalFailed.setResponse(stringify(error, true));
