@@ -52,6 +52,7 @@ module.exports = merge(
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
 				"electron": path.join(vsFills, "stdioElectron.ts"),
+				"vscode-ripgrep": path.join(vsFills, "ripgrep.ts"),
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
 				"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 				"vs/base/common/amd": path.resolve(vsFills, "amd.ts"),

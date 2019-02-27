@@ -308,8 +308,8 @@ class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public showItemInFolder(_path: string): Promise<void> {
-		throw new Error("not implemented");
+	public async showItemInFolder(_path: string): Promise<void> {
+		workbench.workspace = URI.file(_path);
 	}
 
 	public getActiveWindowId(): Promise<number | undefined> {

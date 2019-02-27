@@ -11,6 +11,7 @@ import * as httpolyglot from "httpolyglot";
 import * as https from "https";
 import * as mime from "mime-types";
 import * as net from "net";
+import * as os from "os";
 import * as path from "path";
 import * as pem from "pem";
 import * as util from "util";
@@ -167,6 +168,11 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			// Serve only the unauthed version
 			unauthStaticFunc(req, res, next);
 		}
+	});
+	app.get("/ping", (req, res) => {
+		res.json({
+			hostname: os.hostname(),
+		});
 	});
 	app.get("/resource/:url(*)", async (req, res) => {
 		if (!ensureAuthed(req, res)) {

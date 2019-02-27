@@ -8,7 +8,7 @@ declare var __non_webpack_require__: typeof require;
  * Handling of native modules within the CLI
  */
 export const setup = (dataDirectory: string): void => {
-	path.resolve(dataDirectory, "modules").split(path.sep).reduce((parentDir, childDir) => {
+	path.resolve(dataDirectory, "dependencies").split(path.sep).reduce((parentDir, childDir) => {
 		const currentDir = path.join(parentDir, childDir);
 		try {
 			fs.mkdirSync(currentDir);
@@ -22,8 +22,8 @@ export const setup = (dataDirectory: string): void => {
 	}, path.sep);
 
 	const unpackModule = (moduleName: string): void => {
-		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/modules", moduleName + ".node");
-		const diskFile = path.join(dataDirectory, "modules", moduleName + ".node");
+		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", moduleName);
+		const diskFile = path.join(dataDirectory, "dependencies", moduleName);
 		if (!fs.existsSync(diskFile)) {
 			fs.writeFileSync(diskFile, fs.readFileSync(memFile));
 		}
@@ -34,15 +34,17 @@ export const setup = (dataDirectory: string): void => {
 	 * If pty.node isn't unpacked a SIGSEGV is thrown and the application exits. The exact reasoning
 	 * for this is unknown ATM, but this patch works around it.
 	 */
-	unpackModule("pty");
-	unpackModule("spdlog");
+	unpackModule("pty.node");
+	unpackModule("spdlog.node");
+	unpackModule("rg");
 	const nodePtyUtils = require("../../protocol/node_modules/node-pty/lib/utils") as typeof import("../../protocol/node_modules/node-pty/src/utils");
 	// tslint:disable-next-line:no-any
 	nodePtyUtils.loadNative = (modName: string): any => {
-		return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "modules", modName + ".node"));
+		return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "dependencies", modName + ".node"));
 	};
+	(<any>global).RIPGREP_LOCATION = path.join(dataDirectory, "dependencies", "rg");
 	// tslint:disable-next-line:no-any
-	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "modules", "spdlog.node");
+	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "dependencies", "spdlog.node");
 	// tslint:disable-next-line:no-unused-expression
 	require("../../protocol/node_modules/node-pty/lib/index") as typeof import("../../protocol/node_modules/node-pty/src/index");
 };

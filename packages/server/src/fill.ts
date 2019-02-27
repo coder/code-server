@@ -161,4 +161,35 @@ export const fillFs = (): void => {
 
 		return nativeFs.readdir(directory, callback);
 	});
+
+	const fillNativeFunc = <T extends keyof typeof fs>(propertyName: T): void => {
+		replaceNative(propertyName, (callOld, newPath, ...args) => {
+			if (typeof newPath !== "string") {
+				return callOld();
+			}
+
+			const rel = path.relative(newPath, buildDir!);
+			if (rel.startsWith("..")) {
+				return callOld();
+			}
+
+			const func = nativeFs[propertyName] as any;
+
+			return func(newPath, ...args);
+		});
+	};
+
+	const properties: Array<keyof typeof fs> = [
+		"existsSync",
+		"readFile",
+		"readFileSync",
+		"createReadStream",
+		"readdir",
+		"readdirSync",
+		"statSync",
+		"stat",
+		"realpath",
+		"realpathSync",
+	];
+	properties.forEach((p) => fillNativeFunc(p));
 };

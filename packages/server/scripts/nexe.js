@@ -6,7 +6,7 @@ const path = require("path");
 const nexePath = require.resolve("nexe");
 const shimPath = path.join(path.dirname(nexePath), "lib/steps/shim.js");
 let shimContent = fs.readFileSync(shimPath).toString();
-const replaceString = `global.nativeFs = { readdir: originalReaddir, readdirSync: originalReaddirSync };`;
+const replaceString = `global.nativeFs = { existsSync: originalExistsSync, readFile: originalReadFile, readFileSync: originalReadFileSync, createReadStream: originalCreateReadStream, readdir: originalReaddir, readdirSync: originalReaddirSync, statSync: originalStatSync, stat: originalStat, realpath: originalRealpath, realpathSync: originalRealpathSync };`;
 shimContent = shimContent.replace(/compiler\.options\.resources\.length[\s\S]*wrap\("(.*\\n)"/g, (om, a) => {
 	return om.replace(a, `${a}${replaceString}`);
 });

@@ -83,6 +83,10 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty", "build", "Release", "pty.node");
 	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
+	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
+	if (os.platform() === "win32") {
+		ripgrepPath += ".exe";
+	}
 
 	if (!fs.existsSync(nodePtyModule)) {
 		throw new Error("Could not find pty.node. Ensure all packages have been installed");
@@ -98,6 +102,9 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	}
 	if (!fs.existsSync(bootstrapForkPath)) {
 		throw new Error("Bootstrap fork must exist");
+	}
+	if (!fs.existsSync(ripgrepPath)) {
+		throw new Error("Ripgrep must exist");
 	}
 	fse.copySync(defaultExtensionsPath, path.join(cliBuildPath, "extensions"));
 	fs.writeFileSync(path.join(cliBuildPath, "bootstrap-fork.js.gz"), zlib.gzipSync(fs.readFileSync(bootstrapForkPath)));
@@ -116,9 +123,10 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	};
 	cpDir(webOutputPath, "auth", webOutputPath);
 	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
-	fse.mkdirpSync(path.join(cliBuildPath, "modules"));
-	fse.copySync(nodePtyModule, path.join(cliBuildPath, "modules", "pty.node"));
-	fse.copySync(spdlogModule, path.join(cliBuildPath, "modules", "spdlog.node"));
+	fse.mkdirpSync(path.join(cliBuildPath, "dependencies"));
+	fse.copySync(nodePtyModule, path.join(cliBuildPath, "dependencies", "pty.node"));
+	fse.copySync(spdlogModule, path.join(cliBuildPath, "dependencies", "spdlog.node"));
+	fse.copySync(ripgrepPath, path.join(cliBuildPath, "dependencies", "rg"));
 });
 
 const buildServerBundle = register("build:server:bundle", async (runner) => {
