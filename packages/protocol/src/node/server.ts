@@ -51,7 +51,7 @@ export class Server {
 				try {
 					await promisify(mkdir)(dir);
 				} catch (error) {
-					if (error.code !== "EEXIST") {
+					if (error.code !== "EEXIST" && error.code !== "EISDIR") {
 						throw error;
 					}
 				}

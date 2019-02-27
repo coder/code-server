@@ -25,7 +25,7 @@ describe("fs", () => {
 		try {
 			await util.promisify(nativeFs.mkdir)(path.dirname(coderDir));
 		} catch (error) {
-			if (error.code !== "EEXIST") {
+			if (error.code !== "EEXIST" && error.code !== "EISDIR") {
 				throw error;
 			}
 		}

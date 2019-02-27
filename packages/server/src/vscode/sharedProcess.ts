@@ -54,7 +54,7 @@ export class SharedProcess {
 			try {
 				fs.mkdirSync(dir);
 			} catch (ex) {
-				if (ex.code !== "EEXIST") {
+				if (ex.code !== "EEXIST" && ex.code !== "EISDIR") {
 					throw ex;
 				}
 			}

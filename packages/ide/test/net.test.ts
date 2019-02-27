@@ -19,7 +19,7 @@ describe("net", () => {
 		try {
 			await util.promisify(fs.mkdir)(path.dirname(coderDir));
 		} catch (error) {
-			if (error.code !== "EEXIST") {
+			if (error.code !== "EEXIST" && error.code !== "EISDIR") {
 				throw error;
 			}
 		}

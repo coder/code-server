@@ -13,7 +13,7 @@ export const setup = (dataDirectory: string): void => {
 		try {
 			fs.mkdirSync(currentDir);
 		} catch (ex) {
-			if (ex.code !== "EEXIST") {
+			if (ex.code !== "EEXIST" && ex.code !== "EISDIR") {
 				throw ex;
 			}
 		}
