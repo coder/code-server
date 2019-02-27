@@ -1,5 +1,6 @@
 import * as os from "os";
 import * as platform from "vs/base/common/platform";
+import * as browser from "vs/base/browser/browser";
 
 // tslint:disable no-any to override const
 
@@ -22,4 +23,4 @@ if (platform.language === "en-US") {
 
 // This is used for keybindings, and in one place to choose between \r\n and \n
 // (which we change to use platform.isWindows instead).
-(platform as any).OS = (platform.isMacintosh ? platform.OperatingSystem.Macintosh : (platform.isWindows ? platform.OperatingSystem.Windows : platform.OperatingSystem.Linux));
+(platform as any).OS = (browser.isMacintosh ? platform.OperatingSystem.Macintosh : (browser.isWindows ? platform.OperatingSystem.Windows : platform.OperatingSystem.Linux));
