@@ -5,6 +5,7 @@ cache:
     - lib
 node_js:
 - 8.9.3
+filter_secrets: false
 matrix:
   include:
   - os: linux
