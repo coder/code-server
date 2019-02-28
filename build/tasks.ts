@@ -5,6 +5,7 @@ import * as os from "os";
 import * as path from "path";
 import * as zlib from "zlib";
 
+const isWin = os.platform() === "win32";
 const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
@@ -84,7 +85,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty-prebuilt", "build", "Release", "pty.node");
 	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
-	if (os.platform() === "win32") {
+	if (isWin) {
 		ripgrepPath += ".exe";
 	}
 
@@ -188,7 +189,7 @@ const ensureInstalled = register("vscode:install", async (runner) => {
 	await ensureCloned();
 
 	runner.cwd = vscodePath;
-	const install = await runner.execute("yarn", []);
+	const install = await runner.execute(isWin ? "yarn.cmd" : "yarn", []);
 	if (install.exitCode !== 0) {
 		throw new Error(`Failed to install vscode dependencies: ${install.stderr}`);
 	}
