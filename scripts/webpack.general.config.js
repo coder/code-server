@@ -76,11 +76,11 @@ module.exports = (options = {}) => ({
 				}],
 			},
 		}, {
-			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/)windowsPtyAgent\.js/,
+			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/).*\.js/,
 			loader: "string-replace-loader",
 			options: {
 				multiple: [{
-					search: "var pty = .*;",
+					search: "var pty = .*pty\.node.*;",
 					replace: "var pty = __non_webpack_require__(global.NODEPTY_LOCATION);",
 					flags: "g",
 				}],
