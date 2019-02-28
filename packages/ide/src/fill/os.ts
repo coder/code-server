@@ -34,6 +34,7 @@ class OS {
 			case OperatingSystem.Mac: this._platform = "darwin"; break;
 			default: this._platform = "linux"; break;
 		}
+		process.platform = this._platform;
 	}
 
 	public release(): string {

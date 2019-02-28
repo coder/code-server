@@ -31,7 +31,7 @@ module.exports = merge(
 		entry: "./packages/server/src/cli.ts",
 		plugins: [
 			new webpack.DefinePlugin({
-				"process.env.BUILD_DIR": `"${__dirname}"`,
+				"process.env.BUILD_DIR": `"${__dirname.replace(/\\/g, "\\\\")}"`,
 				"process.env.CLI": `"${process.env.CLI ? "true" : "false"}"`,
 			}),
 		],

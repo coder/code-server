@@ -5,7 +5,7 @@
 	"files": [],
 	"scripts": {
 		"start": "node --max-old-space-size=32384 --require ts-node/register --require tsconfig-paths/register src/cli.ts",
-		"build": "rm -rf ./out && export CLI=true && UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js",
+		"build": "rm -rf ./out && cross-env CLI=true UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js",
 		"build:nexe": "node scripts/nexe.js"
 	},
 	"dependencies": {

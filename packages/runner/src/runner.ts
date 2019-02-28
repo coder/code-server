@@ -43,7 +43,6 @@ const execute = (command: string, args: string[] = [], options: cp.SpawnOptions,
 export type TaskFunction = (runner: Runner) => void | Promise<void>;
 
 export interface Runner {
-
 	cwd: string;
 	execute(command: string, args?: string[], env?: object): Promise<CommandResult>;
 }
@@ -84,6 +83,7 @@ export const run = (name: string = process.argv[2]): void | Promise<void> => {
 	let cwd: string = process.cwd();
 	const log = logger.named(name);
 	const timer = time(Number.MAX_SAFE_INTEGER);
+	let outputTimer: NodeJS.Timer | undefined;
 	log.info("Starting...");
 	const prom = task.func({
 		set cwd(path: string) {
@@ -99,7 +99,19 @@ export const run = (name: string = process.argv[2]): void | Promise<void> => {
 
 	if (prom) {
 		activated.set(name, prom);
+
+		const doOutput = (): void => {
+			outputTimer = setTimeout(() => {
+				log.info("Still running...");
+				doOutput();
+			}, 60 * 1000 * 5);
+		};
+		doOutput();
+
 		prom.then(() => {
+			if (outputTimer) {
+				clearTimeout(outputTimer);
+			}
 			log.info("Completed!", field("time", timer));
 		}).catch((ex) => {
 			activated.delete(name);

@@ -13,13 +13,13 @@ export const setup = (dataDirectory: string): void => {
 		try {
 			fs.mkdirSync(currentDir);
 		} catch (ex) {
-			if (ex.code !== "EEXIST" && ex.code !== "EISDIR") {
+			if (ex.code !== "EEXIST" && ex.code !== "EISDIR" && ex.code !== "ENOENT") {
 				throw ex;
 			}
 		}
 
 		return currentDir;
-	}, path.sep);
+	}); // Might need path.sep here for linux. Having it for windows causes an error because \C:\Users ...
 
 	const unpackModule = (moduleName: string): void => {
 		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", moduleName);
@@ -37,12 +37,13 @@ export const setup = (dataDirectory: string): void => {
 	unpackModule("pty.node");
 	unpackModule("spdlog.node");
 	unpackModule("rg");
-	const nodePtyUtils = require("../../protocol/node_modules/node-pty-prebuilt/lib/utils") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/utils");
+	// const nodePtyUtils = require("../../protocol/node_modules/node-pty-prebuilt/lib/utils") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/utils");
 	// tslint:disable-next-line:no-any
-	nodePtyUtils.loadNative = (modName: string): any => {
-		return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "dependencies", modName + ".node"));
-	};
+	// nodePtyUtils.loadNative = (modName: string): any => {
+	// 	return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "dependencies", modName + ".node"));
+	// };
 	(<any>global).RIPGREP_LOCATION = path.join(dataDirectory, "dependencies", "rg");
+	(<any>global).NODEPTY_LOCATION = path.join(dataDirectory, "dependencies", "pty.node");
 	// tslint:disable-next-line:no-any
 	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "dependencies", "spdlog.node");
 	// tslint:disable-next-line:no-unused-expression

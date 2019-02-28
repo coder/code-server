@@ -36,12 +36,12 @@ module.exports = merge(
 					loader: "ignore-loader",
 				}],
 			}, {
-				test: /(\/vs\/code\/electron-main\/)|(\/test\/)|(OSSREADME\.json$)|(\.(test\.ts|test\.js|d\.ts|qwoff|node|html|txt|exe|wuff|md|sh|scpt|less)$)/,
+				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|(\.(test\.ts|test\.js|d\.ts|qwoff|node|html|txt|exe|wuff|md|sh|scpt|less)$)/,
 				use: [{
 					loader: "ignore-loader",
 				}],
 			}],
-			noParse: /\/test\/|\.test\.jsx?|\.test\.tsx?|tsconfig.+\.json$/,
+			noParse: /(\\|\/)test(\\|\/)|\.test\.jsx?|\.test\.tsx?|tsconfig.+\.json$/,
 		},
 		resolve: {
 			alias: {

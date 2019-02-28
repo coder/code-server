@@ -7,45 +7,48 @@ import { logger, field } from "../packages/logger";
 /**
  * Install dependencies for a single package.
  */
-const doInstall = (pkg: string, path: string): void => {
+const doInstall = (pkg: string, path: string): Promise<void> => {
 	logger.info(`Installing "${pkg}" dependencies...`);
-	exec("yarn", {
-		cwd: path,
-		maxBuffer: 1024 * 1024 * 10,
-	}, (error, stdout, stderr) => {
-		if (error) {
-			logger.error(
-				`Failed to install "${pkg}" dependencies`,
-				field("error", error),
-				field("stdout", stdout),
-				field("stderr", stderr),
-			);
-			process.exit(1);
-		}
 
-		logger.info(`Successfully grabbed \"${pkg}\" dependencies!`);
+	return new Promise((resolve): void => {
+		exec("yarn --network-concurrency 1", {
+			cwd: path,
+			maxBuffer: 1024 * 1024 * 10,
+		}, (error, stdout, stderr) => {
+			if (error) {
+				logger.error(
+					`Failed to install "${pkg}" dependencies`,
+					field("error", error),
+					field("stdout", stdout),
+					field("stderr", stderr),
+				);
+				process.exit(1);
+			}
+
+			logger.info(`Successfully grabbed \"${pkg}\" dependencies!`);
+			resolve();
+		});
 	});
 };
 
 /**
  * Install dependencies for all packages.
  */
-const handlePackages = (dir: string): void => {
-	readdirSync(dir).forEach((pkg) => {
+const handlePackages = async (dir: string): Promise<void> => {
+	const dirs = readdirSync(dir);
+	for (let i = 0; i < dirs.length; i++) {
+		const pkg = dirs[i];
 		const pkgDir = join(dir, pkg);
 		const pkgJsonPath = join(pkgDir, "package.json");
 		if (existsSync(pkgJsonPath)) {
-			doInstall(pkg, pkgDir);
+			const ip = doInstall(pkg, pkgDir);
+			if (os.platform() === "win32") {
+				await ip;
+			}
 		}
-	});
+	}
 };
 
-if (os.platform() === "win32") {
-	execSync("yarn", {
-		cwd: resolve(__dirname, "..", "packages", "vscode"),
-		maxBuffer: 1024 * 1024 * 10,
-	});
-}
-
-handlePackages(resolve(__dirname, "..", "packages"));
-handlePackages(resolve(__dirname, "..", "packages", "app"));
+handlePackages(resolve(__dirname, "..", "packages")).then(() => {
+	return handlePackages(resolve(__dirname, "..", "packages", "app"));
+});

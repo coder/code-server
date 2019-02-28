@@ -282,7 +282,7 @@ index 605c1209e1..e8131513de 100644
 -			platform.isMacintosh
 +			browser.isMacintosh
 diff --git a/src/vs/loader.js b/src/vs/loader.js
-index 4eddcab3a0..5d80768406 100644
+index 4eddcab3a0..abda3c04f9 100644
 --- a/src/vs/loader.js
 +++ b/src/vs/loader.js
 @@ -671,4 +671,4 @@ var AMDLoader;
@@ -294,15 +294,20 @@ index 4eddcab3a0..5d80768406 100644
 +            this._vm = require('vm');
 +            this._path = require('path');
 +            this._crypto = require('crypto');
-@@ -736,0 +737,7 @@ var AMDLoader;
+@@ -736,0 +737,12 @@ var AMDLoader;
 +            const context = require.context("../", true, /.*/);
 +            if (scriptSrc.indexOf("file:///") !== -1) {
 +                const vsSrc = scriptSrc.split("file:///")[1].split(".js")[0];
-+                if (vsSrc && vsSrc.startsWith("vs/")) {
++				if (this._env.isWindows) {
++					const vsSrcSplit = vsSrc.split(":/");
++					vsSrcSplit.shift();
++					vsSrc = vsSrcSplit.join(":/");
++				}
++				if (vsSrc && vsSrc.startsWith("vs/")) {
 +                  scriptSrc = `node|./${vsSrc}`;
 +                }
 +            }
-@@ -741 +748 @@ var AMDLoader;
+@@ -741 +753 @@ var AMDLoader;
 -                    moduleExports_1 = nodeRequire(pieces[1]);
 +                    moduleExports_1 = context(pieces[1]);
 diff --git a/src/vs/platform/clipboard/electron-browser/clipboardService.ts b/src/vs/platform/clipboard/electron-browser/clipboardService.ts

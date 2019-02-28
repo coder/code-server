@@ -45,7 +45,7 @@ module.exports = (options = {}) => ({
 			type: "javascript/auto",
 		}, {
 			// Fixes spdlog.
-			test: /spdlog\/index\.js/,
+			test: /spdlog(\\|\/)index\.js/,
 			loader: "string-replace-loader",
 			options: {
 				multiple: [{
@@ -56,7 +56,7 @@ module.exports = (options = {}) => ({
 			},
 		}, {
 			// This is required otherwise it attempts to require("package.json")
-			test: /@oclif\/command\/lib\/index\.js/,
+			test: /@oclif(\\|\/)command(\\|\/)lib(\\|\/)index\.js/,
 			loader: "string-replace-loader",
 			options: {
 				multiple: [{
@@ -66,12 +66,22 @@ module.exports = (options = {}) => ({
 				}],
 			},
 		}, {
-			test: /node\-pty\/lib\/index\.js/,
+			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/)index\.js/,
 			loader: "string-replace-loader",
 			options: {
 				multiple: [{
 					search: "exports\\.native.*;",
 					replace: "exports.native = null;",
+					flags: "g",
+				}],
+			},
+		}, {
+			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/)windowsPtyAgent\.js/,
+			loader: "string-replace-loader",
+			options: {
+				multiple: [{
+					search: "var pty = .*;",
+					replace: "var pty = __non_webpack_require__(global.NODEPTY_LOCATION);",
 					flags: "g",
 				}],
 			},

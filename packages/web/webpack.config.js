@@ -48,7 +48,7 @@ module.exports = merge(
 			// path.posix and path.parse are undefined (among other things possibly).
 			// Also if we don't provide the full path, the code in vscode will import
 			// from vscode's node_modules which is the wrong version.
-			"path": path.join(root, "node_modules", "path-browserify"),
+			"path": path.join(fills, "path.js"),
 			"crypto": "crypto-browserify",
 			"http": "http-browserify",
 

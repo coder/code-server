@@ -20,6 +20,7 @@ if (platform.language === "en-US") {
 (platform as any).isLinux = os.platform() === "linux";
 (platform as any).isWindows = os.platform() === "win32";
 (platform as any).isMacintosh = os.platform() === "darwin";
+(platform as any).platform = os.platform() === "linux" ? platform.Platform.Linux : os.platform() === "win32" ? platform.Platform.Windows : platform.Platform.Mac;
 
 // This is used for keybindings, and in one place to choose between \r\n and \n
 // (which we change to use platform.isWindows instead).

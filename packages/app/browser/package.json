@@ -1,8 +1,8 @@
 {
 	"name": "@coder/app",
 	"scripts": {
-		"start": "../../../node_modules/.bin/webpack-dev-server --config ./webpack.config.js",
-		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js"
+		"start": "node ../../../node_modules/webpack-dev-server/bin/webpack-dev-server.js --config ./webpack.config.js",
+		"build": "node ../../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js"
 	},
 	"dependencies": {
 		"@material/checkbox": "^0.44.1",

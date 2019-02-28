@@ -45,7 +45,7 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".vscode-remote");
+		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".code-server");
 		const workingDir = args["workdir"];
 
 		setupNativeModules(dataDir);
@@ -112,9 +112,9 @@ export class Entry extends Command {
 			}
 		}
 
-		logger.info("\u001B[1mvscode-remote v1.0.0");
+		logger.info("\u001B[1mcode-server v1.0.0");
 		// TODO: fill in appropriate doc url
-		logger.info("Additional documentation: https://coder.com/docs");
+		logger.info("Additional documentation: http://github.com/codercom/code-server");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
 		const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
 		const sendSharedProcessReady = (socket: WebSocket): void => {

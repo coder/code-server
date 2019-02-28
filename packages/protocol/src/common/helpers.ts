@@ -34,7 +34,7 @@ export class EvalHelper {
 	// their locations.
 	public modules = {
 		spdlog: require("spdlog") as typeof import("spdlog"),
-		pty: require("node-pty-prebuilt") as typeof import("node-pty-prebuilt"),
+		pty: require("node-pty-prebuilt") as typeof import("node-pty"),
 	};
 
 	/**

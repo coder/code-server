@@ -33,7 +33,7 @@ const buildServerBinaryPackage = register("build:server:binary:package", async (
 	}
 	await buildServerBinaryCopy();
 	await dependencyNexeBinary();
-	const resp = await runner.execute("npm", ["run", "build:nexe"]);
+	const resp = await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build:nexe"]);
 	if (resp.exitCode !== 0) {
 		throw new Error(`Failed to package binary: ${resp.stderr}`);
 	}
@@ -133,7 +133,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 const buildServerBundle = register("build:server:bundle", async (runner) => {
 	const cliPath = path.join(pkgsPath, "server");
 	runner.cwd = cliPath;
-	await runner.execute("npm", ["run", "build"]);
+	await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build"]);
 });
 
 const buildBootstrapFork = register("build:bootstrap-fork", async (runner) => {
@@ -142,7 +142,7 @@ const buildBootstrapFork = register("build:bootstrap-fork", async (runner) => {
 
 	const vscodePkgPath = path.join(pkgsPath, "vscode");
 	runner.cwd = vscodePkgPath;
-	await runner.execute("npm", ["run", "build:bootstrap-fork"]);
+	await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build:bootstrap-fork"]);
 });
 
 const buildAppBrowser = register("build:app:browser", async (runner) => {
@@ -151,7 +151,7 @@ const buildAppBrowser = register("build:app:browser", async (runner) => {
 	const appPath = path.join(pkgsPath, "app/browser");
 	runner.cwd = appPath;
 	fse.removeSync(path.join(appPath, "out"));
-	await runner.execute("npm", ["run", "build"]);
+	await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build"]);
 });
 
 const buildWeb = register("build:web", async (runner) => {
@@ -161,7 +161,7 @@ const buildWeb = register("build:web", async (runner) => {
 	const webPath = path.join(pkgsPath, "web");
 	runner.cwd = webPath;
 	fse.removeSync(path.join(webPath, "out"));
-	await runner.execute("npm", ["run", "build"]);
+	await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build"]);
 });
 
 const extDirPath = path.join("lib", "vscode-default-extensions");
@@ -169,8 +169,24 @@ const copyForDefaultExtensions = register("build:copy-vscode", async (runner) =>
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await ensureClean();
 		await ensureInstalled();
-		fse.removeSync(extDirPath);
-		fse.copySync(vscodePath, extDirPath);
+		await new Promise((resolve, reject): void => {
+			fse.remove(extDirPath, (err) => {
+				if (err) {
+					return reject(err);
+				}
+
+				resolve();
+			});
+		});
+		await new Promise((resolve, reject): void => {
+			fse.copy(vscodePath, extDirPath, (err) => {
+				if (err) {
+					return reject(err);
+				}
+
+				resolve();
+			});
+		});
 	}
 });
 
@@ -178,7 +194,7 @@ const buildDefaultExtensions = register("build:default-extensions", async (runne
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await copyForDefaultExtensions();
 		runner.cwd = extDirPath;
-		const resp = await runner.execute("npx", ["gulp", "vscode-linux-x64"]);
+		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64"]);
 		if (resp.exitCode !== 0) {
 			throw new Error(`Failed to build default extensions: ${resp.stderr}`);
 		}
