@@ -86,24 +86,46 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		options.registerMiddleware(app);
 	}
 
-	const certs = await new Promise<pem.CertificateCreationResult>((res, rej): void => {
-		pem.createCertificate({
-			selfSigned: true,
-		}, (err, result) => {
-			if (err) {
-				rej(err);
+	interface CertificateInfo {
+		readonly key: string;
+		// tslint:disable-next-line:no-any
+		readonly cert: any;
+	}
 
-				return;
+	const certs = await new Promise<CertificateInfo>(async (resolve, reject): Promise<void> => {
+		const selfSignedKeyPath = path.join(options.serverOptions!.dataDirectory, "self-signed.key");
+		const selfSignedCertPath = path.join(options.serverOptions!.dataDirectory, "self-signed.cert");
+
+		if (!fs.existsSync(selfSignedKeyPath) || !fs.existsSync(selfSignedCertPath)) {
+			try {
+				const certs = await new Promise<pem.CertificateCreationResult>((res, rej): void => {
+					pem.createCertificate({
+						selfSigned: true,
+					}, (err, result) => {
+						if (err) {
+							rej(err);
+
+							return;
+						}
+
+						res(result);
+					});
+				});
+
+				fs.writeFileSync(selfSignedKeyPath, certs.serviceKey);
+				fs.writeFileSync(selfSignedCertPath, certs.certificate);
+			} catch (ex) {
+				return reject(ex);
 			}
+		}
 
-			res(result);
+		resolve({
+			cert: fs.readFileSync(selfSignedCertPath).toString(),
+			key: fs.readFileSync(selfSignedKeyPath).toString(),
 		});
 	});
 
-	const server = httpolyglot.createServer({
-		key: certs.serviceKey,
-		cert: certs.certificate,
-	}, app) as http.Server;
+	const server = httpolyglot.createServer(options.httpsOptions || certs, app) as http.Server;
 	const wss = new ws.Server({ server });
 
 	wss.shouldHandle = (req): boolean => {
@@ -161,6 +183,10 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	const authStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/auth"));
 	const unauthStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/unauth"));
 	app.use((req, res, next) => {
+		if (!isEncrypted(req.socket)) {
+			return res.redirect(301, `https://${req.headers.host!}${req.path}`);
+		}
+
 		if (isAuthed(req)) {
 			// We can serve the actual VSCode bin
 			authStaticFunc(req, res, next);

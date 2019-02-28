@@ -1,5 +1,6 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as os from "os";
 import { isCli, buildDir } from "./constants";
 
 declare var __non_webpack_require__: typeof require;
@@ -19,7 +20,7 @@ export const setup = (dataDirectory: string): void => {
 		}
 
 		return currentDir;
-	}); // Might need path.sep here for linux. Having it for windows causes an error because \C:\Users ...
+	}, os.platform() === "win32" ? undefined! : path.sep); // Might need path.sep here for linux. Having it for windows causes an error because \C:\Users ...
 
 	const unpackModule = (moduleName: string): void => {
 		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", moduleName);
