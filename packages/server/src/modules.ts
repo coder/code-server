@@ -37,7 +37,7 @@ export const setup = (dataDirectory: string): void => {
 	unpackModule("pty.node");
 	unpackModule("spdlog.node");
 	unpackModule("rg");
-	const nodePtyUtils = require("../../protocol/node_modules/node-pty/lib/utils") as typeof import("../../protocol/node_modules/node-pty/src/utils");
+	const nodePtyUtils = require("../../protocol/node_modules/node-pty-prebuilt/lib/utils") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/utils");
 	// tslint:disable-next-line:no-any
 	nodePtyUtils.loadNative = (modName: string): any => {
 		return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "dependencies", modName + ".node"));
@@ -46,5 +46,5 @@ export const setup = (dataDirectory: string): void => {
 	// tslint:disable-next-line:no-any
 	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "dependencies", "spdlog.node");
 	// tslint:disable-next-line:no-unused-expression
-	require("../../protocol/node_modules/node-pty/lib/index") as typeof import("../../protocol/node_modules/node-pty/src/index");
+	require("../../protocol/node_modules/node-pty-prebuilt/lib/index") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/index");
 };

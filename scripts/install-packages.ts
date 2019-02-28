@@ -1,5 +1,6 @@
-import { exec } from "child_process";
+import { exec, execSync } from "child_process";
 import { existsSync, readdirSync } from "fs";
+import * as os from "os";
 import { join, resolve } from "path";
 import { logger, field } from "../packages/logger";
 
@@ -38,6 +39,13 @@ const handlePackages = (dir: string): void => {
 		}
 	});
 };
+
+if (os.platform() === "win32") {
+	execSync("yarn", {
+		cwd: resolve(__dirname, "..", "packages", "vscode"),
+		maxBuffer: 1024 * 1024 * 10,
+	});
+}
 
 handlePackages(resolve(__dirname, "..", "packages"));
 handlePackages(resolve(__dirname, "..", "packages", "app"));

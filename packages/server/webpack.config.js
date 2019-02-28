@@ -22,6 +22,11 @@ module.exports = merge(
 			__dirname: false,
 			setImmediate: false
 		},
+		resolve: {
+			alias: {
+				"node-pty": "node-pty-prebuilt",	
+			},
+		},
 		externals: ["tslib", "trash"],
 		entry: "./packages/server/src/cli.ts",
 		plugins: [

@@ -81,7 +81,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const bootstrapForkPath = path.join(pkgsPath, "vscode", "out", "bootstrap-fork.js");
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
-	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty", "build", "Release", "pty.node");
+	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty-prebuilt", "build", "Release", "pty.node");
 	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
 	if (os.platform() === "win32") {
