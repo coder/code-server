@@ -59,6 +59,7 @@ module.exports = merge(
 				"vs/base/node/paths": path.resolve(vsFills, "paths.ts"),
 				"vs/platform/node/package": path.resolve(vsFills, "package.ts"),
 				"vs/platform/node/product": path.resolve(vsFills, "product.ts"),
+				"vs/platform/node/zip": path.resolve(vsFills, "zip.ts"),
 				"vs": path.resolve(root, "lib/vscode/src/vs"),
 			},
 		},

@@ -19,6 +19,11 @@
 	margin-left: initial;
 }
 
+// We don't have rating data.
+.extension-ratings {
+	display: none !important;
+}
+
 // Using @supports to keep the Firefox fixes completely separate from vscode's
 // CSS that is tailored for Chrome.
 @supports (-moz-appearance:none) {

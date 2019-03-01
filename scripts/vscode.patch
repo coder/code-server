@@ -340,6 +340,13 @@ index 6c52cbc937..09adbe7f51 100644
 +		// Cannot control GC in the browser.
 +		return Promise.resolve(obj);
 +
+diff --git a/src/vs/workbench/api/electron-browser/mainThreadWebview.ts b/src/vs/workbench/api/electron-browser/mainThreadWebview.ts
+index ee93e07d8d..f1921f02e4 100644
+--- a/src/vs/workbench/api/electron-browser/mainThreadWebview.ts
++++ b/src/vs/workbench/api/electron-browser/mainThreadWebview.ts
+@@ -306 +306 @@ export class MainThreadWebviews implements MainThreadWebviewsShape, WebviewReviv
+-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource: https: 'unsafe-inline'; child-src 'none'; frame-src 'none';">
++				<!--<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource: https: 'unsafe-inline'; child-src 'none'; frame-src 'none';">-->
 diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
 index 1f4a1e100b..1bf605a064 100644
 --- a/src/vs/workbench/api/node/extHostExtensionService.ts
@@ -663,6 +670,20 @@ index 81954344b9..2bdce9603e 100644
 @@ -320 +320 @@ export class ExecutableDebugAdapter extends StreamDebugAdapter {
 -					if (!fs.existsSync(this.adapterExecutable.command)) {
 +					if (!(await require("util").promisify(fs.exists)(this.adapterExecutable.command))) {
+diff --git a/src/vs/workbench/parts/extensions/electron-browser/extensionEditor.ts b/src/vs/workbench/parts/extensions/electron-browser/extensionEditor.ts
+index 65574224a7..9474897de8 100644
+--- a/src/vs/workbench/parts/extensions/electron-browser/extensionEditor.ts
++++ b/src/vs/workbench/parts/extensions/electron-browser/extensionEditor.ts
+@@ -62 +62 @@ function renderBody(body: string): string {
+-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource:; child-src 'none'; frame-src 'none';">
++				<!--<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource:; child-src 'none'; frame-src 'none';">-->
+diff --git a/src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts b/src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+index 6d25977a66..788f5c96e7 100644
+--- a/src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
++++ b/src/vs/workbench/parts/extensions/node/extensionsWorkbenchService.ts
+@@ -118 +118 @@ class Extension implements IExtension {
+-		return `${product.extensionsGallery.itemUrl}?itemName=${this.publisher}.${this.name}`;
++		return undefined; // `${product.extensionsGallery.itemUrl}?itemName=${this.publisher}.${this.name}`;
 diff --git a/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts b/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts
 index 1002950c75..8c187d36ff 100644
 --- a/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts
@@ -778,6 +799,13 @@ index 6395712ee9..f2d1c0769b 100644
 @@ -232 +233 @@ export class TerminalPanel extends Panel {
 -					if (platform.isMacintosh) {
 +					if (browser.isMacintosh) {
+diff --git a/src/vs/workbench/parts/update/electron-browser/releaseNotesEditor.ts b/src/vs/workbench/parts/update/electron-browser/releaseNotesEditor.ts
+index 94afb719e6..9244831637 100644
+--- a/src/vs/workbench/parts/update/electron-browser/releaseNotesEditor.ts
++++ b/src/vs/workbench/parts/update/electron-browser/releaseNotesEditor.ts
+@@ -40 +40 @@ function renderBody(
+-				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource: https: 'unsafe-inline'; child-src 'none'; frame-src 'none';">
++				<!--<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-core-resource: https: 'unsafe-inline'; child-src 'none'; frame-src 'none';">-->
 diff --git a/src/vs/workbench/parts/webview/electron-browser/webview-pre.js b/src/vs/workbench/parts/webview/electron-browser/webview-pre.js
 index 29593dc6b6..dd3d25098d 100644
 --- a/src/vs/workbench/parts/webview/electron-browser/webview-pre.js
