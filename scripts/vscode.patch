@@ -916,6 +916,16 @@ index 5f2935618c..af5498d7ac 100644
 @@ -132 +132 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+diff --git a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+index 817b087ec8..a134b680b5 100644
+--- a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
++++ b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+@@ -16 +16 @@ import { KeybindingParser } from 'vs/base/common/keybindingParser';
+-import { OS, OperatingSystem } from 'vs/base/common/platform';
++import { OS, OperatingSystem, isNative } from 'vs/base/common/platform';
+@@ -128 +128 @@ export class KeyboardMapperFactory {
+-		if (OS === OperatingSystem.Windows) {
++		if (isNative && OS === OperatingSystem.Windows) {
 diff --git a/src/vs/workbench/workbench.main.ts b/src/vs/workbench/workbench.main.ts
 index 1ad274696d..f52d1e0d2e 100644
 --- a/src/vs/workbench/workbench.main.ts
