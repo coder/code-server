@@ -175,6 +175,11 @@ export class Entry extends Command {
 			} : undefined,
 		});
 
+		if (!fs.existsSync(workingDir)) {
+			logger.info("Creating working directory", field("working-dir", workingDir));
+			fs.mkdirSync(workingDir);
+		}
+
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
 		let clientId = 1;
