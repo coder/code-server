@@ -70,6 +70,7 @@ module.exports = merge(
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
 			"vs/platform/node/product": path.join(vsFills, "product.ts"),
 			"vs/platform/node/package": path.join(vsFills, "package.ts"),
+			"vs/platform/node/zip": path.resolve(vsFills, "zip.ts"),
 			"vs": path.join(root, "lib", "vscode", "src", "vs"),
 		},
 	},
