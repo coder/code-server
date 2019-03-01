@@ -22,7 +22,7 @@ export class Entry extends Command {
 		help: flags.help(),
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
-		port: flags.integer({ char: "p", default: 8080, description: "Port to bind on" }),
+		port: flags.integer({ char: "p", default: 8443, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
 		"no-auth": flags.boolean({ default: false }),
 

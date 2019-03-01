@@ -83,7 +83,7 @@ export class Main extends React.Component<void, {
 									{
 										host: "self",
 										hostname: "http://localhost:8080",
-										name: "Kyle's Magic Server",
+										name: "Dev Server",
 									},
 								]}
 								user={{
