@@ -16,6 +16,7 @@
     "@types/fs-extra": "^5.0.4",
     "@types/node": "^10.12.18",
     "@types/trash": "^4.3.1",
+    "cross-env": "^5.2.0",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^2.1.0",
     "file-loader": "^3.0.1",

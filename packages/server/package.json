@@ -28,7 +28,6 @@
 		"@types/mime-types": "^2.1.0",
 		"@types/pem": "^1.9.4",
 		"@types/ws": "^6.0.1",
-		"cross-env": "^5.2.0",
 		"fs-extra": "^7.0.1",
 		"nexe": "^2.0.0-rc.34",
 		"string-replace-webpack-plugin": "^0.1.3",
