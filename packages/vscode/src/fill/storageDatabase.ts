@@ -52,7 +52,13 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 
 	public updateItems(request: workspaceStorage.IUpdateRequest): Promise<void> {
 		if (request.insert) {
-			request.insert.forEach((value, key) => this.items.set(key, value));
+			request.insert.forEach((value, key) => {
+				if (key === "colorThemeData") {
+					localStorage.setItem("colorThemeData", value);
+				}
+
+				this.items.set(key, value);
+			});
 		}
 
 		if (request.delete) {
