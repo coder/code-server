@@ -132,7 +132,14 @@ export class Entry extends Command {
 			}
 		});
 
-		const password = "023450wf0951";
+		const passwordLength = 12;
+		const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+		const chars = [];
+		for (let i = 0; i < passwordLength; i++) {
+			chars.push(possible[Math.floor(Math.random() * possible.length)]);
+		}
+		const password = chars.join("");
+
 		const hasCustomHttps = certData && certKeyData;
 		const app = await createApp({
 			allowHttp: flags["allow-http"],
