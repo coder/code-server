@@ -19,7 +19,7 @@
     code-server <inital directory to open>
     ```
 	> You will be prompted to enter the password shown in the CLI
-	`code-server` should now be running at https://<IP>:8443.
+	`code-server` should now be running at https://localhost:8443.
 
 	> code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. Please [read here](doc/self-hosted/index.md) for more information.
 
