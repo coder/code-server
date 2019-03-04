@@ -25,6 +25,7 @@ export class Entry extends Command {
 		port: flags.integer({ char: "p", default: 8443, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
 		"no-auth": flags.boolean({ default: false }),
+		"allow-http": flags.boolean({ default: false }),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
@@ -134,6 +135,7 @@ export class Entry extends Command {
 		const password = "023450wf0951";
 		const hasCustomHttps = certData && certKeyData;
 		const app = await createApp({
+			allowHttp: flags["allow-http"],
 			bypassAuth: flags["no-auth"],
 			registerMiddleware: (app): void => {
 				app.use((req, res, next) => {

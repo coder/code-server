@@ -26,6 +26,7 @@ interface CreateAppOptions {
 	serverOptions?: ServerOptions;
 	password?: string;
 	httpsOptions?: https.ServerOptions;
+	allowHttp?: boolean;
 	bypassAuth?: boolean;
 }
 
@@ -187,7 +188,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	const authStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/auth"));
 	const unauthStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/unauth"));
 	app.use((req, res, next) => {
-		if (!isEncrypted(req.socket)) {
+		if (!isEncrypted(req.socket) && !options.allowHttp) {
 			return res.redirect(301, `https://${req.headers.host!}${req.path}`);
 		}
 
