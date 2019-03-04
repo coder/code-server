@@ -1,6 +1,10 @@
 # Logger
 
-Beautiful client logging inspired by https://github.com/uber-go/zap.
+Beautiful logging inspired by https://github.com/uber-go/zap.
+
+- Built for node and the browser
+- Zero dependencies
+- Uses groups in the browser to reduce clutter
 
 ## Example Usage
 
