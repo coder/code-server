@@ -20,6 +20,7 @@
     ```
 	> You will be prompted to enter the password shown in the CLI
 	`code-server` should now be running at https://<IP>:8443.
+
 	> code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. Please [read here](doc/self-hosted/index.md) for more information.
 
 For detailed instructions and troubleshooting, see the [self-hosted quick start guide](doc/self-hosted/index.md).
@@ -51,3 +52,7 @@ Guides on setup for development will be coming soon. :)
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com/enterprise) for more information on our enterprise offering.
+
+## Commercialization
+
+If you would like to commercialize code-server, please contact contact@coder.com.
