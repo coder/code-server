@@ -29,5 +29,5 @@ deploy:
   file_glob: true
   file: packages/server/cli-*
   on:
-    repo: codercom/vscode-online
+    repo: codercom/code-server
     branch: master
