@@ -260,4 +260,43 @@ const ensurePatched = register("vscode:patch", async (runner) => {
 	}
 });
 
+register("package", async (runner, releaseTag, binLocation) => {
+	if (!releaseTag) {
+		throw new Error("Please specify the release tag.");
+	}
+	if (!binLocation) {
+		throw new Error("Please specify the location of the binaries.");
+	}
+
+	const releasePath = path.resolve(__dirname, `../release/${releaseTag}`);
+	fse.removeSync(releasePath);
+	fse.mkdirpSync(releasePath);
+
+	await Promise.all([{
+		bin: "cli-linux",
+		name: "linux",
+	}, {
+		bin: "cli-osx",
+		name: "apple-darwin",
+	}].map(async (pkg) => {
+		const archiveName = `code-server-${releaseTag}-x86_64-${pkg.name}`;
+		const archiveDir = path.join(releasePath, archiveName);
+		fse.mkdirpSync(archiveDir);
+
+		const binaryPath = path.join(binLocation, pkg.bin);
+		const binaryDestination = path.join(archiveDir, "code-server");
+		fse.copySync(binaryPath, binaryDestination);
+		fs.chmodSync(binaryDestination, "755");
+		["README.md", "LICENSE"].forEach((fileName) => {
+			fse.copySync(path.resolve(__dirname, `../${fileName}`), path.join(archiveDir, fileName));
+		});
+
+		runner.cwd = releasePath;
+		await Promise.all([
+			runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`]),
+			runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]),
+		]);
+	}));
+});
+
 run();
