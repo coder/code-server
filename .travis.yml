@@ -1,15 +1,14 @@
 language: node_js
 node_js:
 - 8.9.3
-# filter_secrets: false
 matrix:
   include:
   - os: linux
     dist: ubuntu
   - os: osx
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev libsecret-1-dev;
-  fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
+  libsecret-1-dev; fi
 script:
 - scripts/build.sh
 before_deploy:
@@ -20,14 +19,14 @@ before_deploy:
 - git tag "$TRAVIS_TAG" "$TRAVIS_COMMIT"
 deploy:
   provider: releases
+  file_glob: true
+  draft: true
   tag_name: $TRAVIS_TAG
   target_commitish: $TRAVIS_COMMIT
   name: $TRAVIS_TAG
   skip_cleanup: true
   api_key:
-    secure: NwphYOyUCzt2/ppGnPZ5vWhudh3bsSwdTN0YxHa0EI9aGugbu+PUdvMX+7eoAtkf8Co6SfjeAJSORA+JvlpxfVok8ppk0nPEXTJbURJAcZONShRJBmEKf/gjjpXXMveM9sAXjANpWoW+mMxzUXUsH1WbKN2Nb0ZCAugcuRV15qDmEMeryJ2Nu0ZMZeYA8reMLGJ2lbW4z3YOm3w2w/xfzKPkK371Nl5jOGhvAS8xT9/BMO0Q9kNI5ReXYE1S9TJyDQ8yRFzJ3Ce5jB0eLDI9YpnOgSMf/VvbFqegaBmbQahRTSmveo3j/diKt8bh4XY+ygMIpsCWOswWehLVXYQwZWUvpiVqo/XCDoBwuumi0Apffsv5seryFj4LBpBbap+qng12ZvrKVC3MhuMrL4aBWEwXCKMFpLOd1joOsLuc9GTswp1o6oZIrRWzuznOrU/ingUlvOJ83ZHzdAEJod3c0Ya30VzxNRocZOnu5Ai/dOa1pBBxbauDy+so19/Qi3kyAnX0myy7BZlD5CyOQblnWnAN7eJlRu6/2lmt/Dx7QmmATFpFK/LebKUsunEIuT48oejkBMcOWc0jfeO7teMi6qP71OoJ50lxQBCgfpnPokmxpes2KeSteq2YAprS7jP+NBD2+XgJIII1+GYZl93FU3T01gtMOqvQQnNiBCXEivQ=
-  file_glob: true
-  prerelease: true
+    secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
   file: packages/server/cli-*
   on:
     repo: codercom/code-server
