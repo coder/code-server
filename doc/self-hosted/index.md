@@ -48,6 +48,7 @@ OPTIONS
   -v, --version            show CLI version
   --cert=cert
   --cert-key=cert-key
+  --password=password
   --help                   show CLI help
   ```
 

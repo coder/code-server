@@ -26,6 +26,7 @@ export class Entry extends Command {
 		version: flags.version({ char: "v" }),
 		"no-auth": flags.boolean({ default: false }),
 		"allow-http": flags.boolean({ default: false }),
+		password: flags.string(),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
@@ -132,13 +133,17 @@ export class Entry extends Command {
 			}
 		});
 
-		const passwordLength = 12;
-		const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-		const chars = [];
-		for (let i = 0; i < passwordLength; i++) {
-			chars.push(possible[Math.floor(Math.random() * possible.length)]);
+		let password = flags["password"];
+		if (!password) {
+			// Generate a random password
+			const passwordLength = 12;
+			const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+			const chars = [];
+			for (let i = 0; i < passwordLength; i++) {
+				chars.push(possible[Math.floor(Math.random() * possible.length)]);
+			}
+			password = chars.join("");
 		}
-		const password = chars.join("");
 
 		const hasCustomHttps = certData && certKeyData;
 		const app = await createApp({
