@@ -105,7 +105,7 @@ module.exports = (options = {}) => ({
 	plugins: [
 		new HappyPack({
 			id: "ts",
-			threads: os.cpus().length - 1,
+			threads: Math.max(os.cpus().length - 1, 1),
 			loaders: [{
 				path: "ts-loader",
 				query: {
