@@ -12,6 +12,8 @@
 
 [Try `code-server` now](https://coder.com/signup) for free at coder.com.
 
+**OR**
+
 1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OSX supported. Windows coming soon)
 2.  Start the binary with the project directory as the first argument
 
