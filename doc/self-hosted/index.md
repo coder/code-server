@@ -8,7 +8,7 @@
 
 This document pertains to Coder specific implementations of VS Code. For documentation on how to use VS Code itself, please refer to the official [documentation for VS Code](https://code.visualstudio.com/docs) 
 
-It takes just a few minutes to get your own self-hosted server running. If you've got a machine running macOS, Windows, or Linux, you're ready to start the binary which listens on port `8080` by default.
+It takes just a few minutes to get your own self-hosted server running. If you've got a machine running macOS, Windows, or Linux, you're ready to start the binary which listens on port `8443` by default.
 
 <!--
   DO NOT CHANGE THIS TO A CODEBLOCK.
@@ -20,7 +20,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 1. Visit [the releases](https://github.com/codercom/code-server/releases) page and download the latest cli for your operating system
 2. Double click the executable to run in the current directory
 3. Copy the password that appears in the cli<img src="../assets/cli.png">
-4. In your browser navigate to `localhost:8080`
+4. In your browser navigate to `localhost:8443`
 5. Paste the password from the cli into the login window<img src="../assets/server-password-modal.png">
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
@@ -44,7 +44,7 @@ OPTIONS
   -d, --data-dir=data-dir
   -h, --host=host          [default: 0.0.0.0]
   -o, --open               Open in browser on startup
-  -p, --port=port          [default: 8080] Port to bind on
+  -p, --port=port          [default: 8443] Port to bind on
   -v, --version            show CLI version
   --cert=cert
   --cert-key=cert-key
@@ -62,7 +62,7 @@ OPTIONS
   You can have the server automatically open the VS Code in your browser on startup by using the `code server -o` or `code-server --open` flags
 
   ### Port  
-  By default, code-server will use `8080` as it's port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use. 
+  By default, code-server will use `8443` as it's port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use. 
   > Example: `code-server -p 9000`
 
   ### Cert and Cert Key
