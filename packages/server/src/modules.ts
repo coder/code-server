@@ -22,11 +22,15 @@ export const setup = (dataDirectory: string): void => {
 		return currentDir;
 	}, os.platform() === "win32" ? undefined! : path.sep); // Might need path.sep here for linux. Having it for windows causes an error because \C:\Users ...
 
-	const unpackModule = (moduleName: string): void => {
+	const unpackModule = (moduleName: string, markExecutable: boolean = false): void => {
 		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", moduleName);
 		const diskFile = path.join(dataDirectory, "dependencies", moduleName);
 		if (!fs.existsSync(diskFile)) {
 			fs.writeFileSync(diskFile, fs.readFileSync(memFile));
+
+			if (markExecutable) {
+				fs.chmodSync(diskFile, "755");
+			}
 		}
 	};
 
@@ -37,7 +41,7 @@ export const setup = (dataDirectory: string): void => {
 	 */
 	unpackModule("pty.node");
 	unpackModule("spdlog.node");
-	unpackModule("rg");
+	unpackModule("rg", true);
 	// const nodePtyUtils = require("../../protocol/node_modules/node-pty-prebuilt/lib/utils") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/utils");
 	// tslint:disable-next-line:no-any
 	// nodePtyUtils.loadNative = (modName: string): any => {
