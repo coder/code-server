@@ -16,6 +16,11 @@ export class ClientMessage extends jspb.Message {
   getEvalEvent(): node_pb.EvalEventMessage | undefined;
   setEvalEvent(value?: node_pb.EvalEventMessage): void;
 
+  hasPing(): boolean;
+  clearPing(): void;
+  getPing(): node_pb.Ping | undefined;
+  setPing(value?: node_pb.Ping): void;
+
   getMsgCase(): ClientMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ClientMessage.AsObject;
@@ -31,12 +36,14 @@ export namespace ClientMessage {
   export type AsObject = {
     newEval?: node_pb.NewEvalMessage.AsObject,
     evalEvent?: node_pb.EvalEventMessage.AsObject,
+    ping?: node_pb.Ping.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
     NEW_EVAL = 11,
     EVAL_EVENT = 12,
+    PING = 13,
   }
 }
 
@@ -66,6 +73,11 @@ export class ServerMessage extends jspb.Message {
   getSharedProcessActive(): vscode_pb.SharedProcessActiveMessage | undefined;
   setSharedProcessActive(value?: vscode_pb.SharedProcessActiveMessage): void;
 
+  hasPong(): boolean;
+  clearPong(): void;
+  getPong(): node_pb.Pong | undefined;
+  setPong(value?: node_pb.Pong): void;
+
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): ServerMessage.AsObject;
@@ -84,6 +96,7 @@ export namespace ServerMessage {
     evalEvent?: node_pb.EvalEventMessage.AsObject,
     init?: WorkingInitMessage.AsObject,
     sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
+    pong?: node_pb.Pong.AsObject,
   }
 
   export enum MsgCase {
@@ -93,6 +106,7 @@ export namespace ServerMessage {
     EVAL_EVENT = 15,
     INIT = 16,
     SHARED_PROCESS_ACTIVE = 17,
+    PONG = 18,
   }
 }
 
