@@ -26,3 +26,7 @@ message EvalDoneMessage {
 	uint64 id = 1;
 	string response = 2;
 }
+
+message Ping {}
+
+message Pong {}

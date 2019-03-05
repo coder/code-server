@@ -1,7 +1,7 @@
 import { EventEmitter } from "events";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, ClientMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
+import { Ping, NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, ClientMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
 import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
 import { ActiveEvalHelper, EvalHelper, Disposer, ServerActiveEvalHelper } from "../common/helpers";
 import { stringify, parse } from "../common/util";
@@ -21,6 +21,11 @@ export class Client {
 
 	private readonly sharedProcessActiveEmitter = new Emitter<SharedProcessData>();
 	public readonly onSharedProcessActive = this.sharedProcessActiveEmitter.event;
+
+	// The socket timeout is 60s, so we need to send a ping periodically to
+	// prevent it from closing.
+	private pingTimeout: NodeJS.Timer | number | undefined;
+	private readonly pingTimeoutDelay = 30000;
 
 	/**
 	 * @param connection Established connection to the server
@@ -43,9 +48,16 @@ export class Client {
 			}
 		});
 
+		connection.onClose(() => {
+			clearTimeout(this.pingTimeout as any); // tslint:disable-line no-any
+			this.pingTimeout = undefined;
+		});
+
 		this.initDataPromise = new Promise((resolve): void => {
 			this.initDataEmitter.event(resolve);
 		});
+
+		this.startPinging();
 	}
 
 	public dispose(): void {
@@ -214,6 +226,28 @@ export class Client {
 				socketPath: sharedProcessActiveMessage.getSocketPath(),
 				logPath: sharedProcessActiveMessage.getLogPath(),
 			});
+		} else if (message.hasPong()) {
+			// Nothing to do since we run the pings on a timer, in case either message
+			// is dropped which would break the ping cycle.
+		} else {
+			throw new Error("unknown message type");
 		}
+	}
+
+	private startPinging = (): void => {
+		if (typeof this.pingTimeout !== "undefined") {
+			return;
+		}
+
+		const schedulePing = (): void => {
+			this.pingTimeout = setTimeout(() => {
+				const clientMsg = new ClientMessage();
+				clientMsg.setPing(new Ping());
+				this.connection.send(clientMsg.serializeBinary());
+				schedulePing();
+			}, this.pingTimeoutDelay);
+		};
+
+		schedulePing();
 	}
 }

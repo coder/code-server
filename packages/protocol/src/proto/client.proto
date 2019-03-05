@@ -7,6 +7,8 @@ message ClientMessage {
 		// node.proto
 		NewEvalMessage new_eval = 11;
 		EvalEventMessage eval_event = 12;
+
+		Ping ping = 13;
 	}
 }
 
@@ -21,6 +23,8 @@ message ServerMessage {
 
 		// vscode.proto
 		SharedProcessActiveMessage shared_process_active = 17;
+
+		Pong pong = 18;
 	}
 }
 
