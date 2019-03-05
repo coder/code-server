@@ -3,7 +3,7 @@ import * as path from "path";
 import { mkdir } from "fs";
 import { promisify } from "util";
 import { logger, field } from "@coder/logger";
-import { ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
+import { Pong, ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate, ActiveEvaluation } from "./evaluate";
 import { ForkProvider } from "../common/helpers";
 import { ReadWriteConnection } from "../common/connection";
@@ -116,6 +116,11 @@ export class Server {
 				return;
 			}
 			e.onEvent(evalEventMessage);
+		} else if (message.hasPing()) {
+			logger.trace("ping");
+			const srvMsg = new ServerMessage();
+			srvMsg.setPong(new Pong());
+			this.connection.send(srvMsg.serializeBinary());
 		} else {
 			throw new Error("unknown message type");
 		}
