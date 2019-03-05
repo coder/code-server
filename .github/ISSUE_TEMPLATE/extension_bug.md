@@ -8,7 +8,7 @@ assignees: ''
 
 <!-- Please search existing issues to avoid creating duplicates. -->
 
-- `vscode-remote` version: <!-- The version of vscode-remote -->
+- `code-server` version: <!-- The version of code-server -->
 - OS Version: <!-- OS version, cloud provider,  -->
 - Extension: <!-- Link to extension -->
 
