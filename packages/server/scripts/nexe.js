@@ -17,7 +17,7 @@ const nexe = require("nexe");
 nexe.compile({
 	debugBundle: true,
 	input: path.join(__dirname, "../out/cli.js"),
-	output: `cli-${process.env.TRAVIS_OS_NAME || os.platform()}`,
+	output: `cli-${process.env.PLATFORM || os.platform()}`,
 	targets: [os.platform()],
 	/**
 	 * To include native extensions, do NOT install node_modules for each one. They
