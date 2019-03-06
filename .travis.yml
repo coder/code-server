@@ -6,10 +6,12 @@ matrix:
   - os: linux
     dist: ubuntu
     env:
-      - PLATFORM="x86_64-linux"
+      - PLATFORM=linux
+      - ARCH=x64
   - os: osx
     env:
-      - PLATFORM="x86_64-apple-darwin"
+      - PLATFORM=darwin
+      - ARCH=x64
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
   libsecret-1-dev; fi
@@ -21,7 +23,7 @@ before_deploy:
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"
 - git tag "$TRAVIS_TAG" "$TRAVIS_COMMIT"
-- yarn task package "$TRAVIS_TAG" "$PLATFORM"
+- yarn task package "$TRAVIS_TAG" "$PLATFORM-$ARCH"
 deploy:
   provider: releases
   file_glob: true
