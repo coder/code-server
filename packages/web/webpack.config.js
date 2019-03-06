@@ -65,7 +65,7 @@ module.exports = merge(
 			"spdlog": path.join(vsFills, "spdlog.ts"),
 			"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 			"iconv-lite": path.join(vsFills, "iconv-lite.ts"),
-			"welcome": path.join(vsFills, "welcomePage.ts"),
+			"vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page": path.resolve(vsFills, "welcomePage.ts"),
 
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
