@@ -281,10 +281,9 @@ register("package", async (runner, releaseTag) => {
 	});
 
 	runner.cwd = releasePath;
-	await Promise.all([
-		runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`]),
-		runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]),
-	]);
+	await os.platform() === "linux"
+		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
+		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
 });
 
 run();
