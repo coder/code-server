@@ -56,14 +56,14 @@ OPTIONS
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
 
   ### Host
-  By default, code-server will use `0.0.0.0` as it's address. This can be changed by using `code-server -h` or `code-server --host=` followed by the address you want to use. 
+  By default, code-server will use `0.0.0.0` as its address. This can be changed by using `code-server -h` or `code-server --host=` followed by the address you want to use. 
   > Example: `code-server -h 127.0.0.1`
 
   ### Open
   You can have the server automatically open the VS Code in your browser on startup by using the `code server -o` or `code-server --open` flags
 
   ### Port  
-  By default, code-server will use `8443` as it's port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use. 
+  By default, code-server will use `8443` as its port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use. 
   > Example: `code-server -p 9000`
 
   ### Cert and Cert Key
