@@ -12,7 +12,7 @@ before_install:
 script:
 - scripts/build.sh
 before_deploy:
-- export TRAVIS_TAG="1.31.0-$TRAVIS_BUILD_NUMBER"
+- export TRAVIS_TAG="1.31.1-$TRAVIS_BUILD_NUMBER"
 - echo "$TRAVIS_TAG" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"

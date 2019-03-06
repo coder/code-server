@@ -31,7 +31,7 @@ index 1922450144..9900776aa2 100644
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/base/browser/ui/list/listWidget.ts b/src/vs/base/browser/ui/list/listWidget.ts
-index 5386958054..5c936e0a1d 100644
+index e6b2e4e39b..06cdfe152f 100644
 --- a/src/vs/base/browser/ui/list/listWidget.ts
 +++ b/src/vs/base/browser/ui/list/listWidget.ts
 @@ -13 +13 @@ import * as DOM from 'vs/base/browser/dom';
@@ -43,7 +43,7 @@ index 5386958054..5c936e0a1d 100644
 @@ -479 +479 @@ export function isSelectionSingleChangeEvent(event: IListMouseEvent<any> | IList
 -	return platform.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
 +	return browser.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
-@@ -539 +539 @@ class MouseController<T> implements IDisposable {
+@@ -540 +540 @@ class MouseController<T> implements IDisposable {
 -		return platform.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
 +		return browser.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
 diff --git a/src/vs/base/browser/ui/sash/sash.ts b/src/vs/base/browser/ui/sash/sash.ts
@@ -91,7 +91,7 @@ index 01f59d40fa..453d5c4ed3 100644
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/base/browser/ui/tree/abstractTree.ts b/src/vs/base/browser/ui/tree/abstractTree.ts
-index 742c6aa0d8..2791d0691e 100644
+index d9665944a1..80659bb5f0 100644
 --- a/src/vs/base/browser/ui/tree/abstractTree.ts
 +++ b/src/vs/base/browser/ui/tree/abstractTree.ts
 @@ -24 +24 @@ import { disposableTimeout } from 'vs/base/common/async';
@@ -685,7 +685,7 @@ index 6d25977a66..788f5c96e7 100644
 -		return `${product.extensionsGallery.itemUrl}?itemName=${this.publisher}.${this.name}`;
 +		return undefined; // `${product.extensionsGallery.itemUrl}?itemName=${this.publisher}.${this.name}`;
 diff --git a/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts b/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts
-index 1002950c75..8c187d36ff 100644
+index 9df71eeec1..c68c42e922 100644
 --- a/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/fileActions.contribution.ts
 @@ -17 +17 @@ import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/co
@@ -699,13 +699,13 @@ index 0bd9b93fcc..1c8adeb5ca 100644
 -import { isWindows, isMacintosh } from 'vs/base/common/platform';
 +import { isWindows, isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
-index e66f74f034..e2c24d851a 100644
+index 45b32eec0a..1f58bdcd70 100644
 --- a/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/parts/files/electron-browser/views/explorerViewer.ts
 @@ -39 +39 @@ import { DesktopDragAndDropData, ExternalElementsDragAndDropData, ElementsDragAn
 -import { isMacintosh, isLinux } from 'vs/base/common/platform';
 +import { isMacintosh, isLinux } from 'vs/base/browser/browser';
-@@ -586,0 +587 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+@@ -591,0 +592 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
 +		return (require('vs/../../../../packages/vscode/src/workbench') as typeof import('vs/../../../../packages/vscode/src/workbench')).workbench.handleExternalDrop(target, originalEvent);
 diff --git a/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts b/src/vs/workbench/parts/logs/electron-browser/logs.contribution.ts
 index 4015c9cd5d..bebdb25f6c 100644
@@ -854,13 +854,13 @@ index 033bd98d00..ba776c5ff3 100644
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts b/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
-index 5d9110300f..eb16014814 100644
+index d8de423529..5953e920c3 100644
 --- a/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
 +++ b/src/vs/workbench/parts/webview/electron-browser/webviewElement.ts
 @@ -21 +21 @@ import { endsWith } from 'vs/base/common/strings';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
-@@ -261,0 +262,3 @@ export class WebviewElement extends Disposable {
+@@ -265,0 +266,3 @@ export class WebviewElement extends Disposable {
 +		Object.defineProperty(this._options, 'useSameOriginForRoot', {
 +			value: true,
 +		});
