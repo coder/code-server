@@ -260,10 +260,7 @@ const ensurePatched = register("vscode:patch", async (runner) => {
 	}
 });
 
-register("package", async (runner, binaryPath, releaseTag, platform) => {
-	if (!binaryPath) {
-		throw new Error("Please specify the location of the binary.");
-	}
+register("package", async (runner, releaseTag, platform) => {
 	if (!releaseTag) {
 		throw new Error("Please specify the release tag.");
 	}
@@ -271,14 +268,14 @@ register("package", async (runner, binaryPath, releaseTag, platform) => {
 		throw new Error("Please specify the platform.");
 	}
 
-	const releasePath = path.resolve(__dirname, `../release/${releaseTag}`);
-	fse.mkdirpSync(releasePath);
+	const releasePath = path.resolve(__dirname, `../release`);
 
 	const archiveName = `code-server-${releaseTag}-${platform}`;
 	const archiveDir = path.join(releasePath, archiveName);
 	fse.removeSync(archiveDir);
 	fse.mkdirpSync(archiveDir);
 
+	const binaryPath = path.join(__dirname, `../packages/server/cli-${platform}`);
 	const binaryDestination = path.join(archiveDir, "code-server");
 	fse.copySync(binaryPath, binaryDestination);
 	fs.chmodSync(binaryDestination, "755");
