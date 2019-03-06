@@ -53,7 +53,7 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ## Contributing
 
-Guides on setup for development will be coming soon. :)
+Development guides are coming soon.
 
 ## License
 
@@ -61,7 +61,7 @@ Guides on setup for development will be coming soon. :)
 
 ## Enterprise
 
-Visit [our enterprise page](https://coder.com/enterprise) for more information on our enterprise offering.
+Visit [our enterprise page](https://coder.com/enterprise) for more information about our enterprise offering.
 
 ## Commercialization
 
