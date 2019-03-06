@@ -114,7 +114,7 @@ export class Entry extends Command {
 			}
 		}
 
-		logger.info("\u001B[1mcode-server v1.0.0");
+		logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 		// TODO: fill in appropriate doc url
 		logger.info("Additional documentation: http://github.com/codercom/code-server");
 		logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));

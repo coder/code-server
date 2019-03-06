@@ -14,7 +14,7 @@ fs.writeFileSync(shimPath, shimContent);
 
 const nexe = require("nexe");
 
-const target = `${process.env.PLATFORM || os.platform()}${process.env.ARCH ? `-${process.env.ARCH}` : ""}`;
+const target = `${os.platform()}-${os.arch()}`;
 nexe.compile({
 	debugBundle: true,
 	input: path.join(__dirname, "../out/cli.js"),
