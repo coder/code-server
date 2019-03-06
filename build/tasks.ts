@@ -217,16 +217,11 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	} else {
 		fse.mkdirpSync(libPath);
 		runner.cwd = libPath;
-		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode"]);
+		const vscodeBranch = "1.31.0";
+		const clone = await runner.execute("git", ["clone", "--branch", vscodeBranch, "https://github.com/microsoft/vscode"]);
 		if (clone.exitCode !== 0) {
 			throw new Error(`Failed to clone: ${clone.exitCode}`);
 		}
-	}
-
-	runner.cwd = vscodePath;
-	const checkout = await runner.execute("git", ["checkout", "tags/1.31.0"]);
-	if (checkout.exitCode !== 0) {
-		throw new Error(`Failed to checkout: ${checkout.stderr}`);
 	}
 });
 
