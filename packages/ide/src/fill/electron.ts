@@ -25,18 +25,37 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 		// tslint:disable-next-line:no-any
 		return oldCreateElement.call(document, tagName as any);
 	};
+	// tslint:disable-next-line:no-any
+	const getPropertyDescriptor = (object: any, id: string): PropertyDescriptor | undefined => {
+		let op = Object.getPrototypeOf(object);
+		while (!Object.getOwnPropertyDescriptor(op, id)) {
+			op = Object.getPrototypeOf(op);
+		}
+
+		return Object.getOwnPropertyDescriptor(op, id);
+	};
+
+	if (tagName === "img") {
+		const img = createElement("img");
+		const oldSrc = getPropertyDescriptor(img, "src");
+		if (!oldSrc) {
+			throw new Error("Failed to find src property");
+		}
+		Object.defineProperty(img, "src", {
+			get: (): string => {
+				return oldSrc!.get!.call(img);
+			},
+			set: (value: string): void => {
+				value = value.replace(/file:\/\//g, "/resource");
+				oldSrc!.set!.call(img, value);
+			},
+		});
+
+		return img;
+	}
 
 	if (tagName === "style") {
 		const style = createElement("style");
-		// tslint:disable-next-line:no-any
-		const getPropertyDescriptor = (object: any, id: string): PropertyDescriptor | undefined => {
-			let op = Object.getPrototypeOf(object);
-			while (!Object.getOwnPropertyDescriptor(op, id)) {
-				op = Object.getPrototypeOf(op);
-			}
-
-			return Object.getOwnPropertyDescriptor(op, id);
-		};
 		const oldInnerHtml = getPropertyDescriptor(style, "innerHTML");
 		if (!oldInnerHtml) {
 			throw new Error("Failed to find innerHTML property");
