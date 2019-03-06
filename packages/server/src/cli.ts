@@ -2,6 +2,7 @@ import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import { fork, ForkOptions, ChildProcess } from "child_process";
+import { randomFillSync } from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
@@ -136,13 +137,9 @@ export class Entry extends Command {
 		let password = flags["password"];
 		if (!password) {
 			// Generate a random password
-			const passwordLength = 12;
-			const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-			const chars = [];
-			for (let i = 0; i < passwordLength; i++) {
-				chars.push(possible[Math.floor(Math.random() * possible.length)]);
-			}
-			password = chars.join("");
+			const buffer = Buffer.alloc(12);
+			randomFillSync(buffer);
+			password = buffer.toString("hex");
 		}
 
 		const hasCustomHttps = certData && certKeyData;
