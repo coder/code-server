@@ -5,7 +5,14 @@
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](#)
 [![Discord](https://discordapp.com/api/guilds/463752820026376202/widget.png)](https://discord.gg/zxSwN8Z)
 
-`code-server` is VS Code running on a remote server, accessible through the browser.
+`code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a remote server, accessible through the browser.
+
+- Code on your Chromebook, tablet, and laptop with a consistent dev environment.
+	- If you have a Windows or Mac workstation, more easily develop for Linux.
+- Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
+- Preserve battery life when you're on the go.
+	- All intensive computation is ran on your server.
+	- You're no longer running excess instances of Chrome.
 
 ![Screenshot](/doc/assets/ide.png)
 
