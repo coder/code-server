@@ -35,4 +35,4 @@ deploy:
   on:
     repo: codercom/code-server
     branch: master
-cache: npm
+cache: yarn
