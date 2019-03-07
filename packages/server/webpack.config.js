@@ -24,7 +24,7 @@ module.exports = merge(
 		},
 		resolve: {
 			alias: {
-				"node-pty": "node-pty-prebuilt",	
+				"node-pty": "node-pty-prebuilt",
 			},
 		},
 		externals: ["tslib", "trash"],

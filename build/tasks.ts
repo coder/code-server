@@ -260,4 +260,30 @@ const ensurePatched = register("vscode:patch", async (runner) => {
 	}
 });
 
+register("package", async (runner, releaseTag) => {
+	if (!releaseTag) {
+		throw new Error("Please specify the release tag.");
+	}
+
+	const releasePath = path.resolve(__dirname, "../release");
+
+	const archiveName = `code-server-${releaseTag}-${os.platform()}-${os.arch()}`;
+	const archiveDir = path.join(releasePath, archiveName);
+	fse.removeSync(archiveDir);
+	fse.mkdirpSync(archiveDir);
+
+	const binaryPath = path.join(__dirname, `../packages/server/cli-${os.platform()}-${os.arch()}`);
+	const binaryDestination = path.join(archiveDir, "code-server");
+	fse.copySync(binaryPath, binaryDestination);
+	fs.chmodSync(binaryDestination, "755");
+	["README.md", "LICENSE"].forEach((fileName) => {
+		fse.copySync(path.resolve(__dirname, `../${fileName}`), path.join(archiveDir, fileName));
+	});
+
+	runner.cwd = releasePath;
+	await os.platform() === "linux"
+		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
+		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
+});
+
 run();

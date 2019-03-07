@@ -40,7 +40,8 @@ const execute = (command: string, args: string[] = [], options: cp.SpawnOptions,
 	return prom;
 };
 
-export type TaskFunction = (runner: Runner) => void | Promise<void>;
+// tslint:disable-next-line no-any
+export type TaskFunction = (runner: Runner, ...args: any[]) => void | Promise<void>;
 
 export interface Runner {
 	cwd: string;
@@ -95,7 +96,7 @@ export const run = (name: string = process.argv[2]): void | Promise<void> => {
 				env: env as NodeJS.ProcessEnv,
 			}, log);
 		},
-	});
+	}, ...process.argv.slice(3));
 
 	if (prom) {
 		activated.set(name, prom);

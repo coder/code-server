@@ -1,6 +1,8 @@
 language: node_js
 node_js:
 - 8.9.3
+env:
+  - VERSION="1.31.1-$TRAVIS_BUILD_NUMBER"
 matrix:
   include:
   - os: linux
@@ -12,22 +14,24 @@ before_install:
 script:
 - scripts/build.sh
 before_deploy:
-- export TRAVIS_TAG="1.31.1-$TRAVIS_BUILD_NUMBER"
-- echo "$TRAVIS_TAG" "$TRAVIS_COMMIT"
+- echo "$VERSION" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"
-- git tag "$TRAVIS_TAG" "$TRAVIS_COMMIT"
+- git tag "$VERSION" "$TRAVIS_COMMIT"
+- yarn task package "$VERSION"
 deploy:
   provider: releases
   file_glob: true
   draft: true
-  tag_name: $TRAVIS_TAG
-  target_commitish: $TRAVIS_COMMIT
-  name: $TRAVIS_TAG
+  tag_name: "$VERSION"
+  target_commitish: "$TRAVIS_COMMIT"
+  name: "$VERSION"
   skip_cleanup: true
   api_key:
     secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
-  file: packages/server/cli-*
+  file:
+    - release/*.tar.gz
+    - release/*.zip
   on:
     repo: codercom/code-server
     branch: master
