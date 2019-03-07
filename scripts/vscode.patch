@@ -864,6 +864,31 @@ index d8de423529..5953e920c3 100644
 +		Object.defineProperty(this._options, 'useSameOriginForRoot', {
 +			value: true,
 +		});
+diff --git a/src/vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page.ts b/src/vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page.ts
+index d4cd525812..6904db5518 100644
+--- a/src/vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page.ts
++++ b/src/vs/workbench/parts/welcome/page/electron-browser/vs_code_welcome_page.ts
+@@ -30,8 +29,0 @@ export default () => `
+-				<div class="section recent">
+-					<h2 class="caption">${escape(localize('welcomePage.recent', "Recent"))}</h2>
+-					<ul class="list">
+-						<!-- Filled programmatically -->
+-						<li class="moreRecent"><a href="command:workbench.action.openRecent">${escape(localize('welcomePage.moreRecent', "More..."))}</a><span class="path detail if_shortcut" data-command="workbench.action.openRecent">(<span class="shortcut" data-command="workbench.action.openRecent"></span>)</span></li>
+-					</ul>
+-					<p class="none detail">${escape(localize('welcomePage.noRecentFolders', "No recent folders"))}</p>
+-				</div>
+@@ -41,6 +33,5 @@ export default () => `
+-						<li class="keybindingsReferenceLink"><a href="command:workbench.action.keybindingsReference">${escape(localize('welcomePage.keybindingsCheatsheet', "Printable keyboard cheatsheet"))}</a></li>
+-						<li><a href="command:workbench.action.openIntroductoryVideosUrl">${escape(localize('welcomePage.introductoryVideos', "Introductory videos"))}</a></li>
+-						<li><a href="command:workbench.action.openTipsAndTricksUrl">${escape(localize('welcomePage.tipsAndTricks', "Tips and Tricks"))}</a></li>
+-						<li><a href="command:workbench.action.openDocumentationUrl">${escape(localize('welcomePage.productDocumentation', "Product documentation"))}</a></li>
+-						<li><a href="https://github.com/Microsoft/vscode">${escape(localize('welcomePage.gitHubRepository', "GitHub repository"))}</a></li>
+-						<li><a href="http://stackoverflow.com/questions/tagged/vscode?sort=votes&pageSize=50">${escape(localize('welcomePage.stackOverflow', "Stack Overflow"))}</a></li>
++						<li><a href="https://code.visualstudio.com/docs/getstarted/keybindings#_keyboard-shortcuts-reference">${escape(localize('welcomePage.keybindingsCheatsheet', "Keyboard cheatsheets"))}</a></li>
++						<li><a href="https://code.visualstudio.com/docs/getstarted/introvideos#VSCode">${escape(localize('welcomePage.introductoryVideos', "Introductory videos"))}</a></li>
++						<li><a href="https://code.visualstudio.com/docs/getstarted/tips-and-tricks#vscode">${escape(localize('welcomePage.tipsAndTricks', "Tips and Tricks"))}</a></li>
++						<li><a href="https://code.visualstudio.com/docs#vscode">${escape(localize('welcomePage.productDocumentation', "Product documentation"))}</a></li>
++						<li><a href="https://github.com/codercom/code-server">${escape(localize('welcomePage.gitHubRepository', "code-server GitHub repository"))}</a></li>
 diff --git a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts b/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
 index 147f05b246..fa89583203 100644
 --- a/src/vs/workbench/parts/welcome/walkThrough/node/walkThroughContentProvider.ts
