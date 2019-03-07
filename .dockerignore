@@ -1,2 +1,12 @@
+.git
+.gitignore
 Dockerfile
+lib
+node_modules
+**/dist
+**/out
+.DS_Store
+*.DS_Store
+release
+**/yarn-error.log
 **/node_modules
