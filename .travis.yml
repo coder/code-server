@@ -2,7 +2,7 @@ language: node_js
 node_js:
 - 8.9.3
 env:
-  - VERSION="1.31.1-$TRAVIS_BUILD_NUMBER"
+  - VERSION="1.32.0-$TRAVIS_BUILD_NUMBER"
 matrix:
   include:
   - os: linux
