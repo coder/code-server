@@ -8,7 +8,7 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
 		typescriptCompilerOptions: {
-			target: "es5",
+			target: "es6",
 		},
 	}), {
 		entry: path.join(root, "lib/vscode/src/bootstrap-fork.js"),
