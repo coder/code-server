@@ -2,12 +2,12 @@
 	"name": "@coder/app-common",
 	"main": "src/app.ts",
 	"dependencies": {
-		"material-components-web": "^0.44.1",
-		"react": "^16.8.4",
-		"react-dom": "^16.8.4"
+		"material-components-web": "^0.44.0",
+		"react": "^16.8.1",
+		"react-dom": "^16.8.1"
 	},
 	"devDependencies": {
-		"@types/react": "^16.8.7",
-		"@types/react-dom": "^16.8.2"
+		"@types/react": "^16.8.2",
+		"@types/react-dom": "^16.8.0"
 	}
 }
