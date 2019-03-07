@@ -7,6 +7,11 @@
 
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a remote server, accessible through the browser.
 
+Try it out:
+```bash
+docker run -p localhost:8443:8443 -v "${PWD}:/root/project" codercom/code-server code-server --allow-http --no-auth
+```
+
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
 	- If you have a Windows or Mac workstation, more easily develop for Linux.
 - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
@@ -18,9 +23,15 @@
 
 ## Getting Started
 
+### Hosted
+
 [Try `code-server` now](https://coder.com/signup) for free at coder.com.
 
-**OR**
+### Docker
+
+See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile).
+
+### Binaries
 
 1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OSX supported. Windows coming soon)
 2.  Start the binary with the project directory as the first argument
