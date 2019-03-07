@@ -11,7 +11,7 @@ RUN npm install -g yarn
 # directly which should be faster.
 WORKDIR /src
 COPY . .
-RUN yarn --forzen-lockfile
+RUN yarn --frozen-lockfile
 RUN yarn task build:server:binary
 
 # We deploy with ubuntu so that devs have a familiar environemnt.
