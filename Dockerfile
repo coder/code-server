@@ -27,8 +27,7 @@ RUN yarn task build:server:binary:package
 FROM ubuntu:18.10
 WORKDIR /root/project
 
-COPY --from=0 /src/packages/server/cli-linux-x64   /usr/local/bin/code-server
-
+COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
 
 RUN apt-get update && apt-get install -y \

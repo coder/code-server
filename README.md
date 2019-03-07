@@ -54,7 +54,7 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ### Known Issues
 
-- Debugging extensions doesn’t work.
+- Creating custom VS Code extensions and debugging them doesn't work.
 
 ### Future
 
