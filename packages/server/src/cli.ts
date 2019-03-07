@@ -49,11 +49,11 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
-		const dataDir = flags["data-dir"] || path.join(os.homedir(), ".code-server");
-		const workingDir = args["workdir"];
+		const dataDir = path.resolve(flags["data-dir"] || path.join(os.homedir(), ".code-server"));
+		const workingDir = path.resolve(args["workdir"]);
 
 		setupNativeModules(dataDir);
-		const builtInExtensionsDir = path.join(buildDir || path.join(__dirname, ".."), "build/extensions");
+		const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
 			const modulePath = flags["bootstrap-fork"];
 			if (!modulePath) {
@@ -84,8 +84,8 @@ export class Entry extends Command {
 		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;
 
-		const certPath = flags.cert;
-		const certKeyPath = flags["cert-key"];
+		const certPath = flags.cert ? path.resolve(flags.cert) : undefined;
+		const certKeyPath = flags["cert-key"] ? path.resolve(flags["cert-key"]) : undefined;
 
 		if (certPath && !certKeyPath) {
 			logger.error("'--cert-key' flag is required when specifying a certificate!");
@@ -135,9 +135,9 @@ export class Entry extends Command {
 			}
 		});
 
-		let password = flags["password"];
+		let password = flags.password;
 		if (!password) {
-			// Generate a random password
+			// Generate a random password with a length of 24.
 			const buffer = Buffer.alloc(12);
 			randomFillSync(buffer);
 			password = buffer.toString("hex");
@@ -158,7 +158,7 @@ export class Entry extends Command {
 				// If we're not running from the binary and we aren't serving the static
 				// pre-built version, use webpack to serve the web files.
 				if (!isCli && !serveStatic) {
-					const webpackConfig = require(path.join(__dirname, "..", "..", "web", "webpack.config.js"));
+					const webpackConfig = require(path.resolve(__dirname, "..", "..", "web", "webpack.config.js"));
 					const compiler = require("webpack")(webpackConfig);
 					app.use(require("webpack-dev-middleware")(compiler, {
 						logger,
