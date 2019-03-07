@@ -10,7 +10,6 @@ COPY . .
 # This takes ages and always dies in the end. :(
 # RUN yarn --frozen-lockfile && yarn task build:server:binary
 
-
 # Make the debugging easier - and the rebuilds faster
 # and our life happier lets break up the build to sequential parts
 RUN yarn --frozen-lockfile 
