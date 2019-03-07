@@ -17,8 +17,8 @@ import "./fill/workspacesService";
 import * as paths from "./fill/paths";
 import { PasteAction } from "./fill/paste";
 
-import { ExplorerItem, ExplorerModel } from "vs/workbench/parts/files/common/explorerModel";
-import { IEditorGroup } from "vs/workbench/services/group/common/editorGroupsService";
+import { ExplorerItem, ExplorerModel } from "vs/workbench/contrib/files/common/explorerModel";
+import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
 import { IEditorService, IResourceEditor } from "vs/workbench/services/editor/common/editorService";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IProgressService2, ProgressLocation } from "vs/platform/progress/common/progress";

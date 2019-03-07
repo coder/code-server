@@ -5,8 +5,8 @@ import { IWorkbenchActionRegistry, Extensions } from "vs/workbench/common/action
 import { SyncActionDescriptor } from "vs/platform/actions/common/actions";
 import { ContextKeyExpr } from "vs/platform/contextkey/common/contextkey";
 import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions/developerActions";
-import { TerminalPasteAction } from "vs/workbench/parts/terminal/electron-browser/terminalActions";
-import { KEYBINDING_CONTEXT_TERMINAL_FOCUS } from "vs/workbench/parts/terminal/common/terminal";
+import { TerminalPasteAction } from "vs/workbench/contrib/terminal/electron-browser/terminalActions";
+import { KEYBINDING_CONTEXT_TERMINAL_FOCUS } from "vs/workbench/contrib/terminal/common/terminal";
 import { KeyCode, KeyMod } from "vs/base/common/keyCodes";
 import { workbench } from "../workbench";
 
