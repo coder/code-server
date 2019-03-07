@@ -235,6 +235,10 @@ const ensureClean = register("vscode:clean", async (runner) => {
 
 	const status = await runner.execute("git", ["status", "--porcelain"]);
 	if (status.stdout.trim() !== "") {
+
+		// inside docker this library throws error on git clean
+		await runner.execute("rm", ["-rf", "node_modules/spdlog"]);
+
 		const clean = await runner.execute("git", ["clean", "-f", "-d", "-X"]);
 		if (clean.exitCode !== 0) {
 			throw new Error(`Failed to clean git repository: ${clean.stderr}`);
