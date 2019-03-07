@@ -227,7 +227,11 @@ export class Entry extends Command {
 		logger.info(" ");
 
 		if (flags["open"]) {
-			await opn(url);
+			try {
+				await opn(url);
+			} catch (e) {
+				logger.warn("Url couldn't be opened automatically.", field("url", url), field("exception", e));
+			}
 		}
 	}
 }
