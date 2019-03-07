@@ -19,6 +19,8 @@ FROM ubuntu:18.10
 RUN apt-get update
 RUN apt-get install -y openssl
 RUN apt-get install -y net-tools
+RUN apt-get install -y locales
+RUN locale-gen en_US.UTF-8
 WORKDIR /root/project
 COPY --from=0 /src/packages/server/cli-linux /usr/local/bin/code-server
 EXPOSE 8443
