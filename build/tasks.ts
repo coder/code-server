@@ -236,7 +236,8 @@ const ensureClean = register("vscode:clean", async (runner) => {
 	const status = await runner.execute("git", ["status", "--porcelain"]);
 	if (status.stdout.trim() !== "") {
 
-		// inside docker this library throws error on git clean
+		// this is an uggly workaround - inside docker git clean throws an error message because of this directory
+		// related to git modules.
 		await runner.execute("rm", ["-rf", "node_modules/spdlog"]);
 
 		const clean = await runner.execute("git", ["clean", "-f", "-d", "-X"]);
