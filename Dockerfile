@@ -20,7 +20,8 @@ RUN apt-get update
 RUN apt-get install -y openssl
 RUN apt-get install -y net-tools
 WORKDIR /root/project
-COPY --from=0 /src/packages/server/cli-linux /usr/local/bin/code-server
+COPY --from=0 /src/packages/server/cli-linux* /usr/local/bin
+RUN mv /usr/local/bin/cli-linux* /usr/local/bin/code-server
 EXPOSE 8443
 # Unfortunately `.` does not work with code-server.
 CMD code-server $PWD
