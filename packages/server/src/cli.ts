@@ -13,6 +13,7 @@ import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
 import { isCli, serveStatic, buildDir } from "./constants";
+import opn = require("opn");
 
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
@@ -220,10 +221,20 @@ export class Entry extends Command {
 		} else {
 			logger.warn("Launched without authentication.");
 		}
+
+		const url = `http://localhost:${flags.port}/`;
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
-		logger.info(`http://localhost:${flags.port}/`);
+		logger.info(url);
 		logger.info(" ");
+
+		if (flags["open"]) {
+			try {
+				await opn(url);
+			} catch (e) {
+				logger.warn("Url couldn't be opened automatically.", field("url", url), field("exception", e));
+			}
+		}
 	}
 }
 
