@@ -224,7 +224,7 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	}
 
 	runner.cwd = vscodePath;
-	const checkout = await runner.execute("git", ["checkout", "tags/1.31.1"]);
+	const checkout = await runner.execute("git", ["checkout", "tags/1.31.1"]); //TODO: this tag should come from a parameter
 	if (checkout.exitCode !== 0) {
 		throw new Error(`Failed to checkout: ${checkout.stderr}`);
 	}

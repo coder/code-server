@@ -6,8 +6,8 @@
   "description": "Run VS Code remotely.",
   "scripts": {
     "build:rules": "cd ./rules && tsc -p .",
-    "packages:install": "cd ./packages && yarn",
-    "postinstall": "npm-run-all --parallel packages:install build:rules",
+    "packages:install": "cd ./packages && yarn --frozen-lockfile",
+    "postinstall": "npm-run-all packages:install build:rules",
     "start": "cd ./packages/server && yarn start",
     "task": "ts-node -r tsconfig-paths/register build/tasks.ts",
     "test": "cd ./packages && yarn test"

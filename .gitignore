@@ -4,3 +4,4 @@ dist
 out
 .DS_Store
 release
+yarn-error.log

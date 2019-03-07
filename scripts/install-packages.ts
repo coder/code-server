@@ -11,7 +11,7 @@ const doInstall = (pkg: string, path: string): Promise<void> => {
 	logger.info(`Installing "${pkg}" dependencies...`);
 
 	return new Promise((resolve): void => {
-		exec("yarn --network-concurrency 1", {
+		exec("yarn --frozen-lockfile --network-concurrency 1", {
 			cwd: path,
 			maxBuffer: 1024 * 1024 * 10,
 		}, (error, stdout, stderr) => {
@@ -41,7 +41,7 @@ const handlePackages = async (dir: string): Promise<void> => {
 		const pkgDir = join(dir, pkg);
 		const pkgJsonPath = join(pkgDir, "package.json");
 		if (existsSync(pkgJsonPath)) {
-			const ip = doInstall(pkg, pkgDir);
+			const ip = await doInstall(pkg, pkgDir);
 			if (os.platform() === "win32") {
 				await ip;
 			}
