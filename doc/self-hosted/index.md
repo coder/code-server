@@ -46,10 +46,12 @@ OPTIONS
   -o, --open               Open in browser on startup
   -p, --port=port          [default: 8443] Port to bind on
   -v, --version            show CLI version
+  --allow-http
   --cert=cert
   --cert-key=cert-key
-  --password=password
   --help                   show CLI help
+  --no-auth
+  --password=password
   ```
 
   ### Data directory
