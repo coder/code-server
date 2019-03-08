@@ -3,8 +3,6 @@ import * as path from "path";
 import * as os from "os";
 import { isCli, buildDir } from "./constants";
 
-declare var __non_webpack_require__: typeof require;
-
 /**
  * Handling of native modules within the CLI
  */
