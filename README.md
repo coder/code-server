@@ -37,7 +37,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 2.  Start the binary with the project directory as the first argument
 
     ```
-    code-server <inital directory to open>
+    code-server <initial directory to open>
     ```
 	> You will be prompted to enter the password shown in the CLI
 	`code-server` should now be running at https://localhost:8443.
