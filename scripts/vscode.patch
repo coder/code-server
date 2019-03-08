@@ -46,6 +46,16 @@ index cd7312809c..b1246de1ee 100644
 @@ -553 +553 @@ export class MouseController<T> implements IDisposable {
 -		return platform.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
 +		return browser.isMacintosh ? event.browserEvent.metaKey : event.browserEvent.ctrlKey;
+diff --git a/src/vs/base/browser/ui/menu/menu.ts b/src/vs/base/browser/ui/menu/menu.ts
+index 47da5e4277..fbf7e22aed 100644
+--- a/src/vs/base/browser/ui/menu/menu.ts
++++ b/src/vs/base/browser/ui/menu/menu.ts
+@@ -23,2 +23,3 @@ import { isLinux } from 'vs/base/common/platform';
+-export const MENU_MNEMONIC_REGEX: RegExp = /\(&([^\s&])\)|(?<!&)&([^\s&])/;
+-export const MENU_ESCAPED_MNEMONIC_REGEX: RegExp = /(?<!&amp;)(?:&amp;)([^\s&])/;
++// Not all browsers support negative lookbehinds. We don't support mnemonics currently anyway.
++export const MENU_MNEMONIC_REGEX: RegExp = /&([^\s&])/; ///\(&([^\s&])\)|(?<!&)&([^\s&])/;
++export const MENU_ESCAPED_MNEMONIC_REGEX: RegExp = /&amp;([^\s&])/; // /(?<!&amp;)(?:&amp;)([^\s&])/;
 diff --git a/src/vs/base/browser/ui/sash/sash.ts b/src/vs/base/browser/ui/sash/sash.ts
 index 8c7168bad5..8bbea63b3b 100644
 --- a/src/vs/base/browser/ui/sash/sash.ts
