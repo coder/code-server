@@ -16,7 +16,7 @@ docker run -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server
 	- If you have a Windows or Mac workstation, more easily develop for Linux.
 - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
 - Preserve battery life when you're on the go.
-	- All intensive computation is ran on your server.
+	- All intensive computation runs on your server.
 	- You're no longer running excess instances of Chrome.
 
 ![Screenshot](/doc/assets/ide.png)
