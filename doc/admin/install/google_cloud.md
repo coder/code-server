@@ -26,14 +26,19 @@ gcloud compute ssh --zone [region] [instance name]
 ```
 2. Download the binary using the link we copied to clipboard
 ```
-wget https://github.com/codercom/code-server/releases/download/0.1.4/code-server-linux
+wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-server-1.31.1-100-linux-x64.tar.gz
 ```
-3. Make the binary executable if you run into any errors regarding permission:
+3. Extract the downloaded tar.gz file with this command:
+```
+tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
+```
+
+4. Make the binary executable if you run into any errors regarding permission:
   ```
   chmod +x code-server-linux
   ```
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
-4. Start the code-server
+5. Start the code-server
 ```
 sudo ./code-server-linux -p 80
 ```

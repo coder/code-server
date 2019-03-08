@@ -35,7 +35,11 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - At this point it is time to download the `code-server` binary. We will of course want the linux version. Make sure you copy the link for the latest linux version on our [releases page](https://github.com/codercom/code-server/releases)
 - With the URL in the clipboard, run:
   ```
-  wget https://github.com/codercom/code-server/releases/download/0.1.4/code-server-linux
+  wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-server-1.31.1-100-linux-x64.tar.gz
+  ```
+- Extract the downloaded tar.gz file with this command:
+  ```
+  tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
   ```
 - If you run into any permission errors, make the binary executable by running:
   ```
