@@ -27,10 +27,9 @@ export const setup = (dataDirectory: string): void => {
 		const diskFile = path.join(dataDirectory, "dependencies", moduleName);
 		if (!fs.existsSync(diskFile)) {
 			fs.writeFileSync(diskFile, fs.readFileSync(memFile));
-
-			if (markExecutable) {
-				fs.chmodSync(diskFile, "755");
-			}
+		}
+		if (markExecutable) {
+			fs.chmodSync(diskFile, "755");
 		}
 	};
 
