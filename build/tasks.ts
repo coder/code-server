@@ -194,7 +194,7 @@ const buildDefaultExtensions = register("build:default-extensions", async (runne
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await copyForDefaultExtensions();
 		runner.cwd = extDirPath;
-		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64"]);
+		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64", "--max-old-space-size=32384"]);
 		if (resp.exitCode !== 0) {
 			throw new Error(`Failed to build default extensions: ${resp.stderr}`);
 		}
@@ -224,7 +224,7 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	}
 
 	runner.cwd = vscodePath;
-	const checkout = await runner.execute("git", ["checkout", "tags/1.31.1"]);
+	const checkout = await runner.execute("git", ["checkout", "tags/1.32.0"]);
 	if (checkout.exitCode !== 0) {
 		throw new Error(`Failed to checkout: ${checkout.stderr}`);
 	}

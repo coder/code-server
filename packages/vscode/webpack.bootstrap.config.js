@@ -8,7 +8,7 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
 		typescriptCompilerOptions: {
-			target: "es5",
+			target: "es6",
 		},
 	}), {
 		entry: path.join(root, "lib/vscode/src/bootstrap-fork.js"),
@@ -36,7 +36,7 @@ module.exports = merge(
 					loader: "ignore-loader",
 				}],
 			}, {
-				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|(\.(test\.ts|test\.js|d\.ts|qwoff|node|html|txt|exe|wuff|md|sh|scpt|less)$)/,
+				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\//,
 				use: [{
 					loader: "ignore-loader",
 				}],
@@ -49,6 +49,8 @@ module.exports = merge(
 				"node-pty": path.resolve(fills, "empty.ts"),
 				"windows-mutex": path.resolve(fills, "empty.ts"),
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
+				"vscode-windows-registry": path.resolve(fills, "empty.ts"),
+				"vscode-sqlite3": path.resolve(fills, "empty.ts"),
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
 				"electron": path.join(vsFills, "stdioElectron.ts"),
@@ -57,9 +59,9 @@ module.exports = merge(
 				"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 				"vs/base/common/amd": path.resolve(vsFills, "amd.ts"),
 				"vs/base/node/paths": path.resolve(vsFills, "paths.ts"),
-				"vs/platform/node/package": path.resolve(vsFills, "package.ts"),
-				"vs/platform/node/product": path.resolve(vsFills, "product.ts"),
-				"vs/platform/node/zip": path.resolve(vsFills, "zip.ts"),
+				"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
+				"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
+				"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),
 				"vs": path.resolve(root, "lib/vscode/src/vs"),
 			},
 		},

@@ -1,4 +1,4 @@
-import { IProductConfiguration } from "vs/platform/node/product";
+import { IProductConfiguration } from "vs/platform/product/node/product";
 
 const product = {
 	nameShort: "code-server",

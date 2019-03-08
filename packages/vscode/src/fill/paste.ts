@@ -1,9 +1,9 @@
 import * as nls from "vs/nls";
 import { Action } from "vs/base/common/actions";
-import { TERMINAL_COMMAND_ID } from "vs/workbench/parts/terminal/common/terminalCommands";
-import { ITerminalService } from "vs/workbench/parts/terminal/common/terminal";
-import * as actions from "vs/workbench/parts/terminal/electron-browser/terminalActions";
-import * as instance from "vs/workbench/parts/terminal/electron-browser/terminalInstance";
+import { TERMINAL_COMMAND_ID } from "vs/workbench/contrib/terminal/common/terminalCommands";
+import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
+import * as actions from "vs/workbench/contrib/terminal/electron-browser/terminalActions";
+import * as instance from "vs/workbench/contrib/terminal/electron-browser/terminalInstance";
 import { client } from "../client";
 
 const getLabel = (key: string, enabled: boolean): string => {
