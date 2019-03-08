@@ -62,6 +62,10 @@ How to [secure your setup](/doc/security/ssl.md).
 - Electron and ChromeOS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
 
+### Notes
+
+- VS Code Marketplace cannot be used, we're not allowed to use it. However, the open source extensions should all be allowed to work under `code-server` just fine.
+
 ## Contributing
 
 Development guides are coming soon.
