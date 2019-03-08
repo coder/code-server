@@ -32,7 +32,6 @@ wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-s
 ```
 tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
 ```
-
 4. Make the binary executable if you run into any errors regarding permission:
   ```
   chmod +x code-server-linux
@@ -43,9 +42,9 @@ tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
 sudo ./code-server-linux -p 80
 ```
 > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
-5. Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
+6. Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
 > example: 32.32.32.234
-6. You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
-7. Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
+7. You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
+8. Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
 ---
 > NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
