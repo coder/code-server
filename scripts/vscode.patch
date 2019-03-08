@@ -879,6 +879,12 @@ index 3c7899079a..545d91a96b 100644
 @@ -130 +130 @@ export class KeyboardMapperFactory {
 -		if (OS === OperatingSystem.Windows) {
 +		if (isNative && OS === OperatingSystem.Windows) {
+diff --git a/src/vs/workbench/services/timer/electron-browser/timerService.ts b/src/vs/workbench/services/timer/electron-browser/timerService.ts
+index 6e6fbcc630..645bd72d6f 100644
+--- a/src/vs/workbench/services/timer/electron-browser/timerService.ts
++++ b/src/vs/workbench/services/timer/electron-browser/timerService.ts
+@@ -426,0 +427 @@ export function didUseCachedData(): boolean {
++	return false;
 diff --git a/src/vs/workbench/workbench.main.ts b/src/vs/workbench/workbench.main.ts
 index 368fffe642..8c172db61a 100644
 --- a/src/vs/workbench/workbench.main.ts
