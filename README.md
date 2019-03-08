@@ -64,7 +64,7 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ### Notes
 
-- VS Code Marketplace cannot be used, we're not allowed to use it. However, the open source extensions should all be allowed to work under `code-server` just fine.
+- At the moment we can't use the official VSCode Marketplace. Coder has created a collection of extensions that are open-source. While you can't directly download extensions from the official VSCode Marketplace, you can upload them to be installed in code-server.
 
 ## Contributing
 
