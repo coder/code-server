@@ -834,7 +834,7 @@ index acb68c8ad7..bee143a0d7 100644
 -			!isMacintosh || // macOS only
 +			!browser.isMacintosh || // macOS only
 diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
-index 7445d7b664..9acb509d65 100644
+index 7445d7b664..0291deeebf 100644
 --- a/src/vs/workbench/electron-browser/workbench.ts
 +++ b/src/vs/workbench/electron-browser/workbench.ts
 @@ -19 +19,2 @@ import { Registry } from 'vs/platform/registry/common/platform';
@@ -847,6 +847,9 @@ index 7445d7b664..9acb509d65 100644
 +		/*
 @@ -353,0 +357 @@ export class Workbench extends Disposable implements IPartService {
 +		*/
+@@ -458 +462 @@ export class Workbench extends Disposable implements IPartService {
+-		addClasses(document.body, platformClass); // used by our fonts
++		addClasses(document.body, platformClass, isWeb ? 'web' : 'native'); // used by our fonts
 @@ -633 +637 @@ export class Workbench extends Disposable implements IPartService {
 -		if (!isMacintosh && this.useCustomTitleBarStyle()) {
 +		if (isWeb || (!isMacintosh && this.useCustomTitleBarStyle())) {
