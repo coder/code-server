@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-- 8.9.3
+- 8.10.0
 env:
   - VERSION="1.32.0-$TRAVIS_BUILD_NUMBER"
 matrix:
