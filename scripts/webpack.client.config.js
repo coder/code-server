@@ -4,6 +4,9 @@ const merge = require("webpack-merge");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const PreloadWebpackPlugin = require("preload-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
+const WebpackPwaManifest = require('webpack-pwa-manifest')
+const { GenerateSW } = require('workbox-webpack-plugin');
+
 // const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 const root = path.join(__dirname, "..");
@@ -50,8 +53,22 @@ module.exports = (options = {}) => merge(
 		new PreloadWebpackPlugin({
 			rel: "preload",
 			as: "script",
-		}),
-	].concat(prod ? [] : [
+    }),
+    new WebpackPwaManifest({
+      name: "Coder",
+      short_name: "Coder",
+      description: "Run VS Code on a remote server",
+      background_color: "#303030",
+      icons: [
+        {
+          src: path.resolve("../assets/logo.png"),
+          sizes: [96, 128, 192, 256, 384]
+        }
+      ]
+    }),
+	].concat(prod ? [
+    new GenerateSW(),
+  ] : [
 		new webpack.HotModuleReplacementPlugin(),
 	]),
 	target: "web",
