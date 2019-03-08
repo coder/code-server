@@ -171,7 +171,7 @@ export class Workbench {
 		// If we try to import this above, workbench will be undefined due to
 		// circular imports.
 		require("vs/workbench/workbench.main");
-		const { startup } = require("vs/workbench/electron-browser/main");
+		const { main } = require("vs/workbench/electron-browser/main");
 		const config: IWindowConfiguration = {
 			machineId: "1",
 			windowId: this.windowId,
@@ -189,7 +189,7 @@ export class Workbench {
 		} else {
 			config.folderUri = workspace as URI;
 		}
-		await startup(config);
+		await main(config);
 		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 		const bounded = this.clipboardContextKey.bindTo(contextKeys);
 		client.clipboard.onPermissionChange((enabled) => {
