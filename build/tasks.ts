@@ -241,6 +241,10 @@ const ensureClean = register("vscode:clean", async (runner) => {
 			throw new Error(`Failed to remove unstaged files: ${removeUnstaged.stderr}`);
 		}
 	}
+	const fetch = await runner.execute("git", ["fetch", "--prune"]);
+	if (fetch.exitCode !== 0) {
+		throw new Error(`Failed to fetch latest changes: ${fetch.stderr}`);
+	}
 });
 
 const ensurePatched = register("vscode:patch", async (runner) => {
