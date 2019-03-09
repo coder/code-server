@@ -9,7 +9,7 @@
 
 Try it out:
 ```bash
-docker run -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server code-server --allow-http --no-auth
+docker run -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" -v ~/.code-server:/root/.code-server codercom/code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
