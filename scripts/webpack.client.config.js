@@ -61,7 +61,7 @@ module.exports = (options = {}) => merge(
       background_color: "#303030",
       icons: [
         {
-          src: path.resolve("../assets/logo.png"),
+          src: path.resolve("../../assets/logo.png"),
           sizes: [96, 128, 192, 256, 384]
         }
       ]
