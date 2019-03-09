@@ -1,19 +1,29 @@
-import { EventEmitter } from "events";
+import { PathLike } from "fs";
+import { promisify } from "util";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { Ping, NewEvalMessage, ServerMessage, EvalDoneMessage, EvalFailedMessage, ClientMessage, WorkingInitMessage, EvalEventMessage } from "../proto";
 import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
-import { ActiveEvalHelper, EvalHelper, Disposer, ServerActiveEvalHelper } from "../common/helpers";
-import { stringify, parse } from "../common/util";
+import { stringify, parse, createProxy, isProxy } from "../common/util";
+import { Ping, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, SuccessMessage, FailMessage, CallbackMessage } from "../proto";
+import { Fs } from "./modules";
+
+// `any` is needed to deal with sending and receiving arguments of any type.
+// tslint:disable no-any
 
 /**
- * Client accepts an arbitrary connection intended to communicate with the Server.
+ * Client accepts an arbitrary connection intended to communicate with the
+ * Server.
  */
 export class Client {
-	private evalId = 0;
-	private readonly evalDoneEmitter = new Emitter<EvalDoneMessage>();
-	private readonly evalFailedEmitter = new Emitter<EvalFailedMessage>();
-	private readonly evalEventEmitter = new Emitter<EvalEventMessage>();
+	private messageId = 0;
+	private readonly successEmitter = new Emitter<SuccessMessage>();
+	private readonly failEmitter = new Emitter<FailMessage>();
+
+	// Callbacks are grouped by proxy so we can clear them when a proxy disposes.
+	private readonly callbacks = new Map<number, Map<number, {
+		event?: string;
+		callback: (...args: any[]) => void;
+	}>>();
 
 	private _initData: InitData | undefined;
 	private readonly initDataEmitter = new Emitter<InitData>();
@@ -27,12 +37,16 @@ export class Client {
 	private pingTimeout: NodeJS.Timer | number | undefined;
 	private readonly pingTimeoutDelay = 30000;
 
+	public readonly modules = {
+		fs: new Fs(createProxy((name, args) => {
+			return this.remoteCall(name, args, "fs");
+		})),
+	};
+
 	/**
 	 * @param connection Established connection to the server
 	 */
-	public constructor(
-		private readonly connection: ReadWriteConnection,
-	) {
+	public constructor(private readonly connection: ReadWriteConnection) {
 		connection.onMessage((data) => {
 			let message: ServerMessage | undefined;
 			try {
@@ -41,16 +55,52 @@ export class Client {
 			} catch (error) {
 				logger.error(
 					"Failed to handle server message",
-					field("id", message && message.hasEvalEvent() ? message.getEvalEvent()!.getId() : undefined),
+					field("id", message && this.getMessageId(message)),
 					field("length", data.byteLength),
 					field("error", error.message),
 				);
 			}
 		});
 
+		// Methods that don't follow the standard callback pattern (an error followed
+		// by a single result) need to provide a custom promisify function.
+		Object.defineProperty(this.modules.fs.exists, promisify.custom, {
+			value: (path: PathLike): Promise<boolean> => {
+				return new Promise((resolve): void => this.modules.fs.exists(path, resolve));
+			},
+		});
+
+		/**
+		 * If the connection is interrupted, the calls will neither succeed nor fail
+		 * nor exit so we need to send a failure on all of them as well as trigger
+		 * events so things like child processes can clean up and possibly restart.
+		 */
+		const handleDisconnect = (): void => {
+			const message = new FailMessage();
+			const error = new Error("disconnected");
+			message.setResponse(stringify(error));
+			this.failEmitter.emit(message);
+			this.callbacks.forEach((cbs) => {
+				cbs.forEach((cb) => {
+					switch (cb.event) {
+						case "exit":
+						case "close":
+							cb.callback(1);
+							break;
+						case "error":
+							cb.callback(error);
+							break;
+					}
+				});
+			});
+			this.callbacks.clear();
+		};
+
+		connection.onDown(() => handleDisconnect());
 		connection.onClose(() => {
-			clearTimeout(this.pingTimeout as any); // tslint:disable-line no-any
+			clearTimeout(this.pingTimeout as any);
 			this.pingTimeout = undefined;
+			handleDisconnect();
 		});
 
 		this.initDataPromise = new Promise((resolve): void => {
@@ -60,6 +110,9 @@ export class Client {
 		this.startPinging();
 	}
 
+	/**
+	 * Close the connection.
+	 */
 	public dispose(): void {
 		this.connection.close();
 	}
@@ -68,124 +121,80 @@ export class Client {
 		return this.initDataPromise;
 	}
 
-	public run(func: (helper: ServerActiveEvalHelper) => Disposer): ActiveEvalHelper;
-	public run<T1>(func: (helper: ServerActiveEvalHelper, a1: T1) => Disposer, a1: T1): ActiveEvalHelper;
-	public run<T1, T2>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2) => Disposer, a1: T1, a2: T2): ActiveEvalHelper;
-	public run<T1, T2, T3>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3) => Disposer, a1: T1, a2: T2, a3: T3): ActiveEvalHelper;
-	public run<T1, T2, T3, T4>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4): ActiveEvalHelper;
-	public run<T1, T2, T3, T4, T5>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): ActiveEvalHelper;
-	public run<T1, T2, T3, T4, T5, T6>(func: (helper: ServerActiveEvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => Disposer, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): ActiveEvalHelper;
 	/**
-	 * Run a function on the server and provide an event emitter which allows
-	 * listening and emitting to the emitter provided to that function. The
-	 * function should return a disposer for cleaning up when the client
-	 * disconnects and for notifying when disposal has happened outside manual
-	 * activation.
+	 * Make a remote call for a proxy's method using proto and return the
+	 * response using a promise. Bound so it can be passed directly to `parse`.
 	 */
-	public run<T1, T2, T3, T4, T5, T6>(func: (helper: ServerActiveEvalHelper, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => Disposer, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): ActiveEvalHelper {
-		const doEval = this.doEvaluate(func, a1, a2, a3, a4, a5, a6, true);
+	private remoteCall = (method: string, args: any[], moduleNameOrProxyId: string | number): Promise<any> => {
+		const proxyMessage = new MethodMessage();
+		const id = this.messageId++;
+		proxyMessage.setId(id);
+		proxyMessage.setMethod(method);
 
-		// This takes server events and emits them to the client's emitter.
-		const eventEmitter = new EventEmitter();
-		const d1 = this.evalEventEmitter.event((msg) => {
-			if (msg.getId() === doEval.id) {
-				eventEmitter.emit(msg.getEvent(), ...msg.getArgsList().map(parse));
-			}
-		});
+		// The call will either be for a module proxy (accessed by name since it is
+		// unique) or for a proxy returned by one of the module's methods (accessed
+		// by ID since it is not unique).
+		const callbacks = new Map();
+		if (typeof moduleNameOrProxyId === "number") {
+			this.callbacks.set(moduleNameOrProxyId, callbacks);
+			proxyMessage.setProxyId(moduleNameOrProxyId);
+		} else {
+			proxyMessage.setModule(moduleNameOrProxyId);
+		}
 
-		doEval.completed.then(() => {
-			d1.dispose();
-		}).catch((ex) => {
-			d1.dispose();
-			// This error event is only received by the client.
-			eventEmitter.emit("error", ex);
-		});
+		// Must stringify the arguments. The function passed converts a function
+		// into an ID since it's not possible to send functions across as-is.
+		let nextCallbackId = 0;
+		proxyMessage.setArgsList(args.map((a) => stringify(a, (cb) => {
+			const callbackId = nextCallbackId++;
+			// Using ! because non-existence is an error that should throw.
+			callbacks.set(callbackId, {
+				event: method === "on" ? args[0] : undefined,
+				callback: cb,
+			});
 
-		return new ActiveEvalHelper({
-			// This takes client events and emits them to the server's emitter and
-			// listens to events received from the server (via the event hook above).
-			// tslint:disable no-any
-			on: (event: string, cb: (...args: any[]) => void): EventEmitter => eventEmitter.on(event, cb),
-			emit: (event: string, ...args: any[]): void => {
-				const eventsMsg = new EvalEventMessage();
-				eventsMsg.setId(doEval.id);
-				eventsMsg.setEvent(event);
-				eventsMsg.setArgsList(args.map((a) => stringify(a)));
-				const clientMsg = new ClientMessage();
-				clientMsg.setEvalEvent(eventsMsg);
-				this.connection.send(clientMsg.serializeBinary());
-			},
-			removeAllListeners: (event: string): EventEmitter => eventEmitter.removeAllListeners(event),
-			// tslint:enable no-any
-		});
-	}
+			return callbackId;
+		})));
 
-	public evaluate<R>(func: (helper: EvalHelper) => R | Promise<R>): Promise<R>;
-	public evaluate<R, T1>(func: (helper: EvalHelper, a1: T1) => R | Promise<R>, a1: T1): Promise<R>;
-	public evaluate<R, T1, T2>(func: (helper: EvalHelper, a1: T1, a2: T2) => R | Promise<R>, a1: T1, a2: T2): Promise<R>;
-	public evaluate<R, T1, T2, T3>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3) => R | Promise<R>, a1: T1, a2: T2, a3: T3): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5): Promise<R>;
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (helper: EvalHelper, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6) => R | Promise<R>, a1: T1, a2: T2, a3: T3, a4: T4, a5: T5, a6: T6): Promise<R>;
-	/**
-	 * Evaluates a function on the server.
-	 * To pass variables, ensure they are serializable and passed through the included function.
-	 * @example
-	 * const returned = await this.client.evaluate((helper, value) => {
-	 *     return value;
-	 * }, "hi");
-	 * console.log(returned);
-	 * // output: "hi"
-	 * @param func Function to evaluate
-	 * @returns Promise rejected or resolved from the evaluated function
-	 */
-	public evaluate<R, T1, T2, T3, T4, T5, T6>(func: (helper: EvalHelper, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6) => R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6): Promise<R> {
-		return this.doEvaluate(func, a1, a2, a3, a4, a5, a6, false).completed;
-	}
-
-	// tslint:disable-next-line no-any
-	private doEvaluate<R, T1, T2, T3, T4, T5, T6>(func: (...args: any[]) => void | Promise<void> | R | Promise<R>, a1?: T1, a2?: T2, a3?: T3, a4?: T4, a5?: T5, a6?: T6, active: boolean = false): {
-		readonly completed: Promise<R>;
-		readonly id: number;
-	} {
-		const newEval = new NewEvalMessage();
-		const id = this.evalId++;
-		newEval.setId(id);
-		newEval.setActive(active);
-		newEval.setArgsList([a1, a2, a3, a4, a5, a6].map((a) => stringify(a)));
-		newEval.setFunction(func.toString());
-
-		const clientMsg = new ClientMessage();
-		clientMsg.setNewEval(newEval);
-		this.connection.send(clientMsg.serializeBinary());
-
-		const completed = new Promise<R>((resolve, reject): void => {
+		// The server will send back a fail or success message when the method
+		// has completed, so we listen for that based on the message's unique ID.
+		const completed = new Promise((resolve, reject): void => {
 			const dispose = (): void => {
 				d1.dispose();
 				d2.dispose();
 			};
 
-			const d1 = this.evalDoneEmitter.event((doneMsg) => {
-				if (doneMsg.getId() === id) {
-					dispose();
-					resolve(parse(doneMsg.getResponse()));
+			const d1 = this.successEmitter.event(id, (doneMessage) => {
+				dispose();
+				// The function passed here describes how to make a remote call for a
+				// proxy. Calling callbacks from the server on the client isn't
+				// currently needed, so the second function isn't provided.
+				const response = parse(doneMessage.getResponse(), (method, args) => {
+					// The proxy's ID will be the ID of the message for the call that
+					// created the proxy.
+					return this.remoteCall(method, args, id);
+				});
+				if (isProxy(response)) {
+					response.onDidDispose(() => this.callbacks.delete(id));
 				}
+				resolve(response);
 			});
 
-			const d2 = this.evalFailedEmitter.event((failedMsg) => {
-				if (failedMsg.getId() === id) {
-					dispose();
-					reject(parse(failedMsg.getResponse()));
-				}
+			const d2 = this.failEmitter.event(id, (failedMessage) => {
+				dispose();
+				reject(parse(failedMessage.getResponse()));
 			});
 		});
 
-		return { completed, id };
+		const clientMessage = new ClientMessage();
+		clientMessage.setProxy(proxyMessage);
+		this.connection.send(clientMessage.serializeBinary());
+
+		return completed;
 	}
 
 	/**
-	 * Handles a message from the server. All incoming server messages should be
-	 * routed through here.
+	 * Handle all messages from the server.
 	 */
 	private handleMessage(message: ServerMessage): void {
 		if (message.hasInit()) {
@@ -214,12 +223,12 @@ export class Client {
 				builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
 			};
 			this.initDataEmitter.emit(this._initData);
-		} else if (message.hasEvalDone()) {
-			this.evalDoneEmitter.emit(message.getEvalDone()!);
-		} else if (message.hasEvalFailed()) {
-			this.evalFailedEmitter.emit(message.getEvalFailed()!);
-		} else if (message.hasEvalEvent()) {
-			this.evalEventEmitter.emit(message.getEvalEvent()!);
+		} else if (message.hasSuccess()) {
+			this.successEmitter.emit(message.getSuccess()!.getId(), message.getSuccess()!);
+		} else if (message.hasFail()) {
+			this.failEmitter.emit(message.getFail()!.getId(), message.getFail()!);
+		} else if (message.hasCallback()) {
+			this.runCallback(message.getCallback()!);
 		} else if (message.hasSharedProcessActive()) {
 			const sharedProcessActiveMessage = message.getSharedProcessActive()!;
 			this.sharedProcessActiveEmitter.emit({
@@ -227,13 +236,27 @@ export class Client {
 				logPath: sharedProcessActiveMessage.getLogPath(),
 			});
 		} else if (message.hasPong()) {
-			// Nothing to do since we run the pings on a timer, in case either message
-			// is dropped which would break the ping cycle.
+			// Nothing to do since pings are on a timer rather than waiting for the
+			// next pong in case a message from either the client or server is dropped
+			// which would break the ping cycle.
 		} else {
 			throw new Error("unknown message type");
 		}
 	}
 
+	/**
+	 * Run a callback.
+	 */
+	private runCallback(message: CallbackMessage): void {
+		// Using ! because non-existence is an error that should throw.
+		this.callbacks.get(message.getProxyId())!.get(message.getId())!.callback(
+			...message.getArgsList().map((a) => parse(a)),
+		);
+	}
+
+	/**
+	 * Start the ping loop. Does nothing if already pinging.
+	 */
 	private startPinging = (): void => {
 		if (typeof this.pingTimeout !== "undefined") {
 			return;
@@ -249,5 +272,25 @@ export class Client {
 		};
 
 		schedulePing();
+	}
+
+	/**
+	 * Return the message's ID if it has one or a string identifier. For logging
+	 * errors with an ID to make the error more useful.
+	 */
+	private getMessageId(message: ServerMessage): number | string | undefined {
+		if (message.hasInit()) {
+			return "init";
+		} else if (message.hasSuccess()) {
+			return message.getSuccess()!.getId();
+		} else if (message.hasFail()) {
+			return message.getFail()!.getId();
+		} else if (message.hasCallback()) {
+			return message.getCallback()!.getId();
+		} else if (message.hasSharedProcessActive()) {
+			return "shared";
+		} else if (message.hasPong()) {
+			return "pong";
+		}
 	}
 }

@@ -1,28 +1,25 @@
 syntax = "proto3";
 
-message NewEvalMessage {
+message MethodMessage {
 	uint64 id = 1;
-	string function = 2;
-	repeated string args = 3;
-	// Timeout in ms
-	uint32 timeout = 4;
-	// Create active eval message.
-	// Allows for dynamic communication for an eval
-	bool active = 5;
+	uint64 proxy_id = 2;
+	string module = 3;
+	string method = 4;
+	repeated string args = 5;
 }
 
-message EvalEventMessage {
+message CallbackMessage {
 	uint64 id = 1;
-	string event = 2;
+	uint64 proxy_id = 2;
 	repeated string args = 3;
 }
 
-message EvalFailedMessage {
+message FailMessage {
 	uint64 id = 1;
 	string response = 2;
 }
 
-message EvalDoneMessage {
+message SuccessMessage {
 	uint64 id = 1;
 	string response = 2;
 }
