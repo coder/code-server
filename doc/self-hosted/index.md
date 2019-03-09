@@ -74,5 +74,20 @@ OPTIONS
 
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
+  ### Nginx Reverse Proxy
+  Nginx is for reverse proxy. Here is a example virtual host that works with code-server. Please also pass --allow-http. You can also use certbot by EFF to get a ssl certificates for free.
+  ```
+  server {
+    listen 80;
+    listen [::]:80;
+    server_name code.example.com code.example.org;
+      location / {
+         proxy_pass http://localhost:8443/;
+         proxy_set_header Upgrade $http_upgrade;
+         proxy_set_header Connection upgrade;
+      }
+   }
+  ```
+
   ### Help
   Use `code-server -h` or `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section.
