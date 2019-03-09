@@ -12,7 +12,7 @@ import { requireModule, requireFork, forkModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import { setup as setupNativeModules } from "./modules";
 import { fillFs } from "./fill";
-import { isCli, serveStatic, buildDir } from "./constants";
+import { isCli, serveStatic, buildDir, dataHome, cacheHome } from "./constants";
 import opn = require("opn");
 
 export class Entry extends Command {
@@ -49,7 +49,7 @@ export class Entry extends Command {
 		}
 
 		const { args, flags } = this.parse(Entry);
-		const dataDir = path.resolve(flags["data-dir"] || path.join(os.homedir(), ".code-server"));
+		const dataDir = path.resolve(flags["data-dir"] || path.join(dataHome, "code-server"));
 		const workingDir = path.resolve(args["workdir"]);
 
 		setupNativeModules(dataDir);
@@ -81,7 +81,11 @@ export class Entry extends Command {
 			fs.mkdirSync(dataDir);
 		}
 
-		const logDir = path.join(dataDir, "logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
+		if (!fs.existsSync(cacheHome)) {
+			fs.mkdirSync(cacheHome);
+		}
+
+		const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 		process.env.VSCODE_LOGS = logDir;
 
 		const certPath = flags.cert ? path.resolve(flags.cert) : undefined;
