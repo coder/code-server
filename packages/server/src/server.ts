@@ -16,6 +16,7 @@ import * as path from "path";
 import * as pem from "pem";
 import * as util from "util";
 import * as ws from "ws";
+import safeCompare = require("safe-compare");
 import { TunnelCloseCode } from "@coder/tunnel/src/common";
 import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import { createPortScanner } from "./portScanner";
@@ -67,7 +68,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 			// Try/catch placed here just in case
 			const cookies = parseCookies(req);
-			if (cookies.password && cookies.password === options.password) {
+			if (cookies.password && safeCompare(cookies.password, options.password)) {
 				return true;
 			}
 		} catch (ex) {
