@@ -19,6 +19,7 @@
 		"node-netstat": "^1.6.0",
 		"pem": "^1.14.1",
 		"promise.prototype.finally": "^3.1.0",
+		"safe-compare": "^1.1.4",
 		"ws": "^6.1.2",
 		"xhr2": "^0.1.4"
 	},
@@ -28,6 +29,7 @@
 		"@types/mime-types": "^2.1.0",
 		"@types/opn": "^5.1.0",
 		"@types/pem": "^1.9.4",
+		"@types/safe-compare": "^1.1.0",
 		"@types/ws": "^6.0.1",
 		"fs-extra": "^7.0.1",
 		"nexe": "^2.0.0-rc.34",

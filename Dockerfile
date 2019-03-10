@@ -15,7 +15,7 @@ COPY . .
 # directly which should be fast as it is slow because it populates its own cache every time.
 RUN yarn && yarn task build:server:binary
 
-# We deploy with ubuntu so that devs have a familiar environemnt.
+# We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.10
 WORKDIR /root/project
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
@@ -28,5 +28,5 @@ RUN apt-get install -y locales && \
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
-# Unfortunately `.` does not work with code-server.
-CMD code-server $PWD
+ENTRYPOINT code-server
+CMD ["."]
