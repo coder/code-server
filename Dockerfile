@@ -28,5 +28,4 @@ RUN apt-get install -y locales && \
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
-ENTRYPOINT code-server
-CMD ["."]
+ENTRYPOINT ["code-server"]
