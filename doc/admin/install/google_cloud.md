@@ -24,27 +24,38 @@ If you're just starting out, we recommend [installing code-server locally](../..
 ```
 gcloud compute ssh --zone [region] [instance name]
 ```
-2. Download the binary using the link we copied to clipboard
+
+2. Find and download the latest Linux release from this URL:
 ```
-wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-server-1.31.1-100-linux-x64.tar.gz
+https://github.com/codercom/code-server/releases/latest
 ```
-3. Extract the downloaded tar.gz file with this command:
+
+3. Extract the downloaded tar.gz file with this command, for example:
 ```
 tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
 ```
+
 4. Make the binary executable if you run into any errors regarding permission:
-  ```
-  chmod +x code-server-linux
-  ```
+```
+chmod +x code-server-linux
+```
+
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+
 5. Start the code-server
 ```
 sudo ./code-server-linux -p 80
 ```
+
 > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
+
 6. Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
 > example: 32.32.32.234
+
 7. You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
+
 8. Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
+
 ---
+
 > NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).

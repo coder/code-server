@@ -32,12 +32,12 @@ If you're just starting out, we recommend [installing code-server locally](../..
   ```
   >example: `ssh -i "/Users/John/Downloads/TestInstance.pem" ubuntu@ec2-3-45-678-910.compute-1.amazonaws.co`
 - You should see a prompt for your EC2 instance like so<img src="../../assets/aws_ubuntu.png">
-- At this point it is time to download the `code-server` binary. We will of course want the linux version. Make sure you copy the link for the latest linux version on our [releases page](https://github.com/codercom/code-server/releases)
-- With the URL in the clipboard, run:
+- At this point it is time to download the `code-server` binary. We will of course want the linux version.
+- Find and download the latest Linux release from this URL:
   ```
-  wget https://github.com/codercom/code-server/releases/download/1.31.1-100/code-server-1.31.1-100-linux-x64.tar.gz
+  https://github.com/codercom/code-server/releases/latest
   ```
-- Extract the downloaded tar.gz file with this command:
+- Extract the downloaded tar.gz file with this command, for example:
   ```
   tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
   ```
