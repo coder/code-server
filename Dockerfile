@@ -29,5 +29,4 @@ RUN apt-get install -y locales && \
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
 ENTRYPOINT code-server
-# Unfortunately `.` does not work with code-server so we use shell form.
-CMD code-server $PWD
+CMD ["."]
