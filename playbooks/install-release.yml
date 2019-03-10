@@ -1,0 +1,43 @@
+#!/usr/bin/env ansible-playbook
+---
+- hosts: localhost # change this if you want to add more hosts.
+  #remote_user: root
+  become_method: sudo
+  vars:
+    # Maintainers: change this to a new release when there's a new tag in upstream
+    coder_version: "1.31.1-100" 
+
+  tasks:
+  - name: Install Git
+    package: name=git state=installed
+    become: yes
+
+  - name: install the 'Development tools' package group
+    package: name="@Development tools" state=present
+    when:  ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux' or ansible_distribution == 'Fedora'
+    become: yes
+    
+  - name: Install the 'build-essential' meta package
+    package: name="build-essential" state=present
+    when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+    become: yes
+
+  - name: Install net-tools
+    package: name=net-tools state=installed
+    become: yes
+    become_method: sudo
+
+  - name: Install OpenSSL
+    package: name=openssl state=installed
+    become: yes
+    become_method: sudo
+
+  - name: Acquire code-server
+    command: chdir=/tmp wget -O - https://github.com/codercom/code-server/releases/download/{{ coder_version }}/code-server-{{ coder_version }}-linux-x64.tar.gz | tar -xvz
+    become: yes
+    become_method: sudo
+
+  - name: Install code-server
+    command: chdir=/tmp/code-server-{{ coder_version }}-linux-x64 chmod a+x ./code-server && mv ./code-server /usr/bin
+    become: yes
+    become_method: sudo
