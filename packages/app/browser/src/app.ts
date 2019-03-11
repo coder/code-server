@@ -28,3 +28,14 @@ submit.addEventListener("click", () => {
 	document.cookie = `password=${password.value}`;
 	location.reload();
 });
+
+/**
+ * Notify user on load of page if previous password was unsuccessful
+ */
+const reg = new RegExp(`password=(\\w+);?`);
+const matches = document.cookie.match(reg);
+const errorDisplay = document.getElementById("error-display") as HTMLDivElement;
+
+if (document.referrer === document.location.href && matches) {
+	errorDisplay.innerText = "Password is incorrect!";
+}

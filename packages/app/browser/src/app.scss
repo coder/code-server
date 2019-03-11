@@ -106,3 +106,16 @@ body {
 
     // transition: 500ms opacity ease;
 }
+
+#error-display {
+    box-sizing: border-box;
+    color: #bb2d0f;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.3px;
+    line-height: 12px;
+    padding: 8px;
+    padding-bottom: 0;
+    padding-top: 20px;
+    text-align: center;
+}
