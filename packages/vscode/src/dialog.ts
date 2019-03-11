@@ -110,7 +110,7 @@ class Dialog {
 		this.root.style.width = "850px";
 		this.root.style.height = "600px";
 		this.background.appendChild(this.root);
-		document.body.appendChild(this.background);
+		(document.getElementById("workbench.main.container") || document.body).appendChild(this.background);
 		this.root.classList.add("dialog");
 
 		const setProperty = (vari: string, id: string): void => {
