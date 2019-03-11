@@ -10,3 +10,11 @@ node_modules
 release
 **/yarn-error.log
 **/node_modules
+# Docs
+doc/
+# GitHub stuff
+.github
+.gitignore
+.travis.yml
+LICENSE
+README.md

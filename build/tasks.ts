@@ -10,6 +10,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
 const defaultExtensionsPath = path.join(libPath, "VSCode-linux-x64/resources/app/extensions");
+const vscodeVersion = "1.32";
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
 	await ensureInstalled();
@@ -40,22 +41,24 @@ const buildServerBinaryPackage = register("build:server:binary:package", async (
 });
 
 const dependencyNexeBinary = register("dependency:nexe", async (runner) => {
-	if (os.platform() === "linux") {
+	if (os.platform() === "linux" && process.env.COMPRESS === "true") {
+		// Download the nexe binary so we can compress it before nexe runs. If we
+		// don't want compression we don't need to do anything since nexe will take
+		// care of getting the binary.
 		const nexeDir = path.join(os.homedir(), ".nexe");
 		const targetBinaryName = `${os.platform()}-${os.arch()}-${process.version.substr(1)}`;
 		const targetBinaryPath = path.join(nexeDir, targetBinaryName);
 		if (!fs.existsSync(targetBinaryPath)) {
-			/**
-			 * We create a binary with nexe
-			 * so we can compress it
-			 */
 			fse.mkdirpSync(nexeDir);
 			runner.cwd = nexeDir;
 			await runner.execute("wget", [`https://github.com/nexe/nexe/releases/download/v3.0.0-beta.15/${targetBinaryName}`]);
 			await runner.execute("chmod", ["+x", targetBinaryPath]);
 		}
+		// Compress with upx if it doesn't already look compressed.
 		if (fs.statSync(targetBinaryPath).size >= 20000000) {
-			// Compress w/ upx
+			// It needs to be executable for upx to work, which it might not be if
+			// nexe downloaded it.
+			fs.chmodSync(targetBinaryPath, "755");
 			const upxFolder = path.join(os.tmpdir(), "upx");
 			const upxBinary = path.join(upxFolder, "upx");
 			if (!fs.existsSync(upxBinary)) {
@@ -194,7 +197,7 @@ const buildDefaultExtensions = register("build:default-extensions", async (runne
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await copyForDefaultExtensions();
 		runner.cwd = extDirPath;
-		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64"]);
+		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64", "--max-old-space-size=32384"]);
 		if (resp.exitCode !== 0) {
 			throw new Error(`Failed to build default extensions: ${resp.stderr}`);
 		}
@@ -217,16 +220,10 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	} else {
 		fse.mkdirpSync(libPath);
 		runner.cwd = libPath;
-		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode"]);
+		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode", "--branch", `release/${vscodeVersion}`, "--single-branch", "--depth=1"]);
 		if (clone.exitCode !== 0) {
 			throw new Error(`Failed to clone: ${clone.exitCode}`);
 		}
-	}
-
-	runner.cwd = vscodePath;
-	const checkout = await runner.execute("git", ["checkout", "tags/1.31.1"]);
-	if (checkout.exitCode !== 0) {
-		throw new Error(`Failed to checkout: ${checkout.stderr}`);
 	}
 });
 
@@ -243,6 +240,10 @@ const ensureClean = register("vscode:clean", async (runner) => {
 		if (removeUnstaged.exitCode !== 0) {
 			throw new Error(`Failed to remove unstaged files: ${removeUnstaged.stderr}`);
 		}
+	}
+	const fetch = await runner.execute("git", ["fetch", "--prune"]);
+	if (fetch.exitCode !== 0) {
+		throw new Error(`Failed to fetch latest changes: ${fetch.stderr}`);
 	}
 });
 

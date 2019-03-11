@@ -1,6 +1,6 @@
 {
 	"name": "@coder/web",
 	"scripts": {
-		"build": "cross-env UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js"
+		"build": "../../node_modules/.bin/cross-env UV_THREADPOOL_SIZE=100 node --max-old-space-size=32384 ../../node_modules/webpack/bin/webpack.js --config ./webpack.config.js"
 	}
 }

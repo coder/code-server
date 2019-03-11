@@ -2,7 +2,7 @@
 name: Bug Report
 about: Report problems and unexpected behavior.
 title: ''
-labels: ''
+labels: 'bug'
 assignees: ''
 ---
 
@@ -12,7 +12,11 @@ assignees: ''
 - `code-server` version: <!-- The version of code-server -->
 - OS Version: <!-- OS version, cloud provider,  -->
 
-#### Steps to Reproduce
+## Description
 
-1.
-2.
+<!-- Describes the problem here -->
+
+## Steps to Reproduce
+
+1. <!-- step 1: click ... -->
+1. <!-- step 2: ... -->

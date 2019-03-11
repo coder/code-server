@@ -42,9 +42,6 @@ const handlePackages = async (dir: string): Promise<void> => {
 		const pkgJsonPath = join(pkgDir, "package.json");
 		if (existsSync(pkgJsonPath)) {
 			const ip = await doInstall(pkg, pkgDir);
-			if (os.platform() === "win32") {
-				await ip;
-			}
 		}
 	}
 };

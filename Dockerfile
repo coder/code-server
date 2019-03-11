@@ -23,7 +23,7 @@ RUN yarn task build:server:bundle
 RUN yarn task build:app:browser
 RUN yarn task build:server:binary:package
 
-# We deploy with ubuntu so that devs have a familiar environemnt.
+# We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.10
 WORKDIR /root/project
 
@@ -40,6 +40,5 @@ RUN apt-get install -y locales && \
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
-
-# Unfortunately `.` does not work with code-server.
-CMD code-server $PWD
+ENTRYPOINT code-server
+CMD ["."]

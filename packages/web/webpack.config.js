@@ -32,6 +32,7 @@ module.exports = merge(
 			"selenium-webdriver": path.join(fills, "empty.ts"),
 			"vscode": path.join(fills, "empty.ts"),
 			"vscode-fsevents": path.join(fills, "empty.ts"),
+			"vscode-windows-registry": path.resolve(fills, "empty.ts"),
 			"vsda": path.join(fills, "empty.ts"),
 			"windows-foreground-love": path.join(fills, "empty.ts"),
 			"windows-mutex": path.join(fills, "empty.ts"),
@@ -66,11 +67,14 @@ module.exports = merge(
 			"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 			"iconv-lite": path.join(vsFills, "iconv-lite.ts"),
 
+			// This seems to be in the wrong place?
+			"vs/workbench/contrib/codeEditor/electron-browser/media/WordWrap_16x.svg": "vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/WordWrap_16x.svg",
+
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
-			"vs/platform/node/product": path.join(vsFills, "product.ts"),
-			"vs/platform/node/package": path.join(vsFills, "package.ts"),
-			"vs/platform/node/zip": path.resolve(vsFills, "zip.ts"),
+			"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
+			"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
+			"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),
 			"vs": path.join(root, "lib", "vscode", "src", "vs"),
 		},
 	},
