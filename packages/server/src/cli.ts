@@ -33,7 +33,6 @@ export class Entry extends Command {
 		"bootstrap-fork": flags.string({ hidden: true }),
 		"fork": flags.string({ hidden: true }),
 
-		env: flags.string({ hidden: true }),
 		args: flags.string({ hidden: true }),
 	};
 	public static args = [{
@@ -60,7 +59,6 @@ export class Entry extends Command {
 				process.exit(1);
 			}
 
-			Object.assign(process.env, flags.env ? JSON.parse(flags.env) : {});
 			((flags.args ? JSON.parse(flags.args) : []) as string[]).forEach((arg, i) => {
 				// [0] contains the binary running the script (`node` for example) and
 				// [1] contains the script name, so the arguments come after that.
@@ -231,7 +229,7 @@ export class Entry extends Command {
 		logger.info(url);
 		logger.info(" ");
 
-		if (flags["open"]) {
+		if (flags.open) {
 			try {
 				await opn(url);
 			} catch (e) {

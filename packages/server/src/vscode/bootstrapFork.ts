@@ -125,21 +125,21 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
  */
 export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
 	let proc: cp.ChildProcess;
+	const forkOptions: cp.ForkOptions = {
+		stdio: [null, null, null, "ipc"],
+	};
+	if (options.env) {
+		// This prevents vscode from trying to load original-fs from electron.
+		delete options.env.ELECTRON_RUN_AS_NODE;
+		forkOptions.env = options.env;
+	}
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
 		forkArgs.push("--args", JSON.stringify(args));
 	}
-	if (options.env) {
-		// This prevents vscode from trying to load original-fs from electron.
-		delete options.env.ELECTRON_RUN_AS_NODE;
-		forkArgs.push("--env", JSON.stringify(options.env));
-	}
 	if (dataDir) {
 		forkArgs.push("--data-dir", dataDir);
 	}
-	const forkOptions: cp.ForkOptions = {
-		stdio: [null, null, null, "ipc"],
-	};
 	if (isCli) {
 		proc = cp.spawn(process.execPath, forkArgs, forkOptions);
 	} else {
