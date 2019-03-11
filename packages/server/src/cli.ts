@@ -4,7 +4,6 @@ import { Command, flags } from "@oclif/command";
 import { fork, ForkOptions, ChildProcess } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
-import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { createApp } from "./server";
@@ -244,5 +243,6 @@ export class Entry extends Command {
 
 Entry.run(undefined, {
 	root: buildDir || __dirname,
+	version: process.env.VERSION || "development",
 	//@ts-ignore
 }).catch(require("@oclif/errors/handle"));
