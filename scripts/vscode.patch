@@ -738,13 +738,17 @@ index 8e2b9e03bc..c06da1c7d1 100644
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
-index 5a28744889..79502859a7 100644
+index 5a28744889..9d6f38ca7d 100644
 --- a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
 +++ b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
-@@ -19 +19 @@ import { endsWith } from 'vs/base/common/strings';
+@@ -19 +19,2 @@ import { endsWith } from 'vs/base/common/strings';
 -import { isMacintosh } from 'vs/base/common/platform';
++import { isWeb } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
-@@ -265,0 +266,3 @@ export class WebviewElement extends Disposable {
+@@ -254 +255 @@ export class WebviewElement extends Disposable {
+-		this._webview.src = this._options.useSameOriginForRoot ? require.toUrl('./webview.html') : 'data:text/html;charset=utf-8,%3C%21DOCTYPE%20html%3E%0D%0A%3Chtml%20lang%3D%22en%22%20style%3D%22width%3A%20100%25%3B%20height%3A%20100%25%22%3E%0D%0A%3Chead%3E%0D%0A%09%3Ctitle%3EVirtual%20Document%3C%2Ftitle%3E%0D%0A%3C%2Fhead%3E%0D%0A%3Cbody%20style%3D%22margin%3A%200%3B%20overflow%3A%20hidden%3B%20width%3A%20100%25%3B%20height%3A%20100%25%22%3E%0D%0A%3C%2Fbody%3E%0D%0A%3C%2Fhtml%3E';
++		this._webview.src = isWeb || this._options.useSameOriginForRoot ? require.toUrl('./webview.html') : 'data:text/html;charset=utf-8,%3C%21DOCTYPE%20html%3E%0D%0A%3Chtml%20lang%3D%22en%22%20style%3D%22width%3A%20100%25%3B%20height%3A%20100%25%22%3E%0D%0A%3Chead%3E%0D%0A%09%3Ctitle%3EVirtual%20Document%3C%2Ftitle%3E%0D%0A%3C%2Fhead%3E%0D%0A%3Cbody%20style%3D%22margin%3A%200%3B%20overflow%3A%20hidden%3B%20width%3A%20100%25%3B%20height%3A%20100%25%22%3E%0D%0A%3C%2Fbody%3E%0D%0A%3C%2Fhtml%3E';
+@@ -265,0 +267,3 @@ export class WebviewElement extends Disposable {
 +			Object.defineProperty(this._options, 'useSameOriginForRoot', {
 +				value: true,
 +			});
