@@ -141,6 +141,7 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				// TODO
 				args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m1) => `"/resource${m1}"`);
 				args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m, m1) => `"/resource${m1}"`);
+				args[0].contents = (args[0].contents as string).replace(/style-src vscode-core-resource:/g, "style-src 'self'");
 			}
 			if (view.contentWindow) {
 				view.contentWindow.postMessage({
