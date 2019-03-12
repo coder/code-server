@@ -27,7 +27,7 @@ module.exports = merge(
 				"node-pty": "node-pty-prebuilt",
 			},
 		},
-		externals: ["tslib", "trash"],
+		externals: ["tslib"],
 		entry: "./packages/server/src/cli.ts",
 		plugins: [
 			new webpack.DefinePlugin({
