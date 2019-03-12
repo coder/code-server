@@ -158,6 +158,19 @@ declare namespace ide {
 		readonly notificationService: INotificationService;
 		readonly menuRegistry: IMenuRegistry;
 		readonly commandRegistry: ICommandRegistry;
+
+		onFileCreate(cb: (path: string) => void): void;
+		onFileMove(cb: (path: string, target: string) => void): void;
+		onFileDelete(cb: (path: string) => void): void;
+		onFileSaved(cb: (path: string) => void): void;
+		onFileCopy(cb: (path: string, target: string) => void): void;
+
+		onModelAdded(cb: (path: string, languageId: string) => void): void;
+		onModelRemoved(cb: (path: string, languageId: string) => void): void;
+		onModelLanguageChange(cb: (path: string, languageId: string, oldLanguageId: string) => void): void;
+
+		onTerminalAdded(cb: () => void): void;
+		onTerminalRemoved(cb: () => void): void;
 	};
 
 	export enum Severity {
