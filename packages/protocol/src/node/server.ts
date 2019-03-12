@@ -1,10 +1,10 @@
+import { mkdirp } from "fs-extra";
 import * as os from "os";
 import { logger, field } from "@coder/logger";
 import { Pong, ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate, ActiveEvaluation } from "./evaluate";
 import { ForkProvider } from "../common/helpers";
 import { ReadWriteConnection } from "../common/connection";
-import { mkdirP } from "../common/util";
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
@@ -42,9 +42,9 @@ export class Server {
 		}
 
 		Promise.all([
-			mkdirP(this.options.cacheDirectory),
-			mkdirP(this.options.dataDirectory),
-			mkdirP(this.options.workingDirectory),
+			mkdirp(this.options.cacheDirectory),
+			mkdirp(this.options.dataDirectory),
+			mkdirp(this.options.workingDirectory),
 		]).catch((error) => {
 			logger.error(error.message, field("error", error));
 		});

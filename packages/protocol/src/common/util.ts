@@ -97,22 +97,3 @@ export const parse = (arg: string): any => { // tslint:disable-line no-any
 
 	return arg ? convert(JSON.parse(arg)) : arg;
 };
-
-export const mkdirP = async (path: string): Promise<void> => {
-	// Since our fills require this file, we can't import them up top or we get
-	// circular dependency issue.
-	const { mkdir } = require("fs") as typeof import("fs");
-	const { promisify } = require("util") as typeof import("util");
-	const split = path.replace(/^\/*|\/*$/g, "").split("/");
-	let dir = "";
-	while (split.length > 0) {
-		dir += "/" + split.shift();
-		try {
-			await promisify(mkdir)(dir);
-		} catch (error) {
-			if (error.code !== "EEXIST" && error.code !== "EISDIR") {
-				throw error;
-			}
-		}
-	}
-};

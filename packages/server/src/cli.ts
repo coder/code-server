@@ -1,5 +1,5 @@
+import * as fse from "fs-extra";
 import { field, logger } from "@coder/logger";
-import { mkdirP } from "@coder/protocol";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
 import { fork, ForkOptions, ChildProcess } from "child_process";
@@ -55,16 +55,15 @@ export class Entry extends Command {
 		if (!fs.existsSync(dataDir)) {
 			const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
 			if (fs.existsSync(oldDataDir)) {
-				await mkdirP(path.basename(dataDir));
-				fs.renameSync(oldDataDir, dataDir);
+				await fse.move(oldDataDir, dataDir);
 				logger.info(`Moved data directory from ${oldDataDir} to ${dataDir}`);
 			}
 		}
 
 		await Promise.all([
-			mkdirP(cacheHome),
-			mkdirP(dataDir),
-			mkdirP(workingDir),
+			fse.mkdirp(cacheHome),
+			fse.mkdirp(dataDir),
+			fse.mkdirp(workingDir),
 		]);
 
 		setupNativeModules(dataDir);

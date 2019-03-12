@@ -1,5 +1,6 @@
+import { mkdirp } from "fs-extra";
 import { logger, field } from "@coder/logger";
-import { mkdirP, ReadWriteConnection } from "@coder/protocol";
+import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import * as express from "express";
 //@ts-ignore
@@ -259,7 +260,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			});
 			req.on("end", async () => {
 				const body = data.join("");
-				await mkdirP(path.dirname(fullPath));
+				await mkdirp(path.dirname(fullPath));
 				fs.writeFileSync(fullPath, body);
 				logger.debug("Wrote resource", field("path", fullPath), field("content-length", body.length));
 				res.status(200);

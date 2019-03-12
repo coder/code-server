@@ -1,9 +1,9 @@
 import { readFile, writeFile } from "fs";
+import { mkdirp } from "fs-extra";
 import * as path from "path";
 import { promisify } from "util";
 import { IDisposable } from "@coder/disposable";
 import { logger, field } from "@coder/logger";
-import { mkdirP } from "@coder/protocol";
 import { Event } from "vs/base/common/event";
 import * as workspaceStorage from "vs/base/node/storage";
 import * as globalStorage from "vs/platform/storage/node/storageIpc";
@@ -78,7 +78,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	}
 
 	private async save(): Promise<void> {
-		await mkdirP(path.dirname(this.path));
+		await mkdirp(path.dirname(this.path));
 
 		return promisify(writeFile)(this.path, this.content);
 	}
