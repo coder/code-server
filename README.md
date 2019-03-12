@@ -64,7 +64,7 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ### Notes
 
-- At the moment we can't use the official VSCode Marketplace. Coder has created a collection of extensions that are open-source. While you can't directly download extensions from the official VSCode Marketplace, you can upload them to be installed in code-server.
+- At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
 
 ## Contributing
 
