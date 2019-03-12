@@ -17,16 +17,28 @@ RUN yarn && yarn task build:server:binary
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.10
-WORKDIR /root/project
-COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
-EXPOSE 8443
-RUN apt-get update && apt-get install -y \
-	openssl \
-	net-tools
-RUN apt-get install -y locales && \
-	locale-gen en_US.UTF-8
+
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
+
+COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
+RUN apt-get update && apt-get install -y \
+    sudo \
+	openssl \
+	locales \
+	net-tools && \
+	adduser --disabled-password --ingroup sudo --gecos '' coder && \
+    echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
+    echo "user ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/user && \
+    chmod 0440 /etc/sudoers.d/user;
+
+RUN locale-gen en_US.UTF-8
+
+USER coder
+
+WORKDIR /home/coder
+
+EXPOSE 8443
 ENTRYPOINT code-server
 CMD ["."]
