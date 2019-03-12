@@ -55,6 +55,7 @@ export class Entry extends Command {
 		if (!fs.existsSync(dataDir)) {
 			const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
 			if (fs.existsSync(oldDataDir)) {
+				await mkdirP(path.basename(dataDir));
 				fs.renameSync(oldDataDir, dataDir);
 				logger.info(`Moved data directory from ${oldDataDir} to ${dataDir}`);
 			}
