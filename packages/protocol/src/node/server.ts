@@ -1,16 +1,15 @@
 import * as os from "os";
-import * as path from "path";
-import { mkdir } from "fs";
-import { promisify } from "util";
 import { logger, field } from "@coder/logger";
 import { Pong, ClientMessage, WorkingInitMessage, ServerMessage } from "../proto";
 import { evaluate, ActiveEvaluation } from "./evaluate";
 import { ForkProvider } from "../common/helpers";
 import { ReadWriteConnection } from "../common/connection";
+import { mkdirP } from "../common/util";
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
+	readonly cacheDirectory: string;
 	readonly builtInExtensionsDirectory: string;
 	readonly fork?: ForkProvider;
 }
@@ -42,24 +41,11 @@ export class Server {
 			return;
 		}
 
-		// Ensure the data directory exists.
-		const mkdirP = async (path: string): Promise<void> => {
-			const split = path.replace(/^\/*|\/*$/g, "").split("/");
-			let dir = "";
-			while (split.length > 0) {
-				dir += "/" + split.shift();
-				try {
-					await promisify(mkdir)(dir);
-				} catch (error) {
-					if (error.code !== "EEXIST" && error.code !== "EISDIR") {
-						throw error;
-					}
-				}
-			}
-		};
-		Promise.all([ mkdirP(path.join(this.options.dataDirectory, "User", "workspaceStorage")) ]).then(() => {
-			logger.info("Created data directory");
-		}).catch((error) => {
+		Promise.all([
+			mkdirP(this.options.cacheDirectory),
+			mkdirP(this.options.dataDirectory),
+			mkdirP(this.options.workingDirectory),
+		]).catch((error) => {
 			logger.error(error.message, field("error", error));
 		});
 

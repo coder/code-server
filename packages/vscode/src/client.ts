@@ -4,6 +4,7 @@ import Severity from "vs/base/common/severity";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
 import * as paths from "./fill/paths";
+import product from "./fill/product";
 import "./vscode.scss";
 import { MenuId, MenuRegistry } from "vs/platform/actions/common/actions";
 import { CommandsRegistry } from "vs/platform/commands/common/commands";
@@ -14,6 +15,7 @@ class VSClient extends IdeClient {
 	protected initialize(): Promise<void> {
 		return this.task("Start workbench", 1000, async (data, sharedData) => {
 			paths._paths.initialize(data, sharedData);
+			product.initialize(data);
 			process.env.SHELL = data.shell;
 			// At this point everything should be filled, including `os`. `os` also
 			// relies on `initData` but it listens first so it initialize before this

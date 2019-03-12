@@ -4,10 +4,12 @@ describe("Server", () => {
 	const dataDirectory = "/tmp/example";
 	const workingDirectory = "/working/dir";
 	const builtInExtensionsDirectory = "/tmp/example";
+	const cacheDirectory = "/tmp/cache";
 	const client = createClient({
+		builtInExtensionsDirectory,
+		cacheDirectory,
 		dataDirectory,
 		workingDirectory,
-		builtInExtensionsDirectory,
 	});
 
 	it("should get init msg", (done) => {

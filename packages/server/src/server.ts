@@ -1,5 +1,5 @@
 import { logger, field } from "@coder/logger";
-import { ReadWriteConnection } from "@coder/protocol";
+import { mkdirP, ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
 import * as express from "express";
 //@ts-ignore
@@ -20,7 +20,7 @@ import safeCompare = require("safe-compare");
 import { TunnelCloseCode } from "@coder/tunnel/src/common";
 import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import { createPortScanner } from "./portScanner";
-import { buildDir, isCli } from "./constants";
+import { buildDir } from "./constants";
 
 interface CreateAppOptions {
 	registerMiddleware?: (app: express.Application) => void;
@@ -257,8 +257,9 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			req.on("data", (chunk) => {
 				data.push(chunk);
 			});
-			req.on("end", () => {
+			req.on("end", async () => {
 				const body = data.join("");
+				await mkdirP(path.dirname(fullPath));
 				fs.writeFileSync(fullPath, body);
 				logger.debug("Wrote resource", field("path", fullPath), field("content-length", body.length));
 				res.status(200);
