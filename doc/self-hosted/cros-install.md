@@ -2,8 +2,6 @@
 
 This guide will show you how to install code-server into your CrOS machine.
 
-Before everything else, you are required to turn on developer mode for your machine, but for ChromiumOS and CloudReady users (Home Edition), this is done for you.
-
 ## Using Crostini
 
 One of the easier ways to run code-server is via [Crostini](https://www.aboutchromebooks.com/tag/project-crostini/), the Linux apps support feature in CrOS. Make sure you have enough RAM, HDD space and your CPU has VT-x/ AMD-V support. If your chromebook has this, then you are qualified to use Crostini.
@@ -12,9 +10,7 @@ If you are running R69, you might want to enable this on [Chrome Flags](chrome:/
 
 After checking your prerequisites, follow the steps in the [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it.
 
-After confirming it runs, head over to `crosh`, the native terminal for your Chromebook. Reiterating, you must have developer mode enabled to be able to enter `crosh`.
-
-Once in `crosh`, type `vsh termina`. It should drop you to the Termina's shell.
+After confirming it runs, head over to `crosh`, the native terminal for your Chromebook. Once in `crosh`, type `vsh termina`. It should drop you to the Termina's shell.
 
 ```bash
 Loading extra module: /usr/share/crosh/dev.d/50-crosh.sh
@@ -50,7 +46,7 @@ Crostini has IPv4 outbound networking so that means, it is bound to `eth0` in th
 
 ## Using Crouton
 
-[Crouton](https://github.com/dnschneid/crouton) is one of the old ways to get a running full Linux via `chroot` on a Chromebook. Like so, enable developer mode, and go to `crosh`. This time, run `shell`, which should drop you to `bash`.
+[Crouton](https://github.com/dnschneid/crouton) is one of the old ways to get a running full Linux via `chroot` on a Chromebook. To use crouton, go to `crosh`. This time, run `shell`, which should drop you to `bash`.
 
 Make sure you downloaded `crouton`, if so, go ahead and run it under `~/Downloads`. After installing your chroot container via crouton, go ahead and enter `enter-chroot` to enter your container.
 
