@@ -40,5 +40,4 @@ USER coder
 WORKDIR /home/coder
 
 EXPOSE 8443
-ENTRYPOINT code-server
-CMD ["."]
+ENTRYPOINT ["code-server"]

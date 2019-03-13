@@ -10,7 +10,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
 const defaultExtensionsPath = path.join(libPath, "VSCode-linux-x64/resources/app/extensions");
-const vscodeVersion = "1.32";
+const vscodeVersion = "1.32.0";
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
 	await ensureInstalled();
@@ -220,10 +220,16 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 	} else {
 		fse.mkdirpSync(libPath);
 		runner.cwd = libPath;
-		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode", "--branch", `release/${vscodeVersion}`, "--single-branch", "--depth=1"]);
+		const clone = await runner.execute("git", ["clone", "https://github.com/microsoft/vscode", "--branch", vscodeVersion, "--single-branch", "--depth=1"]);
 		if (clone.exitCode !== 0) {
 			throw new Error(`Failed to clone: ${clone.exitCode}`);
 		}
+	}
+
+	runner.cwd = vscodePath;
+	const checkout = await runner.execute("git", ["checkout", vscodeVersion]);
+	if (checkout.exitCode !== 0) {
+		throw new Error(`Failed to checkout: ${checkout.stderr}`);
 	}
 });
 

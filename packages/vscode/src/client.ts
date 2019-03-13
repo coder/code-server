@@ -4,9 +4,14 @@ import Severity from "vs/base/common/severity";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
 import * as paths from "./fill/paths";
+import product from "./fill/product";
 import "./vscode.scss";
 import { MenuId, MenuRegistry } from "vs/platform/actions/common/actions";
 import { CommandsRegistry } from "vs/platform/commands/common/commands";
+import { IFileService, FileOperation } from "vs/platform/files/common/files";
+import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";
+import { IModelService } from "vs/editor/common/services/modelService";
+import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
 // NOTE: shouldn't import anything from VS Code here or anything that will
 // depend on a synchronous fill like `os`.
 
@@ -14,6 +19,7 @@ class VSClient extends IdeClient {
 	protected initialize(): Promise<void> {
 		return this.task("Start workbench", 1000, async (data, sharedData) => {
 			paths._paths.initialize(data, sharedData);
+			product.initialize(data);
 			process.env.SHELL = data.shell;
 			// At this point everything should be filled, including `os`. `os` also
 			// relies on `initData` but it listens first so it initialize before this
@@ -32,6 +38,63 @@ class VSClient extends IdeClient {
 					// tslint:disable-next-line:no-any
 					statusbarService: getService<IStatusbarService>(IStatusbarService) as any,
 					notificationService: getService<INotificationService>(INotificationService),
+
+					onFileCreate: (cb): void => {
+						getService<IFileService>(IFileService).onAfterOperation((e) => {
+							if (e.operation === FileOperation.CREATE) {
+								cb(e.resource.path);
+							}
+						});
+					},
+					onFileMove: (cb): void => {
+						getService<IFileService>(IFileService).onAfterOperation((e) => {
+							if (e.operation === FileOperation.MOVE) {
+								cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
+							}
+						});
+					},
+					onFileDelete: (cb): void => {
+						getService<IFileService>(IFileService).onAfterOperation((e) => {
+							if (e.operation === FileOperation.DELETE) {
+								cb(e.resource.path);
+							}
+						});
+					},
+					onFileSaved: (cb): void => {
+						getService<ITextFileService>(ITextFileService).models.onModelSaved((e) => {
+							cb(e.resource.path);
+						});
+					},
+					onFileCopy: (cb): void => {
+						getService<IFileService>(IFileService).onAfterOperation((e) => {
+							if (e.operation === FileOperation.COPY) {
+								cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
+							}
+						});
+					},
+
+					onModelAdded: (cb): void => {
+						getService<IModelService>(IModelService).onModelAdded((e) => {
+							cb(e.uri.path, e.getLanguageIdentifier().language);
+						});
+					},
+					onModelRemoved: (cb): void => {
+						getService<IModelService>(IModelService).onModelRemoved((e) => {
+							cb(e.uri.path, e.getLanguageIdentifier().language);
+						});
+					},
+					onModelLanguageChange: (cb): void => {
+						getService<IModelService>(IModelService).onModelModeChanged((e) => {
+							cb(e.model.uri.path, e.model.getLanguageIdentifier().language, e.oldModeId);
+						});
+					},
+
+					onTerminalAdded: (cb): void => {
+						getService<ITerminalService>(ITerminalService).onInstanceCreated(() => cb());
+					},
+					onTerminalRemoved: (cb): void => {
+						getService<ITerminalService>(ITerminalService).onInstanceDisposed(() => cb());
+					},
 				},
 
 				// @ts-ignore
