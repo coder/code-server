@@ -1,10 +1,9 @@
 FROM node:8.15.0
 
-# Install VS Code's deps. These are the only two it seems we need. Install git for source control.
+# Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
 	libxkbfile-dev \
-	libsecret-1-dev \
-	git
+	libsecret-1-dev
 
 # Ensure latest yarn.
 RUN npm install -g yarn@1.13
@@ -21,12 +20,13 @@ FROM ubuntu:18.10
 WORKDIR /root/project
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
+
 RUN apt-get update && apt-get install -y \
 	openssl \
 	net-tools \
-	locales && \
-	locale-gen en_US.UTF-8 && \
-	rm -rf /var/lib/apt/lists/*
+	git \
+	locales
+RUN locale-gen en_US.UTF-8
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
