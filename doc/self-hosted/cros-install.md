@@ -6,11 +6,11 @@ Before everything else, you are required to turn on developer mode for your mach
 
 ## Using Crostini
 
-One of the easier ways to run code-server is via Crostini, the Linux apps support feature in CrOS. Make sure you have enough RAM, HDD space and your CPU has VT-x/ AMD-V support. If your chromebook has this, then you are qualified to use Crostini.
+One of the easier ways to run code-server is via [Crostini](https://www.aboutchromebooks.com/tag/project-crostini/), the Linux apps support feature in CrOS. Make sure you have enough RAM, HDD space and your CPU has VT-x/ AMD-V support. If your chromebook has this, then you are qualified to use Crostini.
 
 If you are running R69, you might want to enable this on [Chrome Flags](chrome://flags/#enable-experimental-crostini-ui). If you run R72, however, this is already enabled for you.
 
-After checking your prerequisites, follow the steps in the [the install guide](index.md) on installing code-server. Once done, make sure code-server works by running it.
+After checking your prerequisites, follow the steps in the [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it.
 
 After confirming it runs, head over to `crosh`, the native terminal for your Chromebook. Reiterating, you must have developer mode enabled to be able to enter `crosh`.
 
@@ -50,10 +50,10 @@ Crostini has IPv4 outbound networking so that means, it is bound to `eth0` in th
 
 ## Using Crouton
 
-Crouton is one of the old ways to get a running full Linux via `chroot` on a Chromebook. Like so, enable developer mode, and go to `crosh`. This time, run `shell`, which should drop you to `bash`.
+[Crouton](https://github.com/dnschneid/crouton) is one of the old ways to get a running full Linux via `chroot` on a Chromebook. Like so, enable developer mode, and go to `crosh`. This time, run `shell`, which should drop you to `bash`.
 
 Make sure you downloaded `crouton`, if so, go ahead and run it under `~/Downloads`. After installing your chroot container via crouton, go ahead and enter `enter-chroot` to enter your container.
 
-Follow the instructions set in [the install guide](index.md) to install code-server. After that is done, run `code-server` and verify it works by going to `localhost:8443`.
+Follow the instructions set in [the self-host install guide](index.md) to install code-server. After that is done, run `code-server` and verify it works by going to `localhost:8443`.
 
 > At this point in writing, `localhost` seems to work in this method. However, the author is not sure if it applies still to newer Chromebooks.
