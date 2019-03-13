@@ -28,17 +28,14 @@
 		font-weight: normal;
 		text-transform: uppercase;
 		white-space: nowrap;
-		padding-left: 10px;
+		padding: 5px 10px;
 	}
 
 	.nav {
 		display: flex;
 		flex-direction: row;
 		padding: 4px;
-		padding-top: 8px;
-		padding-bottom: 8px;
 		border-bottom: 1px solid var(--border);
-		min-height: 32px;
 	}
 
 	.path {
@@ -48,7 +45,7 @@
 		.path-part {
 			padding: 5px;
 			border-radius: 3px;
-			font-size: 1.2em;
+			font-size: 1.02em;
 			cursor: pointer;
 
 			&:not(:first-child) {
@@ -80,7 +77,7 @@
 
 		.dialog-entry {
 			cursor: pointer;
-			font-size: 1.2em;
+			font-size: 1.02em;
 			padding: 0px;
 			padding-left: 8px;
 			padding-right: 8px;

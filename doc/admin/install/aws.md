@@ -28,7 +28,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - In the description of your EC2 instance copy the public DNS (iPv4) address using the copy to clipboard button
 - Open a terminal on your computer and use the following command to SSH into your EC2 instance
   ```
-  ssh i "path/to/your/keypair.pem" ubuntu@(paste the public DNS here)
+  ssh -i "path/to/your/keypair.pem" ubuntu@(paste the public DNS here)
   ```
   >example: `ssh -i "/Users/John/Downloads/TestInstance.pem" ubuntu@ec2-3-45-678-910.compute-1.amazonaws.co`
 - You should see a prompt for your EC2 instance like so<img src="../../assets/aws_ubuntu.png">

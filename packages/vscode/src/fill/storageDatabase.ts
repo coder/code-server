@@ -1,4 +1,5 @@
-import { readFile, writeFile, mkdir } from "fs";
+import { readFile, writeFile } from "fs";
+import { mkdirp } from "fs-extra";
 import * as path from "path";
 import { promisify } from "util";
 import { IDisposable } from "@coder/disposable";
@@ -77,9 +78,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	}
 
 	private async save(): Promise<void> {
-		try {
-			await promisify(mkdir)(path.dirname(this.path));
-		} catch (ex) {}
+		await mkdirp(path.dirname(this.path));
 
 		return promisify(writeFile)(this.path, this.content);
 	}

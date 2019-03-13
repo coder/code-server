@@ -19,7 +19,6 @@
 	background: #141414;
 	border: none;
 	box-sizing: border-box;
-	margin-bottom: 25px;
 	padding: 10px;
 	width: 100%;
 }
@@ -31,11 +30,11 @@
 
 .msgbox > .detail {
 	font-size: 14px;
-	margin-top: 5px;
+	margin: 5px 0;
 }
 
 .msgbox > .errors {
-	margin-bottom: 25px;
+	margin-top: 20px;
 }
 
 .msgbox > .errors {
@@ -46,6 +45,7 @@
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
+	margin-top: 20px;
 }
 
 .msgbox > .button-wrapper > button {
