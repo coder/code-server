@@ -10,7 +10,7 @@ One of the easier ways to run code-server is via Crostini, the Linux apps suppor
 
 If you are running R69, you might want to enable this on [Chrome Flags](chrome://flags/#enable-experimental-crostini-ui). If you run R72, however, this is already enabled for you.
 
-After checking your prerequisites, follow the steps in the [index](index.md) on installing code-server. Once done, make sure code-server works by running it.
+After checking your prerequisites, follow the steps in the [the install guide](index.md) on installing code-server. Once done, make sure code-server works by running it.
 
 After confirming it runs, head over to `crosh`, the native terminal for your Chromebook. Reiterating, you must have developer mode enabled to be able to enter `crosh`.
 
@@ -52,6 +52,6 @@ Crouton is one of the old ways to get a running full Linux via `chroot` on a Chr
 
 Make sure you downloaded `crouton`, if so, go ahead and run it under `~/Downloads`. After installing your chroot container via crouton, go ahead and enter `enter-chroot` to enter your container.
 
-Follow the instructions set in [index](index.md) to install code-server. After that is done, run `code-server` and verify it works by going to `localhost:8443`.
+Follow the instructions set in [the install guide](index.md) to install code-server. After that is done, run `code-server` and verify it works by going to `localhost:8443`.
 
 > At this point in writing, `localhost` seems to work in this method. However, the author is not sure if it applies still to newer Chromebooks.
