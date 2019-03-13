@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as nls from "vs/nls";
+import * as vszip from "vszip";
 import * as fs from "fs";
 import * as path from "path";
 import * as tarStream from "tar-stream";
 import { promisify } from "util";
-import { ILogService } from "vs/platform/log/common/log";
 import { CancellationToken } from "vs/base/common/cancellation";
 import { mkdirp } from "vs/base/node/pfs";
 
@@ -58,81 +58,38 @@ export function zip(tarPath: string, files: IFile[]): Promise<string> {
 	});
 }
 
-export async function extract(tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
-	const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : '');
-
+export async function extract(archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
 	return new Promise<void>(async (c, e) => {
-		const buffer = await promisify(fs.readFile)(tarPath);
-		const extractor = tarStream.extract();
-		extractor.once('error', e);
-		extractor.on('entry', (header, stream, next) => {
-			const rawName = header.name;
+		extractZip(archivePath, extractPath, options, token).then(c).catch((ex) => {
+			if (!ex.toString().includes("Corrupt ZIP")) {
+				e(ex);
 
-			const nextEntry = (): void => {
-				stream.resume();
-				next();
-			};
-
-			if (token.isCancellationRequested) {
-				return nextEntry();
-			}
-
-			if (!sourcePathRegex.test(rawName)) {
-				return nextEntry();
-			}
-
-			const fileName = rawName.replace(sourcePathRegex, '');
-
-			const targetFileName = path.join(targetPath, fileName);
-			if (/\/$/.test(fileName)) {
-				stream.resume();
-				mkdirp(targetFileName).then(() => {
-					next();
-				}, e);
 				return;
 			}
-
-			const dirName = path.dirname(fileName);
-			const targetDirName = path.join(targetPath, dirName);
-			if (targetDirName.indexOf(targetPath) !== 0) {
-				e(nls.localize('invalid file', "Error extracting {0}. Invalid file.", fileName));
-				return nextEntry();
-			}
-
-			mkdirp(targetDirName, void 0, token).then(() => {
-				const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
-				fstream.once('close', () => {
-					next();
-				});
-				fstream.once('error', (err) => {
-					e(err);
-				});
-				stream.pipe(fstream);
-				stream.resume();
-			});
+			extractTar(archivePath, extractPath, options, token).then(c).catch(e);
 		});
-		extractor.once('finish', () => {
-			c();
-		});
-		extractor.write(buffer);
-		extractor.end();
 	});
 }
 
-export function buffer(tarPath: string, filePath: string): Promise<Buffer> {
+export function buffer(targetPath: string, filePath: string): Promise<Buffer> {
 	return new Promise<Buffer>(async (c, e) => {
-		let done: boolean = false;
-		extractAssets(tarPath, new RegExp(filePath), (path: string, data: Buffer) => {
-			if (path === filePath) {
-				done = true;
-				c(data);
+		vszip.buffer(targetPath, filePath).then(c).catch((ex) => {
+			if (!ex.toString().includes("Corrupt ZIP")) {
+				e(ex);
+
+				return;
 			}
-		}).then(() => {
-			if (!done) {
-				e("couldnt find asset " + filePath);
-			}
-		}).catch((ex) => {
-			e(ex);
+			let done: boolean = false;
+			extractAssets(targetPath, new RegExp(filePath), (assetPath: string, data: Buffer) => {
+				if (path.normalize(assetPath) === path.normalize(filePath)) {
+					done = true;
+					c(data);
+				}
+			}).then(() => {
+				if (!done) {
+					e("couldnt find asset " + filePath);
+				}
+			}).catch(e);
 		});
 	});
 }
@@ -141,7 +98,7 @@ async function extractAssets(tarPath: string, match: RegExp, callback: (path: st
 	const buffer = await promisify(fs.readFile)(tarPath);
 	const extractor = tarStream.extract();
 	let callbackResolve: () => void;
-	let callbackReject: (ex?) => void;
+	let callbackReject: (ex?: any) => void;
 	const complete = new Promise<void>((r, rej) => {
 		callbackResolve = r;
 		callbackReject = rej;
@@ -183,5 +140,69 @@ async function extractData(stream: NodeJS.ReadableStream): Promise<Buffer> {
 		stream.on('error', (err) => {
 			rej(err);
 		});
+	});
+}
+
+async function extractZip(zipPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
+	return new Promise<void>(async (c, e) => {
+		vszip.extract(zipPath, targetPath, options, token).then(() => c()).catch(e);
+	});
+}
+
+async function extractTar(tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
+	const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : "");
+
+	return new Promise<void>(async (c, e) => {
+		const buffer = await promisify(fs.readFile)(tarPath);
+		const extractor = tarStream.extract();
+		extractor.once("error", e);
+		extractor.on("entry", (header, stream, next) => {
+			const rawName = path.normalize(header.name);
+
+			const nextEntry = (): void => {
+				stream.resume();
+				next();
+			};
+
+			if (token.isCancellationRequested) {
+				return nextEntry();
+			}
+
+			if (!sourcePathRegex.test(rawName)) {
+				return nextEntry();
+			}
+
+			const fileName = rawName.replace(sourcePathRegex, "");
+			const targetFileName = path.join(targetPath, fileName);
+			if (/\/$/.test(fileName)) {
+				stream.resume();
+				mkdirp(targetFileName).then(() => {
+					next();
+				}, e);
+
+				return;
+			}
+
+			const dirName = path.dirname(fileName);
+			const targetDirName = path.join(targetPath, dirName);
+			if (targetDirName.indexOf(targetPath) !== 0) {
+				e(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName));
+
+				return nextEntry();
+			}
+
+			return mkdirp(targetDirName, undefined, token).then(() => {
+				const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
+				fstream.once("close", () => {
+					next();
+				});
+				fstream.once("error", e);
+				stream.pipe(fstream);
+				stream.resume();
+			});
+		});
+		extractor.once("finish", c);
+		extractor.write(buffer);
+		extractor.end();
 	});
 }
