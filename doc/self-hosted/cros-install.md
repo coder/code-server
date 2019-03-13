@@ -8,7 +8,7 @@ One of the easier ways to run code-server is via [Crostini](https://www.aboutchr
 
 If you are running R69, you might want to enable this on [Chrome Flags](chrome://flags/#enable-experimental-crostini-ui). If you run R72, however, this is already enabled for you.
 
-After checking your prerequisites, follow the steps in the [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it. After running it, simply go to `penguin.linux.test:8443` to access code-server. Now you should be greeted with this screen. If you did, congratulations, you have installed code-server in your Chromebook!
+After checking your prerequisites, follow the steps in [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it. After running it, simply go to `penguin.linux.test:8443` to access code-server. Now you should be greeted with this screen. If you did, congratulations, you have installed code-server in your Chromebook!
 
 ![code-server on Chromebook](../assets/cros.png)
 
