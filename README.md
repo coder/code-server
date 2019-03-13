@@ -9,14 +9,14 @@
 
 Try it out:
 ```bash
-docker run -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server code-server --allow-http --no-auth
+docker run -t -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
 	- If you have a Windows or Mac workstation, more easily develop for Linux.
 - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
 - Preserve battery life when you're on the go.
-	- All intensive computation is ran on your server.
+	- All intensive computation runs on your server.
 	- You're no longer running excess instances of Chrome.
 
 ![Screenshot](/doc/assets/ide.png)
@@ -37,7 +37,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 2.  Start the binary with the project directory as the first argument
 
     ```
-    code-server <inital directory to open>
+    code-server <initial directory to open>
     ```
 	> You will be prompted to enter the password shown in the CLI
 	`code-server` should now be running at https://localhost:8443.

@@ -1,6 +1,6 @@
 # Generate a self-signed certificate 🔒
 
-code-server has the ability to secure your connection between client and server using SSL/TSL certificates. By default, the server will start with an unencrypted connection. We recommend Self-signed TLS/SSL certificates for personal of code-server or within an organization.
+code-server has the ability to secure your connection between client and server using SSL/TSL certificates. By default, the server will start with an unencrypted connection. We recommend Self-signed TLS/SSL certificates for personal use of code-server or within an organization.
 
 This guide will show you how to create a self-signed certificate and start code-server using your certificate/key.
 

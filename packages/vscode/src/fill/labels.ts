@@ -1,10 +1,11 @@
 import * as labels from "vs/base/common/labels";
 
-// Here we simply disable translation of mnemonics and leave everything as &&.
-// Since we're in the browser, we can handle all platforms in the same way.
+// Disable all mnemonics for now until we implement it.
 const target = labels as typeof labels;
 target.mnemonicMenuLabel = (label: string, forceDisable?: boolean): string => {
-	return forceDisable ? label.replace(/\(&&\w\)|&&/g, "") : label;
+	return label.replace(/\(&&\w\)|&&/g, "");
 };
-target.mnemonicButtonLabel = (label:  string): string => { return label; };
+target.mnemonicButtonLabel = (label:  string): string => {
+	return label.replace(/\(&&\w\)|&&/g, "");
+};
 target.unmnemonicLabel = (label:  string): string => { return label; };

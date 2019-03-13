@@ -17,8 +17,8 @@ import "./fill/workspacesService";
 import * as paths from "./fill/paths";
 import { PasteAction } from "./fill/paste";
 
-import { ExplorerItem, ExplorerModel } from "vs/workbench/parts/files/common/explorerModel";
-import { IEditorGroup } from "vs/workbench/services/group/common/editorGroupsService";
+import { ExplorerItem, ExplorerModel } from "vs/workbench/contrib/files/common/explorerModel";
+import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
 import { IEditorService, IResourceEditor } from "vs/workbench/services/editor/common/editorService";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IProgressService2, ProgressLocation } from "vs/platform/progress/common/progress";
@@ -171,7 +171,7 @@ export class Workbench {
 		// If we try to import this above, workbench will be undefined due to
 		// circular imports.
 		require("vs/workbench/workbench.main");
-		const { startup } = require("vs/workbench/electron-browser/main");
+		const { main } = require("vs/workbench/electron-browser/main");
 		const config: IWindowConfiguration = {
 			machineId: "1",
 			windowId: this.windowId,
@@ -189,7 +189,7 @@ export class Workbench {
 		} else {
 			config.folderUri = workspace as URI;
 		}
-		await startup(config);
+		await main(config);
 		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 		const bounded = this.clipboardContextKey.bindTo(contextKeys);
 		client.clipboard.onPermissionChange((enabled) => {

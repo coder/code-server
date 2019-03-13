@@ -1,4 +1,5 @@
 /// <reference path="../../../../lib/vscode/src/typings/spdlog.d.ts" />
+/// <reference path="../../node_modules/node-pty-prebuilt/typings/node-pty.d.ts" />
 import { ChildProcess, SpawnOptions, ForkOptions } from "child_process";
 import { EventEmitter } from "events";
 import { Socket } from "net";
@@ -21,21 +22,24 @@ interface ActiveEvalEmitter {
 }
 
 /**
+ * For any non-external modules that are not built in, we need to require and
+ * access them server-side. A require on the client-side won't work since that
+ * code won't exist on the server (and bloat the client with an unused import),
+ * and we can't manually import on the server-side and then call
+ * `__webpack_require__` on the client-side because Webpack stores modules by
+ * their paths which would require us to hard-code the path.
+ */
+export interface Modules {
+	pty: typeof import("node-pty");
+	spdlog: typeof import("spdlog");
+	trash: typeof import("trash");
+}
+
+/**
  * Helper class for server-side evaluations.
  */
 export class EvalHelper {
-	// For any non-external modules that are not built in, we need to require and
-	// access them here. A require on the client-side won't work since that code
-	// won't exist on the server (and bloat the client with an unused import), and
-	// we can't manually import on the server-side and then call
-	// `__webpack_require__` on the client-side because Webpack stores modules by
-	// their paths which would require us to hard-code the path. These aren't
-	// required immediately so we have a chance to unpack the .node files and set
-	// their locations.
-	public modules = {
-		spdlog: require("spdlog") as typeof import("spdlog"),
-		pty: require("node-pty-prebuilt") as typeof import("node-pty"),
-	};
+	public constructor(public modules: Modules) {}
 
 	/**
 	 * Some spawn code tries to preserve the env (the debug adapter for instance)
@@ -113,11 +117,11 @@ export class ActiveEvalHelper implements ActiveEvalEmitter {
  * Helper class for server-side active evaluations.
  */
 export class ServerActiveEvalHelper extends ActiveEvalHelper implements EvalHelper {
-	private readonly evalHelper = new EvalHelper();
-	public modules = this.evalHelper.modules;
+	private readonly evalHelper: EvalHelper;
 
-	public constructor(emitter: ActiveEvalEmitter, public readonly fork: ForkProvider) {
+	public constructor(public modules: Modules, emitter: ActiveEvalEmitter, public readonly fork: ForkProvider) {
 		super(emitter);
+		this.evalHelper = new EvalHelper(modules);
 	}
 
 	public preserveEnv(options: SpawnOptions | ForkOptions): void {
@@ -208,7 +212,7 @@ export class ServerActiveEvalHelper extends ActiveEvalHelper implements EvalHelp
 	}
 
 	public createUnique(id: number | "stdout" | "stderr" | "stdin"): ServerActiveEvalHelper {
-		return new ServerActiveEvalHelper(this.createUniqueEmitter(id), this.fork);
+		return new ServerActiveEvalHelper(this.modules, this.createUniqueEmitter(id), this.fork);
 	}
 }
 

@@ -258,7 +258,7 @@ export class Server extends React.Component<ServerProps, {
 			if (xhr.status === 200) {
 				this.setState({
 					status: "Online",
-					version: "v1.31.0",
+					version: process.env.VERSION,
 				});
 			} else {
 				this.setState({
