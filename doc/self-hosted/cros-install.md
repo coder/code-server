@@ -46,6 +46,8 @@ Crostini has IPv4 outbound networking so that means, it is bound to `eth0` in th
 
 ![code-server on Chromebook](../assets/cros.png)
 
+**Note: alternatively, you can use `penguin.linux.test` to access code-server without going to developer mode.**
+
 ## Using Crouton
 
 Crouton is one of the old ways to get a running full Linux via `chroot` on a Chromebook. Like so, enable developer mode, and go to `crosh`. This time, run `shell`, which should drop you to `bash`.
