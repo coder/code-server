@@ -8,9 +8,11 @@ One of the easier ways to run code-server is via [Crostini](https://www.aboutchr
 
 If you are running R69, you might want to enable this on [Chrome Flags](chrome://flags/#enable-experimental-crostini-ui). If you run R72, however, this is already enabled for you.
 
-After checking your prerequisites, follow the steps in the [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it.
+After checking your prerequisites, follow the steps in the [the self-host install guide](index.md) on installing code-server. Once done, make sure code-server works by running it. After running it, simply go to `penguin.linux.test:8443` to access code-server. Now you should be greeted with this screen. If you did, congratulations, you have installed code-server in your Chromebook!
 
-After confirming it runs, head over to `crosh`, the native terminal for your Chromebook. Once in `crosh`, type `vsh termina`. It should drop you to the Termina's shell.
+![code-server on Chromebook](../assets/cros.png)
+
+Alternatively, if you ran code-server in another container and you need the IP for that specific container, simply go to Termina's shell via `crosh` and type `vsh termina`.
 
 ```bash
 Loading extra module: /usr/share/crosh/dev.d/50-crosh.sh
@@ -26,7 +28,7 @@ Load it by using the Ctrl+Shift+P keyboard shortcut.
 crosh> vsh termina
 (termina) chronos@localhost ~ $
 ```
-Now, while in termina, run `lxc list`. It should render you this output.
+While in termina, run `lxc list`. It should output the list of running containers.
 
 ```bash
 (termina) chronos@localhost ~ $ lxc list
@@ -38,15 +40,11 @@ Now, while in termina, run `lxc list`. It should render you this output.
 (termina) chronos@localhost ~ $ 
 ```
 
-Crostini has IPv4 outbound networking so that means, it is bound to `eth0` in this case. Take note of the IP, then simply go to `<penguin IP>:8443` to access code-server. Now you should be greeted with this screen. If you did, congratulations, you have installed code-server in your Chromebook!
-
-![code-server on Chromebook](../assets/cros.png)
-
-**Note: alternatively, you can use `penguin.linux.test` to access code-server without going to developer mode.**
+For this example, we show the default `penguin` container, which is exposed on `eth0` at 100.115.92.199. Simply enter the IP of the container where the code-server runs to Chrome.
 
 ## Using Crouton
 
-[Crouton](https://github.com/dnschneid/crouton) is one of the old ways to get a running full Linux via `chroot` on a Chromebook. To use crouton, go to `crosh`. This time, run `shell`, which should drop you to `bash`.
+[Crouton](https://github.com/dnschneid/crouton) is one of the old ways to get a running full Linux via `chroot` on a Chromebook. To use crouton, enable developer mode and go to `crosh`. This time, run `shell`, which should drop you to `bash`.
 
 Make sure you downloaded `crouton`, if so, go ahead and run it under `~/Downloads`. After installing your chroot container via crouton, go ahead and enter `enter-chroot` to enter your container.
 
