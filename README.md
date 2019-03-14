@@ -33,7 +33,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 
 ### Binaries
 
-1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OSX supported. Windows coming soon)
+1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OS X supported. Windows coming soon)
 2.  Start the binary with the project directory as the first argument
 
     ```
@@ -59,7 +59,7 @@ How to [secure your setup](/doc/security/ssl.md).
 ### Future
 
 - Windows support.
-- Electron and ChromeOS applications to bridge the gap between local<->remote.
+- Electron and Chrome OS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
 
 ## Contributing
