@@ -24,7 +24,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
   ```
   chmod +x code-server-linux
   ```
-  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally start the code-server
   ```
   sudo ./code-server-linux -p 80

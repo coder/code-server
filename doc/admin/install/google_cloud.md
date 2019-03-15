@@ -32,7 +32,7 @@ wget https://github.com/codercom/code-server/releases/download/0.1.4/code-server
   ```
   chmod +x code-server-linux
   ```
-> To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+> To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 4. Start the code-server
 ```
 sudo ./code-server-linux -p 80
