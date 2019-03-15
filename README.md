@@ -9,7 +9,7 @@
 
 Try it out:
 ```bash
-docker run -t -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server --allow-http --no-auth
+docker run -t -p 127.0.0.1:8443:8443 -v "${PWD}:/root/project" codercom/code-server code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
@@ -33,7 +33,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 
 ### Binaries
 
-1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OSX supported. Windows coming soon)
+1.  [Download a binary](https://github.com/codercom/code-server/releases) (Linux and OS X supported. Windows coming soon)
 2.  Start the binary with the project directory as the first argument
 
     ```
@@ -59,7 +59,7 @@ How to [secure your setup](/doc/security/ssl.md).
 ### Future
 
 - Windows support.
-- Electron and ChromeOS applications to bridge the gap between local<->remote.
+- Electron and Chrome OS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
 
 ## Contributing
