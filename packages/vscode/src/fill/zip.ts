@@ -58,7 +58,7 @@ export function zip(tarPath: string, files: IFile[]): Promise<string> {
 	});
 }
 
-export async function extract(tarPath: string, targetPath: string, options: IExtractOptions = {}, logService: ILogService, token: CancellationToken): Promise<void> {
+export async function extract(tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> {
 	const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : '');
 
 	return new Promise<void>(async (c, e) => {

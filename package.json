@@ -51,7 +51,6 @@
   },
   "dependencies": {
     "node-loader": "^0.6.0",
-    "trash": "^4.3.0",
     "webpack-merge": "^4.2.1"
   }
 }

@@ -3,8 +3,6 @@ import * as path from "path";
 import * as os from "os";
 import { isCli, buildDir } from "./constants";
 
-declare var __non_webpack_require__: typeof require;
-
 /**
  * Handling of native modules within the CLI
  */
@@ -27,10 +25,9 @@ export const setup = (dataDirectory: string): void => {
 		const diskFile = path.join(dataDirectory, "dependencies", moduleName);
 		if (!fs.existsSync(diskFile)) {
 			fs.writeFileSync(diskFile, fs.readFileSync(memFile));
-
-			if (markExecutable) {
-				fs.chmodSync(diskFile, "755");
-			}
+		}
+		if (markExecutable) {
+			fs.chmodSync(diskFile, "755");
 		}
 	};
 

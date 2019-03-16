@@ -31,30 +31,31 @@ export class Dialog {
 	private input: HTMLInputElement | undefined;
 	private errors: HTMLElement;
 	private buttons: HTMLElement[] | undefined;
+	private readonly msgBox: HTMLElement;
 
 	private actionEmitter = new Emitter<IDialogAction>();
 	public onAction = this.actionEmitter.event;
 
 	public constructor(private readonly options: IDialogOptions) {
-		const msgBox = document.createElement("div");
-		msgBox.classList.add("msgbox");
+		this.msgBox = document.createElement("div");
+		this.msgBox.classList.add("msgbox");
 
 		if (this.options.message) {
 			const messageDiv = document.createElement("div");
 			messageDiv.classList.add("msg");
 			messageDiv.innerText = this.options.message;
-			msgBox.appendChild(messageDiv);
+			this.msgBox.appendChild(messageDiv);
 		}
 
 		if (this.options.detail) {
 			const detailDiv = document.createElement("div");
 			detailDiv.classList.add("detail");
 			detailDiv.innerText = this.options.detail;
-			msgBox.appendChild(detailDiv);
+			this.msgBox.appendChild(detailDiv);
 		}
 
 		if (this.options.input) {
-			msgBox.classList.add("input");
+			this.msgBox.classList.add("input");
 			this.input = document.createElement("input");
 			this.input.classList.add("input");
 			this.input.value = this.options.input.value;
@@ -67,12 +68,11 @@ export class Dialog {
 					});
 				}
 			});
-			msgBox.appendChild(this.input);
+			this.msgBox.appendChild(this.input);
 		}
 
 		this.errors = document.createElement("div");
 		this.errors.classList.add("errors");
-		msgBox.appendChild(this.errors);
 
 		if (this.options.buttons && this.options.buttons.length > 0) {
 			this.buttons = this.options.buttons.map((buttonText, buttonIndex) => {
@@ -92,12 +92,12 @@ export class Dialog {
 			const buttonWrapper = document.createElement("div");
 			buttonWrapper.classList.add("button-wrapper");
 			this.buttons.forEach((b) => buttonWrapper.appendChild(b));
-			msgBox.appendChild(buttonWrapper);
+			this.msgBox.appendChild(buttonWrapper);
 		}
 
 		this.overlay = document.createElement("div");
 		this.overlay.className = "msgbox-overlay";
-		this.overlay.appendChild(msgBox);
+		this.overlay.appendChild(this.msgBox);
 
 		setTimeout(() => {
 			this.overlay.style.opacity = "1";
@@ -122,6 +122,7 @@ export class Dialog {
 			const errorDiv = document.createElement("error");
 			errorDiv.innerText = error;
 			this.errors.appendChild(errorDiv);
+			this.msgBox.appendChild(this.errors);
 		}
 	}
 
@@ -131,7 +132,7 @@ export class Dialog {
 	public show(): void {
 		if (!this.cachedActiveElement) {
 			this.cachedActiveElement = document.activeElement as HTMLElement;
-			document.body.appendChild(this.overlay);
+			(document.getElementById("workbench.main.container") || document.body).appendChild(this.overlay);
 			document.addEventListener("keydown", this.onKeydown);
 			if (this.input) {
 				this.input.focus();

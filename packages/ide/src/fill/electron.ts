@@ -46,7 +46,9 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				return oldSrc!.get!.call(img);
 			},
 			set: (value: string): void => {
-				value = value.replace(/file:\/\//g, "/resource");
+				if (value) {
+					value = value.replace(/file:\/\//g, "/resource");
+				}
 				oldSrc!.set!.call(img, value);
 			},
 		});
@@ -65,7 +67,9 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				return oldInnerHtml!.get!.call(style);
 			},
 			set: (value: string): void => {
-				value = value.replace(/file:\/\//g, "/resource");
+				if (value) {
+					value = value.replace(/file:\/\//g, "/resource");
+				}
 				oldInnerHtml!.set!.call(style, value);
 			},
 		});
@@ -141,6 +145,7 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				// TODO
 				args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m1) => `"/resource${m1}"`);
 				args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m, m1) => `"/resource${m1}"`);
+				args[0].contents = (args[0].contents as string).replace(/style-src vscode-core-resource:/g, "style-src 'self'");
 			}
 			if (view.contentWindow) {
 				view.contentWindow.postMessage({
@@ -179,10 +184,8 @@ class Clipboard {
 
 class Shell {
 	public async moveItemToTrash(path: string): Promise<void> {
-		await client.evaluate((_helper, path) => {
-			const trash = __non_webpack_require__("trash") as typeof import("trash");
-
-			return trash(path);
+		await client.evaluate((helper, path) => {
+			return helper.modules.trash(path);
 		}, path);
 	}
 }

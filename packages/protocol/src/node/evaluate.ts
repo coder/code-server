@@ -4,7 +4,7 @@ import * as vm from "vm";
 import { logger, field } from "@coder/logger";
 import { NewEvalMessage, EvalFailedMessage, EvalDoneMessage, ServerMessage, EvalEventMessage } from "../proto";
 import { SendableConnection } from "../common/connection";
-import { ServerActiveEvalHelper, EvalHelper, ForkProvider } from "../common/helpers";
+import { ServerActiveEvalHelper, EvalHelper, ForkProvider, Modules } from "../common/helpers";
 import { stringify, parse } from "../common/util";
 
 export interface ActiveEvaluation {
@@ -57,9 +57,15 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 		onDispose();
 	};
 
+	const modules: Modules = {
+		spdlog: require("spdlog"),
+		pty: require("node-pty-prebuilt"),
+		trash: require("trash"),
+	};
+
 	let eventEmitter = message.getActive() ? new EventEmitter(): undefined;
 	const sandbox = {
-		helper: eventEmitter ? new ServerActiveEvalHelper({
+		helper: eventEmitter ? new ServerActiveEvalHelper(modules, {
 			removeAllListeners: (event?: string): void => {
 				eventEmitter!.removeAllListeners(event);
 			},
@@ -89,7 +95,7 @@ export const evaluate = (connection: SendableConnection, message: NewEvalMessage
 				connection.send(serverMsg.serializeBinary());
 			},
 			// tslint:enable no-any
-		}, fork || cpFork) : new EvalHelper(),
+		}, fork || cpFork) : new EvalHelper(modules),
 		_Buffer: Buffer,
 		// When the client is ran from Webpack, it will replace
 		// __non_webpack_require__ with require, which we then need to provide to
