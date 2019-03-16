@@ -46,7 +46,9 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				return oldSrc!.get!.call(img);
 			},
 			set: (value: string): void => {
-				value = value.replace(/file:\/\//g, "/resource");
+				if (value) {
+					value = value.replace(/file:\/\//g, "/resource");
+				}
 				oldSrc!.set!.call(img, value);
 			},
 		});
@@ -65,7 +67,9 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				return oldInnerHtml!.get!.call(style);
 			},
 			set: (value: string): void => {
-				value = value.replace(/file:\/\//g, "/resource");
+				if (value) {
+					value = value.replace(/file:\/\//g, "/resource");
+				}
 				oldInnerHtml!.set!.call(style, value);
 			},
 		});
