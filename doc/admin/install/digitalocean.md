@@ -16,17 +16,25 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Open a terminal on your computer and SSH into your instance
   > example: ssh root@203.0.113.0
 - Once in the SSH session, visit code-server [releases page](https://github.com/codercom/code-server/releases/) and copy the link to the download for the latest linux release
-- Find and download the latest Linux release from this URL:
+- Find the latest Linux release from this URL:
   ```
   https://github.com/codercom/code-server/releases/latest
   ```
+- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
+  ```
+  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  ```
 - Extract the downloaded tar.gz file with this command, for example:
   ```
-  tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
+  tar -xvzf code-server-{version}-linux-x64.tar.gz
+  ```
+- Navigate to extracted directory with this command:
+  ```
+  cd code-server-{version}-linux-x64
   ```
 - If you run into any permission errors when attempting to run the binary:
   ```
-  chmod +x code-server-linux
+  chmod +x code-server
   ```
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 - Finally start the code-server

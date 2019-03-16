@@ -25,36 +25,46 @@ If you're just starting out, we recommend [installing code-server locally](../..
 gcloud compute ssh --zone [region] [instance name]
 ```
 
-2. Find and download the latest Linux release from this URL:
+2. Find the latest Linux release from this URL:
 ```
 https://github.com/codercom/code-server/releases/latest
 ```
 
-3. Extract the downloaded tar.gz file with this command, for example:
+3. Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
 ```
-tar -xvzf code-server-1.31.1-100-linux-x64.tar.gz
+wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
 ```
 
-4. Make the binary executable if you run into any errors regarding permission:
+4. Extract the downloaded tar.gz file with this command, for example:
 ```
-chmod +x code-server-linux
+tar -xvzf code-server-{version}-linux-x64.tar.gz
+```
+
+5. Navigate to extracted directory with this command:
+```
+cd code-server-{version}-linux-x64
+```
+
+6. Make the binary executable if you run into any errors regarding permission:
+```
+chmod +x code-server
 ```
 
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
-5. Start the code-server
+7. Start the code-server
 ```
 sudo ./code-server-linux -p 80
 ```
 
 > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
 
-6. Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
+8. Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
 > example: 32.32.32.234
 
-7. You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
+9. You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
 
-8. Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
+10. Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
 
 ---
 
