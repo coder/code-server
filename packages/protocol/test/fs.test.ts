@@ -128,7 +128,7 @@ describe("fs", () => {
 	});
 
 	describe("createWriteStream", () => {
-		it.only("should write to file", async () => {
+		it("should write to file", async () => {
 			const file = tmpFile();
 			const content = "howdy\nhow\nr\nu";
 			const stream = fs.createWriteStream(file);

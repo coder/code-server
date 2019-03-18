@@ -23,7 +23,9 @@ export interface WriteStreamProxy extends DisposableProxy {
 	write(data: any, encoding?: string): Promise<void>;
 
 	on(event: "close", cb: () => void): Promise<void>;
+	on(event: "drain", cb: () => void): Promise<void>;
 	on(event: "error", cb: (error: Error) => void): Promise<void>;
+	on(event: "finish", cb: () => void): Promise<void>;
 	on(event: "open", cb: (fd: number) => void): Promise<void>;
 }
 
@@ -48,7 +50,7 @@ export interface FsProxy {
 	chown(path: fs.PathLike, uid: number, gid: number): Promise<void>;
 	close(fd: number): Promise<void>;
 	copyFile(src: fs.PathLike, dest: fs.PathLike, flags?: number): Promise<void>;
-	createWriteStream(path: fs.PathLike, options?: any): Promise<WriteStreamProxy>;
+	createWriteStream(path: fs.PathLike, options?: any): WriteStreamProxy;
 	exists(path: fs.PathLike): Promise<boolean>;
 	fchmod(fd: number, mode: string | number): Promise<void>;
 	fchown(fd: number, uid: number, gid: number): Promise<void>;
@@ -64,7 +66,7 @@ export interface FsProxy {
 	mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void>;
 	mkdtemp(prefix: string, options: IEncodingOptions): Promise<string | Buffer>;
 	open(path: fs.PathLike, flags: string | number, mode: string | number | undefined | null): Promise<number>;
-	read<TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: TBuffer }>;
+	read(fd: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: Buffer }>;
 	readFile(path: fs.PathLike | number, options: IEncodingOptions): Promise<string | Buffer>;
 	readdir(path: fs.PathLike, options: IEncodingOptions): Promise<Buffer[] | fs.Dirent[] | string[]>;
 	readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer>;
@@ -76,9 +78,9 @@ export interface FsProxy {
 	truncate(path: fs.PathLike, len?: number | null): Promise<void>;
 	unlink(path: fs.PathLike): Promise<void>;
 	utimes(path: fs.PathLike, atime: string | number | Date, mtime: string | number | Date): Promise<void>;
-	write<TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: TBuffer }>;
+	write(fd: number, buffer: Buffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: Buffer }>;
 	writeFile (path: fs.PathLike | number, data: any, options: IEncodingOptions): Promise<void> ;
-	watch(filename: fs.PathLike, options?: IEncodingOptions): Promise<WatcherProxy>;
+	watch(filename: fs.PathLike, options?: IEncodingOptions): WatcherProxy;
 }
 
 /**

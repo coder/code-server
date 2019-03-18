@@ -6,7 +6,7 @@ import "vscode.proto";
 message ClientMessage {
 	oneof msg {
 		// node.proto
-		MethodMessage proxy = 20;
+		MethodMessage method = 20;
 		Ping ping = 21;
 	}
 }

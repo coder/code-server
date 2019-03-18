@@ -3,12 +3,9 @@
 
 import * as jspb from "google-protobuf";
 
-export class MethodMessage extends jspb.Message {
+export class NamedProxyMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
-
-  getProxyId(): number;
-  setProxyId(value: number): void;
 
   getModule(): string;
   setModule(value: string): void;
@@ -22,6 +19,71 @@ export class MethodMessage extends jspb.Message {
   addArgs(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NamedProxyMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NamedProxyMessage): NamedProxyMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NamedProxyMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NamedProxyMessage;
+  static deserializeBinaryFromReader(message: NamedProxyMessage, reader: jspb.BinaryReader): NamedProxyMessage;
+}
+
+export namespace NamedProxyMessage {
+  export type AsObject = {
+    id: number,
+    module: string,
+    method: string,
+    argsList: Array<string>,
+  }
+}
+
+export class NumberedProxyMessage extends jspb.Message {
+  getId(): number;
+  setId(value: number): void;
+
+  getProxyId(): number;
+  setProxyId(value: number): void;
+
+  getMethod(): string;
+  setMethod(value: string): void;
+
+  clearArgsList(): void;
+  getArgsList(): Array<string>;
+  setArgsList(value: Array<string>): void;
+  addArgs(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NumberedProxyMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NumberedProxyMessage): NumberedProxyMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NumberedProxyMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NumberedProxyMessage;
+  static deserializeBinaryFromReader(message: NumberedProxyMessage, reader: jspb.BinaryReader): NumberedProxyMessage;
+}
+
+export namespace NumberedProxyMessage {
+  export type AsObject = {
+    id: number,
+    proxyId: number,
+    method: string,
+    argsList: Array<string>,
+  }
+}
+
+export class MethodMessage extends jspb.Message {
+  hasNamedProxy(): boolean;
+  clearNamedProxy(): void;
+  getNamedProxy(): NamedProxyMessage | undefined;
+  setNamedProxy(value?: NamedProxyMessage): void;
+
+  hasNumberedProxy(): boolean;
+  clearNumberedProxy(): void;
+  getNumberedProxy(): NumberedProxyMessage | undefined;
+  setNumberedProxy(value?: NumberedProxyMessage): void;
+
+  getMsgCase(): MethodMessage.MsgCase;
+  serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): MethodMessage.AsObject;
   static toObject(includeInstance: boolean, msg: MethodMessage): MethodMessage.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
@@ -33,17 +95,20 @@ export class MethodMessage extends jspb.Message {
 
 export namespace MethodMessage {
   export type AsObject = {
-    id: number,
-    proxyId: number,
-    module: string,
-    method: string,
-    argsList: Array<string>,
+    namedProxy?: NamedProxyMessage.AsObject,
+    numberedProxy?: NumberedProxyMessage.AsObject,
+  }
+
+  export enum MsgCase {
+    MSG_NOT_SET = 0,
+    NAMED_PROXY = 1,
+    NUMBERED_PROXY = 2,
   }
 }
 
 export class CallbackMessage extends jspb.Message {
-  getId(): number;
-  setId(value: number): void;
+  getCallbackId(): number;
+  setCallbackId(value: number): void;
 
   getProxyId(): number;
   setProxyId(value: number): void;
@@ -65,7 +130,7 @@ export class CallbackMessage extends jspb.Message {
 
 export namespace CallbackMessage {
   export type AsObject = {
-    id: number,
+    callbackId: number,
     proxyId: number,
     argsList: Array<string>,
   }

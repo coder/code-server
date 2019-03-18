@@ -1,24 +1,43 @@
 syntax = "proto3";
 
-message MethodMessage {
+// A proxy identified by a unique name like "fs".
+message NamedProxyMessage {
 	uint64 id = 1;
-	uint64 proxy_id = 2;
-	string module = 3;
-	string method = 4;
-	repeated string args = 5;
+	string module = 2;
+	string method = 3;
+	repeated string args = 4;
 }
 
-message CallbackMessage {
+// A general proxy identified by an ID like WriteStream.
+message NumberedProxyMessage {
 	uint64 id = 1;
+	uint64 proxy_id = 2;
+	string method = 3;
+	repeated string args = 4;
+}
+
+// Call a remote method.
+message MethodMessage {
+	oneof msg {
+		NamedProxyMessage named_proxy = 1;
+		NumberedProxyMessage numbered_proxy = 2;
+	}
+}
+
+// Call a remote callback.
+message CallbackMessage {
+	uint64 callback_id = 1;
 	uint64 proxy_id = 2;
 	repeated string args = 3;
 }
 
+// Remote method failed.
 message FailMessage {
 	uint64 id = 1;
 	string response = 2;
 }
 
+// Remote method succeeded.
 message SuccessMessage {
 	uint64 id = 1;
 	string response = 2;

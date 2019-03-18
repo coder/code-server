@@ -9,29 +9,24 @@ import { WritableStream } from "./stream";
 // tslint:disable no-any
 
 class Watcher extends EventEmitter implements fs.FSWatcher {
-	public constructor(private readonly watcherProxyPromise: Promise<WatcherProxy>) {
+	public constructor(private readonly watcherProxy: WatcherProxy) {
 		super();
-		this.watcherProxyPromise.then((p) => {
-			p.on("change", (event, filename) => this.emit("change", event, filename));
-			p.on("close", () => this.emit("close"));
-			p.on("error", (error) => this.emit("error", error));
-		}).catch((e) => this.emit("error", e));
+		this.watcherProxy.on("change", (event, filename) => this.emit("change", event, filename));
+		this.watcherProxy.on("close", () => this.emit("close"));
+		this.watcherProxy.on("error", (error) => this.emit("error", error));
 	}
 
 	public close(): void {
-		this.watcherProxyPromise.then((p) => p.close());
+		this.watcherProxy.close();
 	}
 }
 
 class WriteStream extends WritableStream implements fs.WriteStream {
 	private _bytesWritten: number = 0;
 
-	public constructor(writeStreamProxyPromise: Promise<WriteStreamProxy>) {
-		super(writeStreamProxyPromise);
-		this.writeStreamProxyPromise.then((p) => {
-			p.on("open", (fd) => this.emit("open", fd));
-			p.on("close", () => this.emit("close"));
-		});
+	public constructor(writeStreamProxy: WriteStreamProxy) {
+		super(writeStreamProxy);
+		this.writeStreamProxy.on("open", (fd) => this.emit("open", fd));
 	}
 
 	public get bytesWritten(): number {
@@ -43,11 +38,7 @@ class WriteStream extends WritableStream implements fs.WriteStream {
 	}
 
 	public close(): void {
-		this.writeStreamProxyPromise.then((p) => p.close());
-	}
-
-	public destroy(): void {
-		this.writeStreamProxyPromise.then((p) => p.destroy());
+		this.writeStreamProxy.close();
 	}
 }
 
@@ -181,10 +172,10 @@ export class Fs {
 		callbackify(this.proxy.open)(path, flags, mode, callback!);
 	}
 
-	public read = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException, bytesRead: number, buffer: TBuffer) => void): void => {
-		this.proxy.read(fd, Buffer.from([]), offset, length, position).then((response) => {
+	public read = (fd: number, buffer: Buffer, offset: number, length: number, position: number | null, callback: (err: NodeJS.ErrnoException, bytesRead: number, buffer: Buffer) => void): void => {
+		this.proxy.read(fd, length, position).then((response) => {
 			buffer.set(response.buffer, offset);
-			callback(undefined!, response.bytesRead, buffer);
+			callback(undefined!, response.bytesRead, response.buffer);
 		}).catch((error) => {
 			callback(error, undefined!, undefined!);
 		});
@@ -260,7 +251,7 @@ export class Fs {
 		callbackify(this.proxy.utimes)(path, atime, mtime, callback!);
 	}
 
-	public write = <TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), length: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), position: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void), callback?: (err: NodeJS.ErrnoException, written: number, buffer: TBuffer) => void): void => {
+	public write = (fd: number, buffer: Buffer, offset: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: Buffer) => void), length: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: Buffer) => void), position: number | undefined | ((err: NodeJS.ErrnoException, written: number, buffer: Buffer) => void), callback?: (err: NodeJS.ErrnoException, written: number, buffer: Buffer) => void): void => {
 		if (typeof offset === "function") {
 			callback = offset;
 			offset = undefined;
@@ -294,12 +285,12 @@ export class Fs {
 			options = undefined;
 		}
 
-		const watcherProxyPromise = this.proxy.watch(filename, options);
+		const watcherProxy = this.proxy.watch(filename, options);
 		if (listener) {
-			watcherProxyPromise.then((p) => p.on("listener", listener!));
+			watcherProxy.on("listener", listener);
 		}
 
-		return new Watcher(watcherProxyPromise);
+		return new Watcher(watcherProxy);
 	}
 }
 

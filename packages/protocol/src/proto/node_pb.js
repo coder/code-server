@@ -14,6 +14,8 @@ var global = Function('return this')();
 goog.exportSymbol('proto.CallbackMessage', null, global);
 goog.exportSymbol('proto.FailMessage', null, global);
 goog.exportSymbol('proto.MethodMessage', null, global);
+goog.exportSymbol('proto.NamedProxyMessage', null, global);
+goog.exportSymbol('proto.NumberedProxyMessage', null, global);
 goog.exportSymbol('proto.Ping', null, global);
 goog.exportSymbol('proto.Pong', null, global);
 goog.exportSymbol('proto.SuccessMessage', null, global);
@@ -28,19 +30,526 @@ goog.exportSymbol('proto.SuccessMessage', null, global);
  * @extends {jspb.Message}
  * @constructor
  */
-proto.MethodMessage = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, proto.MethodMessage.repeatedFields_, null);
+proto.NamedProxyMessage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.NamedProxyMessage.repeatedFields_, null);
 };
-goog.inherits(proto.MethodMessage, jspb.Message);
+goog.inherits(proto.NamedProxyMessage, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.MethodMessage.displayName = 'proto.MethodMessage';
+  proto.NamedProxyMessage.displayName = 'proto.NamedProxyMessage';
 }
 /**
  * List of repeated fields within this message type.
  * @private {!Array<number>}
  * @const
  */
-proto.MethodMessage.repeatedFields_ = [5];
+proto.NamedProxyMessage.repeatedFields_ = [4];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.NamedProxyMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.NamedProxyMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.NamedProxyMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.NamedProxyMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    module: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    method: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    argsList: jspb.Message.getRepeatedField(msg, 4)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.NamedProxyMessage}
+ */
+proto.NamedProxyMessage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.NamedProxyMessage;
+  return proto.NamedProxyMessage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.NamedProxyMessage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.NamedProxyMessage}
+ */
+proto.NamedProxyMessage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setId(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setModule(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMethod(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addArgs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.NamedProxyMessage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.NamedProxyMessage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.NamedProxyMessage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.NamedProxyMessage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getId();
+  if (f !== 0) {
+    writer.writeUint64(
+      1,
+      f
+    );
+  }
+  f = message.getModule();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+  f = message.getMethod();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getArgsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint64 id = 1;
+ * @return {number}
+ */
+proto.NamedProxyMessage.prototype.getId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.NamedProxyMessage.prototype.setId = function(value) {
+  jspb.Message.setProto3IntField(this, 1, value);
+};
+
+
+/**
+ * optional string module = 2;
+ * @return {string}
+ */
+proto.NamedProxyMessage.prototype.getModule = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.NamedProxyMessage.prototype.setModule = function(value) {
+  jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string method = 3;
+ * @return {string}
+ */
+proto.NamedProxyMessage.prototype.getMethod = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.NamedProxyMessage.prototype.setMethod = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated string args = 4;
+ * @return {!Array<string>}
+ */
+proto.NamedProxyMessage.prototype.getArgsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.NamedProxyMessage.prototype.setArgsList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.NamedProxyMessage.prototype.addArgs = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.NamedProxyMessage.prototype.clearArgsList = function() {
+  this.setArgsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.NumberedProxyMessage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.NumberedProxyMessage.repeatedFields_, null);
+};
+goog.inherits(proto.NumberedProxyMessage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.NumberedProxyMessage.displayName = 'proto.NumberedProxyMessage';
+}
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.NumberedProxyMessage.repeatedFields_ = [4];
+
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.NumberedProxyMessage.prototype.toObject = function(opt_includeInstance) {
+  return proto.NumberedProxyMessage.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.NumberedProxyMessage} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.NumberedProxyMessage.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    proxyId: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    method: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    argsList: jspb.Message.getRepeatedField(msg, 4)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.NumberedProxyMessage}
+ */
+proto.NumberedProxyMessage.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.NumberedProxyMessage;
+  return proto.NumberedProxyMessage.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.NumberedProxyMessage} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.NumberedProxyMessage}
+ */
+proto.NumberedProxyMessage.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setId(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint64());
+      msg.setProxyId(value);
+      break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setMethod(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addArgs(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.NumberedProxyMessage.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.NumberedProxyMessage.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.NumberedProxyMessage} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.NumberedProxyMessage.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getId();
+  if (f !== 0) {
+    writer.writeUint64(
+      1,
+      f
+    );
+  }
+  f = message.getProxyId();
+  if (f !== 0) {
+    writer.writeUint64(
+      2,
+      f
+    );
+  }
+  f = message.getMethod();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
+  f = message.getArgsList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      4,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional uint64 id = 1;
+ * @return {number}
+ */
+proto.NumberedProxyMessage.prototype.getId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+};
+
+
+/** @param {number} value */
+proto.NumberedProxyMessage.prototype.setId = function(value) {
+  jspb.Message.setProto3IntField(this, 1, value);
+};
+
+
+/**
+ * optional uint64 proxy_id = 2;
+ * @return {number}
+ */
+proto.NumberedProxyMessage.prototype.getProxyId = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.NumberedProxyMessage.prototype.setProxyId = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional string method = 3;
+ * @return {string}
+ */
+proto.NumberedProxyMessage.prototype.getMethod = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.NumberedProxyMessage.prototype.setMethod = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * repeated string args = 4;
+ * @return {!Array<string>}
+ */
+proto.NumberedProxyMessage.prototype.getArgsList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 4));
+};
+
+
+/** @param {!Array<string>} value */
+proto.NumberedProxyMessage.prototype.setArgsList = function(value) {
+  jspb.Message.setField(this, 4, value || []);
+};
+
+
+/**
+ * @param {!string} value
+ * @param {number=} opt_index
+ */
+proto.NumberedProxyMessage.prototype.addArgs = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 4, value, opt_index);
+};
+
+
+proto.NumberedProxyMessage.prototype.clearArgsList = function() {
+  this.setArgsList([]);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.MethodMessage = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, proto.MethodMessage.oneofGroups_);
+};
+goog.inherits(proto.MethodMessage, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.MethodMessage.displayName = 'proto.MethodMessage';
+}
+/**
+ * Oneof group definitions for this message. Each group defines the field
+ * numbers belonging to that group. When of these fields' value is set, all
+ * other fields in the group are cleared. During deserialization, if multiple
+ * fields are encountered for a group, only the last value seen will be kept.
+ * @private {!Array<!Array<number>>}
+ * @const
+ */
+proto.MethodMessage.oneofGroups_ = [[1,2]];
+
+/**
+ * @enum {number}
+ */
+proto.MethodMessage.MsgCase = {
+  MSG_NOT_SET: 0,
+  NAMED_PROXY: 1,
+  NUMBERED_PROXY: 2
+};
+
+/**
+ * @return {proto.MethodMessage.MsgCase}
+ */
+proto.MethodMessage.prototype.getMsgCase = function() {
+  return /** @type {proto.MethodMessage.MsgCase} */(jspb.Message.computeOneofCase(this, proto.MethodMessage.oneofGroups_[0]));
+};
 
 
 
@@ -71,11 +580,8 @@ proto.MethodMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.MethodMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
-    proxyId: jspb.Message.getFieldWithDefault(msg, 2, 0),
-    module: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    method: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    argsList: jspb.Message.getRepeatedField(msg, 5)
+    namedProxy: (f = msg.getNamedProxy()) && proto.NamedProxyMessage.toObject(includeInstance, f),
+    numberedProxy: (f = msg.getNumberedProxy()) && proto.NumberedProxyMessage.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -113,24 +619,14 @@ proto.MethodMessage.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readUint64());
-      msg.setId(value);
+      var value = new proto.NamedProxyMessage;
+      reader.readMessage(value,proto.NamedProxyMessage.deserializeBinaryFromReader);
+      msg.setNamedProxy(value);
       break;
     case 2:
-      var value = /** @type {number} */ (reader.readUint64());
-      msg.setProxyId(value);
-      break;
-    case 3:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setModule(value);
-      break;
-    case 4:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setMethod(value);
-      break;
-    case 5:
-      var value = /** @type {string} */ (reader.readString());
-      msg.addArgs(value);
+      var value = new proto.NumberedProxyMessage;
+      reader.readMessage(value,proto.NumberedProxyMessage.deserializeBinaryFromReader);
+      msg.setNumberedProxy(value);
       break;
     default:
       reader.skipField();
@@ -161,130 +657,82 @@ proto.MethodMessage.prototype.serializeBinary = function() {
  */
 proto.MethodMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getId();
-  if (f !== 0) {
-    writer.writeUint64(
+  f = message.getNamedProxy();
+  if (f != null) {
+    writer.writeMessage(
       1,
-      f
+      f,
+      proto.NamedProxyMessage.serializeBinaryToWriter
     );
   }
-  f = message.getProxyId();
-  if (f !== 0) {
-    writer.writeUint64(
+  f = message.getNumberedProxy();
+  if (f != null) {
+    writer.writeMessage(
       2,
-      f
-    );
-  }
-  f = message.getModule();
-  if (f.length > 0) {
-    writer.writeString(
-      3,
-      f
-    );
-  }
-  f = message.getMethod();
-  if (f.length > 0) {
-    writer.writeString(
-      4,
-      f
-    );
-  }
-  f = message.getArgsList();
-  if (f.length > 0) {
-    writer.writeRepeatedString(
-      5,
-      f
+      f,
+      proto.NumberedProxyMessage.serializeBinaryToWriter
     );
   }
 };
 
 
 /**
- * optional uint64 id = 1;
- * @return {number}
+ * optional NamedProxyMessage named_proxy = 1;
+ * @return {?proto.NamedProxyMessage}
  */
-proto.MethodMessage.prototype.getId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
+proto.MethodMessage.prototype.getNamedProxy = function() {
+  return /** @type{?proto.NamedProxyMessage} */ (
+    jspb.Message.getWrapperField(this, proto.NamedProxyMessage, 1));
 };
 
 
-/** @param {number} value */
-proto.MethodMessage.prototype.setId = function(value) {
-  jspb.Message.setProto3IntField(this, 1, value);
+/** @param {?proto.NamedProxyMessage|undefined} value */
+proto.MethodMessage.prototype.setNamedProxy = function(value) {
+  jspb.Message.setOneofWrapperField(this, 1, proto.MethodMessage.oneofGroups_[0], value);
+};
+
+
+proto.MethodMessage.prototype.clearNamedProxy = function() {
+  this.setNamedProxy(undefined);
 };
 
 
 /**
- * optional uint64 proxy_id = 2;
- * @return {number}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.MethodMessage.prototype.getProxyId = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
-};
-
-
-/** @param {number} value */
-proto.MethodMessage.prototype.setProxyId = function(value) {
-  jspb.Message.setProto3IntField(this, 2, value);
+proto.MethodMessage.prototype.hasNamedProxy = function() {
+  return jspb.Message.getField(this, 1) != null;
 };
 
 
 /**
- * optional string module = 3;
- * @return {string}
+ * optional NumberedProxyMessage numbered_proxy = 2;
+ * @return {?proto.NumberedProxyMessage}
  */
-proto.MethodMessage.prototype.getModule = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+proto.MethodMessage.prototype.getNumberedProxy = function() {
+  return /** @type{?proto.NumberedProxyMessage} */ (
+    jspb.Message.getWrapperField(this, proto.NumberedProxyMessage, 2));
 };
 
 
-/** @param {string} value */
-proto.MethodMessage.prototype.setModule = function(value) {
-  jspb.Message.setProto3StringField(this, 3, value);
+/** @param {?proto.NumberedProxyMessage|undefined} value */
+proto.MethodMessage.prototype.setNumberedProxy = function(value) {
+  jspb.Message.setOneofWrapperField(this, 2, proto.MethodMessage.oneofGroups_[0], value);
+};
+
+
+proto.MethodMessage.prototype.clearNumberedProxy = function() {
+  this.setNumberedProxy(undefined);
 };
 
 
 /**
- * optional string method = 4;
- * @return {string}
+ * Returns whether this field is set.
+ * @return {!boolean}
  */
-proto.MethodMessage.prototype.getMethod = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
-};
-
-
-/** @param {string} value */
-proto.MethodMessage.prototype.setMethod = function(value) {
-  jspb.Message.setProto3StringField(this, 4, value);
-};
-
-
-/**
- * repeated string args = 5;
- * @return {!Array<string>}
- */
-proto.MethodMessage.prototype.getArgsList = function() {
-  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 5));
-};
-
-
-/** @param {!Array<string>} value */
-proto.MethodMessage.prototype.setArgsList = function(value) {
-  jspb.Message.setField(this, 5, value || []);
-};
-
-
-/**
- * @param {!string} value
- * @param {number=} opt_index
- */
-proto.MethodMessage.prototype.addArgs = function(value, opt_index) {
-  jspb.Message.addToRepeatedField(this, 5, value, opt_index);
-};
-
-
-proto.MethodMessage.prototype.clearArgsList = function() {
-  this.setArgsList([]);
+proto.MethodMessage.prototype.hasNumberedProxy = function() {
+  return jspb.Message.getField(this, 2) != null;
 };
 
 
@@ -342,7 +790,7 @@ proto.CallbackMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.CallbackMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, 0),
+    callbackId: jspb.Message.getFieldWithDefault(msg, 1, 0),
     proxyId: jspb.Message.getFieldWithDefault(msg, 2, 0),
     argsList: jspb.Message.getRepeatedField(msg, 3)
   };
@@ -383,7 +831,7 @@ proto.CallbackMessage.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {number} */ (reader.readUint64());
-      msg.setId(value);
+      msg.setCallbackId(value);
       break;
     case 2:
       var value = /** @type {number} */ (reader.readUint64());
@@ -422,7 +870,7 @@ proto.CallbackMessage.prototype.serializeBinary = function() {
  */
 proto.CallbackMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getId();
+  f = message.getCallbackId();
   if (f !== 0) {
     writer.writeUint64(
       1,
@@ -447,16 +895,16 @@ proto.CallbackMessage.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional uint64 id = 1;
+ * optional uint64 callback_id = 1;
  * @return {number}
  */
-proto.CallbackMessage.prototype.getId = function() {
+proto.CallbackMessage.prototype.getCallbackId = function() {
   return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 1, 0));
 };
 
 
 /** @param {number} value */
-proto.CallbackMessage.prototype.setId = function(value) {
+proto.CallbackMessage.prototype.setCallbackId = function(value) {
   jspb.Message.setProto3IntField(this, 1, value);
 };
 

@@ -50,7 +50,7 @@ proto.ClientMessage.oneofGroups_ = [[20,21]];
  */
 proto.ClientMessage.MsgCase = {
   MSG_NOT_SET: 0,
-  PROXY: 20,
+  METHOD: 20,
   PING: 21
 };
 
@@ -90,7 +90,7 @@ proto.ClientMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ClientMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    proxy: (f = msg.getProxy()) && node_pb.MethodMessage.toObject(includeInstance, f),
+    method: (f = msg.getMethod()) && node_pb.MethodMessage.toObject(includeInstance, f),
     ping: (f = msg.getPing()) && node_pb.Ping.toObject(includeInstance, f)
   };
 
@@ -131,7 +131,7 @@ proto.ClientMessage.deserializeBinaryFromReader = function(msg, reader) {
     case 20:
       var value = new node_pb.MethodMessage;
       reader.readMessage(value,node_pb.MethodMessage.deserializeBinaryFromReader);
-      msg.setProxy(value);
+      msg.setMethod(value);
       break;
     case 21:
       var value = new node_pb.Ping;
@@ -167,7 +167,7 @@ proto.ClientMessage.prototype.serializeBinary = function() {
  */
 proto.ClientMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getProxy();
+  f = message.getMethod();
   if (f != null) {
     writer.writeMessage(
       20,
@@ -187,23 +187,23 @@ proto.ClientMessage.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional MethodMessage proxy = 20;
+ * optional MethodMessage method = 20;
  * @return {?proto.MethodMessage}
  */
-proto.ClientMessage.prototype.getProxy = function() {
+proto.ClientMessage.prototype.getMethod = function() {
   return /** @type{?proto.MethodMessage} */ (
     jspb.Message.getWrapperField(this, node_pb.MethodMessage, 20));
 };
 
 
 /** @param {?proto.MethodMessage|undefined} value */
-proto.ClientMessage.prototype.setProxy = function(value) {
+proto.ClientMessage.prototype.setMethod = function(value) {
   jspb.Message.setOneofWrapperField(this, 20, proto.ClientMessage.oneofGroups_[0], value);
 };
 
 
-proto.ClientMessage.prototype.clearProxy = function() {
-  this.setProxy(undefined);
+proto.ClientMessage.prototype.clearMethod = function() {
+  this.setMethod(undefined);
 };
 
 
@@ -211,7 +211,7 @@ proto.ClientMessage.prototype.clearProxy = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ClientMessage.prototype.hasProxy = function() {
+proto.ClientMessage.prototype.hasMethod = function() {
   return jspb.Message.getField(this, 20) != null;
 };
 

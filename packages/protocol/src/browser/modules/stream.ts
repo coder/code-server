@@ -7,9 +7,12 @@ import { WriteStreamProxy } from "../../common/proxy";
 // tslint:disable no-any
 
 export class WritableStream extends EventEmitter implements Writable {
-	public constructor(protected readonly writeStreamProxyPromise: Promise<WriteStreamProxy>) {
+	public constructor(protected readonly writeStreamProxy: WriteStreamProxy) {
 		super();
-		this.writeStreamProxyPromise.catch((e) => this.emit("error", e));
+		this.writeStreamProxy.on("close", () => this.emit("close"));
+		this.writeStreamProxy.on("drain", () => this.emit("drain"));
+		this.writeStreamProxy.on("error", (error) => this.emit("error", error));
+		this.writeStreamProxy.on("finish", () => this.emit("finish"));
 	}
 
 	public get writable(): boolean { throw new Error("not implemented"); }
@@ -23,26 +26,24 @@ export class WritableStream extends EventEmitter implements Writable {
 	public uncork(): void { throw new Error("not implemented"); }
 
 	public destroy(): void {
-		this.writeStreamProxyPromise.then((p) => p.destroy());
+		this.writeStreamProxy.destroy();
 	}
 
 	public setDefaultEncoding(encoding: string): this {
-		this.writeStreamProxyPromise.then((p) => p.setDefaultEncoding(encoding));
+		this.writeStreamProxy.setDefaultEncoding(encoding);
 
 		return this;
 	}
 
 	public write(chunk: any, encoding?: string | ((error?: Error | null) => void), callback?: (error?: Error | null) => void): boolean {
-		this.writeStreamProxyPromise.then((p) => {
-			if (typeof encoding === "function") {
-				callback = encoding;
-				encoding = undefined;
+		if (typeof encoding === "function") {
+			callback = encoding;
+			encoding = undefined;
+		}
+		callbackify(this.writeStreamProxy.write)(chunk, encoding, (error) => {
+			if (callback) {
+				callback(error);
 			}
-			callbackify(p.write)(chunk, encoding, (error) => {
-				if (callback) {
-					callback(error);
-				}
-			});
 		});
 
 		// Always true since we can't get this synchronously.
@@ -50,20 +51,18 @@ export class WritableStream extends EventEmitter implements Writable {
 	}
 
 	public end(data?: any | (() => void), encoding?: string | (() => void), callback?: (() => void)): void {
-		this.writeStreamProxyPromise.then((p) => {
-			if (typeof data === "function") {
-				callback = data;
-				data = undefined;
+		if (typeof data === "function") {
+			callback = data;
+			data = undefined;
+		}
+		if (typeof encoding === "function") {
+			callback = encoding;
+			encoding = undefined;
+		}
+		callbackify(this.writeStreamProxy.end)(data, encoding, () => {
+			if (callback) {
+				callback();
 			}
-			if (typeof encoding === "function") {
-				callback = encoding;
-				encoding = undefined;
-			}
-			callbackify(p.end)(data, encoding, () => {
-				if (callback) {
-					callback();
-				}
-			});
 		});
 	}
 }

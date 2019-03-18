@@ -4,7 +4,6 @@ import * as os from "os";
 import { logger, field } from "@coder/logger";
 import { Pong, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, SuccessMessage, FailMessage, CallbackMessage } from "../proto";
 import { ReadWriteConnection } from "../common/connection";
-import { DisposableProxy } from "../common/proxy";
 import { stringify, parse, isPromise, isProxy } from "../common/util";
 import { Fs } from "./modules";
 
@@ -22,10 +21,7 @@ export interface ServerOptions {
 }
 
 export class Server {
-	private readonly proxies = new Map<number, DisposableProxy>();
-	private readonly modules = {
-		fs: new Fs(),
-	};
+	private readonly proxies = new Map<number | string, any>();
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -47,8 +43,11 @@ export class Server {
 		});
 
 		connection.onClose(() => {
-			this.proxies.forEach((p) => p.dispose());
+			this.proxies.forEach((p) => p.dispose && p.dispose());
+			this.proxies.clear();
 		});
+
+		this.proxies.set("fs", new Fs());
 
 		if (!this.options) {
 			logger.warn("No server options provided. InitMessage will not be sent.");
@@ -96,16 +95,8 @@ export class Server {
 	 * Handle all messages from the client.
 	 */
 	private async handleMessage(message: ClientMessage): Promise<void> {
-		if (message.hasProxy()) {
-			const proxyMessage = message.getProxy()!;
-			logger.trace(() => [
-				"received",
-				field("id", proxyMessage.getId()),
-				field("module", proxyMessage.getModule()),
-				field("method", proxyMessage.getMethod()),
-				field("args", proxyMessage.getArgsList()),
-			]);
-			await this.runProxy(proxyMessage);
+		if (message.hasMethod()) {
+			await this.runMethod(message.getMethod()!);
 		} else if (message.hasPing()) {
 			logger.trace("ping");
 			const srvMsg = new ServerMessage();
@@ -119,50 +110,69 @@ export class Server {
 	/**
 	 * Run a method on a proxy.
 	 */
-	private async runProxy(message: MethodMessage): Promise<void> {
-		// The method will either be for a module proxy or a proxy returned by one
-		// of the module's methods.
-		const moduleNameOrProxyId = message.getModule() || message.getProxyId();
-		const proxy = typeof moduleNameOrProxyId === "string"
-			? this.modules[moduleNameOrProxyId as "fs"]
-			: this.proxies.get(moduleNameOrProxyId);
+	private async runMethod(message: MethodMessage): Promise<void> {
+		const proxyMessage = message.getNamedProxy()! || message.getNumberedProxy()!;
+		const id = proxyMessage.getId();
+		const proxyId = message.hasNamedProxy()
+			? message.getNamedProxy()!.getModule()
+			: message.getNumberedProxy()!.getProxyId();
+		const method = proxyMessage.getMethod();
+		// The second argument to `parse` here describes how to make a remote
+		// call for a callback.
+		const args = proxyMessage.getArgsList().map((a) => parse(a, (id, args) => {
+			const callbackMessage = new CallbackMessage();
+			callbackMessage.setCallbackId(id);
+			callbackMessage.setArgsList(args.map((a) => stringify(a)));
+
+			const serverMessage = new ServerMessage();
+			serverMessage.setCallback(callbackMessage);
+			this.connection.send(serverMessage.serializeBinary());
+		}));
+
+		logger.trace(() => [
+			"received",
+			field("id", id),
+			field("proxyId", proxyId),
+			field("method", method),
+			field("args", args),
+		]);
 
 		try {
-			const method = message.getMethod();
-			if (typeof (proxy as any)[method] !== "function") {
+			const proxy = this.proxies.get(proxyId);
+
+			if (typeof proxy[method] !== "function") {
 				throw new Error(`"${method}" is not a function`);
 			}
 
-			const result = (proxy as any)[method](
-				// The function passed here describes how to make a remote call for a
-				// callback. Calling proxies from the client on the server isn't currently
-				// needed, so the first function isn't provided.
-				...message.getArgsList().map((a) => parse(a, undefined, (id, args) => {
-					const callbackMessage = new CallbackMessage();
-					callbackMessage.setId(id);
-					callbackMessage.setArgsList(args.map((a) => stringify(a)));
+			let response = (proxy as any)[method](...args);
 
-					const serverMessage = new ServerMessage();
-					serverMessage.setCallback(callbackMessage);
-					this.connection.send(serverMessage.serializeBinary());
-				})),
-			);
-
-			// Proxies must always return promises since synchronous values won't work
-			// due to the async nature of these messages. This is mostly just to catch
-			// errors during development.
-			if (!isPromise(result)) {
-				throw new Error("invalid response from proxy");
+			// Proxies must always return promises or proxies since synchronous values
+			// won't work due to the async nature of these messages. Proxies must be
+			// returned synchronously so we can store them and attach callbacks
+			// immediately (like "open" which won't work if attached too late). The
+			// client creates its own proxies which is what allows this to work.
+			if (isPromise(response)) {
+				response = await response;
+				if (isProxy(response)) {
+					throw new Error(`"${method}" proxy must be returned synchronously`);
+				}
+			} else if (isProxy(response)) {
+				this.proxies.set(id, response);
+				response.onDidDispose(() => this.proxies.delete(id));
+				// No need to send anything back since the client creates the proxy.
+				response = undefined;
+			} else {
+				const error = new Error(`invalid response from "${method}"`);
+				logger.error(
+					error.message,
+					field("type", typeof response),
+					field("proxyId", proxyId),
+				);
+				throw error;
 			}
-
-			const response = await result;
-			if (isProxy(response)) {
-				this.proxies.set(message.getId(), response);
-				response.onDidDispose(() => this.proxies.delete(message.getId()));
-			}
-			this.sendResponse(message.getId(), response);
+			this.sendResponse(id, response);
 		} catch (error) {
-			this.sendException(message.getId(), error);
+			this.sendException(id, error);
 		}
 	}
 

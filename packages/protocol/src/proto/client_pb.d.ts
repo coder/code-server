@@ -6,10 +6,10 @@ import * as node_pb from "./node_pb";
 import * as vscode_pb from "./vscode_pb";
 
 export class ClientMessage extends jspb.Message {
-  hasProxy(): boolean;
-  clearProxy(): void;
-  getProxy(): node_pb.MethodMessage | undefined;
-  setProxy(value?: node_pb.MethodMessage): void;
+  hasMethod(): boolean;
+  clearMethod(): void;
+  getMethod(): node_pb.MethodMessage | undefined;
+  setMethod(value?: node_pb.MethodMessage): void;
 
   hasPing(): boolean;
   clearPing(): void;
@@ -29,13 +29,13 @@ export class ClientMessage extends jspb.Message {
 
 export namespace ClientMessage {
   export type AsObject = {
-    proxy?: node_pb.MethodMessage.AsObject,
+    method?: node_pb.MethodMessage.AsObject,
     ping?: node_pb.Ping.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
-    PROXY = 20,
+    METHOD = 20,
     PING = 21,
   }
 }

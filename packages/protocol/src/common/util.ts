@@ -83,7 +83,6 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 		// so also check against the values.
 		if (currentValue instanceof Error
 			|| (currentValue && typeof currentValue.message !== "undefined"
-				&& typeof currentValue.code !== "undefined"
 				&& typeof currentValue.stack !== "undefined")) {
 			return {
 				type: "error",
@@ -107,12 +106,6 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 			};
 		}
 
-		if (isProxy(currentValue)) {
-			return {
-				type: "proxy",
-			};
-		}
-
 		if (typeof currentValue === "function") {
 			if (!storeFunction) {
 				throw new Error("no way to serialize function");
@@ -126,6 +119,13 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 			};
 		}
 
+		if (Array.isArray(currentValue)) {
+			return {
+				type: "array",
+				data: currentValue.map((a) => convert(a)),
+			};
+		}
+
 		if (currentValue !== null && typeof currentValue === "object") {
 			const converted: { [key: string]: StringifiedValue } = {};
 			Object.keys(currentValue).forEach((key) => {
@@ -135,13 +135,6 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 			return {
 				type: "object",
 				data: converted,
-			};
-		}
-
-		if (Array.isArray(currentValue)) {
-			return {
-				type: "array",
-				data: currentValue.map((a) => convert(a)),
 			};
 		}
 
@@ -160,12 +153,10 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 
 /**
  * Parse an argument.
- * If calling a remote proxy is supported, provide `remoteMethod`.
  * If calling a remote callback is supported, provide `remoteCallback`.
  */
 export const parse = (
 	value?: string,
-	remoteMethod?: (method: string, args: any[]) => Promise<void>,
 	remoteCallback?: (id: number, args: any[]) => void,
 ): any => {
 	const convert = (currentValue: StringifiedValue): any => {
@@ -183,14 +174,6 @@ export const parse = (
 				(error as any).originalStack = currentValue.data.stack;
 
 				return error;
-			}
-
-			if (currentValue.type === "proxy") {
-				if (!remoteMethod) {
-					throw new Error("no way to perform remote call");
-				}
-
-				return createProxy(remoteMethod);
 			}
 
 			if (currentValue.type === "function") {
@@ -233,27 +216,4 @@ export const isPromise = (value: any): value is Promise<any> => {
 
 export const isProxy = (value: any): value is DisposableProxy => {
 	return value && typeof value === "object" && typeof value.on === "function";
-};
-
-/**
- * Return a proxy that makes remote calls.
- */
-export const createProxy = <T>(remoteCall: (name: string, args: any[]) => Promise<any>): T => {
-	return new Proxy({}, {
-		get: (target: any, name: string): any => {
-			// If you try to resolve a promise with the proxy, it'll try to call
-			// "then" on it.
-			if (name === "then") {
-				return;
-			}
-
-			if (!target[name]) {
-				target[name] = (...args: any[]): Promise<any> => {
-					return remoteCall(name, args);
-				};
-			}
-
-			return target[name];
-		},
-	});
 };

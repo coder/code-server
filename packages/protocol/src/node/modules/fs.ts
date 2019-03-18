@@ -8,8 +8,6 @@ import { IEncodingOptions } from "../../common/util";
 // tslint:disable no-any
 
 class WriteStream implements WriteStreamProxy {
-	private readonly emitter = new EventEmitter();
-
 	public constructor(private readonly stream: fs.WriteStream) {}
 
 	public async close(): Promise<void> {
@@ -33,14 +31,7 @@ class WriteStream implements WriteStreamProxy {
 	}
 
 	public async on(event: string, cb: (...args: any[]) => void): Promise<void> {
-		switch (event) {
-			case "dispose":
-				this.emitter.on(event, cb);
-				break;
-			default:
-				this.stream.on(event, cb);
-				break;
-		}
+		this.stream.on(event, cb);
 	}
 
 	public async dispose(): Promise<void> {
@@ -70,7 +61,6 @@ class Watcher implements WatcherProxy {
 
 	public async on(event: string, cb: (...args: any[]) => void): Promise<void> {
 		switch (event) {
-			case "dispose":
 			case "listening":
 				this.emitter.on(event, cb);
 				break;
@@ -120,7 +110,7 @@ export class Fs implements FsProxy {
 		return util.promisify(fs.copyFile)(src, dest, flags);
 	}
 
-	public async createWriteStream(path: fs.PathLike, options?: any): Promise<WriteStreamProxy> {
+	public createWriteStream(path: fs.PathLike, options?: any): WriteStream {
 		return new WriteStream(fs.createWriteStream(path, options));
 	}
 
@@ -184,8 +174,10 @@ export class Fs implements FsProxy {
 		return util.promisify(fs.open)(path, flags, mode);
 	}
 
-	public read<TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: TBuffer }> {
-		return util.promisify(fs.read)(fd, buffer, offset, length, position);
+	public read(fd: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: Buffer }> {
+		const buffer = new Buffer(length);
+
+		return util.promisify(fs.read)(fd, buffer, 0, length, position);
 	}
 
 	public readFile(path: fs.PathLike | number, options: IEncodingOptions): Promise<string | Buffer> {
@@ -232,7 +224,7 @@ export class Fs implements FsProxy {
 		return util.promisify(fs.utimes)(path, atime, mtime);
 	}
 
-	public async write<TBuffer extends Buffer | Uint8Array>(fd: number, buffer: TBuffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: TBuffer }> {
+	public async write(fd: number, buffer: Buffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: Buffer }> {
 		return util.promisify(fs.write)(fd, buffer, offset, length, position);
 	}
 
@@ -240,7 +232,7 @@ export class Fs implements FsProxy {
 		return util.promisify(fs.writeFile)(path, data, options);
 	}
 
-	public async watch(filename: fs.PathLike, options?: IEncodingOptions): Promise<WatcherProxy> {
+	public watch(filename: fs.PathLike, options?: IEncodingOptions): Watcher {
 		return new Watcher(filename, options);
 	}
 
