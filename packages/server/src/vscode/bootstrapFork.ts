@@ -79,6 +79,34 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 	(global as any).XMLHttpRequest = xml.XMLHttpRequest;
 
 	const mod = require("module") as typeof import("module");
+
+	/**
+	 * A list of native packages that could be expected to
+	 * exist in the unpacked version of VS Code. This list may
+	 * grow in the future.
+	 */
+	// tslint:disable-next-line:no-any
+	const nativeModules: ReadonlyArray<{ id: string, module: any }> = [
+		{ id: "vscode-textmate", module: require("../../../../lib/vscode/node_modules/vscode-textmate") as typeof import("../../../../lib/vscode/node_modules/vscode-textmate") },
+	];
+	const oldRequire = mod.prototype.require;
+	// tslint:disable-next-line:no-any
+	mod.prototype.require = function (id: string): any {
+		if (id.slice(0, 3) === "/./") {
+			for (let i = 0; i < nativeModules.length; i++) {
+				if (id.slice(-1 * (nativeModules[i].id.length + 1)) !== `/${nativeModules[i].id}`) {
+					continue;
+				}
+
+				return nativeModules[i].module;
+			}
+			throw new Error(`Module '${id}' undefined. If you need this native module, file an issue on GitHub.`);
+		}
+
+		// tslint:disable-next-line:no-any
+		return oldRequire.call(this, id as any);
+	};
+
 	const promiseFinally = require("promise.prototype.finally") as { shim: () => void };
 	promiseFinally.shim();
 	/**

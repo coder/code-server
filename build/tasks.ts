@@ -86,6 +86,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
 	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty-prebuilt", "build", "Release", "pty.node");
+	const onigModule = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "oniguruma", "build", "Release", "onig_scanner.node");
 	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
 	if (isWin) {
@@ -94,6 +95,9 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 
 	if (!fs.existsSync(nodePtyModule)) {
 		throw new Error("Could not find pty.node. Ensure all packages have been installed");
+	}
+	if (!fs.existsSync(onigModule)) {
+		throw new Error("Could not find onig_scanner.node. Ensure all packages have been installed");
 	}
 	if (!fs.existsSync(spdlogModule)) {
 		throw new Error("Could not find spdlog.node. Ensure all packages have been installed");
@@ -129,6 +133,7 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
 	fse.mkdirpSync(path.join(cliBuildPath, "dependencies"));
 	fse.copySync(nodePtyModule, path.join(cliBuildPath, "dependencies", "pty.node"));
+	fse.copySync(onigModule, path.join(cliBuildPath, "dependencies", "onig_scanner.node"));
 	fse.copySync(spdlogModule, path.join(cliBuildPath, "dependencies", "spdlog.node"));
 	fse.copySync(ripgrepPath, path.join(cliBuildPath, "dependencies", "rg"));
 });

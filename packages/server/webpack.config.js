@@ -8,6 +8,19 @@ module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
 		// Config options.
 	}), {
+		module: {
+			rules: [{
+				test: /oniguruma(\\|\/)src(\\|\/).*\.js/,
+				loader: "string-replace-loader",
+				options: {
+					multiple: [{
+						search: "const Onig(.*) = .*onig_scanner\.node.*\.(.*)",
+						replace: "const Onig$1 = __non_webpack_require__(global.ONIG_LOCATION).$2;",
+						flags: "g",
+					}],
+				},
+			}],
+		},
 		output: {
 			filename: "cli.js",
 			path: path.join(__dirname, "out"),

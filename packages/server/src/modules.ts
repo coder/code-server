@@ -39,15 +39,19 @@ export const setup = (dataDirectory: string): void => {
 	unpackModule("pty.node");
 	unpackModule("spdlog.node");
 	unpackModule("rg", true);
+	unpackModule("onig_scanner.node");
 	// const nodePtyUtils = require("../../protocol/node_modules/node-pty-prebuilt/lib/utils") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/utils");
 	// tslint:disable-next-line:no-any
 	// nodePtyUtils.loadNative = (modName: string): any => {
 	// 	return (typeof __non_webpack_require__ !== "undefined" ? __non_webpack_require__ : require)(path.join(dataDirectory, "dependencies", modName + ".node"));
 	// };
 	(<any>global).RIPGREP_LOCATION = path.join(dataDirectory, "dependencies", "rg");
+	// tslint:disable-next-line:no-any
 	(<any>global).NODEPTY_LOCATION = path.join(dataDirectory, "dependencies", "pty.node");
 	// tslint:disable-next-line:no-any
 	(<any>global).SPDLOG_LOCATION = path.join(dataDirectory, "dependencies", "spdlog.node");
+	// tslint:disable-next-line:no-any
+	(<any>global).ONIG_LOCATION = path.join(dataDirectory, "dependencies", "onig_scanner.node");
 	// tslint:disable-next-line:no-unused-expression
 	require("../../protocol/node_modules/node-pty-prebuilt/lib/index") as typeof import("../../protocol/node_modules/node-pty-prebuilt/src/index");
 };
