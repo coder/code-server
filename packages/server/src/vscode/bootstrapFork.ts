@@ -12,6 +12,51 @@ if (ipcMsgListener) {
 }
 
 /**
+ * Attempt to require a module from a list of native packages
+ * that could be expected to exist in the unpacked version of
+ * VS Code. The list may grow in the future.
+ */
+const requireNativeModules = (mod: any): void => {
+	// tslint:disable-next-line:no-any
+	const nativeModules: ReadonlyArray<{ id: string, module: any }> = [
+		{ id: "vscode-textmate", module: require("../../../../lib/vscode/node_modules/vscode-textmate") as typeof import("../../../../lib/vscode/node_modules/vscode-textmate") },
+		{ id: "vscode-languageserver", module: require("../../../../lib/vscode/node_modules/vscode-languageserver") as typeof import("../../../../lib/vscode/node_modules/vscode-languageserver") },
+		{ id: "vscode-languageserver-types", module: require("../../../../lib/vscode/node_modules/vscode-languageserver-types") as typeof import("../../../../lib/vscode/node_modules/vscode-languageserver-types") },
+	];
+	const oldRequire = mod.prototype.require;
+	// tslint:disable-next-line:no-any
+	mod.prototype.require = function (id: string): any {
+		if (id === "typescript") {
+			return require("typescript");
+		}
+		if (id.slice(0, 3) === "/./") {
+			id = id.slice(3);
+		}
+		const requireNativeModule = (id: string): any => {
+			for (let i = 0; i < nativeModules.length; i++) {
+				if (id.slice(-1 * (nativeModules[i].id.length + 1)) !== `/${nativeModules[i].id}`) {
+					continue;
+				}
+
+				return nativeModules[i].module;
+			}
+			throw new Error(`Module '${id}' undefined. If you need this native module, file an issue on GitHub.`);
+		};
+
+		try {
+			// tslint:disable-next-line:no-any
+			return oldRequire.call(this, id as any);
+		} catch (ex) {
+			try {
+				return requireNativeModule(id);
+			} catch (nex) {
+				throw new Error(`${ex.message}: ${nex.message}`);
+			}
+		}
+	};
+};
+
+/**
  * Requires a module from the filesystem.
  *
  * Will load from the CLI if file is included inside of the default extensions dir
@@ -44,15 +89,7 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
  */
 export const requireFork = (modulePath: string, args: string[], builtInExtensionsDir: string): void => {
 	const Module = require("module") as typeof import("module");
-	const oldRequire = Module.prototype.require;
-	// tslint:disable-next-line:no-any
-	Module.prototype.require = (id: string): any => {
-		if (id === "typescript") {
-			return require("typescript");
-		}
-
-		return oldRequire(id);
-	};
+	requireNativeModules(Module);
 
 	if (!process.send) {
 		throw new Error("No IPC messaging initialized");
@@ -79,33 +116,7 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 	(global as any).XMLHttpRequest = xml.XMLHttpRequest;
 
 	const mod = require("module") as typeof import("module");
-
-	/**
-	 * A list of native packages that could be expected to
-	 * exist in the unpacked version of VS Code. This list may
-	 * grow in the future.
-	 */
-	// tslint:disable-next-line:no-any
-	const nativeModules: ReadonlyArray<{ id: string, module: any }> = [
-		{ id: "vscode-textmate", module: require("../../../../lib/vscode/node_modules/vscode-textmate") as typeof import("../../../../lib/vscode/node_modules/vscode-textmate") },
-	];
-	const oldRequire = mod.prototype.require;
-	// tslint:disable-next-line:no-any
-	mod.prototype.require = function (id: string): any {
-		if (id.slice(0, 3) === "/./") {
-			for (let i = 0; i < nativeModules.length; i++) {
-				if (id.slice(-1 * (nativeModules[i].id.length + 1)) !== `/${nativeModules[i].id}`) {
-					continue;
-				}
-
-				return nativeModules[i].module;
-			}
-			throw new Error(`Module '${id}' undefined. If you need this native module, file an issue on GitHub.`);
-		}
-
-		// tslint:disable-next-line:no-any
-		return oldRequire.call(this, id as any);
-	};
+	requireNativeModules(mod);
 
 	const promiseFinally = require("promise.prototype.finally") as { shim: () => void };
 	promiseFinally.shim();
