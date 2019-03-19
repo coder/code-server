@@ -17,7 +17,7 @@ message ServerMessage {
 		// node.proto
 		FailMessage fail = 13;
 		SuccessMessage success = 14;
-		CallbackMessage callback = 19;
+		EventMessage event = 19;
 		Pong pong = 18;
 
 		WorkingInitMessage init = 16;

@@ -2,9 +2,10 @@ import { ForkOptions, ChildProcess } from "child_process";
 import { mkdirp } from "fs-extra";
 import * as os from "os";
 import { logger, field } from "@coder/logger";
-import { Pong, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, SuccessMessage, FailMessage, CallbackMessage } from "../proto";
+import { Pong, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, SuccessMessage, FailMessage, EventMessage } from "../proto";
 import { ReadWriteConnection } from "../common/connection";
-import { stringify, parse, isPromise, isProxy } from "../common/util";
+import { ServerProxy } from "../common/proxy";
+import { stringify, parse, } from "../common/util";
 import { Fs } from "./modules";
 
 // `any` is needed to deal with sending and receiving arguments of any type.
@@ -117,17 +118,7 @@ export class Server {
 			? message.getNamedProxy()!.getModule()
 			: message.getNumberedProxy()!.getProxyId();
 		const method = proxyMessage.getMethod();
-		// The second argument to `parse` here describes how to make a remote
-		// call for a callback.
-		const args = proxyMessage.getArgsList().map((a) => parse(a, (id, args) => {
-			const callbackMessage = new CallbackMessage();
-			callbackMessage.setCallbackId(id);
-			callbackMessage.setArgsList(args.map((a) => stringify(a)));
-
-			const serverMessage = new ServerMessage();
-			serverMessage.setCallback(callbackMessage);
-			this.connection.send(serverMessage.serializeBinary());
-		}));
+		const args = proxyMessage.getArgsList().map(parse);
 
 		logger.trace(() => [
 			"received",
@@ -151,18 +142,26 @@ export class Server {
 			// returned synchronously so we can store them and attach callbacks
 			// immediately (like "open" which won't work if attached too late). The
 			// client creates its own proxies which is what allows this to work.
-			if (isPromise(response)) {
+			if (this.isPromise(response)) {
 				response = await response;
-				if (isProxy(response)) {
+				if (this.isProxy(response)) {
 					throw new Error(`"${method}" proxy must be returned synchronously`);
 				}
-			} else if (isProxy(response)) {
+			} else if (this.isProxy(response)) {
 				this.proxies.set(id, response);
-				response.onDidDispose(() => this.proxies.delete(id));
+				response.onDidDispose(() => {
+					this.proxies.delete(id);
+					// The timeout is to let all the normal events fire first so the
+					// client doesn't dispose its event emitter before they go through.
+					setTimeout(() => this.sendEvent(id, "dispose"), 1);
+				});
+				response.onEvent((event, ...args: any[]) => {
+					this.sendEvent(id, event, ...args);
+				});
 				// No need to send anything back since the client creates the proxy.
 				response = undefined;
 			} else {
-				const error = new Error(`invalid response from "${method}"`);
+				const error = new Error(`"${method} does not return a Promise or ServerProxy"`);
 				logger.error(
 					error.message,
 					field("type", typeof response),
@@ -174,6 +173,20 @@ export class Server {
 		} catch (error) {
 			this.sendException(id, error);
 		}
+	}
+
+	/**
+	 * Send an event to the client.
+	 */
+	private sendEvent(id: number, event: string, ...args: any[]): void {
+		const eventMessage = new EventMessage();
+		eventMessage.setProxyId(id);
+		eventMessage.setEvent(event);
+		eventMessage.setArgsList(args.map(stringify));
+
+		const serverMessage = new ServerMessage();
+		serverMessage.setEvent(eventMessage);
+		this.connection.send(serverMessage.serializeBinary());
 	}
 
 	/**
@@ -214,5 +227,13 @@ export class Server {
 		const serverMessage = new ServerMessage();
 		serverMessage.setFail(failedMessage);
 		this.connection.send(serverMessage.serializeBinary());
+	}
+
+	private isProxy(value: any): value is ServerProxy {
+		return value && typeof value === "object" && typeof value.onEvent === "function";
+	}
+
+	private isPromise(value: any): value is Promise<any> {
+		return typeof value.then === "function" && typeof value.catch === "function";
 	}
 }

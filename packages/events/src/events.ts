@@ -2,7 +2,7 @@ import { IDisposable } from "@coder/disposable";
 
 export interface Event<T> {
 	(listener: (value: T) => void): IDisposable;
-	(id: number, listener: (value: T) => void): IDisposable;
+	(id: number | string, listener: (value: T) => void): IDisposable;
 }
 
 /**
@@ -14,11 +14,11 @@ export interface Event<T> {
  */
 export class Emitter<T> {
 	private listeners = <Array<(value: T) => void>>[];
-	private readonly idListeners = new Map<number, Array<(value: T) => void>>();
+	private readonly idListeners = new Map<number | string, Array<(value: T) => void>>();
 
 	public get event(): Event<T> {
-		return (id: number | ((value: T) => void), cb?: (value: T) => void): IDisposable => {
-			if (typeof id === "number") {
+		return (id: number | string | ((value: T) => void), cb?: (value: T) => void): IDisposable => {
+			if (typeof id !== "function") {
 				if (this.idListeners.has(id)) {
 					this.idListeners.get(id)!.push(cb!);
 				} else {
@@ -56,9 +56,9 @@ export class Emitter<T> {
 	 * Emit an event with a value.
 	 */
 	public emit(value: T): void;
-	public emit(id: number, value: T): void;
-	public emit(id: number | T, value?: T): void {
-		if (typeof id === "number" && typeof value !== "undefined") {
+	public emit(id: number | string, value: T): void;
+	public emit(id: number | string | T, value?: T): void {
+		if ((typeof id === "number" || typeof id === "string") && typeof value !== "undefined") {
 			if (this.idListeners.has(id)) {
 				this.idListeners.get(id)!.forEach((cb) => cb(value!));
 			}
@@ -73,8 +73,8 @@ export class Emitter<T> {
 	 * Dispose the current events.
 	 */
 	public dispose(): void;
-	public dispose(id: number): void;
-	public dispose(id?: number): void {
+	public dispose(id: number | string): void;
+	public dispose(id?: number | string): void {
 		if (typeof id !== "undefined") {
 			this.idListeners.delete(id);
 		} else {

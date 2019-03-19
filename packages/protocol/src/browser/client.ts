@@ -1,3 +1,4 @@
+import { EventEmitter } from "events";
 import { PathLike } from "fs";
 import { promisify } from "util";
 import { Emitter } from "@coder/events";
@@ -5,7 +6,7 @@ import { logger, field } from "@coder/logger";
 import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
 import { FsProxy, DisposableProxy } from "../common/proxy";
 import { stringify, parse } from "../common/util";
-import { Ping, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, NamedProxyMessage, NumberedProxyMessage, SuccessMessage, FailMessage, CallbackMessage } from "../proto";
+import { Ping, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, NamedProxyMessage, NumberedProxyMessage, SuccessMessage, FailMessage, EventMessage } from "../proto";
 import { Fs } from "./modules";
 
 // `any` is needed to deal with sending and receiving arguments of any type.
@@ -17,15 +18,10 @@ import { Fs } from "./modules";
  */
 export class Client {
 	private messageId = 0;
+	private readonly proxies = new Map<number | string, any>();
 	private readonly successEmitter = new Emitter<SuccessMessage>();
 	private readonly failEmitter = new Emitter<FailMessage>();
-
-	// Callbacks are grouped by proxy so we can clear them when a proxy disposes.
-	private callbackId = 0;
-	private readonly callbacks = new Map<number | string, Map<number, {
-		event?: string;
-		callback: (...args: any[]) => void;
-	}>>();
+	private readonly eventEmitter = new Emitter<{ event: string; args: any[]; }>();
 
 	private _initData: InitData | undefined;
 	private readonly initDataEmitter = new Emitter<InitData>();
@@ -90,20 +86,10 @@ export class Client {
 			const error = new Error("disconnected");
 			message.setResponse(stringify(error));
 			this.failEmitter.emit(message);
-			this.callbacks.forEach((cbs) => {
-				cbs.forEach((cb) => {
-					switch (cb.event) {
-						case "exit":
-						case "close":
-							cb.callback(1);
-							break;
-						case "error":
-							cb.callback(error);
-							break;
-					}
-				});
-			});
-			this.callbacks.clear();
+
+			this.eventEmitter.emit({ event: "exit", args: [1] });
+			this.eventEmitter.emit({ event: "close", args: [] });
+			this.eventEmitter.emit({ event: "error", args: [message] });
 		};
 
 		connection.onDown(() => handleDisconnect());
@@ -162,23 +148,7 @@ export class Client {
 		// The function passed here converts a function into an ID since it's not
 		// possible to send functions across as-is. This is used to handle event
 		// callbacks.
-		proxyMessage.setArgsList(args.map((a) => stringify(a, (cb) => {
-			const callbackId = this.callbackId++;
-			const event = method === "on" ? args[0] : undefined;
-			// Using ! because non-existence is an error that should throw.
-			logger.trace(() => [
-				"registering callback",
-				field("event", event),
-				field("proxyId", proxyId),
-				field("callbackId", callbackId),
-			]);
-			this.callbacks.get(proxyId)!.set(callbackId, {
-				event,
-				callback: cb,
-			});
-
-			return callbackId;
-		})));
+		proxyMessage.setArgsList(args.map(stringify));
 
 		const clientMessage = new ClientMessage();
 		clientMessage.setMethod(message);
@@ -192,22 +162,14 @@ export class Client {
 				d2.dispose();
 			};
 
-			const d1 = this.successEmitter.event(id, (doneMessage) => {
+			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
-				logger.trace(() => [
-					"received resolve",
-					field("id", id),
-				]);
-				resolve(parse(doneMessage.getResponse()));
+				resolve(parse(message.getResponse()));
 			});
 
-			const d2 = this.failEmitter.event(id, (failedMessage) => {
+			const d2 = this.failEmitter.event(id, (message) => {
 				dispose();
-				logger.trace(() => [
-					"received resolve",
-					field("id", id),
-				]);
-				reject(parse(failedMessage.getResponse()));
+				reject(parse(message.getResponse()));
 			});
 		});
 
@@ -252,11 +214,11 @@ export class Client {
 			};
 			this.initDataEmitter.emit(this._initData);
 		} else if (message.hasSuccess()) {
-			this.successEmitter.emit(message.getSuccess()!.getId(), message.getSuccess()!);
+			this.emitSuccess(message.getSuccess()!);
 		} else if (message.hasFail()) {
-			this.failEmitter.emit(message.getFail()!.getId(), message.getFail()!);
-		} else if (message.hasCallback()) {
-			this.runCallback(message.getCallback()!);
+			this.emitFail(message.getFail()!);
+		} else if (message.hasEvent()) {
+			this.emitEvent(message.getEvent()!);
 		} else if (message.hasSharedProcessActive()) {
 			const sharedProcessActiveMessage = message.getSharedProcessActive()!;
 			this.sharedProcessActiveEmitter.emit({
@@ -272,19 +234,42 @@ export class Client {
 		}
 	}
 
-	/**
-	 * Run a callback.
-	 */
-	private runCallback(message: CallbackMessage): void {
-		// Using ! because non-existence is an error that should throw.
+	private emitSuccess(message: SuccessMessage): void {
 		logger.trace(() => [
-			"received callback",
-			field("proxyId", message.getProxyId()),
-			field("callbackId", message.getCallbackId()),
+			"received resolve",
+			field("id", message.getId()),
 		]);
-		this.callbacks.get(message.getProxyId())!.get(message.getCallbackId())!.callback(
-			...message.getArgsList().map((a) => parse(a)),
-		);
+
+		this.successEmitter.emit(message.getId(), message);
+	}
+
+	private emitFail(message: FailMessage): void {
+		logger.trace(() => [
+			"received reject",
+			field("id", message.getId()),
+		]);
+
+		this.failEmitter.emit(message.getId(), message);
+	}
+
+	/**
+	 * Emit an event received from the server. We could send requests for "on" to
+	 * the server and serialize functions using IDs, but doing it that way makes
+	 * it possible to miss events depending on whether the server receives the
+	 * request before it emits. Instead, emit all events from the server so all
+	 * events are always caught on the client.
+	 */
+	private emitEvent(message: EventMessage): void {
+		logger.trace(() => [
+			"received event",
+			field("proxyId", message.getProxyId()),
+			field("event", message.getEvent()),
+		]);
+
+		this.eventEmitter.emit(message.getProxyId(), {
+			event: message.getEvent(),
+			args: message.getArgsList().map(parse),
+		});
 	}
 
 	/**
@@ -318,8 +303,8 @@ export class Client {
 			return message.getSuccess()!.getId();
 		} else if (message.hasFail()) {
 			return message.getFail()!.getId();
-		} else if (message.hasCallback()) {
-			return message.getCallback()!.getCallbackId();
+		} else if (message.hasEvent()) {
+			return `${message.getEvent()!.getProxyId()}: ${message.getEvent()!.getEvent()}`;
 		} else if (message.hasSharedProcessActive()) {
 			return "shared";
 		} else if (message.hasPong()) {
@@ -336,9 +321,16 @@ export class Client {
 			field("proxyId", id),
 		]);
 
-		this.callbacks.set(id, new Map());
-
-		const proxy = new Proxy({ id }, {
+		const eventEmitter = new EventEmitter();
+		const proxy = new Proxy({
+			id,
+			onDidDispose: (cb: () => void): void => {
+				eventEmitter.on("dispose", cb);
+			},
+			on: (event: string, cb: (...args: any[]) => void): void => {
+				eventEmitter.on(event, cb);
+			},
+		}, {
 			get: (target: any, name: string): any => {
 				if (typeof target[name] === "undefined") {
 					target[name] = (...args: any[]): Promise<any> | DisposableProxy => {
@@ -350,21 +342,19 @@ export class Client {
 			},
 		});
 
-		// Modules don't get disposed but everything else does.
-		if (typeof id !== "string") {
-			proxy.onDidDispose(() => {
-				// Don't dispose immediately because there might still be callbacks
-				// to run, especially if the dispose is on the same or earlier event
-				// than the callback is on.
-				setTimeout(() => {
-					logger.trace(() => [
-						"disposing proxy",
-						field("proxyId", id),
-					]);
-					this.callbacks.delete(id);
-				}, 1000);
+		this.proxies.set(id, proxy);
+		this.eventEmitter.event(id, (event) => {
+			eventEmitter.emit(event.event, ...event.args);
 		});
-		}
+
+		proxy.onDidDispose(() => {
+			logger.trace(() => [
+				"disposing proxy",
+				field("proxyId", id),
+			]);
+			this.proxies.delete(id);
+			this.eventEmitter.dispose(id);
+		});
 
 		return proxy;
 	}

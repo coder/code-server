@@ -24,10 +24,10 @@ message MethodMessage {
 	}
 }
 
-// Call a remote callback.
-message CallbackMessage {
-	uint64 callback_id = 1;
-	uint64 proxy_id = 2;
+// Emit an event.
+message EventMessage {
+	uint64 proxy_id = 1;
+	string event = 2;
 	repeated string args = 3;
 }
 

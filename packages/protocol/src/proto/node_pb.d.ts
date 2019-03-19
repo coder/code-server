@@ -106,12 +106,12 @@ export namespace MethodMessage {
   }
 }
 
-export class CallbackMessage extends jspb.Message {
-  getCallbackId(): number;
-  setCallbackId(value: number): void;
-
+export class EventMessage extends jspb.Message {
   getProxyId(): number;
   setProxyId(value: number): void;
+
+  getEvent(): string;
+  setEvent(value: string): void;
 
   clearArgsList(): void;
   getArgsList(): Array<string>;
@@ -119,19 +119,19 @@ export class CallbackMessage extends jspb.Message {
   addArgs(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): CallbackMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: CallbackMessage): CallbackMessage.AsObject;
+  toObject(includeInstance?: boolean): EventMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: EventMessage): EventMessage.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: CallbackMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): CallbackMessage;
-  static deserializeBinaryFromReader(message: CallbackMessage, reader: jspb.BinaryReader): CallbackMessage;
+  static serializeBinaryToWriter(message: EventMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EventMessage;
+  static deserializeBinaryFromReader(message: EventMessage, reader: jspb.BinaryReader): EventMessage;
 }
 
-export namespace CallbackMessage {
+export namespace EventMessage {
   export type AsObject = {
-    callbackId: number,
     proxyId: number,
+    event: string,
     argsList: Array<string>,
   }
 }

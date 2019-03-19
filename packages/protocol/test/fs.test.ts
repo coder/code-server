@@ -136,12 +136,15 @@ describe("fs", () => {
 				expect(fd).toBeDefined();
 				stream.write(content);
 				stream.close();
+				stream.end();
 			});
-			await expect(new Promise((resolve): void => {
-				stream.on("close", async () => {
-					resolve(await util.promisify(nativeFs.readFile)(file, "utf8"));
-				});
-			})).resolves.toBe(content);
+
+			await Promise.all([
+				new Promise((resolve): nativeFs.WriteStream => stream.on("close", resolve)),
+				new Promise((resolve): nativeFs.WriteStream => stream.on("finish", resolve)),
+			]);
+
+			await expect(util.promisify(nativeFs.readFile)(file, "utf8")).resolves.toBe(content);
 		});
 	});
 

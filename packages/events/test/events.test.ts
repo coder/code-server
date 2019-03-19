@@ -23,6 +23,16 @@ describe("Event", () => {
 		emitter.emit(0, 5);
 	});
 
+	it("should listen to string id event", (done) => {
+		const d = emitter.event("string", (value) => {
+			expect(value).toBe(55);
+			d.dispose();
+			done();
+		});
+
+		emitter.emit("string", 55);
+	});
+
 	it("should not listen wrong id event", (done) => {
 		const d = emitter.event(1, (value) => {
 			expect(value).toBe(6);

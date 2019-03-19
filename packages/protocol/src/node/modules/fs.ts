@@ -1,13 +1,13 @@
 import { EventEmitter } from "events";
 import * as fs from "fs";
 import * as util from "util";
-import { FsProxy, WriteStreamProxy, Stats, WatcherProxy } from "../../common/proxy";
+import { ServerProxy, FsProxy, WriteStreamProxy, Stats, WatcherProxy } from "../../common/proxy";
 import { IEncodingOptions } from "../../common/util";
 
 // `any` is used to match Node interfaces.
 // tslint:disable no-any
 
-class WriteStream implements WriteStreamProxy {
+class WriteStream implements WriteStreamProxy, ServerProxy {
 	public constructor(private readonly stream: fs.WriteStream) {}
 
 	public async close(): Promise<void> {
@@ -30,7 +30,7 @@ class WriteStream implements WriteStreamProxy {
 		this.stream.setDefaultEncoding(encoding);
 	}
 
-	public async on(event: string, cb: (...args: any[]) => void): Promise<void> {
+	public on(event: string, cb: (...args: any[]) => void): void {
 		this.stream.on(event, cb);
 	}
 
@@ -38,12 +38,20 @@ class WriteStream implements WriteStreamProxy {
 		this.stream.close();
 	}
 
-	public async onDidDispose(cb: () => void): Promise<void> {
-		this.stream.on("close", cb);
+	public onDidDispose(cb: () => void): void {
+		this.on("close", cb);
+	}
+
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		this.on("close", () => cb("close"));
+		this.on("drain", () => cb("drain"));
+		this.on("error", (error) => cb("error", error));
+		this.on("finish", () => cb("finish"));
+		this.on("open", (fd) => cb("open", fd));
 	}
 }
 
-class Watcher implements WatcherProxy {
+class Watcher implements WatcherProxy, ServerProxy {
 	private readonly watcher: fs.FSWatcher;
 	private readonly emitter = new EventEmitter();
 
@@ -51,17 +59,15 @@ class Watcher implements WatcherProxy {
 		this.watcher = fs.watch(filename, options, (event, filename) => {
 			this.emitter.emit("listener", event, filename);
 		});
-		this.watcher.on("close", () => this.emitter.emit("close"));
-		this.watcher.on("error", (error) => this.emitter.emit("error", error));
 	}
 
 	public async close(): Promise<void> {
 		this.watcher.close();
 	}
 
-	public async on(event: string, cb: (...args: any[]) => void): Promise<void> {
+	public on(event: string, cb: (...args: any[]) => void): void {
 		switch (event) {
-			case "listening":
+			case "listener":
 				this.emitter.on(event, cb);
 				break;
 			default:
@@ -74,9 +80,16 @@ class Watcher implements WatcherProxy {
 		this.watcher.close();
 	}
 
-	public async onDidDispose(cb: () => void): Promise<void> {
-		this.watcher.on("close", cb);
-		this.watcher.on("error", cb);
+	public onDidDispose(cb: () => void): void {
+		this.on("close", cb);
+		this.on("error", cb);
+	}
+
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		this.on("change", (event, filename) => cb("change", event, filename));
+		this.on("close", () => cb("close"));
+		this.on("error", (error) => cb("error", error));
+		this.on("listener", (event, filename) => cb("listener", event, filename));
 	}
 }
 

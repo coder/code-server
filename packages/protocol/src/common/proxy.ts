@@ -11,8 +11,20 @@ import * as fs from "fs";
 export interface DisposableProxy {
 	// This is a separate method instead of just using "on" to ensure it is
 	// implemented, otherwise you'd have to just know to emit the dispose event.
-	onDidDispose(cb: () => void): Promise<void>;
+	onDidDispose(cb: () => void): void;
 	dispose(): Promise<void>;
+}
+
+/**
+ * An event emitter with an onEvent method to allow proxying all the events.
+ */
+export interface ServerProxy extends DisposableProxy {
+	/**
+	 * Events should be listened to manually in here to prevent trying to send
+	 * events with arguments that cannot be serialized. All events listed in
+	 * a proxy's interface should be present.
+	 */
+	onEvent(cb: (event: string, ...args: any[]) => void): void;
 }
 
 export interface WriteStreamProxy extends DisposableProxy {
@@ -22,20 +34,20 @@ export interface WriteStreamProxy extends DisposableProxy {
 	setDefaultEncoding(encoding: string): Promise<void>;
 	write(data: any, encoding?: string): Promise<void>;
 
-	on(event: "close", cb: () => void): Promise<void>;
-	on(event: "drain", cb: () => void): Promise<void>;
-	on(event: "error", cb: (error: Error) => void): Promise<void>;
-	on(event: "finish", cb: () => void): Promise<void>;
-	on(event: "open", cb: (fd: number) => void): Promise<void>;
+	on(event: "close", cb: () => void): void;
+	on(event: "drain", cb: () => void): void;
+	on(event: "error", cb: (error: Error) => void): void;
+	on(event: "finish", cb: () => void): void;
+	on(event: "open", cb: (fd: number) => void): void;
 }
 
 export interface WatcherProxy extends DisposableProxy {
 	close(): Promise<void>;
 
-	on(event: "change", cb: (event: string, filename: string) => void): Promise<void>;
-	on(event: "close", cb: () => void): Promise<void>;
-	on(event: "error", cb: (error: Error) => void): Promise<void>;
-	on(event: "listener", cb: (event: string, filename: string) => void): Promise<void>;
+	on(event: "change", cb: (event: string, filename: string) => void): void;
+	on(event: "close", cb: () => void): void;
+	on(event: "error", cb: (error: Error) => void): void;
+	on(event: "listener", cb: (event: string, filename: string) => void): void;
 }
 
 /**

@@ -281,7 +281,7 @@ proto.ServerMessage.MsgCase = {
   MSG_NOT_SET: 0,
   FAIL: 13,
   SUCCESS: 14,
-  CALLBACK: 19,
+  EVENT: 19,
   PONG: 18,
   INIT: 16,
   SHARED_PROCESS_ACTIVE: 17
@@ -325,7 +325,7 @@ proto.ServerMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
     fail: (f = msg.getFail()) && node_pb.FailMessage.toObject(includeInstance, f),
     success: (f = msg.getSuccess()) && node_pb.SuccessMessage.toObject(includeInstance, f),
-    callback: (f = msg.getCallback()) && node_pb.CallbackMessage.toObject(includeInstance, f),
+    event: (f = msg.getEvent()) && node_pb.EventMessage.toObject(includeInstance, f),
     pong: (f = msg.getPong()) && node_pb.Pong.toObject(includeInstance, f),
     init: (f = msg.getInit()) && proto.WorkingInitMessage.toObject(includeInstance, f),
     sharedProcessActive: (f = msg.getSharedProcessActive()) && vscode_pb.SharedProcessActiveMessage.toObject(includeInstance, f)
@@ -376,9 +376,9 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
       msg.setSuccess(value);
       break;
     case 19:
-      var value = new node_pb.CallbackMessage;
-      reader.readMessage(value,node_pb.CallbackMessage.deserializeBinaryFromReader);
-      msg.setCallback(value);
+      var value = new node_pb.EventMessage;
+      reader.readMessage(value,node_pb.EventMessage.deserializeBinaryFromReader);
+      msg.setEvent(value);
       break;
     case 18:
       var value = new node_pb.Pong;
@@ -440,12 +440,12 @@ proto.ServerMessage.serializeBinaryToWriter = function(message, writer) {
       node_pb.SuccessMessage.serializeBinaryToWriter
     );
   }
-  f = message.getCallback();
+  f = message.getEvent();
   if (f != null) {
     writer.writeMessage(
       19,
       f,
-      node_pb.CallbackMessage.serializeBinaryToWriter
+      node_pb.EventMessage.serializeBinaryToWriter
     );
   }
   f = message.getPong();
@@ -536,23 +536,23 @@ proto.ServerMessage.prototype.hasSuccess = function() {
 
 
 /**
- * optional CallbackMessage callback = 19;
- * @return {?proto.CallbackMessage}
+ * optional EventMessage event = 19;
+ * @return {?proto.EventMessage}
  */
-proto.ServerMessage.prototype.getCallback = function() {
-  return /** @type{?proto.CallbackMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.CallbackMessage, 19));
+proto.ServerMessage.prototype.getEvent = function() {
+  return /** @type{?proto.EventMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.EventMessage, 19));
 };
 
 
-/** @param {?proto.CallbackMessage|undefined} value */
-proto.ServerMessage.prototype.setCallback = function(value) {
+/** @param {?proto.EventMessage|undefined} value */
+proto.ServerMessage.prototype.setEvent = function(value) {
   jspb.Message.setOneofWrapperField(this, 19, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
-proto.ServerMessage.prototype.clearCallback = function() {
-  this.setCallback(undefined);
+proto.ServerMessage.prototype.clearEvent = function() {
+  this.setEvent(undefined);
 };
 
 
@@ -560,7 +560,7 @@ proto.ServerMessage.prototype.clearCallback = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ServerMessage.prototype.hasCallback = function() {
+proto.ServerMessage.prototype.hasEvent = function() {
   return jspb.Message.getField(this, 19) != null;
 };
 

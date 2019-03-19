@@ -1,5 +1,3 @@
-import { DisposableProxy } from "./proxy";
-
 // `any` is needed to deal with sending and receiving arguments of any type.
 // tslint:disable no-any
 
@@ -56,27 +54,23 @@ interface StringifiedProxy {
 	type: "proxy";
 }
 
-interface StringifiedFunction {
-	type: "function";
-	data: {
-		id: number;
-	};
-}
-
 interface StringifiedUndefined {
 	type: "undefined";
 }
 
-type StringifiedValue = StringifiedFunction | StringifiedProxy
-	| StringifiedUndefined | StringifiedObject | StringifiedArray
-	| StringifiedBuffer | StringifiedError | number | string;
+type StringifiedValue = StringifiedProxy | StringifiedUndefined
+	| StringifiedObject | StringifiedArray | StringifiedBuffer | StringifiedError
+	| number | string | boolean;
 
+const isPrimitive = (value: any): value is number | string | boolean => {
+	return typeof value === "number"
+		|| typeof value === "string"
+		|| typeof value === "boolean";
+};
 /**
  * Stringify an argument or a return value.
- *
- * If sending a function is possible, provide `storeFunction`.
  */
-export const stringify = (value: any, storeFunction?: (fn: () => void) => number): string => {
+export const stringify = (value: any): string => {
 	const convert = (currentValue: any): StringifiedValue => {
 		// Errors don't stringify at all. They just become "{}".
 		// For some reason when running in Jest errors aren't instances of Error,
@@ -106,19 +100,6 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 			};
 		}
 
-		if (typeof currentValue === "function") {
-			if (!storeFunction) {
-				throw new Error("no way to serialize function");
-			}
-
-			return {
-				type: "function",
-				data: {
-					id: storeFunction(currentValue),
-				},
-			};
-		}
-
 		if (Array.isArray(currentValue)) {
 			return {
 				type: "array",
@@ -145,6 +126,10 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 			};
 		}
 
+		if (!isPrimitive(currentValue)) {
+			throw new Error(`cannot stringify ${typeof currentValue}`);
+		}
+
 		return currentValue;
 	};
 
@@ -153,14 +138,10 @@ export const stringify = (value: any, storeFunction?: (fn: () => void) => number
 
 /**
  * Parse an argument.
- * If calling a remote callback is supported, provide `remoteCallback`.
  */
-export const parse = (
-	value?: string,
-	remoteCallback?: (id: number, args: any[]) => void,
-): any => {
+export const parse = (value?: string): any => {
 	const convert = (currentValue: StringifiedValue): any => {
-		if (currentValue && typeof currentValue !== "number" && typeof currentValue !== "string") {
+		if (currentValue && !isPrimitive(currentValue)) {
 			// Would prefer a switch but the types don't seem to work.
 			if (currentValue.type === "buffer") {
 				return Buffer.from(currentValue.data);
@@ -174,16 +155,6 @@ export const parse = (
 				(error as any).originalStack = currentValue.data.stack;
 
 				return error;
-			}
-
-			if (currentValue.type === "function") {
-				if (!remoteCallback) {
-					throw new Error("no way to run remote callback");
-				}
-
-				return (...args: any[]): void => {
-					return remoteCallback(currentValue.data.id, args);
-				};
 			}
 
 			if (currentValue.type === "object") {
@@ -208,12 +179,4 @@ export const parse = (
 	};
 
 	return value && convert(JSON.parse(value));
-};
-
-export const isPromise = (value: any): value is Promise<any> => {
-	return typeof value.then === "function" && typeof value.catch === "function";
-};
-
-export const isProxy = (value: any): value is DisposableProxy => {
-	return value && typeof value === "object" && typeof value.on === "function";
 };
