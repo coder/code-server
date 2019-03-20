@@ -20,17 +20,17 @@ import { args } from "@oclif/parser";
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
 	public static flags = {
-		cert: flags.string({char: "c", description: "Point to an SSL certificate .crt file"}),
-		"cert-key": flags.string({ char: "k", description: "Point to an SSL certificate .key file"}),
+		cert: flags.string({char: "c", description: "Point to an TSL certificate file"}),
+		"cert-key": flags.string({ char: "k", description: "Point to an TSL certificate private key file"}),
 		"data-dir": flags.string({ char: "d", description: "Specify the working directory for the IDE"  }),
 		help: flags.help(),
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8443, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
-		"no-auth": flags.boolean({ char: "n", default: false, description: "Start code-server without password" }),
+		"no-auth": flags.boolean({ char: "n", default: false, description: "Start code-server without a password" }),
 		"allow-http": flags.boolean({ char: "a", default: false, description: "Allow use of HTTP protocol"  }),
-		password: flags.string( {description: "Specify the IDE password inline"}),
+		password: flags.string( {description: "Specify the IDE password"}),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
@@ -235,7 +235,7 @@ export class Entry extends Command {
 			logger.warn("Launched without authentication.");
 		}
 
-		const url = `http${flags["allow-http"] ? "s" : ""}://localhost:${flags.port}/`;;
+		const url = `http${flags["allow-http"] ? "s" : ""}://localhost:${flags.port}/`;
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
 		logger.info(url);
