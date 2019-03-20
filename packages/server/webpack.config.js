@@ -14,8 +14,8 @@ module.exports = merge(
 				loader: "string-replace-loader",
 				options: {
 					multiple: [{
-						search: "const Onig(.*) = .*onig_scanner\.node.*\.(.*)",
-						replace: "const Onig$1 = __non_webpack_require__(global.ONIG_LOCATION).$2;",
+						search: "const Onig(.*) = .*onig_scanner\.node.*\.Onig(.*)",
+						replace: "const Onig$1 = __non_webpack_require__(global.ONIG_LOCATION).Onig$2;",
 						flags: "g",
 					}],
 				},
