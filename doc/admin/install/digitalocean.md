@@ -16,19 +16,27 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Open a terminal on your computer and SSH into your instance
   > example: ssh root@203.0.113.0
 - Once in the SSH session, visit code-server [releases page](https://github.com/codercom/code-server/releases/) and copy the link to the download for the latest linux release
-- In the shell run the below command with the URL from your clipboard
+- Find the latest Linux release from this URL:
   ```
-  wget https://github.com/codercom/code-server/releases/download/1.32.0-282/code-server-1.32.0-282-linux-x64.tar.gz
+  https://github.com/codercom/code-server/releases/latest
   ```
-- Extract the files:
+- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
   ```
-  tar -xzvf code-server-1.32.0-282-linux-x64.tar.gz -C ~/code-server-linux
+  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  ```
+- Extract the downloaded tar.gz file with this command, for example:
+  ```
+  tar -xvzf code-server-{version}-linux-x64.tar.gz
+  ```
+- Navigate to extracted directory with this command:
+  ```
+  cd code-server-{version}-linux-x64
   ```
 - If you run into any permission errors when attempting to run the binary:
   ```
-  chmod +x code-server-linux
+  chmod +x code-server
   ```
-  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally start the code-server
   ```
   sudo ./code-server-linux -p 80

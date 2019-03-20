@@ -350,13 +350,16 @@ index 58ba2e5..4fb6272 100644
 -		r = require.__$__nodeRequire<T>(modulePath);
 +		r = (global as any).nativeNodeRequire(modulePath);
 diff --git a/src/vs/workbench/api/node/extHostTypeConverters.ts b/src/vs/workbench/api/node/extHostTypeConverters.ts
-index a445750..c7beb13 100644
+index a445750..c64712b 100644
 --- a/src/vs/workbench/api/node/extHostTypeConverters.ts
 +++ b/src/vs/workbench/api/node/extHostTypeConverters.ts
 @@ -26 +25,0 @@ import { ExtHostDocumentsAndEditors } from 'vs/workbench/api/node/extHostDocumen
 -import { isString, isNumber } from 'vs/base/common/types';
-@@ -116,0 +116 @@ export namespace Diagnostic {
+@@ -31 +29,0 @@ import { LogLevel as _MainLogLevel } from 'vs/platform/log/common/log';
+-import { coalesce } from 'vs/base/common/arrays';
+@@ -116,0 +115,2 @@ export namespace Diagnostic {
 +		const { isString, isNumber } = require('vs/base/common/types');
++		const { coalesce } = require('vs/base/common/arrays');
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 5897ab9..57b926e 100644
 --- a/src/vs/workbench/browser/dnd.ts

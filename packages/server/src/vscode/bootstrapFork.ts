@@ -46,12 +46,13 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 	const Module = require("module") as typeof import("module");
 	const oldRequire = Module.prototype.require;
 	// tslint:disable-next-line:no-any
-	Module.prototype.require = (id: string): any => {
+	Module.prototype.require = function (id: string): any {
 		if (id === "typescript") {
 			return require("typescript");
 		}
 
-		return oldRequire(id);
+		// tslint:disable-next-line:no-any
+		return oldRequire.call(this, id as any);
 	};
 
 	if (!process.send) {
@@ -59,7 +60,6 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 	}
 
 	process.argv = ["", "", ...args];
-
 	requireFilesystemModule(modulePath, builtInExtensionsDir);
 
 	if (ipcMsgBuffer && ipcMsgListener) {
