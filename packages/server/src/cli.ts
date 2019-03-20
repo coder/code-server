@@ -15,21 +15,22 @@ import { createApp } from "./server";
 import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
+import { args } from "@oclif/parser";
 
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
 	public static flags = {
-		cert: flags.string(),
-		"cert-key": flags.string(),
-		"data-dir": flags.string({ char: "d" }),
+		cert: flags.string({char: "c", description: "Point to an SSL certificate .crt file"}),
+		"cert-key": flags.string({ char: "k", description: "Point to an SSL certificate .key file"}),
+		"data-dir": flags.string({ char: "d", default: "Current directory", description: "Specify the working directory for the IDE"  }),
 		help: flags.help(),
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
 		port: flags.integer({ char: "p", default: 8443, description: "Port to bind on" }),
 		version: flags.version({ char: "v" }),
-		"no-auth": flags.boolean({ default: false }),
-		"allow-http": flags.boolean({ default: false }),
-		password: flags.string(),
+		"no-auth": flags.boolean({ char: "n", default: false, description: "Start code-server without password" }),
+		"allow-http": flags.boolean({ char: "a", default: false, description: "Allow use of HTTP protocol"  }),
+		password: flags.string( {description: "Specify the IDE password inline"}),
 
 		// Dev flags
 		"bootstrap-fork": flags.string({ hidden: true }),
