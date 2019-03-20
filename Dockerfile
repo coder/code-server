@@ -27,8 +27,9 @@ RUN apt-get update && apt-get install -y \
     sudo \
 	openssl \
 	locales \
-	net-tools && \
-	adduser --disabled-password --ingroup sudo --gecos '' coder && \
+	net-tools;
+	
+RUN adduser --disabled-password --ingroup sudo --gecos '' coder && \
     echo '%sudo ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && \
     echo "user ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/user && \
     chmod 0440 /etc/sudoers.d/user;
@@ -40,5 +41,4 @@ USER coder
 WORKDIR /home/coder
 
 EXPOSE 8443
-ENTRYPOINT code-server
-CMD ["."]
+ENTRYPOINT ["code-server"]
