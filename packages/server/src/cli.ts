@@ -15,7 +15,6 @@ import { createApp } from "./server";
 import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
-import { args } from "@oclif/parser";
 
 export class Entry extends Command {
 	public static description = "Start your own self-hosted browser-accessible VS Code";
