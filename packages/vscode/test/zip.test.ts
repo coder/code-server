@@ -4,7 +4,8 @@ import * as fs from "fs";
 import * as cp from "child_process";
 import { CancellationToken } from "vs/base/common/cancellation";
 
-jest.mock("vs/nls", () => ({ "localize": (...args: any): => `${JSON.stringify(args)}` }));
+// tslint:disable-next-line:no-any
+jest.mock("vs/nls", () => ({ "localize": (...args: any): string => `${JSON.stringify(args)}` }));
 
 describe("zip", () => {
 	const tarPath = path.resolve(__dirname, "./test-extension.tar");
@@ -18,17 +19,22 @@ describe("zip", () => {
 		cp.execSync(`rm -rf '${extractPath}'`);
 	});
 
+	const resolveExtract = async (archivePath: string): Promise<void> => {
+		expect(fs.existsSync(archivePath)).toEqual(true);
+		await expect(zip.extract(
+			archivePath,
+			extractPath,
+			{ sourcePath: "extension", overwrite: true },
+			CancellationToken.None,
+		)).resolves.toBe(undefined);
+		expect(fs.existsSync(extractPath)).toEqual(true);
+	};
+
 	// tslint:disable-next-line:no-any
 	const extract = (archivePath: string): () => any => {
 		// tslint:disable-next-line:no-any
 		return async (): Promise<any> => {
-			await expect(zip.extract(
-				archivePath,
-				extractPath,
-				{ sourcePath: "extension", overwrite: true },
-				CancellationToken.None,
-			)).resolves.toBe(undefined);
-			expect(fs.existsSync(extractPath)).toEqual(true);
+			await resolveExtract(archivePath);
 			expect(fs.existsSync(path.resolve(extractPath, ".vsixmanifest"))).toEqual(true);
 			expect(fs.existsSync(path.resolve(extractPath, "package.json"))).toEqual(true);
 		};
@@ -40,14 +46,7 @@ describe("zip", () => {
 	const buffer = (archivePath: string): () => any => {
 		// tslint:disable-next-line:no-any
 		return async (): Promise<any> => {
-			expect(fs.existsSync(archivePath)).toEqual(true);
-			await zip.extract(
-				archivePath,
-				extractPath,
-				{ sourcePath: "extension", overwrite: true },
-				CancellationToken.None,
-			);
-			expect(fs.existsSync(extractPath)).toEqual(true);
+			await resolveExtract(archivePath);
 			const manifestPath = path.resolve(extractPath, ".vsixmanifest");
 			expect(fs.existsSync(manifestPath)).toEqual(true);
 			const manifestBuf = fs.readFileSync(manifestPath);
