@@ -235,7 +235,7 @@ export class Entry extends Command {
 			logger.warn("Launched without authentication.");
 		}
 
-		const url = `http://localhost:${flags.port}/`;
+		const url = `https://localhost:${flags.port}/`;
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
 		logger.info(url);
