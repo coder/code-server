@@ -16,6 +16,7 @@ if (ipcMsgListener) {
  * that could be expected to exist in the unpacked version of
  * VS Code. The list may grow in the future.
  */
+// tslint:disable-next-line:no-any
 const requireNativeModules = (mod: any): void => {
 	// tslint:disable-next-line:no-any
 	const nativeModules: ReadonlyArray<{ id: string, module: any }> = [
@@ -32,13 +33,55 @@ const requireNativeModules = (mod: any): void => {
 		if (id.slice(0, 3) === "/./") {
 			id = id.slice(3);
 		}
+		// tslint:disable-next-line:no-any
 		const requireNativeModule = (id: string): any => {
 			for (let i = 0; i < nativeModules.length; i++) {
 				if (id.slice(-1 * (nativeModules[i].id.length + 1)) !== `/${nativeModules[i].id}`) {
 					continue;
 				}
 
-				return nativeModules[i].module;
+				const nativeModule = nativeModules[i];
+				if (nativeModule.id === "vscode-textmate") {
+					/**
+					 * Due to the way vscode-textmate requires modules,
+					 * oniguruma is not bundled within it.
+					 *
+					 * We have to override the native getOnigLib func much
+					 * like we do in the `web` bundle to target onigasm.
+					 */
+					const vst = nativeModule.module as typeof import("../../../../lib/vscode/node_modules/vscode-textmate");
+					vst.Registry = class Registry extends vst.Registry {
+						// tslint:disable-next-line:no-any
+						public constructor(opts: any) {
+							super({
+								...opts,
+								// tslint:disable-next-line:no-any
+								getOnigLib: (): Promise<any> => {
+									// tslint:disable-next-line:no-any
+									return new Promise<any>((res): void => {
+										const oniguruma = require("../../../../lib/vscode/node_modules/oniguruma");
+
+										res({
+											// tslint:disable-next-line:only-arrow-functions no-any
+											createOnigScanner: function (patterns: any): any {
+												return new oniguruma.OnigScanner(patterns);
+											},
+											// tslint:disable-next-line:only-arrow-functions no-any
+											createOnigString: function (s: any): any {
+												const string = new oniguruma.OnigString(s);
+												string.content = s;
+
+												return string;
+											},
+										});
+									});
+								},
+							});
+						}
+					};
+				}
+
+				return nativeModule.module;
 			}
 			throw new Error(`Module '${id}' undefined. If you need this native module, file an issue on GitHub.`);
 		};
