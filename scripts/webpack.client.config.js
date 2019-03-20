@@ -10,7 +10,7 @@ const { GenerateSW } = require("workbox-webpack-plugin");
 // const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 const root = path.join(__dirname, "..");
-const prod = process.env.NODE_ENV === "production";
+const prod = process.env.NODE_ENV === "production" || process.env.CI === "true";
 
 module.exports = (options = {}) =>
   merge(require("./webpack.general.config")(options), {

@@ -1,3 +1,4 @@
+import { mkdirp } from "fs-extra";
 import { logger, field } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
@@ -20,7 +21,7 @@ import safeCompare = require("safe-compare");
 import { TunnelCloseCode } from "@coder/tunnel/src/common";
 import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import { createPortScanner } from "./portScanner";
-import { buildDir, isCli } from "./constants";
+import { buildDir } from "./constants";
 
 interface CreateAppOptions {
 	registerMiddleware?: (app: express.Application) => void;
@@ -257,8 +258,9 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			req.on("data", (chunk) => {
 				data.push(chunk);
 			});
-			req.on("end", () => {
+			req.on("end", async () => {
 				const body = data.join("");
+				await mkdirp(path.dirname(fullPath));
 				fs.writeFileSync(fullPath, body);
 				logger.debug("Wrote resource", field("path", fullPath), field("content-length", body.length));
 				res.status(200);

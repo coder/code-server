@@ -1,18 +1,19 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
-import { fork, ForkOptions, ChildProcess } from "child_process";
+import { ChildProcess, fork, ForkOptions, spawn } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
+import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
-import { createApp } from "./server";
-import { requireModule, requireFork, forkModule } from "./vscode/bootstrapFork";
-import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
-import { setup as setupNativeModules } from "./modules";
+import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
 import { fillFs } from "./fill";
-import { isCli, serveStatic, buildDir, dataHome, cacheHome } from "./constants";
+import { setup as setupNativeModules } from "./modules";
+import { createApp } from "./server";
+import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
+import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
 export class Entry extends Command {
@@ -34,7 +35,6 @@ export class Entry extends Command {
 		"bootstrap-fork": flags.string({ hidden: true }),
 		"fork": flags.string({ hidden: true }),
 
-		env: flags.string({ hidden: true }),
 		args: flags.string({ hidden: true }),
 	};
 	public static args = [{
@@ -52,6 +52,20 @@ export class Entry extends Command {
 		const dataDir = path.resolve(flags["data-dir"] || path.join(dataHome, "code-server"));
 		const workingDir = path.resolve(args["workdir"]);
 
+		if (!fs.existsSync(dataDir)) {
+			const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
+			if (fs.existsSync(oldDataDir)) {
+				await fse.move(oldDataDir, dataDir);
+				logger.info(`Moved data directory from ${oldDataDir} to ${dataDir}`);
+			}
+		}
+
+		await Promise.all([
+			fse.mkdirp(cacheHome),
+			fse.mkdirp(dataDir),
+			fse.mkdirp(workingDir),
+		]);
+
 		setupNativeModules(dataDir);
 		const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 		if (flags["bootstrap-fork"]) {
@@ -61,7 +75,6 @@ export class Entry extends Command {
 				process.exit(1);
 			}
 
-			Object.assign(process.env, flags.env ? JSON.parse(flags.env) : {});
 			((flags.args ? JSON.parse(flags.args) : []) as string[]).forEach((arg, i) => {
 				// [0] contains the binary running the script (`node` for example) and
 				// [1] contains the script name, so the arguments come after that.
@@ -75,14 +88,6 @@ export class Entry extends Command {
 			const modulePath = flags["fork"];
 
 			return requireFork(modulePath, JSON.parse(flags.args!), builtInExtensionsDir);
-		}
-
-		if (!fs.existsSync(dataDir)) {
-			fs.mkdirSync(dataDir);
-		}
-
-		if (!fs.existsSync(cacheHome)) {
-			fs.mkdirSync(cacheHome);
 		}
 
 		const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
@@ -176,12 +181,20 @@ export class Entry extends Command {
 				builtInExtensionsDirectory: builtInExtensionsDir,
 				dataDirectory: dataDir,
 				workingDirectory: workingDir,
+				cacheDirectory: cacheHome,
 				fork: (modulePath: string, args: string[], options: ForkOptions): ChildProcess => {
 					if (options && options.env && options.env.AMD_ENTRYPOINT) {
 						return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 					}
 
-					return fork(modulePath, args, options);
+					if (isCli) {
+						return spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+							...options,
+							stdio: [null, null, null, "ipc"],
+						});
+					} else {
+						return fork(modulePath, args, options);
+					}
 				},
 			},
 			password,
@@ -190,11 +203,6 @@ export class Entry extends Command {
 				cert: certData,
 			} : undefined,
 		});
-
-		if (!fs.existsSync(workingDir)) {
-			logger.info("Creating working directory", field("working-dir", workingDir));
-			fs.mkdirSync(workingDir);
-		}
 
 		logger.info("Starting webserver...", field("host", flags.host), field("port", flags.port));
 		app.server.listen(flags.port, flags.host);
@@ -232,7 +240,7 @@ export class Entry extends Command {
 		logger.info(url);
 		logger.info(" ");
 
-		if (flags["open"]) {
+		if (flags.open) {
 			try {
 				await opn(url);
 			} catch (e) {
@@ -244,5 +252,6 @@ export class Entry extends Command {
 
 Entry.run(undefined, {
 	root: buildDir || __dirname,
+	version: process.env.VERSION || "development",
 	//@ts-ignore
 }).catch(require("@oclif/errors/handle"));
