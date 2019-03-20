@@ -22,7 +22,7 @@ export class Entry extends Command {
 	public static flags = {
 		cert: flags.string({char: "c", description: "Point to an SSL certificate .crt file"}),
 		"cert-key": flags.string({ char: "k", description: "Point to an SSL certificate .key file"}),
-		"data-dir": flags.string({ char: "d", default: "Current directory", description: "Specify the working directory for the IDE"  }),
+		"data-dir": flags.string({ char: "d", description: "Specify the working directory for the IDE"  }),
 		help: flags.help(),
 		host: flags.string({ char: "h", default: "0.0.0.0" }),
 		open: flags.boolean({ char: "o", description: "Open in browser on startup" }),
