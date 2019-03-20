@@ -96,7 +96,6 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 	}
 
 	process.argv = ["", "", ...args];
-
 	requireFilesystemModule(modulePath, builtInExtensionsDir);
 
 	if (ipcMsgBuffer && ipcMsgListener) {
