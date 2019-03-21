@@ -14,7 +14,7 @@ const doInstall = (pkg: string, path: string): Promise<void> => {
 		exec("yarn --network-concurrency 1", {
 			cwd: path,
 			maxBuffer: 1024 * 1024 * 10,
-		}, (error: any, stdout: any, stderr: any) => {
+		}, (error, stdout, stderr) => {
 			if (error) {
 				logger.error(
 					`Failed to install "${pkg}" dependencies`,
