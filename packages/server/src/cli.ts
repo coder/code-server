@@ -1,19 +1,19 @@
-import * as fse from "fs-extra";
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
 import { Command, flags } from "@oclif/command";
-import { fork, ForkOptions, ChildProcess } from "child_process";
+import { ChildProcess, fork, ForkOptions, spawn } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
+import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
-import { createApp } from "./server";
-import { requireModule, requireFork, forkModule } from "./vscode/bootstrapFork";
-import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
-import { setup as setupNativeModules } from "./modules";
+import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
 import { fillFs } from "./fill";
-import { isCli, serveStatic, buildDir, dataHome, cacheHome } from "./constants";
+import { setup as setupNativeModules } from "./modules";
+import { createApp } from "./server";
+import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
+import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
 export class Entry extends Command {
@@ -187,7 +187,14 @@ export class Entry extends Command {
 						return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 					}
 
-					return fork(modulePath, args, options);
+					if (isCli) {
+						return spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+							...options,
+							stdio: [null, null, null, "ipc"],
+						});
+					} else {
+						return fork(modulePath, args, options);
+					}
 				},
 			},
 			password,

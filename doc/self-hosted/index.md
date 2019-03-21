@@ -85,6 +85,7 @@ OPTIONS
          proxy_pass http://localhost:8443/;
          proxy_set_header Upgrade $http_upgrade;
          proxy_set_header Connection upgrade;
+         proxy_set_header Accept-Encoding gzip;
       }
    }
   ```

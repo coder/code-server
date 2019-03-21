@@ -32,16 +32,28 @@ If you're just starting out, we recommend [installing code-server locally](../..
   ```
   >example: `ssh -i "/Users/John/Downloads/TestInstance.pem" ubuntu@ec2-3-45-678-910.compute-1.amazonaws.co`
 - You should see a prompt for your EC2 instance like so<img src="../../assets/aws_ubuntu.png">
-- At this point it is time to download the `code-server` binary. We will of course want the linux version. Make sure you copy the link for the latest linux version on our [releases page](https://github.com/codercom/code-server/releases)
-- With the URL in the clipboard, run:
+- At this point it is time to download the `code-server` binary. We will of course want the linux version.
+- Find the latest Linux release from this URL:
   ```
-  wget https://github.com/codercom/code-server/releases/download/0.1.4/code-server-linux
+  https://github.com/codercom/code-server/releases/latest
+  ```
+- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
+  ```
+  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  ```
+- Extract the downloaded tar.gz file with this command, for example:
+  ```
+  tar -xvzf code-server-{version}-linux-x64.tar.gz
+  ```
+- Navigate to extracted directory with this command:
+  ```
+  cd code-server-{version}-linux-x64
   ```
 - If you run into any permission errors, make the binary executable by running:
   ```
-  chmod +x code-server-linux
+  chmod +x code-server
   ```
-  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally, run
   ```
   sudo ./code-server-linux -p 80

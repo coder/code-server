@@ -189,7 +189,19 @@ export class Workbench {
 		} else {
 			config.folderUri = workspace as URI;
 		}
-		await main(config);
+		try {
+			await main(config);
+		} catch (ex) {
+			if (ex.toString().indexOf("UriError") !== -1 || ex.toString().indexOf("backupPath") !== -1) {
+				/**
+				 * Resolves the error of the workspace identifier being invalid.
+				 */
+				this.workspace = undefined;
+				location.reload();
+
+				return;
+			}
+		}
 		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 		const bounded = this.clipboardContextKey.bindTo(contextKeys);
 		client.clipboard.onPermissionChange((enabled) => {

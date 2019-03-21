@@ -7,11 +7,11 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 // const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 const root = path.join(__dirname, "..");
-const prod = process.env.NODE_ENV === "production";
+const prod = process.env.NODE_ENV === "production" || process.env.CI === "true";
 
 module.exports = (options = {}) => merge(
 	require("./webpack.general.config")(options), {
-	devtool: prod ? "source-map" : "cheap-module-eval-source-map",
+	devtool: prod ? "none" : "cheap-module-eval-source-map",
 	mode: prod ? "production" : "development",
 	entry: prod ? options.entry : [
 		"webpack-hot-middleware/client?reload=true&quiet=true",
