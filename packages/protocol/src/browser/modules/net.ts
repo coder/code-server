@@ -137,6 +137,8 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 		});
 
 		this.on("listening", () => this._listening = true);
+		this.on("error", () => this._listening = false);
+		this.on("close", () => this._listening = false);
 	}
 
 	public listen(handle?: net.ListenOptions | number | string, hostname?: string | number | Function, backlog?: number | Function, callback?: Function): this {
@@ -174,6 +176,7 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 	}
 
 	public close(callback?: () => void): this {
+		this._listening = false;
 		if (callback) {
 			this.on("close", callback);
 		}
