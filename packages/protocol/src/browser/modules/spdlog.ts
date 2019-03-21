@@ -15,8 +15,7 @@ class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.
 	public async drop (): Promise<void> { this.proxy.drop(); }
 }
 
-type NodeSpdlog = typeof spdlog;
-export class SpdlogModule implements NodeSpdlog {
+export class SpdlogModule {
 	public readonly RotatingLogger: typeof spdlog.RotatingLogger;
 
 	public constructor(private readonly proxy: SpdlogModuleProxy) {

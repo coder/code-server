@@ -39,6 +39,8 @@ export class Client {
 	private pingTimeout: NodeJS.Timer | number | undefined;
 	private readonly pingTimeoutDelay = 30000;
 
+	private readonly responseTimeout = 10000;
+
 	public readonly modules: {
 		[Module.ChildProcess]: ChildProcessModule,
 		[Module.Fs]: FsModule,
@@ -213,7 +215,13 @@ export class Client {
 			const dispose = (): void => {
 				d1.dispose();
 				d2.dispose();
+				clearTimeout(timeout as any);
 			};
+
+			const timeout = setTimeout(() => {
+				dispose();
+				reject(new Error("timed out"));
+			}, this.responseTimeout);
 
 			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
@@ -434,28 +442,36 @@ export class Client {
 		});
 
 		proxy.onDone((disconnected: boolean) => {
+			const log = (): void => {
+				logger.trace(() => [
+					typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
+					field("proxyId", proxyId),
+					field("disconnected", disconnected),
+					field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
+					field("success listeners", this.successEmitter.counts),
+					field("fail listeners", this.failEmitter.counts),
+					field("event listeners", this.eventEmitter.counts),
+				]);
+			};
+
 			// Uniquely identified items (top-level module proxies) can continue to
 			// be used so we don't need to delete them.
 			if (typeof proxyId === "number") {
-				this.proxies.delete(proxyId);
-				this.eventEmitter.dispose(proxyId);
+				const dispose = (): void => {
+					this.proxies.delete(proxyId);
+					this.eventEmitter.dispose(proxyId);
+					log();
+				};
 				if (!disconnected) {
-					proxy.dispose();
+					proxy.dispose().then(dispose).catch(dispose);
+				} else {
+					dispose();
 				}
 			} else {
 				// The callbacks will still be unusable though.
 				this.proxies.get(proxyId)!.callbacks.clear();
+				log();
 			}
-
-			logger.trace(() => [
-				typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
-				field("proxyId", proxyId),
-				field("disconnected", disconnected),
-				field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
-				field("success listeners", this.successEmitter.counts),
-				field("fail listeners", this.failEmitter.counts),
-				field("event listeners", this.eventEmitter.counts),
-			]);
 		});
 
 		return proxy;
@@ -468,6 +484,9 @@ export class Client {
 	 * ensures it runs after everything else.
 	 */
 	private async ensureResolved(proxyId: number | Module): Promise<void> {
+		if (!this.proxies.has(proxyId)) {
+			return logger.warn(`proxy ${proxyId} disposed too early`);
+		}
 		await (this.proxies.get(proxyId)!).promise;
 	}
 
