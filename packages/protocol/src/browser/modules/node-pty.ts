@@ -39,7 +39,7 @@ type NodePty = typeof pty;
 export class NodePtyModule implements NodePty {
 	public constructor(private readonly proxy: NodePtyModuleProxy) {}
 
-	public spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): pty.IPty {
+	public spawn = (file: string, args: string[] | string, options: pty.IPtyForkOptions): pty.IPty => {
 		return new NodePtyProcess(this.proxy.spawn(file, args, options));
 	}
 }

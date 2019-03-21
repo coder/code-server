@@ -12,7 +12,7 @@ import { FsModule, ChildProcessModule, NetModule, NodePtyModule, SpdlogModule, T
 // tslint:disable no-any
 
 interface ProxyData {
-	promise?: Promise<void>;
+	promise: Promise<void>;
 	instance: any;
 	callbacks: Map<number, (...args: any[]) => void>;
 }

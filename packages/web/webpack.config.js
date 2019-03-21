@@ -12,7 +12,6 @@ module.exports = merge(
 		typescriptCompilerOptions: {
 			"target": "es5",
 			"lib": ["dom", "esnext"],
-			"importHelpers": true,
 		},
 	},
 ), {

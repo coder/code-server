@@ -26,7 +26,7 @@ export class SpdlogModule {
 		};
 	}
 
-	public setAsyncMode(bufferSize: number, flushInterval: number): void {
+	public setAsyncMode = (bufferSize: number, flushInterval: number): void => {
 		this.proxy.setAsyncMode(bufferSize, flushInterval);
 	}
 }

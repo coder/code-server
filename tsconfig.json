@@ -11,6 +11,7 @@
 		"strict": true,
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
+		"importHelpers": true,
 		"plugins": [
 			{
 				"name": "tslint-language-service"

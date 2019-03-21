@@ -231,7 +231,7 @@ export class NetModule implements NodeNet {
 		};
 	}
 
-	public createConnection(target: string | number | net.NetConnectOpts, host?: string | Function, callback?: Function): net.Socket {
+	public createConnection = (target: string | number | net.NetConnectOpts, host?: string | Function, callback?: Function): net.Socket => {
 		if (typeof host === "function") {
 			callback = host;
 			host = undefined;
@@ -245,10 +245,10 @@ export class NetModule implements NodeNet {
 		return socket;
 	}
 
-	public createServer(
+	public createServer = (
 		options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean } | ((socket: net.Socket) => void),
 		callback?: (socket: net.Socket) => void,
-	): net.Server {
+	): net.Server => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -262,19 +262,19 @@ export class NetModule implements NodeNet {
 		return server;
 	}
 
-	public connect(): net.Socket {
+	public connect = (): net.Socket => {
 		throw new Error("not implemented");
 	}
 
-	public isIP(_input: string): number {
+	public isIP = (_input: string): number => {
 		throw new Error("not implemented");
 	}
 
-	public isIPv4(_input: string): boolean {
+	public isIPv4 = (_input: string): boolean => {
 		throw new Error("not implemented");
 	}
 
-	public isIPv6(_input: string): boolean {
+	public isIPv6 = (_input: string): boolean => {
 		throw new Error("not implemented");
 	}
 }
