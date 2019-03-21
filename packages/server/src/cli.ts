@@ -224,7 +224,7 @@ export class Entry extends Command {
 		if (!flags["cert-key"] && !flags.cert) {
 			logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 			// TODO: fill in appropriate doc url
-			logger.warn("Documentation on securing your setup: https://coder.com/docs");
+			logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/self-hosted/index.md");
 		}
 
 		if (!flags["no-auth"]) {
@@ -234,7 +234,7 @@ export class Entry extends Command {
 			logger.warn("Launched without authentication.");
 		}
 
-		const url = `http${flags["allow-http"] ? "s" : ""}://localhost:${flags.port}/`;
+		const url = `http${flags["allow-http"] ? "" : "s"}://localhost:${flags.port}/`;
 		logger.info(" ");
 		logger.info("Started (click the link below to open):");
 		logger.info(url);
