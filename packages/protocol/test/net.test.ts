@@ -25,6 +25,19 @@ describe("net", () => {
 			server.close();
 		});
 
+		it("should fail to connect", async () => {
+			const socket = new net.Socket();
+
+			const fn = jest.fn();
+			socket.on("error", fn);
+
+			socket.connect("/tmp/t/e/s/t/d/o/e/s/n/o/t/e/x/i/s/t");
+
+			await new Promise((r): nativeNet.Socket => socket.on("close", r));
+
+			expect(fn).toHaveBeenCalledTimes(1);
+		});
+
 		it("should connect", async () => {
 			await new Promise((resolve): void => {
 				const socket = net.createConnection(socketPath, () => {

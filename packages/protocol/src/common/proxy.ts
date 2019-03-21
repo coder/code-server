@@ -31,12 +31,18 @@ const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
 export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 	protected readonly proxy: T;
 
-	public constructor(proxyPromise: Promise<T> | T) {
+	/**
+	 * You can specify not to bind events in order to avoid emitting twice for
+	 * duplex streams.
+	 */
+	public constructor(proxyPromise: Promise<T> | T, bindEvents: boolean = true) {
 		super();
 		this.proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
-		this.proxy.onEvent((event, ...args): void => {
-			this.emit(event, ...args);
-		});
+		if (bindEvents) {
+			this.proxy.onEvent((event, ...args): void => {
+				this.emit(event, ...args);
+			});
+		}
 	}
 }
 

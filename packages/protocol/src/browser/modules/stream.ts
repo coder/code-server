@@ -161,7 +161,7 @@ export class Duplex<T extends DuplexProxy = DuplexProxy> extends Writable<T> imp
 
 	public constructor(proxyPromise: Promise<T> | T) {
 		super(proxyPromise);
-		this._readable = new Readable(proxyPromise);
+		this._readable = new Readable(proxyPromise, false);
 	}
 
 	public get readable(): boolean {
