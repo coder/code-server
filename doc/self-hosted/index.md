@@ -2,7 +2,7 @@
 
 [code-server](https://coder.com) is used by developers at Azure, Google, Reddit, and more to give them access to VS Code in the browser.
 
-## Quickstart guide
+## Quickstart Guide
 
 > NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
 
@@ -24,7 +24,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 5. Paste the password from the cli into the login window<img src="../assets/server-password-modal.png">
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
-### Things to know
+### Things To Know
 - When you visit the IP for your code-server, you will be greeted   with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../assets/chrome_warning.png">
 - Then click **"proceed anyway"**<img src="../assets/chrome_confirm.png">
 
@@ -54,7 +54,7 @@ OPTIONS
   --password=password
   ```
 
-  ### Data directory
+  ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
 
   ### Host
@@ -75,7 +75,7 @@ OPTIONS
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
   ### Nginx Reverse Proxy
-  Nginx is for reverse proxy. Here is a example virtual host that works with code-server. Please also pass --allow-http. You can also use certbot by EFF to get a ssl certificates for free.
+  Nginx is for reverse proxy. Below is a virtual host example that works with code-server. Please also pass --allow-http. You can also use certbot by EFF to get a ssl certificates for free.
   ```
   server {
     listen 80;
