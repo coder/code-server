@@ -17,10 +17,16 @@ export interface ServerOptions {
 	readonly fork?: ForkProvider;
 }
 
+interface ProxyData {
+	disposeTimeout?: number | NodeJS.Timer;
+	instance: any;
+}
+
 export class Server {
 	private proxyId = 0;
-	private readonly proxies = new Map<number | Module, ServerProxy | object>();
-	private disposed: boolean = false;
+	private readonly proxies = new Map<number | Module, ProxyData>();
+	private disconnected: boolean = false;
+	private responseTimeout = 10000;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -42,16 +48,18 @@ export class Server {
 		});
 
 		connection.onClose(() => {
+			this.disconnected = true;
+
 			logger.trace(() => [
 				"disconnected from client",
 				field("proxies", this.proxies.size),
 			]);
 
 			this.proxies.forEach((proxy, proxyId) => {
-				if (isProxy(proxy)) {
-					proxy.dispose();
+				if (isProxy(proxy.instance)) {
+					proxy.instance.dispose();
 				}
-				this.disposeProxy(proxyId);
+				this.removeProxy(proxyId);
 			});
 		});
 
@@ -130,21 +138,17 @@ export class Server {
 
 		let response: any;
 		try {
-			const proxy = this.proxies.get(proxyId);
-			if (!proxy) {
-				throw new Error(`${proxyId} is not a proxy`);
-			}
-
-			if (typeof (proxy as any)[method] !== "function") {
+			const proxy = this.getProxy(proxyId);
+			if (typeof proxy.instance[method] !== "function") {
 				throw new Error(`"${method}" is not a function`);
 			}
 
-			response = (proxy as any)[method](...args);
+			response = proxy.instance[method](...args);
 
 			// We wait for the client to call "dispose" instead of doing it onDone to
 			// ensure all the messages it sent get processed before we get rid of it.
 			if (method === "dispose") {
-				this.disposeProxy(proxyId);
+				this.removeProxy(proxyId);
 			}
 
 			// Proxies must always return promises.
@@ -156,7 +160,6 @@ export class Server {
 				error.message,
 				field("type", typeof response),
 				field("proxyId", proxyId),
-				field("hasProxy", this.proxies.has(proxyId)),
 			);
 			this.sendException(id, error);
 		}
@@ -202,13 +205,13 @@ export class Server {
 	/**
 	 * Store a proxy and bind events to send them back to the client.
 	 */
-	private storeProxy(proxy: ServerProxy): number;
-	private storeProxy(proxy: any, moduleProxyId: Module): Module;
-	private storeProxy(proxy: ServerProxy | any, moduleProxyId?: Module): number | Module {
-		// In case we dispose while waiting for a function to return.
-		if (this.disposed) {
-			if (isProxy(proxy)) {
-				proxy.dispose();
+	private storeProxy(instance: ServerProxy): number;
+	private storeProxy(instance: any, moduleProxyId: Module): Module;
+	private storeProxy(instance: ServerProxy | any, moduleProxyId?: Module): number | Module {
+		// In case we disposed while waiting for a function to return.
+		if (this.disconnected) {
+			if (isProxy(instance)) {
+				instance.dispose();
 			}
 
 			throw new Error("disposed");
@@ -220,11 +223,20 @@ export class Server {
 			field("proxyId", proxyId),
 		]);
 
-		this.proxies.set(proxyId, proxy);
+		this.proxies.set(proxyId, { instance });
 
-		if (typeof proxyId === "number" && isProxy(proxy)) {
-			proxy.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args));
-			proxy.onDone(() => this.sendEvent(proxyId, "done"));
+		if (isProxy(instance)) {
+			instance.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args));
+			instance.onDone(() => {
+				// It might have finished because we disposed it due to a disconnect.
+				if (!this.disconnected) {
+					this.sendEvent(proxyId, "done");
+					this.getProxy(proxyId).disposeTimeout = setTimeout(() => {
+						instance.dispose();
+						this.removeProxy(proxyId);
+					}, this.responseTimeout);
+				}
+			});
 		}
 
 		return proxyId;
@@ -301,11 +313,15 @@ export class Server {
 		this.connection.send(serverMessage.serializeBinary());
 	}
 
-	private disposeProxy(proxyId: number | Module): void {
+	/**
+	 * Call after disposing a proxy.
+	 */
+	private removeProxy(proxyId: number | Module): void {
+		clearTimeout(this.getProxy(proxyId).disposeTimeout as any);
 		this.proxies.delete(proxyId);
 
 		logger.trace(() => [
-			"disposed proxy",
+			"disposed and removed proxy",
 			field("proxyId", proxyId),
 			field("proxies", this.proxies.size),
 		]);
@@ -313,5 +329,13 @@ export class Server {
 
 	private stringify(value: any): string {
 		return stringify(value, undefined, (p) => this.storeProxy(p));
+	}
+
+	private getProxy(proxyId: number | Module): ProxyData {
+		if (!this.proxies.has(proxyId)) {
+			throw new Error(`proxy ${proxyId} disposed too early`);
+		}
+
+		return this.proxies.get(proxyId)!;
 	}
 }

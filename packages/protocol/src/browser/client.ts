@@ -401,7 +401,7 @@ export class Client {
 			field("proxyId", proxyId),
 		]);
 
-		const proxy = new Proxy({
+		const instance = new Proxy({
 			proxyId,
 			onDone: (cb: (...args: any[]) => void): void => {
 				this.eventEmitter.event(proxyId, (event) => {
@@ -433,12 +433,12 @@ export class Client {
 		});
 
 		this.proxies.set(proxyId, {
-			promise: promise,
-			instance: proxy,
+			promise,
+			instance,
 			callbacks: new Map(),
 		});
 
-		proxy.onDone((disconnected: boolean) => {
+		instance.onDone((disconnected: boolean) => {
 			const log = (): void => {
 				logger.trace(() => [
 					typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
@@ -460,7 +460,7 @@ export class Client {
 					log();
 				};
 				if (!disconnected) {
-					proxy.dispose().then(dispose).catch(dispose);
+					instance.dispose().then(dispose).catch(dispose);
 				} else {
 					dispose();
 				}
@@ -471,7 +471,7 @@ export class Client {
 			}
 		});
 
-		return proxy;
+		return instance;
 	}
 
 	/**
