@@ -1,5 +1,6 @@
 import * as cp from "child_process";
 import { ServerProxy } from "../../common/proxy";
+import { preserveEnv } from "../../common/util";
 import { WritableProxy, ReadableProxy } from "./stream";
 
 export type ForkProvider = (modulePath: string, args?: string[], options?: cp.ForkOptions) => cp.ChildProcess;
@@ -74,14 +75,20 @@ export class ChildProcessModuleProxy {
 		options?: { encoding?: string | null } & cp.ExecOptions | null,
 		callback?: ((error: cp.ExecException | null, stdin: string | Buffer, stdout: string | Buffer) => void),
 	): Promise<ChildProcessProxies> {
+		preserveEnv(options);
+
 		return this.returnProxies(cp.exec(command, options, callback));
 	}
 
 	public async fork(modulePath: string, args?: string[], options?: cp.ForkOptions): Promise<ChildProcessProxies> {
+		preserveEnv(options);
+
 		return this.returnProxies((this.forkProvider || cp.fork)(modulePath, args, options));
 	}
 
 	public async spawn(command: string, args?: string[], options?: cp.SpawnOptions): Promise<ChildProcessProxies> {
+		preserveEnv(options);
+
 		return this.returnProxies(cp.spawn(command, args, options));
 	}
 

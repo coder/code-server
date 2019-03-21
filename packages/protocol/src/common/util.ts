@@ -301,3 +301,13 @@ export const isProxy = (value: any): value is ServerProxy => {
 export const isPromise = (value: any): value is Promise<any> => {
 	return typeof value.then === "function" && typeof value.catch === "function";
 };
+
+/**
+ * When spawning VS Code tries to preserve the environment but since it's in
+ * the browser, it doesn't work.
+ */
+export const preserveEnv = (options?: { env?: NodeJS.ProcessEnv } | null): void => {
+	if (options && options.env) {
+		options.env = { ...process.env, ...options.env };
+	}
+};

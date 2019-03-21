@@ -2,6 +2,7 @@
 import { EventEmitter } from "events";
 import * as pty from "node-pty";
 import { ServerProxy } from "../../common/proxy";
+import { preserveEnv } from "../../common/util";
 
 /**
  * Server-side IPty proxy.
@@ -67,6 +68,8 @@ export class NodePtyProcessProxy implements ServerProxy {
  */
 export class NodePtyModuleProxy {
 	public async spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): Promise<NodePtyProcessProxy> {
+		preserveEnv(options);
+
 		return new NodePtyProcessProxy(pty.spawn(file, args, options));
 	}
 }
