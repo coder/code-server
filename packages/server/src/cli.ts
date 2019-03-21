@@ -224,7 +224,7 @@ export class Entry extends Command {
 		if (!flags["cert-key"] && !flags.cert) {
 			logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 			// TODO: fill in appropriate doc url
-			logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/self-hosted/index.md");
+			logger.warn("Documentation on securing your setup: http://github.com/codercom/code-server");
 		}
 
 		if (!flags["no-auth"]) {
