@@ -1,17 +1,13 @@
-import { ForkOptions, ChildProcess } from "child_process";
 import { mkdirp } from "fs-extra";
 import * as os from "os";
-import { logger, field } from "@coder/logger";
-import { Pong, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, SuccessMessage, FailMessage, EventMessage } from "../proto";
+import { field, logger} from "@coder/logger";
 import { ReadWriteConnection } from "../common/connection";
-import { ServerProxy } from "../common/proxy";
-import { stringify, parse, } from "../common/util";
-import { Fs } from "./modules";
+import { Module, ServerProxy } from "../common/proxy";
+import { isPromise, isProxy, moduleToProto, parse, platformToProto, protoToModule, stringify } from "../common/util";
+import { CallbackMessage, ClientMessage, EventMessage, FailMessage, MethodMessage, NamedCallbackMessage, NamedEventMessage, NumberedCallbackMessage, NumberedEventMessage, Pong, ServerMessage, SuccessMessage, WorkingInitMessage } from "../proto";
+import { ChildProcessModuleProxy, ForkProvider, FsModuleProxy, NetModuleProxy, NodePtyModuleProxy, SpdlogModuleProxy, TrashModuleProxy } from "./modules";
 
-// `any` is needed to deal with sending and receiving arguments of any type.
 // tslint:disable no-any
-
-export type ForkProvider = (modulePath: string, args: string[], options: ForkOptions) => ChildProcess;
 
 export interface ServerOptions {
 	readonly workingDirectory: string;
@@ -22,7 +18,9 @@ export interface ServerOptions {
 }
 
 export class Server {
-	private readonly proxies = new Map<number | string, any>();
+	private proxyId = 0;
+	private readonly proxies = new Map<number | Module, ServerProxy | object>();
+	private disposed: boolean = false;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -44,11 +42,25 @@ export class Server {
 		});
 
 		connection.onClose(() => {
-			this.proxies.forEach((p) => p.dispose && p.dispose());
-			this.proxies.clear();
+			logger.trace(() => [
+				"disconnected from client",
+				field("proxies", this.proxies.size),
+			]);
+
+			this.proxies.forEach((proxy, proxyId) => {
+				if (isProxy(proxy)) {
+					proxy.dispose();
+				}
+				this.disposeProxy(proxyId);
+			});
 		});
 
-		this.proxies.set("fs", new Fs());
+		this.storeProxy(new ChildProcessModuleProxy(this.options ? this.options.fork : undefined), Module.ChildProcess);
+		this.storeProxy(new FsModuleProxy(), Module.Fs);
+		this.storeProxy(new NetModuleProxy(), Module.Net);
+		this.storeProxy(new NodePtyModuleProxy(), Module.NodePty);
+		this.storeProxy(new SpdlogModuleProxy(), Module.Spdlog);
+		this.storeProxy(new TrashModuleProxy(), Module.Trash);
 
 		if (!this.options) {
 			logger.warn("No server options provided. InitMessage will not be sent.");
@@ -70,22 +82,7 @@ export class Server {
 		initMsg.setBuiltinExtensionsDir(this.options.builtInExtensionsDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
-		const platform = os.platform();
-		let operatingSystem: WorkingInitMessage.OperatingSystem;
-		switch (platform) {
-			case "win32":
-				operatingSystem = WorkingInitMessage.OperatingSystem.WINDOWS;
-				break;
-			case "linux":
-				operatingSystem = WorkingInitMessage.OperatingSystem.LINUX;
-				break;
-			case "darwin":
-				operatingSystem = WorkingInitMessage.OperatingSystem.MAC;
-				break;
-			default:
-				throw new Error(`unrecognized platform "${platform}"`);
-		}
-		initMsg.setOperatingSystem(operatingSystem);
+		initMsg.setOperatingSystem(platformToProto(os.platform()));
 		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL);
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);
@@ -115,77 +112,152 @@ export class Server {
 		const proxyMessage = message.getNamedProxy()! || message.getNumberedProxy()!;
 		const id = proxyMessage.getId();
 		const proxyId = message.hasNamedProxy()
-			? message.getNamedProxy()!.getModule()
+			? protoToModule(message.getNamedProxy()!.getModule())
 			: message.getNumberedProxy()!.getProxyId();
 		const method = proxyMessage.getMethod();
-		const args = proxyMessage.getArgsList().map(parse);
+		const args = proxyMessage.getArgsList().map((a) => parse(
+			a,
+			(id, args) => this.sendCallback(proxyId, id, args),
+		));
 
 		logger.trace(() => [
 			"received",
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", args),
+			field("args", proxyMessage.getArgsList()),
 		]);
 
+		let response: any;
 		try {
-			const proxy = this.proxies.get(proxyId);
+			const proxy = this.proxies.get(proxyId)!;
+			if (!proxy) {
+				throw new Error(`${proxyId} is not a proxy`);
+			}
 
-			if (typeof proxy[method] !== "function") {
+			if (typeof (proxy as any)[method] !== "function") {
 				throw new Error(`"${method}" is not a function`);
 			}
 
-			let response = (proxy as any)[method](...args);
+			response = (proxy as any)[method](...args);
 
-			// Proxies must always return promises or proxies since synchronous values
-			// won't work due to the async nature of these messages. Proxies must be
-			// returned synchronously so we can store them and attach callbacks
-			// immediately (like "open" which won't work if attached too late). The
-			// client creates its own proxies which is what allows this to work.
-			if (this.isPromise(response)) {
-				response = await response;
-				if (this.isProxy(response)) {
-					throw new Error(`"${method}" proxy must be returned synchronously`);
-				}
-			} else if (this.isProxy(response)) {
-				this.proxies.set(id, response);
-				response.onDidDispose(() => {
-					this.proxies.delete(id);
-					// The timeout is to let all the normal events fire first so the
-					// client doesn't dispose its event emitter before they go through.
-					setTimeout(() => this.sendEvent(id, "dispose"), 1);
-				});
-				response.onEvent((event, ...args: any[]) => {
-					this.sendEvent(id, event, ...args);
-				});
-				// No need to send anything back since the client creates the proxy.
-				response = undefined;
-			} else {
-				const error = new Error(`"${method} does not return a Promise or ServerProxy"`);
-				logger.error(
-					error.message,
-					field("type", typeof response),
-					field("proxyId", proxyId),
-				);
-				throw error;
+			// We wait for the client to call "dispose" instead of doing it onDone to
+			// ensure all the messages it sent get processed before we get rid of it.
+			if (method === "dispose") {
+				this.disposeProxy(proxyId);
 			}
-			this.sendResponse(id, response);
+
+			// Proxies must always return promises.
+			if (!isPromise(response)) {
+				throw new Error('"${method}" must return a promise');
+			}
+		} catch (error) {
+			logger.error(
+				error.message,
+				field("type", typeof response),
+				field("proxyId", proxyId),
+				field("hasProxy", this.proxies.has(proxyId)),
+			);
+			this.sendException(id, error);
+		}
+
+		try {
+			this.sendResponse(id, await response);
 		} catch (error) {
 			this.sendException(id, error);
 		}
 	}
 
 	/**
-	 * Send an event to the client.
+	 * Send a callback to the client.
 	 */
-	private sendEvent(id: number, event: string, ...args: any[]): void {
-		const eventMessage = new EventMessage();
-		eventMessage.setProxyId(id);
-		eventMessage.setEvent(event);
-		eventMessage.setArgsList(args.map(stringify));
+	private sendCallback(proxyId: number | Module, callbackId: number, args: any[]): void {
+		const stringifiedArgs = args.map((a) => this.stringify(a));
+		logger.trace(() => [
+			"sending callback",
+			field("proxyId", proxyId),
+			field("callbackId", callbackId),
+			field("args", stringifiedArgs),
+		]);
+
+		const message = new CallbackMessage();
+		let callbackMessage: NamedCallbackMessage | NumberedCallbackMessage;
+		if (typeof proxyId === "string") {
+			callbackMessage = new NamedCallbackMessage();
+			callbackMessage.setModule(moduleToProto(proxyId));
+			message.setNamedCallback(callbackMessage);
+		} else  {
+			callbackMessage = new NumberedCallbackMessage();
+			callbackMessage.setProxyId(proxyId);
+			message.setNumberedCallback(callbackMessage);
+		}
+		callbackMessage.setCallbackId(callbackId);
+		callbackMessage.setArgsList(stringifiedArgs);
 
 		const serverMessage = new ServerMessage();
-		serverMessage.setEvent(eventMessage);
+		serverMessage.setCallback(message);
+		this.connection.send(serverMessage.serializeBinary());
+	}
+
+	/**
+	 * Store a proxy and bind events to send them back to the client.
+	 */
+	private storeProxy(proxy: ServerProxy): number;
+	private storeProxy(proxy: any, moduleProxyId: Module): Module;
+	private storeProxy(proxy: ServerProxy | any, moduleProxyId?: Module): number | Module {
+		// In case we dispose while waiting for a function to return.
+		if (this.disposed) {
+			if (isProxy(proxy)) {
+				proxy.dispose();
+			}
+
+			throw new Error("disposed");
+		}
+
+		const proxyId = moduleProxyId || this.proxyId++;
+		logger.trace(() => [
+			"storing proxy",
+			field("proxyId", proxyId),
+		]);
+
+		this.proxies.set(proxyId, proxy);
+
+		if (typeof proxyId === "number" && isProxy(proxy)) {
+			proxy.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args));
+			proxy.onDone(() => this.sendEvent(proxyId, "done"));
+		}
+
+		return proxyId;
+	}
+
+	/**
+	 * Send an event to the client.
+	 */
+	private sendEvent(proxyId: number | Module, event: string, ...args: any[]): void {
+		const stringifiedArgs = args.map((a) => this.stringify(a));
+		logger.trace(() => [
+			"sending event",
+			field("proxyId", proxyId),
+			field("event", event),
+			field("args", stringifiedArgs),
+		]);
+
+		const message = new EventMessage();
+		let eventMessage: NamedEventMessage | NumberedEventMessage;
+		if (typeof proxyId === "string") {
+			eventMessage = new NamedEventMessage();
+			eventMessage.setModule(moduleToProto(proxyId));
+			message.setNamedEvent(eventMessage);
+		} else  {
+			eventMessage = new NumberedEventMessage();
+			eventMessage.setProxyId(proxyId);
+			message.setNumberedEvent(eventMessage);
+		}
+		eventMessage.setEvent(event);
+		eventMessage.setArgsList(stringifiedArgs);
+
+		const serverMessage = new ServerMessage();
+		serverMessage.setEvent(message);
 		this.connection.send(serverMessage.serializeBinary());
 	}
 
@@ -193,17 +265,16 @@ export class Server {
 	 * Send a response back to the client.
 	 */
 	private sendResponse(id: number, response: any): void {
+		const stringifiedResponse = this.stringify(response);
 		logger.trace(() => [
 			"sending resolve",
 			field("id", id),
-			field("response", stringify(response)),
+			field("response", stringifiedResponse),
 		]);
 
 		const successMessage = new SuccessMessage();
 		successMessage.setId(id);
-		// Sending functions from the server to the client is not needed, so the
-		// the second argument isn't provided.
-		successMessage.setResponse(stringify(response));
+		successMessage.setResponse(stringifiedResponse);
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setSuccess(successMessage);
@@ -214,26 +285,33 @@ export class Server {
 	 * Send an exception back to the client.
 	 */
 	private sendException(id: number, error: Error): void {
+		const stringifiedError = stringify(error);
 		logger.trace(() => [
 			"sending reject",
 			field("id", id) ,
-			field("response", stringify(error)),
+			field("response", stringifiedError),
 		]);
 
 		const failedMessage = new FailMessage();
 		failedMessage.setId(id);
-		failedMessage.setResponse(stringify(error));
+		failedMessage.setResponse(stringifiedError);
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setFail(failedMessage);
 		this.connection.send(serverMessage.serializeBinary());
 	}
 
-	private isProxy(value: any): value is ServerProxy {
-		return value && typeof value === "object" && typeof value.onEvent === "function";
+	private disposeProxy(proxyId: number | Module): void {
+		this.proxies.delete(proxyId);
+
+		logger.trace(() => [
+			"disposed proxy",
+			field("proxyId", proxyId),
+			field("proxies", this.proxies.size),
+		]);
 	}
 
-	private isPromise(value: any): value is Promise<any> {
-		return typeof value.then === "function" && typeof value.catch === "function";
+	private stringify(value: any): string {
+		return stringify(value, undefined, (p) => this.storeProxy(p));
 	}
 }

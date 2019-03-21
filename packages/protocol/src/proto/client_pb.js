@@ -272,7 +272,7 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ServerMessage.oneofGroups_ = [[13,14,19,18,16,17]];
+proto.ServerMessage.oneofGroups_ = [[13,14,19,22,18,16,17]];
 
 /**
  * @enum {number}
@@ -282,6 +282,7 @@ proto.ServerMessage.MsgCase = {
   FAIL: 13,
   SUCCESS: 14,
   EVENT: 19,
+  CALLBACK: 22,
   PONG: 18,
   INIT: 16,
   SHARED_PROCESS_ACTIVE: 17
@@ -326,6 +327,7 @@ proto.ServerMessage.toObject = function(includeInstance, msg) {
     fail: (f = msg.getFail()) && node_pb.FailMessage.toObject(includeInstance, f),
     success: (f = msg.getSuccess()) && node_pb.SuccessMessage.toObject(includeInstance, f),
     event: (f = msg.getEvent()) && node_pb.EventMessage.toObject(includeInstance, f),
+    callback: (f = msg.getCallback()) && node_pb.CallbackMessage.toObject(includeInstance, f),
     pong: (f = msg.getPong()) && node_pb.Pong.toObject(includeInstance, f),
     init: (f = msg.getInit()) && proto.WorkingInitMessage.toObject(includeInstance, f),
     sharedProcessActive: (f = msg.getSharedProcessActive()) && vscode_pb.SharedProcessActiveMessage.toObject(includeInstance, f)
@@ -379,6 +381,11 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
       var value = new node_pb.EventMessage;
       reader.readMessage(value,node_pb.EventMessage.deserializeBinaryFromReader);
       msg.setEvent(value);
+      break;
+    case 22:
+      var value = new node_pb.CallbackMessage;
+      reader.readMessage(value,node_pb.CallbackMessage.deserializeBinaryFromReader);
+      msg.setCallback(value);
       break;
     case 18:
       var value = new node_pb.Pong;
@@ -446,6 +453,14 @@ proto.ServerMessage.serializeBinaryToWriter = function(message, writer) {
       19,
       f,
       node_pb.EventMessage.serializeBinaryToWriter
+    );
+  }
+  f = message.getCallback();
+  if (f != null) {
+    writer.writeMessage(
+      22,
+      f,
+      node_pb.CallbackMessage.serializeBinaryToWriter
     );
   }
   f = message.getPong();
@@ -562,6 +577,36 @@ proto.ServerMessage.prototype.clearEvent = function() {
  */
 proto.ServerMessage.prototype.hasEvent = function() {
   return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional CallbackMessage callback = 22;
+ * @return {?proto.CallbackMessage}
+ */
+proto.ServerMessage.prototype.getCallback = function() {
+  return /** @type{?proto.CallbackMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.CallbackMessage, 22));
+};
+
+
+/** @param {?proto.CallbackMessage|undefined} value */
+proto.ServerMessage.prototype.setCallback = function(value) {
+  jspb.Message.setOneofWrapperField(this, 22, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearCallback = function() {
+  this.setCallback(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ServerMessage.prototype.hasCallback = function() {
+  return jspb.Message.getField(this, 22) != null;
 };
 
 

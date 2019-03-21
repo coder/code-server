@@ -7,8 +7,8 @@ export class NamedProxyMessage extends jspb.Message {
   getId(): number;
   setId(value: number): void;
 
-  getModule(): string;
-  setModule(value: string): void;
+  getModule(): Module;
+  setModule(value: Module): void;
 
   getMethod(): string;
   setMethod(value: string): void;
@@ -31,7 +31,7 @@ export class NamedProxyMessage extends jspb.Message {
 export namespace NamedProxyMessage {
   export type AsObject = {
     id: number,
-    module: string,
+    module: Module,
     method: string,
     argsList: Array<string>,
   }
@@ -106,7 +106,167 @@ export namespace MethodMessage {
   }
 }
 
+export class CallbackMessage extends jspb.Message {
+  hasNamedCallback(): boolean;
+  clearNamedCallback(): void;
+  getNamedCallback(): NamedCallbackMessage | undefined;
+  setNamedCallback(value?: NamedCallbackMessage): void;
+
+  hasNumberedCallback(): boolean;
+  clearNumberedCallback(): void;
+  getNumberedCallback(): NumberedCallbackMessage | undefined;
+  setNumberedCallback(value?: NumberedCallbackMessage): void;
+
+  getMsgCase(): CallbackMessage.MsgCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): CallbackMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: CallbackMessage): CallbackMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: CallbackMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CallbackMessage;
+  static deserializeBinaryFromReader(message: CallbackMessage, reader: jspb.BinaryReader): CallbackMessage;
+}
+
+export namespace CallbackMessage {
+  export type AsObject = {
+    namedCallback?: NamedCallbackMessage.AsObject,
+    numberedCallback?: NumberedCallbackMessage.AsObject,
+  }
+
+  export enum MsgCase {
+    MSG_NOT_SET = 0,
+    NAMED_CALLBACK = 1,
+    NUMBERED_CALLBACK = 2,
+  }
+}
+
+export class NamedCallbackMessage extends jspb.Message {
+  getModule(): Module;
+  setModule(value: Module): void;
+
+  getCallbackId(): number;
+  setCallbackId(value: number): void;
+
+  clearArgsList(): void;
+  getArgsList(): Array<string>;
+  setArgsList(value: Array<string>): void;
+  addArgs(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NamedCallbackMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NamedCallbackMessage): NamedCallbackMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NamedCallbackMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NamedCallbackMessage;
+  static deserializeBinaryFromReader(message: NamedCallbackMessage, reader: jspb.BinaryReader): NamedCallbackMessage;
+}
+
+export namespace NamedCallbackMessage {
+  export type AsObject = {
+    module: Module,
+    callbackId: number,
+    argsList: Array<string>,
+  }
+}
+
+export class NumberedCallbackMessage extends jspb.Message {
+  getProxyId(): number;
+  setProxyId(value: number): void;
+
+  getCallbackId(): number;
+  setCallbackId(value: number): void;
+
+  clearArgsList(): void;
+  getArgsList(): Array<string>;
+  setArgsList(value: Array<string>): void;
+  addArgs(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NumberedCallbackMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NumberedCallbackMessage): NumberedCallbackMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NumberedCallbackMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NumberedCallbackMessage;
+  static deserializeBinaryFromReader(message: NumberedCallbackMessage, reader: jspb.BinaryReader): NumberedCallbackMessage;
+}
+
+export namespace NumberedCallbackMessage {
+  export type AsObject = {
+    proxyId: number,
+    callbackId: number,
+    argsList: Array<string>,
+  }
+}
+
 export class EventMessage extends jspb.Message {
+  hasNamedEvent(): boolean;
+  clearNamedEvent(): void;
+  getNamedEvent(): NamedEventMessage | undefined;
+  setNamedEvent(value?: NamedEventMessage): void;
+
+  hasNumberedEvent(): boolean;
+  clearNumberedEvent(): void;
+  getNumberedEvent(): NumberedEventMessage | undefined;
+  setNumberedEvent(value?: NumberedEventMessage): void;
+
+  getMsgCase(): EventMessage.MsgCase;
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): EventMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: EventMessage): EventMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: EventMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): EventMessage;
+  static deserializeBinaryFromReader(message: EventMessage, reader: jspb.BinaryReader): EventMessage;
+}
+
+export namespace EventMessage {
+  export type AsObject = {
+    namedEvent?: NamedEventMessage.AsObject,
+    numberedEvent?: NumberedEventMessage.AsObject,
+  }
+
+  export enum MsgCase {
+    MSG_NOT_SET = 0,
+    NAMED_EVENT = 1,
+    NUMBERED_EVENT = 2,
+  }
+}
+
+export class NamedEventMessage extends jspb.Message {
+  getModule(): Module;
+  setModule(value: Module): void;
+
+  getEvent(): string;
+  setEvent(value: string): void;
+
+  clearArgsList(): void;
+  getArgsList(): Array<string>;
+  setArgsList(value: Array<string>): void;
+  addArgs(value: string, index?: number): string;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): NamedEventMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NamedEventMessage): NamedEventMessage.AsObject;
+  static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+  static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+  static serializeBinaryToWriter(message: NamedEventMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NamedEventMessage;
+  static deserializeBinaryFromReader(message: NamedEventMessage, reader: jspb.BinaryReader): NamedEventMessage;
+}
+
+export namespace NamedEventMessage {
+  export type AsObject = {
+    module: Module,
+    event: string,
+    argsList: Array<string>,
+  }
+}
+
+export class NumberedEventMessage extends jspb.Message {
   getProxyId(): number;
   setProxyId(value: number): void;
 
@@ -119,16 +279,16 @@ export class EventMessage extends jspb.Message {
   addArgs(value: string, index?: number): string;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): EventMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: EventMessage): EventMessage.AsObject;
+  toObject(includeInstance?: boolean): NumberedEventMessage.AsObject;
+  static toObject(includeInstance: boolean, msg: NumberedEventMessage): NumberedEventMessage.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: EventMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): EventMessage;
-  static deserializeBinaryFromReader(message: EventMessage, reader: jspb.BinaryReader): EventMessage;
+  static serializeBinaryToWriter(message: NumberedEventMessage, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): NumberedEventMessage;
+  static deserializeBinaryFromReader(message: NumberedEventMessage, reader: jspb.BinaryReader): NumberedEventMessage;
 }
 
-export namespace EventMessage {
+export namespace NumberedEventMessage {
   export type AsObject = {
     proxyId: number,
     event: string,
@@ -214,5 +374,14 @@ export class Pong extends jspb.Message {
 export namespace Pong {
   export type AsObject = {
   }
+}
+
+export enum Module {
+  CHILDPROCESS = 0,
+  FS = 1,
+  NET = 2,
+  NODEPTY = 3,
+  SPDLOG = 4,
+  TRASH = 5,
 }
 

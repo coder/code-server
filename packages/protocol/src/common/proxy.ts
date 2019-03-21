@@ -1,127 +1,77 @@
-import * as fs from "fs";
+import { EventEmitter } from "events";
+import { isPromise } from "./util";
 
-// `any` is used to match the fs interface.
 // tslint:disable no-any
 
 /**
- * Proxies to the actual instance. The only method that should accept callbacks
- * is "on". Every other method must only accept serializable arguments. All
- * methods must return promises with serializable values.
+ * Allow using a proxy like it's returned synchronously. This only works because
+ * all proxy methods return promises.
  */
-export interface DisposableProxy {
-	// This is a separate method instead of just using "on" to ensure it is
-	// implemented, otherwise you'd have to just know to emit the dispose event.
-	onDidDispose(cb: () => void): void;
+const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
+	return new Proxy({}, {
+		get: (target: any, name: string): any => {
+			if (typeof target[name] === "undefined") {
+				target[name] = async (...args: any[]): Promise<any> => {
+					const proxy = await proxyPromise;
+
+					return proxy ? (proxy as any)[name](...args) : undefined;
+				};
+			}
+
+			return target[name];
+		},
+	});
+};
+
+/**
+ * Client-side emitter that just forwards proxy events to its own emitter.
+ * It also turns a promisified proxy into a non-promisified proxy so we don't
+ * need a bunch of `then` calls everywhere.
+ */
+export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
+	protected readonly proxy: T;
+
+	public constructor(proxyPromise: Promise<T> | T) {
+		super();
+		this.proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
+		this.proxy.onEvent((event, ...args): void => {
+			this.emit(event, ...args);
+		});
+	}
+}
+
+/**
+ * Proxy to the actual instance on the server. Every method must only accept
+ * serializable arguments and must return promises with serializable values. If
+ * a proxy itself has proxies on creation (like how ChildProcess has stdin),
+ * then it should return all of those at once, otherwise you will miss events
+ * from those child proxies and fail to dispose them properly.
+ */
+export interface ServerProxy {
 	dispose(): Promise<void>;
-}
 
-/**
- * An event emitter with an onEvent method to allow proxying all the events.
- */
-export interface ServerProxy extends DisposableProxy {
 	/**
-	 * Events should be listened to manually in here to prevent trying to send
-	 * events with arguments that cannot be serialized. All events listed in
-	 * a proxy's interface should be present.
+	 * This is used instead of an event to force it to be implemented since there
+	 * would be no guarantee the implementation would remember to emit the event.
 	 */
-	onEvent(cb: (event: string, ...args: any[]) => void): void;
+	onDone(cb: () => void): Promise<void>;
+
+	/**
+	 * Listen to all possible events. On the client, this is to reduce boilerplate
+	 * that would just be a bunch of error-prone forwarding of each individual
+	 * event from the proxy to its own emitter. It also fixes a timing issue
+	 * because we just always send all events from the server, so we never miss
+	 * any due to listening too late.
+	 */
+	// tslint:disable-next-line no-any
+	onEvent(cb: (event: string, ...args: any[]) => void): Promise<void>;
 }
 
-export interface WriteStreamProxy extends DisposableProxy {
-	close(): Promise<void>;
-	destroy(): Promise<void>;
-	end(data?: any, encoding?: string): Promise<void>;
-	setDefaultEncoding(encoding: string): Promise<void>;
-	write(data: any, encoding?: string): Promise<void>;
-
-	on(event: "close", cb: () => void): void;
-	on(event: "drain", cb: () => void): void;
-	on(event: "error", cb: (error: Error) => void): void;
-	on(event: "finish", cb: () => void): void;
-	on(event: "open", cb: (fd: number) => void): void;
-}
-
-export interface WatcherProxy extends DisposableProxy {
-	close(): Promise<void>;
-
-	on(event: "change", cb: (event: string, filename: string) => void): void;
-	on(event: "close", cb: () => void): void;
-	on(event: "error", cb: (error: Error) => void): void;
-	on(event: "listener", cb: (event: string, filename: string) => void): void;
-}
-
-/**
- * Proxies to the actual module implementation. Each method must only accept
- * serializable arguments and must return a promise with either serializable
- * values or a proxy to an instance.
- */
-export interface FsProxy {
-	access(path: fs.PathLike, mode?: number): Promise<void>;
-	appendFile(file: fs.PathLike | number, data: any, options?: fs.WriteFileOptions): Promise<void>;
-	chmod(path: fs.PathLike, mode: string | number): Promise<void>;
-	chown(path: fs.PathLike, uid: number, gid: number): Promise<void>;
-	close(fd: number): Promise<void>;
-	copyFile(src: fs.PathLike, dest: fs.PathLike, flags?: number): Promise<void>;
-	createWriteStream(path: fs.PathLike, options?: any): WriteStreamProxy;
-	exists(path: fs.PathLike): Promise<boolean>;
-	fchmod(fd: number, mode: string | number): Promise<void>;
-	fchown(fd: number, uid: number, gid: number): Promise<void>;
-	fdatasync(fd: number): Promise<void>;
-	fstat(fd: number): Promise<Stats>;
-	fsync(fd: number): Promise<void>;
-	ftruncate(fd: number, len?: number | null): Promise<void>;
-	futimes(fd: number, atime: string | number | Date, mtime: string | number | Date): Promise<void>;
-	lchmod(path: fs.PathLike, mode: string | number): Promise<void>;
-	lchown(path: fs.PathLike, uid: number, gid: number): Promise<void>;
-	link(existingPath: fs.PathLike, newPath: fs.PathLike): Promise<void>;
-	lstat(path: fs.PathLike): Promise<Stats>;
-	mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void>;
-	mkdtemp(prefix: string, options: IEncodingOptions): Promise<string | Buffer>;
-	open(path: fs.PathLike, flags: string | number, mode: string | number | undefined | null): Promise<number>;
-	read(fd: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: Buffer }>;
-	readFile(path: fs.PathLike | number, options: IEncodingOptions): Promise<string | Buffer>;
-	readdir(path: fs.PathLike, options: IEncodingOptions): Promise<Buffer[] | fs.Dirent[] | string[]>;
-	readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer>;
-	realpath(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer>;
-	rename(oldPath: fs.PathLike, newPath: fs.PathLike): Promise<void>;
-	rmdir(path: fs.PathLike): Promise<void>;
-	stat(path: fs.PathLike): Promise<Stats>;
-	symlink(target: fs.PathLike, path: fs.PathLike, type?: fs.symlink.Type | null): Promise<void>;
-	truncate(path: fs.PathLike, len?: number | null): Promise<void>;
-	unlink(path: fs.PathLike): Promise<void>;
-	utimes(path: fs.PathLike, atime: string | number | Date, mtime: string | number | Date): Promise<void>;
-	write(fd: number, buffer: Buffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: Buffer }>;
-	writeFile (path: fs.PathLike | number, data: any, options: IEncodingOptions): Promise<void> ;
-	watch(filename: fs.PathLike, options?: IEncodingOptions): WatcherProxy;
-}
-
-/**
- * A serializable version of fs.Stats.
- */
-export interface Stats {
-	dev: number;
-	ino: number;
-	mode: number;
-	nlink: number;
-	uid: number;
-	gid: number;
-	rdev: number;
-	size: number;
-	blksize: number;
-	blocks: number;
-	atimeMs: number;
-	mtimeMs: number;
-	ctimeMs: number;
-	birthtimeMs: number;
-	atime: Date | string;
-	mtime: Date | string;
-	ctime: Date | string;
-	birthtime: Date | string;
-	_isFile: boolean;
-	_isDirectory: boolean;
-	_isBlockDevice: boolean;
-	_isCharacterDevice: boolean;
-	_isSymbolicLink: boolean;
-	_isFIFO: boolean;
-	_isSocket: boolean;
+export enum Module {
+	Fs = "fs",
+	ChildProcess = "child_process",
+	Net = "net",
+	Spdlog = "spdlog",
+	NodePty = "node-pty",
+	Trash = "trash",
 }

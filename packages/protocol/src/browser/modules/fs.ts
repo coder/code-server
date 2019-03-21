@@ -1,53 +1,34 @@
-import { EventEmitter } from "events";
 import * as fs from "fs";
 import { callbackify } from "util";
-import { FsProxy, WriteStreamProxy, WatcherProxy, Stats as IStats } from "../../common/proxy";
+import { ClientProxy } from "../../common/proxy";
 import { IEncodingOptions, IEncodingOptionsCallback } from "../../common/util";
-import { WritableStream } from "./stream";
+import { FsModuleProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
+import { Writable  } from "./stream";
 
-// `any` is used to match the fs interface.
 // tslint:disable no-any
 
-class Watcher extends EventEmitter implements fs.FSWatcher {
-	public constructor(private readonly watcherProxy: WatcherProxy) {
-		super();
-		this.watcherProxy.on("change", (event, filename) => this.emit("change", event, filename));
-		this.watcherProxy.on("close", () => this.emit("close"));
-		this.watcherProxy.on("error", (error) => this.emit("error", error));
-	}
-
+class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 	public close(): void {
-		this.watcherProxy.close();
+		this.proxy.close();
 	}
 }
 
-class WriteStream extends WritableStream implements fs.WriteStream {
-	private _bytesWritten: number = 0;
-
-	public constructor(writeStreamProxy: WriteStreamProxy) {
-		super(writeStreamProxy);
-		this.writeStreamProxy.on("open", (fd) => this.emit("open", fd));
-	}
-
+class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {
 	public get bytesWritten(): number {
-		return this._bytesWritten;
+		throw new Error("not implemented");
 	}
 
 	public get path(): string | Buffer {
-		return "";
+		throw new Error("not implemented");
 	}
 
 	public close(): void {
-		this.writeStreamProxy.close();
+		this.proxy.close();
 	}
 }
 
-/**
- * Implements the native fs module. Doesn't use `implements typeof import("fs")`
- * to remove need for __promisify__ implementations.
- */
-export class Fs {
-	public constructor(private readonly proxy: FsProxy) {}
+export class FsModule {
+	public constructor(private readonly proxy: FsModuleProxy) {}
 
 	public access = (path: fs.PathLike, mode: number | undefined | ((err: NodeJS.ErrnoException) => void), callback?: (err: NodeJS.ErrnoException) => void): void => {
 		if (typeof mode === "function") {
@@ -285,12 +266,12 @@ export class Fs {
 			options = undefined;
 		}
 
-		const watcherProxy = this.proxy.watch(filename, options);
+		const watcher = new Watcher(this.proxy.watch(filename, options));
 		if (listener) {
-			watcherProxy.on("listener", listener);
+			watcher.on("change", listener);
 		}
 
-		return new Watcher(watcherProxy);
+		return watcher;
 	}
 }
 

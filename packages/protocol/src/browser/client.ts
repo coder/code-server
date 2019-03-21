@@ -1,15 +1,14 @@
-import { EventEmitter } from "events";
 import { PathLike } from "fs";
+import { ExecException, ExecOptions } from "child_process";
 import { promisify } from "util";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
-import { ReadWriteConnection, InitData, OperatingSystem, SharedProcessData } from "../common/connection";
-import { FsProxy, DisposableProxy } from "../common/proxy";
-import { stringify, parse } from "../common/util";
-import { Ping, ServerMessage, ClientMessage, WorkingInitMessage, MethodMessage, NamedProxyMessage, NumberedProxyMessage, SuccessMessage, FailMessage, EventMessage } from "../proto";
-import { Fs } from "./modules";
+import { ReadWriteConnection, InitData, SharedProcessData } from "../common/connection";
+import { Module, ServerProxy } from "../common/proxy";
+import { stringify, parse, moduleToProto, protoToModule, protoToOperatingSystem } from "../common/util";
+import { Ping, ServerMessage, ClientMessage, MethodMessage, NamedProxyMessage, NumberedProxyMessage, SuccessMessage, FailMessage, EventMessage, CallbackMessage } from "../proto";
+import { FsModule, ChildProcessModule, NetModule, NodePtyModule, SpdlogModule, TrashModule } from "./modules";
 
-// `any` is needed to deal with sending and receiving arguments of any type.
 // tslint:disable no-any
 
 /**
@@ -18,7 +17,12 @@ import { Fs } from "./modules";
  */
 export class Client {
 	private messageId = 0;
-	private readonly proxies = new Map<number | string, any>();
+	private callbackId = 0;
+	private readonly proxies = new Map<number | Module, {
+		promise?: Promise<void>;
+		instance: any;
+		callbacks: Map<number, (...args: any[]) => void>;
+	}>();
 	private readonly successEmitter = new Emitter<SuccessMessage>();
 	private readonly failEmitter = new Emitter<FailMessage>();
 	private readonly eventEmitter = new Emitter<{ event: string; args: any[]; }>();
@@ -29,7 +33,6 @@ export class Client {
 
 	private readonly sharedProcessActiveEmitter = new Emitter<SharedProcessData>();
 	public readonly onSharedProcessActive = this.sharedProcessActiveEmitter.event;
-	private readonly isProxySymbol = Symbol("isProxy");
 
 	// The socket timeout is 60s, so we need to send a ping periodically to
 	// prevent it from closing.
@@ -37,18 +40,23 @@ export class Client {
 	private readonly pingTimeoutDelay = 30000;
 
 	public readonly modules: {
-		fs: Fs,
+		[Module.ChildProcess]: ChildProcessModule,
+		[Module.Fs]: FsModule,
+		[Module.Net]: NetModule,
+		[Module.NodePty]: NodePtyModule,
+		[Module.Spdlog]: SpdlogModule,
+		[Module.Trash]: TrashModule,
 	};
 
 	/**
 	 * @param connection Established connection to the server
 	 */
 	public constructor(private readonly connection: ReadWriteConnection) {
-		connection.onMessage((data) => {
+		connection.onMessage(async (data) => {
 			let message: ServerMessage | undefined;
 			try {
 				message = ServerMessage.deserializeBinary(data);
-				this.handleMessage(message);
+				await this.handleMessage(message);
 			} catch (error) {
 				logger.error(
 					"Failed to handle server message",
@@ -59,22 +67,46 @@ export class Client {
 			}
 		});
 
-		const fsProxy = <FsProxy>this.createProxy("fs");
+		this.createProxy(Module.ChildProcess);
+		this.createProxy(Module.Fs);
+		this.createProxy(Module.Net);
+		this.createProxy(Module.NodePty);
+		this.createProxy(Module.Spdlog);
+		this.createProxy(Module.Trash);
+
 		this.modules = {
-			fs: new Fs(fsProxy),
+			[Module.ChildProcess]: new ChildProcessModule(this.proxies.get(Module.ChildProcess)!.instance),
+			[Module.Fs]: new FsModule(this.proxies.get(Module.Fs)!.instance),
+			[Module.Net]: new NetModule(this.proxies.get(Module.Net)!.instance),
+			[Module.NodePty]: new NodePtyModule(this.proxies.get(Module.NodePty)!.instance),
+			[Module.Spdlog]: new SpdlogModule(this.proxies.get(Module.Spdlog)!.instance),
+			[Module.Trash]: new TrashModule(this.proxies.get(Module.Trash)!.instance),
 		};
 
 		// Methods that don't follow the standard callback pattern (an error
 		// followed by a single result) need to provide a custom promisify function.
-		Object.defineProperty(this.modules.fs.exists, promisify.custom, {
+		Object.defineProperty(this.modules[Module.Fs].exists, promisify.custom, {
 			value: (path: PathLike): Promise<boolean> => {
-				return new Promise((resolve): void => this.modules.fs.exists(path, resolve));
+				return new Promise((resolve): void => this.modules[Module.Fs].exists(path, resolve));
 			},
 		});
 
-		// We need to know which methods return proxies to return synchronously.
-		Object.defineProperty(fsProxy.createWriteStream, this.isProxySymbol, { value: true });
-		Object.defineProperty(fsProxy.watch, this.isProxySymbol, { value: true });
+		Object.defineProperty(this.modules[Module.ChildProcess].exec, promisify.custom, {
+			value: (
+				command: string,
+				options?: { encoding?: string | null } & ExecOptions | null,
+			): Promise<{ stdout: string | Buffer, stderr: string | Buffer }> => {
+				return new Promise((resolve, reject): void => {
+					this.modules[Module.ChildProcess].exec(command, options, (error: ExecException | null, stdout: string | Buffer, stderr: string | Buffer) => {
+						if (error) {
+							reject(error);
+						} else {
+							resolve({ stdout, stderr });
+						}
+					});
+				});
+			},
+		});
 
 		/**
 		 * If the connection is interrupted, the calls will neither succeed nor fail
@@ -82,6 +114,15 @@ export class Client {
 		 * events so things like child processes can clean up and possibly restart.
 		 */
 		const handleDisconnect = (): void => {
+			logger.trace(() => [
+				"disconnected from server",
+				field("proxies", this.proxies.size),
+				field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
+				field("success listeners", this.successEmitter.counts),
+				field("fail listeners", this.failEmitter.counts),
+				field("event listeners", this.eventEmitter.counts),
+			]);
+
 			const message = new FailMessage();
 			const error = new Error("disconnected");
 			message.setResponse(stringify(error));
@@ -89,7 +130,8 @@ export class Client {
 
 			this.eventEmitter.emit({ event: "exit", args: [1] });
 			this.eventEmitter.emit({ event: "close", args: [] });
-			this.eventEmitter.emit({ event: "error", args: [message] });
+			this.eventEmitter.emit({ event: "error", args: [error] });
+			this.eventEmitter.emit({ event: "done", args: [true] });
 		};
 
 		connection.onDown(() => handleDisconnect());
@@ -118,16 +160,15 @@ export class Client {
 	}
 
 	/**
-	 * Make a remote call for a proxy's method using proto and return either a
-	 * proxy or the response using a promise.
+	 * Make a remote call for a proxy's method using proto.
 	 */
-	private remoteCall<T extends object>(proxyId: number | string, proxy: T, method: string, args: any[]): Promise<any> | DisposableProxy {
+	private remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
 		const message = new MethodMessage();
 		const id = this.messageId++;
 		let proxyMessage: NamedProxyMessage | NumberedProxyMessage;
 		if (typeof proxyId === "string") {
 			proxyMessage = new NamedProxyMessage();
-			proxyMessage.setModule(proxyId);
+			proxyMessage.setModule(moduleToProto(proxyId));
 			message.setNamedProxy(proxyMessage);
 		} else {
 			proxyMessage = new NumberedProxyMessage();
@@ -137,18 +178,30 @@ export class Client {
 		proxyMessage.setId(id);
 		proxyMessage.setMethod(method);
 
+		const storeCallback = (cb: (...args: any[]) => void): number => {
+			const callbackId = this.callbackId++;
+			logger.trace(() => [
+				"storing callback",
+				field("proxyId", proxyId),
+				field("callbackId", callbackId),
+			]);
+
+			// Using ! because non-existence is an error that should throw.
+			this.proxies.get(proxyId)!.callbacks.set(callbackId, cb);
+
+			return callbackId;
+		};
+
+		const stringifiedArgs = args.map((a) => stringify(a, storeCallback));
 		logger.trace(() => [
 			"sending",
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", args),
+			field("args", stringifiedArgs),
 		]);
 
-		// The function passed here converts a function into an ID since it's not
-		// possible to send functions across as-is. This is used to handle event
-		// callbacks.
-		proxyMessage.setArgsList(args.map(stringify));
+		proxyMessage.setArgsList(stringifiedArgs);
 
 		const clientMessage = new ClientMessage();
 		clientMessage.setMethod(message);
@@ -156,7 +209,7 @@ export class Client {
 
 		// The server will send back a fail or success message when the method
 		// has completed, so we listen for that based on the message's unique ID.
-		const completed = new Promise((resolve, reject): void => {
+		const promise =  new Promise((resolve, reject): void => {
 			const dispose = (): void => {
 				d1.dispose();
 				d2.dispose();
@@ -164,7 +217,7 @@ export class Client {
 
 			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
-				resolve(parse(message.getResponse()));
+				resolve(this.parse(message.getResponse()));
 			});
 
 			const d2 = this.failEmitter.event(id, (message) => {
@@ -173,42 +226,21 @@ export class Client {
 			});
 		});
 
-		// If this method returns a proxy, we need to return it synchronously so it
-		// can immediately attach callbacks like "open", otherwise it will attach
-		// too late.
-		if ((proxy as any)[method][this.isProxySymbol]) {
-			return this.createProxy(id);
-		}
-
-		return completed;
+		return promise;
 	}
 
 	/**
 	 * Handle all messages from the server.
 	 */
-	private handleMessage(message: ServerMessage): void {
+	private async handleMessage(message: ServerMessage): Promise<void> {
 		if (message.hasInit()) {
 			const init = message.getInit()!;
-			let opSys: OperatingSystem;
-			switch (init.getOperatingSystem()) {
-				case WorkingInitMessage.OperatingSystem.WINDOWS:
-					opSys = OperatingSystem.Windows;
-					break;
-				case WorkingInitMessage.OperatingSystem.LINUX:
-					opSys = OperatingSystem.Linux;
-					break;
-				case WorkingInitMessage.OperatingSystem.MAC:
-					opSys = OperatingSystem.Mac;
-					break;
-				default:
-					throw new Error(`unsupported operating system ${init.getOperatingSystem()}`);
-			}
 			this._initData = {
 				dataDirectory: init.getDataDirectory(),
 				homeDirectory: init.getHomeDirectory(),
 				tmpDirectory: init.getTmpDirectory(),
 				workingDirectory: init.getWorkingDirectory(),
-				os: opSys,
+				os: protoToOperatingSystem(init.getOperatingSystem()),
 				shell: init.getShell(),
 				builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
 			};
@@ -218,7 +250,9 @@ export class Client {
 		} else if (message.hasFail()) {
 			this.emitFail(message.getFail()!);
 		} else if (message.hasEvent()) {
-			this.emitEvent(message.getEvent()!);
+			await this.emitEvent(message.getEvent()!);
+		} else if (message.hasCallback()) {
+			await this.runCallback(message.getCallback()!);
 		} else if (message.hasSharedProcessActive()) {
 			const sharedProcessActiveMessage = message.getSharedProcessActive()!;
 			this.sharedProcessActiveEmitter.emit({
@@ -259,17 +293,50 @@ export class Client {
 	 * request before it emits. Instead, emit all events from the server so all
 	 * events are always caught on the client.
 	 */
-	private emitEvent(message: EventMessage): void {
+	private async emitEvent(message: EventMessage): Promise<void> {
+		const eventMessage = message.getNamedEvent()! || message.getNumberedEvent()!;
+		const proxyId = message.getNamedEvent()
+			? protoToModule(message.getNamedEvent()!.getModule())
+			: message.getNumberedEvent()!.getProxyId();
+		const event = eventMessage.getEvent();
+		await this.ensureResolved(proxyId);
 		logger.trace(() => [
 			"received event",
-			field("proxyId", message.getProxyId()),
-			field("event", message.getEvent()),
+			field("proxyId", proxyId),
+			field("event", event),
 		]);
 
-		this.eventEmitter.emit(message.getProxyId(), {
-			event: message.getEvent(),
-			args: message.getArgsList().map(parse),
+		this.eventEmitter.emit(proxyId, {
+			event,
+			args: eventMessage.getArgsList().map((a) => this.parse(a)),
 		});
+	}
+
+	/**
+	 * Run a callback as requested by the server. Since we don't know when
+	 * callbacks get garbage collected we dispose them only when the proxy
+	 * disposes. That means they should only be used if they run for the lifetime
+	 * of the proxy (like child_process.exec), otherwise we'll leak. They should
+	 * also only be used when passed together with the method. If they are sent
+	 * afterward, they may never be called due to timing issues.
+	 */
+	private async runCallback(message: CallbackMessage): Promise<void> {
+		const callbackMessage = message.getNamedCallback()! || message.getNumberedCallback()!;
+		const proxyId = message.getNamedCallback()
+			? protoToModule(message.getNamedCallback()!.getModule())
+			: message.getNumberedCallback()!.getProxyId();
+		const callbackId = callbackMessage.getCallbackId();
+		await this.ensureResolved(proxyId);
+		logger.trace(() => [
+			"running callback",
+			field("proxyId", proxyId),
+			field("callbackId", callbackId),
+		]);
+
+		// Using ! because non-existence is an error that should throw.
+		this.proxies.get(proxyId)!.callbacks.get(callbackId)!(
+			...callbackMessage.getArgsList().map((a) => this.parse(a)),
+		);
 	}
 
 	/**
@@ -304,7 +371,15 @@ export class Client {
 		} else if (message.hasFail()) {
 			return message.getFail()!.getId();
 		} else if (message.hasEvent()) {
-			return `${message.getEvent()!.getProxyId()}: ${message.getEvent()!.getEvent()}`;
+			const eventMessage = message.getEvent()!.getNamedEvent()!
+				|| message.getEvent()!.getNumberedEvent()!;
+
+			return `event: ${eventMessage.getEvent()}`;
+		} else if (message.hasCallback()) {
+			const callbackMessage = message.getCallback()!.getNamedCallback()!
+				|| message.getCallback()!.getNumberedCallback()!;
+
+			return `callback: ${callbackMessage.getCallbackId()}`;
 		} else if (message.hasSharedProcessActive()) {
 			return "shared";
 		} else if (message.hasPong()) {
@@ -315,26 +390,36 @@ export class Client {
 	/**
 	 * Return a proxy that makes remote calls.
 	 */
-	private createProxy<T>(id: number | string): T {
+	private createProxy<T>(proxyId: number | Module, promise: Promise<any> = Promise.resolve()): T {
 		logger.trace(() => [
 			"creating proxy",
-			field("proxyId", id),
+			field("proxyId", proxyId),
 		]);
 
-		const eventEmitter = new EventEmitter();
 		const proxy = new Proxy({
-			id,
-			onDidDispose: (cb: () => void): void => {
-				eventEmitter.on("dispose", cb);
+			proxyId,
+			onDone: (cb: (...args: any[]) => void): void => {
+				this.eventEmitter.event(proxyId, (event) => {
+					if (event.event === "done") {
+						cb(...event.args);
+					}
+				});
 			},
-			on: (event: string, cb: (...args: any[]) => void): void => {
-				eventEmitter.on(event, cb);
+			onEvent: (cb: (event: string, ...args: any[]) => void): void => {
+				this.eventEmitter.event(proxyId, (event) => {
+					cb(event.event, ...event.args);
+				});
 			},
 		}, {
 			get: (target: any, name: string): any => {
+				// When resolving a promise with a proxy, it will check for "then".
+				if (name === "then") {
+					return;
+				}
+
 				if (typeof target[name] === "undefined") {
-					target[name] = (...args: any[]): Promise<any> | DisposableProxy => {
-						return this.remoteCall(id, proxy, name, args);
+					target[name] = (...args: any[]): Promise<any> | ServerProxy => {
+						return this.remoteCall(proxyId, name, args);
 					};
 				}
 
@@ -342,20 +427,51 @@ export class Client {
 			},
 		});
 
-		this.proxies.set(id, proxy);
-		this.eventEmitter.event(id, (event) => {
-			eventEmitter.emit(event.event, ...event.args);
+		this.proxies.set(proxyId, {
+			promise: promise,
+			instance: proxy,
+			callbacks: new Map(),
 		});
 
-		proxy.onDidDispose(() => {
+		proxy.onDone((disconnected: boolean) => {
+			// Uniquely identified items (top-level module proxies) can continue to
+			// be used so we don't need to delete them.
+			if (typeof proxyId === "number") {
+				this.proxies.delete(proxyId);
+				this.eventEmitter.dispose(proxyId);
+				if (!disconnected) {
+					proxy.dispose();
+				}
+			} else {
+				// The callbacks will still be unusable though.
+				this.proxies.get(proxyId)!.callbacks.clear();
+			}
+
 			logger.trace(() => [
-				"disposing proxy",
-				field("proxyId", id),
+				typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
+				field("proxyId", proxyId),
+				field("disconnected", disconnected),
+				field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
+				field("success listeners", this.successEmitter.counts),
+				field("fail listeners", this.failEmitter.counts),
+				field("event listeners", this.eventEmitter.counts),
 			]);
-			this.proxies.delete(id);
-			this.eventEmitter.dispose(id);
 		});
 
 		return proxy;
+	}
+
+	/**
+	 * We aren't guaranteed the promise will call all the `then` callbacks
+	 * synchronously once it resolves, so the event message can come in and fire
+	 * before a caller has been able to attach an event. Waiting for the promise
+	 * ensures it runs after everything else.
+	 */
+	private async ensureResolved(proxyId: number | Module): Promise<void> {
+		await (this.proxies.get(proxyId)!).promise;
+	}
+
+	private parse(value?: string, promise?: Promise<any>): any {
+		return parse(value, undefined, (id) => this.createProxy(id, promise));
 	}
 }

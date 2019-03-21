@@ -56,6 +56,11 @@ export class ServerMessage extends jspb.Message {
   getEvent(): node_pb.EventMessage | undefined;
   setEvent(value?: node_pb.EventMessage): void;
 
+  hasCallback(): boolean;
+  clearCallback(): void;
+  getCallback(): node_pb.CallbackMessage | undefined;
+  setCallback(value?: node_pb.CallbackMessage): void;
+
   hasPong(): boolean;
   clearPong(): void;
   getPong(): node_pb.Pong | undefined;
@@ -87,6 +92,7 @@ export namespace ServerMessage {
     fail?: node_pb.FailMessage.AsObject,
     success?: node_pb.SuccessMessage.AsObject,
     event?: node_pb.EventMessage.AsObject,
+    callback?: node_pb.CallbackMessage.AsObject,
     pong?: node_pb.Pong.AsObject,
     init?: WorkingInitMessage.AsObject,
     sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
@@ -97,6 +103,7 @@ export namespace ServerMessage {
     FAIL = 13,
     SUCCESS = 14,
     EVENT = 19,
+    CALLBACK = 22,
     PONG = 18,
     INIT = 16,
     SHARED_PROCESS_ACTIVE = 17,

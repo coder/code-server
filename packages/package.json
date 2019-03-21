@@ -33,7 +33,8 @@
       "@coder/(.*)/test": "<rootDir>/$1/test",
       "@coder/(.*)": "<rootDir>/$1/src",
       "vs/(.*)": "<rootDir>/../lib/vscode/src/vs/$1",
-      "vszip": "<rootDir>/../lib/vscode/src/vs/base/node/zip.ts"
+      "vszip": "<rootDir>/../lib/vscode/src/vs/base/node/zip.ts",
+      "^node-pty": "node-pty-prebuilt"
     },
     "transform": {
       "^.+\\.tsx?$": "ts-jest"

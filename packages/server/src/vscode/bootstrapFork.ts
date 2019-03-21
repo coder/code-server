@@ -123,12 +123,12 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
  * cp.stderr.on("data", (data) => console.log(data.toString("utf8")));
  * @param modulePath Path of the VS Code module to load.
  */
-export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
+export const forkModule = (modulePath: string, args?: string[], options?: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
 	let proc: cp.ChildProcess;
 	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
-	if (options.env) {
+	if (options && options.env) {
 		// This prevents vscode from trying to load original-fs from electron.
 		delete options.env.ELECTRON_RUN_AS_NODE;
 		forkOptions.env = options.env;

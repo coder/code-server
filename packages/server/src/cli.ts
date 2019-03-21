@@ -182,7 +182,7 @@ export class Entry extends Command {
 				dataDirectory: dataDir,
 				workingDirectory: workingDir,
 				cacheDirectory: cacheHome,
-				fork: (modulePath: string, args: string[], options: ForkOptions): ChildProcess => {
+				fork: (modulePath: string, args?: string[], options?: ForkOptions): ChildProcess => {
 					if (options && options.env && options.env.AMD_ENTRYPOINT) {
 						return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 					}

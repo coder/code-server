@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
+import * as util from "util";
 import { Emitter, Event } from "@coder/events";
-import { client as ideClient } from "@coder/ide/src/fill/client";
 import { $, addClass, append } from "vs/base/browser/dom";
 import { HighlightedLabel } from "vs/base/browser/ui/highlightedlabel/highlightedLabel";
 import { ObjectTree } from "vs/base/browser/ui/tree/objectTree";
@@ -15,8 +15,6 @@ import { FileKind } from "vs/platform/files/common/files";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { workbench } from "./workbench";
 import "./dialog.scss";
-
-declare var __non_webpack_require__: typeof require;
 
 export enum DialogType {
 	NewFolder,
@@ -183,15 +181,15 @@ class Dialog {
 		this.filesNode = document.createElement("div");
 		this.filesNode.className = "files-list";
 		this.entryList = new ObjectTree<DialogEntry, string>(this.filesNode, {
-			getHeight: (entry: DialogEntry): number => {
+			getHeight: (_entry: DialogEntry): number => {
 				return 20;
 			},
-			getTemplateId: (entry: DialogEntry): string => {
+			getTemplateId: (_entry: DialogEntry): string => {
 				return "dialog-entry";
 			},
 		}, [new DialogEntryRenderer()], {
 				openController: {
-					shouldOpen: (event): boolean => {
+					shouldOpen: (_event): boolean => {
 						return true;
 					},
 				},
@@ -341,7 +339,6 @@ class Dialog {
 	}
 
 	private set path(directory: string) {
-		const ts = Date.now();
 		this.list(directory).then((value) => {
 			this._path = directory;
 			this.buildPath();
@@ -380,32 +377,16 @@ class Dialog {
 	}
 
 	private async list(directory: string): Promise<ReadonlyArray<DialogEntry>> {
-		return ideClient.evaluate((_helper, directory) => {
-			const fs = __non_webpack_require__("fs") as typeof import("fs");
-			const util = __non_webpack_require__("util") as typeof import("util");
-			const path = __non_webpack_require__("path") as typeof import("path");
+		const paths = (await util.promisify(fs.readdir)(directory)).sort();
+		const stats = await Promise.all(paths.map(p => util.promisify(fs.stat)(path.join(directory, p))));
 
-			return util.promisify(fs.readdir)(directory).then((paths) => {
-				paths = paths.sort();
-
-				return Promise.all(paths.map(p => util.promisify(fs.stat)(path.join(directory, p)))).then((stats) => {
-					return {
-						paths,
-						stats,
-					};
-				});
-			}).then(({ paths, stats }) => {
-				return stats.map((stat, index): DialogEntry => {
-					return {
-						fullPath: path.join(directory, paths[index]),
-						name: paths[index],
-						isDirectory: stat.isDirectory(),
-						lastModified: stat.mtime.toDateString(),
-						size: stat.size,
-					};
-				});
-			});
-		}, directory);
+		return stats.map((stat, index): DialogEntry => ({
+			fullPath: path.join(directory, paths[index]),
+			name: paths[index],
+			isDirectory: stat.isDirectory(),
+			lastModified: stat.mtime.toDateString(),
+			size: stat.size,
+		}));
 	}
 }
 
@@ -441,7 +422,7 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 		};
 	}
 
-	public renderElement(node: ITreeNode<DialogEntry, string>, index: number, templateData: DialogEntryData): void {
+	public renderElement(node: ITreeNode<DialogEntry, string>, _index: number, templateData: DialogEntryData): void {
 		templateData.icon.className = "dialog-entry-icon monaco-icon-label";
 		const classes = getIconClasses(
 			workbench.serviceCollection.get<IModelService>(IModelService) as IModelService,
@@ -465,7 +446,7 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 		templateData.lastModified.innerText = node.element.lastModified;
 	}
 
-	public disposeTemplate(templateData: DialogEntryData): void {
+	public disposeTemplate(_templateData: DialogEntryData): void {
 		// throw new Error("Method not implemented.");
 	}
 }

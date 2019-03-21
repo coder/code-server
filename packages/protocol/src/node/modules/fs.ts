@@ -1,252 +1,234 @@
-import { EventEmitter } from "events";
 import * as fs from "fs";
-import * as util from "util";
-import { ServerProxy, FsProxy, WriteStreamProxy, Stats, WatcherProxy } from "../../common/proxy";
+import { promisify } from "util";
+import { ServerProxy } from "../../common/proxy";
 import { IEncodingOptions } from "../../common/util";
-
-// `any` is used to match Node interfaces.
-// tslint:disable no-any
-
-class WriteStream implements WriteStreamProxy, ServerProxy {
-	public constructor(private readonly stream: fs.WriteStream) {}
-
-	public async close(): Promise<void> {
-		this.stream.close();
-	}
-
-	public async destroy(): Promise<void> {
-		this.stream.destroy();
-	}
-
-	public async write(data: any, encoding?: string): Promise<void> {
-		this.stream.write(data, encoding);
-	}
-
-	public async end(data?: any, encoding?: string): Promise<void> {
-		this.stream.end(data, encoding);
-	}
-
-	public async setDefaultEncoding(encoding: string): Promise<void> {
-		this.stream.setDefaultEncoding(encoding);
-	}
-
-	public on(event: string, cb: (...args: any[]) => void): void {
-		this.stream.on(event, cb);
-	}
-
-	public async dispose(): Promise<void> {
-		this.stream.close();
-	}
-
-	public onDidDispose(cb: () => void): void {
-		this.on("close", cb);
-	}
-
-	public onEvent(cb: (event: string, ...args: any[]) => void): void {
-		this.on("close", () => cb("close"));
-		this.on("drain", () => cb("drain"));
-		this.on("error", (error) => cb("error", error));
-		this.on("finish", () => cb("finish"));
-		this.on("open", (fd) => cb("open", fd));
-	}
-}
-
-class Watcher implements WatcherProxy, ServerProxy {
-	private readonly watcher: fs.FSWatcher;
-	private readonly emitter = new EventEmitter();
-
-	public constructor(filename: fs.PathLike, options?: IEncodingOptions) {
-		this.watcher = fs.watch(filename, options, (event, filename) => {
-			this.emitter.emit("listener", event, filename);
-		});
-	}
-
-	public async close(): Promise<void> {
-		this.watcher.close();
-	}
-
-	public on(event: string, cb: (...args: any[]) => void): void {
-		switch (event) {
-			case "listener":
-				this.emitter.on(event, cb);
-				break;
-			default:
-				this.watcher.on(event, cb);
-				break;
-		}
-	}
-
-	public async dispose(): Promise<void> {
-		this.watcher.close();
-	}
-
-	public onDidDispose(cb: () => void): void {
-		this.on("close", cb);
-		this.on("error", cb);
-	}
-
-	public onEvent(cb: (event: string, ...args: any[]) => void): void {
-		this.on("change", (event, filename) => cb("change", event, filename));
-		this.on("close", () => cb("close"));
-		this.on("error", (error) => cb("error", error));
-		this.on("listener", (event, filename) => cb("listener", event, filename));
-	}
-}
+import { WritableProxy } from "./stream";
 
 /**
- * Server-side proxy for native fs. This is similar to the native fs API, except
- * everything returns a promise with either a serializable value or a proxy and
- * arguments are in static positions.
+ * A serializable version of fs.Stats.
  */
-export class Fs implements FsProxy {
-	public access(path: fs.PathLike, mode?: number): Promise<void> {
-		return util.promisify(fs.access)(path, mode);
+export interface Stats {
+	dev: number;
+	ino: number;
+	mode: number;
+	nlink: number;
+	uid: number;
+	gid: number;
+	rdev: number;
+	size: number;
+	blksize: number;
+	blocks: number;
+	atimeMs: number;
+	mtimeMs: number;
+	ctimeMs: number;
+	birthtimeMs: number;
+	atime: Date | string;
+	mtime: Date | string;
+	ctime: Date | string;
+	birthtime: Date | string;
+	_isFile: boolean;
+	_isDirectory: boolean;
+	_isBlockDevice: boolean;
+	_isCharacterDevice: boolean;
+	_isSymbolicLink: boolean;
+	_isFIFO: boolean;
+	_isSocket: boolean;
+}
+
+export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
+	public async close(): Promise<void> {
+		this.stream.close();
 	}
 
+	public async dispose(): Promise<void> {
+		super.dispose();
+		this.stream.close();
+	}
+
+	// tslint:disable-next-line no-any
+	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+		super.onEvent(cb);
+		this.stream.on("open", (fd) => cb("open", fd));
+	}
+}
+
+export class WatcherProxy implements ServerProxy {
+	public constructor(private readonly watcher: fs.FSWatcher) {}
+
+	public async close(): Promise<void> {
+		this.watcher.close();
+	}
+
+	public async dispose(): Promise<void> {
+		this.watcher.close();
+		this.watcher.removeAllListeners();
+	}
+
+	public async onDone(cb: () => void): Promise<void> {
+		this.watcher.on("close", cb);
+		this.watcher.on("error", cb);
+	}
+
+	// tslint:disable-next-line no-any
+	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+		this.watcher.on("change", (event, filename) => cb("change", event, filename));
+		this.watcher.on("close", () => cb("close"));
+		this.watcher.on("error", (error) => cb("error", error));
+	}
+}
+
+export class FsModuleProxy {
+	public access(path: fs.PathLike, mode?: number): Promise<void> {
+		return promisify(fs.access)(path, mode);
+	}
+
+	// tslint:disable-next-line no-any
 	public appendFile(file: fs.PathLike | number, data: any, options?: fs.WriteFileOptions): Promise<void> {
-		return util.promisify(fs.appendFile)(file, data, options);
+		return promisify(fs.appendFile)(file, data, options);
 	}
 
 	public chmod(path: fs.PathLike, mode: string | number): Promise<void> {
-		return util.promisify(fs.chmod)(path, mode);
+		return promisify(fs.chmod)(path, mode);
 	}
 
 	public chown(path: fs.PathLike, uid: number, gid: number): Promise<void> {
-		return util.promisify(fs.chown)(path, uid, gid);
+		return promisify(fs.chown)(path, uid, gid);
 	}
 
 	public close(fd: number): Promise<void> {
-		return util.promisify(fs.close)(fd);
+		return promisify(fs.close)(fd);
 	}
 
 	public copyFile(src: fs.PathLike, dest: fs.PathLike, flags?: number): Promise<void> {
-		return util.promisify(fs.copyFile)(src, dest, flags);
+		return promisify(fs.copyFile)(src, dest, flags);
 	}
 
-	public createWriteStream(path: fs.PathLike, options?: any): WriteStream {
-		return new WriteStream(fs.createWriteStream(path, options));
+	// tslint:disable-next-line no-any
+	public async createWriteStream(path: fs.PathLike, options?: any): Promise<WriteStreamProxy> {
+		return new WriteStreamProxy(fs.createWriteStream(path, options));
 	}
 
 	public exists(path: fs.PathLike): Promise<boolean> {
-		return util.promisify(fs.exists)(path);
+		return promisify(fs.exists)(path);
 	}
 
 	public fchmod(fd: number, mode: string | number): Promise<void> {
-		return util.promisify(fs.fchmod)(fd, mode);
+		return promisify(fs.fchmod)(fd, mode);
 	}
 
 	public fchown(fd: number, uid: number, gid: number): Promise<void> {
-		return util.promisify(fs.fchown)(fd, uid, gid);
+		return promisify(fs.fchown)(fd, uid, gid);
 	}
 
 	public fdatasync(fd: number): Promise<void> {
-		return util.promisify(fs.fdatasync)(fd);
+		return promisify(fs.fdatasync)(fd);
 	}
 
 	public async fstat(fd: number): Promise<Stats> {
-		return this.makeStatsSerializable(await util.promisify(fs.fstat)(fd));
+		return this.makeStatsSerializable(await promisify(fs.fstat)(fd));
 	}
 
 	public fsync(fd: number): Promise<void> {
-		return util.promisify(fs.fsync)(fd);
+		return promisify(fs.fsync)(fd);
 	}
 
 	public ftruncate(fd: number, len?: number | null): Promise<void> {
-		return util.promisify(fs.ftruncate)(fd, len);
+		return promisify(fs.ftruncate)(fd, len);
 	}
 
 	public futimes(fd: number, atime: string | number | Date, mtime: string | number | Date): Promise<void> {
-		return util.promisify(fs.futimes)(fd, atime, mtime);
+		return promisify(fs.futimes)(fd, atime, mtime);
 	}
 
 	public lchmod(path: fs.PathLike, mode: string | number): Promise<void> {
-		return util.promisify(fs.lchmod)(path, mode);
+		return promisify(fs.lchmod)(path, mode);
 	}
 
 	public lchown(path: fs.PathLike, uid: number, gid: number): Promise<void> {
-		return util.promisify(fs.lchown)(path, uid, gid);
+		return promisify(fs.lchown)(path, uid, gid);
 	}
 
 	public link(existingPath: fs.PathLike, newPath: fs.PathLike): Promise<void> {
-		return util.promisify(fs.link)(existingPath, newPath);
+		return promisify(fs.link)(existingPath, newPath);
 	}
 
 	public async lstat(path: fs.PathLike): Promise<Stats> {
-		return this.makeStatsSerializable(await util.promisify(fs.lstat)(path));
+		return this.makeStatsSerializable(await promisify(fs.lstat)(path));
 	}
 
 	public mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void> {
-		return util.promisify(fs.mkdir)(path, mode);
+		return promisify(fs.mkdir)(path, mode);
 	}
 
 	public mkdtemp(prefix: string, options: IEncodingOptions): Promise<string | Buffer> {
-		return util.promisify(fs.mkdtemp)(prefix, options);
+		return promisify(fs.mkdtemp)(prefix, options);
 	}
 
 	public open(path: fs.PathLike, flags: string | number, mode: string | number | undefined | null): Promise<number> {
-		return util.promisify(fs.open)(path, flags, mode);
+		return promisify(fs.open)(path, flags, mode);
 	}
 
 	public read(fd: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: Buffer }> {
 		const buffer = new Buffer(length);
 
-		return util.promisify(fs.read)(fd, buffer, 0, length, position);
+		return promisify(fs.read)(fd, buffer, 0, length, position);
 	}
 
 	public readFile(path: fs.PathLike | number, options: IEncodingOptions): Promise<string | Buffer> {
-		return util.promisify(fs.readFile)(path, options);
+		return promisify(fs.readFile)(path, options);
 	}
 
 	public readdir(path: fs.PathLike, options: IEncodingOptions): Promise<Buffer[] | fs.Dirent[] | string[]> {
-		return util.promisify(fs.readdir)(path, options);
+		return promisify(fs.readdir)(path, options);
 	}
 
 	public readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer> {
-		return util.promisify(fs.readlink)(path, options);
+		return promisify(fs.readlink)(path, options);
 	}
 
 	public realpath(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer> {
-		return util.promisify(fs.realpath)(path, options);
+		return promisify(fs.realpath)(path, options);
 	}
 
 	public rename(oldPath: fs.PathLike, newPath: fs.PathLike): Promise<void> {
-		return util.promisify(fs.rename)(oldPath, newPath);
+		return promisify(fs.rename)(oldPath, newPath);
 	}
 
 	public rmdir(path: fs.PathLike): Promise<void> {
-		return util.promisify(fs.rmdir)(path);
+		return promisify(fs.rmdir)(path);
 	}
 
 	public async stat(path: fs.PathLike): Promise<Stats> {
-		return this.makeStatsSerializable(await util.promisify(fs.stat)(path));
+		return this.makeStatsSerializable(await promisify(fs.stat)(path));
 	}
 
 	public symlink(target: fs.PathLike, path: fs.PathLike, type?: fs.symlink.Type | null): Promise<void> {
-		return util.promisify(fs.symlink)(target, path, type);
+		return promisify(fs.symlink)(target, path, type);
 	}
 
 	public truncate(path: fs.PathLike, len?: number | null): Promise<void> {
-		return util.promisify(fs.truncate)(path, len);
+		return promisify(fs.truncate)(path, len);
 	}
 
 	public unlink(path: fs.PathLike): Promise<void> {
-		return util.promisify(fs.unlink)(path);
+		return promisify(fs.unlink)(path);
 	}
 
 	public utimes(path: fs.PathLike, atime: string | number | Date, mtime: string | number | Date): Promise<void> {
-		return util.promisify(fs.utimes)(path, atime, mtime);
+		return promisify(fs.utimes)(path, atime, mtime);
 	}
 
 	public async write(fd: number, buffer: Buffer, offset?: number, length?: number, position?: number): Promise<{ bytesWritten: number, buffer: Buffer }> {
-		return util.promisify(fs.write)(fd, buffer, offset, length, position);
+		return promisify(fs.write)(fd, buffer, offset, length, position);
 	}
 
+	// tslint:disable-next-line no-any
 	public writeFile (path: fs.PathLike | number, data: any, options: IEncodingOptions): Promise<void>  {
-		return util.promisify(fs.writeFile)(path, data, options);
+		return promisify(fs.writeFile)(path, data, options);
 	}
 
-	public watch(filename: fs.PathLike, options?: IEncodingOptions): Watcher {
-		return new Watcher(filename, options);
+	public async watch(filename: fs.PathLike, options?: IEncodingOptions): Promise<WatcherProxy> {
+		return new WatcherProxy(fs.watch(filename, options));
 	}
 
 	private makeStatsSerializable(stats: fs.Stats): Stats {

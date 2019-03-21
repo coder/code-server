@@ -1,4 +1,7 @@
-// `any` is needed to deal with sending and receiving arguments of any type.
+import { Module as ProtoModule, WorkingInitMessage } from "../proto";
+import { OperatingSystem } from "../common/connection";
+import { Module, ServerProxy } from "./proxy";
+
 // tslint:disable no-any
 
 /**
@@ -52,25 +55,43 @@ interface StringifiedArray {
 
 interface StringifiedProxy {
 	type: "proxy";
+	data: {
+		id: number;
+	};
+}
+
+interface StringifiedFunction {
+	type: "function";
+	data: {
+		id: number;
+	};
 }
 
 interface StringifiedUndefined {
 	type: "undefined";
 }
 
-type StringifiedValue = StringifiedProxy | StringifiedUndefined
-	| StringifiedObject | StringifiedArray | StringifiedBuffer | StringifiedError
-	| number | string | boolean;
+type StringifiedValue = StringifiedFunction | StringifiedProxy
+	| StringifiedUndefined | StringifiedObject | StringifiedArray
+	| StringifiedBuffer | StringifiedError | number | string | boolean | null;
 
-const isPrimitive = (value: any): value is number | string | boolean => {
+const isPrimitive = (value: any): value is number | string | boolean | null => {
 	return typeof value === "number"
 		|| typeof value === "string"
-		|| typeof value === "boolean";
+		|| typeof value === "boolean"
+		|| value === null;
 };
+
 /**
  * Stringify an argument or a return value.
+ * If sending a function is possible, provide `storeFunction`.
+ * If sending a proxy is possible, provide `storeProxy`.
  */
-export const stringify = (value: any): string => {
+export const stringify = (
+	value: any,
+	storeFunction?: (fn: () => void) => number,
+	storeProxy?: (proxy: ServerProxy) => number,
+): string => {
 	const convert = (currentValue: any): StringifiedValue => {
 		// Errors don't stringify at all. They just become "{}".
 		// For some reason when running in Jest errors aren't instances of Error,
@@ -107,6 +128,19 @@ export const stringify = (value: any): string => {
 			};
 		}
 
+		if (isProxy(currentValue)) {
+			if (!storeProxy) {
+				throw new Error("no way to serialize proxy");
+			}
+
+			return {
+				type: "proxy",
+				data: {
+					id: storeProxy(currentValue),
+				},
+			};
+		}
+
 		if (currentValue !== null && typeof currentValue === "object") {
 			const converted: { [key: string]: StringifiedValue } = {};
 			Object.keys(currentValue).forEach((key) => {
@@ -126,6 +160,19 @@ export const stringify = (value: any): string => {
 			};
 		}
 
+		if (typeof currentValue === "function") {
+			if (!storeFunction) {
+				throw new Error("no way to serialize function");
+			}
+
+			return {
+				type: "function",
+				data: {
+					id: storeFunction(currentValue),
+				},
+			};
+		}
+
 		if (!isPrimitive(currentValue)) {
 			throw new Error(`cannot stringify ${typeof currentValue}`);
 		}
@@ -138,8 +185,14 @@ export const stringify = (value: any): string => {
 
 /**
  * Parse an argument.
+ * If running a remote callback is supported, provide `runCallback`.
+ * If using a remote proxy is supported, provide `createProxy`.
  */
-export const parse = (value?: string): any => {
+export const parse = (
+	value?: string,
+	runCallback?: (id: number, args: any[]) => void,
+	createProxy?: (id: number) => ServerProxy,
+): any => {
 	const convert = (currentValue: StringifiedValue): any => {
 		if (currentValue && !isPrimitive(currentValue)) {
 			// Would prefer a switch but the types don't seem to work.
@@ -173,10 +226,78 @@ export const parse = (value?: string): any => {
 			if (currentValue.type === "undefined") {
 				return undefined;
 			}
+
+			if (currentValue.type === "function") {
+				if (!runCallback) {
+					throw new Error("no way to run remote callback");
+				}
+
+				return (...args: any[]): void => {
+					return runCallback(currentValue.data.id, args);
+				};
+			}
+
+			if (currentValue.type === "proxy") {
+				if (!createProxy) {
+					throw new Error("no way to create proxy");
+				}
+
+				return createProxy(currentValue.data.id);
+			}
 		}
 
 		return currentValue;
 	};
 
 	return value && convert(JSON.parse(value));
+};
+
+export const protoToModule = (protoModule: ProtoModule): Module => {
+	switch (protoModule) {
+		case ProtoModule.CHILDPROCESS: return Module.ChildProcess;
+		case ProtoModule.FS: return Module.Fs;
+		case ProtoModule.NET: return Module.Net;
+		case ProtoModule.NODEPTY: return Module.NodePty;
+		case ProtoModule.SPDLOG: return Module.Spdlog;
+		case ProtoModule.TRASH: return Module.Trash;
+		default: throw new Error(`invalid module ${protoModule}`);
+	}
+};
+
+export const moduleToProto = (moduleName: Module): ProtoModule => {
+	switch (moduleName) {
+		case Module.ChildProcess: return ProtoModule.CHILDPROCESS;
+		case Module.Fs: return ProtoModule.FS;
+		case Module.Net: return ProtoModule.NET;
+		case Module.NodePty: return ProtoModule.NODEPTY;
+		case Module.Spdlog: return ProtoModule.SPDLOG;
+		case Module.Trash: return ProtoModule.TRASH;
+		default: throw new Error(`invalid module "${moduleName}"`);
+	}
+};
+
+export const protoToOperatingSystem = (protoOp: WorkingInitMessage.OperatingSystem): OperatingSystem => {
+	switch (protoOp) {
+		case WorkingInitMessage.OperatingSystem.WINDOWS: return OperatingSystem.Windows;
+		case WorkingInitMessage.OperatingSystem.LINUX: return OperatingSystem.Linux;
+		case WorkingInitMessage.OperatingSystem.MAC: return OperatingSystem.Mac;
+		default: throw new Error(`unsupported operating system ${protoOp}`);
+	}
+};
+
+export const platformToProto = (platform: NodeJS.Platform): WorkingInitMessage.OperatingSystem => {
+	switch (platform) {
+		case "win32": return WorkingInitMessage.OperatingSystem.WINDOWS;
+		case "linux": return WorkingInitMessage.OperatingSystem.LINUX;
+		case "darwin": return WorkingInitMessage.OperatingSystem.MAC;
+		default: throw new Error(`unrecognized platform "${platform}"`);
+	}
+};
+
+export const isProxy = (value: any): value is ServerProxy => {
+	return value && typeof value === "object" && typeof value.onEvent === "function";
+};
+
+export const isPromise = (value: any): value is Promise<any> => {
+	return typeof value.then === "function" && typeof value.catch === "function";
 };

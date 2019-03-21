@@ -180,10 +180,12 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 					logger.error(error.message);
 				}
 			},
+			onDown: (cb): void => ws.addEventListener("close", () => cb()),
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};
 
-		const server = new Server(connection, options.serverOptions);
+		// tslint:disable-next-line no-unused-expression
+		new Server(connection, options.serverOptions);
 	});
 
 	const baseDir = buildDir || path.join(__dirname, "..");
@@ -202,7 +204,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			unauthStaticFunc(req, res, next);
 		}
 	});
-	app.get("/ping", (req, res) => {
+	app.get("/ping", (_, res) => {
 		res.json({
 			hostname: os.hostname(),
 		});

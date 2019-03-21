@@ -18,6 +18,7 @@ message ServerMessage {
 		FailMessage fail = 13;
 		SuccessMessage success = 14;
 		EventMessage event = 19;
+		CallbackMessage callback = 22;
 		Pong pong = 18;
 
 		WorkingInitMessage init = 16;

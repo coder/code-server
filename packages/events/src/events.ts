@@ -82,4 +82,18 @@ export class Emitter<T> {
 			this.idListeners.clear();
 		}
 	}
+
+	public get counts(): { [key: string]: number } {
+		const counts = <{ [key: string]: number }>{};
+		if (this.listeners.length > 0) {
+			counts["n/a"] = this.listeners.length;
+		}
+		this.idListeners.forEach((cbs, id) => {
+			if (cbs.length > 0) {
+				counts[`${id}`] = cbs.length;
+			}
+		});
+
+		return counts;
+	}
 }

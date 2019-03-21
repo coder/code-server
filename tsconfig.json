@@ -22,6 +22,9 @@
 			],
 			"vs/*": [
 				"./lib/vscode/src/vs/*"
+			],
+			"node-pty": [
+				"./packages/protocol/node_modules/node-pty-prebuilt"
 			]
 		}
 	}
