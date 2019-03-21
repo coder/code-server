@@ -20,7 +20,7 @@ module.exports = (options = {}) => ({
 					// they are parsed as URIs and will throw errors if not fully formed.
 					// The !! prefix causes it to ignore other loaders (doesn't work).
 					search: "require\\.toUrl\\(",
-					replace: "location.protocol + '//' + location.host + '/' + require('!!file-loader?name=[path][name].[ext]!' + ",
+					replace: "location.protocol + '//' + location.host + location.pathname.replace(/\\/$/,'') + '/' + require('!!file-loader?name=[path][name].[ext]!' + ",
 					flags: "g",
 				}, {
 					search: "require\\.__\\$__nodeRequire",
