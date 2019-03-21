@@ -26,7 +26,7 @@ class StorageDatabase implements workspaceStorage.IStorageDatabase {
 			}
 
 			this.triggerFlush(WillSaveStateReason.SHUTDOWN);
-			navigator.sendBeacon(`/resource${this.path}`, this.content);
+			navigator.sendBeacon(`resource${this.path}`, this.content);
 		});
 	}
 

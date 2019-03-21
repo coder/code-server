@@ -13,7 +13,7 @@ abstract class CodeEditorServiceImpl extends editor.CodeEditorServiceImpl {
 				...options.gutterIconPath,
 				scheme: location.protocol.replace(":", ""),
 				authority: location.host,
-				path: join("/resource", options.gutterIconPath.path),
+				path: join("resource", options.gutterIconPath.path),
 			} :options.gutterIconPath,
 		} : {}, parentTypeKey);
 	}
