@@ -11,18 +11,19 @@ import { FsModule, ChildProcessModule, NetModule, NodePtyModule, SpdlogModule, T
 
 // tslint:disable no-any
 
+interface ProxyData {
+	promise?: Promise<void>;
+	instance: any;
+	callbacks: Map<number, (...args: any[]) => void>;
+}
+
 /**
- * Client accepts an arbitrary connection intended to communicate with the
- * Server.
+ * Client accepts a connection to communicate with the server.
  */
 export class Client {
 	private messageId = 0;
 	private callbackId = 0;
-	private readonly proxies = new Map<number | Module, {
-		promise?: Promise<void>;
-		instance: any;
-		callbacks: Map<number, (...args: any[]) => void>;
-	}>();
+	private readonly proxies = new Map<number | Module, ProxyData>();
 	private readonly successEmitter = new Emitter<SuccessMessage>();
 	private readonly failEmitter = new Emitter<FailMessage>();
 	private readonly eventEmitter = new Emitter<{ event: string; args: any[]; }>();
@@ -77,12 +78,12 @@ export class Client {
 		this.createProxy(Module.Trash);
 
 		this.modules = {
-			[Module.ChildProcess]: new ChildProcessModule(this.proxies.get(Module.ChildProcess)!.instance),
-			[Module.Fs]: new FsModule(this.proxies.get(Module.Fs)!.instance),
-			[Module.Net]: new NetModule(this.proxies.get(Module.Net)!.instance),
-			[Module.NodePty]: new NodePtyModule(this.proxies.get(Module.NodePty)!.instance),
-			[Module.Spdlog]: new SpdlogModule(this.proxies.get(Module.Spdlog)!.instance),
-			[Module.Trash]: new TrashModule(this.proxies.get(Module.Trash)!.instance),
+			[Module.ChildProcess]: new ChildProcessModule(this.getProxy(Module.ChildProcess).instance),
+			[Module.Fs]: new FsModule(this.getProxy(Module.Fs).instance),
+			[Module.Net]: new NetModule(this.getProxy(Module.Net).instance),
+			[Module.NodePty]: new NodePtyModule(this.getProxy(Module.NodePty).instance),
+			[Module.Spdlog]: new SpdlogModule(this.getProxy(Module.Spdlog).instance),
+			[Module.Trash]: new TrashModule(this.getProxy(Module.Trash).instance),
 		};
 
 		// Methods that don't follow the standard callback pattern (an error
@@ -119,7 +120,7 @@ export class Client {
 			logger.trace(() => [
 				"disconnected from server",
 				field("proxies", this.proxies.size),
-				field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
+				field("callbacks", Array.from(this.proxies.values()).reduce((count, p) => count + p.callbacks.size, 0)),
 				field("success listeners", this.successEmitter.counts),
 				field("fail listeners", this.failEmitter.counts),
 				field("event listeners", this.eventEmitter.counts),
@@ -188,8 +189,7 @@ export class Client {
 				field("callbackId", callbackId),
 			]);
 
-			// Using ! because non-existence is an error that should throw.
-			this.proxies.get(proxyId)!.callbacks.set(callbackId, cb);
+			this.getProxy(proxyId).callbacks.set(callbackId, cb);
 
 			return callbackId;
 		};
@@ -312,12 +312,11 @@ export class Client {
 			"received event",
 			field("proxyId", proxyId),
 			field("event", event),
+			field("args", eventMessage.getArgsList()),
 		]);
 
-		this.eventEmitter.emit(proxyId, {
-			event,
-			args: eventMessage.getArgsList().map((a) => this.parse(a)),
-		});
+		const args = eventMessage.getArgsList().map((a) => this.parse(a));
+		this.eventEmitter.emit(proxyId, { event, args });
 	}
 
 	/**
@@ -339,12 +338,10 @@ export class Client {
 			"running callback",
 			field("proxyId", proxyId),
 			field("callbackId", callbackId),
+			field("args", callbackMessage.getArgsList()),
 		]);
-
-		// Using ! because non-existence is an error that should throw.
-		this.proxies.get(proxyId)!.callbacks.get(callbackId)!(
-			...callbackMessage.getArgsList().map((a) => this.parse(a)),
-		);
+		const args = callbackMessage.getArgsList().map((a) => this.parse(a));
+		this.getProxy(proxyId).callbacks.get(callbackId)!(...args);
 	}
 
 	/**
@@ -469,7 +466,7 @@ export class Client {
 				}
 			} else {
 				// The callbacks will still be unusable though.
-				this.proxies.get(proxyId)!.callbacks.clear();
+				this.getProxy(proxyId).callbacks.clear();
 				log();
 			}
 		});
@@ -484,13 +481,18 @@ export class Client {
 	 * ensures it runs after everything else.
 	 */
 	private async ensureResolved(proxyId: number | Module): Promise<void> {
-		if (!this.proxies.has(proxyId)) {
-			return logger.warn(`proxy ${proxyId} disposed too early`);
-		}
-		await (this.proxies.get(proxyId)!).promise;
+		await this.getProxy(proxyId).promise;
 	}
 
 	private parse(value?: string, promise?: Promise<any>): any {
 		return parse(value, undefined, (id) => this.createProxy(id, promise));
+	}
+
+	private getProxy(proxyId: number | Module): ProxyData {
+		if (!this.proxies.has(proxyId)) {
+			throw new Error(`proxy ${proxyId} disposed too early`);
+		}
+
+		return this.proxies.get(proxyId)!;
 	}
 }

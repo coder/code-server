@@ -130,7 +130,7 @@ export class Server {
 
 		let response: any;
 		try {
-			const proxy = this.proxies.get(proxyId)!;
+			const proxy = this.proxies.get(proxyId);
 			if (!proxy) {
 				throw new Error(`${proxyId} is not a proxy`);
 			}
