@@ -28,7 +28,7 @@ export class ChildProcess extends ClientProxy<ChildProcessProxy> implements cp.C
 			this._connected = true;
 		});
 		this.on("disconnect", () => this._connected = false);
-		this.on("killed", () => {
+		this.on("exit", () => {
 			this._connected = false;
 			this._killed = true;
 		});
@@ -47,6 +47,7 @@ export class ChildProcess extends ClientProxy<ChildProcessProxy> implements cp.C
 	}
 
 	public kill(): void {
+		this._killed = true;
 		this.proxy.kill();
 	}
 
