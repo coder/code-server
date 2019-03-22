@@ -3,65 +3,68 @@ import { Emitter } from "../src/events";
 describe("Event", () => {
 	const emitter = new Emitter<number>();
 
-	it("should listen to global event", (done) => {
-		const d = emitter.event((value) => {
-			expect(value).toBe(10);
-			d.dispose();
-			done();
-		});
-
+	it("should listen to global event", () => {
+		const fn = jest.fn();
+		const d = emitter.event(fn);
 		emitter.emit(10);
+		expect(fn).toHaveBeenCalledWith(10);
+		d.dispose();
 	});
 
-	it("should listen to id event", (done) => {
-		const d = emitter.event(0, (value) => {
-			expect(value).toBe(5);
-			d.dispose();
-			done();
-		});
-
+	it("should listen to id event", () => {
+		const fn = jest.fn();
+		const d = emitter.event(0, fn);
 		emitter.emit(0, 5);
+		expect(fn).toHaveBeenCalledWith(5);
+		d.dispose();
 	});
 
-	it("should listen to string id event", (done) => {
-		const d = emitter.event("string", (value) => {
-			expect(value).toBe(55);
-			d.dispose();
-			done();
-		});
-
+	it("should listen to string id event", () => {
+		const fn = jest.fn();
+		const d = emitter.event("string", fn);
 		emitter.emit("string", 55);
+		expect(fn).toHaveBeenCalledWith(55);
+		d.dispose();
 	});
 
-	it("should not listen wrong id event", (done) => {
-		const d = emitter.event(1, (value) => {
-			expect(value).toBe(6);
-			d.dispose();
-			done();
-		});
-
+	it("should not listen wrong id event", () => {
+		const fn = jest.fn();
+		const d = emitter.event(1, fn);
 		emitter.emit(0, 5);
 		emitter.emit(1, 6);
+		expect(fn).toHaveBeenCalledWith(6);
+		expect(fn).toHaveBeenCalledTimes(1);
+		d.dispose();
 	});
 
-	it("should listen to id event globally", (done) => {
-		const d = emitter.event((value) => {
-			expect(value).toBe(11);
-			d.dispose();
-			done();
-		});
-
+	it("should listen to id event globally", () => {
+		const fn = jest.fn();
+		const d = emitter.event(fn);
 		emitter.emit(1, 11);
+		expect(fn).toHaveBeenCalledWith(11);
+		d.dispose();
 	});
 
-	it("should listen to global event", (done) => {
-		const d = emitter.event(3, (value) => {
-			expect(value).toBe(14);
-			d.dispose();
-			done();
-		});
-
+	it("should listen to global event", () => {
+		const fn = jest.fn();
+		const d = emitter.event(3, fn);
 		emitter.emit(14);
+		expect(fn).toHaveBeenCalledWith(14);
+		d.dispose();
+	});
+
+	it("should listen to id event multiple times", () => {
+		const fn = jest.fn();
+		const disposers = [
+			emitter.event(934, fn),
+			emitter.event(934, fn),
+			emitter.event(934, fn),
+			emitter.event(934, fn),
+		];
+		emitter.emit(934, 324);
+		expect(fn).toHaveBeenCalledTimes(4);
+		expect(fn).toHaveBeenCalledWith(324);
+		disposers.forEach((d) => d.dispose());
 	});
 
 	it("should dispose individually", () => {
