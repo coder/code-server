@@ -185,7 +185,13 @@ export class Workbench {
 			_: [],
 		};
 		if ((workspace as IWorkspaceIdentifier).configPath) {
-			config.workspace = workspace as IWorkspaceIdentifier;
+			// tslint:disable-next-line:no-any
+			let wid: IWorkspaceIdentifier = (<any>Object).assign({}, workspace);
+			if (!URI.isUri(wid.configPath)) {
+				// Ensure that the configPath is a valid URI.
+				wid.configPath = URI.file(wid.configPath);
+			}
+			config.workspace = wid;
 		} else {
 			config.folderUri = workspace as URI;
 		}
