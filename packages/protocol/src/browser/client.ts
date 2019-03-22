@@ -133,7 +133,11 @@ export class Client {
 
 			this.eventEmitter.emit({ event: "exit", args: [1] });
 			this.eventEmitter.emit({ event: "close", args: [] });
-			this.eventEmitter.emit({ event: "error", args: [error] });
+			try {
+				this.eventEmitter.emit({ event: "error", args: [error] });
+			} catch (error) {
+				// If nothing is listening, EventEmitter will throw an error.
+			}
 			this.eventEmitter.emit({ event: "done", args: [true] });
 		};
 
