@@ -70,6 +70,6 @@ export class NodePtyModuleProxy {
 	public async spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): Promise<NodePtyProcessProxy> {
 		preserveEnv(options);
 
-		return new NodePtyProcessProxy(pty.spawn(file, args, options));
+		return new NodePtyProcessProxy(require("node-pty").spawn(file, args, options));
 	}
 }

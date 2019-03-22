@@ -37,10 +37,10 @@ export class RotatingLoggerProxy implements ServerProxy {
 
 export class SpdlogModuleProxy {
 	public async createLogger(name: string, filePath: string, fileSize: number, fileCount: number): Promise<RotatingLoggerProxy> {
-		return new RotatingLoggerProxy(new spdlog.RotatingLogger(name, filePath, fileSize, fileCount));
+		return new RotatingLoggerProxy(new (require("spdlog") as typeof import("spdlog")).RotatingLogger(name, filePath, fileSize, fileCount));
 	}
 
 	public async setAsyncMode(bufferSize: number, flushInterval: number): Promise<void> {
-		spdlog.setAsyncMode(bufferSize, flushInterval);
+		require("spdlog").setAsyncMode(bufferSize, flushInterval);
 	}
 }
