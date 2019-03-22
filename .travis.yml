@@ -13,7 +13,7 @@ matrix:
     env: TRAVIS_OS_DIST_NAME=centos
   - os: osx
 before_install:
-- if [[ "$TRAVIS_OS_DIST_NAME" == "ubuntu" ]]; then sudo apt-get install libxkbfile-dev libsecret-1-dev; else if [[ "$TRAVIS_OS_DIST_NAME" == "centos" ]]; then sudo yum install -y bzip2 gcc gcc-c++ openssl net-tools make libX11-devel.x86_64 libxkbfile-devel.x86_64 libsecret-devel.x86_64; fi
+- if [[ "$TRAVIS_OS_DIST_NAME" == "ubuntu" ]]; then sudo apt-get install libxkbfile-dev libsecret-1-dev; elif [[ "$TRAVIS_OS_DIST_NAME" == "centos" ]]; then sudo yum install -y bzip2 gcc gcc-c++ openssl net-tools make libX11-devel.x86_64 libxkbfile-devel.x86_64 libsecret-devel.x86_64; fi
 script:
 - scripts/build.sh
 before_deploy:
