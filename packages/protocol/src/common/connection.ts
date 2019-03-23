@@ -6,6 +6,7 @@ export interface ReadWriteConnection extends SendableConnection {
 	onMessage(cb: (data: Uint8Array | Buffer) => void): void;
 	onClose(cb: () => void): void;
 	onDown(cb: () => void): void;
+	onUp(cb: () => void): void;
 	close(): void;
 }
 

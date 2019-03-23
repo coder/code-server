@@ -180,6 +180,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 					logger.error(error.message);
 				}
 			},
+			onUp: (): void => undefined, // This can't come back up.
 			onDown: (cb): void => ws.addEventListener("close", () => cb()),
 			onClose: (cb): void => ws.addEventListener("close", () => cb()),
 		};

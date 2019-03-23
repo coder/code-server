@@ -58,6 +58,7 @@ export const createClient = (serverOptions?: ServerOptions): Client => {
 	new Server({
 		close: (): void => closeCallbacks.forEach((cb) => cb()),
 		onDown: (_cb: () => void): void => undefined,
+		onUp: (_cb: () => void): void => undefined,
 		onClose: (cb: () => void): number => closeCallbacks.push(cb),
 		onMessage: (cb): IDisposable => c2s.event((d) => cb(d)),
 		send: (data): NodeJS.Timer => setTimeout(() => s2c.emit(data), 0),
@@ -66,6 +67,7 @@ export const createClient = (serverOptions?: ServerOptions): Client => {
 	const client = new Client({
 		close: (): void => closeCallbacks.forEach((cb) => cb()),
 		onDown: (_cb: () => void): void => undefined,
+		onUp: (_cb: () => void): void => undefined,
 		onClose: (cb: () => void): number => closeCallbacks.push(cb),
 		onMessage: (cb): IDisposable => s2c.event((d) => cb(d)),
 		send: (data): NodeJS.Timer => setTimeout(() => c2s.emit(data), 0),

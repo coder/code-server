@@ -35,6 +35,8 @@ export class Client {
 	private readonly sharedProcessActiveEmitter = new Emitter<SharedProcessData>();
 	public readonly onSharedProcessActive = this.sharedProcessActiveEmitter.event;
 
+	private disconnected: boolean = false;
+
 	// The socket timeout is 60s, so we need to send a ping periodically to
 	// prevent it from closing.
 	private pingTimeout: NodeJS.Timer | number | undefined;
@@ -117,6 +119,7 @@ export class Client {
 		 * events so things like child processes can clean up and possibly restart.
 		 */
 		const handleDisconnect = (): void => {
+			this.disconnected = true;
 			logger.trace(() => [
 				"disconnected from server",
 				field("proxies", this.proxies.size),
@@ -147,6 +150,7 @@ export class Client {
 			this.pingTimeout = undefined;
 			handleDisconnect();
 		});
+		connection.onUp(() => this.disconnected = false);
 
 		this.initDataPromise = new Promise((resolve): void => {
 			this.initDataEmitter.event(resolve);
@@ -170,6 +174,10 @@ export class Client {
 	 * Make a remote call for a proxy's method using proto.
 	 */
 	private remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
+		if (this.disconnected) {
+			return Promise.reject(new Error("disconnected"));
+		}
+
 		const message = new MethodMessage();
 		const id = this.messageId++;
 		let proxyMessage: NamedProxyMessage | NumberedProxyMessage;
