@@ -1,6 +1,7 @@
 //@ts-ignore
 import * as netstat from "node-netstat";
 import { Event, Emitter } from "@coder/events";
+import { logger } from "@coder/logger";
 
 export interface PortScanner {
 	readonly ports: ReadonlyArray<number>;
@@ -75,11 +76,13 @@ export const createPortScanner = (scanInterval: number = 250): PortScanner => {
 	let disposed: boolean = false;
 
 	const doInterval = (): void => {
-		scan(() => {
-			if (disposed) {
-				return;
+		scan((error) => {
+			if (error) {
+				logger.error(`Port scanning will not be available: ${error.message}.`);
+				disposed = true;
+			} else if (!disposed) {
+				lastTimeout = setTimeout(doInterval, scanInterval);
 			}
-			lastTimeout = setTimeout(doInterval, scanInterval);
 		});
 	};
 
