@@ -116,7 +116,8 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 	if (isCli) {
 		__non_webpack_require__(path.join(baseDir, "bootstrap-fork.js.gz"));
 	} else {
-		require("../../../vscode/out/bootstrap-fork.js");
+		// We need to check `isCli` here to confuse webpack.
+		require(path.join(__dirname, isCli ? "" : "../../../vscode/out/bootstrap-fork.js"));
 	}
 };
 
