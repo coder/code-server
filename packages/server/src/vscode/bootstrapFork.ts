@@ -1,9 +1,7 @@
-import { field, logger } from "@coder/logger/src";
 import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 import * as vm from "vm";
-import * as zlib from "zlib";
 import { buildDir, isCli } from "../constants";
 
 let ipcMsgBuffer: Buffer[] | undefined = [];
@@ -61,15 +59,6 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 		if (id === "typescript") {
 			return require("typescript");
 		}
-		if (id === "vscode-chrome-debug-core") {
-			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-chrome-debug-core");
-		}
-		if (id === "vscode-debugadapter") {
-			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-debugadapter");
-		}
-		if (id === "vscode-nls") {
-			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-nls");
-		}
 
 		// tslint:disable-next-line:no-any
 		return oldRequire.call(this, id as any);
@@ -123,21 +112,12 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 		};
 	}
 
-	// let content: Buffer | undefined;
-	// const readFile = (name: string): Buffer => {
-	// 	return fs.readFileSync();
-	// };
 	const baseDir = path.join(buildDir, "build");
 	if (isCli) {
 		__non_webpack_require__(path.join(baseDir, "bootstrap-fork.js.gz"));
-		// const rawFile = readFile("bootstrap-fork.js.gz");
-		// content = zlib.gunzipSync(rawFile);
 	} else {
 		require("../../../vscode/out/bootstrap-fork.js");
-		// content = readFile("../../vscode/out/bootstrap-fork.js");
 	}
-	// __non_webpack_require__(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", isCli ? "bootstrap-fork.js.gz" : "bootstrap-fork.js"));
-	// eval(content.toString());
 };
 
 /**
