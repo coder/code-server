@@ -105,7 +105,7 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 		 */
 		// tslint:disable-next-line:no-any
 		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
 				...options,
 				stdio: [null, null, null, "ipc"],
 			});
@@ -141,7 +141,7 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 	}
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
-		forkArgs.push("--args", JSON.stringify(args));
+		forkArgs.push("--extra-args", JSON.stringify(args));
 	}
 	if (dataDir) {
 		forkArgs.push("--data-dir", dataDir);
