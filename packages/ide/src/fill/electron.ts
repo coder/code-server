@@ -1,12 +1,10 @@
 /// <reference path="../../../../lib/vscode/src/typings/electron.d.ts" />
 import { EventEmitter } from "events";
 import * as fs from "fs";
+import * as trash from "trash";
 import { logger, field } from "@coder/logger";
 import { IKey, Dialog as DialogBox } from "./dialog";
 import { clipboard } from "./clipboard";
-import { client } from "./client";
-
-declare var __non_webpack_require__: typeof require;
 
 // tslint:disable-next-line no-any
 (global as any).getOpenUrls = (): string[] => {
@@ -184,9 +182,7 @@ class Clipboard {
 
 class Shell {
 	public async moveItemToTrash(path: string): Promise<void> {
-		await client.evaluate((helper, path) => {
-			return helper.modules.trash(path);
-		}, path);
+		await trash(path);
 	}
 }
 

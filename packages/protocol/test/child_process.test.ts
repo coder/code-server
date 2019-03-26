@@ -3,12 +3,12 @@ import * as path from "path";
 import { Readable } from "stream";
 import * as util from "util";
 import { createClient } from "@coder/protocol/test";
-
-const client = createClient();
-jest.mock("../src/fill/client", () => ({ client }));
-const cp = require("../src/fill/child_process") as typeof import("child_process");
+import { Module } from "../src/common/proxy";
 
 describe("child_process", () => {
+	const client = createClient();
+	const cp = client.modules[Module.ChildProcess];
+
 	const getStdout = async (proc: ChildProcess): Promise<string> => {
 		return new Promise((r): Readable => proc.stdout.on("data", r))
 		.then((s) => s.toString());
@@ -70,5 +70,29 @@ describe("child_process", () => {
 
 			await new Promise((r): ChildProcess => proc.on("exit", r));
 		});
+	});
+
+	it("should dispose", (done) => {
+		setTimeout(() => {
+			client.dispose();
+			done();
+		}, 100);
+	});
+
+	it("should disconnect", async () => {
+		const client = createClient();
+		const cp = client.modules[Module.ChildProcess];
+		const proc = cp.fork(path.join(__dirname, "forker.js"));
+		const fn = jest.fn();
+		proc.on("error", fn);
+
+		proc.send({ bananas: true });
+		await expect(new Promise((r): ChildProcess => proc.on("message", r)))
+			.resolves.toMatchObject({
+				bananas: true,
+			});
+
+		client.dispose();
+		expect(fn).toHaveBeenCalledWith(new Error("disconnected"));
 	});
 });

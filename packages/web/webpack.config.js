@@ -12,7 +12,6 @@ module.exports = merge(
 		typescriptCompilerOptions: {
 			"target": "es5",
 			"lib": ["dom", "esnext"],
-			"importHelpers": true,
 		},
 	},
 ), {
@@ -58,6 +57,7 @@ module.exports = merge(
 			"fs": path.join(fills, "fs.ts"),
 			"net": path.join(fills, "net.ts"),
 			"util": path.join(fills, "util.ts"),
+			"trash": path.join(fills, "trash.ts"),
 			"electron": path.join(fills, "electron.ts"),
 
 			"native-keymap": path.join(vsFills, "native-keymap.ts"),

@@ -11,6 +11,7 @@
 		"strict": true,
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
+		"importHelpers": true,
 		"plugins": [
 			{
 				"name": "tslint-language-service"
@@ -22,6 +23,9 @@
 			],
 			"vs/*": [
 				"./lib/vscode/src/vs/*"
+			],
+			"node-pty": [
+				"./packages/protocol/node_modules/node-pty-prebuilt"
 			]
 		}
 	}

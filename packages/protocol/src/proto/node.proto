@@ -1,28 +1,90 @@
 syntax = "proto3";
 
-message NewEvalMessage {
-	uint64 id = 1;
-	string function = 2;
-	repeated string args = 3;
-	// Timeout in ms
-	uint32 timeout = 4;
-	// Create active eval message.
-	// Allows for dynamic communication for an eval
-	bool active = 5;
+enum Module {
+	ChildProcess = 0;
+	Fs = 1;
+	Net = 2;
+	NodePty = 3;
+	Spdlog = 4;
+	Trash = 5;
 }
 
-message EvalEventMessage {
+// A proxy identified by a unique name like "fs".
+message NamedProxyMessage {
 	uint64 id = 1;
+	Module module = 2;
+	string method = 3;
+	repeated string args = 4;
+}
+
+// A general proxy identified by an ID like WriteStream.
+message NumberedProxyMessage {
+	uint64 id = 1;
+	uint64 proxy_id = 2;
+	string method = 3;
+	repeated string args = 4;
+}
+
+// Call a remote method.
+message MethodMessage {
+	oneof msg {
+		NamedProxyMessage named_proxy = 1;
+		NumberedProxyMessage numbered_proxy = 2;
+	}
+}
+
+// Call a remote callback.
+message CallbackMessage {
+	oneof msg {
+		NamedCallbackMessage named_callback = 1;
+		NumberedCallbackMessage numbered_callback = 2;
+	}
+}
+
+// A remote callback for uniquely named proxy.
+message NamedCallbackMessage {
+	Module module = 1;
+	uint64 callback_id = 2;
+	repeated string args = 3;
+}
+
+// A remote callback for a numbered proxy.
+message NumberedCallbackMessage {
+	uint64 proxy_id = 1;
+	uint64 callback_id = 2;
+	repeated string args = 3;
+}
+
+// Emit an event.
+message EventMessage {
+	oneof msg {
+		NamedEventMessage named_event = 1;
+		NumberedEventMessage numbered_event = 2;
+	}
+}
+
+// Emit an event on a uniquely named proxy.
+message NamedEventMessage {
+	Module module = 1;
 	string event = 2;
 	repeated string args = 3;
 }
 
-message EvalFailedMessage {
+// Emit an event on a numbered proxy.
+message NumberedEventMessage {
+	uint64 proxy_id = 1;
+	string event = 2;
+	repeated string args = 3;
+}
+
+// Remote method failed.
+message FailMessage {
 	uint64 id = 1;
 	string response = 2;
 }
 
-message EvalDoneMessage {
+// Remote method succeeded.
+message SuccessMessage {
 	uint64 id = 1;
 	string response = 2;
 }

@@ -154,12 +154,21 @@ index 25de96d..66e732e 100644
 +
 +startup({ machineId: "1" });
 diff --git a/src/vs/editor/browser/config/configuration.ts b/src/vs/editor/browser/config/configuration.ts
-index f4a579b..7f57220 100644
+index f4a579b..aa3c6d9 100644
 --- a/src/vs/editor/browser/config/configuration.ts
 +++ b/src/vs/editor/browser/config/configuration.ts
-@@ -353 +353 @@ export class Configuration extends CommonEditorConfiguration {
+@@ -10 +9,0 @@ import { Disposable } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
+@@ -17 +15,0 @@ import { IDimension } from 'vs/editor/common/editorCommon';
+-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+@@ -18,0 +17 @@ import { IAccessibilityService } from 'vs/platform/accessibility/common/accessib
++import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+@@ -353 +352 @@ export class Configuration extends CommonEditorConfiguration {
 -		if (platform.isMacintosh) {
 +		if (browser.isMacintosh) {
+@@ -364 +363 @@ export class Configuration extends CommonEditorConfiguration {
+-			emptySelectionClipboard: browser.isWebKit || browser.isFirefox,
++			emptySelectionClipboard: false, // browser.isWebKit || browser.isFirefox,
 diff --git a/src/vs/editor/browser/controller/mouseHandler.ts b/src/vs/editor/browser/controller/mouseHandler.ts
 index 1a8af35..fe56af9 100644
 --- a/src/vs/editor/browser/controller/mouseHandler.ts
@@ -189,11 +198,14 @@ index fa004fb..6420078 100644
 -			'included': platform.isMacintosh
 +			'included': platform.isNative && platform.isMacintosh
 diff --git a/src/vs/editor/common/config/editorOptions.ts b/src/vs/editor/common/config/editorOptions.ts
-index 934e908..b404444 100644
+index 934e908..bd6fd88 100644
 --- a/src/vs/editor/common/config/editorOptions.ts
 +++ b/src/vs/editor/common/config/editorOptions.ts
-@@ -9,0 +10 @@ import * as platform from 'vs/base/common/platform';
+@@ -6 +6 @@
+-import * as nls from 'vs/nls';
 +import * as browser from 'vs/base/browser/browser';
+@@ -13,0 +14 @@ import { USUAL_WORD_SEPARATORS } from 'vs/editor/common/model/wordHelper';
++import * as nls from 'vs/nls';
 @@ -1765 +1766 @@ export class EditorOptionsValidator {
 -				configuredMulticursorModifier = platform.isMacintosh ? 'metaKey' : 'ctrlKey';
 +				configuredMulticursorModifier = browser.isMacintosh ? 'metaKey' : 'ctrlKey';
@@ -203,6 +215,9 @@ index 934e908..b404444 100644
 @@ -2534 +2535 @@ export const EDITOR_FONT_DEFAULTS = {
 -		platform.isMacintosh ? 12 : 14
 +		browser.isMacintosh ? 12 : 14
+@@ -2640 +2641 @@ export const EDITOR_DEFAULTS: IValidatedEditorOptions = {
+-		selectionClipboard: true,
++		selectionClipboard: false,
 diff --git a/src/vs/editor/common/config/fontInfo.ts b/src/vs/editor/common/config/fontInfo.ts
 index 88cb52a..c4a1be9 100644
 --- a/src/vs/editor/common/config/fontInfo.ts

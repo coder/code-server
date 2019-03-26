@@ -9,7 +9,6 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
-import { fillFs } from "./fill";
 import { setup as setupNativeModules } from "./modules";
 import { createApp } from "./server";
 import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
@@ -44,8 +43,10 @@ export class Entry extends Command {
 	}];
 
 	public async run(): Promise<void> {
+		Error.stackTraceLimit = Infinity;
+
 		if (isCli) {
-			fillFs();
+			require("nbin").shimNativeFs("/home/kyle/node/coder/code-server/packages/server");
 		}
 
 		const { args, flags } = this.parse(Entry);
@@ -182,13 +183,13 @@ export class Entry extends Command {
 				dataDirectory: dataDir,
 				workingDirectory: workingDir,
 				cacheDirectory: cacheHome,
-				fork: (modulePath: string, args: string[], options: ForkOptions): ChildProcess => {
+				fork: (modulePath: string, args?: string[], options?: ForkOptions): ChildProcess => {
 					if (options && options.env && options.env.AMD_ENTRYPOINT) {
 						return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 					}
 
 					if (isCli) {
-						return spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+						return spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
 							...options,
 							stdio: [null, null, null, "ipc"],
 						});
