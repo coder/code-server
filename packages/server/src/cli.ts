@@ -44,9 +44,9 @@ export class Entry extends Command {
 
 	public async run(): Promise<void> {
 		Error.stackTraceLimit = Infinity;
-
+		
 		if (isCli) {
-			require("nbin").shimNativeFs("/home/kyle/node/coder/code-server/packages/server");
+			require("nbin").shimNativeFs(path.resolve(path.join(process.cwd(), ".")));
 		}
 
 		const { args, flags } = this.parse(Entry);
