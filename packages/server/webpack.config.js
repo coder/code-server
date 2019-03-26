@@ -29,7 +29,6 @@ module.exports = merge(
 			},
 		},
 		externals: {
-			"tslib": "commonjs tslib",
 			"nbin": "commonjs nbin",
 			"fsevents": "fsevents",
 		},
