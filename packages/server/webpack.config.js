@@ -31,6 +31,7 @@ module.exports = merge(
 		externals: {
 			"tslib": "commonjs tslib",
 			"nbin": "commonjs nbin",
+			"fsevents": "fsevents",
 		},
 		entry: "./packages/server/src/cli.ts",
 		plugins: [
