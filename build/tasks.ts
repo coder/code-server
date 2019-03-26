@@ -10,7 +10,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
 const defaultExtensionsPath = path.join(libPath, "VSCode-linux-x64/resources/app/extensions");
-const vscodeVersion = "1.32.0";
+const vscodeVersion = process.env.VSCODE_VERSION || "1.32.0";
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
 	await ensureInstalled();
@@ -236,7 +236,7 @@ register("package", async (runner, releaseTag) => {
 
 	const releasePath = path.resolve(__dirname, "../release");
 
-	const archiveName = `code-server-${releaseTag}-${os.platform()}-${os.arch()}`;
+	const archiveName = `code-server${releaseTag}-${os.platform()}-${os.arch()}`;
 	const archiveDir = path.join(releasePath, archiveName);
 	fse.removeSync(archiveDir);
 	fse.mkdirpSync(archiveDir);
