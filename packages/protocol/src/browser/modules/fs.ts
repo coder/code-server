@@ -72,8 +72,8 @@ export class FsModule {
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
-		callbackify(this.proxy.exists)(path, (_error, exists) => {
-			callback!(exists);
+		callbackify(this.proxy.exists)(path, (exists) => {
+			callback!(exists as any);
 		});
 	}
 

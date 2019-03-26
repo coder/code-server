@@ -196,6 +196,8 @@ export class Workbench {
 				/**
 				 * Resolves the error of the workspace identifier being invalid.
 				 */
+				// tslint:disable-next-line:no-console
+				console.error(ex);
 				this.workspace = undefined;
 				location.reload();
 

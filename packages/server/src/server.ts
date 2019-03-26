@@ -1,11 +1,13 @@
-import { mkdirp } from "fs-extra";
-import { logger, field } from "@coder/logger";
+import { field, logger } from "@coder/logger";
 import { ReadWriteConnection } from "@coder/protocol";
 import { Server, ServerOptions } from "@coder/protocol/src/node/server";
+import { TunnelCloseCode } from "@coder/tunnel/src/common";
+import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import * as express from "express";
 //@ts-ignore
 import * as expressStaticGzip from "express-static-gzip";
 import * as fs from "fs";
+import { mkdirp } from "fs-extra";
 import * as http from "http";
 //@ts-ignore
 import * as httpolyglot from "httpolyglot";
@@ -17,11 +19,9 @@ import * as path from "path";
 import * as pem from "pem";
 import * as util from "util";
 import * as ws from "ws";
-import safeCompare = require("safe-compare");
-import { TunnelCloseCode } from "@coder/tunnel/src/common";
-import { handle as handleTunnel } from "@coder/tunnel/src/server";
-import { createPortScanner } from "./portScanner";
 import { buildDir } from "./constants";
+import { createPortScanner } from "./portScanner";
+import safeCompare = require("safe-compare");
 
 interface CreateAppOptions {
 	registerMiddleware?: (app: express.Application) => void;
@@ -205,7 +205,11 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			unauthStaticFunc(req, res, next);
 		}
 	});
-	app.get("/ping", (_, res) => {
+	// @ts-ignore
+	app.use((err, req, res, next) => {
+		next();
+	});
+	app.get("/ping", (req, res) => {
 		res.json({
 			hostname: os.hostname(),
 		});
@@ -238,9 +242,11 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			}
 			const content = await util.promisify(fs.readFile)(fullPath);
 
-			res.header("Content-Type", mimeType as string);
+			res.writeHead(200, {
+				"Content-Type": mimeType,
+				"Content-Length": content.byteLength,
+			});
 			res.write(content);
-			res.status(200);
 			res.end();
 		} catch (ex) {
 			res.write(ex.toString());

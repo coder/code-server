@@ -1,15 +1,18 @@
+import { field, logger } from "@coder/logger/src";
 import * as cp from "child_process";
 import * as fs from "fs";
 import * as path from "path";
-import * as zlib from "zlib";
 import * as vm from "vm";
-import { isCli } from "../constants";
+import * as zlib from "zlib";
+import { buildDir, isCli } from "../constants";
 
 let ipcMsgBuffer: Buffer[] | undefined = [];
 let ipcMsgListener = process.send ? (d: Buffer): number => ipcMsgBuffer!.push(d) : undefined;
 if (ipcMsgListener) {
 	process.on("message", ipcMsgListener);
 }
+
+declare var __non_webpack_require__: typeof require;
 
 /**
  * Requires a module from the filesystem.
@@ -29,7 +32,7 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
 		const fileName = id.endsWith(".js") ? id : `${id}.js`;
 		const req = vm.runInThisContext(mod.wrap(fs.readFileSync(fileName).toString()), {
 			displayErrors: true,
-			filename: id + fileName,
+			filename: fileName,
 		});
 		req(customMod.exports, customMod.require.bind(customMod), customMod, fileName, path.dirname(id));
 
@@ -46,9 +49,26 @@ export const requireFork = (modulePath: string, args: string[], builtInExtension
 	const Module = require("module") as typeof import("module");
 	const oldRequire = Module.prototype.require;
 	// tslint:disable-next-line:no-any
+	const oldLoad = (Module as any)._findPath;
+	// @ts-ignore
+	(Module as any)._findPath = function (request, parent, isMain): any {
+		const lookupPaths = oldLoad.call(this, request, parent, isMain);
+
+		return lookupPaths;
+	};
+	// tslint:disable-next-line:no-any
 	Module.prototype.require = function (id: string): any {
 		if (id === "typescript") {
 			return require("typescript");
+		}
+		if (id === "vscode-chrome-debug-core") {
+			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-chrome-debug-core");
+		}
+		if (id === "vscode-debugadapter") {
+			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-debugadapter");
+		}
+		if (id === "vscode-nls") {
+			return require("../../../../lib/VSCode-linux-x64/resources/app/extensions/ms-vscode.node-debug2/node_modules/vscode-nls");
 		}
 
 		// tslint:disable-next-line:no-any
@@ -96,23 +116,28 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 		 */
 		// tslint:disable-next-line:no-any
 		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
 				...options,
 				stdio: [null, null, null, "ipc"],
 			});
 		};
 	}
 
-	let content: Buffer | undefined;
-	const readFile = (name: string): Buffer => {
-		return fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", name));
-	};
+	// let content: Buffer | undefined;
+	// const readFile = (name: string): Buffer => {
+	// 	return fs.readFileSync();
+	// };
+	const baseDir = path.join(buildDir, "build");
 	if (isCli) {
-		content = zlib.gunzipSync(readFile("bootstrap-fork.js.gz"));
+		__non_webpack_require__(path.join(baseDir, "bootstrap-fork.js.gz"));
+		// const rawFile = readFile("bootstrap-fork.js.gz");
+		// content = zlib.gunzipSync(rawFile);
 	} else {
-		content = readFile("../../vscode/out/bootstrap-fork.js");
+		require("../../../vscode/out/bootstrap-fork.js");
+		// content = readFile("../../vscode/out/bootstrap-fork.js");
 	}
-	eval(content.toString());
+	// __non_webpack_require__(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", isCli ? "bootstrap-fork.js.gz" : "bootstrap-fork.js"));
+	// eval(content.toString());
 };
 
 /**
@@ -141,7 +166,7 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		forkArgs.push("--data-dir", dataDir);
 	}
 	if (isCli) {
-		proc = cp.spawn(process.execPath, forkArgs, forkOptions);
+		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
 	}
