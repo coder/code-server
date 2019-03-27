@@ -81,3 +81,66 @@ export enum Module {
 	NodePty = "node-pty",
 	Trash = "trash",
 }
+
+interface BatchItem<T, A> {
+	args: A;
+	resolve: (t: T) => void;
+	reject: (e: Error) => void;
+}
+
+/**
+ * Batch remote calls.
+ */
+export abstract class Batch<T, A> {
+	/**
+	 * Flush after reaching this count.
+	 */
+	private maxCount = 100;
+
+	/**
+	 * Flush after not receiving more requests for this amount of time.
+	 */
+	private maxTime = 100;
+
+	private flushTimeout: number | NodeJS.Timer | undefined;
+
+	private batch = <BatchItem<T, A>[]>[];
+
+	public add = (args: A): Promise<T> => {
+		return new Promise((resolve, reject) => {
+			this.batch.push({
+				args,
+				resolve,
+				reject,
+			});
+			if (this.batch.length >= this.maxCount) {
+				this.flush();
+			} else {
+				clearTimeout(this.flushTimeout as any);
+				this.flushTimeout = setTimeout(this.flush, this.maxTime);
+			}
+		});
+	}
+
+	protected abstract remoteCall(batch: A[]): Promise<(T | Error)[]>;
+
+	private flush = (): void => {
+		clearTimeout(this.flushTimeout as any);
+
+		const batch = this.batch;
+		this.batch = [];
+
+		this.remoteCall(batch.map((q) => q.args)).then((results) => {
+			batch.forEach((item, i) => {
+				const result = results[i];
+				if (!result) {
+					item.reject(new Error("no response"));
+				} else if (result instanceof Error) {
+					item.reject(result);
+				} else {
+					item.resolve(result);
+				}
+			});
+		}).catch((error) => batch.forEach((item) => item.reject(error)));
+	}
+}

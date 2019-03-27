@@ -182,6 +182,10 @@ export class FsModuleProxy {
 		return promisify(fs.readdir)(path, options);
 	}
 
+	public readdirBatch(args: { path: fs.PathLike, options: IEncodingOptions }[]): Promise<(Buffer[] | fs.Dirent[] | string[] | Error)[]> {
+		return Promise.all(args.map((args) => this.readdir(args.path, args.options).catch((e) => e)));
+	}
+
 	public readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer> {
 		return promisify(fs.readlink)(path, options);
 	}
@@ -200,6 +204,10 @@ export class FsModuleProxy {
 
 	public async stat(path: fs.PathLike): Promise<Stats> {
 		return this.makeStatsSerializable(await promisify(fs.stat)(path));
+	}
+
+	public async statBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
+		return Promise.all(args.map((args) => this.stat(args.path).catch((e) => e)));
 	}
 
 	public symlink(target: fs.PathLike, path: fs.PathLike, type?: fs.symlink.Type | null): Promise<void> {
