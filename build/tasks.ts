@@ -9,6 +9,7 @@ const isWin = os.platform() === "win32";
 const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
+const defaultExtensionsBuildDirectory = path.join(libPath, "vscode-default-extensions");
 const defaultExtensionsPath = path.join(libPath, "VSCode-linux-x64/resources/app/extensions");
 const vscodeVersion = process.env.VSCODE_VERSION || "1.32.0";
 
@@ -129,13 +130,12 @@ const buildWeb = register("build:web", async (runner) => {
 	await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build"]);
 });
 
-const extDirPath = path.join("lib", "vscode-default-extensions");
 const copyForDefaultExtensions = register("build:copy-vscode", async (runner) => {
 	if (!fs.existsSync(defaultExtensionsPath)) {
 		await ensureClean();
 		await ensureInstalled();
 		await new Promise((resolve, reject): void => {
-			fse.remove(extDirPath, (err) => {
+			fse.remove(defaultExtensionsBuildDirectory, (err) => {
 				if (err) {
 					return reject(err);
 				}
@@ -144,7 +144,7 @@ const copyForDefaultExtensions = register("build:copy-vscode", async (runner) =>
 			});
 		});
 		await new Promise((resolve, reject): void => {
-			fse.copy(vscodePath, extDirPath, (err) => {
+			fse.copy(vscodePath, defaultExtensionsBuildDirectory, (err) => {
 				if (err) {
 					return reject(err);
 				}
@@ -160,12 +160,12 @@ const buildDefaultExtensions = register("build:default-extensions", async (runne
 		if (ifCiAndVsc("vscode-default-extensions")) {
 			return;
 		} else {
-			fse.removeSync(defaultExtensionsPath);
+			fse.removeSync(defaultExtensionsBuildDirectory);
 		}
 	}
 
 	await copyForDefaultExtensions();
-	runner.cwd = extDirPath;
+	runner.cwd = defaultExtensionsBuildDirectory;
 	const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64", "--max-old-space-size=32384"]);
 	if (resp.exitCode !== 0) {
 		throw new Error(`Failed to build default extensions: ${resp.stderr}`);
