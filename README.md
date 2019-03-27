@@ -58,7 +58,7 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ### Future
 - **Stay up to date!** Get notified about new releases of code-server.
-![Screenshot](/doc/assets/releases.gif)
+![Screenshot](/doc/assets/release.gif)
 - Windows support.
 - Electron and Chrome OS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
