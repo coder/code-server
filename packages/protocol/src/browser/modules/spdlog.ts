@@ -13,6 +13,10 @@ class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.
 	public async clearFormatters (): Promise<void> { this.proxy.clearFormatters(); }
 	public async flush (): Promise<void> { this.proxy.flush(); }
 	public async drop (): Promise<void> { this.proxy.drop(); }
+
+	protected handleDisconnect(): void {
+		// TODO: reconnect.
+	}
 }
 
 export class SpdlogModule {

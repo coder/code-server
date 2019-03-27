@@ -41,6 +41,15 @@ class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 	public close(): void {
 		this.proxy.close();
 	}
+
+	protected handleDisconnect(error: Error): void {
+		try {
+			this.emit("error", error);
+		} catch (error) {
+			// If nothing is listening, EventEmitter will throw an error.
+		}
+		this.emit("close");
+	}
 }
 
 class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {

@@ -42,8 +42,11 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 			this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
 			});
+			this.on("disconnected", (error) => this.handleDisconnect(error));
 		}
 	}
+
+	protected abstract handleDisconnect(error: Error): void;
 }
 
 /**

@@ -126,6 +126,7 @@ export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
 }
 
 export class Server extends ClientProxy<NetServerProxy> implements net.Server {
+	private socketId = 0;
 	private readonly sockets = new Map<number, net.Socket>();
 	private _listening: boolean = false;
 
@@ -133,7 +134,12 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 		super(proxyPromise);
 
 		this.proxy.onConnection((socketProxy) => {
-			this.emit("connection", new Socket(socketProxy));
+			const socket = new Socket(socketProxy);
+			const socketId = this.socketId++;
+			this.sockets.set(socketId, socket);
+			socket.on("error", () => this.sockets.delete(socketId))
+			socket.on("close", () => this.sockets.delete(socketId))
+			this.emit("connection", socket);
 		});
 
 		this.on("listening", () => this._listening = true);
@@ -199,6 +205,15 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 
 	public getConnections(cb: (error: Error | null, count: number) => void): void {
 		cb(null, this.sockets.size);
+	}
+
+	protected handleDisconnect(error: Error): void {
+		try {
+			this.emit("error", error);
+		} catch (error) {
+			// If nothing is listening, EventEmitter will throw an error.
+		}
+		this.emit("close");
 	}
 }
 

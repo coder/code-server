@@ -134,14 +134,8 @@ export class Client {
 			message.setResponse(stringify(error));
 			this.failEmitter.emit(message);
 
-			this.eventEmitter.emit({ event: "exit", args: [1] });
-			this.eventEmitter.emit({ event: "close", args: [] });
-			try {
-				this.eventEmitter.emit({ event: "error", args: [error] });
-			} catch (error) {
-				// If nothing is listening, EventEmitter will throw an error.
-			}
-			this.eventEmitter.emit({ event: "done", args: [true] });
+			this.eventEmitter.emit({ event: "disconnected", args: [error] });
+			this.eventEmitter.emit({ event: "done", args: [] });
 		};
 
 		connection.onDown(() => handleDisconnect());
@@ -450,12 +444,12 @@ export class Client {
 			callbacks: new Map(),
 		});
 
-		instance.onDone((disconnected: boolean) => {
+		instance.onDone(() => {
 			const log = (): void => {
 				logger.trace(() => [
 					typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
 					field("proxyId", proxyId),
-					field("disconnected", disconnected),
+					field("disconnected", this.disconnected),
 					field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
 					field("success listeners", this.successEmitter.counts),
 					field("fail listeners", this.failEmitter.counts),
@@ -471,7 +465,7 @@ export class Client {
 					this.eventEmitter.dispose(proxyId);
 					log();
 				};
-				if (!disconnected) {
+				if (!this.disconnected) {
 					instance.dispose().then(dispose).catch(dispose);
 				} else {
 					dispose();

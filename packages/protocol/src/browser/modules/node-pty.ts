@@ -32,6 +32,11 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 	public kill(signal?: string): void {
 		this.proxy.kill(signal);
 	}
+
+	protected handleDisconnect(): void {
+		this._process += " (disconnected)";
+		this.emit("data", "\r\n\nLost connection...");
+	}
 }
 
 type NodePty = typeof pty;
