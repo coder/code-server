@@ -8,6 +8,7 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
+import { getRecentRelease } from "./updater";
 import { createApp } from "./server";
 import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
@@ -163,6 +164,10 @@ const bold = (text: string | number): string | number => {
 			logger.error(`Failed to read certificate key: ${ex.message}`);
 			process.exit(1);
 		}
+	}
+
+	if (process.env.VERSION !== "development") {
+		await getRecentRelease().then((release) => console.log(release));
 	}
 
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
