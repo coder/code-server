@@ -156,6 +156,10 @@ export class FsModuleProxy {
 		return this.makeStatsSerializable(await promisify(fs.lstat)(path));
 	}
 
+	public async lstatBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
+		return Promise.all(args.map((a) => this.lstat(a.path).catch((e) => e)));
+	}
+
 	public mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void> {
 		return promisify(fs.mkdir)(path, mode);
 	}
@@ -182,6 +186,10 @@ export class FsModuleProxy {
 		return promisify(fs.readdir)(path, options);
 	}
 
+	public readdirBatch(args: { path: fs.PathLike, options: IEncodingOptions }[]): Promise<(Buffer[] | fs.Dirent[] | string[] | Error)[]> {
+		return Promise.all(args.map((a) => this.readdir(a.path, a.options).catch((e) => e)));
+	}
+
 	public readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer> {
 		return promisify(fs.readlink)(path, options);
 	}
@@ -200,6 +208,10 @@ export class FsModuleProxy {
 
 	public async stat(path: fs.PathLike): Promise<Stats> {
 		return this.makeStatsSerializable(await promisify(fs.stat)(path));
+	}
+
+	public async statBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
+		return Promise.all(args.map((a) => this.stat(a.path).catch((e) => e)));
 	}
 
 	public symlink(target: fs.PathLike, path: fs.PathLike, type?: fs.symlink.Type | null): Promise<void> {

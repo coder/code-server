@@ -1,11 +1,41 @@
 import * as fs from "fs";
 import { callbackify } from "util";
-import { ClientProxy } from "../../common/proxy";
+import { ClientProxy, Batch } from "../../common/proxy";
 import { IEncodingOptions, IEncodingOptionsCallback } from "../../common/util";
 import { FsModuleProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
 import { Writable  } from "./stream";
 
 // tslint:disable no-any
+
+class StatBatch extends Batch<IStats, { path: fs.PathLike }> {
+	public constructor(private readonly proxy: FsModuleProxy) {
+		super();
+	}
+
+	protected remoteCall(batch: { path: fs.PathLike }[]): Promise<(IStats | Error)[]> {
+		return this.proxy.statBatch(batch);
+	}
+}
+
+class LstatBatch extends Batch<IStats, { path: fs.PathLike }> {
+	public constructor(private readonly proxy: FsModuleProxy) {
+		super();
+	}
+
+	protected remoteCall(batch: { path: fs.PathLike }[]): Promise<(IStats | Error)[]> {
+		return this.proxy.lstatBatch(batch);
+	}
+}
+
+class ReaddirBatch extends Batch<Buffer[] | fs.Dirent[] | string[], { path: fs.PathLike, options: IEncodingOptions }> {
+	public constructor(private readonly proxy: FsModuleProxy) {
+		super();
+	}
+
+	protected remoteCall(queue: { path: fs.PathLike, options: IEncodingOptions }[]): Promise<(Buffer[] | fs.Dirent[] | string[] | Error)[]> {
+		return this.proxy.readdirBatch(queue);
+	}
+}
 
 class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 	public close(): void {
@@ -28,7 +58,15 @@ class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {
 }
 
 export class FsModule {
-	public constructor(private readonly proxy: FsModuleProxy) {}
+	private readonly statBatch: StatBatch;
+	private readonly lstatBatch: LstatBatch;
+	private readonly readdirBatch: ReaddirBatch;
+
+	public constructor(private readonly proxy: FsModuleProxy) {
+		this.statBatch = new StatBatch(this.proxy);
+		this.lstatBatch = new LstatBatch(this.proxy);
+		this.readdirBatch = new ReaddirBatch(this.proxy);
+	}
 
 	public access = (path: fs.PathLike, mode: number | undefined | ((err: NodeJS.ErrnoException) => void), callback?: (err: NodeJS.ErrnoException) => void): void => {
 		if (typeof mode === "function") {
@@ -72,9 +110,7 @@ export class FsModule {
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
-		callbackify(this.proxy.exists)(path, (exists) => {
-			callback!(exists as any);
-		});
+		this.proxy.exists(path).then((exists) => callback(exists)).catch(() => callback(false));
 	}
 
 	public fchmod = (fd: number, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
@@ -124,7 +160,7 @@ export class FsModule {
 	}
 
 	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		callbackify(this.proxy.lstat)(path, (error, stats) => {
+		callbackify(this.lstatBatch.add)({ path }, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});
 	}
@@ -175,7 +211,7 @@ export class FsModule {
 			callback = options;
 			options = undefined;
 		}
-		callbackify(this.proxy.readdir)(path, options, callback!);
+		callbackify(this.readdirBatch.add)({ path, options }, callback!);
 	}
 
 	public readlink = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, linkString: string | Buffer) => void): void => {
@@ -203,7 +239,7 @@ export class FsModule {
 	}
 
 	public stat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		callbackify(this.proxy.stat)(path, (error, stats) => {
+		callbackify(this.statBatch.add)({ path }, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});
 	}
