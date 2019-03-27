@@ -166,10 +166,21 @@ const bold = (text: string | number): string | number => {
 		}
 	}
 
-	if (process.env.VERSION !== "development") {
-		await getRecentRelease().then((release) => console.log(release));
-	}
+	let newestVersion = "";
+	// TODO: remove bang
+	if (!process.env.VERSION) {
+		let currentVersion = process.env.VERSION;
+		const recentRelease = await getRecentRelease();
 
+		// TODO: replace string with currentVersion
+		if (compareVersions("1.31.0-20", recentRelease)! <= 1) {
+			newestVersion = recentRelease;
+		} else {
+			newestVersion = "1.31.0-20";
+		}
+
+	}
+	logger.info(`Latest version is \u001B[1m${newestVersion}`);
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 
 	if (options.dataDir) {

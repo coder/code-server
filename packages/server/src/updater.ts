@@ -1,6 +1,6 @@
 import * as https from "https";
 
-const compareVersions = (a: string, b: string): number | undefined => {
+export const compareVersions = (a: string, b: string): number | undefined => {
 	if (a === b) {
 		return 0;
 	}
