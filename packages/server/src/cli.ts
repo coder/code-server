@@ -238,7 +238,7 @@ if (isCli) {
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
-		logger.warn("Documentation on securing your setup: https://coder.com/docs");
+		logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/security/ssl.md");
 	}
 
 	if (!options.noAuth) {
