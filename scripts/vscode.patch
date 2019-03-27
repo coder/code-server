@@ -914,6 +914,18 @@ index 0592910..0ce7e35 100644
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 @@ -33,0 +34 @@ function getSystemExtensionsRoot(): string {
 +	return (require('vs/../../../../packages/vscode/src/fill/paths') as typeof import ('vs/../../../../packages/vscode/src/fill/paths')).getBuiltInExtensionsDirectory();
+diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
+index 2c2f9c7..69fa321 100644
+--- a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
++++ b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
+@@ -34,0 +35 @@ import { Schemas } from 'vs/base/common/network';
++const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
+@@ -117,0 +119 @@ export class ExtensionService extends Disposable implements IExtensionService {
++		retry.register('Extension Host', () => this.startExtensionHost());
+@@ -435,0 +438 @@ export class ExtensionService extends Disposable implements IExtensionService {
++		extHostProcessWorker.start().then(() => retry.recover('Extension Host'));
+@@ -458,0 +462 @@ export class ExtensionService extends Disposable implements IExtensionService {
++		return retry.run('Extension Host');
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts b/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
 index 484cef9..f728fc8 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
