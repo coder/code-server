@@ -7,7 +7,10 @@
 		"react-dom": "^16.8.1"
 	},
 	"devDependencies": {
+		"@types/jest": "^24.0.11",
 		"@types/react": "^16.8.2",
-		"@types/react-dom": "^16.8.0"
+		"@types/react-dom": "^16.8.0",
+		"jest": "^24.5.0",
+		"ps-list": "^6.2.0"
 	}
 }

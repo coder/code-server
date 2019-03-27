@@ -4,6 +4,12 @@
 		"@types/chrome": "^0.0.79"
 	},
 	"scripts": {
-		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js"
+		"build": "../../../node_modules/.bin/webpack --config ./webpack.config.js",
+		"test": "cd ../../ && npx jest --verbose app/chrome/test"
+	},
+	"devDependencies": {
+		"@types/jest": "^24.0.11",
+		"@types/puppeteer": "^1.12.3",
+		"puppeteer": "^1.13.0"
 	}
 }
