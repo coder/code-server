@@ -153,6 +153,20 @@ export class Entry extends Command {
 			password = buffer.toString("hex");
 		}
 
+		// If CLI password was provided, obsfucate password from process title
+		if (flags.password) {
+			const parts = [process.title];
+			parts.push(path.relative(process.cwd(), process.argv[1]));
+			for (let i = 2; i < process.argv.length; i++) {
+				if (process.argv[i].includes("--password")) {
+					parts.push(process.argv[i].replace(/=(.*)/, "=****"));
+				} else {
+					parts.push(process.argv[i]);
+				}
+			}
+			process.title = parts.join().replace(/\,/g, " ");
+		}
+
 		const hasCustomHttps = certData && certKeyData;
 		const app = await createApp({
 			allowHttp: flags["allow-http"],
