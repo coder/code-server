@@ -176,6 +176,13 @@ export class Client {
 	 */
 	private async remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
 		if (this.disconnected && typeof proxyId === "number") {
+			// Can assume killing or closing works because a disconnected proxy
+			// is disposed on the server's side.
+			switch (method) {
+				case "close":
+				case "kill":
+					return Promise.resolve();
+			}
 			return Promise.reject(
 				new Error(`Unable to call "${method}" on proxy ${proxyId}: disconnected`),
 			);
