@@ -1,0 +1,42 @@
+{
+  "name": "test",
+  "version": "1.0.0",
+  "description": "code-server tests",
+  "main": "index.ts",
+  "license": "MIT",
+  "scripts": {
+    "test": "npx jest --verbose src"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.11",
+    "@types/puppeteer": "^1.12.3",
+    "jest": "^24.5.0",
+    "ps-list": "^6.2.0",
+    "puppeteer": "^1.13.0",
+    "ts-jest": "^24.0.0"
+  },
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "setupFiles": [
+      "<rootDir>/../scripts/test-setup.js"
+    ],
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/logger/"
+    ],
+    "testRegex": ".*\\.test\\.tsx?"
+  }
+}

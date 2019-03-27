@@ -12,6 +12,7 @@ interface IServerOptions {
 	binaryPath?: string;
 	auth: boolean;
 	password: string;
+	workingDir: string;
 }
 
 /**
@@ -19,6 +20,7 @@ interface IServerOptions {
  * the code-server binary.
  */
 export class TestServer {
+	public readonly options: IServerOptions;
 	// @ts-ignore
 	public browser: puppeteer.Browser;
 	// @ts-ignore
@@ -26,7 +28,6 @@ export class TestServer {
 
 	// @ts-ignore
 	private child: ChildProcess;
-	private readonly options: IServerOptions;
 
 	public constructor(opts: {
 		host?: string,
@@ -35,14 +36,16 @@ export class TestServer {
 		binaryHome?: string,
 		auth?: boolean,
 		password?: string,
+		workingDir?: string,
 	}) {
 		this.options = {
 			host: opts && opts.host ? opts.host : "ide.test.localhost",
 			port: opts && opts.port ? opts.port : 8443,
 			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
-			binaryHome: opts && opts.binaryHome ? opts.binaryHome : "server",
+			binaryHome: opts && opts.binaryHome ? opts.binaryHome : "../packages/server",
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			password: opts && opts.password ? opts.password : "",
+			workingDir: "./tmp",
 		};
 		this.options.binaryPath = path.join(
 			this.options.binaryHome,
@@ -74,9 +77,13 @@ export class TestServer {
 				`--port=${this.options.port}`,
 				`${!this.options.auth ? "--no-auth" : ""}`,
 				`${this.options.password ? `--password=${this.options.password}` : ""}`,
-				__dirname,
+				"./tmp",
 			];
 			this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
+			if (!this.child.stdout) {
+				await this.dispose();
+				rej(new Error("failed to start, child process stdout unreadable"));
+			}
 
 			const onError = async (err: Error): Promise<void> => {
 				await this.dispose();
@@ -87,13 +94,13 @@ export class TestServer {
 			// Block until the server is ready for connections.
 			const onData = (data: string): void => {
 				if (!data.includes("Connected to shared process")) {
-					this.child.stdout.once("data", onData);
+					this.child.stdout!.once("data", onData);
 
 					return;
 				}
 				res();
 			};
-			this.child.stdout.once("data", onData);
+			this.child.stdout!.once("data", onData);
 
 			this.browser = await puppeteer.launch();
 		});
@@ -145,7 +152,9 @@ export class TestServer {
 	 * Kill the server process.
 	 */
 	public async dispose(): Promise<void> {
-		await this.browser.close();
+		if (this.browser) {
+			await this.browser.close();
+		}
 		await this.killProcesses();
 		if (!this.child) {
 			throw new Error("cannot dispose, process does not exist");

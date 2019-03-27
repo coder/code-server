@@ -1,4 +1,4 @@
-import { TestServer } from "../../common/test";
+import { TestServer } from "./index";
 
 describe("chrome e2e", () => {
 	const server = new TestServer({ auth: false });
@@ -26,5 +26,5 @@ describe("chrome e2e", () => {
 			});
 		});
 		expect(ideExists).toEqual(true);
-	}, 10000);
+	}, 2000);
 });
