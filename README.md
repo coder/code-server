@@ -57,6 +57,8 @@ How to [secure your setup](/doc/security/ssl.md).
 - Creating custom VS Code extensions and debugging them doesn't work.
 
 ### Future
+- **Stay up to date!** Get notified about new releases of code-server.
+![Screenshot](/doc/assets/notified.gif)
 
 - Windows support.
 - Electron and Chrome OS applications to bridge the gap between local<->remote.
