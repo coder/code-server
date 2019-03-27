@@ -35,8 +35,6 @@ export const getRecentRelease = (): Promise<any> => {
 		https.get(options, function (res) {
 			if (res.statusCode !== 200) {
 				throw new Error("Failed to acquire release information");
-
-				return undefined;
 			}
 			let body = "";
 			res.on("data", (chunk) => {
