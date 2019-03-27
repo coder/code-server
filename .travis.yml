@@ -6,7 +6,7 @@ env:
 matrix:
   include:
   - os: linux
-    dist: ubuntu
+    dist: trusty
   - os: osx
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
