@@ -177,8 +177,8 @@ const bold = (text: string | number): string | number => {
 			newestVersion = currentVersion;
 		}
 	}
-	if (newestVersion === process.env.VERSION) {
-		logger.info(`You are using the latest version: ${newestVersion}`);
+	if (newestVersion === process.env.VERSION || newestVersion === "") {
+		logger.info("You are using the latest version");
 	} else {
 		logger.info(`New version (\u001B[1m${newestVersion}) available at https://github.com/codercom/code-server/releases`);
 	}
