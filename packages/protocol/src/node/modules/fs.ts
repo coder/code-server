@@ -156,6 +156,10 @@ export class FsModuleProxy {
 		return this.makeStatsSerializable(await promisify(fs.lstat)(path));
 	}
 
+	public async lstatBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
+		return Promise.all(args.map((args) => this.lstat(args.path).catch((e) => e)));
+	}
+
 	public mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void> {
 		return promisify(fs.mkdir)(path, mode);
 	}

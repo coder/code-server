@@ -17,6 +17,16 @@ class StatBatch extends Batch<IStats, { path: fs.PathLike }> {
 	}
 }
 
+class LstatBatch extends Batch<IStats, { path: fs.PathLike }> {
+	public constructor(private readonly proxy: FsModuleProxy) {
+		super();
+	}
+
+	protected remoteCall(batch: { path: fs.PathLike }[]): Promise<(IStats | Error)[]> {
+		return this.proxy.lstatBatch(batch);
+	}
+}
+
 class ReaddirBatch extends Batch<Buffer[] | fs.Dirent[] | string[], { path: fs.PathLike, options: IEncodingOptions }> {
 	public constructor(private readonly proxy: FsModuleProxy) {
 		super();
@@ -49,10 +59,12 @@ class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {
 
 export class FsModule {
 	private readonly statBatch: StatBatch;
+	private readonly lstatBatch: LstatBatch;
 	private readonly readdirBatch: ReaddirBatch;
 
 	public constructor(private readonly proxy: FsModuleProxy) {
 		this.statBatch = new StatBatch(this.proxy);
+		this.lstatBatch = new LstatBatch(this.proxy);
 		this.readdirBatch = new ReaddirBatch(this.proxy);
 	}
 
@@ -148,7 +160,7 @@ export class FsModule {
 	}
 
 	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
-		callbackify(this.proxy.lstat)(path, (error, stats) => {
+		callbackify(this.lstatBatch.add)({ path }, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});
 	}
