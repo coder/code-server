@@ -922,29 +922,31 @@ index 484cef9..f728fc8 100644
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 diff --git a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
-index ca03fc9..b8befc8 100644
+index ca03fc9..e3dcd08 100644
 --- a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
 @@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
 +const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
 @@ -35,0 +37 @@ export class FileWatcher {
 +		retry.register('Watcher', () => this.startWatching());
-@@ -56,0 +59 @@ export class FileWatcher {
+@@ -56,0 +59,2 @@ export class FileWatcher {
++				this.toDispose = dispose(this.toDispose);
 +				return retry.run('Watcher');
-@@ -113 +116 @@ export class FileWatcher {
+@@ -113 +117 @@ export class FileWatcher {
 -		}));
 +		})).then(() => retry.recover('Watcher'));
 diff --git a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
-index 7e3a324..0bc5aac 100644
+index 7e3a324..b9ccd63 100644
 --- a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
 @@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
 +const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
 @@ -36,0 +38 @@ export class FileWatcher {
 +		retry.register('Watcher', () => this.startWatching());
-@@ -59,0 +62 @@ export class FileWatcher {
+@@ -59,0 +62,2 @@ export class FileWatcher {
++				this.toDispose = dispose(this.toDispose);
 +				return retry.run('Watcher');
-@@ -116 +119 @@ export class FileWatcher {
+@@ -116 +120 @@ export class FileWatcher {
 -		}));
 +		})).then(() => retry.recover('Watcher'));
 diff --git a/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts b/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
@@ -969,6 +971,40 @@ index 3c78990..545d91a 100644
 @@ -130 +130 @@ export class KeyboardMapperFactory {
 -		if (OS === OperatingSystem.Windows) {
 +		if (isNative && OS === OperatingSystem.Windows) {
+diff --git a/src/vs/workbench/services/search/node/searchService.ts b/src/vs/workbench/services/search/node/searchService.ts
+index 3eaafa4..0345bad 100644
+--- a/src/vs/workbench/services/search/node/searchService.ts
++++ b/src/vs/workbench/services/search/node/searchService.ts
+@@ -11 +11 @@ import { Event } from 'vs/base/common/event';
+-import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
++import { Disposable, IDisposable, toDisposable, dispose } from 'vs/base/common/lifecycle';
+@@ -32,0 +33 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
++const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
+@@ -433,0 +435 @@ export class DiskSearch implements ISearchResultProvider {
++	private toDispose: IDisposable[] = [];
+@@ -470,6 +472,16 @@ export class DiskSearch implements ISearchResultProvider {
+-		const client = new Client(
+-			getPathFromAmdModule(require, 'bootstrap-fork'),
+-			opts);
+-
+-		const channel = getNextTickChannel(client.getChannel('search'));
+-		this.raw = new SearchChannelClient(channel);
++		const connect = (): void => {
++			const client = new Client(
++				getPathFromAmdModule(require, 'bootstrap-fork'),
++				opts);
++			client.onDidProcessExit(() => {
++				this.toDispose = dispose(this.toDispose);
++				retry.run('Searcher');
++			}, null, this.toDispose);
++			this.toDispose.push(client);
++
++			const channel = getNextTickChannel(client.getChannel('search'));
++			this.raw = new SearchChannelClient(channel);
++			this.raw.clearCache('test-connectivity').then(() => retry.recover('Searcher'));
++		};
++		retry.register('Searcher', connect);
++		connect();
 diff --git a/src/vs/workbench/services/timer/electron-browser/timerService.ts b/src/vs/workbench/services/timer/electron-browser/timerService.ts
 index 6e6fbcc..645bd72 100644
 --- a/src/vs/workbench/services/timer/electron-browser/timerService.ts
