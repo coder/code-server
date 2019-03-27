@@ -6,11 +6,20 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 	private _pid = -1;
 	private _process = "";
 
-	public constructor(proxyPromise: Promise<NodePtyProcessProxy>) {
-		super(proxyPromise);
+	public constructor(
+		private readonly moduleProxy: NodePtyModuleProxy,
+		private readonly file: string,
+		private readonly args: string[] | string,
+		private readonly options: pty.IPtyForkOptions,
+	) {
+		super(moduleProxy.spawn(file, args, options));
+		this.on("process", (process) => this._process = process);
+	}
+
+	protected initialize(proxyPromise: Promise<NodePtyProcessProxy>) {
+		super.initialize(proxyPromise);
 		this.proxy.getPid().then((pid) => this._pid = pid);
 		this.proxy.getProcess().then((process) => this._process = process);
-		this.on("process", (process) => this._process = process);
 	}
 
 	public get pid(): number {
@@ -35,7 +44,8 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 
 	protected handleDisconnect(): void {
 		this._process += " (disconnected)";
-		this.emit("data", "\r\n\nLost connection...");
+		this.emit("data", "\r\n\nLost connection...\r\n\n");
+		this.initialize(this.moduleProxy.spawn(this.file, this.args, this.options));
 	}
 }
 
@@ -45,6 +55,6 @@ export class NodePtyModule implements NodePty {
 	public constructor(private readonly proxy: NodePtyModuleProxy) {}
 
 	public spawn = (file: string, args: string[] | string, options: pty.IPtyForkOptions): pty.IPty => {
-		return new NodePtyProcess(this.proxy.spawn(file, args, options));
+		return new NodePtyProcess(this.proxy, file, args, options);
 	}
 }

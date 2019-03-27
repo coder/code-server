@@ -29,20 +29,37 @@ const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
  * need a bunch of `then` calls everywhere.
  */
 export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
-	protected readonly proxy: T;
+	private _proxy: T | undefined;
 
 	/**
 	 * You can specify not to bind events in order to avoid emitting twice for
 	 * duplex streams.
 	 */
-	public constructor(proxyPromise: Promise<T> | T, bindEvents: boolean = true) {
+	public constructor(
+		proxyPromise: Promise<T> | T,
+		private readonly bindEvents: boolean = true,
+	) {
 		super();
-		this.proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
-		if (bindEvents) {
+		this.initialize(proxyPromise);
+		if (this.bindEvents) {
+			this.on("disconnected", (error) => this.handleDisconnect(error));
+		}
+	}
+
+	protected get proxy(): T {
+		if (!this._proxy) {
+			throw new Error("not initialized");
+		}
+
+		return this._proxy;
+	}
+
+	protected initialize(proxyPromise: Promise<T> | T): void {
+		this._proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
+		if (this.bindEvents) {
 			this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
 			});
-			this.on("disconnected", (error) => this.handleDisconnect(error));
 		}
 	}
 

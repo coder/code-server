@@ -143,6 +143,7 @@ export class Client {
 			clearTimeout(this.pingTimeout as any);
 			this.pingTimeout = undefined;
 			handleDisconnect();
+			this.dispose();
 		});
 		connection.onUp(() => this.disconnected = false);
 
@@ -158,6 +159,12 @@ export class Client {
 	 */
 	public dispose(): void {
 		this.connection.close();
+		this.proxies.clear();
+		this.successEmitter.dispose();
+		this.failEmitter.dispose();
+		this.eventEmitter.dispose();
+		this.initDataEmitter.dispose();
+		this.sharedProcessActiveEmitter.dispose();
 	}
 
 	public get initData(): Promise<InitData> {
@@ -167,9 +174,11 @@ export class Client {
 	/**
 	 * Make a remote call for a proxy's method using proto.
 	 */
-	private remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
-		if (this.disconnected) {
-			return Promise.reject(new Error("disconnected"));
+	private async remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
+		if (this.disconnected && typeof proxyId === "number") {
+			return Promise.reject(
+				new Error(`Unable to call "${method}" on proxy ${proxyId}: disconnected`),
+			);
 		}
 
 		const message = new MethodMessage();
@@ -217,7 +226,7 @@ export class Client {
 
 		// The server will send back a fail or success message when the method
 		// has completed, so we listen for that based on the message's unique ID.
-		const promise =  new Promise((resolve, reject): void => {
+		const promise = new Promise((resolve, reject): void => {
 			const dispose = (): void => {
 				d1.dispose();
 				d2.dispose();
