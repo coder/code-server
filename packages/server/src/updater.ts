@@ -24,11 +24,11 @@ export const getRecentRelease = (): Promise<any> => {
 	return new Promise<string>((resolve, rej) => {
 		const options = {
 			host: "api.github.com",
-			path: "/repos/codercom/code-server/releases",
+			path: "/repos/codercom/code-server/releases/latest",
 			method: "GET",
 			agent: false,
 			headers: {
-				"User-Agent": "test",
+				"User-Agent": "code-server",
 			},
 		};
 
@@ -42,14 +42,8 @@ export const getRecentRelease = (): Promise<any> => {
 			});
 
 			res.on("end", () => {
-				let mostRecentRelease = "";
-				let releases = JSON.parse(body);
-				releases.forEach((release: { name: string; }) => {
-					if (compareVersions(release.name, mostRecentRelease)! >= 1) {
-						mostRecentRelease = release.name;
-					}
-				});
-				resolve(mostRecentRelease);
+				let release = JSON.parse(body);
+				resolve(release.name);
 			});
 		});
 	});
