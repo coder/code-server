@@ -98,9 +98,7 @@ export class FsModule {
 	}
 
 	public exists = (path: fs.PathLike, callback: (exists: boolean) => void): void => {
-		callbackify(this.proxy.exists)(path, (exists) => {
-			callback!(exists as any);
-		});
+		this.proxy.exists(path).then((exists) => callback(exists)).catch(() => callback(false));
 	}
 
 	public fchmod = (fd: number, mode: string | number, callback: (err: NodeJS.ErrnoException) => void): void => {
