@@ -157,7 +157,7 @@ export class FsModuleProxy {
 	}
 
 	public async lstatBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
-		return Promise.all(args.map((args) => this.lstat(args.path).catch((e) => e)));
+		return Promise.all(args.map((a) => this.lstat(a.path).catch((e) => e)));
 	}
 
 	public mkdir(path: fs.PathLike, mode: number | string | fs.MakeDirectoryOptions | undefined | null): Promise<void> {
@@ -187,7 +187,7 @@ export class FsModuleProxy {
 	}
 
 	public readdirBatch(args: { path: fs.PathLike, options: IEncodingOptions }[]): Promise<(Buffer[] | fs.Dirent[] | string[] | Error)[]> {
-		return Promise.all(args.map((args) => this.readdir(args.path, args.options).catch((e) => e)));
+		return Promise.all(args.map((a) => this.readdir(a.path, a.options).catch((e) => e)));
 	}
 
 	public readlink(path: fs.PathLike, options: IEncodingOptions): Promise<string | Buffer> {
@@ -211,7 +211,7 @@ export class FsModuleProxy {
 	}
 
 	public async statBatch(args: { path: fs.PathLike }[]): Promise<(Stats | Error)[]> {
-		return Promise.all(args.map((args) => this.stat(args.path).catch((e) => e)));
+		return Promise.all(args.map((a) => this.stat(a.path).catch((e) => e)));
 	}
 
 	public symlink(target: fs.PathLike, path: fs.PathLike, type?: fs.symlink.Type | null): Promise<void> {

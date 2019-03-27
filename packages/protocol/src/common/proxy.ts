@@ -92,19 +92,24 @@ interface BatchItem<T, A> {
  * Batch remote calls.
  */
 export abstract class Batch<T, A> {
-	/**
-	 * Flush after reaching this count.
-	 */
-	private maxCount = 100;
-
-	/**
-	 * Flush after not receiving more requests for this amount of time.
-	 */
-	private maxTime = 100;
-
-	private flushTimeout: number | NodeJS.Timer | undefined;
-
+	private idleTimeout: number | NodeJS.Timer | undefined;
+	private maxTimeout: number | NodeJS.Timer | undefined;
 	private batch = <BatchItem<T, A>[]>[];
+
+	public constructor(
+		/**
+		 * Flush after reaching this amount of time.
+		 */
+		private readonly maxTime = 1000,
+		/**
+		 * Flush after reaching this count.
+		 */
+		private readonly maxCount = 100,
+		/**
+		 * Flush after not receiving more requests for this amount of time.
+		 */
+		private readonly idleTime = 100,
+	) {}
 
 	public add = (args: A): Promise<T> => {
 		return new Promise((resolve, reject) => {
@@ -116,8 +121,11 @@ export abstract class Batch<T, A> {
 			if (this.batch.length >= this.maxCount) {
 				this.flush();
 			} else {
-				clearTimeout(this.flushTimeout as any);
-				this.flushTimeout = setTimeout(this.flush, this.maxTime);
+				clearTimeout(this.idleTimeout as any);
+				this.idleTimeout = setTimeout(this.flush, this.idleTime);
+				if (typeof this.maxTimeout === "undefined") {
+					this.maxTimeout = setTimeout(this.flush, this.maxTime);
+				}
 			}
 		});
 	}
@@ -125,7 +133,9 @@ export abstract class Batch<T, A> {
 	protected abstract remoteCall(batch: A[]): Promise<(T | Error)[]>;
 
 	private flush = (): void => {
-		clearTimeout(this.flushTimeout as any);
+		clearTimeout(this.idleTimeout as any);
+		clearTimeout(this.maxTimeout as any);
+		this.maxTimeout = undefined;
 
 		const batch = this.batch;
 		this.batch = [];
@@ -133,9 +143,7 @@ export abstract class Batch<T, A> {
 		this.remoteCall(batch.map((q) => q.args)).then((results) => {
 			batch.forEach((item, i) => {
 				const result = results[i];
-				if (!result) {
-					item.reject(new Error("no response"));
-				} else if (result instanceof Error) {
+				if (result && result instanceof Error) {
 					item.reject(result);
 				} else {
 					item.resolve(result);
