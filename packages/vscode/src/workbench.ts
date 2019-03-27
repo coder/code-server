@@ -30,6 +30,8 @@ import { ServiceCollection } from "vs/platform/instantiation/common/serviceColle
 import { URI } from "vs/base/common/uri";
 
 export class Workbench {
+	public readonly retry = client.retry;
+
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;

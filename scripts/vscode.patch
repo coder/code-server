@@ -921,6 +921,44 @@ index 484cef9..f728fc8 100644
 @@ -137 +137 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+diff --git a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
+index ca03fc9..b8befc8 100644
+--- a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
++++ b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
+@@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
++const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
+@@ -35,0 +37 @@ export class FileWatcher {
++		retry.register('Watcher', () => this.startWatching());
+@@ -56,0 +59 @@ export class FileWatcher {
++				return retry.run('Watcher');
+@@ -113 +116 @@ export class FileWatcher {
+-		}));
++		})).then(() => retry.recover('Watcher'));
+diff --git a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
+index 7e3a324..0bc5aac 100644
+--- a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
++++ b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
+@@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
++const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
+@@ -36,0 +38 @@ export class FileWatcher {
++		retry.register('Watcher', () => this.startWatching());
+@@ -59,0 +62 @@ export class FileWatcher {
++				return retry.run('Watcher');
+@@ -116 +119 @@ export class FileWatcher {
+-		}));
++		})).then(() => retry.recover('Watcher'));
+diff --git a/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts b/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
+index 74dad64..34cd83b 100644
+--- a/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
++++ b/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
+@@ -14,0 +15 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
++const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
+@@ -40,0 +42 @@ export class OutOfProcessWin32FolderWatcher {
++		retry.register('Watcher', () => this.startWatcher());
+@@ -52,0 +55 @@ export class OutOfProcessWin32FolderWatcher {
++		this.handle.stdout.once('data', () => retry.recover('Watcher'));
+@@ -110,0 +114 @@ export class OutOfProcessWin32FolderWatcher {
++			return retry.run('Watcher');
 diff --git a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
 index 3c78990..545d91a 100644
 --- a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
