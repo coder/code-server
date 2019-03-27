@@ -115,13 +115,14 @@ export class TestServer {
 		if (!this.page) {
 			throw new Error("cannot load page, page undefined");
 		}
-		const ready = (): Promise<void> => {
+		await this.page.goto(this.url);
+		// Evaluate the callback within the context of the
+		// headless page.
+		await this.page.evaluate((): Promise<void> => {
 			return new Promise<void>((res): void => {
 				window.addEventListener("ide-ready", () => res());
 			});
-		};
-		await this.page.goto(this.url);
-		await this.page.evaluate(ready);
+		});
 
 		return this.page;
 	}
