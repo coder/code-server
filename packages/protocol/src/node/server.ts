@@ -138,7 +138,7 @@ export class Server {
 
 		let response: any;
 		try {
-			const proxy = this.getProxy(proxyId);
+			const proxy = this.getProxy(proxyId, method);
 			if (typeof proxy.instance[method] !== "function") {
 				throw new Error(`"${method}" is not a function`);
 			}
@@ -231,7 +231,7 @@ export class Server {
 				// It might have finished because we disposed it due to a disconnect.
 				if (!this.disconnected) {
 					this.sendEvent(proxyId, "done");
-					this.getProxy(proxyId).disposeTimeout = setTimeout(() => {
+					this.getProxy(proxyId, "disposeTimeout").disposeTimeout = setTimeout(() => {
 						instance.dispose();
 						this.removeProxy(proxyId);
 					}, this.responseTimeout);
@@ -317,7 +317,7 @@ export class Server {
 	 * Call after disposing a proxy.
 	 */
 	private removeProxy(proxyId: number | Module): void {
-		clearTimeout(this.getProxy(proxyId).disposeTimeout as any);
+		clearTimeout(this.getProxy(proxyId, "disposeTimeout").disposeTimeout as any);
 		this.proxies.delete(proxyId);
 
 		logger.trace(() => [
@@ -331,9 +331,9 @@ export class Server {
 		return stringify(value, undefined, (p) => this.storeProxy(p));
 	}
 
-	private getProxy(proxyId: number | Module): ProxyData {
+	private getProxy(proxyId: number | Module, method: string): ProxyData {
 		if (!this.proxies.has(proxyId)) {
-			throw new Error(`proxy ${proxyId} disposed too early`);
+			throw new Error(`Cannot run "${method}" on proxy ${proxyId}: proxy does not exist`);
 		}
 
 		return this.proxies.get(proxyId)!;
