@@ -1,7 +1,9 @@
 import * as cp from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import * as vm from "vm";
+import { logger } from "@coder/logger";
 import { buildDir, isCli } from "../constants";
 
 let ipcMsgBuffer: Buffer[] | undefined = [];
@@ -105,7 +107,7 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 		 */
 		// tslint:disable-next-line:no-any
 		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
 				...options,
 				stdio: [null, null, null, "ipc"],
 			});
@@ -141,7 +143,7 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 	}
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
-		forkArgs.push("--args", JSON.stringify(args));
+		forkArgs.push("--extra-args", JSON.stringify(args));
 	}
 	if (dataDir) {
 		forkArgs.push("--data-dir", dataDir);
@@ -150,6 +152,13 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
+	}
+	if (args && args[0] === "--type=watcherService" && os.platform() === "linux") {
+		cp.exec(`renice -n 19 -p ${proc.pid}`, (error) => {
+			if (error) {
+				logger.warn(error.message);
+			}
+		});
 	}
 
 	return proc;
