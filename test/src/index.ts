@@ -139,7 +139,9 @@ export class TestServer {
 	}
 
 	/**
-	 * Run a test and cleanup if there's an unexpected failure.
+	 * Run a test. Catches unexpected failures and disposes of
+	 * the server appropriately before throwing the error up to
+	 * the test runner.
 	 */
 	public test(msg: string, cb: () => Promise<void>, timeout: number = 1000): void {
 		it(msg, () => cb().catch(async (ex) => {
@@ -169,7 +171,7 @@ export class TestServer {
 	 * Forcefully kill processes where the process name matches
 	 * the current binary's name, but ignore the current process.
 	 */
-	public async killProcesses(): Promise<void> {
+	private async killProcesses(): Promise<void> {
 		// The name should never be empty, but we'll check
 		// anyway since this is a potentially dangerous
 		// operation.
