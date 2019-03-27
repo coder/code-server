@@ -4,7 +4,6 @@ import * as ps from "ps-list";
 import { ChildProcess, exec } from "child_process";
 
 interface IServerOptions {
-	scheme: string;
 	host: string;
 	port: number;
 	binaryName: string;
@@ -25,7 +24,6 @@ export class TestServer {
 	private child: ChildProcess;
 
 	public constructor(opts: {
-		scheme?: string,
 		host?: string,
 		port?: number,
 		binaryName?: string,
@@ -34,7 +32,6 @@ export class TestServer {
 		password?: string,
 	}) {
 		this.options = {
-			scheme: opts && opts.scheme ? opts.scheme : "https",
 			host: opts && opts.host ? opts.host : "ide.test.localhost",
 			port: opts && opts.port ? opts.port : 8443,
 			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
@@ -42,9 +39,6 @@ export class TestServer {
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			password: opts && opts.password ? opts.password : "",
 		};
-		if (!this.options.auth && this.options.scheme === "https") {
-			this.options.scheme = "http";
-		}
 		this.options.binaryPath = path.join(
 			this.options.binaryHome,
 			os.platform() === "win32" ? "\\" : "/",
@@ -56,7 +50,7 @@ export class TestServer {
 	 * Get the full URL for the server.
 	 */
 	public get url(): string {
-		return `${this.options.scheme}://${this.options.host}:${this.options.port}`;
+		return `http://${this.options.host}:${this.options.port}`;
 	}
 
 	/**
