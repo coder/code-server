@@ -1,6 +1,7 @@
 import * as os from "os";
 import * as path from "path";
 import * as ps from "ps-list";
+import * as puppeteer from "puppeteer";
 import { ChildProcess, exec } from "child_process";
 
 interface IServerOptions {
@@ -18,10 +19,14 @@ interface IServerOptions {
  * the code-server binary.
  */
 export class TestServer {
-	public readonly options: IServerOptions;
+	// @ts-ignore
+	public browser: puppeteer.Browser;
+	// @ts-ignore
+	public page: puppeteer.Page;
 
 	// @ts-ignore
 	private child: ChildProcess;
+	private readonly options: IServerOptions;
 
 	public constructor(opts: {
 		host?: string,
@@ -56,30 +61,82 @@ export class TestServer {
 	/**
 	 * Start the code-server binary.
 	 */
-	public start(): void {
-		if (!this.options.binaryPath) {
-			throw new Error("binary path undefined");
-		}
-		const args = [
-			"--allow-http",
-			`--port=${this.options.port}`,
-			`${!this.options.auth ? "--no-auth" : ""}`,
-			`${this.options.password ? `--password=${this.options.password}` : ""}`,
-			__dirname,
-		];
-		this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
-		this.child.on("error", (err) => {
-			this.dispose();
-			throw new Error(`failed to start, ${err.message}`);
+	public start(): Promise<void> {
+		return new Promise<void>(async (res, rej): Promise<void> => {
+			if (!this.options.binaryPath) {
+				rej(new Error("binary path undefined"));
+
+				return;
+			}
+			await this.killProcesses();
+			const args = [
+				"--allow-http",
+				`--port=${this.options.port}`,
+				`${!this.options.auth ? "--no-auth" : ""}`,
+				`${this.options.password ? `--password=${this.options.password}` : ""}`,
+				__dirname,
+			];
+			this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
+
+			const onError = async (err: Error): Promise<void> => {
+				await this.dispose();
+				rej(new Error(`failed to start, ${err.message}`));
+			};
+			this.child.once("error", onError);
+
+			// Block until the server is ready for connections.
+			const onData = (data: string): void => {
+				if (!data.includes("Connected to shared process")) {
+					this.child.stdout.once("data", onData);
+
+					return;
+				}
+				res();
+			};
+			this.child.stdout.once("data", onData);
+
+			this.browser = await puppeteer.launch();
 		});
+	}
+
+	/**
+	 * Load server URL in headless page, and wait for the page
+	 * to emit the "ide-ready" event. After which, the page
+	 * should be interactive.
+	 */
+	public async loadPage(): Promise<puppeteer.Page> {
+		if (!this.page) {
+			throw new Error("cannot load page, page undefined");
+		}
+		const ready = (): Promise<void> => {
+			return new Promise<void>((res): void => {
+				window.addEventListener("ide-ready", () => res());
+			});
+		};
+		await this.page.goto(this.url);
+		await this.page.evaluate(ready);
+
+		return this.page;
+	}
+
+	/**
+	 * Create a headless page.
+	 */
+	public async newPage(): Promise<puppeteer.Page> {
+		if (!this.browser) {
+			throw new Error("cannot create page, browser undefined");
+		}
+		this.page = await this.browser.newPage();
+
+		return this.page;
 	}
 
 	/**
 	 * Run a test and cleanup if there's an unexpected failure.
 	 */
 	public test(msg: string, cb: () => Promise<void>, timeout: number = 1000): void {
-		it(msg, () => cb().catch((ex) => {
-			this.dispose();
+		it(msg, () => cb().catch(async (ex) => {
+			await this.dispose();
 			throw ex;
 		}), timeout);
 	}
@@ -87,7 +144,9 @@ export class TestServer {
 	/**
 	 * Kill the server process.
 	 */
-	public dispose(): void {
+	public async dispose(): Promise<void> {
+		await this.browser.close();
+		await this.killProcesses();
 		if (!this.child) {
 			throw new Error("cannot dispose, process does not exist");
 		}

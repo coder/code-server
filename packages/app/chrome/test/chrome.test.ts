@@ -1,34 +1,30 @@
-import { resolve } from "path";
-import * as puppeteer from "puppeteer";
 import { TestServer } from "../../common/test";
 
 describe("chrome e2e", () => {
 	const server = new TestServer({ auth: false });
-	let browser: puppeteer.Browser;
-	let page: puppeteer.Page;
 	beforeAll(async () => {
-		await server.killProcesses();
-		server.start();
-		browser = await puppeteer.launch();
+		await server.start();
 	});
 	beforeEach(async () => {
-		page = await browser.newPage();
+		await server.newPage();
 	});
 	afterAll(async () => {
-		await browser.close();
-		server.dispose();
-		await server.killProcesses();
+		await server.dispose();
 	});
 
 	server.test("should open IDE", async () => {
-		// page.once("load", async () => {
-		// 	await page.goto(server.url);
-		// 	await page.screenshot({ path: resolve(__dirname, "./screenshot-test.jpg"), fullPage: true });
-		// });
+		const page = await server.loadPage();
+		const ideExists = await page.evaluate(() => {
+			return new Promise<boolean>((res, rej): void => {
+				const editor = document.querySelector("div.part.editor");
+				if (!editor) {
+					rej(new Error("editor not found"));
 
-		await page.waitFor(4000);
-		await page.goto(server.url);
-		await page.waitFor(4000);
-		await page.screenshot({ path: resolve(__dirname, "./screenshot-test.jpg"), fullPage: true });
-	}, 20000);
+					return;
+				}
+				res(true);
+			});
+		});
+		expect(ideExists).toEqual(true);
+	}, 10000);
 });
