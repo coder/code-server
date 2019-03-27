@@ -168,17 +168,19 @@ const bold = (text: string | number): string | number => {
 
 	let newestVersion = "";
 	// TODO: remove bang
-	if (!process.env.VERSION) {
+	if (process.env.VERSION) {
 		let currentVersion = process.env.VERSION;
 		const recentRelease = await getRecentRelease();
 
 		// TODO: replace string with currentVersion
-		if (compareVersions("1.31.0-20", recentRelease)! <= 1) {
+		if (compareVersions(currentVersion, recentRelease)! <= 1) {
 			newestVersion = recentRelease;
 		} else {
-			newestVersion = "1.31.0-20";
+			newestVersion = currentVersion;
 		}
-
+	}
+	if (newestVersion === process.env.VERSION){
+		logger.info(`You are using the latest version: ${newestVersion}`);
 	}
 	logger.info(`Latest version is \u001B[1m${newestVersion}`);
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
