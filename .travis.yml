@@ -35,4 +35,7 @@ deploy:
   on:
     repo: codercom/code-server
     branch: master
-cache: yarn
+cache:
+  yarn: true
+  directories:
+  - lib

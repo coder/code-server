@@ -156,18 +156,27 @@ const copyForDefaultExtensions = register("build:copy-vscode", async (runner) =>
 });
 
 const buildDefaultExtensions = register("build:default-extensions", async (runner) => {
-	if (!fs.existsSync(defaultExtensionsPath)) {
-		await copyForDefaultExtensions();
-		runner.cwd = extDirPath;
-		const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64", "--max-old-space-size=32384"]);
-		if (resp.exitCode !== 0) {
-			throw new Error(`Failed to build default extensions: ${resp.stderr}`);
+	if (fs.existsSync(defaultExtensionsPath)) {
+		if (ifCiAndVsc("vscode-default-extensions")) {
+			return;
+		} else {
+			fse.removeSync(defaultExtensionsPath);
 		}
+	}
+
+	await copyForDefaultExtensions();
+	runner.cwd = extDirPath;
+	const resp = await runner.execute(isWin ? "npx.cmd" : "npx", [isWin ? "gulp.cmd" : "gulp", "vscode-linux-x64", "--max-old-space-size=32384"]);
+	if (resp.exitCode !== 0) {
+		throw new Error(`Failed to build default extensions: ${resp.stderr}`);
 	}
 });
 
 const ensureInstalled = register("vscode:install", async (runner) => {
 	await ensureCloned();
+	if (ifCiAndVsc("vscode")) {
+		return;
+	}
 
 	runner.cwd = vscodePath;
 	const install = await runner.execute(isWin ? "yarn.cmd" : "yarn", []);
@@ -177,6 +186,9 @@ const ensureInstalled = register("vscode:install", async (runner) => {
 });
 
 const ensureCloned = register("vscode:clone", async (runner) => {
+	if (ifCiAndVsc("vscode")) {
+		return;
+	}
 	if (fs.existsSync(vscodePath)) {
 		await ensureClean();
 	} else {
@@ -196,6 +208,14 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 });
 
 const ensureClean = register("vscode:clean", async (runner) => {
+	if (ifCiAndVsc("vscode")) {
+		const reset = await runner.execute("git", ["reset", "--hard"]);
+		if (reset.exitCode !== 0) {
+			throw new Error(`Failed to reset git repository: ${reset.stderr}`);
+		}
+
+		return;
+	}
 	runner.cwd = vscodePath;
 
 	const status = await runner.execute("git", ["status", "--porcelain"]);
@@ -254,5 +274,25 @@ register("package", async (runner, releaseTag) => {
 		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
 		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
 });
+
+/**
+ * If we're in the CI and the VS Code version is the same,
+ * then we don't need to rebuild.
+ */
+const ifCiAndVsc = (vscName: "vscode" | "vscode-default-extensions"): boolean => {
+	if (process.env.CI) {
+		try {
+			const packageJson = path.join(libPath, vscName, "package.json");
+			const version = JSON.parse(fs.readFileSync(packageJson).toString("utf8")).version;
+			if (version === vscodeVersion) {
+				return true;
+			}
+		} catch (ex) {
+			// Nothin. Will return false below
+		}
+	}
+
+	return false;
+};
 
 run();
