@@ -21,7 +21,7 @@ export const compareVersions = (a: string, b: string): number | undefined => {
 };
 
 export const getRecentRelease = (): Promise<any> => {
-	return new Promise<string>((resolve):void  => {
+	return new Promise<string>((resolve, rej):void  => {
 		const options = {
 			host: "api.github.com",
 			path: "/repos/codercom/code-server/releases/latest",
@@ -34,7 +34,7 @@ export const getRecentRelease = (): Promise<any> => {
 
 		https.get(options, (res) => {
 			if (res.statusCode !== 200) {
-				throw new Error("Failed to acquire release information");
+				rej(Error("Failed to acquire release information"));
 			}
 			let body = "";
 			res.on("data", (chunk) => {
