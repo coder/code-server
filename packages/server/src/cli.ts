@@ -167,7 +167,7 @@ if (isCli) {
 	}
 
 	// If CLI password was provided, obsfucate password from process title
-	if (flags.password) {
+	if (options.password) {
 		const parts = [process.title];
 		parts.push(path.relative(process.cwd(), process.argv[1]));
 		for (let i = 2; i < process.argv.length; i++) {
@@ -177,7 +177,7 @@ if (isCli) {
 				parts.push(process.argv[i]);
 			}
 		}
-		process.title = parts.join().replace(/\,/g, " ");
+		process.title = parts.join(" ");
 	}
 
 	const hasCustomHttps = certData && certKeyData;
