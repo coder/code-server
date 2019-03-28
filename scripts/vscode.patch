@@ -883,7 +883,7 @@ index acb68c8..bee143a 100644
 -			!isMacintosh || // macOS only
 +			!browser.isMacintosh || // macOS only
 diff --git a/src/vs/workbench/electron-browser/workbench.ts b/src/vs/workbench/electron-browser/workbench.ts
-index 7445d7b..0291dee 100644
+index 7445d7b..ba6bf4b 100644
 --- a/src/vs/workbench/electron-browser/workbench.ts
 +++ b/src/vs/workbench/electron-browser/workbench.ts
 @@ -19 +19,2 @@ import { Registry } from 'vs/platform/registry/common/platform';
@@ -899,13 +899,15 @@ index 7445d7b..0291dee 100644
 @@ -458 +462 @@ export class Workbench extends Disposable implements IPartService {
 -		addClasses(document.body, platformClass); // used by our fonts
 +		addClasses(document.body, platformClass, isWeb ? 'web' : 'native'); // used by our fonts
-@@ -633 +637 @@ export class Workbench extends Disposable implements IPartService {
+@@ -491,0 +496 @@ export class Workbench extends Disposable implements IPartService {
++				client.onClose(() => this.notificationService.error("Disconnected from shared process. Searching, installing, enabling, and disabling extensions will not work until the page is refreshed."));
+@@ -633 +638 @@ export class Workbench extends Disposable implements IPartService {
 -		if (!isMacintosh && this.useCustomTitleBarStyle()) {
 +		if (isWeb || (!isMacintosh && this.useCustomTitleBarStyle())) {
-@@ -1241 +1245 @@ export class Workbench extends Disposable implements IPartService {
+@@ -1241 +1246 @@ export class Workbench extends Disposable implements IPartService {
 -		if ((isWindows || isLinux) && this.useCustomTitleBarStyle()) {
 +		if ((isWeb || isWindows || isLinux) && this.useCustomTitleBarStyle()) {
-@@ -1397 +1401 @@ export class Workbench extends Disposable implements IPartService {
+@@ -1397 +1402 @@ export class Workbench extends Disposable implements IPartService {
 -				} else if (isMacintosh) {
 +				} else if (isNative && isMacintosh) {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
