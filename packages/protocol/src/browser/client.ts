@@ -174,7 +174,7 @@ export class Client {
 	/**
 	 * Make a remote call for a proxy's method using proto.
 	 */
-	private async remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
+	private remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
 		if (this.disconnected && typeof proxyId === "number") {
 			// Can assume killing or closing works because a disconnected proxy
 			// is disposed on the server's side.
@@ -247,7 +247,7 @@ export class Client {
 
 			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
-				resolve(this.parse(message.getResponse()));
+				resolve(this.parse(message.getResponse(), promise));
 			});
 
 			const d2 = this.failEmitter.event(id, (message) => {
