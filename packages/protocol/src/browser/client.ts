@@ -143,7 +143,12 @@ export class Client {
 			clearTimeout(this.pingTimeout as any);
 			this.pingTimeout = undefined;
 			handleDisconnect();
-			this.dispose();
+			this.proxies.clear();
+			this.successEmitter.dispose();
+			this.failEmitter.dispose();
+			this.eventEmitter.dispose();
+			this.initDataEmitter.dispose();
+			this.sharedProcessActiveEmitter.dispose();
 		});
 		connection.onUp(() => this.disconnected = false);
 
@@ -159,12 +164,6 @@ export class Client {
 	 */
 	public dispose(): void {
 		this.connection.close();
-		this.proxies.clear();
-		this.successEmitter.dispose();
-		this.failEmitter.dispose();
-		this.eventEmitter.dispose();
-		this.initDataEmitter.dispose();
-		this.sharedProcessActiveEmitter.dispose();
 	}
 
 	public get initData(): Promise<InitData> {
