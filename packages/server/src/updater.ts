@@ -20,7 +20,7 @@ export const compareVersions = (a: string, b: string): number | undefined => {
 	}
 };
 
-export const getRecentRelease = (): Promise<any> => {
+export const getRecentRelease = (): Promise<string> => {
 	return new Promise<string>((resolve, rej):void  => {
 		const options = {
 			host: "api.github.com",
