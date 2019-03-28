@@ -171,8 +171,14 @@ if (isCli) {
 		const parts = [process.title];
 		parts.push(path.relative(process.cwd(), process.argv[1]));
 		for (let i = 2; i < process.argv.length; i++) {
-			if (process.argv[i].includes("--password")) {
-				parts.push(process.argv[i].replace(/=(.*)/, "=****"));
+			if (process.argv[i].includes("--password") || process.argv[i].includes("-P")) {
+				if (process.argv[i].includes("=")) {
+					parts.push(process.argv[i].replace(/=(.*)/, "=****"));
+				} else {
+					parts.push(process.argv[i]);
+					parts.push(process.argv[i+1].replace(/(.*)/, "****"))
+					i++;
+				}
 			} else {
 				parts.push(process.argv[i]);
 			}
