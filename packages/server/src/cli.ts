@@ -168,10 +168,13 @@ const bold = (text: string | number): string | number => {
 
 	if (isCli) {
 		let currentVersion = process.env.VERSION;
-		const recentRelease = await getRecentRelease();
-
-		if (recentRelease !== currentVersion) {
-			logger.warn(`New version (\u001B[1m${recentRelease}\u001B[0m) available https://github.com/codercom/code-server/releases/latest`);
+		try {
+			const recentRelease = await getRecentRelease();
+			if (recentRelease !== currentVersion) {
+				logger.warn(`New version (\u001B[1m${recentRelease}\u001B[0m) available https://github.com/codercom/code-server/releases/latest`);
+			}
+		} catch (err) {
+			logger.error(`Failed to check latest release: ${err}`);
 		}
 	}
 	const isDev = process.env.NODE_ENV !== "production";
