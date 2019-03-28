@@ -166,15 +166,12 @@ const bold = (text: string | number): string | number => {
 		}
 	}
 
-	let newestVersion = "";
-	if (process.env.VERSION) {
+	if (isCli) {
 		let currentVersion = process.env.VERSION;
 		const recentRelease = await getRecentRelease();
 
-		if (compareVersions(currentVersion, recentRelease)! <= 1) {
-			newestVersion = recentRelease;
-		} else {
-			newestVersion = currentVersion;
+		if (recentRelease !== currentVersion) {
+			logger.warn(`New version (\u001B[1m${recentRelease}\u001B[0m) available https://github.com/codercom/code-server/releases/latest`);
 		}
 	}
 	const isDev = process.env.NODE_ENV !== "production";
@@ -210,6 +207,7 @@ const bold = (text: string | number): string | number => {
 	}
 
 	// TODO: fill in appropriate doc url
+	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 	logger.info("Additional documentation: http://github.com/codercom/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
 	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
