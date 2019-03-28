@@ -81,6 +81,11 @@ export class Writable<T extends WritableProxy = WritableProxy> extends ClientPro
 			}
 		});
 	}
+
+	protected handleDisconnect(): void {
+		this.emit("close");
+		this.emit("finish");
+	}
 }
 
 export class Readable<T extends IReadableProxy = IReadableProxy> extends ClientProxy<T> implements stream.Readable {
@@ -153,6 +158,11 @@ export class Readable<T extends IReadableProxy = IReadableProxy> extends ClientP
 		this.proxy.setEncoding(encoding);
 
 		return this;
+	}
+
+	protected handleDisconnect(): void {
+		this.emit("close");
+		this.emit("end");
 	}
 }
 
@@ -229,5 +239,10 @@ export class Duplex<T extends DuplexProxy = DuplexProxy> extends Writable<T> imp
 		this.proxy.setEncoding(encoding);
 
 		return this;
+	}
+
+	protected handleDisconnect(): void {
+		super.handleDisconnect();
+		this.emit("end");
 	}
 }

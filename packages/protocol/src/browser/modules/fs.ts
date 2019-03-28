@@ -41,6 +41,10 @@ class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 	public close(): void {
 		this.proxy.close();
 	}
+
+	protected handleDisconnect(): void {
+		this.emit("close");
+	}
 }
 
 class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {

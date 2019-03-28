@@ -134,14 +134,8 @@ export class Client {
 			message.setResponse(stringify(error));
 			this.failEmitter.emit(message);
 
-			this.eventEmitter.emit({ event: "exit", args: [1] });
-			this.eventEmitter.emit({ event: "close", args: [] });
-			try {
-				this.eventEmitter.emit({ event: "error", args: [error] });
-			} catch (error) {
-				// If nothing is listening, EventEmitter will throw an error.
-			}
-			this.eventEmitter.emit({ event: "done", args: [true] });
+			this.eventEmitter.emit({ event: "disconnected", args: [error] });
+			this.eventEmitter.emit({ event: "done", args: [] });
 		};
 
 		connection.onDown(() => handleDisconnect());
@@ -149,6 +143,12 @@ export class Client {
 			clearTimeout(this.pingTimeout as any);
 			this.pingTimeout = undefined;
 			handleDisconnect();
+			this.proxies.clear();
+			this.successEmitter.dispose();
+			this.failEmitter.dispose();
+			this.eventEmitter.dispose();
+			this.initDataEmitter.dispose();
+			this.sharedProcessActiveEmitter.dispose();
 		});
 		connection.onUp(() => this.disconnected = false);
 
@@ -174,8 +174,17 @@ export class Client {
 	 * Make a remote call for a proxy's method using proto.
 	 */
 	private remoteCall(proxyId: number | Module, method: string, args: any[]): Promise<any> {
-		if (this.disconnected) {
-			return Promise.reject(new Error("disconnected"));
+		if (this.disconnected && typeof proxyId === "number") {
+			// Can assume killing or closing works because a disconnected proxy
+			// is disposed on the server's side.
+			switch (method) {
+				case "close":
+				case "kill":
+					return Promise.resolve();
+			}
+			return Promise.reject(
+				new Error(`Unable to call "${method}" on proxy ${proxyId}: disconnected`),
+			);
 		}
 
 		const message = new MethodMessage();
@@ -223,7 +232,7 @@ export class Client {
 
 		// The server will send back a fail or success message when the method
 		// has completed, so we listen for that based on the message's unique ID.
-		const promise =  new Promise((resolve, reject): void => {
+		const promise = new Promise((resolve, reject): void => {
 			const dispose = (): void => {
 				d1.dispose();
 				d2.dispose();
@@ -237,7 +246,7 @@ export class Client {
 
 			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
-				resolve(this.parse(message.getResponse()));
+				resolve(this.parse(message.getResponse(), promise));
 			});
 
 			const d2 = this.failEmitter.event(id, (message) => {
@@ -450,12 +459,12 @@ export class Client {
 			callbacks: new Map(),
 		});
 
-		instance.onDone((disconnected: boolean) => {
+		instance.onDone(() => {
 			const log = (): void => {
 				logger.trace(() => [
 					typeof proxyId === "number" ? "disposed proxy" : "disposed proxy callbacks",
 					field("proxyId", proxyId),
-					field("disconnected", disconnected),
+					field("disconnected", this.disconnected),
 					field("callbacks", Array.from(this.proxies.values()).reduce((count, proxy) => count + proxy.callbacks.size, 0)),
 					field("success listeners", this.successEmitter.counts),
 					field("fail listeners", this.failEmitter.counts),
@@ -471,7 +480,7 @@ export class Client {
 					this.eventEmitter.dispose(proxyId);
 					log();
 				};
-				if (!disconnected) {
+				if (!this.disconnected) {
 					instance.dispose().then(dispose).catch(dispose);
 				} else {
 					dispose();

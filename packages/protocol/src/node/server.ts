@@ -140,7 +140,7 @@ export class Server {
 		try {
 			const proxy = this.getProxy(proxyId);
 			if (typeof proxy.instance[method] !== "function") {
-				throw new Error(`"${method}" is not a function`);
+				throw new Error(`"${method}" is not a function on proxy ${proxyId}`);
 			}
 
 			response = proxy.instance[method](...args);
