@@ -177,10 +177,11 @@ const bold = (text: string | number): string | number => {
 			newestVersion = currentVersion;
 		}
 	}
-	if (newestVersion === process.env.VERSION || newestVersion === "") {
+	const isDev = process.env.NODE_ENV !== "production";
+	if (newestVersion === process.env.VERSION || isDev) {
 		logger.info("You are using the latest version");
 	} else {
-		logger.info(`New version (\u001B[1m${newestVersion}) available https://github.com/codercom/code-server/releases`);
+		logger.warn(`New version (\u001B[1m${newestVersion}) available https://github.com/codercom/code-server/releases`);
 	}
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 
