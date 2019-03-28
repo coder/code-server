@@ -21,7 +21,7 @@ export const compareVersions = (a: string, b: string): number | undefined => {
 };
 
 export const getRecentRelease = (): Promise<any> => {
-	return new Promise<string>((resolve, rej) => {
+	return new Promise<string>((resolve):void  => {
 		const options = {
 			host: "api.github.com",
 			path: "/repos/codercom/code-server/releases/latest",
