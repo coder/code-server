@@ -32,7 +32,7 @@ export const getRecentRelease = (): Promise<any> => {
 			},
 		};
 
-		https.get(options, function (res) {
+		https.get(options, (res) => {
 			if (res.statusCode !== 200) {
 				throw new Error("Failed to acquire release information");
 			}
