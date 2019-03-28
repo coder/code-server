@@ -10,10 +10,12 @@
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "@types/puppeteer": "^1.12.3",
+    "@types/xml2js": "^0.4.3",
     "jest": "^24.5.0",
     "ps-list": "^6.2.0",
     "puppeteer": "^1.13.0",
-    "ts-jest": "^24.0.0"
+    "ts-jest": "^24.0.0",
+    "xml2js": "^0.4.19"
   },
   "jest": {
     "globals": {

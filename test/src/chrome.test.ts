@@ -1,35 +1,41 @@
 import { TestServer } from "./index";
 
 describe("chrome e2e", () => {
+	const testFileName = `test-${Date.now()}.txt`;
 	const server = new TestServer({ auth: false });
 	beforeAll(async () => {
 		await server.start();
-	});
-	beforeEach(async () => {
-		await server.newPage();
-		await server.loadPage();
 	});
 	afterAll(async () => {
 		await server.dispose();
 	});
 
-	server.test("should open IDE", async () => {
-		const ideExists = await server.page.evaluate(() => {
-			return new Promise<boolean>((res, rej): void => {
-				const editor = document.querySelector("div.part.editor");
-				if (!editor) {
-					rej(new Error("editor not found"));
+	it("should open IDE", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		// Editor should be visible.
+		const editor = await server.querySelector(page, "div.part.editor");
+		expect(editor).toBeTruthy();
+		expect(editor["div"]).toBeTruthy();
+		expect(editor["div"]["$"]["id"]).toBe("workbench.parts.editor");
+	}, 3000);
 
-					return;
-				}
-				res(true);
-			});
-		});
-		expect(ideExists).toEqual(true);
-	}, 2000);
-
-	server.test("should create file", async () => {
-		await server.page.hover("div.panel-header[aria-label='Files Explorer Section']");
-		await server.page.click("a.action-label.icon.new-file");
-	}, 2000);
+	it("should create file", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await page.keyboard.down("F1");
+		await page.waitFor(1000);
+		await page.keyboard.type("New File", { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
+		await page.keyboard.type(testFileName, { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
+		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
+		// Check that the file is in the file tree.
+		const elements = await server.querySelectorAll(page, spanSelector);
+		expect(elements.length).toBeGreaterThan(0);
+		const contentArray = elements.map((el) => el["span"]["_"]);
+		expect(contentArray).toContain(testFileName);
+	}, 15000);
 });

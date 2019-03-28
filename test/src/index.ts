@@ -1,3 +1,4 @@
+import { parseString as deserialize } from "xml2js";
 import * as os from "os";
 import * as path from "path";
 import * as ps from "ps-list";
@@ -12,7 +13,6 @@ interface IServerOptions {
 	binaryPath?: string;
 	auth: boolean;
 	password: string;
-	workingDir: string;
 }
 
 /**
@@ -23,11 +23,11 @@ export class TestServer {
 	public readonly options: IServerOptions;
 	// @ts-ignore
 	public browser: puppeteer.Browser;
-	// @ts-ignore
-	public page: puppeteer.Page;
 
 	// @ts-ignore
 	private child: ChildProcess;
+	// The directory to load the IDE with.
+	public static readonly workingDir = path.resolve(__dirname, "../tmp");
 
 	public constructor(opts: {
 		host?: string,
@@ -36,7 +36,6 @@ export class TestServer {
 		binaryHome?: string,
 		auth?: boolean,
 		password?: string,
-		workingDir?: string,
 	}) {
 		this.options = {
 			host: opts && opts.host ? opts.host : "ide.test.localhost",
@@ -45,7 +44,6 @@ export class TestServer {
 			binaryHome: opts && opts.binaryHome ? opts.binaryHome : "../packages/server",
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			password: opts && opts.password ? opts.password : "",
-			workingDir: "./tmp",
 		};
 		this.options.binaryPath = path.join(
 			this.options.binaryHome,
@@ -77,7 +75,7 @@ export class TestServer {
 				`--port=${this.options.port}`,
 				`${!this.options.auth ? "--no-auth" : ""}`,
 				`${this.options.password ? `--password=${this.options.password}` : ""}`,
-				"./tmp",
+				TestServer.workingDir,
 			];
 			this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
 			if (!this.child.stdout) {
@@ -111,20 +109,18 @@ export class TestServer {
 	 * to emit the "ide-ready" event. After which, the page
 	 * should be interactive.
 	 */
-	public async loadPage(): Promise<puppeteer.Page> {
-		if (!this.page) {
-			throw new Error("cannot load page, page undefined");
+	public async loadPage(page: puppeteer.Page): Promise<puppeteer.Page> {
+		if (!page) {
+			throw new Error(`cannot load page, ${JSON.stringify(page)}`);
 		}
-		await this.page.goto(this.url);
-		// Evaluate the callback within the context of the
-		// headless page.
-		await this.page.evaluate((): Promise<void> => {
+		await page.goto(this.url);
+		await page.evaluate((): Promise<void> => {
 			return new Promise<void>((res): void => {
 				window.addEventListener("ide-ready", () => res());
 			});
 		});
 
-		return this.page;
+		return page;
 	}
 
 	/**
@@ -134,21 +130,8 @@ export class TestServer {
 		if (!this.browser) {
 			throw new Error("cannot create page, browser undefined");
 		}
-		this.page = await this.browser.newPage();
 
-		return this.page;
-	}
-
-	/**
-	 * Run a test. Catches unexpected failures and disposes of
-	 * the server appropriately before throwing the error up to
-	 * the test runner.
-	 */
-	public test(msg: string, cb: () => Promise<void>, timeout: number = 1000): void {
-		it(msg, () => cb().catch(async (ex) => {
-			await this.dispose();
-			throw ex;
-		}), timeout);
+		return this.browser.newPage();
 	}
 
 	/**
@@ -169,6 +152,70 @@ export class TestServer {
 	}
 
 	/**
+	 * Get elements on the page. Due to how puppeteer works
+	 * with browser/page contexts, it isn't possible to
+	 * directly return the Object structure of actual HTML
+	 * Nodes/Elements. They have to be serialized in the
+	 * browser context and then de-serialized in the test
+	 * runner context.
+	 */
+	// tslint:disable-next-line:no-any
+	public async querySelectorAll(page: puppeteer.Page, selector: string): Promise<Array<any>> {
+		if (!selector) {
+			throw new Error("selector undefined");
+		}
+
+		// tslint:disable-next-line:no-any
+		const elements: Array<any> = [];
+		const serializedElements = await page.evaluate((selector) => {
+			// tslint:disable-next-line:no-any
+			return new Promise<Array<string>>((res, rej): void => {
+				const elements = Array.from(document.querySelectorAll(selector));
+				if (!elements) {
+					rej(new Error(`elements not found, '${selector}'`));
+
+					return;
+				}
+				const serializer = new XMLSerializer();
+				res(elements.map((el: Element) => serializer.serializeToString(el)));
+			});
+		}, selector);
+
+		serializedElements.forEach((str) => {
+			deserialize(str, (err, el) => {
+				if (err) {
+					throw err;
+				}
+				// TODO: provide a proper interface for this
+				// data type.
+				elements.push(el);
+			});
+		});
+
+		return elements;
+	}
+
+	/**
+	 * Get an element on the page. See `TestServer.querySelectorAll`.
+	 */
+	// tslint:disable-next-line:no-any
+	public async querySelector(page: puppeteer.Page, selector: string): Promise<any> {
+		if (!selector) {
+			throw new Error("selector undefined");
+		}
+
+		return (await this.querySelectorAll(page, selector))[0];
+	}
+
+	/**
+	 * Saves a screenshot of the headless page in the server's
+	 * working directory. Useful for debugging.
+	 */
+	public async screenshot(page: puppeteer.Page, id: string): Promise<void> {
+		await page.screenshot({ path: path.resolve(TestServer.workingDir, `screenshot-${id}.jpg`), fullPage: true });
+	}
+
+	/**
 	 * Forcefully kill processes where the process name matches
 	 * the current binary's name, but ignore the current process.
 	 */
@@ -183,7 +230,14 @@ export class TestServer {
 			if (p.name !== this.options.binaryName || (this.child && p.pid === this.child.pid)) {
 				return;
 			}
-			process.kill(p.pid, "SIGKILL");
+			try {
+				process.kill(p.pid, "SIGKILL");
+			} catch (ex) {
+				if (ex.message.includes("ESRCH")) {
+					return;
+				}
+				throw ex;
+			}
 		});
 	}
 }
