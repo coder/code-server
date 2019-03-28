@@ -88,12 +88,7 @@ export class ChildProcess extends ClientProxy<ChildProcessProxy> implements cp.C
 		return true; // Always true since we can't get this synchronously.
 	}
 
-	protected handleDisconnect(error: Error): void {
-		try {
-			this.emit("error", error);
-		} catch (error) {
-			// If nothing is listening, EventEmitter will throw an error.
-		}
+	protected handleDisconnect(): void {
 		this.emit("exit", 1);
 		this.emit("close");
 	}

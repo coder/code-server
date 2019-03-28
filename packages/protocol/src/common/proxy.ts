@@ -42,7 +42,14 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		super();
 		this.initialize(proxyPromise);
 		if (this.bindEvents) {
-			this.on("disconnected", (error) => this.handleDisconnect(error));
+			this.on("disconnected", (error) => {
+				try {
+					this.emit("error", error);
+				} catch (error) {
+					// If nothing is listening, EventEmitter will throw an error.
+				}
+				this.handleDisconnect();
+			});
 		}
 	}
 
@@ -63,7 +70,7 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		}
 	}
 
-	protected abstract handleDisconnect(error: Error): void;
+	protected abstract handleDisconnect(): void;
 }
 
 /**

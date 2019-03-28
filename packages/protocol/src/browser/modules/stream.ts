@@ -82,12 +82,7 @@ export class Writable<T extends WritableProxy = WritableProxy> extends ClientPro
 		});
 	}
 
-	protected handleDisconnect(error: Error): void {
-		try {
-			this.emit("error", error);
-		} catch (error) {
-			// If nothing is listening, EventEmitter will throw an error.
-		}
+	protected handleDisconnect(): void {
 		this.emit("close");
 		this.emit("finish");
 	}
@@ -165,12 +160,7 @@ export class Readable<T extends IReadableProxy = IReadableProxy> extends ClientP
 		return this;
 	}
 
-	protected handleDisconnect(error: Error): void {
-		try {
-			this.emit("error", error);
-		} catch (error) {
-			// If nothing is listening, EventEmitter will throw an error.
-		}
+	protected handleDisconnect(): void {
 		this.emit("close");
 		this.emit("end");
 	}
@@ -251,8 +241,8 @@ export class Duplex<T extends DuplexProxy = DuplexProxy> extends Writable<T> imp
 		return this;
 	}
 
-	protected handleDisconnect(error: Error): void {
-		super.handleDisconnect(error);
+	protected handleDisconnect(): void {
+		super.handleDisconnect();
 		this.emit("end");
 	}
 }
