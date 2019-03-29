@@ -1,3 +1,4 @@
+import * as os from "os";
 import { TestServer } from "./index";
 
 describe("chrome e2e", () => {
@@ -25,7 +26,13 @@ describe("chrome e2e", () => {
 	it("should create file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
-		await page.keyboard.down("F1");
+		const superKey = os.platform() === "darwin" ? "Meta" : "Control";
+		await page.keyboard.down(superKey);
+		await page.keyboard.down("Shift");
+		await page.keyboard.down("P");
+		await page.keyboard.up(superKey);
+		await page.keyboard.up("Shift");
+		await page.keyboard.up("P");
 		await page.waitFor(1000);
 		await page.keyboard.type("New File", { delay: 100 });
 		await page.keyboard.press("Enter");
