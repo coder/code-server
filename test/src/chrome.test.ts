@@ -1,4 +1,6 @@
+import * as fs from "fs";
 import * as os from "os";
+import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
 
@@ -39,7 +41,7 @@ describe("chrome e2e", () => {
 		const editor = await server.querySelector(page, "div.part.editor");
 		expect(editor).toBeTruthy();
 		expect(editor.tag).toEqual("div");
-		expect(editor.properties).not.toBeUndefined();
+		expect(editor.properties).toBeDefined();
 		expect(editor.properties!["id"]).toBe("workbench.parts.editor");
 		expect(editor.children.length).toBeGreaterThan(0);
 
@@ -120,6 +122,63 @@ describe("chrome e2e", () => {
 
 		await page.close();
 	}, 65000);
+
+	it("should debug file", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await workbenchQuickOpen(page);
+		await page.waitFor(1000);
+		await page.keyboard.type(testFileName, { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
+
+		// Start code block.
+		await page.keyboard.type(`console.log("hello");
+			function test() {
+			console.log("foo bar");`, { delay: 50 });
+
+		// Toggle breakpoint.
+		await page.keyboard.press("F9");
+		await page.waitFor(500);
+
+		// Finish code block.
+		await page.keyboard.type(`
+			const world = "world";
+			return world;`, { delay: 50 });
+		await page.keyboard.press("ArrowDown");
+		await page.keyboard.press("Enter");
+		await page.keyboard.type("test();", { delay: 50 });
+		await page.waitFor(1000);
+
+		// Ensure that we're using a fresh debug configuration.
+		const launchConfigPath = path.resolve(TestServer.workingDir, "./.vscode/launch.json");
+		if (fs.existsSync(launchConfigPath)) {
+			fs.unlinkSync(launchConfigPath);
+		}
+
+		// Start debugging.
+		await page.keyboard.press("F5");
+		await page.waitFor(2000);
+
+		// Check debugger console.
+		const debugOutputSelector = "div#workbench\\.parts\\.panel div.monaco-list-row span.value.info span span";
+		let spans = await server.querySelectorAll(page, debugOutputSelector);
+		let lastSpan = spans.pop();
+		expect(lastSpan).toBeDefined();
+		expect(lastSpan!.textContent).toEqual("hello");
+
+		// Continue past breakpoint.
+		await page.keyboard.press("F5");
+		await page.waitFor(2000);
+
+		// Check debugger console again.
+		spans = await server.querySelectorAll(page, debugOutputSelector);
+		lastSpan = spans.pop();
+		expect(lastSpan).toBeDefined();
+		expect(lastSpan!.textContent).toEqual("foo bar");
+
+		await page.close();
+	}, 55000);
 
 	it("should delete file", async () => {
 		const page = await server.newPage()

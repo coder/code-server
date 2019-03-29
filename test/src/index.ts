@@ -171,7 +171,10 @@ export class TestServer {
 			};
 			this.child.stdout!.once("data", onData);
 
-			this.browser = await puppeteer.launch({ devtools: !!process.env.LOG_LEVEL });
+			this.browser = await puppeteer.launch({
+				devtools: !!process.env.LOG_LEVEL,
+				defaultViewport: { width: 1280, height: 800 },
+			});
 		});
 	}
 
