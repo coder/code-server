@@ -3,7 +3,7 @@ import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
 
 describe("chrome e2e", () => {
-	const testFileName = `test-${Date.now()}.txt`;
+	const testFileName = `test-${Date.now()}.js`;
 	const server = new TestServer({ auth: false });
 	beforeAll(async () => {
 		await server.start();
@@ -81,6 +81,26 @@ describe("chrome e2e", () => {
 		expect(tab.children.length).toBeGreaterThan(0);
 		await page.close();
 	}, 15000);
+
+	it("should install extension", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await workbenchShowCommands(page);
+		await page.waitFor(1000);
+		await page.keyboard.type("install extensions", { delay: 100 });
+		await page.waitFor(1000);
+		const itemSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
+		await page.click(itemSelector);
+		await page.waitFor(1000);
+		await page.keyboard.type("javascript", { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(2000);
+		const installSelector = "div.extensions-list div.monaco-list-row[aria-label='JavaScript Snippets. Press enter for extension details.'] a.extension-action.install";
+		await page.click(installSelector);
+		// Wait for installation.
+		await page.waitFor(6000);
+		await page.close();
+	}, 55000);
 
 	it("should delete file", async () => {
 		const page = await server.newPage()
