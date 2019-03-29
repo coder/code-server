@@ -20,7 +20,7 @@ export const getRecentRelease = (): Promise<string> => {
 			});
 
 			res.on("end", () => {
-				let release = JSON.parse(body);
+				const release = JSON.parse(body);
 				resolve(release.name);
 			});
 		});
