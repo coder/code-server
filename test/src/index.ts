@@ -15,6 +15,77 @@ interface IServerOptions {
 	password: string;
 }
 
+// tslint:disable-next-line:no-any
+type PropertyList = { [name: string]: any };
+
+/**
+ * Wrapper for de-serialized HTMLElements.
+ */
+class DeserializedNode {
+	public tag: string;
+	public textContent: string | undefined;
+	public properties: PropertyList | undefined;
+	public children: Array<DeserializedNode>;
+
+	public constructor(opts: {
+		tag?: string,
+		textContent?: string,
+		properties?: PropertyList,
+		children?: Array<DeserializedNode>,
+	}) {
+		this.tag = opts && opts.tag ? opts.tag : "div";
+		this.textContent = opts && opts.textContent ? opts.textContent : undefined;
+		this.properties = opts && opts.properties ? opts.properties : undefined;
+		this.children = opts && opts.children ? opts.children : [];
+	}
+
+	/**
+	 * Parses de-serialized HTMLElements that have been
+	 * returned from a headless browser page in raw Object
+	 * format. Format is dictated by the de-serializing
+	 * library.
+	 */
+	// tslint:disable-next-line:no-any
+	public static from(obj: { [key: string]: any }): DeserializedNode {
+		const objKeys = Reflect.ownKeys(obj);
+		if (objKeys.length === 0) {
+			throw new Error("cannot create node, raw object with no keys");
+		}
+		const tag = objKeys.shift() as string;
+		let textContent: string | undefined;
+		let properties: PropertyList | undefined;
+		let children: Array<DeserializedNode> = [];
+
+		const node = Reflect.get(obj, tag);
+		if (Array.isArray(node)) {
+			// For when there are multiple node values all on
+			// the same level, such as an unordered list.
+			node.forEach((arrVal) => {
+				if (typeof arrVal !== "object") {
+					return;
+				}
+				children.push(DeserializedNode.from({ [tag]: arrVal }));
+			});
+		} else {
+			Reflect.ownKeys(node).forEach((nodeKey) => {
+				const nodeVal = Reflect.get(node, nodeKey);
+				switch (nodeKey as string) {
+					case "$":
+						properties = nodeVal;
+						break;
+					case "_":
+						textContent = nodeVal;
+						break;
+					default:
+						children.push(DeserializedNode.from({ [nodeKey]: nodeVal }));
+				}
+			});
+		}
+
+		return new DeserializedNode({ tag, textContent, properties, children });
+	}
+}
+
 /**
  * Wraps common code for end-to-end testing, like starting up
  * the code-server binary.
@@ -160,13 +231,13 @@ export class TestServer {
 	 * runner context.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelectorAll(page: puppeteer.Page, selector: string): Promise<Array<any>> {
+	public async querySelectorAll(page: puppeteer.Page, selector: string): Promise<Array<DeserializedNode>> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}
 
 		// tslint:disable-next-line:no-any
-		const elements: Array<any> = [];
+		const elements: Array<DeserializedNode> = [];
 		const serializedElements = await page.evaluate((selector) => {
 			// tslint:disable-next-line:no-any
 			return new Promise<Array<string>>((res, rej): void => {
@@ -182,13 +253,11 @@ export class TestServer {
 		}, selector);
 
 		serializedElements.forEach((str) => {
-			deserialize(str, (err, el) => {
+			deserialize(str, (err, rawObj) => {
 				if (err) {
 					throw err;
 				}
-				// TODO: provide a proper interface for this
-				// data type.
-				elements.push(el);
+				elements.push(DeserializedNode.from(rawObj));
 			});
 		});
 
@@ -199,7 +268,7 @@ export class TestServer {
 	 * Get an element on the page. See `TestServer.querySelectorAll`.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelector(page: puppeteer.Page, selector: string): Promise<any> {
+	public async querySelector(page: puppeteer.Page, selector: string): Promise<DeserializedNode> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}

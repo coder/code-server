@@ -16,8 +16,10 @@ describe("chrome e2e", () => {
 		// Editor should be visible.
 		const editor = await server.querySelector(page, "div.part.editor");
 		expect(editor).toBeTruthy();
-		expect(editor["div"]).toBeTruthy();
-		expect(editor["div"]["$"]["id"]).toBe("workbench.parts.editor");
+		expect(editor.tag).toEqual("div");
+		expect(editor.properties).not.toBeUndefined();
+		expect(editor.properties!["id"]).toBe("workbench.parts.editor");
+		expect(editor.children.length).toBeGreaterThan(0);
 	}, 3000);
 
 	it("should create file", async () => {
@@ -35,7 +37,7 @@ describe("chrome e2e", () => {
 		// Check that the file is in the file tree.
 		const elements = await server.querySelectorAll(page, spanSelector);
 		expect(elements.length).toBeGreaterThan(0);
-		const contentArray = elements.map((el) => el["span"]["_"]);
+		const contentArray = elements.map((el) => el.textContent);
 		expect(contentArray).toContain(testFileName);
 	}, 15000);
 });
