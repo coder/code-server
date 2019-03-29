@@ -171,7 +171,7 @@ const bold = (text: string | number): string | number => {
 		try {
 			const recentRelease = await getRecentRelease();
 			if (recentRelease !== currentVersion) {
-				logger.warn(`New version (\u001B[1m${recentRelease}\u001B[0m) available https://github.com/codercom/code-server/releases/latest`);
+				logger.warn(`New version available! (\u001B[1m${recentRelease}\u001B[0m) https://github.com/codercom/code-server/releases/latest`);
 			}
 		} catch (err) {
 			logger.error(`Failed to check latest release: ${err}`);
@@ -305,7 +305,6 @@ const bold = (text: string | number): string | number => {
 	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
-		// TODO: fill in appropriate doc url
 		logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/security/ssl.md");
 	}
 
