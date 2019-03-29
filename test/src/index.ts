@@ -277,6 +277,28 @@ export class TestServer {
 	}
 
 	/**
+	 * Issue `keydown` events on a series of keys, and then
+	 * issue `keyup` events on those same keys. This allows for
+	 * issuing combination keyboard shortcuts.
+	 *
+	 * See puppeteer docs for key-code definitions:
+	 * https://github.com/GoogleChrome/puppeteer/blob/master/lib/USKeyboardLayout.js
+	 */
+	public async pressKeyboardCombo(page: puppeteer.Page, ...keys: string[]): Promise<void> {
+		if (!keys || keys.length === 0) {
+			throw new Error("no keys provided");
+		}
+		// Press the keys.
+		for (let i = 0; i < keys.length; i++) {
+			await page.keyboard.down(keys[i]);
+		}
+		// Release the keys.
+		for (let x = 0; x < keys.length; x++) {
+			await page.keyboard.up(keys[x]);
+		}
+	}
+
+	/**
 	 * Saves a screenshot of the headless page in the server's
 	 * working directory. Useful for debugging.
 	 */

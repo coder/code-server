@@ -3,7 +3,7 @@ import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
 
 describe("chrome e2e", () => {
-	const superKey = os.platform() === "darwin" ? "Meta" : "Control";
+	const superKey: string = os.platform() === "darwin" ? "Meta" : "Control";
 	const testFileName = `test-${Date.now()}.js`;
 	const jsSnippetsDesc = "JavaScript Snippets. Press enter for extension details.";
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
@@ -17,29 +17,18 @@ describe("chrome e2e", () => {
 		await server.dispose();
 	});
 
-	const workbenchQuickOpen = async (page: puppeteer.Page): Promise<void> => {
-		await page.keyboard.down(superKey);
-		await page.keyboard.down("P");
-		await page.keyboard.up(superKey);
-		await page.keyboard.up("P");
+	const workbenchQuickOpen = (page: puppeteer.Page): Promise<void> => {
+		return server.pressKeyboardCombo(page, superKey, "P");
 	};
 
-	const workbenchShowCommands = async (page: puppeteer.Page): Promise<void> => {
-		await page.keyboard.down(superKey);
-		await page.keyboard.down("Shift");
-		await page.keyboard.down("P");
-		await page.keyboard.up(superKey);
-		await page.keyboard.up("Shift");
-		await page.keyboard.up("P");
+	const workbenchShowCommands = (page: puppeteer.Page): Promise<void> => {
+		return server.pressKeyboardCombo(page, superKey, "Shift", "P");
 	};
 
 	// Select all text in the search field, to avoid
 	// invalid queries.
-	const selectAll = async (page: puppeteer.Page): Promise<void> => {
-		await page.keyboard.down(superKey);
-		await page.keyboard.down("A");
-		await page.keyboard.up(superKey);
-		await page.keyboard.up("A");
+	const selectAll = (page: puppeteer.Page): Promise<void> => {
+		return server.pressKeyboardCombo(page, superKey, "A");
 	};
 
 	it("should open IDE", async () => {
