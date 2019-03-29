@@ -115,5 +115,29 @@ OPTIONS
   ```
   *Important:* For more details about Apache reverse proxy configuration checkout the [documentation](https://httpd.apache.org/docs/current/mod/mod_proxy.html) - especially the [Securing your Server](https://httpd.apache.org/docs/current/mod/mod_proxy.html#access) section
   
+  ### Start code-server as systemd unit
+  Create `/lib/systemd/system/code-server.service` with the following contents:
+  ```
+  [Unit]
+  Description=Code Server IDE
+  After=network.target
+
+  [Service]
+  Type=simple
+  User=<USER>
+  Restart=on-failure
+  RestartSec=10
+
+  ExecStart=<PATH TO BINARY> --allow-http
+
+  StandardOutput=file:/var/log/code-server-output.log
+  StandardError=file:/var/log/code-server-error.log
+
+  [Install]
+  WantedBy=multi-user.target
+
+  ```
+  Enable code-server with `systemctl enable code-server.service`. Start with `systemctl start code-server.service`.
+  
   ### Help
   Use `code-server -h` or `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section. 
