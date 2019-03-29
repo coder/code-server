@@ -40,7 +40,8 @@ describe("chrome e2e", () => {
 		expect(editor.properties).not.toBeUndefined();
 		expect(editor.properties!["id"]).toBe("workbench.parts.editor");
 		expect(editor.children.length).toBeGreaterThan(0);
-	}, 3000);
+		await page.close();
+	}, 5000);
 
 	it("should create file", async () => {
 		const page = await server.newPage()
@@ -59,6 +60,26 @@ describe("chrome e2e", () => {
 		expect(elements.length).toBeGreaterThan(0);
 		const contentArray = elements.map((el) => el.textContent);
 		expect(contentArray).toContain(testFileName);
+		await page.close();
+	}, 15000);
+
+	it("should open file", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await workbenchQuickOpen(page);
+		await page.waitFor(1000);
+		await page.keyboard.type(testFileName, { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
+		const tabSelector = `div.tab div.monaco-icon-label.${testFileName.replace(".", "\\.")}-name-file-icon`;
+		// Check that the file is in an editor tab.
+		const tab = await server.querySelector(page, tabSelector);
+		expect(tab).toBeTruthy();
+		expect(tab.tag).toEqual("div");
+		expect(tab.properties).not.toBeUndefined();
+		expect(tab.properties!["title"]).toContain(testFileName);
+		expect(tab.children.length).toBeGreaterThan(0);
+		await page.close();
 	}, 15000);
 
 	it("should delete file", async () => {
@@ -81,6 +102,7 @@ describe("chrome e2e", () => {
 		await page.waitFor(1000);
 		// Submit the delete-file popup.
 		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
 
 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
 		// Check that the file is NOT in the file tree.
@@ -88,5 +110,6 @@ describe("chrome e2e", () => {
 		expect(elements.length).toBeGreaterThanOrEqual(0);
 		const contentArray = elements.map((el) => el.textContent);
 		expect(contentArray).not.toContain(testFileName);
+		await page.close();
 	}, 30000);
 });
