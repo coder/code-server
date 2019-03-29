@@ -30,6 +30,8 @@ import { ServiceCollection } from "vs/platform/instantiation/common/serviceColle
 import { URI } from "vs/base/common/uri";
 
 export class Workbench {
+	public readonly retry = client.retry;
+
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
@@ -185,11 +187,31 @@ export class Workbench {
 			_: [],
 		};
 		if ((workspace as IWorkspaceIdentifier).configPath) {
-			config.workspace = workspace as IWorkspaceIdentifier;
+			// tslint:disable-next-line:no-any
+			let wid: IWorkspaceIdentifier = (<any>Object).assign({}, workspace);
+			if (!URI.isUri(wid.configPath)) {
+				// Ensure that the configPath is a valid URI.
+				wid.configPath = URI.file(wid.configPath);
+			}
+			config.workspace = wid;
 		} else {
 			config.folderUri = workspace as URI;
 		}
-		await main(config);
+		try {
+			await main(config);
+		} catch (ex) {
+			if (ex.toString().indexOf("UriError") !== -1 || ex.toString().indexOf("backupPath") !== -1) {
+				/**
+				 * Resolves the error of the workspace identifier being invalid.
+				 */
+				// tslint:disable-next-line:no-console
+				console.error(ex);
+				this.workspace = undefined;
+				location.reload();
+
+				return;
+			}
+		}
 		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 		const bounded = this.clipboardContextKey.bindTo(contextKeys);
 		client.clipboard.onPermissionChange((enabled) => {

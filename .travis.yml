@@ -2,7 +2,7 @@ language: node_js
 node_js:
 - 8.15.0
 env:
-  - VERSION="1.32.0-$TRAVIS_BUILD_NUMBER"
+  - VSCODE_VERSION="1.32.0" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
 matrix:
   include:
   - os: linux

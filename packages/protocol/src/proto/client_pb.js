@@ -43,16 +43,15 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ClientMessage.oneofGroups_ = [[11,12,13]];
+proto.ClientMessage.oneofGroups_ = [[20,21]];
 
 /**
  * @enum {number}
  */
 proto.ClientMessage.MsgCase = {
   MSG_NOT_SET: 0,
-  NEW_EVAL: 11,
-  EVAL_EVENT: 12,
-  PING: 13
+  METHOD: 20,
+  PING: 21
 };
 
 /**
@@ -91,8 +90,7 @@ proto.ClientMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ClientMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    newEval: (f = msg.getNewEval()) && node_pb.NewEvalMessage.toObject(includeInstance, f),
-    evalEvent: (f = msg.getEvalEvent()) && node_pb.EvalEventMessage.toObject(includeInstance, f),
+    method: (f = msg.getMethod()) && node_pb.MethodMessage.toObject(includeInstance, f),
     ping: (f = msg.getPing()) && node_pb.Ping.toObject(includeInstance, f)
   };
 
@@ -130,17 +128,12 @@ proto.ClientMessage.deserializeBinaryFromReader = function(msg, reader) {
     }
     var field = reader.getFieldNumber();
     switch (field) {
-    case 11:
-      var value = new node_pb.NewEvalMessage;
-      reader.readMessage(value,node_pb.NewEvalMessage.deserializeBinaryFromReader);
-      msg.setNewEval(value);
+    case 20:
+      var value = new node_pb.MethodMessage;
+      reader.readMessage(value,node_pb.MethodMessage.deserializeBinaryFromReader);
+      msg.setMethod(value);
       break;
-    case 12:
-      var value = new node_pb.EvalEventMessage;
-      reader.readMessage(value,node_pb.EvalEventMessage.deserializeBinaryFromReader);
-      msg.setEvalEvent(value);
-      break;
-    case 13:
+    case 21:
       var value = new node_pb.Ping;
       reader.readMessage(value,node_pb.Ping.deserializeBinaryFromReader);
       msg.setPing(value);
@@ -174,26 +167,18 @@ proto.ClientMessage.prototype.serializeBinary = function() {
  */
 proto.ClientMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getNewEval();
+  f = message.getMethod();
   if (f != null) {
     writer.writeMessage(
-      11,
+      20,
       f,
-      node_pb.NewEvalMessage.serializeBinaryToWriter
-    );
-  }
-  f = message.getEvalEvent();
-  if (f != null) {
-    writer.writeMessage(
-      12,
-      f,
-      node_pb.EvalEventMessage.serializeBinaryToWriter
+      node_pb.MethodMessage.serializeBinaryToWriter
     );
   }
   f = message.getPing();
   if (f != null) {
     writer.writeMessage(
-      13,
+      21,
       f,
       node_pb.Ping.serializeBinaryToWriter
     );
@@ -202,23 +187,23 @@ proto.ClientMessage.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional NewEvalMessage new_eval = 11;
- * @return {?proto.NewEvalMessage}
+ * optional MethodMessage method = 20;
+ * @return {?proto.MethodMessage}
  */
-proto.ClientMessage.prototype.getNewEval = function() {
-  return /** @type{?proto.NewEvalMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.NewEvalMessage, 11));
+proto.ClientMessage.prototype.getMethod = function() {
+  return /** @type{?proto.MethodMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.MethodMessage, 20));
 };
 
 
-/** @param {?proto.NewEvalMessage|undefined} value */
-proto.ClientMessage.prototype.setNewEval = function(value) {
-  jspb.Message.setOneofWrapperField(this, 11, proto.ClientMessage.oneofGroups_[0], value);
+/** @param {?proto.MethodMessage|undefined} value */
+proto.ClientMessage.prototype.setMethod = function(value) {
+  jspb.Message.setOneofWrapperField(this, 20, proto.ClientMessage.oneofGroups_[0], value);
 };
 
 
-proto.ClientMessage.prototype.clearNewEval = function() {
-  this.setNewEval(undefined);
+proto.ClientMessage.prototype.clearMethod = function() {
+  this.setMethod(undefined);
 };
 
 
@@ -226,54 +211,24 @@ proto.ClientMessage.prototype.clearNewEval = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ClientMessage.prototype.hasNewEval = function() {
-  return jspb.Message.getField(this, 11) != null;
+proto.ClientMessage.prototype.hasMethod = function() {
+  return jspb.Message.getField(this, 20) != null;
 };
 
 
 /**
- * optional EvalEventMessage eval_event = 12;
- * @return {?proto.EvalEventMessage}
- */
-proto.ClientMessage.prototype.getEvalEvent = function() {
-  return /** @type{?proto.EvalEventMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalEventMessage, 12));
-};
-
-
-/** @param {?proto.EvalEventMessage|undefined} value */
-proto.ClientMessage.prototype.setEvalEvent = function(value) {
-  jspb.Message.setOneofWrapperField(this, 12, proto.ClientMessage.oneofGroups_[0], value);
-};
-
-
-proto.ClientMessage.prototype.clearEvalEvent = function() {
-  this.setEvalEvent(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.ClientMessage.prototype.hasEvalEvent = function() {
-  return jspb.Message.getField(this, 12) != null;
-};
-
-
-/**
- * optional Ping ping = 13;
+ * optional Ping ping = 21;
  * @return {?proto.Ping}
  */
 proto.ClientMessage.prototype.getPing = function() {
   return /** @type{?proto.Ping} */ (
-    jspb.Message.getWrapperField(this, node_pb.Ping, 13));
+    jspb.Message.getWrapperField(this, node_pb.Ping, 21));
 };
 
 
 /** @param {?proto.Ping|undefined} value */
 proto.ClientMessage.prototype.setPing = function(value) {
-  jspb.Message.setOneofWrapperField(this, 13, proto.ClientMessage.oneofGroups_[0], value);
+  jspb.Message.setOneofWrapperField(this, 21, proto.ClientMessage.oneofGroups_[0], value);
 };
 
 
@@ -287,7 +242,7 @@ proto.ClientMessage.prototype.clearPing = function() {
  * @return {!boolean}
  */
 proto.ClientMessage.prototype.hasPing = function() {
-  return jspb.Message.getField(this, 13) != null;
+  return jspb.Message.getField(this, 21) != null;
 };
 
 
@@ -317,19 +272,20 @@ if (goog.DEBUG && !COMPILED) {
  * @private {!Array<!Array<number>>}
  * @const
  */
-proto.ServerMessage.oneofGroups_ = [[13,14,15,16,17,18]];
+proto.ServerMessage.oneofGroups_ = [[13,14,19,22,18,16,17]];
 
 /**
  * @enum {number}
  */
 proto.ServerMessage.MsgCase = {
   MSG_NOT_SET: 0,
-  EVAL_FAILED: 13,
-  EVAL_DONE: 14,
-  EVAL_EVENT: 15,
+  FAIL: 13,
+  SUCCESS: 14,
+  EVENT: 19,
+  CALLBACK: 22,
+  PONG: 18,
   INIT: 16,
-  SHARED_PROCESS_ACTIVE: 17,
-  PONG: 18
+  SHARED_PROCESS_ACTIVE: 17
 };
 
 /**
@@ -368,12 +324,13 @@ proto.ServerMessage.prototype.toObject = function(opt_includeInstance) {
  */
 proto.ServerMessage.toObject = function(includeInstance, msg) {
   var f, obj = {
-    evalFailed: (f = msg.getEvalFailed()) && node_pb.EvalFailedMessage.toObject(includeInstance, f),
-    evalDone: (f = msg.getEvalDone()) && node_pb.EvalDoneMessage.toObject(includeInstance, f),
-    evalEvent: (f = msg.getEvalEvent()) && node_pb.EvalEventMessage.toObject(includeInstance, f),
+    fail: (f = msg.getFail()) && node_pb.FailMessage.toObject(includeInstance, f),
+    success: (f = msg.getSuccess()) && node_pb.SuccessMessage.toObject(includeInstance, f),
+    event: (f = msg.getEvent()) && node_pb.EventMessage.toObject(includeInstance, f),
+    callback: (f = msg.getCallback()) && node_pb.CallbackMessage.toObject(includeInstance, f),
+    pong: (f = msg.getPong()) && node_pb.Pong.toObject(includeInstance, f),
     init: (f = msg.getInit()) && proto.WorkingInitMessage.toObject(includeInstance, f),
-    sharedProcessActive: (f = msg.getSharedProcessActive()) && vscode_pb.SharedProcessActiveMessage.toObject(includeInstance, f),
-    pong: (f = msg.getPong()) && node_pb.Pong.toObject(includeInstance, f)
+    sharedProcessActive: (f = msg.getSharedProcessActive()) && vscode_pb.SharedProcessActiveMessage.toObject(includeInstance, f)
   };
 
   if (includeInstance) {
@@ -411,19 +368,29 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 13:
-      var value = new node_pb.EvalFailedMessage;
-      reader.readMessage(value,node_pb.EvalFailedMessage.deserializeBinaryFromReader);
-      msg.setEvalFailed(value);
+      var value = new node_pb.FailMessage;
+      reader.readMessage(value,node_pb.FailMessage.deserializeBinaryFromReader);
+      msg.setFail(value);
       break;
     case 14:
-      var value = new node_pb.EvalDoneMessage;
-      reader.readMessage(value,node_pb.EvalDoneMessage.deserializeBinaryFromReader);
-      msg.setEvalDone(value);
+      var value = new node_pb.SuccessMessage;
+      reader.readMessage(value,node_pb.SuccessMessage.deserializeBinaryFromReader);
+      msg.setSuccess(value);
       break;
-    case 15:
-      var value = new node_pb.EvalEventMessage;
-      reader.readMessage(value,node_pb.EvalEventMessage.deserializeBinaryFromReader);
-      msg.setEvalEvent(value);
+    case 19:
+      var value = new node_pb.EventMessage;
+      reader.readMessage(value,node_pb.EventMessage.deserializeBinaryFromReader);
+      msg.setEvent(value);
+      break;
+    case 22:
+      var value = new node_pb.CallbackMessage;
+      reader.readMessage(value,node_pb.CallbackMessage.deserializeBinaryFromReader);
+      msg.setCallback(value);
+      break;
+    case 18:
+      var value = new node_pb.Pong;
+      reader.readMessage(value,node_pb.Pong.deserializeBinaryFromReader);
+      msg.setPong(value);
       break;
     case 16:
       var value = new proto.WorkingInitMessage;
@@ -434,11 +401,6 @@ proto.ServerMessage.deserializeBinaryFromReader = function(msg, reader) {
       var value = new vscode_pb.SharedProcessActiveMessage;
       reader.readMessage(value,vscode_pb.SharedProcessActiveMessage.deserializeBinaryFromReader);
       msg.setSharedProcessActive(value);
-      break;
-    case 18:
-      var value = new node_pb.Pong;
-      reader.readMessage(value,node_pb.Pong.deserializeBinaryFromReader);
-      msg.setPong(value);
       break;
     default:
       reader.skipField();
@@ -469,28 +431,44 @@ proto.ServerMessage.prototype.serializeBinary = function() {
  */
 proto.ServerMessage.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getEvalFailed();
+  f = message.getFail();
   if (f != null) {
     writer.writeMessage(
       13,
       f,
-      node_pb.EvalFailedMessage.serializeBinaryToWriter
+      node_pb.FailMessage.serializeBinaryToWriter
     );
   }
-  f = message.getEvalDone();
+  f = message.getSuccess();
   if (f != null) {
     writer.writeMessage(
       14,
       f,
-      node_pb.EvalDoneMessage.serializeBinaryToWriter
+      node_pb.SuccessMessage.serializeBinaryToWriter
     );
   }
-  f = message.getEvalEvent();
+  f = message.getEvent();
   if (f != null) {
     writer.writeMessage(
-      15,
+      19,
       f,
-      node_pb.EvalEventMessage.serializeBinaryToWriter
+      node_pb.EventMessage.serializeBinaryToWriter
+    );
+  }
+  f = message.getCallback();
+  if (f != null) {
+    writer.writeMessage(
+      22,
+      f,
+      node_pb.CallbackMessage.serializeBinaryToWriter
+    );
+  }
+  f = message.getPong();
+  if (f != null) {
+    writer.writeMessage(
+      18,
+      f,
+      node_pb.Pong.serializeBinaryToWriter
     );
   }
   f = message.getInit();
@@ -509,35 +487,27 @@ proto.ServerMessage.serializeBinaryToWriter = function(message, writer) {
       vscode_pb.SharedProcessActiveMessage.serializeBinaryToWriter
     );
   }
-  f = message.getPong();
-  if (f != null) {
-    writer.writeMessage(
-      18,
-      f,
-      node_pb.Pong.serializeBinaryToWriter
-    );
-  }
 };
 
 
 /**
- * optional EvalFailedMessage eval_failed = 13;
- * @return {?proto.EvalFailedMessage}
+ * optional FailMessage fail = 13;
+ * @return {?proto.FailMessage}
  */
-proto.ServerMessage.prototype.getEvalFailed = function() {
-  return /** @type{?proto.EvalFailedMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalFailedMessage, 13));
+proto.ServerMessage.prototype.getFail = function() {
+  return /** @type{?proto.FailMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.FailMessage, 13));
 };
 
 
-/** @param {?proto.EvalFailedMessage|undefined} value */
-proto.ServerMessage.prototype.setEvalFailed = function(value) {
+/** @param {?proto.FailMessage|undefined} value */
+proto.ServerMessage.prototype.setFail = function(value) {
   jspb.Message.setOneofWrapperField(this, 13, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
-proto.ServerMessage.prototype.clearEvalFailed = function() {
-  this.setEvalFailed(undefined);
+proto.ServerMessage.prototype.clearFail = function() {
+  this.setFail(undefined);
 };
 
 
@@ -545,29 +515,29 @@ proto.ServerMessage.prototype.clearEvalFailed = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ServerMessage.prototype.hasEvalFailed = function() {
+proto.ServerMessage.prototype.hasFail = function() {
   return jspb.Message.getField(this, 13) != null;
 };
 
 
 /**
- * optional EvalDoneMessage eval_done = 14;
- * @return {?proto.EvalDoneMessage}
+ * optional SuccessMessage success = 14;
+ * @return {?proto.SuccessMessage}
  */
-proto.ServerMessage.prototype.getEvalDone = function() {
-  return /** @type{?proto.EvalDoneMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalDoneMessage, 14));
+proto.ServerMessage.prototype.getSuccess = function() {
+  return /** @type{?proto.SuccessMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.SuccessMessage, 14));
 };
 
 
-/** @param {?proto.EvalDoneMessage|undefined} value */
-proto.ServerMessage.prototype.setEvalDone = function(value) {
+/** @param {?proto.SuccessMessage|undefined} value */
+proto.ServerMessage.prototype.setSuccess = function(value) {
   jspb.Message.setOneofWrapperField(this, 14, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
-proto.ServerMessage.prototype.clearEvalDone = function() {
-  this.setEvalDone(undefined);
+proto.ServerMessage.prototype.clearSuccess = function() {
+  this.setSuccess(undefined);
 };
 
 
@@ -575,29 +545,29 @@ proto.ServerMessage.prototype.clearEvalDone = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ServerMessage.prototype.hasEvalDone = function() {
+proto.ServerMessage.prototype.hasSuccess = function() {
   return jspb.Message.getField(this, 14) != null;
 };
 
 
 /**
- * optional EvalEventMessage eval_event = 15;
- * @return {?proto.EvalEventMessage}
+ * optional EventMessage event = 19;
+ * @return {?proto.EventMessage}
  */
-proto.ServerMessage.prototype.getEvalEvent = function() {
-  return /** @type{?proto.EvalEventMessage} */ (
-    jspb.Message.getWrapperField(this, node_pb.EvalEventMessage, 15));
+proto.ServerMessage.prototype.getEvent = function() {
+  return /** @type{?proto.EventMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.EventMessage, 19));
 };
 
 
-/** @param {?proto.EvalEventMessage|undefined} value */
-proto.ServerMessage.prototype.setEvalEvent = function(value) {
-  jspb.Message.setOneofWrapperField(this, 15, proto.ServerMessage.oneofGroups_[0], value);
+/** @param {?proto.EventMessage|undefined} value */
+proto.ServerMessage.prototype.setEvent = function(value) {
+  jspb.Message.setOneofWrapperField(this, 19, proto.ServerMessage.oneofGroups_[0], value);
 };
 
 
-proto.ServerMessage.prototype.clearEvalEvent = function() {
-  this.setEvalEvent(undefined);
+proto.ServerMessage.prototype.clearEvent = function() {
+  this.setEvent(undefined);
 };
 
 
@@ -605,8 +575,68 @@ proto.ServerMessage.prototype.clearEvalEvent = function() {
  * Returns whether this field is set.
  * @return {!boolean}
  */
-proto.ServerMessage.prototype.hasEvalEvent = function() {
-  return jspb.Message.getField(this, 15) != null;
+proto.ServerMessage.prototype.hasEvent = function() {
+  return jspb.Message.getField(this, 19) != null;
+};
+
+
+/**
+ * optional CallbackMessage callback = 22;
+ * @return {?proto.CallbackMessage}
+ */
+proto.ServerMessage.prototype.getCallback = function() {
+  return /** @type{?proto.CallbackMessage} */ (
+    jspb.Message.getWrapperField(this, node_pb.CallbackMessage, 22));
+};
+
+
+/** @param {?proto.CallbackMessage|undefined} value */
+proto.ServerMessage.prototype.setCallback = function(value) {
+  jspb.Message.setOneofWrapperField(this, 22, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearCallback = function() {
+  this.setCallback(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ServerMessage.prototype.hasCallback = function() {
+  return jspb.Message.getField(this, 22) != null;
+};
+
+
+/**
+ * optional Pong pong = 18;
+ * @return {?proto.Pong}
+ */
+proto.ServerMessage.prototype.getPong = function() {
+  return /** @type{?proto.Pong} */ (
+    jspb.Message.getWrapperField(this, node_pb.Pong, 18));
+};
+
+
+/** @param {?proto.Pong|undefined} value */
+proto.ServerMessage.prototype.setPong = function(value) {
+  jspb.Message.setOneofWrapperField(this, 18, proto.ServerMessage.oneofGroups_[0], value);
+};
+
+
+proto.ServerMessage.prototype.clearPong = function() {
+  this.setPong(undefined);
+};
+
+
+/**
+ * Returns whether this field is set.
+ * @return {!boolean}
+ */
+proto.ServerMessage.prototype.hasPong = function() {
+  return jspb.Message.getField(this, 18) != null;
 };
 
 
@@ -667,36 +697,6 @@ proto.ServerMessage.prototype.clearSharedProcessActive = function() {
  */
 proto.ServerMessage.prototype.hasSharedProcessActive = function() {
   return jspb.Message.getField(this, 17) != null;
-};
-
-
-/**
- * optional Pong pong = 18;
- * @return {?proto.Pong}
- */
-proto.ServerMessage.prototype.getPong = function() {
-  return /** @type{?proto.Pong} */ (
-    jspb.Message.getWrapperField(this, node_pb.Pong, 18));
-};
-
-
-/** @param {?proto.Pong|undefined} value */
-proto.ServerMessage.prototype.setPong = function(value) {
-  jspb.Message.setOneofWrapperField(this, 18, proto.ServerMessage.oneofGroups_[0], value);
-};
-
-
-proto.ServerMessage.prototype.clearPong = function() {
-  this.setPong(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.ServerMessage.prototype.hasPong = function() {
-  return jspb.Message.getField(this, 18) != null;
 };
 
 

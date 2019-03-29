@@ -6,15 +6,10 @@ import * as node_pb from "./node_pb";
 import * as vscode_pb from "./vscode_pb";
 
 export class ClientMessage extends jspb.Message {
-  hasNewEval(): boolean;
-  clearNewEval(): void;
-  getNewEval(): node_pb.NewEvalMessage | undefined;
-  setNewEval(value?: node_pb.NewEvalMessage): void;
-
-  hasEvalEvent(): boolean;
-  clearEvalEvent(): void;
-  getEvalEvent(): node_pb.EvalEventMessage | undefined;
-  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+  hasMethod(): boolean;
+  clearMethod(): void;
+  getMethod(): node_pb.MethodMessage | undefined;
+  setMethod(value?: node_pb.MethodMessage): void;
 
   hasPing(): boolean;
   clearPing(): void;
@@ -34,34 +29,42 @@ export class ClientMessage extends jspb.Message {
 
 export namespace ClientMessage {
   export type AsObject = {
-    newEval?: node_pb.NewEvalMessage.AsObject,
-    evalEvent?: node_pb.EvalEventMessage.AsObject,
+    method?: node_pb.MethodMessage.AsObject,
     ping?: node_pb.Ping.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
-    NEW_EVAL = 11,
-    EVAL_EVENT = 12,
-    PING = 13,
+    METHOD = 20,
+    PING = 21,
   }
 }
 
 export class ServerMessage extends jspb.Message {
-  hasEvalFailed(): boolean;
-  clearEvalFailed(): void;
-  getEvalFailed(): node_pb.EvalFailedMessage | undefined;
-  setEvalFailed(value?: node_pb.EvalFailedMessage): void;
+  hasFail(): boolean;
+  clearFail(): void;
+  getFail(): node_pb.FailMessage | undefined;
+  setFail(value?: node_pb.FailMessage): void;
 
-  hasEvalDone(): boolean;
-  clearEvalDone(): void;
-  getEvalDone(): node_pb.EvalDoneMessage | undefined;
-  setEvalDone(value?: node_pb.EvalDoneMessage): void;
+  hasSuccess(): boolean;
+  clearSuccess(): void;
+  getSuccess(): node_pb.SuccessMessage | undefined;
+  setSuccess(value?: node_pb.SuccessMessage): void;
 
-  hasEvalEvent(): boolean;
-  clearEvalEvent(): void;
-  getEvalEvent(): node_pb.EvalEventMessage | undefined;
-  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+  hasEvent(): boolean;
+  clearEvent(): void;
+  getEvent(): node_pb.EventMessage | undefined;
+  setEvent(value?: node_pb.EventMessage): void;
+
+  hasCallback(): boolean;
+  clearCallback(): void;
+  getCallback(): node_pb.CallbackMessage | undefined;
+  setCallback(value?: node_pb.CallbackMessage): void;
+
+  hasPong(): boolean;
+  clearPong(): void;
+  getPong(): node_pb.Pong | undefined;
+  setPong(value?: node_pb.Pong): void;
 
   hasInit(): boolean;
   clearInit(): void;
@@ -72,11 +75,6 @@ export class ServerMessage extends jspb.Message {
   clearSharedProcessActive(): void;
   getSharedProcessActive(): vscode_pb.SharedProcessActiveMessage | undefined;
   setSharedProcessActive(value?: vscode_pb.SharedProcessActiveMessage): void;
-
-  hasPong(): boolean;
-  clearPong(): void;
-  getPong(): node_pb.Pong | undefined;
-  setPong(value?: node_pb.Pong): void;
 
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
@@ -91,22 +89,24 @@ export class ServerMessage extends jspb.Message {
 
 export namespace ServerMessage {
   export type AsObject = {
-    evalFailed?: node_pb.EvalFailedMessage.AsObject,
-    evalDone?: node_pb.EvalDoneMessage.AsObject,
-    evalEvent?: node_pb.EvalEventMessage.AsObject,
+    fail?: node_pb.FailMessage.AsObject,
+    success?: node_pb.SuccessMessage.AsObject,
+    event?: node_pb.EventMessage.AsObject,
+    callback?: node_pb.CallbackMessage.AsObject,
+    pong?: node_pb.Pong.AsObject,
     init?: WorkingInitMessage.AsObject,
     sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
-    pong?: node_pb.Pong.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
-    EVAL_FAILED = 13,
-    EVAL_DONE = 14,
-    EVAL_EVENT = 15,
+    FAIL = 13,
+    SUCCESS = 14,
+    EVENT = 19,
+    CALLBACK = 22,
+    PONG = 18,
     INIT = 16,
     SHARED_PROCESS_ACTIVE = 17,
-    PONG = 18,
   }
 }
 

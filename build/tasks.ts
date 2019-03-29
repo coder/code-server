@@ -10,7 +10,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const pkgsPath = path.join(__dirname, "../packages");
 const defaultExtensionsPath = path.join(libPath, "VSCode-linux-x64/resources/app/extensions");
-const vscodeVersion = "1.32.0";
+const vscodeVersion = process.env.VSCODE_VERSION || "1.32.0";
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
 	await ensureInstalled();
@@ -33,47 +33,9 @@ const buildServerBinaryPackage = register("build:server:binary:package", async (
 		throw new Error("Cannot build binary without server bundle built");
 	}
 	await buildServerBinaryCopy();
-	await dependencyNexeBinary();
-	const resp = await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build:nexe"]);
+	const resp = await runner.execute(isWin ? "npm.cmd" : "npm", ["run", "build:binary"]);
 	if (resp.exitCode !== 0) {
 		throw new Error(`Failed to package binary: ${resp.stderr}`);
-	}
-});
-
-const dependencyNexeBinary = register("dependency:nexe", async (runner) => {
-	if (os.platform() === "linux" && process.env.COMPRESS === "true") {
-		// Download the nexe binary so we can compress it before nexe runs. If we
-		// don't want compression we don't need to do anything since nexe will take
-		// care of getting the binary.
-		const nexeDir = path.join(os.homedir(), ".nexe");
-		const targetBinaryName = `${os.platform()}-${os.arch()}-${process.version.substr(1)}`;
-		const targetBinaryPath = path.join(nexeDir, targetBinaryName);
-		if (!fs.existsSync(targetBinaryPath)) {
-			fse.mkdirpSync(nexeDir);
-			runner.cwd = nexeDir;
-			await runner.execute("wget", [`https://github.com/nexe/nexe/releases/download/v3.0.0-beta.15/${targetBinaryName}`]);
-			await runner.execute("chmod", ["+x", targetBinaryPath]);
-		}
-		// Compress with upx if it doesn't already look compressed.
-		if (fs.statSync(targetBinaryPath).size >= 20000000) {
-			// It needs to be executable for upx to work, which it might not be if
-			// nexe downloaded it.
-			fs.chmodSync(targetBinaryPath, "755");
-			const upxFolder = path.join(os.tmpdir(), "upx");
-			const upxBinary = path.join(upxFolder, "upx");
-			if (!fs.existsSync(upxBinary)) {
-				fse.mkdirpSync(upxFolder);
-				runner.cwd = upxFolder;
-				const upxExtract = await runner.execute("bash", ["-c", "curl -L https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz | tar xJ --strip-components=1"]);
-				if (upxExtract.exitCode !== 0) {
-					throw new Error(`Failed to extract upx: ${upxExtract.stderr}`);
-				}
-			}
-			if (!fs.existsSync(upxBinary)) {
-				throw new Error("Not sure how, but the UPX binary does not exist");
-			}
-			await runner.execute(upxBinary, [targetBinaryPath]);
-		}
 	}
 });
 
@@ -274,7 +236,7 @@ register("package", async (runner, releaseTag) => {
 
 	const releasePath = path.resolve(__dirname, "../release");
 
-	const archiveName = `code-server-${releaseTag}-${os.platform()}-${os.arch()}`;
+	const archiveName = `code-server${releaseTag}-${os.platform()}-${os.arch()}`;
 	const archiveDir = path.join(releasePath, archiveName);
 	fse.removeSync(archiveDir);
 	fse.mkdirpSync(archiveDir);

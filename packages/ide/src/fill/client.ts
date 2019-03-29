@@ -61,7 +61,12 @@ class WebsocketConnection implements ReadWriteConnection {
 		socket.addEventListener("close", (event) => {
 			if (this.isUp) {
 				this.isUp = false;
-				this.downEmitter.emit(undefined);
+				try {
+					this.downEmitter.emit(undefined);
+				} catch (error) {
+					// Don't let errors here prevent restarting.
+					logger.error(error.message);
+				}
 			}
 			logger.warn(
 				"Web socket closed",

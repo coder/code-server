@@ -2,29 +2,29 @@ syntax = "proto3";
 import "node.proto";
 import "vscode.proto";
 
+// Messages that the client can send to the server.
 message ClientMessage {
 	oneof msg {
 		// node.proto
-		NewEvalMessage new_eval = 11;
-		EvalEventMessage eval_event = 12;
-
-		Ping ping = 13;
+		MethodMessage method = 20;
+		Ping ping = 21;
 	}
 }
 
+// Messages that the server can send to the client.
 message ServerMessage {
 	oneof msg {
 		// node.proto
-		EvalFailedMessage eval_failed = 13;
-		EvalDoneMessage eval_done = 14;
-		EvalEventMessage eval_event = 15;
+		FailMessage fail = 13;
+		SuccessMessage success = 14;
+		EventMessage event = 19;
+		CallbackMessage callback = 22;
+		Pong pong = 18;
 
 		WorkingInitMessage init = 16;
 
 		// vscode.proto
 		SharedProcessActiveMessage shared_process_active = 17;
-
-		Pong pong = 18;
 	}
 }
 

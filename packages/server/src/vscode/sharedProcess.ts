@@ -61,6 +61,12 @@ export class SharedProcess {
 		};
 		mkdir(this.userDataDir);
 		mkdir(extensionsDir);
+		const backupsDir = path.join(this.userDataDir, "Backups");
+		mkdir(backupsDir);
+		const workspacesFile = path.join(backupsDir, "workspaces.json");
+		if (!fs.existsSync(workspacesFile)) {
+			fs.closeSync(fs.openSync(workspacesFile, "w"));
+		}
 
 		this.setState({
 			state: SharedProcessState.Starting,

@@ -2,8 +2,8 @@
 
 [!["Open Issues"](https://img.shields.io/github/issues-raw/codercom/code-server.svg)](https://github.com/codercom/code-server/issues)
 [!["Latest Release"](https://img.shields.io/github/release/codercom/code-server.svg)](https://github.com/codercom/code-server/releases/latest)
-[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](#)
-[![Discord](https://discordapp.com/api/guilds/463752820026376202/widget.png)](https://discord.gg/zxSwN8Z)
+[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/codercom/code-server/blob/master/LICENSE)
+[![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
 
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a remote server, accessible through the browser.
 
@@ -57,10 +57,15 @@ How to [secure your setup](/doc/security/ssl.md).
 - Creating custom VS Code extensions and debugging them doesn't work.
 
 ### Future
-
+- **Stay up to date!** Get notified about new releases of code-server.
+  ![Screenshot](/doc/assets/release.gif)
 - Windows support.
 - Electron and Chrome OS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
+
+### Notes
+
+- At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
 
 ## Contributing
 
