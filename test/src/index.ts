@@ -171,7 +171,7 @@ export class TestServer {
 			};
 			this.child.stdout!.once("data", onData);
 
-			this.browser = await puppeteer.launch();
+			this.browser = await puppeteer.launch({ devtools: !!process.env.LOG_LEVEL });
 		});
 	}
 
