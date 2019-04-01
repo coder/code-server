@@ -917,17 +917,15 @@ index 0592910..0ce7e35 100644
 @@ -33,0 +34 @@ function getSystemExtensionsRoot(): string {
 +	return (require('vs/../../../../packages/vscode/src/fill/paths') as typeof import ('vs/../../../../packages/vscode/src/fill/paths')).getBuiltInExtensionsDirectory();
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
-index 2c2f9c7..69fa321 100644
+index 2c2f9c7..e2ab620 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
-@@ -34,0 +35 @@ import { Schemas } from 'vs/base/common/network';
-+const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
-@@ -117,0 +119 @@ export class ExtensionService extends Disposable implements IExtensionService {
-+		retry.register('Extension Host', () => this.startExtensionHost());
-@@ -435,0 +438 @@ export class ExtensionService extends Disposable implements IExtensionService {
-+		extHostProcessWorker.start().then(() => retry.recover('Extension Host'));
-@@ -458,0 +462 @@ export class ExtensionService extends Disposable implements IExtensionService {
-+		return retry.run('Extension Host');
+@@ -92,0 +93 @@ export class ExtensionService extends Disposable implements IExtensionService {
++	private readonly retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Extension Host', () => this.startExtensionHost());
+@@ -435,0 +437 @@ export class ExtensionService extends Disposable implements IExtensionService {
++		extHostProcessWorker.start().then(() => this.retry.recover());
+@@ -458,0 +461 @@ export class ExtensionService extends Disposable implements IExtensionService {
++		return this.retry.run();
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts b/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
 index 484cef9..f728fc8 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcess.ts
@@ -936,45 +934,39 @@ index 484cef9..f728fc8 100644
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 diff --git a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
-index ca03fc9..e3dcd08 100644
+index ca03fc9..e8b6326 100644
 --- a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
-@@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
-+const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
-@@ -35,0 +37 @@ export class FileWatcher {
-+		retry.register('Watcher', () => this.startWatching());
-@@ -56,0 +59,2 @@ export class FileWatcher {
+@@ -26,0 +27 @@ export class FileWatcher {
++	private readonly retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Watcher', () => this.startWatching());
+@@ -56,0 +58,2 @@ export class FileWatcher {
 +				this.toDispose = dispose(this.toDispose);
-+				return retry.run('Watcher');
-@@ -113 +117 @@ export class FileWatcher {
++				return this.retry.run();
+@@ -113 +116 @@ export class FileWatcher {
 -		}));
-+		})).then(() => retry.recover('Watcher'));
++		})).then(() => this.retry.recover());
 diff --git a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
-index 7e3a324..b9ccd63 100644
+index 7e3a324..a880182 100644
 --- a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
-@@ -18,0 +19 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
-+const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
-@@ -36,0 +38 @@ export class FileWatcher {
-+		retry.register('Watcher', () => this.startWatching());
-@@ -59,0 +62,2 @@ export class FileWatcher {
+@@ -26,0 +27 @@ export class FileWatcher {
++	private readonly retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Watcher', () => this.startWatching());
+@@ -59,0 +61,2 @@ export class FileWatcher {
 +				this.toDispose = dispose(this.toDispose);
-+				return retry.run('Watcher');
-@@ -116 +120 @@ export class FileWatcher {
++				return this.retry.run();
+@@ -116 +119 @@ export class FileWatcher {
 -		}));
-+		})).then(() => retry.recover('Watcher'));
++		})).then(() => this.retry.recover());
 diff --git a/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts b/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
-index 74dad64..34cd83b 100644
+index 74dad64..7bc591a 100644
 --- a/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/win32/csharpWatcherService.ts
-@@ -14,0 +15 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
-+const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
-@@ -40,0 +42 @@ export class OutOfProcessWin32FolderWatcher {
-+		retry.register('Watcher', () => this.startWatcher());
-@@ -52,0 +55 @@ export class OutOfProcessWin32FolderWatcher {
-+		this.handle.stdout.once('data', () => retry.recover('Watcher'));
-@@ -110,0 +114 @@ export class OutOfProcessWin32FolderWatcher {
-+			return retry.run('Watcher');
+@@ -25,0 +26 @@ export class OutOfProcessWin32FolderWatcher {
++	private readonly retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Watcher', () => this.startWatcher());
+@@ -52,0 +54 @@ export class OutOfProcessWin32FolderWatcher {
++		this.handle.stdout.once('data', () => this.retry.recover());
+@@ -110,0 +113 @@ export class OutOfProcessWin32FolderWatcher {
++			return this.retry.run();
 diff --git a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
 index 3c78990..545d91a 100644
 --- a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
@@ -986,39 +978,36 @@ index 3c78990..545d91a 100644
 -		if (OS === OperatingSystem.Windows) {
 +		if (isNative && OS === OperatingSystem.Windows) {
 diff --git a/src/vs/workbench/services/search/node/searchService.ts b/src/vs/workbench/services/search/node/searchService.ts
-index 3eaafa4..0345bad 100644
+index 3eaafa4..3b4cb5f 100644
 --- a/src/vs/workbench/services/search/node/searchService.ts
 +++ b/src/vs/workbench/services/search/node/searchService.ts
 @@ -11 +11 @@ import { Event } from 'vs/base/common/event';
 -import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
 +import { Disposable, IDisposable, toDisposable, dispose } from 'vs/base/common/lifecycle';
-@@ -32,0 +33 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
-+const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry;
-@@ -433,0 +435 @@ export class DiskSearch implements ISearchResultProvider {
+@@ -433,0 +434 @@ export class DiskSearch implements ISearchResultProvider {
 +	private toDispose: IDisposable[] = [];
-@@ -470,6 +472,16 @@ export class DiskSearch implements ISearchResultProvider {
+@@ -470,6 +471,15 @@ export class DiskSearch implements ISearchResultProvider {
 -		const client = new Client(
 -			getPathFromAmdModule(require, 'bootstrap-fork'),
 -			opts);
 -
 -		const channel = getNextTickChannel(client.getChannel('search'));
 -		this.raw = new SearchChannelClient(channel);
-+		const connect = (): void => {
++		const connect = (): Promise<void> => {
 +			const client = new Client(
 +				getPathFromAmdModule(require, 'bootstrap-fork'),
 +				opts);
 +			client.onDidProcessExit(() => {
 +				this.toDispose = dispose(this.toDispose);
-+				retry.run('Searcher');
++				retry.run();
 +			}, null, this.toDispose);
 +			this.toDispose.push(client);
-+
 +			const channel = getNextTickChannel(client.getChannel('search'));
 +			this.raw = new SearchChannelClient(channel);
-+			this.raw.clearCache('test-connectivity').then(() => retry.recover('Searcher'));
++			return this.raw.clearCache('test-connectivity');
 +		};
-+		retry.register('Searcher', connect);
-+		connect();
++		const retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Searcher', connect);
++		retry.run();
 diff --git a/src/vs/workbench/services/timer/electron-browser/timerService.ts b/src/vs/workbench/services/timer/electron-browser/timerService.ts
 index 6e6fbcc..645bd72 100644
 --- a/src/vs/workbench/services/timer/electron-browser/timerService.ts
