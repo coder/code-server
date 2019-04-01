@@ -11,7 +11,7 @@ describe("chrome e2e", () => {
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
 	const manageSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.manage`;
 
-	const server = new TestServer({ auth: false });
+	const server = new TestServer();
 	beforeAll(async () => {
 		await server.start();
 	});

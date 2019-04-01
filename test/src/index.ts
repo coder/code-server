@@ -12,6 +12,7 @@ interface IServerOptions {
 	binaryHome: string;
 	binaryPath?: string;
 	auth: boolean;
+	http: boolean;
 	password: string;
 }
 
@@ -100,12 +101,13 @@ export class TestServer {
 	// The directory to load the IDE with.
 	public static readonly workingDir = path.resolve(__dirname, "../tmp");
 
-	public constructor(opts: {
+	public constructor(opts?: {
 		host?: string,
 		port?: number,
 		binaryName?: string,
 		binaryHome?: string,
 		auth?: boolean,
+		http?: boolean,
 		password?: string,
 	}) {
 		this.options = {
@@ -114,6 +116,7 @@ export class TestServer {
 			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
 			binaryHome: opts && opts.binaryHome ? opts.binaryHome : "../packages/server",
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
+			http: opts && typeof opts.http !== "undefined" ? opts.http : true,
 			password: opts && opts.password ? opts.password : "",
 		};
 		this.options.binaryPath = path.join(
@@ -127,25 +130,24 @@ export class TestServer {
 	 * Get the full URL for the server.
 	 */
 	public get url(): string {
-		return `http://${this.options.host}:${this.options.port}`;
+		return `http${this.options.http ? "" : "s"}://${this.options.host}:${this.options.port}`;
 	}
 
 	/**
 	 * Start the code-server binary.
 	 */
-	public start(): Promise<void> {
+	public start(launchOptions?: puppeteer.LaunchOptions): Promise<void> {
 		return new Promise<void>(async (res, rej): Promise<void> => {
 			if (!this.options.binaryPath) {
 				rej(new Error("binary path undefined"));
 
 				return;
 			}
-			await this.killProcesses();
 			const args = [
-				"--allow-http",
+				this.options.http ? "--allow-http" : "",
 				`--port=${this.options.port}`,
-				`${!this.options.auth ? "--no-auth" : ""}`,
-				`${this.options.password ? `--password=${this.options.password}` : ""}`,
+				!this.options.auth ? "--no-auth" : "",
+				this.options.password ? `--password=${this.options.password}` : "",
 				TestServer.workingDir,
 			];
 			this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
@@ -171,10 +173,11 @@ export class TestServer {
 			};
 			this.child.stdout!.once("data", onData);
 
-			this.browser = await puppeteer.launch({
+			launchOptions = Object.assign(launchOptions || {}, {
 				devtools: !!process.env.LOG_LEVEL,
 				defaultViewport: { width: 1280, height: 800 },
 			});
+			this.browser = await puppeteer.launch(launchOptions);
 		});
 	}
 
@@ -215,7 +218,6 @@ export class TestServer {
 		if (this.browser) {
 			await this.browser.close();
 		}
-		await this.killProcesses();
 		if (!this.child) {
 			throw new Error("cannot dispose, process does not exist");
 		}
