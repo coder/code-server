@@ -69,7 +69,25 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ## Contributing
 
-Development guides are coming soon.
+### Getting started
+
+With localhost ssl (optional):
+
+```
+brew install mkcert
+mkcert -install
+mkcert localhost ::1 127.0.0.1
+```
+
+Running code-server:
+```
+yarn install
+yarn task vscode:install
+# without ssl
+yarn start --password=password --allow-http
+# with ssl
+yarn start --cert=$(pwd)/localhost+2.pem --cert-key=$(pwd)/localhost+2-key.pem --password=password
+```
 
 ## License
 
