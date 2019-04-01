@@ -30,13 +30,16 @@ module.exports = (options = {}) => merge(
 				loader: "sass-loader",
 			}],
 		}, {
-			test: /\.(svg|png|ttf|woff|eot|woff2)$/,
+			test: /\.(png|ttf|woff|eot|woff2)$/,
 			use: [{
 				loader: "file-loader",
 				options: {
 					name: "[path][name].[ext]",
 				},
 			}],
+		}, {
+			test: /\.svg$/,
+			loader: 'url-loader'
 		}],
 	},
 	plugins: [
