@@ -216,16 +216,14 @@ export class Client {
 			return callbackId;
 		};
 
-		const protoArgs = args.map((a) => argumentToProto(a, storeCallback));
 		logger.trace(() => [
 			"sending",
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", protoArgs),
 		]);
 
-		proxyMessage.setArgsList(protoArgs);
+		proxyMessage.setArgsList(args.map((a) => argumentToProto(a, storeCallback)));
 
 		const clientMessage = new ClientMessage();
 		clientMessage.setMethod(message);
@@ -348,7 +346,6 @@ export class Client {
 			"received event",
 			field("proxyId", proxyId),
 			field("event", event),
-			field("args", eventMessage.getArgsList()),
 		]);
 
 		const args = eventMessage.getArgsList().map((a) => this.protoToArgument(a));
@@ -374,7 +371,6 @@ export class Client {
 			"running callback",
 			field("proxyId", proxyId),
 			field("callbackId", callbackId),
-			field("args", callbackMessage.getArgsList()),
 		]);
 		const args = callbackMessage.getArgsList().map((a) => this.protoToArgument(a));
 		this.getProxy(proxyId).callbacks.get(callbackId)!(...args);

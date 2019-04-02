@@ -141,7 +141,6 @@ export class Server {
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", proxyMessage.getArgsList()),
 		]);
 
 		let response: any;
@@ -183,12 +182,10 @@ export class Server {
 	 * Send a callback to the client.
 	 */
 	private sendCallback(proxyId: number | Module, callbackId: number, args: any[]): void {
-		const protoArgs = args.map((a) => this.argumentToProto(a));
 		logger.trace(() => [
 			"sending callback",
 			field("proxyId", proxyId),
 			field("callbackId", callbackId),
-			field("args", protoArgs),
 		]);
 
 		const message = new Callback();
@@ -203,7 +200,7 @@ export class Server {
 			message.setNumberedCallback(callbackMessage);
 		}
 		callbackMessage.setCallbackId(callbackId);
-		callbackMessage.setArgsList(protoArgs);
+		callbackMessage.setArgsList(args.map((a) => this.argumentToProto(a)));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setCallback(message);
@@ -268,12 +265,10 @@ export class Server {
 	 * Send an event to the client.
 	 */
 	private sendEvent(proxyId: number | Module, event: string, ...args: any[]): void {
-		const stringifiedArgs = args.map((a) => this.argumentToProto(a));
 		logger.trace(() => [
 			"sending event",
 			field("proxyId", proxyId),
 			field("event", event),
-			field("args", stringifiedArgs),
 		]);
 
 		const message = new Event();
@@ -288,7 +283,7 @@ export class Server {
 			message.setNumberedEvent(eventMessage);
 		}
 		eventMessage.setEvent(event);
-		eventMessage.setArgsList(stringifiedArgs);
+		eventMessage.setArgsList(args.map((a) => this.argumentToProto(a)));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setEvent(message);
@@ -299,16 +294,14 @@ export class Server {
 	 * Send a response back to the client.
 	 */
 	private sendResponse(id: number, response: any): void {
-		const protoResponse = this.argumentToProto(response);
 		logger.trace(() => [
 			"sending resolve",
 			field("id", id),
-			field("response", protoResponse),
 		]);
 
 		const successMessage = new Method.Success();
 		successMessage.setId(id);
-		successMessage.setResponse(protoResponse);
+		successMessage.setResponse(this.argumentToProto(response));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setSuccess(successMessage);
@@ -319,16 +312,14 @@ export class Server {
 	 * Send an exception back to the client.
 	 */
 	private sendException(id: number, error: Error): void {
-		const protoError = argumentToProto(error);
 		logger.trace(() => [
 			"sending reject",
 			field("id", id) ,
-			field("response", protoError),
 		]);
 
 		const failedMessage = new Method.Fail();
 		failedMessage.setId(id);
-		failedMessage.setResponse(protoError);
+		failedMessage.setResponse(argumentToProto(error));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setFail(failedMessage);
