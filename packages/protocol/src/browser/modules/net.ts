@@ -4,6 +4,8 @@ import { ClientProxy } from "../../common/proxy";
 import { NetModuleProxy, NetServerProxy, NetSocketProxy } from "../../node/modules/net";
 import { Duplex } from "./stream";
 
+// tslint:disable completed-docs
+
 export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
 	private _connecting: boolean = false;
 	private _destroyed: boolean = false;
@@ -29,9 +31,8 @@ export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
 		if (callback) {
 			this.on("connect", callback as () => void);
 		}
-		this.proxy.connect(options, host);
 
-		return this;
+		return this.catch(this.proxy.connect(options, host));
 	}
 
 	// tslint:disable-next-line no-any
@@ -117,11 +118,11 @@ export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
 	}
 
 	public unref(): void {
-		this.proxy.unref();
+		this.catch(this.proxy.unref());
 	}
 
 	public ref(): void {
-		this.proxy.ref();
+		this.catch(this.proxy.ref());
 	}
 }
 
@@ -133,14 +134,14 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 	public constructor(proxyPromise: Promise<NetServerProxy> | NetServerProxy) {
 		super(proxyPromise);
 
-		this.proxy.onConnection((socketProxy) => {
+		this.catch(this.proxy.onConnection((socketProxy) => {
 			const socket = new Socket(socketProxy);
 			const socketId = this.socketId++;
 			this.sockets.set(socketId, socket);
-			socket.on("error", () => this.sockets.delete(socketId))
-			socket.on("close", () => this.sockets.delete(socketId))
+			socket.on("error", () => this.sockets.delete(socketId));
+			socket.on("close", () => this.sockets.delete(socketId));
 			this.emit("connection", socket);
-		});
+		}));
 
 		this.on("listening", () => this._listening = true);
 		this.on("error", () => this._listening = false);
@@ -160,9 +161,7 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 			this.on("listening", callback as () => void);
 		}
 
-		this.proxy.listen(handle, hostname, backlog);
-
-		return this;
+		return this.catch(this.proxy.listen(handle, hostname, backlog));
 	}
 
 	public get connections(): number {
@@ -186,21 +185,16 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 		if (callback) {
 			this.on("close", callback);
 		}
-		this.proxy.close();
 
-		return this;
+		return this.catch(this.proxy.close());
 	}
 
 	public ref(): this {
-		this.proxy.ref();
-
-		return this;
+		return this.catch(this.proxy.ref());
 	}
 
 	public unref(): this {
-		this.proxy.unref();
-
-		return this;
+		return this.catch(this.proxy.unref());
 	}
 
 	public getConnections(cb: (error: Error | null, count: number) => void): void {

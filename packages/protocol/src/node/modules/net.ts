@@ -2,6 +2,8 @@ import * as net from "net";
 import { ServerProxy } from "../../common/proxy";
 import { DuplexProxy } from "./stream";
 
+// tslint:disable completed-docs
+
 export class NetSocketProxy extends DuplexProxy<net.Socket> {
 	public async connect(options: number | string | net.SocketConnectOpts, host?: string): Promise<void> {
 		this.stream.connect(options as any, host as any); // tslint:disable-line no-any this works fine
@@ -28,7 +30,7 @@ export class NetSocketProxy extends DuplexProxy<net.Socket> {
 
 	// tslint:disable-next-line no-any
 	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		super.onEvent(cb);
+		await super.onEvent(cb);
 		this.stream.on("connect", () => cb("connect"));
 		this.stream.on("lookup", (error, address, family, host) => cb("lookup", error, address, family, host));
 		this.stream.on("timeout", () => cb("timeout"));

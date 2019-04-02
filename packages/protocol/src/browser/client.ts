@@ -5,8 +5,8 @@ import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ReadWriteConnection, InitData, SharedProcessData } from "../common/connection";
 import { Module, ServerProxy } from "../common/proxy";
-import { stringify, parse, moduleToProto, protoToModule, protoToOperatingSystem } from "../common/util";
-import { Ping, ServerMessage, ClientMessage, MethodMessage, NamedProxyMessage, NumberedProxyMessage, SuccessMessage, FailMessage, EventMessage, CallbackMessage } from "../proto";
+import { argumentToProto, protoToArgument, moduleToProto, protoToModule, protoToOperatingSystem } from "../common/util";
+import { Argument, Ping, ServerMessage, ClientMessage, Method, Event, Callback } from "../proto";
 import { FsModule, ChildProcessModule, NetModule, NodePtyModule, SpdlogModule, TrashModule } from "./modules";
 
 // tslint:disable no-any
@@ -24,8 +24,8 @@ export class Client {
 	private messageId = 0;
 	private callbackId = 0;
 	private readonly proxies = new Map<number | Module, ProxyData>();
-	private readonly successEmitter = new Emitter<SuccessMessage>();
-	private readonly failEmitter = new Emitter<FailMessage>();
+	private readonly successEmitter = new Emitter<Method.Success>();
+	private readonly failEmitter = new Emitter<Method.Fail>();
 	private readonly eventEmitter = new Emitter<{ event: string; args: any[]; }>();
 
 	private _initData: InitData | undefined;
@@ -129,9 +129,9 @@ export class Client {
 				field("event listeners", this.eventEmitter.counts),
 			]);
 
-			const message = new FailMessage();
+			const message = new Method.Fail();
 			const error = new Error("disconnected");
-			message.setResponse(stringify(error));
+			message.setResponse(argumentToProto(error));
 			this.failEmitter.emit(message);
 
 			this.eventEmitter.emit({ event: "disconnected", args: [error] });
@@ -182,20 +182,21 @@ export class Client {
 				case "kill":
 					return Promise.resolve();
 			}
+
 			return Promise.reject(
 				new Error(`Unable to call "${method}" on proxy ${proxyId}: disconnected`),
 			);
 		}
 
-		const message = new MethodMessage();
+		const message = new Method();
 		const id = this.messageId++;
-		let proxyMessage: NamedProxyMessage | NumberedProxyMessage;
+		let proxyMessage: Method.Named | Method.Numbered;
 		if (typeof proxyId === "string") {
-			proxyMessage = new NamedProxyMessage();
+			proxyMessage = new Method.Named();
 			proxyMessage.setModule(moduleToProto(proxyId));
 			message.setNamedProxy(proxyMessage);
 		} else {
-			proxyMessage = new NumberedProxyMessage();
+			proxyMessage = new Method.Numbered();
 			proxyMessage.setProxyId(proxyId);
 			message.setNumberedProxy(proxyMessage);
 		}
@@ -215,16 +216,14 @@ export class Client {
 			return callbackId;
 		};
 
-		const stringifiedArgs = args.map((a) => stringify(a, storeCallback));
 		logger.trace(() => [
 			"sending",
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", stringifiedArgs),
 		]);
 
-		proxyMessage.setArgsList(stringifiedArgs);
+		proxyMessage.setArgsList(args.map((a) => argumentToProto(a, storeCallback)));
 
 		const clientMessage = new ClientMessage();
 		clientMessage.setMethod(message);
@@ -246,12 +245,12 @@ export class Client {
 
 			const d1 = this.successEmitter.event(id, (message) => {
 				dispose();
-				resolve(this.parse(message.getResponse(), promise));
+				resolve(this.protoToArgument(message.getResponse(), promise));
 			});
 
 			const d2 = this.failEmitter.event(id, (message) => {
 				dispose();
-				reject(parse(message.getResponse()));
+				reject(protoToArgument(message.getResponse()));
 			});
 		});
 
@@ -262,42 +261,53 @@ export class Client {
 	 * Handle all messages from the server.
 	 */
 	private async handleMessage(message: ServerMessage): Promise<void> {
-		if (message.hasInit()) {
-			const init = message.getInit()!;
-			this._initData = {
-				dataDirectory: init.getDataDirectory(),
-				homeDirectory: init.getHomeDirectory(),
-				tmpDirectory: init.getTmpDirectory(),
-				workingDirectory: init.getWorkingDirectory(),
-				os: protoToOperatingSystem(init.getOperatingSystem()),
-				shell: init.getShell(),
-				builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
-			};
-			this.initDataEmitter.emit(this._initData);
-		} else if (message.hasSuccess()) {
-			this.emitSuccess(message.getSuccess()!);
-		} else if (message.hasFail()) {
-			this.emitFail(message.getFail()!);
-		} else if (message.hasEvent()) {
-			await this.emitEvent(message.getEvent()!);
-		} else if (message.hasCallback()) {
-			await this.runCallback(message.getCallback()!);
-		} else if (message.hasSharedProcessActive()) {
-			const sharedProcessActiveMessage = message.getSharedProcessActive()!;
-			this.sharedProcessActiveEmitter.emit({
-				socketPath: sharedProcessActiveMessage.getSocketPath(),
-				logPath: sharedProcessActiveMessage.getLogPath(),
-			});
-		} else if (message.hasPong()) {
-			// Nothing to do since pings are on a timer rather than waiting for the
-			// next pong in case a message from either the client or server is dropped
-			// which would break the ping cycle.
-		} else {
-			throw new Error("unknown message type");
+		switch (message.getMsgCase()) {
+			case ServerMessage.MsgCase.INIT:
+				const init = message.getInit()!;
+				this._initData = {
+					dataDirectory: init.getDataDirectory(),
+					homeDirectory: init.getHomeDirectory(),
+					tmpDirectory: init.getTmpDirectory(),
+					workingDirectory: init.getWorkingDirectory(),
+					os: protoToOperatingSystem(init.getOperatingSystem()),
+					shell: init.getShell(),
+					builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
+				};
+				this.initDataEmitter.emit(this._initData);
+				break;
+			case ServerMessage.MsgCase.SUCCESS:
+				this.emitSuccess(message.getSuccess()!);
+				break;
+			case ServerMessage.MsgCase.FAIL:
+				this.emitFail(message.getFail()!);
+				break;
+			case ServerMessage.MsgCase.EVENT:
+				await this.emitEvent(message.getEvent()!);
+				break;
+			case ServerMessage.MsgCase.CALLBACK:
+				await this.runCallback(message.getCallback()!);
+				break;
+			case ServerMessage.MsgCase.SHARED_PROCESS_ACTIVE:
+				const sharedProcessActiveMessage = message.getSharedProcessActive()!;
+				this.sharedProcessActiveEmitter.emit({
+					socketPath: sharedProcessActiveMessage.getSocketPath(),
+					logPath: sharedProcessActiveMessage.getLogPath(),
+				});
+				break;
+			case ServerMessage.MsgCase.PONG:
+				// Nothing to do since pings are on a timer rather than waiting for the
+				// next pong in case a message from either the client or server is dropped
+				// which would break the ping cycle.
+				break;
+			default:
+				throw new Error("unknown message type");
 		}
 	}
 
-	private emitSuccess(message: SuccessMessage): void {
+	/**
+	 * Convert message to a success event.
+	 */
+	private emitSuccess(message: Method.Success): void {
 		logger.trace(() => [
 			"received resolve",
 			field("id", message.getId()),
@@ -306,7 +316,10 @@ export class Client {
 		this.successEmitter.emit(message.getId(), message);
 	}
 
-	private emitFail(message: FailMessage): void {
+	/**
+	 * Convert message to a fail event.
+	 */
+	private emitFail(message: Method.Fail): void {
 		logger.trace(() => [
 			"received reject",
 			field("id", message.getId()),
@@ -322,7 +335,7 @@ export class Client {
 	 * request before it emits. Instead, emit all events from the server so all
 	 * events are always caught on the client.
 	 */
-	private async emitEvent(message: EventMessage): Promise<void> {
+	private async emitEvent(message: Event): Promise<void> {
 		const eventMessage = message.getNamedEvent()! || message.getNumberedEvent()!;
 		const proxyId = message.getNamedEvent()
 			? protoToModule(message.getNamedEvent()!.getModule())
@@ -333,10 +346,9 @@ export class Client {
 			"received event",
 			field("proxyId", proxyId),
 			field("event", event),
-			field("args", eventMessage.getArgsList()),
 		]);
 
-		const args = eventMessage.getArgsList().map((a) => this.parse(a));
+		const args = eventMessage.getArgsList().map((a) => this.protoToArgument(a));
 		this.eventEmitter.emit(proxyId, { event, args });
 	}
 
@@ -348,7 +360,7 @@ export class Client {
 	 * also only be used when passed together with the method. If they are sent
 	 * afterward, they may never be called due to timing issues.
 	 */
-	private async runCallback(message: CallbackMessage): Promise<void> {
+	private async runCallback(message: Callback): Promise<void> {
 		const callbackMessage = message.getNamedCallback()! || message.getNumberedCallback()!;
 		const proxyId = message.getNamedCallback()
 			? protoToModule(message.getNamedCallback()!.getModule())
@@ -359,16 +371,15 @@ export class Client {
 			"running callback",
 			field("proxyId", proxyId),
 			field("callbackId", callbackId),
-			field("args", callbackMessage.getArgsList()),
 		]);
-		const args = callbackMessage.getArgsList().map((a) => this.parse(a));
+		const args = callbackMessage.getArgsList().map((a) => this.protoToArgument(a));
 		this.getProxy(proxyId).callbacks.get(callbackId)!(...args);
 	}
 
 	/**
 	 * Start the ping loop. Does nothing if already pinging.
 	 */
-	private startPinging = (): void => {
+	private readonly startPinging = (): void => {
 		if (typeof this.pingTimeout !== "undefined") {
 			return;
 		}
@@ -505,10 +516,16 @@ export class Client {
 		await this.getProxy(proxyId).promise;
 	}
 
-	private parse(value?: string, promise?: Promise<any>): any {
-		return parse(value, undefined, (id) => this.createProxy(id, promise));
+	/**
+	 * Same as protoToArgument except provides createProxy.
+	 */
+	private protoToArgument(value?: Argument, promise?: Promise<any>): any {
+		return protoToArgument(value, undefined, (id) => this.createProxy(id, promise));
 	}
 
+	/**
+	 * Get a proxy. Error if it doesn't exist.
+	 */
 	private getProxy(proxyId: number | Module): ProxyData {
 		if (!this.proxies.has(proxyId)) {
 			throw new Error(`proxy ${proxyId} disposed too early`);

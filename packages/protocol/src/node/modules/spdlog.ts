@@ -3,6 +3,8 @@ import { EventEmitter } from "events";
 import * as spdlog from "spdlog";
 import { ServerProxy } from "../../common/proxy";
 
+// tslint:disable completed-docs
+
 export class RotatingLoggerProxy implements ServerProxy {
 	private readonly emitter = new EventEmitter();
 
@@ -24,7 +26,7 @@ export class RotatingLoggerProxy implements ServerProxy {
 	}
 
 	public async dispose(): Promise<void> {
-		this.flush();
+		await this.flush();
 		this.emitter.emit("dispose");
 		this.emitter.removeAllListeners();
 	}

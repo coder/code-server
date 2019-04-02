@@ -8,8 +8,8 @@ import * as vscode_pb from "./vscode_pb";
 export class ClientMessage extends jspb.Message {
   hasMethod(): boolean;
   clearMethod(): void;
-  getMethod(): node_pb.MethodMessage | undefined;
-  setMethod(value?: node_pb.MethodMessage): void;
+  getMethod(): node_pb.Method | undefined;
+  setMethod(value?: node_pb.Method): void;
 
   hasPing(): boolean;
   clearPing(): void;
@@ -29,7 +29,7 @@ export class ClientMessage extends jspb.Message {
 
 export namespace ClientMessage {
   export type AsObject = {
-    method?: node_pb.MethodMessage.AsObject,
+    method?: node_pb.Method.AsObject,
     ping?: node_pb.Ping.AsObject,
   }
 
@@ -43,23 +43,23 @@ export namespace ClientMessage {
 export class ServerMessage extends jspb.Message {
   hasFail(): boolean;
   clearFail(): void;
-  getFail(): node_pb.FailMessage | undefined;
-  setFail(value?: node_pb.FailMessage): void;
+  getFail(): node_pb.Method.Fail | undefined;
+  setFail(value?: node_pb.Method.Fail): void;
 
   hasSuccess(): boolean;
   clearSuccess(): void;
-  getSuccess(): node_pb.SuccessMessage | undefined;
-  setSuccess(value?: node_pb.SuccessMessage): void;
+  getSuccess(): node_pb.Method.Success | undefined;
+  setSuccess(value?: node_pb.Method.Success): void;
 
   hasEvent(): boolean;
   clearEvent(): void;
-  getEvent(): node_pb.EventMessage | undefined;
-  setEvent(value?: node_pb.EventMessage): void;
+  getEvent(): node_pb.Event | undefined;
+  setEvent(value?: node_pb.Event): void;
 
   hasCallback(): boolean;
   clearCallback(): void;
-  getCallback(): node_pb.CallbackMessage | undefined;
-  setCallback(value?: node_pb.CallbackMessage): void;
+  getCallback(): node_pb.Callback | undefined;
+  setCallback(value?: node_pb.Callback): void;
 
   hasPong(): boolean;
   clearPong(): void;
@@ -68,13 +68,13 @@ export class ServerMessage extends jspb.Message {
 
   hasInit(): boolean;
   clearInit(): void;
-  getInit(): WorkingInitMessage | undefined;
-  setInit(value?: WorkingInitMessage): void;
+  getInit(): WorkingInit | undefined;
+  setInit(value?: WorkingInit): void;
 
   hasSharedProcessActive(): boolean;
   clearSharedProcessActive(): void;
-  getSharedProcessActive(): vscode_pb.SharedProcessActiveMessage | undefined;
-  setSharedProcessActive(value?: vscode_pb.SharedProcessActiveMessage): void;
+  getSharedProcessActive(): vscode_pb.SharedProcessActive | undefined;
+  setSharedProcessActive(value?: vscode_pb.SharedProcessActive): void;
 
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
@@ -89,13 +89,13 @@ export class ServerMessage extends jspb.Message {
 
 export namespace ServerMessage {
   export type AsObject = {
-    fail?: node_pb.FailMessage.AsObject,
-    success?: node_pb.SuccessMessage.AsObject,
-    event?: node_pb.EventMessage.AsObject,
-    callback?: node_pb.CallbackMessage.AsObject,
+    fail?: node_pb.Method.Fail.AsObject,
+    success?: node_pb.Method.Success.AsObject,
+    event?: node_pb.Event.AsObject,
+    callback?: node_pb.Callback.AsObject,
     pong?: node_pb.Pong.AsObject,
-    init?: WorkingInitMessage.AsObject,
-    sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
+    init?: WorkingInit.AsObject,
+    sharedProcessActive?: vscode_pb.SharedProcessActive.AsObject,
   }
 
   export enum MsgCase {
@@ -110,7 +110,7 @@ export namespace ServerMessage {
   }
 }
 
-export class WorkingInitMessage extends jspb.Message {
+export class WorkingInit extends jspb.Message {
   getHomeDirectory(): string;
   setHomeDirectory(value: string): void;
 
@@ -123,8 +123,8 @@ export class WorkingInitMessage extends jspb.Message {
   getWorkingDirectory(): string;
   setWorkingDirectory(value: string): void;
 
-  getOperatingSystem(): WorkingInitMessage.OperatingSystem;
-  setOperatingSystem(value: WorkingInitMessage.OperatingSystem): void;
+  getOperatingSystem(): WorkingInit.OperatingSystem;
+  setOperatingSystem(value: WorkingInit.OperatingSystem): void;
 
   getShell(): string;
   setShell(value: string): void;
@@ -133,22 +133,22 @@ export class WorkingInitMessage extends jspb.Message {
   setBuiltinExtensionsDir(value: string): void;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): WorkingInitMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: WorkingInitMessage): WorkingInitMessage.AsObject;
+  toObject(includeInstance?: boolean): WorkingInit.AsObject;
+  static toObject(includeInstance: boolean, msg: WorkingInit): WorkingInit.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: WorkingInitMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): WorkingInitMessage;
-  static deserializeBinaryFromReader(message: WorkingInitMessage, reader: jspb.BinaryReader): WorkingInitMessage;
+  static serializeBinaryToWriter(message: WorkingInit, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WorkingInit;
+  static deserializeBinaryFromReader(message: WorkingInit, reader: jspb.BinaryReader): WorkingInit;
 }
 
-export namespace WorkingInitMessage {
+export namespace WorkingInit {
   export type AsObject = {
     homeDirectory: string,
     tmpDirectory: string,
     dataDirectory: string,
     workingDirectory: string,
-    operatingSystem: WorkingInitMessage.OperatingSystem,
+    operatingSystem: WorkingInit.OperatingSystem,
     shell: string,
     builtinExtensionsDir: string,
   }

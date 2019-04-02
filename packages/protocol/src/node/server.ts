@@ -3,8 +3,8 @@ import * as os from "os";
 import { field, logger} from "@coder/logger";
 import { ReadWriteConnection } from "../common/connection";
 import { Module, ServerProxy } from "../common/proxy";
-import { isPromise, isProxy, moduleToProto, parse, platformToProto, protoToModule, stringify } from "../common/util";
-import { CallbackMessage, ClientMessage, EventMessage, FailMessage, MethodMessage, NamedCallbackMessage, NamedEventMessage, NumberedCallbackMessage, NumberedEventMessage, Pong, ServerMessage, SuccessMessage, WorkingInitMessage } from "../proto";
+import { isPromise, isProxy, moduleToProto, protoToArgument, platformToProto, protoToModule, argumentToProto } from "../common/util";
+import { Argument, Callback, ClientMessage, Event, Method, Pong, ServerMessage, WorkingInit } from "../proto";
 import { ChildProcessModuleProxy, ForkProvider, FsModuleProxy, NetModuleProxy, NodePtyModuleProxy, SpdlogModuleProxy, TrashModuleProxy } from "./modules";
 
 // tslint:disable no-any
@@ -22,11 +22,14 @@ interface ProxyData {
 	instance: any;
 }
 
+/**
+ * Handle messages from the client.
+ */
 export class Server {
 	private proxyId = 0;
 	private readonly proxies = new Map<number | Module, ProxyData>();
 	private disconnected: boolean = false;
-	private responseTimeout = 10000;
+	private readonly responseTimeout = 10000;
 
 	public constructor(
 		private readonly connection: ReadWriteConnection,
@@ -57,7 +60,9 @@ export class Server {
 
 			this.proxies.forEach((proxy, proxyId) => {
 				if (isProxy(proxy.instance)) {
-					proxy.instance.dispose();
+					proxy.instance.dispose().catch((error) => {
+						logger.error(error.message);
+					});
 				}
 				this.removeProxy(proxyId);
 			});
@@ -84,14 +89,14 @@ export class Server {
 			logger.error(error.message, field("error", error));
 		});
 
-		const initMsg = new WorkingInitMessage();
+		const initMsg = new WorkingInit();
 		initMsg.setDataDirectory(this.options.dataDirectory);
 		initMsg.setWorkingDirectory(this.options.workingDirectory);
 		initMsg.setBuiltinExtensionsDir(this.options.builtInExtensionsDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
 		initMsg.setOperatingSystem(platformToProto(os.platform()));
-		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL);
+		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL || "");
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);
 		connection.send(srvMsg.serializeBinary());
@@ -101,29 +106,32 @@ export class Server {
 	 * Handle all messages from the client.
 	 */
 	private async handleMessage(message: ClientMessage): Promise<void> {
-		if (message.hasMethod()) {
-			await this.runMethod(message.getMethod()!);
-		} else if (message.hasPing()) {
-			logger.trace("ping");
-			const srvMsg = new ServerMessage();
-			srvMsg.setPong(new Pong());
-			this.connection.send(srvMsg.serializeBinary());
-		} else {
-			throw new Error("unknown message type");
+		switch (message.getMsgCase()) {
+			case ClientMessage.MsgCase.METHOD:
+				await this.runMethod(message.getMethod()!);
+				break;
+			case ClientMessage.MsgCase.PING:
+				logger.trace("ping");
+				const srvMsg = new ServerMessage();
+				srvMsg.setPong(new Pong());
+				this.connection.send(srvMsg.serializeBinary());
+				break;
+			default:
+				throw new Error("unknown message type");
 		}
 	}
 
 	/**
 	 * Run a method on a proxy.
 	 */
-	private async runMethod(message: MethodMessage): Promise<void> {
+	private async runMethod(message: Method): Promise<void> {
 		const proxyMessage = message.getNamedProxy()! || message.getNumberedProxy()!;
 		const id = proxyMessage.getId();
 		const proxyId = message.hasNamedProxy()
 			? protoToModule(message.getNamedProxy()!.getModule())
 			: message.getNumberedProxy()!.getProxyId();
 		const method = proxyMessage.getMethod();
-		const args = proxyMessage.getArgsList().map((a) => parse(
+		const args = proxyMessage.getArgsList().map((a) => protoToArgument(
 			a,
 			(id, args) => this.sendCallback(proxyId, id, args),
 		));
@@ -133,7 +141,6 @@ export class Server {
 			field("id", id),
 			field("proxyId", proxyId),
 			field("method", method),
-			field("args", proxyMessage.getArgsList()),
 		]);
 
 		let response: any;
@@ -153,7 +160,7 @@ export class Server {
 
 			// Proxies must always return promises.
 			if (!isPromise(response)) {
-				throw new Error('"${method}" must return a promise');
+				throw new Error(`"${method}" must return a promise`);
 			}
 		} catch (error) {
 			logger.error(
@@ -175,27 +182,25 @@ export class Server {
 	 * Send a callback to the client.
 	 */
 	private sendCallback(proxyId: number | Module, callbackId: number, args: any[]): void {
-		const stringifiedArgs = args.map((a) => this.stringify(a));
 		logger.trace(() => [
 			"sending callback",
 			field("proxyId", proxyId),
 			field("callbackId", callbackId),
-			field("args", stringifiedArgs),
 		]);
 
-		const message = new CallbackMessage();
-		let callbackMessage: NamedCallbackMessage | NumberedCallbackMessage;
+		const message = new Callback();
+		let callbackMessage: Callback.Named | Callback.Numbered;
 		if (typeof proxyId === "string") {
-			callbackMessage = new NamedCallbackMessage();
+			callbackMessage = new Callback.Named();
 			callbackMessage.setModule(moduleToProto(proxyId));
 			message.setNamedCallback(callbackMessage);
 		} else  {
-			callbackMessage = new NumberedCallbackMessage();
+			callbackMessage = new Callback.Numbered();
 			callbackMessage.setProxyId(proxyId);
 			message.setNumberedCallback(callbackMessage);
 		}
 		callbackMessage.setCallbackId(callbackId);
-		callbackMessage.setArgsList(stringifiedArgs);
+		callbackMessage.setArgsList(args.map((a) => this.argumentToProto(a)));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setCallback(message);
@@ -203,15 +208,23 @@ export class Server {
 	}
 
 	/**
-	 * Store a proxy and bind events to send them back to the client.
+	 * Store a numbered proxy and bind events to send them back to the client.
 	 */
 	private storeProxy(instance: ServerProxy): number;
+	/**
+	 * Store a unique proxy and bind events to send them back to the client.
+	 */
 	private storeProxy(instance: any, moduleProxyId: Module): Module;
+	/**
+	 * Store a proxy and bind events to send them back to the client.
+	 */
 	private storeProxy(instance: ServerProxy | any, moduleProxyId?: Module): number | Module {
 		// In case we disposed while waiting for a function to return.
 		if (this.disconnected) {
 			if (isProxy(instance)) {
-				instance.dispose();
+				instance.dispose().catch((error) => {
+					logger.error(error.message);
+				});
 			}
 
 			throw new Error("disposed");
@@ -226,16 +239,22 @@ export class Server {
 		this.proxies.set(proxyId, { instance });
 
 		if (isProxy(instance)) {
-			instance.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args));
+			instance.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args)).catch((error) => {
+				logger.error(error.message);
+			});
 			instance.onDone(() => {
 				// It might have finished because we disposed it due to a disconnect.
 				if (!this.disconnected) {
 					this.sendEvent(proxyId, "done");
 					this.getProxy(proxyId).disposeTimeout = setTimeout(() => {
-						instance.dispose();
+						instance.dispose().catch((error) => {
+							logger.error(error.message);
+						});
 						this.removeProxy(proxyId);
 					}, this.responseTimeout);
 				}
+			}).catch((error) => {
+				logger.error(error.message);
 			});
 		}
 
@@ -246,27 +265,25 @@ export class Server {
 	 * Send an event to the client.
 	 */
 	private sendEvent(proxyId: number | Module, event: string, ...args: any[]): void {
-		const stringifiedArgs = args.map((a) => this.stringify(a));
 		logger.trace(() => [
 			"sending event",
 			field("proxyId", proxyId),
 			field("event", event),
-			field("args", stringifiedArgs),
 		]);
 
-		const message = new EventMessage();
-		let eventMessage: NamedEventMessage | NumberedEventMessage;
+		const message = new Event();
+		let eventMessage: Event.Named | Event.Numbered;
 		if (typeof proxyId === "string") {
-			eventMessage = new NamedEventMessage();
+			eventMessage = new Event.Named();
 			eventMessage.setModule(moduleToProto(proxyId));
 			message.setNamedEvent(eventMessage);
 		} else  {
-			eventMessage = new NumberedEventMessage();
+			eventMessage = new Event.Numbered();
 			eventMessage.setProxyId(proxyId);
 			message.setNumberedEvent(eventMessage);
 		}
 		eventMessage.setEvent(event);
-		eventMessage.setArgsList(stringifiedArgs);
+		eventMessage.setArgsList(args.map((a) => this.argumentToProto(a)));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setEvent(message);
@@ -277,16 +294,14 @@ export class Server {
 	 * Send a response back to the client.
 	 */
 	private sendResponse(id: number, response: any): void {
-		const stringifiedResponse = this.stringify(response);
 		logger.trace(() => [
 			"sending resolve",
 			field("id", id),
-			field("response", stringifiedResponse),
 		]);
 
-		const successMessage = new SuccessMessage();
+		const successMessage = new Method.Success();
 		successMessage.setId(id);
-		successMessage.setResponse(stringifiedResponse);
+		successMessage.setResponse(this.argumentToProto(response));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setSuccess(successMessage);
@@ -297,16 +312,14 @@ export class Server {
 	 * Send an exception back to the client.
 	 */
 	private sendException(id: number, error: Error): void {
-		const stringifiedError = stringify(error);
 		logger.trace(() => [
 			"sending reject",
 			field("id", id) ,
-			field("response", stringifiedError),
 		]);
 
-		const failedMessage = new FailMessage();
+		const failedMessage = new Method.Fail();
 		failedMessage.setId(id);
-		failedMessage.setResponse(stringifiedError);
+		failedMessage.setResponse(argumentToProto(error));
 
 		const serverMessage = new ServerMessage();
 		serverMessage.setFail(failedMessage);
@@ -327,10 +340,16 @@ export class Server {
 		]);
 	}
 
-	private stringify(value: any): string {
-		return stringify(value, undefined, (p) => this.storeProxy(p));
+	/**
+	 * Same as argumentToProto but provides storeProxy.
+	 */
+	private argumentToProto(value: any): Argument {
+		return argumentToProto(value, undefined, (p) => this.storeProxy(p));
 	}
 
+	/**
+	 * Get a proxy. Error if it doesn't exist.
+	 */
 	private getProxy(proxyId: number | Module): ProxyData {
 		if (!this.proxies.has(proxyId)) {
 			throw new Error(`proxy ${proxyId} disposed too early`);

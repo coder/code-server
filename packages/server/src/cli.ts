@@ -1,5 +1,5 @@
 import { field, logger } from "@coder/logger";
-import { ServerMessage, SharedProcessActiveMessage } from "@coder/protocol/src/proto";
+import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
 import { ChildProcess, fork, ForkOptions, spawn } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
@@ -145,7 +145,7 @@ if (isCli) {
 	logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
 	const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
-		const active = new SharedProcessActiveMessage();
+		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
 		active.setLogPath(logDir);
 		const serverMessage = new ServerMessage();

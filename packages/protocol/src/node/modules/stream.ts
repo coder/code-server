@@ -1,6 +1,8 @@
 import * as stream from "stream";
 import { ServerProxy } from "../../common/proxy";
 
+// tslint:disable completed-docs
+
 export class WritableProxy<T extends stream.Writable = stream.Writable> implements ServerProxy {
 	public constructor(protected readonly stream: T) {}
 
@@ -100,7 +102,7 @@ export class DuplexProxy<T extends stream.Duplex = stream.Duplex> extends Writab
 
 	// tslint:disable-next-line no-any
 	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		super.onEvent(cb);
+		await super.onEvent(cb);
 		this.stream.on("data", (chunk) => cb("data", chunk));
 		this.stream.on("end", () => cb("end"));
 	}
