@@ -29,21 +29,48 @@ const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
  * need a bunch of `then` calls everywhere.
  */
 export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
-	protected readonly proxy: T;
+	private _proxy: T | undefined;
 
 	/**
 	 * You can specify not to bind events in order to avoid emitting twice for
 	 * duplex streams.
 	 */
-	public constructor(proxyPromise: Promise<T> | T, bindEvents: boolean = true) {
+	public constructor(
+		proxyPromise: Promise<T> | T,
+		private readonly bindEvents: boolean = true,
+	) {
 		super();
-		this.proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
-		if (bindEvents) {
+		this.initialize(proxyPromise);
+		if (this.bindEvents) {
+			this.on("disconnected", (error) => {
+				try {
+					this.emit("error", error);
+				} catch (error) {
+					// If nothing is listening, EventEmitter will throw an error.
+				}
+				this.handleDisconnect();
+			});
+		}
+	}
+
+	protected get proxy(): T {
+		if (!this._proxy) {
+			throw new Error("not initialized");
+		}
+
+		return this._proxy;
+	}
+
+	protected initialize(proxyPromise: Promise<T> | T): void {
+		this._proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
+		if (this.bindEvents) {
 			this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
 			});
 		}
 	}
+
+	protected abstract handleDisconnect(): void;
 }
 
 /**
@@ -80,4 +107,75 @@ export enum Module {
 	Spdlog = "spdlog",
 	NodePty = "node-pty",
 	Trash = "trash",
+}
+
+interface BatchItem<T, A> {
+	args: A;
+	resolve: (t: T) => void;
+	reject: (e: Error) => void;
+}
+
+/**
+ * Batch remote calls.
+ */
+export abstract class Batch<T, A> {
+	private idleTimeout: number | NodeJS.Timer | undefined;
+	private maxTimeout: number | NodeJS.Timer | undefined;
+	private batch = <BatchItem<T, A>[]>[];
+
+	public constructor(
+		/**
+		 * Flush after reaching this amount of time.
+		 */
+		private readonly maxTime = 1000,
+		/**
+		 * Flush after reaching this count.
+		 */
+		private readonly maxCount = 100,
+		/**
+		 * Flush after not receiving more requests for this amount of time.
+		 */
+		private readonly idleTime = 100,
+	) {}
+
+	public add = (args: A): Promise<T> => {
+		return new Promise((resolve, reject) => {
+			this.batch.push({
+				args,
+				resolve,
+				reject,
+			});
+			if (this.batch.length >= this.maxCount) {
+				this.flush();
+			} else {
+				clearTimeout(this.idleTimeout as any);
+				this.idleTimeout = setTimeout(this.flush, this.idleTime);
+				if (typeof this.maxTimeout === "undefined") {
+					this.maxTimeout = setTimeout(this.flush, this.maxTime);
+				}
+			}
+		});
+	}
+
+	protected abstract remoteCall(batch: A[]): Promise<(T | Error)[]>;
+
+	private flush = (): void => {
+		clearTimeout(this.idleTimeout as any);
+		clearTimeout(this.maxTimeout as any);
+		this.maxTimeout = undefined;
+
+		const batch = this.batch;
+		this.batch = [];
+
+		this.remoteCall(batch.map((q) => q.args)).then((results) => {
+			batch.forEach((item, i) => {
+				const result = results[i];
+				if (result && result instanceof Error) {
+					item.reject(result);
+				} else {
+					item.resolve(result);
+				}
+			});
+		}).catch((error) => batch.forEach((item) => item.reject(error)));
+	}
 }

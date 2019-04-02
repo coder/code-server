@@ -1,7 +1,9 @@
 import * as cp from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
 import * as vm from "vm";
+import { logger } from "@coder/logger";
 import { buildDir, isCli } from "../constants";
 
 let ipcMsgBuffer: Buffer[] | undefined = [];
@@ -150,6 +152,13 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
+	}
+	if (args && args[0] === "--type=watcherService" && os.platform() === "linux") {
+		cp.exec(`renice -n 19 -p ${proc.pid}`, (error) => {
+			if (error) {
+				logger.warn(error.message);
+			}
+		});
 	}
 
 	return proc;

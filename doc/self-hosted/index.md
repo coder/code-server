@@ -6,7 +6,7 @@
 
 > NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
 
-This document pertains to Coder specific implementations of VS Code. For documentation on how to use VS Code itself, please refer to the official [documentation for VS Code](https://code.visualstudio.com/docs) 
+This document pertains to Coder specific implementations of VS Code. For documentation on how to use VS Code itself, please refer to the official [documentation for VS Code](https://code.visualstudio.com/docs)
 
 It takes just a few minutes to get your own self-hosted server running. If you've got a machine running macOS, Windows, or Linux, you're ready to start the binary which listens on port `8443` by default.
 
@@ -58,19 +58,20 @@ OPTIONS
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
 
   ### Host
-  By default, code-server will use `0.0.0.0` as its address. This can be changed by using `code-server -h` or `code-server --host=` followed by the address you want to use. 
+  By default, code-server will use `0.0.0.0` as its address. This can be changed by using `code-server -h` or `code-server --host=` followed by the address you want to use.
   > Example: `code-server -h 127.0.0.1`
 
   ### Open
   You can have the server automatically open the VS Code in your browser on startup by using the `code server -o` or `code-server --open` flags
 
-  ### Port  
-  By default, code-server will use `8443` as its port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use. 
+  ### Port
+  By default, code-server will use `8443` as its port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use.
   > Example: `code-server -p 9000`
 
   ### Cert and Cert Key
   To encrypt the traffic between the browser and server use `code-server --cert=` followed by the path to your `.cer` file. Additionally, you can use certificate keys with `code-server --cert-key` followed by the path to your `.key` file.
 > Example (certificate and key): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.cer --cert-key /etc/letsencrypt/live/example.com/fullchain.key`
+> Example (if you are using Letsencrypt or similar): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.pem --cert-key /etc/letsencrypt/live/example.com/privkey.key`
 
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 

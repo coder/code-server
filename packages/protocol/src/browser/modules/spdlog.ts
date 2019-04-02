@@ -3,6 +3,16 @@ import { ClientProxy } from "../../common/proxy";
 import { RotatingLoggerProxy, SpdlogModuleProxy } from "../../node/modules/spdlog";
 
 class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.RotatingLogger {
+	public constructor(
+		private readonly moduleProxy: SpdlogModuleProxy,
+		private readonly name: string,
+		private readonly filename: string,
+		private readonly filesize: number,
+		private readonly filecount: number,
+	) {
+		super(moduleProxy.createLogger(name, filename, filesize, filecount));
+	}
+
 	public async trace (message: string): Promise<void> { this.proxy.trace(message); }
 	public async debug (message: string): Promise<void> { this.proxy.debug(message); }
 	public async info (message: string): Promise<void> { this.proxy.info(message); }
@@ -13,6 +23,10 @@ class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.
 	public async clearFormatters (): Promise<void> { this.proxy.clearFormatters(); }
 	public async flush (): Promise<void> { this.proxy.flush(); }
 	public async drop (): Promise<void> { this.proxy.drop(); }
+
+	protected handleDisconnect(): void {
+		this.initialize(this.moduleProxy.createLogger(this.name, this.filename, this.filesize, this.filecount));
+	}
 }
 
 export class SpdlogModule {
@@ -21,7 +35,7 @@ export class SpdlogModule {
 	public constructor(private readonly proxy: SpdlogModuleProxy) {
 		this.RotatingLogger = class extends RotatingLogger {
 			public constructor(name: string, filename: string, filesize: number, filecount: number) {
-				super(proxy.createLogger(name, filename, filesize, filecount));
+				super(proxy, name, filename, filesize, filecount);
 			}
 		};
 	}
