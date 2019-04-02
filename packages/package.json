@@ -1,12 +1,10 @@
 {
   "scripts": {
     "postinstall": "../node_modules/.bin/ts-node ../scripts/install-packages.ts",
-    "test": "jest"
+    "test": "npx jest --verbose"
   },
   "devDependencies": {
-    "@types/jest": "^23.3.12",
-    "jest": "^23.6.0",
-    "ts-jest": "^23.10.5"
+    "@types/jest": "^23.3.12"
   },
   "dependencies": {
     "xmlhttprequest": "1.8.0"

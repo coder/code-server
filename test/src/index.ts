@@ -114,7 +114,7 @@ export class TestServer {
 			host: opts && opts.host ? opts.host : "ide.test.localhost",
 			port: opts && opts.port ? opts.port : 8443,
 			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
-			binaryHome: opts && opts.binaryHome ? opts.binaryHome : "../packages/server",
+			binaryHome: opts && opts.binaryHome ? opts.binaryHome : path.resolve(__dirname, "../../packages/server"),
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			http: opts && typeof opts.http !== "undefined" ? opts.http : true,
 			password: opts && opts.password ? opts.password : "",
