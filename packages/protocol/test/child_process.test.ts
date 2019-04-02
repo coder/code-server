@@ -10,7 +10,7 @@ describe("child_process", () => {
 	const cp = client.modules[Module.ChildProcess];
 
 	const getStdout = async (proc: ChildProcess): Promise<string> => {
-		return new Promise((r): Readable => proc.stdout.on("data", r))
+		return new Promise((r): Readable => proc.stdout!.on("data", r))
 		.then((s) => s.toString());
 	};
 
@@ -36,10 +36,10 @@ describe("child_process", () => {
 		it("should cat", async () => {
 			const proc = cp.spawn("cat", []);
 			expect(proc.pid).toBe(-1);
-			proc.stdin.write("banana");
+			proc.stdin!.write("banana");
 			await expect(getStdout(proc)).resolves.toBe("banana");
 
-			proc.stdin.end();
+			proc.stdin!.end();
 			proc.kill();
 
 			expect(proc.pid).toBeGreaterThan(-1);

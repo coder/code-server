@@ -2,6 +2,8 @@ import * as spdlog from "spdlog";
 import { ClientProxy } from "../../common/proxy";
 import { RotatingLoggerProxy, SpdlogModuleProxy } from "../../node/modules/spdlog";
 
+// tslint:disable completed-docs
+
 class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.RotatingLogger {
 	public constructor(
 		private readonly moduleProxy: SpdlogModuleProxy,
@@ -13,16 +15,16 @@ class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.
 		super(moduleProxy.createLogger(name, filename, filesize, filecount));
 	}
 
-	public async trace (message: string): Promise<void> { this.proxy.trace(message); }
-	public async debug (message: string): Promise<void> { this.proxy.debug(message); }
-	public async info (message: string): Promise<void> { this.proxy.info(message); }
-	public async warn (message: string): Promise<void> { this.proxy.warn(message); }
-	public async error (message: string): Promise<void> { this.proxy.error(message); }
-	public async critical (message: string): Promise<void> { this.proxy.critical(message); }
-	public async setLevel (level: number): Promise<void> { this.proxy.setLevel(level); }
-	public async clearFormatters (): Promise<void> { this.proxy.clearFormatters(); }
-	public async flush (): Promise<void> { this.proxy.flush(); }
-	public async drop (): Promise<void> { this.proxy.drop(); }
+	public trace (message: string): void { this.catch(this.proxy.trace(message)); }
+	public debug (message: string): void { this.catch(this.proxy.debug(message)); }
+	public info (message: string): void { this.catch(this.proxy.info(message)); }
+	public warn (message: string): void { this.catch(this.proxy.warn(message)); }
+	public error (message: string): void { this.catch(this.proxy.error(message)); }
+	public critical (message: string): void { this.catch(this.proxy.critical(message)); }
+	public setLevel (level: number): void { this.catch(this.proxy.setLevel(level)); }
+	public clearFormatters (): void { this.catch(this.proxy.clearFormatters()); }
+	public flush (): void { this.catch(this.proxy.flush()); }
+	public drop (): void { this.catch(this.proxy.drop()); }
 
 	protected handleDisconnect(): void {
 		this.initialize(this.moduleProxy.createLogger(this.name, this.filename, this.filesize, this.filecount));
@@ -40,7 +42,7 @@ export class SpdlogModule {
 		};
 	}
 
-	public setAsyncMode = (bufferSize: number, flushInterval: number): void => {
-		this.proxy.setAsyncMode(bufferSize, flushInterval);
+	public setAsyncMode = (bufferSize: number, flushInterval: number): Promise<void> => {
+		return this.proxy.setAsyncMode(bufferSize, flushInterval);
 	}
 }

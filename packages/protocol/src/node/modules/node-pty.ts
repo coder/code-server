@@ -4,6 +4,8 @@ import * as pty from "node-pty";
 import { ServerProxy } from "../../common/proxy";
 import { preserveEnv } from "../../common/util";
 
+// tslint:disable completed-docs
+
 /**
  * Server-side IPty proxy.
  */
@@ -22,7 +24,7 @@ export class NodePtyProcessProxy implements ServerProxy {
 			}
 		}, 200);
 
-		this.onDone(() => clearInterval(timer));
+		this.process.on("exit", () => clearInterval(timer));
 	}
 
 	public async getPid(): Promise<number> {
@@ -50,8 +52,8 @@ export class NodePtyProcessProxy implements ServerProxy {
 	}
 
 	public async dispose(): Promise<void> {
-		this.kill();
-		setTimeout(() => this.kill("SIGKILL"), 5000); // Double tap.
+		this.process.kill();
+		setTimeout(() => this.process.kill("SIGKILL"), 5000); // Double tap.
 		this.emitter.removeAllListeners();
 	}
 

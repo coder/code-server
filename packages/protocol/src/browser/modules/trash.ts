@@ -1,6 +1,8 @@
 import * as trash from "trash";
 import { TrashModuleProxy } from "../../node/modules/trash";
 
+// tslint:disable completed-docs
+
 export class TrashModule {
 	public constructor(private readonly proxy: TrashModuleProxy) {}
 

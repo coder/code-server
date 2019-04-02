@@ -3,6 +3,8 @@ import { callbackify } from "util";
 import { ClientProxy } from "../../common/proxy";
 import { DuplexProxy, IReadableProxy, WritableProxy } from "../../node/modules/stream";
 
+// tslint:disable completed-docs
+
 export class Writable<T extends WritableProxy = WritableProxy> extends ClientProxy<T> implements stream.Writable {
 	public get writable(): boolean {
 		throw new Error("not implemented");
@@ -41,13 +43,11 @@ export class Writable<T extends WritableProxy = WritableProxy> extends ClientPro
 	}
 
 	public destroy(): void {
-		this.proxy.destroy();
+		this.catch(this.proxy.destroy());
 	}
 
 	public setDefaultEncoding(encoding: string): this {
-		this.proxy.setDefaultEncoding(encoding);
-
-		return this;
+		return this.catch(this.proxy.setDefaultEncoding(encoding));
 	}
 
 	// tslint:disable-next-line no-any
@@ -151,13 +151,11 @@ export class Readable<T extends IReadableProxy = IReadableProxy> extends ClientP
 	}
 
 	public destroy(): void {
-		this.proxy.destroy();
+		this.catch(this.proxy.destroy());
 	}
 
 	public setEncoding(encoding: string): this {
-		this.proxy.setEncoding(encoding);
-
-		return this;
+		return this.catch(this.proxy.setEncoding(encoding));
 	}
 
 	protected handleDisconnect(): void {
@@ -236,9 +234,7 @@ export class Duplex<T extends DuplexProxy = DuplexProxy> extends Writable<T> imp
 	}
 
 	public setEncoding(encoding: string): this {
-		this.proxy.setEncoding(encoding);
-
-		return this;
+		return this.catch(this.proxy.setEncoding(encoding));
 	}
 
 	protected handleDisconnect(): void {

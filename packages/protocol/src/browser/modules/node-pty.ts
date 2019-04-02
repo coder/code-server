@@ -2,6 +2,8 @@ import * as pty from "node-pty";
 import { ClientProxy } from "../../common/proxy";
 import { NodePtyModuleProxy, NodePtyProcessProxy } from "../../node/modules/node-pty";
 
+// tslint:disable completed-docs
+
 export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements pty.IPty {
 	private _pid = -1;
 	private _process = "";
@@ -16,10 +18,10 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 		this.on("process", (process) => this._process = process);
 	}
 
-	protected initialize(proxyPromise: Promise<NodePtyProcessProxy>) {
+	protected initialize(proxyPromise: Promise<NodePtyProcessProxy>): void {
 		super.initialize(proxyPromise);
-		this.proxy.getPid().then((pid) => this._pid = pid);
-		this.proxy.getProcess().then((process) => this._process = process);
+		this.catch(this.proxy.getPid().then((p) => this._pid = p));
+		this.catch(this.proxy.getProcess().then((p) => this._process = p));
 	}
 
 	public get pid(): number {
@@ -31,15 +33,15 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 	}
 
 	public resize(columns: number, rows: number): void {
-		this.proxy.resize(columns, rows);
+		this.catch(this.proxy.resize(columns, rows));
 	}
 
 	public write(data: string): void {
-		this.proxy.write(data);
+		this.catch(this.proxy.write(data));
 	}
 
 	public kill(signal?: string): void {
-		this.proxy.kill(signal);
+		this.catch(this.proxy.kill(signal));
 	}
 
 	protected handleDisconnect(): void {

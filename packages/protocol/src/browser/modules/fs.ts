@@ -6,6 +6,7 @@ import { FsModuleProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "
 import { Writable  } from "./stream";
 
 // tslint:disable no-any
+// tslint:disable completed-docs
 
 class StatBatch extends Batch<IStats, { path: fs.PathLike }> {
 	public constructor(private readonly proxy: FsModuleProxy) {
@@ -39,7 +40,7 @@ class ReaddirBatch extends Batch<Buffer[] | fs.Dirent[] | string[], { path: fs.P
 
 class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 	public close(): void {
-		this.proxy.close();
+		this.catch(this.proxy.close());
 	}
 
 	protected handleDisconnect(): void {
@@ -57,7 +58,7 @@ class WriteStream extends Writable<WriteStreamProxy> implements fs.WriteStream {
 	}
 
 	public close(): void {
-		this.proxy.close();
+		this.catch(this.proxy.close());
 	}
 }
 

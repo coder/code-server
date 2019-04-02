@@ -4,6 +4,8 @@ import { ServerProxy } from "../../common/proxy";
 import { IEncodingOptions } from "../../common/util";
 import { WritableProxy } from "./stream";
 
+// tslint:disable completed-docs
+
 /**
  * A serializable version of fs.Stats.
  */
@@ -41,13 +43,13 @@ export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
 	}
 
 	public async dispose(): Promise<void> {
-		super.dispose();
+		await super.dispose();
 		this.stream.close();
 	}
 
 	// tslint:disable-next-line no-any
 	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		super.onEvent(cb);
+		await super.onEvent(cb);
 		this.stream.on("open", (fd) => cb("open", fd));
 	}
 }
@@ -109,7 +111,7 @@ export class FsModuleProxy {
 	}
 
 	public exists(path: fs.PathLike): Promise<boolean> {
-		return promisify(fs.exists)(path);
+		return promisify(fs.exists)(path); // tslint:disable-line deprecation
 	}
 
 	public fchmod(fd: number, mode: string | number): Promise<void> {
@@ -173,7 +175,7 @@ export class FsModuleProxy {
 	}
 
 	public read(fd: number, length: number, position: number | null): Promise<{ bytesRead: number, buffer: Buffer }> {
-		const buffer = new Buffer(length);
+		const buffer = Buffer.alloc(length);
 
 		return promisify(fs.read)(fd, buffer, 0, length, position);
 	}

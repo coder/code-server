@@ -3,6 +3,8 @@ import { ServerProxy } from "../../common/proxy";
 import { preserveEnv } from "../../common/util";
 import { WritableProxy, ReadableProxy } from "./stream";
 
+// tslint:disable completed-docs
+
 export type ForkProvider = (modulePath: string, args?: string[], options?: cp.ForkOptions) => cp.ChildProcess;
 
 export class ChildProcessProxy implements ServerProxy {
@@ -26,7 +28,7 @@ export class ChildProcessProxy implements ServerProxy {
 
 	// tslint:disable-next-line no-any
 	public async send(message: any): Promise<void> {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject): void => {
 			this.process.send(message, (error) => {
 				if (error) {
 					reject(error);
@@ -46,8 +48,8 @@ export class ChildProcessProxy implements ServerProxy {
 	}
 
 	public async dispose(): Promise<void> {
-		this.kill();
-		setTimeout(() => this.kill("SIGKILL"), 5000); // Double tap.
+		this.process.kill();
+		setTimeout(() => this.process.kill("SIGKILL"), 5000); // Double tap.
 	}
 
 	// tslint:disable-next-line no-any
@@ -62,9 +64,9 @@ export class ChildProcessProxy implements ServerProxy {
 
 export interface ChildProcessProxies {
 	childProcess: ChildProcessProxy;
-	stdin?: WritableProxy;
-	stdout?: ReadableProxy;
-	stderr?: ReadableProxy;
+	stdin?: WritableProxy | null;
+	stdout?: ReadableProxy | null;
+	stderr?: ReadableProxy | null;
 }
 
 export class ChildProcessModuleProxy {

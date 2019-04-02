@@ -61,16 +61,34 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		return this._proxy;
 	}
 
+	/**
+	 * Initialize the proxy by unpromisifying if necessary and binding to its
+	 * events.
+	 */
 	protected initialize(proxyPromise: Promise<T> | T): void {
 		this._proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
 		if (this.bindEvents) {
-			this.proxy.onEvent((event, ...args): void => {
+			this.catch(this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
-			});
+			}));
 		}
 	}
 
+	/**
+	 * Perform necessary cleanup on disconnect (or reconnect).
+	 */
 	protected abstract handleDisconnect(): void;
+
+	/**
+	 * Emit an error event if the promise errors.
+	 */
+	protected catch(promise?: Promise<any>): this {
+		if (promise) {
+			promise.catch((e) => this.emit("error", e));
+		}
+
+		return this;
+	}
 }
 
 /**
@@ -81,6 +99,9 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
  * from those child proxies and fail to dispose them properly.
  */
 export interface ServerProxy {
+	/**
+	 * Dispose the proxy.
+	 */
 	dispose(): Promise<void>;
 
 	/**
@@ -100,6 +121,9 @@ export interface ServerProxy {
 	onEvent(cb: (event: string, ...args: any[]) => void): Promise<void>;
 }
 
+/**
+ * Supported top-level module proxies.
+ */
 export enum Module {
 	Fs = "fs",
 	ChildProcess = "child_process",
@@ -127,19 +151,19 @@ export abstract class Batch<T, A> {
 		/**
 		 * Flush after reaching this amount of time.
 		 */
-		private readonly maxTime = 1000,
+		private readonly maxTime: number = 1000,
 		/**
 		 * Flush after reaching this count.
 		 */
-		private readonly maxCount = 100,
+		private readonly maxCount: number = 100,
 		/**
 		 * Flush after not receiving more requests for this amount of time.
 		 */
-		private readonly idleTime = 100,
+		private readonly idleTime: number = 100,
 	) {}
 
 	public add = (args: A): Promise<T> => {
-		return new Promise((resolve, reject) => {
+		return new Promise((resolve, reject): void => {
 			this.batch.push({
 				args,
 				resolve,
@@ -157,9 +181,15 @@ export abstract class Batch<T, A> {
 		});
 	}
 
+	/**
+	 * Perform remote call for a batch.
+	 */
 	protected abstract remoteCall(batch: A[]): Promise<(T | Error)[]>;
 
-	private flush = (): void => {
+	/**
+	 * Flush out the current batch.
+	 */
+	private readonly flush = (): void => {
 		clearTimeout(this.idleTimeout as any);
 		clearTimeout(this.maxTimeout as any);
 		this.maxTimeout = undefined;
