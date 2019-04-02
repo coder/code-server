@@ -209,7 +209,7 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 
 const ensureClean = register("vscode:clean", async (runner) => {
 	if (ifCiAndVsc("vscode")) {
-		const reset = await runner.execute("git", ["reset", "--hard", vscodeVersion]);
+		const reset = await runner.execute("git", ["reset", "--hard", "HEAD"]);
 		if (reset.exitCode !== 0) {
 			throw new Error(`Failed to reset git repository: ${reset.stderr}`);
 		}
