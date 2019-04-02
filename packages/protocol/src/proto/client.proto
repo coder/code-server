@@ -6,7 +6,7 @@ import "vscode.proto";
 message ClientMessage {
 	oneof msg {
 		// node.proto
-		MethodMessage method = 20;
+		Method method = 20;
 		Ping ping = 21;
 	}
 }
@@ -15,20 +15,20 @@ message ClientMessage {
 message ServerMessage {
 	oneof msg {
 		// node.proto
-		FailMessage fail = 13;
-		SuccessMessage success = 14;
-		EventMessage event = 19;
-		CallbackMessage callback = 22;
+		Method.Fail fail = 13;
+		Method.Success success = 14;
+		Event event = 19;
+		Callback callback = 22;
 		Pong pong = 18;
 
-		WorkingInitMessage init = 16;
+		WorkingInit init = 16;
 
 		// vscode.proto
-		SharedProcessActiveMessage shared_process_active = 17;
+		SharedProcessActive shared_process_active = 17;
 	}
 }
 
-message WorkingInitMessage {
+message WorkingInit {
 	string home_directory = 1;
 	string tmp_directory = 2;
 	string data_directory = 3;

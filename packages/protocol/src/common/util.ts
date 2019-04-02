@@ -1,4 +1,4 @@
-import { Module as ProtoModule, WorkingInitMessage } from "../proto";
+import { Argument, Module as ProtoModule, WorkingInit } from "../proto";
 import { OperatingSystem } from "../common/connection";
 import { Module, ServerProxy } from "./proxy";
 
@@ -29,227 +29,144 @@ export type IEncodingOptions = {
 
 export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoException, ...args: any[]) => void);
 
-interface StringifiedError {
-	type: "error";
-	data: {
-		message: string;
-		stack?: string;
-		code?: string;
-	};
-}
-
-interface StringifiedBuffer {
-	type: "buffer";
-	data: number[];
-}
-
-interface StringifiedObject {
-	type: "object";
-	data: { [key: string]: StringifiedValue };
-}
-
-interface StringifiedArray {
-	type: "array";
-	data: StringifiedValue[];
-}
-
-interface StringifiedProxy {
-	type: "proxy";
-	data: {
-		id: number;
-	};
-}
-
-interface StringifiedFunction {
-	type: "function";
-	data: {
-		id: number;
-	};
-}
-
-interface StringifiedUndefined {
-	type: "undefined";
-}
-
-type StringifiedValue = StringifiedFunction | StringifiedProxy
-	| StringifiedUndefined | StringifiedObject | StringifiedArray
-	| StringifiedBuffer | StringifiedError | number | string | boolean | null;
-
-const isPrimitive = (value: any): value is number | string | boolean | null => {
-	return typeof value === "number"
-		|| typeof value === "string"
-		|| typeof value === "boolean"
-		|| value === null;
-};
-
 /**
- * Stringify an argument or a return value.
+ * Convert an argument to proto.
  * If sending a function is possible, provide `storeFunction`.
  * If sending a proxy is possible, provide `storeProxy`.
  */
-export const stringify = (
+export const argumentToProto = (
 	value: any,
 	storeFunction?: (fn: () => void) => number,
 	storeProxy?: (proxy: ServerProxy) => number,
-): string => {
-	const convert = (currentValue: any): StringifiedValue => {
-		// Errors don't stringify at all. They just become "{}".
-		// For some reason when running in Jest errors aren't instances of Error,
-		// so also check against the values.
+): Argument => {
+	const convert = (currentValue: any): Argument => {
+		const message = new Argument();
+
 		if (currentValue instanceof Error
 			|| (currentValue && typeof currentValue.message !== "undefined"
 				&& typeof currentValue.stack !== "undefined")) {
-			return {
-				type: "error",
-				data: {
-					message: currentValue.message,
-					stack: currentValue.stack,
-					code: (currentValue as NodeJS.ErrnoException).code,
-				},
-			};
-		}
-
-		// With stringify, Uint8Array gets turned into objects with each index
-		// becoming a key for some reason. Then trying to do something like write
-		// that data results in [object Object] being written. Stringify them like
-		// a Buffer instead. Also handle Buffer so it doesn't get caught by the
-		// object check and to get the same type.
-		if (currentValue instanceof Uint8Array || currentValue instanceof Buffer) {
-			return {
-				type: "buffer",
-				data: Array.from(currentValue),
-			};
-		}
-
-		if (Array.isArray(currentValue)) {
-			return {
-				type: "array",
-				data: currentValue.map((a) => convert(a)),
-			};
-		}
-
-		if (isProxy(currentValue)) {
+			const arg = new Argument.ErrorValue();
+			arg.setMessage(currentValue.message);
+			arg.setStack(currentValue.stack);
+			arg.setCode(currentValue.code);
+			message.setError(arg);
+		} else if (currentValue instanceof Uint8Array || currentValue instanceof Buffer) {
+			const arg = new Argument.BufferValue();
+			arg.setData(currentValue);
+			message.setBuffer(arg);
+		} else if (Array.isArray(currentValue)) {
+			const arg = new Argument.ArrayValue();
+			arg.setDataList(currentValue.map(convert));
+			message.setArray(arg);
+		} else if (isProxy(currentValue)) {
 			if (!storeProxy) {
 				throw new Error("no way to serialize proxy");
 			}
-
-			return {
-				type: "proxy",
-				data: {
-					id: storeProxy(currentValue),
-				},
-			};
-		}
-
-		if (currentValue !== null && typeof currentValue === "object") {
-			const converted: { [key: string]: StringifiedValue } = {};
+			const arg = new Argument.ProxyValue();
+			arg.setId(storeProxy(currentValue));
+			message.setProxy(arg);
+		} else if (currentValue !== null && typeof currentValue === "object") {
+			const arg = new Argument.ObjectValue();
+			const map = arg.getDataMap();
 			Object.keys(currentValue).forEach((key) => {
-				converted[key] = convert(currentValue[key]);
+				map.set(key, convert(currentValue[key]));
 			});
-
-			return {
-				type: "object",
-				data: converted,
-			};
-		}
-
-		// `undefined` can't be stringified.
-		if (typeof currentValue === "undefined") {
-			return {
-				type: "undefined",
-			};
-		}
-
-		if (typeof currentValue === "function") {
-			if (!storeFunction) {
-				throw new Error("no way to serialize function");
+			message.setObject(arg);
+		} else if (currentValue === null) {
+			message.setNull(new Argument.NullValue());
+		} else {
+			switch (typeof currentValue) {
+				case "undefined":
+					message.setUndefined(new Argument.UndefinedValue());
+					break;
+				case "function":
+					if (!storeFunction) {
+						throw new Error("no way to serialize function");
+					}
+					const arg = new Argument.FunctionValue();
+					arg.setId(storeFunction(currentValue));
+					message.setFunction(arg);
+					break;
+				case "number":
+					message.setNumber(currentValue);
+					break;
+				case "string":
+					message.setString(currentValue);
+					break;
+				case "boolean":
+					message.setBoolean(currentValue);
+					break;
+				default:
+					throw new Error(`cannot convert ${typeof currentValue} to proto`);
 			}
-
-			return {
-				type: "function",
-				data: {
-					id: storeFunction(currentValue),
-				},
-			};
 		}
 
-		if (!isPrimitive(currentValue)) {
-			throw new Error(`cannot stringify ${typeof currentValue}`);
-		}
-
-		return currentValue;
+		return message;
 	};
 
-	return JSON.stringify(convert(value));
+	return convert(value);
 };
 
 /**
- * Parse an argument.
+ * Convert proto to an argument.
  * If running a remote callback is supported, provide `runCallback`.
  * If using a remote proxy is supported, provide `createProxy`.
  */
-export const parse = (
-	value?: string,
+export const protoToArgument = (
+	message?: Argument,
 	runCallback?: (id: number, args: any[]) => void,
 	createProxy?: (id: number) => ServerProxy,
 ): any => {
-	const convert = (currentValue: StringifiedValue): any => {
-		if (currentValue && !isPrimitive(currentValue)) {
-			// Would prefer a switch but the types don't seem to work.
-			if (currentValue.type === "buffer") {
-				return Buffer.from(currentValue.data);
-			}
-
-			if (currentValue.type === "error") {
-				const error = new Error(currentValue.data.message);
-				if (typeof currentValue.data.code !== "undefined") {
-					(error as NodeJS.ErrnoException).code = currentValue.data.code;
-				}
-				(error as any).originalStack = currentValue.data.stack;
+	const convert = (currentMessage: Argument): any => {
+		switch (currentMessage.getMsgCase()) {
+			case Argument.MsgCase.ERROR:
+				const errorMessage = currentMessage.getError()!;
+				const error = new Error(errorMessage.getMessage());
+				(error as NodeJS.ErrnoException).code = errorMessage.getCode();
+				(error as any).originalStack = errorMessage.getStack();
 
 				return error;
-			}
+			case Argument.MsgCase.BUFFER:
+				return Buffer.from(currentMessage.getBuffer()!.getData() as Uint8Array);
+			case Argument.MsgCase.ARRAY:
+				return currentMessage.getArray()!.getDataList().map((a) => convert(a));
+			case Argument.MsgCase.PROXY:
+				if (!createProxy) {
+					throw new Error("no way to create proxy");
+				}
 
-			if (currentValue.type === "object") {
-				const converted: { [key: string]: any } = {};
-				Object.keys(currentValue.data).forEach((key) => {
-					converted[key] = convert(currentValue.data[key]);
+				return createProxy(currentMessage.getProxy()!.getId());
+			case Argument.MsgCase.OBJECT:
+				const obj: { [Key: string]: any } = {};
+				currentMessage.getObject()!.getDataMap().forEach((argument, key) => {
+					obj[key] = convert(argument);
 				});
 
-				return converted;
-			}
-
-			if (currentValue.type === "array") {
-				return currentValue.data.map(convert);
-			}
-
-			if (currentValue.type === "undefined") {
+				return obj;
+			case Argument.MsgCase.UNDEFINED:
 				return undefined;
-			}
-
-			if (currentValue.type === "function") {
+			case Argument.MsgCase.NULL:
+				return null;
+			case Argument.MsgCase.FUNCTION:
 				if (!runCallback) {
 					throw new Error("no way to run remote callback");
 				}
 
 				return (...args: any[]): void => {
-					return runCallback(currentValue.data.id, args);
+					return runCallback(currentMessage.getFunction()!.getId(), args);
 				};
-			}
-
-			if (currentValue.type === "proxy") {
-				if (!createProxy) {
-					throw new Error("no way to create proxy");
-				}
-
-				return createProxy(currentValue.data.id);
-			}
+			case Argument.MsgCase.NUMBER:
+				return currentMessage.getNumber();
+			case Argument.MsgCase.STRING:
+				return currentMessage.getString();
+			case Argument.MsgCase.BOOLEAN:
+				return currentMessage.getBoolean();
+			default:
+				throw new Error("cannot convert unexpected proto to argument");
 		}
-
-		return currentValue;
 	};
 
-	return value && convert(JSON.parse(value));
+	return message && convert(message);
 };
 
 export const protoToModule = (protoModule: ProtoModule): Module => {
@@ -276,20 +193,20 @@ export const moduleToProto = (moduleName: Module): ProtoModule => {
 	}
 };
 
-export const protoToOperatingSystem = (protoOp: WorkingInitMessage.OperatingSystem): OperatingSystem => {
+export const protoToOperatingSystem = (protoOp: WorkingInit.OperatingSystem): OperatingSystem => {
 	switch (protoOp) {
-		case WorkingInitMessage.OperatingSystem.WINDOWS: return OperatingSystem.Windows;
-		case WorkingInitMessage.OperatingSystem.LINUX: return OperatingSystem.Linux;
-		case WorkingInitMessage.OperatingSystem.MAC: return OperatingSystem.Mac;
+		case WorkingInit.OperatingSystem.WINDOWS: return OperatingSystem.Windows;
+		case WorkingInit.OperatingSystem.LINUX: return OperatingSystem.Linux;
+		case WorkingInit.OperatingSystem.MAC: return OperatingSystem.Mac;
 		default: throw new Error(`unsupported operating system ${protoOp}`);
 	}
 };
 
-export const platformToProto = (platform: NodeJS.Platform): WorkingInitMessage.OperatingSystem => {
+export const platformToProto = (platform: NodeJS.Platform): WorkingInit.OperatingSystem => {
 	switch (platform) {
-		case "win32": return WorkingInitMessage.OperatingSystem.WINDOWS;
-		case "linux": return WorkingInitMessage.OperatingSystem.LINUX;
-		case "darwin": return WorkingInitMessage.OperatingSystem.MAC;
+		case "win32": return WorkingInit.OperatingSystem.WINDOWS;
+		case "linux": return WorkingInit.OperatingSystem.LINUX;
+		case "darwin": return WorkingInit.OperatingSystem.MAC;
 		default: throw new Error(`unrecognized platform "${platform}"`);
 	}
 };
