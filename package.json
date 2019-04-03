@@ -21,7 +21,6 @@
     "cross-env": "^5.2.0",
     "crypto-browserify": "^3.12.0",
     "css-loader": "^2.1.0",
-    "decompress": "^4.2.0",
     "file-loader": "^3.0.1",
     "fork-ts-checker-webpack-plugin": "^0.5.2",
     "fs-extra": "^7.0.1",
