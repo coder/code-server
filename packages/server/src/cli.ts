@@ -39,7 +39,7 @@ Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
 }
-
+// Makes strings or numbers bold in stdout
 const bold = (text: string | number): string | number => {
 	return `\u001B[1m${text}\u001B[0m`;
 };
