@@ -39,3 +39,4 @@ cache:
   yarn: true
   directories:
   - lib
+  - .cache

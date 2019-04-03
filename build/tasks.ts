@@ -208,6 +208,7 @@ const ensureCloned = register("vscode:clone", async (runner) => {
 });
 
 const ensureClean = register("vscode:clean", async (runner) => {
+	runner.cwd = vscodePath;
 	if (ifCiAndVsc("vscode")) {
 		const reset = await runner.execute("git", ["reset", "--hard", "HEAD"]);
 		if (reset.exitCode !== 0) {
@@ -216,7 +217,6 @@ const ensureClean = register("vscode:clean", async (runner) => {
 
 		return;
 	}
-	runner.cwd = vscodePath;
 
 	const status = await runner.execute("git", ["status", "--porcelain"]);
 	if (status.stdout.trim() !== "") {
