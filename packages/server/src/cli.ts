@@ -240,7 +240,7 @@ const bold = (text: string | number): string | number => {
 	});
 	app.wss.on("error", (err: {code: string}) => {
 		if (err.code === "EADDRINUSE") {
-			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify another with the -p flag`);
+			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
 			process.exit(1);
 		}
 	});

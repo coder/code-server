@@ -148,7 +148,6 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 				handleTunnel(ws, port);
 			} catch (ex) {
-				console.log("test")
 				ws.close(TunnelCloseCode.Error, ex.toString());
 			}
 
