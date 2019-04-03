@@ -7,6 +7,7 @@ assignees: ''
 ---
 
 <!-- Please search existing issues to avoid creating duplicates. -->
+<!-- Issues with ide.coder.com should be made here https://github.com/codercom/bugs/issues. -->
 <!-- All extension-specific issues should be created with the `Extension Bug` template. -->
 
 - `code-server` version: <!-- The version of code-server -->

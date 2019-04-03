@@ -37,24 +37,33 @@ code-server can be ran with a number of arguments to customize your working dire
 USAGE
   $ code-server [WORKDIR]
 
-ARGUMENTS
-  WORKDIR  [default: (directory to binary)] Specify working dir
+Run VS Code on a remote server.
 
-OPTIONS
-  -d, --data-dir=data-dir
-  -h, --host=host          [default: 0.0.0.0]
-  -o, --open               Open in browser on startup
-  -p, --port=port          [default: 8443] Port to bind on
-  -v, --version            show CLI version
-  --allow-http
-  --cert=cert
-  --cert-key=cert-key
-  --help                   show CLI help
-  --no-auth
-  --password=password
+Options:
+  -V, --version               output the version number
+  --cert <value>              
+  --cert-key <value>          
+  -e, --extensions-dir <dir>  Set the root path for extensions.
+  -d --user-data-dir <dir>    	Specifies the directory that user data is kept in, useful when running as root.
+  --data-dir <value>          DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.
+  -h, --host <value>          Customize the hostname. (default: "0.0.0.0")
+  -o, --open                  Open in the browser on startup.
+  -p, --port <number>         Port to bind on. (default: 8443)
+  -N, --no-auth               Start without requiring authentication.
+  -H, --allow-http            Allow http connections.
+  -P, --password <value>      Specify a password for authentication.
+  --bootstrap-fork <name>     Used for development. Never set.
+  --fork <name>               Used for development. Never set.
+  --extra-args <args>         Used for development. Never set.
+  -h, --help                  output usage information
   ```
+  ### Extension Directory
+  Point code-server at a local directory with installed extensions. This allows inheriting local VSCode extensions by specifying `--extensions-dir ~/.vscode/extensions`
 
-  ### Data Directory
+  ### User Data Directory
+  Specify the root folder that VS Code will start in. This allows inheriting local VS Code configuration. Example `--user-data-dir ~/.config/User`
+
+  ### Data Directory (*deprecated*)
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
 
   ### Host
