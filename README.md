@@ -66,7 +66,7 @@ How to [secure your setup](/doc/security/ssl.md).
 - Electron and Chrome OS applications to bridge the gap between local<->remote.
 - Run VS Code unit tests against our builds to ensure features work as expected.
 
-## Extensions
+### Extensions
 
 At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
 
