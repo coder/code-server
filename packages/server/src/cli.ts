@@ -225,7 +225,6 @@ const bold = (text: string | number): string | number => {
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
 	app.server.listen(options.port, options.host);
 	let clientId = 1;
-
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
 
