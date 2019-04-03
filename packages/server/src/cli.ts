@@ -15,7 +15,6 @@ import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
 import * as commander from "commander";
-import { forEach } from 'vs/base/common/collections';
 
 commander.version(process.env.VERSION || "development")
 	.name("code-server")
