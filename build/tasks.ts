@@ -138,16 +138,9 @@ const ensureInstalled = register("vscode:install", async (runner) => {
 		if (pkgVersion === vscodeVersion) {
 			runner.cwd = vscodePath;
 
-			const status = await runner.execute("git", ["status", "--porcelain"]);
-			if (status.stdout.trim() !== "") {
-				const clean = await runner.execute("git", ["clean", "-f", "-d", "-X"]);
-				if (clean.exitCode !== 0) {
-					throw new Error(`Failed to clean git repository: ${clean.stderr}`);
-				}
-				const removeUnstaged = await runner.execute("git", ["checkout", "--", "."]);
-				if (removeUnstaged.exitCode !== 0) {
-					throw new Error(`Failed to remove unstaged files: ${removeUnstaged.stderr}`);
-				}
+			const reset = await runner.execute("git", ["reset", "--hard"]);
+			if (reset.exitCode !== 0) {
+				throw new Error(`Failed to clean git repository: ${reset.stderr}`);
 			}
 
 			return;
