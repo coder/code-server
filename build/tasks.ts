@@ -174,7 +174,7 @@ const buildDefaultExtensions = register("build:default-extensions", async (runne
 
 const ensureInstalled = register("vscode:install", async (runner) => {
 	await ensureCloned();
-	if (ifCiAndVsc("vscode")) {
+	if (ifCiAndVsc("vscode") && fs.existsSync(path.join(vscodePath, "node_modules"))) {
 		return;
 	}
 
