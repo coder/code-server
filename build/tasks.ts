@@ -136,6 +136,20 @@ const ensureInstalled = register("vscode:install", async (runner) => {
 	if (fs.existsSync(vscodePath) && fs.existsSync(defaultExtensionsPath)) {
 		const pkgVersion = JSON.parse(fs.readFileSync(path.join(vscodePath, "package.json")).toString("utf8")).version;
 		if (pkgVersion === vscodeVersion) {
+			runner.cwd = vscodePath;
+
+			const status = await runner.execute("git", ["status", "--porcelain"]);
+			if (status.stdout.trim() !== "") {
+				const clean = await runner.execute("git", ["clean", "-f", "-d", "-X"]);
+				if (clean.exitCode !== 0) {
+					throw new Error(`Failed to clean git repository: ${clean.stderr}`);
+				}
+				const removeUnstaged = await runner.execute("git", ["checkout", "--", "."]);
+				if (removeUnstaged.exitCode !== 0) {
+					throw new Error(`Failed to remove unstaged files: ${removeUnstaged.stderr}`);
+				}
+			}
+
 			return;
 		}
 	}
@@ -201,25 +215,5 @@ register("package", async (runner, releaseTag) => {
 		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
 		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
 });
-
-/**
- * If we're in the CI and the VS Code version is the same,
- * then we don't need to rebuild.
- */
-const ifCiAndVsc = (vscName: "vscode" | "vscode-default-extensions"): boolean => {
-	if (process.env.CI) {
-		try {
-			const packageJson = path.join(libPath, vscName, "package.json");
-			const version = JSON.parse(fs.readFileSync(packageJson).toString("utf8")).version;
-			if (version === vscodeVersion) {
-				return true;
-			}
-		} catch (ex) {
-			// Nothin. Will return false below
-		}
-	}
-
-	return false;
-};
 
 run();

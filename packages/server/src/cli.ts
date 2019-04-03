@@ -49,8 +49,6 @@ if (isCli) {
 		readonly host: string;
 		readonly port: number;
 
-		readonly extensionsDir?: string;
-		readonly userDataDir?: string;
 		readonly dataDir?: string;
 		readonly password?: string;
 		readonly open?: boolean;
@@ -66,10 +64,6 @@ if (isCli) {
 	// tslint:disable-next-line:no-any
 	const noAuthValue = (commander as any).auth;
 	options.noAuth = !noAuthValue;
-
-	if (options.dataDir) {
-		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
-	}
 
 	const dataDir = path.resolve(options.dataDir || path.join(dataHome, "code-server"));
 	const workingDir = path.resolve(args[0] || process.cwd());
