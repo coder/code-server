@@ -38,6 +38,10 @@ Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
 }
+// Makes strings or numbers bold in stdout
+const bold = (text: string | number): string | number => {
+	return `\u001B[1m${text}\u001B[0m`;
+};
 
 (async (): Promise<void> => {
 	const args = commander.args;
@@ -234,7 +238,12 @@ if (isCli) {
 			logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
 		});
 	});
-
+	app.wss.on("error", (err: NodeJS.ErrnoException) => {
+		if (err.code === "EADDRINUSE") {
+			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
+			process.exit(1);
+		}
+	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
