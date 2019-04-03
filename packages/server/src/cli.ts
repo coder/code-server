@@ -22,6 +22,8 @@ commander.version(process.env.VERSION || "development")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
 	.option("-d, --data-dir <value>", "Customize where user-data is stored.")
+	.option("-e --extensions-dir <value>", "Set the root path for extensions.")
+	.option("-u --user-data-dir <value>", "Specifies the directory that user data is kept in, useful when running as root.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
 	.option("-p, --port <number>", "Port to bind on.", 8443)
@@ -47,6 +49,8 @@ if (isCli) {
 		readonly host: string;
 		readonly port: number;
 
+		readonly extensionsDir?: string;
+		readonly userDataDir?: string;
 		readonly dataDir?: string;
 		readonly password?: string;
 		readonly open?: boolean;
@@ -62,6 +66,10 @@ if (isCli) {
 	// tslint:disable-next-line:no-any
 	const noAuthValue = (commander as any).auth;
 	options.noAuth = !noAuthValue;
+
+	if (options.dataDir) {
+		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
+	}
 
 	const dataDir = path.resolve(options.dataDir || path.join(dataHome, "code-server"));
 	const workingDir = path.resolve(args[0] || process.cwd());

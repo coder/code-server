@@ -40,5 +40,4 @@ cache:
   yarn: true
   timeout: 1000
   directories:
-  - lib
   - .cache
