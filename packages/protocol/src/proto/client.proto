@@ -41,4 +41,5 @@ message WorkingInit {
 	OperatingSystem operating_system = 5;
 	string shell = 6;
 	string builtin_extensions_dir = 7;
+	string extensions_directory = 8;
 }
