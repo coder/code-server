@@ -239,7 +239,7 @@ const bold = (text: string | number): string | number => {
 		});
 	});
 	app.wss.on("error", (err: NodeJS.ErrnoException) => {
-		if (err) {
+		if (err.code === "EADDRINUSE") {
 			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
 			process.exit(1);
 		}
