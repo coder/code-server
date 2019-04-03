@@ -50,6 +50,8 @@
     "webpack-dev-middleware": "^3.5.0",
     "webpack-dev-server": "^3.1.14",
     "webpack-hot-middleware": "^2.24.3",
+    "webpack-pwa-manifest": "^4.0.0",
+    "workbox-webpack-plugin": "^4.1.0",
     "write-file-webpack-plugin": "^4.5.0"
   },
   "dependencies": {
