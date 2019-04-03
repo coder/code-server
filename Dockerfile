@@ -25,10 +25,11 @@ RUN apt-get update && apt-get install -y \
 	openssl \
 	net-tools \
 	git \
-	locales
+	locales \
+	dumb-init
 RUN locale-gen en_US.UTF-8
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
 ENV LC_ALL=en_US.UTF-8 
-ENTRYPOINT ["code-server"]
+ENTRYPOINT ["/usr/bin/dumb-init", "code-server"]
