@@ -238,8 +238,8 @@ const bold = (text: string | number): string | number => {
 			logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
 		});
 	});
-	app.wss.on("error", (err: {code: string}) => {
-		if (err.code === "EADDRINUSE") {
+	app.wss.on("error", (err: NodeJS.ErrnoException) => {
+		if (err) {
 			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
 			process.exit(1);
 		}
