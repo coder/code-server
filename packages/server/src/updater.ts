@@ -20,8 +20,12 @@ export const getRecentRelease = (): Promise<string> => {
 			});
 
 			res.on("end", () => {
-				const release = JSON.parse(body);
-				resolve(release.name);
+				try {
+					const release = JSON.parse(body);
+					resolve(release.name);
+				} catch (err) {
+					reject(err);
+				}
 			});
 		});
 	});
