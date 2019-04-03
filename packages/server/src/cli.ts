@@ -15,6 +15,7 @@ import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
 import * as commander from "commander";
+import { forEach } from 'vs/base/common/collections';
 
 commander.version(process.env.VERSION || "development")
 	.name("code-server")
@@ -38,6 +39,10 @@ Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
 }
+
+const bold = (text: string | number): string | number => {
+	return `\u001B[1m${text}\u001B[0m`;
+};
 
 (async (): Promise<void> => {
 	const args = commander.args;
@@ -221,6 +226,7 @@ if (isCli) {
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
 	app.server.listen(options.port, options.host);
 	let clientId = 1;
+
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
 
@@ -234,7 +240,12 @@ if (isCli) {
 			logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
 		});
 	});
-
+	app.wss.on("error", (err: {code: string}) => {
+		if (err.code === "EADDRINUSE") {
+			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify another with the -p flag`);
+			process.exit(1);
+		}
+	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
