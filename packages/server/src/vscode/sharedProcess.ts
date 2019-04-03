@@ -115,8 +115,10 @@ export class SharedProcess {
 		this.activeProcess = activeProcess;
 
 		await new Promise((resolve, reject): void => {
-			const doReject = (error: Error | number): void => {
-				if (typeof error === "number") {
+			const doReject = (error: Error | number | null): void => {
+				if (error === null) {
+					error = new Error("Exited unexpectedly");
+				} else if (typeof error === "number") {
 					error = new Error(`Exited with ${error}`);
 				}
 				activeProcess.removeAllListeners();
