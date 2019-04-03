@@ -14,6 +14,7 @@ export interface ServerOptions {
 	readonly dataDirectory: string;
 	readonly cacheDirectory: string;
 	readonly builtInExtensionsDirectory: string;
+	readonly extensionsDirectory: string;
 	readonly fork?: ForkProvider;
 }
 
@@ -93,6 +94,7 @@ export class Server {
 		initMsg.setDataDirectory(this.options.dataDirectory);
 		initMsg.setWorkingDirectory(this.options.workingDirectory);
 		initMsg.setBuiltinExtensionsDir(this.options.builtInExtensionsDirectory);
+		initMsg.setExtensionsDirectory(this.options.extensionsDirectory);
 		initMsg.setHomeDirectory(os.homedir());
 		initMsg.setTmpDirectory(os.tmpdir());
 		initMsg.setOperatingSystem(platformToProto(os.platform()));

@@ -21,7 +21,9 @@ commander.version(process.env.VERSION || "development")
 	.description("Run VS Code on a remote server.")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
-	.option("-d, --data-dir <value>", "Customize where user-data is stored.")
+	.option("-e, --extensions-dir <dir>", "Set the root path for extensions.")
+	.option("-d --user-data-dir <dir>", "	Specifies the directory that user data is kept in, useful when running as root.")
+	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
 	.option("-p, --port <number>", "Port to bind on.", 8443)
@@ -51,6 +53,9 @@ const bold = (text: string | number): string | number => {
 		readonly host: string;
 		readonly port: number;
 
+		readonly userDataDir?: string;
+		readonly extensionsDir?: string;
+
 		readonly dataDir?: string;
 		readonly password?: string;
 		readonly open?: boolean;
@@ -67,7 +72,8 @@ const bold = (text: string | number): string | number => {
 	const noAuthValue = (commander as any).auth;
 	options.noAuth = !noAuthValue;
 
-	const dataDir = path.resolve(options.dataDir || path.join(dataHome, "code-server"));
+	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
+	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
 	const workingDir = path.resolve(args[0] || process.cwd());
 
 	if (!fs.existsSync(dataDir)) {
@@ -81,6 +87,7 @@ const bold = (text: string | number): string | number => {
 	await Promise.all([
 		fse.mkdirp(cacheHome),
 		fse.mkdirp(dataDir),
+		fse.mkdirp(extensionsDir),
 		fse.mkdirp(workingDir),
 	]);
 
@@ -144,10 +151,15 @@ const bold = (text: string | number): string | number => {
 	}
 
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
+
+	if (options.dataDir) {
+		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
+	}
+
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/codercom/code-server");
-	logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
-	const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
+	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
+	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
 		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
@@ -196,6 +208,7 @@ const bold = (text: string | number): string | number => {
 			}
 		},
 		serverOptions: {
+			extensionsDirectory: extensionsDir,
 			builtInExtensionsDirectory: builtInExtensionsDir,
 			dataDirectory: dataDir,
 			workingDirectory: workingDir,
