@@ -63,7 +63,6 @@ Options:
   ### User Data Directory
   Specify where data is stored. Provides compatibility with local VS Code configuration by specifying `--user-data-dir ~/.config/User`.
 
-
   ### Data Directory (*deprecated*)
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
 
