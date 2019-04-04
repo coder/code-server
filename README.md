@@ -50,8 +50,8 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 
 How to [secure your setup](/doc/security/ssl.md).
 
-### Customize User Data
-- Use your local VSCode configuration and locally installed extensions with the `--user-data-dir` and `--extensions-dir` flags. View the [quick start](doc/self-hosted/index.md) guide for more.
+### Use VS Code Data
+Use your existing VS Code configuration and extensions using the `--user-data-dir` and `--extensions-dir` flags. View the [quick start](doc/self-hosted/index.md) guide for more.
 
 ## Development
 

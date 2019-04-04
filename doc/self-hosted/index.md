@@ -58,10 +58,11 @@ Options:
   -h, --help                  output usage information
   ```
   ### Extension Directory
-  Point code-server at a local directory with installed extensions. This allows inheriting local VSCode extensions by specifying `--extensions-dir ~/.vscode/extensions`
+  Specify a custom directory for extensions. Provides compatibility with local VS Code extensions by specifying `--extensions-dir ~/.vscode/extensions`.
 
   ### User Data Directory
-  Specify the root folder that VS Code will start in. This allows inheriting local VS Code configuration. Example `--user-data-dir ~/.config/User`
+  Specify where data is stored. Provides compatibility with local VS Code configuration by specifying `--user-data-dir ~/.config/User`.
+
 
   ### Data Directory (*deprecated*)
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
