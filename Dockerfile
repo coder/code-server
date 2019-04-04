@@ -13,7 +13,7 @@ COPY . .
 
 # In the future, we can use https://github.com/yarnpkg/rfcs/pull/53 to make yarn use the node_modules
 # directly which should be fast as it is slow because it populates its own cache every time.
-RUN yarn && yarn task build:server:binary
+RUN yarn && NODE_ENV=production yarn task build:server:binary
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.10
@@ -30,5 +30,5 @@ RUN locale-gen en_US.UTF-8
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LANG=en_US.UTF-8
-ENV LC_ALL=en_US.UTF-8 
+ENV LC_ALL=en_US.UTF-8
 ENTRYPOINT ["code-server"]
