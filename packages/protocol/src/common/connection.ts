@@ -23,6 +23,7 @@ export interface InitData {
 	readonly homeDirectory: string;
 	readonly tmpDirectory: string;
 	readonly shell: string;
+	readonly extensionsDirectory: string;
 	readonly builtInExtensionsDirectory: string;
 }
 

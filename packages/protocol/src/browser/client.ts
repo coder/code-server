@@ -271,6 +271,7 @@ export class Client {
 					workingDirectory: init.getWorkingDirectory(),
 					os: protoToOperatingSystem(init.getOperatingSystem()),
 					shell: init.getShell(),
+					extensionsDirectory: init.getExtensionsDirectory(),
 					builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
 				};
 				this.initDataEmitter.emit(this._initData);

@@ -8,7 +8,7 @@ export class EnvironmentService extends environment.EnvironmentService {
 	}
 
 	public get extensionsPath(): string {
-		return path.join(paths.getAppDataPath(), "extensions");
+		return paths.getExtensionsDirectory();
 	}
 }
 

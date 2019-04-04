@@ -38,6 +38,7 @@ export class SharedProcess {
 
 	public constructor(
 		private readonly userDataDir: string,
+		private readonly extensionsDir: string,
 		private readonly builtInExtensionsDir: string,
 	) {
 		this.retry.run();
@@ -95,10 +96,8 @@ export class SharedProcess {
 			this.activeProcess.kill();
 		}
 
-		const extensionsDir = path.join(this.userDataDir, "extensions");
 		const backupsDir = path.join(this.userDataDir, "Backups");
 		await Promise.all([
-			fse.mkdirp(extensionsDir),
 			fse.mkdirp(backupsDir),
 		]);
 
@@ -116,8 +115,10 @@ export class SharedProcess {
 		this.activeProcess = activeProcess;
 
 		await new Promise((resolve, reject): void => {
-			const doReject = (error: Error | number): void => {
-				if (typeof error === "number") {
+			const doReject = (error: Error | number | null): void => {
+				if (error === null) {
+					error = new Error("Exited unexpectedly");
+				} else if (typeof error === "number") {
 					error = new Error(`Exited with ${error}`);
 				}
 				activeProcess.removeAllListeners();
@@ -141,7 +142,7 @@ export class SharedProcess {
 					args: {
 						"builtin-extensions-dir": this.builtInExtensionsDir,
 						"user-data-dir": this.userDataDir,
-						"extensions-dir": extensionsDir,
+						"extensions-dir": this.extensionsDir,
 					},
 					logLevel: this.logger.level,
 					sharedIPCHandle: this.socketPath,

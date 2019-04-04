@@ -21,7 +21,9 @@ commander.version(process.env.VERSION || "development")
 	.description("Run VS Code on a remote server.")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
-	.option("-d, --data-dir <value>", "Customize where user-data is stored.")
+	.option("-e, --extensions-dir <dir>", "Set the root path for extensions.")
+	.option("-d --user-data-dir <dir>", "	Specifies the directory that user data is kept in, useful when running as root.")
+	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
 	.option("-p, --port <number>", "Port to bind on.", 8443)
@@ -38,6 +40,10 @@ Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
 }
+// Makes strings or numbers bold in stdout
+const bold = (text: string | number): string | number => {
+	return `\u001B[1m${text}\u001B[0m`;
+};
 
 (async (): Promise<void> => {
 	const args = commander.args;
@@ -46,6 +52,9 @@ if (isCli) {
 		readonly allowHttp: boolean;
 		readonly host: string;
 		readonly port: number;
+
+		readonly userDataDir?: string;
+		readonly extensionsDir?: string;
 
 		readonly dataDir?: string;
 		readonly password?: string;
@@ -63,7 +72,8 @@ if (isCli) {
 	const noAuthValue = (commander as any).auth;
 	options.noAuth = !noAuthValue;
 
-	const dataDir = path.resolve(options.dataDir || path.join(dataHome, "code-server"));
+	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
+	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
 	const workingDir = path.resolve(args[0] || process.cwd());
 
 	if (!fs.existsSync(dataDir)) {
@@ -77,6 +87,7 @@ if (isCli) {
 	await Promise.all([
 		fse.mkdirp(cacheHome),
 		fse.mkdirp(dataDir),
+		fse.mkdirp(extensionsDir),
 		fse.mkdirp(workingDir),
 	]);
 
@@ -140,10 +151,15 @@ if (isCli) {
 	}
 
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
+
+	if (options.dataDir) {
+		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
+	}
+
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/codercom/code-server");
-	logger.info("Initializing", field("data-dir", dataDir), field("working-dir", workingDir), field("log-dir", logDir));
-	const sharedProcess = new SharedProcess(dataDir, builtInExtensionsDir);
+	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
+	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
 		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
@@ -192,6 +208,7 @@ if (isCli) {
 			}
 		},
 		serverOptions: {
+			extensionsDirectory: extensionsDir,
 			builtInExtensionsDirectory: builtInExtensionsDir,
 			dataDirectory: dataDir,
 			workingDirectory: workingDir,
@@ -234,7 +251,12 @@ if (isCli) {
 			logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
 		});
 	});
-
+	app.wss.on("error", (err: NodeJS.ErrnoException) => {
+		if (err.code === "EADDRINUSE") {
+			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
+			process.exit(1);
+		}
+	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
