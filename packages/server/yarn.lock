@@ -7,10 +7,10 @@
   resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.0.3.tgz#e0e1ae5496fde5a3c6ef3d748fdfb26a55add8b8"
   integrity sha512-1o5qDZX2VZUNnzgz5KfAdMnaqaX6FNeTs0dUdg73MRHfQW94tFTIryFC1xTTCuzxGDjVHOHkaUAI4uHA2bheOA==
 
-"@coder/nbin@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@coder/nbin/-/nbin-1.0.5.tgz#6a9e9982eb179d6bcc9c2e7dfebb608b7c4605d9"
-  integrity sha512-rai1/WgvH2j8SlRweOSk0JmrAzBx8bc22P+pThnPHj5terd0GScshqNR3EIoL/cdC2Ii4wjfOYodYbl/QynYGg==
+"@coder/nbin@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@coder/nbin/-/nbin-1.0.6.tgz#6babfaad93b27eac66c1e6a3acb52135b00c5525"
+  integrity sha512-61niwcPQhZj1mNMyYEt7h62i2a9sg+XP6DmxUF09cZa4HsXPlspHIfoe9Oe3xa7lg7aP9s2Pg9KaYlaYr70Dcg==
   dependencies:
     "@coder/logger" "^1.0.3"
     fs-extra "^7.0.1"
