@@ -65,6 +65,11 @@ export const argumentToProto = (
 			const arg = new Argument.ProxyValue();
 			arg.setId(storeProxy(currentValue));
 			message.setProxy(arg);
+		} else if (currentValue instanceof Date
+			|| (currentValue && typeof currentValue.getTime === "function")) {
+			const arg = new Argument.DateValue();
+			arg.setDate(currentValue.toString());
+			message.setDate(arg);
 		} else if (currentValue !== null && typeof currentValue === "object") {
 			const arg = new Argument.ObjectValue();
 			const map = arg.getDataMap();
@@ -136,6 +141,8 @@ export const protoToArgument = (
 				}
 
 				return createProxy(currentMessage.getProxy()!.getId());
+			case Argument.MsgCase.DATE:
+				return new Date(currentMessage.getDate()!.getDate());
 			case Argument.MsgCase.OBJECT:
 				const obj: { [Key: string]: any } = {};
 				currentMessage.getObject()!.getDataMap().forEach((argument, key) => {

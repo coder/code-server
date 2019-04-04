@@ -24,10 +24,10 @@ export interface Stats {
 	mtimeMs: number;
 	ctimeMs: number;
 	birthtimeMs: number;
-	atime: Date | string;
-	mtime: Date | string;
-	ctime: Date | string;
-	birthtime: Date | string;
+	atime: Date;
+	mtime: Date;
+	ctime: Date;
+	birthtime: Date;
 	_isFile: boolean;
 	_isDirectory: boolean;
 	_isBlockDevice: boolean;

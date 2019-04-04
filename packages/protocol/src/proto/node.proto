@@ -40,6 +40,10 @@ message Argument {
 
 	message UndefinedValue {}
 
+	message DateValue {
+		string date = 1;
+	}
+
 	oneof msg {
 		ErrorValue error = 1;
 		BufferValue buffer = 2;
@@ -52,6 +56,7 @@ message Argument {
 		double number = 9;
 		string string = 10;
 		bool boolean = 11;
+		DateValue date = 12;
 	}
 }
 

@@ -317,6 +317,7 @@ export class Server {
 		logger.trace(() => [
 			"sending reject",
 			field("id", id) ,
+			field("message", error.message),
 		]);
 
 		const failedMessage = new Method.Fail();

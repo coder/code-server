@@ -4,6 +4,8 @@ import * as util from "util";
 import { Module } from "../src/common/proxy";
 import { createClient, Helper } from "./helpers";
 
+// tslint:disable deprecation to use fs.exists
+
 describe("fs", () => {
 	const client = createClient();
 	// tslint:disable-next-line no-any
@@ -242,6 +244,14 @@ describe("fs", () => {
 			await util.promisify(nativeFs.close)(fd);
 		});
 
+		it("should futimes existing file with date", async () => {
+			const file = await helper.createTmpFile();
+			const fd = await util.promisify(nativeFs.open)(file, "w");
+			await expect(util.promisify(fs.futimes)(fd, new Date(), new Date()))
+				.resolves.toBeUndefined();
+			await util.promisify(nativeFs.close)(fd);
+		});
+
 		it("should fail to futimes nonexistent file", async () => {
 			await expect(util.promisify(fs.futimes)(99999, 9999, 9999))
 				.rejects.toThrow("EBADF");
@@ -346,7 +356,7 @@ describe("fs", () => {
 		it("should read existing file", async () => {
 			const fd = await util.promisify(nativeFs.open)(__filename, "r");
 			const stat = await util.promisify(nativeFs.fstat)(fd);
-			const buffer = new Buffer(stat.size);
+			const buffer = Buffer.alloc(stat.size);
 			let bytesRead = 0;
 			let chunkSize = 2048;
 			while (bytesRead < stat.size) {
@@ -364,7 +374,7 @@ describe("fs", () => {
 		});
 
 		it("should fail to read nonexistent file", async () => {
-			await expect(util.promisify(fs.read)(99999, new Buffer(10), 9999, 999, 999))
+			await expect(util.promisify(fs.read)(99999, Buffer.alloc(10), 9999, 999, 999))
 				.rejects.toThrow("EBADF");
 		});
 	});
@@ -466,6 +476,7 @@ describe("fs", () => {
 			expect(stat).toMatchObject({
 				size: nativeStat.size,
 			});
+			expect(typeof stat.mtime.getTime()).toBe("number");
 			expect(stat.isFile()).toBe(true);
 		});
 
@@ -493,7 +504,7 @@ describe("fs", () => {
 			const destination = helper.tmpFile();
 			await expect(util.promisify(fs.symlink)(source, destination))
 				.resolves.toBeUndefined();
-			expect(util.promisify(nativeFs.exists)(source))
+			await expect(util.promisify(nativeFs.exists)(source))
 				.resolves.toBe(true);
 		});
 
@@ -525,7 +536,7 @@ describe("fs", () => {
 			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.unlink)(file))
 				.resolves.toBeUndefined();
-			expect(util.promisify(nativeFs.exists)(file))
+			await expect(util.promisify(nativeFs.exists)(file))
 				.resolves.toBe(false);
 		});
 

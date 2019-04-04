@@ -59,6 +59,11 @@ export class Argument extends jspb.Message {
   getBoolean(): boolean;
   setBoolean(value: boolean): void;
 
+  hasDate(): boolean;
+  clearDate(): void;
+  getDate(): Argument.DateValue | undefined;
+  setDate(value?: Argument.DateValue): void;
+
   getMsgCase(): Argument.MsgCase;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): Argument.AsObject;
@@ -83,6 +88,7 @@ export namespace Argument {
     number: number,
     string: string,
     pb_boolean: boolean,
+    date?: Argument.DateValue.AsObject,
   }
 
   export class ErrorValue extends jspb.Message {
@@ -248,6 +254,26 @@ export namespace Argument {
     }
   }
 
+  export class DateValue extends jspb.Message {
+    getDate(): string;
+    setDate(value: string): void;
+
+    serializeBinary(): Uint8Array;
+    toObject(includeInstance?: boolean): DateValue.AsObject;
+    static toObject(includeInstance: boolean, msg: DateValue): DateValue.AsObject;
+    static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
+    static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
+    static serializeBinaryToWriter(message: DateValue, writer: jspb.BinaryWriter): void;
+    static deserializeBinary(bytes: Uint8Array): DateValue;
+    static deserializeBinaryFromReader(message: DateValue, reader: jspb.BinaryReader): DateValue;
+  }
+
+  export namespace DateValue {
+    export type AsObject = {
+      date: string,
+    }
+  }
+
   export enum MsgCase {
     MSG_NOT_SET = 0,
     ERROR = 1,
@@ -261,6 +287,7 @@ export namespace Argument {
     NUMBER = 9,
     STRING = 10,
     BOOLEAN = 11,
+    DATE = 12,
   }
 }
 

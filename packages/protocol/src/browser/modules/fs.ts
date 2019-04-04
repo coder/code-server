@@ -317,17 +317,7 @@ export class FsModule {
 }
 
 class Stats implements fs.Stats {
-	public readonly atime: Date;
-	public readonly mtime: Date;
-	public readonly ctime: Date;
-	public readonly birthtime: Date;
-
-	public constructor(private readonly stats: IStats) {
-		this.atime = new Date(stats.atime);
-		this.mtime = new Date(stats.mtime);
-		this.ctime = new Date(stats.ctime);
-		this.birthtime = new Date(stats.birthtime);
-	}
+	public constructor(private readonly stats: IStats) {}
 
 	public get dev(): number { return this.stats.dev; }
 	public get ino(): number { return this.stats.ino; }
@@ -339,6 +329,10 @@ class Stats implements fs.Stats {
 	public get size(): number { return this.stats.size; }
 	public get blksize(): number { return this.stats.blksize; }
 	public get blocks(): number { return this.stats.blocks; }
+	public get atime(): Date { return this.stats.atime; }
+	public get mtime(): Date { return this.stats.mtime; }
+	public get ctime(): Date { return this.stats.ctime; }
+	public get birthtime(): Date { return this.stats.birthtime; }
 	public get atimeMs(): number { return this.stats.atimeMs; }
 	public get mtimeMs(): number { return this.stats.mtimeMs; }
 	public get ctimeMs(): number { return this.stats.ctimeMs; }

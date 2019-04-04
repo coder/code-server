@@ -53,6 +53,11 @@ describe("child_process", () => {
 
 			await expect(getStdout(proc)).resolves.toContain("hi=donkey\n");
 		});
+
+		it("should eval", async () => {
+			const proc = cp.spawn("node", ["-e", "console.log('foo')"]);
+			await expect(getStdout(proc)).resolves.toContain("foo");
+		});
 	});
 
 	describe("fork", () => {
