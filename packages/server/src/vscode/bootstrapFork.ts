@@ -1,15 +1,18 @@
 import * as cp from "child_process";
 import * as fs from "fs";
+import * as os from "os";
 import * as path from "path";
-import * as zlib from "zlib";
 import * as vm from "vm";
-import { isCli } from "../constants";
+import { logger } from "@coder/logger";
+import { buildDir, isCli } from "../constants";
 
 let ipcMsgBuffer: Buffer[] | undefined = [];
 let ipcMsgListener = process.send ? (d: Buffer): number => ipcMsgBuffer!.push(d) : undefined;
 if (ipcMsgListener) {
 	process.on("message", ipcMsgListener);
 }
+
+declare var __non_webpack_require__: typeof require;
 
 /**
  * Requires a module from the filesystem.
@@ -29,7 +32,7 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
 		const fileName = id.endsWith(".js") ? id : `${id}.js`;
 		const req = vm.runInThisContext(mod.wrap(fs.readFileSync(fileName).toString()), {
 			displayErrors: true,
-			filename: id + fileName,
+			filename: fileName,
 		});
 		req(customMod.exports, customMod.require.bind(customMod), customMod, fileName, path.dirname(id));
 
@@ -45,6 +48,14 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
 export const requireFork = (modulePath: string, args: string[], builtInExtensionsDir: string): void => {
 	const Module = require("module") as typeof import("module");
 	const oldRequire = Module.prototype.require;
+	// tslint:disable-next-line:no-any
+	const oldLoad = (Module as any)._findPath;
+	// @ts-ignore
+	(Module as any)._findPath = function (request, parent, isMain): any {
+		const lookupPaths = oldLoad.call(this, request, parent, isMain);
+
+		return lookupPaths;
+	};
 	// tslint:disable-next-line:no-any
 	Module.prototype.require = function (id: string): any {
 		if (id === "typescript") {
@@ -96,23 +107,20 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 		 */
 		// tslint:disable-next-line:no-any
 		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, ["--fork", modulePath, "--args", JSON.stringify(args), "--data-dir", dataDir], {
+			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
 				...options,
 				stdio: [null, null, null, "ipc"],
 			});
 		};
 	}
 
-	let content: Buffer | undefined;
-	const readFile = (name: string): Buffer => {
-		return fs.readFileSync(path.join(process.env.BUILD_DIR as string || path.join(__dirname, "../.."), "./build", name));
-	};
+	const baseDir = path.join(buildDir, "build");
 	if (isCli) {
-		content = zlib.gunzipSync(readFile("bootstrap-fork.js.gz"));
+		__non_webpack_require__(path.join(baseDir, "bootstrap-fork.js.gz"));
 	} else {
-		content = readFile("../../vscode/out/bootstrap-fork.js");
+		// We need to check `isCli` here to confuse webpack.
+		require(path.join(__dirname, isCli ? "" : "../../../vscode/out/bootstrap-fork.js"));
 	}
-	eval(content.toString());
 };
 
 /**
@@ -123,27 +131,34 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
  * cp.stderr.on("data", (data) => console.log(data.toString("utf8")));
  * @param modulePath Path of the VS Code module to load.
  */
-export const forkModule = (modulePath: string, args: string[], options: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
+export const forkModule = (modulePath: string, args?: string[], options?: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
 	let proc: cp.ChildProcess;
 	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
-	if (options.env) {
+	if (options && options.env) {
 		// This prevents vscode from trying to load original-fs from electron.
 		delete options.env.ELECTRON_RUN_AS_NODE;
 		forkOptions.env = options.env;
 	}
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
-		forkArgs.push("--args", JSON.stringify(args));
+		forkArgs.push("--extra-args", JSON.stringify(args));
 	}
 	if (dataDir) {
 		forkArgs.push("--data-dir", dataDir);
 	}
 	if (isCli) {
-		proc = cp.spawn(process.execPath, forkArgs, forkOptions);
+		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
 	} else {
 		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
+	}
+	if (args && args[0] === "--type=watcherService" && os.platform() === "linux") {
+		cp.exec(`renice -n 19 -p ${proc.pid}`, (error) => {
+			if (error) {
+				logger.warn(error.message);
+			}
+		});
 	}
 
 	return proc;

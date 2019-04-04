@@ -1,53 +1,34 @@
 import * as nativeFs from "fs";
-import * as os from "os";
 import * as path from "path";
 import * as util from "util";
-import * as rimraf from "rimraf";
-import { createClient } from "@coder/protocol/test";
-
-const client = createClient();
-jest.mock("../src/fill/client", () => ({ client }));
-const fs = require("../src/fill/fs") as typeof import("fs");
+import { Module } from "../src/common/proxy";
+import { createClient, Helper } from "./helpers";
 
 describe("fs", () => {
-	let i = 0;
-	const coderDir = path.join(os.tmpdir(), "coder", "fs");
-	const testFile = path.join(__dirname, "fs.test.ts");
-	const tmpFile = (): string => path.join(coderDir, `${i++}`);
-	const createTmpFile = async (): Promise<string> => {
-		const tf = tmpFile();
-		await util.promisify(nativeFs.writeFile)(tf, "");
-
-		return tf;
-	};
+	const client = createClient();
+	// tslint:disable-next-line no-any
+	const fs = client.modules[Module.Fs] as any as typeof import("fs");
+	const helper = new Helper("fs");
 
 	beforeAll(async () => {
-		try {
-			await util.promisify(nativeFs.mkdir)(path.dirname(coderDir));
-		} catch (error) {
-			if (error.code !== "EEXIST" && error.code !== "EISDIR") {
-				throw error;
-			}
-		}
-		await util.promisify(rimraf)(coderDir);
-		await util.promisify(nativeFs.mkdir)(coderDir);
+		await helper.prepare();
 	});
 
 	describe("access", () => {
 		it("should access existing file", async () => {
-			await expect(util.promisify(fs.access)(testFile))
+			await expect(util.promisify(fs.access)(__filename))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to access nonexistent file", async () => {
-			await expect(util.promisify(fs.access)(tmpFile()))
+			await expect(util.promisify(fs.access)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("append", () => {
 		it("should append to existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.appendFile)(file, "howdy"))
 				.resolves.toBeUndefined();
 			expect(await util.promisify(nativeFs.readFile)(file, "utf8"))
@@ -55,7 +36,7 @@ describe("fs", () => {
 		});
 
 		it("should create then append to nonexistent file", async () => {
-			const file = tmpFile();
+			const file = helper.tmpFile();
 			await expect(util.promisify(fs.appendFile)(file, "howdy"))
 				.resolves.toBeUndefined();
 			expect(await util.promisify(nativeFs.readFile)(file, "utf8"))
@@ -63,7 +44,7 @@ describe("fs", () => {
 		});
 
 		it("should fail to append to file in nonexistent directory", async () => {
-			const file = path.join(tmpFile(), "nope");
+			const file = path.join(helper.tmpFile(), "nope");
 			await expect(util.promisify(fs.appendFile)(file, "howdy"))
 				.rejects.toThrow("ENOENT");
 			expect(await util.promisify(nativeFs.exists)(file))
@@ -73,33 +54,33 @@ describe("fs", () => {
 
 	describe("chmod", () => {
 		it("should chmod existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.chmod)(file, "755"))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to chmod nonexistent file", async () => {
-			await expect(util.promisify(fs.chmod)(tmpFile(), "755"))
+			await expect(util.promisify(fs.chmod)(helper.tmpFile(), "755"))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("chown", () => {
 		it("should chown existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.chown)(file, 1, 1))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to chown nonexistent file", async () => {
-			await expect(util.promisify(fs.chown)(tmpFile(), 1, 1))
+			await expect(util.promisify(fs.chown)(helper.tmpFile(), 1, 1))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("close", () => {
 		it("should close opened file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
 			await expect(util.promisify(fs.close)(fd))
 				.resolves.toBeUndefined();
@@ -113,8 +94,8 @@ describe("fs", () => {
 
 	describe("copyFile", () => {
 		it("should copy existing file", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			await expect(util.promisify(fs.copyFile)(source, destination))
 				.resolves.toBeUndefined();
 			await expect(util.promisify(fs.exists)(destination))
@@ -122,44 +103,47 @@ describe("fs", () => {
 		});
 
 		it("should fail to copy nonexistent file", async () => {
-			await expect(util.promisify(fs.copyFile)(tmpFile(), tmpFile()))
+			await expect(util.promisify(fs.copyFile)(helper.tmpFile(), helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("createWriteStream", () => {
 		it("should write to file", async () => {
-			const file = tmpFile();
+			const file = helper.tmpFile();
 			const content = "howdy\nhow\nr\nu";
 			const stream = fs.createWriteStream(file);
 			stream.on("open", (fd) => {
 				expect(fd).toBeDefined();
 				stream.write(content);
 				stream.close();
+				stream.end();
 			});
-			await expect(new Promise((resolve): void => {
-				stream.on("close", async () => {
-					resolve(await util.promisify(nativeFs.readFile)(file, "utf8"));
-				});
-			})).resolves.toBe(content);
+
+			await Promise.all([
+				new Promise((resolve): nativeFs.WriteStream => stream.on("close", resolve)),
+				new Promise((resolve): nativeFs.WriteStream => stream.on("finish", resolve)),
+			]);
+
+			await expect(util.promisify(nativeFs.readFile)(file, "utf8")).resolves.toBe(content);
 		});
 	});
 
 	describe("exists", () => {
 		it("should output file exists", async () => {
-			await expect(util.promisify(fs.exists)(testFile))
+			await expect(util.promisify(fs.exists)(__filename))
 				.resolves.toBe(true);
 		});
 
 		it("should output file does not exist", async () => {
-			await expect(util.promisify(fs.exists)(tmpFile()))
+			await expect(util.promisify(fs.exists)(helper.tmpFile()))
 				.resolves.toBe(false);
 		});
 	});
 
 	describe("fchmod", () => {
 		it("should fchmod existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
 			await expect(util.promisify(fs.fchmod)(fd, "755"))
 				.resolves.toBeUndefined();
@@ -174,7 +158,7 @@ describe("fs", () => {
 
 	describe("fchown", () => {
 		it("should fchown existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
 			await expect(util.promisify(fs.fchown)(fd, 1, 1))
 				.resolves.toBeUndefined();
@@ -189,7 +173,7 @@ describe("fs", () => {
 
 	describe("fdatasync", () => {
 		it("should fdatasync existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
 			await expect(util.promisify(fs.fdatasync)(fd))
 				.resolves.toBeUndefined();
@@ -204,7 +188,7 @@ describe("fs", () => {
 
 	describe("fstat", () => {
 		it("should fstat existing file", async () => {
-			const fd = await util.promisify(nativeFs.open)(testFile, "r");
+			const fd = await util.promisify(nativeFs.open)(__filename, "r");
 			const stat = await util.promisify(nativeFs.fstat)(fd);
 			await expect(util.promisify(fs.fstat)(fd))
 				.resolves.toMatchObject({
@@ -221,7 +205,7 @@ describe("fs", () => {
 
 	describe("fsync", () => {
 		it("should fsync existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
 			await expect(util.promisify(fs.fsync)(fd))
 				.resolves.toBeUndefined();
@@ -236,7 +220,7 @@ describe("fs", () => {
 
 	describe("ftruncate", () => {
 		it("should ftruncate existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "w");
 			await expect(util.promisify(fs.ftruncate)(fd, 1))
 				.resolves.toBeUndefined();
@@ -251,7 +235,7 @@ describe("fs", () => {
 
 	describe("futimes", () => {
 		it("should futimes existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "w");
 			await expect(util.promisify(fs.futimes)(fd, 1, 1))
 				.resolves.toBeUndefined();
@@ -266,36 +250,36 @@ describe("fs", () => {
 
 	describe("lchmod", () => {
 		it("should lchmod existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.lchmod)(file, "755"))
 				.resolves.toBeUndefined();
 		});
 
 		// TODO: Doesn't fail on my system?
 		it("should fail to lchmod nonexistent file", async () => {
-			await expect(util.promisify(fs.lchmod)(tmpFile(), "755"))
+			await expect(util.promisify(fs.lchmod)(helper.tmpFile(), "755"))
 				.resolves.toBeUndefined();
 		});
 	});
 
 	describe("lchown", () => {
 		it("should lchown existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.lchown)(file, 1, 1))
 				.resolves.toBeUndefined();
 		});
 
 		// TODO: Doesn't fail on my system?
 		it("should fail to lchown nonexistent file", async () => {
-			await expect(util.promisify(fs.lchown)(tmpFile(), 1, 1))
+			await expect(util.promisify(fs.lchown)(helper.tmpFile(), 1, 1))
 				.resolves.toBeUndefined();
 		});
 	});
 
 	describe("link", () => {
 		it("should link existing file", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			await expect(util.promisify(fs.link)(source, destination))
 				.resolves.toBeUndefined();
 			await expect(util.promisify(fs.exists)(destination))
@@ -303,29 +287,30 @@ describe("fs", () => {
 		});
 
 		it("should fail to link nonexistent file", async () => {
-			await expect(util.promisify(fs.link)(tmpFile(), tmpFile()))
+			await expect(util.promisify(fs.link)(helper.tmpFile(), helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("lstat", () => {
 		it("should lstat existing file", async () => {
-			const stat = await util.promisify(nativeFs.lstat)(testFile);
-			await expect(util.promisify(fs.lstat)(testFile))
+			const stat = await util.promisify(nativeFs.lstat)(__filename);
+			await expect(util.promisify(fs.lstat)(__filename))
 				.resolves.toMatchObject({
 					size: stat.size,
 				});
 		});
 
 		it("should fail to lstat non-existent file", async () => {
-			await expect(util.promisify(fs.lstat)(tmpFile()))
+			await expect(util.promisify(fs.lstat)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("mkdir", () => {
-		const target = tmpFile();
+		let target: string;
 		it("should create nonexistent directory", async () => {
+			target = helper.tmpFile();
 			await expect(util.promisify(fs.mkdir)(target))
 				.resolves.toBeUndefined();
 		});
@@ -338,28 +323,28 @@ describe("fs", () => {
 
 	describe("mkdtemp", () => {
 		it("should create temp dir", async () => {
-			await expect(util.promisify(fs.mkdtemp)(coderDir + "/"))
+			await expect(util.promisify(fs.mkdtemp)(helper.coderDir + "/"))
 				.resolves.toMatch(/^\/tmp\/coder\/fs\/[a-zA-Z0-9]{6}/);
 		});
 	});
 
 	describe("open", () => {
 		it("should open existing file", async () => {
-			const fd = await util.promisify(fs.open)(testFile, "r");
+			const fd = await util.promisify(fs.open)(__filename, "r");
 			expect(fd).not.toBeNaN();
 			await expect(util.promisify(fs.close)(fd))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to open nonexistent file", async () => {
-			await expect(util.promisify(fs.open)(tmpFile(), "r"))
+			await expect(util.promisify(fs.open)(helper.tmpFile(), "r"))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("read", () => {
 		it("should read existing file", async () => {
-			const fd = await util.promisify(nativeFs.open)(testFile, "r");
+			const fd = await util.promisify(nativeFs.open)(__filename, "r");
 			const stat = await util.promisify(nativeFs.fstat)(fd);
 			const buffer = new Buffer(stat.size);
 			let bytesRead = 0;
@@ -373,7 +358,7 @@ describe("fs", () => {
 				bytesRead += chunkSize;
 			}
 
-			const content = await util.promisify(nativeFs.readFile)(testFile, "utf8");
+			const content = await util.promisify(nativeFs.readFile)(__filename, "utf8");
 			expect(buffer.toString()).toEqual(content);
 			await util.promisify(nativeFs.close)(fd);
 		});
@@ -386,64 +371,64 @@ describe("fs", () => {
 
 	describe("readFile", () => {
 		it("should read existing file", async () => {
-			const content = await util.promisify(nativeFs.readFile)(testFile, "utf8");
-			await expect(util.promisify(fs.readFile)(testFile, "utf8"))
+			const content = await util.promisify(nativeFs.readFile)(__filename, "utf8");
+			await expect(util.promisify(fs.readFile)(__filename, "utf8"))
 				.resolves.toEqual(content);
 		});
 
 		it("should fail to read nonexistent file", async () => {
-			await expect(util.promisify(fs.readFile)(tmpFile()))
+			await expect(util.promisify(fs.readFile)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("readdir", () => {
 		it("should read existing directory", async () => {
-			const paths = await util.promisify(nativeFs.readdir)(coderDir);
-			await expect(util.promisify(fs.readdir)(coderDir))
+			const paths = await util.promisify(nativeFs.readdir)(helper.coderDir);
+			await expect(util.promisify(fs.readdir)(helper.coderDir))
 				.resolves.toEqual(paths);
 		});
 
 		it("should fail to read nonexistent directory", async () => {
-			await expect(util.promisify(fs.readdir)(tmpFile()))
+			await expect(util.promisify(fs.readdir)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("readlink", () => {
 		it("should read existing link", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			await util.promisify(nativeFs.symlink)(source, destination);
 			await expect(util.promisify(fs.readlink)(destination))
 				.resolves.toBe(source);
 		});
 
 		it("should fail to read nonexistent link", async () => {
-			await expect(util.promisify(fs.readlink)(tmpFile()))
+			await expect(util.promisify(fs.readlink)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("realpath", () => {
 		it("should read real path of existing file", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			nativeFs.symlinkSync(source, destination);
 			await expect(util.promisify(fs.realpath)(destination))
 				.resolves.toBe(source);
 		});
 
 		it("should fail to read real path of nonexistent file", async () => {
-			await expect(util.promisify(fs.realpath)(tmpFile()))
+			await expect(util.promisify(fs.realpath)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("rename", () => {
 		it("should rename existing file", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			await expect(util.promisify(fs.rename)(source, destination))
 				.resolves.toBeUndefined();
 			await expect(util.promisify(nativeFs.exists)(source))
@@ -453,14 +438,14 @@ describe("fs", () => {
 		});
 
 		it("should fail to rename nonexistent file", async () => {
-			await expect(util.promisify(fs.rename)(tmpFile(), tmpFile()))
+			await expect(util.promisify(fs.rename)(helper.tmpFile(), helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("rmdir", () => {
 		it("should rmdir existing directory", async () => {
-			const dir = tmpFile();
+			const dir = helper.tmpFile();
 			await util.promisify(nativeFs.mkdir)(dir);
 			await expect(util.promisify(fs.rmdir)(dir))
 				.resolves.toBeUndefined();
@@ -469,15 +454,15 @@ describe("fs", () => {
 		});
 
 		it("should fail to rmdir nonexistent directory", async () => {
-			await expect(util.promisify(fs.rmdir)(tmpFile()))
+			await expect(util.promisify(fs.rmdir)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("stat", () => {
 		it("should stat existing file", async () => {
-			const nativeStat = await util.promisify(nativeFs.stat)(testFile);
-			const stat = await util.promisify(fs.stat)(testFile);
+			const nativeStat = await util.promisify(nativeFs.stat)(__filename);
+			const stat = await util.promisify(fs.stat)(__filename);
 			expect(stat).toMatchObject({
 				size: nativeStat.size,
 			});
@@ -485,7 +470,7 @@ describe("fs", () => {
 		});
 
 		it("should stat existing folder", async () => {
-			const dir = tmpFile();
+			const dir = helper.tmpFile();
 			await util.promisify(nativeFs.mkdir)(dir);
 			const nativeStat = await util.promisify(nativeFs.stat)(dir);
 			const stat = await util.promisify(fs.stat)(dir);
@@ -496,7 +481,7 @@ describe("fs", () => {
 		});
 
 		it("should fail to stat nonexistent file", async () => {
-			const error = await util.promisify(fs.stat)(tmpFile()).catch((e) => e);
+			const error = await util.promisify(fs.stat)(helper.tmpFile()).catch((e) => e);
 			expect(error.message).toContain("ENOENT");
 			expect(error.code).toBe("ENOENT");
 		});
@@ -504,8 +489,8 @@ describe("fs", () => {
 
 	describe("symlink", () => {
 		it("should symlink existing file", async () => {
-			const source = await createTmpFile();
-			const destination = tmpFile();
+			const source = await helper.createTmpFile();
+			const destination = helper.tmpFile();
 			await expect(util.promisify(fs.symlink)(source, destination))
 				.resolves.toBeUndefined();
 			expect(util.promisify(nativeFs.exists)(source))
@@ -514,14 +499,14 @@ describe("fs", () => {
 
 		// TODO: Seems to be happy to do this on my system?
 		it("should fail to symlink nonexistent file", async () => {
-			await expect(util.promisify(fs.symlink)(tmpFile(), tmpFile()))
+			await expect(util.promisify(fs.symlink)(helper.tmpFile(), helper.tmpFile()))
 				.resolves.toBeUndefined();
 		});
 	});
 
 	describe("truncate", () => {
 		it("should truncate existing file", async () => {
-			const file = tmpFile();
+			const file = helper.tmpFile();
 			await util.promisify(nativeFs.writeFile)(file, "hiiiiii");
 			await expect(util.promisify(fs.truncate)(file, 2))
 				.resolves.toBeUndefined();
@@ -530,14 +515,14 @@ describe("fs", () => {
 		});
 
 		it("should fail to truncate nonexistent file", async () => {
-			await expect(util.promisify(fs.truncate)(tmpFile(), 0))
+			await expect(util.promisify(fs.truncate)(helper.tmpFile(), 0))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("unlink", () => {
 		it("should unlink existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.unlink)(file))
 				.resolves.toBeUndefined();
 			expect(util.promisify(nativeFs.exists)(file))
@@ -545,27 +530,27 @@ describe("fs", () => {
 		});
 
 		it("should fail to unlink nonexistent file", async () => {
-			await expect(util.promisify(fs.unlink)(tmpFile()))
+			await expect(util.promisify(fs.unlink)(helper.tmpFile()))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("utimes", () => {
 		it("should update times on existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.utimes)(file, 100, 100))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to update times on nonexistent file", async () => {
-			await expect(util.promisify(fs.utimes)(tmpFile(), 100, 100))
+			await expect(util.promisify(fs.utimes)(helper.tmpFile(), 100, 100))
 				.rejects.toThrow("ENOENT");
 		});
 	});
 
 	describe("write", () => {
 		it("should write to existing file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "w");
 			await expect(util.promisify(fs.write)(fd, Buffer.from("hi")))
 				.resolves.toBe(2);
@@ -582,11 +567,15 @@ describe("fs", () => {
 
 	describe("writeFile", () => {
 		it("should write file", async () => {
-			const file = await createTmpFile();
+			const file = await helper.createTmpFile();
 			await expect(util.promisify(fs.writeFile)(file, "howdy"))
 				.resolves.toBeUndefined();
 			await expect(util.promisify(nativeFs.readFile)(file, "utf8"))
 				.resolves.toBe("howdy");
 		});
+	});
+
+	it("should dispose", () => {
+		client.dispose();
 	});
 });

@@ -1,5 +1,6 @@
 import { ChildProcess } from "child_process";
 import * as fs from "fs";
+import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import { forkModule } from "./bootstrapFork";
@@ -7,7 +8,7 @@ import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
-import { logger, field, Level } from "@coder/logger";
+import { logger, Level } from "@coder/logger";
 
 export enum SharedProcessState {
 	Stopped,
@@ -23,123 +24,144 @@ export type SharedProcessEvent = {
 };
 
 export class SharedProcess {
-	public readonly socketPath: string = os.platform() === "win32" ? path.join("\\\\?\\pipe", os.tmpdir(), `.code-server${Math.random().toString()}`) : path.join(os.tmpdir(), `.code-server${Math.random().toString()}`);
+	public readonly socketPath: string = os.platform() === "win32"
+		? path.join("\\\\?\\pipe", os.tmpdir(), `.code-server${Math.random().toString()}`)
+		: path.join(os.tmpdir(), `.code-server${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: StdioIpcHandler | undefined;
 	private readonly onStateEmitter = new Emitter<SharedProcessEvent>();
 	public readonly onState = this.onStateEmitter.event;
-	private readonly retryName = "Shared process";
 	private readonly logger = logger.named("shared");
+	private readonly retry = retry.register("Shared process", () => this.connect());
+	private disposed: boolean = false;
 
 	public constructor(
 		private readonly userDataDir: string,
+		private readonly extensionsDir: string,
 		private readonly builtInExtensionsDir: string,
 	) {
-		retry.register(this.retryName, () => this.restart());
-		retry.run(this.retryName);
+		this.retry.run();
 	}
 
 	public get state(): SharedProcessState {
 		return this._state;
 	}
 
-	public restart(): void {
-		if (this.activeProcess && !this.activeProcess.killed) {
-			this.activeProcess.kill();
-		}
-
-		const extensionsDir = path.join(this.userDataDir, "extensions");
-		const mkdir = (dir: string): void => {
-			try {
-				fs.mkdirSync(dir);
-			} catch (ex) {
-				if (ex.code !== "EEXIST" && ex.code !== "EISDIR") {
-					throw ex;
-				}
-			}
-		};
-		mkdir(this.userDataDir);
-		mkdir(extensionsDir);
-
-		this.setState({
-			state: SharedProcessState.Starting,
-		});
-		let resolved: boolean = false;
-		const maybeStop = (error: string): void => {
-			if (resolved) {
-				return;
-			}
-			this.setState({
-				error,
-				state: SharedProcessState.Stopped,
-			});
-			if (!this.activeProcess) {
-				return;
-			}
-			this.activeProcess.kill();
-		};
-		this.activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], {
-			env: {
-				VSCODE_ALLOW_IO: "true",
-				VSCODE_LOGS: process.env.VSCODE_LOGS,
-			},
-		}, this.userDataDir);
-		if (this.logger.level <= Level.Trace) {
-			this.activeProcess.stdout.on("data", (data) => {
-				this.logger.trace(() => ["stdout", field("data", data.toString())]);
-			});
-		}
-		this.activeProcess.on("error", (error) => {
-			this.logger.error("error", field("error", error));
-			maybeStop(error.message);
-		});
-		this.activeProcess.on("exit", (err) => {
-			if (this._state !== SharedProcessState.Stopped) {
-				this.setState({
-					error: `Exited with ${err}`,
-					state: SharedProcessState.Stopped,
-				});
-			}
-			retry.run(this.retryName, new Error(`Exited with ${err}`));
-		});
-		this.ipcHandler = new StdioIpcHandler(this.activeProcess);
-		this.ipcHandler.once("handshake:hello", () => {
-			const data: {
-				sharedIPCHandle: string;
-				args: Partial<ParsedArgs>;
-				logLevel: Level;
-			} = {
-				args: {
-					"builtin-extensions-dir": this.builtInExtensionsDir,
-					"user-data-dir": this.userDataDir,
-					"extensions-dir": extensionsDir,
-				},
-				logLevel: this.logger.level,
-				sharedIPCHandle: this.socketPath,
-			};
-			this.ipcHandler!.send("handshake:hey there", "", data);
-		});
-		this.ipcHandler.once("handshake:im ready", () => {
-			resolved = true;
-			retry.recover(this.retryName);
-			this.setState({
-				state: SharedProcessState.Ready,
-			});
-		});
-		this.activeProcess.stderr.on("data", (data) => {
-			this.logger.error("stderr", field("data", data.toString()));
-			maybeStop(data.toString());
-		});
-	}
-
+	/**
+	 * Signal the shared process to terminate.
+	 */
 	public dispose(): void {
+		this.disposed = true;
 		if (this.ipcHandler) {
 			this.ipcHandler.send("handshake:goodbye");
 		}
 		this.ipcHandler = undefined;
 	}
 
+	/**
+	 * Start and connect to the shared process.
+	 */
+	private async connect(): Promise<void> {
+		this.setState({ state: SharedProcessState.Starting });
+		const activeProcess = await this.restart();
+
+		activeProcess.stderr.on("data", (data) => {
+			// Warn instead of error to prevent panic. It's unlikely stderr here is
+			// about anything critical to the functioning of the editor.
+			logger.warn(data.toString());
+		});
+
+		activeProcess.on("exit", (exitCode) => {
+			const error = new Error(`Exited with ${exitCode}`);
+			this.setState({
+				error: error.message,
+				state: SharedProcessState.Stopped,
+			});
+			if (!this.disposed) {
+				this.retry.run(error);
+			}
+		});
+
+		this.setState({ state: SharedProcessState.Ready });
+	}
+
+	/**
+	 * Restart the shared process. Kill existing process if running. Resolve when
+	 * the shared process is ready and reject when it errors or dies before being
+	 * ready.
+	 */
+	private async restart(): Promise<ChildProcess> {
+		if (this.activeProcess && !this.activeProcess.killed) {
+			this.activeProcess.kill();
+		}
+
+		const backupsDir = path.join(this.userDataDir, "Backups");
+		await Promise.all([
+			fse.mkdirp(backupsDir),
+		]);
+
+		const workspacesFile = path.join(backupsDir, "workspaces.json");
+		if (!fs.existsSync(workspacesFile)) {
+			fs.appendFileSync(workspacesFile, "");
+		}
+
+		const activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], {
+			env: {
+				VSCODE_ALLOW_IO: "true",
+				VSCODE_LOGS: process.env.VSCODE_LOGS,
+			},
+		}, this.userDataDir);
+		this.activeProcess = activeProcess;
+
+		await new Promise((resolve, reject): void => {
+			const doReject = (error: Error | number | null): void => {
+				if (error === null) {
+					error = new Error("Exited unexpectedly");
+				} else if (typeof error === "number") {
+					error = new Error(`Exited with ${error}`);
+				}
+				activeProcess.removeAllListeners();
+				this.setState({
+					error: error.message,
+					state: SharedProcessState.Stopped,
+				});
+				reject(error);
+			};
+
+			activeProcess.on("error", doReject);
+			activeProcess.on("exit", doReject);
+
+			this.ipcHandler = new StdioIpcHandler(activeProcess);
+			this.ipcHandler.once("handshake:hello", () => {
+				const data: {
+					sharedIPCHandle: string;
+					args: Partial<ParsedArgs>;
+					logLevel: Level;
+				} = {
+					args: {
+						"builtin-extensions-dir": this.builtInExtensionsDir,
+						"user-data-dir": this.userDataDir,
+						"extensions-dir": this.extensionsDir,
+					},
+					logLevel: this.logger.level,
+					sharedIPCHandle: this.socketPath,
+				};
+				this.ipcHandler!.send("handshake:hey there", "", data);
+			});
+			this.ipcHandler.once("handshake:im ready", () => {
+				activeProcess.removeListener("error", doReject);
+				activeProcess.removeListener("exit", doReject);
+				resolve();
+			});
+		});
+
+		return activeProcess;
+	}
+
+	/**
+	 * Set the internal shared process state and emit the state event.
+	 */
 	private setState(event: SharedProcessEvent): void {
 		this._state = event.state;
 		this.onStateEmitter.emit(event);

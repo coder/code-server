@@ -11,7 +11,7 @@ class WebsocketConnection implements ReadWriteConnection {
 	private activeSocket: WebSocket | undefined;
 	private readonly messageBuffer = <Uint8Array[]>[];
 	private readonly socketTimeoutDelay = 60 * 1000;
-	private readonly retryName = "Socket";
+	private readonly retry = retry.register("Socket", () => this.connect());
 	private isUp: boolean = false;
 	private closed: boolean = false;
 
@@ -26,11 +26,14 @@ class WebsocketConnection implements ReadWriteConnection {
 	public readonly onMessage = this.messageEmitter.event;
 
 	public constructor() {
-		retry.register(this.retryName, () => this.connect());
-		retry.block(this.retryName);
-		retry.run(this.retryName);
+		this.retry.block();
+		this.retry.run();
 	}
 
+	/**
+	 * Send data across the socket. If closed, will error. If connecting, will
+	 * queue.
+	 */
 	public send(data: Buffer | Uint8Array): void {
 		if (this.closed) {
 			throw new Error("web socket is closed");
@@ -42,6 +45,9 @@ class WebsocketConnection implements ReadWriteConnection {
 		}
 	}
 
+	/**
+	 * Close socket connection.
+	 */
 	public close(): void {
 		this.closed = true;
 		this.dispose();
@@ -61,7 +67,12 @@ class WebsocketConnection implements ReadWriteConnection {
 		socket.addEventListener("close", (event) => {
 			if (this.isUp) {
 				this.isUp = false;
-				this.downEmitter.emit(undefined);
+				try {
+					this.downEmitter.emit(undefined);
+				} catch (error) {
+					// Don't let errors here prevent restarting.
+					logger.error(error.message);
+				}
 			}
 			logger.warn(
 				"Web socket closed",
@@ -70,8 +81,8 @@ class WebsocketConnection implements ReadWriteConnection {
 				field("wasClean", event.wasClean),
 			);
 			if (!this.closed) {
-				retry.block(this.retryName);
-				retry.run(this.retryName);
+				this.retry.block();
+				this.retry.run();
 			}
 		});
 
@@ -103,15 +114,19 @@ class WebsocketConnection implements ReadWriteConnection {
 		}, this.socketTimeoutDelay);
 
 		await new Promise((resolve, reject): void => {
-			const onClose = (): void => {
+			const doReject = (): void => {
 				clearTimeout(socketWaitTimeout);
-				socket.removeEventListener("close", onClose);
+				socket.removeEventListener("error", doReject);
+				socket.removeEventListener("close", doReject);
 				reject();
 			};
-			socket.addEventListener("close", onClose);
+			socket.addEventListener("error", doReject);
+			socket.addEventListener("close", doReject);
 
-			socket.addEventListener("open", async () => {
+			socket.addEventListener("open", () => {
 				clearTimeout(socketWaitTimeout);
+				socket.removeEventListener("error", doReject);
+				socket.removeEventListener("close", doReject);
 				resolve();
 			});
 		});

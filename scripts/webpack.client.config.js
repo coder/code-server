@@ -12,43 +12,38 @@ const { GenerateSW } = require("workbox-webpack-plugin");
 const root = path.join(__dirname, "..");
 const prod = process.env.NODE_ENV === "production" || process.env.CI === "true";
 
-module.exports = (options = {}) =>
-  merge(require("./webpack.general.config")(options), {
-    devtool: prod ? "source-map" : "cheap-module-eval-source-map",
+module.exports = (options = {}) => merge(
+  require("./webpack.general.config")(options), {
+    devtool: prod ? "none" : "cheap-module-eval-source-map",
     mode: prod ? "production" : "development",
-    entry: prod
-      ? options.entry
-      : ["webpack-hot-middleware/client?reload=true&quiet=true", options.entry],
+    entry: prod ? options.entry : [
+      "webpack-hot-middleware/client?reload=true&quiet=true",
+      options.entry,
+    ],
     module: {
-      rules: [
-        {
-          test: /\.s?css$/,
-          // This is required otherwise it"ll fail to resolve CSS in common.
-          include: root,
-          use: [
-            {
-              loader: MiniCssExtractPlugin.loader
-            },
-            {
-              loader: "css-loader"
-            },
-            {
-              loader: "sass-loader"
-            }
-          ]
-        },
-        {
-          test: /\.(svg|png|ttf|woff|eot|woff2)$/,
-          use: [
-            {
-              loader: "file-loader",
-              options: {
-                name: "[path][name].[ext]"
-              }
-            }
-          ]
-        }
-      ]
+      rules: [{
+        test: /\.s?css$/,
+        // This is required otherwise it'll fail to resolve CSS in common.
+        include: root,
+        use: [{
+          loader: MiniCssExtractPlugin.loader,
+        }, {
+          loader: "css-loader",
+        }, {
+          loader: "sass-loader",
+        }],
+      }, {
+        test: /\.(png|ttf|woff|eot|woff2)$/,
+        use: [{
+          loader: "file-loader",
+          options: {
+            name: "[path][name].[ext]",
+          },
+        }],
+      }, {
+        test: /\.svg$/,
+        loader: 'url-loader'
+      }],
     },
     plugins: [
       new MiniCssExtractPlugin({

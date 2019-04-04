@@ -13,6 +13,7 @@ module.exports = merge(
 			path: path.join(__dirname, "out"),
 			libraryTarget: "commonjs",
 		},
+		mode: "production",
 		node: {
 			console: false,
 			global: false,
@@ -27,7 +28,10 @@ module.exports = merge(
 				"node-pty": "node-pty-prebuilt",
 			},
 		},
-		externals: ["tslib"],
+		externals: {
+			"nbin": "commonjs nbin",
+			"fsevents": "fsevents",
+		},
 		entry: "./packages/server/src/cli.ts",
 		plugins: [
 			new webpack.DefinePlugin({

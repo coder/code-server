@@ -1,6 +1,7 @@
 //@ts-ignore
 import * as netstat from "node-netstat";
 import { Event, Emitter } from "@coder/events";
+import { logger } from "@coder/logger";
 
 export interface PortScanner {
 	readonly ports: ReadonlyArray<number>;
@@ -16,7 +17,7 @@ export interface PortScanner {
  * Will scan local ports and emit events when ports are added or removed.
  * Currently only scans TCP ports.
  */
-export const createPortScanner = (scanInterval: number = 250): PortScanner => {
+export const createPortScanner = (scanInterval: number = 5000): PortScanner => {
 	const ports = new Map<number, number>();
 
 	const addEmitter = new Emitter<number[]>();
@@ -75,11 +76,14 @@ export const createPortScanner = (scanInterval: number = 250): PortScanner => {
 	let disposed: boolean = false;
 
 	const doInterval = (): void => {
-		scan(() => {
-			if (disposed) {
-				return;
+		logger.trace("scanning ports");
+		scan((error) => {
+			if (error) {
+				logger.error(`Port scanning will not be available: ${error.message}.`);
+				disposed = true;
+			} else if (!disposed) {
+				lastTimeout = setTimeout(doInterval, scanInterval);
 			}
-			lastTimeout = setTimeout(doInterval, scanInterval);
 		});
 	};
 

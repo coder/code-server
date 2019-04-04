@@ -1,11 +1,11 @@
 import { IPty } from "node-pty";
-import { createClient } from "@coder/protocol/test";
-
-const client = createClient();
-jest.mock("../../ide/src/fill/client", () => ({ client }));
-const pty = require("../src/fill/node-pty") as typeof import("node-pty");
+import { Module } from "../src/common/proxy";
+import { createClient } from "./helpers";
 
 describe("node-pty", () => {
+	const client = createClient();
+	const pty = client.modules[Module.NodePty];
+
 	/**
 	 * Returns a function that when called returns a promise that resolves with
 	 * the next chunk of data from the process.
@@ -47,12 +47,11 @@ describe("node-pty", () => {
 
 		const getData = promisifyData(proc);
 
-		// First it outputs @hostname:cwd
-		expect((await getData()).length).toBeGreaterThan(1);
-
-		// Then it seems to overwrite that with a shorter prompt in the format of
-		// [hostname@user]$
-		expect((await getData())).toContain("$");
+		// Wait for [hostname@user]$
+		let data = "";
+		while (!data.includes("$")) {
+			data = await getData();
+		}
 
 		proc.kill();
 
@@ -67,33 +66,34 @@ describe("node-pty", () => {
 		// isn't affected by custom configuration.
 		const proc = pty.spawn("/bin/bash", ["--rcfile", "/tmp/test/nope/should/not/exist"], {
 			cols: 10,
-			rows: 10,
+			rows: 912,
 		});
 
 		const getData = promisifyData(proc);
 
-		// We've already tested these first two bits of output; see shell test.
-		await getData();
-		await getData();
-
 		proc.write("tput lines\n");
-		expect(await getData()).toContain("tput");
 
-		expect((await getData()).trim()).toContain("10");
-		proc.resize(10, 50);
-
-		// The prompt again.
-		await getData();
-		await getData();
-
+		let data = "";
+		while (!data.includes("912")) {
+			data = await getData();
+		}
+		proc.resize(10, 219);
 		proc.write("tput lines\n");
-		expect(await getData()).toContain("tput");
 
-		expect((await getData())).toContain("50");
+		while (!data.includes("219")) {
+			data = await getData();
+		}
 
 		proc.kill();
 		await new Promise((resolve): void => {
 			proc.on("exit", resolve);
 		});
+	});
+
+	it("should dispose", (done) => {
+		setTimeout(() => {
+			client.dispose();
+			done();
+		}, 100);
 	});
 });
