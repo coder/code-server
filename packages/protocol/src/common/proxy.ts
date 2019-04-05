@@ -53,6 +53,17 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Remove an event listener.
+	 */
+	public off(event: string, cb: (...args: any[]) => void): this {
+		// Fill it here because the fill we're using to provide EventEmitter for the
+		// browser doesn't appear to include `off`.
+		this.removeListener(event, cb);
+
+		return this;
+	}
+
 	protected get proxy(): T {
 		if (!this._proxy) {
 			throw new Error("not initialized");
@@ -158,8 +169,10 @@ export abstract class Batch<T, A> {
 		private readonly maxCount: number = 100,
 		/**
 		 * Flush after not receiving more requests for this amount of time.
+		 * This is pretty low by default so essentially we just end up batching
+		 * requests that are all made at the same time.
 		 */
-		private readonly idleTime: number = 100,
+		private readonly idleTime: number = 1,
 	) {}
 
 	public add = (args: A): Promise<T> => {

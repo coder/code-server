@@ -38,6 +38,23 @@ describe("net", () => {
 			expect(fn).toHaveBeenCalledTimes(1);
 		});
 
+		it("should remove event listener", async () => {
+			const socket = new net.Socket();
+
+			const fn1 = jest.fn();
+			const fn2 = jest.fn();
+
+			socket.on("error", fn1);
+			socket.on("error", fn2);
+			socket.off("error", fn1);
+
+			socket.connect("/tmp/t/e/s/t/d/o/e/s/n/o/t/e/x/i/s/t");
+
+			await new Promise((r): nativeNet.Socket => socket.on("close", r));
+			expect(fn1).toHaveBeenCalledTimes(0);
+			expect(fn2).toHaveBeenCalledTimes(1);
+		});
+
 		it("should connect", async () => {
 			await new Promise((resolve): void => {
 				const socket = net.createConnection(socketPath, () => {

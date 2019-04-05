@@ -12,7 +12,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const defaultExtensionsPath = path.join(libPath, "extensions");
 const pkgsPath = path.join(__dirname, "../packages");
-const vscodeVersion = process.env.VSCODE_VERSION || "1.32.0";
+const vscodeVersion = process.env.VSCODE_VERSION || "1.33.0";
 const vsSourceUrl = `https://codesrv-ci.cdr.sh/vstar-${vscodeVersion}.tar.gz`;
 
 const buildServerBinary = register("build:server:binary", async (runner) => {

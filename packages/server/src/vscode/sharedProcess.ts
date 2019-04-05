@@ -66,12 +66,6 @@ export class SharedProcess {
 		this.setState({ state: SharedProcessState.Starting });
 		const activeProcess = await this.restart();
 
-		activeProcess.stderr.on("data", (data) => {
-			// Warn instead of error to prevent panic. It's unlikely stderr here is
-			// about anything critical to the functioning of the editor.
-			logger.warn(data.toString());
-		});
-
 		activeProcess.on("exit", (exitCode) => {
 			const error = new Error(`Exited with ${exitCode}`);
 			this.setState({
@@ -131,6 +125,16 @@ export class SharedProcess {
 
 			activeProcess.on("error", doReject);
 			activeProcess.on("exit", doReject);
+
+			activeProcess.stdout.on("data", (data) => {
+				logger.trace(data.toString());
+			});
+
+			activeProcess.stderr.on("data", (data) => {
+				// Warn instead of error to prevent panic. It's unlikely stderr here is
+				// about anything critical to the functioning of the editor.
+				logger.warn(data.toString());
+			});
 
 			this.ipcHandler = new StdioIpcHandler(activeProcess);
 			this.ipcHandler.once("handshake:hello", () => {
