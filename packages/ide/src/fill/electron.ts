@@ -137,6 +137,10 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				};
 			},
 		});
+		view.src = require("!!file-loader?name=[path][name].[ext]!./webview.html");
+		Object.defineProperty(view, "src", {
+			set: (): void => { /* Nope. */ },
+		});
 		(view as any).getWebContents = (): void => undefined; // tslint:disable-line no-any
 		(view as any).send = (channel: string, ...args: any[]): void => { // tslint:disable-line no-any
 			if (args[0] && typeof args[0] === "object" && args[0].contents) {
