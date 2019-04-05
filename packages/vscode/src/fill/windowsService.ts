@@ -1,6 +1,5 @@
 import * as electron from "electron";
 import { Emitter } from "@coder/events";
-import * as windowsIpc from "vs/platform/windows/node/windowsIpc";
 import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions, IOpenFileRequest, IAddFoldersRequest } from "vs/platform/windows/common/windows";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { IWorkspaceIdentifier, IWorkspaceFolderCreationData, ISingleFolderWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
@@ -15,7 +14,7 @@ import { workbench } from "../workbench";
  * Instead of going to the shared process, we'll directly run these methods on
  * the client. This setup means we can only control the current window.
  */
-class WindowsService implements IWindowsService {
+export class WindowsService implements IWindowsService {
 	// tslint:disable-next-line no-any
 	public _serviceBrand: any;
 
@@ -343,7 +342,3 @@ class WindowsService implements IWindowsService {
 		return this.window;
 	}
 }
-
-const target = windowsIpc as typeof windowsIpc;
-// @ts-ignore TODO: don't ignore it.
-target.WindowsChannelClient = WindowsService;
