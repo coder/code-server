@@ -24,7 +24,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-e, --extensions-dir <dir>", "Set the root path for extensions.")
 	.option("-d --user-data-dir <dir>", "	Specifies the directory that user data is kept in, useful when running as root.")
 	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
-	.option("-h, --host <value>", "Customize the hostname.", "127.0.0.1")
+	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
 	.option("-p, --port <number>", "Port to bind on.", 8443)
 	.option("-N, --no-auth", "Start without requiring authentication.", undefined)
@@ -50,7 +50,7 @@ const bold = (text: string | number): string | number => {
 	const options = commander.opts() as {
 		noAuth: boolean;
 		readonly allowHttp: boolean;
-		readonly host: string;
+		host: string;
 		readonly port: number;
 
 		readonly userDataDir?: string;
@@ -235,8 +235,13 @@ const bold = (text: string | number): string | number => {
 		} : undefined,
 	});
 
-	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
-	app.server.listen(options.port, options.host);
+	if (options.noAuth || options.allowHttp) {
+		logger.info("Starting webserver...", field("host", "127.0.0.1"), field("port", options.port));
+		app.server.listen(options.port, "127.0.0.1");
+	} else {
+		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
+		app.server.listen(options.port, options.host);
+	}
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
