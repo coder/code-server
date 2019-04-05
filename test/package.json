@@ -9,6 +9,7 @@
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
+    "@types/jest-environment-puppeteer": "^4.0.0",
     "@types/puppeteer": "^1.12.3",
     "@types/xml2js": "^0.4.3"
   },
