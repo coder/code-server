@@ -953,6 +953,18 @@ index 74dad64..7bc591a 100644
 +		this.handle.stdout.once('data', () => this.retry.recover());
 @@ -110,0 +113 @@ export class OutOfProcessWin32FolderWatcher {
 +			return this.retry.run();
+diff --git a/src/vs/workbench/services/files2/node/diskFileSystemProvider.ts b/src/vs/workbench/services/files2/node/diskFileSystemProvider.ts
+index 18edf56..8e5b395 100644
+--- a/src/vs/workbench/services/files2/node/diskFileSystemProvider.ts
++++ b/src/vs/workbench/services/files2/node/diskFileSystemProvider.ts
+@@ -79,2 +79,2 @@ export class DiskFileSystemProvider extends Disposable implements IFileSystemPro
+-			for (let i = 0; i < children.length; i++) {
+-				const child = children[i];
++			await Promise.all(children.map(async (child) => { // for (let i = 0; i < children.length; i++) {
++				// const child = children[i];
+@@ -88 +88 @@ export class DiskFileSystemProvider extends Disposable implements IFileSystemPro
+-			}
++			})); // }
 diff --git a/src/vs/workbench/services/heap/node/heap.ts b/src/vs/workbench/services/heap/node/heap.ts
 index 8f627ba..9a795eb 100644
 --- a/src/vs/workbench/services/heap/node/heap.ts

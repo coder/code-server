@@ -158,8 +158,10 @@ export abstract class Batch<T, A> {
 		private readonly maxCount: number = 100,
 		/**
 		 * Flush after not receiving more requests for this amount of time.
+		 * This is pretty low by default so essentially we just end up batching
+		 * requests that are all made at the same time.
 		 */
-		private readonly idleTime: number = 100,
+		private readonly idleTime: number = 1,
 	) {}
 
 	public add = (args: A): Promise<T> => {
