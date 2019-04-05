@@ -36,8 +36,8 @@ module.exports = merge(
 					loader: "ignore-loader",
 				}],
 			}, {
-				// The only thing we need in electron-browser is the main shared process.
-				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\/|\/electron-browser\/(?!sharedProcess\/sharedProcessMain\.ts).+\//,
+				// The only thing we need in electron-browser is the shared process (including contrib).
+				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\/|\/electron-browser\/(?!sharedProcess\/).+\//,
 				use: [{
 					loader: "ignore-loader",
 				}],
