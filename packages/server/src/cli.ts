@@ -236,12 +236,10 @@ const bold = (text: string | number): string | number => {
 	});
 
 	if (options.noAuth || options.allowHttp) {
-		logger.info("Starting webserver...", field("host", "127.0.0.1"), field("port", options.port));
-		app.server.listen(options.port, "127.0.0.1");
-	} else {
-		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
-		app.server.listen(options.port, options.host);
+		logger.warn("0.0.0.0 is accessible to any device on your network");
 	}
+	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
+	app.server.listen(options.port, options.host);
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
