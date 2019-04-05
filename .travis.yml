@@ -10,7 +10,8 @@ matrix:
   - os: osx
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
-  libsecret-1-dev; fi
+  libsecret-1-dev
+  libnss3; fi
 - npm install -g yarn@1.12.3
 script:
 - scripts/build.sh
