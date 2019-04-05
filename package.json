@@ -30,6 +30,7 @@
     "http-browserify": "^1.7.0",
     "ignore-loader": "^0.1.2",
     "jest": "^24.7.1",
+    "jest-puppeteer": "^4.1.0",
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",

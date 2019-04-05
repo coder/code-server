@@ -44,8 +44,6 @@ describe("chrome e2e", () => {
 		expect(editor.properties).toBeDefined();
 		expect(editor.properties!["id"]).toBe("workbench.parts.editor");
 		expect(editor.children.length).toBeGreaterThan(0);
-
-		await page.close();
 	}, 5000);
 
 	it("should create file", async () => {
@@ -66,8 +64,6 @@ describe("chrome e2e", () => {
 		expect(elements.length).toBeGreaterThan(0);
 		const contentArray = elements.map((el) => el.textContent);
 		expect(contentArray).toContain(testFileName);
-
-		await page.close();
 	}, 15000);
 
 	it("should open file", async () => {
@@ -87,8 +83,6 @@ describe("chrome e2e", () => {
 		expect(tab.properties).not.toBeUndefined();
 		expect(tab.properties!["title"]).toContain(testFileName);
 		expect(tab.children.length).toBeGreaterThan(0);
-
-		await page.close();
 	}, 15000);
 
 	it("should install extension", async () => {
@@ -119,8 +113,6 @@ describe("chrome e2e", () => {
 		expect(manageButton).toBeTruthy();
 		expect(manageButton.tag).toEqual("a");
 		expect(manageButton.textContent).toBeUndefined();
-
-		await page.close();
 	}, 65000);
 
 	it("should debug file", async () => {
@@ -176,8 +168,6 @@ describe("chrome e2e", () => {
 		lastSpan = spans.pop();
 		expect(lastSpan).toBeDefined();
 		expect(lastSpan!.textContent).toEqual("foo bar");
-
-		await page.close();
 	}, 55000);
 
 	it("should delete file", async () => {
@@ -210,8 +200,6 @@ describe("chrome e2e", () => {
 		expect(elements.length).toBeGreaterThanOrEqual(0);
 		const contentArray = elements.map((el) => el.textContent);
 		expect(contentArray).not.toContain(testFileName);
-
-		await page.close();
 	}, 30000);
 
 	it("should uninstall extension", async () => {
@@ -245,7 +233,5 @@ describe("chrome e2e", () => {
 		expect(installButton).toBeTruthy();
 		expect(installButton.tag).toEqual("a");
 		expect(installButton.textContent).toBe("Install");
-
-		await page.close();
 	}, 55000);
 });

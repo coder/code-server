@@ -13,6 +13,7 @@ before_install:
   sudo apt-get install libxkbfile-dev
     libsecret-1-dev
     gconf-service
+    libnss3
     libasound2
     libatk1.0-0
     libatk-bridge2.0-0
@@ -47,7 +48,6 @@ before_install:
     ca-certificates
     fonts-liberation
     libappindicator1
-    libnss3
     lsb-release
     xdg-utils
     wget; fi

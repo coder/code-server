@@ -39,7 +39,6 @@ describe("startup e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await expectEditor(server, page);
-		await page.close();
 	}, 5000);
 
 	it("should use --password value", async () => {
@@ -59,6 +58,5 @@ describe("startup e2e", () => {
 		await page.waitFor(3000);
 
 		await expectEditor(server, page);
-		await page.close();
 	}, 15000);
 });
