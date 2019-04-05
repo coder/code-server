@@ -9,9 +9,14 @@ matrix:
     dist: trusty
   - os: osx
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
-  libsecret-1-dev
-  libnss3; fi
+  # Enable user namespace cloning
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  sudo apt-get install libxkbfile-dev
+    libsecret-1-dev
+    libnss3;
+  sysctl kernel.unprivileged_userns_clone=1;
+  export DISPLAY=:99.0;
+  sh -e /etc/init.d/xvfb start; fi
 - npm install -g yarn@1.12.3
 script:
 - scripts/build.sh
