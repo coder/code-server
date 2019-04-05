@@ -452,7 +452,7 @@ index a215bde..df7562b 100644
 @@ -44,0 +45 @@
 +.web > .monaco-workbench .part.titlebar,
 diff --git a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
-index a822341..642bc70 100644
+index a822341..43b882a 100644
 --- a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
 +++ b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
 @@ -16 +16,2 @@ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
@@ -465,6 +465,9 @@ index a822341..642bc70 100644
 @@ -126 +127 @@ export class MenubarControl extends Disposable {
 -		if (isMacintosh || this.currentTitlebarStyleSetting !== 'custom') {
 +		if ((isNative && isMacintosh) || this.currentTitlebarStyleSetting !== 'custom') {
+@@ -138 +139 @@ export class MenubarControl extends Disposable {
+-			if (isMacintosh || this.currentTitlebarStyleSetting !== 'custom') {
++			if ((isNative && isMacintosh) || this.currentTitlebarStyleSetting !== 'custom') {
 @@ -288 +289 @@ export class MenubarControl extends Disposable {
 -		if (!isMacintosh && this.currentTitlebarStyleSetting === 'custom') {
 +		if (!(isNative && isMacintosh) && this.currentTitlebarStyleSetting === 'custom') {
@@ -841,13 +844,16 @@ index 48ef482..dc47f81 100644
 -			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 +			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
-index 71bc992..9562b11 100644
+index 71bc992..59a1a20 100644
 --- a/src/vs/workbench/electron-browser/main.contribution.ts
 +++ b/src/vs/workbench/electron-browser/main.contribution.ts
 @@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
 -import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
 +import { isNative, isWeb } from 'vs/base/common/platform';
 +import { isMacintosh, isWindows, isLinux } from 'vs/base/browser/browser';
+@@ -306 +307 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-		when: IsMacContext.toNegated()
++		// when: IsMacContext.toNegated()
 @@ -538 +539 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
 -					isMacintosh ?
 +					isNative && isMacintosh ?
