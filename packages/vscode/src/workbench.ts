@@ -139,6 +139,13 @@ export class Workbench {
 			logger.error(error.message);
 		});
 
+		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
+		const bounded = this.clipboardContextKey.bindTo(contextKeys);
+		client.clipboard.onPermissionChange((enabled) => {
+			bounded.set(enabled);
+		});
+		client.clipboard.initialize();
+
 		client.progressService = {
 			start: <T>(title: string, task: (progress: IProgress) => Promise<T>, onCancel: () => void): Promise<T> => {
 				let lastProgress = 0;
@@ -237,12 +244,6 @@ export class Workbench {
 				return;
 			}
 		}
-		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
-		const bounded = this.clipboardContextKey.bindTo(contextKeys);
-		client.clipboard.onPermissionChange((enabled) => {
-			bounded.set(enabled);
-		});
-		client.clipboard.initialize();
 	}
 }
 

@@ -147,7 +147,7 @@ export class Retry {
 	 *
 	 * Blocking without a name will override a block with a name.
 	 */
-	private block(name?: string): void {
+	public block(name?: string): void {
 		if (!this.blocked || !name) {
 			this.blocked = name || true;
 			this.items.forEach((item) => {

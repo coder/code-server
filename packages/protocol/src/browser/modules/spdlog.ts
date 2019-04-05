@@ -45,4 +45,12 @@ export class SpdlogModule {
 	public setAsyncMode = (bufferSize: number, flushInterval: number): Promise<void> => {
 		return this.proxy.setAsyncMode(bufferSize, flushInterval);
 	}
+
+	public createRotatingLogger(name: string, filename: string, filesize: number, filecount: number): RotatingLogger {
+		return new RotatingLogger(this.proxy, name, filename, filesize, filecount);
+	}
+
+	public createRotatingLoggerAsync(name: string, filename: string, filesize: number, filecount: number): Promise<RotatingLogger> {
+		return Promise.resolve(this.createRotatingLogger(name, filename, filesize, filecount));
+	}
 }
