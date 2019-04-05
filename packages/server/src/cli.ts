@@ -50,7 +50,7 @@ const bold = (text: string | number): string | number => {
 	const options = commander.opts() as {
 		noAuth: boolean;
 		readonly allowHttp: boolean;
-		host: string;
+		readonly host: string;
 		readonly port: number;
 
 		readonly userDataDir?: string;
