@@ -53,6 +53,17 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		}
 	}
 
+	/**
+	 * Remove an event listener.
+	 */
+	public off(event: string, cb: (...args: any[]) => void): this {
+		// Fill it here because the fill we're using to provide EventEmitter for the
+		// browser doesn't appear to include `off`.
+		this.removeListener(event, cb);
+
+		return this;
+	}
+
 	protected get proxy(): T {
 		if (!this._proxy) {
 			throw new Error("not initialized");
