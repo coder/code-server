@@ -15,22 +15,19 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Launch your instance
 - Open a terminal on your computer and SSH into your instance
   > example: ssh root@203.0.113.0
-- Once in the SSH session, visit code-server [releases page](https://github.com/codercom/code-server/releases/) and copy the link to the download for the latest linux release
-- Find the latest Linux release from this URL:
+- Once in the SSH session, run the following commands to download and install the latest linux release
+
+- Download the latest Linux release with this command:
   ```
-  https://github.com/codercom/code-server/releases/latest
+  curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz -qci -
   ```
-- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
+- Extract the downloaded tar.gz file with this command:
   ```
-  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  mkdir -p ~/code-server-linux && tar -xzvf code-server-linux.tar.gz --strip 1 -C $_
   ```
-- Extract the downloaded tar.gz file with this command, for example:
+- Navigate to the extracted directory with this command:
   ```
-  tar -xvzf code-server-{version}-linux-x64.tar.gz
-  ```
-- Navigate to extracted directory with this command:
-  ```
-  cd code-server-{version}-linux-x64
+  cd code-server-linux
   ```
 - If you run into any permission errors when attempting to run the binary:
   ```
@@ -39,7 +36,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally start the code-server
   ```
-  sudo ./code-server-linux -p 80
+  sudo ./code-server -p 80
   ```
     > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
 - When you visit the public IP for your Digital Ocean instance, you will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">

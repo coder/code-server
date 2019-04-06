@@ -25,24 +25,19 @@ If you're just starting out, we recommend [installing code-server locally](../..
 gcloud compute ssh --zone [region] [instance name]
 ```
 
-- Find the latest Linux release from this URL:
+- Download the latest Linux release with this command:
 ```
-https://github.com/codercom/code-server/releases/latest
-```
-
-- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
-```
-wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz -qci -
 ```
 
-- Extract the downloaded tar.gz file with this command, for example:
+- Extract the downloaded tar.gz file with this command:
 ```
-tar -xvzf code-server-{version}-linux-x64.tar.gz
+mkdir -p ~/code-server-linux && tar -xzvf code-server-linux.tar.gz --strip 1 -C $_
 ```
 
-- Navigate to extracted directory with this command:
+- Navigate to the extracted directory with this command:
 ```
-cd code-server-{version}-linux-x64
+cd code-server-linux
 ```
 
 - Make the binary executable if you run into any errors regarding permission:

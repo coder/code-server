@@ -33,21 +33,17 @@ If you're just starting out, we recommend [installing code-server locally](../..
   >example: `ssh -i "/Users/John/Downloads/TestInstance.pem" ubuntu@ec2-3-45-678-910.compute-1.amazonaws.co`
 - You should see a prompt for your EC2 instance like so<img src="../../assets/aws_ubuntu.png">
 - At this point it is time to download the `code-server` binary. We will of course want the linux version.
-- Find the latest Linux release from this URL:
+- Download the latest Linux release with this command:
   ```
-  https://github.com/codercom/code-server/releases/latest
+  curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz -qci -
   ```
-- Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
+- Extract the downloaded tar.gz file with this command:
   ```
-  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
-  ```
-- Extract the downloaded tar.gz file with this command, for example:
-  ```
-  tar -xvzf code-server-{version}-linux-x64.tar.gz
+  mkdir -p ~/code-server-linux && tar -xzvf code-server-linux.tar.gz --strip 1 -C $_
   ```
 - Navigate to extracted directory with this command:
   ```
-  cd code-server-{version}-linux-x64
+  cd code-server-linux
   ```
 - If you run into any permission errors, make the binary executable by running:
   ```
