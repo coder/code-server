@@ -27,7 +27,7 @@ gcloud compute ssh --zone [region] [instance name]
 
 - Download the latest Linux release with this command:
 ```
-curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz -qci -
+curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz --show-progress -qci -
 ```
 
 - Extract the downloaded tar.gz file with this command:
