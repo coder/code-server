@@ -349,6 +349,17 @@ index 25e74c8..0bed89e 100644
 @@ -769 +769 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
 -		r = require.__$__nodeRequire<T>(modulePath);
 +		r = (global as any).nativeNodeRequire(modulePath);
+diff --git a/src/vs/workbench/api/node/extHostTypeConverters.ts b/src/vs/workbench/api/node/extHostTypeConverters.ts
+index 84406b8..cffd952 100644
+--- a/src/vs/workbench/api/node/extHostTypeConverters.ts
++++ b/src/vs/workbench/api/node/extHostTypeConverters.ts
+@@ -26 +25,0 @@ import { ExtHostDocumentsAndEditors } from 'vs/workbench/api/node/extHostDocumen
+-import { isString, isNumber } from 'vs/base/common/types';
+@@ -31 +29,0 @@ import { LogLevel as _MainLogLevel } from 'vs/platform/log/common/log';
+-import { coalesce } from 'vs/base/common/arrays';
+@@ -117,0 +116,2 @@ export namespace Diagnostic {
++		const { isString, isNumber } = require('vs/base/common/types');
++		const { coalesce } = require('vs/base/common/arrays');
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 7b6ad89..3190356 100644
 --- a/src/vs/workbench/browser/dnd.ts
@@ -844,7 +855,7 @@ index 48ef482..dc47f81 100644
 -			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 +			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
-index 71bc992..59a1a20 100644
+index 71bc992..97cbb71 100644
 --- a/src/vs/workbench/electron-browser/main.contribution.ts
 +++ b/src/vs/workbench/electron-browser/main.contribution.ts
 @@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
