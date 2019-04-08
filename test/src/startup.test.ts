@@ -4,7 +4,7 @@ import { TestServer } from "./index";
 describe("startup e2e", () => {
 	let servers: { [tag: string]: TestServer } = {};
 
-	beforeAll(async () => {
+	beforeAll(() => {
 		const portServer = new TestServer({ port: 8081 });
 		servers["--port"] = portServer;
 
@@ -25,6 +25,7 @@ describe("startup e2e", () => {
 
 	const expectEditor = async (server: TestServer, page: puppeteer.Page): Promise<void> => {
 		// Editor should be visible.
+		await page.waitFor("div.part.editor");
 		const editor = await server.querySelector(page, "div.part.editor");
 		expect(editor).toBeTruthy();
 		expect(editor.tag).toEqual("div");

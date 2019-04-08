@@ -5,7 +5,7 @@
   "main": "index.ts",
   "license": "MIT",
   "scripts": {
-    "test": "npx jest --verbose"
+    "test": "npx jest --forceExit --verbose"
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
@@ -14,7 +14,6 @@
     "@types/xml2js": "^0.4.3"
   },
   "jest": {
-    "preset": "jest-puppeteer",
     "globals": {
       "ts-jest": {
         "diagnostics": false

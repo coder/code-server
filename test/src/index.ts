@@ -181,6 +181,7 @@ export class TestServer {
 			launchOptions = Object.assign(launchOptions || {}, {
 				devtools: !!process.env.LOG_LEVEL,
 				defaultViewport: { width: 1280, height: 800 },
+				args: ["--no-sandbox"],
 			});
 			this.browser = await puppeteer.launch(launchOptions);
 		});
