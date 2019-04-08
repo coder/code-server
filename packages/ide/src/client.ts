@@ -34,6 +34,11 @@ export abstract class IdeClient {
 		this.loadTime = time(2500);
 
 		let appWindow: Window | undefined;
+
+		window.onbeforeunload = () => {
+			return "Are you sure you want to navigate away?";
+		}
+
 		window.addEventListener("message", (event) => {
 			if (event.data === "app") {
 				appWindow = event.source as Window;
