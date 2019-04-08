@@ -10,6 +10,15 @@ import { client } from "../client";
 import { showOpenDialog } from "../dialog";
 import { workbench } from "../workbench";
 
+// VS Code overrides window.open to call openExternal, but we then call
+// window.open which results in an infinite loop. Store the function but also
+// make it unable to be set (doesn't work otherwise).
+const windowOpen = window.open;
+Object.defineProperty(window, "open", {
+	set: (): void => { /* Not allowed. */ },
+	get: (): Function => windowOpen,
+});
+
 /**
  * Instead of going to the shared process, we'll directly run these methods on
  * the client. This setup means we can only control the current window.
