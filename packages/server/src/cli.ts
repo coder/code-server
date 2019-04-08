@@ -235,7 +235,7 @@ const bold = (text: string | number): string | number => {
 		} : undefined,
 	});
 
-	if (options.noAuth || options.allowHttp) {
+	if (options.noAuth && options.host === "0.0.0.0"|| options.allowHttp && options.host === "0.0.0.0") {
 		logger.warn("0.0.0.0 is accessible to any device on your network");
 	}
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
