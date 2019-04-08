@@ -1,14 +1,17 @@
 import * as electron from "electron";
 import { Emitter } from "@coder/events";
-import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions, IOpenFileRequest, IAddFoldersRequest } from "vs/platform/windows/common/windows";
+import { logger } from "@coder/logger";
+import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions, IOpenFileRequest, IAddFoldersRequest, IURIToOpen, IOpenSettings } from "vs/platform/windows/common/windows";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { IWorkspaceIdentifier, IWorkspaceFolderCreationData, ISingleFolderWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
 import { URI } from "vs/base/common/uri";
-import { IRecentlyOpened } from "vs/platform/history/common/history";
+import { IRecentlyOpened, IRecent } from "vs/platform/history/common/history";
 import { ISerializableCommandAction } from "vs/platform/actions/common/actions";
 import { client } from "../client";
 import { showOpenDialog } from "../dialog";
 import { workbench } from "../workbench";
+
+// tslint:disable completed-docs
 
 // VS Code overrides window.open to call openExternal, but we then call
 // window.open which results in an infinite loop. Store the function but also
@@ -59,7 +62,7 @@ export class WindowsService implements IWindowsService {
 				}],
 			} as IOpenFileRequest);
 		}).catch((ex) => {
-			//
+			logger.error(ex.message);
 		});
 	}
 
@@ -77,7 +80,7 @@ export class WindowsService implements IWindowsService {
 				}],
 			} as IOpenFileRequest);
 		}).catch((ex) => {
-			//
+			logger.error(ex.message);
 		});
 	}
 
@@ -90,7 +93,7 @@ export class WindowsService implements IWindowsService {
 		}).then((path) => {
 			workbench.workspace = URI.file(path);
 		}).catch((ex) => {
-			//
+			logger.error(ex.message);
 		});
 	}
 
@@ -106,7 +109,7 @@ export class WindowsService implements IWindowsService {
 				foldersToAdd: [URI.file(path)],
 			} as IAddFoldersRequest);
 		}).catch((ex) => {
-			//
+			logger.error(ex.message);
 		});
 	}
 
@@ -129,16 +132,14 @@ export class WindowsService implements IWindowsService {
 		});
 	}
 
-	public showOpenDialog(windowId: number, options: OpenDialogOptions): Promise<string[]> {
-		return showOpenDialog({
+	public async showOpenDialog(_windowId: number, options: OpenDialogOptions): Promise<string[]> {
+		return [await showOpenDialog({
 			...(options || {}),
 			properties: {
 				openDirectory: true,
 				openFile: true,
 			},
-		}).then((path) => {
-			return [path];
-		});
+		})];
 	}
 
 	public reloadWindow(windowId: number, _args?: ParsedArgs): Promise<void> {
@@ -157,14 +158,14 @@ export class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public enterWorkspace(_windowId: number, _path: URI): Promise<IEnterWorkspaceResult> {
-		if (_path.path.endsWith(".json")) {
+	public enterWorkspace(_windowId: number, uri: URI): Promise<IEnterWorkspaceResult> {
+		if (uri.path.endsWith(".json")) {
 			workbench.workspace = {
 				id: "Untitled",
-				configPath: _path.path,
+				configPath: uri,
 			};
 		} else {
-			workbench.workspace = _path;
+			workbench.workspace = uri;
 		}
 
 		return undefined!;
@@ -188,7 +189,7 @@ export class WindowsService implements IWindowsService {
 		return Promise.resolve(this.getWindowById(windowId).setRepresentedFilename(fileName));
 	}
 
-	public addRecentlyOpened(_files: URI[]): Promise<void> {
+	public addRecentlyOpened(_files: IRecent[]): Promise<void> {
 		throw new Error("not implemented");
 	}
 
@@ -292,7 +293,7 @@ export class WindowsService implements IWindowsService {
 	}
 
 	// Global methods
-	public openWindow(_windowId: number, _paths: URI[], _options?: { forceNewWindow?: boolean, forceReuseWindow?: boolean, forceOpenWorkspaceAsFile?: boolean, args?: ParsedArgs }): Promise<void> {
+	public openWindow(_windowId: number, _uris: IURIToOpen[], _options?: IOpenSettings): Promise<void> {
 		throw new Error("not implemented");
 	}
 
@@ -316,8 +317,8 @@ export class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public async showItemInFolder(_path: string): Promise<void> {
-		workbench.workspace = URI.file(_path);
+	public async showItemInFolder(uri: URI): Promise<void> {
+		workbench.workspace = uri;
 	}
 
 	public getActiveWindowId(): Promise<number | undefined> {
