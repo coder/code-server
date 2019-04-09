@@ -37,6 +37,7 @@ commander.version(process.env.VERSION || "development")
 Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
+	require("nbin").shimNativeFs("/node_modules");
 }
 // Makes strings or numbers bold in stdout
 const bold = (text: string | number): string | number => {
