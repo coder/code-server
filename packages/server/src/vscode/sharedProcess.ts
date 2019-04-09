@@ -8,7 +8,7 @@ import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
-import { logger, Level } from "@coder/logger";
+import { logger, field, Level } from "@coder/logger";
 
 export enum SharedProcessState {
 	Stopped,
@@ -127,13 +127,13 @@ export class SharedProcess {
 			activeProcess.on("exit", doReject);
 
 			activeProcess.stdout.on("data", (data) => {
-				logger.trace(data.toString());
+				logger.trace("stdout", field("data", data.toString()));
 			});
 
 			activeProcess.stderr.on("data", (data) => {
 				// Warn instead of error to prevent panic. It's unlikely stderr here is
 				// about anything critical to the functioning of the editor.
-				logger.warn(data.toString());
+				logger.warn("stderr", field("data", data.toString()));
 			});
 
 			this.ipcHandler = new StdioIpcHandler(activeProcess);
