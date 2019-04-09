@@ -1,6 +1,6 @@
 {
 	"name": "@coder/ide-api",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"typings": "api.d.ts",
 	"author": "Coder",
 	"license": "MIT",

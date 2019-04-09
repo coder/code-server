@@ -136,12 +136,17 @@ interface ICommandRegistry {
 	registerCommand(command: ICommand): IDisposable;
 }
 
+interface IStorageService {
+	save(): Promise<void>;
+}
+
 declare namespace ide {
 	export const client: {};
 
 	export const workbench: {
 		readonly statusbarService: IStatusbarService;
 		readonly notificationService: INotificationService;
+		readonly storageService: IStorageService;
 		readonly menuRegistry: IMenuRegistry;
 		readonly commandRegistry: ICommandRegistry;
 

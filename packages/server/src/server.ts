@@ -271,7 +271,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 				const body = data.join("");
 				await mkdirp(path.dirname(fullPath));
 				fs.writeFileSync(fullPath, body);
-				logger.debug("Wrote resource", field("path", fullPath), field("content-length", body.length));
+				logger.info("Wrote resource", field("path", fullPath), field("content-length", body.length));
 				res.status(200);
 				res.end();
 			});
