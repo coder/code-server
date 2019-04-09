@@ -9,7 +9,7 @@ import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
 import { createApp } from "./server";
-import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
+import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
@@ -30,7 +30,6 @@ commander.version(process.env.VERSION || "development")
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "Specify a password for authentication.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
-	.option("--fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
@@ -62,7 +61,6 @@ const bold = (text: string | number): string | number => {
 		readonly certKey?: string;
 
 		readonly bootstrapFork?: string;
-		readonly fork?: string;
 		readonly extraArgs?: string;
 	};
 
@@ -119,13 +117,7 @@ const bold = (text: string | number): string | number => {
 			process.argv[i + 2] = arg;
 		});
 
-		return requireModule(modulePath, dataDir, builtInExtensionsDir);
-	}
-
-	if (options.fork) {
-		const modulePath = options.fork;
-
-		return requireFork(modulePath, JSON.parse(options.extraArgs!), builtInExtensionsDir);
+		return requireModule(modulePath, builtInExtensionsDir);
 	}
 
 	const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
@@ -231,14 +223,7 @@ const bold = (text: string | number): string | number => {
 					return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 				}
 
-				if (isCli) {
-					return spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
-						...options,
-						stdio: [null, null, null, "ipc"],
-					});
-				} else {
-					return fork(modulePath, args, options);
-				}
+				return fork(modulePath, args, options);
 			},
 		},
 		password,
