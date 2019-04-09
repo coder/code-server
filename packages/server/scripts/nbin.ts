@@ -10,6 +10,8 @@ const bin = new Binary({
 });
 bin.writeFiles(path.join(rootDir, "build", "**"));
 bin.writeFiles(path.join(rootDir, "out", "**"));
+bin.writeModule(path.join(__dirname, "../../../node_modules", "spdlog"));
+bin.writeModule(path.join(__dirname, "../../../node_modules", "node-pty"));
 bin.build().then((binaryData) => {
 	const outputPath = path.join(__dirname, "..", `cli-${target}`);
 	fs.writeFileSync(outputPath, binaryData);

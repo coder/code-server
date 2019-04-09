@@ -48,19 +48,11 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const bootstrapForkPath = path.join(pkgsPath, "vscode", "out", "bootstrap-fork.js");
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
-	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty-prebuilt", "build", "Release", "pty.node");
-	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
 	if (isWin) {
 		ripgrepPath += ".exe";
 	}
 
-	if (!fs.existsSync(nodePtyModule)) {
-		throw new Error("Could not find pty.node. Ensure all packages have been installed");
-	}
-	if (!fs.existsSync(spdlogModule)) {
-		throw new Error("Could not find spdlog.node. Ensure all packages have been installed");
-	}
 	if (!fs.existsSync(webOutputPath)) {
 		throw new Error("Web bundle must be built");
 	}
@@ -91,8 +83,6 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	cpDir(webOutputPath, "auth", webOutputPath);
 	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
 	fse.mkdirpSync(path.join(cliBuildPath, "dependencies"));
-	fse.copySync(nodePtyModule, path.join(cliBuildPath, "dependencies", "pty.node"));
-	fse.copySync(spdlogModule, path.join(cliBuildPath, "dependencies", "spdlog.node"));
 	fse.copySync(ripgrepPath, path.join(cliBuildPath, "dependencies", "rg"));
 });
 
@@ -204,9 +194,9 @@ register("package", async (runner, releaseTag) => {
 	});
 
 	runner.cwd = releasePath;
-	await os.platform() === "linux"
+	await (os.platform() === "linux"
 		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
-		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
+		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]));
 });
 
 run();

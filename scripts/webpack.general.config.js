@@ -10,7 +10,9 @@ const root = path.join(__dirname, "..");
 module.exports = (options = {}) => ({
 	context: root,
 	devtool: "none",
-	externals: ["fsevents"],
+	externals: {
+		fsevents: "fsevents",
+	},
 	module: {
 		rules: [{
 			loader: "string-replace-loader",
@@ -44,37 +46,6 @@ module.exports = (options = {}) => ({
 		}, {
 			test: /\.wasm$/,
 			type: "javascript/auto",
-		}, {
-			// Fixes spdlog.
-			test: /spdlog(\\|\/)index\.js/,
-			loader: "string-replace-loader",
-			options: {
-				multiple: [{
-					search: "const spdlog.*;",
-					replace: "const spdlog = __non_webpack_require__(global.SPDLOG_LOCATION);",
-					flags: "g",
-				}],
-			},
-		}, {
-			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/)index\.js/,
-			loader: "string-replace-loader",
-			options: {
-				multiple: [{
-					search: "exports\\.native.*;",
-					replace: "exports.native = null;",
-					flags: "g",
-				}],
-			},
-		}, {
-			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/).*\.js/,
-			loader: "string-replace-loader",
-			options: {
-				multiple: [{
-					search: "var pty = .*pty\.node.*;",
-					replace: "var pty = __non_webpack_require__(global.NODEPTY_LOCATION);",
-					flags: "g",
-				}],
-			},
 		}],
 	},
 	resolve: {

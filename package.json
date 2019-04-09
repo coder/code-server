@@ -58,6 +58,8 @@
   },
   "dependencies": {
     "node-loader": "^0.6.0",
+    "node-pty": "^0.8.1",
+    "spdlog": "^0.8.1",
     "webpack-merge": "^4.2.1"
   }
 }
