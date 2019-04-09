@@ -56,10 +56,13 @@
     "webpack-hot-middleware": "^2.24.3",
     "write-file-webpack-plugin": "^4.5.0"
   },
+  "resolutions": {
+    "bindings": "1.3.0"
+  },
   "dependencies": {
     "node-loader": "^0.6.0",
-    "node-pty": "^0.8.1",
-    "spdlog": "^0.8.1",
+    "node-pty": "0.8.1",
+    "spdlog": "0.8.1",
     "webpack-merge": "^4.2.1"
   }
 }
