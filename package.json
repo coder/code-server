@@ -42,7 +42,7 @@
     "style-loader": "^0.23.1",
     "tar": "^4.4.8",
     "terser-webpack-plugin": "^1.2.3",
-    "ts-jest": "^24.0.1",
+    "ts-jest": "^24.0.2",
     "ts-loader": "^5.3.3",
     "ts-node": "^7.0.1",
     "tsconfig-paths": "^3.8.0",

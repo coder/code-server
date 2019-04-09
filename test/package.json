@@ -5,7 +5,10 @@
   "main": "index.ts",
   "license": "MIT",
   "scripts": {
-    "test": "npx jest --forceExit --verbose"
+    "test": "./scripts/test.sh",
+    "test:jest": "npx jest --forceExit --verbose",
+    "test:docker": "cd .. && docker run --rm -v \"${PWD}:/code-server\" code-server-e2e bash -c 'cd /code-server/test && yarn test:jest'",
+    "build:docker": "cd .. && docker build -t code-server-e2e -f code-server-e2e.dockerfile ."
   },
   "devDependencies": {
     "@types/jest": "^24.0.11",
