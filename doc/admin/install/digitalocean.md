@@ -19,19 +19,11 @@ If you're just starting out, we recommend [installing code-server locally](../..
 
 - Download the latest Linux release with this command:
   ```
-  curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz --show-progress -qi -
+  bash <(curl -s https://raw.githubusercontent.com/codercom/code-server/master/scripts/update.sh)
   ```
-- Extract the downloaded tar.gz file with this command:
+- Navigate to the `code-server` directory with this command:
   ```
-  mkdir -p ~/code-server-linux && tar -xzvf code-server-linux.tar.gz --strip 1 -C $_
-  ```
-- Navigate to the extracted directory with this command:
-  ```
-  cd code-server-linux
-  ```
-- If you run into any permission errors when attempting to run the binary:
-  ```
-  chmod +x code-server
+  cd ~/code-server-linux
   ```
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally start the code-server

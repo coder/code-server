@@ -24,35 +24,20 @@ If you're just starting out, we recommend [installing code-server locally](../..
 ```
 gcloud compute ssh --zone [region] [instance name]
 ```
-
 - Download the latest Linux release with this command:
-```
-curl -s https://api.github.com/repos/codercom/code-server/releases/latest | grep "browser_download_url.*code-server.*linux-x64.tar.gz" | cut -d '"' -f 4 | wget -O ~/code-server-linux.tar.gz --show-progress -qi -
-```
-
-- Extract the downloaded tar.gz file with this command:
-```
-mkdir -p ~/code-server-linux && tar -xzvf code-server-linux.tar.gz --strip 1 -C $_
-```
-
-- Navigate to the extracted directory with this command:
-```
-cd code-server-linux
-```
-
-- Make the binary executable if you run into any errors regarding permission:
-```
-chmod +x code-server
-```
-
-> To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
-
+  ```
+  bash <(curl -s https://raw.githubusercontent.com/codercom/code-server/master/scripts/update.sh)
+  ```
+- Navigate to the `code-server` directory with this command:
+  ```
+  cd ~/code-server-linux
+  ```
+  > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 - Start the code-server
 ```
 sudo ./code-server -p 80
 ```
-
-> For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
+  > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
 
 - Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
 > example: 32.32.32.234
