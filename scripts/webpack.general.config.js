@@ -56,17 +56,6 @@ module.exports = (options = {}) => ({
 				}],
 			},
 		}, {
-			// This is required otherwise it attempts to require("package.json")
-			test: /@oclif(\\|\/)command(\\|\/)lib(\\|\/)index\.js/,
-			loader: "string-replace-loader",
-			options: {
-				multiple: [{
-					search: "checkNodeVersion\\(\\);",
-					replace: "",
-					flags: "g",
-				}],
-			},
-		}, {
 			test: /node\-pty\-prebuilt(\\|\/)lib(\\|\/)index\.js/,
 			loader: "string-replace-loader",
 			options: {
