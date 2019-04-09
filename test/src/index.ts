@@ -113,7 +113,10 @@ export class TestServer {
 		this.options = {
 			host: opts && opts.host ? opts.host : "ide.test.localhost",
 			port: opts && opts.port ? opts.port : 8443,
-			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
+			// The binary path should be generic by default,
+			// because the tests may be executed natively or
+			// via Docker on multiple platforms.
+			binaryName: opts && opts.binaryName ? opts.binaryName : "cli-*",
 			binaryHome: opts && opts.binaryHome ? opts.binaryHome : path.resolve(__dirname, "../../packages/server"),
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			http: opts && typeof opts.http !== "undefined" ? opts.http : true,
