@@ -34,12 +34,13 @@ RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y \
-	openssl \
-	net-tools \
+	curl \
+	dumb-init \
 	git \
-	locales \
-	sudo \
-	dumb-init
+	locales \	
+	openssl \
+	net-tools \	
+	sudo
 
 RUN locale-gen en_US.UTF-8
 # We unfortunately cannot use update-locale because docker will not use the env variables
