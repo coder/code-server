@@ -7,3 +7,4 @@ doc/
 .travis.yml
 LICENSE
 README.md
+node_modules
