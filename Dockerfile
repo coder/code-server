@@ -1,4 +1,4 @@
-FROM node:8.15.0
+FROM node:8.15.0 AS deps
 
 # Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
@@ -14,6 +14,21 @@ COPY . .
 # In the future, we can use https://github.com/yarnpkg/rfcs/pull/53 to make yarn use the node_modules
 # directly which should be fast as it is slow because it populates its own cache every time.
 RUN yarn && NODE_ENV=production yarn task build:server:binary
+
+# Docker stage we'll use later for the CLI
+FROM ubuntu:18.04 AS docker
+
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg-agent \
+    software-properties-common
+
+RUN curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add - && \
+    add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" && \
+	apt-get update && \
+	apt-get install -y docker-ce-cli
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
@@ -39,7 +54,8 @@ USER coder
 RUN mkdir -p /home/coder/project
 WORKDIR /home/coder/project
 
-COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
-
 ENTRYPOINT ["dumb-init", "code-server"]
+
+COPY --from=docker /usr/bin/docker /usr/local/bin/docker
+COPY --from=deps /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
