@@ -178,24 +178,27 @@ describe("chrome e2e", () => {
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
 		await page.waitFor(1000);
-		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\.")}-name-file-icon`;
 
 		// Delete the file.
+		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
+		await page.waitFor(fileSelector);
 		await page.click(fileSelector);
 		await page.waitFor(1000);
-		const superKey = os.platform() === "darwin" ? "Meta" : "Control";
-		await page.keyboard.down(superKey);
-		await page.keyboard.down("Backspace");
-		await page.keyboard.up(superKey);
-		await page.keyboard.up("Backspace");
+		await page.keyboard.press("Delete");
 		await page.waitFor(1000);
 
-		// Submit the delete-file popup.
-		await page.keyboard.press("Enter");
-		await page.waitFor(1000);
+		// Click the "Move to Trash" button in the popup.
+		const btnSelector = "div.msgbox button:last-of-type";
+		await page.waitFor(btnSelector);
+
+		// Using $eval because puppeteer can't click inputs for
+		// some reason. See:
+		// https://github.com/GoogleChrome/puppeteer/issues/3347
+		await page.$eval(btnSelector, btn => btn.dispatchEvent(new MouseEvent("click")));
 
 		// Check that the file is NOT in the file tree.
 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
+		await page.waitFor(spanSelector);
 		const elements = await server.querySelectorAll(page, spanSelector);
 		expect(elements.length).toBeGreaterThanOrEqual(0);
 		const contentArray = elements.map((el) => el.textContent);
