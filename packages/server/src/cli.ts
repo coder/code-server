@@ -200,7 +200,13 @@ const bold = (text: string | number): string | number => {
 				const webpackConfig = require(path.resolve(__dirname, "..", "..", "web", "webpack.config.js"));
 				const compiler = require("webpack")(webpackConfig);
 				app.use(require("webpack-dev-middleware")(compiler, {
-					logger,
+					logger: {
+						trace: (m: string): void => logger.trace("webpack", field("message", m)),
+						debug: (m: string): void => logger.debug("webpack", field("message", m)),
+						info: (m: string): void => logger.info("webpack", field("message", m)),
+						warn: (m: string): void => logger.warn("webpack", field("message", m)),
+						error: (m: string): void => logger.error("webpack", field("message", m)),
+					},
 					publicPath: webpackConfig.output.publicPath,
 					stats: webpackConfig.stats,
 				}));
