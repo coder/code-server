@@ -20,12 +20,7 @@ window.addEventListener("message", (event) => {
 });
 
 const password = document.getElementById("password") as HTMLInputElement;
-const submit = document.getElementById("submit") as HTMLButtonElement;
 const form = document.getElementById("login-form") as HTMLFormElement;
-
-if (!submit) {
-	throw new Error("No submit button found");
-}
 
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
