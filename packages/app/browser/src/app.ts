@@ -22,6 +22,10 @@ window.addEventListener("message", (event) => {
 const password = document.getElementById("password") as HTMLInputElement;
 const form = document.getElementById("login-form") as HTMLFormElement;
 
+if (!form) {
+	throw new Error("No password form found");
+}
+
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
 	document.cookie = `password=${password.value}`;
