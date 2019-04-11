@@ -39,7 +39,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally start the code-server
   ```
-  sudo ./code-server-linux -p 80
+  sudo ./code-server -p 80
   ```
     > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
 - When you visit the public IP for your Digital Ocean instance, you will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
