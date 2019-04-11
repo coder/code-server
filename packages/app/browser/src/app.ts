@@ -28,12 +28,6 @@ submit.addEventListener("click", () => {
 	document.cookie = `password=${password.value}`;
 	location.reload();
 });
-password.addEventListener("keyup", (e) => {
-	if (e.keyCode === 13) {
-		document.cookie = `password=${password.value}`;
-		location.reload();
-	}
-});
 
 /**
  * Notify user on load of page if previous password was unsuccessful
