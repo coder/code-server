@@ -36,10 +36,8 @@ export abstract class IdeClient {
 		let appWindow: Window | undefined;
 
 		window.addEventListener("beforeunload", (e) => {
-			const confirmationMessage = "Are you sure you want to navigate away?";
-			(e || window.event).returnValue = confirmationMessage; //IE
-
-			return confirmationMessage; // webkit, safari, chrome
+			e.preventDefault(); // FireFox
+			e.returnValue = ""; // Chrome
 		});
 
 		window.addEventListener("message", (event) => {
