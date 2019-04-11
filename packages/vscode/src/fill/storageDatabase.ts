@@ -11,6 +11,8 @@ import { IStorageService, WillSaveStateReason } from "vs/platform/storage/common
 import * as paths from "./paths";
 import { workbench } from "../workbench";
 
+// tslint:disable completed-docs
+
 class StorageDatabase implements workspaceStorage.IStorageDatabase {
 	public readonly onDidChangeItemsExternal = Event.None;
 	private readonly items = new Map<string, string>();

@@ -4,6 +4,14 @@ import { IProductConfiguration } from "vs/platform/product/node/product";
 class Product implements IProductConfiguration {
 	public nameShort = "code-server";
 	public nameLong = "code-server";
+	public documentationUrl = "https://code.visualstudio.com/docs";
+	public keyboardShortcutsUrlMac = "https://code.visualstudio.com/shortcuts/keyboard-shortcuts-macos.pdf";
+	public keyboardShortcutsUrlLinux = "https://code.visualstudio.com/shortcuts/keyboard-shortcuts-linux.pdf";
+	public keyboardShortcutsUrlWin = "https://code.visualstudio.com/shortcuts/keyboard-shortcuts-windows.pdf";
+	public introductoryVideosUrl = "https://code.visualstudio.com/docs/getstarted/introvideos";
+	public tipsAndTricksUrl = "https://code.visualstudio.com/docs/getstarted/tips-and-tricks";
+	public twitterUrl = "https://twitter.com/code";
+	public licenseUrl = "https://github.com/codercom/code-server/blob/master/LICENSE";
 
 	private _dataFolderName: string | undefined;
 	public get dataFolderName(): string {

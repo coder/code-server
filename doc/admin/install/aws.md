@@ -56,7 +56,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally, run
   ```
-  sudo ./code-server-linux -p 80
+  sudo ./code-server -p 80
   ```
 - When you visit the public IP for your AWS instance, you will be greeted   with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
 - Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">

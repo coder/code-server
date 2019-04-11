@@ -12,7 +12,6 @@ module.exports = merge(
 		typescriptCompilerOptions: {
 			"target": "es5",
 			"lib": ["dom", "esnext"],
-			"importHelpers": true,
 		},
 	},
 ), {
@@ -58,6 +57,7 @@ module.exports = merge(
 			"fs": path.join(fills, "fs.ts"),
 			"net": path.join(fills, "net.ts"),
 			"util": path.join(fills, "util.ts"),
+			"trash": path.join(fills, "trash.ts"),
 			"electron": path.join(fills, "electron.ts"),
 
 			"native-keymap": path.join(vsFills, "native-keymap.ts"),
@@ -70,11 +70,13 @@ module.exports = merge(
 			// This seems to be in the wrong place?
 			"vs/workbench/contrib/codeEditor/electron-browser/media/WordWrap_16x.svg": "vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/WordWrap_16x.svg",
 
+			"vs/platform/windows/electron-browser/windowsService": path.join(vsFills, "windowsService.ts"),
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
 			"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
 			"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
 			"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),
+			"vszip": path.resolve(root, "lib/vscode/src/vs/base/node/zip.ts"),
 			"vs": path.join(root, "lib", "vscode", "src", "vs"),
 		},
 	},

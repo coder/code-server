@@ -1,14 +1,64 @@
 import { logger, field } from "@coder/logger";
 import { NotificationService, INotificationHandle, INotificationService, Severity } from "./fill/notification";
 
+// tslint:disable no-any can have different return values
+
 interface IRetryItem {
+	/**
+	 * How many times this item has been retried.
+	 */
 	count?: number;
-	delay?: number; // In seconds.
-	end?: number;   // In ms.
-	fn(): any | Promise<any>; // tslint:disable-line no-any can have different return values
+
+	/**
+	 * In seconds.
+	 */
+	delay?: number;
+
+	/**
+	 * In milliseconds.
+	 */
+	end?: number;
+
+	/**
+	 * Function to run when retrying.
+	 */
+	fn(): any;
+
+	/**
+	 * Timer for running this item.
+	 */
 	timeout?: number | NodeJS.Timer;
+
+	/**
+	 * Whether the item is retrying or waiting to retry.
+	 */
 	running?: boolean;
-	showInNotification: boolean;
+}
+
+/**
+ * An retry-able instance.
+ */
+export interface RetryInstance {
+	/**
+	 * Run this retry.
+	 */
+	run(error?: Error): void;
+
+	/**
+	 * Block on this instance.
+	 */
+	block(): void;
+}
+
+/**
+ * A retry-able instance that doesn't use a promise so it must be manually
+ * ran again on failure and recovered on success.
+ */
+export interface ManualRetryInstance extends RetryInstance {
+	/**
+	 * Mark this item as recovered.
+	 */
+	recover(): void;
 }
 
 /**
@@ -21,7 +71,7 @@ interface IRetryItem {
  * to the user explaining what is happening with an option to immediately retry.
  */
 export class Retry {
-	private items = new Map<string, IRetryItem>();
+	private readonly items = new Map<string, IRetryItem>();
 
 	// Times are in seconds.
 	private readonly retryMinDelay = 1;
@@ -50,8 +100,49 @@ export class Retry {
 	}
 
 	/**
-	 * Block retries when we know they will fail (for example when starting Wush
-	 * back up). If a name is passed, that service will still be allowed to retry
+	 * Register a function to retry that starts/connects to a service.
+	 *
+	 * The service is automatically retried or recovered when the promise resolves
+	 * or rejects. If the service dies after starting, it must be manually
+	 * retried.
+	 */
+	public register(name: string, fn: () => Promise<any>): RetryInstance;
+	/**
+	 * Register a function to retry that starts/connects to a service.
+	 *
+	 * Must manually retry if it fails to start again or dies after restarting and
+	 * manually recover if it succeeds in starting again.
+	 */
+	public register(name: string, fn: () => any): ManualRetryInstance;
+	/**
+	 * Register a function to retry that starts/connects to a service.
+	 */
+	public register(name: string, fn: () => any): RetryInstance | ManualRetryInstance {
+		if (this.items.has(name)) {
+			throw new Error(`"${name}" is already registered`);
+		}
+		this.items.set(name, { fn });
+
+		return {
+			block: (): void => this.block(name),
+			run: (error?: Error): void => this.run(name, error),
+			recover: (): void => this.recover(name),
+		};
+	}
+
+	/**
+	 * Un-register a function to retry.
+	 */
+	public unregister(name: string): void {
+		if (!this.items.has(name)) {
+			throw new Error(`"${name}" is not registered`);
+		}
+		this.items.delete(name);
+	}
+
+	/**
+	 * Block retries when we know they will fail (for example when the socket is
+	 * down ). If a name is passed, that service will still be allowed to retry
 	 * (unless we have already blocked).
 	 *
 	 * Blocking without a name will override a block with a name.
@@ -68,7 +159,7 @@ export class Retry {
 	/**
 	 * Unblock retries and run any that are pending.
 	 */
-	public unblock(): void {
+	private unblock(): void {
 		this.blocked = false;
 		this.items.forEach((item, name) => {
 			if (item.running) {
@@ -78,34 +169,9 @@ export class Retry {
 	}
 
 	/**
-	 * Register a function to retry that starts/connects to a service.
-	 *
-	 * If the function returns a promise, it will automatically be retried,
-	 * recover, & unblock after calling `run` once (otherwise they need to be
-	 * called manually).
-	 */
-	// tslint:disable-next-line no-any can have different return values
-	public register(name: string, fn: () => any | Promise<any>, showInNotification: boolean = true): void {
-		if (this.items.has(name)) {
-			throw new Error(`"${name}" is already registered`);
-		}
-		this.items.set(name, { fn, showInNotification });
-	}
-
-	/**
-	 * Unregister a function to retry.
-	 */
-	public unregister(name: string): void {
-		if (!this.items.has(name)) {
-			throw new Error(`"${name}" is not registered`);
-		}
-		this.items.delete(name);
-	}
-
-	/**
 	 * Retry a service.
 	 */
-	public run(name: string, error?: Error): void {
+	private run(name: string, error?: Error): void {
 		if (!this.items.has(name)) {
 			throw new Error(`"${name}" is not registered`);
 		}
@@ -149,7 +215,7 @@ export class Retry {
 	/**
 	 * Reset a service after a successfully recovering.
 	 */
-	public recover(name: string): void {
+	private recover(name: string): void {
 		if (!this.items.has(name)) {
 			throw new Error(`"${name}" is not registered`);
 		}
@@ -191,9 +257,9 @@ export class Retry {
 					if (this.blocked === name) {
 						this.unblock();
 					}
-				}).catch(() => {
+				}).catch((error) => {
 					endItem();
-					this.run(name);
+					this.run(name, error);
 				});
 			} else {
 				endItem();
@@ -214,8 +280,7 @@ export class Retry {
 
 		const now = Date.now();
 		const items = Array.from(this.items.entries()).filter(([_, item]) => {
-			return item.showInNotification
-				&& typeof item.end !== "undefined"
+			return typeof item.end !== "undefined"
 				&& item.end > now
 				&& item.delay && item.delay >= this.notificationThreshold;
 		}).sort((a, b) => {

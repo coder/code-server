@@ -6,15 +6,10 @@ import * as node_pb from "./node_pb";
 import * as vscode_pb from "./vscode_pb";
 
 export class ClientMessage extends jspb.Message {
-  hasNewEval(): boolean;
-  clearNewEval(): void;
-  getNewEval(): node_pb.NewEvalMessage | undefined;
-  setNewEval(value?: node_pb.NewEvalMessage): void;
-
-  hasEvalEvent(): boolean;
-  clearEvalEvent(): void;
-  getEvalEvent(): node_pb.EvalEventMessage | undefined;
-  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+  hasMethod(): boolean;
+  clearMethod(): void;
+  getMethod(): node_pb.Method | undefined;
+  setMethod(value?: node_pb.Method): void;
 
   hasPing(): boolean;
   clearPing(): void;
@@ -34,49 +29,52 @@ export class ClientMessage extends jspb.Message {
 
 export namespace ClientMessage {
   export type AsObject = {
-    newEval?: node_pb.NewEvalMessage.AsObject,
-    evalEvent?: node_pb.EvalEventMessage.AsObject,
+    method?: node_pb.Method.AsObject,
     ping?: node_pb.Ping.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
-    NEW_EVAL = 11,
-    EVAL_EVENT = 12,
-    PING = 13,
+    METHOD = 20,
+    PING = 21,
   }
 }
 
 export class ServerMessage extends jspb.Message {
-  hasEvalFailed(): boolean;
-  clearEvalFailed(): void;
-  getEvalFailed(): node_pb.EvalFailedMessage | undefined;
-  setEvalFailed(value?: node_pb.EvalFailedMessage): void;
+  hasFail(): boolean;
+  clearFail(): void;
+  getFail(): node_pb.Method.Fail | undefined;
+  setFail(value?: node_pb.Method.Fail): void;
 
-  hasEvalDone(): boolean;
-  clearEvalDone(): void;
-  getEvalDone(): node_pb.EvalDoneMessage | undefined;
-  setEvalDone(value?: node_pb.EvalDoneMessage): void;
+  hasSuccess(): boolean;
+  clearSuccess(): void;
+  getSuccess(): node_pb.Method.Success | undefined;
+  setSuccess(value?: node_pb.Method.Success): void;
 
-  hasEvalEvent(): boolean;
-  clearEvalEvent(): void;
-  getEvalEvent(): node_pb.EvalEventMessage | undefined;
-  setEvalEvent(value?: node_pb.EvalEventMessage): void;
+  hasEvent(): boolean;
+  clearEvent(): void;
+  getEvent(): node_pb.Event | undefined;
+  setEvent(value?: node_pb.Event): void;
 
-  hasInit(): boolean;
-  clearInit(): void;
-  getInit(): WorkingInitMessage | undefined;
-  setInit(value?: WorkingInitMessage): void;
-
-  hasSharedProcessActive(): boolean;
-  clearSharedProcessActive(): void;
-  getSharedProcessActive(): vscode_pb.SharedProcessActiveMessage | undefined;
-  setSharedProcessActive(value?: vscode_pb.SharedProcessActiveMessage): void;
+  hasCallback(): boolean;
+  clearCallback(): void;
+  getCallback(): node_pb.Callback | undefined;
+  setCallback(value?: node_pb.Callback): void;
 
   hasPong(): boolean;
   clearPong(): void;
   getPong(): node_pb.Pong | undefined;
   setPong(value?: node_pb.Pong): void;
+
+  hasInit(): boolean;
+  clearInit(): void;
+  getInit(): WorkingInit | undefined;
+  setInit(value?: WorkingInit): void;
+
+  hasSharedProcessActive(): boolean;
+  clearSharedProcessActive(): void;
+  getSharedProcessActive(): vscode_pb.SharedProcessActive | undefined;
+  setSharedProcessActive(value?: vscode_pb.SharedProcessActive): void;
 
   getMsgCase(): ServerMessage.MsgCase;
   serializeBinary(): Uint8Array;
@@ -91,26 +89,28 @@ export class ServerMessage extends jspb.Message {
 
 export namespace ServerMessage {
   export type AsObject = {
-    evalFailed?: node_pb.EvalFailedMessage.AsObject,
-    evalDone?: node_pb.EvalDoneMessage.AsObject,
-    evalEvent?: node_pb.EvalEventMessage.AsObject,
-    init?: WorkingInitMessage.AsObject,
-    sharedProcessActive?: vscode_pb.SharedProcessActiveMessage.AsObject,
+    fail?: node_pb.Method.Fail.AsObject,
+    success?: node_pb.Method.Success.AsObject,
+    event?: node_pb.Event.AsObject,
+    callback?: node_pb.Callback.AsObject,
     pong?: node_pb.Pong.AsObject,
+    init?: WorkingInit.AsObject,
+    sharedProcessActive?: vscode_pb.SharedProcessActive.AsObject,
   }
 
   export enum MsgCase {
     MSG_NOT_SET = 0,
-    EVAL_FAILED = 13,
-    EVAL_DONE = 14,
-    EVAL_EVENT = 15,
+    FAIL = 13,
+    SUCCESS = 14,
+    EVENT = 19,
+    CALLBACK = 22,
+    PONG = 18,
     INIT = 16,
     SHARED_PROCESS_ACTIVE = 17,
-    PONG = 18,
   }
 }
 
-export class WorkingInitMessage extends jspb.Message {
+export class WorkingInit extends jspb.Message {
   getHomeDirectory(): string;
   setHomeDirectory(value: string): void;
 
@@ -123,8 +123,8 @@ export class WorkingInitMessage extends jspb.Message {
   getWorkingDirectory(): string;
   setWorkingDirectory(value: string): void;
 
-  getOperatingSystem(): WorkingInitMessage.OperatingSystem;
-  setOperatingSystem(value: WorkingInitMessage.OperatingSystem): void;
+  getOperatingSystem(): WorkingInit.OperatingSystem;
+  setOperatingSystem(value: WorkingInit.OperatingSystem): void;
 
   getShell(): string;
   setShell(value: string): void;
@@ -132,25 +132,29 @@ export class WorkingInitMessage extends jspb.Message {
   getBuiltinExtensionsDir(): string;
   setBuiltinExtensionsDir(value: string): void;
 
+  getExtensionsDirectory(): string;
+  setExtensionsDirectory(value: string): void;
+
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): WorkingInitMessage.AsObject;
-  static toObject(includeInstance: boolean, msg: WorkingInitMessage): WorkingInitMessage.AsObject;
+  toObject(includeInstance?: boolean): WorkingInit.AsObject;
+  static toObject(includeInstance: boolean, msg: WorkingInit): WorkingInit.AsObject;
   static extensions: {[key: number]: jspb.ExtensionFieldInfo<jspb.Message>};
   static extensionsBinary: {[key: number]: jspb.ExtensionFieldBinaryInfo<jspb.Message>};
-  static serializeBinaryToWriter(message: WorkingInitMessage, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): WorkingInitMessage;
-  static deserializeBinaryFromReader(message: WorkingInitMessage, reader: jspb.BinaryReader): WorkingInitMessage;
+  static serializeBinaryToWriter(message: WorkingInit, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): WorkingInit;
+  static deserializeBinaryFromReader(message: WorkingInit, reader: jspb.BinaryReader): WorkingInit;
 }
 
-export namespace WorkingInitMessage {
+export namespace WorkingInit {
   export type AsObject = {
     homeDirectory: string,
     tmpDirectory: string,
     dataDirectory: string,
     workingDirectory: string,
-    operatingSystem: WorkingInitMessage.OperatingSystem,
+    operatingSystem: WorkingInit.OperatingSystem,
     shell: string,
     builtinExtensionsDir: string,
+    extensionsDirectory: string,
   }
 
   export enum OperatingSystem {

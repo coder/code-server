@@ -3,6 +3,7 @@ const os = require("os");
 const environment = process.env.NODE_ENV || "development";
 const HappyPack = require("happypack");
 const webpack = require("webpack");
+const TerserPlugin = require("terser-webpack-plugin");
 
 const root = path.join(__dirname, "..");
 
@@ -107,6 +108,11 @@ module.exports = (options = {}) => ({
 			id: "ts",
 			threads: Math.max(os.cpus().length - 1, 1),
 			loaders: [{
+				path: "cache-loader",
+				query: {
+					cacheDirectory: path.join(__dirname, "..", ".cache"),
+				},
+			}, {
 				path: "ts-loader",
 				query: {
 					happyPackMode: true,
@@ -121,6 +127,14 @@ module.exports = (options = {}) => ({
 			"process.env.VERSION": `"${process.env.VERSION || ""}"`,
 		}),
 	],
+	optimization: {
+		minimizer: [
+			new TerserPlugin({
+				cache: path.join(__dirname, "..", ".cache", "terser"),
+				parallel: true,
+			}),
+		],
+	},
 	stats: {
 		all: false, // Fallback for options not defined.
 		errors: true,

@@ -1,34 +1,18 @@
-import * as fs from "fs";
 import * as nativeNet from "net";
-import * as os from "os";
-import * as path from "path";
-import * as util from "util";
-import * as rimraf from "rimraf";
-import { createClient } from "@coder/protocol/test";
-
-const client = createClient();
-jest.mock("../src/fill/client", () => ({ client }));
-const net = require("../src/fill/net") as typeof import("net");
+import { Module } from "../src/common/proxy";
+import { createClient, Helper } from "./helpers";
 
 describe("net", () => {
-	let i = 0;
-	const coderDir = path.join(os.tmpdir(), "coder", "net");
-	const tmpFile = (): string => path.join(coderDir, `socket.${i++}`);
+	const client = createClient();
+	const net = client.modules[Module.Net];
+	const helper = new Helper("net");
 
 	beforeAll(async () => {
-		try {
-			await util.promisify(fs.mkdir)(path.dirname(coderDir));
-		} catch (error) {
-			if (error.code !== "EEXIST" && error.code !== "EISDIR") {
-				throw error;
-			}
-		}
-		await util.promisify(rimraf)(coderDir);
-		await util.promisify(fs.mkdir)(coderDir);
+		await helper.prepare();
 	});
 
 	describe("Socket", () => {
-		const socketPath = tmpFile();
+		const socketPath = helper.tmpFile();
 		let server: nativeNet.Server;
 
 		beforeAll(async () => {
@@ -39,6 +23,36 @@ describe("net", () => {
 
 		afterAll(() => {
 			server.close();
+		});
+
+		it("should fail to connect", async () => {
+			const socket = new net.Socket();
+
+			const fn = jest.fn();
+			socket.on("error", fn);
+
+			socket.connect("/tmp/t/e/s/t/d/o/e/s/n/o/t/e/x/i/s/t");
+
+			await new Promise((r): nativeNet.Socket => socket.on("close", r));
+
+			expect(fn).toHaveBeenCalledTimes(1);
+		});
+
+		it("should remove event listener", async () => {
+			const socket = new net.Socket();
+
+			const fn1 = jest.fn();
+			const fn2 = jest.fn();
+
+			socket.on("error", fn1);
+			socket.on("error", fn2);
+			socket.off("error", fn1);
+
+			socket.connect("/tmp/t/e/s/t/d/o/e/s/n/o/t/e/x/i/s/t");
+
+			await new Promise((r): nativeNet.Socket => socket.on("close", r));
+			expect(fn1).toHaveBeenCalledTimes(0);
+			expect(fn2).toHaveBeenCalledTimes(1);
 		});
 
 		it("should connect", async () => {
@@ -98,7 +112,7 @@ describe("net", () => {
 			const s = net.createServer();
 			s.on("listening", () => s.close());
 			s.on("close", () => done());
-			s.listen(tmpFile());
+			s.listen(helper.tmpFile());
 		});
 
 		it("should get connection", async () => {
@@ -109,8 +123,12 @@ describe("net", () => {
 				}
 			});
 
-			const socketPath = tmpFile();
+			const socketPath = helper.tmpFile();
 			s.listen(socketPath);
+
+			await new Promise((resolve): void => {
+				s.on("listening", resolve);
+			});
 
 			const makeConnection = async (): Promise<void> => {
 				net.createConnection(socketPath);
@@ -133,5 +151,12 @@ describe("net", () => {
 			s.close();
 			await new Promise((r): nativeNet.Server => s.on("close", r));
 		});
+	});
+
+	it("should dispose", (done) => {
+		setTimeout(() => {
+			client.dispose();
+			done();
+		}, 100);
 	});
 });

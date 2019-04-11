@@ -36,7 +36,8 @@ module.exports = merge(
 					loader: "ignore-loader",
 				}],
 			}, {
-				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\//,
+				// The only thing we need in electron-browser is the shared process (including contrib).
+				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\/|\/electron-browser\/(?!sharedProcess\/).+\//,
 				use: [{
 					loader: "ignore-loader",
 				}],
@@ -50,6 +51,7 @@ module.exports = merge(
 				"windows-mutex": path.resolve(fills, "empty.ts"),
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
 				"vscode-windows-registry": path.resolve(fills, "empty.ts"),
+				"vscode-windows-ca-certs": path.resolve(fills, "empty.ts"),
 				"vscode-sqlite3": path.resolve(fills, "empty.ts"),
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
@@ -62,6 +64,7 @@ module.exports = merge(
 				"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
 				"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
 				"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),
+				"vszip": path.resolve(root, "lib/vscode/src/vs/base/node/zip.ts"),
 				"vs": path.resolve(root, "lib/vscode/src/vs"),
 			},
 		},

@@ -1,5 +1,6 @@
 import * as os from "os";
 import { IProgress, INotificationHandle } from "@coder/ide";
+import { logger } from "@coder/logger";
 import { client } from "./client";
 
 import "./fill/platform";
@@ -29,11 +30,20 @@ import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { URI } from "vs/base/common/uri";
 
+/**
+ * Initializes VS Code and provides a way to call into general client
+ * functionality.
+ */
 export class Workbench {
+	public readonly retry = client.retry;
+
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
 
+	/**
+	 * Handle a drop event on the file explorer.
+	 */
 	public async handleExternalDrop(target: ExplorerItem | ExplorerModel, originalEvent: DragEvent): Promise<void> {
 		await client.upload.uploadDropped(
 			originalEvent,
@@ -41,11 +51,14 @@ export class Workbench {
 		);
 	}
 
+	/**
+	 * Handle a drop event on the editor.
+	 */
 	public handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup, afterDrop: (targetGroup: IEditorGroup) => void, targetIndex?: number): void {
-		client.upload.uploadDropped(event, URI.file(paths.getWorkingDirectory())).then((paths) => {
+		client.upload.uploadDropped(event, URI.file(paths.getWorkingDirectory())).then(async (paths) => {
 			const uris = paths.map((p) => URI.file(p));
 			if (uris.length) {
-				(this.serviceCollection.get(IWindowsService) as IWindowsService).addRecentlyOpened(uris);
+				await (this.serviceCollection.get(IWindowsService) as IWindowsService).addRecentlyOpened(uris);
 			}
 
 			const editors: IResourceEditor[] = uris.map(uri => ({
@@ -57,10 +70,10 @@ export class Workbench {
 			}));
 
 			const targetGroup = resolveTargetGroup();
-
-			(this.serviceCollection.get(IEditorService) as IEditorService).openEditors(editors, targetGroup).then(() => {
-				afterDrop(targetGroup);
-			});
+			await (this.serviceCollection.get(IEditorService) as IEditorService).openEditors(editors, targetGroup);
+			afterDrop(targetGroup);
+		}).catch((error) => {
+			logger.error(error.message);
 		});
 	}
 
@@ -115,6 +128,14 @@ export class Workbench {
 
 	public set serviceCollection(collection: ServiceCollection) {
 		this._serviceCollection = collection;
+
+		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
+		const bounded = this.clipboardContextKey.bindTo(contextKeys);
+		client.clipboard.onPermissionChange((enabled) => {
+			bounded.set(enabled);
+		});
+		client.clipboard.initialize();
+
 		client.progressService = {
 			start: <T>(title: string, task: (progress: IProgress) => Promise<T>, onCancel: () => void): Promise<T> => {
 				let lastProgress = 0;
@@ -164,6 +185,9 @@ export class Workbench {
 		};
 	}
 
+	/**
+	 * Start VS Code.
+	 */
 	public async initialize(): Promise<void> {
 		this._clipboardContextKey = new RawContextKey("nativeClipboard", client.clipboard.isEnabled);
 
@@ -185,7 +209,13 @@ export class Workbench {
 			_: [],
 		};
 		if ((workspace as IWorkspaceIdentifier).configPath) {
-			config.workspace = workspace as IWorkspaceIdentifier;
+			// tslint:disable-next-line:no-any
+			let wid: IWorkspaceIdentifier = (<any>Object).assign({}, workspace);
+			if (!URI.isUri(wid.configPath)) {
+				// Ensure that the configPath is a valid URI.
+				wid.configPath = URI.file(wid.configPath);
+			}
+			config.workspace = wid;
 		} else {
 			config.folderUri = workspace as URI;
 		}
@@ -196,18 +226,14 @@ export class Workbench {
 				/**
 				 * Resolves the error of the workspace identifier being invalid.
 				 */
+				// tslint:disable-next-line:no-console
+				console.error(ex);
 				this.workspace = undefined;
 				location.reload();
 
 				return;
 			}
 		}
-		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
-		const bounded = this.clipboardContextKey.bindTo(contextKeys);
-		client.clipboard.onPermissionChange((enabled) => {
-			bounded.set(enabled);
-		});
-		client.clipboard.initialize();
 	}
 }
 

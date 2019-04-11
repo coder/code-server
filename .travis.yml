@@ -2,15 +2,16 @@ language: node_js
 node_js:
 - 8.15.0
 env:
-  - VERSION="1.32.0-$TRAVIS_BUILD_NUMBER"
+  - VSCODE_VERSION="1.33.0" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
 matrix:
   include:
   - os: linux
-    dist: ubuntu
+    dist: trusty
   - os: osx
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
   libsecret-1-dev; fi
+- npm install -g yarn@1.12.3
 script:
 - scripts/build.sh
 before_deploy:
@@ -35,4 +36,8 @@ deploy:
   on:
     repo: codercom/code-server
     branch: master
-cache: yarn
+cache:
+  yarn: true
+  timeout: 1000
+  directories:
+  - .cache

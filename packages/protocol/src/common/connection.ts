@@ -5,6 +5,8 @@ export interface SendableConnection {
 export interface ReadWriteConnection extends SendableConnection {
 	onMessage(cb: (data: Uint8Array | Buffer) => void): void;
 	onClose(cb: () => void): void;
+	onDown(cb: () => void): void;
+	onUp(cb: () => void): void;
 	close(): void;
 }
 
@@ -21,6 +23,7 @@ export interface InitData {
 	readonly homeDirectory: string;
 	readonly tmpDirectory: string;
 	readonly shell: string;
+	readonly extensionsDirectory: string;
 	readonly builtInExtensionsDirectory: string;
 }
 
