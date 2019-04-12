@@ -7,22 +7,24 @@
 </head>
 
 <body>
-	<div class="login">
-		<div class="back"> <- Back </div>
-		<h4 class="title">code-server</h4>
-		<h2 class="subtitle">
-			Enter server password
-		</h2>
-		<div class="mdc-text-field">
-			<input type="password" id="password" class="mdc-text-field__input" required>
-			<label class="mdc-floating-label" for="password">Password</label>
-			<div class="mdc-line-ripple"></div>
-		</div>
-		<button id="submit" class="mdc-button mdc-button--unelevated">
-			<span class="mdc-button__label">Enter IDE</span>
-		</button>
-		<div id="error-display"></div>
-	</div>
+	<form id="login-form">
+		<div class="login">
+			<div class="back">
+				<- Back </div> <h4 class="title">code-server</h4>
+					<h2 class="subtitle">
+						Enter server password
+					</h2>
+						<div class="mdc-text-field">
+							<input type="password" id="password" class="mdc-text-field__input" required>
+							<label class="mdc-floating-label" for="password">Password</label>
+							<div class="mdc-line-ripple"></div>
+						</div>
+						<button id="submit" class="mdc-button mdc-button--unelevated">
+							<span class="mdc-button__label">Enter IDE</span>
+						</button>
+					<div id="error-display"></div>
+			</div>
+	</form>
 </body>
 
 </html>
