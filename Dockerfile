@@ -35,6 +35,8 @@ RUN adduser --gecos '' --disabled-password coder
 RUN echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 USER coder
+COPY entrypoint /home/coder/project/
+
 # We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
 RUN mkdir -p /home/coder/project
 WORKDIR /home/coder/project
@@ -42,4 +44,4 @@ WORKDIR /home/coder/project
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
 
-ENTRYPOINT ["dumb-init", "code-server"]
+ENTRYPOINT ["dumb-init", "entrypoint", "code-server"]
