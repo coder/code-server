@@ -4,7 +4,7 @@ set -euxo pipefail
 # Builds a tarfile containing vscode sourcefiles neccessary for CI.
 # Done outside the CI and uploaded to object storage to reduce CI time.
 
-branch=1.33.0
+branch=1.33.1
 dir=/tmp/vstar
 outfile=/tmp/vstar-$branch.tar.gz
 rm -rf $dir
