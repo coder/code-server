@@ -47,9 +47,9 @@ export class WindowsService implements IWindowsService {
 	private readonly window = new electron.BrowserWindow();
 
 	// Dialogs
-	public async pickFileFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+	public async pickFileFolderAndOpen(options: INativeOpenDialogOptions): Promise<void> {
 		showOpenDialog({
-			...(_options.dialogOptions || {}),
+			...(options.dialogOptions || {}),
 			properties: {
 				openFile: true,
 				openDirectory: true,
@@ -66,9 +66,9 @@ export class WindowsService implements IWindowsService {
 		});
 	}
 
-	public async pickFileAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+	public async pickFileAndOpen(options: INativeOpenDialogOptions): Promise<void> {
 		showOpenDialog({
-			...(_options.dialogOptions || {}),
+			...(options.dialogOptions || {}),
 			properties: {
 				openFile: true,
 			},
@@ -84,9 +84,15 @@ export class WindowsService implements IWindowsService {
 		});
 	}
 
-	public async pickFolderAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+	public async pickFolderAndOpen(options: INativeOpenDialogOptions): Promise<void> {
+		if (!options.dialogOptions) {
+			options.dialogOptions = {};
+		}
+		if (!options.dialogOptions.title) {
+			options.dialogOptions.title = "Open Folder";
+		}
 		showOpenDialog({
-			...(_options.dialogOptions || {}),
+			...(options.dialogOptions || {}),
 			properties: {
 				openDirectory: true,
 			},
@@ -97,9 +103,9 @@ export class WindowsService implements IWindowsService {
 		});
 	}
 
-	public async pickWorkspaceAndOpen(_options: INativeOpenDialogOptions): Promise<void> {
+	public async pickWorkspaceAndOpen(options: INativeOpenDialogOptions): Promise<void> {
 		showOpenDialog({
-			...(_options.dialogOptions || {}),
+			...(options.dialogOptions || {}),
 			properties: {
 				openDirectory: true,
 			},

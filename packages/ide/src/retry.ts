@@ -75,7 +75,7 @@ export class Retry {
 
 	// Times are in seconds.
 	private readonly retryMinDelay = 1;
-	private readonly retryMaxDelay = 10;
+	private readonly retryMaxDelay = 3;
 	private readonly maxImmediateRetries = 5;
 	private readonly retryExponent = 1.5;
 	private blocked: string | boolean | undefined;

@@ -62,7 +62,7 @@ OPTIONS
   > Example: `code-server -h 127.0.0.1`
 
   ### Open
-  You can have the server automatically open the VS Code in your browser on startup by using the `code server -o` or `code-server --open` flags
+  You can have the server automatically open the VS Code in your browser on startup by using the `code-server -o` or `code-server --open` flags
 
   ### Port
   By default, code-server will use `8443` as its port. This can be changed by using `code-server -p` or `code-server --port=` followed by the port you want to use.
