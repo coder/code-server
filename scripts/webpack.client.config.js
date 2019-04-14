@@ -68,38 +68,6 @@ module.exports = (options = {}) => merge(
             sizes: [96, 128, 192, 256, 384]
           }
         ]
-      }),
-      new GenerateSW({
-        runtimeCaching: [
-          {
-            urlPattern: new RegExp(".*"),
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "code-server",
-              expiration: {
-                maxAgeSeconds: 86400
-              },
-              cacheableResponse: {
-                statuses: [0, 200]
-              }
-            }
-          }
-          // Network first caching is also possible.
-          /*{
-        urlPattern: "",
-        handler: "NetworkFirst",
-        options: {
-          networkTimeoutSeconds: 4,
-          cacheName: "code-server",
-          expiration: {
-            maxAgeSeconds: 86400,
-          },
-          cacheableResponse: {
-            statuses: [0, 200],
-          },
-        },
-      }*/
-        ]
       })
     ].concat(prod ? [
       new GenerateSW({
