@@ -5,7 +5,7 @@
 		"build": "tsc -p tsconfig.build.json && cp ./out/packages/logger/src/* ./out && rm -rf out/packages && ../../node_modules/.bin/webpack --config ./webpack.config.js",
 		"postinstall": "if [ ! -d out ];then npm run build; fi"
 	},
-	"version": "1.0.3",
+	"version": "1.1.0",
 	"main": "out/main.js",
 	"types": "out/index.d.ts",
 	"author": "Coder",
