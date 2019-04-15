@@ -55,13 +55,13 @@ Options:
   --bootstrap-fork <name>     Used for development. Never set.
   --fork <name>               Used for development. Never set.
   --extra-args <args>         Used for development. Never set.
-  -h, --help                  output usage information
+  --help                      output usage information
   ```
   ### Extension Directory
   Specify a custom directory for extensions. Provides compatibility with local VS Code extensions by specifying `--extensions-dir ~/.vscode/extensions`.
 
   ### User Data Directory
-  Specify where data is stored. Provides compatibility with local VS Code configuration by specifying `--user-data-dir ~/.config/User`.
+  Specify where data is stored. Provides compatibility with local VS Code configuration by specifying `--user-data-dir ~/.config/User` (Linux) or `--user-data-dir ~/Library/Application\ Support/Code/` (MacOS).
 
   ### Data Directory (*deprecated*)
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in
