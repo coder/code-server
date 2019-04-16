@@ -150,6 +150,14 @@ index 6fd8249..039d31a 100644
 @@ -223,0 +228,2 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +
 +startup({ machineId: "1" });
+diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
+index 1f8b17a..2a875f9 100644
+--- a/src/vs/code/node/cli.ts
++++ b/src/vs/code/node/cli.ts
+@@ -43,0 +44,3 @@ export async function main(argv: string[]): Promise<any> {
++	const cli = await new Promise<IMainCli>((c, e) => require(['vs/code/node/cliProcessMain'], c, e));
++	await cli.main(args);
++	return; // Always just do this for now.
 diff --git a/src/vs/editor/browser/config/configuration.ts b/src/vs/editor/browser/config/configuration.ts
 index f97a692..0206957 100644
 --- a/src/vs/editor/browser/config/configuration.ts

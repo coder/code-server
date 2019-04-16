@@ -82,7 +82,6 @@ export const requireModule = (modulePath: string, builtInExtensionsDir: string):
  * @param modulePath Path of the VS Code module to load.
  */
 export const forkModule = (modulePath: string, args?: string[], options?: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
-	let proc: cp.ChildProcess;
 	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
@@ -91,18 +90,27 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		delete options.env.ELECTRON_RUN_AS_NODE;
 		forkOptions.env = options.env;
 	}
+
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
 		forkArgs.push("--extra-args", JSON.stringify(args));
 	}
 	if (dataDir) {
-		forkArgs.push("--data-dir", dataDir);
+		forkArgs.push("--user-data-dir", dataDir);
 	}
+
+	const nodeArgs = [];
 	if (isCli) {
-		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
+		nodeArgs.push(path.join(buildDir, "out", "cli.js"));
 	} else {
-		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
+		nodeArgs.push(
+			"--require", "ts-node/register",
+			"--require", "tsconfig-paths/register",
+			process.argv[1],
+		);
 	}
+
+	const proc = cp.spawn(process.execPath, [...nodeArgs, ...forkArgs], forkOptions);
 	if (args && args[0] === "--type=watcherService" && os.platform() === "linux") {
 		cp.exec(`renice -n 19 -p ${proc.pid}`, (error) => {
 			if (error) {
