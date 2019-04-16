@@ -125,4 +125,4 @@ Options:
   *Important:* For more details about Apache reverse proxy configuration checkout the [documentation](https://httpd.apache.org/docs/current/mod/mod_proxy.html) - especially the [Securing your Server](https://httpd.apache.org/docs/current/mod/mod_proxy.html#access) section
   
   ### Help
-  Use `code-server -h` or `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section. 
+  Use `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section. 
