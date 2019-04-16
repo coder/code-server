@@ -138,17 +138,25 @@ index e0ff793..885de12 100644
 -		const cmdOrCtrlKey = platform.isMacintosh ? e.metaKey : e.ctrlKey;
 +		const cmdOrCtrlKey = browser.isMacintosh ? e.metaKey : e.ctrlKey;
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index 6fd8249..039d31a 100644
+index 6fd8249..04c0933 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-@@ -50,0 +51 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
+@@ -50,0 +51,2 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
 +import { BackupMainService } from 'vs/platform/backup/electron-main/backupMainService';
-@@ -120,0 +122,3 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
++import { mkdirp } from 'vs/base/node/pfs';
+@@ -93,0 +96,8 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
++	Promise.all<boolean | undefined>([ // Copied from src/vs/code/electron-main/main.ts
++		environmentService.extensionsPath,
++		environmentService.nodeCachedDataDir,
++		environmentService.logsPath,
++		environmentService.globalStorageHome,
++		environmentService.workspaceStorageHome,
++		environmentService.backupHome
++	].map((path): undefined | Promise<boolean> => path ? mkdirp(path) : undefined));
+@@ -119,0 +130,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 +	const backupMainService = instantiationService.createInstance(BackupMainService) as BackupMainService;
 +	backupMainService.initialize().catch(console.error);
-+
-@@ -223,0 +228,2 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
-+
+@@ -223,0 +236 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +startup({ machineId: "1" });
 diff --git a/src/vs/editor/browser/config/configuration.ts b/src/vs/editor/browser/config/configuration.ts
 index f97a692..0206957 100644

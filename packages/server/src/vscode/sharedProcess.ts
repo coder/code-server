@@ -1,6 +1,4 @@
 import { ChildProcess } from "child_process";
-import * as fs from "fs";
-import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import { forkModule } from "./bootstrapFork";
@@ -88,16 +86,6 @@ export class SharedProcess {
 	private async restart(): Promise<ChildProcess> {
 		if (this.activeProcess && !this.activeProcess.killed) {
 			this.activeProcess.kill();
-		}
-
-		const backupsDir = path.join(this.userDataDir, "Backups");
-		await Promise.all([
-			fse.mkdirp(backupsDir),
-		]);
-
-		const workspacesFile = path.join(backupsDir, "workspaces.json");
-		if (!fs.existsSync(workspacesFile)) {
-			fs.appendFileSync(workspacesFile, "");
 		}
 
 		const activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], {
