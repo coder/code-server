@@ -8,9 +8,8 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
-import { setup as setupNativeModules } from "./modules";
 import { createApp } from "./server";
-import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
+import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
@@ -31,7 +30,6 @@ commander.version(process.env.VERSION || "development")
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "Specify a password for authentication.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
-	.option("--fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
@@ -39,6 +37,7 @@ commander.version(process.env.VERSION || "development")
 Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
+	require("nbin").shimNativeFs("/node_modules");
 }
 // Makes strings or numbers bold in stdout
 const bold = (text: string | number): string | number => {
@@ -63,7 +62,6 @@ const bold = (text: string | number): string | number => {
 		readonly certKey?: string;
 
 		readonly bootstrapFork?: string;
-		readonly fork?: string;
 		readonly extraArgs?: string;
 	};
 
@@ -75,6 +73,7 @@ const bold = (text: string | number): string | number => {
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
 	const workingDir = path.resolve(args[0] || process.cwd());
+	const dependenciesDir = path.join(os.tmpdir(), "code-server/dependencies");
 
 	if (!fs.existsSync(dataDir)) {
 		const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
@@ -89,9 +88,22 @@ const bold = (text: string | number): string | number => {
 		fse.mkdirp(dataDir),
 		fse.mkdirp(extensionsDir),
 		fse.mkdirp(workingDir),
+		fse.mkdirp(dependenciesDir),
 	]);
 
-	setupNativeModules(dataDir);
+	const unpackExecutable = (binaryName: string): void => {
+		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", binaryName);
+		const diskFile = path.join(dependenciesDir, binaryName);
+		if (!fse.existsSync(diskFile)) {
+			fse.writeFileSync(diskFile, fse.readFileSync(memFile));
+		}
+		fse.chmodSync(diskFile, "755");
+	};
+
+	unpackExecutable("rg");
+	// tslint:disable-next-line no-any
+	(<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
+
 	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 	if (options.bootstrapFork) {
 		const modulePath = options.bootstrapFork;
@@ -106,13 +118,7 @@ const bold = (text: string | number): string | number => {
 			process.argv[i + 2] = arg;
 		});
 
-		return requireModule(modulePath, dataDir, builtInExtensionsDir);
-	}
-
-	if (options.fork) {
-		const modulePath = options.fork;
-
-		return requireFork(modulePath, JSON.parse(options.extraArgs!), builtInExtensionsDir);
+		return requireModule(modulePath, builtInExtensionsDir);
 	}
 
 	const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
@@ -224,14 +230,7 @@ const bold = (text: string | number): string | number => {
 					return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 				}
 
-				if (isCli) {
-					return spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
-						...options,
-						stdio: [null, null, null, "ipc"],
-					});
-				} else {
-					return fork(modulePath, args, options);
-				}
+				return fork(modulePath, args, options);
 			},
 		},
 		password,
