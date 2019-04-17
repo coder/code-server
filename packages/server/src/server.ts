@@ -18,6 +18,7 @@ import * as os from "os";
 import * as path from "path";
 import * as pem from "pem";
 import * as util from "util";
+import * as url from "url";
 import * as ws from "ws";
 import { buildDir } from "./constants";
 import { createPortScanner } from "./portScanner";
@@ -140,13 +141,13 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	};
 
 	const portScanner = createPortScanner();
-	wss.on("connection", (ws, req) => {
+	wss.on("connection", async (ws, req) => {
 		if (req.url && req.url.startsWith("/tunnel")) {
 			try {
 				const rawPort = req.url.split("/").pop();
 				const port = Number.parseInt(rawPort!, 10);
 
-				handleTunnel(ws, port);
+				await handleTunnel(ws, port);
 			} catch (ex) {
 				ws.close(TunnelCloseCode.Error, ex.toString());
 			}
@@ -189,31 +190,70 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		new Server(connection, options.serverOptions);
 	});
 
+	const redirect = (
+		req: express.Request, res: express.Response,
+		to: string = "", from: string = "",
+		code: number = 302, protocol: string = req.protocol,
+	): void => {
+		const currentUrl = `${protocol}://${req.headers.host}${req.originalUrl}`;
+		const newUrl = url.parse(currentUrl);
+		if (from && newUrl.pathname) {
+			newUrl.pathname = newUrl.pathname.replace(new RegExp(`\/${from}\/?$`), "/");
+		}
+		if (to) {
+			newUrl.pathname = (newUrl.pathname || "").replace(/\/$/, "") + `/${to}`;
+		}
+		newUrl.path = undefined; // Path is not necessary for format().
+		const newUrlString = url.format(newUrl);
+		logger.trace(`Redirecting from ${currentUrl} to ${newUrlString}`);
+
+		return res.redirect(code, newUrlString);
+	};
+
 	const baseDir = buildDir || path.join(__dirname, "..");
-	const authStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/auth"));
-	const unauthStaticFunc = expressStaticGzip(path.join(baseDir, "build/web/unauth"));
+	const staticGzip = expressStaticGzip(path.join(baseDir, "build/web"));
+
 	app.use((req, res, next) => {
+		logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.originalUrl}`, field("host", req.hostname), field("ip", req.ip));
+
+		// Force HTTPS unless allowing HTTP.
 		if (!isEncrypted(req.socket) && !options.allowHttp) {
-			return res.redirect(301, `https://${req.headers.host!}${req.path}`);
+			return redirect(req, res, "", "", 301, "https");
 		}
 
-		if (isAuthed(req)) {
-			// We can serve the actual VSCode bin
-			authStaticFunc(req, res, next);
-		} else {
-			// Serve only the unauthed version
-			unauthStaticFunc(req, res, next);
-		}
-	});
-	// @ts-ignore
-	app.use((err, req, res, next) => {
 		next();
 	});
-	app.get("/ping", (req, res) => {
+
+	// @ts-ignore
+	app.use((err, _req, _res, next) => {
+		logger.error(err.message);
+		next();
+	});
+
+	// If not authenticated, redirect to the login page.
+	app.get("/", (req, res, next) => {
+		if (!isAuthed(req)) {
+			return redirect(req, res, "login");
+		}
+		next();
+	});
+
+	// If already authenticated, redirect back to the root.
+	app.get("/login", (req, res, next) => {
+		if (isAuthed(req)) {
+			return redirect(req, res, "", "login");
+		}
+		next();
+	});
+
+	// For getting general server data.
+	app.get("/ping", (_req, res) => {
 		res.json({
 			hostname: os.hostname(),
 		});
 	});
+
+	// For getting a resource on disk.
 	app.get("/resource/:url(*)", async (req, res) => {
 		if (!ensureAuthed(req, res)) {
 			return;
@@ -254,6 +294,8 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			res.end();
 		}
 	});
+
+	// For writing a resource to disk.
 	app.post("/resource/:url(*)", async (req, res) => {
 		if (!ensureAuthed(req, res)) {
 			return;
@@ -281,6 +323,9 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			res.end();
 		}
 	});
+
+	// Everything else just pulls from the static build directory.
+	app.use(staticGzip);
 
 	return {
 		express: app,

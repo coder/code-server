@@ -193,13 +193,6 @@ const bold = (text: string | number): string | number => {
 		allowHttp: options.allowHttp,
 		bypassAuth: options.noAuth,
 		registerMiddleware: (app): void => {
-			app.use((req, res, next) => {
-				res.on("finish", () => {
-					logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
-				});
-
-				next();
-			});
 			// If we're not running from the binary and we aren't serving the static
 			// pre-built version, use webpack to serve the web files.
 			if (!isCli && !serveStatic) {

@@ -67,21 +67,21 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	}
 	fse.copySync(defaultExtensionsPath, path.join(cliBuildPath, "extensions"));
 	fs.writeFileSync(path.join(cliBuildPath, "bootstrap-fork.js.gz"), zlib.gzipSync(fs.readFileSync(bootstrapForkPath)));
-	const cpDir = (dir: string, subdir: "auth" | "unauth", rootPath: string): void => {
+	const cpDir = (dir: string, rootPath: string, subdir?: "login"): void => {
 		const stat = fs.statSync(dir);
 		if (stat.isDirectory()) {
 			const paths = fs.readdirSync(dir);
-			paths.forEach((p) => cpDir(path.join(dir, p), subdir, rootPath));
+			paths.forEach((p) => cpDir(path.join(dir, p), rootPath, subdir));
 		} else if (stat.isFile()) {
-			const newPath = path.join(cliBuildPath, "web", subdir, path.relative(rootPath, dir));
+			const newPath = path.join(cliBuildPath, "web", subdir || "", path.relative(rootPath, dir));
 			fse.mkdirpSync(path.dirname(newPath));
 			fs.writeFileSync(newPath + ".gz", zlib.gzipSync(fs.readFileSync(dir)));
 		} else {
 			// Nothing
 		}
 	};
-	cpDir(webOutputPath, "auth", webOutputPath);
-	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
+	cpDir(webOutputPath, webOutputPath);
+	cpDir(browserAppOutputPath, browserAppOutputPath, "login");
 	fse.mkdirpSync(path.join(cliBuildPath, "dependencies"));
 	fse.copySync(ripgrepPath, path.join(cliBuildPath, "dependencies", "rg"));
 });

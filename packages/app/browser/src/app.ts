@@ -28,7 +28,9 @@ if (!form) {
 
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
-	document.cookie = `password=${password.value}`;
+	document.cookie = `password=${password.value}; `
+		+ `path=${location.pathname.replace(/\/login\/?$/, "/")}; `
+		+ `domain=${location.hostname}`;
 	location.reload();
 });
 

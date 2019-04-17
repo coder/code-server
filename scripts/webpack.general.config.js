@@ -13,6 +13,11 @@ module.exports = (options = {}) => ({
 	externals: {
 		fsevents: "fsevents",
 	},
+	output: {
+		path: path.join(options.dirname || __dirname, "out"),
+		chunkFilename: `${options.name || "general"}.[name].[hash:6].js`,
+		filename: `${options.name || "general"}.[name].[hash:6].js`
+	},
 	module: {
 		rules: [{
 			loader: "string-replace-loader",
