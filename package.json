@@ -66,5 +66,9 @@
     "node-pty": "0.8.1",
     "spdlog": "0.8.1",
     "webpack-merge": "^4.2.1"
-  }
+  },
+  "engines": {
+    "node": ">=10.15.1"
+  },
+  "engineStrict": true
 }
