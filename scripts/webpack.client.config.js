@@ -4,10 +4,12 @@ const merge = require("webpack-merge");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const PreloadWebpackPlugin = require("preload-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-// const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
+const WebpackPwaManifest = require("webpack-pwa-manifest");
+const { GenerateSW } = require("workbox-webpack-plugin");
 
 const root = path.join(__dirname, "..");
 const prod = process.env.NODE_ENV === "production" || process.env.CI === "true";
+const cachePattern = /\.(?:png|jpg|jpeg|svg|css|js|ttf|woff|eot|woff2|wasm)$/;
 
 module.exports = (options = {}) => merge(
 	require("./webpack.general.config")(options), {
@@ -44,18 +46,43 @@ module.exports = (options = {}) => merge(
 	},
 	plugins: [
 		new MiniCssExtractPlugin({
-			filename: "[name].css",
-			chunkFilename: "[id].css",
+			chunkFilename: `${options.name || "client"}.[name].[hash:6].css`,
+			filename: `${options.name || "client"}.[name].[hash:6].css`
 		}),
 		new HtmlWebpackPlugin({
-			template: options.template,
+			template: options.template
 		}),
 		new PreloadWebpackPlugin({
 			rel: "preload",
-			as: "script",
+			as: "script"
 		}),
-	].concat(prod ? [] : [
-		new webpack.HotModuleReplacementPlugin(),
-	]),
-	target: "web",
+		new WebpackPwaManifest({
+			name: "Coder",
+			short_name: "Coder",
+			description: "Run VS Code on a remote server",
+			background_color: "#e5e5e5",
+			icons: [{
+				src: path.join(root, "packages/web/assets/logo.png"),
+				sizes: [96, 128, 192, 256, 384],
+			}],
+		})
+	].concat(prod ? [
+		new GenerateSW({
+			include: [cachePattern],
+			runtimeCaching: [{
+				urlPattern: cachePattern,
+				handler: "StaleWhileRevalidate",
+				options: {
+					cacheName: "code-server",
+					expiration: {
+						maxAgeSeconds: 86400,
+					},
+					cacheableResponse: {
+						statuses: [0, 200],
+					},
+				},
+			},
+		]}),
+	] : [new webpack.HotModuleReplacementPlugin()]),
+	target: "web"
 });

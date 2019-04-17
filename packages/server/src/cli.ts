@@ -1,6 +1,6 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
-import { ChildProcess, fork, ForkOptions, spawn } from "child_process";
+import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
 import * as fse from "fs-extra";
@@ -8,9 +8,8 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
-import { setup as setupNativeModules } from "./modules";
 import { createApp } from "./server";
-import { forkModule, requireFork, requireModule } from "./vscode/bootstrapFork";
+import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
@@ -26,12 +25,13 @@ commander.version(process.env.VERSION || "development")
 	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
-	.option("-p, --port <number>", "Port to bind on.", 8443)
+	.option("-p, --port <number>", "Port to bind on.", parseInt(process.env.PORT, 10) || 8443)
 	.option("-N, --no-auth", "Start without requiring authentication.", undefined)
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "Specify a password for authentication.")
+	.option("--disable-telemetry", "Disables ALL telemetry.", false)
+	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
-	.option("--fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
@@ -39,6 +39,7 @@ commander.version(process.env.VERSION || "development")
 Error.stackTraceLimit = Infinity;
 if (isCli) {
 	require("nbin").shimNativeFs(buildDir);
+	require("nbin").shimNativeFs("/node_modules");
 }
 // Makes strings or numbers bold in stdout
 const bold = (text: string | number): string | number => {
@@ -52,6 +53,7 @@ const bold = (text: string | number): string | number => {
 		readonly allowHttp: boolean;
 		readonly host: string;
 		readonly port: number;
+		readonly disableTelemetry: boolean;
 
 		readonly userDataDir?: string;
 		readonly extensionsDir?: string;
@@ -62,10 +64,15 @@ const bold = (text: string | number): string | number => {
 		readonly cert?: string;
 		readonly certKey?: string;
 
+		readonly installExtension?: string;
+
 		readonly bootstrapFork?: string;
-		readonly fork?: string;
 		readonly extraArgs?: string;
 	};
+
+	if (options.disableTelemetry) {
+		process.env.DISABLE_TELEMETRY = "true";
+	}
 
 	// Commander has an exception for `--no` prefixes. Here we'll adjust that.
 	// tslint:disable-next-line:no-any
@@ -75,6 +82,7 @@ const bold = (text: string | number): string | number => {
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
 	const workingDir = path.resolve(args[0] || process.cwd());
+	const dependenciesDir = path.join(os.tmpdir(), "code-server/dependencies");
 
 	if (!fs.existsSync(dataDir)) {
 		const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
@@ -89,9 +97,22 @@ const bold = (text: string | number): string | number => {
 		fse.mkdirp(dataDir),
 		fse.mkdirp(extensionsDir),
 		fse.mkdirp(workingDir),
+		fse.mkdirp(dependenciesDir),
 	]);
 
-	setupNativeModules(dataDir);
+	const unpackExecutable = (binaryName: string): void => {
+		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", binaryName);
+		const diskFile = path.join(dependenciesDir, binaryName);
+		if (!fse.existsSync(diskFile)) {
+			fse.writeFileSync(diskFile, fse.readFileSync(memFile));
+		}
+		fse.chmodSync(diskFile, "755");
+	};
+
+	unpackExecutable("rg");
+	// tslint:disable-next-line no-any
+	(<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
+
 	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 	if (options.bootstrapFork) {
 		const modulePath = options.bootstrapFork;
@@ -100,19 +121,13 @@ const bold = (text: string | number): string | number => {
 			process.exit(1);
 		}
 
-		((options.extraArgs ? JSON.parse(options.extraArgs) : []) as string[]).forEach((arg, i) => {
-			// [0] contains the binary running the script (`node` for example) and
-			// [1] contains the script name, so the arguments come after that.
-			process.argv[i + 2] = arg;
-		});
+		process.argv = [
+			process.argv[0],
+			process.argv[1],
+			...(options.extraArgs ? JSON.parse(options.extraArgs) : []),
+		];
 
-		return requireModule(modulePath, dataDir, builtInExtensionsDir);
-	}
-
-	if (options.fork) {
-		const modulePath = options.fork;
-
-		return requireFork(modulePath, JSON.parse(options.extraArgs!), builtInExtensionsDir);
+		return requireModule(modulePath, builtInExtensionsDir);
 	}
 
 	const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
@@ -156,6 +171,26 @@ const bold = (text: string | number): string | number => {
 		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
 	}
 
+	if (options.installExtension) {
+		const fork = forkModule("vs/code/node/cli", [
+			"--user-data-dir", dataDir,
+			"--builtin-extensions-dir", builtInExtensionsDir,
+			"--extensions-dir", extensionsDir,
+			"--install-extension", options.installExtension,
+		], {
+			env: {
+				VSCODE_ALLOW_IO: "true",
+				VSCODE_LOGS: process.env.VSCODE_LOGS,
+			},
+		}, dataDir);
+
+		fork.stdout.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.info(l)));
+		fork.stderr.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.error(l)));
+		fork.on("exit", () => process.exit());
+
+		return;
+	}
+
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/codercom/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
@@ -187,20 +222,19 @@ const bold = (text: string | number): string | number => {
 		allowHttp: options.allowHttp,
 		bypassAuth: options.noAuth,
 		registerMiddleware: (app): void => {
-			app.use((req, res, next) => {
-				res.on("finish", () => {
-					logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.url}`, field("host", req.hostname), field("ip", req.ip));
-				});
-
-				next();
-			});
 			// If we're not running from the binary and we aren't serving the static
 			// pre-built version, use webpack to serve the web files.
 			if (!isCli && !serveStatic) {
 				const webpackConfig = require(path.resolve(__dirname, "..", "..", "web", "webpack.config.js"));
 				const compiler = require("webpack")(webpackConfig);
 				app.use(require("webpack-dev-middleware")(compiler, {
-					logger,
+					logger: {
+						trace: (m: string): void => logger.trace("webpack", field("message", m)),
+						debug: (m: string): void => logger.debug("webpack", field("message", m)),
+						info: (m: string): void => logger.info("webpack", field("message", m)),
+						warn: (m: string): void => logger.warn("webpack", field("message", m)),
+						error: (m: string): void => logger.error("webpack", field("message", m)),
+					},
 					publicPath: webpackConfig.output.publicPath,
 					stats: webpackConfig.stats,
 				}));
@@ -218,14 +252,7 @@ const bold = (text: string | number): string | number => {
 					return forkModule(options.env.AMD_ENTRYPOINT, args, options, dataDir);
 				}
 
-				if (isCli) {
-					return spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
-						...options,
-						stdio: [null, null, null, "ipc"],
-					});
-				} else {
-					return fork(modulePath, args, options);
-				}
+				return fork(modulePath, args, options);
 			},
 		},
 		password,

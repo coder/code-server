@@ -45,7 +45,8 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 			},
 			set: (value: string): void => {
 				if (value) {
-					value = value.replace(/file:\/\//g, "/resource");
+					const resourceBaseUrl = location.pathname.replace(/\/$/, "") + "/resource";
+					value = value.replace(/file:\/\//g, resourceBaseUrl);
 				}
 				oldSrc!.set!.call(img, value);
 			},
@@ -66,7 +67,8 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 			},
 			set: (value: string): void => {
 				if (value) {
-					value = value.replace(/file:\/\//g, "/resource");
+					const resourceBaseUrl = location.pathname.replace(/\/$/, "") + "/resource";
+					value = value.replace(/file:\/\//g, resourceBaseUrl);
 				}
 				oldInnerHtml!.set!.call(style, value);
 			},
@@ -80,7 +82,8 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 				if (sheet && !overridden) {
 					const oldInsertRule = sheet.insertRule;
 					sheet.insertRule = (rule: string, index?: number): void => {
-						rule = rule.replace(/file:\/\//g, "/resource");
+						const resourceBaseUrl = location.pathname.replace(/\/$/, "") + "/resource";
+						rule = rule.replace(/file:\/\//g, resourceBaseUrl);
 						oldInsertRule.call(sheet, rule, index);
 					};
 					overridden = true;
@@ -145,8 +148,9 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 		(view as any).send = (channel: string, ...args: any[]): void => { // tslint:disable-line no-any
 			if (args[0] && typeof args[0] === "object" && args[0].contents) {
 				// TODO
-				args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m1) => `"/resource${m1}"`);
-				args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m, m1) => `"/resource${m1}"`);
+				const resourceBaseUrl = location.pathname.replace(/\/$/, "") + "/resource";
+				args[0].contents = (args[0].contents as string).replace(/"(file:\/\/[^"]*)"/g, (m1) => `"${resourceBaseUrl}${m1}"`);
+				args[0].contents = (args[0].contents as string).replace(/"vscode-resource:([^"]*)"/g, (m, m1) => `"${resourceBaseUrl}${m1}"`);
 				args[0].contents = (args[0].contents as string).replace(/style-src vscode-core-resource:/g, "style-src 'self'");
 			}
 			if (view.contentWindow) {
@@ -181,6 +185,10 @@ class Clipboard {
 
 	public writeText(value: string): Promise<void> {
 		return clipboard.writeText(value);
+	}
+
+	public readText(): Promise<string> {
+		return clipboard.readText();
 	}
 }
 

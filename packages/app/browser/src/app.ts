@@ -20,12 +20,17 @@ window.addEventListener("message", (event) => {
 });
 
 const password = document.getElementById("password") as HTMLInputElement;
-const submit = document.getElementById("submit") as HTMLButtonElement;
-if (!submit) {
-	throw new Error("No submit button found");
+const form = document.getElementById("login-form") as HTMLFormElement;
+
+if (!form) {
+	throw new Error("No password form found");
 }
-submit.addEventListener("click", () => {
-	document.cookie = `password=${password.value}`;
+
+form.addEventListener("submit", (e) => {
+	e.preventDefault();
+	document.cookie = `password=${password.value}; `
+		+ `path=${location.pathname.replace(/\/login\/?$/, "/")}; `
+		+ `domain=${location.hostname}`;
 	location.reload();
 });
 

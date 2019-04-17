@@ -5,4 +5,8 @@ module.exports = (options = {}) => merge(
 	devtool: "none",
 	mode: "production",
 	target: "node",
+	externals: {
+		spdlog: "commonjs spdlog",
+		"node-pty": "commonjs node-pty",
+	}
 });

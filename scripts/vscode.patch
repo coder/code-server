@@ -138,12 +138,34 @@ index e0ff793..885de12 100644
 -		const cmdOrCtrlKey = platform.isMacintosh ? e.metaKey : e.ctrlKey;
 +		const cmdOrCtrlKey = browser.isMacintosh ? e.metaKey : e.ctrlKey;
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index 6fd8249..796aed7 100644
+index 6fd8249..04c0933 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-@@ -223,0 +224,2 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
-+
+@@ -50,0 +51,2 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
++import { BackupMainService } from 'vs/platform/backup/electron-main/backupMainService';
++import { mkdirp } from 'vs/base/node/pfs';
+@@ -93,0 +96,8 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
++	Promise.all<boolean | undefined>([ // Copied from src/vs/code/electron-main/main.ts
++		environmentService.extensionsPath,
++		environmentService.nodeCachedDataDir,
++		environmentService.logsPath,
++		environmentService.globalStorageHome,
++		environmentService.workspaceStorageHome,
++		environmentService.backupHome
++	].map((path): undefined | Promise<boolean> => path ? mkdirp(path) : undefined));
+@@ -119,0 +130,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
++	const backupMainService = instantiationService.createInstance(BackupMainService) as BackupMainService;
++	backupMainService.initialize().catch(console.error);
+@@ -223,0 +236 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +startup({ machineId: "1" });
+diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
+index 1f8b17a..2a875f9 100644
+--- a/src/vs/code/node/cli.ts
++++ b/src/vs/code/node/cli.ts
+@@ -43,0 +44,3 @@ export async function main(argv: string[]): Promise<any> {
++	const cli = await new Promise<IMainCli>((c, e) => require(['vs/code/node/cliProcessMain'], c, e));
++	await cli.main(args);
++	return; // Always just do this for now.
 diff --git a/src/vs/editor/browser/config/configuration.ts b/src/vs/editor/browser/config/configuration.ts
 index f97a692..0206957 100644
 --- a/src/vs/editor/browser/config/configuration.ts
@@ -349,6 +371,17 @@ index 25e74c8..0bed89e 100644
 @@ -769 +769 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
 -		r = require.__$__nodeRequire<T>(modulePath);
 +		r = (global as any).nativeNodeRequire(modulePath);
+diff --git a/src/vs/workbench/api/node/extHostTypeConverters.ts b/src/vs/workbench/api/node/extHostTypeConverters.ts
+index 84406b8..cffd952 100644
+--- a/src/vs/workbench/api/node/extHostTypeConverters.ts
++++ b/src/vs/workbench/api/node/extHostTypeConverters.ts
+@@ -26 +25,0 @@ import { ExtHostDocumentsAndEditors } from 'vs/workbench/api/node/extHostDocumen
+-import { isString, isNumber } from 'vs/base/common/types';
+@@ -31 +29,0 @@ import { LogLevel as _MainLogLevel } from 'vs/platform/log/common/log';
+-import { coalesce } from 'vs/base/common/arrays';
+@@ -117,0 +116,2 @@ export namespace Diagnostic {
++		const { isString, isNumber } = require('vs/base/common/types');
++		const { coalesce } = require('vs/base/common/arrays');
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 7b6ad89..3190356 100644
 --- a/src/vs/workbench/browser/dnd.ts
@@ -844,7 +877,7 @@ index 48ef482..dc47f81 100644
 -			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 +			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
-index 71bc992..59a1a20 100644
+index 71bc992..97cbb71 100644
 --- a/src/vs/workbench/electron-browser/main.contribution.ts
 +++ b/src/vs/workbench/electron-browser/main.contribution.ts
 @@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';

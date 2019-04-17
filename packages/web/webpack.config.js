@@ -7,7 +7,9 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.client.config.js"))({
+		dirname: __dirname,
 		entry: path.join(root, "packages/web/src/index.ts"),
+		name: "ide",
 		template: path.join(root, "packages/web/src/index.html"),
 		typescriptCompilerOptions: {
 			"target": "es5",
@@ -15,11 +17,6 @@ module.exports = merge(
 		},
 	},
 ), {
-	output: {
-		chunkFilename: "[name]-[hash:6].bundle.js",
-		path: path.join(__dirname, "out"),
-		filename: "[hash:6].bundle.js",
-	},
 	node: {
 		module: "empty",
 		crypto: "empty",

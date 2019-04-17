@@ -12,7 +12,7 @@ const libPath = path.join(__dirname, "../lib");
 const vscodePath = path.join(libPath, "vscode");
 const defaultExtensionsPath = path.join(libPath, "extensions");
 const pkgsPath = path.join(__dirname, "../packages");
-const vscodeVersion = process.env.VSCODE_VERSION || "1.33.0";
+const vscodeVersion = process.env.VSCODE_VERSION || "1.33.1";
 const vsSourceUrl = `https://codesrv-ci.cdr.sh/vstar-${vscodeVersion}.tar.gz`;
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
@@ -48,19 +48,11 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	const bootstrapForkPath = path.join(pkgsPath, "vscode", "out", "bootstrap-fork.js");
 	const webOutputPath = path.join(pkgsPath, "web", "out");
 	const browserAppOutputPath = path.join(pkgsPath, "app", "browser", "out");
-	const nodePtyModule = path.join(pkgsPath, "protocol", "node_modules", "node-pty-prebuilt", "build", "Release", "pty.node");
-	const spdlogModule = path.join(pkgsPath, "protocol", "node_modules", "spdlog", "build", "Release", "spdlog.node");
 	let ripgrepPath = path.join(pkgsPath, "..", "lib", "vscode", "node_modules", "vscode-ripgrep", "bin", "rg");
 	if (isWin) {
 		ripgrepPath += ".exe";
 	}
 
-	if (!fs.existsSync(nodePtyModule)) {
-		throw new Error("Could not find pty.node. Ensure all packages have been installed");
-	}
-	if (!fs.existsSync(spdlogModule)) {
-		throw new Error("Could not find spdlog.node. Ensure all packages have been installed");
-	}
 	if (!fs.existsSync(webOutputPath)) {
 		throw new Error("Web bundle must be built");
 	}
@@ -75,24 +67,22 @@ const buildServerBinaryCopy = register("build:server:binary:copy", async (runner
 	}
 	fse.copySync(defaultExtensionsPath, path.join(cliBuildPath, "extensions"));
 	fs.writeFileSync(path.join(cliBuildPath, "bootstrap-fork.js.gz"), zlib.gzipSync(fs.readFileSync(bootstrapForkPath)));
-	const cpDir = (dir: string, subdir: "auth" | "unauth", rootPath: string): void => {
+	const cpDir = (dir: string, rootPath: string, subdir?: "login"): void => {
 		const stat = fs.statSync(dir);
 		if (stat.isDirectory()) {
 			const paths = fs.readdirSync(dir);
-			paths.forEach((p) => cpDir(path.join(dir, p), subdir, rootPath));
+			paths.forEach((p) => cpDir(path.join(dir, p), rootPath, subdir));
 		} else if (stat.isFile()) {
-			const newPath = path.join(cliBuildPath, "web", subdir, path.relative(rootPath, dir));
+			const newPath = path.join(cliBuildPath, "web", subdir || "", path.relative(rootPath, dir));
 			fse.mkdirpSync(path.dirname(newPath));
 			fs.writeFileSync(newPath + ".gz", zlib.gzipSync(fs.readFileSync(dir)));
 		} else {
 			// Nothing
 		}
 	};
-	cpDir(webOutputPath, "auth", webOutputPath);
-	cpDir(browserAppOutputPath, "unauth", browserAppOutputPath);
+	cpDir(webOutputPath, webOutputPath);
+	cpDir(browserAppOutputPath, browserAppOutputPath, "login");
 	fse.mkdirpSync(path.join(cliBuildPath, "dependencies"));
-	fse.copySync(nodePtyModule, path.join(cliBuildPath, "dependencies", "pty.node"));
-	fse.copySync(spdlogModule, path.join(cliBuildPath, "dependencies", "spdlog.node"));
 	fse.copySync(ripgrepPath, path.join(cliBuildPath, "dependencies", "rg"));
 });
 
@@ -204,9 +194,9 @@ register("package", async (runner, releaseTag) => {
 	});
 
 	runner.cwd = releasePath;
-	await os.platform() === "linux"
+	await (os.platform() === "linux"
 		? runner.execute("tar", ["-cvzf", `${archiveName}.tar.gz`, `${archiveName}`])
-		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]);
+		: runner.execute("zip", ["-r", `${archiveName}.zip`, `${archiveName}`]));
 });
 
 run();

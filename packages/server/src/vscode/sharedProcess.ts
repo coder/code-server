@@ -1,6 +1,4 @@
 import { ChildProcess } from "child_process";
-import * as fs from "fs";
-import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import { forkModule } from "./bootstrapFork";
@@ -8,7 +6,7 @@ import { StdioIpcHandler } from "../ipc";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
-import { logger, Level } from "@coder/logger";
+import { logger, field, Level } from "@coder/logger";
 
 export enum SharedProcessState {
 	Stopped,
@@ -90,20 +88,11 @@ export class SharedProcess {
 			this.activeProcess.kill();
 		}
 
-		const backupsDir = path.join(this.userDataDir, "Backups");
-		await Promise.all([
-			fse.mkdirp(backupsDir),
-		]);
-
-		const workspacesFile = path.join(backupsDir, "workspaces.json");
-		if (!fs.existsSync(workspacesFile)) {
-			fs.appendFileSync(workspacesFile, "");
-		}
-
 		const activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], {
 			env: {
 				VSCODE_ALLOW_IO: "true",
 				VSCODE_LOGS: process.env.VSCODE_LOGS,
+				DISABLE_TELEMETRY: process.env.DISABLE_TELEMETRY,
 			},
 		}, this.userDataDir);
 		this.activeProcess = activeProcess;
@@ -127,13 +116,13 @@ export class SharedProcess {
 			activeProcess.on("exit", doReject);
 
 			activeProcess.stdout.on("data", (data) => {
-				logger.trace(data.toString());
+				logger.trace("stdout", field("data", data.toString()));
 			});
 
 			activeProcess.stderr.on("data", (data) => {
 				// Warn instead of error to prevent panic. It's unlikely stderr here is
 				// about anything critical to the functioning of the editor.
-				logger.warn(data.toString());
+				logger.warn("stderr", field("data", data.toString()));
 			});
 
 			this.ipcHandler = new StdioIpcHandler(activeProcess);

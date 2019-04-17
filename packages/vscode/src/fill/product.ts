@@ -12,6 +12,12 @@ class Product implements IProductConfiguration {
 	public tipsAndTricksUrl = "https://code.visualstudio.com/docs/getstarted/tips-and-tricks";
 	public twitterUrl = "https://twitter.com/code";
 	public licenseUrl = "https://github.com/codercom/code-server/blob/master/LICENSE";
+	public aiConfig = process.env.DISABLE_TELEMETRY ? undefined! : {
+		// Only needed so vscode can see that content exists for this value.
+		// We override the application insights module.
+		asimovKey: "content",
+	};
+	public enableTelemetry = process.env.DISABLE_TELEMETRY ? false : true;
 
 	private _dataFolderName: string | undefined;
 	public get dataFolderName(): string {
@@ -26,7 +32,8 @@ class Product implements IProductConfiguration {
 		serviceUrl: global && global.process && global.process.env.SERVICE_URL
 			|| process.env.SERVICE_URL
 			|| "https://v1.extapi.coder.com",
-	};
+		// tslint:disable-next-line:no-any
+	} as any;
 
 	public extensionExecutionEnvironments = {
 		"wayou.vscode-todo-highlight": "worker",

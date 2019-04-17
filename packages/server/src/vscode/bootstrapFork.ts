@@ -42,54 +42,13 @@ const requireFilesystemModule = (id: string, builtInExtensionsDir: string): any 
 	return customMod.require(id);
 };
 
-/**
- * Called from forking a module
- */
-export const requireFork = (modulePath: string, args: string[], builtInExtensionsDir: string): void => {
-	const Module = require("module") as typeof import("module");
-	const oldRequire = Module.prototype.require;
-	// tslint:disable-next-line:no-any
-	const oldLoad = (Module as any)._findPath;
-	// @ts-ignore
-	(Module as any)._findPath = function (request, parent, isMain): any {
-		const lookupPaths = oldLoad.call(this, request, parent, isMain);
-
-		return lookupPaths;
-	};
-	// tslint:disable-next-line:no-any
-	Module.prototype.require = function (id: string): any {
-		if (id === "typescript") {
-			return require("typescript");
-		}
-
-		// tslint:disable-next-line:no-any
-		return oldRequire.call(this, id as any);
-	};
-
-	if (!process.send) {
-		throw new Error("No IPC messaging initialized");
-	}
-
-	process.argv = ["", "", ...args];
-	requireFilesystemModule(modulePath, builtInExtensionsDir);
-
-	if (ipcMsgBuffer && ipcMsgListener) {
-		process.removeListener("message", ipcMsgListener);
-		// tslint:disable-next-line:no-any
-		ipcMsgBuffer.forEach((i) => process.emit("message" as any, i as any));
-		ipcMsgBuffer = undefined;
-		ipcMsgListener = undefined;
-	}
-};
-
-export const requireModule = (modulePath: string, dataDir: string, builtInExtensionsDir: string): void => {
+export const requireModule = (modulePath: string, builtInExtensionsDir: string): void => {
 	process.env.AMD_ENTRYPOINT = modulePath;
 	const xml = require("xhr2");
 	xml.XMLHttpRequest.prototype._restrictedHeaders["user-agent"] = false;
 	// tslint:disable-next-line no-any this makes installing extensions work.
 	(global as any).XMLHttpRequest = xml.XMLHttpRequest;
 
-	const mod = require("module") as typeof import("module");
 	const promiseFinally = require("promise.prototype.finally") as { shim: () => void };
 	promiseFinally.shim();
 	/**
@@ -102,16 +61,7 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
 	};
 
 	if (isCli) {
-		/**
-		 * Needed for properly forking external modules within the CLI
-		 */
-		// tslint:disable-next-line:no-any
-		(<any>cp).fork = (modulePath: string, args: ReadonlyArray<string> = [], options?: cp.ForkOptions): cp.ChildProcess => {
-			return cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), "--fork", modulePath, "--extra-args", JSON.stringify(args), "--data-dir", dataDir], {
-				...options,
-				stdio: [null, null, null, "ipc"],
-			});
-		};
+		process.env.NBIN_BYPASS = "true";
 	}
 
 	const baseDir = path.join(buildDir, "build");
@@ -132,7 +82,6 @@ export const requireModule = (modulePath: string, dataDir: string, builtInExtens
  * @param modulePath Path of the VS Code module to load.
  */
 export const forkModule = (modulePath: string, args?: string[], options?: cp.ForkOptions, dataDir?: string): cp.ChildProcess => {
-	let proc: cp.ChildProcess;
 	const forkOptions: cp.ForkOptions = {
 		stdio: [null, null, null, "ipc"],
 	};
@@ -141,18 +90,27 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		delete options.env.ELECTRON_RUN_AS_NODE;
 		forkOptions.env = options.env;
 	}
+
 	const forkArgs = ["--bootstrap-fork", modulePath];
 	if (args) {
 		forkArgs.push("--extra-args", JSON.stringify(args));
 	}
 	if (dataDir) {
-		forkArgs.push("--data-dir", dataDir);
+		forkArgs.push("--user-data-dir", dataDir);
 	}
+
+	const nodeArgs = [];
 	if (isCli) {
-		proc = cp.spawn(process.execPath, [path.join(buildDir, "out", "cli.js"), ...forkArgs], forkOptions);
+		nodeArgs.push(path.join(buildDir, "out", "cli.js"));
 	} else {
-		proc = cp.spawn(process.execPath, ["--require", "ts-node/register", "--require", "tsconfig-paths/register", process.argv[1], ...forkArgs], forkOptions);
+		nodeArgs.push(
+			"--require", "ts-node/register",
+			"--require", "tsconfig-paths/register",
+			process.argv[1],
+		);
 	}
+
+	const proc = cp.spawn(process.execPath, [...nodeArgs, ...forkArgs], forkOptions);
 	if (args && args[0] === "--type=watcherService" && os.platform() === "linux") {
 		cp.exec(`renice -n 19 -p ${proc.pid}`, (error) => {
 			if (error) {

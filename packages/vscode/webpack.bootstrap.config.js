@@ -7,6 +7,7 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
+		dirname: __dirname,
 		typescriptCompilerOptions: {
 			target: "es6",
 		},
@@ -15,7 +16,6 @@ module.exports = merge(
 		mode: "development",
 		output: {
 			chunkFilename: "[name].bundle.js",
-			path: path.resolve(__dirname, "out"),
 			publicPath: "/",
 			filename: "bootstrap-fork.js",
 			libraryTarget: "commonjs",
@@ -55,12 +55,13 @@ module.exports = merge(
 				"vscode-sqlite3": path.resolve(fills, "empty.ts"),
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
+				"applicationinsights": path.join(vsFills, "applicationInsights.ts"),
 				"electron": path.join(vsFills, "stdioElectron.ts"),
 				"vscode-ripgrep": path.join(vsFills, "ripgrep.ts"),
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
 				"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 				"vs/base/common/amd": path.resolve(vsFills, "amd.ts"),
-				"vs/base/node/paths": path.resolve(vsFills, "paths.ts"),
+				"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 				"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
 				"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
 				"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),

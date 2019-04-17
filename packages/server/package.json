@@ -9,7 +9,7 @@
 		"build:binary": "ts-node scripts/nbin.ts"
 	},
 	"dependencies": {
-		"@coder/nbin": "^1.0.7",
+		"@coder/nbin": "^1.1.2",
 		"commander": "^2.19.0",
 		"express": "^4.16.4",
 		"express-static-gzip": "^1.1.3",

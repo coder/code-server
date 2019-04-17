@@ -79,7 +79,11 @@ export const createPortScanner = (scanInterval: number = 5000): PortScanner => {
 		logger.trace("scanning ports");
 		scan((error) => {
 			if (error) {
-				logger.error(`Port scanning will not be available: ${error.message}.`);
+				if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+					logger.warn("Port scanning will not be available because netstat is not installed");
+				} else {
+					logger.warn(`Port scanning will not be available: ${error.message}`);
+				}
 				disposed = true;
 			} else if (!disposed) {
 				lastTimeout = setTimeout(doInterval, scanInterval);
