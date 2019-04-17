@@ -46,12 +46,6 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 
 How to [secure your setup](/doc/security/ssl.md).
 
-### Telemetry
-
-Use the `--disable-telemetry` flag to disable tracking ENTIRELY.
-
-We use data collected to improve code-server.
-
 ## Development
 
 ### Known Issues
@@ -68,6 +62,12 @@ We use data collected to improve code-server.
 ### Extensions
 
 At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
+
+## Telemetry
+
+Use the `--disable-telemetry` flag or set `DISABLE_TELEMETRY=true` to disable tracking ENTIRELY.
+
+We use data collected to improve code-server.
 
 ## Contributing
 
