@@ -1,9 +1,11 @@
 # Build instructions for code-server 🏗️
 
-code-server has several yarn tasks for building the entire binary or specific portions of the app. This guide provides steps to do the aforementioned tasks. Coder recommends having Node 10.15.1+ installed.
+code-server has several yarn tasks for building the entire binary or specific portions of the app. This guide provides steps to do the aforementioned tasks.
 
 **NOTE:** Windows compatibility is in the works 
-> Yarn installation: https://yarnpkg.com/lang/en/docs/install
+
+### Requirements
+- Node 10.15.1+: https://nodejs.org/en/download/releases/
 
 ### Build the binary
 1. Clone the [repository](https://github.com/codercom/code-server.git)
