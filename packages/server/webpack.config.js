@@ -6,11 +6,10 @@ const root = path.resolve(__dirname, "../..");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
-		// Config options.
+		dirname: __dirname,
 	}), {
 		output: {
 			filename: "cli.js",
-			path: path.join(__dirname, "out"),
 			libraryTarget: "commonjs",
 		},
 		node: {

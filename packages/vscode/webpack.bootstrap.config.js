@@ -7,6 +7,7 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
+		dirname: __dirname,
 		typescriptCompilerOptions: {
 			target: "es6",
 		},
@@ -15,7 +16,6 @@ module.exports = merge(
 		mode: "development",
 		output: {
 			chunkFilename: "[name].bundle.js",
-			path: path.resolve(__dirname, "out"),
 			publicPath: "/",
 			filename: "bootstrap-fork.js",
 			libraryTarget: "commonjs",

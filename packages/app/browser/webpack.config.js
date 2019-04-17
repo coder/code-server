@@ -7,11 +7,10 @@ const root = path.resolve(__dirname, "../../..");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.client.config.js"))({
-		entry: path.join(root, "packages/app/browser/src/app.ts"),
-		template: path.join(root, "packages/app/browser/src/app.html"),
+		dirname: __dirname,
+		entry: path.join(__dirname, "src/app.ts"),
+		name: "login",
+		template: path.join(__dirname, "src/app.html"),
 	}), {
-		output: {
-			path: path.join(__dirname, "out"),
-		},
 	},
 );
