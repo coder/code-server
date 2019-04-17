@@ -52,7 +52,7 @@ Options:
   -H, --allow-http            Allow http connections.
   -P, --password <value>      Specify a password for authentication.
   --disable-telemetry         Disables ALL telemetry.
-  --help                  output usage information
+  --help                      output usage information
   ```
 
   ### Data Directory
