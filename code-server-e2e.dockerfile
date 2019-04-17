@@ -1,4 +1,4 @@
-FROM node:8.15.0
+FROM node:10.15.1
 
 # Install puppeteer deps.
 RUN apt-get update && apt-get install -qy gconf-service \
