@@ -1,4 +1,4 @@
-# Build instructions for code-server 🏗️
+# Building instructions for code-server 🏗️
 
 code-server has several yarn tasks for building the entire binary or specific portions of the app. This guide provides steps to do the aforementioned tasks.
 
@@ -7,7 +7,7 @@ code-server has several yarn tasks for building the entire binary or specific po
 ### Requirements
 - Node 10.15.1+: https://nodejs.org/en/download/releases/
 
-### Build the binary
+## Build the binary
 1. Clone the [repository](https://github.com/codercom/code-server.git)
 2. `cd` into `code-server`
 3. Run `yarn`
