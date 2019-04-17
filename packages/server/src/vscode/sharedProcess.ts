@@ -92,6 +92,7 @@ export class SharedProcess {
 			env: {
 				VSCODE_ALLOW_IO: "true",
 				VSCODE_LOGS: process.env.VSCODE_LOGS,
+				DISABLE_TELEMETRY: process.env.DISABLE_TELEMETRY,
 			},
 		}, this.userDataDir);
 		this.activeProcess = activeProcess;

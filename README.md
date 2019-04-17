@@ -46,6 +46,12 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 
 How to [secure your setup](/doc/security/ssl.md).
 
+### Telemetry
+
+Use the `--disable-telemetry` flag to disable tracking ENTIRELY.
+
+We use data collected to improve code-server.
+
 ## Development
 
 ### Known Issues

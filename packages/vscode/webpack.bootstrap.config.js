@@ -55,6 +55,7 @@ module.exports = merge(
 				"vscode-sqlite3": path.resolve(fills, "empty.ts"),
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
+				"applicationinsights": path.join(vsFills, "applicationInsights.ts"),
 				"electron": path.join(vsFills, "stdioElectron.ts"),
 				"vscode-ripgrep": path.join(vsFills, "ripgrep.ts"),
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
