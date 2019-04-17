@@ -1,25 +1,32 @@
 language: node_js
+
 node_js:
 - 10.15.1
+
 env:
   - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
+
 matrix:
   include:
-  - os: linux
-    dist: trusty
-  - os: osx
+    - os: linux
+      dist: trusty
+    - os: osx
+
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
-  libsecret-1-dev; fi
-- npm install -g yarn@1.12.3
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
+    libsecret-1-dev; fi
+  - npm install -g yarn@1.12.3
+
 script:
-- scripts/build.sh
+  - scripts/build.sh
+
 before_deploy:
-- echo "$VERSION" "$TRAVIS_COMMIT"
-- git config --local user.name "$USER_NAME"
-- git config --local user.email "$USER_EMAIL"
-- git tag "$VERSION" "$TRAVIS_COMMIT"
-- yarn task package "$VERSION"
+  - echo "$VERSION" "$TRAVIS_COMMIT"
+  - git config --local user.name "$USER_NAME"
+  - git config --local user.email "$USER_EMAIL"
+  - git tag "$VERSION" "$TRAVIS_COMMIT"
+  - yarn task package "$VERSION"
+
 deploy:
   provider: releases
   file_glob: true
@@ -36,8 +43,9 @@ deploy:
   on:
     repo: codercom/code-server
     branch: master
+
 cache:
   yarn: true
   timeout: 1000
   directories:
-  - .cache
+    - .cache
