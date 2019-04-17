@@ -9,6 +9,7 @@ const { GenerateSW } = require("workbox-webpack-plugin");
 
 const root = path.join(__dirname, "..");
 const prod = process.env.NODE_ENV === "production" || process.env.CI === "true";
+const cachePattern = /\.(?:png|jpg|jpeg|svg|css|js|ttf|woff|eot|woff2|wasm)$/;
 
 module.exports = (options = {}) => merge(
 	require("./webpack.general.config")(options), {
@@ -67,9 +68,9 @@ module.exports = (options = {}) => merge(
 		})
 	].concat(prod ? [
 		new GenerateSW({
-			exclude: [/\.html$/],
+			include: [cachePattern],
 			runtimeCaching: [{
-				urlPattern: new RegExp("^(?!.*\.html)"),
+				urlPattern: cachePattern,
 				handler: "StaleWhileRevalidate",
 				options: {
 					cacheName: "code-server",
