@@ -46,6 +46,18 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 
 How to [secure your setup](/doc/security/ssl.md).
 
+### Build
+
+1. Clone the code-server [repository](https://github.com/codercom/code-server.git)
+2. `cd` into `code-server`
+3. Run `yarn`
+4. Run `yarn task build:server:binary`
+5. To run without building the binary use `yarn start`
+
+> You can rebuild specific portions of the app with the following:
+> - bootstrap-fork: `yarn task build:bootstrap:fork`
+> 
+
 ## Development
 
 ### Known Issues
