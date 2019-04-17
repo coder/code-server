@@ -61,7 +61,7 @@ module.exports = merge(
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
 				"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 				"vs/base/common/amd": path.resolve(vsFills, "amd.ts"),
-				"vs/base/node/paths": path.resolve(vsFills, "paths.ts"),
+				"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 				"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
 				"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
 				"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),

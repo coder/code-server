@@ -34,6 +34,12 @@ export abstract class IdeClient {
 		this.loadTime = time(2500);
 
 		let appWindow: Window | undefined;
+
+		window.addEventListener("beforeunload", (e) => {
+			e.preventDefault(); // FireFox
+			e.returnValue = ""; // Chrome
+		});
+
 		window.addEventListener("message", (event) => {
 			if (event.data === "app") {
 				appWindow = event.source as Window;
