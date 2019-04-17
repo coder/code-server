@@ -13,9 +13,12 @@ Try it out:
 docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server:1.621 --allow-http --no-auth
 ```
 
-- Code on your Chromebook, tablet, and laptop with a consistent dev environment. - If you have a Windows or Mac workstation, more easily develop for Linux.
+- Code on your Chromebook, tablet, and laptop with a consistent dev environment.
+  - If you have a Windows or Mac workstation, more easily develop for Linux.
 - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
-- Preserve battery life when you're on the go. - All intensive computation runs on your server. - You're no longer running excess instances of Chrome.
+- Preserve battery life when you're on the go.
+  - All intensive computation runs on your server.
+  - You're no longer running excess instances of Chrome.
 
 ![Screenshot](/doc/assets/ide.png)
 
