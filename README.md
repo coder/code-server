@@ -93,7 +93,7 @@ your binary can be found in packages/server and is in the format cli-OS-ARCH (cl
 
 > Building natively only works on macOS and Linux (Ubuntu 18.04 is validated to work). Windows is currently not supported (see issue #259).
 
-If you want to test with the service-worker and PWA enabled during development, please run `export NODE_ENV=production` before building. Use Chrome 72+, enable [allow-insecure-localhost](chrome://flags/#allow-insecure-localhost) and enable [unsafely-treat-insecure-origin-as-secure](chrome://flags/#unsafely-treat-insecure-origin-as-secure) and enter `localhost:8443` in its textbox.
+If you want to test with the service-worker and PWA enabled during development, please run `export NODE_ENV=production` before building. Use Chrome 72+, enable <chrome://flags/#allow-insecure-localhost> and enable <chrome://flags/#unsafely-treat-insecure-origin-as-secure> and enter `localhost:8443` in its textbox.
 
 ## License
 
