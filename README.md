@@ -67,11 +67,11 @@ At the moment we can't use the official VSCode Marketplace. We've created a cust
 
 ### Building from source
 
-There are two ways to build `code-server` from source. You can either build the Docker image using `docker` or build natively for your platform you can not cross-build.
+There are two ways to build `code-server` from source. You can either build the Docker image using `docker` or build natively for your platform. You can not cross-build for a different platform.
 
-We recommend you build the docker image as this is not as error prone as building natively.
+We recommend you build the docker image as this is less error prone and easier than building natively.
 
-To build docker navigate to the code-server repository and run
+To build a docker image clone the code-server repository and run
 
 ```shell
 docker build -t codercom/code-server:development .
@@ -80,19 +80,20 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 # to start the development server. to shut it down press CTRL + C (or CMD + C on macOS)
 ```
 
-To build natively clone to the code-server repository and run
+To build natively clone the code-server repository and run
 
 ```shell
-node --version # tested with v10.15.1
+node --version # make sure you have v10.15.1
 npm install -g yarn@1.13
 yarn
 yarn task build:server:binary # depending on your system this can take up to 15 minutes
-# your binary can be found in packages/server and is in the format cli-OS-ARCH (cli-linux-x64)
 ```
 
-> Building natively only works on macOS and Linux (Ubuntu 18.04 is validated to work). Windows is currently not supported #259
+your binary can be found in packages/server and is in the format cli-OS-ARCH (cli-linux-x64)
 
-If you want to test with the service-worker and PWA enabled during development, please run `export NODE_ENV=production` before building, use Chrome 72+, enable chrome://flags/#allow-insecure-localhost and enable chrome://flags/#unsafely-treat-insecure-origin-as-secure and enter localhost:8443 in the textbox.
+> Building natively only works on macOS and Linux (Ubuntu 18.04 is validated to work). Windows is currently not supported (see issue #259).
+
+If you want to test with the service-worker and PWA enabled during development, please run `export NODE_ENV=production` before building. Use Chrome 72+, enable [allow-insecure-localhost](chrome://flags/#allow-insecure-localhost) and enable [unsafely-treat-insecure-origin-as-secure](chrome://flags/#unsafely-treat-insecure-origin-as-secure) and enter `localhost:8443` in its textbox.
 
 ## License
 
