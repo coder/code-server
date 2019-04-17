@@ -3,6 +3,9 @@ language: node_js
 node_js:
 - 10.15.1
 
+services:
+  - docker
+
 env:
   - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
 
@@ -18,31 +21,37 @@ before_install:
   - npm install -g yarn@1.12.3
 
 script:
-  - scripts/build.sh
+  - scripts/cicd/build_binary.sh
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; docker build -t coder/code-server:$VERSION .; fi
 
 before_deploy:
-  - echo "$VERSION" "$TRAVIS_COMMIT"
-  - git config --local user.name "$USER_NAME"
-  - git config --local user.email "$USER_EMAIL"
-  - git tag "$VERSION" "$TRAVIS_COMMIT"
-  - yarn task package "$VERSION"
+  - scripts/cicd/git_tag.sh
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin hub.docker.com
 
 deploy:
-  provider: releases
-  file_glob: true
-  draft: true
-  tag_name: "$VERSION"
-  target_commitish: "$TRAVIS_COMMIT"
-  name: "$VERSION"
-  skip_cleanup: true
-  api_key:
-    secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
-  file:
-    - release/*.tar.gz
-    - release/*.zip
-  on:
-    repo: codercom/code-server
-    branch: master
+  - provider: releases
+    file_glob: true
+    draft: true
+    tag_name: "$VERSION"
+    target_commitish: "$TRAVIS_COMMIT"
+    name: "$VERSION"
+    skip_cleanup: true
+    api_key:
+      secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
+    file:
+      - release/*.tar.gz
+      - release/*.zip
+    on:
+      repo: codercom/code-server
+      branch: master
+  - provider: script
+    script: docker push coder/code-server:$VERSION
+    on:
+      repo: codercom/code-server
+      branch: master
+      condition: $TRAVIS_OS_NAME = linux
+
+
 
 cache:
   yarn: true
