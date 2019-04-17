@@ -166,25 +166,6 @@ const bold = (text: string | number): string | number => {
 		}
 	}
 
-	if (isCli) {
-		const currentVersion = process.env.VERSION;
-		try {
-			const recentRelease = await getRecentRelease();
-			if (recentRelease !== currentVersion) {
-				logger.warn(`New version available! (\u001B[1m${recentRelease}\u001B[0m) https://github.com/codercom/code-server/releases/latest`);
-			}
-		} catch (err) {
-			logger.error(`Failed to check latest release: ${err}`);
-		}
-	}
-	const isDev = process.env.NODE_ENV !== "production";
-	if (newestVersion === process.env.VERSION || isDev) {
-		logger.info("You are using the latest version");
-	} else {
-		logger.warn(`New version (\u001B[1m${newestVersion}) available https://github.com/codercom/code-server/releases`);
-	}
-	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
-
 	if (options.dataDir) {
 		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
 	}
@@ -209,7 +190,18 @@ const bold = (text: string | number): string | number => {
 		return;
 	}
 
-	// TODO: fill in appropriate doc url
+	if (isCli) {
+		const currentVersion = process.env.VERSION;
+		try {
+			const recentRelease = await getRecentRelease();
+			if (recentRelease !== currentVersion) {
+				logger.warn(`New version available! (\u001B[1m${recentRelease}\u001B[0m) https://github.com/codercom/code-server/releases/latest`);
+			}
+		} catch (err) {
+			logger.error(`Failed to check latest release: ${err}`);
+		}
+	}
+
 	logger.info(`\u001B[1mcode-server ${process.env.VERSION ? `v${process.env.VERSION}` : "development"}`);
 	logger.info("Additional documentation: http://github.com/codercom/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
