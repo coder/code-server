@@ -21,7 +21,7 @@ matrix:
 
 script:
   #- scripts/cicd/build_binary.sh
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; docker build -t creativeguy2013/code-server:$VERSION .; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t creativeguy2013/code-server:$VERSION .; fi
 
 before_deploy:
   #- scripts/cicd/git_tag.sh
