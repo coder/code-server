@@ -8,16 +8,14 @@
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a remote server, accessible through the browser.
 
 Try it out:
+
 ```bash
 docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server:1.621 --allow-http --no-auth
 ```
 
-- Code on your Chromebook, tablet, and laptop with a consistent dev environment.
-	- If you have a Windows or Mac workstation, more easily develop for Linux.
+- Code on your Chromebook, tablet, and laptop with a consistent dev environment. - If you have a Windows or Mac workstation, more easily develop for Linux.
 - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
-- Preserve battery life when you're on the go.
-	- All intensive computation runs on your server.
-	- You're no longer running excess instances of Chrome.
+- Preserve battery life when you're on the go. - All intensive computation runs on your server. - You're no longer running excess instances of Chrome.
 
 ![Screenshot](/doc/assets/ide.png)
 
@@ -35,10 +33,11 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
     ```
     code-server <initial directory to open>
     ```
-	> You will be prompted to enter the password shown in the CLI
-	`code-server` should now be running at https://localhost:8443.
 
-	> code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. Please [read here](doc/self-hosted/index.md) for more information.
+    > You will be prompted to enter the password shown in the CLI
+    > `code-server` should now be running at https://localhost:8443.
+
+    > code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. Please [read here](doc/self-hosted/index.md) for more information.
 
 For detailed instructions and troubleshooting, see the [self-hosted quick start guide](doc/self-hosted/index.md).
 
@@ -53,6 +52,7 @@ How to [secure your setup](/doc/security/ssl.md).
 - Creating custom VS Code extensions and debugging them doesn't work.
 
 ### Future
+
 - **Stay up to date!** Get notified about new releases of code-server.
   ![Screenshot](/doc/assets/release.gif)
 - Windows support.
@@ -65,7 +65,34 @@ At the moment we can't use the official VSCode Marketplace. We've created a cust
 
 ## Contributing
 
-Development guides are coming soon.
+### Building from source
+
+There are two ways to build `code-server` from source. You can either build the Docker image using `docker` or build natively for your platform you can not cross-build.
+
+We recommend you build the docker image as this is not as error prone as building natively.
+
+To build docker navigate to the code-server repository and run
+
+```shell
+docker build -t codercom/code-server:development .
+# to build the image, then run
+docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server:development --allow-http --no-auth
+# to start the development server. to shut it down press CTRL + C (or CMD + C on macOS)
+```
+
+To build natively clone to the code-server repository and run
+
+```shell
+node --version # tested with v10.15.1
+npm install -g yarn@1.13
+yarn
+yarn task build:server:binary # depending on your system this can take up to 15 minutes
+# your binary can be found in packages/server and is in the format cli-OS-ARCH (cli-linux-x64)
+```
+
+> Building natively only works on macOS and Linux (Ubuntu 18.04 is validated to work). Windows is currently not supported #259
+
+If you want to test with the service-worker and PWA enabled during development, please run `export NODE_ENV=production` before building, use Chrome 72+, enable chrome://flags/#allow-insecure-localhost and enable chrome://flags/#unsafely-treat-insecure-origin-as-secure and enter localhost:8443 in the textbox.
 
 ## License
 
