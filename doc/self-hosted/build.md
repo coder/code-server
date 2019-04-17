@@ -6,7 +6,6 @@ code-server has several yarn tasks for building the entire binary or specific po
 > Yarn installation: https://yarnpkg.com/lang/en/docs/install
 
 ### Build the binary
-
 1. Clone the [repository](https://github.com/codercom/code-server.git)
 2. `cd` into `code-server`
 3. Run `yarn`
@@ -24,7 +23,7 @@ code-server has several yarn tasks for building the entire binary or specific po
 
 - **bootstrap-fork**: Forks VS Code sub-processes such as the shared process, extension host, searcher, and watcher
   ```bash
-  yarn task build:bootstrap:fork
+  yarn task build:bootstrap-fork
   ```
 - **binary package**: Packages existing built files with [nbin](https://github.com/codercom/nbin)
   ```bash
