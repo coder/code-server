@@ -59,7 +59,13 @@ export const field = <T>(name: string, value: T): Field<T> => {
 	return new Field(name, value);
 };
 
-export type Extender = (msg: { section?: string, type: "trace" | "info" | "warn" | "debug" | "error", message: string, fields?: FieldArray, level: Level }) => void;
+export type Extender = (msg: {
+	message: string,
+	level: Level,
+	type: "trace" | "info" | "warn" | "debug" | "error",
+	fields?: FieldArray,
+	section?: string,
+}) => void;
 
 /**
  * This formats & builds text for logging.
