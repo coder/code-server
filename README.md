@@ -63,6 +63,12 @@ How to [secure your setup](/doc/security/ssl.md).
 
 At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
 
+## Telemetry
+
+Use the `--disable-telemetry` flag or set `DISABLE_TELEMETRY=true` to disable tracking ENTIRELY.
+
+We use data collected to improve code-server.
+
 ## Contributing
 
 Development guides are coming soon.

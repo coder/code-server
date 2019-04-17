@@ -29,6 +29,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-N, --no-auth", "Start without requiring authentication.", undefined)
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "Specify a password for authentication.")
+	.option("--disable-telemetry", "Disables ALL telemetry.", false)
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
@@ -52,6 +53,7 @@ const bold = (text: string | number): string | number => {
 		readonly allowHttp: boolean;
 		readonly host: string;
 		readonly port: number;
+		readonly disableTelemetry: boolean;
 
 		readonly userDataDir?: string;
 		readonly extensionsDir?: string;
@@ -67,6 +69,10 @@ const bold = (text: string | number): string | number => {
 		readonly bootstrapFork?: string;
 		readonly extraArgs?: string;
 	};
+
+	if (options.disableTelemetry) {
+		process.env.DISABLE_TELEMETRY = "true";
+	}
 
 	// Commander has an exception for `--no` prefixes. Here we'll adjust that.
 	// tslint:disable-next-line:no-any
