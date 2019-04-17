@@ -46,7 +46,7 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 
 How to [secure your setup](/doc/security/ssl.md).
 
-## Build instructions
+## Build Instructions
 Please visit our [build guide](/doc/self-hosted/build.md) for steps on how to build the binary.
 
 ## Development

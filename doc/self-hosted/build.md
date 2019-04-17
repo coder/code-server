@@ -13,11 +13,7 @@ code-server has several yarn tasks for building the entire binary or specific po
    > Binary will be placed in `packages/server` named after the platform and architecture (`cli-darwin-x64`)
 
 ### Run without building
-1. Clone the [repository](https://github.com/codercom/code-server.git)
-2. `cd` into `code-server`
-3. Run `yarn`
-4. Run `yarn start`
-    > *If you run into issues with websocket disconnects, run with `yarn start --no-auth`*
+Running from the binary is possible with `yarn-start` after you have built the binary at least once. This is required for bootstrap-fork and built in extensions to work properly.
 
 ### Build Tasks
 
@@ -29,10 +25,6 @@ code-server has several yarn tasks for building the entire binary or specific po
   ```bash
   yarn task build:server:binary:package
   ```
-- **binary copy**: Copies all existing built files into a single directory
-  ```bash
-  yarn task build:server:binary:copy
-  ```
 - **app browser**: Builds the login page for authenticated servers
   ```bash
   yarn task build:app:browser
@@ -41,15 +33,6 @@ code-server has several yarn tasks for building the entire binary or specific po
   ```bash
   yarn task build:web
   ```
-- **vscode install**: Downloads and extracts the correct VS Code version. If the version exists, runs `git reset --hard`
-  ```bash
-  yarn task vscode:install
-  ```
-- **vscode patch**: Patches VS Code for the browser
-  ```bash
-  yarn task vscode:patch
-  ```
-    > *VS Code must be downloaded and extracted first with the `vscode:install`*
 - **package**: Packages code-server for release in `.gz` and `.zip` format
   ```bash
   yarn task package
