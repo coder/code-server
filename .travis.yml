@@ -21,7 +21,7 @@ before_install:
 
 script:
   - scripts/cicd/build_binary.sh
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t creativeguy2013/code-server:$VERSION .; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then docker build -t codercom/code-server:$VERSION .; fi
 
 before_deploy:
   - scripts/cicd/git_tag.sh
@@ -44,7 +44,7 @@ deploy:
       repo: codercom/code-server
       branch: master
   - provider: script
-    script: docker push creativeguy2013/code-server:$VERSION
+    script: docker push codercom/code-server:$VERSION
     on:
       repo: codercom/code-server
       branch: master
