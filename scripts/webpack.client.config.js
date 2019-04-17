@@ -71,9 +71,10 @@ module.exports = (options = {}) => merge(
       })
     ].concat(prod ? [
       new GenerateSW({
+        exclude: [/\.map$/, /^manifest.*\.js$/, /\.html$/],
         runtimeCaching: [
           {
-            urlPattern: new RegExp(".*"),
+            urlPattern: new RegExp("^(?!.*(html))"),
             handler: "StaleWhileRevalidate",
             options: {
               cacheName: "code-server",
@@ -87,7 +88,7 @@ module.exports = (options = {}) => merge(
           }
           // Network first caching is also possible.
           /*{
-        urlPattern: "",
+        urlPattern: new RegExp("^(?!.*(html))"),
         handler: "NetworkFirst",
         options: {
           networkTimeoutSeconds: 4,
