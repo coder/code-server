@@ -1,6 +1,6 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
-import { ChildProcess, fork, ForkOptions, spawn } from "child_process";
+import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
 import * as fse from "fs-extra";
@@ -29,6 +29,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-N, --no-auth", "Start without requiring authentication.", undefined)
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "Specify a password for authentication.")
+	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
@@ -60,6 +61,8 @@ const bold = (text: string | number): string | number => {
 		readonly open?: boolean;
 		readonly cert?: string;
 		readonly certKey?: string;
+
+		readonly installExtension?: string;
 
 		readonly bootstrapFork?: string;
 		readonly extraArgs?: string;
@@ -112,11 +115,11 @@ const bold = (text: string | number): string | number => {
 			process.exit(1);
 		}
 
-		((options.extraArgs ? JSON.parse(options.extraArgs) : []) as string[]).forEach((arg, i) => {
-			// [0] contains the binary running the script (`node` for example) and
-			// [1] contains the script name, so the arguments come after that.
-			process.argv[i + 2] = arg;
-		});
+		process.argv = [
+			process.argv[0],
+			process.argv[1],
+			...(options.extraArgs ? JSON.parse(options.extraArgs) : []),
+		];
 
 		return requireModule(modulePath, builtInExtensionsDir);
 	}
@@ -160,6 +163,26 @@ const bold = (text: string | number): string | number => {
 
 	if (options.dataDir) {
 		logger.warn('"--data-dir" is deprecated. Use "--user-data-dir" instead.');
+	}
+
+	if (options.installExtension) {
+		const fork = forkModule("vs/code/node/cli", [
+			"--user-data-dir", dataDir,
+			"--builtin-extensions-dir", builtInExtensionsDir,
+			"--extensions-dir", extensionsDir,
+			"--install-extension", options.installExtension,
+		], {
+			env: {
+				VSCODE_ALLOW_IO: "true",
+				VSCODE_LOGS: process.env.VSCODE_LOGS,
+			},
+		}, dataDir);
+
+		fork.stdout.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.info(l)));
+		fork.stderr.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.error(l)));
+		fork.on("exit", () => process.exit());
+
+		return;
 	}
 
 	// TODO: fill in appropriate doc url
