@@ -49,3 +49,7 @@ const handlePackages = async (dir: string): Promise<void> => {
 handlePackages(resolve(__dirname, "..", "packages")).then(() => {
 	return handlePackages(resolve(__dirname, "..", "packages", "app"));
 });
+
+doInstall("test", resolve(__dirname, "..", "test")).then(() => {
+	return handlePackages(resolve(__dirname, "..", "test"));
+});
