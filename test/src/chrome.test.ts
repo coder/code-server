@@ -192,11 +192,7 @@ describe("chrome e2e", () => {
 		// Click the "Move to Trash" button in the popup.
 		const btnSelector = "div.msgbox button:last-of-type";
 		await page.waitFor(btnSelector);
-
-		// Using $eval because puppeteer can't click inputs for
-		// some reason. See:
-		// https://github.com/GoogleChrome/puppeteer/issues/3347
-		await page.$eval(btnSelector, btn => btn.dispatchEvent(new MouseEvent("click")));
+		await page.click(btnSelector);
 
 		// Check that the file is NOT in the file tree.
 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
