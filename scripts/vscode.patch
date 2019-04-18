@@ -98,6 +98,14 @@ index f68ae90..d6b9ea7 100644
 @@ -24 +24 @@ import { disposableTimeout } from 'vs/base/common/async';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/node/config.ts b/src/vs/base/node/config.ts
+index 5ef2193..a232b6c 100644
+--- a/src/vs/base/node/config.ts
++++ b/src/vs/base/node/config.ts
+@@ -79,0 +80,3 @@ export class ConfigWatcher<T> implements IConfigWatcher<T>, IDisposable {
++			} else {
++				this.cache = config; // update config
++				this._onDidUpdateConfiguration.fire({ config });
 diff --git a/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts b/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts
 index 74148e4..041205b 100644
 --- a/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts
