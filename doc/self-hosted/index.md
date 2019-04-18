@@ -43,7 +43,7 @@ Options:
   --cert <value>
   --cert-key <value>
   -e, --extensions-dir <dir>  Set the root path for extensions.
-  -d --user-data-dir <dir>      Specifies the directory that user data is kept in, useful when running as root.
+  -d --user-data-dir <dir>    Specifies the directory that user data is kept in, useful when running as root.
   --data-dir <value>          DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.
   -h, --host <value>          Customize the hostname. (default: "0.0.0.0")
   -o, --open                  Open in the browser on startup.
@@ -52,7 +52,7 @@ Options:
   -H, --allow-http            Allow http connections.
   -P, --password <value>      Specify a password for authentication.
   --disable-telemetry         Disables ALL telemetry.
-  -h, --help                  output usage information
+  --help                      output usage information
   ```
 
   ### Data Directory
