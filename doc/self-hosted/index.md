@@ -21,7 +21,8 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 2. Double click the executable to run in the current directory
 3. Copy the password that appears in the cli<img src="../assets/cli.png">
 4. In your browser navigate to `localhost:8443`
-5. Paste the password from the cli into the login window<img src="../assets/server-password-modal.png">
+5. Paste the password from the cli into the login window
+<img src="../assets/password_entry.png">
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
 ### Things To Know
@@ -116,4 +117,4 @@ OPTIONS
   *Important:* For more details about Apache reverse proxy configuration checkout the [documentation](https://httpd.apache.org/docs/current/mod/mod_proxy.html) - especially the [Securing your Server](https://httpd.apache.org/docs/current/mod/mod_proxy.html#access) section
   
   ### Help
-  Use `code-server -h` or `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section. 
+  Use `code-server --help` to view the usage for the cli. This is also shown at the beginning of this section. 
