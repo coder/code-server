@@ -270,9 +270,12 @@ class Dialog {
 
 				return;
 			}
+
+			// If it's a directory, we want to navigate to it. If it's a file, then we
+			// only want to open it if opening files is supported.
 			if (element.isDirectory) {
 				this.path = element.fullPath;
-			} else if (!(this.options as OpenDialogOptions).properties.openDirectory) {
+			} else if ((this.options as OpenDialogOptions).properties.openFile) {
 				this.selectEmitter.emit(element.fullPath);
 			}
 		});
@@ -288,16 +291,18 @@ class Dialog {
 		});
 		buttonsNode.appendChild(cancelBtn);
 		const confirmBtn = document.createElement("button");
-		const openFile = (this.options as OpenDialogOptions).properties.openFile;
-		confirmBtn.innerText = openFile ? "Open" : "Confirm";
+		const openDirectory = (this.options as OpenDialogOptions).properties.openDirectory;
+		confirmBtn.innerText = this.options.buttonLabel || "Confirm";
 		confirmBtn.addEventListener("click", () => {
-			if (this._path && !openFile) {
+			if (this._path && openDirectory) {
 				this.selectEmitter.emit(this._path);
 			}
 		});
-		// Since a single click opens a file, the only time this button can be
-		// used is on a directory, which is invalid for opening files.
-		if (openFile) {
+		// Disable if we can't open directories, otherwise you can open a directory
+		// as a file which won't work. This is because our button currently just
+		// always opens whatever directory is opened and will not open selected
+		// files. (A single click on a file is used to open it instead.)
+		if (!openDirectory) {
 			confirmBtn.disabled = true;
 		}
 		buttonsNode.appendChild(confirmBtn);
@@ -407,8 +412,9 @@ class Dialog {
 			isDirectory: stat.isDirectory(),
 			lastModified: stat.mtime.toDateString(),
 			size: stat.size,
-			// If we are opening a directory, show files as disabled.
-			isDisabled: !stat.isDirectory() && (this.options as OpenDialogOptions).properties.openDirectory,
+			// If we can't open files, show them as disabled.
+			isDisabled: !stat.isDirectory()
+				&& !(this.options as OpenDialogOptions).properties.openFile,
 		}));
 	}
 }

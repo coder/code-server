@@ -142,8 +142,8 @@ export class WindowsService implements IWindowsService {
 		return [await showOpenDialog({
 			...(options || {}),
 			properties: {
-				openDirectory: true,
-				openFile: true,
+				openDirectory: options && options.properties && options.properties.includes("openDirectory") || false,
+				openFile: options && options.properties && options.properties.includes("openFile") || false,
 			},
 		})];
 	}
