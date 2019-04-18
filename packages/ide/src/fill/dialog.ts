@@ -130,7 +130,7 @@ export class Dialog {
 	 * Show the dialog.
 	 */
 	public show(): void {
-		if (!this.cachedActiveElement) {
+		if (!this.cachedActiveElement && document.getElementsByClassName(this.overlay.className).length === 0) {
 			this.cachedActiveElement = document.activeElement as HTMLElement;
 			(document.querySelector(".monaco-workbench") || document.body).appendChild(this.overlay);
 			document.addEventListener("keydown", this.onKeydown);
