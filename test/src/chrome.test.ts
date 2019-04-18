@@ -49,6 +49,8 @@ describe("chrome e2e", () => {
 	it("should create file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
 		await workbenchShowCommands(page);
 		await page.waitFor(1000);
 		await page.keyboard.type("New File", { delay: 100 });
