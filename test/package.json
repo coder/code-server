@@ -39,5 +39,8 @@
       "/logger/"
     ],
     "testRegex": ".*\\.test\\.tsx?"
+  },
+  "dependencies": {
+    "@coder/logger": "^1.1.3"
   }
 }

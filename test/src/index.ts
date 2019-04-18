@@ -4,6 +4,7 @@ import * as path from "path";
 import * as ps from "ps-list";
 import * as puppeteer from "puppeteer";
 import { ChildProcess, exec } from "child_process";
+import { logger, field } from "@coder/logger";
 
 interface IServerOptions {
 	host: string;
@@ -166,7 +167,7 @@ export class TestServer {
 			this.child.once("error", onError);
 			if (this.child.stderr) {
 				this.child.stderr.on("data", async (chunk) => {
-					await onError(new Error(chunk));
+					logger.warn("Child wrote to stderr", field("data", chunk));
 				});
 			}
 
