@@ -885,13 +885,19 @@ index 48ef482..dc47f81 100644
 -			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 +			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
-index 71bc992..97cbb71 100644
+index 71bc992..111ce51 100644
 --- a/src/vs/workbench/electron-browser/main.contribution.ts
 +++ b/src/vs/workbench/electron-browser/main.contribution.ts
 @@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
 -import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
 +import { isNative, isWeb } from 'vs/base/common/platform';
 +import { isMacintosh, isWindows, isLinux } from 'vs/base/browser/browser';
+@@ -37 +38 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-		if (isMacintosh) {
++		if (isNative && isMacintosh) {
+@@ -225 +226 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-	if (isMacintosh) {
++	if (isNative && isMacintosh) {
 @@ -306 +307 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
 -		when: IsMacContext.toNegated()
 +		// when: IsMacContext.toNegated()
