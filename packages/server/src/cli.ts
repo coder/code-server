@@ -28,7 +28,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-p, --port <number>", "Port to bind on.", parseInt(process.env.PORT!, 10) || 8443)
 	.option("-N, --no-auth", "Start without requiring authentication.", undefined)
 	.option("-H, --allow-http", "Allow http connections.", false)
-	.option("-P, --password <value>", "Specify a password for authentication.")
+	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
@@ -209,7 +209,11 @@ const bold = (text: string | number): string | number => {
 		}
 	});
 
-	let password = options.password;
+	if (options.password) {
+		logger.warn('"--password" is deprecated. Use the PASSWORD environment variable instead.');
+	}
+
+	let password = options.password || process.env.PASSWORD;
 	if (!password) {
 		// Generate a random password with a length of 24.
 		const buffer = Buffer.alloc(12);
