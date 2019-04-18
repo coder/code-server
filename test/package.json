@@ -31,6 +31,9 @@
     "setupFiles": [
       "<rootDir>/../scripts/test-setup.js"
     ],
+    "moduleNameMapper": {
+      "@coder/logger": "<rootDir>/node_modules/@coder/logger/out/main.js"
+    },
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },
