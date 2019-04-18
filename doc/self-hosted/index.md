@@ -125,6 +125,7 @@ OPTIONS
   [Service]
   Type=simple
   User=<USER>
+  EnvironmentFile=$HOME/.profile
   Restart=on-failure
   RestartSec=10
 
