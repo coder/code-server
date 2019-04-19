@@ -73,12 +73,14 @@ describe("chrome e2e", () => {
 	it("should open file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
 		await workbenchQuickOpen(page);
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(1000);
 		const tabSelector = `div.tab div.monaco-icon-label.${testFileName.replace(".", "\\.")}-name-file-icon`;
+		await page.waitFor(tabSelector);
 
 		// Check that the file is in an editor tab.
 		const tab = await server.querySelector(page, tabSelector);
@@ -122,6 +124,8 @@ describe("chrome e2e", () => {
 	it("should debug file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
 		await workbenchQuickOpen(page);
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
@@ -130,8 +134,8 @@ describe("chrome e2e", () => {
 
 		// Start code block.
 		await page.keyboard.type(`console.log("hello");
-			function test() {
-			console.log("foo bar");`, { delay: 50 });
+function test() {
+console.log("foo bar");`, { delay: 50 });
 
 		// Toggle breakpoint.
 		await page.keyboard.press("F9");
@@ -139,8 +143,8 @@ describe("chrome e2e", () => {
 
 		// Finish code block.
 		await page.keyboard.type(`
-			const world = "world";
-			return world;`, { delay: 50 });
+const world = "world";
+return world;`, { delay: 50 });
 		await page.keyboard.press("ArrowDown");
 		await page.keyboard.press("Enter");
 		await page.keyboard.type("test();", { delay: 50 });
@@ -154,11 +158,11 @@ describe("chrome e2e", () => {
 
 		// Start debugging.
 		await page.keyboard.press("F5");
-		await page.waitFor(2000);
 
 		// Check debugger console.
-		const debugOutputSelector = "div#workbench\\.parts\\.panel div.monaco-list-row span.value.info span span";
-		let spans = await server.querySelectorAll(page, debugOutputSelector);
+		const spanSelector = "div#workbench\\\.parts\\\.panel div.output span.value.info span span";
+		await page.waitFor(spanSelector);
+		let spans = await server.querySelectorAll(page, spanSelector);
 		let lastSpan = spans.pop();
 		expect(lastSpan).toBeDefined();
 		expect(lastSpan!.textContent).toEqual("hello");
@@ -168,7 +172,7 @@ describe("chrome e2e", () => {
 		await page.waitFor(2000);
 
 		// Check debugger console again.
-		spans = await server.querySelectorAll(page, debugOutputSelector);
+		spans = await server.querySelectorAll(page, spanSelector);
 		lastSpan = spans.pop();
 		expect(lastSpan).toBeDefined();
 		expect(lastSpan!.textContent).toEqual("foo bar");

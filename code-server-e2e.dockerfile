@@ -38,5 +38,10 @@ RUN apt-get update && apt-get install -qy gconf-service \
 	xdg-utils \
 	wget
 
+# Get libc6 v2.28.x
+RUN echo "deb http://ftp.de.debian.org/debian buster main" >> /etc/apt/sources.list && \
+	apt-get update && \
+	apt-get install -y libc6
+
 # Ensure that yarn is installed.
 RUN npm i -g yarn@1.12.3 npx
