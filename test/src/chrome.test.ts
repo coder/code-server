@@ -181,6 +181,14 @@ return world;`, { delay: 50 });
 	it("should delete file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
+
+		// Wait for file tree to fill up.
+		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
+		await page.waitFor(fileSelector);
+
+		// Open the file.
 		await workbenchQuickOpen(page);
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
@@ -188,8 +196,6 @@ return world;`, { delay: 50 });
 		await page.waitFor(1000);
 
 		// Delete the file.
-		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
-		await page.waitFor(fileSelector);
 		await page.click(fileSelector);
 		await page.waitFor(1000);
 		await page.keyboard.press("Delete");
