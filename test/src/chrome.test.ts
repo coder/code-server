@@ -3,6 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
+import { logger, field } from "@coder/logger";
 
 describe("chrome e2e", () => {
 	jest.setTimeout(60000);
@@ -19,14 +20,23 @@ describe("chrome e2e", () => {
 	});
 	afterAll(async () => {
 		await server.dispose();
+		const testFilePath = path.resolve(TestServer.workingDir, testFileName);
+		if (fs.existsSync(testFilePath)) {
+			logger.debug("Deleting leftover test file", field("path", testFilePath));
+			fs.unlinkSync(testFilePath);
+		}
 	});
 
 	const workbenchQuickOpen = (page: puppeteer.Page): Promise<void> => {
-		return server.pressKeyboardCombo(page, superKey, "P");
+		return page.waitFor("div.part.sidebar")
+			.then(() => page.click("div.part.sidebar"))
+			.then(() => server.pressKeyboardCombo(page, superKey, "P"));
 	};
 
 	const workbenchShowCommands = (page: puppeteer.Page): Promise<void> => {
-		return server.pressKeyboardCombo(page, superKey, "Shift", "P");
+		return page.waitFor("div.part.sidebar")
+			.then(() => page.click("div.part.sidebar"))
+			.then(() => server.pressKeyboardCombo(page, superKey, "Shift", "P"));
 	};
 
 	// Select all text in the search field, to avoid
@@ -99,6 +109,7 @@ describe("chrome e2e", () => {
 		await page.keyboard.type("install extensions", { delay: 100 });
 		await page.waitFor(1000);
 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
+		await page.waitFor(commandSelector);
 		await page.click(commandSelector);
 		await page.waitFor(1000);
 
@@ -188,20 +199,12 @@ return world;`, { delay: 50 });
 		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
 		await page.waitFor(fileSelector);
 
-		// Open the file.
-		await workbenchQuickOpen(page);
-		await page.waitFor(1000);
-		await page.keyboard.type(testFileName, { delay: 100 });
-		await page.keyboard.press("Enter");
-		await page.waitFor(1000);
-
 		// Delete the file.
 		await page.click(fileSelector);
 		await page.waitFor(1000);
 		await page.keyboard.press("Delete");
-		await page.waitFor(1000);
 
-		// Click the "Move to Trash" button in the popup.
+		// Wait for the "Move to Trash" button in the popup.
 		const btnSelector = "div.msgbox button:last-of-type";
 		await page.waitFor(btnSelector);
 
@@ -227,6 +230,7 @@ return world;`, { delay: 50 });
 		await page.keyboard.type("show installed extensions", { delay: 100 });
 		await page.waitFor(1000);
 		const itemSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
+		await page.waitFor(itemSelector);
 		await page.click(itemSelector);
 		await page.waitFor(1000);
 
@@ -234,18 +238,16 @@ return world;`, { delay: 50 });
 		await selectAll(page);
 		await page.keyboard.type("@installed javascript", { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(2000);
+		await page.waitFor(manageSelector);
 
 		// Uninstall extension.
 		await page.click(manageSelector);
-		await page.waitFor(1000);
 		const uninstallSelector = "div.monaco-menu-container span.action-label[aria-label='Uninstall']";
+		await page.waitFor(uninstallSelector);
 		await page.click(uninstallSelector);
 
-		// Wait for un-installation.
-		await page.waitFor(1000);
-
 		// Check that the install button exists.
+		await page.waitFor(installSelector);
 		const installButton = await server.querySelector(page, installSelector);
 		expect(installButton).toBeTruthy();
 		expect(installButton.tag).toEqual("a");
