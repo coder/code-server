@@ -2,6 +2,8 @@ import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
 
 describe("startup e2e", () => {
+	jest.setTimeout(20000);
+
 	let servers: { [tag: string]: TestServer } = {};
 
 	beforeAll(() => {
@@ -41,7 +43,7 @@ describe("startup e2e", () => {
 			.then(server.loadPage.bind(server));
 
 		await expectEditor(server, page);
-	}, 10000);
+	});
 
 	it("should use --password value", async () => {
 		const server = servers["--password"];
@@ -59,5 +61,5 @@ describe("startup e2e", () => {
 		await page.click("button#submit");
 
 		await expectEditor(server, page);
-	}, 20000);
+	});
 });
