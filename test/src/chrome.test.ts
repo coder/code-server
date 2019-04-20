@@ -215,7 +215,6 @@ describe("chrome e2e", () => {
 
 		// Check that the file is NOT in the file tree.
 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
-		await page.waitFor(spanSelector);
 		const elements = await server.querySelectorAll(page, spanSelector);
 		expect(elements.length).toBeGreaterThanOrEqual(0);
 		const contentArray = elements.map((el) => el.textContent);
