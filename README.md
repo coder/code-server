@@ -25,7 +25,7 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 
 ### Run over SSH
 
-Use [sshcode](https://github.com/codercom/sshcode) to easily run via SSH.
+Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 ### Docker
 
