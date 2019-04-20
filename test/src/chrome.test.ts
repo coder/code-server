@@ -14,7 +14,7 @@ describe("chrome e2e", () => {
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
 	const manageSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.manage`;
 
-	const server = new TestServer({ port: 8081 });
+	const server = new TestServer();
 	beforeAll(async () => {
 		await server.start();
 	});
@@ -101,156 +101,156 @@ describe("chrome e2e", () => {
 		expect(tab.children.length).toBeGreaterThan(0);
 	});
 
-	// 	it("should install extension", async () => {
-	// 		const page = await server.newPage()
-	// 			.then(server.loadPage.bind(server));
-	// 		await workbenchShowCommands(page);
-	// 		await page.waitFor(1000);
-	// 		await page.keyboard.type("install extensions", { delay: 100 });
-	// 		await page.waitFor(1000);
-	// 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
-	// 		await page.waitFor(commandSelector);
-	// 		await page.click(commandSelector);
-	// 		await page.waitFor(1000);
+	it("should install extension", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await workbenchShowCommands(page);
+		await page.waitFor(1000);
+		await page.keyboard.type("install extensions", { delay: 100 });
+		await page.waitFor(1000);
+		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
+		await page.waitFor(commandSelector);
+		await page.click(commandSelector);
+		await page.waitFor(1000);
 
-	// 		// Search for javascript extensions.
-	// 		await selectAll(page);
-	// 		await page.keyboard.type("javascript", { delay: 100 });
-	// 		await page.keyboard.press("Enter");
-	// 		await page.waitFor(2000);
+		// Search for javascript extensions.
+		await selectAll(page);
+		await page.keyboard.type("javascript", { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(2000);
 
-	// 		// Install extension.
-	// 		await page.click(installSelector);
+		// Install extension.
+		await page.click(installSelector);
 
-	// 		// Wait for installation.
-	// 		await page.waitFor(15000);
+		// Wait for installation.
+		await page.waitFor(15000);
 
-	// 		// Check that the extension management button exists.
-	// 		const manageButton = await server.querySelector(page, manageSelector);
-	// 		expect(manageButton).toBeTruthy();
-	// 		expect(manageButton.tag).toEqual("a");
-	// 		expect(manageButton.textContent).toBeUndefined();
-	// 	});
+		// Check that the extension management button exists.
+		const manageButton = await server.querySelector(page, manageSelector);
+		expect(manageButton).toBeTruthy();
+		expect(manageButton.tag).toEqual("a");
+		expect(manageButton.textContent).toBeUndefined();
+	});
 
-	// 	it("should debug file", async () => {
-	// 		const page = await server.newPage()
-	// 			.then(server.loadPage.bind(server));
-	// 		await page.waitFor("div.part.sidebar");
-	// 		await page.click("div.part.sidebar");
-	// 		await workbenchQuickOpen(page);
-	// 		await page.waitFor(1000);
-	// 		await page.keyboard.type(testFileName, { delay: 100 });
-	// 		await page.keyboard.press("Enter");
-	// 		await page.waitFor(1000);
+	it("should debug file", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
+		await workbenchQuickOpen(page);
+		await page.waitFor(1000);
+		await page.keyboard.type(testFileName, { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(1000);
 
-	// 		// Start code block.
-	// 		await page.keyboard.type(`console.log("hello");
-	// function test() {
-	// console.log("foo bar");`, { delay: 50 });
+		// Start code block.
+		await page.keyboard.type(`console.log("hello");
+	function test() {
+	console.log("foo bar");`, { delay: 50 });
 
-	// 		// Toggle breakpoint.
-	// 		await page.keyboard.press("F9");
-	// 		await page.waitFor(500);
+		// Toggle breakpoint.
+		await page.keyboard.press("F9");
+		await page.waitFor(500);
 
-	// 		// Finish code block.
-	// 		await page.keyboard.type(`
-	// const world = "world";
-	// return world;`, { delay: 50 });
-	// 		await page.keyboard.press("ArrowDown");
-	// 		await page.keyboard.press("Enter");
-	// 		await page.keyboard.type("test();", { delay: 50 });
-	// 		await page.waitFor(1000);
+		// Finish code block.
+		await page.keyboard.type(`
+	const world = "world";
+	return world;`, { delay: 50 });
+		await page.keyboard.press("ArrowDown");
+		await page.keyboard.press("Enter");
+		await page.keyboard.type("test();", { delay: 50 });
+		await page.waitFor(1000);
 
-	// 		// Ensure that we're using a fresh debug configuration.
-	// 		const launchConfigPath = path.resolve(TestServer.workingDir, "./.vscode/launch.json");
-	// 		if (fs.existsSync(launchConfigPath)) {
-	// 			fs.unlinkSync(launchConfigPath);
-	// 		}
+		// Ensure that we're using a fresh debug configuration.
+		const launchConfigPath = path.resolve(TestServer.workingDir, "./.vscode/launch.json");
+		if (fs.existsSync(launchConfigPath)) {
+			fs.unlinkSync(launchConfigPath);
+		}
 
-	// 		// Start debugging.
-	// 		await page.keyboard.press("F5");
+		// Start debugging.
+		await page.keyboard.press("F5");
 
-	// 		// Check debugger console.
-	// 		const spanSelector = "div#workbench\\\.parts\\\.panel div.output span.value.info span span";
-	// 		await page.waitFor(spanSelector);
-	// 		let spans = await server.querySelectorAll(page, spanSelector);
-	// 		let lastSpan = spans.pop();
-	// 		expect(lastSpan).toBeDefined();
-	// 		expect(lastSpan!.textContent).toEqual("hello");
+		// Check debugger console.
+		const spanSelector = "div#workbench\\\.parts\\\.panel div.output span.value.info span span";
+		await page.waitFor(spanSelector);
+		let spans = await server.querySelectorAll(page, spanSelector);
+		let lastSpan = spans.pop();
+		expect(lastSpan).toBeDefined();
+		expect(lastSpan!.textContent).toEqual("hello");
 
-	// 		// Continue past breakpoint.
-	// 		await page.keyboard.press("F5");
-	// 		await page.waitFor(2000);
+		// Continue past breakpoint.
+		await page.keyboard.press("F5");
+		await page.waitFor(2000);
 
-	// 		// Check debugger console again.
-	// 		spans = await server.querySelectorAll(page, spanSelector);
-	// 		lastSpan = spans.pop();
-	// 		expect(lastSpan).toBeDefined();
-	// 		expect(lastSpan!.textContent).toEqual("foo bar");
-	// 	});
+		// Check debugger console again.
+		spans = await server.querySelectorAll(page, spanSelector);
+		lastSpan = spans.pop();
+		expect(lastSpan).toBeDefined();
+		expect(lastSpan!.textContent).toEqual("foo bar");
+	});
 
-	// 	it("should delete file", async () => {
-	// 		const page = await server.newPage()
-	// 			.then(server.loadPage.bind(server));
-	// 		await page.waitFor("div.part.sidebar");
-	// 		await page.click("div.part.sidebar");
+	it("should delete file", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await page.waitFor("div.part.sidebar");
+		await page.click("div.part.sidebar");
 
-	// 		// Wait for file tree to fill up.
-	// 		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
-	// 		await page.waitFor(fileSelector);
+		// Wait for file tree to fill up.
+		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
+		await page.waitFor(fileSelector);
 
-	// 		// Delete the file.
-	// 		await page.click(fileSelector);
-	// 		await page.waitFor(1000);
-	// 		await page.keyboard.press("Delete");
+		// Delete the file.
+		await page.click(fileSelector);
+		await page.waitFor(1000);
+		await page.keyboard.press("Delete");
 
-	// 		// Wait for the "Move to Trash" button in the popup.
-	// 		const btnSelector = "div.msgbox button:last-of-type";
-	// 		await page.waitFor(btnSelector);
+		// Wait for the "Move to Trash" button in the popup.
+		const btnSelector = "div.msgbox button:last-of-type";
+		await page.waitFor(btnSelector);
 
-	// 		// Using $eval because puppeteer can't click inputs for
-	// 		// some reason. See:
-	// 		// https://github.com/GoogleChrome/puppeteer/issues/3347
-	// 		await page.$eval(btnSelector, btn => btn.dispatchEvent(new MouseEvent("click")));
+		// Using $eval because puppeteer can't click inputs for
+		// some reason. See:
+		// https://github.com/GoogleChrome/puppeteer/issues/3347
+		await page.$eval(btnSelector, btn => btn.dispatchEvent(new MouseEvent("click")));
 
-	// 		// Check that the file is NOT in the file tree.
-	// 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
-	// 		await page.waitFor(spanSelector);
-	// 		const elements = await server.querySelectorAll(page, spanSelector);
-	// 		expect(elements.length).toBeGreaterThanOrEqual(0);
-	// 		const contentArray = elements.map((el) => el.textContent);
-	// 		expect(contentArray).not.toContain(testFileName);
-	// 	});
+		// Check that the file is NOT in the file tree.
+		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
+		await page.waitFor(spanSelector);
+		const elements = await server.querySelectorAll(page, spanSelector);
+		expect(elements.length).toBeGreaterThanOrEqual(0);
+		const contentArray = elements.map((el) => el.textContent);
+		expect(contentArray).not.toContain(testFileName);
+	});
 
-	// 	it("should uninstall extension", async () => {
-	// 		const page = await server.newPage()
-	// 			.then(server.loadPage.bind(server));
-	// 		await workbenchShowCommands(page);
-	// 		await page.waitFor(1000);
-	// 		await page.keyboard.type("show installed extensions", { delay: 100 });
-	// 		await page.waitFor(1000);
-	// 		const itemSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
-	// 		await page.waitFor(itemSelector);
-	// 		await page.click(itemSelector);
-	// 		await page.waitFor(1000);
+	it("should uninstall extension", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await workbenchShowCommands(page);
+		await page.waitFor(1000);
+		await page.keyboard.type("show installed extensions", { delay: 100 });
+		await page.waitFor(1000);
+		const itemSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
+		await page.waitFor(itemSelector);
+		await page.click(itemSelector);
+		await page.waitFor(1000);
 
-	// 		// Search for installed javascript extensions.
-	// 		await selectAll(page);
-	// 		await page.keyboard.type("@installed javascript", { delay: 100 });
-	// 		await page.keyboard.press("Enter");
-	// 		await page.waitFor(manageSelector);
+		// Search for installed javascript extensions.
+		await selectAll(page);
+		await page.keyboard.type("@installed javascript", { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(manageSelector);
 
-	// 		// Uninstall extension.
-	// 		await page.click(manageSelector);
-	// 		const uninstallSelector = "div.monaco-menu-container span.action-label[aria-label='Uninstall']";
-	// 		await page.waitFor(uninstallSelector);
-	// 		await page.click(uninstallSelector);
+		// Uninstall extension.
+		await page.click(manageSelector);
+		const uninstallSelector = "div.monaco-menu-container span.action-label[aria-label='Uninstall']";
+		await page.waitFor(uninstallSelector);
+		await page.click(uninstallSelector);
 
-	// 		// Check that the install button exists.
-	// 		await page.waitFor(installSelector);
-	// 		const installButton = await server.querySelector(page, installSelector);
-	// 		expect(installButton).toBeTruthy();
-	// 		expect(installButton.tag).toEqual("a");
-	// 		expect(installButton.textContent).toBe("Install");
-	// 	});
+		// Check that the install button exists.
+		await page.waitFor(installSelector);
+		const installButton = await server.querySelector(page, installSelector);
+		expect(installButton).toBeTruthy();
+		expect(installButton.tag).toEqual("a");
+		expect(installButton.textContent).toBe("Install");
+	});
 });

@@ -112,7 +112,7 @@ export class TestServer {
 		password?: string,
 	}) {
 		this.options = {
-			host: opts && opts.host ? opts.host : "ide.test.localhost",
+			host: opts && opts.host ? opts.host : "localhost",
 			port: opts && opts.port ? opts.port : 8443,
 			// The binary path should be generic by default,
 			// because the tests may be executed natively or
