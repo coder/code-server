@@ -234,7 +234,7 @@ export class TestServer {
 		if (this.child.killed) {
 			throw new Error("cannot dispose, already disposed");
 		}
-		this.child.kill("SIGKILL");
+		this.child.kill("SIGTERM");
 	}
 
 	/**

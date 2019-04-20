@@ -6,7 +6,7 @@
   "license": "MIT",
   "scripts": {
     "test": "./scripts/test.sh",
-    "test:jest": "npx jest --forceExit --verbose",
+    "test:jest": "npx jest --verbose",
     "test:docker": "cd .. && docker run --rm -v \"${PWD}:/code-server\" code-server-e2e bash -c 'cd /code-server/test && yarn test:jest'",
     "build:docker": "cd .. && docker build -t code-server-e2e -f code-server-e2e.dockerfile ."
   },
