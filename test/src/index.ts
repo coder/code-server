@@ -3,7 +3,7 @@ import * as os from "os";
 import * as path from "path";
 import * as ps from "ps-list";
 import * as puppeteer from "puppeteer";
-import { ChildProcess, exec } from "child_process";
+import { ChildProcess, spawn } from "child_process";
 import { logger, field } from "@coder/logger";
 
 interface IServerOptions {
@@ -117,7 +117,7 @@ export class TestServer {
 			// The binary path should be generic by default,
 			// because the tests may be executed natively or
 			// via Docker on multiple platforms.
-			binaryName: opts && opts.binaryName ? opts.binaryName : "cli-*",
+			binaryName: opts && opts.binaryName ? opts.binaryName : `cli-${os.platform()}-${os.arch()}`,
 			binaryHome: opts && opts.binaryHome ? opts.binaryHome : path.resolve(__dirname, "../../packages/server"),
 			auth: opts && typeof opts.auth !== "undefined" ? opts.auth : false,
 			http: opts && typeof opts.http !== "undefined" ? opts.http : true,
@@ -154,7 +154,7 @@ export class TestServer {
 				this.options.password ? `--password=${this.options.password}` : "",
 				TestServer.workingDir,
 			];
-			this.child = exec(`${this.options.binaryPath} ${args.join(" ")}`);
+			this.child = spawn(this.options.binaryPath, args);
 			if (!this.child.stdout) {
 				await this.dispose();
 				rej(new Error("failed to start, child process stdout unreadable"));
@@ -235,6 +235,9 @@ export class TestServer {
 			throw new Error("cannot dispose, already disposed");
 		}
 		this.child.kill("SIGTERM");
+		setTimeout(() => {
+			this.child.kill("SIGKILL");
+		}, 5000);
 	}
 
 	/**
