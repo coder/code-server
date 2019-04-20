@@ -398,19 +398,35 @@ index 7b6ad89..3190356 100644
 -			return;
 +			return (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
 diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
-index c25c940..9f11d98 100644
+index c25c940..f2004f8 100644
 --- a/src/vs/workbench/browser/layout.ts
 +++ b/src/vs/workbench/browser/layout.ts
 @@ -12 +12 @@ import { Registry } from 'vs/platform/registry/common/platform';
 -import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
-+import { isWindows, isLinux, isMacintosh, isNative, isWeb } from 'vs/base/common/platform';
++import { isWindows, isLinux, isMacintosh, isNative } from 'vs/base/common/platform';
 @@ -210 +210 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 -		if ((isWindows || isLinux) && getTitleBarStyle(this.configurationService, this.environmentService) === 'custom') {
-+		if ((isWeb || isWindows || isLinux) && getTitleBarStyle(this.configurationService, this.environmentService) === 'custom') {
-@@ -535 +535 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
++		// if ((isWeb || isWindows || isLinux) && getTitleBarStyle(this.configurationService, this.environmentService) === 'custom') {
+@@ -212 +212 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-		}
++		// }
+@@ -219 +219 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-			if (this.state.fullscreen && (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
++			if ((this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
+@@ -531 +531,5 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
++				if (this.state.menuBar.visibility === 'hidden') {
++					return false;
++				} else if (this.state.menuBar.visibility === 'toggle') {
++					return this.state.menuBar.toggled;
++				} else if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
+@@ -535 +539 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 -				} else if (isMacintosh) {
 +				} else if (isNative && isMacintosh) {
-@@ -567 +567 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+@@ -539,2 +542,0 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				} else if (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default') {
+-					return this.state.menuBar.toggled;
+@@ -567 +569 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
 -				if (isMacintosh || this.state.menuBar.visibility === 'hidden') {
 +				if ((isNative && isMacintosh) || this.state.menuBar.visibility === 'hidden') {
 diff --git a/src/vs/workbench/browser/legacyLayout.ts b/src/vs/workbench/browser/legacyLayout.ts
@@ -522,7 +538,7 @@ index a822341..43b882a 100644
 -			if (!isMacintosh && this.currentTitlebarStyleSetting === 'custom') {
 +			if (!(isNative && isMacintosh) && this.currentTitlebarStyleSetting === 'custom') {
 diff --git a/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts b/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
-index 028f375..4bfe956 100644
+index 028f375..f740471 100644
 --- a/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
 +++ b/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
 @@ -11 +11 @@ import { ITitleService, ITitleProperties } from 'vs/workbench/services/title/com
@@ -536,7 +552,10 @@ index 028f375..4bfe956 100644
 +		if (!(isNative && isMacintosh)) {
 @@ -343 +343 @@ export class TitlebarPart extends Part implements ITitleService {
 -		if (!isMacintosh) {
-+		if (!(isNative && isMacintosh)) {
++		// if (!(isNative && isMacintosh)) {
+@@ -346 +346 @@ export class TitlebarPart extends Part implements ITitleService {
+-		}
++		// }
 @@ -549 +549 @@ export class TitlebarPart extends Part implements ITitleService {
 -		if (!isMacintosh &&
 +		if (!(isNative && isMacintosh) &&
@@ -888,7 +907,7 @@ index 48ef482..dc47f81 100644
 -			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 +			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
 diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
-index 71bc992..2692f39 100644
+index 71bc992..a76dad4 100644
 --- a/src/vs/workbench/electron-browser/main.contribution.ts
 +++ b/src/vs/workbench/electron-browser/main.contribution.ts
 @@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
@@ -916,8 +935,10 @@ index 71bc992..2692f39 100644
 @@ -633 +634 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
 -				'included': isWindows || isLinux
 +				'included': isWeb || isWindows || isLinux
-@@ -650 +651 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+@@ -649,2 +650,2 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'enum': ['native', 'custom'],
 -				'default': isLinux ? 'native' : 'custom',
++				'enum': ['custom'],
 +				'default': isNative && isLinux ? 'native' : 'custom',
 @@ -659 +660 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
 -				'included': isMacintosh && parseFloat(os.release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
