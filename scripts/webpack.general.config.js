@@ -24,11 +24,14 @@ module.exports = (options = {}) => ({
 			test: /\.(j|t)s/,
 			options: {
 				multiple: [{
-					// These will be handled by file-loader. We need the location because
-					// they are parsed as URIs and will throw errors if not fully formed.
-					// The !! prefix causes it to ignore other loaders (doesn't work).
+					// These will be handled by file-loader. Must be a fully formed URI.
+					// The !! prefix causes it to ignore other loaders.
 					search: "require\\.toUrl\\(",
-					replace: "location.protocol + '//' + location.host + location.pathname.replace(/\\/$/,'') + '/' + require('!!file-loader?name=[path][name].[ext]!' + ",
+					replace: `${
+						options.node
+							? "'file://'"
+							: "location.protocol + '//' + location.host + location.pathname.replace(/\\/$/,'')"
+					} + '/' + require('!!file-loader?name=[path][name].[ext]!' + `,
 					flags: "g",
 				}, {
 					search: "require\\.__\\$__nodeRequire",
