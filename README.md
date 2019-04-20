@@ -23,6 +23,10 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 
 ## Getting Started
 
+### Run over SSH
+
+Use [sshcode](https://github.com/codercom/sshcode) to easily run via SSH.
+
 ### Docker
 
 See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile).
