@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: code-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+ name: code-server
+ namespace: code-server
+spec:
+ ports:
+ - port: 8443
+   name: https
+   protocol: TCP
+ selector:
+   app: code-server
+ type: ClusterIP
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+ name: pv-code-server
+ namespace: code-server
+spec:
+  capacity:
+    storage: 60Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  gcePersistentDisk:
+    pdName: code-server-disk
+    fsType: ext4
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-code-server
+  namespace: code-server
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 60Gi
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: code-server
+  name: code-server
+  namespace: code-server
+spec:
+  selector:
+    matchLabels:
+      app: code-server
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: code-server
+    spec:
+      containers:
+      - image: codercom/code-server
+        imagePullPolicy: Always
+        name: code-servery
+        ports:
+        - containerPort: 8443
+          name: https
+        volumeMounts:
+        - mountPath: /home/coder/project
+          name: pvc-code-server
+      volumes:
+      - name: pvc-code-server
+        persistentVolumeClaim:
+          claimName: "pvc-code-server"
