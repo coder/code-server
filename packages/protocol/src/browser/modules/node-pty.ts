@@ -1,15 +1,19 @@
 import * as pty from "node-pty";
-import { ClientProxy } from "../../common/proxy";
+import { ClientProxy, Module } from "../../common/proxy";
 import { NodePtyModuleProxy, NodePtyProcessProxy } from "../../node/modules/node-pty";
 
 // tslint:disable completed-docs
 
-export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements pty.IPty {
+interface ClientNodePtyProcessProxy extends NodePtyProcessProxy {
+	proxyId: number | Module;
+}
+
+export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> implements pty.IPty {
 	private _pid = -1;
 	private _process = "";
 
 	public constructor(
-		private readonly moduleProxy: NodePtyModuleProxy,
+		private readonly moduleProxy: ClientNodePtyModuleProxy,
 		private readonly file: string,
 		private readonly args: string[] | string,
 		private readonly options: pty.IPtyForkOptions,
@@ -18,10 +22,12 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 		this.on("process", (process) => this._process = process);
 	}
 
-	protected initialize(proxyPromise: Promise<NodePtyProcessProxy>): void {
-		super.initialize(proxyPromise);
+	protected initialize(proxyPromise: Promise<ClientNodePtyProcessProxy>): ClientNodePtyProcessProxy {
+		const proxy = super.initialize(proxyPromise);
 		this.catch(this.proxy.getPid().then((p) => this._pid = p));
 		this.catch(this.proxy.getProcess().then((p) => this._process = p));
+
+		return proxy;
 	}
 
 	public get pid(): number {
@@ -53,8 +59,13 @@ export class NodePtyProcess extends ClientProxy<NodePtyProcessProxy> implements 
 
 type NodePty = typeof pty;
 
+interface ClientNodePtyModuleProxy extends NodePtyModuleProxy {
+	proxyId: number | Module;
+	spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): Promise<ClientNodePtyProcessProxy>;
+}
+
 export class NodePtyModule implements NodePty {
-	public constructor(private readonly proxy: NodePtyModuleProxy) {}
+	public constructor(private readonly proxy: ClientNodePtyModuleProxy) {}
 
 	public spawn = (file: string, args: string[] | string, options: pty.IPtyForkOptions): pty.IPty => {
 		return new NodePtyProcess(this.proxy, file, args, options);

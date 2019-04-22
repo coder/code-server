@@ -4,7 +4,7 @@ import { promisify } from "util";
 import { Emitter } from "@coder/events";
 import { logger, field } from "@coder/logger";
 import { ReadWriteConnection, InitData, SharedProcessData } from "../common/connection";
-import { Module, ServerProxy } from "../common/proxy";
+import { ClientServerProxy, Module, ServerProxy } from "../common/proxy";
 import { argumentToProto, protoToArgument, moduleToProto, protoToModule, protoToOperatingSystem } from "../common/util";
 import { Argument, Ping, ServerMessage, ClientMessage, Method, Event, Callback } from "../proto";
 import { FsModule, ChildProcessModule, NetModule, NodePtyModule, SpdlogModule, TrashModule } from "./modules";
@@ -224,7 +224,11 @@ export class Client {
 			field("method", method),
 		]);
 
-		proxyMessage.setArgsList(args.map((a) => argumentToProto(a, storeCallback)));
+		proxyMessage.setArgsList(args.map((a) => argumentToProto<ClientServerProxy>(
+			a,
+			storeCallback,
+			(p) => p.proxyId,
+		)));
 
 		const clientMessage = new ClientMessage();
 		clientMessage.setMethod(message);
@@ -429,7 +433,7 @@ export class Client {
 	/**
 	 * Return a proxy that makes remote calls.
 	 */
-	private createProxy<T>(proxyId: number | Module, promise: Promise<any> = Promise.resolve()): T {
+	private createProxy<T extends ClientServerProxy>(proxyId: number | Module, promise: Promise<any> = Promise.resolve()): T {
 		logger.trace(() => [
 			"creating proxy",
 			field("proxyId", proxyId),
@@ -449,7 +453,7 @@ export class Client {
 					cb(event.event, ...event.args);
 				});
 			},
-		}, {
+		} as ClientServerProxy, {
 			get: (target: any, name: string): any => {
 				// When resolving a promise with a proxy, it will check for "then".
 				if (name === "then") {

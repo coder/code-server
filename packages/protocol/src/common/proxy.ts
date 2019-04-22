@@ -5,9 +5,9 @@ import { isPromise } from "./util";
 
 /**
  * Allow using a proxy like it's returned synchronously. This only works because
- * all proxy methods return promises.
+ * all proxy methods must return promises.
  */
-const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
+const unpromisify = <T extends ClientServerProxy>(proxyPromise: Promise<T>): T => {
 	return new Proxy({}, {
 		get: (target: any, name: string): any => {
 			if (typeof target[name] === "undefined") {
@@ -24,23 +24,23 @@ const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
 };
 
 /**
- * Client-side emitter that just forwards proxy events to its own emitter.
- * It also turns a promisified proxy into a non-promisified proxy so we don't
- * need a bunch of `then` calls everywhere.
+ * Client-side emitter that just forwards server proxy events to its own
+ * emitter. It also turns a promisified server proxy into a non-promisified
+ * proxy so we don't need a bunch of `then` calls everywhere.
  */
-export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
-	private _proxy: T | undefined;
+export abstract class ClientProxy<T extends ClientServerProxy> extends EventEmitter {
+	private _proxy: T;
 
 	/**
 	 * You can specify not to bind events in order to avoid emitting twice for
 	 * duplex streams.
 	 */
 	public constructor(
-		proxyPromise: Promise<T> | T,
+		private _proxyPromise: Promise<T> | T,
 		private readonly bindEvents: boolean = true,
 	) {
 		super();
-		this.initialize(proxyPromise);
+		this._proxy = this.initialize(this._proxyPromise);
 		if (this.bindEvents) {
 			this.on("disconnected", (error) => {
 				try {
@@ -64,11 +64,18 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		return this;
 	}
 
-	protected get proxy(): T {
-		if (!this._proxy) {
-			throw new Error("not initialized");
-		}
+	/**
+	 * Original promise for the server proxy. Can be used to be passed as an
+	 * argument.
+	 */
+	public get proxyPromise(): Promise<T> | T {
+		return this._proxyPromise;
+	}
 
+	/**
+	 * Server proxy.
+	 */
+	protected get proxy(): T {
 		return this._proxy;
 	}
 
@@ -76,13 +83,18 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 	 * Initialize the proxy by unpromisifying if necessary and binding to its
 	 * events.
 	 */
-	protected initialize(proxyPromise: Promise<T> | T): void {
-		this._proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
+	protected initialize(proxyPromise: Promise<T> | T): T {
+		this._proxyPromise = proxyPromise;
+		this._proxy = isPromise(this._proxyPromise)
+			? unpromisify(this._proxyPromise)
+			: this._proxyPromise;
 		if (this.bindEvents) {
 			this.catch(this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
 			}));
 		}
+
+		return this._proxy;
 	}
 
 	/**
@@ -130,6 +142,14 @@ export interface ServerProxy {
 	 */
 	// tslint:disable-next-line no-any
 	onEvent(cb: (event: string, ...args: any[]) => void): Promise<void>;
+}
+
+/**
+ * A server-side proxy stored on the client. The proxy ID only exists on the
+ * client-side version of the server proxy.
+ */
+export interface ClientServerProxy extends ServerProxy {
+	proxyId: number | Module;
 }
 
 /**

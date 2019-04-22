@@ -131,6 +131,27 @@ describe("fs", () => {
 		});
 	});
 
+	describe("createReadStream", () => {
+		it.only("should pipe to a writable stream", async () => {
+			const source = helper.tmpFile();
+			const content = "foo";
+			await util.promisify(nativeFs.writeFile)(source, content);
+
+			const destination = helper.tmpFile();
+			const reader = fs.createReadStream(source);
+			const writer = fs.createWriteStream(destination);
+
+			await new Promise((resolve, reject): void => {
+				reader.once("error", reject);
+				writer.once("error", reject);
+				writer.once("close", resolve);
+				reader.pipe(writer);
+			});
+
+			await expect(util.promisify(nativeFs.readFile)(destination, "utf8")).resolves.toBe(content);
+		});
+	});
+
 	describe("exists", () => {
 		it("should output file exists", async () => {
 			await expect(util.promisify(fs.exists)(__filename))
@@ -279,10 +300,9 @@ describe("fs", () => {
 				.resolves.toBeUndefined();
 		});
 
-		// TODO: Doesn't fail on my system?
 		it("should fail to lchown nonexistent file", async () => {
 			await expect(util.promisify(fs.lchown)(helper.tmpFile(), 1, 1))
-				.resolves.toBeUndefined();
+				.rejects.toThrow("ENOENT");
 		});
 	});
 

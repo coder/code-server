@@ -136,6 +136,7 @@ export class Server {
 		const args = proxyMessage.getArgsList().map((a) => protoToArgument(
 			a,
 			(id, args) => this.sendCallback(proxyId, id, args),
+			(id) => this.getProxy(id).instance,
 		));
 
 		logger.trace(() => [

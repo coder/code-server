@@ -4,7 +4,7 @@ import { ServerProxy } from "../../common/proxy";
 // tslint:disable completed-docs
 
 export class WritableProxy<T extends stream.Writable = stream.Writable> implements ServerProxy {
-	public constructor(protected readonly stream: T) {}
+	public constructor(public readonly stream: T) {}
 
 	public async destroy(): Promise<void> {
 		this.stream.destroy();
@@ -61,6 +61,7 @@ export class WritableProxy<T extends stream.Writable = stream.Writable> implemen
  * do `extends WritableProxy<T> implement ReadableProxy<T>` (for `DuplexProxy`).
  */
 export interface IReadableProxy extends ServerProxy {
+	pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void>;
 	destroy(): Promise<void>;
 	setEncoding(encoding: string): Promise<void>;
 	dispose(): Promise<void>;
@@ -68,7 +69,11 @@ export interface IReadableProxy extends ServerProxy {
 }
 
 export class ReadableProxy<T extends stream.Readable = stream.Readable> implements IReadableProxy {
-	public constructor(protected readonly stream: T) {}
+	public constructor(public readonly stream: T) {}
+
+	public async pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void> {
+		this.stream.pipe(destination.stream, options);
+	}
 
 	public async destroy(): Promise<void> {
 		this.stream.destroy();
@@ -80,6 +85,7 @@ export class ReadableProxy<T extends stream.Readable = stream.Readable> implemen
 
 	public async dispose(): Promise<void> {
 		this.stream.destroy();
+		this.stream.removeAllListeners();
 	}
 
 	public async onDone(cb: () => void): Promise<void> {
@@ -96,6 +102,10 @@ export class ReadableProxy<T extends stream.Readable = stream.Readable> implemen
 }
 
 export class DuplexProxy<T extends stream.Duplex = stream.Duplex> extends WritableProxy<T> implements IReadableProxy {
+	public async pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void> {
+		this.stream.pipe(destination.stream, options);
+	}
+
 	public async setEncoding(encoding: string): Promise<void> {
 		this.stream.setEncoding(encoding);
 	}
