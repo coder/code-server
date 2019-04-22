@@ -2,6 +2,17 @@ import * as vscodeTextmate from "../../../../lib/vscode/node_modules/vscode-text
 
 const target = vscodeTextmate as typeof vscodeTextmate;
 
+const ctx = (require as any).context("../../../../lib/extensions", true, /.*\.tmLanguage.json$/);
+// Maps grammar scope to loaded grammar
+const scopeToGrammar = {} as any;
+
+ctx.keys().forEach((key: string) => {
+	const value = ctx(key);
+	if (value.scopeName) {
+		scopeToGrammar[value.scopeName] = value;
+	}
+});
+
 target.Registry = class Registry extends vscodeTextmate.Registry {
 	public constructor(opts: vscodeTextmate.RegistryOptions) {
 		super({
@@ -20,6 +31,13 @@ target.Registry = class Registry extends vscodeTextmate.Registry {
 						});
 					}).catch(reason => rej(reason));
 				});
+			},
+			loadGrammar: async (scopeName: string) => {
+				if (scopeToGrammar[scopeName]) {
+					return scopeToGrammar[scopeName];
+				}
+
+				return opts.loadGrammar(scopeName);
 			},
 		});
 	}
