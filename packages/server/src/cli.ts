@@ -268,7 +268,7 @@ const bold = (text: string | number): string | number => {
 	process.on("SIGTERM", () => {
 		connections.forEach((c) => c.close());
 		sharedProcess.dispose();
-		process.exit(0);
+		process.exit(1);
 	});
 
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
