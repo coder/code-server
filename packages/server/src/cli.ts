@@ -30,6 +30,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-H, --allow-http", "Allow http connections.", false)
 	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
+	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
@@ -63,6 +64,7 @@ const bold = (text: string | number): string | number => {
 		readonly open?: boolean;
 		readonly cert?: string;
 		readonly certKey?: string;
+		readonly socket?: string;
 
 		readonly installExtension?: string;
 
@@ -267,7 +269,11 @@ const bold = (text: string | number): string | number => {
 	});
 
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
-	app.server.listen(options.port, options.host);
+	if (options.socket) {
+		app.server.listen(options.socket);
+	} else {
+		app.server.listen(options.port, options.host);
+	}
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
