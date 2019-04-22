@@ -2,8 +2,8 @@ import * as fs from "fs";
 import { callbackify } from "util";
 import { ClientProxy, Batch } from "../../common/proxy";
 import { IEncodingOptions, IEncodingOptionsCallback } from "../../common/util";
-import { FsModuleProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
-import { Writable  } from "./stream";
+import { FsModuleProxy, ReadStreamProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
+import { Readable, Writable  } from "./stream";
 
 // tslint:disable no-any
 // tslint:disable completed-docs
@@ -45,6 +45,20 @@ class Watcher extends ClientProxy<WatcherProxy> implements fs.FSWatcher {
 
 	protected handleDisconnect(): void {
 		this.emit("close");
+	}
+}
+
+class ReadStream extends Readable<ReadStreamProxy> implements fs.ReadStream {
+	public get bytesRead(): number {
+		throw new Error("not implemented");
+	}
+
+	public get path(): string | Buffer {
+		throw new Error("not implemented");
+	}
+
+	public close(): void {
+		this.catch(this.proxy.close());
 	}
 }
 
@@ -108,6 +122,10 @@ export class FsModule {
 		callbackify(this.proxy.copyFile)(
 			src, dest, typeof flags !== "function" ? flags : undefined, callback!,
 		);
+	}
+
+	public createReadStream = (path: fs.PathLike, options?: any): fs.ReadStream => {
+		return new ReadStream(this.proxy.createReadStream(path, options));
 	}
 
 	public createWriteStream = (path: fs.PathLike, options?: any): fs.WriteStream => {

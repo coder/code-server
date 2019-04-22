@@ -2,7 +2,7 @@ import * as fs from "fs";
 import { promisify } from "util";
 import { ServerProxy } from "../../common/proxy";
 import { IEncodingOptions } from "../../common/util";
-import { WritableProxy } from "./stream";
+import { ReadableProxy, WritableProxy } from "./stream";
 
 // tslint:disable completed-docs
 
@@ -35,6 +35,23 @@ export interface Stats {
 	_isSymbolicLink: boolean;
 	_isFIFO: boolean;
 	_isSocket: boolean;
+}
+
+export class ReadStreamProxy extends ReadableProxy<fs.ReadStream> {
+	public async close(): Promise<void> {
+		this.stream.close();
+	}
+
+	public async dispose(): Promise<void> {
+		await super.dispose();
+		this.stream.close();
+	}
+
+	// tslint:disable-next-line no-any
+	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+		await super.onEvent(cb);
+		this.stream.on("open", (fd) => cb("open", fd));
+	}
 }
 
 export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
@@ -103,6 +120,11 @@ export class FsModuleProxy {
 
 	public copyFile(src: fs.PathLike, dest: fs.PathLike, flags?: number): Promise<void> {
 		return promisify(fs.copyFile)(src, dest, flags);
+	}
+
+	// tslint:disable-next-line no-any
+	public async createReadStream(path: fs.PathLike, options?: any): Promise<ReadStreamProxy> {
+		return new ReadStreamProxy(fs.createReadStream(path, options));
 	}
 
 	// tslint:disable-next-line no-any
