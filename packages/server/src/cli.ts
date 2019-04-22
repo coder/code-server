@@ -290,7 +290,11 @@ const bold = (text: string | number): string | number => {
 	});
 	app.wss.on("error", (err: NodeJS.ErrnoException) => {
 		if (err.code === "EADDRINUSE") {
-			logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
+			if (options.socket) {
+				logger.error(`Socket ${bold(options.socket)} is in use. Please specify a different socket.`);
+			} else {
+				logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
+			}
 			process.exit(1);
 		}
 	});
