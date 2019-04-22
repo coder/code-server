@@ -167,7 +167,7 @@ export class TestServer {
 			this.child.once("error", onError);
 			if (this.child.stderr) {
 				this.child.stderr.on("data", async (chunk) => {
-					logger.warn("Child wrote to stderr", field("data", chunk));
+					logger.warn("Child wrote to stderr", field("data", chunk.toString()));
 				});
 			}
 
