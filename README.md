@@ -38,7 +38,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 	> You will be prompted to enter the password shown in the CLI
 	`code-server` should now be running at https://localhost:8443.
 
-	> code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. Please [read here](doc/self-hosted/index.md) for more information.
+	> code-server uses a self-signed SSL certificate that may prompt your browser to ask you some additional questions before you proceed. [Read here](doc/self-hosted/index.md) for more information.
 
 For detailed instructions and troubleshooting, see the [self-hosted quick start guide](doc/self-hosted/index.md).
 
@@ -47,7 +47,7 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](d
 How to [secure your setup](/doc/security/ssl.md).
 
 ## Build Instructions
-Please visit our [build guide](/doc/self-hosted/build.md) for steps on how to build the binary.
+Visit our [build guide](/doc/self-hosted/build.md) for steps on how to build the binary.
 
 ## Development
 

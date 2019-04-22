@@ -1,21 +1,16 @@
-# Building instructions for code-server 🏗️
-
-code-server has several yarn tasks for building the entire binary or specific portions of the app. This guide provides steps to do the aforementioned tasks.
+# Building 🏗️
 
 **NOTE:** Windows compatibility is in the works 
 
 ### Requirements
 - Node 10.15.1+: https://nodejs.org/en/download/releases/
 
-## Build the binary
+## Steps
 1. Clone the [repository](https://github.com/codercom/code-server.git)
 2. `cd` into `code-server`
 3. Run `yarn`
 4. Run `yarn task build:server:binary`
    > Binary will be placed in `packages/server` named after the platform and architecture (`cli-darwin-x64`)
-
-### Run without building
-Running from the binary is possible with `yarn-start` after you have built the binary at least once. This is required for bootstrap-fork and built in extensions to work properly.
 
 ### Build Tasks
 
