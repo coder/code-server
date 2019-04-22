@@ -41,17 +41,19 @@ ARGUMENTS
   WORKDIR  [default: (directory to binary)] Specify working dir
 
 OPTIONS
-  -d, --data-dir=data-dir
-  -h, --host=host          [default: 0.0.0.0]
-  -o, --open               Open in browser on startup
-  -p, --port=port          [default: 8443] Port to bind on
-  -v, --version            show CLI version
-  --allow-http
-  --cert=cert
-  --cert-key=cert-key
-  --help                   show CLI help
-  --no-auth
-  --password=password
+  --cert <value>               
+  --cert-key <value>           
+  -e, --extensions-dir <dir>   Set the root path for extensions.
+  -d --user-data-dir <dir>     Specifies the directory that user data is kept in, useful when running as root.
+  --data-dir <value>           DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.
+  -h, --host <value>           Customize the hostname. (default: "0.0.0.0")
+  -o, --open                   Open in the browser on startup.
+  -p, --port <number>          Port to bind on. (default: 8443)
+  -N, --no-auth                Start without requiring authentication.
+  -H, --allow-http             Allow http connections.
+  -P, --password <value>       DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.
+  --disable-telemetry          Disables ALL telemetry.
+  --install-extension <value>  Install an extension by its ID.
   ```
 
   ### Data Directory
