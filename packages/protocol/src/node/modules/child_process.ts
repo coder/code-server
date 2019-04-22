@@ -8,7 +8,7 @@ import { WritableProxy, ReadableProxy } from "./stream";
 export type ForkProvider = (modulePath: string, args?: string[], options?: cp.ForkOptions) => cp.ChildProcess;
 
 export class ChildProcessProxy implements ServerProxy {
-	public constructor(private readonly process: cp.ChildProcess) {}
+	public constructor(private readonly process: cp.ChildProcess) { }
 
 	public async kill(signal?: string): Promise<void> {
 		this.process.kill(signal);
@@ -70,7 +70,8 @@ export interface ChildProcessProxies {
 }
 
 export class ChildProcessModuleProxy {
-	public constructor(private readonly forkProvider?: ForkProvider) {}
+	public readonly processes: Map<number, cp.ChildProcess> = new Map();
+	public constructor(private readonly forkProvider?: ForkProvider) { }
 
 	public async exec(
 		command: string,
@@ -94,7 +95,14 @@ export class ChildProcessModuleProxy {
 		return this.returnProxies(cp.spawn(command, args, options));
 	}
 
+	public async dispose(): Promise<void> {
+		this.processes.forEach((p) => p.kill("SIGTERM"));
+	}
+
 	private returnProxies(process: cp.ChildProcess): ChildProcessProxies {
+		process.on("exit", () => this.processes.delete(process.pid));
+		this.processes.set(process.pid, process);
+
 		return {
 			childProcess: new ChildProcessProxy(process),
 			stdin: process.stdin && new WritableProxy(process.stdin),

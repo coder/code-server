@@ -1,6 +1,6 @@
 import { mkdirp } from "fs-extra";
 import * as os from "os";
-import { field, logger} from "@coder/logger";
+import { field, logger } from "@coder/logger";
 import { ReadWriteConnection } from "../common/connection";
 import { Module, ServerProxy } from "../common/proxy";
 import { isPromise, isProxy, moduleToProto, protoToArgument, platformToProto, protoToModule, argumentToProto } from "../common/util";
@@ -60,8 +60,8 @@ export class Server {
 			]);
 
 			this.proxies.forEach((proxy, proxyId) => {
-				if (isProxy(proxy.instance)) {
-					proxy.instance.dispose().catch((error) => {
+				if (typeof proxy.instance.dispose === "function") {
+					(proxy.instance.dispose() as Promise<void>).catch((error) => {
 						logger.error(error.message);
 					});
 				}
@@ -196,7 +196,7 @@ export class Server {
 			callbackMessage = new Callback.Named();
 			callbackMessage.setModule(moduleToProto(proxyId));
 			message.setNamedCallback(callbackMessage);
-		} else  {
+		} else {
 			callbackMessage = new Callback.Numbered();
 			callbackMessage.setProxyId(proxyId);
 			message.setNumberedCallback(callbackMessage);
@@ -279,7 +279,7 @@ export class Server {
 			eventMessage = new Event.Named();
 			eventMessage.setModule(moduleToProto(proxyId));
 			message.setNamedEvent(eventMessage);
-		} else  {
+		} else {
 			eventMessage = new Event.Numbered();
 			eventMessage.setProxyId(proxyId);
 			message.setNumberedEvent(eventMessage);
@@ -316,7 +316,7 @@ export class Server {
 	private sendException(id: number, error: Error): void {
 		logger.trace(() => [
 			"sending reject",
-			field("id", id) ,
+			field("id", id),
 			field("message", error.message),
 		]);
 

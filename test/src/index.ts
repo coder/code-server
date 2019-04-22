@@ -1,7 +1,6 @@
 import { parseString as deserialize } from "xml2js";
 import * as os from "os";
 import * as path from "path";
-import * as ps from "ps-list";
 import * as puppeteer from "puppeteer";
 import { ChildProcess, spawn } from "child_process";
 import { logger, field } from "@coder/logger";
@@ -235,9 +234,7 @@ export class TestServer {
 			throw new Error("cannot dispose, already disposed");
 		}
 		this.child.kill("SIGTERM");
-		setTimeout(() => {
-			this.child.kill("SIGKILL");
-		}, 5000);
+		setTimeout(() => this.child.kill("SIGKILL"), 5000);
 	}
 
 	/**
@@ -322,31 +319,5 @@ export class TestServer {
 	 */
 	public async screenshot(page: puppeteer.Page, id: string): Promise<void> {
 		await page.screenshot({ path: path.resolve(TestServer.workingDir, `screenshot-${id}.jpg`), fullPage: true });
-	}
-
-	/**
-	 * Forcefully kill processes where the process name matches
-	 * the current binary's name, but ignore the current process.
-	 */
-	private async killProcesses(): Promise<void> {
-		// The name should never be empty, but we'll check
-		// anyway since this is a potentially dangerous
-		// operation.
-		if (!this.options.binaryName) {
-			throw new Error("cannot kill processes, binary name undefined");
-		}
-		(await ps.default({ all: false })).forEach((p) => {
-			if (p.name !== this.options.binaryName || (this.child && p.pid === this.child.pid)) {
-				return;
-			}
-			try {
-				process.kill(p.pid, "SIGKILL");
-			} catch (ex) {
-				if (ex.message.includes("ESRCH")) {
-					return;
-				}
-				throw ex;
-			}
-		});
 	}
 }

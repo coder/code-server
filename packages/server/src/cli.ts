@@ -8,7 +8,7 @@ import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
-import { createApp } from "./server";
+import { createApp, connections } from "./server";
 import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
@@ -178,11 +178,11 @@ const bold = (text: string | number): string | number => {
 			"--extensions-dir", extensionsDir,
 			"--install-extension", options.installExtension,
 		], {
-			env: {
-				VSCODE_ALLOW_IO: "true",
-				VSCODE_LOGS: process.env.VSCODE_LOGS,
-			},
-		}, dataDir);
+				env: {
+					VSCODE_ALLOW_IO: "true",
+					VSCODE_LOGS: process.env.VSCODE_LOGS,
+				},
+			}, dataDir);
 
 		fork.stdout.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.info(l)));
 		fork.stderr.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.error(l)));
@@ -264,6 +264,11 @@ const bold = (text: string | number): string | number => {
 			key: certKeyData,
 			cert: certData,
 		} : undefined,
+	});
+	process.on("SIGTERM", () => {
+		connections.forEach((c) => c.close());
+		sharedProcess.dispose();
+		process.exit(0);
 	});
 
 	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));

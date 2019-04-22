@@ -55,6 +55,10 @@ export class SharedProcess {
 			this.ipcHandler.send("handshake:goodbye");
 		}
 		this.ipcHandler = undefined;
+		retry.block();
+		if (this.activeProcess && !this.activeProcess.killed) {
+			this.activeProcess.kill("SIGTERM");
+		}
 	}
 
 	/**

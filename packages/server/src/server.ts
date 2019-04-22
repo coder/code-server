@@ -33,10 +33,13 @@ interface CreateAppOptions {
 	bypassAuth?: boolean;
 }
 
+let connectionID = 0;
+export const connections: Map<number, ReadWriteConnection> = new Map();
+
 export const createApp = async (options: CreateAppOptions): Promise<{
 	readonly express: express.Application;
 	readonly server: http.Server;
-	readonly wss: ws.Server;
+	readonly wss: ws.Server
 }> => {
 	const parseCookies = (req: http.IncomingMessage): { [key: string]: string } => {
 		const cookies: { [key: string]: string } = {};
@@ -166,6 +169,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			return ws.send(JSON.stringify({ ports: portScanner.ports }));
 		}
 
+		const localConnectionID = connectionID++;
 		const connection: ReadWriteConnection = {
 			onMessage: (cb): void => {
 				ws.addEventListener("message", (event) => cb(event.data));
@@ -183,8 +187,12 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			},
 			onUp: (): void => undefined, // This can't come back up.
 			onDown: (cb): void => ws.addEventListener("close", () => cb()),
-			onClose: (cb): void => ws.addEventListener("close", () => cb()),
+			onClose: (cb): void => ws.addEventListener("close", () => {
+				connections.delete(localConnectionID);
+				cb();
+			}),
 		};
+		connections.set(localConnectionID, connection);
 
 		// tslint:disable-next-line no-unused-expression
 		new Server(connection, options.serverOptions);
