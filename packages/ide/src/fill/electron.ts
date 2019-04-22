@@ -171,8 +171,10 @@ const newCreateElement = <K extends keyof HTMLElementTagNameMap>(tagName: K): HT
 document.createElement = newCreateElement;
 
 class Clipboard {
-	public has(): boolean {
-		return false;
+	private readonly buffers = new Map<string, Buffer>();
+
+	public has(format: string): boolean {
+		return this.buffers.has(format);
 	}
 
 	public readFindText(): string {
@@ -189,6 +191,14 @@ class Clipboard {
 
 	public readText(): Promise<string> {
 		return clipboard.readText();
+	}
+
+	public writeBuffer(format: string, buffer: Buffer): void {
+		this.buffers.set(format, buffer);
+	}
+
+	public readBuffer(format: string): Buffer | undefined {
+		return this.buffers.get(format);
 	}
 }
 
