@@ -827,7 +827,7 @@ index 780147c..2e8c9af 100644
 -					if (platform.isMacintosh) {
 +					if (browser.isMacintosh) {
 diff --git a/src/vs/workbench/contrib/webview/electron-browser/webview-pre.js b/src/vs/workbench/contrib/webview/electron-browser/webview-pre.js
-index 74fc798..03728d0 100644
+index 74fc798..0196be0 100644
 --- a/src/vs/workbench/contrib/webview/electron-browser/webview-pre.js
 +++ b/src/vs/workbench/contrib/webview/electron-browser/webview-pre.js
 @@ -10 +10,19 @@
@@ -866,6 +866,16 @@ index 74fc798..03728d0 100644
 +			// 	supportFetchAPI: true,
 +			// 	corsEnabled: true
 +			// });
+@@ -310 +328 @@
+-
++			
+@@ -328 +346,5 @@
+-					newFrame.contentWindow.focus();
++
++					// Prevent VS Code from auto-focusing markdown preview
++					if (document.hasFocus()) {
++						newFrame.contentWindow.focus();
++					}
 diff --git a/src/vs/workbench/contrib/webview/electron-browser/webview.contribution.ts b/src/vs/workbench/contrib/webview/electron-browser/webview.contribution.ts
 index 484ff86..f3f57cb 100644
 --- a/src/vs/workbench/contrib/webview/electron-browser/webview.contribution.ts
