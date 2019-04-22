@@ -310,8 +310,12 @@ const bold = (text: string | number): string | number => {
 	} else {
 		logger.warn("Launched without authentication.");
 	}
+	if (options.disableTelemetry) {
+		logger.info("Telemetry is disabled");
+	}
 
-	const url = `http://localhost:${options.port}/`;
+	let schema = (options.noAuth || options.allowHttp) ? "http" : "https";
+	const url = `${schema}://localhost:${options.port}/`;
 	logger.info(" ");
 	logger.info("Started (click the link below to open):");
 	logger.info(url);
