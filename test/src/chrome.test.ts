@@ -10,7 +10,7 @@ describe("chrome e2e", () => {
 
 	const superKey: string = os.platform() === "darwin" ? "Meta" : "Control";
 	const testFileName = `test-${Date.now()}.js`;
-	const jsSnippetsDesc = "JavaScript Snippets. Press enter for extension details.";
+	const jsSnippetsDesc = "JavaScript (ES6) code snippets. Press enter for extension details.";
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
 	const manageSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.manage`;
 
@@ -61,8 +61,6 @@ describe("chrome e2e", () => {
 	it("should create file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
-		await page.waitFor("div.part.sidebar");
-		await page.click("div.part.sidebar");
 		await workbenchShowCommands(page);
 		await page.waitFor(1000);
 		await page.keyboard.type("New File", { delay: 100 });
@@ -83,8 +81,6 @@ describe("chrome e2e", () => {
 	it("should open file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
-		await page.waitFor("div.part.sidebar");
-		await page.click("div.part.sidebar");
 		await workbenchQuickOpen(page);
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
@@ -117,26 +113,19 @@ describe("chrome e2e", () => {
 		await selectAll(page);
 		await page.keyboard.type("javascript", { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(2000);
 
 		// Install extension.
-		await page.click(installSelector);
+		await page.waitFor(installSelector, { visible: true });
+		// @ts-ignore
+		await page.$eval(installSelector, btn => btn.click());
 
 		// Wait for installation.
-		await page.waitFor(15000);
-
-		// Check that the extension management button exists.
-		const manageButton = await server.querySelector(page, manageSelector);
-		expect(manageButton).toBeTruthy();
-		expect(manageButton.tag).toEqual("a");
-		expect(manageButton.textContent).toBeUndefined();
+		await page.waitFor(manageSelector, { visible: true });
 	});
 
 	it("should debug file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
-		await page.waitFor("div.part.sidebar");
-		await page.click("div.part.sidebar");
 		await workbenchQuickOpen(page);
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
@@ -227,29 +216,24 @@ describe("chrome e2e", () => {
 		await workbenchShowCommands(page);
 		await page.waitFor(1000);
 		await page.keyboard.type("show installed extensions", { delay: 100 });
-		await page.waitFor(1000);
-		const itemSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
-		await page.waitFor(itemSelector);
-		await page.click(itemSelector);
+		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
+		await page.waitFor(commandSelector);
+		await page.click(commandSelector);
 		await page.waitFor(1000);
 
 		// Search for installed javascript extensions.
 		await selectAll(page);
-		await page.keyboard.type("@installed javascript", { delay: 100 });
+		await page.keyboard.type("javascript", { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(manageSelector);
 
 		// Uninstall extension.
+		await page.waitFor(manageSelector, { visible: true });
 		await page.click(manageSelector);
 		const uninstallSelector = "div.monaco-menu-container span.action-label[aria-label='Uninstall']";
-		await page.waitFor(uninstallSelector);
+		await page.waitFor(uninstallSelector, { visible: true });
 		await page.click(uninstallSelector);
 
-		// Check that the install button exists.
-		await page.waitFor(installSelector);
-		const installButton = await server.querySelector(page, installSelector);
-		expect(installButton).toBeTruthy();
-		expect(installButton.tag).toEqual("a");
-		expect(installButton.textContent).toBe("Install");
+		// Wait for uninstallation.
+		await page.waitFor(installSelector, { visible: true });
 	});
 });
