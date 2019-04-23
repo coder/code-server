@@ -247,7 +247,7 @@ index c69ea3f..b8d87f7 100644
 -const GOLDEN_LINE_HEIGHT_RATIO = platform.isMacintosh ? 1.5 : 1.35;
 +const GOLDEN_LINE_HEIGHT_RATIO = browser.isMacintosh ? 1.5 : 1.35;
 diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
-index 990be3a..4bec789 100644
+index 990be3a..18ae0d5 100644
 --- a/src/vs/editor/contrib/clipboard/clipboard.ts
 +++ b/src/vs/editor/contrib/clipboard/clipboard.ts
 @@ -18,0 +19 @@ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegis
@@ -256,27 +256,25 @@ index 990be3a..4bec789 100644
 -const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
 +// const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
 +const supportsPaste = true;
-@@ -54,0 +57 @@ abstract class ExecCommandAction extends EditorAction {
-+		console.log(document.activeElement!.cloneNode(true));
-@@ -71 +74 @@ class ExecCommandCutAction extends ExecCommandAction {
+@@ -71 +73 @@ class ExecCommandCutAction extends ExecCommandAction {
 -			kbOpts = null;
 +			// kbOpts = null;
-@@ -119 +122 @@ class ExecCommandCopyAction extends ExecCommandAction {
+@@ -119 +121 @@ class ExecCommandCopyAction extends ExecCommandAction {
 -			kbOpts = null;
 +			// kbOpts = null;
-@@ -174 +177 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -174 +176 @@ class ExecCommandPasteAction extends ExecCommandAction {
 -			kbOpts = null;
 +			// kbOpts = null;
-@@ -176,0 +180 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -176,0 +179 @@ class ExecCommandPasteAction extends ExecCommandAction {
 +		const { workbench } = require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench');
-@@ -181 +185 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -181 +184 @@ class ExecCommandPasteAction extends ExecCommandAction {
 -			precondition: EditorContextKeys.writable,
 +			precondition: (require('vs/platform/contextkey/common/contextkey') as typeof import('vs/platform/contextkey/common/contextkey')).ContextKeyExpr.and(EditorContextKeys.writable, workbench.clipboardContextKey),
-@@ -191 +195,2 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -191 +194,2 @@ class ExecCommandPasteAction extends ExecCommandAction {
 -				order: 3
 +				order: 3,
 +				when: workbench.clipboardContextKey,
-@@ -194,0 +200,26 @@ class ExecCommandPasteAction extends ExecCommandAction {
+@@ -194,0 +199,26 @@ class ExecCommandPasteAction extends ExecCommandAction {
 +
 +	public async run(accessor, editor: ICodeEditor): Promise<void> {
 +		if (editor instanceof (require('vs/editor/browser/widget/codeEditorWidget') as typeof import('vs/editor/browser/widget/codeEditorWidget')).CodeEditorWidget) {
