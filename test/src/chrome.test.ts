@@ -200,7 +200,8 @@ describe("chrome e2e", () => {
 		// Using $eval because puppeteer can't click inputs for
 		// some reason. See:
 		// https://github.com/GoogleChrome/puppeteer/issues/3347
-		await page.$eval(btnSelector, btn => btn.dispatchEvent(new MouseEvent("click")));
+		// @ts-ignore
+		await page.$eval(btnSelector, btn => btn.click());
 
 		// Check that the file is NOT in the file tree.
 		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
