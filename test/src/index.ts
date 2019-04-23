@@ -1,4 +1,5 @@
 import { parseString as deserialize } from "xml2js";
+import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
@@ -99,7 +100,7 @@ export class TestServer {
 	// @ts-ignore
 	private child: ChildProcess;
 	// The directory to load the IDE with.
-	public static readonly workingDir = path.resolve(__dirname, "../tmp");
+	public static readonly workingDir = path.resolve(__dirname, "../tmp/workspace/");
 
 	public constructor(opts?: {
 		host?: string,
@@ -151,9 +152,11 @@ export class TestServer {
 				`--port=${this.options.port}`,
 				!this.options.auth ? "--no-auth" : "",
 				this.options.password ? `--password=${this.options.password}` : "",
-				TestServer.workingDir,
 			];
-			this.child = spawn(this.options.binaryPath, args);
+			if (!fs.existsSync(TestServer.workingDir)) {
+				fs.mkdirSync(TestServer.workingDir, { recursive: true });
+			}
+			this.child = spawn(this.options.binaryPath, args, { cwd: TestServer.workingDir });
 			if (!this.child.stdout) {
 				await this.dispose();
 				rej(new Error("failed to start, child process stdout unreadable"));
@@ -318,6 +321,11 @@ export class TestServer {
 	 * working directory. Useful for debugging.
 	 */
 	public async screenshot(page: puppeteer.Page, id: string): Promise<void> {
-		await page.screenshot({ path: path.resolve(TestServer.workingDir, `screenshot-${id}.jpg`), fullPage: true });
+		const puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/");
+		if (!fs.existsSync(puppeteerDir)) {
+			fs.mkdirSync(puppeteerDir, { recursive: true });
+		}
+		const screenshotPath = path.resolve(puppeteerDir, `./screenshot-${id}.jpg`);
+		await page.screenshot({ path: screenshotPath, fullPage: true });
 	}
 }

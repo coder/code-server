@@ -3,13 +3,13 @@ import * as os from "os";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { TestServer } from "./index";
-import { logger, field } from "@coder/logger";
 
 describe("chrome e2e", () => {
 	jest.setTimeout(60000);
 
 	const superKey: string = os.platform() === "darwin" ? "Meta" : "Control";
 	const testFileName = `test-${Date.now()}.js`;
+	const testFilePath = path.resolve(TestServer.workingDir, testFileName);
 
 	const jsSnippetsDesc = "JavaScript (ES6) code snippets. Press enter for extension details.";
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
@@ -20,6 +20,18 @@ describe("chrome e2e", () => {
 	const sidebarSelector = "div.part.sidebar";
 	const editorSelector = `div.editor-instance[aria-label*='${testFileName}'] .view-lines`;
 
+	const createTestFile = (): void => {
+		if (!fs.existsSync(testFilePath)) {
+			fs.writeFileSync(testFilePath, new Buffer(0));
+		}
+	};
+
+	const deleteTestFile = (): void => {
+		if (fs.existsSync(testFilePath)) {
+			fs.unlinkSync(testFilePath);
+		}
+	};
+
 	const server = new TestServer();
 	beforeAll(async () => {
 		await server.start();
@@ -27,12 +39,9 @@ describe("chrome e2e", () => {
 
 	afterAll(async () => {
 		await server.dispose();
-		const testFilePath = path.resolve(TestServer.workingDir, testFileName);
-		if (fs.existsSync(testFilePath)) {
-			logger.debug("Deleting leftover test file", field("path", testFilePath));
-			fs.unlinkSync(testFilePath);
-		}
 	});
+
+	afterEach(() => deleteTestFile());
 
 	const waitForSidebar = (page: puppeteer.Page): Promise<void> => {
 		return page.waitFor(sidebarSelector, { visible: true }).then(() => page.click(sidebarSelector));
@@ -73,7 +82,7 @@ describe("chrome e2e", () => {
 		expect(editor.children.length).toBeGreaterThan(0);
 	});
 
-	it("should create file", async () => {
+	it("should create file via command palette", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchShowCommands(page);
@@ -92,9 +101,36 @@ describe("chrome e2e", () => {
 		expect(contentArray).toContain(testFileName);
 	});
 
+	it("should create file via file tree", async () => {
+		const page = await server.newPage()
+			.then(server.loadPage.bind(server));
+		await waitForSidebar(page);
+		const newFileBntSelector = "a.action-label.explorer-action.new-file";
+		await page.waitFor(newFileBntSelector, { visible: true });
+		// New file button click doesn't register if it's sent
+		// immediately after the button is ready.
+		await page.waitFor(1000);
+		await page.click(newFileBntSelector);
+		await page.waitFor(1000);
+		await page.keyboard.type(testFileName, { delay: 100 });
+		await page.keyboard.press("Enter");
+		await page.waitFor(editorSelector, { visible: true });
+
+		// Check that the file is in the file tree.
+		const spanSelector = `${sidebarSelector} div.monaco-tl-row span.monaco-highlighted-label span`;
+		const elements = await server.querySelectorAll(page, spanSelector);
+		expect(elements.length).toBeGreaterThan(0);
+		const contentArray = elements.map((el) => el.textContent);
+		expect(contentArray).toContain(testFileName);
+	});
+
 	it("should open file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+
+		// Setup.
+		createTestFile();
+
 		await workbenchQuickOpen(page);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
@@ -138,6 +174,10 @@ describe("chrome e2e", () => {
 	it("should debug file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+
+		// Setup.
+		createTestFile();
+
 		await workbenchQuickOpen(page);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
@@ -193,6 +233,10 @@ describe("chrome e2e", () => {
 	it("should delete file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
+
+		// Setup.
+		createTestFile();
+
 		await waitForSidebar(page);
 
 		// Wait for file tree to fill up.
