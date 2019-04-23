@@ -314,7 +314,7 @@ const bold = (text: string | number): string | number => {
 		logger.info("Telemetry is disabled");
 	}
 
-	let schema = (options.noAuth || options.allowHttp) ? "http" : "https";
+	let schema = options.allowHttp ? "http" : "https";
 	const url = `${schema}://localhost:${options.port}/`;
 	logger.info(" ");
 	logger.info("Started (click the link below to open):");
