@@ -133,7 +133,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		});
 	});
 
-	const server = httpolyglot.createServer(options.bypassAuth ? {} : options.httpsOptions || certs, app) as http.Server;
+	const server = httpolyglot.createServer(options.allowHttp ? {} : options.httpsOptions || certs, app) as http.Server;
 	const wss = new ws.Server({ server });
 
 	wss.shouldHandle = (req): boolean => {
