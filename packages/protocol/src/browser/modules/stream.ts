@@ -4,9 +4,9 @@ import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { isPromise } from "../../common/util";
 import { DuplexProxy, ReadableProxy, WritableProxy } from "../../node/modules/stream";
 
-// tslint:disable completed-docs
+// tslint:disable completed-docs no-any
 
-export interface ClientWritableProxy extends WritableProxy, ClientServerProxy {}
+export interface ClientWritableProxy extends WritableProxy, ClientServerProxy<stream.Writable> {}
 
 export class Writable<T extends ClientWritableProxy = ClientWritableProxy> extends ClientProxy<T> implements stream.Writable {
 	public get writable(): boolean {
@@ -53,7 +53,6 @@ export class Writable<T extends ClientWritableProxy = ClientWritableProxy> exten
 		return this.catch(this.proxy.setDefaultEncoding(encoding));
 	}
 
-	// tslint:disable-next-line no-any
 	public write(chunk: any, encoding?: string | ((error?: Error | null) => void), callback?: (error?: Error | null) => void): boolean {
 		if (typeof encoding === "function") {
 			callback = encoding;
@@ -68,7 +67,6 @@ export class Writable<T extends ClientWritableProxy = ClientWritableProxy> exten
 		return true; // Always true since we can't get this synchronously.
 	}
 
-	// tslint:disable-next-line no-any
 	public end(data?: any | (() => void), encoding?: string | (() => void), callback?: (() => void)): void {
 		if (typeof data === "function") {
 			callback = data;
@@ -91,7 +89,7 @@ export class Writable<T extends ClientWritableProxy = ClientWritableProxy> exten
 	}
 }
 
-export interface ClientReadableProxy extends ReadableProxy, ClientServerProxy {}
+export interface ClientReadableProxy extends ReadableProxy, ClientServerProxy<stream.Readable> {}
 
 export class Readable<T extends ClientReadableProxy = ClientReadableProxy> extends ClientProxy<T> implements stream.Readable {
 	public get readable(): boolean {
@@ -147,7 +145,6 @@ export class Readable<T extends ClientReadableProxy = ClientReadableProxy> exten
 	}
 
 	public pipe<P extends NodeJS.WritableStream>(destination: P, options?: { end?: boolean }): P {
-		// tslint:disable-next-line no-any this will be a Writable instance.
 		const writableProxy = (destination as any as Writable).proxyPromise;
 		if (!writableProxy) {
 			throw new Error("can only pipe stream proxies");
@@ -161,7 +158,6 @@ export class Readable<T extends ClientReadableProxy = ClientReadableProxy> exten
 		return destination;
 	}
 
-	// tslint:disable-next-line no-any
 	public [Symbol.asyncIterator](): AsyncIterableIterator<any> {
 		throw new Error("not implemented");
 	}
@@ -180,7 +176,7 @@ export class Readable<T extends ClientReadableProxy = ClientReadableProxy> exten
 	}
 }
 
-export interface ClientDuplexProxy extends DuplexProxy, ClientServerProxy {}
+export interface ClientDuplexProxy extends DuplexProxy, ClientServerProxy<stream.Duplex> {}
 
 export class Duplex<T extends ClientDuplexProxy = ClientDuplexProxy> extends Writable<T> implements stream.Duplex, stream.Readable {
 	private readonly _readable: Readable;
@@ -246,7 +242,6 @@ export class Duplex<T extends ClientDuplexProxy = ClientDuplexProxy> extends Wri
 		this._readable.unshift();
 	}
 
-	// tslint:disable-next-line no-any
 	public [Symbol.asyncIterator](): AsyncIterableIterator<any> {
 		return this._readable[Symbol.asyncIterator]();
 	}

@@ -142,16 +142,12 @@ describe("fs", () => {
 			await expect(new Promise((resolve, reject): void => {
 				let data = "";
 				reader.once("error", reject);
-				reader.once("end", () => {
-					resolve(data);
-				});
-				reader.on("data", (d) => {
-					data += d.toString();
-				});
+				reader.once("end", () => resolve(data));
+				reader.on("data", (d) => data += d.toString());
 			})).resolves.toBe(content);
 		});
 
-		it.only("should pipe to a writable stream", async () => {
+		it("should pipe to a writable stream", async () => {
 			const source = helper.tmpFile();
 			const content = "foo";
 			await util.promisify(nativeFs.writeFile)(source, content);

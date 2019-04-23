@@ -6,7 +6,7 @@ import { Duplex } from "./stream";
 
 // tslint:disable completed-docs
 
-interface ClientNetSocketProxy extends NetSocketProxy, ClientServerProxy {}
+interface ClientNetSocketProxy extends NetSocketProxy, ClientServerProxy<net.Socket> {}
 
 export class Socket extends Duplex<ClientNetSocketProxy> implements net.Socket {
 	private _connecting: boolean = false;
@@ -128,7 +128,7 @@ export class Socket extends Duplex<ClientNetSocketProxy> implements net.Socket {
 	}
 }
 
-interface ClientNetServerProxy extends NetServerProxy, ClientServerProxy {
+interface ClientNetServerProxy extends NetServerProxy, ClientServerProxy<net.Server> {
 	onConnection(cb: (proxy: ClientNetSocketProxy) => void): Promise<void>;
 }
 

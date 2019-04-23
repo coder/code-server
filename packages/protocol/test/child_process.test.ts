@@ -10,7 +10,7 @@ describe("child_process", () => {
 	const cp = client.modules[Module.ChildProcess];
 
 	const getStdout = async (proc: ChildProcess): Promise<string> => {
-		return new Promise((r): Readable => proc.stdout!.on("data", r))
+		return new Promise((r): Readable => proc.stdout!.once("data", r))
 		.then((s) => s.toString());
 	};
 

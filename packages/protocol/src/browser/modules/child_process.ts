@@ -8,7 +8,7 @@ import { ClientWritableProxy, ClientReadableProxy, Readable, Writable } from "./
 
 // tslint:disable completed-docs
 
-export interface ClientChildProcessProxy extends ChildProcessProxy, ClientServerProxy {}
+export interface ClientChildProcessProxy extends ChildProcessProxy, ClientServerProxy<cp.ChildProcess> {}
 
 export interface ClientChildProcessProxies {
 	childProcess: ClientChildProcessProxy;

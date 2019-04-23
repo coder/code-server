@@ -19,6 +19,8 @@ export const escapePath = (path: string): string => {
 	return `'${path.replace(/'/g, "'\\''")}'`;
 };
 
+export type EventCallback = (event: string, ...args: any[]) => void;
+
 export type IEncodingOptions = {
 	encoding?: BufferEncoding | null;
 	flag?: string;

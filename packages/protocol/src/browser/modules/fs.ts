@@ -5,8 +5,7 @@ import { IEncodingOptions, IEncodingOptionsCallback } from "../../common/util";
 import { FsModuleProxy, ReadStreamProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
 import { Readable, Writable  } from "./stream";
 
-// tslint:disable no-any
-// tslint:disable completed-docs
+// tslint:disable completed-docs no-any
 
 class StatBatch extends Batch<IStats, { path: fs.PathLike }> {
 	public constructor(private readonly proxy: FsModuleProxy) {
@@ -38,7 +37,7 @@ class ReaddirBatch extends Batch<Buffer[] | fs.Dirent[] | string[], { path: fs.P
 	}
 }
 
-interface ClientWatcherProxy extends WatcherProxy, ClientServerProxy {}
+interface ClientWatcherProxy extends WatcherProxy, ClientServerProxy<fs.FSWatcher> {}
 
 class Watcher extends ClientProxy<ClientWatcherProxy> implements fs.FSWatcher {
 	public close(): void {
@@ -50,7 +49,7 @@ class Watcher extends ClientProxy<ClientWatcherProxy> implements fs.FSWatcher {
 	}
 }
 
-interface ClientReadStreamProxy extends ReadStreamProxy, ClientServerProxy {}
+interface ClientReadStreamProxy extends ReadStreamProxy, ClientServerProxy<fs.ReadStream> {}
 
 class ReadStream extends Readable<ClientReadStreamProxy> implements fs.ReadStream {
 	public get bytesRead(): number {
@@ -66,7 +65,7 @@ class ReadStream extends Readable<ClientReadStreamProxy> implements fs.ReadStrea
 	}
 }
 
-interface ClientWriteStreamProxy extends WriteStreamProxy, ClientServerProxy {}
+interface ClientWriteStreamProxy extends WriteStreamProxy, ClientServerProxy<fs.WriteStream> {}
 
 class WriteStream extends Writable<ClientWriteStreamProxy> implements fs.WriteStream {
 	public get bytesWritten(): number {
