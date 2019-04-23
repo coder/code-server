@@ -10,14 +10,21 @@ describe("chrome e2e", () => {
 
 	const superKey: string = os.platform() === "darwin" ? "Meta" : "Control";
 	const testFileName = `test-${Date.now()}.js`;
+
 	const jsSnippetsDesc = "JavaScript (ES6) code snippets. Press enter for extension details.";
 	const installSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.install`;
 	const manageSelector = `div.extensions-list div.monaco-list-row[aria-label='${jsSnippetsDesc}'] a.extension-action.manage`;
+
+	const commandInputSelector = "div.monaco-quick-open-widget input.input";
+	const extensionInputSelector = "div.extensions-viewlet .view-lines";
+	const sidebarSelector = "div.part.sidebar";
+	const editorSelector = `div.editor-instance[aria-label*='${testFileName}'] .view-lines`;
 
 	const server = new TestServer();
 	beforeAll(async () => {
 		await server.start();
 	});
+
 	afterAll(async () => {
 		await server.dispose();
 		const testFilePath = path.resolve(TestServer.workingDir, testFileName);
@@ -27,16 +34,24 @@ describe("chrome e2e", () => {
 		}
 	});
 
+	const waitForSidebar = (page: puppeteer.Page): Promise<void> => {
+		return page.waitFor(sidebarSelector, { visible: true }).then(() => page.click(sidebarSelector));
+	};
+
+	const waitForCommandInput = (page: puppeteer.Page): Promise<void> => {
+		return page.waitFor(commandInputSelector, { visible: true }).then(() => page.click(commandInputSelector));
+	};
+
 	const workbenchQuickOpen = (page: puppeteer.Page): Promise<void> => {
-		return page.waitFor("div.part.sidebar")
-			.then(() => page.click("div.part.sidebar"))
-			.then(() => server.pressKeyboardCombo(page, superKey, "P"));
+		return waitForSidebar(page)
+			.then(() => server.pressKeyboardCombo(page, superKey, "P"))
+			.then(() => waitForCommandInput(page));
 	};
 
 	const workbenchShowCommands = (page: puppeteer.Page): Promise<void> => {
-		return page.waitFor("div.part.sidebar")
-			.then(() => page.click("div.part.sidebar"))
-			.then(() => server.pressKeyboardCombo(page, superKey, "Shift", "P"));
+		return waitForSidebar(page)
+			.then(() => server.pressKeyboardCombo(page, superKey, "Shift", "P"))
+			.then(() => waitForCommandInput(page));
 	};
 
 	// Select all text in the search field, to avoid
@@ -62,16 +77,15 @@ describe("chrome e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchShowCommands(page);
-		await page.waitFor(1000);
 		await page.keyboard.type("New File", { delay: 100 });
 		await page.keyboard.press("Enter");
 		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(1000);
-		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
+		await page.waitFor(editorSelector, { visible: true });
 
 		// Check that the file is in the file tree.
+		const spanSelector = `${sidebarSelector} div.monaco-tl-row span.monaco-highlighted-label span`;
 		const elements = await server.querySelectorAll(page, spanSelector);
 		expect(elements.length).toBeGreaterThan(0);
 		const contentArray = elements.map((el) => el.textContent);
@@ -82,7 +96,6 @@ describe("chrome e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchQuickOpen(page);
-		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
 		const tabSelector = `div.tab div.monaco-icon-label.${testFileName.replace(".", "\\.")}-name-file-icon`;
@@ -101,13 +114,12 @@ describe("chrome e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchShowCommands(page);
-		await page.waitFor(1000);
 		await page.keyboard.type("install extensions", { delay: 100 });
-		await page.waitFor(1000);
 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
-		await page.waitFor(commandSelector);
+		await page.waitFor(commandSelector, { visible: true });
 		await page.click(commandSelector);
-		await page.waitFor(1000);
+		await page.waitFor(extensionInputSelector, { visible: true });
+		await page.click(extensionInputSelector);
 
 		// Search for javascript extensions.
 		await selectAll(page);
@@ -127,10 +139,9 @@ describe("chrome e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchQuickOpen(page);
-		await page.waitFor(1000);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
-		await page.waitFor(1000);
+		await page.waitFor(editorSelector, { visible: true });
 
 		// Start code block.
 		await page.keyboard.type(`console.log("hello");
@@ -139,7 +150,8 @@ describe("chrome e2e", () => {
 
 		// Toggle breakpoint.
 		await page.keyboard.press("F9");
-		await page.waitFor(500);
+		const breakpointSelector = "div.debug-breakpoint";
+		await page.waitFor(breakpointSelector);
 
 		// Finish code block.
 		await page.keyboard.type(`
@@ -181,8 +193,7 @@ describe("chrome e2e", () => {
 	it("should delete file", async () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
-		await page.waitFor("div.part.sidebar");
-		await page.click("div.part.sidebar");
+		await waitForSidebar(page);
 
 		// Wait for file tree to fill up.
 		const fileSelector = `div.monaco-tl-row div.monaco-icon-label.${testFileName.replace(".", "\\\.")}-name-file-icon`;
@@ -190,7 +201,7 @@ describe("chrome e2e", () => {
 
 		// Delete the file.
 		await page.click(fileSelector);
-		await page.waitFor(1000);
+		await page.waitFor(editorSelector, { visible: true });
 		await page.keyboard.press("Delete");
 
 		// Wait for the "Move to Trash" button in the popup.
@@ -204,7 +215,7 @@ describe("chrome e2e", () => {
 		await page.$eval(btnSelector, btn => btn.click());
 
 		// Check that the file is NOT in the file tree.
-		const spanSelector = "div.part.sidebar div.monaco-tl-row span.monaco-highlighted-label span";
+		const spanSelector = `${sidebarSelector} div.monaco-tl-row span.monaco-highlighted-label span`;
 		const elements = await server.querySelectorAll(page, spanSelector);
 		expect(elements.length).toBeGreaterThanOrEqual(0);
 		const contentArray = elements.map((el) => el.textContent);
@@ -215,16 +226,16 @@ describe("chrome e2e", () => {
 		const page = await server.newPage()
 			.then(server.loadPage.bind(server));
 		await workbenchShowCommands(page);
-		await page.waitFor(1000);
 		await page.keyboard.type("show installed extensions", { delay: 100 });
 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";
-		await page.waitFor(commandSelector);
+		await page.waitFor(commandSelector, { visible: true });
 		await page.click(commandSelector);
-		await page.waitFor(1000);
+		await page.waitFor(extensionInputSelector, { visible: true });
+		await page.click(extensionInputSelector);
 
 		// Search for installed javascript extensions.
 		await selectAll(page);
-		await page.keyboard.type("javascript", { delay: 100 });
+		await page.keyboard.type("@installed javascript", { delay: 100 });
 		await page.keyboard.press("Enter");
 
 		// Uninstall extension.
