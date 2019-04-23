@@ -24,13 +24,13 @@ export class NetSocketProxy extends DuplexProxy<net.Socket> {
 		this.stream.unref();
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.stream.on("close", cb);
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		super.onEvent(cb);
 		this.stream.on("connect", () => cb("connect"));
 		this.stream.on("lookup", (error, address, family, host) => cb("lookup", error, address, family, host));
 		this.stream.on("timeout", () => cb("timeout"));
@@ -65,12 +65,12 @@ export class NetServerProxy implements ServerProxy {
 		this.server.removeAllListeners();
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.server.on("close", cb);
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		this.server.on("close", () => cb("close"));
 		this.server.on("error", (error) => cb("error", error));
 		this.server.on("listening", () => cb("listening"));

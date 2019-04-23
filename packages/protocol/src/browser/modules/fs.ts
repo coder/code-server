@@ -1,6 +1,6 @@
 import * as fs from "fs";
 import { callbackify } from "util";
-import { Batch, ClientProxy, Module } from "../../common/proxy";
+import { Batch, ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { IEncodingOptions, IEncodingOptionsCallback } from "../../common/util";
 import { FsModuleProxy, ReadStreamProxy, Stats as IStats, WatcherProxy, WriteStreamProxy } from "../../node/modules/fs";
 import { Readable, Writable  } from "./stream";
@@ -38,9 +38,7 @@ class ReaddirBatch extends Batch<Buffer[] | fs.Dirent[] | string[], { path: fs.P
 	}
 }
 
-interface ClientWatcherProxy extends WatcherProxy {
-	proxyId: number | Module;
-}
+interface ClientWatcherProxy extends WatcherProxy, ClientServerProxy {}
 
 class Watcher extends ClientProxy<ClientWatcherProxy> implements fs.FSWatcher {
 	public close(): void {
@@ -52,9 +50,7 @@ class Watcher extends ClientProxy<ClientWatcherProxy> implements fs.FSWatcher {
 	}
 }
 
-interface ClientReadStreamProxy extends ReadStreamProxy {
-	proxyId: number | Module;
-}
+interface ClientReadStreamProxy extends ReadStreamProxy, ClientServerProxy {}
 
 class ReadStream extends Readable<ClientReadStreamProxy> implements fs.ReadStream {
 	public get bytesRead(): number {
@@ -70,9 +66,7 @@ class ReadStream extends Readable<ClientReadStreamProxy> implements fs.ReadStrea
 	}
 }
 
-interface ClientWriteStreamProxy extends WriteStreamProxy {
-	proxyId: number | Module;
-}
+interface ClientWriteStreamProxy extends WriteStreamProxy, ClientServerProxy {}
 
 class WriteStream extends Writable<ClientWriteStreamProxy> implements fs.WriteStream {
 	public get bytesWritten(): number {
@@ -88,8 +82,7 @@ class WriteStream extends Writable<ClientWriteStreamProxy> implements fs.WriteSt
 	}
 }
 
-interface ClientFsModuleProxy extends FsModuleProxy {
-	proxyId: number | Module;
+interface ClientFsModuleProxy extends FsModuleProxy, ClientServerProxy {
 	createReadStream(path: fs.PathLike, options?: any): Promise<ClientReadStreamProxy>;
 	createWriteStream(path: fs.PathLike, options?: any): Promise<ClientWriteStreamProxy>;
 	watch(filename: fs.PathLike, options?: IEncodingOptions): Promise<ClientWatcherProxy>;

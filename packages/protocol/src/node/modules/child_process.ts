@@ -43,7 +43,7 @@ export class ChildProcessProxy implements ServerProxy {
 		return this.process.pid;
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.process.on("close", cb);
 	}
 
@@ -53,7 +53,7 @@ export class ChildProcessProxy implements ServerProxy {
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		this.process.on("close", (code, signal) => cb("close", code, signal));
 		this.process.on("disconnect", () => cb("disconnect"));
 		this.process.on("error", (error) => cb("error", error));

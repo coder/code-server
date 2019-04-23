@@ -21,7 +21,7 @@ export class RotatingLoggerProxy implements ServerProxy {
 	public async flush (): Promise<void> { this.logger.flush(); }
 	public async drop (): Promise<void> { this.logger.drop(); }
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.emitter.on("dispose", cb);
 	}
 
@@ -32,7 +32,7 @@ export class RotatingLoggerProxy implements ServerProxy {
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(_cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(_cb: (event: string, ...args: any[]) => void): void {
 		// No events.
 	}
 }

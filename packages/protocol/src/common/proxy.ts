@@ -116,10 +116,14 @@ export abstract class ClientProxy<T extends ClientServerProxy> extends EventEmit
 
 /**
  * Proxy to the actual instance on the server. Every method must only accept
- * serializable arguments and must return promises with serializable values. If
- * a proxy itself has proxies on creation (like how ChildProcess has stdin),
+ * serializable arguments and must return promises with serializable values.
+ *
+ * If a proxy itself has proxies on creation (like how ChildProcess has stdin),
  * then it should return all of those at once, otherwise you will miss events
  * from those child proxies and fail to dispose them properly.
+ *
+ * Events listeners are added client-side (since all events automatically
+ * forward to the client), so onDone and onEvent do not need to be asynchronous.
  */
 export interface ServerProxy {
 	/**
@@ -131,17 +135,20 @@ export interface ServerProxy {
 	 * This is used instead of an event to force it to be implemented since there
 	 * would be no guarantee the implementation would remember to emit the event.
 	 */
-	onDone(cb: () => void): Promise<void>;
+	onDone(cb: () => void): void;
 
 	/**
 	 * Listen to all possible events. On the client, this is to reduce boilerplate
 	 * that would just be a bunch of error-prone forwarding of each individual
-	 * event from the proxy to its own emitter. It also fixes a timing issue
-	 * because we just always send all events from the server, so we never miss
-	 * any due to listening too late.
+	 * event from the proxy to its own emitter.
+	 *
+	 * It also fixes a timing issue because we just always send all events from
+	 * the server, so we never miss any due to listening too late.
+	 *
+	 * This cannot be async because then we can bind to the events too late.
 	 */
 	// tslint:disable-next-line no-any
-	onEvent(cb: (event: string, ...args: any[]) => void): Promise<void>;
+	onEvent(cb: (event: string, ...args: any[]) => void): void;
 }
 
 /**

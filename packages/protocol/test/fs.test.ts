@@ -132,6 +132,25 @@ describe("fs", () => {
 	});
 
 	describe("createReadStream", () => {
+		it("should read a file", async () => {
+			const file = helper.tmpFile();
+			const content = "foobar";
+			await util.promisify(nativeFs.writeFile)(file, content);
+
+			const reader = fs.createReadStream(file);
+
+			await expect(new Promise((resolve, reject): void => {
+				let data = "";
+				reader.once("error", reject);
+				reader.once("end", () => {
+					resolve(data);
+				});
+				reader.on("data", (d) => {
+					data += d.toString();
+				});
+			})).resolves.toBe(content);
+		});
+
 		it.only("should pipe to a writable stream", async () => {
 			const source = helper.tmpFile();
 			const content = "foo";

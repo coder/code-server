@@ -2,15 +2,13 @@ import * as cp from "child_process";
 import * as net from "net";
 import * as stream from "stream";
 import { callbackify } from "util";
-import { ClientProxy, Module } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { ChildProcessModuleProxy, ChildProcessProxy } from "../../node/modules/child_process";
 import { ClientWritableProxy, ClientReadableProxy, Readable, Writable } from "./stream";
 
 // tslint:disable completed-docs
 
-export interface ClientChildProcessProxy extends ChildProcessProxy {
-	proxyId: number | Module;
-}
+export interface ClientChildProcessProxy extends ChildProcessProxy, ClientServerProxy {}
 
 export interface ClientChildProcessProxies {
 	childProcess: ClientChildProcessProxy;
@@ -110,8 +108,7 @@ export class ChildProcess extends ClientProxy<ClientChildProcessProxy> implement
 	}
 }
 
-interface ClientChildProcessModuleProxy extends ChildProcessModuleProxy {
-	proxyId: number | Module;
+interface ClientChildProcessModuleProxy extends ChildProcessModuleProxy, ClientServerProxy {
 	exec(command: string, options?: { encoding?: string | null } & cp.ExecOptions | null, callback?: ((error: cp.ExecException | null, stdin: string | Buffer, stdout: string | Buffer) => void)): Promise<ClientChildProcessProxies>;
 	fork(modulePath: string, args?: string[], options?: cp.ForkOptions): Promise<ClientChildProcessProxies>;
 	spawn(command: string, args?: string[], options?: cp.SpawnOptions): Promise<ClientChildProcessProxies>;

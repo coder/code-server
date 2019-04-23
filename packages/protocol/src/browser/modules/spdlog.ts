@@ -1,12 +1,10 @@
 import * as spdlog from "spdlog";
-import { ClientProxy, Module } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { RotatingLoggerProxy, SpdlogModuleProxy } from "../../node/modules/spdlog";
 
 // tslint:disable completed-docs
 
-interface ClientRotatingLoggerProxy extends RotatingLoggerProxy {
-	proxyId: number | Module;
-}
+interface ClientRotatingLoggerProxy extends RotatingLoggerProxy, ClientServerProxy {}
 
 class RotatingLogger extends ClientProxy<ClientRotatingLoggerProxy> implements spdlog.RotatingLogger {
 	public constructor(
@@ -35,8 +33,7 @@ class RotatingLogger extends ClientProxy<ClientRotatingLoggerProxy> implements s
 	}
 }
 
-interface ClientSpdlogModuleProxy extends SpdlogModuleProxy {
-	proxyId: number | Module;
+interface ClientSpdlogModuleProxy extends SpdlogModuleProxy, ClientServerProxy {
 	createLogger(name: string, filePath: string, fileSize: number, fileCount: number): Promise<ClientRotatingLoggerProxy>;
 }
 

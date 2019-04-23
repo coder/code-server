@@ -1,14 +1,12 @@
 import * as net from "net";
 import { callbackify } from "util";
-import { ClientProxy, Module } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { NetModuleProxy, NetServerProxy, NetSocketProxy } from "../../node/modules/net";
 import { Duplex } from "./stream";
 
 // tslint:disable completed-docs
 
-interface ClientNetSocketProxy extends NetSocketProxy {
-	proxyId: number | Module;
-}
+interface ClientNetSocketProxy extends NetSocketProxy, ClientServerProxy {}
 
 export class Socket extends Duplex<ClientNetSocketProxy> implements net.Socket {
 	private _connecting: boolean = false;
@@ -130,8 +128,7 @@ export class Socket extends Duplex<ClientNetSocketProxy> implements net.Socket {
 	}
 }
 
-interface ClientNetServerProxy extends NetServerProxy {
-	proxyId: number | Module;
+interface ClientNetServerProxy extends NetServerProxy, ClientServerProxy {
 	onConnection(cb: (proxy: ClientNetSocketProxy) => void): Promise<void>;
 }
 
@@ -217,8 +214,7 @@ export class Server extends ClientProxy<ClientNetServerProxy> implements net.Ser
 
 type NodeNet = typeof net;
 
-interface ClientNetModuleProxy extends NetModuleProxy {
-	proxyId: number | Module;
+interface ClientNetModuleProxy extends NetModuleProxy, ClientServerProxy {
 	createSocket(options?: net.SocketConstructorOpts): Promise<ClientNetSocketProxy>;
 	createConnection(target: string | number | net.NetConnectOpts, host?: string): Promise<ClientNetSocketProxy>;
 	createServer(options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean }): Promise<ClientNetServerProxy>;

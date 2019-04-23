@@ -48,8 +48,8 @@ export class ReadStreamProxy extends ReadableProxy<fs.ReadStream> {
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		super.onEvent(cb);
 		this.stream.on("open", (fd) => cb("open", fd));
 	}
 }
@@ -65,8 +65,8 @@ export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		super.onEvent(cb);
 		this.stream.on("open", (fd) => cb("open", fd));
 	}
 }
@@ -83,13 +83,13 @@ export class WatcherProxy implements ServerProxy {
 		this.watcher.removeAllListeners();
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.watcher.on("close", cb);
 		this.watcher.on("error", cb);
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		this.watcher.on("change", (event, filename) => cb("change", event, filename));
 		this.watcher.on("close", () => cb("close"));
 		this.watcher.on("error", (error) => cb("error", error));

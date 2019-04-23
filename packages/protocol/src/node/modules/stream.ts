@@ -41,12 +41,12 @@ export class WritableProxy<T extends stream.Writable = stream.Writable> implemen
 		this.stream.removeAllListeners();
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.stream.on("close", cb);
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		// Sockets have an extra argument on "close".
 		// tslint:disable-next-line no-any
 		this.stream.on("close", (...args: any[]) => cb("close", ...args));
@@ -65,7 +65,7 @@ export interface IReadableProxy extends ServerProxy {
 	destroy(): Promise<void>;
 	setEncoding(encoding: string): Promise<void>;
 	dispose(): Promise<void>;
-	onDone(cb: () => void): Promise<void>;
+	onDone(cb: () => void): void;
 }
 
 export class ReadableProxy<T extends stream.Readable = stream.Readable> implements IReadableProxy {
@@ -88,12 +88,12 @@ export class ReadableProxy<T extends stream.Readable = stream.Readable> implemen
 		this.stream.removeAllListeners();
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.stream.on("close", cb);
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		this.stream.on("close", () => cb("close"));
 		this.stream.on("data", (chunk) => cb("data", chunk));
 		this.stream.on("end", () => cb("end"));
@@ -111,8 +111,8 @@ export class DuplexProxy<T extends stream.Duplex = stream.Duplex> extends Writab
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
+		super.onEvent(cb);
 		this.stream.on("data", (chunk) => cb("data", chunk));
 		this.stream.on("end", () => cb("end"));
 	}

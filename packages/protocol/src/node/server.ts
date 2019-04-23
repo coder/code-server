@@ -242,9 +242,7 @@ export class Server {
 		this.proxies.set(proxyId, { instance });
 
 		if (isProxy(instance)) {
-			instance.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args)).catch((error) => {
-				logger.error(error.message);
-			});
+			instance.onEvent((event, ...args) => this.sendEvent(proxyId, event, ...args));
 			instance.onDone(() => {
 				// It might have finished because we disposed it due to a disconnect.
 				if (!this.disconnected) {
@@ -256,8 +254,6 @@ export class Server {
 						this.removeProxy(proxyId);
 					}, this.responseTimeout);
 				}
-			}).catch((error) => {
-				logger.error(error.message);
 			});
 		}
 

@@ -1,14 +1,12 @@
 import * as stream from "stream";
 import { callbackify } from "util";
-import { ClientProxy, Module } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { isPromise } from "../../common/util";
 import { DuplexProxy, ReadableProxy, WritableProxy } from "../../node/modules/stream";
 
 // tslint:disable completed-docs
 
-export interface ClientWritableProxy extends WritableProxy {
-	proxyId: number | Module;
-}
+export interface ClientWritableProxy extends WritableProxy, ClientServerProxy {}
 
 export class Writable<T extends ClientWritableProxy = ClientWritableProxy> extends ClientProxy<T> implements stream.Writable {
 	public get writable(): boolean {
@@ -93,9 +91,7 @@ export class Writable<T extends ClientWritableProxy = ClientWritableProxy> exten
 	}
 }
 
-export interface ClientReadableProxy extends ReadableProxy {
-	proxyId: number | Module;
-}
+export interface ClientReadableProxy extends ReadableProxy, ClientServerProxy {}
 
 export class Readable<T extends ClientReadableProxy = ClientReadableProxy> extends ClientProxy<T> implements stream.Readable {
 	public get readable(): boolean {
@@ -153,6 +149,9 @@ export class Readable<T extends ClientReadableProxy = ClientReadableProxy> exten
 	public pipe<P extends NodeJS.WritableStream>(destination: P, options?: { end?: boolean }): P {
 		// tslint:disable-next-line no-any this will be a Writable instance.
 		const writableProxy = (destination as any as Writable).proxyPromise;
+		if (!writableProxy) {
+			throw new Error("can only pipe stream proxies");
+		}
 		this.catch(
 			isPromise(writableProxy)
 				? writableProxy.then((p) => this.proxy.pipe(p, options))
@@ -181,9 +180,7 @@ export class Readable<T extends ClientReadableProxy = ClientReadableProxy> exten
 	}
 }
 
-export interface ClientDuplexProxy extends DuplexProxy {
-	proxyId: number | Module;
-}
+export interface ClientDuplexProxy extends DuplexProxy, ClientServerProxy {}
 
 export class Duplex<T extends ClientDuplexProxy = ClientDuplexProxy> extends Writable<T> implements stream.Duplex, stream.Readable {
 	private readonly _readable: Readable;

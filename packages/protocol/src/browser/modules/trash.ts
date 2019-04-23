@@ -1,12 +1,10 @@
 import * as trash from "trash";
-import {  Module } from "../../common/proxy";
+import { ClientServerProxy } from "../../common/proxy";
 import { TrashModuleProxy } from "../../node/modules/trash";
 
 // tslint:disable completed-docs
 
-interface ClientTrashModuleProxy extends TrashModuleProxy {
-	proxyId: number | Module;
-}
+interface ClientTrashModuleProxy extends TrashModuleProxy, ClientServerProxy {}
 
 export class TrashModule {
 	public constructor(private readonly proxy: ClientTrashModuleProxy) {}

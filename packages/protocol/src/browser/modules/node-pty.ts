@@ -1,12 +1,10 @@
 import * as pty from "node-pty";
-import { ClientProxy, Module } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { NodePtyModuleProxy, NodePtyProcessProxy } from "../../node/modules/node-pty";
 
 // tslint:disable completed-docs
 
-interface ClientNodePtyProcessProxy extends NodePtyProcessProxy {
-	proxyId: number | Module;
-}
+interface ClientNodePtyProcessProxy extends NodePtyProcessProxy, ClientServerProxy {}
 
 export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> implements pty.IPty {
 	private _pid = -1;
@@ -59,8 +57,7 @@ export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> imple
 
 type NodePty = typeof pty;
 
-interface ClientNodePtyModuleProxy extends NodePtyModuleProxy {
-	proxyId: number | Module;
+interface ClientNodePtyModuleProxy extends NodePtyModuleProxy, ClientServerProxy {
 	spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): Promise<ClientNodePtyProcessProxy>;
 }
 

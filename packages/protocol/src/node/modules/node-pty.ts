@@ -47,7 +47,7 @@ export class NodePtyProcessProxy implements ServerProxy {
 		this.process.write(data);
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
+	public onDone(cb: () => void): void {
 		this.process.on("exit", cb);
 	}
 
@@ -58,7 +58,7 @@ export class NodePtyProcessProxy implements ServerProxy {
 	}
 
 	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
+	public onEvent(cb: (event: string, ...args: any[]) => void): void {
 		this.emitter.on("process", (process) => cb("process", process));
 		this.process.on("data", (data) => cb("data", data));
 		this.process.on("exit", (exitCode, signal) => cb("exit", exitCode, signal));
