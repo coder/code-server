@@ -74,12 +74,7 @@ describe("chrome e2e", () => {
 			.then(server.loadPage.bind(server));
 
 		// Editor should be visible.
-		const editor = await server.querySelector(page, "div.part.editor");
-		expect(editor).toBeTruthy();
-		expect(editor.tag).toEqual("div");
-		expect(editor.properties).toBeDefined();
-		expect(editor.properties!["id"]).toBe("workbench.parts.editor");
-		expect(editor.children.length).toBeGreaterThan(0);
+		await page.waitFor("div.part.editor", { visible: true });
 	});
 
 	it("should create file via command palette", async () => {
@@ -134,16 +129,9 @@ describe("chrome e2e", () => {
 		await workbenchQuickOpen(page);
 		await page.keyboard.type(testFileName, { delay: 100 });
 		await page.keyboard.press("Enter");
-		const tabSelector = `div.tab div.monaco-icon-label.${testFileName.replace(".", "\\.")}-name-file-icon`;
-		await page.waitFor(tabSelector);
 
-		// Check that the file is in an editor tab.
-		const tab = await server.querySelector(page, tabSelector);
-		expect(tab).toBeTruthy();
-		expect(tab.tag).toEqual("div");
-		expect(tab.properties).not.toBeUndefined();
-		expect(tab.properties!["title"]).toContain(testFileName);
-		expect(tab.children.length).toBeGreaterThan(0);
+		// File should be open in editor view.
+		await page.waitFor(editorSelector, { visible: true });
 	});
 
 	it("should install extension", async () => {
