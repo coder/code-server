@@ -36,7 +36,6 @@ export abstract class IdeClient {
 		let appWindow: Window | undefined;
 
 		if (!window.matchMedia("(display-mode: standalone)").matches) {
-			console.log("Not in app mode");
 			window.addEventListener("beforeunload", (e) => {
 				e.preventDefault(); // FireFox
 				e.returnValue = ""; // Chrome
