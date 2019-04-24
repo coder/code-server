@@ -3,6 +3,8 @@ import * as util from "util";
 import { Module } from "../src/common/proxy";
 import { createClient, Helper } from "./helpers";
 
+// tslint:disable deprecation to use fs.exists
+
 describe("trash", () => {
 	const client = createClient();
 	const trash = client.modules[Module.Trash];
@@ -18,9 +20,10 @@ describe("trash", () => {
 		expect(await util.promisify(fs.exists)(file)).toBeFalsy();
 	});
 
-	it("should dispose", () => {
+	it("should dispose", (done) => {
 		setTimeout(() => {
 			client.dispose();
+			done();
 		}, 100);
 	});
 });

@@ -70,12 +70,12 @@ describe("fs", () => {
 	describe("chown", () => {
 		it("should chown existing file", async () => {
 			const file = await helper.createTmpFile();
-			await expect(util.promisify(fs.chown)(file, 1, 1))
+			await expect(util.promisify(nativeFs.chown)(file, 1000, 1000))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to chown nonexistent file", async () => {
-			await expect(util.promisify(fs.chown)(helper.tmpFile(), 1, 1))
+			await expect(util.promisify(fs.chown)(helper.tmpFile(), 1000, 1000))
 				.rejects.toThrow("ENOENT");
 		});
 	});
@@ -198,13 +198,13 @@ describe("fs", () => {
 		it("should fchown existing file", async () => {
 			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "r");
-			await expect(util.promisify(fs.fchown)(fd, 1, 1))
+			await expect(util.promisify(fs.fchown)(fd, 1000, 1000))
 				.resolves.toBeUndefined();
 			await util.promisify(nativeFs.close)(fd);
 		});
 
 		it("should fail to fchown nonexistent file", async () => {
-			await expect(util.promisify(fs.fchown)(99999, 1, 1))
+			await expect(util.promisify(fs.fchown)(99999, 1000, 1000))
 				.rejects.toThrow("EBADF");
 		});
 	});
@@ -275,7 +275,7 @@ describe("fs", () => {
 		it("should futimes existing file", async () => {
 			const file = await helper.createTmpFile();
 			const fd = await util.promisify(nativeFs.open)(file, "w");
-			await expect(util.promisify(fs.futimes)(fd, 1, 1))
+			await expect(util.promisify(fs.futimes)(fd, 1000, 1000))
 				.resolves.toBeUndefined();
 			await util.promisify(nativeFs.close)(fd);
 		});
@@ -311,12 +311,12 @@ describe("fs", () => {
 	describe("lchown", () => {
 		it("should lchown existing file", async () => {
 			const file = await helper.createTmpFile();
-			await expect(util.promisify(fs.lchown)(file, 1, 1))
+			await expect(util.promisify(fs.lchown)(file, 1000, 1000))
 				.resolves.toBeUndefined();
 		});
 
 		it("should fail to lchown nonexistent file", async () => {
-			await expect(util.promisify(fs.lchown)(helper.tmpFile(), 1, 1))
+			await expect(util.promisify(fs.lchown)(helper.tmpFile(), 1000, 1000))
 				.rejects.toThrow("ENOENT");
 		});
 	});
@@ -621,7 +621,10 @@ describe("fs", () => {
 		});
 	});
 
-	it("should dispose", () => {
-		client.dispose();
+	it("should dispose", (done) => {
+		setTimeout(() => {
+			client.dispose();
+			done();
+		}, 100);
 	});
 });

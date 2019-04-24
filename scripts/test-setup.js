@@ -21,3 +21,15 @@ Object.defineProperty(fs.read, util.promisify.custom, {
 global.requestAnimationFrame = (cb) => {
 	setTimeout(cb, 0);
 };
+
+// lchmod might not be available. Jest runs graceful-fs which makes this a no-op
+// when it doesn't exist but that doesn't seem to always run when running
+// multiple tests (or maybe it gets undone after a test).
+if (!fs.lchmod) {
+	fs.lchmod = function (path, mode, cb) {
+		if (cb) {
+			process.nextTick(cb);
+		}
+	};
+	fs.lchmodSync = function () {};
+}
