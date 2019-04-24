@@ -2,6 +2,10 @@
 
 set -e
 
+if [[ ! -d "./tmp" ]]; then
+	mkdir -p ./tmp
+fi
+
 if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
 	# If the Travis CI environment is MacOS, run the Jest tests
 	# manually, since Docker is not supported.
