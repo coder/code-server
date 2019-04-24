@@ -9,6 +9,8 @@ interface ClientNodePtyProcessProxy extends NodePtyProcessProxy, ClientServerPro
 export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> implements pty.IPty {
 	private _pid = -1;
 	private _process = "";
+	private lastCols: number | undefined;
+	private lastRows: number | undefined;
 
 	public constructor(
 		private readonly moduleProxy: ClientNodePtyModuleProxy,
@@ -37,6 +39,9 @@ export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> imple
 	}
 
 	public resize(columns: number, rows: number): void {
+		this.lastCols = columns;
+		this.lastRows = rows;
+
 		this.catch(this.proxy.resize(columns, rows));
 	}
 
@@ -51,7 +56,11 @@ export class NodePtyProcess extends ClientProxy<ClientNodePtyProcessProxy> imple
 	protected handleDisconnect(): void {
 		this._process += " (disconnected)";
 		this.emit("data", "\r\n\nLost connection...\r\n\n");
-		this.initialize(this.moduleProxy.spawn(this.file, this.args, this.options));
+		this.initialize(this.moduleProxy.spawn(this.file, this.args, {
+			...this.options,
+			cols: this.lastCols || this.options.cols,
+			rows: this.lastRows || this.options.rows,
+		}));
 	}
 }
 
