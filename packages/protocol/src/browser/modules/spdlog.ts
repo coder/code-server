@@ -1,12 +1,14 @@
 import * as spdlog from "spdlog";
-import { ClientProxy } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { RotatingLoggerProxy, SpdlogModuleProxy } from "../../node/modules/spdlog";
 
 // tslint:disable completed-docs
 
-class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.RotatingLogger {
+interface ClientRotatingLoggerProxy extends RotatingLoggerProxy, ClientServerProxy {}
+
+class RotatingLogger extends ClientProxy<ClientRotatingLoggerProxy> implements spdlog.RotatingLogger {
 	public constructor(
-		private readonly moduleProxy: SpdlogModuleProxy,
+		private readonly moduleProxy: ClientSpdlogModuleProxy,
 		private readonly name: string,
 		private readonly filename: string,
 		private readonly filesize: number,
@@ -31,10 +33,14 @@ class RotatingLogger extends ClientProxy<RotatingLoggerProxy> implements spdlog.
 	}
 }
 
+interface ClientSpdlogModuleProxy extends SpdlogModuleProxy, ClientServerProxy {
+	createLogger(name: string, filePath: string, fileSize: number, fileCount: number): Promise<ClientRotatingLoggerProxy>;
+}
+
 export class SpdlogModule {
 	public readonly RotatingLogger: typeof spdlog.RotatingLogger;
 
-	public constructor(private readonly proxy: SpdlogModuleProxy) {
+	public constructor(private readonly proxy: ClientSpdlogModuleProxy) {
 		this.RotatingLogger = class extends RotatingLogger {
 			public constructor(name: string, filename: string, filesize: number, filecount: number) {
 				super(proxy, name, filename, filesize, filecount);

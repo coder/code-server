@@ -1,13 +1,13 @@
 import { EventEmitter } from "events";
-import { isPromise } from "./util";
+import { isPromise, EventCallback } from "./util";
 
 // tslint:disable no-any
 
 /**
  * Allow using a proxy like it's returned synchronously. This only works because
- * all proxy methods return promises.
+ * all proxy methods must return promises.
  */
-const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
+const unpromisify = <T extends ClientServerProxy>(proxyPromise: Promise<T>): T => {
 	return new Proxy({}, {
 		get: (target: any, name: string): any => {
 			if (typeof target[name] === "undefined") {
@@ -24,23 +24,23 @@ const unpromisify = <T extends ServerProxy>(proxyPromise: Promise<T>): T => {
 };
 
 /**
- * Client-side emitter that just forwards proxy events to its own emitter.
- * It also turns a promisified proxy into a non-promisified proxy so we don't
- * need a bunch of `then` calls everywhere.
+ * Client-side emitter that just forwards server proxy events to its own
+ * emitter. It also turns a promisified server proxy into a non-promisified
+ * proxy so we don't need a bunch of `then` calls everywhere.
  */
-export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
-	private _proxy: T | undefined;
+export abstract class ClientProxy<T extends ClientServerProxy> extends EventEmitter {
+	private _proxy: T;
 
 	/**
 	 * You can specify not to bind events in order to avoid emitting twice for
 	 * duplex streams.
 	 */
 	public constructor(
-		proxyPromise: Promise<T> | T,
+		private _proxyPromise: Promise<T> | T,
 		private readonly bindEvents: boolean = true,
 	) {
 		super();
-		this.initialize(proxyPromise);
+		this._proxy = this.initialize(this._proxyPromise);
 		if (this.bindEvents) {
 			this.on("disconnected", (error) => {
 				try {
@@ -64,11 +64,34 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 		return this;
 	}
 
-	protected get proxy(): T {
-		if (!this._proxy) {
-			throw new Error("not initialized");
-		}
+	/**
+	 * Bind the event locally and ensure the event is bound on the server.
+	 */
+	public addListener(event: string, listener: (...args: any[]) => void): this {
+		this.catch(this.proxy.bindDelayedEvent(event));
 
+		return super.on(event, listener);
+	}
+
+	/**
+	 * Alias for `addListener`.
+	 */
+	public on(event: string, listener: (...args: any[]) => void): this {
+		return this.addListener(event, listener);
+	}
+
+	/**
+	 * Original promise for the server proxy. Can be used to be passed as an
+	 * argument.
+	 */
+	public get proxyPromise(): Promise<T> | T {
+		return this._proxyPromise;
+	}
+
+	/**
+	 * Server proxy.
+	 */
+	protected get proxy(): T {
 		return this._proxy;
 	}
 
@@ -76,13 +99,18 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 	 * Initialize the proxy by unpromisifying if necessary and binding to its
 	 * events.
 	 */
-	protected initialize(proxyPromise: Promise<T> | T): void {
-		this._proxy = isPromise(proxyPromise) ? unpromisify(proxyPromise) : proxyPromise;
+	protected initialize(proxyPromise: Promise<T> | T): T {
+		this._proxyPromise = proxyPromise;
+		this._proxy = isPromise(this._proxyPromise)
+			? unpromisify(this._proxyPromise)
+			: this._proxyPromise;
 		if (this.bindEvents) {
-			this.catch(this.proxy.onEvent((event, ...args): void => {
+			this.proxy.onEvent((event, ...args): void => {
 				this.emit(event, ...args);
-			}));
+			});
 		}
+
+		return this._proxy;
 	}
 
 	/**
@@ -102,34 +130,107 @@ export abstract class ClientProxy<T extends ServerProxy> extends EventEmitter {
 	}
 }
 
+export interface ServerProxyOptions<T> {
+	/**
+	 * The events to bind immediately.
+	 */
+	bindEvents: string[];
+	/**
+	 * Events that signal the proxy is done.
+	 */
+	doneEvents: string[];
+	/**
+	 * Events that should only be bound when asked
+	 */
+	delayedEvents?: string[];
+	/**
+	 * Whatever is emitting events (stream, child process, etc).
+	 */
+	instance: T;
+}
+
 /**
- * Proxy to the actual instance on the server. Every method must only accept
- * serializable arguments and must return promises with serializable values. If
- * a proxy itself has proxies on creation (like how ChildProcess has stdin),
+ * The actual proxy instance on the server. Every method must only accept
+ * serializable arguments and must return promises with serializable values.
+ *
+ * If a proxy itself has proxies on creation (like how ChildProcess has stdin),
  * then it should return all of those at once, otherwise you will miss events
  * from those child proxies and fail to dispose them properly.
+ *
+ * Events listeners are added client-side (since all events automatically
+ * forward to the client), so onDone and onEvent do not need to be asynchronous.
  */
-export interface ServerProxy {
+export abstract class ServerProxy<T extends EventEmitter = EventEmitter> {
+	public readonly instance: T;
+
+	private readonly callbacks = <EventCallback[]>[];
+
+	public constructor(private readonly options: ServerProxyOptions<T>) {
+		this.instance = options.instance;
+	}
+
 	/**
 	 * Dispose the proxy.
 	 */
-	dispose(): Promise<void>;
+	public async dispose(): Promise<void> {
+		this.instance.removeAllListeners();
+	}
 
 	/**
 	 * This is used instead of an event to force it to be implemented since there
 	 * would be no guarantee the implementation would remember to emit the event.
 	 */
-	onDone(cb: () => void): Promise<void>;
+	public onDone(cb: () => void): void {
+		this.options.doneEvents.forEach((event) => {
+			this.instance.on(event, cb);
+		});
+	}
+
+	/**
+	 * Bind an event that will not fire without first binding it and shouldn't be
+	 * bound immediately.
+
+	 * For example, binding to `data` switches a stream to flowing mode, so we
+	 * don't want to do it until we're asked. Otherwise something like `pipe`
+	 * won't work because potentially some or all of the data will already have
+	 * been flushed out.
+	 */
+	public async bindDelayedEvent(event: string): Promise<void> {
+		if (this.options.delayedEvents
+				&& this.options.delayedEvents.includes(event)
+				&& !this.options.bindEvents.includes(event)) {
+			this.options.bindEvents.push(event);
+			this.callbacks.forEach((cb) => {
+				this.instance.on(event, (...args: any[]) => cb(event, ...args));
+			});
+		}
+	}
 
 	/**
 	 * Listen to all possible events. On the client, this is to reduce boilerplate
 	 * that would just be a bunch of error-prone forwarding of each individual
-	 * event from the proxy to its own emitter. It also fixes a timing issue
-	 * because we just always send all events from the server, so we never miss
-	 * any due to listening too late.
+	 * event from the proxy to its own emitter.
+	 *
+	 * It also fixes a timing issue because we just always send all events from
+	 * the server, so we never miss any due to listening too late.
+	 *
+	 * This cannot be async because then we can bind to the events too late.
 	 */
-	// tslint:disable-next-line no-any
-	onEvent(cb: (event: string, ...args: any[]) => void): Promise<void>;
+	public onEvent(cb: EventCallback): void {
+		this.callbacks.push(cb);
+		this.options.bindEvents.forEach((event) => {
+			this.instance.on(event, (...args: any[]) => cb(event, ...args));
+		});
+	}
+}
+
+/**
+ * A server-side proxy stored on the client. The proxy ID only exists on the
+ * client-side version of the server proxy. The event listeners are handled by
+ * the client and the remaining methods are proxied to the server.
+ */
+export interface ClientServerProxy<T extends EventEmitter = EventEmitter> extends ServerProxy<T> {
+	proxyId: number | Module;
 }
 
 /**

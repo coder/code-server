@@ -1,32 +1,38 @@
+import { EventEmitter } from "events";
 import * as stream from "stream";
 import { ServerProxy } from "../../common/proxy";
 
-// tslint:disable completed-docs
+// tslint:disable completed-docs no-any
 
-export class WritableProxy<T extends stream.Writable = stream.Writable> implements ServerProxy {
-	public constructor(protected readonly stream: T) {}
-
-	public async destroy(): Promise<void> {
-		this.stream.destroy();
+export class WritableProxy<T extends stream.Writable = stream.Writable> extends ServerProxy<T> {
+	public constructor(instance: T, bindEvents: string[] = [], delayedEvents?: string[]) {
+		super({
+			bindEvents: ["close", "drain", "error", "finish"].concat(bindEvents),
+			doneEvents: ["close"],
+			delayedEvents,
+			instance,
+		});
 	}
 
-	// tslint:disable-next-line no-any
+	public async destroy(): Promise<void> {
+		this.instance.destroy();
+	}
+
 	public async end(data?: any, encoding?: string): Promise<void> {
 		return new Promise((resolve): void => {
-			this.stream.end(data, encoding, () => {
+			this.instance.end(data, encoding, () => {
 				resolve();
 			});
 		});
 	}
 
 	public async setDefaultEncoding(encoding: string): Promise<void> {
-		this.stream.setDefaultEncoding(encoding);
+		this.instance.setDefaultEncoding(encoding);
 	}
 
-	// tslint:disable-next-line no-any
 	public async write(data: any, encoding?: string): Promise<void> {
 		return new Promise((resolve, reject): void => {
-			this.stream.write(data, encoding, (error) => {
+			this.instance.write(data, encoding, (error) => {
 				if (error) {
 					reject(error);
 				} else {
@@ -37,22 +43,8 @@ export class WritableProxy<T extends stream.Writable = stream.Writable> implemen
 	}
 
 	public async dispose(): Promise<void> {
-		this.stream.end();
-		this.stream.removeAllListeners();
-	}
-
-	public async onDone(cb: () => void): Promise<void> {
-		this.stream.on("close", cb);
-	}
-
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		// Sockets have an extra argument on "close".
-		// tslint:disable-next-line no-any
-		this.stream.on("close", (...args: any[]) => cb("close", ...args));
-		this.stream.on("drain", () => cb("drain"));
-		this.stream.on("error", (error) => cb("error", error));
-		this.stream.on("finish", () => cb("finish"));
+		this.instance.end();
+		await super.dispose();
 	}
 }
 
@@ -60,50 +52,58 @@ export class WritableProxy<T extends stream.Writable = stream.Writable> implemen
  * This noise is because we can't do multiple extends and we also can't seem to
  * do `extends WritableProxy<T> implement ReadableProxy<T>` (for `DuplexProxy`).
  */
-export interface IReadableProxy extends ServerProxy {
-	destroy(): Promise<void>;
+export interface IReadableProxy<T extends EventEmitter> extends ServerProxy<T> {
+	pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void>;
 	setEncoding(encoding: string): Promise<void>;
-	dispose(): Promise<void>;
-	onDone(cb: () => void): Promise<void>;
 }
 
-export class ReadableProxy<T extends stream.Readable = stream.Readable> implements IReadableProxy {
-	public constructor(protected readonly stream: T) {}
+export class ReadableProxy<T extends stream.Readable = stream.Readable> extends ServerProxy<T> implements IReadableProxy<T> {
+	public constructor(instance: T, bindEvents: string[] = []) {
+		super({
+			bindEvents: ["close", "end", "error"].concat(bindEvents),
+			doneEvents: ["close"],
+			delayedEvents: ["data"],
+			instance,
+		});
+	}
+
+	public async pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void> {
+		this.instance.pipe(destination.instance, options);
+		// `pipe` switches the stream to flowing mode and makes data start emitting.
+		await this.bindDelayedEvent("data");
+	}
 
 	public async destroy(): Promise<void> {
-		this.stream.destroy();
+		this.instance.destroy();
 	}
 
 	public async setEncoding(encoding: string): Promise<void> {
-		this.stream.setEncoding(encoding);
+		this.instance.setEncoding(encoding);
 	}
 
 	public async dispose(): Promise<void> {
-		this.stream.destroy();
-	}
-
-	public async onDone(cb: () => void): Promise<void> {
-		this.stream.on("close", cb);
-	}
-
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		this.stream.on("close", () => cb("close"));
-		this.stream.on("data", (chunk) => cb("data", chunk));
-		this.stream.on("end", () => cb("end"));
-		this.stream.on("error", (error) => cb("error", error));
+		this.instance.destroy();
+		await super.dispose();
 	}
 }
 
-export class DuplexProxy<T extends stream.Duplex = stream.Duplex> extends WritableProxy<T> implements IReadableProxy {
-	public async setEncoding(encoding: string): Promise<void> {
-		this.stream.setEncoding(encoding);
+export class DuplexProxy<T extends stream.Duplex = stream.Duplex> extends WritableProxy<T> implements IReadableProxy<T> {
+	public constructor(stream: T, bindEvents: string[] = []) {
+		super(stream, ["end"].concat(bindEvents), ["data"]);
 	}
 
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
-		this.stream.on("data", (chunk) => cb("data", chunk));
-		this.stream.on("end", () => cb("end"));
+	public async pipe<P extends WritableProxy>(destination: P, options?: { end?: boolean; }): Promise<void> {
+		this.instance.pipe(destination.instance, options);
+		// `pipe` switches the stream to flowing mode and makes data start emitting.
+		await this.bindDelayedEvent("data");
+	}
+
+	public async setEncoding(encoding: string): Promise<void> {
+		this.instance.setEncoding(encoding);
+	}
+
+	public async dispose(): Promise<void> {
+		this.instance.destroy();
+		await super.dispose();
 	}
 }
