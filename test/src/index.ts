@@ -155,18 +155,20 @@ export class TestPage {
 		const img = await this.rootPage.screenshot(options);
 		this.screenshotCount++;
 
+		// If this is a Travis CI build, store the screenshots
+		// for later.
 		if (process.env.TRAVIS_OS_NAME && process.env.TRAVIS_BUILD_NUMBER) {
 			const bucketPath = `Travis-${process.env.TRAVIS_BUILD_NUMBER}/${fileName}`;
 			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
 			try {
 				const url = await bucket.write(bucketPath, buf);
-				logger.info("captured screenshot",
+				logger.info("stored screenshot",
 					field("localPath", options.path),
 					field("bucketPath", bucketPath),
 					field("url", url),
 				);
 			} catch (ex) {
-				logger.warn("failed to capture screenshot",
+				logger.warn("failed to store screenshot",
 					field("exception", ex),
 					field("targetPath", bucketPath),
 				);

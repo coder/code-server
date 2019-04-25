@@ -1,7 +1,14 @@
 import * as Storage from "@google-cloud/storage";
 import { File, Bucket, IMetadata } from "./bucket";
+import * as path from "path";
+import { existsSync } from "fs";
 
-const ScreenshotBucketName = "coder-dev-1-ci-screenshots";
+const screenshotBucketName = "coder-dev-1-ci-screenshots";
+// The path to the credentials must be relative to the environment in
+// which the tests are being run, because the gcloud package
+// relies on the session's $GOOGLE_APPLICATION_CREDENTIALS.
+// Otherwise, this could be statically defined in the CI config.
+const gcpCredentialsPath = path.resolve(__dirname, "../.coder-gcp-credentials.json");
 
 /**
  * GCP Storage Bucket Wrapper.
@@ -14,7 +21,10 @@ export class GoogleCloudBucket extends Bucket {
 		const storage = new Storage.Storage({
 			projectId: "coder-dev-1",
 		});
-		this.bucket = storage.bucket(ScreenshotBucketName);
+		if (!process.env.GOOGLE_APPLICATION_CREDENTIALS && existsSync(gcpCredentialsPath)) {
+			process.env.GOOGLE_APPLICATION_CREDENTIALS = gcpCredentialsPath;
+		}
+		this.bucket = storage.bucket(screenshotBucketName);
 	}
 
 	/**
@@ -93,7 +103,7 @@ export class GoogleCloudBucket extends Bucket {
 						return;
 					}
 				}
-				resolve(makePublic ? `https://storage.googleapis.com/${ScreenshotBucketName}${path}` : undefined);
+				resolve(makePublic ? `https://storage.googleapis.com/${screenshotBucketName}${path}` : undefined);
 			});
 
 			stream.end(data);
