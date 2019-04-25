@@ -131,7 +131,7 @@ export class Dialog {
 	 */
 	public show(): void {
 		if (document.querySelector(`.${this.overlay.className}`)) {
-			throw new Error ("Save prompt is already open");
+			throw new Error ("Overlay is already open");
 		}
 		if (!this.cachedActiveElement) {
 			this.cachedActiveElement = document.activeElement as HTMLElement;
