@@ -404,7 +404,7 @@ class Dialog {
 	 */
 	private async list(directory: string): Promise<ReadonlyArray<DialogEntry>> {
 		const paths = (await util.promisify(fs.readdir)(directory)).sort();
-		const stats = await Promise.all(paths.map(p => util.promisify(fs.stat)(path.join(directory, p))));
+		const stats = await Promise.all(paths.map(p => util.promisify(fs.lstat)(path.join(directory, p))));
 
 		return stats.map((stat, index): DialogEntry => ({
 			fullPath: path.join(directory, paths[index]),
