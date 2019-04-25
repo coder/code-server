@@ -4,7 +4,11 @@ import * as os from "os";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { ChildProcess, spawn } from "child_process";
-import { logger, field, Level } from "@coder/logger";
+import { logger, field } from "@coder/logger";
+
+import { GoogleCloudBucket } from "../storage/gcloud";
+
+const bucket = new GoogleCloudBucket();
 
 interface IServerOptions {
 	host: string;
@@ -142,19 +146,31 @@ export class TestPage {
 	 * `<screenshotDir>/[<page-tag>_]<screenshot-number>_<screenshot-name>.jpg`.
 	 */
 	public async screenshot(name: string, options?: puppeteer.ScreenshotOptions): Promise<string | Buffer> {
-		let debugCI = logger.level === Level.Debug && process.env.TRAVIS_BUILD_NUMBER;
-		let tag = this.tag ? `${this.tag}_` : "";
-		if (debugCI) {
-			tag = `TRAVIS-${process.env.TRAVIS_BUILD_NUMBER}_${tag}`;
-		}
-		options = Object.assign({ path: path.resolve(TestServer.puppeteerDir, `./${tag}${this.screenshotCount}_${name}.jpg`), fullPage: true }, options);
+		const fileName = `${this.tag ? `${this.tag}_` : ""}${this.screenshotCount}_${name}.jpg`;
+		options = Object.assign({
+			path: path.resolve(TestServer.puppeteerDir, `./${fileName}`),
+			fullPage: true,
+			type: "jpeg",
+		}, options);
 		const img = await this.rootPage.screenshot(options);
 		this.screenshotCount++;
 
-		if (debugCI) {
-			// TODO: upload to imgur.
-			const url = "";
-			logger.debug("captured screenshot", field("path", options.path), field("url", url));
+		if (process.env.TRAVIS_OS_NAME && process.env.TRAVIS_BUILD_NUMBER) {
+			const bucketPath = `Travis-${process.env.TRAVIS_BUILD_NUMBER}/${fileName}`;
+			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
+			try {
+				const url = await bucket.write(bucketPath, buf);
+				logger.info("captured screenshot",
+					field("localPath", options.path),
+					field("bucketPath", bucketPath),
+					field("url", url),
+				);
+			} catch (ex) {
+				logger.warn("failed to capture screenshot",
+					field("exception", ex),
+					field("targetPath", bucketPath),
+				);
+			}
 		}
 
 		return img;
@@ -224,8 +240,10 @@ export class TestServer {
 
 	// @ts-ignore
 	private child: ChildProcess;
+
 	// The directory to load the IDE with.
 	public static readonly workingDir = path.resolve(__dirname, "../tmp/workspace/");
+	// The directory to store puppeteer related files.
 	public static readonly puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/", Date.now().toString());
 
 	public constructor(opts?: {
