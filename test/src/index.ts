@@ -4,8 +4,7 @@ import * as os from "os";
 import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { ChildProcess, spawn } from "child_process";
-import { logger, field } from "@coder/logger";
-import { EventEmitter } from 'events';
+import { logger, field, Level } from "@coder/logger";
 
 interface IServerOptions {
 	host: string;
@@ -142,10 +141,21 @@ export class TestPage {
 	 * Screenshot path will be in the following format:
 	 * `<screenshotDir>/[<page-tag>_]<screenshot-number>_<screenshot-name>.jpg`.
 	 */
-	public screenshot(name: string, options?: puppeteer.ScreenshotOptions): Promise<string | Buffer> {
-		options = Object.assign({ path: path.resolve(TestServer.puppeteerDir, `./${this.tag ? `${this.tag}_` : ""}${this.screenshotCount}_${name}.jpg`), fullPage: true }, options);
-		const img = this.rootPage.screenshot(options);
+	public async screenshot(name: string, options?: puppeteer.ScreenshotOptions): Promise<string | Buffer> {
+		let debugCI = logger.level === Level.Debug && process.env.TRAVIS_BUILD_NUMBER;
+		let tag = this.tag ? `${this.tag}_` : "";
+		if (debugCI) {
+			tag = `TRAVIS-${process.env.TRAVIS_BUILD_NUMBER}_${tag}`;
+		}
+		options = Object.assign({ path: path.resolve(TestServer.puppeteerDir, `./${tag}${this.screenshotCount}_${name}.jpg`), fullPage: true }, options);
+		const img = await this.rootPage.screenshot(options);
 		this.screenshotCount++;
+
+		if (debugCI) {
+			// TODO: upload to imgur.
+			const url = "";
+			logger.debug("captured screenshot", field("path", options.path), field("url", url));
+		}
 
 		return img;
 	}
@@ -157,9 +167,18 @@ export class TestPage {
 	 */
 	// tslint:disable-next-line:no-any
 	public async recordFunc(fn: Function, ...args: any[]): Promise<any> {
-		await this.screenshot(`${fn.name}_before`);
+		let err: Error | undefined;
+		if (typeof fn !== "function" || fn.name === "") {
+			err = new Error(JSON.stringify(fn));
+			logger.debug("cannot record nameless function", field("trace", err.stack));
+		}
+		if (!err) {
+			await this.screenshot(`${fn.name}_before`);
+		}
 		const result = await fn.apply(this.rootPage, args);
-		await this.screenshot(`${fn.name}_after`);
+		if (!err) {
+			await this.screenshot(`${fn.name}_after`);
+		}
 
 		return result;
 	}
@@ -179,10 +198,10 @@ export class TestPage {
 	 */
 	public waitFor(durationOrSelector: number | string, options?: puppeteer.WaitForSelectorOptionsHidden | puppeteer.WaitForSelectorOptions): Promise<puppeteer.ElementHandle | null | void> {
 		if (typeof durationOrSelector === "number") {
-			return this.recordFunc(this.rootPage.waitFor, durationOrSelector);
+			return this.rootPage.waitFor(durationOrSelector);
 		}
 
-		return this.recordFunc(this.rootPage.waitFor, durationOrSelector, options);
+		return this.rootPage.waitFor(durationOrSelector, options);
 	}
 
 	/**
@@ -359,14 +378,17 @@ export class TestServer {
 	 * runner context.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelectorAll(page: TestPage, selector: string): Promise<Array<DeserializedNode>> {
+	public async querySelectorAll(page: puppeteer.Page | TestPage, selector: string): Promise<Array<DeserializedNode>> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}
 
 		// tslint:disable-next-line:no-any
 		const elements: Array<DeserializedNode> = [];
-		const serializedElements = await page.rootPage.evaluate((selector) => {
+		if (page instanceof TestPage) {
+			page = page.rootPage;
+		}
+		const serializedElements = await page.evaluate((selector) => {
 			// tslint:disable-next-line:no-any
 			return new Promise<Array<string>>((res, rej): void => {
 				const elements = Array.from(document.querySelectorAll(selector));
@@ -396,7 +418,7 @@ export class TestServer {
 	 * Get an element on the page. See `TestServer.querySelectorAll`.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelector(page: TestPage, selector: string): Promise<DeserializedNode> {
+	public async querySelector(page: puppeteer.Page | TestPage, selector: string): Promise<DeserializedNode> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}

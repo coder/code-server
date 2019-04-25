@@ -43,11 +43,11 @@ describe("chrome e2e", () => {
 	afterEach(() => deleteTestFile());
 
 	const waitForSidebar = (page: TestPage): Promise<void> => {
-		return page.rootPage.waitFor(sidebarSelector, { visible: true }).then(() => page.click(sidebarSelector));
+		return page.rootPage.waitFor(sidebarSelector, { visible: true }).then(() => page.rootPage.click(sidebarSelector));
 	};
 
 	const waitForCommandInput = (page: TestPage): Promise<void> => {
-		return page.rootPage.waitFor(commandInputSelector, { visible: true }).then(() => page.click(commandInputSelector));
+		return page.rootPage.waitFor(commandInputSelector, { visible: true }).then(() => page.rootPage.click(commandInputSelector));
 	};
 
 	const workbenchQuickOpen = (page: TestPage): Promise<void> => {

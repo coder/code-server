@@ -1,4 +1,5 @@
-import { TestServer, TestPage } from "./index";
+import * as puppeteer from "puppeteer";
+import { TestServer } from "./index";
 
 describe("startup e2e", () => {
 	jest.setTimeout(20000);
@@ -24,7 +25,7 @@ describe("startup e2e", () => {
 		}
 	});
 
-	const expectEditor = async (server: TestServer, page: TestPage): Promise<void> => {
+	const expectEditor = async (server: TestServer, page: puppeteer.Page): Promise<void> => {
 		// Editor should be visible.
 		await page.waitFor("div.part.editor");
 		const editor = await server.querySelector(page, "div.part.editor");
@@ -39,7 +40,7 @@ describe("startup e2e", () => {
 		const server = servers["--port"];
 		await server.start();
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+		await page.goto(server.url);
 
 		await expectEditor(server, page);
 	});
@@ -49,16 +50,14 @@ describe("startup e2e", () => {
 		await server.start({ ignoreHTTPSErrors: true });
 		const page = await server.newPage();
 		await page.goto(server.url);
-		await page.waitFor(1000);
-		const testPage = new TestPage(page, "requirePassword");
 
 		// Enter password.
 		expect(server.options.password).toBeTruthy();
-		await testPage.waitFor("input#password");
-		await testPage.click("input#password");
-		await testPage.keyboard.type(server.options.password, { delay: 100 });
-		await testPage.click("button#submit");
+		await page.waitFor("input#password");
+		await page.click("input#password");
+		await page.keyboard.type(server.options.password, { delay: 100 });
+		await page.click("button#submit");
 
-		await expectEditor(server, testPage);
+		await expectEditor(server, page);
 	});
 });
