@@ -394,9 +394,15 @@ class BrowserWindow extends EventEmitter {
 		if (typeof (window as any)["fullScreen"] !== "undefined") {
 			return (window as any)["fullScreen"];
 		}
-
 		// tslint:enable no-any
-		return false;
+
+		try {
+			return window.matchMedia("(display-mode: fullscreen)").matches;
+		} catch (error) {
+			logger.error(error.message);
+
+			return false;
+		}
 	}
 
 	public isFocused(): boolean {
