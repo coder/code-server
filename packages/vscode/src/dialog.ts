@@ -480,7 +480,7 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 			start: 0,
 			end: node.filterData.length,
 		}] : []);
-		templateData.size.innerText = node.element.size.toString();
+		templateData.size.innerText = !node.element.isDirectory ? this.humanReadableSize(node.element.size) : "";
 		templateData.lastModified.innerText = node.element.lastModified;
 
 		// We know this exists because we created the template.
@@ -497,5 +497,17 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 	 */
 	public disposeTemplate(_templateData: DialogEntryData): void {
 		// throw new Error("Method not implemented.");
+	}
+
+	/**
+	 * Given a positive size in bytes, return a string that is more readable for
+	 * humans.
+	 */
+	private humanReadableSize(bytes: number): string {
+		const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
+		const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1000)), units.length - 1);
+
+		return (bytes / Math.pow(1000, i)).toFixed(2)
+			+ " " + units[i];
 	}
 }
