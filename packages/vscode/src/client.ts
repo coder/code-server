@@ -12,6 +12,7 @@ import { IFileService, FileOperation } from "vs/platform/files/common/files";
 import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";
 import { IModelService } from "vs/editor/common/services/modelService";
 import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
+import { IStorageService } from "vs/platform/storage/common/storage";
 // NOTE: shouldn't import anything from VS Code here or anything that will
 // depend on a synchronous fill like `os`.
 
@@ -38,6 +39,14 @@ class VSClient extends IdeClient {
 					// tslint:disable-next-line:no-any
 					statusbarService: getService<IStatusbarService>(IStatusbarService) as any,
 					notificationService: getService<INotificationService>(INotificationService),
+					storageService: {
+						save: (): Promise<void> => {
+							// tslint:disable-next-line:no-any
+							const storageService = getService<IStorageService>(IStorageService) as any;
+
+							return storageService.close();
+						},
+					},
 
 					onFileCreate: (cb): void => {
 						getService<IFileService>(IFileService).onAfterOperation((e) => {

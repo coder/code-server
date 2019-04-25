@@ -2,9 +2,9 @@ import * as fs from "fs";
 import { promisify } from "util";
 import { ServerProxy } from "../../common/proxy";
 import { IEncodingOptions } from "../../common/util";
-import { WritableProxy } from "./stream";
+import { ReadableProxy, WritableProxy } from "./stream";
 
-// tslint:disable completed-docs
+// tslint:disable completed-docs no-any
 
 /**
  * A serializable version of fs.Stats.
@@ -37,45 +37,52 @@ export interface Stats {
 	_isSocket: boolean;
 }
 
-export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
+export class ReadStreamProxy extends ReadableProxy<fs.ReadStream> {
+	public constructor(stream: fs.ReadStream) {
+		super(stream, ["open"]);
+	}
+
 	public async close(): Promise<void> {
-		this.stream.close();
+		this.instance.close();
 	}
 
 	public async dispose(): Promise<void> {
+		this.instance.close();
 		await super.dispose();
-		this.stream.close();
-	}
-
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
-		this.stream.on("open", (fd) => cb("open", fd));
 	}
 }
 
-export class WatcherProxy implements ServerProxy {
-	public constructor(private readonly watcher: fs.FSWatcher) {}
+export class WriteStreamProxy extends WritableProxy<fs.WriteStream> {
+	public constructor(stream: fs.WriteStream) {
+		super(stream, ["open"]);
+	}
 
 	public async close(): Promise<void> {
-		this.watcher.close();
+		this.instance.close();
 	}
 
 	public async dispose(): Promise<void> {
-		this.watcher.close();
-		this.watcher.removeAllListeners();
+		this.instance.close();
+		await super.dispose();
+	}
+}
+
+export class WatcherProxy extends ServerProxy<fs.FSWatcher> {
+	public constructor(watcher: fs.FSWatcher) {
+		super({
+			bindEvents: ["change", "close", "error"],
+			doneEvents: ["close", "error"],
+			instance: watcher,
+		});
 	}
 
-	public async onDone(cb: () => void): Promise<void> {
-		this.watcher.on("close", cb);
-		this.watcher.on("error", cb);
+	public async close(): Promise<void> {
+		this.instance.close();
 	}
 
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		this.watcher.on("change", (event, filename) => cb("change", event, filename));
-		this.watcher.on("close", () => cb("close"));
-		this.watcher.on("error", (error) => cb("error", error));
+	public async dispose(): Promise<void> {
+		this.instance.close();
+		await super.dispose();
 	}
 }
 
@@ -84,7 +91,6 @@ export class FsModuleProxy {
 		return promisify(fs.access)(path, mode);
 	}
 
-	// tslint:disable-next-line no-any
 	public appendFile(file: fs.PathLike | number, data: any, options?: fs.WriteFileOptions): Promise<void> {
 		return promisify(fs.appendFile)(file, data, options);
 	}
@@ -105,7 +111,10 @@ export class FsModuleProxy {
 		return promisify(fs.copyFile)(src, dest, flags);
 	}
 
-	// tslint:disable-next-line no-any
+	public async createReadStream(path: fs.PathLike, options?: any): Promise<ReadStreamProxy> {
+		return new ReadStreamProxy(fs.createReadStream(path, options));
+	}
+
 	public async createWriteStream(path: fs.PathLike, options?: any): Promise<WriteStreamProxy> {
 		return new WriteStreamProxy(fs.createWriteStream(path, options));
 	}
@@ -236,7 +245,6 @@ export class FsModuleProxy {
 		return promisify(fs.write)(fd, buffer, offset, length, position);
 	}
 
-	// tslint:disable-next-line no-any
 	public writeFile (path: fs.PathLike | number, data: any, options: IEncodingOptions): Promise<void>  {
 		return promisify(fs.writeFile)(path, data, options);
 	}

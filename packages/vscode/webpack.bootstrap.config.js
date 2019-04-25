@@ -7,6 +7,7 @@ const vsFills = path.join(root, "packages/vscode/src/fill");
 
 module.exports = merge(
 	require(path.join(root, "scripts/webpack.node.config.js"))({
+		dirname: __dirname,
 		typescriptCompilerOptions: {
 			target: "es6",
 		},
@@ -15,7 +16,6 @@ module.exports = merge(
 		mode: "development",
 		output: {
 			chunkFilename: "[name].bundle.js",
-			path: path.resolve(__dirname, "out"),
 			publicPath: "/",
 			filename: "bootstrap-fork.js",
 			libraryTarget: "commonjs",
@@ -36,7 +36,8 @@ module.exports = merge(
 					loader: "ignore-loader",
 				}],
 			}, {
-				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\//,
+				// The only thing we need in electron-browser is the shared process (including contrib).
+				test: /((\\|\/)vs(\\|\/)code(\\|\/)electron-main(\\|\/))|((\\|\/)test(\\|\/))|(OSSREADME\.json$)|\/browser\/|\/electron-browser\/(?!sharedProcess\/).+\//,
 				use: [{
 					loader: "ignore-loader",
 				}],
@@ -50,15 +51,17 @@ module.exports = merge(
 				"windows-mutex": path.resolve(fills, "empty.ts"),
 				"windows-process-tree": path.resolve(fills, "empty.ts"),
 				"vscode-windows-registry": path.resolve(fills, "empty.ts"),
+				"vscode-windows-ca-certs": path.resolve(fills, "empty.ts"),
 				"vscode-sqlite3": path.resolve(fills, "empty.ts"),
 				"vs/base/browser/browser": path.resolve(fills, "empty.ts"),
 
+				"applicationinsights": path.join(vsFills, "applicationInsights.ts"),
 				"electron": path.join(vsFills, "stdioElectron.ts"),
 				"vscode-ripgrep": path.join(vsFills, "ripgrep.ts"),
 				"native-keymap": path.join(vsFills, "native-keymap.ts"),
 				"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 				"vs/base/common/amd": path.resolve(vsFills, "amd.ts"),
-				"vs/base/node/paths": path.resolve(vsFills, "paths.ts"),
+				"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 				"vs/platform/product/node/package": path.resolve(vsFills, "package.ts"),
 				"vs/platform/product/node/product": path.resolve(vsFills, "product.ts"),
 				"vs/base/node/zip": path.resolve(vsFills, "zip.ts"),

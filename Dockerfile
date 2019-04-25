@@ -1,4 +1,4 @@
-FROM node:8.15.0
+FROM node:10.15.1
 
 # Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
@@ -24,22 +24,31 @@ RUN apt-get update && apt-get install -y \
 	git \
 	locales \
 	sudo \
-	dumb-init
+	dumb-init \
+	vim \
+	curl \
+	wget
 
 RUN locale-gen en_US.UTF-8
 # We unfortunately cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LC_ALL=en_US.UTF-8
 
-RUN adduser --gecos '' --disabled-password coder
-RUN echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+RUN adduser --gecos '' --disabled-password coder && \
+	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 USER coder
 COPY entrypoint.sh /home/coder/project/
 
 # We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
-RUN mkdir -p /home/coder/project
+RUN mkdir -p /home/coder/project && \
+    chmod g+rw /home/coder/project;
+
 WORKDIR /home/coder/project
+
+# This assures we have a volume mounted even if the user forgot to do bind mount.
+# XXX: Workaround for GH-459 and for OpenShift compatibility.
+VOLUME [ "/home/coder/project" ]
 
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443

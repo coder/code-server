@@ -1,16 +1,18 @@
 import * as net from "net";
 import { callbackify } from "util";
-import { ClientProxy } from "../../common/proxy";
+import { ClientProxy, ClientServerProxy } from "../../common/proxy";
 import { NetModuleProxy, NetServerProxy, NetSocketProxy } from "../../node/modules/net";
 import { Duplex } from "./stream";
 
 // tslint:disable completed-docs
 
-export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
+interface ClientNetSocketProxy extends NetSocketProxy, ClientServerProxy<net.Socket> {}
+
+export class Socket extends Duplex<ClientNetSocketProxy> implements net.Socket {
 	private _connecting: boolean = false;
 	private _destroyed: boolean = false;
 
-	public constructor(proxyPromise: Promise<NetSocketProxy> | NetSocketProxy, connecting?: boolean) {
+	public constructor(proxyPromise: Promise<ClientNetSocketProxy> | ClientNetSocketProxy, connecting?: boolean) {
 		super(proxyPromise);
 		if (connecting) {
 			this._connecting = connecting;
@@ -126,12 +128,16 @@ export class Socket extends Duplex<NetSocketProxy> implements net.Socket {
 	}
 }
 
-export class Server extends ClientProxy<NetServerProxy> implements net.Server {
+interface ClientNetServerProxy extends NetServerProxy, ClientServerProxy<net.Server> {
+	onConnection(cb: (proxy: ClientNetSocketProxy) => void): Promise<void>;
+}
+
+export class Server extends ClientProxy<ClientNetServerProxy> implements net.Server {
 	private socketId = 0;
 	private readonly sockets = new Map<number, net.Socket>();
 	private _listening: boolean = false;
 
-	public constructor(proxyPromise: Promise<NetServerProxy> | NetServerProxy) {
+	public constructor(proxyPromise: Promise<ClientNetServerProxy> | ClientNetServerProxy) {
 		super(proxyPromise);
 
 		this.catch(this.proxy.onConnection((socketProxy) => {
@@ -208,11 +214,17 @@ export class Server extends ClientProxy<NetServerProxy> implements net.Server {
 
 type NodeNet = typeof net;
 
+interface ClientNetModuleProxy extends NetModuleProxy, ClientServerProxy {
+	createSocket(options?: net.SocketConstructorOpts): Promise<ClientNetSocketProxy>;
+	createConnection(target: string | number | net.NetConnectOpts, host?: string): Promise<ClientNetSocketProxy>;
+	createServer(options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean }): Promise<ClientNetServerProxy>;
+}
+
 export class NetModule implements NodeNet {
 	public readonly Socket: typeof net.Socket;
 	public readonly Server: typeof net.Server;
 
-	public constructor(private readonly proxy: NetModuleProxy) {
+	public constructor(private readonly proxy: ClientNetModuleProxy) {
 		// @ts-ignore this is because Socket is missing things from the Stream
 		// namespace but I'm unsure how best to provide them (finished,
 		// finished.__promisify__, pipeline, and some others) or if it even matters.

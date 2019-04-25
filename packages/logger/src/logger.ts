@@ -59,6 +59,14 @@ export const field = <T>(name: string, value: T): Field<T> => {
 	return new Field(name, value);
 };
 
+export type Extender = (msg: {
+	message: string,
+	level: Level,
+	type: "trace" | "info" | "warn" | "debug" | "error",
+	fields?: FieldArray,
+	section?: string,
+}) => void;
+
 /**
  * This formats & builds text for logging.
  * It should only be used to build one log item at a time since it stores the
@@ -221,6 +229,7 @@ export class Logger {
 		private _formatter: Formatter,
 		private readonly name?: string,
 		private readonly defaultFields?: FieldArray,
+		private readonly extenders: Extender[] = [],
 	) {
 		if (name) {
 			this.nameColor = this.hashStringToColor(name);
@@ -246,6 +255,10 @@ export class Logger {
 	 */
 	public mute(): void {
 		this.muted = true;
+	}
+
+	public extend(extender: Extender): void {
+		this.extenders.push(extender);
 	}
 
 	/**
@@ -328,7 +341,7 @@ export class Logger {
 	 * Each name is deterministically generated a color.
 	 */
 	public named(name: string, ...fields: FieldArray): Logger {
-		const l = new Logger(this._formatter, name, fields);
+		const l = new Logger(this._formatter, name, fields, this.extenders);
 		if (this.muted) {
 			l.mute();
 		}
@@ -393,6 +406,16 @@ export class Logger {
 			console.log(...this._formatter.flush());
 		}
 		// tslint:enable no-console
+
+		this.extenders.forEach((extender) => {
+			extender({
+				section: this.name,
+				fields: options.fields,
+				level: options.level,
+				message: options.message as string,
+				type: options.type,
+			});
+		});
 	}
 
 	/**

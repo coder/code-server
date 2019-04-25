@@ -2,78 +2,65 @@ import * as net from "net";
 import { ServerProxy } from "../../common/proxy";
 import { DuplexProxy } from "./stream";
 
-// tslint:disable completed-docs
+// tslint:disable completed-docs no-any
 
 export class NetSocketProxy extends DuplexProxy<net.Socket> {
+	public constructor(socket: net.Socket) {
+		super(socket, ["connect", "lookup", "timeout"]);
+	}
+
 	public async connect(options: number | string | net.SocketConnectOpts, host?: string): Promise<void> {
-		this.stream.connect(options as any, host as any); // tslint:disable-line no-any this works fine
+		this.instance.connect(options as any, host as any);
 	}
 
 	public async unref(): Promise<void> {
-		this.stream.unref();
+		this.instance.unref();
 	}
 
 	public async ref(): Promise<void> {
-		this.stream.ref();
+		this.instance.ref();
 	}
 
 	public async dispose(): Promise<void> {
-		this.stream.removeAllListeners();
-		this.stream.end();
-		this.stream.destroy();
-		this.stream.unref();
-	}
-
-	public async onDone(cb: () => void): Promise<void> {
-		this.stream.on("close", cb);
-	}
-
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		await super.onEvent(cb);
-		this.stream.on("connect", () => cb("connect"));
-		this.stream.on("lookup", (error, address, family, host) => cb("lookup", error, address, family, host));
-		this.stream.on("timeout", () => cb("timeout"));
+		this.instance.end();
+		this.instance.destroy();
+		this.instance.unref();
+		await super.dispose();
 	}
 }
 
-export class NetServerProxy implements ServerProxy {
-	public constructor(private readonly server: net.Server) {}
+export class NetServerProxy extends ServerProxy<net.Server> {
+	public constructor(instance: net.Server) {
+		super({
+			bindEvents: ["close", "error", "listening"],
+			doneEvents: ["close"],
+			instance,
+		});
+	}
 
 	public async listen(handle?: net.ListenOptions | number | string, hostname?: string | number, backlog?: number): Promise<void> {
-		this.server.listen(handle, hostname as any, backlog as any); // tslint:disable-line no-any this is fine
+		this.instance.listen(handle, hostname as any, backlog as any);
 	}
 
 	public async ref(): Promise<void> {
-		this.server.ref();
+		this.instance.ref();
 	}
 
 	public async unref(): Promise<void> {
-		this.server.unref();
+		this.instance.unref();
 	}
 
 	public async close(): Promise<void> {
-		this.server.close();
+		this.instance.close();
 	}
 
 	public async onConnection(cb: (proxy: NetSocketProxy) => void): Promise<void> {
-		this.server.on("connection", (socket) => cb(new NetSocketProxy(socket)));
+		this.instance.on("connection", (socket) => cb(new NetSocketProxy(socket)));
 	}
 
 	public async dispose(): Promise<void> {
-		this.server.close();
-		this.server.removeAllListeners();
-	}
-
-	public async onDone(cb: () => void): Promise<void> {
-		this.server.on("close", cb);
-	}
-
-	// tslint:disable-next-line no-any
-	public async onEvent(cb: (event: string, ...args: any[]) => void): Promise<void> {
-		this.server.on("close", () => cb("close"));
-		this.server.on("error", (error) => cb("error", error));
-		this.server.on("listening", () => cb("listening"));
+		this.instance.close();
+		this.instance.removeAllListeners();
 	}
 }
 
@@ -83,7 +70,7 @@ export class NetModuleProxy {
 	}
 
 	public async createConnection(target: string | number | net.NetConnectOpts, host?: string): Promise<NetSocketProxy> {
-		return new NetSocketProxy(net.createConnection(target as any, host)); // tslint:disable-line no-any defeat stubborness
+		return new NetSocketProxy(net.createConnection(target as any, host));
 	}
 
 	public async createServer(options?: { allowHalfOpen?: boolean, pauseOnConnect?: boolean }): Promise<NetServerProxy> {

@@ -75,7 +75,7 @@ export class Retry {
 
 	// Times are in seconds.
 	private readonly retryMinDelay = 1;
-	private readonly retryMaxDelay = 10;
+	private readonly retryMaxDelay = 3;
 	private readonly maxImmediateRetries = 5;
 	private readonly retryExponent = 1.5;
 	private blocked: string | boolean | undefined;
@@ -147,7 +147,7 @@ export class Retry {
 	 *
 	 * Blocking without a name will override a block with a name.
 	 */
-	private block(name?: string): void {
+	public block(name?: string): void {
 		if (!this.blocked || !name) {
 			this.blocked = name || true;
 			this.items.forEach((item) => {

@@ -9,7 +9,7 @@
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server:1.621 --allow-http --no-auth
+docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
@@ -23,9 +23,9 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 
 ## Getting Started
 
-### Hosted
+### Run over SSH
 
-[Try `code-server` now](https://coder.com/signup) for free at coder.com.
+Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 ### Docker
 
@@ -66,6 +66,12 @@ How to [secure your setup](/doc/security/ssl.md).
 ### Extensions
 
 At the moment we can't use the official VSCode Marketplace. We've created a custom extension marketplace focused around open-sourced extensions. However, if you have access to the `.vsix` file, you can manually install the extension.
+
+## Telemetry
+
+Use the `--disable-telemetry` flag or set `DISABLE_TELEMETRY=true` to disable tracking ENTIRELY.
+
+We use data collected to improve code-server.
 
 ## Contributing
 

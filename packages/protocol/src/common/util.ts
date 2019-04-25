@@ -1,6 +1,6 @@
 import { Argument, Module as ProtoModule, WorkingInit } from "../proto";
 import { OperatingSystem } from "../common/connection";
-import { Module, ServerProxy } from "./proxy";
+import { ClientServerProxy, Module, ServerProxy } from "./proxy";
 
 // tslint:disable no-any
 
@@ -19,6 +19,8 @@ export const escapePath = (path: string): string => {
 	return `'${path.replace(/'/g, "'\\''")}'`;
 };
 
+export type EventCallback = (event: string, ...args: any[]) => void;
+
 export type IEncodingOptions = {
 	encoding?: BufferEncoding | null;
 	flag?: string;
@@ -34,15 +36,26 @@ export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoExc
  * If sending a function is possible, provide `storeFunction`.
  * If sending a proxy is possible, provide `storeProxy`.
  */
-export const argumentToProto = (
+export const argumentToProto = <P = ClientServerProxy | ServerProxy>(
 	value: any,
 	storeFunction?: (fn: () => void) => number,
-	storeProxy?: (proxy: ServerProxy) => number,
+	storeProxy?: (proxy: P) => number | Module,
 ): Argument => {
 	const convert = (currentValue: any): Argument => {
 		const message = new Argument();
 
-		if (currentValue instanceof Error
+		if (isProxy<P>(currentValue)) {
+			if (!storeProxy) {
+				throw new Error("no way to serialize proxy");
+			}
+			const arg = new Argument.ProxyValue();
+			const id = storeProxy(currentValue);
+			if (typeof id === "string") {
+				throw new Error("unable to serialize module proxy");
+			}
+			arg.setId(id);
+			message.setProxy(arg);
+		} else if (currentValue instanceof Error
 			|| (currentValue && typeof currentValue.message !== "undefined"
 				&& typeof currentValue.stack !== "undefined")) {
 			const arg = new Argument.ErrorValue();
@@ -58,13 +71,6 @@ export const argumentToProto = (
 			const arg = new Argument.ArrayValue();
 			arg.setDataList(currentValue.map(convert));
 			message.setArray(arg);
-		} else if (isProxy(currentValue)) {
-			if (!storeProxy) {
-				throw new Error("no way to serialize proxy");
-			}
-			const arg = new Argument.ProxyValue();
-			arg.setId(storeProxy(currentValue));
-			message.setProxy(arg);
 		} else if (currentValue instanceof Date
 			|| (currentValue && typeof currentValue.getTime === "function")) {
 			const arg = new Argument.DateValue();
@@ -218,7 +224,7 @@ export const platformToProto = (platform: NodeJS.Platform): WorkingInit.Operatin
 	}
 };
 
-export const isProxy = (value: any): value is ServerProxy => {
+export const isProxy = <P = ClientServerProxy | ServerProxy>(value: any): value is P => {
 	return value && typeof value === "object" && typeof value.onEvent === "function";
 };
 

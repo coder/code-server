@@ -34,6 +34,12 @@ export abstract class IdeClient {
 		this.loadTime = time(2500);
 
 		let appWindow: Window | undefined;
+
+		window.addEventListener("beforeunload", (e) => {
+			e.preventDefault(); // FireFox
+			e.returnValue = ""; // Chrome
+		});
+
 		window.addEventListener("message", (event) => {
 			if (event.data === "app") {
 				appWindow = event.source as Window;
@@ -41,7 +47,16 @@ export abstract class IdeClient {
 		});
 
 		this.sharedProcessData = new Promise((resolve): void => {
-			client.onSharedProcessActive(resolve);
+			let d = client.onSharedProcessActive((data) => {
+				d.dispose();
+				d = client.onSharedProcessActive(() => {
+					d.dispose();
+					this.retry.notificationService.error(
+						new Error("Disconnected from shared process. Searching, installing, enabling, and disabling extensions will not work until the page is refreshed."),
+					);
+				});
+				resolve(data);
+			});
 		});
 
 		window.addEventListener("contextmenu", (event) => {
@@ -65,10 +80,6 @@ export abstract class IdeClient {
 		});
 	}
 
-	/**
-	 * Wrap a task in some logging, timing, and progress updates. Can optionally
-	 * wait on other tasks which won't count towards this task's time.
-	 */
 	public async task<T>(description: string, duration: number, task: () => Promise<T>): Promise<T>;
 	public async task<T, V>(description: string, duration: number, task: (v: V) => Promise<T>, t: Promise<V>): Promise<T>;
 	public async task<T, V1, V2>(description: string, duration: number, task: (v1: V1, v2: V2) => Promise<T>, t1: Promise<V1>, t2: Promise<V2>): Promise<T>;
@@ -76,6 +87,10 @@ export abstract class IdeClient {
 	public async task<T, V1, V2, V3, V4>(description: string, duration: number, task: (v1: V1, v2: V2, v3: V3, v4: V4) => Promise<T>, t1: Promise<V1>, t2: Promise<V2>, t3: Promise<V3>, t4: Promise<V4>): Promise<T>;
 	public async task<T, V1, V2, V3, V4, V5>(description: string, duration: number, task: (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5) => Promise<T>, t1: Promise<V1>, t2: Promise<V2>, t3: Promise<V3>, t4: Promise<V4>, t5: Promise<V5>): Promise<T>;
 	public async task<T, V1, V2, V3, V4, V5, V6>(description: string, duration: number, task: (v1: V1, v2: V2, v3: V3, v4: V4, v5: V5, v6: V6) => Promise<T>, t1: Promise<V1>, t2: Promise<V2>, t3: Promise<V3>, t4: Promise<V4>, t5: Promise<V5>, t6: Promise<V6>): Promise<T>;
+	/**
+	 * Wrap a task in some logging, timing, and progress updates. Can optionally
+	 * wait on other tasks which won't count towards this task's time.
+	 */
 	public async task<T>(
 		description: string, duration: number = 100, task: (...args: any[]) => Promise<T>, ...after: Array<Promise<any>> // tslint:disable-line no-any
 	): Promise<T> {

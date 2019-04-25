@@ -27,9 +27,10 @@ describe("spdlog", () => {
 			.toContain("critical");
 	});
 
-	it("should dispose", () => {
+	it("should dispose", (done) => {
 		setTimeout(() => {
 			client.dispose();
+			done();
 		}, 100);
 	});
 });

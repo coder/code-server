@@ -29,8 +29,6 @@ import { LogLevel } from "vs/platform/log/common/log";
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { URI } from "vs/base/common/uri";
-import { BackupMainService } from "vs/platform/backup/electron-main/backupMainService";
-import { IInstantiationService } from "vs/platform/instantiation/common/instantiation";
 
 /**
  * Initializes VS Code and provides a way to call into general client
@@ -131,13 +129,12 @@ export class Workbench {
 	public set serviceCollection(collection: ServiceCollection) {
 		this._serviceCollection = collection;
 
-		// TODO: If possible it might be better to start the app from vs/code/electron-main/app.
-		// For now, manually initialize services from there as needed.
-		const inst = this._serviceCollection.get(IInstantiationService) as IInstantiationService;
-		const backupMainService = inst.createInstance(BackupMainService) as BackupMainService;
-		backupMainService.initialize().catch((error) => {
-			logger.error(error.message);
+		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
+		const bounded = this.clipboardContextKey.bindTo(contextKeys);
+		client.clipboard.onPermissionChange((enabled) => {
+			bounded.set(enabled);
 		});
+		client.clipboard.initialize();
 
 		client.progressService = {
 			start: <T>(title: string, task: (progress: IProgress) => Promise<T>, onCancel: () => void): Promise<T> => {
@@ -237,12 +234,6 @@ export class Workbench {
 				return;
 			}
 		}
-		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
-		const bounded = this.clipboardContextKey.bindTo(contextKeys);
-		client.clipboard.onPermissionChange((enabled) => {
-			bounded.set(enabled);
-		});
-		client.clipboard.initialize();
 	}
 }
 

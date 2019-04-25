@@ -132,7 +132,7 @@ export class Dialog {
 	public show(): void {
 		if (!this.cachedActiveElement) {
 			this.cachedActiveElement = document.activeElement as HTMLElement;
-			(document.getElementById("workbench.main.container") || document.body).appendChild(this.overlay);
+			(document.querySelector(".monaco-workbench") || document.body).appendChild(this.overlay);
 			document.addEventListener("keydown", this.onKeydown);
 			if (this.input) {
 				this.input.focus();
