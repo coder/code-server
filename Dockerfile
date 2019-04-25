@@ -37,14 +37,15 @@ ENV LC_ALL=en_US.UTF-8
 RUN adduser --gecos '' --disabled-password coder && \
 	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
+COPY entrypoint.sh /home/coder/workdir/
+RUN chmod +x /home/coder/workdir/entrypoint.sh
+
 USER coder
-COPY entrypoint.sh /home/coder/project/
 
 # We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
-RUN mkdir -p /home/coder/project && \
-    chmod g+rw /home/coder/project;
+RUN mkdir -p /home/coder/workdir
 
-WORKDIR /home/coder/project
+WORKDIR /home/coder/workdir
 
 # This assures we have a volume mounted even if the user forgot to do bind mount.
 # XXX: Workaround for GH-459 and for OpenShift compatibility.
@@ -53,4 +54,4 @@ VOLUME [ "/home/coder/project" ]
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
 
-ENTRYPOINT ["dumb-init", "entrypoint.sh", "code-server"]
+ENTRYPOINT ["dumb-init", "/home/coder/workdir/entrypoint.sh", "code-server"]
