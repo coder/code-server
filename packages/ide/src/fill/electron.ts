@@ -378,14 +378,25 @@ class BrowserWindow extends EventEmitter {
 
 	public setFullScreen(fullscreen: boolean): void {
 		if (fullscreen) {
-			document.documentElement.requestFullscreen();
+			document.documentElement.requestFullscreen().catch((error) => {
+				logger.error(error.message);
+			});
 		} else {
-			document.exitFullscreen();
+			document.exitFullscreen().catch((error) => {
+				logger.error(error.message);
+			});
 		}
 	}
 
 	public isFullScreen(): boolean {
-		return document.fullscreenEnabled;
+		// TypeScript doesn't recognize this property.
+		// tslint:disable no-any
+		if (typeof (window as any)["fullScreen"] !== "undefined") {
+			return (window as any)["fullScreen"];
+		}
+
+		// tslint:enable no-any
+		return false;
 	}
 
 	public isFocused(): boolean {
