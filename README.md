@@ -46,7 +46,7 @@ See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile)
 
 For detailed instructions and troubleshooting, see the [self-hosted quick start guide](doc/self-hosted/index.md).
 
-Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](doc/admin/install/aws.md), and [Digital Ocean](doc/admin/install/digitalocean.md).
+Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md), [AWS](doc/admin/install/aws.md), and [DigitalOcean](doc/admin/install/digitalocean.md).
 
 How to [secure your setup](/doc/security/ssl.md).
 
