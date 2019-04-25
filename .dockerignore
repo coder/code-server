@@ -1,10 +1,18 @@
 Dockerfile
 # Docs
 doc/
+# Lib & dist
+lib/
+**/dist/
+**/out/
+**/node_modules/
+# Build binary
+packages/server/cli-*
+# Cache
+.cache
 # GitHub stuff
 .github
 .gitignore
 .travis.yml
 LICENSE
 README.md
-node_modules
