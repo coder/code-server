@@ -130,7 +130,10 @@ export class Dialog {
 	 * Show the dialog.
 	 */
 	public show(): void {
-		if (!this.cachedActiveElement && document.getElementsByClassName(this.overlay.className).length === 0) {
+		if (document.querySelector(`.${this.overlay.className}`)) {
+			throw new Error ("Save prompt is already open");
+		}
+		if (!this.cachedActiveElement) {
 			this.cachedActiveElement = document.activeElement as HTMLElement;
 			(document.querySelector(".monaco-workbench") || document.body).appendChild(this.overlay);
 			document.addEventListener("keydown", this.onKeydown);
