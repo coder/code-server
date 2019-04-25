@@ -4,7 +4,7 @@ import { CloseWorkspaceAction } from "vs/workbench/browser/actions/workspaceActi
 import { OpenProcessExplorer } from "vs/workbench/contrib/issue/electron-browser/issueActions";
 import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions/developerActions";
 import { OpenPrivacyStatementUrlAction, OpenRequestFeatureUrlAction, OpenTwitterUrlAction } from "vs/workbench/electron-browser/actions/helpActions";
-import { CloseCurrentWindowAction, NewWindowAction, ShowAboutDialogAction } from "vs/workbench/electron-browser/actions/windowActions";
+import { CloseCurrentWindowAction, NewWindowAction, ShowAboutDialogAction, ZoomInAction, ZoomOutAction, ZoomResetAction } from "vs/workbench/electron-browser/actions/windowActions";
 import { REVEAL_IN_OS_COMMAND_ID } from "vs/workbench/contrib/files/browser/fileCommands";
 
 const toSkip = [
@@ -17,6 +17,9 @@ const toSkip = [
 	NewWindowAction.ID,
 	CloseCurrentWindowAction.ID,
 	CloseWorkspaceAction.ID,
+	ZoomInAction.ID,
+	ZoomOutAction.ID,
+	ZoomResetAction.ID,
 	REVEAL_IN_OS_COMMAND_ID,
 
 	// Unfortunately referenced as a string
