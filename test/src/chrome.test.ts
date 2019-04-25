@@ -1,8 +1,7 @@
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
-import * as puppeteer from "puppeteer";
-import { TestServer } from "./index";
+import { TestServer, TestPage } from "./index";
 
 describe("chrome e2e", () => {
 	jest.setTimeout(60000);
@@ -43,21 +42,21 @@ describe("chrome e2e", () => {
 
 	afterEach(() => deleteTestFile());
 
-	const waitForSidebar = (page: puppeteer.Page): Promise<void> => {
-		return page.waitFor(sidebarSelector, { visible: true }).then(() => page.click(sidebarSelector));
+	const waitForSidebar = (page: TestPage): Promise<void> => {
+		return page.rootPage.waitFor(sidebarSelector, { visible: true }).then(() => page.click(sidebarSelector));
 	};
 
-	const waitForCommandInput = (page: puppeteer.Page): Promise<void> => {
-		return page.waitFor(commandInputSelector, { visible: true }).then(() => page.click(commandInputSelector));
+	const waitForCommandInput = (page: TestPage): Promise<void> => {
+		return page.rootPage.waitFor(commandInputSelector, { visible: true }).then(() => page.click(commandInputSelector));
 	};
 
-	const workbenchQuickOpen = (page: puppeteer.Page): Promise<void> => {
+	const workbenchQuickOpen = (page: TestPage): Promise<void> => {
 		return waitForSidebar(page)
 			.then(() => server.pressKeyboardCombo(page, superKey, "P"))
 			.then(() => waitForCommandInput(page));
 	};
 
-	const workbenchShowCommands = (page: puppeteer.Page): Promise<void> => {
+	const workbenchShowCommands = (page: TestPage): Promise<void> => {
 		return waitForSidebar(page)
 			.then(() => server.pressKeyboardCombo(page, superKey, "Shift", "P"))
 			.then(() => waitForCommandInput(page));
@@ -65,13 +64,13 @@ describe("chrome e2e", () => {
 
 	// Select all text in the search field, to avoid
 	// invalid queries.
-	const selectAll = (page: puppeteer.Page): Promise<void> => {
+	const selectAll = (page: TestPage): Promise<void> => {
 		return server.pressKeyboardCombo(page, superKey, "A");
 	};
 
 	it("should open IDE", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "openIDE"));
 
 		// Editor should be visible.
 		await page.waitFor("div.part.editor", { visible: true });
@@ -79,7 +78,7 @@ describe("chrome e2e", () => {
 
 	it("should create file via command palette", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "createFileWithPalette"));
 		await workbenchShowCommands(page);
 		await page.keyboard.type("New File", { delay: 100 });
 		await page.keyboard.press("Enter");
@@ -98,7 +97,7 @@ describe("chrome e2e", () => {
 
 	it("should create file via file tree", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "createFileWithFileTree"));
 		await waitForSidebar(page);
 		const newFileBntSelector = "a.action-label.explorer-action.new-file";
 		await page.waitFor(newFileBntSelector, { visible: true });
@@ -121,7 +120,7 @@ describe("chrome e2e", () => {
 
 	it("should open file", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "openFile"));
 
 		// Setup.
 		createTestFile();
@@ -136,7 +135,7 @@ describe("chrome e2e", () => {
 
 	it("should install extension", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "installExtension"));
 		await workbenchShowCommands(page);
 		await page.keyboard.type("install extensions", { delay: 100 });
 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Install Extensions, commands, picker']";
@@ -161,7 +160,7 @@ describe("chrome e2e", () => {
 
 	it("should debug file", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "debugFile"));
 
 		// Setup.
 		createTestFile();
@@ -220,7 +219,7 @@ describe("chrome e2e", () => {
 
 	it("should delete file", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "deleteFile"));
 
 		// Setup.
 		createTestFile();
@@ -256,7 +255,7 @@ describe("chrome e2e", () => {
 
 	it("should uninstall extension", async () => {
 		const page = await server.newPage()
-			.then(server.loadPage.bind(server));
+			.then((p) => server.loadPage(p, "uninstallExtension"));
 		await workbenchShowCommands(page);
 		await page.keyboard.type("show installed extensions", { delay: 100 });
 		const commandSelector = "div.quick-open-tree div.monaco-tree-row[aria-label*='Show Installed Extensions, commands, picker']";

@@ -5,6 +5,7 @@ import * as path from "path";
 import * as puppeteer from "puppeteer";
 import { ChildProcess, spawn } from "child_process";
 import { logger, field } from "@coder/logger";
+import { EventEmitter } from 'events';
 
 interface IServerOptions {
 	host: string;
@@ -89,6 +90,111 @@ class DeserializedNode {
 }
 
 /**
+ * Wrapper for puppeteer.Keyboard.
+ */
+class TestKeyboard {
+	public constructor(
+		private readonly page: puppeteer.Page,
+		public readonly onKeyboardEvent: (fnName: string, state: "before" | "after") => Promise<void>,
+	) { }
+
+	/**
+	 * Wrapper for sending individual keyboard up/down events
+	 * to the page.
+	 */
+	public async press(key: string, options?: { text?: string, delay?: number }): Promise<void> {
+		await this.onKeyboardEvent("press", "before");
+		const prom = await this.page.keyboard.press(key, options);
+		await this.onKeyboardEvent("press", "after");
+
+		return prom;
+	}
+
+	/**
+	 * Wrapper for sending keyboard events to the page.
+	 */
+	public async type(text: string, options?: { delay?: number }): Promise<void> {
+		await this.onKeyboardEvent("type", "before");
+		const prom = await this.page.keyboard.type(text, options);
+		await this.onKeyboardEvent("type", "after");
+
+		return prom;
+	}
+}
+
+/**
+ * Wrapper for puppeteer.Page.
+ */
+export class TestPage {
+	public readonly keyboard: TestKeyboard;
+	private screenshotCount = 0;
+
+	public constructor(public readonly rootPage: puppeteer.Page, private readonly tag?: string) {
+		this.keyboard = new TestKeyboard(rootPage, async (fnName, state): Promise<void> => {
+			await this.screenshot(`keyboard-${fnName}_${state}`);
+		});
+	}
+
+	/**
+	 * Saves a screenshot of the headless page in the server's
+	 * working directory. Useful for debugging.
+	 *
+	 * Screenshot path will be in the following format:
+	 * `<screenshotDir>/[<page-tag>_]<screenshot-number>_<screenshot-name>.jpg`.
+	 */
+	public screenshot(name: string, options?: puppeteer.ScreenshotOptions): Promise<string | Buffer> {
+		options = Object.assign({ path: path.resolve(TestServer.puppeteerDir, `./${this.tag ? `${this.tag}_` : ""}${this.screenshotCount}_${name}.jpg`), fullPage: true }, options);
+		const img = this.rootPage.screenshot(options);
+		this.screenshotCount++;
+
+		return img;
+	}
+
+	/**
+	 * 1. Take a screenshot.
+	 * 2. Run the function.
+	 * 3. Take a screenshot.
+	 */
+	// tslint:disable-next-line:no-any
+	public async recordFunc(fn: Function, ...args: any[]): Promise<any> {
+		await this.screenshot(`${fn.name}_before`);
+		const result = await fn.apply(this.rootPage, args);
+		await this.screenshot(`${fn.name}_after`);
+
+		return result;
+	}
+
+	/**
+	 * Wrapper for puppeteer.Page.click().
+	 */
+	public click(selector: string, options?: puppeteer.ClickOptions): Promise<void> {
+		return this.recordFunc(this.rootPage.click, selector, options);
+	}
+
+	public waitFor(duration: number): Promise<void>;
+	public waitFor(selector: string, options?: puppeteer.WaitForSelectorOptions): Promise<puppeteer.ElementHandle>;
+	public waitFor(selector: string, options: puppeteer.WaitForSelectorOptionsHidden): Promise<puppeteer.ElementHandle | null>;
+	/**
+	 * Wrapper for puppeteer.Page.waitFor()/puppeteer.Page.waitForSelector().
+	 */
+	public waitFor(durationOrSelector: number | string, options?: puppeteer.WaitForSelectorOptionsHidden | puppeteer.WaitForSelectorOptions): Promise<puppeteer.ElementHandle | null | void> {
+		if (typeof durationOrSelector === "number") {
+			return this.recordFunc(this.rootPage.waitFor, durationOrSelector);
+		}
+
+		return this.recordFunc(this.rootPage.waitFor, durationOrSelector, options);
+	}
+
+	/**
+	 * Wrapper for puppeteer.Page.$eval().
+	 */
+	// tslint:disable-next-line:no-any
+	public $eval<R>(selector: string, pageFunction: (element: Element, ...args: any[]) => R | Promise<R>, ...args: puppeteer.SerializableOrJSHandle[]): Promise<puppeteer.WrapElementHandle<R>> {
+		return this.recordFunc(this.rootPage.$eval, selector, pageFunction, args);
+	}
+}
+
+/**
  * Wraps common code for end-to-end testing, like starting up
  * the code-server binary.
  */
@@ -101,6 +207,7 @@ export class TestServer {
 	private child: ChildProcess;
 	// The directory to load the IDE with.
 	public static readonly workingDir = path.resolve(__dirname, "../tmp/workspace/");
+	public static readonly puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/", Date.now().toString());
 
 	public constructor(opts?: {
 		host?: string,
@@ -156,6 +263,9 @@ export class TestServer {
 			if (!fs.existsSync(TestServer.workingDir)) {
 				fs.mkdirSync(TestServer.workingDir, { recursive: true });
 			}
+			if (!fs.existsSync(TestServer.puppeteerDir)) {
+				fs.mkdirSync(TestServer.puppeteerDir, { recursive: true });
+			}
 			this.child = spawn(this.options.binaryPath, args, { cwd: TestServer.workingDir });
 			if (!this.child.stdout) {
 				await this.dispose();
@@ -198,7 +308,7 @@ export class TestServer {
 	 * to emit the "ide-ready" event. After which, the page
 	 * should be interactive.
 	 */
-	public async loadPage(page: puppeteer.Page): Promise<puppeteer.Page> {
+	public async loadPage(page: puppeteer.Page, tag?: string): Promise<TestPage> {
 		if (!page) {
 			throw new Error(`cannot load page, ${JSON.stringify(page)}`);
 		}
@@ -209,7 +319,7 @@ export class TestServer {
 			});
 		});
 
-		return page;
+		return new TestPage(page, tag);
 	}
 
 	/**
@@ -249,14 +359,14 @@ export class TestServer {
 	 * runner context.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelectorAll(page: puppeteer.Page, selector: string): Promise<Array<DeserializedNode>> {
+	public async querySelectorAll(page: TestPage, selector: string): Promise<Array<DeserializedNode>> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}
 
 		// tslint:disable-next-line:no-any
 		const elements: Array<DeserializedNode> = [];
-		const serializedElements = await page.evaluate((selector) => {
+		const serializedElements = await page.rootPage.evaluate((selector) => {
 			// tslint:disable-next-line:no-any
 			return new Promise<Array<string>>((res, rej): void => {
 				const elements = Array.from(document.querySelectorAll(selector));
@@ -286,7 +396,7 @@ export class TestServer {
 	 * Get an element on the page. See `TestServer.querySelectorAll`.
 	 */
 	// tslint:disable-next-line:no-any
-	public async querySelector(page: puppeteer.Page, selector: string): Promise<DeserializedNode> {
+	public async querySelector(page: TestPage, selector: string): Promise<DeserializedNode> {
 		if (!selector) {
 			throw new Error("selector undefined");
 		}
@@ -302,30 +412,17 @@ export class TestServer {
 	 * See puppeteer docs for key-code definitions:
 	 * https://github.com/GoogleChrome/puppeteer/blob/master/lib/USKeyboardLayout.js
 	 */
-	public async pressKeyboardCombo(page: puppeteer.Page, ...keys: string[]): Promise<void> {
+	public async pressKeyboardCombo(page: TestPage, ...keys: string[]): Promise<void> {
 		if (!keys || keys.length === 0) {
 			throw new Error("no keys provided");
 		}
 		// Press the keys.
 		for (let i = 0; i < keys.length; i++) {
-			await page.keyboard.down(keys[i]);
+			await page.rootPage.keyboard.down(keys[i]);
 		}
 		// Release the keys.
 		for (let x = 0; x < keys.length; x++) {
-			await page.keyboard.up(keys[x]);
+			await page.rootPage.keyboard.up(keys[x]);
 		}
-	}
-
-	/**
-	 * Saves a screenshot of the headless page in the server's
-	 * working directory. Useful for debugging.
-	 */
-	public async screenshot(page: puppeteer.Page, id: string): Promise<void> {
-		const puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/");
-		if (!fs.existsSync(puppeteerDir)) {
-			fs.mkdirSync(puppeteerDir, { recursive: true });
-		}
-		const screenshotPath = path.resolve(puppeteerDir, `./screenshot-${id}.jpg`);
-		await page.screenshot({ path: screenshotPath, fullPage: true });
 	}
 }
