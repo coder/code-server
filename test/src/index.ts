@@ -153,12 +153,12 @@ export class TestPage {
 			type: "jpeg",
 		}, options);
 		const img = await this.rootPage.screenshot(options);
-		this.screenshotCount++;
+		++this.screenshotCount;
 
 		// If this is a Travis CI build, store the screenshots
 		// for later.
-		if (process.env.TRAVIS_OS_NAME && process.env.TRAVIS_BUILD_NUMBER) {
-			const bucketPath = `Travis-${process.env.TRAVIS_BUILD_NUMBER}/${fileName}`;
+		if (process.env.TRAVIS_OS_NAME && process.env.TRAVIS_JOB_NUMBER) {
+			const bucketPath = `Travis-${process.env.TRAVIS_JOB_NUMBER}/${fileName}`;
 			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
 			try {
 				const url = await bucket.write(bucketPath, buf);
