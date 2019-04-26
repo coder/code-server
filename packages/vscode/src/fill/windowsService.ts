@@ -70,6 +70,7 @@ export class WindowsService implements IWindowsService {
 		showOpenDialog({
 			...(options.dialogOptions || {}),
 			properties: {
+				showHiddenFiles: true,
 				openFile: true,
 			},
 		}).then((path) => {
