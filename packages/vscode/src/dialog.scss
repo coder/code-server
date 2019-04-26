@@ -79,9 +79,7 @@
 		.dialog-entry {
 			cursor: pointer;
 			font-size: 1.02em;
-			padding: 0px;
-			padding-left: 8px;
-			padding-right: 8px;
+			padding: 0px 8px;
 
 			.dialog-entry-info {
 				display: flex;
@@ -92,6 +90,14 @@
 				width: 16px;
 				height: 19px;
 				margin-right: 5px;
+			}
+
+			.dialog-entry-size {
+				text-align: right;
+			}
+
+			.dialog-entry-mtime {
+				padding-left: 8px;
 			}
 
 			&:hover {

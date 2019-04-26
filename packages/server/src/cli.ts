@@ -216,6 +216,7 @@ const bold = (text: string | number): string | number => {
 	}
 
 	let password = options.password || process.env.PASSWORD;
+	const usingCustomPassword = !!password;
 	if (!password) {
 		// Generate a random password with a length of 24.
 		const buffer = Buffer.alloc(12);
@@ -304,7 +305,7 @@ const bold = (text: string | number): string | number => {
 		logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/security/ssl.md");
 	}
 
-	if (!options.noAuth) {
+	if (!options.noAuth && !usingCustomPassword) {
 		logger.info(" ");
 		logger.info(`Password:\u001B[1m ${password}`);
 	} else {

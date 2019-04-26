@@ -5,6 +5,7 @@ import { OpenProcessExplorer } from "vs/workbench/contrib/issue/electron-browser
 import { ToggleDevToolsAction } from "vs/workbench/electron-browser/actions/developerActions";
 import { OpenPrivacyStatementUrlAction, OpenRequestFeatureUrlAction, OpenTwitterUrlAction } from "vs/workbench/electron-browser/actions/helpActions";
 import { CloseCurrentWindowAction, NewWindowAction, ShowAboutDialogAction } from "vs/workbench/electron-browser/actions/windowActions";
+import { REVEAL_IN_OS_COMMAND_ID } from "vs/workbench/contrib/files/browser/fileCommands";
 
 const toSkip = [
 	ToggleDevToolsAction.ID,
@@ -16,6 +17,7 @@ const toSkip = [
 	NewWindowAction.ID,
 	CloseCurrentWindowAction.ID,
 	CloseWorkspaceAction.ID,
+	REVEAL_IN_OS_COMMAND_ID,
 
 	// Unfortunately referenced as a string
 	"update.showCurrentReleaseNotes",
