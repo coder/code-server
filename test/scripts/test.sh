@@ -19,6 +19,11 @@ imageID=`docker images -q code-server-e2e`
 # `--rebuild` flag is provided. Alternatively, the image can be
 # rebuilt by manually running `yarn build:docker`.
 if [[ "$imageID" == "" ]] || [[ "$1" == "--rebuild" ]]; then
-	yarn build:docker
+	if [[ "$TRAVIS_OS_NAME" != "" ]]; then
+		vars=$(env | grep TRAVIS | awk -F'=' '{ printf "export %s=\"%s\"\n", $1, $2 }' | base64 --wrap=0)
+		yarn build:docker --build-arg env_vars="$vars"
+	else
+		yarn build:docker
+	fi
 fi
 yarn test:docker
