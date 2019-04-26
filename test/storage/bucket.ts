@@ -16,9 +16,9 @@ export class File {
 }
 
 export interface IMetadata {
-	readonly contentType: string;
-	readonly contentEncoding: string;
-	readonly cacheControl: string;
+	readonly contentType?: string;
+	readonly contentEncoding?: string;
+	readonly cacheControl?: string;
 }
 
 /**

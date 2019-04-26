@@ -161,7 +161,7 @@ export class TestPage {
 			const bucketPath = `/Travis-${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_OS_NAME}.${Date.now()}/${fileName}`;
 			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
 			try {
-				const url = await bucket.write(bucketPath, buf, makePublic);
+				const url = await bucket.write(bucketPath, buf, makePublic, { contentType: "image/jpeg" });
 				logger.info("stored screenshot",
 					field("bucketPath", bucketPath),
 					field("url", url),
