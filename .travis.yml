@@ -1,12 +1,18 @@
 language: node_js
 node_js:
 - 10.15.1
-env:
-  - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
+services:
+- docker
 matrix:
   include:
   - os: linux
     dist: trusty
+    env:
+      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION" TARGET="centos"
+  - os: linux
+    dist: trusty
+    env:
+      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION" TARGET="alpine"
   - os: osx
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
@@ -19,7 +25,7 @@ before_deploy:
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"
 - git tag "$VERSION" "$TRAVIS_COMMIT"
-- yarn task package "$VERSION"
+- if [[ “$TRAVIS_OS_NAME” == “osx” ]]; then yarn task package $VERSION; fi
 deploy:
   provider: releases
   file_glob: true
