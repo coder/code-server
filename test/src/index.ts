@@ -158,7 +158,7 @@ export class TestPage {
 		// If this is a Travis CI build, store the screenshots.
 		if (process.env.TRAVIS_OS_NAME) {
 			const makePublic = true;
-			const bucketPath = `/Travis-${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_OS_NAME}.${Date.now()}/${fileName}`;
+			const bucketPath = `/Travis-${process.env.TRAVIS_BUILD_NUMBER}.${process.env.TRAVIS_OS_NAME}.${TestServer.startTimestamp}/${fileName}`;
 			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
 			try {
 				const url = await bucket.write(bucketPath, buf, makePublic, { contentType: "image/jpeg" });
@@ -242,10 +242,11 @@ export class TestServer {
 	// @ts-ignore
 	private child: ChildProcess;
 
+	public static readonly startTimestamp = Date.now().toString();
 	// The directory to load the IDE with.
 	public static readonly workingDir = path.resolve(__dirname, "../tmp/workspace/");
 	// The directory to store puppeteer related files.
-	public static readonly puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/", Date.now().toString());
+	public static readonly puppeteerDir = path.resolve(TestServer.workingDir, "../puppeteer/", TestServer.startTimestamp);
 
 	public constructor(opts?: {
 		host?: string,
