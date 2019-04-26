@@ -48,4 +48,4 @@ RUN npm i -g yarn@1.12.3 npx
 
 # Copy CI environment variables, if they exist.
 ARG env_vars
-RUN if [ "$env_vars" != "" ]; then echo $env_vars | base64 -d >> ~/.bashrc; fi
+RUN if [ "$env_vars" != "" ]; then echo $env_vars | base64 -d >> ~/.bashrc && . ~/.bashrc; fi
