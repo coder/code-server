@@ -158,12 +158,12 @@ export class TestPage {
 		// If this is a Travis CI build, store the screenshots
 		// for later.
 		if (process.env.TRAVIS_OS_NAME && process.env.TRAVIS_JOB_NUMBER) {
+			const makePublic = true;
 			const bucketPath = `Travis-${process.env.TRAVIS_JOB_NUMBER}/${fileName}`;
 			let buf: Buffer = typeof img === "string" ? Buffer.from(img as string) : img;
 			try {
-				const url = await bucket.write(bucketPath, buf);
+				const url = await bucket.write(bucketPath, buf, makePublic);
 				logger.info("stored screenshot",
-					field("localPath", options.path),
 					field("bucketPath", bucketPath),
 					field("url", url),
 				);
