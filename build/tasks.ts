@@ -2,6 +2,7 @@ import { register, run } from "@coder/runner";
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as os from "os";
+import { platform } from "./platform";
 import * as path from "path";
 import * as zlib from "zlib";
 import * as https from "https";
@@ -180,12 +181,12 @@ register("package", async (runner, releaseTag) => {
 
 	const releasePath = path.resolve(__dirname, "../release");
 
-	const archiveName = `code-server${releaseTag}-${os.platform()}-${os.arch()}`;
+	const archiveName = `code-server${releaseTag}-${platform()}-${os.arch()}`;
 	const archiveDir = path.join(releasePath, archiveName);
 	fse.removeSync(archiveDir);
 	fse.mkdirpSync(archiveDir);
 
-	const binaryPath = path.join(__dirname, `../packages/server/cli-${os.platform()}-${os.arch()}`);
+	const binaryPath = path.join(__dirname, `../packages/server/cli-${platform()}-${os.arch()}`);
 	const binaryDestination = path.join(archiveDir, "code-server");
 	fse.copySync(binaryPath, binaryDestination);
 	fs.chmodSync(binaryDestination, "755");

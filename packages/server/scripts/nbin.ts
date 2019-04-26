@@ -2,11 +2,13 @@ import { Binary } from "@coder/nbin";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import { platform } from "../../../build/platform";
 
-const target = `${os.platform()}-${os.arch()}`;
+const target = `${platform()}-${os.arch()}`;
 const rootDir = path.join(__dirname, "..");
 const bin = new Binary({
 	mainFile: path.join(rootDir, "out", "cli.js"),
+	target: platform() === "darwin" ? "darwin" : platform() === "musl" ? "alpine" : "linux",
 });
 bin.writeFiles(path.join(rootDir, "build", "**"));
 bin.writeFiles(path.join(rootDir, "out", "**"));
