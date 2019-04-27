@@ -1,7 +1,7 @@
 # code-server
 
-[!["Open Issues"](https://img.shields.io/github/issues-raw/codercom/code-server.svg)](https://github.com/codercom/code-server/issues)
-[!["Latest Release"](https://img.shields.io/github/release/codercom/code-server.svg)](https://github.com/codercom/code-server/releases/latest)
+[!["Open Issues"](https://img.shields.io/github/issues-raw/cdr/code-server.svg)](https://github.com/cdr/code-server/issues)
+[!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest)
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/codercom/code-server/blob/master/LICENSE)
 [![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
 
