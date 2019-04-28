@@ -1,5 +1,6 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
+import { preserveEnv } from "@coder/protocol";
 import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
@@ -174,17 +175,21 @@ const bold = (text: string | number): string | number => {
 	}
 
 	if (options.installExtension) {
+
+		let forkOptions = {
+			env: {
+				VSCODE_ALLOW_IO: "true"
+			}
+		}
+
+		preserveEnv(forkOptions);
+
 		const fork = forkModule("vs/code/node/cli", [
 			"--user-data-dir", dataDir,
 			"--builtin-extensions-dir", builtInExtensionsDir,
 			"--extensions-dir", extensionsDir,
 			"--install-extension", options.installExtension,
-		], {
-			env: {
-				VSCODE_ALLOW_IO: "true",
-				VSCODE_LOGS: process.env.VSCODE_LOGS,
-			},
-		}, dataDir);
+		], forkOptions, dataDir);
 
 		fork.stdout.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.info(l)));
 		fork.stderr.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.error(l)));
