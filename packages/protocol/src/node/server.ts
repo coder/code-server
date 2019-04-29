@@ -9,6 +9,10 @@ import { ChildProcessModuleProxy, ForkProvider, FsModuleProxy, NetModuleProxy, N
 
 // tslint:disable no-any
 
+export interface LanguageConfiguration {
+	locale: string;
+}
+
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
@@ -16,6 +20,7 @@ export interface ServerOptions {
 	readonly builtInExtensionsDirectory: string;
 	readonly extensionsDirectory: string;
 	readonly fork?: ForkProvider;
+	readonly getLanguageData?: () => Promise<LanguageConfiguration>;
 }
 
 interface ProxyData {
@@ -99,9 +104,25 @@ export class Server {
 		initMsg.setTmpDirectory(os.tmpdir());
 		initMsg.setOperatingSystem(platformToProto(os.platform()));
 		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL || "");
-		const srvMsg = new ServerMessage();
-		srvMsg.setInit(initMsg);
-		connection.send(srvMsg.serializeBinary());
+
+		const getLanguageData = this.options.getLanguageData
+			|| ((): Promise<LanguageConfiguration> => Promise.resolve({
+				locale: "en",
+			}));
+
+		getLanguageData().then((languageData) => {
+			try {
+				initMsg.setLanguageData(JSON.stringify(languageData));
+			} catch (error) {
+				logger.error("Unable to send language config", field("error", error));
+			}
+
+			const srvMsg = new ServerMessage();
+			srvMsg.setInit(initMsg);
+			connection.send(srvMsg.serializeBinary());
+		}).catch((error) => {
+			logger.error(error.message, field("error", error));
+		});
 	}
 
 	/**

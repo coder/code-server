@@ -795,7 +795,8 @@ proto.WorkingInit.toObject = function(includeInstance, msg) {
     operatingSystem: jspb.Message.getFieldWithDefault(msg, 5, 0),
     shell: jspb.Message.getFieldWithDefault(msg, 6, ""),
     builtinExtensionsDir: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, "")
+    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    languageData: jspb.Message.getFieldWithDefault(msg, 9, "")
   };
 
   if (includeInstance) {
@@ -863,6 +864,10 @@ proto.WorkingInit.deserializeBinaryFromReader = function(msg, reader) {
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setExtensionsDirectory(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setLanguageData(value);
       break;
     default:
       reader.skipField();
@@ -946,6 +951,13 @@ proto.WorkingInit.serializeBinaryToWriter = function(message, writer) {
   if (f.length > 0) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getLanguageData();
+  if (f.length > 0) {
+    writer.writeString(
+      9,
       f
     );
   }
@@ -1078,6 +1090,21 @@ proto.WorkingInit.prototype.getExtensionsDirectory = function() {
 /** @param {string} value */
 proto.WorkingInit.prototype.setExtensionsDirectory = function(value) {
   jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * optional string language_data = 9;
+ * @return {string}
+ */
+proto.WorkingInit.prototype.getLanguageData = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 9, ""));
+};
+
+
+/** @param {string} value */
+proto.WorkingInit.prototype.setLanguageData = function(value) {
+  jspb.Message.setProto3StringField(this, 9, value);
 };
 
 

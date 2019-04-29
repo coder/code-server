@@ -22,6 +22,7 @@ class VSClient extends IdeClient {
 			paths._paths.initialize(data, sharedData);
 			product.initialize(data);
 			process.env.SHELL = data.shell;
+			process.env.VSCODE_NLS_CONFIG = data.languageData;
 			// At this point everything should be filled, including `os`. `os` also
 			// relies on `initData` but it listens first so it initialize before this
 			// callback, meaning we are safe to include everything from VS Code now.

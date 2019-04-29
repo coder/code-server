@@ -1,5 +1,6 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
+import { LanguageConfiguration } from "@coder/protocol/src/node/server";
 import { withEnv } from "@coder/protocol";
 import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
@@ -11,6 +12,7 @@ import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
 import { createApp } from "./server";
 import { forkModule, requireModule } from "./vscode/bootstrapFork";
+import { getNlsConfiguration } from "./vscode/language";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
@@ -257,6 +259,7 @@ const bold = (text: string | number): string | number => {
 
 				return fork(modulePath, args, options);
 			},
+			getLanguageData: (): Promise<LanguageConfiguration> => getNlsConfiguration(dataDir, builtInExtensionsDir),
 		},
 		password,
 		httpsOptions: hasCustomHttps ? {
