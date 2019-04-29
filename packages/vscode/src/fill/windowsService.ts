@@ -255,8 +255,8 @@ export class WindowsService implements IWindowsService {
 		throw new Error("not implemented");
 	}
 
-	public relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
-		throw new Error("not implemented");
+	public async relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
+		this.window.reload();
 	}
 
 	// macOS Native Tabs
