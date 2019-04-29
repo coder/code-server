@@ -4,7 +4,7 @@ export const getRecentRelease = (): Promise<string> => {
 	return new Promise<string>((resolve, reject):void  => {
 		https.get({
 			host: "api.github.com",
-			path: "/repos/codercom/code-server/releases/latest",
+			path: "/repos/cdr/code-server/releases/latest",
 			method: "GET",
 			agent: false,
 			headers: {
