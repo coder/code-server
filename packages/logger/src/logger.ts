@@ -39,14 +39,20 @@ export class Time {
 	) { }
 }
 
-// `undefined` is allowed to make it easy to conditionally display a field.
-// For example: `error && field("error", error)`
 // tslint:disable-next-line no-any
-export type FieldArray = Array<Field<any> | undefined>;
+export type FieldArray = Array<Field<any>>;
+
+// Same as FieldArray but supports taking an object or undefined.
+// `undefined` is allowed to make it easy to conditionally display a field.
+// For example: `error && field("error", error)`.
+// For objects, the logger will iterate over the keys and turn them into
+// instances of Field.
+// tslint:disable-next-line no-any
+export type LogArgument = Array<Field<any> | undefined | object>;
 
 // Functions can be used to remove the need to perform operations when the
 // logging level won't output the result anyway.
-export type LogCallback = () => [string, ...FieldArray];
+export type LogCallback = () => [string, ...LogArgument];
 
 /**
  * Creates a time field
@@ -82,13 +88,19 @@ export abstract class Formatter {
 	public abstract tag(name: string, color: string): void;
 
 	/**
-	 * Add string or arbitrary variable.
+	 * Add string variable.
 	 */
 	public abstract push(arg: string, color?: string, weight?: string): void;
+	/**
+	 * Add arbitrary variable.
+	 */
 	public abstract push(arg: any): void; // tslint:disable-line no-any
 
+	/**
+	 * Add fields.
+	 */
 	// tslint:disable-next-line no-any
-	public abstract fields(fields: Array<Field<any>>): void;
+	public abstract fields(fields: FieldArray): void;
 
 	/**
 	 * Flush out the built arguments.
@@ -120,6 +132,9 @@ export abstract class Formatter {
  * Browser formatter.
  */
 export class BrowserFormatter extends Formatter {
+	/**
+	 * Add a tag.
+	 */
 	public tag(name: string, color: string): void {
 		this.format += `%c ${name} `;
 		this.args.push(
@@ -131,6 +146,9 @@ export class BrowserFormatter extends Formatter {
 		this.push(" ");
 	}
 
+	/**
+	 * Add an argument.
+	 */
 	public push(arg: any, color: string = "inherit", weight: string = "normal"): void { // tslint:disable-line no-any
 		if (color || weight) {
 			this.format += "%c";
@@ -143,8 +161,11 @@ export class BrowserFormatter extends Formatter {
 		this.args.push(arg);
 	}
 
+	/**
+	 * Add fields.
+	 */
 	// tslint:disable-next-line no-any
-	public fields(fields: Array<Field<any>>): void {
+	public fields(fields: FieldArray): void {
 		// tslint:disable-next-line no-console
 		console.groupCollapsed(...this.flush());
 		fields.forEach((field) => {
@@ -166,6 +187,9 @@ export class BrowserFormatter extends Formatter {
  * Server (Node) formatter.
  */
 export class ServerFormatter extends Formatter {
+	/**
+	 * Add a tag.
+	 */
 	public tag(name: string, color: string): void {
 		const [r, g, b] = this.hexToRgb(color);
 		while (name.length < 5) {
@@ -175,6 +199,9 @@ export class ServerFormatter extends Formatter {
 		this.format += `\u001B[38;2;${r};${g};${b}m${name} \u001B[0m`;
 	}
 
+	/**
+	 * Add an argument.
+	 */
 	public push(arg: any, color?: string, weight?: string): void { // tslint:disable-line no-any
 		if (weight === "bold") {
 			this.format += "\u001B[1m";
@@ -190,8 +217,11 @@ export class ServerFormatter extends Formatter {
 		this.args.push(arg);
 	}
 
+	/**
+	 * Add fields.
+	 */
 	// tslint:disable-next-line no-any
-	public fields(fields: Array<Field<any>>): void {
+	public fields(fields: FieldArray): void {
 		// tslint:disable-next-line no-any
 		const obj: { [key: string]: any} = {};
 		this.format += "\u001B[38;2;140;140;140m";
@@ -257,80 +287,83 @@ export class Logger {
 		this.muted = true;
 	}
 
+	/**
+	 * Extend the logger (for example to send the logs elsewhere).
+	 */
 	public extend(extender: Extender): void {
 		this.extenders.push(extender);
 	}
 
 	/**
-	 * Outputs information.
+	 * Log information.
 	 */
 	public info(fn: LogCallback): void;
-	public info(message: string, ...fields: FieldArray): void;
-	public info(message: LogCallback | string, ...fields: FieldArray): void {
+	public info(message: string, ...args: LogArgument): void;
+	public info(message: LogCallback | string, ...args: LogArgument): void {
 		this.handle({
 			type: "info",
 			message,
-			fields,
+			args,
 			tagColor: "#008FBF",
 			level: Level.Info,
 		});
 	}
 
 	/**
-	 * Outputs a warning.
+	 * Log a warning.
 	 */
 	public warn(fn: LogCallback): void;
-	public warn(message: string, ...fields: FieldArray): void;
-	public warn(message: LogCallback | string, ...fields: FieldArray): void {
+	public warn(message: string, ...args: LogArgument): void;
+	public warn(message: LogCallback | string, ...args: LogArgument): void {
 		this.handle({
 			type: "warn",
 			message,
-			fields,
+			args,
 			tagColor: "#FF9D00",
 			level: Level.Warning,
 		});
 	}
 
 	/**
-	 * Outputs a trace message.
+	 * Log a trace message.
 	 */
 	public trace(fn: LogCallback): void;
-	public trace(message: string, ...fields: FieldArray): void;
-	public trace(message: LogCallback | string, ...fields: FieldArray): void {
+	public trace(message: string, ...args: LogArgument): void;
+	public trace(message: LogCallback | string, ...args: LogArgument): void {
 		this.handle({
 			type: "trace",
 			message,
-			fields,
+			args,
 			tagColor: "#888888",
 			level: Level.Trace,
 		});
 	}
 
 	/**
-	 * Outputs a debug message.
+	 * Log a debug message.
 	 */
 	public debug(fn: LogCallback): void;
-	public debug(message: string, ...fields: FieldArray): void;
-	public debug(message: LogCallback | string, ...fields: FieldArray): void {
+	public debug(message: string, ...args: LogArgument): void;
+	public debug(message: LogCallback | string, ...args: LogArgument): void {
 		this.handle({
 			type: "debug",
 			message,
-			fields,
+			args,
 			tagColor: "#84009E",
 			level: Level.Debug,
 		});
 	}
 
 	/**
-	 * Outputs an error.
+	 * Log an error.
 	 */
 	public error(fn: LogCallback): void;
-	public error(message: string, ...fields: FieldArray): void;
-	public error(message: LogCallback | string, ...fields: FieldArray): void {
+	public error(message: string, ...args: LogArgument): void;
+	public error(message: LogCallback | string, ...args: LogArgument): void {
 		this.handle({
 			type: "error",
 			message,
-			fields,
+			args,
 			tagColor: "#B00000",
 			level: Level.Error,
 		});
@@ -350,12 +383,12 @@ export class Logger {
 	}
 
 	/**
-	 * Outputs a message.
+	 * Log a message.
 	 */
 	private handle(options: {
 		type: "trace" | "info" | "warn" | "debug" | "error";
 		message: string | LogCallback;
-		fields?: FieldArray;
+		args?: LogArgument;
 		level: Level;
 		tagColor: string;
 	}): void {
@@ -363,16 +396,28 @@ export class Logger {
 			return;
 		}
 
-		let passedFields = options.fields || [];
 		if (typeof options.message === "function") {
 			const values = options.message();
 			options.message = values.shift() as string;
-			passedFields = values as FieldArray;
+			options.args = values as FieldArray;
 		}
 
-		const fields = (this.defaultFields
-			? passedFields.filter((f) => !!f).concat(this.defaultFields)
-			: passedFields.filter((f) => !!f)) as Array<Field<any>>; // tslint:disable-line no-any
+		const fields: FieldArray = [];
+		if (options.args) {
+			options.args.forEach((arg) => {
+				if (arg instanceof Field) {
+					fields.push(arg);
+				} else if (arg) {
+					Object.keys(arg).forEach((k) => {
+						// tslint:disable-next-line no-any
+						fields.push(field(k, (arg as any)[k]));
+					});
+				}
+			});
+		}
+		if (this.defaultFields) {
+			fields.push(...this.defaultFields);
+		}
 
 		const now = Date.now();
 		let times: Array<Field<Time>> = [];
@@ -410,7 +455,7 @@ export class Logger {
 		this.extenders.forEach((extender) => {
 			extender({
 				section: this.name,
-				fields: options.fields,
+				fields,
 				level: options.level,
 				message: options.message as string,
 				type: options.type,
