@@ -2,7 +2,7 @@
 import { EventEmitter } from "events";
 import * as pty from "node-pty";
 import { ServerProxy } from "../../common/proxy";
-import { preserveEnv } from "../../common/util";
+import { withEnv } from "../../common/util";
 
 // tslint:disable completed-docs
 
@@ -66,8 +66,6 @@ export class NodePtyProcessProxy extends ServerProxy {
  */
 export class NodePtyModuleProxy {
 	public async spawn(file: string, args: string[] | string, options: pty.IPtyForkOptions): Promise<NodePtyProcessProxy> {
-		preserveEnv(options);
-
-		return new NodePtyProcessProxy(require("node-pty").spawn(file, args, options));
+		return new NodePtyProcessProxy(require("node-pty").spawn(file, args, withEnv(options)));
 	}
 }

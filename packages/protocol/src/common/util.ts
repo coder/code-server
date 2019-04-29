@@ -236,8 +236,11 @@ export const isPromise = (value: any): value is Promise<any> => {
  * When spawning VS Code tries to preserve the environment but since it's in
  * the browser, it doesn't work.
  */
-export const preserveEnv = (options?: { env?: NodeJS.ProcessEnv } | null): void => {
-	if (options && options.env) {
-		options.env = { ...process.env, ...options.env };
-	}
+export const withEnv = <T extends { env?: NodeJS.ProcessEnv }>(options?: T): T | undefined => {
+	return options && options.env ? {
+		...options,
+		env: {
+			...process.env, ...options.env,
+		},
+	} : options;
 };

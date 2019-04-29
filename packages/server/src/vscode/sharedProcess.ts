@@ -7,7 +7,7 @@ import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { Emitter } from "@coder/events/src";
 import { retry } from "@coder/ide/src/retry";
 import { logger, field, Level } from "@coder/logger";
-import { preserveEnv } from "@coder/protocol";
+import { withEnv } from "@coder/protocol";
 
 export enum SharedProcessState {
 	Stopped,
@@ -89,15 +89,10 @@ export class SharedProcess {
 			this.activeProcess.kill();
 		}
 
-		let forkOptions = {
-			env: {
-				VSCODE_ALLOW_IO: "true"
-			}
-		}
-
-		preserveEnv(forkOptions);
-
-		const activeProcess = forkModule("vs/code/electron-browser/sharedProcess/sharedProcessMain", [], forkOptions, this.userDataDir);
+		const activeProcess = forkModule(
+			"vs/code/electron-browser/sharedProcess/sharedProcessMain", [],
+			withEnv({ env: { VSCODE_ALLOW_IO: "true" } }), this.userDataDir,
+		);
 		this.activeProcess = activeProcess;
 
 		await new Promise((resolve, reject): void => {
