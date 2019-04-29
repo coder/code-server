@@ -3,11 +3,10 @@
 	padding-left: 40px;
 	padding-right: 40px;
 	padding-bottom: 25px;
-	background: #242424;
-	-webkit-box-shadow: 0px 0px 10px -3px rgba(0,0,0,0.75);
-	-moz-box-shadow: 0px 0px 10px -3px rgba(0,0,0,0.75);
-	box-shadow: 0px 0px 10px -3px rgba(0,0,0,0.75);
-	border-radius: 3px;
+	border-radius: 8px;
+	text-align: center;
+	background-color: var(--primary);
+	box-shadow: 0 12px 16px 0 rgba(29, 64, 126, 0.07);
 }
 
 .msgbox.input {
@@ -15,55 +14,57 @@
 	width: 100%;
 }
 
-.msgbox > .input {
-	background: #141414;
+.msgbox>.input {
+	background: var(--list-active-selection-foreground);
 	border: none;
 	box-sizing: border-box;
 	padding: 10px;
 	width: 100%;
 }
 
-.msgbox > .msg {
+.msgbox>.msg {
+	color: var(--header-foreground);
 	font-size: 16px;
 	font-weight: bold;
 }
 
-.msgbox > .detail {
+.msgbox>.detail {
 	font-size: 14px;
 	margin: 5px 0;
 }
 
-.msgbox > .errors {
+.msgbox>.errors {
 	margin-top: 20px;
 }
 
-.msgbox > .errors {
+.msgbox>.errors {
 	color: #f44747;
 }
 
-.msgbox > .button-wrapper {
+.msgbox>.button-wrapper {
 	display: flex;
 	flex-direction: row;
 	justify-content: space-between;
 	margin-top: 20px;
 }
 
-.msgbox > .button-wrapper > button {
+.msgbox>.button-wrapper>button {
 	flex: 1;
-	border-radius: 2px;
+	border-radius: px;
 	padding: 10px;
 	color: white;
-	background: #3d3d3d;
+	background: var(--list-active-selection-background);
 	border: 0px;
 	cursor: pointer;
 	opacity: 0.8;
+	outline: none;
 }
 
-.msgbox > .button-wrapper > button:hover {
+.msgbox>.button-wrapper>button:hover {
 	opacity: 1;
 }
 
-.msgbox > .button-wrapper > button:not(:last-child) {
+.msgbox>.button-wrapper>button:not(:last-child) {
 	margin-right: 8px;
 }
 

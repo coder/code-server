@@ -20,6 +20,7 @@ import { PasteAction } from "./fill/paste";
 
 import { ExplorerItem, ExplorerModel } from "vs/workbench/contrib/files/common/explorerModel";
 import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
+import { IThemeService, ITheme } from "vs/platform/theme/common/themeService";
 import { IEditorService, IResourceEditor } from "vs/workbench/services/editor/common/editorService";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { IProgressService2, ProgressLocation } from "vs/platform/progress/common/progress";
@@ -128,9 +129,11 @@ export class Workbench {
 
 	public set serviceCollection(collection: ServiceCollection) {
 		this._serviceCollection = collection;
-
 		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
 		const bounded = this.clipboardContextKey.bindTo(contextKeys);
+		const ts = this.serviceCollection.get(IThemeService) as IThemeService;
+		this.updateThemeVars(ts.getTheme()); // update CSS vars when page is loaded
+		ts.onThemeChange(this.updateThemeVars); // update CSS vars when theme is updated
 		client.clipboard.onPermissionChange((enabled) => {
 			bounded.set(enabled);
 		});
@@ -234,6 +237,25 @@ export class Workbench {
 				return;
 			}
 		}
+	}
+
+	private updateThemeVars(theme: ITheme): void {
+		const colorString = (id: any) => {
+			const colorObj = theme.getColor(id);
+			if (colorObj) {
+				return colorObj.toString();
+			} else {
+				return;
+			}
+		};
+		const root = document.documentElement;
+		root.style.setProperty("--primary", colorString("sideBar.background")!);
+		root.style.setProperty("--list-active-selection-background", colorString("list.activeSelectionBackground")!);
+		root.style.setProperty("--list-active-selection-foreground", colorString("list.activeSelectionForeground")!);
+		root.style.setProperty("--list-hover-background", colorString("list.hoverBackground")!);
+		root.style.setProperty("--header-background", colorString("sideBarSectionHeader.background")!);
+		root.style.setProperty("--header-foreground", colorString("sideBarSectionHeader.foreground")!);
+		root.style.setProperty("--border", colorString("panel.border")!);
 	}
 }
 

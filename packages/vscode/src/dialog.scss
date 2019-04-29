@@ -1,21 +1,12 @@
 .dialog {
-	--primary: #2A2E37;
-	--border: black;
-	--faded: #a0a1a5;
-	--disabled: #888;
-	--header-background: #161616;
-	--header-foreground: white;
-	--list-active-selection-background: rgb(0, 120, 160);
-	--list-active-selection-foreground: white;
-	--list-hover-background: rgb(36, 39, 46);
 	font-family: inherit;
-	box-shadow: 0 18px 80px 10px rgba(0, 0, 0, 0.1);
+	box-shadow: 0 12px 16px 0 rgba(29,64,126,0.07);
 	background-color: var(--primary);
 	display: flex;
 	flex-direction: column;
 	user-select: none;
 	overflow: hidden;
-	border-radius: 5px;
+	border-radius: 8px;
 
 	.monaco-tl-twistie {
 		display: none;
@@ -55,7 +46,7 @@
 
 			&.active {
 				font-weight: bold;
-				color: var(--list-active-selection-foreground);
+				color: var(--list-active-selection-background);
 			}
 		}
 	}

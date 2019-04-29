@@ -118,29 +118,6 @@ class Dialog {
 		(document.querySelector(".monaco-workbench") || document.body).appendChild(this.background);
 		this.root.classList.add("dialog");
 
-		const setProperty = (vari: string, id: string): void => {
-			const getColor = (id: string): string | undefined => {
-				const ts = workbench.serviceCollection.get<IThemeService>(IThemeService) as IThemeService;
-				const c = ts.getTheme().getColor(id);
-				if (!c) {
-					return;
-				}
-
-				return c.toString();
-			};
-			const c = getColor(id);
-			if (c) {
-				this.root.style.setProperty(vari, c);
-			}
-		};
-		setProperty("--primary", "sideBar.background");
-		setProperty("--list-active-selection-background", "list.activeSelectionBackground");
-		setProperty("--list-active-selection-foreground", "list.activeSelectionForeground");
-		setProperty("--list-hover-background", "list.hoverBackground");
-		setProperty("--header-background", "sideBarSectionHeader.background");
-		setProperty("--header-foreground", "sideBarSectionHeader.foreground");
-		setProperty("--border", "panel.border");
-
 		this.background.addEventListener("contextmenu", (event) => {
 			event.preventDefault();
 		});
