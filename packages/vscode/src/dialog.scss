@@ -29,6 +29,12 @@
 		padding: 4px;
 		border-bottom: 1px solid var(--border);
 	}
+	.path-bar {
+		display: none;
+		flex-direction: row;
+		padding: 4px;
+		border: 1px solid var(--header-background);
+	}
 
 	.path {
 		display: flex;
@@ -36,6 +42,8 @@
 
 		.path-part {
 			padding: 5px;
+			list-style-type: none;
+			border: 1px solid var(--border);
 			border-radius: 3px;
 			font-size: 1.02em;
 			cursor: pointer;
@@ -46,9 +54,14 @@
 
 			&.active {
 				font-weight: bold;
-				color: var(--list-active-selection-background);
+				color: var(--list-active-selection-foreground);
 			}
 		}
+		.path-btn {
+			align-content: right;
+			font-size: 1.02em;
+			border: 1px solid var(--border);
+	}
 	}
 
 	.dialog-grid {

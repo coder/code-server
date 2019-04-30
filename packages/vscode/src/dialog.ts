@@ -42,7 +42,6 @@ export interface OpenDialogOptions extends CommonDialogOptions {
 		readonly openFile?: boolean;
 	};
 }
-
 export interface SaveDialogOptions extends CommonDialogOptions {
 	readonly type: DialogType.Save;
 	readonly nameFieldLabel?: string;
@@ -84,6 +83,8 @@ class Dialog {
 
 	private readonly filesNode: HTMLElement;
 	private readonly pathNode: HTMLElement;
+	private readonly barNode: HTMLElement;
+	private readonly pathBtn: HTMLButtonElement;
 
 	private readonly entryList: ObjectTree<DialogEntry, string>;
 	private readonly background: HTMLElement;
@@ -143,11 +144,17 @@ class Dialog {
 
 		const navItems = document.createElement("div");
 		navItems.classList.add("nav");
+		const pathBar = document.createElement("input");
+		pathBar.classList.add("path-bar");
 
 		this.pathNode = document.createElement("div");
 		this.pathNode.classList.add("path");
+		this.barNode = document.createElement("div");
+		this.barNode.classList.add("path-bar");
 		navItems.appendChild(this.pathNode);
 		this.root.appendChild(navItems);
+		pathBar.appendChild(this.barNode);
+		this.root.appendChild(pathBar);
 
 		const headingsNode = document.createElement("div");
 		headingsNode.className = "headings dialog-grid";
@@ -322,7 +329,7 @@ class Dialog {
 		const pathParts = ["", ...this._path.split("/").filter((p) => p.length > 0)];
 
 		for (let i = 0; i < pathParts.length; i++) {
-			const pathPartNode = document.createElement("div");
+			const pathPartNode = document.createElement("li");
 			pathPartNode.classList.add("path-part");
 			pathPartNode.innerText = pathParts[i].length > 0 ? pathParts[i] : "/";
 

@@ -238,7 +238,9 @@ export class Workbench {
 			}
 		}
 	}
-
+	/**
+	 * Updates CSS vars on page load and when the theme is updated
+	 */
 	private updateThemeVars(theme: ITheme): void {
 		const colorString = (id: any) => {
 			const colorObj = theme.getColor(id);
