@@ -15,7 +15,6 @@ import { FileKind } from "vs/platform/files/common/files";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { workbench } from "./workbench";
 import "./dialog.scss";
-import { dialog } from 'electron';
 
 /**
  * Describes the type of dialog to show.
@@ -160,14 +159,16 @@ class Dialog {
 				if (e.key === "Enter") {
 					navItems.classList.remove("hidden");
 					pathBar.classList.add("hidden");
-					this.path = pathBar.value;
-					await util.promisify(fs.stat)(pathBar.value);
+					if (!pathBar.value.includes(".")) {
+						this.path = pathBar.value;
+						await util.promisify(fs.stat)(pathBar.value);
+					}
 				} else if (e.key === "Escape") {
 					navItems.classList.remove("hidden");
 					pathBar.classList.add("hidden");
 				}
 			} catch (err) {
-				throw new Error(`${err}`);
+				this.errorEmitter.emit(new Error(`${err}`));
 			}
 		});
 
@@ -376,7 +377,6 @@ class Dialog {
 	}
 
 	private set path(directory: string) {
-		console.log(directory);
 		this.list(directory).then((value) => {
 			this._path = directory;
 			this.buildPath();
