@@ -15,6 +15,7 @@ import { FileKind } from "vs/platform/files/common/files";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { workbench } from "./workbench";
 import "./dialog.scss";
+import { dialog } from 'electron';
 
 /**
  * Describes the type of dialog to show.
@@ -84,7 +85,6 @@ class Dialog {
 	private readonly filesNode: HTMLElement;
 	private readonly pathNode: HTMLElement;
 	private readonly barNode: HTMLElement;
-	private readonly pathBtn: HTMLButtonElement;
 
 	private readonly entryList: ObjectTree<DialogEntry, string>;
 	private readonly background: HTMLElement;
@@ -145,16 +145,46 @@ class Dialog {
 		const navItems = document.createElement("div");
 		navItems.classList.add("nav");
 		const pathBar = document.createElement("input");
-		pathBar.classList.add("path-bar");
+		pathBar.classList.add("path-editor", "hidden");
 
 		this.pathNode = document.createElement("div");
 		this.pathNode.classList.add("path");
 		this.barNode = document.createElement("div");
-		this.barNode.classList.add("path-bar");
 		navItems.appendChild(this.pathNode);
 		this.root.appendChild(navItems);
 		pathBar.appendChild(this.barNode);
 		this.root.appendChild(pathBar);
+		// event listener for pathBar
+		pathBar.addEventListener("keydown", async (e) => {
+			try {
+				if (e.key === "Enter") {
+					navItems.classList.remove("hidden");
+					pathBar.classList.add("hidden");
+					this.path = pathBar.value;
+					await util.promisify(fs.stat)(pathBar.value);
+				} else if (e.key === "Escape") {
+					navItems.classList.remove("hidden");
+					pathBar.classList.add("hidden");
+				}
+			} catch (err) {
+				throw new Error(`${err}`);
+			}
+		});
+
+		// open/close input field for path
+		const togglePathBar = () => {
+			if (pathBar.classList.contains("hidden")) {
+				this.barNode.classList.add("path-editor");
+				pathBar.defaultValue = this._path!;
+				pathBar.addEventListener("submit", togglePathBar);
+				pathBar.classList.remove("hidden");
+				navItems.classList.add("hidden");
+				pathBar.select();
+			} else {
+				pathBar.classList.add("hidden");
+			}
+		};
+		navItems.addEventListener("click", togglePathBar);
 
 		const headingsNode = document.createElement("div");
 		headingsNode.className = "headings dialog-grid";
@@ -329,7 +359,7 @@ class Dialog {
 		const pathParts = ["", ...this._path.split("/").filter((p) => p.length > 0)];
 
 		for (let i = 0; i < pathParts.length; i++) {
-			const pathPartNode = document.createElement("li");
+			const pathPartNode = document.createElement("div");
 			pathPartNode.classList.add("path-part");
 			pathPartNode.innerText = pathParts[i].length > 0 ? pathParts[i] : "/";
 
@@ -346,6 +376,7 @@ class Dialog {
 	}
 
 	private set path(directory: string) {
+		console.log(directory);
 		this.list(directory).then((value) => {
 			this._path = directory;
 			this.buildPath();

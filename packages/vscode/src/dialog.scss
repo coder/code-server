@@ -25,15 +25,29 @@
 
 	.nav {
 		display: flex;
+		// flex: 1;
 		flex-direction: row;
 		padding: 4px;
 		border-bottom: 1px solid var(--border);
 	}
-	.path-bar {
-		display: none;
+	.path-editor {
+		display: block;
+		height: 30px;
+		flex-direction: row;
+		font-size: 1.02em;
+		border: 1px solid var(--border);
+		border-radius: 2px;
+		color: var(--primary)
+	}
+	.path-div {
+		display: block;
 		flex-direction: row;
 		padding: 4px;
 		border: 1px solid var(--header-background);
+	}
+
+	.hidden {
+		display: none;
 	}
 
 	.path {
