@@ -50,10 +50,27 @@ Options:
   -p, --port <number>         Port to bind on. (default: 8443)
   -N, --no-auth               Start without requiring authentication.
   -H, --allow-http            Allow http connections.
-  -P, --password <value>      Specify a password for authentication.
+  -P, --password <value>      DEPRECATED: Use "PASSWORD" environment variable instead. Specify a password for authentication. 
   --disable-telemetry         Disables ALL telemetry.
   --help                      output usage information
   ```
+  
+  ### Password
+  If you're using the binary, the latest version of code-server allows you to set an environment variable PASSWORD
+
+```
+export PASSWORD="yourpassword"
+./code-server --allow-http
+```
+If you're using docker, you can use the -e flag to pass environment variables to your container
+
+```docker run -it -p 127.0.0.1:8443:8443 -e PASSWORD='yourpassword' -v "${PWD}:/home/coder/project" codercom/code-server --allow-http```
+
+If you're using older versions, you can use the --password argument.
+
+```./code-server --allow-http --password "yourpassword"```
+
+```docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --password "yourpassword"```
 
   ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
