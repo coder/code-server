@@ -50,7 +50,7 @@ Options:
   -p, --port <number>         Port to bind on. (default: 8443)
   -N, --no-auth               Start without requiring authentication.
   -H, --allow-http            Allow http connections.
-  -P, --password <value>      DEPRECATED: Use "PASSWORD" environment variable instead. Specify a password for authentication. 
+  -P, --password <value>      DEPRECATED in 1.903-vsc1.33.1: Use "PASSWORD" environment variable instead. Specify a password for authentication. 
   --disable-telemetry         Disables ALL telemetry.
   --help                      output usage information
   ```
