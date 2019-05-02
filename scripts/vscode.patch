@@ -392,6 +392,12 @@ index cbc55b3..9d27c01 100644
 +import { IProcessEnvironment, isMacintosh, isLinux, isWeb } from 'vs/base/common/platform';
 @@ -262,0 +263 @@ export function getTitleBarStyle(configurationService: IConfigurationService, en
 +	if (isWeb) { return 'custom'; }
+diff --git a/src/vs/workbench/api/browser/mainThreadSaveParticipant.ts b/src/vs/workbench/api/browser/mainThreadSaveParticipant.ts
+index e142268..ca7df2a 100644
+--- a/src/vs/workbench/api/browser/mainThreadSaveParticipant.ts
++++ b/src/vs/workbench/api/browser/mainThreadSaveParticipant.ts
+@@ -389,0 +390 @@ export class SaveParticipant implements ISaveParticipant {
++			promiseFactory.push(() => (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.participate(model, env));
 diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
 index 25e74c8..0bed89e 100644
 --- a/src/vs/workbench/api/node/extHostExtensionService.ts

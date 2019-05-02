@@ -1,4 +1,5 @@
 import * as os from "os";
+import { IDisposable } from "@coder/disposable";
 import { IProgress, INotificationHandle } from "@coder/ide";
 import { logger } from "@coder/logger";
 import { client } from "./client";
@@ -28,18 +29,20 @@ import { IWindowsService, IWindowConfiguration } from "vs/platform/windows/commo
 import { LogLevel } from "vs/platform/log/common/log";
 import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
+import { ISaveParticipant, IResolvedTextFileEditorModel } from "vs/workbench/services/textfile/common/textfiles";
 import { URI } from "vs/base/common/uri";
 
 /**
  * Initializes VS Code and provides a way to call into general client
  * functionality.
  */
-export class Workbench {
+export class Workbench implements ISaveParticipant {
 	public readonly retry = client.retry;
 
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
 	private _clipboardContextKey: RawContextKey<boolean> | undefined;
+	private readonly saveParticipants: Array<(path: string) => void | Promise<void>> = [];
 
 	/**
 	 * Handle a drop event on the file explorer.
@@ -234,6 +237,29 @@ export class Workbench {
 				return;
 			}
 		}
+	}
+
+	/**
+	 * Register a callback to run before file save.
+	 */
+	public onFileWillSave(cb: (path: string) => void | Promise<void>): IDisposable {
+		this.saveParticipants.push(cb);
+
+		return {
+			dispose: (): void => {
+				const i = this.saveParticipants.indexOf(cb);
+				if (i !== -1) {
+					this.saveParticipants.splice(i, 1);
+				}
+			},
+		};
+	}
+
+	/**
+	 * Participate in a file save.
+	 */
+	public async participate(model: IResolvedTextFileEditorModel): Promise<void> {
+		await Promise.all(this.saveParticipants.map((p) => p(model.textEditorModel.uri.path)));
 	}
 }
 

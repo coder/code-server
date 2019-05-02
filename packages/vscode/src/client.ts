@@ -1,3 +1,4 @@
+import { IDisposable } from "@coder/disposable";
 import { IdeClient } from "@coder/ide";
 import { client as ideClientInstance } from "@coder/ide/src/fill/client";
 import Severity from "vs/base/common/severity";
@@ -49,6 +50,7 @@ class VSClient extends IdeClient {
 						},
 					},
 
+					onFileWillSave: (cb): IDisposable => workbench.onFileWillSave(cb),
 					onFileCreate: (cb): void => {
 						getService<IFileService>(IFileService).onAfterOperation((e) => {
 							if (e.operation === FileOperation.CREATE) {

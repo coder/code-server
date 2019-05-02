@@ -153,6 +153,13 @@ declare namespace ide {
 		readonly commandRegistry: ICommandRegistry;
 		readonly terminalService: ITerminalService;
 
+		/**
+		 * Register a callback to run when a file is about to save.
+		 * If the callback returns a promise, the save will be delayed until that
+		 * promise resolves.
+		 */
+		onFileWillSave(cb: (path: string) => void | Promise<void>): IDisposable;
+
 		onFileCreate(cb: (path: string) => void): void;
 		onFileMove(cb: (path: string, target: string) => void): void;
 		onFileDelete(cb: (path: string) => void): void;
