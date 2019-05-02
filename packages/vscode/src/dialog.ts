@@ -52,6 +52,7 @@ export type DialogOptions = OpenDialogOptions | SaveDialogOptions;
 
 export const showOpenDialog = (options: OpenDialogOptions): Promise<string> => {
 	return new Promise<string>((resolve, reject): void => {
+		focus();
 		const dialog = new Dialog(DialogType.Open, options);
 		dialog.onSelect((e) => {
 			dialog.dispose();
@@ -492,7 +493,7 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 			URI.file(node.element.name),
 			node.element.isDirectory ? FileKind.FOLDER : FileKind.FILE,
 		);
-		// templateData.icon.hidden = classes.length === 0;
+		templateData.icon.hidden = classes.length === 0;
 		classes.forEach((c) => {
 			try {
 				if (c === "folder-icon") {
@@ -507,11 +508,6 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 			start: 0,
 			end: node.filterData.length,
 		}] : []);
-		if (!node.element.isDirectory && this.humanReadableSize(node.element.size) !== "NaN" || "undefined") {
-			templateData.size.innerText = this.humanReadableSize(node.element.size);
-		} else {
-			templateData.size.innerText = "";
-		}
 		templateData.size.innerText = !node.element.isDirectory ? this.humanReadableSize(node.element.size) : "";
 		templateData.lastModified.innerText = node.element.lastModified;
 
