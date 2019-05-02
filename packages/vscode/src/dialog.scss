@@ -28,6 +28,7 @@
 		// flex: 1;
 		flex-direction: row;
 		padding: 4px;
+		cursor: pointer;
 		border-bottom: 1px solid var(--border);
 	}
 	.path-editor {
@@ -35,8 +36,8 @@
 		flex-direction: row;
 		font-size: 1.02em;
 		border: 1px solid var(--border);
-		border-radius: 2px;
-		color: var(--primary)
+		border-radius: 4px;
+		color: var(--primary);
 	}
 	.path-div {
 		display: block;
@@ -150,8 +151,8 @@
 		button {
 			background: transparent;
 			outline: none;
-			border: 0;
-			color: var(--faded);
+			border: 1px;
+			color: var(--border);
 			padding: 10px;
 			padding-left: 18px;
 			padding-right: 18px;

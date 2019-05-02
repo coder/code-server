@@ -73,6 +73,8 @@ interface DialogEntry {
 	readonly isDisabled?: boolean;
 }
 
+let currentPath;
+
 /**
  * Open and save dialogs.
  */
@@ -143,6 +145,7 @@ class Dialog {
 
 		const navItems = document.createElement("div");
 		navItems.classList.add("nav");
+		navItems.setAttribute("title", "Click to edit");
 		const pathBar = document.createElement("input");
 		pathBar.classList.add("path-editor", "hidden");
 
@@ -159,16 +162,18 @@ class Dialog {
 				if (e.key === "Enter") {
 					navItems.classList.remove("hidden");
 					pathBar.classList.add("hidden");
-					if (!pathBar.value.includes(".")) {
+					const stat = await util.promisify(fs.stat)(pathBar.value);
+					if (stat.isDirectory() && (this.options as OpenDialogOptions).properties.openFile) {
 						this.path = pathBar.value;
-						await util.promisify(fs.stat)(pathBar.value);
+					} else {
+						this.selectEmitter.emit(pathBar.value);
 					}
 				} else if (e.key === "Escape") {
 					navItems.classList.remove("hidden");
 					pathBar.classList.add("hidden");
 				}
 			} catch (err) {
-				this.errorEmitter.emit(new Error(`${err}`));
+				this.errorEmitter.emit(err);
 			}
 		});
 
@@ -349,6 +354,8 @@ class Dialog {
 	 * Build and insert the path shown at the top of the dialog.
 	 */
 	private buildPath(): void {
+		// @ts-ignore
+		document.querySelector(".path-editor")!.defaultValue = this._path;
 		while (this.pathNode.lastChild) {
 			this.pathNode.removeChild(this.pathNode.lastChild);
 		}
@@ -368,7 +375,8 @@ class Dialog {
 				pathPartNode.classList.add("active");
 			}
 
-			pathPartNode.addEventListener("click", () => {
+			pathPartNode.addEventListener("click", (e) => {
+				e.stopPropagation();
 				this.path = "/" + pathParts.slice(0, i + 1).join("/");
 			});
 
@@ -380,7 +388,6 @@ class Dialog {
 		this.list(directory).then((value) => {
 			this._path = directory;
 			this.buildPath();
-
 			while (this.filesNode.lastChild) {
 				this.filesNode.removeChild(this.filesNode.lastChild);
 			}
