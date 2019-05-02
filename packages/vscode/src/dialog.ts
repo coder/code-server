@@ -15,7 +15,6 @@ import { FileKind } from "vs/platform/files/common/files";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { workbench } from "./workbench";
 import "./dialog.scss";
-import { template } from 'vs/base/common/labels';
 
 /**
  * Describes the type of dialog to show.
