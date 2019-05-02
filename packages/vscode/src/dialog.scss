@@ -1,6 +1,6 @@
 .dialog {
 	font-family: inherit;
-	box-shadow: 0 12px 16px 0 rgba(29,64,126,0.07);
+	box-shadow: 0 12px 16px 0 rgba(29, 64, 126, 0.07);
 	background-color: var(--primary);
 	display: flex;
 	flex-direction: column;
@@ -32,6 +32,7 @@
 		cursor: pointer;
 		border-bottom: 1px solid var(--border);
 	}
+
 	.path-editor {
 		display: block;
 		flex-direction: row;
@@ -43,6 +44,7 @@
 		background-color: var(--header-background);
 		border-radius: 4px;
 	}
+
 	.path-div {
 		display: block;
 		flex-direction: row;
@@ -76,11 +78,12 @@
 				color: var(--list-active-selection-foreground);
 			}
 		}
+
 		.path-btn {
 			align-content: right;
 			font-size: 1.02em;
 			border: 1px solid var(--border);
-	}
+		}
 	}
 
 	.dialog-grid {
@@ -94,7 +97,7 @@
 	}
 
 	.file-area {
-		flex: 1;
+		flex: auto;
 		display: flex;
 		flex-direction: column;
 		overflow: hidden;
@@ -132,7 +135,8 @@
 				color: var(--list-active-selection-foreground);
 			}
 
-			&.disabled, &.disabled:hover {
+			&.disabled,
+			&.disabled:hover {
 				background-color: var(--primary);
 				color: var(--disabled);
 				cursor: initial;
@@ -170,17 +174,25 @@
 			}
 		}
 
-		button[disabled], button[disabled]:hover {
+		button[disabled],
+		button[disabled]:hover {
 			color: var(--disabled);
 			cursor: initial;
 		}
-		button[active], button[disabled]:hover {
+
+		button[active],
+		button[disabled]:hover {
 			color: var(--list-active-selection-foreground);
 			cursor: initial;
 		}
 	}
 }
 
-.monaco-shell .monaco-tree.focused.no-focused-item:focus:before, .monaco-shell .monaco-list:not(.element-focused):focus:before {
+.monaco-shell .monaco-tree.focused.no-focused-item:focus:before,
+.monaco-shell .monaco-list:not(.element-focused):focus:before {
 	display: none;
+}
+
+.folder-icon-dialog {
+	background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI0U4RThFOCIgZD0iTTYgNHY4bDQtNC00LTR6bTEgMi40MTRMOC41ODYgOCA3IDkuNTg2VjYuNDE0eiIvPjwvc3ZnPg==);
 }

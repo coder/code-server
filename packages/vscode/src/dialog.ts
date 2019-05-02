@@ -114,8 +114,8 @@ class Dialog {
 		this.background.style.background = "rgba(0, 0, 0, 0.25)";
 
 		this.root = document.createElement("div");
-		this.root.style.width = "850px";
-		this.root.style.height = "450px";
+		this.root.style.width = "750px";
+		this.root.style.height = "500px";
 		this.background.appendChild(this.root);
 		(document.querySelector(".monaco-workbench") || document.body).appendChild(this.background);
 		this.root.classList.add("dialog");
@@ -491,9 +491,12 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 			URI.file(node.element.name),
 			node.element.isDirectory ? FileKind.FOLDER : FileKind.FILE,
 		);
-		templateData.icon.hidden = classes.length === 0;
+		// templateData.icon.hidden = classes.length === 0;
 		classes.forEach((c) => {
 			try {
+				if (c === "folder-icon") {
+					c = "folder-icon-dialog";
+				}
 				templateData.icon.classList.add(c);
 			} catch (ex) {
 				// Nothin needed. Sometimes bad classes are given
