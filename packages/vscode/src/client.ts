@@ -39,6 +39,7 @@ class VSClient extends IdeClient {
 					// tslint:disable-next-line:no-any
 					statusbarService: getService<IStatusbarService>(IStatusbarService) as any,
 					notificationService: getService<INotificationService>(INotificationService),
+					terminalService: getService<ITerminalService>(ITerminalService),
 					storageService: {
 						save: (): Promise<void> => {
 							// tslint:disable-next-line:no-any

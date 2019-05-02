@@ -1,5 +1,7 @@
 // tslint:disable no-any
 
+import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
+
 export interface EvalHelper { }
 interface ActiveEvalEmitter {
 	removeAllListeners(event?: string): void;
@@ -149,6 +151,7 @@ declare namespace ide {
 		readonly storageService: IStorageService;
 		readonly menuRegistry: IMenuRegistry;
 		readonly commandRegistry: ICommandRegistry;
+		readonly terminalService: ITerminalService;
 
 		onFileCreate(cb: (path: string) => void): void;
 		onFileMove(cb: (path: string, target: string) => void): void;
