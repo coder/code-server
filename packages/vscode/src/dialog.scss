@@ -36,8 +36,9 @@
 		flex-direction: row;
 		font-size: 1.02em;
 		border: 1px solid var(--border);
+		color: var(--header-foreground);
+		background-color: var(--header-background);
 		border-radius: 4px;
-		color: var(--primary);
 	}
 	.path-div {
 		display: block;
@@ -151,8 +152,7 @@
 		button {
 			background: transparent;
 			outline: none;
-			border: 1px;
-			color: var(--border);
+			color: var(--titlebar);
 			padding: 10px;
 			padding-left: 18px;
 			padding-right: 18px;
@@ -168,6 +168,10 @@
 
 		button[disabled], button[disabled]:hover {
 			color: var(--disabled);
+			cursor: initial;
+		}
+		button[ative], button[disabled]:hover {
+			color: var(--list-active-selection-background);
 			cursor: initial;
 		}
 	}
