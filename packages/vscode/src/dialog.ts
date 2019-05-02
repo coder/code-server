@@ -15,6 +15,7 @@ import { FileKind } from "vs/platform/files/common/files";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { workbench } from "./workbench";
 import "./dialog.scss";
+import { template } from 'vs/base/common/labels';
 
 /**
  * Describes the type of dialog to show.
@@ -506,6 +507,11 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 			start: 0,
 			end: node.filterData.length,
 		}] : []);
+		if (!node.element.isDirectory && this.humanReadableSize(node.element.size) !== "NaN" || "undefined") {
+			templateData.size.innerText = this.humanReadableSize(node.element.size);
+		} else {
+			templateData.size.innerText = "";
+		}
 		templateData.size.innerText = !node.element.isDirectory ? this.humanReadableSize(node.element.size) : "";
 		templateData.lastModified.innerText = node.element.lastModified;
 
@@ -532,8 +538,12 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 	private humanReadableSize(bytes: number): string {
 		const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
 		const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1000)), units.length - 1);
+		const number = (bytes / Math.pow(1000, i)).toFixed(2);
+		let result = `${number} ${units[i]}`;
+		if (result.includes("undefined" || "NaN")) {
+			result = "";
+		}
 
-		return (bytes / Math.pow(1000, i)).toFixed(2)
-			+ " " + units[i];
+		return result;
 	}
 }
