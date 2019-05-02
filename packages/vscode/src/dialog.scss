@@ -15,10 +15,11 @@
 	.title {
 		background-color: var(--header-background);
 		color: var(--header-foreground);
-		padding: 1px;
-		font-size: 11px;
-		font-weight: normal;
-		text-transform: uppercase;
+		line-height: initial;
+		font-size: 1.9em;
+		font-weight: 200;
+		margin-bottom: 5px;
+		text-transform: unset;
 		white-space: nowrap;
 		padding: 5px 10px;
 	}
@@ -34,6 +35,8 @@
 	.path-editor {
 		display: block;
 		flex-direction: row;
+		margin-top: 12px;
+		margin-bottom: 12px;
 		font-size: 1.02em;
 		border: 1px solid var(--border);
 		color: var(--header-foreground);
@@ -60,6 +63,7 @@
 			list-style-type: none;
 			border: 1px solid var(--border);
 			border-radius: 3px;
+			margin-bottom: 5px;
 			font-size: 1.02em;
 			cursor: pointer;
 
@@ -170,8 +174,8 @@
 			color: var(--disabled);
 			cursor: initial;
 		}
-		button[ative], button[disabled]:hover {
-			color: var(--list-active-selection-background);
+		button[active], button[disabled]:hover {
+			color: var(--list-active-selection-foreground);
 			cursor: initial;
 		}
 	}
