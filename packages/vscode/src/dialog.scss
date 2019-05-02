@@ -159,14 +159,16 @@
 
 		button {
 			background: transparent;
+			font-size: 1.02em;
 			outline: none;
 			color: var(--titlebar);
-			padding: 10px;
+			padding: 6px;
 			padding-left: 18px;
 			padding-right: 18px;
 			transition: 150ms background ease, 150ms color ease;
 			cursor: pointer;
-			border-radius: 5px;
+			border: 1px solid var(--border);
+			border-radius: 3px;
 
 			&:hover {
 				background: var(--titlebar);
