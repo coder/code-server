@@ -52,7 +52,6 @@ export type DialogOptions = OpenDialogOptions | SaveDialogOptions;
 
 export const showOpenDialog = (options: OpenDialogOptions): Promise<string> => {
 	return new Promise<string>((resolve, reject): void => {
-		focus();
 		const dialog = new Dialog(DialogType.Open, options);
 		dialog.onSelect((e) => {
 			dialog.dispose();
@@ -74,9 +73,6 @@ interface DialogEntry {
 	readonly lastModified: string;
 	readonly isDisabled?: boolean;
 }
-
-let currentPath;
-
 /**
  * Open and save dialogs.
  */
