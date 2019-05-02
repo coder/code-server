@@ -35,11 +35,11 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - At this point it is time to download the `code-server` binary. We will of course want the linux version.
 - Find the latest Linux release from this URL:
   ```
-  https://github.com/codercom/code-server/releases/latest
+  https://github.com/cdr/code-server/releases/latest
   ```
 - Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
   ```
-  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  wget https://github.com/cdr/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
   ```
 - Extract the downloaded tar.gz file with this command, for example:
   ```
@@ -66,4 +66,4 @@ If you're just starting out, we recommend [installing code-server locally](../..
   > The `-p 80` flag is necessary in order to make the IDE accessible from the public IP of your instance (also available from the description in the instances page.
 
   ---
-> NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
+> NOTE: If you get stuck or need help, [file an issue](https://github.com/cdr/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).

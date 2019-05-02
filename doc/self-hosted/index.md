@@ -4,7 +4,7 @@
 
 ## Quickstart Guide
 
-> NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
+> NOTE: If you get stuck or need help, [file an issue](https://github.com/cdr/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
 
 This document pertains to Coder specific implementations of VS Code. For documentation on how to use VS Code itself, please refer to the official [documentation for VS Code](https://code.visualstudio.com/docs)
 
@@ -17,7 +17,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 -->
 
 
-1. Visit [the releases](https://github.com/codercom/code-server/releases) page and download the latest cli for your operating system
+1. Visit [the releases](https://github.com/cdr/code-server/releases) page and download the latest cli for your operating system
 2. Double click the executable to run in the current directory
 3. Copy the password that appears in the cli<img src="../assets/cli.png">
 4. In your browser navigate to `localhost:8443`

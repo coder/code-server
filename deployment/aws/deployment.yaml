@@ -26,7 +26,7 @@ metadata:
 provisioner: kubernetes.io/aws-ebs
 parameters:
   type: gp2
-  fsType: ext4 
+  fsType: ext4
 ---
 kind: PersistentVolumeClaim
 apiVersion: v1
@@ -71,4 +71,4 @@ spec:
       - name: code-server-storage
         persistentVolumeClaim:
           claimName: code-store
-      
+

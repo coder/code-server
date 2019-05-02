@@ -40,7 +40,7 @@ deploy:
     - release/*.tar.gz
     - release/*.zip
   on:
-    repo: codercom/code-server
+    repo: cdr/code-server
     branch: master
 cache:
   yarn: true

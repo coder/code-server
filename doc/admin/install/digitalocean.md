@@ -15,14 +15,14 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Launch your instance
 - Open a terminal on your computer and SSH into your instance
   > example: ssh root@203.0.113.0
-- Once in the SSH session, visit code-server [releases page](https://github.com/codercom/code-server/releases/) and copy the link to the download for the latest linux release
+- Once in the SSH session, visit code-server [releases page](https://github.com/cdr/code-server/releases/) and copy the link to the download for the latest linux release
 - Find the latest Linux release from this URL:
   ```
-  https://github.com/codercom/code-server/releases/latest
+  https://github.com/cdr/code-server/releases/latest
   ```
 - Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
   ```
-  wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  wget https://github.com/cdr/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
   ```
 - Extract the downloaded tar.gz file with this command, for example:
   ```
@@ -46,4 +46,4 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
 
 ---
-> NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
+> NOTE: If you get stuck or need help, [file an issue](https://github.com/cdr/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
