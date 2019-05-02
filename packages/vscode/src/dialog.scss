@@ -81,7 +81,7 @@
 
 	.dialog-grid {
 		display: grid;
-		grid-template-columns: 2fr 0.2fr 0.8fr;
+		grid-template-columns: 2fr 0.3fr 0.8fr;
 	}
 
 	.headings {
@@ -97,7 +97,7 @@
 
 		.dialog-entry {
 			cursor: pointer;
-			font-size: 1.02em;
+			font-size: 12px;
 			padding: 0px 8px;
 
 			.dialog-entry-info {
@@ -112,11 +112,11 @@
 			}
 
 			.dialog-entry-size {
-				text-align: right;
+				text-align: left;
 			}
 
 			.dialog-entry-mtime {
-				padding-left: 8px;
+				padding-left: 0px;
 			}
 
 			&:hover {

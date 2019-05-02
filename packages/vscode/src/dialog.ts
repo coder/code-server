@@ -115,7 +115,7 @@ class Dialog {
 
 		this.root = document.createElement("div");
 		this.root.style.width = "850px";
-		this.root.style.height = "600px";
+		this.root.style.height = "450px";
 		this.background.appendChild(this.root);
 		(document.querySelector(".monaco-workbench") || document.body).appendChild(this.background);
 		this.root.classList.add("dialog");
@@ -380,6 +380,7 @@ class Dialog {
 				this.path = "/" + pathParts.slice(0, i + 1).join("/");
 			});
 
+			document.querySelector(".monaco-scrollable-element")!.setAttribute("overflow", "scroll");
 			this.pathNode.appendChild(pathPartNode);
 		}
 	}
