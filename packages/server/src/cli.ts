@@ -1,5 +1,6 @@
 import { field, logger } from "@coder/logger";
 import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
+import { withEnv } from "@coder/protocol";
 import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
@@ -179,12 +180,7 @@ const bold = (text: string | number): string | number => {
 			"--builtin-extensions-dir", builtInExtensionsDir,
 			"--extensions-dir", extensionsDir,
 			"--install-extension", options.installExtension,
-		], {
-			env: {
-				VSCODE_ALLOW_IO: "true",
-				VSCODE_LOGS: process.env.VSCODE_LOGS,
-			},
-		}, dataDir);
+		], withEnv({ env: { VSCODE_ALLOW_IO: "true" } }), dataDir);
 
 		fork.stdout.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.info(l)));
 		fork.stderr.on("data", (d: Buffer) => d.toString().split("\n").forEach((l) => logger.error(l)));
@@ -194,7 +190,7 @@ const bold = (text: string | number): string | number => {
 	}
 
 	// TODO: fill in appropriate doc url
-	logger.info("Additional documentation: http://github.com/codercom/code-server");
+	logger.info("Additional documentation: http://github.com/cdr/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
 	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
@@ -302,7 +298,7 @@ const bold = (text: string | number): string | number => {
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
-		logger.warn("Documentation on securing your setup: https://github.com/codercom/code-server/blob/master/doc/security/ssl.md");
+		logger.warn("Documentation on securing your setup: https://github.com/cdr/code-server/blob/master/doc/security/ssl.md");
 	}
 
 	if (!options.noAuth && !usingCustomPassword) {

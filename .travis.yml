@@ -14,6 +14,8 @@ matrix:
     env:
       - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION" TARGET="alpine"
   - os: osx
+    env:
+      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
 before_install:
 - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
   libsecret-1-dev; fi
@@ -40,7 +42,7 @@ deploy:
     - release/*.tar.gz
     - release/*.zip
   on:
-    repo: codercom/code-server
+    repo: cdr/code-server
     branch: master
 cache:
   yarn: true

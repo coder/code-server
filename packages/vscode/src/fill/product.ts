@@ -11,7 +11,7 @@ class Product implements IProductConfiguration {
 	public introductoryVideosUrl = "https://code.visualstudio.com/docs/getstarted/introvideos";
 	public tipsAndTricksUrl = "https://code.visualstudio.com/docs/getstarted/tips-and-tricks";
 	public twitterUrl = "https://twitter.com/code";
-	public licenseUrl = "https://github.com/codercom/code-server/blob/master/LICENSE";
+	public licenseUrl = "https://github.com/cdr/code-server/blob/master/LICENSE";
 	public aiConfig = process.env.DISABLE_TELEMETRY ? undefined! : {
 		// Only needed so vscode can see that content exists for this value.
 		// We override the application insights module.

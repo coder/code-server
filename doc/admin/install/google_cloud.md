@@ -14,7 +14,7 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - Choose Ubuntu 16.04 LTS as your boot disk
 - Check the boxes for **Allow HTTP traffic** and **Allow HTTPS traffic** in the **Firewall** section
 - Create your VM, and **take note** of its public IP address.
-- Copy the link to download the latest Linux binary from our [releases page](https://github.com/codercom/code-server/releases)
+- Copy the link to download the latest Linux binary from our [releases page](https://github.com/cdr/code-server/releases)
 
 ---
 
@@ -27,12 +27,12 @@ gcloud compute ssh --zone [region] [instance name]
 
 - Find the latest Linux release from this URL:
 ```
-https://github.com/codercom/code-server/releases/latest
+https://github.com/cdr/code-server/releases/latest
 ```
 
 - Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
 ```
-wget https://github.com/codercom/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+wget https://github.com/cdr/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
 ```
 
 - Extract the downloaded tar.gz file with this command, for example:
@@ -68,4 +68,4 @@ sudo ./code-server -p 80
 
 ---
 
-> NOTE: If you get stuck or need help, [file an issue](https://github.com/codercom/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
+> NOTE: If you get stuck or need help, [file an issue](https://github.com/cdr/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
