@@ -31,6 +31,32 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 See docker oneliner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile).
 
+**Run as Non-root user dynamically mapped at runtime in docker**
+You can configure code server to run as a UID:GID of your choice. This uses the [boxboat/fixuid](https://github.com/boxboat/fixuid) utility to dynmaically remap the coder uid/gid at runtime. This is especially useful in environments where UIDs change, affect volume mount permissions, and process ownership. You can enable this feature easily with env variables, and the `docker -u` cli flag.
+
+WARNING: there are some concerns around [security](https://github.com/boxboat/fixuid/issues/1) with this approach, ensure you understand the implications
+
+Example 1: Run as the host UID:GID, by setting the FIXUID docker env var
+```bash
+docker run -it -p 127.0.0.1:8443:8443 \
+-v "${PWD}:/home/coder/project" \
+-u $(id -u):$(id -g) \
+-e FIXUID=y \
+codercom/code-server:latest --allow-http --no-auth
+```
+
+Example 2: Same as above, but disable the fixuid warning message
+```bash
+docker run -it -p 127.0.0.1:8443:8443 \
+-v "${PWD}:/home/coder/project" \
+-u $(id -u):$(id -g) \
+-e FIXUID=y \
+-e FIXUID_QUIET=y \
+codercom/code-server:latest --allow-http --no-auth
+```
+
+
+
 ### Binaries
 
 1.  [Download a binary](https://github.com/cdr/code-server/releases) (Linux and OS X supported. Windows coming soon)
