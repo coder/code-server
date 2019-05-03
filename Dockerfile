@@ -34,20 +34,22 @@ RUN locale-gen en_US.UTF-8
 # configured in /etc/default/locale so we need to set it manually.
 ENV LC_ALL=en_US.UTF-8
 
-RUN adduser --gecos '' --disabled-password coder && \
+RUN addgroup --gid 1000 coder && \
+    adduser --uid 1000 --ingroup coder --home /home/coder --shell /bin/sh --disabled-password --gecos "" coder && \
 	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
-COPY entrypoint.sh /home/coder/workdir/
-RUN chmod +x /home/coder/workdir/entrypoint.sh
+RUN USER=coder && \
+	GROUP=coder && \
+	curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.4-linux-amd64.tar.gz | tar -C /usr/local/bin -xzf - && \
+	chown root:root /usr/local/bin/fixuid && \
+	chmod 4755 /usr/local/bin/fixuid && \
+	mkdir -p /etc/fixuid && \
+	printf "user: $USER\ngroup: $GROUP\n" > /etc/fixuid/config.yml
 
 USER coder
 
 # We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
-<<<<<<< HEAD
 RUN mkdir -p /home/coder/workdir
-=======
-RUN mkdir -p /home/coder/project
->>>>>>> master
 
 WORKDIR /home/coder/workdir
 
@@ -58,4 +60,4 @@ VOLUME [ "/home/coder/project" ]
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
 
-ENTRYPOINT ["dumb-init", "/home/coder/workdir/entrypoint.sh", "code-server"]
+ENTRYPOINT ["dumb-init", "fixuid", "code-server"]
