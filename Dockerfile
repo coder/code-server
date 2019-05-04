@@ -49,6 +49,9 @@ RUN USER=coder && \
 USER coder
 
 # We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
+RUN mkdir -p /home/coder/project
+
+# Create for our entrypoint
 RUN mkdir -p /home/coder/workdir
 copy entrypoint.sh /home/coder/workdir/
 RUN sudo chmod +x /home/coder/workdir/entrypoint.sh
