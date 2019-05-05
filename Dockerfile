@@ -53,7 +53,7 @@ RUN mkdir -p /home/coder/project
 
 # Create for our entrypoint
 RUN mkdir -p /home/coder/workdir
-copy entrypoint.sh /home/coder/workdir/
+COPY entrypoint.sh /home/coder/workdir/
 RUN sudo chmod +x /home/coder/workdir/entrypoint.sh
 
 WORKDIR /home/coder/workdir
