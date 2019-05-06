@@ -9,7 +9,7 @@
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --no-auth
+docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}/code-server:/home/coder" codercom/code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
@@ -39,7 +39,7 @@ WARNING: there are some concerns around [security](https://github.com/boxboat/fi
 Example 1: Run as the host UID:GID, by setting the FIXUID docker env var
 ```bash
 docker run -it -p 127.0.0.1:8443:8443 \
--v "${PWD}:/home/coder/project" \
+-v "${PWD}/code-server:/home/coder" \
 -u $(id -u):$(id -g) \
 -e FIXUID=y \
 codercom/code-server:latest --allow-http --no-auth
@@ -48,7 +48,7 @@ codercom/code-server:latest --allow-http --no-auth
 Example 2: Same as above, but disable the fixuid warning message
 ```bash
 docker run -it -p 127.0.0.1:8443:8443 \
--v "${PWD}:/home/coder/project" \
+-v "${PWD}/code-server:/home/coder" \
 -u $(id -u):$(id -g) \
 -e FIXUID=y \
 -e FIXUID_QUIET=y \

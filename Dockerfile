@@ -48,22 +48,15 @@ RUN USER=coder && \
 
 USER coder
 
-# We create first instead of just using WORKDIR as when WORKDIR creates, the user is root.
-RUN mkdir -p /home/coder/project
-
-# Create for our entrypoint
-RUN mkdir -p /home/coder/workdir
-COPY entrypoint.sh /home/coder/workdir/
-RUN sudo chmod +x /home/coder/workdir/entrypoint.sh
-
-WORKDIR /home/coder/workdir
-
+# Setup our entrypoint
+COPY entrypoint.sh /usr/local/bin/
+RUN sudo chmod +x /usr/local/bin/entrypoint.sh
 
 # This assures we have a volume mounted even if the user forgot to do bind mount.
 # So that they do not lose their data if they delete the container.
-VOLUME [ "/home/coder/project" ]
+VOLUME [ "/home/coder" ]
 
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
 EXPOSE 8443
 
-ENTRYPOINT ["dumb-init", "/home/coder/workdir/entrypoint.sh", "code-server"]
+ENTRYPOINT ["dumb-init", "entrypoint.sh", "code-server"]
