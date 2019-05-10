@@ -64,11 +64,11 @@ export PASSWORD="yourpassword"
 ```
 If you're using docker, you can use the -e flag to pass environment variables to your container
 
-```docker run -it -p 127.0.0.1:8443:8443 -e PASSWORD='yourpassword' -v "${PWD}:/home/coder/project" codercom/code-server --allow-http```
+`docker run -it -p 127.0.0.1:8443:8443 -e PASSWORD='yourpassword' -v "${PWD}:/home/coder/project" codercom/code-server --allow-http`
 
 If you're using versions older than 1.903-vsc1.33.1, you must use the --password argument.
 
-```./code-server --allow-http --password "yourpassword"```
+`./code-server --allow-http --password "yourpassword"`
 
 `docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --password "yourpassword"`
 
