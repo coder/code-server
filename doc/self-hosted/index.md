@@ -70,7 +70,7 @@ If you're using versions older than 1.903-vsc1.33.1, you must use the --password
 
 ```./code-server --allow-http --password "yourpassword"```
 
-```docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --password "yourpassword"```
+`docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --password "yourpassword"`
 
   ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
