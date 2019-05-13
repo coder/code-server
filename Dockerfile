@@ -45,7 +45,7 @@ RUN mkdir -p /home/coder/project && \
 WORKDIR /home/coder/project
 
 # This assures we have a volume mounted even if the user forgot to do bind mount.
-# XXX: Workaround for GH-459 and for OpenShift compatibility.
+# So that they do not lose their data if they delete the container.
 VOLUME [ "/home/coder/project" ]
 
 COPY --from=0 /src/packages/server/cli-linux-x64 /usr/local/bin/code-server
