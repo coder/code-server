@@ -2,7 +2,7 @@
 
 This tutorial shows you how to deploy `code-server` to a single node running on Google Cloud.
 
-If you're just starting out, we recommend [installing code-server locally](../../self-hosted/index.md). It takes only a few minutes and lets you try out all of the features. You can also try out the IDE on a container hosted [by Coder](http://coder.com/signup)
+If you're just starting out, we recommend [installing code-server locally](../../self-hosted/index.md). It takes only a few minutes and lets you try out all of the features.
 
 ---
 
@@ -59,7 +59,7 @@ sudo ./code-server -p 80
 
 > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
 
-- Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser. 
+- Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser.
 > example: 32.32.32.234
 
 - You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">

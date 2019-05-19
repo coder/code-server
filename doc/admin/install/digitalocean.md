@@ -2,7 +2,7 @@
 
 This tutorial shows you how to deploy `code-server` to a single node running on DigitalOcean.
 
-If you're just starting out, we recommend [installing code-server locally](../../self-hosted/index.md). It takes only a few minutes and lets you try out all of the features. You can also try out the IDE on a container hosted [by Coder](http://coder.com/signup)
+If you're just starting out, we recommend [installing code-server locally](../../self-hosted/index.md). It takes only a few minutes and lets you try out all of the features.
 
 ---
 
