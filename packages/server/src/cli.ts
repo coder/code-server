@@ -16,13 +16,20 @@ import opn = require("opn");
 
 import * as commander from "commander";
 
+const collect = <T>(value: T, previous: T[]): T[] => {
+	return previous.concat(value);
+};
+
 commander.version(process.env.VERSION || "development")
 	.name("code-server")
 	.description("Run VS Code on a remote server.")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
-	.option("-e, --extensions-dir <dir>", "Set the root path for extensions.")
-	.option("-d --user-data-dir <dir>", "	Specifies the directory that user data is kept in, useful when running as root.")
+	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.")
+	.option("--builtin-extensions-dir <dir>", "Override the main default path for built-in extensions.")
+	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, [])
+	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, [])
+	.option("-d --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
 	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
@@ -59,6 +66,9 @@ const bold = (text: string | number): string | number => {
 
 		readonly userDataDir?: string;
 		readonly extensionsDir?: string;
+		readonly builtinExtensionsDir?: string;
+		readonly extraExtensionsDir?: string[];
+		readonly extraBuiltinExtensionsDir?: string[];
 
 		readonly dataDir?: string;
 		readonly password?: string;
@@ -84,6 +94,10 @@ const bold = (text: string | number): string | number => {
 
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
+	const builtInExtensionsDir = options.builtinExtensionsDir ? path.resolve(options.builtinExtensionsDir)
+		: path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
+	const extraExtensionDirs = options.extraExtensionsDir ? options.extraExtensionsDir.map((p) => path.resolve(p)) : [];
+	const extraBuiltinExtensionDirs = options.extraBuiltinExtensionsDir ? options.extraBuiltinExtensionsDir.map((p) => path.resolve(p)) : [];
 	const workingDir = path.resolve(args[0] || process.cwd());
 	const dependenciesDir = path.join(os.tmpdir(), "code-server/dependencies");
 
@@ -99,8 +113,11 @@ const bold = (text: string | number): string | number => {
 		fse.mkdirp(cacheHome),
 		fse.mkdirp(dataDir),
 		fse.mkdirp(extensionsDir),
+		fse.mkdirp(builtInExtensionsDir),
 		fse.mkdirp(workingDir),
 		fse.mkdirp(dependenciesDir),
+		...extraExtensionDirs.map((p) => fse.mkdirp(p)),
+		...extraBuiltinExtensionDirs.map((p) => fse.mkdirp(p)),
 	]);
 
 	const unpackExecutable = (binaryName: string): void => {
@@ -116,7 +133,6 @@ const bold = (text: string | number): string | number => {
 	// tslint:disable-next-line no-any
 	(<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
 
-	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 	if (options.bootstrapFork) {
 		const modulePath = options.bootstrapFork;
 		if (!modulePath) {
@@ -192,7 +208,7 @@ const bold = (text: string | number): string | number => {
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/cdr/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
-	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
+	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir, extraExtensionDirs, extraBuiltinExtensionDirs);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
 		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
@@ -247,6 +263,8 @@ const bold = (text: string | number): string | number => {
 		serverOptions: {
 			extensionsDirectory: extensionsDir,
 			builtInExtensionsDirectory: builtInExtensionsDir,
+			extraExtensionDirectories: extraExtensionDirs,
+			extraBuiltinExtensionDirectories: extraBuiltinExtensionDirs,
 			dataDirectory: dataDir,
 			workingDirectory: workingDir,
 			cacheDirectory: cacheHome,

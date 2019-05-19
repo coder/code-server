@@ -15,6 +15,8 @@ export interface ServerOptions {
 	readonly cacheDirectory: string;
 	readonly builtInExtensionsDirectory: string;
 	readonly extensionsDirectory: string;
+	readonly extraExtensionDirectories?: string[];
+	readonly extraBuiltinExtensionDirectories?: string[];
 	readonly fork?: ForkProvider;
 }
 
@@ -99,6 +101,8 @@ export class Server {
 		initMsg.setTmpDirectory(os.tmpdir());
 		initMsg.setOperatingSystem(platformToProto(os.platform()));
 		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL || "");
+		initMsg.setExtraExtensionDirectoriesList(this.options.extraExtensionDirectories || []);
+		initMsg.setExtraBuiltinExtensionDirectoriesList(this.options.extraBuiltinExtensionDirectories || []);
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);
 		connection.send(srvMsg.serializeBinary());

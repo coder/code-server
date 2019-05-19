@@ -72,7 +72,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.WorkingInit = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.WorkingInit.repeatedFields_, null);
 };
 goog.inherits(proto.WorkingInit, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -759,6 +759,13 @@ proto.ServerMessage.prototype.hasSharedProcessActive = function() {
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.WorkingInit.repeatedFields_ = [9,10];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -795,7 +802,9 @@ proto.WorkingInit.toObject = function(includeInstance, msg) {
     operatingSystem: jspb.Message.getFieldWithDefault(msg, 5, 0),
     shell: jspb.Message.getFieldWithDefault(msg, 6, ""),
     builtinExtensionsDir: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, "")
+    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    extraExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 9),
+    extraBuiltinExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 10)
   };
 
   if (includeInstance) {
@@ -863,6 +872,14 @@ proto.WorkingInit.deserializeBinaryFromReader = function(msg, reader) {
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setExtensionsDirectory(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addExtraExtensionDirectories(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addExtraBuiltinExtensionDirectories(value);
       break;
     default:
       reader.skipField();
@@ -946,6 +963,20 @@ proto.WorkingInit.serializeBinaryToWriter = function(message, writer) {
   if (f.length > 0) {
     writer.writeString(
       8,
+      f
+    );
+  }
+  f = message.getExtraExtensionDirectoriesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      9,
+      f
+    );
+  }
+  f = message.getExtraBuiltinExtensionDirectoriesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      10,
       f
     );
   }
@@ -1078,6 +1109,70 @@ proto.WorkingInit.prototype.getExtensionsDirectory = function() {
 /** @param {string} value */
 proto.WorkingInit.prototype.setExtensionsDirectory = function(value) {
   jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * repeated string extra_extension_directories = 9;
+ * @return {!Array<string>}
+ */
+proto.WorkingInit.prototype.getExtraExtensionDirectoriesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 9));
+};
+
+
+/** @param {!Array<string>} value */
+proto.WorkingInit.prototype.setExtraExtensionDirectoriesList = function(value) {
+  jspb.Message.setField(this, 9, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ */
+proto.WorkingInit.prototype.addExtraExtensionDirectories = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 9, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ */
+proto.WorkingInit.prototype.clearExtraExtensionDirectoriesList = function() {
+  this.setExtraExtensionDirectoriesList([]);
+};
+
+
+/**
+ * repeated string extra_builtin_extension_directories = 10;
+ * @return {!Array<string>}
+ */
+proto.WorkingInit.prototype.getExtraBuiltinExtensionDirectoriesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 10));
+};
+
+
+/** @param {!Array<string>} value */
+proto.WorkingInit.prototype.setExtraBuiltinExtensionDirectoriesList = function(value) {
+  jspb.Message.setField(this, 10, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ */
+proto.WorkingInit.prototype.addExtraBuiltinExtensionDirectories = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 10, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ */
+proto.WorkingInit.prototype.clearExtraBuiltinExtensionDirectoriesList = function() {
+  this.setExtraBuiltinExtensionDirectoriesList([]);
 };
 
 

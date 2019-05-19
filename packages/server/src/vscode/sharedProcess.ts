@@ -39,6 +39,8 @@ export class SharedProcess {
 		private readonly userDataDir: string,
 		private readonly extensionsDir: string,
 		private readonly builtInExtensionsDir: string,
+		private readonly extraExtensionDirs: string[],
+		private readonly extraBuiltinExtensionDirs: string[],
 	) {
 		this.retry.run();
 	}
@@ -134,6 +136,8 @@ export class SharedProcess {
 						"builtin-extensions-dir": this.builtInExtensionsDir,
 						"user-data-dir": this.userDataDir,
 						"extensions-dir": this.extensionsDir,
+						"extra-extension-dirs": this.extraExtensionDirs,
+						"extra-builtin-extension-dirs": this.extraBuiltinExtensionDirs,
 					},
 					logLevel: this.logger.level,
 					sharedIPCHandle: this.socketPath,
