@@ -383,6 +383,52 @@ index 9952574..908a9ae 100644
 @@ -9 +9 @@ import { URI } from 'vs/base/common/uri';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
+index eb1873c..dbbacd0 100644
+--- a/src/vs/platform/environment/common/environment.ts
++++ b/src/vs/platform/environment/common/environment.ts
+@@ -120,0 +121,2 @@ export interface IEnvironmentService {
++	extraExtensionPaths: string[];
++	extraBuiltinExtensionPaths: string[];
+diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
+index 43866f8..e69b513 100644
+--- a/src/vs/platform/environment/node/environmentService.ts
++++ b/src/vs/platform/environment/node/environmentService.ts
+@@ -172,0 +173,8 @@ export class EnvironmentService implements IEnvironmentService {
++	@memoize
++	get extraExtensionPaths(): string[] {
++		return this._args['extra-extension-dirs'] || [];
++	}
++	@memoize
++	get extraBuiltinExtensionPaths(): string[] {
++		return this._args['extra-builtin-extension-dirs'] || [];
++	}
+diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+index c897029..72a5c54 100644
+--- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
++++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+@@ -737,0 +738,8 @@ export class ExtensionManagementService extends Disposable implements IExtension
++		const extraSystemExtensionsPromise = Promise.all(
++			this.environmentService.extraBuiltinExtensionPaths
++				.map((path) => this.scanExtensions(path, ExtensionType.System))
++		).then((results) => {
++			const result = results.reduce((flat, current) => flat.concat(current), []);
++			this.logService.info('Scanned extra system extensions:', result.length);
++			return result;
++		});
+@@ -739 +747,2 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-			return systemExtensionsPromise;
++			return Promise.all([systemExtensionsPromise, extraSystemExtensionsPromise])
++				.then(([systemExtensions, extraSystemExtensions]) => [...systemExtensions, ...extraSystemExtensions]);
+@@ -755,2 +764,2 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-		return Promise.all([systemExtensionsPromise, devSystemExtensionsPromise])
+-			.then(([systemExtensions, devSystemExtensions]) => [...systemExtensions, ...devSystemExtensions]);
++		return Promise.all([systemExtensionsPromise, devSystemExtensionsPromise, extraSystemExtensionsPromise])
++			.then(([systemExtensions, devSystemExtensions, extraSystemExtensions]) => [...systemExtensions, ...devSystemExtensions, ...extraSystemExtensions]);
+@@ -972 +981 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/platform/windows/common/windows.ts b/src/vs/platform/windows/common/windows.ts
 index cbc55b3..9d27c01 100644
 --- a/src/vs/platform/windows/common/windows.ts
@@ -999,11 +1045,25 @@ index 75f0026..2e94683 100644
 -		if (!isMacintosh && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 +		if (!(isNative && isMacintosh) && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-index 059f821..2dde675 100644
+index 059f821..b58fd28 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 @@ -32,0 +33 @@ function getSystemExtensionsRoot(): string {
 +	return (require('vs/../../../../packages/vscode/src/fill/paths') as typeof import ('vs/../../../../packages/vscode/src/fill/paths')).getBuiltInExtensionsDirectory();
+@@ -280,0 +282,13 @@ export class CachedExtensionScanner {
++		const extraBuiltinExtensionDirectories = (require('vs/../../../../packages/vscode/src/fill/paths') as typeof import ('vs/../../../../packages/vscode/src/fill/paths')).getExtraBuiltinExtensionDirectories();
++		extraBuiltinExtensionDirectories.forEach((dir) => {
++			const input = new ExtensionScannerInput(version, commit, locale, devMode, dir, true, false, translations);
++			const extraBuiltinExtensions = this._scanExtensionsWithCache(
++				windowService,
++				notificationService,
++				environmentService,
++				BUILTIN_MANIFEST_CACHE_FILE,
++				new ExtensionScannerInput(version, commit, locale, devMode, dir, true, false, translations),
++				log
++			);
++			finalBuiltinExtensions = ExtensionScanner.mergeBuiltinExtensions(finalBuiltinExtensions, extraBuiltinExtensions);
++		});
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
 index b337206..0477464 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
