@@ -1121,7 +1121,7 @@ index 838a9c7..2308cee 100644
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 diff --git a/src/vs/workbench/services/extensions/node/extensionPoints.ts b/src/vs/workbench/services/extensions/node/extensionPoints.ts
-index 6e2179d..099d7ea 100644
+index 6e2179d..e6f38c9 100644
 --- a/src/vs/workbench/services/extensions/node/extensionPoints.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionPoints.ts
 @@ -445,0 +446 @@ export class ExtensionScannerInput {
@@ -1130,22 +1130,12 @@ index 6e2179d..099d7ea 100644
 -		public readonly tanslations: Translations
 +		public readonly tanslations: Translations,
 +		public readonly extraFolderPaths: string[] = [],
-@@ -469,0 +472,26 @@ export class ExtensionScannerInput {
+@@ -469,0 +472,16 @@ export class ExtensionScannerInput {
 +		// Allow extra folder paths in any order. Doesn't account for duplicates though.
-+		const eq = (a: string[], b: string[], atimes: number[], btimes: number[]): boolean => {
-+			// Having none of it means they are equal.
-+			if (!a && !b && !atimes && !btimes) {
-+				return true;
-+			}
-+			// If at least one exists, they must all exist.
-+			if (!a || !b || !atimes || !btimes) {
-+				return false;
-+			}
-+			// Must all be the same length.
++		const eq = (a: string[] = [], b: string[] = [], atimes: number[] = [], btimes: number[] = []): boolean => {
 +			if (a.length !== b.length || atimes.length !== btimes.length) {
 +				return false;
 +			}
-+			// Must contain the same paths and the same mtime for each path.
 +			for (let i = 0; i < a.length; ++i) {
 +				const index = b.indexOf(a[i]);
 +				if (index === -1) {
@@ -1157,24 +1147,24 @@ index 6e2179d..099d7ea 100644
 +			}
 +			return true;
 +		};
-@@ -479,0 +508 @@ export class ExtensionScannerInput {
+@@ -479,0 +498 @@ export class ExtensionScannerInput {
 +			&& eq(a.extraFolderPaths, b.extraFolderPaths, a.extraMtimes, b.extraMtimes)
-@@ -530 +559 @@ export class ExtensionScanner {
+@@ -530 +549 @@ export class ExtensionScanner {
 -	 * Scan a list of extensions defined in `absoluteFolderPath`
 +	 * Scan a list of extensions defined in `absoluteFolderPath` and `extraFolderPaths`
-@@ -532 +561 @@ export class ExtensionScanner {
+@@ -532 +551 @@ export class ExtensionScanner {
 -	public static async scanExtensions(input: ExtensionScannerInput, log: ILog, resolver: IExtensionResolver | null = null): Promise<IExtensionDescription[]> {
 +	public static async scanExtensions(input: ExtensionScannerInput, log: ILog, resolvers: IExtensionResolver | IExtensionResolver[] | null = null): Promise<IExtensionDescription[]> {
-@@ -533,0 +563 @@ export class ExtensionScanner {
+@@ -533,0 +553 @@ export class ExtensionScanner {
 +		const extraFolderPaths = input.extraFolderPaths;
-@@ -537,2 +567,4 @@ export class ExtensionScanner {
+@@ -537,2 +557,4 @@ export class ExtensionScanner {
 -		if (!resolver) {
 -			resolver = new DefaultExtensionResolver(absoluteFolderPath);
 +		if (!resolvers) {
 +			resolvers = [absoluteFolderPath, ...extraFolderPaths].map((p) => new DefaultExtensionResolver(p));
 +		} else if (!Array.isArray(resolvers)) {
 +			resolvers = [resolvers];
-@@ -552 +584,2 @@ export class ExtensionScanner {
+@@ -552 +574,2 @@ export class ExtensionScanner {
 -			let refs = await resolver.resolveExtensions();
 +			let refs = await Promise.all(resolvers.map((resolver) => resolver.resolveExtensions()))
 +				.then((results) => results.reduce((flat, current) => flat.concat(current), []));
