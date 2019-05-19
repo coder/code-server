@@ -1086,7 +1086,7 @@ index 75f0026..2e94683 100644
 -		if (!isMacintosh && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 +		if (!(isNative && isMacintosh) && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-index 059f821..ca30811 100644
+index 059f821..b19f292 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 @@ -32,0 +33 @@ function getSystemExtensionsRoot(): string {
@@ -1096,7 +1096,7 @@ index 059f821..ca30811 100644
 -			input.mtime = folderStat.mtime.getTime();
 +			const folderStats = await Promise.all([pfs.stat(input.absoluteFolderPath), ...input.extraFolderPaths.map((p) => pfs.stat(p))]);
 +			input.mtime = folderStats[0].mtime.getTime();
-+			input.mtimes = folderStats.map((s) => s.mtime.getTime());
++			input.extraMtimes = folderStats.slice(1).map((s) => s.mtime.getTime());
 @@ -259 +261 @@ export class CachedExtensionScanner {
 -			new ExtensionScannerInput(version, commit, locale, devMode, getSystemExtensionsRoot(), true, false, translations),
 +			new ExtensionScannerInput(version, commit, locale, devMode, getSystemExtensionsRoot(), true, false, translations, environmentService.extraBuiltinExtensionPaths),
@@ -1121,11 +1121,11 @@ index 838a9c7..2308cee 100644
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 diff --git a/src/vs/workbench/services/extensions/node/extensionPoints.ts b/src/vs/workbench/services/extensions/node/extensionPoints.ts
-index 6e2179d..678fc06 100644
+index 6e2179d..099d7ea 100644
 --- a/src/vs/workbench/services/extensions/node/extensionPoints.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionPoints.ts
 @@ -445,0 +446 @@ export class ExtensionScannerInput {
-+	public mtimes: number[] = [];
++	public extraMtimes: number[] = [];
 @@ -455 +456,2 @@ export class ExtensionScannerInput {
 -		public readonly tanslations: Translations
 +		public readonly tanslations: Translations,
@@ -1158,7 +1158,7 @@ index 6e2179d..678fc06 100644
 +			return true;
 +		};
 @@ -479,0 +508 @@ export class ExtensionScannerInput {
-+			&& eq(a.extraFolderPaths, b.extraFolderPaths, a.mtimes, b.mtimes)
++			&& eq(a.extraFolderPaths, b.extraFolderPaths, a.extraMtimes, b.extraMtimes)
 @@ -530 +559 @@ export class ExtensionScanner {
 -	 * Scan a list of extensions defined in `absoluteFolderPath`
 +	 * Scan a list of extensions defined in `absoluteFolderPath` and `extraFolderPaths`
