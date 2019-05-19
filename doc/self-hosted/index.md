@@ -56,7 +56,7 @@ Options:
   ```
 
   ### Data Directory
-  Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
+  Use `code-server -d (path/to/directory)` or `code-server --user-data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
 
   ### Host
   By default, code-server will use `0.0.0.0` as its address. This can be changed by using `code-server -h` or `code-server --host=` followed by the address you want to use.
