@@ -6,13 +6,17 @@ import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/com
 import * as paths from "./fill/paths";
 import product from "./fill/product";
 import "./vscode.scss";
-import { MenuId, MenuRegistry } from "vs/platform/actions/common/actions";
+import { Action } from 'vs/base/common/actions';
+import { SyncActionDescriptor, MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
+import { Registry } from 'vs/platform/registry/common/platform';
+import { IWorkbenchActionRegistry, Extensions } from 'vs/workbench/common/actions';
 import { CommandsRegistry } from "vs/platform/commands/common/commands";
 import { IFileService, FileOperation } from "vs/platform/files/common/files";
 import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";
 import { IModelService } from "vs/editor/common/services/modelService";
 import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
 import { IStorageService } from "vs/platform/storage/common/storage";
+
 // NOTE: shouldn't import anything from VS Code here or anything that will
 // depend on a synchronous fill like `os`.
 
@@ -33,11 +37,12 @@ class VSClient extends IdeClient {
 			window.ide = {
 				client: ideClientInstance,
 				workbench: {
+					action: Action,
+					syncActionDescriptor: SyncActionDescriptor,
 					commandRegistry: CommandsRegistry,
-					// tslint:disable-next-line:no-any
-					menuRegistry: MenuRegistry as any,
-					// tslint:disable-next-line:no-any
-					statusbarService: getService<IStatusbarService>(IStatusbarService) as any,
+					actionsRegistry: Registry.as<IWorkbenchActionRegistry>(Extensions.WorkbenchActions),
+					menuRegistry: MenuRegistry,
+					statusbarService: getService<IStatusbarService>(IStatusbarService),
 					notificationService: getService<INotificationService>(INotificationService),
 					terminalService: getService<ITerminalService>(ITerminalService),
 					storageService: {
