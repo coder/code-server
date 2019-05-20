@@ -1103,6 +1103,13 @@ index 059f821..b19f292 100644
 @@ -290 +292 @@ export class CachedExtensionScanner {
 -					new ExtensionScannerInput(version, commit, locale, devMode, environmentService.extensionsPath, false, false, translations),
 +					new ExtensionScannerInput(version, commit, locale, devMode, environmentService.extensionsPath, false, false, translations, environmentService.extraExtensionPaths),
+diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts b/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+index 9133b7e..8c801b7 100644
+--- a/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
++++ b/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+@@ -461 +461 @@ export class ExtensionHostProcessWorker implements IExtensionHostStarter {
+-		if (errorMessage === this._lastExtensionHostError) {
++		if (errorMessage === this._lastExtensionHostError || errorMessage === "disconnected") {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
 index b337206..0477464 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
