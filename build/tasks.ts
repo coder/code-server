@@ -1,4 +1,5 @@
 import { register, run } from "@coder/runner";
+import { logger, field } from "@coder/logger";
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as os from "os";
@@ -17,6 +18,11 @@ const vscodeVersion = process.env.VSCODE_VERSION || "1.33.1";
 const vsSourceUrl = `https://codesrv-ci.cdr.sh/vstar-${vscodeVersion}.tar.gz`;
 
 const buildServerBinary = register("build:server:binary", async (runner) => {
+	logger.info("Building with environment", field("env", {
+		NODE_ENV: process.env.NODE_ENV,
+		VERSION: process.env.VERSION,
+	}));
+
 	await ensureInstalled();
 	await Promise.all([
 		buildBootstrapFork(),
