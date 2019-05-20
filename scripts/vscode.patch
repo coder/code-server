@@ -149,13 +149,13 @@ index e0ff793..885de12 100644
 -		const cmdOrCtrlKey = platform.isMacintosh ? e.metaKey : e.ctrlKey;
 +		const cmdOrCtrlKey = browser.isMacintosh ? e.metaKey : e.ctrlKey;
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index 6fd8249..1101558 100644
+index 6fd8249..6ae6b11 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 @@ -50,0 +51,2 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
 +import { BackupMainService } from 'vs/platform/backup/electron-main/backupMainService';
 +import { mkdirp } from 'vs/base/node/pfs';
-@@ -93,0 +96,11 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -93,0 +96,10 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 +	Promise.all<boolean | undefined>([ // Copied from src/vs/code/electron-main/main.ts
 +		environmentService.extensionsPath,
 +		environmentService.nodeCachedDataDir,
@@ -163,20 +163,19 @@ index 6fd8249..1101558 100644
 +		environmentService.globalStorageHome,
 +		environmentService.workspaceStorageHome,
 +		environmentService.backupHome,
-+		environmentService.builtinExtensionsPath,
 +		...environmentService.extraExtensionPaths,
 +		...environmentService.extraBuiltinExtensionPaths,
 +	].map((path): undefined | Promise<boolean> => path ? mkdirp(path) : undefined));
-@@ -119,0 +133,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -119,0 +132,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 +	const backupMainService = instantiationService.createInstance(BackupMainService) as BackupMainService;
 +	backupMainService.initialize().catch(console.error);
-@@ -124 +139 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -124 +138 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 -		const { appRoot, extensionsPath, extensionDevelopmentLocationURI, isBuilt, installSourcePath } = environmentService;
 +		const { appRoot, extensionsPath, extraExtensionPaths, extensionDevelopmentLocationURI, isBuilt, installSourcePath } = environmentService;
-@@ -138 +153 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -138 +152 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 -				piiPaths: [appRoot, extensionsPath]
 +				piiPaths: [appRoot, extensionsPath, ...extraExtensionPaths]
-@@ -223,0 +239 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
+@@ -223,0 +238 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +startup({ machineId: "1" });
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
 index 1f8b17a..2a875f9 100644

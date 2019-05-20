@@ -26,7 +26,6 @@ commander.version(process.env.VERSION || "development")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
 	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.")
-	.option("--builtin-extensions-dir <dir>", "Override the main default path for built-in extensions.")
 	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, [])
 	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, [])
 	.option("-d --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
@@ -66,7 +65,6 @@ const bold = (text: string | number): string | number => {
 
 		readonly userDataDir?: string;
 		readonly extensionsDir?: string;
-		readonly builtinExtensionsDir?: string;
 		readonly extraExtensionsDir?: string[];
 		readonly extraBuiltinExtensionsDir?: string[];
 
@@ -94,8 +92,7 @@ const bold = (text: string | number): string | number => {
 
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
-	const builtInExtensionsDir = options.builtinExtensionsDir ? path.resolve(options.builtinExtensionsDir)
-		: path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
+	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 	const extraExtensionDirs = options.extraExtensionsDir ? options.extraExtensionsDir.map((p) => path.resolve(p)) : [];
 	const extraBuiltinExtensionDirs = options.extraBuiltinExtensionsDir ? options.extraBuiltinExtensionsDir.map((p) => path.resolve(p)) : [];
 	const workingDir = path.resolve(args[0] || process.cwd());
@@ -113,7 +110,6 @@ const bold = (text: string | number): string | number => {
 		fse.mkdirp(cacheHome),
 		fse.mkdirp(dataDir),
 		fse.mkdirp(extensionsDir),
-		fse.mkdirp(builtInExtensionsDir),
 		fse.mkdirp(workingDir),
 		fse.mkdirp(dependenciesDir),
 		...extraExtensionDirs.map((p) => fse.mkdirp(p)),
