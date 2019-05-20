@@ -52,7 +52,15 @@ export type DialogOptions = OpenDialogOptions | SaveDialogOptions;
 
 export const showOpenDialog = (options: OpenDialogOptions): Promise<string> => {
 	return new Promise<string>((resolve, reject): void => {
-		const dialog = new Dialog(DialogType.Open, options);
+		// Make the default to show hidden files and directories since there is no
+		// other way to make them visible in the dialogs currently.
+		const dialog = new Dialog(DialogType.Open, typeof options.properties.showHiddenFiles === "undefined" ? {
+			...options,
+			properties: {
+				...options.properties,
+				showHiddenFiles: true,
+			},
+		} : options);
 		dialog.onSelect((e) => {
 			dialog.dispose();
 			resolve(e);
