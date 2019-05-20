@@ -15,13 +15,13 @@ function docker_build() {
 	docker cp ./. $containerID:/src
 	exec "cd /src && yarn"
 	exec "cd /src && npm rebuild"
-	exec "cd /src && yarn task build:server:binary"
+	exec "cd /src && NODE_ENV=production VERSION=$VERSION yarn task build:server:binary"
 	exec "cd /src && yarn task package $VERSION"
 	docker cp $containerID:/src/release/. ./release/
 }
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-	yarn task build:server:binary
+	NODE_ENV=production yarn task build:server:binary
 else
 	if [[ "$TARGET" == "alpine" ]]; then
 		IMAGE="codercom/nbin-alpine"
