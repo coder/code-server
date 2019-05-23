@@ -1,4 +1,4 @@
 {
-  "name": "@coder/events",
-  "main": "./src/index.ts"
+	"name": "@coder/events",
+	"version": "1.0.0"
 }

@@ -1,5 +1,6 @@
 {
 	"name": "@coder/chrome-app",
+	"version": "1.0.0",
 	"dependencies": {
 		"@types/chrome": "^0.0.79"
 	},

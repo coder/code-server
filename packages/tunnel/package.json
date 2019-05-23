@@ -1,4 +1,4 @@
 {
 	"name": "@coder/tunnel",
-	"main": "src/tunnel.ts"
+	"version": "1.0.0"
 }

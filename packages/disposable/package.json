@@ -1,4 +1,4 @@
 {
-  "name": "@coder/disposable",
-  "main": "src/index.ts"
+	"name": "@coder/disposable",
+	"version": "1.0.0"
 }

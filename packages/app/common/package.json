@@ -1,6 +1,6 @@
 {
 	"name": "@coder/app-common",
-	"main": "src/app.ts",
+	"version": "1.0.0",
 	"dependencies": {
 		"material-components-web": "^0.44.0",
 		"react": "^16.8.1",

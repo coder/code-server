@@ -1,5 +1,4 @@
 {
-  "name": "@coder/ide",
-  "description": "Browser-based IDE client abstraction.",
-  "main": "src/index.ts"
+	"name": "@coder/ide",
+	"version": "1.0.0"
 }

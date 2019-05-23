@@ -4,13 +4,16 @@
   "author": "Coder",
   "license": "MIT",
   "description": "Run VS Code remotely.",
+  "private": true,
+  "workspaces": ["packages/*", "packages/app/*", "lib/vscode"],
   "scripts": {
     "build:rules": "cd ./rules && tsc -p .",
-    "packages:install": "cd ./packages && yarn",
-    "postinstall": "npm-run-all --parallel packages:install build:rules",
-    "start": "cd ./packages/server && yarn start",
+    "preinstall": "yarn task vscode:install",
+    "postinstall": "yarn build:rules",
+    "watch": "yarn task watch",
+    "build": "yarn task build",
     "task": "ts-node -r tsconfig-paths/register build/tasks.ts",
-    "test": "cd ./packages && yarn test"
+    "test": "jest"
   },
   "devDependencies": {
     "@types/fs-extra": "^5.0.4",
@@ -28,6 +31,7 @@
     "html-webpack-plugin": "^3.2.0",
     "http-browserify": "^1.7.0",
     "ignore-loader": "^0.1.2",
+    "jest": "^23.6.0",
     "mini-css-extract-plugin": "^0.5.0",
     "node-sass": "^4.11.0",
     "npm-run-all": "^4.1.5",
@@ -38,13 +42,14 @@
     "style-loader": "^0.23.1",
     "tar": "^4.4.8",
     "terser-webpack-plugin": "^1.2.3",
-    "ts-loader": "^5.3.3",
+    "ts-jest": "^23.10.5",
+    "ts-loader": "^6.0.0",
     "ts-node": "^7.0.1",
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
-    "tslint": "^5.12.1",
-    "typescript": "^3.2.2",
-    "typescript-tslint-plugin": "^0.2.1",
+    "tslint": "^5.16.0",
+    "typescript": "^3.4.5",
+    "typescript-tslint-plugin": "^0.3.1",
     "uglifyjs-webpack-plugin": "^2.1.1",
     "url-loader": "^1.1.2",
     "util": "^0.11.1",
@@ -66,5 +71,38 @@
     "node-pty": "0.8.1",
     "spdlog": "0.8.1",
     "webpack-merge": "^4.2.1"
+  },
+  "jest": {
+    "globals": {
+      "ts-jest": {
+        "diagnostics": false
+      }
+    },
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "json"
+    ],
+    "setupFiles": [
+      "<rootDir>/../scripts/test-setup.js"
+    ],
+    "moduleNameMapper": {
+      "^.+\\.(s?css|png|svg)$": "<rootDir>/../scripts/dummy.js",
+      "@coder/ide/src/fill/evaluation": "<rootDir>/ide/src/fill/evaluation",
+      "@coder/ide/src/fill/client": "<rootDir>/ide/src/fill/client",
+      "@coder/(.*)/test": "<rootDir>/$1/test",
+      "@coder/(.*)": "<rootDir>/$1/src",
+      "vs/(.*)": "<rootDir>/../lib/vscode/src/vs/$1",
+      "vszip": "<rootDir>/../lib/vscode/src/vs/base/node/zip.ts"
+    },
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/logger/"
+    ],
+    "testRegex": ".*\\.test\\.tsx?"
   }
 }

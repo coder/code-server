@@ -1,9 +1,6 @@
 {
 	"name": "@coder/dns",
-	"main": "out/main.js",
-	"scripts": {
-		"build": "../../node_modules/.bin/webpack --config ./webpack.config.js"
-	},
+	"version": "1.0.0",
 	"dependencies": {
 		"node-named": "^0.0.1"
 	},

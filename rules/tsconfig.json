@@ -4,7 +4,7 @@
 		"sourceMap": false,
 		"declaration": false,
 		"rootDir": "./src",
-		"outDir": "./dist"
+		"outDir": "./out"
 	},
 	"include": [
 		"."
