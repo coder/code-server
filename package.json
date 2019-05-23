@@ -49,7 +49,7 @@
     "url-loader": "^1.1.2",
     "util": "^0.11.1",
     "webpack": "^4.28.4",
-    "webpack-bundle-analyzer": "^3.0.3",
+    "webpack-bundle-analyzer": "^3.3.2",
     "webpack-cli": "^3.2.1",
     "webpack-dev-middleware": "^3.5.0",
     "webpack-dev-server": "^3.1.14",
