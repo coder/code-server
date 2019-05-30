@@ -39,15 +39,15 @@ If you're just starting out, we recommend [installing code-server locally](../..
   ```
 - Replace {version} in the following command with the version found on the releases page and run it (or just copy the download URL from the releases page):
   ```
-  wget https://github.com/cdr/code-server/releases/download/{version}/code-server-{version}-linux-x64.tar.gz
+  wget https://github.com/cdr/code-server/releases/download/{version}/code-server{version}-linux-x64.tar.gz
   ```
 - Extract the downloaded tar.gz file with this command, for example:
   ```
-  tar -xvzf code-server-{version}-linux-x64.tar.gz
+  tar -xvzf code-server{version}-linux-x64.tar.gz
   ```
 - Navigate to extracted directory with this command:
   ```
-  cd code-server-{version}-linux-x64
+  cd code-server{version}-linux-x64
   ```
 - If you run into any permission errors, make the binary executable by running:
   ```
