@@ -198,7 +198,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	): void => {
 		const currentUrl = `${protocol}://${req.headers.host}${req.originalUrl}`;
 		const newUrl = url.parse(currentUrl);
-		if (newUrl.port == null && options.port === 80) {
+		if (newUrl.port == null && protocol === "https" && options.port === 80) {
 			// Fix for https redirect on default port. The redirect would go to a URL without a port, so the
 			// browser would assume that it's redirecting to port 443.
 			newUrl.host += `:${options.port}`;
