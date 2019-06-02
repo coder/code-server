@@ -28,6 +28,7 @@ interface CreateAppOptions {
 	registerMiddleware?: (app: express.Application) => void;
 	serverOptions?: ServerOptions;
 	password?: string;
+	port?: number;
 	httpsOptions?: https.ServerOptions;
 	allowHttp?: boolean;
 	bypassAuth?: boolean;
@@ -197,6 +198,12 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	): void => {
 		const currentUrl = `${protocol}://${req.headers.host}${req.originalUrl}`;
 		const newUrl = url.parse(currentUrl);
+		if (newUrl.port == null && options.port === 80) {
+			// Fix for https redirect on default port. The redirect would go to a URL without a port, so the
+			// browser would assume that it's redirecting to port 443.
+			newUrl.host += `:${options.port}`;
+			newUrl.port = "" + options.port;
+		}
 		if (from && newUrl.pathname) {
 			newUrl.pathname = newUrl.pathname.replace(new RegExp(`\/${from}\/?$`), "/");
 		}

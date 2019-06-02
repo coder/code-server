@@ -273,6 +273,7 @@ const bold = (text: string | number): string | number => {
 			},
 		},
 		password,
+		port,
 		httpsOptions: hasCustomHttps ? {
 			key: certKeyData,
 			cert: certData,
