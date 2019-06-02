@@ -11,9 +11,9 @@ If you're just starting out, we recommend [installing code-server locally](../..
 ### Use the AWS wizard
 
 - Click **Launch Instance** from your [EC2 dashboard](https://console.aws.amazon.com/ec2/v2/home).
-- Select the Ubuntu Server 16.04 LTS (HVM), SSD Volume Type (`ami-0f9cf087c1f27d9b1)` at this time of writing)
+- Select the Ubuntu Server 18.04 LTS (HVM), SSD Volume Type
 - Select an appropriate instance size (we recommend t2.medium/large, depending on team size and number of repositories/languages enabled), then **Next: Configure Instance Details**
-- Select **Next: ...** until you get to the **Configure Security Group** page, then add the default **HTTP** rule (port range "80", source "0.0.0.0/0, ::/0")
+- Select **Next: ...** until you get to the **Configure Security Group** page, then add a **Custom TCP Rule** rule with port range set to `8443` and source set to "Anywhere"
   > Rules with source of 0.0.0.0/0 allow all IP addresses to access your instance. We recommend setting [security group rules](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html?icmpid=docs_ec2_console) to allow access from known IP addresses only.
 - Click **Launch**
 - You will be prompted to create a key pair
@@ -56,14 +56,11 @@ If you're just starting out, we recommend [installing code-server locally](../..
   > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 - Finally, run
   ```
-  sudo ./code-server -p 80
+  ./code-server
   ```
-- When you visit the public IP for your AWS instance, you will be greeted   with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
-- Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
+- Open your browser and visit `https://$public_ip:8443/` (where `$public_ip` is your AWS instance's public IP address). You will be greeted with a page similar to the following screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../../assets/chrome_warning.png">
 
   > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
-
-  > The `-p 80` flag is necessary in order to make the IDE accessible from the public IP of your instance (also available from the description in the instances page.
 
   ---
 > NOTE: If you get stuck or need help, [file an issue](https://github.com/cdr/code-server/issues/new?&title=Improve+self-hosted+quickstart+guide), [tweet (@coderhq)](https://twitter.com/coderhq) or [email](mailto:support@coder.com?subject=Self-hosted%20quickstart%20guide).
