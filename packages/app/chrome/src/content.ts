@@ -1,5 +1,5 @@
-import { create } from "@coder/app/common/src/app";
 import { tcpHost } from "./chome";
+import { create } from "../../common/src/app";
 
 create({
 	storage: {

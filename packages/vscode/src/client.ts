@@ -6,10 +6,10 @@ import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/com
 import * as paths from "./fill/paths";
 import product from "./fill/product";
 import "./vscode.scss";
-import { Action } from 'vs/base/common/actions';
-import { SyncActionDescriptor, MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
-import { Registry } from 'vs/platform/registry/common/platform';
-import { IWorkbenchActionRegistry, Extensions } from 'vs/workbench/common/actions';
+import { Action } from "vs/base/common/actions";
+import { SyncActionDescriptor, MenuRegistry, MenuId } from "vs/platform/actions/common/actions";
+import { Registry } from "vs/platform/registry/common/platform";
+import { IWorkbenchActionRegistry, Extensions } from "vs/workbench/common/actions";
 import { CommandsRegistry } from "vs/platform/commands/common/commands";
 import { IFileService, FileOperation } from "vs/platform/files/common/files";
 import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";

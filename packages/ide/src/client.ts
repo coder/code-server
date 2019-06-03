@@ -1,10 +1,8 @@
 import { field, logger, time, Time } from "@coder/logger";
-import { SharedProcessData } from "@coder/protocol";
-import { retry } from "./retry";
+import { INotificationService, IProgressService, retry,  SharedProcessData } from "@coder/protocol";
 import { upload } from "./upload";
 import { client } from "./fill/client";
 import { clipboard } from "./fill/clipboard";
-import { INotificationService, IProgressService } from "./fill/notification";
 import "./fill/os"; // Ensure it fills before anything else waiting on initData.
 
 /**

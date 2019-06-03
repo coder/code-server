@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"baseUrl": "../",
+		"paths": {
+			"@coder/*": [
+				"out/packages/*/src"
+			],
+			"vs/*": [
+				"lib/vscode/out/vs/*"
+			],
+			"electron": [
+				"out/packages/server/src/modules/electron"
+			]
+		}
+	}
+}

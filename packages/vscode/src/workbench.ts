@@ -1,6 +1,6 @@
 import * as os from "os";
-import { IProgress, INotificationHandle } from "@coder/ide";
 import { logger } from "@coder/logger";
+import { IProgress, INotificationHandle } from "@coder/protocol";
 import { client } from "./client";
 
 import "./fill/platform";

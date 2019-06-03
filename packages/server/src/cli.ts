@@ -1,6 +1,6 @@
+import "./bootstrap";
 import { field, logger } from "@coder/logger";
-import { ServerMessage, SharedProcessActive } from "@coder/protocol/src/proto";
-import { withEnv } from "@coder/protocol";
+import { ServerMessage, SharedProcessActive, withEnv } from "@coder/protocol";
 import { ChildProcess, fork, ForkOptions } from "child_process";
 import { randomFillSync } from "crypto";
 import * as fs from "fs";
@@ -8,12 +8,11 @@ import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
-import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
+import { buildDir, cacheHome, dataHome, isCli } from "./constants";
 import { createApp } from "./server";
-import { forkModule, requireModule } from "./vscode/bootstrapFork";
+import { forkModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
-import opn = require("opn");
-
+import open = require("open");
 import * as commander from "commander";
 
 const collect = <T>(value: T, previous: T[]): T[] => {
@@ -39,8 +38,6 @@ commander.version(process.env.VERSION || "development")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
 	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
 	.option("--install-extension <value>", "Install an extension by its ID.")
-	.option("--bootstrap-fork <name>", "Used for development. Never set.")
-	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
 
@@ -76,9 +73,6 @@ const bold = (text: string | number): string | number => {
 		readonly socket?: string;
 
 		readonly installExtension?: string;
-
-		readonly bootstrapFork?: string;
-		readonly extraArgs?: string;
 	};
 
 	if (options.disableTelemetry) {
@@ -116,37 +110,24 @@ const bold = (text: string | number): string | number => {
 		...extraBuiltinExtensionDirs.map((p) => fse.mkdirp(p)),
 	]);
 
-	const unpackExecutable = (binaryName: string): void => {
-		const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", binaryName);
-		const diskFile = path.join(dependenciesDir, binaryName);
-		if (!fse.existsSync(diskFile)) {
-			fse.writeFileSync(diskFile, fse.readFileSync(memFile));
-		}
-		fse.chmodSync(diskFile, "755");
-	};
+	// const unpackExecutable = (binaryName: string): void => {
+	// 	const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", binaryName);
+	// 	const diskFile = path.join(dependenciesDir, binaryName);
+	// 	if (!fse.existsSync(diskFile)) {
+	// 		fse.writeFileSync(diskFile, fse.readFileSync(memFile));
+	// 	}
+	// 	fse.chmodSync(diskFile, "755");
+	// };
 
-	unpackExecutable("rg");
+	// TODO: should this just be a dependency instead of bundled? If not, we'll
+	// still need to patch (maybe we can get it working without it though).
+	// unpackExecutable("rg");
 	// tslint:disable-next-line no-any
-	(<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
+	// (<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
 
-	if (options.bootstrapFork) {
-		const modulePath = options.bootstrapFork;
-		if (!modulePath) {
-			logger.error("No module path specified to fork!");
-			process.exit(1);
-		}
-
-		process.argv = [
-			process.argv[0],
-			process.argv[1],
-			...(options.extraArgs ? JSON.parse(options.extraArgs) : []),
-		];
-
-		return requireModule(modulePath, builtInExtensionsDir);
+	if (!process.env.VSCODE_LOGS) {
+		process.env.VSCODE_LOGS = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
 	}
-
-	const logDir = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
-	process.env.VSCODE_LOGS = logDir;
 
 	const certPath = options.cert ? path.resolve(options.cert) : undefined;
 	const certKeyPath = options.certKey ? path.resolve(options.certKey) : undefined;
@@ -203,12 +184,18 @@ const bold = (text: string | number): string | number => {
 
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/cdr/code-server");
-	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
+	logger.info(
+		"Initializing",
+		field("data-dir", dataDir),
+		field("extensions-dir", extensionsDir),
+		field("working-dir", workingDir),
+		field("log-dir", process.env.VSCODE_LOGS),
+	);
 	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir, extraExtensionDirs, extraBuiltinExtensionDirs);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
 		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
-		active.setLogPath(logDir);
+		active.setLogPath(process.env.VSCODE_LOGS!);
 		const serverMessage = new ServerMessage();
 		serverMessage.setSharedProcessActive(active);
 		socket.send(serverMessage.serializeBinary());
@@ -236,26 +223,6 @@ const bold = (text: string | number): string | number => {
 	const app = await createApp({
 		allowHttp: options.allowHttp,
 		bypassAuth: options.noAuth,
-		registerMiddleware: (app): void => {
-			// If we're not running from the binary and we aren't serving the static
-			// pre-built version, use webpack to serve the web files.
-			if (!isCli && !serveStatic) {
-				const webpackConfig = require(path.resolve(__dirname, "..", "..", "web", "webpack.config.js"));
-				const compiler = require("webpack")(webpackConfig);
-				app.use(require("webpack-dev-middleware")(compiler, {
-					logger: {
-						trace: (m: string): void => logger.trace("webpack", field("message", m)),
-						debug: (m: string): void => logger.debug("webpack", field("message", m)),
-						info: (m: string): void => logger.info("webpack", field("message", m)),
-						warn: (m: string): void => logger.warn("webpack", field("message", m)),
-						error: (m: string): void => logger.error("webpack", field("message", m)),
-					},
-					publicPath: webpackConfig.output.publicPath,
-					stats: webpackConfig.stats,
-				}));
-				app.use(require("webpack-hot-middleware")(compiler));
-			}
-		},
 		serverOptions: {
 			extensionsDirectory: extensionsDir,
 			builtInExtensionsDirectory: builtInExtensionsDir,
@@ -301,7 +268,7 @@ const bold = (text: string | number): string | number => {
 
 			if (options.open) {
 				try {
-					await opn(url);
+					await open(url);
 				} catch (e) {
 					logger.warn("Url couldn't be opened automatically.", field("url", url), field("error", e.message));
 				}
@@ -334,7 +301,6 @@ const bold = (text: string | number): string | number => {
 	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
-		// TODO: fill in appropriate doc url
 		logger.warn("Documentation on securing your setup: https://github.com/cdr/code-server/blob/master/doc/security/ssl.md");
 	}
 

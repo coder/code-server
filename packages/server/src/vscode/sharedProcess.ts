@@ -1,18 +1,24 @@
-import { ChildProcess } from "child_process";
+import { Emitter } from "@coder/events";
+import { logger, Level } from "@coder/logger";
+import { retry, withEnv } from "@coder/protocol";
+import { fork, ChildProcess } from "child_process";
 import * as os from "os";
 import * as path from "path";
-import { forkModule } from "./bootstrapFork";
-import { StdioIpcHandler } from "../ipc";
-import { ParsedArgs } from "vs/platform/environment/common/environment";
-import { Emitter } from "@coder/events/src";
-import { retry } from "@coder/ide/src/retry";
-import { logger, field, Level } from "@coder/logger";
-import { withEnv } from "@coder/protocol";
+import { IpcHandler } from "../ipc";
 
+// tslint:disable-next-line completed-docs pretty obvious what this is
 export enum SharedProcessState {
 	Stopped,
 	Starting,
 	Ready,
+}
+
+interface SharedProcessArgs {
+	"user-data-dir"?: string;
+	"extensions-dir"?: string;
+	"builtin-extensions-dir"?: string;
+	"extra-extension-dirs"?: string[];
+	"extra-builtin-extension-dirs"?: string[];
 }
 
 export type SharedProcessEvent = {
@@ -22,13 +28,16 @@ export type SharedProcessEvent = {
 	readonly error: string;
 };
 
+/**
+ * Forks the shared process and restarts it if it dies.
+ */
 export class SharedProcess {
 	public readonly socketPath: string = os.platform() === "win32"
 		? path.join("\\\\?\\pipe", os.tmpdir(), `.code-server${Math.random().toString()}`)
 		: path.join(os.tmpdir(), `.code-server${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
-	private ipcHandler: StdioIpcHandler | undefined;
+	private ipcHandler: IpcHandler | undefined;
 	private readonly onStateEmitter = new Emitter<SharedProcessEvent>();
 	public readonly onState = this.onStateEmitter.event;
 	private readonly logger = logger.named("shared");
@@ -91,9 +100,9 @@ export class SharedProcess {
 			this.activeProcess.kill();
 		}
 
-		const activeProcess = forkModule(
-			"vs/code/electron-browser/sharedProcess/sharedProcessMain", [],
-			withEnv({ env: { VSCODE_ALLOW_IO: "true" } }), this.userDataDir,
+		const activeProcess = fork(path.join(__dirname, "shared-process"), [
+				"--user-data-dir", this.userDataDir,
+			], withEnv({ env: { VSCODE_ALLOW_IO: "true" } }),
 		);
 		this.activeProcess = activeProcess;
 
@@ -115,21 +124,11 @@ export class SharedProcess {
 			activeProcess.on("error", doReject);
 			activeProcess.on("exit", doReject);
 
-			activeProcess.stdout.on("data", (data) => {
-				logger.trace("stdout", field("data", data.toString()));
-			});
-
-			activeProcess.stderr.on("data", (data) => {
-				// Warn instead of error to prevent panic. It's unlikely stderr here is
-				// about anything critical to the functioning of the editor.
-				logger.warn("stderr", field("data", data.toString()));
-			});
-
-			this.ipcHandler = new StdioIpcHandler(activeProcess);
+			this.ipcHandler = new IpcHandler(activeProcess);
 			this.ipcHandler.once("handshake:hello", () => {
 				const data: {
 					sharedIPCHandle: string;
-					args: Partial<ParsedArgs>;
+					args: SharedProcessArgs;
 					logLevel: Level;
 				} = {
 					args: {

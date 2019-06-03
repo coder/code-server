@@ -1,7 +1,6 @@
 import { Emitter } from "@coder/events";
 import { field, logger } from "@coder/logger";
-import { Client, ReadWriteConnection } from "@coder/protocol";
-import { retry } from "../retry";
+import { retry, Client, ReadWriteConnection } from "@coder/protocol";
 
 /**
  * A connection based on a web socket. Automatically reconnects and buffers

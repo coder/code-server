@@ -37,16 +37,6 @@
 			"check-whitespace",
 			"check-open-brace"
 		],
-		"completed-docs": {
-			"options": [
-				true,
-				"enums",
-				"functions",
-				"methods",
-				"classes"
-			],
-			"severity": "warning"
-		},
 		"no-unused-expression": [
 			true,
 			"allow-fast-null-checks"

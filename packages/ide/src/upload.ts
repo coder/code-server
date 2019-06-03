@@ -2,8 +2,7 @@ import { exec } from "child_process";
 import { appendFile } from "fs";
 import { promisify } from "util";
 import { logger } from "@coder/logger";
-import { escapePath } from "@coder/protocol";
-import { NotificationService, INotificationService, ProgressService, IProgressService, IProgress, Severity } from "./fill/notification";
+import { escapePath, NotificationService, INotificationService, ProgressService, IProgressService, IProgress, Severity } from "@coder/protocol";
 
 export interface IURI {
 	readonly path: string;

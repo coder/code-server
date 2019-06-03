@@ -6,6 +6,9 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 
+/**
+ * Which libc implementation to use.
+ */
 enum Lib {
 	GLIBC,
 	MUSL,

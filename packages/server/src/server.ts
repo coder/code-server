@@ -1,8 +1,6 @@
 import { field, logger } from "@coder/logger";
-import { ReadWriteConnection } from "@coder/protocol";
-import { Server, ServerOptions } from "@coder/protocol/src/node/server";
-import { TunnelCloseCode } from "@coder/tunnel/src/common";
-import { handle as handleTunnel } from "@coder/tunnel/src/server";
+import { ReadWriteConnection, Server, ServerOptions } from "@coder/protocol";
+import { handle as handleTunnel, TunnelCloseCode } from "@coder/tunnel";
 import * as express from "express";
 //@ts-ignore
 import * as expressStaticGzip from "express-static-gzip";

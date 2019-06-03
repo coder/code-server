@@ -1,6 +1,6 @@
 //@ts-ignore
-import { TcpHost, TcpServer, TcpConnection } from "@coder/app/common/src/app";
-import { Event, Emitter } from "@coder/events/src";
+import { Event, Emitter } from "@coder/events";
+import { TcpHost, TcpServer, TcpConnection } from "../../common/src/app";
 
 export const tcpHost: TcpHost = {
 	listen(host: string, port: number): Promise<TcpServer> {

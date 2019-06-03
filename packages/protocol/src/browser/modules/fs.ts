@@ -159,7 +159,7 @@ export class FsModule {
 		callbackify(this.proxy.fdatasync)(fd, callback!);
 	}
 
-	public fstat = (fd: number, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
+	public fstat = (fd: number, callback: (err: NodeJS.ErrnoException | null, stats: fs.Stats) => void): void => {
 		callbackify(this.proxy.fstat)(fd, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});
@@ -193,7 +193,7 @@ export class FsModule {
 		callbackify(this.proxy.link)(existingPath, newPath, callback!);
 	}
 
-	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
+	public lstat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException | null, stats: fs.Stats) => void): void => {
 		callbackify(this.lstatBatch.add)({ path }, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});
@@ -207,7 +207,7 @@ export class FsModule {
 		callbackify(this.proxy.mkdir)(path, mode, callback!);
 	}
 
-	public mkdtemp = (prefix: string, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, folder: string | Buffer) => void): void => {
+	public mkdtemp = (prefix: string, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException | null, folder: string | Buffer) => void): void => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -215,7 +215,7 @@ export class FsModule {
 		callbackify(this.proxy.mkdtemp)(prefix, options, callback!);
 	}
 
-	public open = (path: fs.PathLike, flags: string | number, mode: string | number | undefined | null | ((err: NodeJS.ErrnoException, fd: number) => void), callback?: (err: NodeJS.ErrnoException, fd: number) => void): void => {
+	public open = (path: fs.PathLike, flags: string | number, mode: string | number | undefined | null | ((err: NodeJS.ErrnoException | null, fd: number) => void), callback?: (err: NodeJS.ErrnoException | null, fd: number) => void): void => {
 		if (typeof mode === "function") {
 			callback = mode;
 			mode = undefined;
@@ -232,7 +232,7 @@ export class FsModule {
 		});
 	}
 
-	public readFile = (path: fs.PathLike | number, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, data: string | Buffer) => void): void => {
+	public readFile = (path: fs.PathLike | number, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException | null, data: string | Buffer) => void): void => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -240,7 +240,7 @@ export class FsModule {
 		callbackify(this.proxy.readFile)(path, options, callback!);
 	}
 
-	public readdir = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, files: Buffer[] | fs.Dirent[] | string[]) => void): void => {
+	public readdir = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException | null, files: Buffer[] | fs.Dirent[] | string[]) => void): void => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -248,7 +248,7 @@ export class FsModule {
 		callbackify(this.readdirBatch.add)({ path, options }, callback!);
 	}
 
-	public readlink = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, linkString: string | Buffer) => void): void => {
+	public readlink = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException | null, linkString: string | Buffer) => void): void => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -256,7 +256,7 @@ export class FsModule {
 		callbackify(this.proxy.readlink)(path, options, callback!);
 	}
 
-	public realpath = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException, resolvedPath: string | Buffer) => void): void => {
+	public realpath = (path: fs.PathLike, options: IEncodingOptionsCallback, callback?: (err: NodeJS.ErrnoException | null, resolvedPath: string | Buffer) => void): void => {
 		if (typeof options === "function") {
 			callback = options;
 			options = undefined;
@@ -272,7 +272,7 @@ export class FsModule {
 		callbackify(this.proxy.rmdir)(path, callback!);
 	}
 
-	public stat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException, stats: fs.Stats) => void): void => {
+	public stat = (path: fs.PathLike, callback: (err: NodeJS.ErrnoException | null, stats: fs.Stats) => void): void => {
 		callbackify(this.statBatch.add)({ path }, (error, stats) => {
 			callback(error, stats && new Stats(stats));
 		});

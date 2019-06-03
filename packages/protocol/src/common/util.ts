@@ -29,7 +29,7 @@ export type IEncodingOptions = {
 	recursive?: boolean;
 } | BufferEncoding | undefined | null;
 
-export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoException, ...args: any[]) => void);
+export type IEncodingOptionsCallback = IEncodingOptions | ((err: NodeJS.ErrnoException | null, ...args: any[]) => void);
 
 /**
  * Convert an argument to proto.

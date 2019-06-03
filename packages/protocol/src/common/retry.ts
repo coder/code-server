@@ -1,5 +1,5 @@
 import { logger, field } from "@coder/logger";
-import { NotificationService, INotificationHandle, INotificationService, Severity } from "./fill/notification";
+import { NotificationService, INotificationHandle, INotificationService, Severity } from "./notification";
 
 // tslint:disable no-any can have different return values
 

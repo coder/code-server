@@ -5,24 +5,22 @@
 		"baseUrl": ".",
 		"rootDir": ".",
 		"jsx": "react",
-		"outDir": "dist",
-		"declaration": true,
+		"outDir": "out",
+		"declaration": false,
 		"sourceMap": true,
 		"strict": true,
 		"resolveJsonModule": true,
 		"experimentalDecorators": true,
 		"importHelpers": true,
-		"plugins": [
-			{
-				"name": "typescript-tslint-plugin"
-			}
-		],
+		"plugins": [{
+			"name": "typescript-tslint-plugin"
+		}],
 		"paths": {
 			"@coder/*": [
-				"./packages/*/src"
+				"packages/*/src"
 			],
 			"vs/*": [
-				"./lib/vscode/src/vs/*"
+				"lib/vscode/src/vs/*"
 			]
 		}
 	}
