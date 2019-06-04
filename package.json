@@ -43,7 +43,7 @@
     "tsconfig-paths": "^3.8.0",
     "tslib": "^1.9.3",
     "tslint": "^5.12.1",
-    "typescript": "^3.2.2",
+    "typescript": "3.4.5",
     "typescript-tslint-plugin": "^0.2.1",
     "uglifyjs-webpack-plugin": "^2.1.1",
     "url-loader": "^1.1.2",
