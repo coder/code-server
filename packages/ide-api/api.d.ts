@@ -1,9 +1,9 @@
 // tslint:disable no-any
 
 import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
-import { IWorkbenchActionRegistry } from 'vs/workbench/common/actions';
-import { Action } from 'vs/base/common/actions';
-import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
+import { IWorkbenchActionRegistry } from "vs/workbench/common/actions";
+import { Action } from "vs/base/common/actions";
+import { SyncActionDescriptor } from "vs/platform/actions/common/actions";
 
 export interface EvalHelper { }
 interface ActiveEvalEmitter {

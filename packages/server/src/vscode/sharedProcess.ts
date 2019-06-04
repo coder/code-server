@@ -9,6 +9,7 @@ import { retry } from "@coder/ide/src/retry";
 import { logger, field, Level } from "@coder/logger";
 import { withEnv } from "@coder/protocol";
 
+// tslint:disable-next-line completed-docs should be obvious
 export enum SharedProcessState {
 	Stopped,
 	Starting,
@@ -22,6 +23,9 @@ export type SharedProcessEvent = {
 	readonly error: string;
 };
 
+/**
+ * Manages the shared process. If it dies it will start it again.
+ */
 export class SharedProcess {
 	public readonly socketPath: string = os.platform() === "win32"
 		? path.join("\\\\?\\pipe", os.tmpdir(), `.code-server${Math.random().toString()}`)

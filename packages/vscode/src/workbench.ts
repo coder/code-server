@@ -1,6 +1,6 @@
 import * as os from "os";
 import { IProgress, INotificationHandle } from "@coder/ide";
-import { logger } from "@coder/logger";
+import { logger, field } from "@coder/logger";
 import { client } from "./client";
 
 import "./fill/platform";
@@ -16,7 +16,7 @@ import "./fill/windowsService";
 import "./fill/workbenchRegistry";
 import "./fill/workspacesService";
 import * as paths from "./fill/paths";
-import { PasteAction } from "./fill/paste";
+// import { PasteAction } from "./fill/paste";
 
 import { ExplorerItem, ExplorerModel } from "vs/workbench/contrib/files/common/explorerModel";
 import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
@@ -26,7 +26,7 @@ import { IProgressService2, ProgressLocation } from "vs/platform/progress/common
 import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
 import { IWindowsService, IWindowConfiguration } from "vs/platform/windows/common/windows";
 import { LogLevel } from "vs/platform/log/common/log";
-import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
+// import { RawContextKey, IContextKeyService } from "vs/platform/contextkey/common/contextkey";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { URI } from "vs/base/common/uri";
 
@@ -39,7 +39,7 @@ export class Workbench {
 
 	private readonly windowId = parseInt(new Date().toISOString().replace(/[-:.TZ]/g, ""), 10);
 	private _serviceCollection: ServiceCollection | undefined;
-	private _clipboardContextKey: RawContextKey<boolean> | undefined;
+	// private _clipboardContextKey: RawContextKey<boolean> | undefined;
 
 	/**
 	 * Handle a drop event on the file explorer.
@@ -80,24 +80,24 @@ export class Workbench {
 	/**
 	 * Use to toggle the paste option inside editors based on the native clipboard.
 	 */
-	public get clipboardContextKey(): RawContextKey<boolean> {
-		if (!this._clipboardContextKey) {
-			throw new Error("Trying to access clipboard context key before it has been set");
-		}
+	// public get clipboardContextKey(): RawContextKey<boolean> {
+	// 	if (!this._clipboardContextKey) {
+	// 		throw new Error("Trying to access clipboard context key before it has been set");
+	// 	}
 
-		return this._clipboardContextKey;
-	}
+	// 	return this._clipboardContextKey;
+	// }
 
-	public get clipboardText(): Promise<string> {
-		return client.clipboard.readText();
-	}
+	// public get clipboardText(): Promise<string> {
+	// 	return client.clipboard.readText();
+	// }
 
 	/**
 	 * Create a paste action for use in text inputs.
 	 */
-	public get pasteAction(): PasteAction {
-		return new PasteAction();
-	}
+	// public get pasteAction(): PasteAction {
+	// 	return new PasteAction();
+	// }
 
 	public set workspace(ws: IWorkspaceIdentifier | ISingleFolderWorkspaceIdentifier | undefined) {
 		if (typeof ws === "undefined") {
@@ -129,12 +129,12 @@ export class Workbench {
 	public set serviceCollection(collection: ServiceCollection) {
 		this._serviceCollection = collection;
 
-		const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
-		const bounded = this.clipboardContextKey.bindTo(contextKeys);
-		client.clipboard.onPermissionChange((enabled) => {
-			bounded.set(enabled);
-		});
-		client.clipboard.initialize();
+		// const contextKeys = this.serviceCollection.get(IContextKeyService) as IContextKeyService;
+		// const bounded = this.clipboardContextKey.bindTo(contextKeys);
+		// client.clipboard.onPermissionChange((enabled) => {
+		// 	bounded.set(enabled);
+		// });
+		// client.clipboard.initialize();
 
 		client.progressService = {
 			start: <T>(title: string, task: (progress: IProgress) => Promise<T>, onCancel: () => void): Promise<T> => {
@@ -189,13 +189,13 @@ export class Workbench {
 	 * Start VS Code.
 	 */
 	public async initialize(): Promise<void> {
-		this._clipboardContextKey = new RawContextKey("nativeClipboard", client.clipboard.isEnabled);
+		// this._clipboardContextKey = new RawContextKey("nativeClipboard", client.clipboard.isEnabled);
 
 		const workspace = this.workspace || URI.file(paths.getWorkingDirectory());
 		// If we try to import this above, workbench will be undefined due to
 		// circular imports.
-		require("vs/workbench/workbench.main");
-		const { main } = require("vs/workbench/electron-browser/main");
+		require("vs/workbench/workbench.nodeless.main");
+		const { main } = require("vs/workbench/browser/nodeless.main");
 		const config: IWindowConfiguration = {
 			machineId: "1",
 			windowId: this.windowId,
@@ -208,6 +208,7 @@ export class Workbench {
 			perfEntries: [],
 			_: [],
 		};
+
 		if ((workspace as IWorkspaceIdentifier).configPath) {
 			// tslint:disable-next-line:no-any
 			let wid: IWorkspaceIdentifier = (<any>Object).assign({}, workspace);
@@ -219,19 +220,17 @@ export class Workbench {
 		} else {
 			config.folderUri = workspace as URI;
 		}
+
 		try {
 			await main(config);
 		} catch (ex) {
+			// Resolves the error of the workspace identifier being invalid.
 			if (ex.toString().indexOf("UriError") !== -1 || ex.toString().indexOf("backupPath") !== -1) {
-				/**
-				 * Resolves the error of the workspace identifier being invalid.
-				 */
-				// tslint:disable-next-line:no-console
-				console.error(ex);
+				logger.error(ex.message, field("error", ex));
 				this.workspace = undefined;
 				location.reload();
-
-				return;
+			} else {
+				throw ex;
 			}
 		}
 	}
