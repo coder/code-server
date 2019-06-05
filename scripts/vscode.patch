@@ -1,3 +1,75 @@
+diff --git a/src/vs/base/browser/browser.ts b/src/vs/base/browser/browser.ts
+index 16414ef..4fff90c 100644
+--- a/src/vs/base/browser/browser.ts
++++ b/src/vs/base/browser/browser.ts
+@@ -124,0 +125,3 @@ export const isEdgeWebView = isEdge && (userAgent.indexOf('WebView/') >= 0);
++export const isMacintosh = userAgent.indexOf('Macintosh') >= 0;
++export const isWindows = userAgent.indexOf('Windows') >= 0;
++export const isLinux = userAgent.indexOf('Linux') >= 0;
+diff --git a/src/vs/base/browser/keyboardEvent.ts b/src/vs/base/browser/keyboardEvent.ts
+index 03bdffc..acbc954 100644
+--- a/src/vs/base/browser/keyboardEvent.ts
++++ b/src/vs/base/browser/keyboardEvent.ts
+@@ -8 +8 @@ import { KeyCode, KeyCodeUtils, KeyMod, SimpleKeybinding } from 'vs/base/common/
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/aria/aria.ts b/src/vs/base/browser/ui/aria/aria.ts
+index fc71827..c8ed796 100644
+--- a/src/vs/base/browser/ui/aria/aria.ts
++++ b/src/vs/base/browser/ui/aria/aria.ts
+@@ -8 +8 @@ import * as nls from 'vs/nls';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/list/listWidget.ts b/src/vs/base/browser/ui/list/listWidget.ts
+index 5babdbf..a55c00a 100644
+--- a/src/vs/base/browser/ui/list/listWidget.ts
++++ b/src/vs/base/browser/ui/list/listWidget.ts
+@@ -13 +13 @@ import * as DOM from 'vs/base/browser/dom';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/sash/sash.ts b/src/vs/base/browser/ui/sash/sash.ts
+index 8c7168b..6b34122 100644
+--- a/src/vs/base/browser/ui/sash/sash.ts
++++ b/src/vs/base/browser/ui/sash/sash.ts
+@@ -8,2 +8 @@ import { IDisposable, dispose, Disposable } from 'vs/base/common/lifecycle';
+-import { isIPad } from 'vs/base/browser/browser';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isIPad, isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/scrollbar/scrollableElement.ts b/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
+index fbf8d5d..123a1b9 100644
+--- a/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
++++ b/src/vs/base/browser/ui/scrollbar/scrollableElement.ts
+@@ -18 +18 @@ import { IDisposable, dispose } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/selectBox/selectBox.ts b/src/vs/base/browser/ui/selectBox/selectBox.ts
+index d74c30c..ac39ce3 100644
+--- a/src/vs/base/browser/ui/selectBox/selectBox.ts
++++ b/src/vs/base/browser/ui/selectBox/selectBox.ts
+@@ -16 +16 @@ import { SelectBoxList } from 'vs/base/browser/ui/selectBox/selectBoxCustom';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/selectBox/selectBoxCustom.ts b/src/vs/base/browser/ui/selectBox/selectBoxCustom.ts
+index 8908d68..35dae2d 100644
+--- a/src/vs/base/browser/ui/selectBox/selectBoxCustom.ts
++++ b/src/vs/base/browser/ui/selectBox/selectBoxCustom.ts
+@@ -20 +20 @@ import { ISelectBoxDelegate, ISelectOptionItem, ISelectBoxOptions, ISelectBoxSty
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/selectBox/selectBoxNative.ts b/src/vs/base/browser/ui/selectBox/selectBoxNative.ts
+index 98dee79..09c0467 100644
+--- a/src/vs/base/browser/ui/selectBox/selectBoxNative.ts
++++ b/src/vs/base/browser/ui/selectBox/selectBoxNative.ts
+@@ -12 +12 @@ import { ISelectBoxDelegate, ISelectOptionItem, ISelectBoxOptions, ISelectBoxSty
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/base/browser/ui/tree/abstractTree.ts b/src/vs/base/browser/ui/tree/abstractTree.ts
+index 14757bf..d38b306 100644
+--- a/src/vs/base/browser/ui/tree/abstractTree.ts
++++ b/src/vs/base/browser/ui/tree/abstractTree.ts
+@@ -24 +24 @@ import { disposableTimeout } from 'vs/base/common/async';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/base/node/config.ts b/src/vs/base/node/config.ts
 index 0b57853..ad0c604 100644
 --- a/src/vs/base/node/config.ts
@@ -6,22 +78,34 @@ index 0b57853..ad0c604 100644
 +			} else {
 +				this.cache = config; // update config
 +				this._onDidUpdateConfiguration.fire({ config });
-diff --git a/src/vs/code/electron-browser/issue/issueReporterMain.ts b/src/vs/code/electron-browser/issue/issueReporterMain.ts
-index 90767e1..3163f10 100644
---- a/src/vs/code/electron-browser/issue/issueReporterMain.ts
-+++ b/src/vs/code/electron-browser/issue/issueReporterMain.ts
-@@ -315 +315 @@ export class IssueReporter extends Disposable {
--			const piiPaths = [this.environmentService.appRoot, this.environmentService.extensionsPath];
-+			const piiPaths = [this.environmentService.appRoot, this.environmentService.extensionsPath, ...this.environmentService.extraExtensionPaths];
+diff --git a/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts b/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts
+index 74148e4..bdde570 100644
+--- a/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts
++++ b/src/vs/base/parts/quickopen/browser/quickOpenWidget.ts
+@@ -8 +8 @@ import * as nls from 'vs/nls';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/base/parts/tree/browser/treeDefaults.ts b/src/vs/base/parts/tree/browser/treeDefaults.ts
+index f91ca2b..ef6fce9 100644
+--- a/src/vs/base/parts/tree/browser/treeDefaults.ts
++++ b/src/vs/base/parts/tree/browser/treeDefaults.ts
+@@ -8,0 +9 @@ import * as platform from 'vs/base/common/platform';
++import * as browser from 'vs/base/browser/browser';
+@@ -113 +114 @@ export class DefaultController implements _.IController {
+-			if (platform.isMacintosh) {
++			if (browser.isMacintosh) {
+@@ -155 +156 @@ export class DefaultController implements _.IController {
+-		const isMac = platform.isMacintosh;
++		const isMac = browser.isMacintosh;
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index e270021..91c81b4 100644
+index e270021..e87b601 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 @@ -50,0 +51,2 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
 +import { BackupMainService } from 'vs/platform/backup/electron-main/backupMainService';
 +import { mkdirp } from 'vs/base/node/pfs';
 @@ -93,0 +96,10 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
-+	Promise.all<boolean | undefined>([ // Lifted from src/vs/code/electron-main/main.ts
++	Promise.all<void>([ // Lifted from src/vs/code/electron-main/main.ts
 +		environmentService.extensionsPath,
 +		environmentService.nodeCachedDataDir,
 +		environmentService.logsPath,
@@ -30,7 +114,7 @@ index e270021..91c81b4 100644
 +		environmentService.backupHome,
 +		...environmentService.extraExtensionPaths,
 +		...environmentService.extraBuiltinExtensionPaths,
-+	].map((path): undefined | Promise<boolean> => path ? mkdirp(path) : undefined));
++	].map((path): undefined | Promise<void> => path ? mkdirp(path) : undefined));
 @@ -124 +136,3 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 -		const { appRoot, extensionsPath, extensionDevelopmentLocationURI: extensionDevelopmentLocationURI, isBuilt, installSourcePath } = environmentService;
 +		const backupMainService = instantiationService.createInstance(BackupMainService) as BackupMainService;
@@ -49,6 +133,139 @@ index 7b8222c..7dab7f8 100644
 +	const cli = await new Promise<IMainCli>((c, e) => require(['vs/code/node/cliProcessMain'], c, e));
 +	await cli.main(args);
 +	return; // Always just do this for now.
+diff --git a/src/vs/editor/browser/config/configuration.ts b/src/vs/editor/browser/config/configuration.ts
+index f97a692..1b6c36d 100644
+--- a/src/vs/editor/browser/config/configuration.ts
++++ b/src/vs/editor/browser/config/configuration.ts
+@@ -367 +367 @@ export class Configuration extends CommonEditorConfiguration {
+-		if (platform.isMacintosh) {
++		if (browser.isMacintosh) {
+diff --git a/src/vs/editor/browser/controller/mouseHandler.ts b/src/vs/editor/browser/controller/mouseHandler.ts
+index 4a2dc76..ba106b1 100644
+--- a/src/vs/editor/browser/controller/mouseHandler.ts
++++ b/src/vs/editor/browser/controller/mouseHandler.ts
+@@ -224 +224 @@ export class MouseHandler extends ViewEventHandler {
+-		if (platform.isMacintosh && e.leftButton && e.ctrlKey) {
++		if (browser.isMacintosh && e.leftButton && e.ctrlKey) {
+diff --git a/src/vs/editor/browser/controller/textAreaHandler.ts b/src/vs/editor/browser/controller/textAreaHandler.ts
+index f035818..07a1080 100644
+--- a/src/vs/editor/browser/controller/textAreaHandler.ts
++++ b/src/vs/editor/browser/controller/textAreaHandler.ts
+@@ -214 +214 @@ export class TextAreaHandler extends ViewPart {
+-					if (platform.isMacintosh) {
++					if (browser.isMacintosh) {
+diff --git a/src/vs/editor/browser/controller/textAreaInput.ts b/src/vs/editor/browser/controller/textAreaInput.ts
+index df11729..d69816a 100644
+--- a/src/vs/editor/browser/controller/textAreaInput.ts
++++ b/src/vs/editor/browser/controller/textAreaInput.ts
+@@ -14 +14 @@ import { Disposable, IDisposable } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/editor/common/config/commonEditorConfig.ts b/src/vs/editor/common/config/commonEditorConfig.ts
+index 7571c59..537a6ce 100644
+--- a/src/vs/editor/common/config/commonEditorConfig.ts
++++ b/src/vs/editor/common/config/commonEditorConfig.ts
+@@ -9,0 +10 @@ import * as objects from 'vs/base/common/objects';
++import * as browser from 'vs/base/browser/browser';
+@@ -395 +396 @@ const editorConfiguration: IConfigurationNode = {
+-			'included': platform.isMacintosh
++			'included': platform.isNative && platform.isMacintosh
+@@ -1055 +1056 @@ const editorConfiguration: IConfigurationNode = {
+-			'included': platform.isLinux
++			'included': browser.isLinux
+diff --git a/src/vs/editor/common/config/editorOptions.ts b/src/vs/editor/common/config/editorOptions.ts
+index 6c010ed..8859faf 100644
+--- a/src/vs/editor/common/config/editorOptions.ts
++++ b/src/vs/editor/common/config/editorOptions.ts
+@@ -9 +9 @@ import * as objects from 'vs/base/common/objects';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+@@ -2688 +2688 @@ export const EDITOR_DEFAULTS: IValidatedEditorOptions = {
+-		selectionClipboard: true,
++		selectionClipboard: false,
+diff --git a/src/vs/editor/common/config/fontInfo.ts b/src/vs/editor/common/config/fontInfo.ts
+index c69ea3f..aa29b8e 100644
+--- a/src/vs/editor/common/config/fontInfo.ts
++++ b/src/vs/editor/common/config/fontInfo.ts
+@@ -14 +14 @@ import { EditorZoom } from 'vs/editor/common/config/editorZoom';
+-const GOLDEN_LINE_HEIGHT_RATIO = platform.isMacintosh ? 1.5 : 1.35;
++const GOLDEN_LINE_HEIGHT_RATIO = platform.isNative && platform.isMacintosh ? 1.5 : 1.35;
+diff --git a/src/vs/editor/contrib/clipboard/clipboard.ts b/src/vs/editor/contrib/clipboard/clipboard.ts
+index 990be3a..86d7d9c 100644
+--- a/src/vs/editor/contrib/clipboard/clipboard.ts
++++ b/src/vs/editor/contrib/clipboard/clipboard.ts
+@@ -18,0 +19 @@ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegis
++import { clipboard } from 'electron';
+@@ -29 +30,2 @@ const supportsCopyWithSyntaxHighlighting = (supportsCopy && !browser.isEdgeOrIE)
+-const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
++// const supportsPaste = (platform.isNative || (!browser.isChrome && document.queryCommandSupported('paste')));
++const supportsPaste = true;
+@@ -71 +73 @@ class ExecCommandCutAction extends ExecCommandAction {
+-			kbOpts = null;
++			// kbOpts = null;
+@@ -119 +121 @@ class ExecCommandCopyAction extends ExecCommandAction {
+-			kbOpts = null;
++			// kbOpts = null;
+@@ -174 +176 @@ class ExecCommandPasteAction extends ExecCommandAction {
+-			kbOpts = null;
++			// kbOpts = null;
+@@ -176,0 +179 @@ class ExecCommandPasteAction extends ExecCommandAction {
++		const { workbench } = require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench');
+@@ -181 +184 @@ class ExecCommandPasteAction extends ExecCommandAction {
+-			precondition: EditorContextKeys.writable,
++			precondition: (require('vs/platform/contextkey/common/contextkey') as typeof import('vs/platform/contextkey/common/contextkey')).ContextKeyExpr.and(EditorContextKeys.writable, workbench.clipboardContextKey),
+@@ -191 +194,2 @@ class ExecCommandPasteAction extends ExecCommandAction {
+-				order: 3
++				order: 3,
++				when: workbench.clipboardContextKey,
+@@ -194,0 +199,26 @@ class ExecCommandPasteAction extends ExecCommandAction {
++
++	public async run(accessor: ServicesAccessor, editor: ICodeEditor): Promise<void> {
++		if (editor instanceof (require('vs/editor/browser/widget/codeEditorWidget') as typeof import('vs/editor/browser/widget/codeEditorWidget')).CodeEditorWidget) {
++			try {
++				editor.focus();
++				const textInput = document.activeElement! as HTMLTextAreaElement;
++				const dataTransfer = new DataTransfer();
++				const value = await clipboard.readText();
++				dataTransfer.setData('text/plain', value);
++				const pasteEvent = new ClipboardEvent('paste', {
++					clipboardData: dataTransfer,
++				});
++				textInput.dispatchEvent(pasteEvent);
++			} catch (ex) {
++				try {
++					editor.trigger('', (require('vs/editor/common/editorCommon') as typeof import ('vs/editor/common/editorCommon')).Handler.Paste, {
++						text: await (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.clipboardText,
++					});
++				} catch (ex) {
++					super.run(accessor, editor);
++				}
++			}
++		} else {
++			super.run(accessor, editor);
++		}
++	}
+diff --git a/src/vs/editor/contrib/goToDefinition/clickLinkGesture.ts b/src/vs/editor/contrib/goToDefinition/clickLinkGesture.ts
+index 3b72a01..ae11802 100644
+--- a/src/vs/editor/contrib/goToDefinition/clickLinkGesture.ts
++++ b/src/vs/editor/contrib/goToDefinition/clickLinkGesture.ts
+@@ -14 +14 @@ import { Event, Emitter } from 'vs/base/common/event';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/editor/contrib/links/links.ts b/src/vs/editor/contrib/links/links.ts
+index 3b94a69..dfa4fb6 100644
+--- a/src/vs/editor/contrib/links/links.ts
++++ b/src/vs/editor/contrib/links/links.ts
+@@ -13 +13 @@ import { IDisposable, dispose } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/editor/standalone/browser/accessibilityHelp/accessibilityHelp.ts b/src/vs/editor/standalone/browser/accessibilityHelp/accessibilityHelp.ts
+index 4bde524..8bc88ab 100644
+--- a/src/vs/editor/standalone/browser/accessibilityHelp/accessibilityHelp.ts
++++ b/src/vs/editor/standalone/browser/accessibilityHelp/accessibilityHelp.ts
+@@ -15 +15 @@ import { Disposable } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
 diff --git a/src/vs/loader.js b/src/vs/loader.js
 index 4eddcab..fab87dc 100644
 --- a/src/vs/loader.js
@@ -78,6 +295,13 @@ index 4eddcab..fab87dc 100644
 @@ -741 +753 @@ var AMDLoader;
 -                    moduleExports_1 = nodeRequire(pieces[1]);
 +                    moduleExports_1 = context(pieces[1]);
+diff --git a/src/vs/platform/clipboard/electron-browser/clipboardService.ts b/src/vs/platform/clipboard/electron-browser/clipboardService.ts
+index 9952574..908a9ae 100644
+--- a/src/vs/platform/clipboard/electron-browser/clipboardService.ts
++++ b/src/vs/platform/clipboard/electron-browser/clipboardService.ts
+@@ -9 +9 @@ import { URI } from 'vs/base/common/uri';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index 58cb747..e94b6ca 100644
 --- a/src/vs/platform/environment/common/environment.ts
@@ -124,6 +348,12 @@ index 7a94561..c10193f 100644
 @@ -807 +813 @@ export class ExtensionManagementService extends Disposable implements IExtension
 -		return this.scanExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
 +		return this.scanAllExtensions(this.extensionsPath, ExtensionType.User, this.environmentService.extraExtensionPaths) // All user extensions
+diff --git a/src/vs/platform/windows/common/windows.ts b/src/vs/platform/windows/common/windows.ts
+index f636cd1..6cab10b 100644
+--- a/src/vs/platform/windows/common/windows.ts
++++ b/src/vs/platform/windows/common/windows.ts
+@@ -284,0 +285 @@ export function getTitleBarStyle(configurationService: IConfigurationService, en
++	return 'custom';
 diff --git a/src/vs/workbench/api/common/extHostTypeConverters.ts b/src/vs/workbench/api/common/extHostTypeConverters.ts
 index 2a499df..1ed108d 100644
 --- a/src/vs/workbench/api/common/extHostTypeConverters.ts
@@ -141,12 +371,72 @@ index 3f8a56e..442e670 100644
 @@ -710 +710 @@ function loadCommonJSModule<T>(logService: ILogService, modulePath: string, acti
 -		r = require.__$__nodeRequire<T>(modulePath);
 +		r = (global as any).nativeNodeRequire(modulePath);
-diff --git a/src/vs/workbench/browser/nodeless.main.ts b/src/vs/workbench/browser/nodeless.main.ts
-index 74ff1e9..c0f0158 100644
---- a/src/vs/workbench/browser/nodeless.main.ts
-+++ b/src/vs/workbench/browser/nodeless.main.ts
-@@ -30,0 +31 @@ class CodeRendererMain extends Disposable {
-+		(require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.serviceCollection = services.serviceCollection;
+diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
+index 5c4a13a..d41ee82 100644
+--- a/src/vs/workbench/browser/dnd.ts
++++ b/src/vs/workbench/browser/dnd.ts
+@@ -170 +170 @@ export class ResourcesDropHandler {
+-			return;
++			return (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
+diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
+index 647c202..1cd945d 100644
+--- a/src/vs/workbench/browser/layout.ts
++++ b/src/vs/workbench/browser/layout.ts
+@@ -12 +12 @@ import { Registry } from 'vs/platform/registry/common/platform';
+-import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
++import { isWindows, isLinux, isMacintosh, isNative } from 'vs/base/common/platform';
+@@ -210 +210 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-		if ((isWindows || isLinux) && getTitleBarStyle(this.configurationService, this.environmentService) === 'custom') {
++		// if ((isWindows || isLinux) && getTitleBarStyle(this.configurationService, this.environmentService) === 'custom') {
+@@ -212 +212 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-		}
++		// }
+@@ -219 +219 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-			if (this.state.fullscreen && (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
++			if (/*this.state.fullscreen && */(this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
+@@ -499 +499,5 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
++				if (this.state.menuBar.visibility === 'hidden') {
++					return false;
++				} else if (this.state.menuBar.visibility === 'toggle') {
++					return this.state.menuBar.toggled;
++				} else if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
+@@ -503 +507 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				} else if (isMacintosh) {
++				} else if (isNative && isMacintosh) {
+@@ -507,2 +510,0 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				} else if (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default') {
+-					return this.state.menuBar.toggled;
+@@ -535 +537 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+-				if (isMacintosh || this.state.menuBar.visibility === 'hidden') {
++				if ((isNative && isMacintosh) || this.state.menuBar.visibility === 'hidden') {
+diff --git a/src/vs/workbench/browser/legacyLayout.ts b/src/vs/workbench/browser/legacyLayout.ts
+index 53e73ac..0e24627 100644
+--- a/src/vs/workbench/browser/legacyLayout.ts
++++ b/src/vs/workbench/browser/legacyLayout.ts
+@@ -13 +13 @@ import { IThemeService } from 'vs/platform/theme/common/themeService';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh, isNative } from 'vs/base/common/platform';
+@@ -20 +20 @@ import { Part } from 'vs/workbench/browser/part';
+-const TITLE_BAR_HEIGHT = isMacintosh ? 22 : 30;
++const TITLE_BAR_HEIGHT = isNative && isMacintosh ? 22 : 30;
+@@ -413 +413 @@ export class WorkbenchLegacyLayout extends Disposable implements IVerticalSashLa
+-		this.titlebarHeight = isTitlebarHidden ? 0 : this.partLayoutInfo.titlebar.height / (isMacintosh || !menubarVisibility || menubarVisibility === 'hidden' ? getZoomFactor() : 1); // adjust for zoom prevention
++		this.titlebarHeight = isTitlebarHidden ? 0 : this.partLayoutInfo.titlebar.height / ((isNative && isMacintosh) || !menubarVisibility || menubarVisibility === 'hidden' ? getZoomFactor() : 1); // adjust for zoom prevention
+diff --git a/src/vs/workbench/browser/parts/editor/editor.contribution.ts b/src/vs/workbench/browser/parts/editor/editor.contribution.ts
+index 414b807..974f6cd 100644
+--- a/src/vs/workbench/browser/parts/editor/editor.contribution.ts
++++ b/src/vs/workbench/browser/parts/editor/editor.contribution.ts
+@@ -48 +48 @@ import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/browser/parts/editor/editorDropTarget.ts b/src/vs/workbench/browser/parts/editor/editorDropTarget.ts
+index 960706a..720445f 100644
+--- a/src/vs/workbench/browser/parts/editor/editorDropTarget.ts
++++ b/src/vs/workbench/browser/parts/editor/editorDropTarget.ts
+@@ -14 +14 @@ import { IEditorIdentifier, EditorInput, EditorOptions } from 'vs/workbench/comm
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/browser/parts/editor/editorGroupView.ts b/src/vs/workbench/browser/parts/editor/editorGroupView.ts
 index 57d2939..2533311 100644
 --- a/src/vs/workbench/browser/parts/editor/editorGroupView.ts
@@ -157,6 +447,91 @@ index 57d2939..2533311 100644
 @@ -1497 +1497 @@ registerThemingParticipant((theme, collector, environment) => {
 -			background-image: url('${require.toUrl(letterpress)}')
 +			background-image: url('${letterpress}')
+diff --git a/src/vs/workbench/browser/parts/editor/resourceViewer.ts b/src/vs/workbench/browser/parts/editor/resourceViewer.ts
+index a509721..1a23f54 100644
+--- a/src/vs/workbench/browser/parts/editor/resourceViewer.ts
++++ b/src/vs/workbench/browser/parts/editor/resourceViewer.ts
+@@ -23 +23 @@ import { memoize } from 'vs/base/common/decorators';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/browser/parts/editor/tabsTitleControl.ts b/src/vs/workbench/browser/parts/editor/tabsTitleControl.ts
+index 9191514..6bb0a35 100644
+--- a/src/vs/workbench/browser/parts/editor/tabsTitleControl.ts
++++ b/src/vs/workbench/browser/parts/editor/tabsTitleControl.ts
+@@ -7 +7 @@ import 'vs/css!./media/tabstitlecontrol';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/browser/parts/quickinput/quickInputList.ts b/src/vs/workbench/browser/parts/quickinput/quickInputList.ts
+index 78c0846..45cb777 100644
+--- a/src/vs/workbench/browser/parts/quickinput/quickInputList.ts
++++ b/src/vs/workbench/browser/parts/quickinput/quickInputList.ts
+@@ -24 +24 @@ import { range } from 'vs/base/common/arrays';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css b/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css
+index a215bde..df7562b 100644
+--- a/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css
++++ b/src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css
+@@ -44,0 +45 @@
++.web > .monaco-workbench .part.titlebar,
+diff --git a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
+index 32a8c99..f29c93d 100644
+--- a/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
++++ b/src/vs/workbench/browser/parts/titlebar/menubarControl.ts
+@@ -16 +16,2 @@ import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
+-import { isMacintosh, isLinux } from 'vs/base/common/platform';
++import { isNative } from 'vs/base/common/platform';
++import { isMacintosh, isLinux } from 'vs/base/browser/browser';
+@@ -117 +118 @@ export class MenubarControl extends Disposable {
+-		if (isMacintosh) {
++		if (isNative && isMacintosh) {
+@@ -126 +127 @@ export class MenubarControl extends Disposable {
+-		if (isMacintosh || this.currentTitlebarStyleSetting !== 'custom') {
++		if ((isNative && isMacintosh) || this.currentTitlebarStyleSetting !== 'custom') {
+@@ -138 +139 @@ export class MenubarControl extends Disposable {
+-			if (isMacintosh || this.currentTitlebarStyleSetting !== 'custom') {
++			if ((isNative && isMacintosh) || this.currentTitlebarStyleSetting !== 'custom') {
+@@ -288 +289 @@ export class MenubarControl extends Disposable {
+-		if (!isMacintosh && this.currentTitlebarStyleSetting === 'custom') {
++		if (!(isNative && isMacintosh) && this.currentTitlebarStyleSetting === 'custom') {
+@@ -304 +305 @@ export class MenubarControl extends Disposable {
+-		if (!isMacintosh && this.currentTitlebarStyleSetting === 'custom') {
++		if (!(isNative && isMacintosh) && this.currentTitlebarStyleSetting === 'custom') {
+@@ -472 +473 @@ export class MenubarControl extends Disposable {
+-				if (!isMacintosh) {
++				if (!(isNative && isMacintosh)) {
+@@ -698 +699 @@ export class MenubarControl extends Disposable {
+-			if (!isMacintosh && this.currentTitlebarStyleSetting === 'custom') {
++			if (!(isNative && isMacintosh) && this.currentTitlebarStyleSetting === 'custom') {
+diff --git a/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts b/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
+index d96209b..1be5cc1 100644
+--- a/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
++++ b/src/vs/workbench/browser/parts/titlebar/titlebarPart.ts
+@@ -11 +11 @@ import { ITitleService, ITitleProperties } from 'vs/workbench/services/title/com
+-import { getZoomFactor } from 'vs/base/browser/browser';
++import { getZoomFactor, isMacintosh, isWindows, isLinux } from 'vs/base/browser/browser';
+@@ -25 +25 @@ import { TITLE_BAR_ACTIVE_BACKGROUND, TITLE_BAR_ACTIVE_FOREGROUND, TITLE_BAR_INA
+-import { isMacintosh, isWindows, isLinux } from 'vs/base/common/platform';
++import { isNative } from 'vs/base/common/platform';
+@@ -328 +328 @@ export class TitlebarPart extends Part implements ITitleService {
+-		if (!isMacintosh) {
++		if (!(isNative && isMacintosh)) {
+@@ -344 +344 @@ export class TitlebarPart extends Part implements ITitleService {
+-		if (!isMacintosh) {
++		if (!(isNative && isMacintosh)) {
+@@ -550 +550 @@ export class TitlebarPart extends Part implements ITitleService {
+-		if (!isMacintosh &&
++		if (!(isNative && isMacintosh) &&
+@@ -568 +568 @@ export class TitlebarPart extends Part implements ITitleService {
+-			if (isMacintosh || this.configurationService.getValue<MenuBarVisibility>('window.menuBarVisibility') === 'hidden') {
++			if ((isNative && isMacintosh) || this.configurationService.getValue<MenuBarVisibility>('window.menuBarVisibility') === 'hidden') {
+diff --git a/src/vs/workbench/browser/workbench.contribution.ts b/src/vs/workbench/browser/workbench.contribution.ts
+index 696f351..47af9f7 100644
+--- a/src/vs/workbench/browser/workbench.contribution.ts
++++ b/src/vs/workbench/browser/workbench.contribution.ts
+@@ -9 +9 @@ import { IConfigurationRegistry, Extensions as ConfigurationExtensions, Configur
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/browser/workbench.ts b/src/vs/workbench/browser/workbench.ts
 index 1f9fdde..078c1a1 100644
 --- a/src/vs/workbench/browser/workbench.ts
@@ -167,6 +542,96 @@ index 1f9fdde..078c1a1 100644
 @@ -89 +89 @@ export class Workbench extends Layout {
 -		});
 +		});*/
+diff --git a/src/vs/workbench/common/contextkeys.ts b/src/vs/workbench/common/contextkeys.ts
+index cb129ec..dbb00be 100644
+--- a/src/vs/workbench/common/contextkeys.ts
++++ b/src/vs/workbench/common/contextkeys.ts
+@@ -7 +7 @@ import { RawContextKey } from 'vs/platform/contextkey/common/contextkey';
+-import { isMacintosh, isLinux, isWindows } from 'vs/base/common/platform';
++import { isMacintosh, isLinux, isWindows } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/codeEditor/browser/accessibility/accessibility.ts b/src/vs/workbench/contrib/codeEditor/browser/accessibility/accessibility.ts
+index 787c9ef..7a5fbe9 100644
+--- a/src/vs/workbench/contrib/codeEditor/browser/accessibility/accessibility.ts
++++ b/src/vs/workbench/contrib/codeEditor/browser/accessibility/accessibility.ts
+@@ -15 +15 @@ import { Disposable } from 'vs/base/common/lifecycle';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/suggestEnabledInput.ts b/src/vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/suggestEnabledInput.ts
+index b949e00..8a9005c 100644
+--- a/src/vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/suggestEnabledInput.ts
++++ b/src/vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/suggestEnabledInput.ts
+@@ -14 +14 @@ import { mixin } from 'vs/base/common/objects';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/codeEditor/browser/toggleMultiCursorModifier.ts b/src/vs/workbench/contrib/codeEditor/browser/toggleMultiCursorModifier.ts
+index 5e1b6da..256bb0c 100644
+--- a/src/vs/workbench/contrib/codeEditor/browser/toggleMultiCursorModifier.ts
++++ b/src/vs/workbench/contrib/codeEditor/browser/toggleMultiCursorModifier.ts
+@@ -8 +8 @@ import { Action } from 'vs/base/common/actions';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/debug/browser/debugEditorContribution.ts b/src/vs/workbench/contrib/debug/browser/debugEditorContribution.ts
+index de8fe1e..e8749fa 100644
+--- a/src/vs/workbench/contrib/debug/browser/debugEditorContribution.ts
++++ b/src/vs/workbench/contrib/debug/browser/debugEditorContribution.ts
+@@ -9,0 +10 @@ import * as env from 'vs/base/common/platform';
++import * as browser from 'vs/base/browser/browser';
+@@ -181 +182 @@ export class DebugEditorContribution implements IDebugEditorContribution {
+-			if (e.event.rightButton || (env.isMacintosh && e.event.leftButton && e.event.ctrlKey)) {
++			if (e.event.rightButton || (browser.isMacintosh && e.event.leftButton && e.event.ctrlKey)) {
+@@ -200 +201 @@ export class DebugEditorContribution implements IDebugEditorContribution {
+-					if (!env.isLinux && breakpoints.some(bp => !!bp.condition || !!bp.logMessage || !!bp.hitCondition)) {
++					if (!(env.isNative && env.isLinux) && breakpoints.some(bp => !!bp.condition || !!bp.logMessage || !!bp.hitCondition)) {
+@@ -435 +436 @@ export class DebugEditorContribution implements IDebugEditorContribution {
+-		const stopKey = env.isMacintosh ? 'metaKey' : 'ctrlKey';
++		const stopKey = browser.isMacintosh ? 'metaKey' : 'ctrlKey';
+@@ -453 +454 @@ export class DebugEditorContribution implements IDebugEditorContribution {
+-		const stopKey = env.isMacintosh ? KeyCode.Meta : KeyCode.Ctrl;
++		const stopKey = browser.isMacintosh ? KeyCode.Meta : KeyCode.Ctrl;
+diff --git a/src/vs/workbench/contrib/debug/browser/linkDetector.ts b/src/vs/workbench/contrib/debug/browser/linkDetector.ts
+index f40b247..810b6fa 100644
+--- a/src/vs/workbench/contrib/debug/browser/linkDetector.ts
++++ b/src/vs/workbench/contrib/debug/browser/linkDetector.ts
+@@ -9 +9 @@ import { URI as uri } from 'vs/base/common/uri';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/debug/electron-browser/debug.contribution.ts b/src/vs/workbench/contrib/debug/electron-browser/debug.contribution.ts
+index a847add..78f20a7 100644
+--- a/src/vs/workbench/contrib/debug/electron-browser/debug.contribution.ts
++++ b/src/vs/workbench/contrib/debug/electron-browser/debug.contribution.ts
+@@ -38 +38 @@ import { IViewsRegistry, Extensions as ViewExtensions } from 'vs/workbench/commo
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+index cfaeef2..52f5d72 100644
+--- a/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
++++ b/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+@@ -17 +17 @@ import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/co
+-import { isWindows, isMacintosh } from 'vs/base/common/platform';
++import { isWindows, isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/files/browser/fileCommands.ts b/src/vs/workbench/contrib/files/browser/fileCommands.ts
+index 9bda6ca..ef36375 100644
+--- a/src/vs/workbench/contrib/files/browser/fileCommands.ts
++++ b/src/vs/workbench/contrib/files/browser/fileCommands.ts
+@@ -28 +28 @@ import { KeyMod, KeyCode, KeyChord } from 'vs/base/common/keyCodes';
+-import { isWindows, isMacintosh } from 'vs/base/common/platform';
++import { isWindows, isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/files/browser/views/emptyView.ts b/src/vs/workbench/contrib/files/browser/views/emptyView.ts
+index 89e2def..fb01e37 100644
+--- a/src/vs/workbench/contrib/files/browser/views/emptyView.ts
++++ b/src/vs/workbench/contrib/files/browser/views/emptyView.ts
+@@ -8 +8 @@ import * as errors from 'vs/base/common/errors';
+-import * as env from 'vs/base/common/platform';
++import * as env from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+index 6a46cb1..7e16086 100644
+--- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
++++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+@@ -38 +38 @@ import { DesktopDragAndDropData, ExternalElementsDragAndDropData, ElementsDragAn
+-import { isMacintosh, isLinux } from 'vs/base/common/platform';
++import { isMacintosh, isLinux } from 'vs/base/browser/browser';
+@@ -607,0 +608 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
++		return (require('vs/../../../../packages/vscode/src/workbench') as typeof import('vs/../../../../packages/vscode/src/workbench')).workbench.handleExternalDrop(target, originalEvent);
 diff --git a/src/vs/workbench/contrib/files/common/explorerModel.ts b/src/vs/workbench/contrib/files/common/explorerModel.ts
 index 99d4790..9c37b76 100644
 --- a/src/vs/workbench/contrib/files/common/explorerModel.ts
@@ -200,6 +665,78 @@ index ad9d566..9c894d8 100644
 +++ b/src/vs/workbench/contrib/output/common/outputLinkProvider.ts
 @@ -78,0 +79 @@ export class OutputLinkProvider {
 +		return Promise.resolve([]);
+diff --git a/src/vs/workbench/contrib/performance/electron-browser/startupTimings.ts b/src/vs/workbench/contrib/performance/electron-browser/startupTimings.ts
+index 8617cc0..f972032 100644
+--- a/src/vs/workbench/contrib/performance/electron-browser/startupTimings.ts
++++ b/src/vs/workbench/contrib/performance/electron-browser/startupTimings.ts
+@@ -84,0 +85 @@ export class StartupTimings implements IWorkbenchContribution {
++		return false;
+diff --git a/src/vs/workbench/contrib/quickopen/browser/quickopen.contribution.ts b/src/vs/workbench/contrib/quickopen/browser/quickopen.contribution.ts
+index 92f9b7c..8f7c382 100644
+--- a/src/vs/workbench/contrib/quickopen/browser/quickopen.contribution.ts
++++ b/src/vs/workbench/contrib/quickopen/browser/quickopen.contribution.ts
+@@ -6 +6 @@
+-import * as env from 'vs/base/common/platform';
++import * as env from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/relauncher/electron-browser/relauncher.contribution.ts b/src/vs/workbench/contrib/relauncher/electron-browser/relauncher.contribution.ts
+index 16e1029..e36db83 100644
+--- a/src/vs/workbench/contrib/relauncher/electron-browser/relauncher.contribution.ts
++++ b/src/vs/workbench/contrib/relauncher/electron-browser/relauncher.contribution.ts
+@@ -18 +18,2 @@ import { isEqual } from 'vs/base/common/resources';
+-import { isLinux, isMacintosh } from 'vs/base/common/platform';
++import { isNative, isLinux } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+@@ -65 +66 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
+-		if (isMacintosh && config.window && typeof config.window.nativeTabs === 'boolean' && config.window.nativeTabs !== this.nativeTabs) {
++		if (isNative && isMacintosh && config.window && typeof config.window.nativeTabs === 'boolean' && config.window.nativeTabs !== this.nativeTabs) {
+@@ -71 +72 @@ export class SettingsChangeRelauncher extends Disposable implements IWorkbenchCo
+-		if (isMacintosh && config.window && typeof config.window.nativeFullScreen === 'boolean' && config.window.nativeFullScreen !== this.nativeFullScreen) {
++		if (isNative && isMacintosh && config.window && typeof config.window.nativeFullScreen === 'boolean' && config.window.nativeFullScreen !== this.nativeFullScreen) {
+diff --git a/src/vs/workbench/contrib/scm/browser/scmViewlet.ts b/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
+index 0b0cba6..c254f70 100644
+--- a/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
++++ b/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
+@@ -46 +46 @@ import { IWorkbenchLayoutService } from 'vs/workbench/services/layout/browser/la
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/search/browser/search.contribution.ts b/src/vs/workbench/contrib/search/browser/search.contribution.ts
+index f675087..18f53d2 100644
+--- a/src/vs/workbench/contrib/search/browser/search.contribution.ts
++++ b/src/vs/workbench/contrib/search/browser/search.contribution.ts
+@@ -701 +701 @@ configurationRegistry.registerConfiguration({
+-			included: platform.isMacintosh
++			included: platform.isNative && platform.isMacintosh
+diff --git a/src/vs/workbench/contrib/terminal/browser/terminal.contribution.ts b/src/vs/workbench/contrib/terminal/browser/terminal.contribution.ts
+index eb7a270..1ba3e81 100644
+--- a/src/vs/workbench/contrib/terminal/browser/terminal.contribution.ts
++++ b/src/vs/workbench/contrib/terminal/browser/terminal.contribution.ts
+@@ -12,0 +13 @@ import * as nls from 'vs/nls';
++import * as browser from 'vs/base/browser/browser';
+@@ -185 +186 @@ configurationRegistry.registerConfiguration({
+-			default: 'auto',
++			default: browser.isSafari ? 'dom' : 'auto',
+@@ -196 +197 @@ configurationRegistry.registerConfiguration({
+-			default: platform.isMacintosh ? 'selectWord' : platform.isWindows ? 'copyPaste' : 'default',
++			default: browser.isMacintosh ? 'selectWord' : browser.isWindows ? 'copyPaste' : 'default',
+diff --git a/src/vs/workbench/contrib/terminal/browser/terminalLinkHandler.ts b/src/vs/workbench/contrib/terminal/browser/terminalLinkHandler.ts
+index 8adb02d..134b4a9 100644
+--- a/src/vs/workbench/contrib/terminal/browser/terminalLinkHandler.ts
++++ b/src/vs/workbench/contrib/terminal/browser/terminalLinkHandler.ts
+@@ -7,0 +8 @@ import * as platform from 'vs/base/common/platform';
++import * as browser from 'vs/base/browser/browser';
+@@ -239 +240 @@ export class TerminalLinkHandler {
+-		return platform.isMacintosh ? event.metaKey : event.ctrlKey;
++		return browser.isMacintosh ? event.metaKey : event.ctrlKey;
+@@ -247 +248 @@ export class TerminalLinkHandler {
+-		if (platform.isMacintosh) {
++		if (browser.isMacintosh) {
+diff --git a/src/vs/workbench/contrib/terminal/browser/terminalPanel.ts b/src/vs/workbench/contrib/terminal/browser/terminalPanel.ts
+index 780147c..622e1ef 100644
+--- a/src/vs/workbench/contrib/terminal/browser/terminalPanel.ts
++++ b/src/vs/workbench/contrib/terminal/browser/terminalPanel.ts
+@@ -8 +8 @@ import * as nls from 'vs/nls';
+-import * as platform from 'vs/base/common/platform';
++import * as platform from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
 index 133b3d2..f69091a 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
@@ -209,6 +746,133 @@ index 133b3d2..f69091a 100644
 +					if (document.hasFocus()) {
 +						newFrame.contentWindow.focus();
 +					}
+diff --git a/src/vs/workbench/contrib/webview/browser/webview.contribution.ts b/src/vs/workbench/contrib/webview/browser/webview.contribution.ts
+index f055918..764635f 100644
+--- a/src/vs/workbench/contrib/webview/browser/webview.contribution.ts
++++ b/src/vs/workbench/contrib/webview/browser/webview.contribution.ts
+@@ -7 +7 @@ import { KeyCode, KeyMod } from 'vs/base/common/keyCodes';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh, isNative } from 'vs/base/common/platform';
+@@ -77 +77 @@ export function registerWebViewCommands(editorId: string): void {
+-	if (isMacintosh) {
++	if (isNative && isMacintosh) {
+diff --git a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
+index 1477b88..07a71db 100644
+--- a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
++++ b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
+@@ -11 +11 @@ import { Disposable } from 'vs/base/common/lifecycle';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts b/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
+index f768172..21602ae 100644
+--- a/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
++++ b/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
+@@ -31 +31 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
+-			require([query.moduleId], content => {
++			/*require([query.moduleId], content => {
+@@ -38 +38,9 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
+-		}) : this.textFileService.readStream(URI.file(resource.fsPath)).then(content => content.value));
++		}) : this.textFileService.readStream(URI.file(resource.fsPath)).then(content => content.value)); */
++		// This works because the only walkthrough that is a module is the welcome page.
++		// We have to explicitly import it or Webpack won't pick it up.
++			import("vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page")
++				.then((content) => { resolve(content.default()); })
++				.catch(reject);
++		}) : (resource.scheme !== "file"
++			? fetch(resource.path).then((res) => res.text())
++			: this.textFileService.readStream(URI.file(resource.fsPath)).then(content => content.value)));
+@@ -64 +72 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+-		return this.textFileService.readStream(URI.file(resource.fsPath)).then(content => {
++		return fetch(resource.path).then((res) => res.text()).then((content) => {
+@@ -80,0 +89 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
++				/*
+@@ -85,0 +95,2 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
++				*/
++				marked(content, { renderer });
+@@ -91 +102 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+-				this.modelService.updateModel(codeEditorModel, content.value);
++				this.modelService.updateModel(codeEditorModel, content);
+diff --git a/src/vs/workbench/electron-browser/actions/helpActions.ts b/src/vs/workbench/electron-browser/actions/helpActions.ts
+index 79e2ba2..8c1b21b 100644
+--- a/src/vs/workbench/electron-browser/actions/helpActions.ts
++++ b/src/vs/workbench/electron-browser/actions/helpActions.ts
+@@ -9 +9,2 @@ import product from 'vs/platform/product/node/product';
+-import { isMacintosh, isLinux, language } from 'vs/base/common/platform';
++import { language } from 'vs/base/common/platform';
++import { isMacintosh, isLinux } from 'vs/base/browser/browser';
+diff --git a/src/vs/workbench/electron-browser/actions/windowActions.ts b/src/vs/workbench/electron-browser/actions/windowActions.ts
+index 223fda7..b857b45 100644
+--- a/src/vs/workbench/electron-browser/actions/windowActions.ts
++++ b/src/vs/workbench/electron-browser/actions/windowActions.ts
+@@ -386 +386 @@ export abstract class BaseOpenRecentAction extends Action {
+-			placeHolder: isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
++			placeHolder: browser.isMacintosh ? nls.localize('openRecentPlaceHolderMac', "Select to open (hold Cmd-key to open in new window)") : nls.localize('openRecentPlaceHolder', "Select to open (hold Ctrl-key to open in new window)"),
+diff --git a/src/vs/workbench/electron-browser/main.contribution.ts b/src/vs/workbench/electron-browser/main.contribution.ts
+index de7017c..adb6956 100644
+--- a/src/vs/workbench/electron-browser/main.contribution.ts
++++ b/src/vs/workbench/electron-browser/main.contribution.ts
+@@ -13 +13,2 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
+-import { isWindows, isLinux, isMacintosh } from 'vs/base/common/platform';
++import { isNative, isWeb } from 'vs/base/common/platform';
++import { isMacintosh, isWindows, isLinux } from 'vs/base/browser/browser';
+@@ -37 +38 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-		if (isMacintosh) {
++		if (isNative && isMacintosh) {
+@@ -225 +226 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-	if (isMacintosh) {
++	if (isNative && isMacintosh) {
+@@ -306 +307 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-		when: IsMacContext.toNegated()
++		// when: IsMacContext.toNegated()
+@@ -538 +539 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-					isMacintosh ?
++					isNative && isMacintosh ?
+@@ -545 +546 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-					isMacintosh ?
++					isNative && isMacintosh ?
+@@ -626 +627 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'included': isWindows || isLinux
++				'included': isWeb || isWindows || isLinux
+@@ -633 +634 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'included': isWindows || isLinux
++				'included': isWeb || isWindows || isLinux
+@@ -650,2 +651,2 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'enum': ['native', 'custom'],
+-				'default': isLinux ? 'native' : 'custom',
++				'enum': ['custom'],
++				'default': isNative && isLinux ? 'native' : 'custom',
+@@ -660 +661 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'included': isMacintosh && parseFloat(os.release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
++				'included': isNative && isMacintosh && parseFloat(os.release()) >= 16 // Minimum: macOS Sierra (10.12.x = darwin 16.x)
+@@ -667 +668 @@ import { LogStorageAction } from 'vs/platform/storage/node/storageService';
+-				'included': isMacintosh
++				'included': isNative && isMacintosh
+diff --git a/src/vs/workbench/electron-browser/main.ts b/src/vs/workbench/electron-browser/main.ts
+index 1d13aba..610c6cf 100644
+--- a/src/vs/workbench/electron-browser/main.ts
++++ b/src/vs/workbench/electron-browser/main.ts
+@@ -139,0 +140 @@ class CodeRendererMain extends Disposable {
++				(require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.serviceCollection = services.serviceCollection;
+diff --git a/src/vs/workbench/electron-browser/window.ts b/src/vs/workbench/electron-browser/window.ts
+index 7687183..33b3d2e 100644
+--- a/src/vs/workbench/electron-browser/window.ts
++++ b/src/vs/workbench/electron-browser/window.ts
+@@ -53 +53 @@ const TextInputActions: IAction[] = [
+-	new Action('editor.action.clipboardPasteAction', nls.localize('paste', "Paste"), undefined, true, () => Promise.resolve(document.execCommand('paste'))),
++	(require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.pasteAction,
+@@ -361 +361 @@ export class ElectronWindow extends Disposable {
+-			!isMacintosh || // macOS only
++			!browser.isMacintosh || // macOS only
+diff --git a/src/vs/workbench/services/contextmenu/electron-browser/contextmenuService.ts b/src/vs/workbench/services/contextmenu/electron-browser/contextmenuService.ts
+index f4dae2a..55966e8 100644
+--- a/src/vs/workbench/services/contextmenu/electron-browser/contextmenuService.ts
++++ b/src/vs/workbench/services/contextmenu/electron-browser/contextmenuService.ts
+@@ -22 +22 @@ import { getTitleBarStyle } from 'vs/platform/windows/common/windows';
+-import { isMacintosh } from 'vs/base/common/platform';
++import { isNative, isMacintosh } from 'vs/base/common/platform';
+@@ -49 +49 @@ export class ContextMenuService extends Disposable implements IContextMenuServic
+-		if (!isMacintosh && getTitleBarStyle(configurationService, environmentService) === 'custom') {
++		if (!(isNative && isMacintosh) && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 index 40a8c83..579c7e7 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
@@ -309,13 +973,16 @@ index 8924e12..7beecb4 100644
 -		this.service.setRoots(folders);
 +		this.service.setRoots(folders).then(() => this.retry.recover());
 diff --git a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
-index 04ce480..6abda1c 100644
+index 04ce480..76854cb 100644
 --- a/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
 +++ b/src/vs/workbench/services/files/node/watcher/unix/watcherService.ts
 @@ -21,0 +22 @@ export class FileWatcher extends Disposable {
 +	private readonly retry = (require('vs/../../../../packages/vscode/src/workbench') as typeof import ('vs/../../../../packages/vscode/src/workbench')).workbench.retry.register('Watcher', () => this.startWatching());
 @@ -53,0 +55 @@ export class FileWatcher extends Disposable {
 +				return this.retry.run();
+@@ -78 +80 @@ export class FileWatcher extends Disposable {
+-		this.service.setRoots(this.folders);
++		this.setFolders(this.folders);
 @@ -84 +86 @@ export class FileWatcher extends Disposable {
 -		this.service.setRoots(folders);
 +		this.service.setRoots(folders).then(() => this.retry.recover());
@@ -329,6 +996,22 @@ index 95d8797..0f5d4cf 100644
 +		this.handle.stdout.once('data', () => this.retry.recover());
 @@ -113,0 +116 @@ export class OutOfProcessWin32FolderWatcher {
 +			return this.retry.run();
+diff --git a/src/vs/workbench/services/heap/node/heap.ts b/src/vs/workbench/services/heap/node/heap.ts
+index 8f627ba..9a795eb 100644
+--- a/src/vs/workbench/services/heap/node/heap.ts
++++ b/src/vs/workbench/services/heap/node/heap.ts
+@@ -33,0 +34 @@ export class HeapService implements IHeapService {
++		if (typeof process === 'undefined' || typeof process.stdout === 'undefined') { return; } // Doesn't work in the browser (for running the extension host in worker).
+diff --git a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+index 0c3d16f..e27e98c 100644
+--- a/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
++++ b/src/vs/workbench/services/keybinding/electron-browser/keybindingService.ts
+@@ -16 +16 @@ import { KeybindingParser } from 'vs/base/common/keybindingParser';
+-import { OS, OperatingSystem } from 'vs/base/common/platform';
++import { OS, OperatingSystem, isNative } from 'vs/base/common/platform';
+@@ -131 +131 @@ export class KeyboardMapperFactory {
+-		if (OS === OperatingSystem.Windows) {
++		if (isNative && OS === OperatingSystem.Windows) {
 diff --git a/src/vs/workbench/services/search/node/searchService.ts b/src/vs/workbench/services/search/node/searchService.ts
 index fcef06a..db26457 100644
 --- a/src/vs/workbench/services/search/node/searchService.ts

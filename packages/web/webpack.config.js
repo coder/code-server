@@ -64,9 +64,6 @@ module.exports = merge(
 			"native-watchdog": path.join(vsFills, "native-watchdog.ts"),
 			"iconv-lite": path.join(vsFills, "iconv-lite.ts"),
 
-			// This seems to be in the wrong place?
-			"vs/workbench/contrib/codeEditor/electron-browser/media/WordWrap_16x.svg": "vs/workbench/contrib/codeEditor/browser/suggestEnabledInput/WordWrap_16x.svg",
-
 			"vs/platform/windows/electron-browser/windowsService": path.join(vsFills, "windowsService.ts"),
 			"vs/base/node/paths": path.join(vsFills, "paths.ts"),
 			"vs/base/common/amd": path.join(vsFills, "amd.ts"),
