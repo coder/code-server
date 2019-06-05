@@ -348,6 +348,13 @@ index 7a94561..c10193f 100644
 @@ -807 +813 @@ export class ExtensionManagementService extends Disposable implements IExtension
 -		return this.scanExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
 +		return this.scanAllExtensions(this.extensionsPath, ExtensionType.User, this.environmentService.extraExtensionPaths) // All user extensions
+diff --git a/src/vs/platform/files/common/files.ts b/src/vs/platform/files/common/files.ts
+index 8555f6f..3dc0ce7 100644
+--- a/src/vs/platform/files/common/files.ts
++++ b/src/vs/platform/files/common/files.ts
+@@ -325 +325 @@ export function toFileOperationResult(error: Error): FileOperationResult {
+-	if (error instanceof FileOperationError) {
++	if (error instanceof FileOperationError || FileOperationError.isFileOperationError(error)) {
 diff --git a/src/vs/platform/windows/common/windows.ts b/src/vs/platform/windows/common/windows.ts
 index f636cd1..6cab10b 100644
 --- a/src/vs/platform/windows/common/windows.ts
