@@ -50,7 +50,7 @@ cd code-server-{version}-linux-x64
 chmod +x code-server
 ```
 
-> To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
+> To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 
 - Start the code-server
 ```
