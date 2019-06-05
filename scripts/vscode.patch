@@ -738,14 +738,39 @@ index 780147c..622e1ef 100644
 -import * as platform from 'vs/base/common/platform';
 +import * as platform from 'vs/base/browser/browser';
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
-index 133b3d2..f69091a 100644
+index 133b3d2..00e9e76 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
 +++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -375 +375,3 @@ module.exports = function createWebviewManager(host) {
+@@ -95,0 +96,18 @@ const defaultCssRules = `
++const process = { pid: undefined };
++const host = {
++	onMessage: (channel, callback) => {
++		window.addEventListener("message", (event) => {
++			if (event.data.channel === channel) {
++				callback(event.data.channel, ...event.data.data);
++			}
++		});
++	},
++	postMessage: (channel, ...args) => {
++		window.parent.postMessage({
++			channel,
++			data: args,
++			id: document.body.id,
++		}, "*");
++	},
++};
++
+@@ -103 +121 @@ const defaultCssRules = `
+-module.exports = function createWebviewManager(host) {
++// module.exports = function createWebviewManager(host) {
+@@ -375 +393,3 @@ module.exports = function createWebviewManager(host) {
 -					newFrame.contentWindow.focus();
 +					if (document.hasFocus()) {
 +						newFrame.contentWindow.focus();
 +					}
+@@ -446 +466 @@ module.exports = function createWebviewManager(host) {
+-};
++// };
 diff --git a/src/vs/workbench/contrib/webview/browser/webview.contribution.ts b/src/vs/workbench/contrib/webview/browser/webview.contribution.ts
 index f055918..764635f 100644
 --- a/src/vs/workbench/contrib/webview/browser/webview.contribution.ts
@@ -757,14 +782,17 @@ index f055918..764635f 100644
 -	if (isMacintosh) {
 +	if (isNative && isMacintosh) {
 diff --git a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
-index 1477b88..07a71db 100644
+index 1477b88..35c4422 100644
 --- a/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
 +++ b/src/vs/workbench/contrib/webview/electron-browser/webviewElement.ts
 @@ -11 +11 @@ import { Disposable } from 'vs/base/common/lifecycle';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
+@@ -393 +393 @@ export class WebviewElement extends Disposable implements Webview {
+-		this._webview.preload = require.toUrl('./pre/electron-index.js');
++		this._webview.preload = require.toUrl('../browser/pre/main.js');
 diff --git a/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts b/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
-index f768172..21602ae 100644
+index f768172..f34b56f 100644
 --- a/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
 +++ b/src/vs/workbench/contrib/welcome/walkThrough/common/walkThroughContentProvider.ts
 @@ -31 +31 @@ export class WalkThroughContentProvider implements ITextModelContentProvider, IW
@@ -784,12 +812,14 @@ index f768172..21602ae 100644
 @@ -64 +72 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
 -		return this.textFileService.readStream(URI.file(resource.fsPath)).then(content => {
 +		return fetch(resource.path).then((res) => res.text()).then((content) => {
-@@ -80,0 +89 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
-+				/*
-@@ -85,0 +95,2 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
-+				*/
+@@ -81 +89 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+-				const textBuffer = content.value.create(DefaultEndOfLine.LF);
++				/* const textBuffer = content.value.create(DefaultEndOfLine.LF);
+@@ -85 +93,2 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+-				marked(markdown, { renderer });
++				marked(markdown, { renderer }); */
 +				marked(content, { renderer });
-@@ -91 +102 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
+@@ -91 +100 @@ export class WalkThroughSnippetContentProvider implements ITextModelContentProvi
 -				this.modelService.updateModel(codeEditorModel, content.value);
 +				this.modelService.updateModel(codeEditorModel, content);
 diff --git a/src/vs/workbench/electron-browser/actions/helpActions.ts b/src/vs/workbench/electron-browser/actions/helpActions.ts
