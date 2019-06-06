@@ -315,7 +315,6 @@ class Dialog {
 		}
 		buttonsNode.appendChild(confirmBtn);
 		this.root.appendChild(buttonsNode);
-		this.entryList.layout();
 
 		this.path = options.defaultPath || "/";
 	}
@@ -390,6 +389,8 @@ class Dialog {
 
 				return true;
 			});
+
+			this.entryList.layout();
 
 			this.entryList.setChildren(null, items.map((i: DialogEntry): ITreeElement<DialogEntry> => ({ element: i })));
 			this.entryList.domFocus();
