@@ -1,32 +1,51 @@
 #!/bin/bash
 set -euxo pipefail
 
-# Variables to be set:
-# $IMAGE
+# Build using a Docker container using the specified image and version.
 function docker_build() {
-	containerID=$(docker create -it -v $(pwd)/.cache:/src/.cache $IMAGE)
-	docker start $containerID
-	docker exec $containerID mkdir -p /src
+	local image="${1}" ; shift
+	local version="${1}" ; shift
 
-	function exec() {
-		docker exec $containerID bash -c "$@"
+	local containerId
+	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
+	docker start "${containerId}"
+	docker exec "${containerId}" mkdir -p /src
+
+	function docker_exec() {
+		docker exec "${containerId}" bash -c "$@"
 	}
 
-	docker cp ./. $containerID:/src
-	exec "cd /src && yarn"
-	exec "cd /src && npm rebuild"
-	exec "cd /src && NODE_ENV=production VERSION=$VERSION yarn task build:server:binary"
-	exec "cd /src && yarn task package $VERSION"
-	docker cp $containerID:/src/release/. ./release/
+	docker cp ./. "${containerId}":/src
+	docker_exec "cd /src && yarn"
+	docker_exec "cd /src && npm rebuild"
+	docker_exec "cd /src && NODE_ENV=production VERSION=${version} yarn task build:server:binary"
+	docker_exec "cd /src && yarn task package ${version}"
+	docker cp "${containerId}":/src/release/. ./release/
+
+	docker stop "${containerId}"
 }
 
-if [[ "$OSTYPE" == "darwin"* ]]; then
-	NODE_ENV=production yarn task build:server:binary
-else
-	if [[ "$TARGET" == "alpine" ]]; then
-		IMAGE="codercom/nbin-alpine"
-	else
-		IMAGE="codercom/nbin-centos"
+function main() {
+	local version=${VERSION:-}
+	local ostype=${OSTYPE:-}
+
+	if [[ -z "${version}" ]] ; then
+		>&2 echo "Must set VERSION environment variable"
+		exit 1
 	fi
-	docker_build
-fi
+
+	if [[ "${ostype}" == "darwin"* ]]; then
+		NODE_ENV=production VERSION="${version}" yarn task build:server:binary
+		yarn task package "${version}"
+	else
+		local image
+		if [[ "$TARGET" == "alpine" ]]; then
+			image="codercom/nbin-alpine"
+		else
+			image="codercom/nbin-centos"
+		fi
+		docker_build "${image}" "${version}"
+	fi
+}
+
+main "$@"

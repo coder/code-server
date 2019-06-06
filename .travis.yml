@@ -27,7 +27,6 @@ before_deploy:
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"
 - git tag "$VERSION" "$TRAVIS_COMMIT"
-- if [[ “$TRAVIS_OS_NAME” == “osx” ]]; then yarn task package $VERSION; fi
 deploy:
   provider: releases
   file_glob: true

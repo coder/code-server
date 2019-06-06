@@ -21,6 +21,8 @@ const buildServerBinary = register("build:server:binary", async (runner) => {
 	logger.info("Building with environment", field("env", {
 		NODE_ENV: process.env.NODE_ENV,
 		VERSION: process.env.VERSION,
+		OSTYPE: process.env.OSTYPE,
+		TARGET: process.env.TARGET,
 	}));
 
 	await ensureInstalled();
