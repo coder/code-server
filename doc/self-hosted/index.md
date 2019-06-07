@@ -25,8 +25,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
 ### Things To Know
-- When you visit the IP for your code-server, you will be greeted   with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../assets/chrome_warning.png">
-- Then click **"proceed anyway"**<img src="../assets/chrome_confirm.png">
+- When you visit the IP for your code-server instance, you will be greeted with a page similar to the following screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../../assets/chrome_warning.png">
 
 ## Usage
 <pre class="pre-wrap"><code>code-server<span class="virtual-br"></span> --help</code></pre>
@@ -94,7 +93,7 @@ Options:
       }
    }
   ```
-  
+
   ### Apache Reverse Proxy
   Example of https virtualhost configuration for Apache as a reverse proxy. Please also pass --allow-http on code-server startup to allow the proxy to connect.
   ```
@@ -106,7 +105,7 @@ Options:
     RewriteRule /(.*)           ws://localhost:8443/$1 [P,L]
     RewriteCond %{HTTP:Upgrade} !=websocket [NC]
     RewriteRule /(.*)           http://localhost:8443/$1 [P,L]
-    
+
     ProxyRequests off
 
     RequestHeader set X-Forwarded-Proto https
@@ -118,6 +117,6 @@ Options:
   </VirtualHost>
   ```
   *Important:* For more details about Apache reverse proxy configuration checkout the [documentation](https://httpd.apache.org/docs/current/mod/mod_proxy.html) - especially the [Securing your Server](https://httpd.apache.org/docs/current/mod/mod_proxy.html#access) section
-  
+
   ### Help
   Use `code-server --help` to view the usage for the CLI. This is also shown at the beginning of this section.

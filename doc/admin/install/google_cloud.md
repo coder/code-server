@@ -12,8 +12,9 @@ If you're just starting out, we recommend [installing code-server locally](../..
 - [Open your Google Cloud console](https://console.cloud.google.com/compute/instances) to create a new VM instance and click **Create Instance**
 - Choose an appropriate machine type (we recommend 2 vCPU and 7.5 GB RAM, more depending on team size and number of repositories/languages enabled)
 - Choose Ubuntu 16.04 LTS as your boot disk
-- Check the boxes for **Allow HTTP traffic** and **Allow HTTPS traffic** in the **Firewall** section
+- Expand the "Management, security, disks, networking, sole tenancy" section, go to the "Networking" tab, then under network tags add "code-server"
 - Create your VM, and **take note** of its public IP address.
+- Visit "VPC network" in the console and go to "Firewall rules". Create a new firewall rule called "http-8443". Under "Target tags" add "code-server", and under "Protocols and ports" tick "Specified protocols and ports" and "tcp". Beside "tcp", add "8443", then create the rule.
 - Copy the link to download the latest Linux binary from our [releases page](https://github.com/cdr/code-server/releases)
 
 ---
@@ -53,18 +54,12 @@ chmod +x code-server
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../../security/ssl.md)
 
 - Start the code-server
-```
-sudo ./code-server -p 80
-```
+  ```
+  ./code-server
+  ```
+- Open your browser and visit `https://$public_ip:8443/` (where `$public_ip` is your Compute Engine instance's public IP address). You will be greeted with a page similar to the following screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../../assets/chrome_warning.png">
 
 > For instructions on how to keep the server running after you end your SSH session please checkout [how to use systemd](https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/) to start linux based services if they are killed
-
-- Access code-server from the public IP of your Google Cloud instance we noted earlier in your browser.
-> example: 32.32.32.234
-
-- You will be greeted with this page. Code-server is using a self-signed SSL certificate for easy setup. To proceed to the IDE, click **"Advanced"**<img src ="../../assets/chrome_warning.png">
-
-- Then click **"proceed anyway"**<img src="../../assets/chrome_confirm.png">
 
 ---
 
