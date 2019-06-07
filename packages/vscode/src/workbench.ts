@@ -213,7 +213,7 @@ export class Workbench {
 			let wid: IWorkspaceIdentifier = (<any>Object).assign({}, workspace);
 			if (!URI.isUri(wid.configPath)) {
 				// Ensure that the configPath is a valid URI.
-				wid.configPath = URI.file(wid.configPath);
+				wid.configPath = URI.file(wid.configPath.path);
 			}
 			config.workspace = wid;
 		} else {

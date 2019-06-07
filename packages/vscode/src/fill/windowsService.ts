@@ -1,6 +1,9 @@
 import * as electron from "electron";
+import { createHash } from "crypto";
 import { Emitter } from "@coder/events";
 import { logger } from "@coder/logger";
+import { Schemas } from "vs/base/common/network";
+import { originalFSPath } from "vs/base/common/resources";
 import { IWindowsService, INativeOpenDialogOptions, MessageBoxOptions, SaveDialogOptions, OpenDialogOptions, IMessageBoxResult, IDevToolsOptions, IEnterWorkspaceResult, CrashReporterStartOptions, INewWindowOptions, IOpenFileRequest, IAddFoldersRequest, IURIToOpen, IOpenSettings } from "vs/platform/windows/common/windows";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { IWorkspaceIdentifier, IWorkspaceFolderCreationData, ISingleFolderWorkspaceIdentifier } from "vs/platform/workspaces/common/workspaces";
@@ -21,6 +24,11 @@ Object.defineProperty(window, "open", {
 	set: (): void => { /* Not allowed. */ },
 	get: (): Function => windowOpen,
 });
+
+const getWorkspaceId = (configPath: URI): string => {
+	let workspaceConfigPath = configPath.scheme === Schemas.file ? originalFSPath(configPath) : configPath.toString();
+	return createHash("md5").update(workspaceConfigPath).digest("hex");
+};
 
 /**
  * Instead of going to the shared process, we'll directly run these methods on
@@ -107,13 +115,11 @@ export class WindowsService implements IWindowsService {
 		showOpenDialog({
 			...(options.dialogOptions || {}),
 			properties: {
-				openDirectory: true,
+				openFile: true,
 			},
 		}).then((path) => {
-			// tslint:disable-next-line:no-any
-			(<any>electron.ipcMain).send("vscode:addFolders", {
-				foldersToAdd: [URI.file(path)],
-			} as IAddFoldersRequest);
+			const configPath = URI.file(path);
+			workbench.workspace = {id: getWorkspaceId(configPath), configPath};
 		}).catch((ex) => {
 			logger.error(ex.message);
 		});
@@ -167,7 +173,7 @@ export class WindowsService implements IWindowsService {
 	public enterWorkspace(_windowId: number, uri: URI): Promise<IEnterWorkspaceResult> {
 		if (uri.path.endsWith(".json")) {
 			workbench.workspace = {
-				id: "Untitled",
+				id: getWorkspaceId(uri),
 				configPath: uri,
 			};
 		} else {
