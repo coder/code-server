@@ -32,6 +32,7 @@ class Product implements IProductConfiguration {
 		serviceUrl: global && global.process && global.process.env.SERVICE_URL
 			|| process.env.SERVICE_URL
 			|| "https://v1.extapi.coder.com",
+		itemUrl: process.env.ITEM_URL,
 		// tslint:disable-next-line:no-any
 	} as any;
 
