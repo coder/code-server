@@ -35,6 +35,10 @@ class OS {
 			default: this._platform = "linux"; break;
 		}
 		process.platform = this._platform;
+		process.env = {};
+		data.env.forEach((v, k) => {
+			process.env[k] = v;
+		});
 	}
 
 	public release(): string {

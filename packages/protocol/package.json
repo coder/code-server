@@ -14,5 +14,8 @@
         "rimraf": "^2.6.3",
         "text-encoding": "^0.7.0",
         "ts-protoc-gen": "^0.8.0"
+    },
+    "scripts": {
+        "gen": "./scripts/generate_proto.sh"
     }
 }

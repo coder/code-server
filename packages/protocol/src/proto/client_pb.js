@@ -137,7 +137,7 @@ proto.ClientMessage.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.ClientMessage.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     method: (f = msg.getMethod()) && node_pb.Method.toObject(includeInstance, f),
     ping: (f = msg.getPing()) && node_pb.Ping.toObject(includeInstance, f)
   };
@@ -360,7 +360,7 @@ proto.ServerMessage.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.ServerMessage.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     fail: (f = msg.getFail()) && node_pb.Method.Fail.toObject(includeInstance, f),
     success: (f = msg.getSuccess()) && node_pb.Method.Success.toObject(includeInstance, f),
     event: (f = msg.getEvent()) && node_pb.Event.toObject(includeInstance, f),
@@ -794,7 +794,7 @@ proto.WorkingInit.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.WorkingInit.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     homeDirectory: jspb.Message.getFieldWithDefault(msg, 1, ""),
     tmpDirectory: jspb.Message.getFieldWithDefault(msg, 2, ""),
     dataDirectory: jspb.Message.getFieldWithDefault(msg, 3, ""),
@@ -804,7 +804,8 @@ proto.WorkingInit.toObject = function(includeInstance, msg) {
     builtinExtensionsDir: jspb.Message.getFieldWithDefault(msg, 7, ""),
     extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, ""),
     extraExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 9),
-    extraBuiltinExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 10)
+    extraBuiltinExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 10),
+    envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -880,6 +881,12 @@ proto.WorkingInit.deserializeBinaryFromReader = function(msg, reader) {
     case 10:
       var value = /** @type {string} */ (reader.readString());
       msg.addExtraBuiltinExtensionDirectories(value);
+      break;
+    case 11:
+      var value = msg.getEnvMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -979,6 +986,10 @@ proto.WorkingInit.serializeBinaryToWriter = function(message, writer) {
       10,
       f
     );
+  }
+  f = message.getEnvMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(11, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -1173,6 +1184,27 @@ proto.WorkingInit.prototype.addExtraBuiltinExtensionDirectories = function(value
  */
 proto.WorkingInit.prototype.clearExtraBuiltinExtensionDirectoriesList = function() {
   this.setExtraBuiltinExtensionDirectoriesList([]);
+};
+
+
+/**
+ * map<string, string> env = 11;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.WorkingInit.prototype.getEnvMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 11, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ */
+proto.WorkingInit.prototype.clearEnvMap = function() {
+  this.getEnvMap().clear();
 };
 
 

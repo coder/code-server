@@ -280,6 +280,7 @@ export class Client {
 					builtInExtensionsDirectory: init.getBuiltinExtensionsDir(),
 					extraExtensionDirectories: init.getExtraExtensionDirectoriesList(),
 					extraBuiltinExtensionDirectories: init.getExtraBuiltinExtensionDirectoriesList(),
+					env: init.getEnvMap(),
 				};
 				this.initDataEmitter.emit(this._initData);
 				break;

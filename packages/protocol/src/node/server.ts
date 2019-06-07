@@ -103,6 +103,11 @@ export class Server {
 		initMsg.setShell(os.userInfo().shell || global.process.env.SHELL || "");
 		initMsg.setExtraExtensionDirectoriesList(this.options.extraExtensionDirectories || []);
 		initMsg.setExtraBuiltinExtensionDirectoriesList(this.options.extraBuiltinExtensionDirectories || []);
+
+		for (let key in process.env) {
+			initMsg.getEnvMap().set(key,  process.env[key] as string);
+		}
+
 		const srvMsg = new ServerMessage();
 		srvMsg.setInit(initMsg);
 		connection.send(srvMsg.serializeBinary());
