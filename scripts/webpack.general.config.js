@@ -90,8 +90,6 @@ module.exports = (options = {}) => ({
 		}),
 		new webpack.DefinePlugin({
 			"process.env.NODE_ENV": `"${environment}"`,
-			"process.env.LOG_LEVEL": `"${process.env.LOG_LEVEL || ""}"`,
-			"process.env.SERVICE_URL": `"${process.env.SERVICE_URL || ""}"`,
 			"process.env.VERSION": `"${process.env.VERSION || ""}"`,
 		}),
 	],
