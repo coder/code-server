@@ -315,10 +315,11 @@ const bold = (text: string | number): string | number => {
 		logger.warn("Documentation on securing your setup: https://github.com/cdr/code-server/blob/master/doc/security/ssl.md");
 	}
 
-	if (!options.noAuth && !usingCustomPassword) {
+	if (!options.noAuth) {
 		logger.info(" ");
-		logger.info(`Password:\u001B[1m ${password}`);
+		logger.info(usingCustomPassword ? "Using custom password." : `Password:\u001B[1m ${password}`);
 	} else {
+		logger.warn(" ");
 		logger.warn("Launched without authentication.");
 	}
 	if (options.disableTelemetry) {
