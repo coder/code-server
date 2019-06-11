@@ -44,4 +44,6 @@ message WorkingInit {
 	string extensions_directory = 8;
 	repeated string extra_extension_directories = 9;
 	repeated string extra_builtin_extension_directories = 10;
+
+	map<string, string> env = 11;
 }
