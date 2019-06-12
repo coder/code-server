@@ -73,8 +73,8 @@ Options:
 
   ### Cert and Cert Key
   To encrypt the traffic between the browser and server use `code-server --cert=` followed by the path to your `.cer` file. Additionally, you can use certificate keys with `code-server --cert-key` followed by the path to your `.key` file.
-> Example (certificate and key): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.cer --cert-key /etc/letsencrypt/live/example.com/fullchain.key`
-> Example (if you are using Letsencrypt or similar): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.pem --cert-key /etc/letsencrypt/live/example.com/privkey.key`
+> Example (certificate and key): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.pem --cert-key /etc/letsencrypt/live/example.com/fullchain.pem`
+> Example (if you are using Letsencrypt or similar): `code-server --cert /etc/letsencrypt/live/example.com/fullchain.pem --cert-key /etc/letsencrypt/live/example.com/privkey.pem`
 
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
