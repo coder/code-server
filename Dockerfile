@@ -1,12 +1,9 @@
-FROM node:10.15.1
+FROM node:lts
 
 # Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
 	libxkbfile-dev \
 	libsecret-1-dev
-
-# Ensure latest yarn.
-RUN npm install -g yarn@1.13
 
 WORKDIR /src
 COPY . .
