@@ -281,10 +281,32 @@ const bold = (text: string | number): string | number => {
 
 	if (options.socket) {
 		logger.info("Starting webserver via socket...", field("socket", options.socket));
-		app.server.listen(options.socket);
+		app.server.listen(options.socket, () => {
+			logger.info(" ");
+			logger.info("Started on socket address:");
+			logger.info(options.socket!);
+			logger.info(" ");
+		});
 	} else {
 		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
-		app.server.listen(options.port, options.host);
+		app.server.listen(options.port, options.host, async () => {
+			const protocol = options.allowHttp ? "http" : "https";
+			const address = app.server.address();
+			const port = typeof address === "string" ? options.port : address.port;
+			const url = `${protocol}://localhost:${port}/`;
+			logger.info(" ");
+			logger.info("Started (click the link below to open):");
+			logger.info(url);
+			logger.info(" ");
+
+			if (options.open) {
+				try {
+					await opn(url);
+				} catch (e) {
+					logger.warn("Url couldn't be opened automatically.", field("url", url), field("error", e.message));
+				}
+			}
+		});
 	}
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
@@ -326,26 +348,6 @@ const bold = (text: string | number): string | number => {
 	if (options.disableTelemetry) {
 		logger.info(" ");
 		logger.info("Telemetry is disabled.");
-	}
-
-	logger.info(" ");
-	if (options.socket) {
-		logger.info("Started on socket address:");
-		logger.info(options.socket);
-	} else {
-		const protocol = options.allowHttp ? "http" : "https";
-		const url = `${protocol}://localhost:${app.server.address().port}/`;
-		logger.info("Started (click the link below to open):");
-		logger.info(url);
-	}
-	logger.info(" ");
-
-	if (options.open) {
-		try {
-			await opn(url);
-		} catch (e) {
-			logger.warn("Url couldn't be opened automatically.", field("url", url), field("exception", e));
-		}
 	}
 })().catch((ex) => {
 	logger.error(ex);
