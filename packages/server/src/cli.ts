@@ -279,10 +279,11 @@ const bold = (text: string | number): string | number => {
 		} : undefined,
 	});
 
-	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
 	if (options.socket) {
+		logger.info("Starting webserver via socket...", field("socket", options.socket));
 		app.server.listen(options.socket);
 	} else {
+		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
 		app.server.listen(options.port, options.host);
 	}
 	let clientId = 1;
@@ -323,14 +324,20 @@ const bold = (text: string | number): string | number => {
 		logger.warn("Launched without authentication.");
 	}
 	if (options.disableTelemetry) {
-		logger.info("Telemetry is disabled");
+		logger.info(" ");
+		logger.info("Telemetry is disabled.");
 	}
 
-	const protocol = options.allowHttp ? "http" : "https";
-	const url = `${protocol}://localhost:${options.port}/`;
 	logger.info(" ");
-	logger.info("Started (click the link below to open):");
-	logger.info(url);
+	if (options.socket) {
+		logger.info("Started on socket address:");
+		logger.info(options.socket);
+	} else {
+		const protocol = options.allowHttp ? "http" : "https";
+		const url = `${protocol}://localhost:${app.server.address().port}/`;
+		logger.info("Started (click the link below to open):");
+		logger.info(url);
+	}
 	logger.info(" ");
 
 	if (options.open) {
