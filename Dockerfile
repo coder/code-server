@@ -1,4 +1,4 @@
-FROM node:lts
+FROM node:10.16.0
 
 # Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
