@@ -13,7 +13,7 @@ COPY . .
 
 # In the future, we can use https://github.com/yarnpkg/rfcs/pull/53 to make yarn use the node_modules
 # directly which should be fast as it is slow because it populates its own cache every time.
-RUN yarn && NODE_ENV=production yarn task build:server:binary
+RUN yarn && yarn build
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04

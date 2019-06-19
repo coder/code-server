@@ -21,7 +21,7 @@ before_install:
   libsecret-1-dev; fi
 - npm install -g yarn@1.12.3
 script:
-- scripts/build.sh
+- scripts/build.bash
 before_deploy:
 - echo "$VERSION" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"

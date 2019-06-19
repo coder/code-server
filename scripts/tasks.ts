@@ -25,7 +25,6 @@ register("build", async (runner, logger, shouldWatch: string) => {
 	const watch = shouldWatch === "true";
 
 	logger.info("Building", field("env", {
-		NODE_ENV: process.env.NODE_ENV,
 		VERSION: process.env.VERSION,
 	}), field("vscode", vscodeVersion), field("watch", watch));
 
@@ -153,7 +152,11 @@ const ensureInstalled = register("vscode:install", async (runner, logger) => {
 					}));
 					break;
 				case 404:
-					logger.info(`VS Code ${vscodeVersion} hasn't been packaged yet`);
+					const message = `VS Code ${vscodeVersion} hasn't been packaged yet`;
+					if (process.env.CI) {
+						return reject(new Error(message));
+					}
+					logger.warn(message);
 					clone().then(() => build()).catch(reject);
 					break;
 				default:

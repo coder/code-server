@@ -5,6 +5,7 @@ set -euxo pipefail
 function docker_build() {
 	local image="${1}" ; shift
 	local version="${1}" ; shift
+	local ci=${CI:-}
 
 	local containerId
 	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
@@ -18,8 +19,9 @@ function docker_build() {
 	docker cp ./. "${containerId}":/src
 	docker_exec "cd /src && yarn"
 	docker_exec "cd /src && npm rebuild"
-	docker_exec "cd /src && NODE_ENV=production VERSION=${version} yarn task build:server:binary"
-	docker_exec "cd /src && yarn task package ${version}"
+	docker_exec "cd /src && VERSION=${version} CI=${ci} yarn build"
+	docker_exec "cd /src && yarn bundle"
+	docker_exec "cd /src && yarn package ${version}"
 	docker cp "${containerId}":/src/release/. ./release/
 
 	docker stop "${containerId}"
@@ -28,6 +30,7 @@ function docker_build() {
 function main() {
 	local version=${VERSION:-}
 	local ostype=${OSTYPE:-}
+	local target=${TARGET:-}
 
 	if [[ -z "${version}" ]] ; then
 		>&2 echo "Must set VERSION environment variable"
@@ -35,11 +38,12 @@ function main() {
 	fi
 
 	if [[ "${ostype}" == "darwin"* ]]; then
-		NODE_ENV=production VERSION="${version}" yarn task build:server:binary
-		yarn task package "${version}"
+		VERSION="${version}" yarn build
+		yarn bundle
+		yarn package "${version}"
 	else
 		local image
-		if [[ "$TARGET" == "alpine" ]]; then
+		if [[ "${target}" == "alpine" ]]; then
 			image="codercom/nbin-alpine"
 		else
 			image="codercom/nbin-centos"
