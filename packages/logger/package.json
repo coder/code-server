@@ -9,7 +9,7 @@
 	"types": "out/index.d.ts",
 	"author": "Coder",
 	"license": "MIT",
-	"dependencies": {
+	"optionalDependencies": {
 		"@google-cloud/logging": "^4.5.2"
 	}
 }
