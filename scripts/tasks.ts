@@ -2,6 +2,7 @@ import { Binary } from "@coder/nbin";
 import { field } from "@coder/logger";
 import { register, run } from "@coder/runner";
 
+import * as cp from "child_process";
 import * as fs from "fs";
 import * as fse from "fs-extra";
 import * as https from "https";
@@ -11,8 +12,9 @@ import * as tar from "tar";
 
 import { platform } from "./platform";
 
-const libPath = path.join(__dirname, "../lib");
-const releasePath = path.resolve(__dirname, "../release");
+const rootPath = path.resolve(__dirname, "..");
+const libPath = path.join(rootPath, "lib");
+const releasePath = path.join(rootPath, "release");
 const target = `${platform()}-${os.arch()}`;
 const vscodeVersion = process.env.VSCODE_VERSION || "1.35.0";
 
@@ -30,14 +32,24 @@ register("build", async (runner, logger, shouldWatch: string) => {
 	const outPath = path.join(__dirname, "../out");
 	const compile = async (): Promise<void> => {
 		fse.removeSync(path.resolve(outPath));
-
-		runner.cwd = path.resolve(__dirname, "..");
-		const resp = await runner.execute(
-			"tsc",
-			["--project", "tsconfig.build.json"].concat(watch ? ["--watch"] : []),
-		);
-		if (resp.exitCode !== 0) {
-			throw new Error(`Failed to build: ${resp.stderr}`);
+		if (watch) {
+			const proc = cp.spawn("tsc", ["--project", "tsconfig.build.json", "--watch", "--preserveWatchOutput"], {
+				cwd: rootPath,
+			});
+			await new Promise((resolve, reject): void => {
+				proc.stdout.setEncoding("utf8");
+				proc.stdout.on("data", (data: string) => {
+					logger.info(data.split("\n").filter((l) => !!l).join("\n"));
+				});
+				proc.on("exit", resolve);
+				proc.on("error", reject);
+			});
+		} else {
+			runner.cwd = rootPath;
+			const resp = await runner.execute("tsc", ["--project", "tsconfig.build.json"]);
+			if (resp.exitCode !== 0) {
+				throw new Error(`Failed to build: ${resp.stderr}`);
+			}
 		}
 	};
 
@@ -45,10 +57,9 @@ register("build", async (runner, logger, shouldWatch: string) => {
 		// TODO: If watching, copy every time they change.
 		await Promise.all([
 			"packages/protocol/src/proto",
-			["tsconfig.runtime.json", "tsconfig.json"],
 		].map((p) => fse.copy(
-			path.resolve(__dirname, "..", Array.isArray(p) ? p[0] : p),
-			path.resolve(outPath, Array.isArray(p) ? p[1] : p),
+			path.resolve(rootPath, p),
+			path.resolve(outPath, p),
 		)));
 		fse.unlinkSync(path.resolve(outPath, "packages/protocol/src/proto/index.ts"));
 	};
@@ -64,15 +75,14 @@ register("build", async (runner, logger, shouldWatch: string) => {
  * Bundle built code into a binary with nbin.
  */
 register("bundle", async () => {
-	const root = path.join(__dirname, "..");
 	const bin = new Binary({
-		mainFile: path.join(root, "out/packages/server/src/cli.js"),
+		mainFile: path.join(rootPath, "out/packages/server/src/bootstrap.js"),
 		target: platform() === "darwin" ? "darwin" : platform() === "musl" ? "alpine" : "linux",
 	});
 
-	bin.writeFiles(path.join(root, "lib/**"));
-	bin.writeFiles(path.join(root, "out/**"));
-	bin.writeFiles(path.join(root, "**/node_modules"));
+	bin.writeFiles(path.join(rootPath, "lib/**"));
+	bin.writeFiles(path.join(rootPath, "out/**"));
+	bin.writeFiles(path.join(rootPath, "**/node_modules/**"));
 
 	fse.mkdirpSync(releasePath);
 

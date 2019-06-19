@@ -9,6 +9,7 @@
   "scripts": {
     "postinstall": "yarn build:rules",
     "build": "yarn task build",
+    "bundle": "yarn task bundle",
     "start": "npm-run-all --parallel watch build:run",
     "watch": "yarn task build true",
     "build:run": "cd ./out && node ./packages/server/src/cli # TODO: restart on change",

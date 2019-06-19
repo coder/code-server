@@ -18,7 +18,7 @@ import * as pem from "pem";
 import * as util from "util";
 import * as url from "url";
 import * as ws from "ws";
-import { buildDir } from "./constants";
+import { rootPath } from "./constants";
 import { createPortScanner } from "./portScanner";
 import safeCompare = require("safe-compare");
 
@@ -208,8 +208,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		return res.redirect(code, newUrlString);
 	};
 
-	const baseDir = buildDir || path.join(__dirname, "..");
-	const staticGzip = expressStaticGzip(path.join(baseDir, "build/web"));
+	const staticGzip = expressStaticGzip(path.join(rootPath, "out/packages/web/src"));
 
 	app.use((req, res, next) => {
 		logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.originalUrl}`, field("host", req.hostname), field("ip", req.ip));

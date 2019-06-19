@@ -27,6 +27,7 @@ export const forkModule = (modulePath: string, args?: string[], options?: cp.For
 		env: {
 			...process.env, ...(options && options.env || {}),
 			AMD_ENTRYPOINT: modulePath,
+			IS_FORK: "true",
 		},
 	};
 

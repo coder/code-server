@@ -4,6 +4,7 @@ import { retry, withEnv } from "@coder/protocol";
 import { fork, ChildProcess } from "child_process";
 import * as os from "os";
 import * as path from "path";
+import { tmpPath } from "../constants";
 import { IpcHandler } from "../ipc";
 
 // tslint:disable-next-line completed-docs pretty obvious what this is
@@ -33,8 +34,8 @@ export type SharedProcessEvent = {
  */
 export class SharedProcess {
 	public readonly socketPath: string = os.platform() === "win32"
-		? path.join("\\\\?\\pipe", os.tmpdir(), `.code-server${Math.random().toString()}`)
-		: path.join(os.tmpdir(), `.code-server${Math.random().toString()}`);
+		? path.join("\\\\?\\pipe", tmpPath, `shared-process-${Math.random().toString()}`)
+		: path.join(tmpPath, `shared-process-${Math.random().toString()}`);
 	private _state: SharedProcessState = SharedProcessState.Stopped;
 	private activeProcess: ChildProcess | undefined;
 	private ipcHandler: IpcHandler | undefined;
@@ -100,9 +101,13 @@ export class SharedProcess {
 			this.activeProcess.kill();
 		}
 
-		const activeProcess = fork(path.join(__dirname, "shared-process"), [
-				"--user-data-dir", this.userDataDir,
-			], withEnv({ env: { VSCODE_ALLOW_IO: "true" } }),
+		const activeProcess = fork(
+			path.join(__dirname, "shared-process"),
+			[ "--user-data-dir", this.userDataDir ],
+			withEnv({ env: {
+				VSCODE_ALLOW_IO: "true",
+				IS_FORK: "true",
+			}}),
 		);
 		this.activeProcess = activeProcess;
 

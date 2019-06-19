@@ -1,8 +1,21 @@
 import * as path from "path";
 import * as os from "os";
 
-export const isCli = typeof process.env.CLI !== "undefined" && process.env.CLI !== "false";
-export const buildDir = process.env.BUILD_DIR ? path.resolve(process.env.BUILD_DIR) : "";
+/**
+ * Application root.
+ */
+export const rootPath = path.resolve(__dirname, "../../../..");
+
+/**
+ * Contains vscode and built-in extensions.
+ */
+export const libPath = path.join(rootPath, "lib");
+
+/**
+ * Place all temporary files here.
+ */
+export const tmpPath = path.join(os.tmpdir(), "code-server");
+
 const xdgResolve = (primary: string | undefined, fallback: string): string => {
 	return primary ? path.resolve(primary) : path.resolve(process.env.HOME || os.homedir(), fallback);
 };

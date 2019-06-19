@@ -4,7 +4,7 @@
 		"incremental": true
 	},
 	"include": [
-		"packages/server/src/index.ts",
+		"packages/server/src/cli.ts",
 		"packages/server/src/vscode/bootstrap-fork.ts",
 		"packages/server/src/vscode/shared-process.ts",
 		"packages/server/src/modules/electron.ts"

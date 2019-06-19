@@ -8,7 +8,7 @@ import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
-import { buildDir, cacheHome, dataHome, isCli } from "./constants";
+import { libPath, tmpPath, cacheHome, dataHome } from "./constants";
 import { createApp } from "./server";
 import { forkModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
@@ -41,11 +41,6 @@ commander.version(process.env.VERSION || "development")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
 
-Error.stackTraceLimit = Infinity;
-if (isCli) {
-	require("nbin").shimNativeFs(buildDir);
-	require("nbin").shimNativeFs("/node_modules");
-}
 // Makes strings or numbers bold in stdout
 const bold = (text: string | number): string | number => {
 	return `\u001B[1m${text}\u001B[0m`;
@@ -86,11 +81,11 @@ const bold = (text: string | number): string | number => {
 
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
-	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
+	const builtInExtensionsDir = path.resolve(path.resolve(libPath, "extensions"));
 	const extraExtensionDirs = options.extraExtensionsDir ? options.extraExtensionsDir.map((p) => path.resolve(p)) : [];
 	const extraBuiltinExtensionDirs = options.extraBuiltinExtensionsDir ? options.extraBuiltinExtensionsDir.map((p) => path.resolve(p)) : [];
 	const workingDir = path.resolve(args[0] || process.cwd());
-	const dependenciesDir = path.join(os.tmpdir(), "code-server/dependencies");
+	const dependenciesDir = path.join(tmpPath, "dependencies");
 
 	if (!fs.existsSync(dataDir)) {
 		const oldDataDir = path.resolve(path.join(os.homedir(), ".code-server"));
@@ -109,21 +104,6 @@ const bold = (text: string | number): string | number => {
 		...extraExtensionDirs.map((p) => fse.mkdirp(p)),
 		...extraBuiltinExtensionDirs.map((p) => fse.mkdirp(p)),
 	]);
-
-	// const unpackExecutable = (binaryName: string): void => {
-	// 	const memFile = path.join(isCli ? buildDir! : path.join(__dirname, ".."), "build/dependencies", binaryName);
-	// 	const diskFile = path.join(dependenciesDir, binaryName);
-	// 	if (!fse.existsSync(diskFile)) {
-	// 		fse.writeFileSync(diskFile, fse.readFileSync(memFile));
-	// 	}
-	// 	fse.chmodSync(diskFile, "755");
-	// };
-
-	// TODO: should this just be a dependency instead of bundled? If not, we'll
-	// still need to patch (maybe we can get it working without it though).
-	// unpackExecutable("rg");
-	// tslint:disable-next-line no-any
-	// (<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
 
 	if (!process.env.VSCODE_LOGS) {
 		process.env.VSCODE_LOGS = path.join(cacheHome, "code-server/logs", new Date().toISOString().replace(/[-:.TZ]/g, ""));
