@@ -1,4 +1,3 @@
-/// <reference path="../../../../../lib/vscode/src/typings/node-pty.d.ts" />
 import { EventEmitter } from "events";
 import * as pty from "node-pty";
 import { ServerProxy } from "../../common/proxy";

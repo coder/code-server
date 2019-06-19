@@ -43,7 +43,7 @@ const execute = (command: string, args: string[] = [], options: cp.SpawnOptions,
 };
 
 // tslint:disable-next-line no-any
-export type TaskFunction = (runner: Runner, ...args: any[]) => void | Promise<void>;
+export type TaskFunction = (runner: Runner, logger: Logger, ...args: any[]) => void | Promise<void>;
 
 export interface Runner {
 	cwd: string;
@@ -93,25 +93,23 @@ export const run = (name: string = process.argv[2]): void | Promise<void> => {
 		set cwd(path: string) {
 			cwd = path;
 		},
-		execute(command: string, args: string[] = [], env?: object): Promise<CommandResult> {
-			const prom = execute(command, args, {
+		async execute(command: string, args: string[] = [], env?: object): Promise<CommandResult> {
+			const result = await execute(command, args, {
 				cwd,
 				env: env as NodeJS.ProcessEnv,
 			}, log);
 
-			return prom.then((result: CommandResult) => {
-				if (result.exitCode != 0) {
-					log.error("failed",
-						field("exitCode", result.exitCode),
-						field("stdout", result.stdout),
-						field("stderr", result.stderr)
-					);
-				}
+			if (result.exitCode != 0) {
+				log.error("failed",
+					field("exitCode", result.exitCode),
+					field("stdout", result.stdout),
+					field("stderr", result.stderr),
+				);
+			}
 
-				return result;
-			});
+			return result;
 		},
-	}, ...process.argv.slice(3));
+	}, log, ...process.argv.slice(3));
 
 	if (prom) {
 		activated.set(name, prom);

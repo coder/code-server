@@ -1,5 +1,5 @@
 import { Binary } from "@coder/nbin";
-import { logger, field } from "@coder/logger";
+import { field } from "@coder/logger";
 import { register, run } from "@coder/runner";
 
 import * as fs from "fs";
@@ -11,15 +11,15 @@ import * as tar from "tar";
 
 import { platform } from "./platform";
 
-const libDir = path.join(__dirname, "../lib");
+const libPath = path.join(__dirname, "../lib");
 const releasePath = path.resolve(__dirname, "../release");
 const target = `${platform()}-${os.arch()}`;
-const vscodeVersion = process.env.VSCODE_VERSION || "1.34.0";
+const vscodeVersion = process.env.VSCODE_VERSION || "1.35.0";
 
 /**
  * Build source.
  */
-register("build", async (runner, shouldWatch: string) => {
+register("build", async (runner, logger, shouldWatch: string) => {
 	const watch = shouldWatch === "true";
 
 	logger.info("Building", field("env", {
@@ -27,9 +27,9 @@ register("build", async (runner, shouldWatch: string) => {
 		VERSION: process.env.VERSION,
 	}), field("vscode", vscodeVersion), field("watch", watch));
 
-	const outDir = path.join(__dirname, "../out");
+	const outPath = path.join(__dirname, "../out");
 	const compile = async (): Promise<void> => {
-		fse.removeSync(path.resolve(outDir));
+		fse.removeSync(path.resolve(outPath));
 
 		runner.cwd = path.resolve(__dirname, "..");
 		const resp = await runner.execute(
@@ -48,15 +48,15 @@ register("build", async (runner, shouldWatch: string) => {
 			["tsconfig.runtime.json", "tsconfig.json"],
 		].map((p) => fse.copy(
 			path.resolve(__dirname, "..", Array.isArray(p) ? p[0] : p),
-			path.resolve(outDir, Array.isArray(p) ? p[1] : p),
+			path.resolve(outPath, Array.isArray(p) ? p[1] : p),
 		)));
-		fse.unlinkSync(path.resolve(outDir, "packages/protocol/src/proto/index.ts"));
+		fse.unlinkSync(path.resolve(outPath, "packages/protocol/src/proto/index.ts"));
 	};
 
+	await ensureInstalled(),
 	await Promise.all([
 		await compile(),
 		await copy(),
-		await ensureInstalled(),
 	]);
 });
 
@@ -70,8 +70,9 @@ register("bundle", async () => {
 		target: platform() === "darwin" ? "darwin" : platform() === "musl" ? "alpine" : "linux",
 	});
 
+	bin.writeFiles(path.join(root, "lib/**"));
 	bin.writeFiles(path.join(root, "out/**"));
-	// TODO: dependencies (node_modules).
+	bin.writeFiles(path.join(root, "**/node_modules"));
 
 	fse.mkdirpSync(releasePath);
 
@@ -89,41 +90,65 @@ register("bundle", async () => {
 /**
  * Make sure the expected VS code version has been downloaded.
  */
-const ensureInstalled = register("vscode:install", async (runner) => {
-	runner.cwd = libDir;
+const ensureInstalled = register("vscode:install", async (runner, logger) => {
+	const vscodePath = path.join(libPath, "vscode");
+
+	const build = async (): Promise<void> => {
+		runner.cwd = vscodePath;
+		if (!fs.existsSync(path.join(vscodePath, "node_modules"))) {
+			await runner.execute("yarn");
+		}
+		if (!fs.existsSync(path.join(vscodePath, "out"))) {
+			await runner.execute("yarn", ["compile"]);
+		}
+	};
+
+	const clone = async (): Promise<void> => {
+		runner.cwd = libPath;
+		await runner.execute("git", [
+			"clone", "https://github.com/microsoft/vscode",
+			"--branch", `${vscodeVersion}`, "--single-branch", "--depth=1",
+		]);
+	};
 
 	// See if we already have the correct version downloaded.
-	const vscodePath = path.join(libDir, "vscode");
 	if (fs.existsSync(vscodePath)) {
 		const pkgVersion = JSON.parse(
 			fs.readFileSync(path.join(vscodePath, "package.json")).toString("utf8"),
 		).version;
 		if (pkgVersion === vscodeVersion) {
-			// TODO: check that it has been properly built along with dependencies.
-			return;
+			logger.info(`Found existing VS Code ${vscodeVersion} installation`);
+
+			return build();
 		}
 	}
 
-	fse.removeSync(libDir);
-	fse.mkdirpSync(libDir);
+	fse.removeSync(libPath);
+	fse.mkdirpSync(libPath);
 
+	// If we can, fetch the pre-built version to save time. Otherwise we'll need
+	// to clone and build.
 	await new Promise<void>((resolve, reject): void => {
-		const vsSourceUrl = `https://codesrv-ci.cdr.sh/vstar-${vscodeVersion}.tar.gz`;
+		const vsSourceUrl = `https://codesrv-ci.cdr.sh/vscode-${vscodeVersion}-prebuilt.tar.gz`;
 		https.get(vsSourceUrl, (res) => {
 			switch (res.statusCode) {
-				case 200: break;
-				// TODO: if it hasn't been packaged, clone and build it instead.
-				case 404: return reject(new Error(`${vscodeVersion} has not been packaged yet`));
-				default:  return reject(new Error(res.statusMessage));
+				case 200:
+					logger.info(`Downloading pre-built VS Code ${vscodeVersion}`);
+					res.pipe(tar.x({
+						C: libPath,
+					}).on("finish", () => {
+						resolve();
+					}).on("error", (err: Error) => {
+						reject(err);
+					}));
+					break;
+				case 404:
+					logger.info(`VS Code ${vscodeVersion} hasn't been packaged yet`);
+					clone().then(() => build()).catch(reject);
+					break;
+				default:
+					return reject(new Error(res.statusMessage));
 			}
-
-			res.pipe(tar.x({
-				C: libDir,
-			}).on("finish", () => {
-				resolve();
-			}).on("error", (err: Error) => {
-				reject(err);
-			}));
 		}).on("error", (err) => {
 			reject(err);
 		});
@@ -133,7 +158,7 @@ const ensureInstalled = register("vscode:install", async (runner) => {
 /**
  * Package the binary, readme, and license into an archive.
  */
-register("package", async (runner, releaseTag) => {
+register("package", async (runner, _logger, releaseTag) => {
 	if (!releaseTag) {
 		throw new Error("Please specify the release tag.");
 	}

@@ -7,13 +7,12 @@
   "private": true,
   "workspaces": ["packages/*", "packages/app/*"],
   "scripts": {
-    "postinstall": "npm-run-all --parallel vscode:install build:rules",
+    "postinstall": "yarn build:rules",
     "build": "yarn task build",
     "start": "npm-run-all --parallel watch build:run",
     "watch": "yarn task build true",
     "build:run": "cd ./out && node ./packages/server/src/cli # TODO: restart on change",
     "build:rules": "cd ./rules && tsc -p .",
-    "vscode:install": "yarn task vscode:install",
     "lint": "tslint --project .",
     "task": "ts-node -r tsconfig-paths/register scripts/tasks.ts",
     "test": "jest"

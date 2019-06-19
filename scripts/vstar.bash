@@ -11,17 +11,18 @@ function main() {
 	fi
 
 	local dir=/tmp/vstar
-	local outfile="/tmp/vstar-${version}.tar.gz"
+	local outfile="/tmp/vscode-${version}-prebuilt.tar.gz"
 	rm -rf "${dir}"
 	mkdir -p "${dir}"
 
 	cd "${dir}"
-	git clone https://github.com/microsoft/vscode --branch "${version}" --single-branch --depth=1
+	git clone https://github.com/microsoft/vscode \
+		--branch "${version}" --single-branch --depth=1
 	cd vscode
 
 	yarn
-
 	npx gulp vscode-linux-x64 --max-old-space-size=32384
+
 	tar -czvf "${outfile}" "${dir}"
 }
 
