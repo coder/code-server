@@ -25,7 +25,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
 ### Things To Know
-- When you visit the IP for your code-server instance, you will be greeted with a screen that tells you this connection is insecure. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../../assets/chrome_warning.png">
+- When you visit the IP for your code-server instance, you will be greeted with a screen similar to that one in the screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../assets/chrome_warning.png">
 
 ## Usage
 <pre class="pre-wrap"><code>code-server<span class="virtual-br"></span> --help</code></pre>
