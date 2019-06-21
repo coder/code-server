@@ -2,3 +2,7 @@
 # yarn lockfile v1
 
 
+"@types/vscode@^1.35.0":
+  version "1.35.0"
+  resolved "https://registry.yarnpkg.com/@types/vscode/-/vscode-1.35.0.tgz#b17526ef1e9df5cbf7253be6765a33fd518a2304"
+  integrity sha512-Iyliuu8Hv4qy4TEaevQzChh9UsTEcuaKdcHXBbvJnoJSF5Td2yNENOrPK+vuOaXJJBhQZb4BNJKOxt6caaQR8A==

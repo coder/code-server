@@ -1,8 +1,11 @@
 {
 	"name": "@coder/ide-api",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"typings": "api.d.ts",
 	"author": "Coder",
 	"license": "MIT",
-	"description": "API for interfacing with the API created for content-scripts"
+	"description": "API for interfacing with the API created for content-scripts",
+	"dependencies": {
+		"@types/vscode": "^1.35.0"
+	}
 }

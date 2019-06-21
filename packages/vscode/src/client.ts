@@ -1,26 +1,21 @@
 import { IdeClient } from "@coder/ide";
-import { client as ideClientInstance } from "@coder/ide/src/fill/client";
-import Severity from "vs/base/common/severity";
-import { INotificationService } from "vs/platform/notification/common/notification";
-import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
+import * as api from "@coder/ide-api";
+import { vscodeApi, coderApi } from "./api.impl";
+
 import * as paths from "./fill/paths";
 import product from "./fill/product";
 import "./vscode.scss";
-import { Action } from 'vs/base/common/actions';
-import { SyncActionDescriptor, MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
-import { Registry } from 'vs/platform/registry/common/platform';
-import { IWorkbenchActionRegistry, Extensions } from 'vs/workbench/common/actions';
-import { CommandsRegistry } from "vs/platform/commands/common/commands";
-import { IFileService, FileOperation } from "vs/platform/files/common/files";
-import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";
-import { IModelService } from "vs/editor/common/services/modelService";
-import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
-import { IStorageService } from "vs/platform/storage/common/storage";
 
 // NOTE: shouldn't import anything from VS Code here or anything that will
 // depend on a synchronous fill like `os`.
 
+/**
+ * IDE client implementation that uses VS Code.
+ */
 class VSClient extends IdeClient {
+	/**
+	 * Load VS Code into the browser.
+	 */
 	protected initialize(): Promise<void> {
 		return this.task("Start workbench", 1000, async (data, sharedData) => {
 			paths._paths.initialize(data, sharedData);
@@ -32,99 +27,12 @@ class VSClient extends IdeClient {
 			const { workbench } = require("./workbench") as typeof import("./workbench");
 			await workbench.initialize();
 
-			// tslint:disable-next-line:no-any
-			const getService = <T>(id: any): T => workbench.serviceCollection.get<T>(id) as T;
-			window.ide = {
-				client: ideClientInstance,
-				workbench: {
-					action: Action,
-					syncActionDescriptor: SyncActionDescriptor,
-					commandRegistry: CommandsRegistry,
-					actionsRegistry: Registry.as<IWorkbenchActionRegistry>(Extensions.WorkbenchActions),
-					menuRegistry: MenuRegistry,
-					statusbarService: getService<IStatusbarService>(IStatusbarService),
-					notificationService: getService<INotificationService>(INotificationService),
-					terminalService: getService<ITerminalService>(ITerminalService),
-					storageService: {
-						save: (): Promise<void> => {
-							// tslint:disable-next-line:no-any
-							const storageService = getService<IStorageService>(IStorageService) as any;
-
-							return storageService.close();
-						},
-					},
-
-					onFileCreate: (cb): void => {
-						getService<IFileService>(IFileService).onAfterOperation((e) => {
-							if (e.operation === FileOperation.CREATE) {
-								cb(e.resource.path);
-							}
-						});
-					},
-					onFileMove: (cb): void => {
-						getService<IFileService>(IFileService).onAfterOperation((e) => {
-							if (e.operation === FileOperation.MOVE) {
-								cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
-							}
-						});
-					},
-					onFileDelete: (cb): void => {
-						getService<IFileService>(IFileService).onAfterOperation((e) => {
-							if (e.operation === FileOperation.DELETE) {
-								cb(e.resource.path);
-							}
-						});
-					},
-					onFileSaved: (cb): void => {
-						getService<ITextFileService>(ITextFileService).models.onModelSaved((e) => {
-							cb(e.resource.path);
-						});
-					},
-					onFileCopy: (cb): void => {
-						getService<IFileService>(IFileService).onAfterOperation((e) => {
-							if (e.operation === FileOperation.COPY) {
-								cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
-							}
-						});
-					},
-
-					onModelAdded: (cb): void => {
-						getService<IModelService>(IModelService).onModelAdded((e) => {
-							cb(e.uri.path, e.getLanguageIdentifier().language);
-						});
-					},
-					onModelRemoved: (cb): void => {
-						getService<IModelService>(IModelService).onModelRemoved((e) => {
-							cb(e.uri.path, e.getLanguageIdentifier().language);
-						});
-					},
-					onModelLanguageChange: (cb): void => {
-						getService<IModelService>(IModelService).onModelModeChanged((e) => {
-							cb(e.model.uri.path, e.model.getLanguageIdentifier().language, e.oldModeId);
-						});
-					},
-
-					onTerminalAdded: (cb): void => {
-						getService<ITerminalService>(ITerminalService).onInstanceCreated(() => cb());
-					},
-					onTerminalRemoved: (cb): void => {
-						getService<ITerminalService>(ITerminalService).onInstanceDisposed(() => cb());
-					},
-				},
-
-				// @ts-ignore
-				// tslint:disable-next-line:no-any
-				MenuId: MenuId as any,
-				// tslint:disable-next-line:no-any
-				Severity: Severity as any,
-				// @ts-ignore
-				// tslint:disable-next-line:no-any
-				StatusbarAlignment: StatusbarAlignment as any,
-			};
+			window.ide = coderApi(workbench.serviceCollection);
+			window.vscode = vscodeApi(workbench.serviceCollection);
 
 			const event = new CustomEvent("ide-ready");
-			// tslint:disable-next-line:no-any
-			(<any>event).ide = window.ide;
+			(<any>event).ide = window.ide;       // tslint:disable-line:no-any
+			(<any>event).vscode = window.vscode; // tslint:disable-line:no-any
 			window.dispatchEvent(event);
 		}, this.initData, this.sharedProcessData);
 	}
