@@ -176,7 +176,7 @@ const ensurePatched = register("vscode:patch", async (runner) => {
 
 	runner.cwd = vscodePath;
 	const patchPath = path.join(__dirname, "../scripts/vscode.patch");
-	const apply = await runner.execute("git", ["apply", "--unidiff-zero", patchPath]);
+	const apply = await runner.execute("git", ["apply", "--unidiff-zero", "--whitespace=fix", patchPath]);
 	if (apply.exitCode !== 0) {
 		throw new Error(`Failed to apply patches: ${apply.stderr}`);
 	}
