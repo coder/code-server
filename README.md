@@ -52,6 +52,11 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ## Development
 
+- Clone this as `vs/src/server` in the VS Code source.
+- Run `yarn watch-client`in the VS Code root.
+- Run `node out/vs/server/main.js`.
+- Visit `http://localhost:8443`.
+
 ### Known Issues
 
 - Creating custom VS Code extensions and debugging them doesn't work.
