@@ -1,19 +1,17 @@
 import * as crypto from "crypto";
 import * as net from "net";
-import { AuthRequest, ConnectionType, ConnectionTypeRequest, HandshakeMessage } from "vs/platform/remote/common/remoteAgentConnection";
+
+import { VSBuffer } from "vs/base/common/buffer";
 import { NodeSocket, WebSocketNodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { PersistentProtocol, ISocket } from "vs/base/parts/ipc/common/ipc.net";
-import { VSBuffer } from "vs/base/common/buffer";
-import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/connection";
+import { AuthRequest, ConnectionType, ConnectionTypeRequest, HandshakeMessage } from "vs/platform/remote/common/remoteAgentConnection";
+
+import { ExtensionHostConnection, ManagementConnection, Server } from "vs/server/connection";
 
 export interface SocketOptions {
 	readonly reconnectionToken: string;
 	readonly reconnection: boolean;
 	readonly skipWebSocketFrames: boolean;
-}
-
-export interface Server {
-	readonly connections: Map<ConnectionType, Map<string, Connection>>;
 }
 
 export class Socket {
@@ -114,8 +112,8 @@ export class Socket {
 				this.sendControl(ok);
 
 				const connection = message.desiredConnectionType === ConnectionType.Management
-					? new ManagementConnection(this.protocol)
-					: new ExtensionHostConnection(this.protocol);
+					? new ManagementConnection(server, this.protocol)
+					: new ExtensionHostConnection(server, this.protocol);
 
 				connections.set(this.options.reconnectionToken, connection);
 				connection.onClose(() => {

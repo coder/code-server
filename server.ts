@@ -5,19 +5,29 @@ import * as path from "path";
 import * as util from "util";
 import * as url from "url";
 
-import { Connection } from "vs/server/connection";
-import { ConnectionType } from "vs/platform/remote/common/remoteAgentConnection";
 import { Emitter } from "vs/base/common/event";
-import { ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
-import { Socket, Server as IServer } from "vs/server/socket";
+import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
+import { validatePaths } from "vs/code/node/paths";
+import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
+import { ParsedArgs } from "vs/platform/environment/common/environment";
+import { EnvironmentService } from "vs/platform/environment/node/environmentService";
+import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
+import { ConsoleLogMainService } from "vs/platform/log/common/log";
+import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
+import { ConnectionType } from "vs/platform/remote/common/remoteAgentConnection";
+import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 
-enum HttpCode {
+import { Connection, Server as IServer } from "vs/server/connection";
+import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/channel";
+import { Socket } from "vs/server/socket";
+
+export enum HttpCode {
 	Ok = 200,
 	NotFound = 404,
 	BadRequest = 400,
 }
 
-class HttpError extends Error {
+export class HttpError extends Error {
 	public constructor(message: string, public readonly code: number) {
 		super(message);
 		// @ts-ignore
@@ -26,14 +36,24 @@ class HttpError extends Error {
 	}
 }
 
-class Server implements IServer {
-	private readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
+export class Server implements IServer {
+	// When a new client connects, it will fire this event which is used in the
+	// IPC server which manages channels.
+	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
 
 	private readonly rootPath = path.resolve(__dirname, "../../..");
 
+	// This is separate instead of just extending this class since we can't
+	// use properties in the super call. This manages channels.
+	private readonly ipc = new IPCServer(this.onDidClientConnect);
+
+	// The web server.
 	private readonly server: http.Server;
 
+	// Persistent connections. These can reconnect within a timeout. Individual
+	// sockets will add connections made through them to this map and remove them
+	// when they close.
 	public readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	public constructor() {
@@ -52,17 +72,45 @@ class Server implements IServer {
 		});
 
 		this.server.on("upgrade", (request, socket) => {
-			this.handleUpgrade(request, socket);
+			try {
+				const nodeSocket = this.handleUpgrade(request, socket);
+				nodeSocket.handshake(this);
+			} catch (error) {
+				socket.end(error.message);
+			}
 		});
 
 		this.server.on("error", (error) => {
 			console.error(error);
 			process.exit(1);
 		});
-	}
 
-	public dispose(): void {
-		this.connections.clear();
+		let args: ParsedArgs;
+		try {
+			args = parseMainProcessArgv(process.argv);
+			args = validatePaths(args);
+		} catch (error) {
+			console.error(error.message);
+			return process.exit(1);
+		}
+
+		const environmentService = new EnvironmentService(args, process.execPath);
+
+		// TODO: might want to use spdlog.
+		const logService = new ConsoleLogMainService();
+		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+
+		const instantiationService = new InstantiationService();
+		instantiationService.invokeFunction(() => {
+			this.ipc.registerChannel(
+				REMOTE_FILE_SYSTEM_CHANNEL_NAME,
+				new FileProviderChannel(),
+			);
+			this.ipc.registerChannel(
+				"remoteextensionsenvironment",
+				new ExtensionEnvironmentChannel(environmentService),
+			);
+		});
 	}
 
 	private async handleRequest(request: http.IncomingMessage): Promise<string | Buffer> {
@@ -118,9 +166,9 @@ class Server implements IServer {
 		}
 	}
 
-	private handleUpgrade(request: http.IncomingMessage, socket: net.Socket): void {
+	private handleUpgrade(request: http.IncomingMessage, socket: net.Socket): Socket {
 		if (request.headers.upgrade !== "websocket") {
-			return socket.end("HTTP/1.1 400 Bad Request");
+			throw new Error("HTTP/1.1 400 Bad Request");
 		}
 
 		const options = {
@@ -144,11 +192,11 @@ class Server implements IServer {
 
 		const nodeSocket = new Socket(socket, options);
 		nodeSocket.upgrade(request.headers["sec-websocket-key"] as string);
-		nodeSocket.handshake(this);
+
+		return nodeSocket;
 	}
 
-	public listen(): void {
-		const port = 8443;
+	public listen(port: number = 8443): void {
 		this.server.listen(port, () => {
 			const address = this.server.address();
 			const location = typeof address === "string"
@@ -159,6 +207,3 @@ class Server implements IServer {
 		});
 	}
 }
-
-const server = new Server();
-server.listen();
