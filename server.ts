@@ -6,6 +6,8 @@ import * as util from "util";
 import * as url from "url";
 
 import { Emitter } from "vs/base/common/event";
+import { getMediaMime } from "vs/base/common/mime";
+import { extname } from "vs/base/common/path";
 import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
@@ -59,10 +61,11 @@ export class Server implements IServer {
 	public constructor() {
 		this.server = http.createServer(async (request, response): Promise<void> => {
 			try {
-				const content = await this.handleRequest(request);
+				const [content, headers] = await this.handleRequest(request);
 				response.writeHead(HttpCode.Ok, {
 					"Cache-Control": "max-age=86400",
 					// TODO: ETag?
+					...headers,
 				});
 				response.end(content);
 			} catch (error) {
@@ -113,7 +116,7 @@ export class Server implements IServer {
 		});
 	}
 
-	private async handleRequest(request: http.IncomingMessage): Promise<string | Buffer> {
+	private async handleRequest(request: http.IncomingMessage): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
 		if (request.method !== "GET") {
 			throw new HttpError(
 				`Unsupported method ${request.method}`,
@@ -150,14 +153,23 @@ export class Server implements IServer {
 
 			html = html.replace('{{WEBVIEW_ENDPOINT}}', JSON.stringify(options.WEBVIEW_ENDPOINT));
 
-			return html;
+			return [html, {
+				"Content-Type": "text/html",
+			}];
 		}
 
 		try {
 			const content = await util.promisify(fs.readFile)(
 				path.join(this.rootPath, requestPath),
 			);
-			return content;
+			return [content, {
+				"Content-Type": getMediaMime(requestPath) || {
+					".css": "text/css",
+					".html": "text/html",
+					".js": "text/javascript",
+					".json": "application/json",
+				}[extname(requestPath)] || "text/plain",
+			}];
 		} catch (error) {
 			if (error.code === "ENOENT" || error.code === "EISDIR") {
 				throw new HttpError("Not found", HttpCode.NotFound);
