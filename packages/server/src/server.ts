@@ -35,7 +35,7 @@ interface CreateAppOptions {
 
 export const createApp = async (options: CreateAppOptions): Promise<{
 	readonly express: express.Application;
-	readonly server: http.Server;
+	readonly createServer: () => http.Server;
 	readonly wss: ws.Server;
 }> => {
 	const parseCookies = (req: http.IncomingMessage): { [key: string]: string } => {
@@ -133,8 +133,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		});
 	});
 
-	const server = httpolyglot.createServer(options.allowHttp ? {} : options.httpsOptions || certs, app) as http.Server;
-	const wss = new ws.Server({ server });
+	const wss = new ws.Server({ noServer: true });
 
 	wss.shouldHandle = (req): boolean => {
 		return isAuthed(req);
@@ -327,9 +326,25 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	// Everything else just pulls from the static build directory.
 	app.use(staticGzip);
 
+	// Function that creates a new server. A single server can only be
+	// listening on one socket/host+port at a time, so we need to create a
+	// new server for every bind address.
+	const createServer = (): http.Server => {
+		const createServerOptions = options.allowHttp ? {} : options.httpsOptions || certs;
+		const server = httpolyglot.createServer(createServerOptions, app) as http.Server;
+
+		server.on("upgrade", (request, socket, head) => {
+			wss.handleUpgrade(request, socket, head, (ws) => {
+				wss.emit("connection", ws, request);
+			});
+		});
+
+		return server;
+	};
+
 	return {
 		express: app,
-		server,
+		createServer,
 		wss,
 	};
 };

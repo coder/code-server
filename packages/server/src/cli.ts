@@ -8,16 +8,28 @@ import * as fse from "fs-extra";
 import * as os from "os";
 import * as path from "path";
 import * as WebSocket from "ws";
-import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
+import { buildDir, cacheHome, dataHome, isCli, serveStatic, defaultHost, defaultPort, defaultBindAddress } from "./constants";
 import { createApp } from "./server";
 import { forkModule, requireModule } from "./vscode/bootstrapFork";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
-import opn = require("opn");
+import open = require("open");
 
 import * as commander from "commander";
 
 const collect = <T>(value: T, previous: T[]): T[] => {
 	return previous.concat(value);
+};
+
+// collectFresh does the same thing as collect but doesn't do anything with
+// `previous`.
+const collectFresh = <T>(): (value: T, previous: T[]) => T[] => {
+	let fresh: T[] = [];
+
+	return (value: T, previous: T[]): T[] => {
+		fresh.push(value);
+
+		return fresh;
+	};
 };
 
 commander.version(process.env.VERSION || "development")
@@ -28,19 +40,22 @@ commander.version(process.env.VERSION || "development")
 	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.")
 	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, [])
 	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, [])
-	.option("-d --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
-	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
-	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
-	.option("-o, --open", "Open in the browser on startup.", false)
-	.option("-p, --port <number>", "Port to bind on.", parseInt(process.env.PORT!, 10) || 8443)
+	.option("-d, --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
+	.option("-b, --bind <address>", "Specifies addresses to bind to in [HOST][:PORT] notation (repeatable).", collectFresh(), [defaultBindAddress])
+	.option("-o, --open", "Open in the browser on startup. If multiple '--bind' arguments are supplied, only the first one will be opened.", false)
 	.option("-N, --no-auth", "Start without requiring authentication.", false)
 	.option("-H, --allow-http", "Allow http connections.", false)
-	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
-	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
+	.option("--socket <value>", "Listen on a UNIX socket. Cannot be provided with '--bind'.")
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
+
+	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
+	.option("-h, --host <value>", "DEPRECATED: Use '--bind' instead. Customize the hostname. Cannot be provided with '--bind'.")
+	.option("-p, --port <number>", "DEPRECATED: Use '--bind' instead. Port to bind on. Cannot be provided with '--bind'.")
+	.option("-P, --password <value>", "DEPRECATED: Use the 'PASSWORD' environment variable instead. Specify a password for authentication.")
+
 	.arguments("Specify working directory.")
 	.parse(process.argv);
 
@@ -54,13 +69,48 @@ const bold = (text: string | number): string | number => {
 	return `\u001B[1m${text}\u001B[0m`;
 };
 
+interface BindAddress {
+	readonly host: string;
+	readonly port: number;
+}
+
+// Parses a bind address string into a BindAddress. A bind address string can be
+// just a hostname, or a hostname:port, or just a :port.
+const parseBindAddress = (addr: string): BindAddress => {
+	let host = defaultHost;
+	let port = defaultPort;
+
+	const split = addr.split(":");
+	if (split.length > 2) {
+		throw new Error(`Invalid bind address '${addr}'.`);
+	}
+
+	if (split.length === 1) {
+		if (split[0] === "") {
+			throw new Error(`Invalid bind address '${addr}'.`);
+		}
+		host = split[0];
+	} else {
+		if (split[0] !== "") {
+			host = split[0];
+		}
+		port = parseInt(split[1], 10);
+		if (isNaN(port) || port < 0 || port > 65535) {
+			throw new Error(`Invalid bind address '${addr}': invalid port.`);
+		}
+	}
+
+	return { host, port };
+};
+
 (async (): Promise<void> => {
 	const args = commander.args;
 	const options = commander.opts() as {
 		noAuth: boolean;
+		bind: string[];
 		readonly allowHttp: boolean;
-		readonly host: string;
-		readonly port: number;
+		readonly host?: string;
+		readonly port?: number;
 		readonly disableTelemetry: boolean;
 
 		readonly userDataDir?: string;
@@ -80,6 +130,56 @@ const bold = (text: string | number): string | number => {
 		readonly bootstrapFork?: string;
 		readonly extraArgs?: string;
 	};
+
+	// Convert deprecated host and port args to a bind option.
+	if (options.host || options.port) {
+		if (options.bind !== [defaultBindAddress]) {
+			logger.error("'--host' and/or '--port' arguments cannot be supplied alongside '--bind'.");
+			process.exit(1);
+		}
+
+		const host = options.host || defaultHost;
+		const port = options.port || defaultPort;
+		const bind = `${host}:${port}`;
+		logger.warn(`The '--host' and '--port' arguments are deprecated. Use '--bind "${bind}"' instead.`);
+		options.bind = [bind];
+	}
+
+	// Ensure custom bind args aren't supplied alongside a socket arg.
+	if (options.socket && options.bind !== [defaultBindAddress]) {
+		logger.error("'--bind' arguments cannot be supplied alongside '--socket'.");
+		process.exit(1);
+	}
+
+	// Parse bind addresses.
+	let bindAddresses: BindAddress[] = [];
+	try {
+		bindAddresses = options.bind.map(parseBindAddress);
+	} catch (ex) {
+		logger.error(`Failed to parse bind addresses: ${ex.message}`);
+		process.exit(1);
+	}
+
+	// Remove duplicate bind addresses (to help avoid EADDRINUSE). This does
+	// not check for duplicates like 0.0.0.0:80 and 127.0.0.1:80, or
+	// localhost:80 and 127.0.0.1:80.
+	bindAddresses = bindAddresses.filter((addr, i, self) => {
+		if (addr.port === 0) {
+			return true;
+		}
+		for (let j = i+1; j < bindAddresses.length; j++) {
+			if (i === j) {
+				continue;
+			}
+			let addr2 = bindAddresses[j];
+
+			if (addr.host === addr2.host && addr.port === addr2.port) {
+				return false;
+			}
+		}
+
+		return true;
+	});
 
 	if (options.disableTelemetry) {
 		process.env.DISABLE_TELEMETRY = "true";
@@ -279,35 +379,88 @@ const bold = (text: string | number): string | number => {
 		} : undefined,
 	});
 
+	logger.info(" ");
 	if (options.socket) {
 		logger.info("Starting webserver via socket...", field("socket", options.socket));
-		app.server.listen(options.socket, () => {
+		const server = app.createServer();
+		server.on("error", (err: NodeJS.ErrnoException) => {
+			if (err.code === "EADDRINUSE") {
+				logger.error(`Socket ${bold(options.socket!)} is in use. Please specify a different socket.`);
+				process.exit(1);
+			}
+			logger.error(err.message);
+		});
+		server.listen(options.socket, () => {
 			logger.info(" ");
 			logger.info("Started on socket address:");
-			logger.info(options.socket!);
+			logger.info("    " + options.socket!);
 			logger.info(" ");
 		});
 	} else {
-		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
-		app.server.listen(options.port, options.host, async () => {
-			const protocol = options.allowHttp ? "http" : "https";
-			const address = app.server.address();
-			const port = typeof address === "string" ? options.port : address.port;
-			const url = `${protocol}://localhost:${port}/`;
-			logger.info(" ");
-			logger.info("Started (click the link below to open):");
-			logger.info(url);
-			logger.info(" ");
-
-			if (options.open) {
-				try {
-					await opn(url);
-				} catch (e) {
-					logger.warn("Url couldn't be opened automatically.", field("url", url), field("error", e.message));
+		// Warn about port 80 with no port 443 when allowHttp is false.
+		if (!options.allowHttp) {
+			const port443Addrs = bindAddresses.filter(addr => addr.port === 443);
+			if (!port443Addrs.find(addr => addr.host === "0.0.0.0")) {
+				const port80Addrs = bindAddresses.filter(addr => addr.port === 80);
+				for (let addr of port80Addrs) {
+					if (!port443Addrs.find(a => a.host === addr.host)) {
+						logger.warn("Listening on port 80 but not port 443 when '--allow-http' is not supplied could cause your browser to be redirected to port 443 (and fail).");
+						logger.warn(`It's likely that you wanted to additionally provide '--bind "${addr.host}:443"' or '--allow-http' when starting code-server.`);
+						logger.warn(" ");
+						break;
+					}
 				}
 			}
-		});
+		}
+
+		if (bindAddresses.length > 1) {
+			logger.info(`Starting ${bindAddresses.length} listeners...`);
+		}
+		const protocol = options.allowHttp ? "http" : "https";
+		const urls = await Promise.all(bindAddresses.map((addr: BindAddress, i: number): Promise<string> => {
+			return new Promise<string>((resolve, reject): void => {
+				logger.info(`Starting HTTP${!options.allowHttp ? "(S)" : ""} listener...`,
+					field("host", addr.host), field("port", addr.port), field("index", i));
+
+				const server = app.createServer();
+				server.on("error", (err: NodeJS.ErrnoException) => {
+					if (err.code === "EADDRINUSE") {
+						logger.error(`Bind address ${bold(addr.host + ":" + addr.port)} is in use. Please free up the port or specify a different port with the '--bind' flag.`);
+						process.exit(1);
+					}
+					logger.error(err.message);
+				});
+
+				server.listen(addr.port, addr.host, () => {
+					const address = server.address();
+					let host = typeof address === "string" ? addr.host : address.address;
+					if (host === "0.0.0.0" || host === "127.0.0.1") {
+						host = "localhost";
+					}
+					const port = typeof address === "string" ? addr.port : address.port;
+					const url = `${protocol}://${host}:${port}/`;
+					resolve(url);
+				});
+			});
+		}));
+
+		logger.info(" ");
+		logger.info("Started (click the links below to open):");
+		for (let url of urls) {
+			logger.info("    " + url);
+		}
+		logger.info(" ");
+
+		if (options.open) {
+			const url = urls[0];
+			try {
+				await open(url);
+			} catch (e) {
+				logger.warn("URL couldn't be opened automatically.", field("url", url), field("error", e.message));
+			}
+		}
 	}
+
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
 		const id = clientId++;
@@ -322,32 +475,22 @@ const bold = (text: string | number): string | number => {
 			logger.info(`WebSocket closed \u001B[0m${req.url}`, field("client", id), field("code", code));
 		});
 	});
-	app.wss.on("error", (err: NodeJS.ErrnoException) => {
-		if (err.code === "EADDRINUSE") {
-			if (options.socket) {
-				logger.error(`Socket ${bold(options.socket)} is in use. Please specify a different socket.`);
-			} else {
-				logger.error(`Port ${bold(options.port)} is in use. Please free up port ${options.port} or specify a different port with the -p flag`);
-			}
-			process.exit(1);
-		}
-	});
 	if (!options.certKey && !options.cert) {
 		logger.warn("No certificate specified. \u001B[1mThis could be insecure.");
 		// TODO: fill in appropriate doc url
 		logger.warn("Documentation on securing your setup: https://github.com/cdr/code-server/blob/master/doc/security/ssl.md");
 	}
 
+	logger.info(" ");
 	if (!options.noAuth) {
-		logger.info(" ");
 		logger.info(usingCustomPassword ? "Using custom password." : `Password:\u001B[1m ${password}`);
 	} else {
-		logger.warn(" ");
 		logger.warn("Launched without authentication.");
 	}
+	logger.info(" ");
 	if (options.disableTelemetry) {
-		logger.info(" ");
 		logger.info("Telemetry is disabled.");
+		logger.info(" ");
 	}
 })().catch((ex) => {
 	logger.error(ex);
