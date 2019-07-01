@@ -161,7 +161,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		throw new Error(`Invalid listen "${event}"`);
 	}
 
-	public call(_: unknown, command: string, args?: any): Promise<any> {
+	public call(_: unknown, command: string, _args?: any): Promise<any> {
 		switch (command) {
 			case "getEnvironmentData": return this.getEnvironmentData();
 			case "getDiagnosticInfo": return this.getDiagnosticInfo();

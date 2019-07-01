@@ -16,11 +16,13 @@ import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
-import { ConsoleLogMainService } from "vs/platform/log/common/log";
+import { getLogLevel } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
+import { SpdLogService } from "vs/platform/log/node/spdlogService";
 import { IProductConfiguration } from "vs/platform/product/common/product";
 import { ConnectionType } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
+import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 import { Connection, Server as IServer } from "vs/server/connection";
@@ -112,8 +114,11 @@ export class Server implements IServer {
 
 		this.environmentService = new EnvironmentService(args, process.execPath);
 
-		// TODO: might want to use spdlog.
-		const logService = new ConsoleLogMainService();
+		const logService = new SpdLogService(
+			RemoteExtensionLogFileName,
+			this.environmentService.logsPath,
+			getLogLevel(this.environmentService),
+		);
 		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
 
 		const instantiationService = new InstantiationService();
