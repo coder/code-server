@@ -7,7 +7,9 @@ import * as url from "url";
 
 import { Emitter } from "vs/base/common/event";
 import { getMediaMime } from "vs/base/common/mime";
+import { Schemas } from "vs/base/common/network";
 import { extname } from "vs/base/common/path";
+import { URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
@@ -16,8 +18,10 @@ import { EnvironmentService } from "vs/platform/environment/node/environmentServ
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
 import { ConsoleLogMainService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
+import { IProductConfiguration } from "vs/platform/product/common/product";
 import { ConnectionType } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
+import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 import { Connection, Server as IServer } from "vs/server/connection";
 import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/channel";
@@ -27,6 +31,13 @@ export enum HttpCode {
 	Ok = 200,
 	NotFound = 404,
 	BadRequest = 400,
+}
+
+export interface Options {
+	WORKBENCH_WEB_CONGIGURATION: IWorkbenchConstructionOptions;
+	REMOTE_USER_DATA_URI: URI;
+	PRODUCT_CONFIGURATION: IProductConfiguration | null;
+	CONNECTION_AUTH_TOKEN: string;
 }
 
 export class HttpError extends Error {
@@ -52,6 +63,8 @@ export class Server implements IServer {
 
 	// The web server.
 	private readonly server: http.Server;
+
+	private readonly environmentService: EnvironmentService;
 
 	// Persistent connections. These can reconnect within a timeout. Individual
 	// sockets will add connections made through them to this map and remove them
@@ -97,7 +110,7 @@ export class Server implements IServer {
 			return process.exit(1);
 		}
 
-		const environmentService = new EnvironmentService(args, process.execPath);
+		this.environmentService = new EnvironmentService(args, process.execPath);
 
 		// TODO: might want to use spdlog.
 		const logService = new ConsoleLogMainService();
@@ -107,11 +120,11 @@ export class Server implements IServer {
 		instantiationService.invokeFunction(() => {
 			this.ipc.registerChannel(
 				REMOTE_FILE_SYSTEM_CHANNEL_NAME,
-				new FileProviderChannel(),
+				new FileProviderChannel(logService),
 			);
 			this.ipc.registerChannel(
 				"remoteextensionsenvironment",
-				new ExtensionEnvironmentChannel(environmentService),
+				new ExtensionEnvironmentChannel(this.environmentService),
 			);
 		});
 	}
@@ -133,25 +146,20 @@ export class Server implements IServer {
 
 			let html = await util.promisify(fs.readFile)(htmlPath, "utf8");
 
-			const options = {
-				WEBVIEW_ENDPOINT: {},
+			const options: Options = {
 				WORKBENCH_WEB_CONGIGURATION: {
-					remoteAuthority: request.headers.host,
+					remoteAuthority: request.headers.host as string,
 				},
-				REMOTE_USER_DATA_URI: {
-					scheme: "http",
-					authority: request.headers.host,
-					path: "/",
-				},
-				PRODUCT_CONFIGURATION: {},
-				CONNECTION_AUTH_TOKEN: {}
+				REMOTE_USER_DATA_URI: this.environmentService.webUserDataHome.with({ scheme: Schemas.vscodeRemote }),
+				PRODUCT_CONFIGURATION: null,
+				CONNECTION_AUTH_TOKEN: "",
 			};
 
 			Object.keys(options).forEach((key) => {
 				html = html.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
 			});
 
-			html = html.replace('{{WEBVIEW_ENDPOINT}}', JSON.stringify(options.WEBVIEW_ENDPOINT));
+			html = html.replace('{{WEBVIEW_ENDPOINT}}', ""); // TODO
 
 			return [html, {
 				"Content-Type": "text/html",
