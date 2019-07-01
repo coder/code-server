@@ -55,6 +55,7 @@ How to [secure your setup](/doc/security/ssl.md).
 ### Known Issues
 
 - Creating custom VS Code extensions and debugging them doesn't work.
+- To debug Golang using [ms-vscode-go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go), you need to add `--security-opt seccomp=unconfined` to your `docker run` arguments when launching code-server with Docker. See [#725](https://github.com/cdr/code-server/issues/725) for details.
 
 ### Future
 - **Stay up to date!** Get notified about new releases of code-server.
