@@ -132,25 +132,20 @@ export class Upload {
 	 * Create a directory and get existing files.
 	 * On failure, show the error and remove the directory from the queue.
 	 */
-	private async prepareDirectory(path: string, dir: IUploadableDirectory): Promise<void> {
-		await Promise.all([
-			promisify(exec)(`mkdir -p ${escapePath(path)}`).catch((error) => {
-				const message = error.message.toLowerCase();
-				if (message.includes("file exists")) {
-					throw new Error(`Unable to create directory at ${path} because a file exists there`);
-				}
-				throw new Error(error.message || `Unable to upload ${path}`);
-			}),
-			// Only get files, so we don't show an override option that will just
-			// fail anyway.
-			promisify(exec)(`find ${escapePath(path)} -maxdepth 1 -not -type d`).then((stdio) => {
-				dir.existingFiles = stdio.stdout.split("\n");
-			}),
-		]).catch((error) => {
-			this.queueByDirectory.delete(path);
-			this.notificationService.error(error);
-		});
-	}
+    private async prepareDirectory(path: string, dir: IUploadableDirectory): Promise<void> {
+        await promisify(exec)(`mkdir -p ${escapePath(path)}`)
+            .then(() => {
+                // Only get files, so we don't show an override option that will just
+                // fail anyway.
+                return promisify(exec)(`find ${escapePath(path)} -maxdepth 1 -not -type d`).then((stdio) => {
+                    dir.existingFiles = stdio.stdout.split("\n");
+                })
+            }).catch((error) => {
+                this.queueByDirectory.delete(path);
+                this.notificationService.error(error);
+                throw new Error(error.message || `Unable to upload ${path}`);
+            });
+    }
 
 	/**
 	 * Upload as many files as possible. When finished, resolve the upload promise.
