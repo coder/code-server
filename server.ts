@@ -16,18 +16,18 @@ import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
-import { getLogLevel } from "vs/platform/log/common/log";
+import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
 import { IProductConfiguration } from "vs/platform/product/common/product";
-import { ConnectionType } from "vs/platform/remote/common/remoteAgentConnection";
+import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
-import { Connection, Server as IServer } from "vs/server/connection";
+import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/connection";
 import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/channel";
-import { Socket } from "vs/server/socket";
+import { Protocol } from "vs/server/protocol";
 
 export enum HttpCode {
 	Ok = 200,
@@ -51,9 +51,8 @@ export class HttpError extends Error {
 	}
 }
 
-export class Server implements IServer {
-	// When a new client connects, it will fire this event which is used in the
-	// IPC server which manages channels.
+export class Server {
+	// Used to notify the IPC server that there is a new client.
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
 
@@ -67,11 +66,10 @@ export class Server implements IServer {
 	private readonly server: http.Server;
 
 	private readonly environmentService: EnvironmentService;
+	private readonly logService: ILogService;
 
-	// Persistent connections. These can reconnect within a timeout. Individual
-	// sockets will add connections made through them to this map and remove them
-	// when they close.
-	public readonly connections = new Map<ConnectionType, Map<string, Connection>>();
+	// Persistent connections. These can reconnect within a timeout.
+	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	public constructor() {
 		this.server = http.createServer(async (request, response): Promise<void> => {
@@ -89,12 +87,12 @@ export class Server implements IServer {
 			}
 		});
 
-		this.server.on("upgrade", (request, socket) => {
+		this.server.on("upgrade", async (request, socket) => {
+			const protocol = this.createProtocol(request, socket);
 			try {
-				const nodeSocket = this.handleUpgrade(request, socket);
-				nodeSocket.handshake(this);
+				await this.connect(await protocol.handshake(), protocol);
 			} catch (error) {
-				socket.end(error.message);
+				protocol.dispose(error);
 			}
 		});
 
@@ -114,18 +112,18 @@ export class Server implements IServer {
 
 		this.environmentService = new EnvironmentService(args, process.execPath);
 
-		const logService = new SpdLogService(
+		this.logService = new SpdLogService(
 			RemoteExtensionLogFileName,
 			this.environmentService.logsPath,
 			getLogLevel(this.environmentService),
 		);
-		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(this.logService));
 
 		const instantiationService = new InstantiationService();
 		instantiationService.invokeFunction(() => {
 			this.ipc.registerChannel(
 				REMOTE_FILE_SYSTEM_CHANNEL_NAME,
-				new FileProviderChannel(logService),
+				new FileProviderChannel(this.logService),
 			);
 			this.ipc.registerChannel(
 				"remoteextensionsenvironment",
@@ -191,7 +189,7 @@ export class Server implements IServer {
 		}
 	}
 
-	private handleUpgrade(request: http.IncomingMessage, socket: net.Socket): Socket {
+	private createProtocol(request: http.IncomingMessage, socket: net.Socket): Protocol {
 		if (request.headers.upgrade !== "websocket") {
 			throw new Error("HTTP/1.1 400 Bad Request");
 		}
@@ -215,10 +213,11 @@ export class Server implements IServer {
 			}
 		}
 
-		const nodeSocket = new Socket(socket, options);
-		nodeSocket.upgrade(request.headers["sec-websocket-key"] as string);
-
-		return nodeSocket;
+		return new Protocol(
+			request.headers["sec-websocket-key"] as string,
+			socket,
+			options,
+		);
 	}
 
 	public listen(port: number = 8443): void {
@@ -230,5 +229,64 @@ export class Server implements IServer {
 			console.log(`Listening on ${location}`);
 			console.log(`Serving ${this.rootPath}`);
 		});
+	}
+
+	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
+		switch (message.desiredConnectionType) {
+			case ConnectionType.ExtensionHost:
+			case ConnectionType.Management:
+				const debugPort = await this.getDebugPort();
+				const ok = message.desiredConnectionType === ConnectionType.ExtensionHost
+					? (debugPort ? { debugPort } : {})
+					: { type: "ok" };
+
+				if (!this.connections.has(message.desiredConnectionType)) {
+					this.connections.set(message.desiredConnectionType, new Map());
+				}
+
+				const connections = this.connections.get(message.desiredConnectionType)!;
+				const token = protocol.options.reconnectionToken;
+
+				if (protocol.options.reconnection && connections.has(token)) {
+					protocol.sendMessage(ok);
+					const buffer = protocol.readEntireBuffer();
+					protocol.dispose();
+					return connections.get(token)!.reconnect(protocol, buffer);
+				}
+
+				if (protocol.options.reconnection || connections.has(token)) {
+					throw new Error(protocol.options.reconnection
+						? "Unrecognized reconnection token"
+						: "Duplicate reconnection token"
+					);
+				}
+
+				protocol.sendMessage(ok);
+
+				let connection: Connection;
+				if (message.desiredConnectionType === ConnectionType.Management) {
+					connection = new ManagementConnection(protocol);
+					this._onDidClientConnect.fire({
+						protocol,
+						onDidClientDisconnect: connection.onClose,
+					});
+				} else {
+					connection = new ExtensionHostConnection(protocol, this.logService);
+				}
+				connections.set(protocol.options.reconnectionToken, connection);
+				connection.onClose(() => {
+					connections.delete(protocol.options.reconnectionToken);
+				});
+				break;
+			case ConnectionType.Tunnel: return protocol.tunnel();
+			default: throw new Error("Unrecognized connection type");
+		}
+	}
+
+	/**
+	 * TODO: implement.
+	 */
+	private async getDebugPort(): Promise<number | undefined> {
+		return undefined;
 	}
 }
