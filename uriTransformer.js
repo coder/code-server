@@ -5,14 +5,14 @@ module.exports = (remoteAuthority) => {
 		transformIncoming: (uri) => {
 			switch (uri.scheme) {
 				case "vscode-remote": return { scheme: "file", path: uri.path };
-				case "file ": return { scheme: "vscode-local", path: uri.path };
+				case "file": return { scheme: "vscode-local", path: uri.path };
 				default: return uri;
 			}
 		},
 		transformOutgoing: (uri) => {
 			switch (uri.scheme) {
 				case "vscode-local": return { scheme: "file", path: uri.path };
-				case "file ": return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
+				case "file": return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
 				default: return uri;
 			}
 		},

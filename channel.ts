@@ -1,11 +1,12 @@
 import * as path from "path";
 
+import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
-import { Schemas } from "vs/base/common/network";
 import { OS } from "vs/base/common/platform";
 import { URI, UriComponents } from "vs/base/common/uri";
+import { URITransformer, IRawURITransformer, transformOutgoingURIs } from "vs/base/common/uriIpc";
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
 import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnosticsService";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
@@ -47,7 +48,7 @@ export class FileProviderChannel implements IServerChannel {
 		this.provider = new DiskFileSystemProvider(this.logService);
 	}
 
-	public listen(_: unknown, event: string, args?: any): Event<any> {
+	public listen(context: any, event: string, args?: any): Event<any> {
 		switch (event) {
 			// This is where the actual file changes are sent. The watch method just
 			// adds things that will fire here. That means we have to split up
@@ -61,10 +62,11 @@ export class FileProviderChannel implements IServerChannel {
 					onFirstListenerAdd: () => {
 						const provider = new Watcher(this.logService);
 						this.watchers.set(session, provider);
+						const transformer = getUriTransformer(context.remoteAuthority);
 						provider.onDidChangeFile((events) => {
 							emitter.fire(events.map((event) => ({
 								...event,
-								resource: event.resource.with({ scheme: Schemas.vscodeRemote }),
+								resource: transformer.transformOutgoing(event.resource),
 							})));
 						});
 						provider.onDidErrorOccur((event) => emitter.fire(event));
@@ -157,13 +159,17 @@ export class FileProviderChannel implements IServerChannel {
 export class ExtensionEnvironmentChannel implements IServerChannel {
 	public constructor(private readonly environment: IEnvironmentService) {}
 
-	public listen(_context: any, event: string): Event<any> {
+	public listen(_: unknown, event: string): Event<any> {
 		throw new Error(`Invalid listen "${event}"`);
 	}
 
-	public call(_: unknown, command: string, _args?: any): Promise<any> {
+	public async call(context: any, command: string, _args?: any): Promise<any> {
 		switch (command) {
-			case "getEnvironmentData": return this.getEnvironmentData();
+			case "getEnvironmentData":
+				return transformOutgoingURIs(
+					await this.getEnvironmentData(),
+					getUriTransformer(context.remoteAuthority),
+				);
 			case "getDiagnosticInfo": return this.getDiagnosticInfo();
 			case "disableTelemetry": return this.disableTelemetry();
 		}
@@ -171,18 +177,16 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	}
 
 	private async getEnvironmentData(): Promise<IRemoteAgentEnvironment> {
-		// TODO: this `with` stuff feels a bit jank.
-		// Maybe it should already come in like this instead.
 		return {
 			pid: process.pid,
-			appRoot: URI.file(this.environment.appRoot).with({ scheme: Schemas.vscodeRemote }),
-			appSettingsHome: this.environment.appSettingsHome.with({ scheme: Schemas.vscodeRemote }),
-			settingsPath: this.environment.machineSettingsHome.with({ scheme: Schemas.vscodeRemote }),
-			logsPath: URI.file(this.environment.logsPath).with({ scheme: Schemas.vscodeRemote }),
-			extensionsPath: URI.file(this.environment.extensionsPath).with({ scheme: Schemas.vscodeRemote }),
-			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, "extension-host")).with({ scheme: Schemas.vscodeRemote }), // TODO
-			globalStorageHome: URI.file(this.environment.globalStorageHome).with({ scheme: Schemas.vscodeRemote }),
-			userHome: URI.file(this.environment.userHome).with({ scheme: Schemas.vscodeRemote }),
+			appRoot: URI.file(this.environment.appRoot),
+			appSettingsHome: this.environment.appSettingsHome,
+			settingsPath: this.environment.machineSettingsHome,
+			logsPath: URI.file(this.environment.logsPath),
+			extensionsPath: URI.file(this.environment.extensionsPath),
+			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, "extension-host")), // TODO
+			globalStorageHome: URI.file(this.environment.globalStorageHome),
+			userHome: URI.file(this.environment.userHome),
 			extensions: [], // TODO
 			os: OS,
 		};
@@ -196,3 +200,11 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		throw new Error("not implemented");
 	}
 }
+
+export const uriTransformerPath = getPathFromAmdModule(require, "vs/server/uriTransformer");
+
+export const getUriTransformer = (remoteAuthority: string): URITransformer => {
+	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
+	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
+	return new URITransformer(rawURITransformer);
+};

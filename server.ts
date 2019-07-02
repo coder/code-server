@@ -7,9 +7,8 @@ import * as url from "url";
 
 import { Emitter } from "vs/base/common/event";
 import { getMediaMime } from "vs/base/common/mime";
-import { Schemas } from "vs/base/common/network";
 import { extname } from "vs/base/common/path";
-import { URI } from "vs/base/common/uri";
+import { UriComponents, URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
@@ -26,7 +25,7 @@ import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/connection";
-import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/channel";
+import { ExtensionEnvironmentChannel, FileProviderChannel, getUriTransformer } from "vs/server/channel";
 import { Protocol } from "vs/server/protocol";
 
 export enum HttpCode {
@@ -37,7 +36,7 @@ export enum HttpCode {
 
 export interface Options {
 	WORKBENCH_WEB_CONGIGURATION: IWorkbenchConstructionOptions;
-	REMOTE_USER_DATA_URI: URI;
+	REMOTE_USER_DATA_URI: UriComponents | URI;
 	PRODUCT_CONFIGURATION: IProductConfiguration | null;
 	CONNECTION_AUTH_TOKEN: string;
 }
@@ -149,11 +148,14 @@ export class Server {
 
 			let html = await util.promisify(fs.readFile)(htmlPath, "utf8");
 
+			const remoteAuthority = request.headers.host as string;
+			const transformer = getUriTransformer(remoteAuthority);
+
 			const options: Options = {
 				WORKBENCH_WEB_CONGIGURATION: {
-					remoteAuthority: request.headers.host as string,
+					remoteAuthority,
 				},
-				REMOTE_USER_DATA_URI: this.environmentService.webUserDataHome.with({ scheme: Schemas.vscodeRemote }),
+				REMOTE_USER_DATA_URI: transformer.transformOutgoing(this.environmentService.webUserDataHome),
 				PRODUCT_CONFIGURATION: null,
 				CONNECTION_AUTH_TOKEN: "",
 			};

@@ -6,6 +6,7 @@ import { Emitter } from "vs/base/common/event";
 import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
 import { NodeSocket, WebSocketNodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { ILogService } from "vs/platform/log/common/log";
+import { uriTransformerPath } from "vs/server/channel";
 import { IExtHostReadyMessage, IExtHostSocketMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
 import { Protocol } from "vs/server/protocol";
@@ -125,7 +126,7 @@ export class ExtensionHostConnection extends Connection {
 			getPathFromAmdModule(require, "bootstrap-fork"),
 			[
 				"--type=extensionHost",
-				`--uriTransformerPath=${getPathFromAmdModule(require, "vs/server/transformer")}`
+				`--uriTransformerPath=${uriTransformerPath}`
 			],
 			{
 				env: {
