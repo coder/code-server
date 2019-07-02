@@ -5,6 +5,7 @@ import * as path from "path";
 import * as util from "util";
 import * as url from "url";
 
+import { getPathFromAmdModule } from "vs/base/common/amd";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
 import { getMediaMime } from "vs/base/common/mime";
@@ -164,7 +165,7 @@ export class Server {
 					remoteAuthority,
 				},
 				REMOTE_USER_DATA_URI: transformer.transformOutgoing(this.environmentService.webUserDataHome),
-				PRODUCT_CONFIGURATION: null,
+				PRODUCT_CONFIGURATION: require.__$__nodeRequire(path.resolve(getPathFromAmdModule(require, ""), "../product.json")),
 				CONNECTION_AUTH_TOKEN: "",
 			};
 

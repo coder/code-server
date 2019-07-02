@@ -13,6 +13,7 @@ import { IEnvironmentService } from "vs/platform/environment/common/environment"
 import { IExtensionDescription, ExtensionIdentifier } from "vs/platform/extensions/common/extensions";
 import { FileDeleteOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions, FileOpenOptions } from "vs/platform/files/common/files";
 import { ILogService } from "vs/platform/log/common/log";
+import { IProductService } from "vs/platform/product/common/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
@@ -199,14 +200,14 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 
 	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
 		const root = getPathFromAmdModule(require, "");
-		const pkg = require.__$__nodeRequire(path.resolve(root, "../package.json")) as any;
+		const product = require.__$__nodeRequire(path.resolve(root, "../package.json")) as IProductService;
 
 		const translations = {}; // TODO: translations
 
 		// TODO: there is also this.environment.extensionDevelopmentLocationURI to look into.
 		const scanBuiltin = async (): Promise<IExtensionDescription[]> => {
 			const input = new ExtensionScannerInput(
-				pkg.version, pkg.commit, locale, !!process.env.VSCODE_DEV,
+				product.version, product.commit, locale, !!process.env.VSCODE_DEV,
 				path.resolve(root, "../extensions"),
 				true,
 				false,
@@ -219,7 +220,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 
 		const scanInstalled = async (): Promise<IExtensionDescription[]> => {
 			const input = new ExtensionScannerInput(
-				pkg.version, pkg.commit, locale, !!process.env.VSCODE_DEV,
+				product.version, product.commit, locale, !!process.env.VSCODE_DEV,
 				this.environment.extensionsPath, false, true, translations,
 			);
 			return ExtensionScanner.scanExtensions(input, this.log);
