@@ -6,6 +6,7 @@ import * as util from "util";
 import * as url from "url";
 
 import { Emitter } from "vs/base/common/event";
+import { sanitizeFilePath } from "vs/base/common/extpath";
 import { getMediaMime } from "vs/base/common/mime";
 import { extname } from "vs/base/common/path";
 import { UriComponents, URI } from "vs/base/common/uri";
@@ -139,7 +140,8 @@ export class Server {
 			);
 		}
 
-		const requestPath = url.parse(request.url || "").pathname || "/";
+		const parsedUrl = url.parse(request.url || "", true);
+		const requestPath = parsedUrl.pathname || "/";
 		if (requestPath === "/") {
 			const htmlPath = path.join(
 				this.rootPath,
@@ -151,8 +153,14 @@ export class Server {
 			const remoteAuthority = request.headers.host as string;
 			const transformer = getUriTransformer(remoteAuthority);
 
+			const cwd = process.env.VSCODE_CWD || process.cwd();
+			const workspacePath = parsedUrl.query.workspace as string | undefined;
+			const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || cwd: undefined;
+
 			const options: Options = {
 				WORKBENCH_WEB_CONGIGURATION: {
+					workspaceUri: workspacePath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd))) : undefined,
+					folderUri: folderPath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd))) : undefined,
 					remoteAuthority,
 				},
 				REMOTE_USER_DATA_URI: transformer.transformOutgoing(this.environmentService.webUserDataHome),
