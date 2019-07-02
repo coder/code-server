@@ -127,7 +127,7 @@ export class Server {
 			);
 			this.ipc.registerChannel(
 				"remoteextensionsenvironment",
-				new ExtensionEnvironmentChannel(this.environmentService),
+				new ExtensionEnvironmentChannel(this.environmentService, this.logService),
 			);
 		});
 	}

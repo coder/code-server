@@ -10,9 +10,11 @@ import { URITransformer, IRawURITransformer, transformOutgoingURIs } from "vs/ba
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
 import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnosticsService";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
+import { IExtensionDescription, ExtensionIdentifier } from "vs/platform/extensions/common/extensions";
 import { FileDeleteOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions, FileOpenOptions } from "vs/platform/files/common/files";
 import { ILogService } from "vs/platform/log/common/log";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
+import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
 
 /**
@@ -157,17 +159,20 @@ export class FileProviderChannel implements IServerChannel {
  * See: src/vs/workbench/services/remote/common/remoteAgentEnvironmentChannel.ts.
  */
 export class ExtensionEnvironmentChannel implements IServerChannel {
-	public constructor(private readonly environment: IEnvironmentService) {}
+	public constructor(
+		private readonly environment: IEnvironmentService,
+		private readonly log: ILogService,
+	) {}
 
 	public listen(_: unknown, event: string): Event<any> {
 		throw new Error(`Invalid listen "${event}"`);
 	}
 
-	public async call(context: any, command: string, _args?: any): Promise<any> {
+	public async call(context: any, command: string, args?: any): Promise<any> {
 		switch (command) {
 			case "getEnvironmentData":
 				return transformOutgoingURIs(
-					await this.getEnvironmentData(),
+					await this.getEnvironmentData(args.language),
 					getUriTransformer(context.remoteAuthority),
 				);
 			case "getDiagnosticInfo": return this.getDiagnosticInfo();
@@ -176,7 +181,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		throw new Error(`Invalid call "${command}"`);
 	}
 
-	private async getEnvironmentData(): Promise<IRemoteAgentEnvironment> {
+	private async getEnvironmentData(locale: string): Promise<IRemoteAgentEnvironment> {
 		return {
 			pid: process.pid,
 			appRoot: URI.file(this.environment.appRoot),
@@ -184,12 +189,63 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			settingsPath: this.environment.machineSettingsHome,
 			logsPath: URI.file(this.environment.logsPath),
 			extensionsPath: URI.file(this.environment.extensionsPath),
-			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, "extension-host")), // TODO
+			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, "extension-host")),
 			globalStorageHome: URI.file(this.environment.globalStorageHome),
 			userHome: URI.file(this.environment.userHome),
-			extensions: [], // TODO
+			extensions: await this.scanExtensions(locale),
 			os: OS,
 		};
+	}
+
+	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
+		const root = getPathFromAmdModule(require, "");
+		const pkg = require.__$__nodeRequire(path.resolve(root, "../package.json")) as any;
+
+		const translations = {}; // TODO: translations
+
+		// TODO: there is also this.environment.extensionDevelopmentLocationURI to look into.
+		const scanBuiltin = async (): Promise<IExtensionDescription[]> => {
+			const input = new ExtensionScannerInput(
+				pkg.version, pkg.commit, locale, !!process.env.VSCODE_DEV,
+				path.resolve(root, "../extensions"),
+				true,
+				false,
+				translations,
+			);
+			const extensions = await ExtensionScanner.scanExtensions(input, this.log);
+			// TODO: there is more to do if process.env.VSCODE_DEV is true.
+			return extensions;
+		};
+
+		const scanInstalled = async (): Promise<IExtensionDescription[]> => {
+			const input = new ExtensionScannerInput(
+				pkg.version, pkg.commit, locale, !!process.env.VSCODE_DEV,
+				this.environment.extensionsPath, false, true, translations,
+			);
+			return ExtensionScanner.scanExtensions(input, this.log);
+		};
+
+		return Promise.all([scanBuiltin(), scanInstalled()]).then((allExtensions) => {
+			// It's possible to get duplicates.
+			const uniqueExtensions = new Map<string, IExtensionDescription>();
+			allExtensions.forEach((extensions) => {
+				extensions.forEach((extension) => {
+					const id = ExtensionIdentifier.toKey(extension.identifier);
+					if (uniqueExtensions.has(id)) {
+						const oldPath = uniqueExtensions.get(id)!.extensionLocation.fsPath;
+						const newPath = extension.extensionLocation.fsPath;
+						this.log.warn(
+							`Extension ${id} in ${oldPath} has been overridden ${newPath}`,
+						);
+					}
+					uniqueExtensions.set(id, extension);
+				});
+			});
+
+			const finalExtensions = <IExtensionDescription[]>[];
+			uniqueExtensions.forEach((e) => finalExtensions.push(e));
+			return finalExtensions;
+		});
 	}
 
 	private getDiagnosticInfo(): Promise<IDiagnosticInfo> {
