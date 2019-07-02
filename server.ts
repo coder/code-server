@@ -13,10 +13,12 @@ import { extname } from "vs/base/common/path";
 import { UriComponents, URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
 import { validatePaths } from "vs/code/node/paths";
+import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
-import { ParsedArgs } from "vs/platform/environment/common/environment";
+import { IEnvironmentService, ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
+import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
@@ -111,7 +113,9 @@ export class Server {
 			return process.exit(1);
 		}
 
+		const services = new ServiceCollection();
 		this.environmentService = new EnvironmentService(args, process.execPath);
+		services.set(IEnvironmentService, this.environmentService);
 
 		this.logService = new SpdLogService(
 			RemoteExtensionLogFileName,
@@ -120,8 +124,9 @@ export class Server {
 		);
 		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(this.logService));
 
-		const instantiationService = new InstantiationService();
+		const instantiationService = new InstantiationService(services);
 		instantiationService.invokeFunction(() => {
+			instantiationService.createInstance(LogsDataCleaner);
 			this.ipc.registerChannel(
 				REMOTE_FILE_SYSTEM_CHANNEL_NAME,
 				new FileProviderChannel(this.logService),
@@ -154,6 +159,8 @@ export class Server {
 			const remoteAuthority = request.headers.host as string;
 			const transformer = getUriTransformer(remoteAuthority);
 
+			const webviewEndpoint = "";
+
 			const cwd = process.env.VSCODE_CWD || process.cwd();
 			const workspacePath = parsedUrl.query.workspace as string | undefined;
 			const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || cwd: undefined;
@@ -163,6 +170,7 @@ export class Server {
 					workspaceUri: workspacePath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd))) : undefined,
 					folderUri: folderPath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd))) : undefined,
 					remoteAuthority,
+					webviewEndpoint,
 				},
 				REMOTE_USER_DATA_URI: transformer.transformOutgoing(this.environmentService.webUserDataHome),
 				PRODUCT_CONFIGURATION: require.__$__nodeRequire(path.resolve(getPathFromAmdModule(require, ""), "../product.json")),
@@ -173,7 +181,7 @@ export class Server {
 				html = html.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
 			});
 
-			html = html.replace('{{WEBVIEW_ENDPOINT}}', ""); // TODO
+			html = html.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
 
 			return [html, {
 				"Content-Type": "text/html",
