@@ -1,8 +1,1 @@
-/lib
 node_modules
-dist
-out
-.DS_Store
-release
-.vscode
-.cache
