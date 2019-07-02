@@ -54,30 +54,24 @@ export class HttpError extends Error {
 	}
 }
 
-export class Server {
-	// Used to notify the IPC server that there is a new client.
-	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
-	public readonly onDidClientConnect = this._onDidClientConnect.event;
-
-	private readonly rootPath = path.resolve(__dirname, "../../..");
-
-	// This is separate instead of just extending this class since we can't
-	// use properties in the super call. This manages channels.
-	private readonly ipc = new IPCServer(this.onDidClientConnect);
-
-	// The web server.
-	private readonly server: http.Server;
-
-	private readonly environmentService: EnvironmentService;
-	private readonly logService: ILogService;
-
-	// Persistent connections. These can reconnect within a timeout.
-	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
+export abstract class Server {
+	// The underlying web server.
+	protected readonly server: http.Server;
 
 	public constructor() {
 		this.server = http.createServer(async (request, response): Promise<void> => {
 			try {
-				const [content, headers] = await this.handleRequest(request);
+				if (request.method !== "GET") {
+					throw new HttpError(
+						`Unsupported method ${request.method}`,
+						HttpCode.BadRequest,
+					);
+				}
+
+				const parsedUrl = url.parse(request.url || "", true);
+				const requestPath = parsedUrl.pathname || "/";
+
+				const [content, headers] = await this.handleRequest(request, parsedUrl, requestPath);
 				response.writeHead(HttpCode.Ok, {
 					"Cache-Control": "max-age=86400",
 					// TODO: ETag?
@@ -89,6 +83,48 @@ export class Server {
 				response.end(error.message);
 			}
 		});
+	}
+
+	protected abstract handleRequest(
+		request: http.IncomingMessage,
+		parsedUrl: url.UrlWithParsedQuery,
+		requestPath: string,
+	): Promise<[string | Buffer, http.OutgoingHttpHeaders]>;
+
+	public listen(port: number): Promise<void> {
+		return new Promise((resolve, reject) => {
+			this.server.on("error", reject);
+			this.server.listen(port, resolve);
+		});
+	}
+
+	public get address(): string {
+		const address = this.server.address();
+		const endpoint = typeof address !== "string"
+			? ((address.address === "::" ? "localhost" : address.address) + ":" + address.port)
+			: address;
+		return `http://${endpoint}`;
+	}
+}
+
+export class MainServer extends Server {
+	// Used to notify the IPC server that there is a new client.
+	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
+	public readonly onDidClientConnect = this._onDidClientConnect.event;
+
+	private readonly rootPath = path.resolve(__dirname, "../../..");
+
+	// This is separate instead of just extending this class since we can't
+	// use properties in the super call. This manages channels.
+	private readonly ipc = new IPCServer(this.onDidClientConnect);
+
+	// Persistent connections. These can reconnect within a timeout.
+	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
+
+	private readonly services = new ServiceCollection();
+
+	public constructor(private readonly webviewServer: WebviewServer) {
+		super();
 
 		this.server.on("upgrade", async (request, socket) => {
 			const protocol = this.createProtocol(request, socket);
@@ -98,56 +134,44 @@ export class Server {
 				protocol.dispose(error);
 			}
 		});
+	}
 
-		this.server.on("error", (error) => {
-			console.error(error);
-			process.exit(1);
-		});
+	public async listen(port: number): Promise<void> {
+		const args = validatePaths(parseMainProcessArgv(process.argv));
 
-		let args: ParsedArgs;
-		try {
-			args = parseMainProcessArgv(process.argv);
-			args = validatePaths(args);
-		} catch (error) {
-			console.error(error.message);
-			return process.exit(1);
-		}
+		const environmentService = new EnvironmentService(args, process.execPath);
+		this.services.set(IEnvironmentService, environmentService);
 
-		const services = new ServiceCollection();
-		this.environmentService = new EnvironmentService(args, process.execPath);
-		services.set(IEnvironmentService, this.environmentService);
-
-		this.logService = new SpdLogService(
+		const logService = new SpdLogService(
 			RemoteExtensionLogFileName,
-			this.environmentService.logsPath,
-			getLogLevel(this.environmentService),
+			environmentService.logsPath,
+			getLogLevel(environmentService),
 		);
-		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(this.logService));
+		this.services.set(ILogService, logService);
 
-		const instantiationService = new InstantiationService(services);
+		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+
+		const instantiationService = new InstantiationService(this.services);
 		instantiationService.invokeFunction(() => {
 			instantiationService.createInstance(LogsDataCleaner);
 			this.ipc.registerChannel(
 				REMOTE_FILE_SYSTEM_CHANNEL_NAME,
-				new FileProviderChannel(this.logService),
+				new FileProviderChannel(logService),
 			);
 			this.ipc.registerChannel(
 				"remoteextensionsenvironment",
-				new ExtensionEnvironmentChannel(this.environmentService, this.logService),
+				new ExtensionEnvironmentChannel(environmentService, logService),
 			);
 		});
+
+		await super.listen(port);
 	}
 
-	private async handleRequest(request: http.IncomingMessage): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
-		if (request.method !== "GET") {
-			throw new HttpError(
-				`Unsupported method ${request.method}`,
-				HttpCode.BadRequest,
-			);
-		}
-
-		const parsedUrl = url.parse(request.url || "", true);
-		const requestPath = parsedUrl.pathname || "/";
+	protected async handleRequest(
+		request: http.IncomingMessage,
+		parsedUrl: url.UrlWithParsedQuery,
+		requestPath: string,
+	): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
 		if (requestPath === "/") {
 			const htmlPath = path.join(
 				this.rootPath,
@@ -159,7 +183,7 @@ export class Server {
 			const remoteAuthority = request.headers.host as string;
 			const transformer = getUriTransformer(remoteAuthority);
 
-			const webviewEndpoint = "";
+			const webviewEndpoint = this.webviewServer.address;
 
 			const cwd = process.env.VSCODE_CWD || process.cwd();
 			const workspacePath = parsedUrl.query.workspace as string | undefined;
@@ -167,13 +191,21 @@ export class Server {
 
 			const options: Options = {
 				WORKBENCH_WEB_CONGIGURATION: {
-					workspaceUri: workspacePath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd))) : undefined,
-					folderUri: folderPath ? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd))) : undefined,
+					workspaceUri: workspacePath
+						? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd)))
+						: undefined,
+					folderUri: folderPath
+						? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
+						: undefined,
 					remoteAuthority,
 					webviewEndpoint,
 				},
-				REMOTE_USER_DATA_URI: transformer.transformOutgoing(this.environmentService.webUserDataHome),
-				PRODUCT_CONFIGURATION: require.__$__nodeRequire(path.resolve(getPathFromAmdModule(require, ""), "../product.json")),
+				REMOTE_USER_DATA_URI: transformer.transformOutgoing(
+					(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
+				),
+				PRODUCT_CONFIGURATION: require.__$__nodeRequire(
+					path.resolve(getPathFromAmdModule(require, ""), "../product.json"),
+				),
 				CONNECTION_AUTH_TOKEN: "",
 			};
 
@@ -239,17 +271,6 @@ export class Server {
 		);
 	}
 
-	public listen(port: number = 8443): void {
-		this.server.listen(port, () => {
-			const address = this.server.address();
-			const location = typeof address === "string"
-				? address
-				: `port ${address.port}`;
-			console.log(`Listening on ${location}`);
-			console.log(`Serving ${this.rootPath}`);
-		});
-	}
-
 	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
 		switch (message.desiredConnectionType) {
 			case ConnectionType.ExtensionHost:
@@ -290,7 +311,9 @@ export class Server {
 						onDidClientDisconnect: connection.onClose,
 					});
 				} else {
-					connection = new ExtensionHostConnection(protocol, this.logService);
+					connection = new ExtensionHostConnection(
+						protocol, this.services.get(ILogService) as ILogService,
+					);
 				}
 				connections.set(protocol.options.reconnectionToken, connection);
 				connection.onClose(() => {
@@ -307,5 +330,11 @@ export class Server {
 	 */
 	private async getDebugPort(): Promise<number | undefined> {
 		return undefined;
+	}
+}
+
+export class WebviewServer extends Server {
+	protected async handleRequest(): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
+		throw new Error("not implemented");
 	}
 }
