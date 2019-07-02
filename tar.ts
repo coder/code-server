@@ -1,16 +1,15 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
-
 import * as nls from "vs/nls";
-import * as vszip from "vszip";
+import * as vszip from "vs/base/node/zip";
 import * as fs from "fs";
 import * as path from "path";
 import * as tarStream from "tar-stream";
 import { promisify } from "util";
 import { CancellationToken } from "vs/base/common/cancellation";
 import { mkdirp } from "vs/base/node/pfs";
+
+// We will be overriding these, so keep a reference to the original.
+const vszipExtract = vszip.extract;
+const vszipBuffer = vszip.buffer;
 
 export interface IExtractOptions {
 	overwrite?: boolean;
@@ -29,8 +28,8 @@ export interface IFile {
 }
 
 /**
- * Override the standard VS Code behavior for zipping
- * extensions to use the TAR format instead of ZIP.
+ * Override the standard VS Code behavior for zipping extensions to use the TAR
+ * format instead of ZIP.
  */
 export const zip = (tarPath: string, files: IFile[]): Promise<string> => {
 	return new Promise<string>((c, e): void => {
@@ -63,10 +62,9 @@ export const zip = (tarPath: string, files: IFile[]): Promise<string> => {
 };
 
 /**
- * Override the standard VS Code behavior for extracting
- * archives, to first attempt to process the archive as a TAR
- * and then fallback on the original implementation, for processing
- * ZIPs.
+ * Override the standard VS Code behavior for extracting archives to first
+ * attempt to process the archive as a TAR and then fall back to the original
+ * implementation for processing ZIPs.
  */
 export const extract = (archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
 	return new Promise<void>((c, e): void => {
@@ -76,15 +74,15 @@ export const extract = (archivePath: string, extractPath: string, options: IExtr
 
 				return;
 			}
-			vszip.extract(archivePath, extractPath, options, token).then(c).catch(e);
+			vszipExtract(archivePath, extractPath, options, token).then(c).catch(e);
 		});
 	});
 };
 
 /**
- * Override the standard VS Code behavior for buffering
- * archives, to first process the Buffer as a TAR and then
- * fallback on the original implementation, for processing ZIPs.
+ * Override the standard VS Code behavior for buffering archives to first
+ * process the Buffer as a TAR and then fall back to the original
+ * implementation for processing ZIPs.
  */
 export const buffer = (targetPath: string, filePath: string): Promise<Buffer> => {
 	return new Promise<Buffer>((c, e): void => {
@@ -104,16 +102,16 @@ export const buffer = (targetPath: string, filePath: string): Promise<Buffer> =>
 
 				return;
 			}
-			vszip.buffer(targetPath, filePath).then(c).catch(e);
+			vszipBuffer(targetPath, filePath).then(c).catch(e);
 		});
 	});
 };
 
 /**
- * Override the standard VS Code behavior for extracting assets
- * from archive Buffers to use the TAR format instead of ZIP.
+ * Override the standard VS Code behavior for extracting assets from archive
+ * Buffers to use the TAR format instead of ZIP.
  */
-export const extractAssets = (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
+const extractAssets = (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
 	return new Promise<void>(async (c, e): Promise<void> => {
 		try {
 			const buffer = await promisify(fs.readFile)(tarPath);
@@ -217,3 +215,9 @@ const extractTar = (tarPath: string, targetPath: string, options: IExtractOption
 		}
 	});
 };
+
+// Override original functionality so we can use tar instead of zip.
+const target = vszip as typeof vszip;
+target.zip = zip;
+target.extract = extract;
+target.buffer = buffer;

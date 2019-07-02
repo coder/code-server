@@ -5,6 +5,13 @@
     "build": "echo TODO && exit 1"
   },
   "devDependencies": {
+    "@types/tar-stream": "^1.6.1",
     "nodemon": "^1.19.1"
+  },
+  "dependencies": {
+    "tar-stream": "^2.1.0"
+  },
+  "resolutions": {
+    "@types/node": "^10.12.12"
   }
 }

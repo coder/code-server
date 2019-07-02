@@ -5,16 +5,13 @@ import * as path from "path";
 import * as util from "util";
 import * as url from "url";
 
-import { getPathFromAmdModule } from "vs/base/common/amd";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
 import { getMediaMime } from "vs/base/common/mime";
 import { extname } from "vs/base/common/path";
 import { UriComponents, URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent } from "vs/base/parts/ipc/common/ipc";
-import { validatePaths } from "vs/code/node/paths";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
-import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { IEnvironmentService, ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
@@ -23,6 +20,7 @@ import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
 import { IProductConfiguration } from "vs/platform/product/common/product";
+import product from "vs/platform/product/node/product";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
@@ -123,7 +121,7 @@ export class MainServer extends Server {
 
 	private readonly services = new ServiceCollection();
 
-	public constructor(private readonly webviewServer: WebviewServer) {
+	public constructor(private readonly webviewServer: WebviewServer, args: ParsedArgs) {
 		super();
 
 		this.server.on("upgrade", async (request, socket) => {
@@ -134,10 +132,6 @@ export class MainServer extends Server {
 				protocol.dispose(error);
 			}
 		});
-	}
-
-	public async listen(port: number): Promise<void> {
-		const args = validatePaths(parseMainProcessArgv(process.argv));
 
 		const environmentService = new EnvironmentService(args, process.execPath);
 		this.services.set(IEnvironmentService, environmentService);
@@ -163,8 +157,6 @@ export class MainServer extends Server {
 				new ExtensionEnvironmentChannel(environmentService, logService),
 			);
 		});
-
-		await super.listen(port);
 	}
 
 	protected async handleRequest(
@@ -203,9 +195,7 @@ export class MainServer extends Server {
 				REMOTE_USER_DATA_URI: transformer.transformOutgoing(
 					(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
 				),
-				PRODUCT_CONFIGURATION: require.__$__nodeRequire(
-					path.resolve(getPathFromAmdModule(require, ""), "../product.json"),
-				),
+				PRODUCT_CONFIGURATION: product,
 				CONNECTION_AUTH_TOKEN: "",
 			};
 
