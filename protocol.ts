@@ -13,6 +13,8 @@ export interface SocketOptions {
 }
 
 export class Protocol extends PersistentProtocol {
+	private disposed: boolean = false;
+
 	public constructor(
 		secWebsocketKey: string,
 		socket: net.Socket,
@@ -40,12 +42,21 @@ export class Protocol extends PersistentProtocol {
 		].join("\r\n") + "\r\n\r\n");
 	}
 
-	public dispose(error?: Error): void {
-		if (error) {
-			this.sendMessage({ type: "error", reason: error.message });
+	public sendDisconnect(): void {
+		if (!this.disposed) {
+			super.sendDisconnect();
 		}
-		super.dispose();
-		this.getSocket().dispose();
+	}
+
+	public dispose(error?: Error): void {
+		if (!this.disposed) {
+			this.disposed = true;
+			if (error) {
+				this.sendMessage({ type: "error", reason: error.message });
+			}
+			super.dispose();
+			this.getSocket().dispose();
+		}
 	}
 
 	/**
