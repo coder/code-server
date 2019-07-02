@@ -2,18 +2,26 @@ import * as os from "os";
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
-import { buildHelpMessage, buildVersionMessage } from "vs/platform/environment/node/argv";
+import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/environment/node/argv";
 import product from "vs/platform/product/node/product";
 import pkg from "vs/platform/product/node/package";
 import { MainServer, WebviewServer } from "vs/server/server";
 import "vs/server/tar";
+
+interface Args extends ParsedArgs {
+	port?: string;
+	"webview-port"?: string;
+}
+
+options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
+options.push({ id: "webview-port", type: "string", cat: "o", description: "Port for the webview server." });
 
 interface IMainCli {
 	main: (argv: ParsedArgs) => Promise<void>;
 }
 
 const main = async (): Promise<void> => {
-	const args = validatePaths(parseMainProcessArgv(process.argv));
+	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
 
 	if (!product.extensionsGallery) {
 		product.extensionsGallery = {
@@ -53,8 +61,8 @@ const main = async (): Promise<void> => {
 	const server = new MainServer(webviewServer, args);
 	// The main server inserts webview server address to the root HTML, so we'll
 	// need to wait for it to listen otherwise the address will be null.
-	await webviewServer.listen(8444);
-	await server.listen(8443);
+	await webviewServer.listen(typeof args["webview-port"] !== "undefined" && parseInt(args["webview-port"], 10) || 8444);
+	await server.listen(typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443);
 	console.log(`Main server serving ${server.address}`);
 	console.log(`Webview server serving ${webviewServer.address}`);
 };
