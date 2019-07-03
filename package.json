@@ -1,8 +1,13 @@
 {
+  "license": "MIT",
   "scripts": {
+    "postinstall": "rm -r node_modules/@types/node # I keep getting type conflicts",
     "start": "nodemon ../../../out/vs/server/main.js --watch ../../../out --verbose",
     "watch": "cd ../../../ && yarn watch-client",
-    "build": "echo TODO && exit 1"
+    "build": "bash ./scripts/tasks.bash build",
+    "package": "bash ./scripts/tasks.bash package",
+    "vstar": "bash ./scripts/tasks.bash vstar",
+    "binary": "bash ./scripts/tasks.bash binary"
   },
   "devDependencies": {
     "@types/tar-stream": "^1.6.1",

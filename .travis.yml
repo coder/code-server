@@ -8,20 +8,20 @@ matrix:
   - os: linux
     dist: trusty
     env:
-      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION" TARGET="centos"
+      - VSCODE_VERSION="1.36.0" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="centos"
   - os: linux
     dist: trusty
     env:
-      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION" TARGET="alpine"
+      - VSCODE_VERSION="1.36.0" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="alpine"
   - os: osx
     env:
-      - VSCODE_VERSION="1.33.1" MAJOR_VERSION="1" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER-vsc$VSCODE_VERSION"
+      - VSCODE_VERSION="1.36.0" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install libxkbfile-dev
-  libsecret-1-dev; fi
+- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libxkbfile-dev libsecret-1-dev; fi
 - npm install -g yarn@1.12.3
+- npm install -g @coder/nbin
 script:
-- scripts/build.sh
+- scripts/ci.bash
 before_deploy:
 - echo "$VERSION" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"
