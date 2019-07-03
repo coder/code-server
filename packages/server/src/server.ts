@@ -5,7 +5,6 @@ import { TunnelCloseCode } from "@coder/tunnel/src/common";
 import { handle as handleTunnel } from "@coder/tunnel/src/server";
 import * as express from "express";
 //@ts-ignore
-import * as expressStaticGzip from "express-static-gzip";
 import * as fs from "fs";
 import { mkdirp } from "fs-extra";
 import * as http from "http";
@@ -22,6 +21,7 @@ import * as url from "url";
 import * as ws from "ws";
 import { buildDir } from "./constants";
 import { createPortScanner } from "./portScanner";
+import { staticGzip } from "./static";
 import safeCompare = require("safe-compare");
 
 interface CreateAppOptions {
@@ -210,9 +210,6 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		return res.redirect(code, newUrlString);
 	};
 
-	const baseDir = buildDir || path.join(__dirname, "..");
-	const staticGzip = expressStaticGzip(path.join(baseDir, "build/web"));
-
 	app.use((req, res, next) => {
 		logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.originalUrl}`, field("host", req.hostname), field("ip", req.ip));
 
@@ -325,7 +322,8 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	});
 
 	// Everything else just pulls from the static build directory.
-	app.use(staticGzip);
+	const baseDir = buildDir || path.join(__dirname, "..");
+	app.use(staticGzip(path.join(baseDir, "build/web")));
 
 	return {
 		express: app,
