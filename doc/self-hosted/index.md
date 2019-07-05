@@ -57,7 +57,7 @@ ation.
   ```
   
   ### Password
-  If you're using the binary, the latest version of code-server allows you to set an environment variable PASSWORD
+  Since version 1.903-vsc1.33.1, code-server allows you to set an environment variable PASSWORD.
 
 ```
 export PASSWORD="yourpassword"
@@ -66,12 +66,6 @@ export PASSWORD="yourpassword"
 If you're using docker, you can use the -e flag to pass environment variables to your container
 
 `docker run -it -p 127.0.0.1:8443:8443 -e PASSWORD='yourpassword' -v "${PWD}:/home/coder/project" codercom/code-server --allow-http`
-
-If you're using versions older than 1.903-vsc1.33.1, you must use the --password argument.
-
-`./code-server --allow-http --password "yourpassword"`
-
-`docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --password "yourpassword"`
 
   ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
