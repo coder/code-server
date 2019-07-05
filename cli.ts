@@ -57,14 +57,14 @@ const main = async (): Promise<void> => {
 		return process.exit(0);
 	}
 
-	const webviewServer = new WebviewServer();
-	const server = new MainServer(webviewServer, args);
-	// The main server inserts webview server address to the root HTML, so we'll
-	// need to wait for it to listen otherwise the address will be null.
-	await webviewServer.listen(typeof args["webview-port"] !== "undefined" && parseInt(args["webview-port"], 10) || 8444);
-	await server.listen(typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443);
-	console.log(`Main server serving ${server.address}`);
-	console.log(`Webview server serving ${webviewServer.address}`);
+	const webviewServer = new WebviewServer(typeof args["webview-port"] !== "undefined" && parseInt(args["webview-port"], 10) || 8444);
+	const server = new MainServer(typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443, webviewServer, args);
+	const [webviewAddress, serverAddress] = await Promise.all([
+		webviewServer.listen(),
+		server.listen()
+	]);
+	console.log(`Main server serving ${serverAddress}`);
+	console.log(`Webview server serving ${webviewAddress}`);
 };
 
 main().catch((error) => {

@@ -56,7 +56,9 @@ export abstract class Server {
 	// The underlying web server.
 	protected readonly server: http.Server;
 
-	public constructor() {
+	private listenPromise: Promise<string> | undefined;
+
+	public constructor(private readonly port: number) {
 		this.server = http.createServer(async (request, response): Promise<void> => {
 			try {
 				if (request.method !== "GET") {
@@ -89,14 +91,19 @@ export abstract class Server {
 		requestPath: string,
 	): Promise<[string | Buffer, http.OutgoingHttpHeaders]>;
 
-	public listen(port: number): Promise<void> {
-		return new Promise((resolve, reject) => {
-			this.server.on("error", reject);
-			this.server.listen(port, resolve);
-		});
+	public listen(): Promise<string> {
+		if (!this.listenPromise) {
+			this.listenPromise = new Promise((resolve, reject) => {
+				this.server.on("error", reject);
+				this.server.listen(this.port, () => {
+					resolve(this.address());
+				});
+			});
+		}
+		return this.listenPromise;
 	}
 
-	public get address(): string {
+	public address(): string {
 		const address = this.server.address();
 		const endpoint = typeof address !== "string"
 			? ((address.address === "::" ? "localhost" : address.address) + ":" + address.port)
@@ -121,8 +128,8 @@ export class MainServer extends Server {
 
 	private readonly services = new ServiceCollection();
 
-	public constructor(private readonly webviewServer: WebviewServer, args: ParsedArgs) {
-		super();
+	public constructor(port: number, private readonly webviewServer: WebviewServer, args: ParsedArgs) {
+		super(port);
 
 		this.server.on("upgrade", async (request, socket) => {
 			const protocol = this.createProtocol(request, socket);
@@ -175,7 +182,7 @@ export class MainServer extends Server {
 			const remoteAuthority = request.headers.host as string;
 			const transformer = getUriTransformer(remoteAuthority);
 
-			const webviewEndpoint = this.webviewServer.address;
+			const webviewEndpoint = await this.webviewServer.listen();
 
 			const cwd = process.env.VSCODE_CWD || process.cwd();
 			const workspacePath = parsedUrl.query.workspace as string | undefined;
