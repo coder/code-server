@@ -68,8 +68,8 @@ function build-code-server() {
 	mkdir -p "${codeServerBuildPath}"
 
 	cp -r "${vscodeBuildPath}/resources/app/extensions" "${codeServerBuildPath}"
-	jq -s '.[0] * .[1]' "${vscodeBuildPath}/resources/app/package.json" "${rootPath}/scripts/package.json" > "${codeServerBuildPath}/package.json"
-	jq -s '.[0] * .[1]' "${vscodeBuildPath}/resources/app/product.json" "${rootPath}/scripts/product.json" > "${codeServerBuildPath}/product.json"
+	node "${rootPath}/scripts/merge.js" "${vscodeBuildPath}/resources/app/package.json" "${rootPath}/scripts/package.json" "${codeServerBuildPath}/package.json"
+	node "${rootPath}/scripts/merge.js" "${vscodeBuildPath}/resources/app/product.json" "${rootPath}/scripts/product.json" "${codeServerBuildPath}/product.json"
 	cp -r "${vscodeSourcePath}/out" "${codeServerBuildPath}"
 	rm -rf "${codeServerBuildPath}/out/vs/server/node_modules"
 	cp -r "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
