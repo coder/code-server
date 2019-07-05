@@ -41,6 +41,18 @@ function copy-server() {
 	fi
 }
 
+# Prepend the nbin loading code which allows the code to find files within
+# the binary.
+function prepend-loader() {
+	local filePath="${codeServerBuildPath}/${1}" ; shift
+	cat "${rootPath}/scripts/nbin-loader.js" "${filePath}" > "${filePath}.temp"
+	mv "${filePath}.temp" "${filePath}"
+	# Using : as the delimiter so the escaping here is easier to read.
+	# ${parameter/pattern/string}, so the pattern is /: (if the pattern starts
+	# with / it matches all instances) and the string is \\: (results in \:).
+	sed -i "s:{{ROOT_PATH}}:${codeServerBuildPath//:/\\:}:g" "${filePath}"
+}
+
 # Copy code-server into VS Code then build it.
 function build-code-server() {
 	copy-server
@@ -61,6 +73,9 @@ function build-code-server() {
 	cp -r "${vscodeSourcePath}/out" "${codeServerBuildPath}"
 	rm -rf "${codeServerBuildPath}/out/vs/server/node_modules"
 	cp -r "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
+
+	prepend-loader "out/vs/server/main.js"
+	prepend-loader "out/bootstrap-fork.js"
 
 	log "Final build: ${codeServerBuildPath}"
 }
