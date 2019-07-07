@@ -38,21 +38,24 @@ Usage: code-server [options]
 Run VS Code on a remote server.
 
 Options:
-  -V, --version               output the version number
+  -V, --version                         output the version number
   --cert <value>
   --cert-key <value>
-  -e, --extensions-dir <dir>  Set the root path for extensions.
-  -d --user-data-dir <dir>    Specifies the directory that user data is kept in, useful when running as root.
-  --data-dir <value>          DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.
-  -h, --host <value>          Customize the hostname. (default: "0.0.0.0")
-  -o, --open                  Open in the browser on startup.
-  -p, --port <number>         Port to bind on. (default: 8443)
-  -N, --no-auth               Start without requiring authentication.
-  -H, --allow-http            Allow http connections.
-  -P, --password <value>      Specify a password for authentication.
-  --disable-telemetry         Disables ALL telemetry.
-  --help                      output usage information
-  ```
+  -e, --extensions-dir <dir>            Override the main default path for user extensions.
+  --extra-extensions-dir [dir]          Path to an extra user extension directory (repeatable). (default: [])
+  --extra-builtin-extensions-dir [dir]  Path to an extra built-in extension directory (repeatable). (default: [])
+  -d --user-data-dir <dir>              Specifies the directory that user data is kept in, useful when running as root.
+  -h, --host <value>                    Customize the hostname. (default: "0.0.0.0")
+  -o, --open                            Open in the browser on startup.
+  -p, --port <number>                   Port to bind on. (default: 8443)
+  -N, --no-auth                         Start without requiring authentication.
+  -H, --allow-http                      Allow http connections.
+  --disable-telemetry                   Disables ALL telemetry.
+  --socket <value>                      Listen on a UNIX socket. Host and port will be ignored when set.
+  --trust-proxy                         Trust the X-Forwarded-For header, useful when using a reverse proxy.
+  --install-extension <value>           Install an extension by its ID.
+  -h, --help                            output usage information
+```
 
   ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --user-data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
