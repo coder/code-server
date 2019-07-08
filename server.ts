@@ -80,6 +80,8 @@ export abstract class Server {
 	// The underlying web server.
 	protected readonly server: http.Server;
 
+	protected rootPath = path.resolve(__dirname, "../../..");
+
 	private listenPromise: Promise<string> | undefined;
 
 	public constructor(private readonly port: number) {
@@ -101,7 +103,7 @@ export abstract class Server {
 					: ["", "", ""];
 
 				const { content, headers, code } = await this.handleRequest(
-					request, parsedUrl, base, requestPath,
+					base, requestPath, parsedUrl, request,
 				);
 				response.writeHead(code || HttpCode.Ok, {
 					"Cache-Control": "max-age=86400",
@@ -118,13 +120,6 @@ export abstract class Server {
 			}
 		});
 	}
-
-	protected abstract handleRequest(
-		request: http.IncomingMessage,
-		parsedUrl: url.UrlWithParsedQuery,
-		base: string,
-		requestPath: string,
-	): Promise<Response>;
 
 	public listen(): Promise<string> {
 		if (!this.listenPromise) {
@@ -145,14 +140,34 @@ export abstract class Server {
 			: address;
 		return `http://${endpoint}`;
 	}
+
+	protected abstract handleRequest(
+		base: string,
+		requestPath: string,
+		parsedUrl: url.UrlWithParsedQuery,
+		request: http.IncomingMessage,
+	): Promise<Response>;
+
+	protected async getResource(filePath: string): Promise<Response> {
+		const content = await util.promisify(fs.readFile)(filePath);
+		return {
+			content,
+			headers: {
+				"Content-Type": getMediaMime(filePath) || {
+					".css": "text/css",
+					".html": "text/html",
+					".js": "text/javascript",
+					".json": "application/json",
+				}[extname(filePath)] || "text/plain",
+			},
+		};
+	}
 }
 
 export class MainServer extends Server {
 	// Used to notify the IPC server that there is a new client.
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
-
-	private readonly rootPath = path.resolve(__dirname, "../../..");
 
 	// This is separate instead of just extending this class since we can't
 	// use properties in the super call. This manages channels.
@@ -212,10 +227,10 @@ export class MainServer extends Server {
 	}
 
 	protected async handleRequest(
-		request: http.IncomingMessage,
-		parsedUrl: url.UrlWithParsedQuery,
 		base: string,
 		requestPath: string,
+		parsedUrl: url.UrlWithParsedQuery,
+		request: http.IncomingMessage,
 	): Promise<Response> {
 		switch (base) {
 			case "/":
@@ -279,21 +294,6 @@ export class MainServer extends Server {
 			content,
 			headers: {
 				"Content-Type": "text/html",
-			},
-		}
-	}
-
-	private async getResource(filePath: string): Promise<Response> {
-		const content = await util.promisify(fs.readFile)(filePath);
-		return {
-			content,
-			headers: {
-				"Content-Type": getMediaMime(filePath) || {
-					".css": "text/css",
-					".html": "text/html",
-					".js": "text/javascript",
-					".json": "application/json",
-				}[extname(filePath)] || "text/plain",
 			},
 		};
 	}
@@ -392,7 +392,19 @@ export class MainServer extends Server {
 }
 
 export class WebviewServer extends Server {
-	protected async handleRequest(): Promise<Response> {
-		throw new Error("not implemented");
+	protected async handleRequest(
+		base: string,
+		requestPath: string,
+	): Promise<Response> {
+		const webviewPath = path.join(
+			this.rootPath,
+			"out/vs/workbench/contrib/webview/browser/pre",
+		);
+
+		if (base === "/") {
+			base = "/index.html";
+		}
+
+		return this.getResource(path.join(webviewPath, base, requestPath));
 	}
 }
