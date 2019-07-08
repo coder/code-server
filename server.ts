@@ -61,6 +61,12 @@ export interface Options {
 	CONNECTION_AUTH_TOKEN: string;
 }
 
+export interface Response {
+	content?: string | Buffer;
+	code?: number;
+	headers: http.OutgoingHttpHeaders;
+}
+
 export class HttpError extends Error {
 	public constructor(message: string, public readonly code: number) {
 		super(message);
@@ -87,16 +93,26 @@ export abstract class Server {
 				}
 
 				const parsedUrl = url.parse(request.url || "", true);
-				const requestPath = parsedUrl.pathname || "/";
 
-				const [content, headers] = await this.handleRequest(request, parsedUrl, requestPath);
-				response.writeHead(HttpCode.Ok, {
+				const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
+				const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
+				const [, base, requestPath] = match
+					? match.map((p) => p !== "/" ? p.replace(/\/$/, "") : p)
+					: ["", "", ""];
+
+				const { content, headers, code } = await this.handleRequest(
+					request, parsedUrl, base, requestPath,
+				);
+				response.writeHead(code || HttpCode.Ok, {
 					"Cache-Control": "max-age=86400",
 					// TODO: ETag?
 					...headers,
 				});
 				response.end(content);
 			} catch (error) {
+				if (error.code === "ENOENT" || error.code === "EISDIR") {
+					error = new HttpError("Not found", HttpCode.NotFound);
+				}
 				response.writeHead(typeof error.code === "number" ? error.code : 500);
 				response.end(error.message);
 			}
@@ -106,8 +122,9 @@ export abstract class Server {
 	protected abstract handleRequest(
 		request: http.IncomingMessage,
 		parsedUrl: url.UrlWithParsedQuery,
+		base: string,
 		requestPath: string,
-	): Promise<[string | Buffer, http.OutgoingHttpHeaders]>;
+	): Promise<Response>;
 
 	public listen(): Promise<string> {
 		if (!this.listenPromise) {
@@ -146,7 +163,11 @@ export class MainServer extends Server {
 
 	private readonly services = new ServiceCollection();
 
-	public constructor(port: number, private readonly webviewServer: WebviewServer, args: ParsedArgs) {
+	public constructor(
+		port: number,
+		private readonly webviewServer: WebviewServer,
+		args: ParsedArgs,
+	) {
 		super(port);
 
 		this.server.on("upgrade", async (request, socket) => {
@@ -163,7 +184,6 @@ export class MainServer extends Server {
 		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
 
 		const router = new StaticRouter((context: any) => {
-			console.log("static router", context);
 			return context.clientId === "renderer";
 		});
 
@@ -194,72 +214,88 @@ export class MainServer extends Server {
 	protected async handleRequest(
 		request: http.IncomingMessage,
 		parsedUrl: url.UrlWithParsedQuery,
+		base: string,
 		requestPath: string,
-	): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
-		if (requestPath === "/") {
-			const htmlPath = path.join(
-				this.rootPath,
-				'out/vs/code/browser/workbench/workbench.html',
-			);
-
-			let html = await util.promisify(fs.readFile)(htmlPath, "utf8");
-
-			const remoteAuthority = request.headers.host as string;
-			const transformer = getUriTransformer(remoteAuthority);
-
-			const webviewEndpoint = await this.webviewServer.listen();
-
-			const cwd = process.env.VSCODE_CWD || process.cwd();
-			const workspacePath = parsedUrl.query.workspace as string | undefined;
-			const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || cwd: undefined;
-
-			const options: Options = {
-				WORKBENCH_WEB_CONGIGURATION: {
-					workspaceUri: workspacePath
-						? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd)))
-						: undefined,
-					folderUri: folderPath
-						? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
-						: undefined,
-					remoteAuthority,
-					webviewEndpoint,
-				},
-				REMOTE_USER_DATA_URI: transformer.transformOutgoing(
-					(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
-				),
-				PRODUCT_CONFIGURATION: product,
-				CONNECTION_AUTH_TOKEN: "",
-			};
-
-			Object.keys(options).forEach((key) => {
-				html = html.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
-			});
-
-			html = html.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
-
-			return [html, {
-				"Content-Type": "text/html",
-			}];
+	): Promise<Response> {
+		switch (base) {
+			case "/":
+				return this.getRoot(request, parsedUrl);
+			case "/node_modules":
+			case "/out":
+				return this.getResource(path.join(this.rootPath, base, requestPath));
+			// TODO: this setup means you can't request anything from the root if it
+			// starts with /node_modules or /out, although that's probably low risk.
+			// There doesn't seem to be a really good way to solve this since some
+			// resources are requested by the browser (like the extension icon) and
+			// some by the file provider (like the extension README). Maybe add a
+			// /resource prefix and a file provider that strips that prefix?
+			default:
+				return this.getResource(path.join(base, requestPath));
 		}
+	}
 
-		try {
-			const content = await util.promisify(fs.readFile)(
-				path.join(this.rootPath, requestPath),
-			);
-			return [content, {
-				"Content-Type": getMediaMime(requestPath) || {
+	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
+		const htmlPath = path.join(
+			this.rootPath,
+			'out/vs/code/browser/workbench/workbench.html',
+		);
+
+		let content = await util.promisify(fs.readFile)(htmlPath, "utf8");
+
+		const remoteAuthority = request.headers.host as string;
+		const transformer = getUriTransformer(remoteAuthority);
+
+		const webviewEndpoint = await this.webviewServer.listen();
+
+		const cwd = process.env.VSCODE_CWD || process.cwd();
+		const workspacePath = parsedUrl.query.workspace as string | undefined;
+		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || cwd: undefined;
+
+		const options: Options = {
+			WORKBENCH_WEB_CONGIGURATION: {
+				workspaceUri: workspacePath
+					? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd)))
+					: undefined,
+				folderUri: folderPath
+					? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
+					: undefined,
+				remoteAuthority,
+				webviewEndpoint,
+			},
+			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
+				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
+			),
+			PRODUCT_CONFIGURATION: product,
+			CONNECTION_AUTH_TOKEN: "",
+		};
+
+		Object.keys(options).forEach((key) => {
+			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
+		});
+
+		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
+
+		return {
+			content,
+			headers: {
+				"Content-Type": "text/html",
+			},
+		}
+	}
+
+	private async getResource(filePath: string): Promise<Response> {
+		const content = await util.promisify(fs.readFile)(filePath);
+		return {
+			content,
+			headers: {
+				"Content-Type": getMediaMime(filePath) || {
 					".css": "text/css",
 					".html": "text/html",
 					".js": "text/javascript",
 					".json": "application/json",
-				}[extname(requestPath)] || "text/plain",
-			}];
-		} catch (error) {
-			if (error.code === "ENOENT" || error.code === "EISDIR") {
-				throw new HttpError("Not found", HttpCode.NotFound);
-			}
-			throw error;
-		}
+				}[extname(filePath)] || "text/plain",
+			},
+		};
 	}
 
 	private createProtocol(request: http.IncomingMessage, socket: net.Socket): Protocol {
@@ -356,7 +392,7 @@ export class MainServer extends Server {
 }
 
 export class WebviewServer extends Server {
-	protected async handleRequest(): Promise<[string | Buffer, http.OutgoingHttpHeaders]> {
+	protected async handleRequest(): Promise<Response> {
 		throw new Error("not implemented");
 	}
 }
