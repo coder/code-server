@@ -55,6 +55,7 @@ How to [secure your setup](/doc/security/ssl.md).
   export OUT=/path/to/some/directory`. Otherwise it will build in this
   directory which will cause issues because then `yarn watch` will try to
   compile the build directory as well.
+- For now `@coder/nbin` is a global dependency.
 - Run `yarn build ${vscodeVersion} ${target} ${arch}`in this directory (for example:
   `yarn build 1.35.0 linux x64`).
 

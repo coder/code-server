@@ -44,7 +44,7 @@ class Watcher extends DiskFileSystemProvider {
 /**
  * See: src/vs/platform/remote/common/remoteAgentFileSystemChannel.ts.
  */
-export class FileProviderChannel implements IServerChannel {
+export class FileProviderChannel implements IServerChannel, IDisposable {
 	private readonly provider: DiskFileSystemProvider;
 	private readonly watchers = new Map<string, Watcher>();
 
@@ -104,6 +104,11 @@ export class FileProviderChannel implements IServerChannel {
 		}
 
 		throw new Error(`Invalid call "${command}"`);
+	}
+
+	public dispose(): void {
+		this.watchers.forEach((w) => w.dispose());
+		this.watchers.clear();
 	}
 
 	private async stat(resource: UriComponents): Promise<IStat> {

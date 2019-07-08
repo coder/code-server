@@ -200,11 +200,11 @@ function package-task() {
 	cd "${releasePath}"
 	if [[ "${target}" == "linux" ]] ; then
 		tar -czf "${archiveName}.tar.gz" "${archiveName}"
+		log "Archive: ${archivePath}.tar.gz"
 	else
 		zip -r "${archiveName}.zip" "${archiveName}"
+		log "Archive: ${archivePath}.zip"
 	fi
-
-	log "Archive: ${archivePath}"
 }
 
 # Package built code into a binary.
