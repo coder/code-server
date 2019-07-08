@@ -68,6 +68,7 @@ module.exports = (options = {}) => merge(
 		})
 	].concat(prod ? [
 		new GenerateSW({
+			importWorkboxFrom: "local",
 			include: [cachePattern],
 			runtimeCaching: [{
 				urlPattern: cachePattern,
