@@ -25,7 +25,7 @@ It takes just a few minutes to get your own self-hosted server running. If you'v
 > NOTE: Be careful with your password as sharing it will grant those users access to your server's file system
 
 ### Things To Know
-- When you visit the IP for your code-server instance, you will be greeted with a page similar to the following screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../../assets/chrome_warning.png">
+- When you visit the IP for your code-server instance, you will be greeted with a page similar to the following screenshot. Code-server is using a self-signed SSL certificate for easy setup. In Chrome/Chromium, click **"Advanced"** then click **"proceed anyway"**. In Firefox, click **Advanced**, then **Add Exception**, then finally **Confirm Security Exception**.<img src ="../assets/chrome_warning.png">
 
 ## Usage
 <pre class="pre-wrap"><code>code-server<span class="virtual-br"></span> --help</code></pre>
@@ -44,7 +44,7 @@ Options:
   -e, --extensions-dir <dir>            Override the main default path for user extensions.
   --extra-extensions-dir [dir]          Path to an extra user extension directory (repeatable). (default: [])
   --extra-builtin-extensions-dir [dir]  Path to an extra built-in extension directory (repeatable). (default: [])
-  -d --user-data-dir <dir>              Specifies the directory that user data is kept in, useful when running as root.
+  -d, --user-data-dir <dir>             Specifies the directory that user data is kept in, useful when running as root.
   -h, --host <value>                    Customize the hostname. (default: "0.0.0.0")
   -o, --open                            Open in the browser on startup.
   -p, --port <number>                   Port to bind on. (default: 8443)
