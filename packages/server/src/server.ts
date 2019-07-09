@@ -89,13 +89,15 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			if (cookies.password) {
 				if (!safeCompare(cookies.password, options.password)) {
 					let userAgent = req.headers["user-agent"];
+					let timestamp = Math.floor(new Date().getTime() / 1000);
 					if (Array.isArray(userAgent)) {
 						userAgent = userAgent.join(", ");
 					}
 					logger.info("Failed login attempt",
 						field("password", cookies.password),
 						field("remote_address", remoteAddress(req)),
-						field("user_agent", userAgent));
+						field("user_agent", userAgent),
+						field("timestamp", timestamp));
 
 					return false;
 				}
