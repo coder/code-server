@@ -61,6 +61,7 @@ module.exports = (options = {}) => merge(
 			short_name: "Coder",
 			description: "Run VS Code on a remote server",
 			background_color: "#e5e5e5",
+			crossorigin: "use-credentials",
 			icons: [{
 				src: path.join(root, "packages/web/assets/logo.png"),
 				sizes: [96, 128, 192, 256, 384],
