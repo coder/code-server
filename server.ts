@@ -16,11 +16,10 @@ import { IConfigurationService } from "vs/platform/configuration/common/configur
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
 import { IDialogService } from "vs/platform/dialogs/common/dialogs";
 import { DialogChannelClient } from "vs/platform/dialogs/node/dialogIpc";
-import { IDownloadService } from "vs/platform/download/common/download";
-import { DownloadServiceChannelClient } from "vs/platform/download/node/downloadIpc";
 import { IEnvironmentService, ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { IExtensionManagementService, IExtensionGalleryService } from "vs/platform/extensionManagement/common/extensionManagement";
+import { ExtensionGalleryChannel } from "vs/platform/extensionManagement/node/extensionGalleryIpc";
 import { ExtensionGalleryService } from "vs/platform/extensionManagement/node/extensionGalleryService";
 import { ExtensionManagementChannel } from "vs/platform/extensionManagement/node/extensionManagementIpc";
 import { ExtensionManagementService } from "vs/platform/extensionManagement/node/extensionManagementService";
@@ -209,7 +208,6 @@ export class MainServer extends Server {
 		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
 		this.services.set(ITelemetryService, NullTelemetryService); // TODO: telemetry
 		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
-		this.services.set(IDownloadService, new DownloadServiceChannelClient(this.ipc.getChannel("download", router), () => getUriTransformer("renderer")));
 		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 
 		const instantiationService = new InstantiationService(this.services);
@@ -223,6 +221,9 @@ export class MainServer extends Server {
 			const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
 			const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
 			this.ipc.registerChannel("extensions", extensionsChannel);
+			const galleryService = this.services.get(IExtensionGalleryService) as IExtensionGalleryService;
+			const galleryChannel = new ExtensionGalleryChannel(galleryService);
+			this.ipc.registerChannel("gallery", galleryChannel);
 		});
 	}
 
