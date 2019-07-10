@@ -218,7 +218,7 @@ function binary-task() {
 	node "${rootPath}/scripts/nbin.js" "${target}" "${arch}" "${codeServerBuildPath}"
 	rm node_modules/@coder/nbin
 	mv "${codeServerBuildPath}/code-server" "${buildPath}/${binaryName}"
-	log "Binary at ${buildPath}/${binaryName}"
+	log "Binary: ${buildPath}/${binaryName}"
 }
 
 function main() {
