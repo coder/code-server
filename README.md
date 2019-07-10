@@ -61,15 +61,18 @@ How to [secure your setup](/doc/security/ssl.md).
 
 ## Development
 
-- Clone VS Code.
-- Run `yarn` in the VS Code root directory.
-- Run `yarn compile` in the VS Code root directory.
-- Clone this repository to `src/vs/server` in the VS Code source.
-- Run `yarn` in this directory.
-- Run `yarn watch` in this directory.
-- Wait for the initial compilation to complete.
-- Run `yarn start` in this directory.
-- Visit `http://localhost:8443`.
+```fish
+git clone https://github.com/microsoft/vscode
+cd vscode
+git clone https://github.com/cdr/code-server src/vs/server
+cd src/vs/server
+yarn patch:apply
+yarn
+yarn watch
+# Wait for the initial compilation to complete (it will say "Finished compilation").
+yarn start
+# Visit http://localhost:8443
+```
 
 ### Known Issues
 

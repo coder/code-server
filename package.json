@@ -1,13 +1,16 @@
 {
   "license": "MIT",
   "scripts": {
-    "postinstall": "rm -r node_modules/@types/node # I keep getting type conflicts",
+    "preinstall": "cd ../../../ && yarn",
+    "postinstall": "rm -rf node_modules/@types/node # I keep getting type conflicts",
     "start": "nodemon ../../../out/vs/server/main.js --watch ../../../out --verbose",
-    "watch": "cd ../../../ && yarn watch-client",
+    "watch": "cd ../../../ && yarn watch",
     "build": "bash ./scripts/tasks.bash build",
     "package": "bash ./scripts/tasks.bash package",
     "vstar": "bash ./scripts/tasks.bash vstar",
-    "binary": "bash ./scripts/tasks.bash binary"
+    "binary": "bash ./scripts/tasks.bash binary",
+    "patch:generate": "cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
+    "patch:apply": "cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
   },
   "devDependencies": {
     "@types/tar-stream": "^1.6.1",

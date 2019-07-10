@@ -36,7 +36,9 @@ function copy-server() {
 	else
 		log "Installing dependencies"
 		cd "${serverPath}"
-		yarn
+		# Ignore scripts to avoid also installing VS Code dependencies which has
+		# already been done.
+		yarn --ignore-scripts
 		rm -r node_modules/@types/node # I keep getting type conflicts
 	fi
 }
@@ -62,6 +64,9 @@ function build-code-server() {
 	# the same type of build you get with the vscode-linux-x64-min task).
 	# Something like: yarn gulp "vscode-server-${target}-${arch}-min"
 	cd "${vscodeSourcePath}"
+	git reset --hard
+	git clean -fd
+	git apply "${rootPath}/scripts/vscode.patch"
 	yarn gulp compile-client
 
 	rm -rf "${codeServerBuildPath}"
@@ -105,7 +110,6 @@ function build-vscode() {
 		npm rebuild || true
 
 		# Keep just what we need to keep the pre-built archive smaller.
-		rm -rf "${vscodeSourcePath}/.git"
 		rm -rf "${vscodeSourcePath}/test"
 	else
 		log "${vscodeSourceName}/node_modules already exists, skipping install"
@@ -192,7 +196,7 @@ function package-task() {
 	rm -rf "${archivePath}"
 	mkdir -p "${archivePath}"
 
-	cp "${buildPath}/code-server" "${archivePath}"
+	cp "${buildPath}/${binaryName}" "${archivePath}/code-server"
 	cp "${rootPath}/README.md" "${archivePath}"
 	cp "${vscodeSourcePath}/LICENSE.txt" "${archivePath}"
 	cp "${vscodeSourcePath}/ThirdPartyNotices.txt" "${archivePath}"
@@ -216,8 +220,8 @@ function binary-task() {
 	npm link @coder/nbin
 	node "${rootPath}/scripts/nbin.js" "${target}" "${arch}" "${codeServerBuildPath}"
 	rm node_modules/@coder/nbin
-	mv "${codeServerBuildPath}/code-server" "${buildPath}"
-	log "Binary at ${buildPath}/code-server"
+	mv "${codeServerBuildPath}/code-server" "${buildPath}/${binaryName}"
+	log "Binary at ${buildPath}/${binaryName}"
 }
 
 function main() {
@@ -237,6 +241,19 @@ function main() {
 	# will compile everything in the build directory as well.
 	local outPath="${OUT:-${rootPath}}"
 
+	# If we're inside a vscode directory, assume we want to develop. In that case
+	# we should set an OUT directory and not build in this directory.
+	if [[ "${outPath}" == "${rootPath}" ]] ; then
+		local maybeVscode
+		local dirName
+		maybeVscode="$(realpath "${outPath}/../../..")"
+		dirName="$(basename "${maybeVscode}")"
+		if [[ "${dirName}" == "vscode" ]] ; then
+			log "Set the OUT environment variable to something outside ${maybeVscode}" "error"
+			exit 1
+		fi
+	fi
+
 	local releasePath="${outPath}/release"
 	local buildPath="${outPath}/build"
 
@@ -245,8 +262,9 @@ function main() {
 	local vscodeSourcePath="${buildPath}/${vscodeSourceName}"
 	local vscodeBuildPath="${buildPath}/${vscodeBuildName}"
 
-	local codeServerBuildName="code-server-${target}-${arch}-built"
+	local codeServerBuildName="code-server-${vscodeVersion}-${target}-${arch}-built"
 	local codeServerBuildPath="${buildPath}/${codeServerBuildName}"
+	local binaryName="code-server-${vscodeVersion}-${target}-${arch}"
 
 	log "Running ${task} task"
 	log " rootPath: ${rootPath}"
