@@ -11,6 +11,7 @@ import { getMediaMime } from "vs/base/common/mime";
 import { extname } from "vs/base/common/path";
 import { UriComponents, URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
+import { mkdirp } from "vs/base/node/pfs";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
@@ -225,6 +226,18 @@ export class MainServer extends Server {
 			const galleryChannel = new ExtensionGalleryChannel(galleryService);
 			this.ipc.registerChannel("gallery", galleryChannel);
 		});
+	}
+
+	public async listen(): Promise<string> {
+		const environment = (this.services.get(IEnvironmentService) as EnvironmentService);
+		const mkdirs = Promise.all([
+			environment.extensionsPath,
+		].map((p) => mkdirp(p)));
+		const [address] = await Promise.all([
+			super.listen(),
+			mkdirs,
+		]);
+		return address;
 	}
 
 	protected async handleRequest(
