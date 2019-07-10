@@ -4,6 +4,6 @@ if (!global.NBIN_LOADED) {
 		nbin.shimNativeFs("{{ROOT_PATH}}");
 		global.NBIN_LOADED = true;
 	} catch (error) {
-		console.log("Not in the binary");
+		// Not in the binary.
 	}
 }

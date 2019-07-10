@@ -56,8 +56,11 @@ How to [secure your setup](/doc/security/ssl.md).
   directory which will cause issues because then `yarn watch` will try to
   compile the build directory as well.
 - For now `@coder/nbin` is a global dependency.
-- Run `yarn build ${vscodeVersion} ${target} ${arch}`in this directory (for example:
-  `yarn build 1.35.0 linux x64`).
+- Run `yarn build ${codeServerVersion} ${vscodeVersion} ${target} ${arch}` in
+  this directory (for example: `yarn build development 1.35.0 linux x64`).
+- You can run the built code with `node path/to/build/out/vs/server/main.js` or run
+  `yarn binary` with the same arguments in the previous step to package the
+  code into a single binary.
 
 ## Development
 

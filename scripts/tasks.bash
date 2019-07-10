@@ -72,8 +72,10 @@ function build-code-server() {
 	rm -rf "${codeServerBuildPath}"
 	mkdir -p "${codeServerBuildPath}"
 
+	local json="{\"codeServerVersion\": \"${codeServerVersion}\"}"
+
 	cp -r "${vscodeBuildPath}/resources/app/extensions" "${codeServerBuildPath}"
-	node "${rootPath}/scripts/merge.js" "${vscodeBuildPath}/resources/app/package.json" "${rootPath}/scripts/package.json" "${codeServerBuildPath}/package.json"
+	node "${rootPath}/scripts/merge.js" "${vscodeBuildPath}/resources/app/package.json" "${rootPath}/scripts/package.json" "${codeServerBuildPath}/package.json" "${json}"
 	node "${rootPath}/scripts/merge.js" "${vscodeBuildPath}/resources/app/product.json" "${rootPath}/scripts/product.json" "${codeServerBuildPath}/product.json"
 	cp -r "${vscodeSourcePath}/out" "${codeServerBuildPath}"
 	rm -rf "${codeServerBuildPath}/out/vs/server/node_modules"
@@ -187,12 +189,7 @@ function vstar-task() {
 }
 
 function package-task() {
-	local version="${1}" ; shift
-
-	log " version: ${version}"
-
-	local archiveName="code-server${version}-vsc${vscodeVersion}-${target}-${arch}"
-	local archivePath="${releasePath}/${archiveName}"
+	local archivePath="${releasePath}/${binaryName}"
 	rm -rf "${archivePath}"
 	mkdir -p "${archivePath}"
 
@@ -203,10 +200,10 @@ function package-task() {
 
 	cd "${releasePath}"
 	if [[ "${target}" == "linux" ]] ; then
-		tar -czf "${archiveName}.tar.gz" "${archiveName}"
+		tar -czf "${binaryName}.tar.gz" "${binaryName}"
 		log "Archive: ${archivePath}.tar.gz"
 	else
-		zip -r "${archiveName}.zip" "${archiveName}"
+		zip -r "${binaryName}.zip" "${binaryName}"
 		log "Archive: ${archivePath}.zip"
 	fi
 }
@@ -226,6 +223,7 @@ function binary-task() {
 
 function main() {
 	local task="${1}" ; shift
+	local codeServerVersion="${1}" ; shift
 	local vscodeVersion="${1}" ; shift
 	local target="${1}" ; shift
 	local arch="${1}" ; shift
@@ -262,13 +260,14 @@ function main() {
 	local vscodeSourcePath="${buildPath}/${vscodeSourceName}"
 	local vscodeBuildPath="${buildPath}/${vscodeBuildName}"
 
-	local codeServerBuildName="code-server-${vscodeVersion}-${target}-${arch}-built"
+	local codeServerBuildName="code-server${codeServerVersion}-vsc${vscodeVersion}-${target}-${arch}-built"
 	local codeServerBuildPath="${buildPath}/${codeServerBuildName}"
-	local binaryName="code-server-${vscodeVersion}-${target}-${arch}"
+	local binaryName="code-server${codeServerVersion}-vsc${vscodeVersion}-${target}-${arch}"
 
 	log "Running ${task} task"
 	log " rootPath: ${rootPath}"
 	log " outPath: ${outPath}"
+	log " codeServerVersion: ${codeServerVersion}"
 	log " vscodeVersion: ${vscodeVersion}"
 	log " target: ${target}"
 	log " arch: ${arch}"
