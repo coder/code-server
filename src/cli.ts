@@ -1,12 +1,15 @@
 import * as os from "os";
+
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/environment/node/argv";
 import product from "vs/platform/product/node/product";
 import pkg from "vs/platform/product/node/package";
-import { MainServer, WebviewServer } from "vs/server/server";
-import "vs/server/tar";
+
+import { MainServer, WebviewServer } from "vs/server/src/server";
+import "vs/server/src/tar";
+import { generateCertificate } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
 	"allow-http"?: boolean;
@@ -111,14 +114,41 @@ const main = async (): Promise<void> => {
 		return process.exit(0);
 	}
 
-	const webviewServer = new WebviewServer(typeof args["webview-port"] !== "undefined" && parseInt(args["webview-port"], 10) || 8444);
-	const server = new MainServer(typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443, webviewServer, args);
+	const options = {
+		host: args["host"]
+			|| (args["no-auth"] || args["allow-http"] ? "localhost" : "0.0.0.0"),
+		allowHttp: args["allow-http"],
+		cert: args["cert"],
+		certKey: args["cert"],
+	};
+
+	if (!options.allowHttp && (!options.cert || !options.certKey)) {
+		const { cert, certKey } = await generateCertificate();
+		options.cert = cert;
+		options.certKey = certKey;
+	}
+
+	const webviewPort = typeof args["webview-port"] !== "undefined"
+		&& parseInt(args["webview-port"], 10) || 8444;
+	const webviewServer = new WebviewServer({
+		...options,
+		port: webviewPort,
+		socket: args["webview-socket"],
+	});
+
+	const port = typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443;
+	const server = new MainServer({
+		...options,
+		port,
+		socket: args.socket,
+	}, webviewServer, args);
+
 	const [webviewAddress, serverAddress] = await Promise.all([
 		webviewServer.listen(),
 		server.listen()
 	]);
-	console.log(`Main server serving ${serverAddress}`);
-	console.log(`Webview server serving ${webviewAddress}`);
+	console.log(`Main server listening on ${serverAddress}`);
+	console.log(`Webview server listening on ${webviewAddress}`);
 };
 
 main().catch((error) => {

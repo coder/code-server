@@ -1,1 +1,1 @@
-require("../../bootstrap-amd").load("vs/server/cli");
+require("../../bootstrap-amd").load("vs/server/src/cli");

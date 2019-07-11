@@ -1,9 +1,10 @@
-import * as nls from "vs/nls";
-import * as vszip from "vs/base/node/zip";
 import * as fs from "fs";
 import * as path from "path";
 import * as tarStream from "tar-stream";
 import { promisify } from "util";
+
+import * as nls from "vs/nls";
+import * as vszip from "vs/base/node/zip";
 import { CancellationToken } from "vs/base/common/cancellation";
 import { mkdirp } from "vs/base/node/pfs";
 

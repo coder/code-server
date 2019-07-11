@@ -8,7 +8,7 @@ matrix:
   - os: linux
     dist: trusty
     env:
-      - VSCODE_VERSION="1.36.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="centos"
+      - VSCODE_VERSION="1.36.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="linux"
   - os: linux
     dist: trusty
     env:
@@ -16,10 +16,6 @@ matrix:
   - os: osx
     env:
       - VSCODE_VERSION="1.36.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
-before_install:
-- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y libxkbfile-dev libsecret-1-dev; fi
-- npm install -g yarn@1.12.3
-- npm install -g @coder/nbin
 script:
 - scripts/ci.bash
 before_deploy:

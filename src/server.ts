@@ -1,7 +1,9 @@
 import * as fs from "fs";
 import * as http from "http";
+import * as https from "https";
 import * as net from "net";
 import * as path from "path";
+import * as tls from "tls";
 import * as util from "util";
 import * as url from "url";
 
@@ -44,9 +46,10 @@ import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/
 // import { TelemetryService } from "vs/workbench/services/telemetry/electron-browser/telemetryService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
-import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/connection";
-import { ExtensionEnvironmentChannel, FileProviderChannel, getUriTransformer } from "vs/server/channel";
-import { Protocol } from "vs/server/protocol";
+import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
+import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
+import { Protocol } from "vs/server/src/protocol";
+import { getUriTransformer, useHttpsTransformer } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
@@ -76,69 +79,49 @@ export class HttpError extends Error {
 	}
 }
 
+export interface ServerOptions {
+	readonly port: number;
+	readonly host: string;
+	readonly socket?: string;
+	readonly allowHttp?: boolean;
+	readonly cert?: string;
+	readonly certKey?: string;
+}
+
 export abstract class Server {
 	// The underlying web server.
-	protected readonly server: http.Server;
+	protected readonly server: http.Server | https.Server;
 
 	protected rootPath = path.resolve(__dirname, "../../..");
 
 	private listenPromise: Promise<string> | undefined;
 
-	public constructor(private readonly port: number) {
-		this.server = http.createServer(async (request, response): Promise<void> => {
-			try {
-				if (request.method !== "GET") {
-					throw new HttpError(
-						`Unsupported method ${request.method}`,
-						HttpCode.BadRequest,
-					);
-				}
-
-				const parsedUrl = url.parse(request.url || "", true);
-
-				const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
-				const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
-				const [, base, requestPath] = match
-					? match.map((p) => p !== "/" ? p.replace(/\/$/, "") : p)
-					: ["", "", ""];
-
-				const { content, headers, code } = await this.handleRequest(
-					base, requestPath, parsedUrl, request,
-				);
-				response.writeHead(code || HttpCode.Ok, {
-					"Cache-Control": "max-age=86400",
-					// TODO: ETag?
-					...headers,
-				});
-				response.end(content);
-			} catch (error) {
-				if (error.code === "ENOENT" || error.code === "EISDIR") {
-					error = new HttpError("Not found", HttpCode.NotFound);
-				}
-				response.writeHead(typeof error.code === "number" ? error.code : 500);
-				response.end(error.message);
-			}
-		});
+	public constructor(private readonly options: ServerOptions) {
+		if (this.options.cert && this.options.certKey) {
+			useHttpsTransformer();
+			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
+			this.server = httpolyglot.createServer({
+				cert: fs.readFileSync(this.options.cert),
+				key: fs.readFileSync(this.options.certKey),
+			}, this.onRequest);
+		} else {
+			this.server = http.createServer(this.onRequest);
+		}
 	}
 
 	public listen(): Promise<string> {
 		if (!this.listenPromise) {
 			this.listenPromise = new Promise((resolve, reject) => {
 				this.server.on("error", reject);
-				this.server.listen(this.port, () => {
-					resolve(this.address());
-				});
+				const onListen = () => resolve(this.address(this.server, this.options.allowHttp));
+				if (this.options.socket) {
+					this.server.listen(this.options.socket, onListen);
+				} else {
+					this.server.listen(this.options.port, this.options.host, onListen);
+				}
 			});
 		}
 		return this.listenPromise;
-	}
-
-	public address(): string {
-		const address = this.server.address();
-		const endpoint = typeof address !== "string"
-			? ((address.address === "::" ? "localhost" : address.address) + ":" + address.port)
-			: address;
-		return `http://${endpoint}`;
 	}
 
 	protected abstract handleRequest(
@@ -162,6 +145,57 @@ export abstract class Server {
 			},
 		};
 	}
+
+	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
+		const secure = (request.connection as tls.TLSSocket).encrypted;
+		if (!this.options.allowHttp && !secure) {
+			response.writeHead(302, {
+				Location: "https://" + request.headers.host + request.url,
+			});
+			return response.end();
+		}
+
+		try {
+			if (request.method !== "GET") {
+				throw new HttpError(
+					`Unsupported method ${request.method}`,
+					HttpCode.BadRequest,
+				);
+			}
+
+			const parsedUrl = url.parse(request.url || "", true);
+
+			const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
+			const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
+			const [, base, requestPath] = match
+				? match.map((p) => p !== "/" ? p.replace(/\/$/, "") : p)
+				: ["", "", ""];
+
+			const { content, headers, code } = await this.handleRequest(
+				base, requestPath, parsedUrl, request,
+			);
+			response.writeHead(code || HttpCode.Ok, {
+				"Cache-Control": "max-age=86400",
+				// TODO: ETag?
+				...headers,
+			});
+			response.end(content);
+		} catch (error) {
+			if (error.code === "ENOENT" || error.code === "EISDIR") {
+				error = new HttpError("Not found", HttpCode.NotFound);
+			}
+			response.writeHead(typeof error.code === "number" ? error.code : 500);
+			response.end(error.message);
+		}
+	}
+
+	private address(server: net.Server, http?: boolean): string {
+		const address = server.address();
+		const endpoint = typeof address !== "string"
+			? ((address.address === "::" ? "localhost" : address.address) + ":" + address.port)
+			: address;
+		return `${http ? "http" : "https"}://${endpoint}`;
+	}
 }
 
 export class MainServer extends Server {
@@ -179,11 +213,11 @@ export class MainServer extends Server {
 	private readonly services = new ServiceCollection();
 
 	public constructor(
-		port: number,
+		options: ServerOptions,
 		private readonly webviewServer: WebviewServer,
 		args: ParsedArgs,
 	) {
-		super(port);
+		super(options);
 
 		this.server.on("upgrade", async (request, socket) => {
 			const protocol = this.createProtocol(request, socket);

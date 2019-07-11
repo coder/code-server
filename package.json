@@ -1,25 +1,30 @@
 {
   "license": "MIT",
   "scripts": {
-    "preinstall": "cd ../../../ && yarn",
-    "postinstall": "rm -rf node_modules/@types/node # I keep getting type conflicts",
-    "start": "nodemon ../../../out/vs/server/main.js --watch ../../../out --verbose",
-    "watch": "cd ../../../ && yarn watch",
+    "ensure-in-vscode": "bash ./scripts/tasks.bash ensure-in-vscode",
+    "preinstall": "yarn ensure-in-vscode && cd ../../../ && yarn || true",
+    "postinstall": "rm -rf node_modules/@types/node",
+    "start": "yarn ensure-in-vscode && nodemon ../../../out/vs/server/main.js --watch ../../../out --verbose",
+    "watch": "yarn ensure-in-vscode && cd ../../../ && yarn watch",
     "build": "bash ./scripts/tasks.bash build",
     "package": "bash ./scripts/tasks.bash package",
     "vstar": "bash ./scripts/tasks.bash vstar",
     "binary": "bash ./scripts/tasks.bash binary",
-    "patch:generate": "cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
-    "patch:apply": "cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
+    "patch:generate": "yarn ensure-in-vscode && cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
+    "patch:apply": "yarn ensure-in-vscode && cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
   },
   "devDependencies": {
+    "@types/pem": "^1.9.5",
+    "@types/safe-compare": "^1.1.0",
     "@types/tar-stream": "^1.6.1",
     "nodemon": "^1.19.1"
   },
-  "dependencies": {
-    "tar-stream": "^2.1.0"
-  },
   "resolutions": {
     "@types/node": "^10.12.12"
+  },
+  "dependencies": {
+    "httpolyglot": "^0.1.2",
+    "pem": "^1.14.2",
+    "safe-compare": "^1.1.4"
   }
 }

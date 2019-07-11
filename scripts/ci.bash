@@ -3,10 +3,20 @@ set -euo pipefail
 
 # Build using a Docker container.
 function docker-build() {
+	local image="codercom/nbin-${target}"
+	if [[ "${target}" == "linux" ]] ; then
+		image="codercom/nbin-centos"
+	fi
+
 	local containerId
 	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
 	docker start "${containerId}"
 	docker exec "${containerId}" mkdir -p /src
+
+	# TODO: temporary as long as we are rebuilding modules.
+	if [[ "${image}" == "codercom/nbin-alpine" ]] ; then
+		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
+	fi
 
 	function docker-exec() {
 		local command="${1}" ; shift
@@ -57,14 +67,6 @@ function main() {
 		target=darwin
 		local-build
 	else
-		local image
-		if [[ "${target}" == alpine ]]; then
-			image=codercom/nbin-alpine
-			target=musl
-		else
-			image=codercom/nbin-centos
-			target=linux
-		fi
 		docker-build
 	fi
 }

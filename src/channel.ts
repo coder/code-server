@@ -6,7 +6,7 @@ import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
 import { OS } from "vs/base/common/platform";
 import { URI, UriComponents } from "vs/base/common/uri";
-import { URITransformer, IRawURITransformer, transformOutgoingURIs } from "vs/base/common/uriIpc";
+import { transformOutgoingURIs } from "vs/base/common/uriIpc";
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
 import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnosticsService";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
@@ -18,6 +18,8 @@ import product from "vs/platform/product/node/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
+
+import { getUriTransformer } from "vs/server/src/util";
 
 /**
  * Extend the file provider to allow unwatching.
@@ -262,11 +264,3 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		throw new Error("not implemented");
 	}
 }
-
-export const uriTransformerPath = getPathFromAmdModule(require, "vs/server/uriTransformer");
-
-export const getUriTransformer = (remoteAuthority: string): URITransformer => {
-	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
-	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
-	return new URITransformer(rawURITransformer);
-};
