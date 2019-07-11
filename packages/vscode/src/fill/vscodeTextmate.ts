@@ -22,7 +22,7 @@ target.Registry = class Registry extends vscodeTextmate.Registry {
 					const onigasm = require("onigasm");
 					const wasmUrl = require("!!file-loader!onigasm/lib/onigasm.wasm");
 
-					return fetch(wasmUrl).then(resp => resp.arrayBuffer()).then(buffer => {
+					return fetch(wasmUrl, {credentials: 'same-origin'}).then(resp => resp.arrayBuffer()).then(buffer => {
 						return onigasm.loadWASM(buffer);
 					}).then(() => {
 						res({
