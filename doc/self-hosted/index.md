@@ -82,23 +82,23 @@ Options:
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
   ### Nginx Reverse Proxy
-  Nginx is for reverse proxy. Below is a virtual host example that works with code-server. Please also pass --allow-http. You can also use certbot by EFF to get a ssl certificates for free.
+  Below is a virtual host example that works with code-server. Please also pass `--allow-http` and `--trust-proxy` to code-server to allow the proxy to connect. You can also use Let's Encrypt to get a SSL certificates for free.
   ```
   server {
     listen 80;
     listen [::]:80;
     server_name code.example.com code.example.org;
-      location / {
-         proxy_pass http://localhost:8443/;
-         proxy_set_header Upgrade $http_upgrade;
-         proxy_set_header Connection upgrade;
-         proxy_set_header Accept-Encoding gzip;
-      }
-   }
+    location / {
+       proxy_pass http://localhost:8443/;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection upgrade;
+       proxy_set_header Accept-Encoding gzip;
+    }
+  }
   ```
 
   ### Apache Reverse Proxy
-  Example of https virtualhost configuration for Apache as a reverse proxy. Please also pass --allow-http on code-server startup to allow the proxy to connect.
+  Example of a HTTPS virtualhost configuration for Apache as a reverse proxy. Please also pass `--allow-http` and `--trust-proxy` to code-server to allow the proxy to connect. You can also use Let's Encrypt to get a SSL certificates for free.
   ```
   <VirtualHost *:80>
     ServerName code.example.com
