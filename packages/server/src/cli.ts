@@ -38,6 +38,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
 	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
+	.option("--trust-proxy", "Trust the X-Forwarded-For header, useful when using a reverse proxy.", false)
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
@@ -74,6 +75,7 @@ const bold = (text: string | number): string | number => {
 		readonly cert?: string;
 		readonly certKey?: string;
 		readonly socket?: string;
+		readonly trustProxy?: boolean;
 
 		readonly installExtension?: string;
 
@@ -273,6 +275,7 @@ const bold = (text: string | number): string | number => {
 			},
 		},
 		password,
+		trustProxy: options.trustProxy,
 		httpsOptions: hasCustomHttps ? {
 			key: certKeyData,
 			cert: certData,

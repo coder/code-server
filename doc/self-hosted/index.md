@@ -38,21 +38,24 @@ Usage: code-server [options]
 Run VS Code on a remote server.
 
 Options:
-  -V, --version               output the version number
+  -V, --version                         output the version number
   --cert <value>
   --cert-key <value>
-  -e, --extensions-dir <dir>  Set the root path for extensions.
-  -d, --user-data-dir <dir>   Specifies the directory that user data is kept in, useful when running as root.
-  --data-dir <value>          DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.
-  -h, --host <value>          Customize the hostname. (default: "0.0.0.0")
-  -o, --open                  Open in the browser on startup.
-  -p, --port <number>         Port to bind on. (default: 8443)
-  -N, --no-auth               Start without requiring authentication.
-  -H, --allow-http            Allow http connections.
-  -P, --password <value>      Specify a password for authentication.
-  --disable-telemetry         Disables ALL telemetry.
-  --help                      output usage information
-  ```
+  -e, --extensions-dir <dir>            Override the main default path for user extensions.
+  --extra-extensions-dir [dir]          Path to an extra user extension directory (repeatable). (default: [])
+  --extra-builtin-extensions-dir [dir]  Path to an extra built-in extension directory (repeatable). (default: [])
+  -d, --user-data-dir <dir>             Specifies the directory that user data is kept in, useful when running as root.
+  -h, --host <value>                    Customize the hostname. (default: "0.0.0.0")
+  -o, --open                            Open in the browser on startup.
+  -p, --port <number>                   Port to bind on. (default: 8443)
+  -N, --no-auth                         Start without requiring authentication.
+  -H, --allow-http                      Allow http connections.
+  --disable-telemetry                   Disables ALL telemetry.
+  --socket <value>                      Listen on a UNIX socket. Host and port will be ignored when set.
+  --trust-proxy                         Trust the X-Forwarded-For header, useful when using a reverse proxy.
+  --install-extension <value>           Install an extension by its ID.
+  -h, --help                            output usage information
+```
 
   ### Data Directory
   Use `code-server -d (path/to/directory)` or `code-server --user-data-dir=(path/to/directory)`, excluding the parentheses to specify the root folder that VS Code will start in.
@@ -79,23 +82,23 @@ Options:
 > To ensure the connection between you and your server is encrypted view our guide on [securing your setup](../security/ssl.md)
 
   ### Nginx Reverse Proxy
-  Nginx is for reverse proxy. Below is a virtual host example that works with code-server. Please also pass --allow-http. You can also use certbot by EFF to get a ssl certificates for free.
+  Below is a virtual host example that works with code-server. Please also pass `--allow-http` and `--trust-proxy` to code-server to allow the proxy to connect. You can also use Let's Encrypt to get a SSL certificates for free.
   ```
   server {
     listen 80;
     listen [::]:80;
     server_name code.example.com code.example.org;
-      location / {
-         proxy_pass http://localhost:8443/;
-         proxy_set_header Upgrade $http_upgrade;
-         proxy_set_header Connection upgrade;
-         proxy_set_header Accept-Encoding gzip;
-      }
-   }
+    location / {
+       proxy_pass http://localhost:8443/;
+       proxy_set_header Upgrade $http_upgrade;
+       proxy_set_header Connection upgrade;
+       proxy_set_header Accept-Encoding gzip;
+    }
+  }
   ```
 
   ### Apache Reverse Proxy
-  Example of https virtualhost configuration for Apache as a reverse proxy. Please also pass --allow-http on code-server startup to allow the proxy to connect.
+  Example of a HTTPS virtualhost configuration for Apache as a reverse proxy. Please also pass `--allow-http` and `--trust-proxy` to code-server to allow the proxy to connect. You can also use Let's Encrypt to get a SSL certificates for free.
   ```
   <VirtualHost *:80>
     ServerName code.example.com
