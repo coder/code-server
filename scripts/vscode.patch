@@ -202,19 +202,20 @@ index e09049c5b9..d93ffa527a 100644
 \ No newline at end of file
 +}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 1986fb6642..7c66b644f2 100644
+index 1986fb6642..afbe385af6 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
-@@ -115,6 +115,8 @@ class CodeRendererMain extends Disposable {
+@@ -115,6 +115,9 @@ class CodeRendererMain extends Disposable {
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
 
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.http, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.https, remoteFileSystemProvider);
++			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
  		}
 
  		const payload = await this.resolveWorkspaceInitializationPayload();
-@@ -170,4 +172,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
+@@ -170,4 +173,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
  	const renderer = new CodeRendererMain(domElement, options);
 
  	return renderer.open();

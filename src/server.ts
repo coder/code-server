@@ -402,7 +402,7 @@ export class MainServer extends Server {
 
 		instantiationService.invokeFunction(() => {
 			instantiationService.createInstance(LogsDataCleaner);
-			this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(logService));
+			this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 			this.ipc.registerChannel("remoteextensionsenvironment", new ExtensionEnvironmentChannel(environmentService, logService));
 			const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
 			const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));

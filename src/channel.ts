@@ -49,7 +49,10 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	private readonly provider: DiskFileSystemProvider;
 	private readonly watchers = new Map<string, Watcher>();
 
-	public constructor(private readonly logService: ILogService) {
+	public constructor(
+		private readonly environmentService: IEnvironmentService,
+		private readonly logService: ILogService,
+	) {
 		this.provider = new DiskFileSystemProvider(this.logService);
 	}
 
@@ -113,11 +116,11 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	}
 
 	private async stat(resource: UriComponents): Promise<IStat> {
-		return this.provider.stat(URI.from(resource));
+		return this.provider.stat(this.transform(resource));
 	}
 
 	private async open(resource: UriComponents, opts: FileOpenOptions): Promise<number> {
-		return this.provider.open(URI.from(resource), opts);
+		return this.provider.open(this.transform(resource), opts);
 	}
 
 	private async close(fd: number): Promise<void> {
@@ -135,31 +138,39 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	}
 
 	private async delete(resource: UriComponents, opts: FileDeleteOptions): Promise<void> {
-		return this.provider.delete(URI.from(resource), opts);
+		return this.provider.delete(this.transform(resource), opts);
 	}
 
 	private async mkdir(resource: UriComponents): Promise<void> {
-		return this.provider.mkdir(URI.from(resource));
+		return this.provider.mkdir(this.transform(resource));
 	}
 
 	private async readdir(resource: UriComponents): Promise<[string, FileType][]> {
-		return this.provider.readdir(URI.from(resource));
+		return this.provider.readdir(this.transform(resource));
 	}
 
 	private async rename(resource: UriComponents, target: UriComponents, opts: FileOverwriteOptions): Promise<void> {
-		return this.provider.rename(URI.from(resource), URI.from(target), opts);
+		return this.provider.rename(this.transform(resource), URI.from(target), opts);
 	}
 
 	private copy(resource: UriComponents, target: UriComponents, opts: FileOverwriteOptions): Promise<void> {
-		return this.provider.copy(URI.from(resource), URI.from(target), opts);
+		return this.provider.copy(this.transform(resource), URI.from(target), opts);
 	}
 
 	private async watch(session: string, req: number, resource: UriComponents, opts: IWatchOptions): Promise<void> {
-		this.watchers.get(session)!._watch(req, URI.from(resource), opts);
+		this.watchers.get(session)!._watch(req, this.transform(resource), opts);
 	}
 
 	private async unwatch(session: string, req: number): Promise<void> {
 		this.watchers.get(session)!.unwatch(req);
+	}
+
+	private transform(resource: UriComponents): URI {
+		// HACK: for now assume /out is relative to the build.
+		if (resource.path.indexOf("/out") === 0) {
+			resource.path = this.environmentService.appRoot + resource.path;
+		}
+		return URI.from(resource);
 	}
 }
 
