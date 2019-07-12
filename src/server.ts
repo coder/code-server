@@ -97,6 +97,7 @@ export interface ServerOptions {
 	readonly certKey?: string;
 	readonly auth?: boolean;
 	readonly password?: string;
+	readonly folderUri?: string;
 }
 
 export abstract class Server {
@@ -107,7 +108,7 @@ export abstract class Server {
 
 	private listenPromise: Promise<string> | undefined;
 
-	public constructor(private readonly options: ServerOptions) {
+	public constructor(protected readonly options: ServerOptions) {
 		if (this.options.cert && this.options.certKey) {
 			useHttpsTransformer();
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
@@ -458,7 +459,7 @@ export class MainServer extends Server {
 
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
-		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || cwd: undefined;
+		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
 
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {

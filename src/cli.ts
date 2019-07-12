@@ -127,6 +127,9 @@ const main = async (): Promise<void> => {
 		certKey: args["cert-key"],
 		auth: typeof args.auth !== "undefined" ? args.auth : true,
 		password: process.env.PASSWORD,
+		folderUri: args["_"] && args["_"].length > 1
+			? args["_"][args["_"].length - 1]
+			: undefined,
 	};
 
 	if (!options.host) {
