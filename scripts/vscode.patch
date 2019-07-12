@@ -1,3 +1,36 @@
+diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
+index 443e430fcd..fdd9900598 100644
+--- a/src/vs/platform/environment/common/environment.ts
++++ b/src/vs/platform/environment/common/environment.ts
+@@ -156,4 +156,7 @@ export interface IEnvironmentService {
+ 
+ 	webviewEndpoint?: string;
+ 	readonly webviewResourceRoot: string;
++
++	extraExtensionPaths: string[];
++	extraBuiltinExtensionPaths: string[];
+ }
+diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
+index 55c3d8302a..b8568fa785 100644
+--- a/src/vs/platform/environment/node/environmentService.ts
++++ b/src/vs/platform/environment/node/environmentService.ts
+@@ -276,6 +276,16 @@ export class EnvironmentService implements IEnvironmentService {
+ 		return 'vscode-resource:';
+ 	}
+ 
++	@memoize
++	get extraExtensionPaths(): string[] {
++		return (this._args['extra-extensions-dir'] || []).map((p: string) => parsePathArg(p, process));
++	}
++
++	@memoize
++	get extraBuiltinExtensionPaths(): string[] {
++		return (this._args['extra-builtin-extensions-dir'] || []).map((p: string) => parsePathArg(p, process));
++	}
++
+ 	constructor(private _args: ParsedArgs, private _execPath: string) {
+ 		if (!process.env['VSCODE_LOGS']) {
+ 			const key = toLocalISOString(new Date()).replace(/-|:|\.\d+Z$/g, '');
 diff --git a/src/vs/platform/extensionManagement/node/extensionGalleryIpc.ts b/src/vs/platform/extensionManagement/node/extensionGalleryIpc.ts
 new file mode 100644
 index 0000000000..ef1db87989
@@ -99,6 +132,74 @@ index 0000000000..ef1db87989
 +	getCompatibleExtension(id: IExtensionIdentifier | IGalleryExtension, version?: string): Promise<IGalleryExtension | null> {
 +		return this.channel.call('getCompatibleExtension', [ id, version ]);
 +	}
++}
+diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+index e09049c5b9..d93ffa527a 100644
+--- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
++++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+@@ -724,11 +724,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 
+ 	private scanSystemExtensions(): Promise<ILocalExtension[]> {
+ 		this.logService.trace('Started scanning system extensions');
+-		const systemExtensionsPromise = this.scanExtensions(this.systemExtensionsPath, ExtensionType.System)
+-			.then(result => {
+-				this.logService.trace('Scanned system extensions:', result.length);
+-				return result;
+-			});
++		const systemExtensionsPromise = Promise.all([
++			this.scanExtensions(this.systemExtensionsPath, ExtensionType.System),
++			...this.environmentService.extraBuiltinExtensionPaths
++				.map((path) => this.scanExtensions(path, ExtensionType.System))
++		]).then((results) => {
++			const result = results.reduce((flat, current) => flat.concat(current), []);
++			this.logService.info('Scanned system extensions:', result.length);
++			return result;
++		});
+ 		if (this.environmentService.isBuilt) {
+ 			return systemExtensionsPromise;
+ 		}
+@@ -750,9 +754,16 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 			.then(([systemExtensions, devSystemExtensions]) => [...systemExtensions, ...devSystemExtensions]);
+ 	}
+ 
++	private scanAllUserExtensions(folderName: string, type: ExtensionType): Promise<ILocalExtension[]> {
++		return Promise.all([
++			this.scanExtensions(folderName, type),
++			...this.environmentService.extraExtensionPaths.map((p) => this.scanExtensions(p, ExtensionType.User))
++		]).then((results) => results.reduce((flat, current) => flat.concat(current), []));
++	}
++
+ 	private scanUserExtensions(excludeOutdated: boolean): Promise<ILocalExtension[]> {
+ 		this.logService.trace('Started scanning user extensions');
+-		return Promise.all([this.getUninstalledExtensions(), this.scanExtensions(this.extensionsPath, ExtensionType.User)])
++		return Promise.all([this.getUninstalledExtensions(), this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User)])
+ 			.then(([uninstalled, extensions]) => {
+ 				extensions = extensions.filter(e => !uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]);
+ 				if (excludeOutdated) {
+@@ -805,7 +816,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 
+ 	private async removeUninstalledExtensions(): Promise<void> {
+ 		const uninstalled = await this.getUninstalledExtensions();
+-		const extensions = await this.scanExtensions(this.extensionsPath, ExtensionType.User); // All user extensions
++		const extensions = await this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User); // All user extensions
+ 		const installed: Set<string> = new Set<string>();
+ 		for (const e of extensions) {
+ 			if (!uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]) {
+@@ -824,7 +835,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 	}
+ 
+ 	private removeOutdatedExtensions(): Promise<void> {
+-		return this.scanExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
++		return this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
+ 			.then(extensions => {
+ 				const toRemove: ILocalExtension[] = [];
+ 
+@@ -982,4 +993,4 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 		*/
+ 		this.telemetryService.publicLog(eventName, assign(extensionData, { success: !error, duration, errorcode }));
+ 	}
+-}
+\ No newline at end of file
 +}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
 index 1986fb6642..7c66b644f2 100644
@@ -796,6 +897,19 @@ index c08a6e37c1..31640d7e66 100644
  		}
  		return this._extensionAllowedBadgeProviders;
  	}
+diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
+index 3525569601..a91a5fce7d 100644
+--- a/src/vs/workbench/services/environment/browser/environmentService.ts
++++ b/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -136,6 +136,8 @@ export class BrowserWorkbenchEnvironmentService implements IEnvironmentService {
+ 	driverHandle?: string;
+ 	driverVerbose: boolean;
+ 	webviewEndpoint?: string;
++	extraExtensionPaths: string[];
++	extraBuiltinExtensionPaths: string[];
+ 
+ 	get webviewResourceRoot(): string {
+ 		return this.webviewEndpoint ? this.webviewEndpoint + '/vscode-resource' : 'vscode-resource:';
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts
 index 611ab9aec9..4e4bea89be 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts

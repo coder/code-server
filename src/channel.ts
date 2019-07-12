@@ -1,6 +1,5 @@
 import * as path from "path";
 
-import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
@@ -207,46 +206,47 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	}
 
 	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
-		const root = getPathFromAmdModule(require, "");
-
 		const translations = {}; // TODO: translations
 
-		// TODO: there is also this.environment.extensionDevelopmentLocationURI to look into.
-		const scanBuiltin = async (): Promise<IExtensionDescription[]> => {
-			const input = new ExtensionScannerInput(
-				pkg.version, product.commit, locale, !!process.env.VSCODE_DEV,
-				path.resolve(root, "../extensions"),
-				true,
-				false,
-				translations,
-			);
-			const extensions = await ExtensionScanner.scanExtensions(input, this.log);
-			// TODO: there is more to do if process.env.VSCODE_DEV is true.
-			return extensions;
+		const scanMultiple = (isBuiltin: boolean, isUnderDevelopment: boolean, paths: string[]): Promise<IExtensionDescription[][]> => {
+			return Promise.all(paths.map((path) => {
+				return ExtensionScanner.scanExtensions(new ExtensionScannerInput(
+					pkg.version,
+					product.commit,
+					locale,
+					!!process.env.VSCODE_DEV,
+					path,
+					isBuiltin,
+					isUnderDevelopment,
+					translations,
+				), this.log);
+			}));
 		};
 
-		const scanInstalled = async (): Promise<IExtensionDescription[]> => {
-			const input = new ExtensionScannerInput(
-				pkg.version, product.commit, locale, !!process.env.VSCODE_DEV,
-				this.environment.extensionsPath, false, true, translations,
-			);
-			return ExtensionScanner.scanExtensions(input, this.log);
+		const scanBuiltin = async (): Promise<IExtensionDescription[][]> => {
+			return scanMultiple(true, false, [this.environment.builtinExtensionsPath, ...this.environment.extraBuiltinExtensionPaths]);
+		};
+
+		const scanInstalled = async (): Promise<IExtensionDescription[][]> => {
+			return scanMultiple(false, true, [this.environment.extensionsPath, ...this.environment.extraExtensionPaths]);
 		};
 
 		return Promise.all([scanBuiltin(), scanInstalled()]).then((allExtensions) => {
 			// It's possible to get duplicates.
 			const uniqueExtensions = new Map<string, IExtensionDescription>();
-			allExtensions.forEach((extensions) => {
-				extensions.forEach((extension) => {
-					const id = ExtensionIdentifier.toKey(extension.identifier);
-					if (uniqueExtensions.has(id)) {
-						const oldPath = uniqueExtensions.get(id)!.extensionLocation.fsPath;
-						const newPath = extension.extensionLocation.fsPath;
-						this.log.warn(
-							`Extension ${id} in ${oldPath} has been overridden ${newPath}`,
-						);
-					}
-					uniqueExtensions.set(id, extension);
+			allExtensions.forEach((multipleExtensions) => {
+				multipleExtensions.forEach((extensions) => {
+					extensions.forEach((extension) => {
+						const id = ExtensionIdentifier.toKey(extension.identifier);
+						if (uniqueExtensions.has(id)) {
+							const oldPath = uniqueExtensions.get(id)!.extensionLocation.fsPath;
+							const newPath = extension.extensionLocation.fsPath;
+							this.log.warn(
+								`Extension ${id} in ${oldPath} has been overridden ${newPath}`,
+							);
+						}
+						uniqueExtensions.set(id, extension);
+					});
 				});
 			});
 

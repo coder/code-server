@@ -74,6 +74,11 @@ interface IMainCli {
 
 const main = async (): Promise<void> => {
 	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
+	["extra-extensions-dir", "extra-builtin-extensions-dir"].forEach((key) => {
+		if (typeof args[key] === "string") {
+			args[key] = [args[key]];
+		}
+	});
 
 	if (!product.extensionsGallery) {
 		product.extensionsGallery = {
