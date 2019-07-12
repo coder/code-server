@@ -1,9 +1,12 @@
+import * as crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as util from "util";
 
 import { getPathFromAmdModule } from "vs/base/common/amd";
+import { getMediaMime as vsGetMediaMime } from "vs/base/common/mime";
+import { extname } from "vs/base/common/path";
 import { URITransformer, IRawURITransformer } from "vs/base/common/uriIpc";
 import { mkdirp } from "vs/base/node/pfs";
 
@@ -57,4 +60,19 @@ export const getUriTransformer = (remoteAuthority: string): URITransformer => {
 	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath());
 	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
 	return new URITransformer(rawURITransformer);
+};
+
+export const generatePassword = async (length: number = 24): Promise<string> => {
+	const buffer = Buffer.alloc(Math.ceil(length / 2));
+	await util.promisify(crypto.randomFill)(buffer);
+	return buffer.toString("hex").substring(0, length);
+};
+
+export const getMediaMime = (filePath?: string): string => {
+	return filePath && (vsGetMediaMime(filePath) || {
+		".css": "text/css",
+		".html": "text/html",
+		".js": "text/javascript",
+		".json": "application/json",
+	}[extname(filePath)]) || "text/plain";
 };

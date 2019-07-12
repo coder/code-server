@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1">
+		<title>Authenticate: code-server</title>
+		<link href="/login/login.css" rel="stylesheet">
+	</head>
+	<body>
+		<form class="login-form" action="/login" method="post">
+			<h4 class="title">code-server</h4>
+			<h2 class="subtitle">
+				Enter server password
+			</h2>
+			<div class="field">
+				<!-- The onfocus code places the cursor at the end of the value. -->
+				<input name="password" type="password" class="input" value=""
+					required autofocus
+					onfocus="const value=this.value;this.value='';this.value=value;">
+			</div>
+			<button class="button" type="submit">
+				<span class="label">Enter IDE</span>
+			</button>
+			<div class="error-display" style="display:none">{{ERROR}}</div>
+		</form>
+	</body>
+</html>

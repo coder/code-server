@@ -6,11 +6,10 @@ import * as path from "path";
 import * as tls from "tls";
 import * as util from "util";
 import * as url from "url";
+import * as querystring from "querystring";
 
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
-import { getMediaMime } from "vs/base/common/mime";
-import { extname } from "vs/base/common/path";
 import { UriComponents, URI } from "vs/base/common/uri";
 import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
 import { mkdirp } from "vs/base/node/pfs";
@@ -49,12 +48,16 @@ import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { Protocol } from "vs/server/src/protocol";
-import { getUriTransformer, useHttpsTransformer } from "vs/server/src/util";
+import { getMediaMime, getUriTransformer, useHttpsTransformer } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
+	Redirect = 302,
 	NotFound = 404,
 	BadRequest = 400,
+	Unauthorized = 401,
+	LargePayload = 413,
+	ServerError = 500,
 }
 
 export interface Options {
@@ -65,9 +68,15 @@ export interface Options {
 }
 
 export interface Response {
-	content?: string | Buffer;
 	code?: number;
-	headers: http.OutgoingHttpHeaders;
+	content?: string | Buffer;
+	filePath?: string;
+	headers?: http.OutgoingHttpHeaders;
+	redirect?: string;
+}
+
+export interface LoginPayload {
+	password?: string;
 }
 
 export class HttpError extends Error {
@@ -80,19 +89,21 @@ export class HttpError extends Error {
 }
 
 export interface ServerOptions {
-	readonly port: number;
-	readonly host: string;
+	readonly port?: number;
+	readonly host?: string;
 	readonly socket?: string;
 	readonly allowHttp?: boolean;
 	readonly cert?: string;
 	readonly certKey?: string;
+	readonly auth?: boolean;
+	readonly password?: string;
 }
 
 export abstract class Server {
 	// The underlying web server.
 	protected readonly server: http.Server | https.Server;
 
-	protected rootPath = path.resolve(__dirname, "../../..");
+	protected rootPath = path.resolve(__dirname, "../../../..");
 
 	private listenPromise: Promise<string> | undefined;
 
@@ -113,7 +124,7 @@ export abstract class Server {
 		if (!this.listenPromise) {
 			this.listenPromise = new Promise((resolve, reject) => {
 				this.server.on("error", reject);
-				const onListen = () => resolve(this.address(this.server, this.options.allowHttp));
+				const onListen = () => resolve(this.address());
 				if (this.options.socket) {
 					this.server.listen(this.options.socket, onListen);
 				} else {
@@ -122,6 +133,22 @@ export abstract class Server {
 			});
 		}
 		return this.listenPromise;
+	}
+
+	/**
+	 * The local address of the server. If you pass in a request, it will use the
+	 * request's host if listening on a port (rather than a socket). This enables
+	 * accessing the webview server from the same host as the main server.
+	 */
+	public address(request?: http.IncomingMessage): string {
+		const address = this.server.address();
+		const endpoint = typeof address !== "string"
+			? (request
+					? request.headers.host!.split(":", 1)[0]
+					: (address.address === "::" ? "localhost" : address.address)
+			) + ":" + address.port
+			: address;
+		return `${this.options.allowHttp ? "http" : "https"}://${endpoint}`;
 	}
 
 	protected abstract handleRequest(
@@ -133,68 +160,192 @@ export abstract class Server {
 
 	protected async getResource(filePath: string): Promise<Response> {
 		const content = await util.promisify(fs.readFile)(filePath);
-		return {
-			content,
-			headers: {
-				"Content-Type": getMediaMime(filePath) || {
-					".css": "text/css",
-					".html": "text/html",
-					".js": "text/javascript",
-					".json": "application/json",
-				}[extname(filePath)] || "text/plain",
-			},
-		};
+		return { content, filePath };
 	}
 
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
-		const secure = (request.connection as tls.TLSSocket).encrypted;
-		if (!this.options.allowHttp && !secure) {
-			response.writeHead(302, {
-				Location: "https://" + request.headers.host + request.url,
-			});
-			return response.end();
-		}
-
 		try {
-			if (request.method !== "GET") {
-				throw new HttpError(
-					`Unsupported method ${request.method}`,
-					HttpCode.BadRequest,
-				);
-			}
-
-			const parsedUrl = url.parse(request.url || "", true);
-
-			const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
-			const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
-			const [, base, requestPath] = match
-				? match.map((p) => p !== "/" ? p.replace(/\/$/, "") : p)
-				: ["", "", ""];
-
-			const { content, headers, code } = await this.handleRequest(
-				base, requestPath, parsedUrl, request,
-			);
-			response.writeHead(code || HttpCode.Ok, {
-				"Cache-Control": "max-age=86400",
-				// TODO: ETag?
-				...headers,
+			const payload = await this.preHandleRequest(request);
+			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
+				"Cache-Control": "max-age=86400", // TODO: ETag?
+				"Content-Type": getMediaMime(payload.filePath),
+				...(payload.redirect ? { Location: payload.redirect } : {}),
+				...payload.headers,
 			});
-			response.end(content);
+			response.end(payload.content);
 		} catch (error) {
 			if (error.code === "ENOENT" || error.code === "EISDIR") {
 				error = new HttpError("Not found", HttpCode.NotFound);
 			}
-			response.writeHead(typeof error.code === "number" ? error.code : 500);
+			response.writeHead(typeof error.code === "number" ? error.code : HttpCode.ServerError);
 			response.end(error.message);
 		}
 	}
 
-	private address(server: net.Server, http?: boolean): string {
-		const address = server.address();
-		const endpoint = typeof address !== "string"
-			? ((address.address === "::" ? "localhost" : address.address) + ":" + address.port)
-			: address;
-		return `${http ? "http" : "https"}://${endpoint}`;
+	private async preHandleRequest(request: http.IncomingMessage): Promise<Response> {
+		const secure = (request.connection as tls.TLSSocket).encrypted;
+		if (!this.options.allowHttp && !secure) {
+			return { redirect: "https://" + request.headers.host + request.url };
+		}
+
+		const parsedUrl = url.parse(request.url || "", true);
+		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
+		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
+		let [, base, requestPath] = match
+			? match.map((p) => p.replace(/\/$/, ""))
+			: ["", "", ""];
+		if (base.indexOf(".") !== -1) { // Assume it's a file at the root.
+			requestPath = base;
+			base = "/";
+		} else if (base === "") { // Happens if it's a plain `domain.com`.
+			base = "/";
+		}
+		if (requestPath === "/") { // Trailing slash, like `domain.com/login/`.
+			requestPath = "";
+		} else if (requestPath !== "") { // "" will become "." with normalize.
+			requestPath = path.normalize(requestPath);
+		}
+		base = path.normalize(base);
+
+		switch (base) {
+			case "/":
+				this.ensureGet(request);
+				if (!this.authenticate(request)) {
+					return { redirect: "https://" + request.headers.host + "/login" };
+				}
+				break;
+			case "/login":
+				if (!this.options.auth) {
+					throw new HttpError("Not found", HttpCode.NotFound);
+				}
+				if (requestPath === "") {
+					return this.tryLogin(request);
+				}
+				this.ensureGet(request);
+				return this.getResource(path.join(this.rootPath, "/out/vs/server/src/login", requestPath));
+			case "/favicon.ico":
+				this.ensureGet(request);
+				return this.getResource(path.join(this.rootPath, "/out/vs/server/src/favicon", base));
+			default:
+				this.ensureGet(request);
+				if (!this.authenticate(request)) {
+					throw new HttpError(`Unauthorized`, HttpCode.Unauthorized);
+				}
+				break;
+		}
+
+		return this.handleRequest(base, requestPath, parsedUrl, request);
+	}
+
+	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
+		if (this.authenticate(request)) {
+			this.ensureGet(request);
+			return { redirect: "https://" + request.headers.host + "/" };
+		}
+
+		if (request.method === "POST") {
+			const data = await this.getData<LoginPayload>(request);
+			if (this.authenticate(request, data)) {
+				return {
+					redirect: "https://" + request.headers.host + "/",
+					headers: {
+					 "Set-Cookie": `password=${data.password}`,
+					}
+				};
+			}
+			let userAgent = request.headers["user-agent"];
+			const timestamp = Math.floor(new Date().getTime() / 1000);
+			if (Array.isArray(userAgent)) {
+				userAgent = userAgent.join(", ");
+			}
+			console.error("Failed login attempt", JSON.stringify({
+				xForwardedFor: request.headers["x-forwarded-for"],
+				remoteAddress: request.connection.remoteAddress,
+				userAgent,
+				timestamp,
+			}));
+			return this.getLogin("Invalid password", data);
+		}
+		this.ensureGet(request);
+		return this.getLogin();
+	}
+
+	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
+		const filePath = path.join(this.rootPath, "out/vs/server/src/login/login.html");
+		let content = await util.promisify(fs.readFile)(filePath, "utf8");
+		if (error) {
+			content = content.replace("{{ERROR}}", error)
+				.replace("display:none", "display:block");
+		}
+		if (payload && payload.password) {
+			content = content.replace('value=""', `value="${payload.password}"`);
+		}
+		return { content, filePath };
+	}
+
+	private ensureGet(request: http.IncomingMessage): void {
+		if (request.method !== "GET") {
+			throw new HttpError(
+				`Unsupported method ${request.method}`,
+				HttpCode.BadRequest,
+			);
+		}
+	}
+
+	private getData<T extends object>(request: http.IncomingMessage): Promise<T> {
+		return request.method === "POST"
+			? new Promise<T>((resolve, reject) => {
+				let body = "";
+				const onEnd = (): void => {
+					off();
+					resolve(querystring.parse(body) as T);
+				};
+				const onError = (error: Error): void => {
+					off();
+					reject(error);
+				};
+				const onData = (d: Buffer): void => {
+					body += d;
+					if (body.length > 1e6) {
+						onError(new HttpError(
+							"Payload is too large",
+							HttpCode.LargePayload,
+						));
+						request.connection.destroy();
+					}
+				};
+				const off = (): void => {
+					request.off("error", onError);
+					request.off("data", onError);
+					request.off("end", onEnd);
+				};
+				request.on("error", onError);
+				request.on("data", onData);
+				request.on("end", onEnd);
+			})
+			: Promise.resolve({} as T);
+	}
+
+	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): boolean {
+		if (!this.options.auth) {
+			return true;
+		}
+		const safeCompare = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/safe-compare/index")) as typeof import("safe-compare");
+		if (typeof payload === "undefined") {
+			payload = this.parseCookies<LoginPayload>(request);
+		}
+		return !!this.options.password && safeCompare(payload.password || "", this.options.password);
+	}
+
+	private parseCookies<T extends object>(request: http.IncomingMessage): T {
+		const cookies: { [key: string]: string } = {};
+		if (request.headers.cookie) {
+			request.headers.cookie.split(";").forEach((keyValue) => {
+				const [key, value] = keyValue.split("=", 2);
+				cookies[key.trim()] = decodeURI(value);
+			});
+		}
+		return cookies as T;
 	}
 }
 
@@ -281,8 +432,7 @@ export class MainServer extends Server {
 		request: http.IncomingMessage,
 	): Promise<Response> {
 		switch (base) {
-			case "/":
-				return this.getRoot(request, parsedUrl);
+			case "/": return this.getRoot(request, parsedUrl);
 			case "/node_modules":
 			case "/out":
 				return this.getResource(path.join(this.rootPath, base, requestPath));
@@ -292,23 +442,19 @@ export class MainServer extends Server {
 			// resources are requested by the browser (like the extension icon) and
 			// some by the file provider (like the extension README). Maybe add a
 			// /resource prefix and a file provider that strips that prefix?
-			default:
-				return this.getResource(path.join(base, requestPath));
+			default: return this.getResource(path.join(base, requestPath));
 		}
 	}
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
-		const htmlPath = path.join(
-			this.rootPath,
-			'out/vs/code/browser/workbench/workbench.html',
-		);
-
-		let content = await util.promisify(fs.readFile)(htmlPath, "utf8");
+		const filePath = path.join(this.rootPath, "out/vs/code/browser/workbench/workbench.html");
+		let content = await util.promisify(fs.readFile)(filePath, "utf8");
 
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
 
-		const webviewEndpoint = await this.webviewServer.listen();
+		await this.webviewServer.listen();
+		const webviewEndpoint = this.webviewServer.address(request);
 
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
@@ -338,12 +484,7 @@ export class MainServer extends Server {
 
 		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
 
-		return {
-			content,
-			headers: {
-				"Content-Type": "text/html",
-			},
-		};
+		return { content, filePath };
 	}
 
 	private createProtocol(request: http.IncomingMessage, socket: net.Socket): Protocol {
@@ -444,15 +585,10 @@ export class WebviewServer extends Server {
 		base: string,
 		requestPath: string,
 	): Promise<Response> {
-		const webviewPath = path.join(
-			this.rootPath,
-			"out/vs/workbench/contrib/webview/browser/pre",
-		);
-
-		if (base === "/") {
-			base = "/index.html";
+		const webviewPath = path.join(this.rootPath, "out/vs/workbench/contrib/webview/browser/pre");
+		if (requestPath === "") {
+			requestPath = "/index.html";
 		}
-
 		return this.getResource(path.join(webviewPath, base, requestPath));
 	}
 }

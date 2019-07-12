@@ -73,7 +73,7 @@ yarn patch:apply
 yarn
 yarn watch
 # Wait for the initial compilation to complete (it will say "Finished compilation").
-yarn start
+yarn start --allow-http --no-auth
 # Visit http://localhost:8443
 ```
 

@@ -4,7 +4,7 @@
     "ensure-in-vscode": "bash ./scripts/tasks.bash ensure-in-vscode",
     "preinstall": "yarn ensure-in-vscode && cd ../../../ && yarn || true",
     "postinstall": "rm -rf node_modules/@types/node",
-    "start": "yarn ensure-in-vscode && nodemon ../../../out/vs/server/main.js --watch ../../../out --verbose",
+    "start": "yarn ensure-in-vscode && nodemon --watch ../../../out --verbose ../../../out/vs/server/main.js",
     "watch": "yarn ensure-in-vscode && cd ../../../ && yarn watch",
     "build": "bash ./scripts/tasks.bash build",
     "package": "bash ./scripts/tasks.bash package",

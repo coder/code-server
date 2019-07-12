@@ -1,4 +1,5 @@
 import * as os from "os";
+import * as path from "path";
 
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
@@ -9,16 +10,16 @@ import pkg from "vs/platform/product/node/package";
 
 import { MainServer, WebviewServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { generateCertificate } from "vs/server/src/util";
+import { generateCertificate, generatePassword } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
 	"allow-http"?: boolean;
+	auth?: boolean;
 	cert?: string;
 	"cert-key"?: string;
 	"extra-builtin-extensions-dir"?: string;
 	"extra-extensions-dir"?: string;
 	host?: string;
-	"no-auth"?: boolean;
 	open?: string;
 	port?: string;
 	socket?: string;
@@ -58,7 +59,7 @@ options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to c
 options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to extra builtin extension directory." });
 options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to extra user extension directory." });
 options.push({ id: "host", type: "string", cat: "o", description: "Host for the main and webview servers." });
-options.push({ id: "no-auth", type: "string", cat: "o", description: "Disable password authentication." });
+options.push({ id: "no-auth", type: "boolean", cat: "o", description: "Disable password authentication." });
 options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
 options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
 options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
@@ -115,17 +116,32 @@ const main = async (): Promise<void> => {
 	}
 
 	const options = {
-		host: args["host"]
-			|| (args["no-auth"] || args["allow-http"] ? "localhost" : "0.0.0.0"),
+		host: args.host,
 		allowHttp: args["allow-http"],
-		cert: args["cert"],
-		certKey: args["cert"],
+		cert: args.cert,
+		certKey: args["cert-key"],
+		auth: typeof args.auth !== "undefined" ? args.auth : true,
+		password: process.env.PASSWORD,
 	};
 
+	if (!options.host) {
+		options.host = !options.auth || options.allowHttp
+			? "localhost"
+			: "0.0.0.0";
+	}
+
+	let usingGeneratedCert = false;
 	if (!options.allowHttp && (!options.cert || !options.certKey)) {
 		const { cert, certKey } = await generateCertificate();
 		options.cert = cert;
 		options.certKey = certKey;
+		usingGeneratedCert = true;
+	}
+
+	let usingGeneratedPassword = false;
+	if (options.auth && !options.password) {
+		options.password = await generatePassword();
+		usingGeneratedPassword = true;
 	}
 
 	const webviewPort = typeof args["webview-port"] !== "undefined"
@@ -149,6 +165,25 @@ const main = async (): Promise<void> => {
 	]);
 	console.log(`Main server listening on ${serverAddress}`);
 	console.log(`Webview server listening on ${webviewAddress}`);
+
+	if (usingGeneratedPassword) {
+		console.log("  - Password is", options.password);
+		console.log("  - To use your own password, set the PASSWORD environment variable");
+	} else if (options.auth) {
+		console.log("  - Using custom password for authentication");
+	} else {
+		console.log("  - No authentication");
+	}
+
+	if (!options.allowHttp && options.cert && options.certKey) {
+		console.log(
+			usingGeneratedCert
+				? `  - Using generated certificate and key in ${path.dirname(options.cert)} for HTTPS`
+				: "  - Using provided certificate and key for HTTPS",
+		);
+	} else {
+		console.log("  - Not serving HTTPS");
+	}
 };
 
 main().catch((error) => {
