@@ -65,7 +65,10 @@ module.exports = (options = {}) => merge(
 			icons: [{
 				src: path.join(root, "packages/web/assets/logo.png"),
 				sizes: [96, 128, 192, 256, 384],
+				ios: true
 			}],
+			inject: true,
+			ios: true
 		})
 	].concat(prod ? [
 		new GenerateSW({
