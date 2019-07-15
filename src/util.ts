@@ -1,3 +1,4 @@
+import * as cp from "child_process";
 import * as crypto from "crypto";
 import * as fs from "fs";
 import * as os from "os";
@@ -75,4 +76,41 @@ export const getMediaMime = (filePath?: string): string => {
 		".js": "text/javascript",
 		".json": "application/json",
 	}[extname(filePath)]) || "text/plain";
+};
+
+export const isWsl = async (): Promise<boolean> => {
+	return process.platform === "linux"
+		&& os.release().toLowerCase().indexOf("microsoft") !== -1
+		|| (await util.promisify(fs.readFile)("/proc/version", "utf8"))
+			.toLowerCase().indexOf("microsoft") !== -1;
+};
+
+export const open = async (url: string): Promise<void> => {
+	let command: string;
+	const args = <string[]>[];
+	const options = <cp.SpawnOptions>{};
+	const platform = await isWsl() ? "wsl" : process.platform;
+	switch (platform) {
+		case "darwin":
+			command = "open";
+			break;
+		case "win32":
+		case "wsl":
+			command = platform === "wsl" ? "cmd.exe" : "cmd";
+			args.push("/c", "start", '""', "/b");
+			url = url.replace(/&/g, "^&");
+		default:
+			command = "xdg-open";
+			break;
+	}
+	args.push(url);
+	const proc = cp.spawn(command, args, options);
+	await new Promise((resolve, reject) => {
+		proc.on("error", reject);
+		proc.on("close", (code) => {
+			return code !== 0
+				? reject(new Error(`Failed to open with code ${code}`))
+				: resolve();
+		});
+	});
 };

@@ -10,7 +10,7 @@ import pkg from "vs/platform/product/node/package";
 
 import { MainServer, WebviewServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { generateCertificate, generatePassword } from "vs/server/src/util";
+import { generateCertificate, generatePassword, open } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
 	"allow-http"?: boolean;
@@ -191,6 +191,11 @@ const main = async (): Promise<void> => {
 		);
 	} else {
 		console.log("  - Not serving HTTPS");
+	}
+
+	if (args["open"]) {
+		await open(serverAddress).catch(console.error);
+		console.log("  - Opened URL");
 	}
 };
 
