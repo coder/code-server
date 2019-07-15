@@ -4,7 +4,7 @@ import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter } from "vs/base/common/event";
 import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
-import { NodeSocket, WebSocketNodeSocket } from "vs/base/parts/ipc/node/ipc.net";
+import { NodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { ILogService } from "vs/platform/log/common/log";
 import { IExtHostReadyMessage, IExtHostSocketMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
@@ -12,75 +12,53 @@ import { Protocol } from "vs/server/src/protocol";
 import { uriTransformerPath } from "vs/server/src/util";
 
 export abstract class Connection {
-	private readonly _onClose = new Emitter<void>();
+	protected readonly _onClose = new Emitter<void>();
 	public readonly onClose = this._onClose.event;
+	protected disposed: boolean = false;
 
-	private timeout: NodeJS.Timeout | undefined;
-	private readonly wait = 1000 * 60;
-
-	private closed: boolean = false;
-
-	public constructor(protected protocol: Protocol) {
-		// onClose seems to mean we want to disconnect, so close immediately.
-		protocol.onClose(() => this.close());
-
-		// If the socket closes, we want to wait before closing so we can
-		// reconnect in the meantime.
-		protocol.onSocketClose(() => {
-			this.timeout = setTimeout(() => {
-				this.close();
-			}, this.wait);
-		});
-	}
+	public constructor(protected protocol: Protocol) {}
 
 	/**
 	 * Set up the connection on a new socket.
 	 */
-	public reconnect(protocol: Protocol, buffer: VSBuffer): void {
-		if (this.closed) {
-			throw new Error("Cannot reconnect to closed connection");
-		}
-		clearTimeout(this.timeout as any); // Not sure why the type doesn't work.
-		this.protocol = protocol;
-		this.connect(protocol.getSocket(), buffer);
-	}
-
-	/**
-	 * Close and clean up connection. This will also kill the socket the
-	 * connection is on. Probably not safe to reconnect once this has happened.
-	 */
-	protected close(): void {
-		if (!this.closed) {
-			this.closed = true;
-			this.protocol.sendDisconnect();
-			this.dispose();
-			this.protocol.dispose();
-			this._onClose.fire();
-		}
-	}
+	public abstract reconnect(socket: ISocket, buffer: VSBuffer): void;
 
 	/**
 	 * Clean up the connection.
 	 */
 	protected abstract dispose(): void;
-
-	/**
-	 * Connect to a new socket.
-	 */
-	protected abstract connect(socket: ISocket, buffer: VSBuffer): void;
 }
 
 /**
  * Used for all the IPC channels.
  */
 export class ManagementConnection extends Connection {
-	protected dispose(): void {
-		// Nothing extra to do here.
+	private timeout: NodeJS.Timeout | undefined;
+	private readonly wait = 1000 * 60;
+
+	public constructor(protocol: Protocol) {
+		super(protocol);
+		protocol.onClose(() => this.dispose());
+		protocol.onSocketClose(() => {
+			this.timeout = setTimeout(() => this.dispose(), this.wait);
+		});
 	}
 
-	protected connect(socket: ISocket, buffer: VSBuffer): void {
+	public reconnect(socket: ISocket, buffer: VSBuffer): void {
+		clearTimeout(this.timeout as any); // Not sure why the type doesn't work.
 		this.protocol.beginAcceptReconnection(socket, buffer);
 		this.protocol.endAcceptReconnection();
+	}
+
+	protected dispose(): void {
+		if (!this.disposed) {
+			clearTimeout(this.timeout as any); // Not sure why the type doesn't work.
+			this.disposed = true;
+			this.protocol.sendDisconnect();
+			this.protocol.dispose();
+			this.protocol.getSocket().end();
+			this._onClose.fire();
+		}
 	}
 }
 
@@ -90,38 +68,45 @@ export class ManagementConnection extends Connection {
 export class ExtensionHostConnection extends Connection {
 	private process: cp.ChildProcess;
 
-	public constructor(protocol: Protocol, private readonly log: ILogService) {
+	public constructor(
+		protocol: Protocol, buffer: VSBuffer,
+		private readonly log: ILogService,
+	) {
 		super(protocol);
-		const socket = this.protocol.getSocket();
-		const buffer = this.protocol.readEntireBuffer();
-		this.process = this.spawn(socket, buffer);
+		protocol.dispose();
+		this.process = this.spawn(buffer);
 	}
 
 	protected dispose(): void {
-		this.process.kill();
+		if (!this.disposed) {
+			this.disposed = true;
+			this.process.kill();
+			this.protocol.getSocket().end();
+			this._onClose.fire();
+		}
 	}
 
-	protected connect(socket: ISocket, buffer: VSBuffer): void {
-		this.sendInitMessage(socket, buffer);
+	public reconnect(socket: ISocket, buffer: VSBuffer): void {
+		// This is just to set the new socket.
+		this.protocol.beginAcceptReconnection(socket, null);
+		this.protocol.dispose();
+		this.sendInitMessage(buffer);
 	}
 
-	private sendInitMessage(nodeSocket: ISocket, buffer: VSBuffer): void {
-		const socket = nodeSocket instanceof NodeSocket
-			? nodeSocket.socket
-			: (nodeSocket as WebSocketNodeSocket).socket.socket;
-
+	private sendInitMessage(buffer: VSBuffer): void {
+		const socket = this.protocol.getUnderlyingSocket();
 		socket.pause();
 
 		const initMessage: IExtHostSocketMessage = {
 			type: "VSCODE_EXTHOST_IPC_SOCKET",
 			initialDataChunk: (buffer.buffer as Buffer).toString("base64"),
-			skipWebSocketFrames: nodeSocket instanceof NodeSocket,
+			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
 		};
 
 		this.process.send(initMessage, socket);
 	}
 
-	private spawn(socket: ISocket, buffer: VSBuffer): cp.ChildProcess {
+	private spawn(buffer: VSBuffer): cp.ChildProcess {
 		const proc = cp.fork(
 			getPathFromAmdModule(require, "bootstrap-fork"),
 			[
@@ -142,20 +127,15 @@ export class ExtensionHostConnection extends Connection {
 			},
 		);
 
-		proc.on("error", (error) => {
-			console.error(error);
-			this.close();
-		});
-
-		proc.on("exit", (code, signal) => {
-			console.error("Extension host exited", { code, signal });
-			this.close();
-		});
+		proc.on("error", () => this.dispose());
+		proc.on("exit", () => this.dispose());
 
 		proc.stdout.setEncoding("utf8");
 		proc.stderr.setEncoding("utf8");
-		proc.stdout.on("data", (data) => this.log.info("Extension host stdout", data));
-		proc.stderr.on("data", (data) => this.log.error("Extension host stderr", data));
+
+		proc.stdout.on("data", (d) => this.log.info("Extension host stdout", d));
+		proc.stderr.on("data", (d) => this.log.error("Extension host stderr", d));
+
 		proc.on("message", (event) => {
 			if (event && event.type === "__$console") {
 				const severity = this.log[event.severity] ? event.severity : "info";
@@ -166,10 +146,9 @@ export class ExtensionHostConnection extends Connection {
 		const listen = (message: IExtHostReadyMessage) => {
 			if (message.type === "VSCODE_EXTHOST_IPC_READY") {
 				proc.removeListener("message", listen);
-				this.sendInitMessage(socket, buffer);
+				this.sendInitMessage(buffer);
 			}
 		};
-
 		proc.on("message", listen);
 
 		return proc;

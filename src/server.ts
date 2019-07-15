@@ -376,7 +376,9 @@ export class MainServer extends Server {
 			try {
 				await this.connect(await protocol.handshake(), protocol);
 			} catch (error) {
-				protocol.dispose(error);
+				protocol.sendMessage({ type: "error", reason: error.message });
+				protocol.dispose();
+				protocol.getSocket().dispose();
 			}
 		});
 
@@ -539,7 +541,7 @@ export class MainServer extends Server {
 					protocol.sendMessage(ok);
 					const buffer = protocol.readEntireBuffer();
 					protocol.dispose();
-					return connections.get(token)!.reconnect(protocol, buffer);
+					return connections.get(token)!.reconnect(protocol.getSocket(), buffer);
 				}
 
 				if (protocol.options.reconnection || connections.has(token)) {
@@ -559,8 +561,10 @@ export class MainServer extends Server {
 						onDidClientDisconnect: connection.onClose,
 					});
 				} else {
+					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
-						protocol, this.services.get(ILogService) as ILogService,
+						protocol, buffer,
+						this.services.get(ILogService) as ILogService,
 					);
 				}
 				connections.set(protocol.options.reconnectionToken, connection);

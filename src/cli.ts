@@ -195,7 +195,7 @@ const main = async (): Promise<void> => {
 
 	if (args["open"]) {
 		await open(serverAddress).catch(console.error);
-		console.log("  - Opened URL");
+		console.log(`  - Opened ${serverAddress}`);
 	}
 };
 

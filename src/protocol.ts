@@ -13,8 +13,6 @@ export interface SocketOptions {
 }
 
 export class Protocol extends PersistentProtocol {
-	private disposed: boolean = false;
-
 	public constructor(
 		secWebsocketKey: string,
 		socket: net.Socket,
@@ -25,15 +23,14 @@ export class Protocol extends PersistentProtocol {
 				? new NodeSocket(socket)
 				: new WebSocketNodeSocket(new NodeSocket(socket)),
 		);
-		socket.on("error", () => this.dispose());
-		socket.on("end", () => this.dispose());
+		socket.on("error", () => socket.destroy());
+		socket.on("end", () => socket.destroy());
 
 		// This magic value is specified by the websocket spec.
 		const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 		const reply = crypto.createHash("sha1")
 			.update(secWebsocketKey + magic)
 			.digest("base64");
-
 		socket.write([
 			"HTTP/1.1 101 Switching Protocols",
 			"Upgrade: websocket",
@@ -42,21 +39,11 @@ export class Protocol extends PersistentProtocol {
 		].join("\r\n") + "\r\n\r\n");
 	}
 
-	public sendDisconnect(): void {
-		if (!this.disposed) {
-			super.sendDisconnect();
-		}
-	}
-
-	public dispose(error?: Error): void {
-		if (!this.disposed) {
-			this.disposed = true;
-			if (error) {
-				this.sendMessage({ type: "error", reason: error.message });
-			}
-			super.dispose();
-			this.getSocket().dispose();
-		}
+	public getUnderlyingSocket(): net.Socket {
+		const socket = this.getSocket();
+		return socket instanceof NodeSocket
+			? socket.socket
+			: (socket as WebSocketNodeSocket).socket.socket;
 	}
 
 	/**
