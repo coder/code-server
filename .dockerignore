@@ -1,7 +1,5 @@
 Dockerfile
-# Docs
 doc/
-# GitHub stuff
 .github
 .gitignore
 .travis.yml

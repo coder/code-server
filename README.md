@@ -10,7 +10,7 @@ remote server, accessible through the browser.
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/code-server --allow-http --no-auth
+docker run -it -p 127.0.0.1:8443:8443 -p 127.0.0.1:8444:8444 -v "$PWD:/home/coder/project" codercom/code-server --allow-http --no-auth
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
@@ -59,9 +59,9 @@ Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md),
 How to [secure your setup](/doc/security/ssl.md).
 
 ### Build
-- If you also plan on developing, set the `OUT` environment variable: `
-  export OUT=/path/to/some/directory`. Otherwise it will build in this
-  directory which will cause issues because then `yarn watch` will try to
+- If you also plan on developing, set the `OUT` environment variable:
+  `export OUT=/path/to/some/directory`. Otherwise it will build in this
+  directory which will cause issues because `yarn watch` will try to
   compile the build directory as well.
 - For now `@coder/nbin` is a global dependency.
 - Run `yarn build ${codeServerVersion} ${vscodeVersion} ${target} ${arch}` in

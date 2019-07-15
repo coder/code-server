@@ -16,6 +16,8 @@ function docker-build() {
 	# TODO: temporary as long as we are rebuilding modules.
 	if [[ "${image}" == "codercom/nbin-alpine" ]] ; then
 		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
+	else
+		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel
 	fi
 
 	function docker-exec() {

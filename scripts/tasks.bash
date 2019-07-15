@@ -94,13 +94,13 @@ function build-code-server() {
 	rm -rf "${codeServerBuildPath}/out/vs/server/typings"
 
 	# Rebuild to make sure the native modules work since at the moment all the
-	# pre-built packages are from one Linux system. This means you must build on
-	# the target system.
+	# pre-built packages are from one Linux system which compiles against the
+	# latest glibc. This means you must build on the target system.
 	log "Installing remote dependencies"
 	cd "${vscodeSourcePath}/remote"
-	if [[ "${target}" != "linux" ]] ; then
-		yarn --production --force
-	fi
+	# TODO: vscode-ripgrep errors saying node_modules doesn't exist.
+	# TODO: yarn --force should be the same but it doesn't fix it.
+	npm rebuild || true
 	cp -r "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
 
 	# Only keep the production dependencies.
@@ -133,7 +133,9 @@ function build-vscode() {
 		log "Installing VS Code dependencies"
 		# Not entirely sure why but there seem to be problems with native modules
 		# so rebuild them.
-		yarn --force
+		# TODO: vscode-ripgrep errors saying node_modules doesn't exist.
+		# TODO: yarn --force should be the same but it'.
+		npm rebuild || true
 
 		# Keep just what we need to keep the pre-built archive smaller.
 		rm -rf "${vscodeSourcePath}/test"
