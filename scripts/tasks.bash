@@ -98,9 +98,7 @@ function build-code-server() {
 	# latest glibc. This means you must build on the target system.
 	log "Installing remote dependencies"
 	cd "${vscodeSourcePath}/remote"
-	# TODO: vscode-ripgrep errors saying node_modules doesn't exist.
-	# TODO: yarn --force should be the same but it doesn't fix it.
-	npm rebuild || true
+	yarn --production --force --build-from-source
 	cp -r "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
 
 	# Only keep the production dependencies.
@@ -131,14 +129,11 @@ function build-vscode() {
 	if [[ ! -d "${vscodeSourcePath}/node_modules" ]] ; then
 		exit-if-ci
 		log "Installing VS Code dependencies"
-		# Not entirely sure why but there seem to be problems with native modules
-		# so rebuild them.
-		# TODO: vscode-ripgrep errors saying node_modules doesn't exist.
-		# TODO: yarn --force should be the same but it'.
-		npm rebuild || true
+		yarn
 
 		# Keep just what we need to keep the pre-built archive smaller.
 		rm -rf "${vscodeSourcePath}/test"
+		rm -rf "${vscodeSourcePath}/remote/node_modules" # Will rebuild.
 	else
 		log "${vscodeSourceName}/node_modules already exists, skipping install"
 	fi
