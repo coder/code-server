@@ -11,6 +11,7 @@ import * as querystring from "querystring";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
 import { UriComponents, URI } from "vs/base/common/uri";
+import { getMachineId } from 'vs/base/node/id';
 import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
 import { mkdirp } from "vs/base/node/pfs";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
@@ -34,19 +35,25 @@ import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
 import { IProductConfiguration } from "vs/platform/product/common/product";
+import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 import { IRequestService } from "vs/platform/request/node/request";
 import { RequestService } from "vs/platform/request/node/requestService";
+import ErrorTelemetry from "vs/platform/telemetry/browser/errorTelemetry";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { NullTelemetryService } from "vs/platform/telemetry/common/telemetryUtils";
+import { NullTelemetryService, LogAppender, combinedAppender } from "vs/platform/telemetry/common/telemetryUtils";
+import { TelemetryService, ITelemetryServiceConfig } from "vs/platform/telemetry/common/telemetryService";
+import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
+import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
-// import { TelemetryService } from "vs/workbench/services/telemetry/electron-browser/telemetryService";
+import { TelemetryChannel } from "vs/platform/telemetry/node/telemetryIpc";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
+import { TelemetryClient } from "vs/server/src/insights";
 import { Protocol } from "vs/server/src/protocol";
 import { getMediaMime, getUriTransformer, useHttpsTransformer } from "vs/server/src/util";
 
@@ -363,6 +370,7 @@ export class MainServer extends Server {
 	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	private readonly services = new ServiceCollection();
+	private readonly servicesPromise: Promise<void>;
 
 	public constructor(
 		options: ServerOptions,
@@ -381,39 +389,7 @@ export class MainServer extends Server {
 				protocol.getSocket().dispose();
 			}
 		});
-
-		const environmentService = new EnvironmentService(args, process.execPath);
-		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
-		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
-
-		const router = new StaticRouter((context: any) => {
-			return context.clientId === "renderer";
-		});
-
-		this.services.set(ILogService, logService);
-		this.services.set(IEnvironmentService, environmentService);
-		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
-		this.services.set(IRequestService, new SyncDescriptor(RequestService));
-		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
-		this.services.set(ITelemetryService, NullTelemetryService); // TODO: telemetry
-		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
-		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
-
-		const instantiationService = new InstantiationService(this.services);
-
-		this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
-
-		instantiationService.invokeFunction(() => {
-			instantiationService.createInstance(LogsDataCleaner);
-			this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
-			this.ipc.registerChannel("remoteextensionsenvironment", new ExtensionEnvironmentChannel(environmentService, logService));
-			const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
-			const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
-			this.ipc.registerChannel("extensions", extensionsChannel);
-			const galleryService = this.services.get(IExtensionGalleryService) as IExtensionGalleryService;
-			const galleryChannel = new ExtensionGalleryChannel(galleryService);
-			this.ipc.registerChannel("gallery", galleryChannel);
-		});
+		this.servicesPromise = this.initializeServices(args);
 	}
 
 	public async listen(): Promise<string> {
@@ -456,7 +432,11 @@ export class MainServer extends Server {
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
 
-		await this.webviewServer.listen();
+		await Promise.all([
+			this.webviewServer.listen(),
+			this.servicesPromise,
+		]);
+
 		const webviewEndpoint = this.webviewServer.address(request);
 
 		const cwd = process.env.VSCODE_CWD || process.cwd();
@@ -575,6 +555,69 @@ export class MainServer extends Server {
 			case ConnectionType.Tunnel: return protocol.tunnel();
 			default: throw new Error("Unrecognized connection type");
 		}
+	}
+
+	private async initializeServices(args: ParsedArgs): Promise<void> {
+		const environmentService = new EnvironmentService(args, process.execPath);
+		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
+		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+
+		const router = new StaticRouter((context: any) => {
+			return context.clientId === "renderer";
+		});
+
+		this.services.set(ILogService, logService);
+		this.services.set(IEnvironmentService, environmentService);
+		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
+		this.services.set(IRequestService, new SyncDescriptor(RequestService));
+		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
+		if (!environmentService.args["disable-telemetry"]) {
+			const version = `${(pkg as any).codeServerVersion || "development"}-vsc${pkg.version}`;
+			this.services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [{
+				appender: combinedAppender(
+					new AppInsightsAppender("code-server", null, () => new TelemetryClient(), logService),
+					new LogAppender(logService),
+				),
+				commonProperties: resolveCommonProperties(
+					product.commit, version, await getMachineId(),
+					environmentService.installSourcePath, "code-server",
+				),
+				piiPaths: [
+					environmentService.appRoot,
+					environmentService.extensionsPath,
+					...environmentService.extraExtensionPaths,
+					...environmentService.extraBuiltinExtensionPaths,
+				],
+			} as ITelemetryServiceConfig]));
+		} else {
+			this.services.set(ITelemetryService, NullTelemetryService);
+		}
+		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
+		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
+
+		const instantiationService = new InstantiationService(this.services);
+
+		this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
+
+		return new Promise((resolve) => {
+			instantiationService.invokeFunction(() => {
+				instantiationService.createInstance(LogsDataCleaner);
+				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
+				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
+				this.ipc.registerChannel("remoteextensionsenvironment", new ExtensionEnvironmentChannel(environmentService, logService, telemetryService));
+				const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
+				const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
+				this.ipc.registerChannel("extensions", extensionsChannel);
+				const galleryService = this.services.get(IExtensionGalleryService) as IExtensionGalleryService;
+				const galleryChannel = new ExtensionGalleryChannel(galleryService);
+				this.ipc.registerChannel("gallery", galleryChannel);
+				const telemetryChannel = new TelemetryChannel(telemetryService);
+				this.ipc.registerChannel("telemetry", telemetryChannel);
+				// tslint:disable-next-line no-unused-expression
+				new ErrorTelemetry(telemetryService);
+				resolve();
+			});
+		});
 	}
 
 	/**

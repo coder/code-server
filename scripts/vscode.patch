@@ -214,6 +214,103 @@ index e09049c5b9..d93ffa527a 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
+index 9f68b645b6..fe380bb6f8 100644
+--- a/src/vs/platform/log/common/logIpc.ts
++++ b/src/vs/platform/log/common/logIpc.ts
+@@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
+ 	call(_: unknown, command: string, arg?: any): Promise<any> {
+ 		switch (command) {
+ 			case 'setLevel': this.service.setLevel(arg); return Promise.resolve();
++			case 'getLevel': return Promise.resolve(this.service.getLevel());
+ 		}
+ 
+ 		throw new Error(`Call not found: ${command}`);
+@@ -40,6 +41,10 @@ export class LogLevelSetterChannelClient {
+ 		return this.channel.listen('onDidChangeLogLevel');
+ 	}
+ 
++	getLevel(): Promise<LogLevel> {
++		return this.channel.call('getLevel');
++	}
++
+ 	setLevel(level: LogLevel): void {
+ 		this.channel.call('setLevel', level);
+ 	}
+@@ -56,4 +61,4 @@ export class FollowerLogService extends DelegatedLogService implements ILogServi
+ 	setLevel(level: LogLevel): void {
+ 		this.master.setLevel(level);
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/src/vs/platform/telemetry/node/telemetryIpc.ts b/src/vs/platform/telemetry/node/telemetryIpc.ts
+index 8e1b68eb36..2b6a0d5b15 100644
+--- a/src/vs/platform/telemetry/node/telemetryIpc.ts
++++ b/src/vs/platform/telemetry/node/telemetryIpc.ts
+@@ -6,6 +6,9 @@
+ import { IChannel, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
+ import { ITelemetryAppender } from 'vs/platform/telemetry/common/telemetryUtils';
+ import { Event } from 'vs/base/common/event';
++import { ITelemetryService, ITelemetryInfo } from 'vs/platform/telemetry/common/telemetry';
++import { ITelemetryData } from 'vs/base/common/actions';
++import { ClassifiedEvent, GDPRClassification, StrictPropertyCheck } from 'vs/platform/telemetry/common/gdprTypings';
+ 
+ export interface ITelemetryLog {
+ 	eventName: string;
+@@ -41,3 +44,52 @@ export class TelemetryAppenderClient implements ITelemetryAppender {
+ 		// TODO
+ 	}
+ }
++
++export class TelemetryChannel implements IServerChannel {
++
++	constructor(private service: ITelemetryService) {}
++
++	listen(_: unknown, event: string): Event<any> {
++		throw new Error(`Invalid listen ${event}`);
++	}
++
++	call(_: unknown, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case 'publicLog': return this.service.publicLog(args[0], args[1], args[2]);
++			case 'publicLog2': return this.service.publicLog2(args[0], args[1], args[2]);
++			case 'setEnabled': return Promise.resolve(this.service.setEnabled(args[0]));
++			case 'getTelemetryInfo': return this.service.getTelemetryInfo();
++		}
++
++		throw new Error(`Invalid call ${command}`);
++	}
++}
++
++export class TelemetryChannelClient implements ITelemetryService {
++
++	_serviceBrand: any;
++
++	constructor(
++		private readonly channel: IChannel,
++	) { }
++
++	public publicLog(eventName: string, data?: ITelemetryData, anonymizeFilePaths?: boolean): Promise<void> {
++		return this.channel.call('publicLog', [eventName, data, anonymizeFilePaths]);
++	}
++
++	public publicLog2<E extends ClassifiedEvent<T> = never, T extends GDPRClassification<T> = never>(eventName: string, data?: StrictPropertyCheck<T, E>, anonymizeFilePaths?: boolean): Promise<void> {
++		return this.channel.call('publicLog2', [eventName, data, anonymizeFilePaths]);
++	}
++
++	public setEnabled(value: boolean): void {
++		this.channel.call('setEnable', [value]);
++	}
++
++	public getTelemetryInfo(): Promise<ITelemetryInfo> {
++		return this.channel.call('getTelemetryInfo');
++	}
++
++	public get isOptedIn(): boolean {
++		return true;
++	}
++}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
 index 1986fb6642..afbe385af6 100644
 --- a/src/vs/workbench/browser/web.main.ts
@@ -236,21 +333,22 @@ index 1986fb6642..afbe385af6 100644
 \ No newline at end of file
 +}
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..2e4dfb393a 100644
+index b253e573ae..bde667d045 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
-@@ -53,6 +53,10 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
+@@ -53,6 +53,11 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
  import { ParsedArgs } from 'vs/platform/environment/common/environment';
  import { ClassifiedEvent, StrictPropertyCheck, GDPRClassification } from 'vs/platform/telemetry/common/gdprTypings';
  import { IProcessEnvironment } from 'vs/base/common/platform';
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 +import { ExtensionManagementChannelClient } from 'vs/platform/extensionManagement/node/extensionManagementIpc';
-+import { ExtensionGalleryChannelClient } from "vs/platform/extensionManagement/node/extensionGalleryIpc";
++import { ExtensionGalleryChannelClient } from 'vs/platform/extensionManagement/node/extensionGalleryIpc';
++import { TelemetryChannelClient } from 'vs/platform/telemetry/node/telemetryIpc';
 +import { IProductService } from 'vs/platform/product/common/product';
  
  //#region Backup File
  
-@@ -125,13 +129,11 @@ export class SimpleClipboardService implements IClipboardService {
+@@ -125,13 +130,11 @@ export class SimpleClipboardService implements IClipboardService {
  	writeText(text: string, type?: string): void { }
  
  	readText(type?: string): string {
@@ -266,7 +364,7 @@ index b253e573ae..2e4dfb393a 100644
  	}
  
  	writeFindText(text: string): void { }
-@@ -239,7 +241,17 @@ export class SimpleExtensionGalleryService implements IExtensionGalleryService {
+@@ -239,7 +242,17 @@ export class SimpleExtensionGalleryService implements IExtensionGalleryService {
  	}
  }
  
@@ -285,7 +383,7 @@ index b253e573ae..2e4dfb393a 100644
  
  //#endregion
  
-@@ -262,7 +274,7 @@ export class SimpleExtensionsWorkbenchService implements IExtensionsWorkbenchSer
+@@ -262,7 +275,7 @@ export class SimpleExtensionsWorkbenchService implements IExtensionsWorkbenchSer
  	checkForUpdates: any;
  	allowedBadgeProviders: string[];
  }
@@ -294,7 +392,7 @@ index b253e573ae..2e4dfb393a 100644
  //#endregion
  
  //#region ICommentService
-@@ -375,7 +387,10 @@ export class SimpleExtensionTipsService implements IExtensionTipsService {
+@@ -375,7 +388,10 @@ export class SimpleExtensionTipsService implements IExtensionTipsService {
  	}
  
  	getAllIgnoredRecommendations(): { global: string[]; workspace: string[]; } {
@@ -306,7 +404,7 @@ index b253e573ae..2e4dfb393a 100644
  	}
  }
  
-@@ -436,7 +451,16 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
+@@ -436,7 +452,16 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
  	}
  }
  
@@ -324,7 +422,24 @@ index b253e573ae..2e4dfb393a 100644
  
  //#endregion
  
-@@ -1288,4 +1312,4 @@ class SimpleTunnelService implements ITunnelService {
+@@ -680,7 +705,15 @@ export class SimpleTelemetryService implements ITelemetryService {
+ 	}
+ }
+ 
+-registerSingleton(ITelemetryService, SimpleTelemetryService);
++// registerSingleton(ITelemetryService, SimpleTelemetryService);
++class TelemetryService extends TelemetryChannelClient {
++	public constructor(
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
++	) {
++		super(remoteAgentService.getConnection()!.getChannel('telemetry'));
++	}
++}
++registerSingleton(ITelemetryService, TelemetryService);
+ 
+ //#endregion
+ 
+@@ -1288,4 +1321,4 @@ class SimpleTunnelService implements ITunnelService {
  
  registerSingleton(ITunnelService, SimpleTunnelService);
  
@@ -910,6 +1025,20 @@ index c08a6e37c1..31640d7e66 100644
 +			this._extensionAllowedBadgeProviders = []; // (product.extensionAllowedBadgeProviders || []).map(s => s.toLowerCase());
  		}
  		return this._extensionAllowedBadgeProviders;
+ 	}
+diff --git a/src/vs/workbench/contrib/remote/common/remote.contribution.ts b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
+index 9235c739fb..32d203eb32 100644
+--- a/src/vs/workbench/contrib/remote/common/remote.contribution.ts
++++ b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
+@@ -55,7 +55,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
+ 		const connection = remoteAgentService.getConnection();
+ 		if (connection) {
+ 			const logLevelClient = new LogLevelSetterChannelClient(connection.getChannel('loglevel'));
+-			logLevelClient.setLevel(logService.getLevel());
++			logLevelClient.getLevel().then((level) => logService.setLevel(level));
++			logLevelClient.onDidChangeLogLevel((level) => logService.setLevel(level));
+ 			this._register(logService.onDidChangeLogLevel(level => logLevelClient.setLevel(level)));
+ 		}
  	}
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index 3525569601..a91a5fce7d 100644

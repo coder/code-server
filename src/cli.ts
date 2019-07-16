@@ -5,8 +5,8 @@ import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/environment/node/argv";
-import product from "vs/platform/product/node/product";
 import pkg from "vs/platform/product/node/package";
+import product from "vs/platform/product/node/product";
 
 import { MainServer, WebviewServer } from "vs/server/src/server";
 import "vs/server/src/tar";

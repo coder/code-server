@@ -15,6 +15,7 @@ import { ILogService } from "vs/platform/log/common/log";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
+import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
 
@@ -181,6 +182,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	public constructor(
 		private readonly environment: IEnvironmentService,
 		private readonly log: ILogService,
+		private readonly telemetry: ITelemetryService,
 	) {}
 
 	public listen(_: unknown, event: string): Event<any> {
@@ -271,7 +273,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		throw new Error("not implemented");
 	}
 
-	private disableTelemetry(): Promise<void> {
-		throw new Error("not implemented");
+	private async disableTelemetry(): Promise<void> {
+		this.telemetry.setEnabled(false);
 	}
 }
