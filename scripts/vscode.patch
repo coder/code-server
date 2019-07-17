@@ -312,10 +312,34 @@ index 8e1b68eb36..2b6a0d5b15 100644
 +	}
 +}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 1986fb6642..afbe385af6 100644
+index 1986fb6642..1bf169a4b4 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
-@@ -115,6 +115,9 @@ class CodeRendererMain extends Disposable {
+@@ -35,6 +35,7 @@ import { SignService } from 'vs/platform/sign/browser/signService';
+ import { hash } from 'vs/base/common/hash';
+ import { IWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
+ import { ProductService } from 'vs/platform/product/browser/productService';
++import { coderApi, vscodeApi } from 'vs/server/src/api';
+ 
+ class CodeRendererMain extends Disposable {
+ 
+@@ -71,6 +72,15 @@ class CodeRendererMain extends Disposable {
+ 
+ 		// Startup
+ 		this.workbench.startup();
++
++		const target = window as any;
++		target.ide = coderApi(services.serviceCollection);
++		target.vscode = vscodeApi(services.serviceCollection);
++
++		const event = new CustomEvent('ide-ready');
++		(event as any).ide = target.ide;
++		(event as any).vscode = target.vscode;
++		window.dispatchEvent(event);
+ 	}
+ 
+ 	private async initServices(): Promise<{ serviceCollection: ServiceCollection, logService: ILogService }> {
+@@ -115,6 +125,9 @@ class CodeRendererMain extends Disposable {
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
@@ -325,7 +349,7 @@ index 1986fb6642..afbe385af6 100644
  		}
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
-@@ -170,4 +173,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
+@@ -170,4 +183,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
  	const renderer = new CodeRendererMain(domElement, options);
  
  	return renderer.open();
