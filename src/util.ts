@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as util from "util";
+import * as rg from "vscode-ripgrep";
 
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import { getMediaMime as vsGetMediaMime } from "vs/base/common/mime";
@@ -113,4 +114,18 @@ export const open = async (url: string): Promise<void> => {
 				: resolve();
 		});
 	});
+};
+
+/**
+ * Extract executables to the temporary directory. This is required since we
+ * can't execute binaries stored within our binary.
+ */
+export const unpackExecutables = async (): Promise<void> => {
+	const rgPath = (rg as any).binaryRgPath;
+	if (rgPath) {
+		await mkdirp(tmpdir);
+		const destination = path.join(tmpdir, path.basename(rgPath));
+		await util.promisify(fs.copyFile)(rgPath, destination);
+		await util.promisify(fs.chmod)(destination, "755");
+	}
 };

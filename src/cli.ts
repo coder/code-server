@@ -10,7 +10,7 @@ import product from "vs/platform/product/node/product";
 
 import { MainServer, WebviewServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { generateCertificate, generatePassword, open } from "vs/server/src/util";
+import { generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
 	"allow-http"?: boolean;
@@ -167,9 +167,10 @@ const main = async (): Promise<void> => {
 		socket: args.socket,
 	}, webviewServer, args);
 
-	const [webviewAddress, serverAddress] = await Promise.all([
+	const [webviewAddress, serverAddress, /* ignore */] = await Promise.all([
 		webviewServer.listen(),
-		server.listen()
+		server.listen(),
+		unpackExecutables(),
 	]);
 	console.log(`Main server listening on ${serverAddress}`);
 	console.log(`Webview server listening on ${webviewAddress}`);
