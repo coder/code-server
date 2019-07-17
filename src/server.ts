@@ -218,7 +218,9 @@ export abstract class Server {
 		switch (base) {
 			case "/":
 				this.ensureGet(request);
-				if (!this.authenticate(request)) {
+				if (requestPath === "/favicon.ico") {
+					return this.getResource(path.join(this.rootPath, "/out/vs/server/src/favicon", requestPath));
+				} else if (!this.authenticate(request)) {
 					return { redirect: "https://" + request.headers.host + "/login" };
 				}
 				break;
@@ -231,9 +233,6 @@ export abstract class Server {
 				}
 				this.ensureGet(request);
 				return this.getResource(path.join(this.rootPath, "/out/vs/server/src/login", requestPath));
-			case "/favicon.ico":
-				this.ensureGet(request);
-				return this.getResource(path.join(this.rootPath, "/out/vs/server/src/favicon", base));
 			default:
 				this.ensureGet(request);
 				if (!this.authenticate(request)) {
