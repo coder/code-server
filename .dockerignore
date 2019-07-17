@@ -1,7 +1,11 @@
 Dockerfile
-doc/
+build
+deployment
+doc
+.git
 .github
 .gitignore
+.node-version
 .travis.yml
 LICENSE
 README.md

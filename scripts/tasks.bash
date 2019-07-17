@@ -99,7 +99,7 @@ function build-code-server() {
 	log "Installing remote dependencies"
 	cd "${vscodeSourcePath}/remote"
 	yarn --production --force --build-from-source
-	cp -r "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
+	mv "${vscodeSourcePath}/remote/node_modules" "${codeServerBuildPath}"
 
 	# Only keep the production dependencies.
 	cd "${codeServerBuildPath}/out/vs/server"

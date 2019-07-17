@@ -122,10 +122,12 @@ export const open = async (url: string): Promise<void> => {
  */
 export const unpackExecutables = async (): Promise<void> => {
 	const rgPath = (rg as any).binaryRgPath;
-	if (rgPath) {
+	const destination = path.join(tmpdir, path.basename(rgPath || ""));
+	if (rgPath && !(await util.promisify(fs.exists)(destination))) {
 		await mkdirp(tmpdir);
-		const destination = path.join(tmpdir, path.basename(rgPath));
-		await util.promisify(fs.copyFile)(rgPath, destination);
+		// TODO: I'm not sure why but copyFile doesn't work in the Docker build.
+		// await util.promisify(fs.copyFile)(rgPath, destination);
+		await util.promisify(fs.writeFile)(destination, await util.promisify(fs.readFile)(rgPath));
 		await util.promisify(fs.chmod)(destination, "755");
 	}
 };
