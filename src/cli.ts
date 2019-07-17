@@ -193,9 +193,11 @@ const main = async (): Promise<void> => {
 		console.log("  - Not serving HTTPS");
 	}
 
-	if (args["open"]) {
-		await open(serverAddress).catch(console.error);
-		console.log(`  - Opened ${serverAddress}`);
+	if (!args.socket && args.open) {
+		// The web socket doesn't seem to work if using 0.0.0.0.
+		const openAddress = `http://localhost:${port}`;
+		await open(openAddress).catch(console.error);
+		console.log(`  - Opened ${openAddress}`);
 	}
 };
 
