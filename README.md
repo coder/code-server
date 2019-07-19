@@ -99,12 +99,14 @@ We use the data collected to improve code-server.
 ```fish
 git clone https://github.com/microsoft/vscode
 cd vscode
+git checkout 1.36.0
 git clone https://github.com/cdr/code-server src/vs/server
 cd src/vs/server
 yarn patch:apply
 yarn
 yarn watch
 # Wait for the initial compilation to complete (it will say "Finished compilation").
+# Run the next command in another shell.
 yarn start --allow-http --no-auth
 # Visit http://localhost:8443
 ```
