@@ -1,3 +1,30 @@
+diff --git a/src/vs/base/common/buffer.ts b/src/vs/base/common/buffer.ts
+index 7b4e9cc8d6..7722cb12c6 100644
+--- a/src/vs/base/common/buffer.ts
++++ b/src/vs/base/common/buffer.ts
+@@ -138,7 +138,7 @@ export interface VSBufferReadable {
+ 	 * Read data from the underlying source. Will return
+ 	 * null to indicate that no more data can be read.
+ 	 */
+-	read(): VSBuffer | null;
++	read(): VSBuffer | null | Promise<VSBuffer | null>;
+ }
+ 
+ /**
+@@ -185,11 +185,11 @@ export interface VSBufferReadableStream {
+ /**
+  * Helper to fully read a VSBuffer readable into a single buffer.
+  */
+-export function readableToBuffer(readable: VSBufferReadable): VSBuffer {
++export async function readableToBuffer(readable: VSBufferReadable): Promise<VSBuffer> {
+ 	const chunks: VSBuffer[] = [];
+ 
+ 	let chunk: VSBuffer | null;
+-	while (chunk = readable.read()) {
++	while (chunk = await readable.read()) {
+ 		chunks.push(chunk);
+ 	}
+ 
 diff --git a/src/vs/editor/browser/services/openerService.ts b/src/vs/editor/browser/services/openerService.ts
 index c175034f96..de7e29906a 100644
 --- a/src/vs/editor/browser/services/openerService.ts
@@ -311,6 +338,36 @@ index 8e1b68eb36..2b6a0d5b15 100644
 +		return true;
 +	}
 +}
+diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
+index 2054ceece3..f99dfd0b73 100644
+--- a/src/vs/workbench/browser/dnd.ts
++++ b/src/vs/workbench/browser/dnd.ts
+@@ -31,6 +31,7 @@ import { IEditorGroup } from 'vs/workbench/services/editor/common/editorGroupsSe
+ import { IRecentFile } from 'vs/platform/history/common/history';
+ import { IWorkspaceEditingService } from 'vs/workbench/services/workspace/common/workspaceEditing';
+ import { withNullAsUndefined } from 'vs/base/common/types';
++import { IUploadService } from 'vs/server/src/upload';
+ 
+ export interface IDraggedResource {
+ 	resource: URI;
+@@ -166,14 +167,15 @@ export class ResourcesDropHandler {
+ 		@IUntitledEditorService private readonly untitledEditorService: IUntitledEditorService,
+ 		@IEditorService private readonly editorService: IEditorService,
+ 		@IConfigurationService private readonly configurationService: IConfigurationService,
+-		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService
++		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
++		@IUploadService private readonly uploadService: IUploadService,
+ 	) {
+ 	}
+ 
+ 	async handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup | undefined, afterDrop: (targetGroup: IEditorGroup | undefined) => void, targetIndex?: number): Promise<void> {
+ 		const untitledOrFileResources = extractResources(event).filter(r => this.fileService.canHandleResource(r.resource) || r.resource.scheme === Schemas.untitled);
+ 		if (!untitledOrFileResources.length) {
+-			return;
++			return this.uploadService.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
+ 		}
+ 
+ 		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
 index 1986fb6642..1bf169a4b4 100644
 --- a/src/vs/workbench/browser/web.main.ts
@@ -357,10 +414,10 @@ index 1986fb6642..1bf169a4b4 100644
 \ No newline at end of file
 +}
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..bde667d045 100644
+index b253e573ae..e23d9c970e 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
-@@ -53,6 +53,11 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
+@@ -53,6 +53,14 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
  import { ParsedArgs } from 'vs/platform/environment/common/environment';
  import { ClassifiedEvent, StrictPropertyCheck, GDPRClassification } from 'vs/platform/telemetry/common/gdprTypings';
  import { IProcessEnvironment } from 'vs/base/common/platform';
@@ -369,10 +426,13 @@ index b253e573ae..bde667d045 100644
 +import { ExtensionGalleryChannelClient } from 'vs/platform/extensionManagement/node/extensionGalleryIpc';
 +import { TelemetryChannelClient } from 'vs/platform/telemetry/node/telemetryIpc';
 +import { IProductService } from 'vs/platform/product/common/product';
++import { IUploadService, UploadService } from 'vs/server/src/upload';
++
++registerSingleton(IUploadService, UploadService, true);
  
  //#region Backup File
  
-@@ -125,13 +130,11 @@ export class SimpleClipboardService implements IClipboardService {
+@@ -125,13 +133,11 @@ export class SimpleClipboardService implements IClipboardService {
  	writeText(text: string, type?: string): void { }
  
  	readText(type?: string): string {
@@ -388,7 +448,7 @@ index b253e573ae..bde667d045 100644
  	}
  
  	writeFindText(text: string): void { }
-@@ -239,7 +242,17 @@ export class SimpleExtensionGalleryService implements IExtensionGalleryService {
+@@ -239,7 +245,17 @@ export class SimpleExtensionGalleryService implements IExtensionGalleryService {
  	}
  }
  
@@ -407,7 +467,7 @@ index b253e573ae..bde667d045 100644
  
  //#endregion
  
-@@ -262,7 +275,7 @@ export class SimpleExtensionsWorkbenchService implements IExtensionsWorkbenchSer
+@@ -262,7 +278,7 @@ export class SimpleExtensionsWorkbenchService implements IExtensionsWorkbenchSer
  	checkForUpdates: any;
  	allowedBadgeProviders: string[];
  }
@@ -416,7 +476,7 @@ index b253e573ae..bde667d045 100644
  //#endregion
  
  //#region ICommentService
-@@ -375,7 +388,10 @@ export class SimpleExtensionTipsService implements IExtensionTipsService {
+@@ -375,7 +391,10 @@ export class SimpleExtensionTipsService implements IExtensionTipsService {
  	}
  
  	getAllIgnoredRecommendations(): { global: string[]; workspace: string[]; } {
@@ -428,7 +488,7 @@ index b253e573ae..bde667d045 100644
  	}
  }
  
-@@ -436,7 +452,16 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
+@@ -436,7 +455,16 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
  	}
  }
  
@@ -446,7 +506,7 @@ index b253e573ae..bde667d045 100644
  
  //#endregion
  
-@@ -680,7 +705,15 @@ export class SimpleTelemetryService implements ITelemetryService {
+@@ -680,7 +708,15 @@ export class SimpleTelemetryService implements ITelemetryService {
  	}
  }
  
@@ -463,7 +523,7 @@ index b253e573ae..bde667d045 100644
  
  //#endregion
  
-@@ -1288,4 +1321,4 @@ class SimpleTunnelService implements ITunnelService {
+@@ -1288,4 +1324,4 @@ class SimpleTunnelService implements ITunnelService {
  
  registerSingleton(ITunnelService, SimpleTunnelService);
  
@@ -1050,6 +1110,49 @@ index c08a6e37c1..31640d7e66 100644
  		}
  		return this._extensionAllowedBadgeProviders;
  	}
+diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
+index 88ad0027e9..17476d5f26 100644
+--- a/src/vs/workbench/contrib/files/browser/files.contribution.ts
++++ b/src/vs/workbench/contrib/files/browser/files.contribution.ts
+@@ -200,7 +200,7 @@ configurationRegistry.registerConfiguration({
+ 		'files.exclude': {
+ 			'type': 'object',
+ 			'markdownDescription': nls.localize('exclude', "Configure glob patterns for excluding files and folders. For example, the files explorer decides which files and folders to show or hide based on this setting. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options)."),
+-			'default': { '**/.git': true, '**/.svn': true, '**/.hg': true, '**/CVS': true, '**/.DS_Store': true },
++			'default': { '**/.git': true, '**/.svn': true, '**/.hg': true, '**/CVS': true, '**/.DS_Store': true, '**/.code-server-partial-upload-*': true },
+ 			'scope': ConfigurationScope.RESOURCE,
+ 			'additionalProperties': {
+ 				'anyOf': [
+diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+index 4592b3918e..346292d086 100644
+--- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
++++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
+@@ -46,6 +46,7 @@ import { IEditorService } from 'vs/workbench/services/editor/common/editorServic
+ import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/workspaces';
+ import { findValidPasteFileTarget } from 'vs/workbench/contrib/files/browser/fileActions';
+ import { FuzzyScore, createMatches } from 'vs/base/common/filters';
++import { IUploadService } from 'vs/server/src/upload';
+ 
+ export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
+ 
+@@ -453,7 +454,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+ 		@IInstantiationService private instantiationService: IInstantiationService,
+ 		@ITextFileService private textFileService: ITextFileService,
+ 		@IWindowService private windowService: IWindowService,
+-		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService
++		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
++		@IUploadService private readonly uploadService: IUploadService,
+ 	) {
+ 		this.toDispose = [];
+ 
+@@ -615,6 +617,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+ 
+ 
+ 	private async handleExternalDrop(data: DesktopDragAndDropData, target: ExplorerItem, originalEvent: DragEvent): Promise<void> {
++		return this.uploadService.handleExternalDrop(data, target, originalEvent);
+ 		const droppedResources = extractResources(originalEvent, true);
+ 		// Check for dropped external files to be folders
+ 		const result = await this.fileService.resolveAll(droppedResources);
 diff --git a/src/vs/workbench/contrib/remote/common/remote.contribution.ts b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
 index 9235c739fb..32d203eb32 100644
 --- a/src/vs/workbench/contrib/remote/common/remote.contribution.ts
@@ -1148,6 +1251,35 @@ index 611ab9aec9..4e4bea89be 100644
 -registerSingleton(IExtensionManagementServerService, ExtensionManagementServerService);
 \ No newline at end of file
 +registerSingleton(IExtensionManagementServerService, ExtensionManagementServerService);
+diff --git a/src/vs/workbench/services/files/common/fileService.ts b/src/vs/workbench/services/files/common/fileService.ts
+index a788aadc1f..09e6947fb7 100644
+--- a/src/vs/workbench/services/files/common/fileService.ts
++++ b/src/vs/workbench/services/files/common/fileService.ts
+@@ -859,7 +859,7 @@ export class FileService extends Disposable implements IFileService {
+ 			let posInFile = 0;
+ 
+ 			let chunk: VSBuffer | null;
+-			while (chunk = readable.read()) {
++			while (chunk = await readable.read()) {
+ 				await this.doWriteBuffer(provider, handle, chunk, chunk.byteLength, posInFile, 0);
+ 
+ 				posInFile += chunk.byteLength;
+@@ -888,7 +888,7 @@ export class FileService extends Disposable implements IFileService {
+ 		if (bufferOrReadable instanceof VSBuffer) {
+ 			buffer = bufferOrReadable;
+ 		} else {
+-			buffer = readableToBuffer(bufferOrReadable);
++			buffer = await readableToBuffer(bufferOrReadable);
+ 		}
+ 
+ 		return provider.writeFile(resource, buffer.buffer, { create: true, overwrite: true });
+@@ -1026,4 +1026,4 @@ export class FileService extends Disposable implements IFileService {
+ 	}
+ 
+ 	//#endregion
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
 index c28adc0ad9..4517c308da 100644
 --- a/src/vs/workbench/workbench.web.main.ts
