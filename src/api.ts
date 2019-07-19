@@ -60,7 +60,6 @@ export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode =
 		FileSystemError: extHostTypes.FileSystemError,
 		FileType: FileType,
 		Uri: URI,
-
 		commands: {
 			executeCommand: (commandId: string, ...args: any[]): any => {
 				return commandService.executeCommand(commandId, ...args);
@@ -69,7 +68,6 @@ export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode =
 				return CommandsRegistry.registerCommand(id, command);
 			},
 		},
-
 		window: {
 			registerTreeDataProvider: (id: string, dataProvider: ITreeViewDataProvider): void => {
 				const view = viewsRegistry.getView(id);
@@ -81,7 +79,6 @@ export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode =
 				notificationService.error(message);
 			},
 		},
-
 		workspace: {
 			registerFileSystemProvider: (scheme: string, provider: vscode.FileSystemProvider): IDisposable => {
 				return fileService.registerProvider(scheme, new FileSystemProvider(provider));
@@ -95,7 +92,6 @@ export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode =
  */
 export const coderApi = (serviceCollection: ServiceCollection): typeof coder => {
 	const getService = <T>(id: ServiceIdentifier<T>): T => serviceCollection.get<T>(id) as T;
-
 	return {
 		workbench: {
 			action: Action,
@@ -103,13 +99,8 @@ export const coderApi = (serviceCollection: ServiceCollection): typeof coder => 
 			commandRegistry: CommandsRegistry,
 			actionsRegistry: Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions),
 			registerView: (viewId, viewName, containerId, containerName, icon): void =>  {
-				const viewContainersRegistry = Registry.as<IViewContainersRegistry>(ViewsExtensions.ViewContainersRegistry);
-				const viewsRegistry = Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry);
-				const container = viewContainersRegistry.registerViewContainer(containerId);
-
 				const cssClass = `extensionViewlet-${containerId}`;
 				const id = `workbench.view.extension.${containerId}`;
-
 				class CustomViewlet extends ViewContainerViewlet {
 					public constructor(
 						@IConfigurationService configurationService: IConfigurationService,
@@ -127,44 +118,32 @@ export const coderApi = (serviceCollection: ServiceCollection): typeof coder => 
 					}
 				}
 
-				const viewletDescriptor = new ViewletDescriptor(
-					CustomViewlet as any,
-					id,
-					containerName,
-					cssClass,
-					undefined,
-					URI.parse(icon),
+				Registry.as<ViewletRegistry>(ViewletExtensions.Viewlets).registerViewlet(
+					new ViewletDescriptor(CustomViewlet as any, id, containerName, cssClass, undefined, URI.parse(icon)),
 				);
 
-				Registry.as<ViewletRegistry>(ViewletExtensions.Viewlets).registerViewlet(viewletDescriptor);
-
-				const registry = Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions);
-				registry.registerWorkbenchAction(
+				Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions).registerWorkbenchAction(
 					new SyncActionDescriptor(OpenCustomViewletAction as any, id, localize("showViewlet", "Show {0}", containerName)),
 					"View: Show {0}",
 					localize("view", "View"),
 				);
 
-				// Generate CSS to show the icon in the activity bar
+				// Generate CSS to show the icon in the activity bar.
 				const iconClass = `.monaco-workbench .activitybar .monaco-action-bar .action-label.${cssClass}`;
 				createCSSRule(iconClass, `-webkit-mask: url('${icon}') no-repeat 50% 50%`);
 
-				const views = [{
+				const container = Registry.as<IViewContainersRegistry>(ViewsExtensions.ViewContainersRegistry).registerViewContainer(containerId);
+				Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry).registerViews([{
 					id: viewId,
 					name: viewName,
 					ctorDescriptor: { ctor: CustomTreeViewPanel },
 					treeView: getService(IInstantiationService).createInstance(CustomTreeView as any, viewId, container),
-				}] as  ITreeViewDescriptor[];
-				viewsRegistry.registerViews(views, container);
+				}] as ITreeViewDescriptor[], container);
 			},
-			// Even though the enums are exactly the same, Typescript says they are
-			// not assignable to each other, so use `any`. I don't know if there is a
-			// way around this.
 			menuRegistry: MenuRegistry as any,
 			statusbarService: getService(IStatusbarService) as any,
 			notificationService: getService(INotificationService),
 			terminalService: getService(ITerminalService),
-
 			onFileCreate: (cb): void => {
 				getService<IFileService>(IFileService).onAfterOperation((e) => {
 					if (e.operation === FileOperation.CREATE) {
@@ -198,7 +177,6 @@ export const coderApi = (serviceCollection: ServiceCollection): typeof coder => 
 					}
 				});
 			},
-
 			onModelAdded: (cb): void => {
 				getService<IModelService>(IModelService).onModelAdded((e) => {
 					cb(e.uri.path, e.getLanguageIdentifier().language);
@@ -214,7 +192,6 @@ export const coderApi = (serviceCollection: ServiceCollection): typeof coder => 
 					cb(e.model.uri.path, e.model.getLanguageIdentifier().language, e.oldModeId);
 				});
 			},
-
 			onTerminalAdded: (cb): void => {
 				getService<ITerminalService>(ITerminalService).onInstanceCreated(() => cb());
 			},
@@ -222,7 +199,6 @@ export const coderApi = (serviceCollection: ServiceCollection): typeof coder => 
 				getService<ITerminalService>(ITerminalService).onInstanceDisposed(() => cb());
 			},
 		},
-
 		// @ts-ignore
 		MenuId: MenuId,
 		Severity: Severity,
@@ -250,9 +226,7 @@ class FileSystemProvider implements IFileSystemProvider {
 	public readonly capabilities: FileSystemProviderCapabilities;
 	public readonly onDidChangeCapabilities: Event<void> = Event.None;
 
-	public constructor(
-		private readonly provider: vscode.FileSystemProvider,
-	) {
+	public constructor(private readonly provider: vscode.FileSystemProvider) {
 		this.capabilities = FileSystemProviderCapabilities.Readonly;
 	}
 

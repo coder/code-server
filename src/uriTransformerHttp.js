@@ -4,8 +4,7 @@ module.exports = (remoteAuthority, https) => {
 	return {
 		transformIncoming: (uri) => {
 			switch (uri.scheme) {
-				case "https": return { scheme: "file", path: uri.path };
-				case "http": return { scheme: "file", path: uri.path };
+				case "https": case "http": return { scheme: "file", path: uri.path };
 				case "file": return { scheme: "vscode-local", path: uri.path };
 				default: return uri;
 			}

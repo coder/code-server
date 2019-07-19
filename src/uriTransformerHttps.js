@@ -1,3 +1,1 @@
-module.exports = (remoteAuthority) => {
-	return require("./uriTransformerHttp")(remoteAuthority, true);
-};
+module.exports = (remoteAuthority) => require("./uriTransformerHttp")(remoteAuthority, true);

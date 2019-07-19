@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as tarStream from "tar-stream";
-import { promisify } from "util";
+import * as util from "util";
 
 import * as nls from "vs/nls";
 import * as vszip from "vs/base/node/zip";
@@ -14,7 +14,6 @@ const vszipBuffer = vszip.buffer;
 
 export interface IExtractOptions {
 	overwrite?: boolean;
-
 	/**
 	 * Source path within the TAR/ZIP archive. Only the files
 	 * contained in this path will be extracted.
@@ -28,197 +27,134 @@ export interface IFile {
 	localPath?: string;
 }
 
-/**
- * Override the standard VS Code behavior for zipping extensions to use the TAR
- * format instead of ZIP.
- */
-export const zip = (tarPath: string, files: IFile[]): Promise<string> => {
-	return new Promise<string>((c, e): void => {
-		const pack = tarStream.pack();
-		const chunks: Buffer[] = [];
-		const ended = new Promise<Buffer>((res): void => {
-			pack.on("end", () => {
-				res(Buffer.concat(chunks));
-			});
-		});
-		pack.on("data", (chunk) => {
-			chunks.push(chunk as Buffer);
-		});
-		for (let i = 0; i < files.length; i++) {
-			const file = files[i];
-			pack.entry({
-				name: file.path,
-			}, file.contents);
+export const tar = async (tarPath: string, files: IFile[]): Promise<string> => {
+	const pack = tarStream.pack();
+	const chunks: Buffer[] = [];
+	const ended = new Promise<Buffer>((resolve) => {
+		pack.on("end", () => resolve(Buffer.concat(chunks)));
+	});
+	pack.on("data", (chunk: Buffer) => chunks.push(chunk));
+	for (let i = 0; i < files.length; i++) {
+		const file = files[i];
+		pack.entry({ name: file.path }, file.contents);
+	}
+	pack.finalize();
+	await util.promisify(fs.writeFile)(tarPath, await ended);
+	return tarPath;
+};
+
+export const extract = async (archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
+	try {
+		await extractTar(archivePath, extractPath, options, token);
+	} catch (error) {
+		if (error.toString().includes("Invalid tar header")) {
+			await vszipExtract(archivePath, extractPath, options, token);
 		}
-		pack.finalize();
-
-		ended.then((buffer) => {
-			return promisify(fs.writeFile)(tarPath, buffer);
-		}).then(() => {
-			c(tarPath);
-		}).catch((ex) => {
-			e(ex);
-		});
-	});
+	}
 };
 
-/**
- * Override the standard VS Code behavior for extracting archives to first
- * attempt to process the archive as a TAR and then fall back to the original
- * implementation for processing ZIPs.
- */
-export const extract = (archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
-	return new Promise<void>((c, e): void => {
-		extractTar(archivePath, extractPath, options, token).then(c).catch((ex) => {
-			if (!ex.toString().includes("Invalid tar header")) {
-				e(ex);
-
-				return;
-			}
-			vszipExtract(archivePath, extractPath, options, token).then(c).catch(e);
-		});
-	});
-};
-
-/**
- * Override the standard VS Code behavior for buffering archives to first
- * process the Buffer as a TAR and then fall back to the original
- * implementation for processing ZIPs.
- */
 export const buffer = (targetPath: string, filePath: string): Promise<Buffer> => {
-	return new Promise<Buffer>((c, e): void => {
-		let done: boolean = false;
-		extractAssets(targetPath, new RegExp(filePath), (assetPath: string, data: Buffer) => {
-			if (path.normalize(assetPath) === path.normalize(filePath)) {
-				done = true;
-				c(data);
-			}
-		}).then(() => {
-			if (!done) {
-				e("couldn't find asset " + filePath);
-			}
-		}).catch((ex) => {
-			if (!ex.toString().includes("Invalid tar header")) {
-				e(ex);
-
-				return;
-			}
-			vszipBuffer(targetPath, filePath).then(c).catch(e);
-		});
-	});
-};
-
-/**
- * Override the standard VS Code behavior for extracting assets from archive
- * Buffers to use the TAR format instead of ZIP.
- */
-const extractAssets = (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
-	return new Promise<void>(async (c, e): Promise<void> => {
+	return new Promise<Buffer>(async (resolve, reject) => {
 		try {
-			const buffer = await promisify(fs.readFile)(tarPath);
-			const extractor = tarStream.extract();
-			extractor.once("error", e);
-			extractor.on("entry", (header, stream, next) => {
-				const name = header.name;
-				if (match.test(name)) {
-					extractData(stream).then((data) => {
-						callback(name, data);
-						next();
-					}).catch(e);
-					stream.resume();
-				} else {
-					stream.on("end", () => {
-						next();
-					});
-					stream.resume();
+			let done: boolean = false;
+			await extractAssets(targetPath, new RegExp(filePath), (assetPath: string, data: Buffer) => {
+				if (path.normalize(assetPath) === path.normalize(filePath)) {
+					done = true;
+					resolve(data);
 				}
 			});
-			extractor.on("finish", () => {
-				c();
-			});
-			extractor.write(buffer);
-			extractor.end();
-		} catch (ex) {
-			e(ex);
+			if (!done) {
+				throw new Error("couldn't find asset " + filePath);
+			}
+		} catch (error) {
+			if (error.toString().includes("Invalid tar header")) {
+				vszipBuffer(targetPath, filePath).then(resolve).catch(reject);
+			} else {
+				reject(error);
+			}
 		}
+	});
+};
+
+const extractAssets = async (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
+	const buffer = await util.promisify(fs.readFile)(tarPath);
+	return new Promise<void>(async (resolve, reject): Promise<void> => {
+		const extractor = tarStream.extract();
+		extractor.once("error", reject);
+		extractor.on("entry", async (header, stream, next) => {
+			const name = header.name;
+			if (match.test(name)) {
+				extractData(stream).then((data) => {
+					callback(name, data);
+					next();
+				}).catch(reject);
+				stream.resume();
+			} else {
+				stream.on("end", () => next());
+				stream.resume();
+			}
+		});
+		extractor.on("finish", resolve);
+		extractor.write(buffer);
+		extractor.end();
 	});
 };
 
 const extractData = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
-	return new Promise<Buffer>((c, e): void => {
+	return new Promise((resolve, reject): void => {
 		const fileData: Buffer[] = [];
 		stream.on("data", (data) => fileData.push(data));
-		stream.on("end", () => {
-			const fd = Buffer.concat(fileData);
-			c(fd);
-		});
-		stream.on("error", e);
+		stream.on("end", () => resolve(Buffer.concat(fileData)));
+		stream.on("error", reject);
 	});
 };
 
-const extractTar = (tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
-	return new Promise<void>(async (c, e): Promise<void> => {
-		try {
-			const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : "");
-			const buffer = await promisify(fs.readFile)(tarPath);
-			const extractor = tarStream.extract();
-			extractor.once("error", e);
-			extractor.on("entry", (header, stream, next) => {
-				const rawName = path.normalize(header.name);
+const extractTar = async (tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
+	const buffer = await util.promisify(fs.readFile)(tarPath);
+	return new Promise<void>(async (resolve, reject): Promise<void> => {
+		const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : "");
+		const extractor = tarStream.extract();
+		extractor.once("error", reject);
+		extractor.on("entry", async (header, stream, next) => {
+			const rawName = path.normalize(header.name);
 
-				const nextEntry = (): void => {
-					stream.resume();
-					next();
-				};
+			const nextEntry = (): void => {
+				stream.resume();
+				next();
+			};
 
-				if (token.isCancellationRequested) {
-					return nextEntry();
-				}
+			if (token.isCancellationRequested || !sourcePathRegex.test(rawName)) {
+				return nextEntry();
+			}
 
-				if (!sourcePathRegex.test(rawName)) {
-					return nextEntry();
-				}
+			const fileName = rawName.replace(sourcePathRegex, "");
+			const targetFileName = path.join(targetPath, fileName);
+			if (/\/$/.test(fileName)) {
+				return mkdirp(targetFileName).then(nextEntry);
+			}
 
-				const fileName = rawName.replace(sourcePathRegex, "");
-				const targetFileName = path.join(targetPath, fileName);
-				if (/\/$/.test(fileName)) {
-					stream.resume();
-					mkdirp(targetFileName).then(() => {
-						next();
-					}, e);
+			const dirName = path.dirname(fileName);
+			const targetDirName = path.join(targetPath, dirName);
+			if (targetDirName.indexOf(targetPath) !== 0) {
+				return reject(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName));
+			}
 
-					return;
-				}
-
-				const dirName = path.dirname(fileName);
-				const targetDirName = path.join(targetPath, dirName);
-				if (targetDirName.indexOf(targetPath) !== 0) {
-					e(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName));
-
-					return nextEntry();
-				}
-
-				return mkdirp(targetDirName, undefined, token).then(() => {
-					const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
-					fstream.once("close", () => {
-						next();
-					});
-					fstream.once("error", e);
-					stream.pipe(fstream);
-					stream.resume();
-				});
+			return mkdirp(targetDirName, undefined, token).then(() => {
+				const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
+				fstream.once("close", () => next());
+				fstream.once("error", reject);
+				stream.pipe(fstream);
+				stream.resume();
 			});
-			extractor.once("finish", c);
-			extractor.write(buffer);
-			extractor.end();
-		} catch (ex) {
-			e(ex);
-		}
+		});
+		extractor.once("finish", resolve);
+		extractor.write(buffer);
+		extractor.end();
 	});
 };
 
 // Override original functionality so we can use tar instead of zip.
 const target = vszip as typeof vszip;
-target.zip = zip;
+target.zip = tar;
 target.extract = extract;
 target.buffer = buffer;

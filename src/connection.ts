@@ -6,7 +6,7 @@ import { Emitter } from "vs/base/common/event";
 import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
 import { NodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { ILogService } from "vs/platform/log/common/log";
-import { IExtHostReadyMessage, IExtHostSocketMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
+import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
 import { Protocol } from "vs/server/src/protocol";
 import { uriTransformerPath } from "vs/server/src/util";
@@ -15,17 +15,11 @@ export abstract class Connection {
 	protected readonly _onClose = new Emitter<void>();
 	public readonly onClose = this._onClose.event;
 	protected disposed: boolean = false;
-
 	public constructor(protected protocol: Protocol) {}
-
 	/**
 	 * Set up the connection on a new socket.
 	 */
 	public abstract reconnect(socket: ISocket, buffer: VSBuffer): void;
-
-	/**
-	 * Clean up the connection.
-	 */
 	protected abstract dispose(): void;
 }
 
@@ -62,16 +56,10 @@ export class ManagementConnection extends Connection {
 	}
 }
 
-/**
- * Manage the extension host process.
- */
 export class ExtensionHostConnection extends Connection {
 	private process: cp.ChildProcess;
 
-	public constructor(
-		protocol: Protocol, buffer: VSBuffer,
-		private readonly log: ILogService,
-	) {
+	public constructor(protocol: Protocol, buffer: VSBuffer, private readonly log: ILogService) {
 		super(protocol);
 		protocol.dispose();
 		this.process = this.spawn(buffer);
@@ -96,23 +84,17 @@ export class ExtensionHostConnection extends Connection {
 	private sendInitMessage(buffer: VSBuffer): void {
 		const socket = this.protocol.getUnderlyingSocket();
 		socket.pause();
-
-		const initMessage: IExtHostSocketMessage = {
+		this.process.send({
 			type: "VSCODE_EXTHOST_IPC_SOCKET",
 			initialDataChunk: (buffer.buffer as Buffer).toString("base64"),
 			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
-		};
-
-		this.process.send(initMessage, socket);
+		}, socket);
 	}
 
 	private spawn(buffer: VSBuffer): cp.ChildProcess {
 		const proc = cp.fork(
 			getPathFromAmdModule(require, "bootstrap-fork"),
-			[
-				"--type=extensionHost",
-				`--uriTransformerPath=${uriTransformerPath()}`
-			],
+			[ "--type=extensionHost", `--uriTransformerPath=${uriTransformerPath()}` ],
 			{
 				env: {
 					...process.env,
@@ -129,13 +111,8 @@ export class ExtensionHostConnection extends Connection {
 
 		proc.on("error", () => this.dispose());
 		proc.on("exit", () => this.dispose());
-
-		proc.stdout.setEncoding("utf8");
-		proc.stderr.setEncoding("utf8");
-
-		proc.stdout.on("data", (d) => this.log.info("Extension host stdout", d));
-		proc.stderr.on("data", (d) => this.log.error("Extension host stderr", d));
-
+		proc.stdout.setEncoding("utf8").on("data", (d) => this.log.info("Extension host stdout", d));
+		proc.stderr.setEncoding("utf8").on("data", (d) => this.log.error("Extension host stderr", d));
 		proc.on("message", (event) => {
 			if (event && event.type === "__$console") {
 				const severity = this.log[event.severity] ? event.severity : "info";
@@ -149,8 +126,7 @@ export class ExtensionHostConnection extends Connection {
 				this.sendInitMessage(buffer);
 			}
 		};
-		proc.on("message", listen);
 
-		return proc;
+		return proc.on("message", listen);
 	}
 }

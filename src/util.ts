@@ -25,8 +25,6 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 		util.promisify(fs.exists)(paths.certKey),
 	]);
 
-	await mkdirp(tmpdir);
-
 	if (!exists[0] || !exists[1]) {
 		const pem = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/pem/lib/pem")) as typeof import("pem");
 		const certs = await new Promise<import("pem").CertificateCreationResult>((resolve, reject): void => {
@@ -37,6 +35,7 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 				resolve(result);
 			});
 		});
+		await mkdirp(tmpdir);
 		await Promise.all([
 			util.promisify(fs.writeFile)(paths.cert, certs.certificate),
 			util.promisify(fs.writeFile)(paths.certKey, certs.serviceKey),
@@ -46,16 +45,10 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 	return paths;
 };
 
-let secure: boolean;
-export const useHttpsTransformer = (): void => {
-	secure = true;
-};
-
+let transformer: string = "uriTransformerHttp";
+export const useHttpsTransformer = (): string => transformer = "uriTransformerHttps";
 export const uriTransformerPath = (): string => {
-	return getPathFromAmdModule(
-		require,
-		"vs/server/src/uriTransformerHttp" + (secure ? "s": ""),
-	);
+	return getPathFromAmdModule(require, `vs/server/src/${transformer}`);
 };
 
 export const getUriTransformer = (remoteAuthority: string): URITransformer => {
@@ -87,25 +80,16 @@ export const isWsl = async (): Promise<boolean> => {
 };
 
 export const open = async (url: string): Promise<void> => {
-	let command: string;
 	const args = <string[]>[];
 	const options = <cp.SpawnOptions>{};
 	const platform = await isWsl() ? "wsl" : process.platform;
-	switch (platform) {
-		case "darwin":
-			command = "open";
-			break;
-		case "win32":
-		case "wsl":
-			command = platform === "wsl" ? "cmd.exe" : "cmd";
-			args.push("/c", "start", '""', "/b");
-			url = url.replace(/&/g, "^&");
-		default:
-			command = "xdg-open";
-			break;
+	let command = platform === "darwin" ? "open" : "xdg-open";
+	if (platform === "win32" || platform === "wsl") {
+		command = platform === "wsl" ? "cmd.exe" : "cmd";
+		args.push("/c", "start", '""', "/b");
+		url = url.replace(/&/g, "^&");
 	}
-	args.push(url);
-	const proc = cp.spawn(command, args, options);
+	const proc = cp.spawn(command, [...args, url], options);
 	await new Promise((resolve, reject) => {
 		proc.on("error", reject);
 		proc.on("close", (code) => {
@@ -125,8 +109,6 @@ export const unpackExecutables = async (): Promise<void> => {
 	const destination = path.join(tmpdir, path.basename(rgPath || ""));
 	if (rgPath && !(await util.promisify(fs.exists)(destination))) {
 		await mkdirp(tmpdir);
-		// TODO: I'm not sure why but copyFile doesn't work in the Docker build.
-		// await util.promisify(fs.copyFile)(rgPath, destination);
 		await util.promisify(fs.writeFile)(destination, await util.promisify(fs.readFile)(rgPath));
 		await util.promisify(fs.chmod)(destination, "755");
 	}

@@ -73,10 +73,7 @@ export class Protocol extends PersistentProtocol {
 	 * TODO: This ignores the authentication process entirely for now.
 	 */
 	private authenticate(_message: AuthRequest): void {
-		this.sendMessage({
-			type: "sign",
-			data: "",
-		});
+		this.sendMessage({ type: "sign", data: "" });
 	}
 
 	/**

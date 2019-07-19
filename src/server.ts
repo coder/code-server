@@ -108,14 +108,11 @@ export interface ServerOptions {
 }
 
 export abstract class Server {
-	// The underlying web server.
 	protected readonly server: http.Server | https.Server;
-
 	protected rootPath = path.resolve(__dirname, "../../../..");
-
 	private listenPromise: Promise<string> | undefined;
 
-	public constructor(protected readonly options: ServerOptions) {
+	public constructor(public readonly options: ServerOptions) {
 		if (this.options.cert && this.options.certKey) {
 			useHttpsTransformer();
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
@@ -167,8 +164,7 @@ export abstract class Server {
 	): Promise<Response>;
 
 	protected async getResource(filePath: string): Promise<Response> {
-		const content = await util.promisify(fs.readFile)(filePath);
-		return { content, filePath };
+		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
@@ -208,12 +204,10 @@ export abstract class Server {
 		} else if (base === "") { // Happens if it's a plain `domain.com`.
 			base = "/";
 		}
-		if (requestPath === "/") { // Trailing slash, like `domain.com/login/`.
-			requestPath = "";
-		} else if (requestPath !== "") { // "" will become "." with normalize.
+		base = path.normalize(base);
+		if (requestPath !== "") { // "" will become "." with normalize.
 			requestPath = path.normalize(requestPath);
 		}
-		base = path.normalize(base);
 
 		switch (base) {
 			case "/":
@@ -227,8 +221,7 @@ export abstract class Server {
 			case "/login":
 				if (!this.options.auth) {
 					throw new HttpError("Not found", HttpCode.NotFound);
-				}
-				if (requestPath === "") {
+				} else if (requestPath === "") {
 					return this.tryLogin(request);
 				}
 				this.ensureGet(request);
@@ -249,27 +242,19 @@ export abstract class Server {
 			this.ensureGet(request);
 			return { redirect: "https://" + request.headers.host + "/" };
 		}
-
 		if (request.method === "POST") {
 			const data = await this.getData<LoginPayload>(request);
 			if (this.authenticate(request, data)) {
 				return {
 					redirect: "https://" + request.headers.host + "/",
-					headers: {
-					 "Set-Cookie": `password=${data.password}`,
-					}
+					headers: {"Set-Cookie": `password=${data.password}` }
 				};
-			}
-			let userAgent = request.headers["user-agent"];
-			const timestamp = Math.floor(new Date().getTime() / 1000);
-			if (Array.isArray(userAgent)) {
-				userAgent = userAgent.join(", ");
 			}
 			console.error("Failed login attempt", JSON.stringify({
 				xForwardedFor: request.headers["x-forwarded-for"],
 				remoteAddress: request.connection.remoteAddress,
-				userAgent,
-				timestamp,
+				userAgent: request.headers["user-agent"],
+				timestamp: Math.floor(new Date().getTime() / 1000),
 			}));
 			return this.getLogin("Invalid password", data);
 		}
@@ -279,23 +264,16 @@ export abstract class Server {
 
 	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
 		const filePath = path.join(this.rootPath, "out/vs/server/src/login/login.html");
-		let content = await util.promisify(fs.readFile)(filePath, "utf8");
-		if (error) {
-			content = content.replace("{{ERROR}}", error)
-				.replace("display:none", "display:block");
-		}
-		if (payload && payload.password) {
-			content = content.replace('value=""', `value="${payload.password}"`);
-		}
+		const content = (await util.promisify(fs.readFile)(filePath, "utf8"))
+			.replace("{{ERROR}}", error)
+			.replace("display:none", error ? "display:block" : "display:none")
+			.replace('value=""', `value="${payload && payload.password || ""}"`);
 		return { content, filePath };
 	}
 
 	private ensureGet(request: http.IncomingMessage): void {
 		if (request.method !== "GET") {
-			throw new HttpError(
-				`Unsupported method ${request.method}`,
-				HttpCode.BadRequest,
-			);
+			throw new HttpError(`Unsupported method ${request.method}`, HttpCode.BadRequest);
 		}
 	}
 
@@ -357,15 +335,10 @@ export abstract class Server {
 }
 
 export class MainServer extends Server {
-	// Used to notify the IPC server that there is a new client.
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
-
-	// This is separate instead of just extending this class since we can't
-	// use properties in the super call. This manages channels.
 	private readonly ipc = new IPCServer(this.onDidClientConnect);
 
-	// Persistent connections. These can reconnect within a timeout.
 	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	private readonly services = new ServiceCollection();
@@ -377,7 +350,6 @@ export class MainServer extends Server {
 		args: ParsedArgs,
 	) {
 		super(options);
-
 		this.server.on("upgrade", async (request, socket) => {
 			const protocol = this.createProtocol(request, socket);
 			try {
@@ -393,12 +365,10 @@ export class MainServer extends Server {
 
 	public async listen(): Promise<string> {
 		const environment = (this.services.get(IEnvironmentService) as EnvironmentService);
-		const mkdirs = Promise.all([
-			environment.extensionsPath,
-		].map((p) => mkdirp(p)));
-		const [address] = await Promise.all([
-			super.listen(),
-			mkdirs,
+		const [address] = await Promise.all<string>([
+			super.listen(), ...[
+				environment.extensionsPath,
+			].map((p) => mkdirp(p).then(() => p)),
 		]);
 		return address;
 	}
@@ -426,22 +396,18 @@ export class MainServer extends Server {
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
 		const filePath = path.join(this.rootPath, "out/vs/code/browser/workbench/workbench.html");
-		let content = await util.promisify(fs.readFile)(filePath, "utf8");
-
-		const remoteAuthority = request.headers.host as string;
-		const transformer = getUriTransformer(remoteAuthority);
-
-		await Promise.all([
+		let [content] = await Promise.all([
+			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.webviewServer.listen(),
 			this.servicesPromise,
 		]);
 
 		const webviewEndpoint = this.webviewServer.address(request);
-
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
 		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
-
+		const remoteAuthority = request.headers.host as string;
+		const transformer = getUriTransformer(remoteAuthority);
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
 				workspaceUri: workspacePath
@@ -463,7 +429,6 @@ export class MainServer extends Server {
 		Object.keys(options).forEach((key) => {
 			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
 		});
-
 		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
 
 		return { content, filePath };
@@ -473,83 +438,58 @@ export class MainServer extends Server {
 		if (request.headers.upgrade !== "websocket") {
 			throw new Error("HTTP/1.1 400 Bad Request");
 		}
-
-		const options = {
-			reconnectionToken: "",
-			reconnection: false,
-			skipWebSocketFrames: false,
-		};
-
-		if (request.url) {
-			const query = url.parse(request.url, true).query;
-			if (query.reconnectionToken) {
-				options.reconnectionToken = query.reconnectionToken as string;
-			}
-			if (query.reconnection === "true") {
-				options.reconnection = true;
-			}
-			if (query.skipWebSocketFrames === "true") {
-				options.skipWebSocketFrames = true;
-			}
-		}
-
-		return new Protocol(
-			request.headers["sec-websocket-key"] as string,
-			socket,
-			options,
-		);
+		const query = request.url ? url.parse(request.url, true).query : {};
+		return new Protocol(<string>request.headers["sec-websocket-key"], socket, {
+			reconnectionToken: <string>query.reconnectionToken || "",
+			reconnection: query.reconnection === "true",
+			skipWebSocketFrames: query.skipWebSocketFrames === "true",
+		});
 	}
 
 	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
 		switch (message.desiredConnectionType) {
 			case ConnectionType.ExtensionHost:
 			case ConnectionType.Management:
-				const debugPort = await this.getDebugPort();
-				const ok = message.desiredConnectionType === ConnectionType.ExtensionHost
-					? (debugPort ? { debugPort } : {})
-					: { type: "ok" };
-
 				if (!this.connections.has(message.desiredConnectionType)) {
 					this.connections.set(message.desiredConnectionType, new Map());
 				}
-
 				const connections = this.connections.get(message.desiredConnectionType)!;
-				const token = protocol.options.reconnectionToken;
 
+				const ok = async () => {
+					return message.desiredConnectionType === ConnectionType.ExtensionHost
+						? { debugPort: await this.getDebugPort() }
+						: { type: "ok" };
+				};
+
+				const token = protocol.options.reconnectionToken;
 				if (protocol.options.reconnection && connections.has(token)) {
-					protocol.sendMessage(ok);
+					protocol.sendMessage(await ok());
 					const buffer = protocol.readEntireBuffer();
 					protocol.dispose();
 					return connections.get(token)!.reconnect(protocol.getSocket(), buffer);
-				}
-
-				if (protocol.options.reconnection || connections.has(token)) {
+				} else if (protocol.options.reconnection || connections.has(token)) {
 					throw new Error(protocol.options.reconnection
 						? "Unrecognized reconnection token"
 						: "Duplicate reconnection token"
 					);
 				}
 
-				protocol.sendMessage(ok);
+				protocol.sendMessage(await ok());
 
 				let connection: Connection;
 				if (message.desiredConnectionType === ConnectionType.Management) {
 					connection = new ManagementConnection(protocol);
 					this._onDidClientConnect.fire({
-						protocol,
-						onDidClientDisconnect: connection.onClose,
+						protocol, onDidClientDisconnect: connection.onClose,
 					});
 				} else {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
-						protocol, buffer,
-						this.services.get(ILogService) as ILogService,
+						protocol, buffer, this.services.get(ILogService) as ILogService,
 					);
 				}
-				connections.set(protocol.options.reconnectionToken, connection);
-				connection.onClose(() => {
-					connections.delete(protocol.options.reconnectionToken);
-				});
+				connections.set(token, connection);
+				connection.onClose(() => connections.delete(token));
 				break;
 			case ConnectionType.Tunnel: return protocol.tunnel();
 			default: throw new Error("Unrecognized connection type");
@@ -557,13 +497,10 @@ export class MainServer extends Server {
 	}
 
 	private async initializeServices(args: ParsedArgs): Promise<void> {
+		const router = new StaticRouter((ctx: any) => ctx.clientId === "renderer");
 		const environmentService = new EnvironmentService(args, process.execPath);
 		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
 		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
-
-		const router = new StaticRouter((context: any) => {
-			return context.clientId === "renderer";
-		});
 
 		this.services.set(ILogService, logService);
 		this.services.set(IEnvironmentService, environmentService);
@@ -594,11 +531,9 @@ export class MainServer extends Server {
 		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
 		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 
-		const instantiationService = new InstantiationService(this.services);
-
-		this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
-
-		return new Promise((resolve) => {
+		await new Promise((resolve) => {
+			const instantiationService = new InstantiationService(this.services);
+			this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
@@ -612,9 +547,7 @@ export class MainServer extends Server {
 				this.ipc.registerChannel("gallery", galleryChannel);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				this.ipc.registerChannel("telemetry", telemetryChannel);
-				// tslint:disable-next-line no-unused-expression
-				new ErrorTelemetry(telemetryService);
-				resolve();
+				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});
 	}
@@ -633,9 +566,6 @@ export class WebviewServer extends Server {
 		requestPath: string,
 	): Promise<Response> {
 		const webviewPath = path.join(this.rootPath, "out/vs/workbench/contrib/webview/browser/pre");
-		if (requestPath === "") {
-			requestPath = "/index.html";
-		}
-		return this.getResource(path.join(webviewPath, base, requestPath));
+		return this.getResource(path.join(webviewPath, base, requestPath || "/index.html"));
 	}
 }

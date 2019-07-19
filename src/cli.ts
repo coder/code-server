@@ -92,12 +92,7 @@ const main = async (): Promise<void> => {
 	const version = `${(pkg as any).codeServerVersion || "development"}-vsc${pkg.version}`;
 	if (args.help) {
 		const executable = `${product.applicationName}${os.platform() === "win32" ? ".exe" : ""}`;
-		return console.log(buildHelpMessage(
-			product.nameLong, executable,
-			version,
-			undefined,
-			false,
-		));
+		return console.log(buildHelpMessage(product.nameLong, executable, version, undefined, false));
 	}
 
 	if (args.version) {
@@ -116,26 +111,22 @@ const main = async (): Promise<void> => {
 	if (shouldSpawnCliProcess()) {
 		const cli = await new Promise<IMainCli>((c, e) => require(["vs/code/node/cliProcessMain"], c, e));
 		await cli.main(args);
-		// There is some WriteStream instance keeping it open so force an exit.
-		return process.exit(0);
+		return process.exit(0); // There is a WriteStream instance keeping it open.
 	}
 
+	const extra = args["_"] || [];
 	const options = {
-		host: args.host,
 		allowHttp: args["allow-http"],
+		auth: typeof args.auth !== "undefined" ? args.auth : true,
 		cert: args.cert,
 		certKey: args["cert-key"],
-		auth: typeof args.auth !== "undefined" ? args.auth : true,
+		folderUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
+		host: args.host,
 		password: process.env.PASSWORD,
-		folderUri: args["_"] && args["_"].length > 1
-			? args["_"][args["_"].length - 1]
-			: undefined,
 	};
 
 	if (!options.host) {
-		options.host = !options.auth || options.allowHttp
-			? "localhost"
-			: "0.0.0.0";
+		options.host = !options.auth || options.allowHttp ? "localhost" : "0.0.0.0";
 	}
 
 	let usingGeneratedCert = false;
@@ -152,18 +143,16 @@ const main = async (): Promise<void> => {
 		usingGeneratedPassword = true;
 	}
 
-	const webviewPort = typeof args["webview-port"] !== "undefined"
-		&& parseInt(args["webview-port"], 10) || 8444;
+	const webviewPort = args["webview-port"];
 	const webviewServer = new WebviewServer({
 		...options,
-		port: webviewPort,
+		port: typeof webviewPort !== "undefined" && parseInt(webviewPort, 10) || 8444,
 		socket: args["webview-socket"],
 	});
 
-	const port = typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443;
 	const server = new MainServer({
 		...options,
-		port,
+		port: typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443,
 		socket: args.socket,
 	}, webviewServer, args);
 
@@ -196,7 +185,7 @@ const main = async (): Promise<void> => {
 
 	if (!args.socket && args.open) {
 		// The web socket doesn't seem to work if using 0.0.0.0.
-		const openAddress = `http://localhost:${port}`;
+		const openAddress = `http://localhost:${server.options.port}`;
 		await open(openAddress).catch(console.error);
 		console.log(`  - Opened ${openAddress}`);
 	}

@@ -43,9 +43,6 @@ class Watcher extends DiskFileSystemProvider {
 	}
 }
 
-/**
- * See: src/vs/platform/remote/common/remoteAgentFileSystemChannel.ts.
- */
 export class FileProviderChannel implements IServerChannel, IDisposable {
 	private readonly provider: DiskFileSystemProvider;
 	private readonly watchers = new Map<string, Watcher>();
@@ -175,9 +172,6 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	}
 }
 
-/**
- * See: src/vs/workbench/services/remote/common/remoteAgentEnvironmentChannel.ts.
- */
 export class ExtensionEnvironmentChannel implements IServerChannel {
 	public constructor(
 		private readonly environment: IEnvironmentService,
@@ -245,7 +239,6 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		};
 
 		return Promise.all([scanBuiltin(), scanInstalled()]).then((allExtensions) => {
-			// It's possible to get duplicates.
 			const uniqueExtensions = new Map<string, IExtensionDescription>();
 			allExtensions.forEach((multipleExtensions) => {
 				multipleExtensions.forEach((extensions) => {
@@ -254,18 +247,13 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 						if (uniqueExtensions.has(id)) {
 							const oldPath = uniqueExtensions.get(id)!.extensionLocation.fsPath;
 							const newPath = extension.extensionLocation.fsPath;
-							this.log.warn(
-								`Extension ${id} in ${oldPath} has been overridden ${newPath}`,
-							);
+							this.log.warn(`${oldPath} has been overridden ${newPath}`);
 						}
 						uniqueExtensions.set(id, extension);
 					});
 				});
 			});
-
-			const finalExtensions = <IExtensionDescription[]>[];
-			uniqueExtensions.forEach((e) => finalExtensions.push(e));
-			return finalExtensions;
+			return Array.from(uniqueExtensions.values());
 		});
 	}
 
