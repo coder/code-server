@@ -19,7 +19,7 @@ docker run -it -p 127.0.0.1:8443:8443 -p 127.0.0.1:8444:8444 -v "$PWD:/home/code
   - All intensive computation runs on your server.
   - You're no longer running excess instances of Chrome.
 
-![Screenshot](/doc/assets/ide.png)
+![Screenshot](/doc/assets/ide.gif)
 
 ## Getting Started
 ### Run over SSH
