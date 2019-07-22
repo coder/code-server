@@ -99,7 +99,7 @@ We use the data collected to improve code-server.
 ```fish
 git clone https://github.com/microsoft/vscode
 cd vscode
-git checkout 1.36.0
+git checkout 1.36.1
 git clone https://github.com/cdr/code-server src/vs/server
 cd src/vs/server
 yarn patch:apply
@@ -120,6 +120,23 @@ requires ensuring that the patch still applies and has the intended effects.
 To generate a new patch, **stage all the changes** you want to be included in
 the patch in the VS Code source, then run `yarn patch:generate` in this
 directory.
+
+Our changes include:
+ - Add a `code-server` schema.
+ - Make the extension sidebar work in the browser. Mostly involves removing
+   Node-specific code for the `extensions` channel client and adding a
+   `gallery` channel.
+ - Allow multiple extension directories (both user and built-in).
+ - Rewrite assets used in the CSS (like icons) or as images to use the base URL.
+ - Change the loader to use the base URL.
+ - Change the web socket to use the base URL.
+ - Set the favicon (using a relative path).
+ - Modify the file service to support writing from an asynchronous stream (for
+   uploading files).
+ - Add a file prefix to ignore for temporary files created during upload.
+ - Insert our upload service for use in editor windows and explorer.
+ - Modify the log level to get its initial setting from the server.
+ - Get telemetry working by adding a channel for it.
 
 ## License
 [MIT](LICENSE)
