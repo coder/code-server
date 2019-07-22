@@ -1,3 +1,16 @@
+diff --git a/src/typings/require.d.ts b/src/typings/require.d.ts
+index 618861a5be..9d4fdea14e 100644
+--- a/src/typings/require.d.ts
++++ b/src/typings/require.d.ts
+@@ -46,5 +46,7 @@ interface NodeRequire {
+ 	config(data: any): any;
+ 	onError: Function;
+ 	__$__nodeRequire<T>(moduleName: string): T;
+-	getStats(): ReadonlyArray<LoaderEvent>
++	getStats(): ReadonlyArray<LoaderEvent>;
++	withBase(path: string ): string;
++	withBase(resource: { path: string }): { toString: (skipEncoding?: boolean) => string };
+ }
 diff --git a/src/vs/base/common/buffer.ts b/src/vs/base/common/buffer.ts
 index 7b4e9cc8d6..7722cb12c6 100644
 --- a/src/vs/base/common/buffer.ts
@@ -25,19 +38,132 @@ index 7b4e9cc8d6..7722cb12c6 100644
  		chunks.push(chunk);
  	}
  
-diff --git a/src/vs/editor/browser/services/openerService.ts b/src/vs/editor/browser/services/openerService.ts
-index c175034f96..de7e29906a 100644
---- a/src/vs/editor/browser/services/openerService.ts
-+++ b/src/vs/editor/browser/services/openerService.ts
-@@ -53,7 +53,7 @@ export class OpenerService implements IOpenerService {
+diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
+index a7466e641a..6d91e66ad3 100644
+--- a/src/vs/base/common/network.ts
++++ b/src/vs/base/common/network.ts
+@@ -46,4 +46,6 @@ export namespace Schemas {
+ 	export const command: string = 'command';
  
- 		const { scheme, path, query, fragment } = resource;
+ 	export const vscodeRemote: string = 'vscode-remote';
++
++	export const codeServer: string = 'code-server';
+ }
+diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
+index ff62e0a65a..78c93aeb5a 100644
+--- a/src/vs/code/browser/workbench/workbench.html
++++ b/src/vs/code/browser/workbench/workbench.html
+@@ -4,6 +4,8 @@
+ 	<head>
+ 		<meta charset="utf-8" />
  
--		if (equalsIgnoreCase(scheme, Schemas.http) || equalsIgnoreCase(scheme, Schemas.https) || equalsIgnoreCase(scheme, Schemas.mailto)) {
-+		if ((!location || location.host !== resource.authority) && equalsIgnoreCase(scheme, Schemas.http) || equalsIgnoreCase(scheme, Schemas.https) || equalsIgnoreCase(scheme, Schemas.mailto)) {
- 			// open http or default mail application
- 			dom.windowOpenNoOpener(encodeURI(resource.toString(true)));
- 			return Promise.resolve(true);
++		<link rel="shortcut icon" href="./favicon.ico" />
++
+ 		<!-- Disable pinch zooming -->
+ 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+ 
+@@ -30,4 +32,4 @@
+ 
+ 	<!-- Startup via workbench.js -->
+ 	<script src="./out/vs/code/browser/workbench/workbench.js"></script>
+-</html>
+\ No newline at end of file
++</html>
+diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
+index 34f321f90d..48bab7db1c 100644
+--- a/src/vs/code/browser/workbench/workbench.js
++++ b/src/vs/code/browser/workbench/workbench.js
+@@ -7,14 +7,19 @@
+ 
+ (function () {
+ 
++	const basePath = window.location.pathname.replace(/\/+$/, '');
++	const base = window.location.origin + basePath;
+ 	require.config({
+-		baseUrl: `${window.location.origin}/out`,
++		baseUrl: `${base}/out`,
++		baseScheme: window.location.protocol.replace(/:$/, ''),
++		basePath: basePath + "/resources",
++		baseAuthority: window.location.host,
+ 		paths: {
+-			'vscode-textmate': `${window.location.origin}/node_modules/vscode-textmate/release/main`,
+-			'onigasm-umd': `${window.location.origin}/node_modules/onigasm-umd/release/main`,
+-			'xterm': `${window.location.origin}/node_modules/xterm/lib/xterm.js`,
+-			'xterm-addon-search': `${window.location.origin}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
+-			'xterm-addon-web-links': `${window.location.origin}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
++			'vscode-textmate': `${base}/node_modules/vscode-textmate/release/main`,
++			'onigasm-umd': `${base}/node_modules/onigasm-umd/release/main`,
++			'xterm': `${base}/node_modules/xterm/lib/xterm.js`,
++			'xterm-addon-search': `${base}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
++			'xterm-addon-web-links': `${base}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
+ 		}
+ 	});
+ 
+@@ -23,4 +28,4 @@
+ 
+ 		api.create(document.body, options);
+ 	});
+-})();
+\ No newline at end of file
++})();
+diff --git a/src/vs/loader.js b/src/vs/loader.js
+index 40b6d2aa32..5b12b272fe 100644
+--- a/src/vs/loader.js
++++ b/src/vs/loader.js
+@@ -497,6 +497,28 @@ var AMDLoader;
+             }
+             return this._addUrlArgsIfNecessaryToUrl(result);
+         };
++        /**
++         * Transform a url to use the site base.
++         */
++        Configuration.prototype.requireWithBase = function (resource) {
++            if (!this.options.baseScheme || !this.options.basePath || !this.options.baseAuthority) {
++                return resource;
++            }
++            if (typeof resource === "string") {
++              return resource.replace(
++                /^(code-server|file):\/\/[^/]*/,
++                `${this.options.baseScheme}://${this.options.baseAuthority}${this.options.basePath}`
++              );
++            }
++            if (resource.scheme === this.options.baseScheme) {
++              return resource;
++            }
++            return resource.with({
++              authority: this.options.baseAuthority,
++              scheme: this.options.baseScheme,
++              path: `${this.options.basePath}${resource.path}`,
++            });
++        };
+         /**
+          * Flag to indicate if current execution is as part of a build.
+          */
+@@ -1427,6 +1449,9 @@ var AMDLoader;
+             result.getStats = function () {
+                 return _this.getLoaderEvents();
+             };
++            result.withBase = function (resource) {
++                return _this._config.requireWithBase(resource);
++            };
+             result.__$__nodeRequire = AMDLoader.global.nodeRequire;
+             return result;
+         };
+diff --git a/src/vs/platform/actions/browser/menuEntryActionViewItem.ts b/src/vs/platform/actions/browser/menuEntryActionViewItem.ts
+index 2dae143385..3fa8ac96d1 100644
+--- a/src/vs/platform/actions/browser/menuEntryActionViewItem.ts
++++ b/src/vs/platform/actions/browser/menuEntryActionViewItem.ts
+@@ -244,8 +244,8 @@ export class MenuEntryActionViewItem extends ActionViewItem {
+ 				iconClass = MenuEntryActionViewItem.ICON_PATH_TO_CSS_RULES.get(iconPathMapKey)!;
+ 			} else {
+ 				iconClass = ids.nextId();
+-				createCSSRule(`.icon.${iconClass}`, `background-image: url("${(item.iconLocation.light || item.iconLocation.dark).toString()}")`);
+-				createCSSRule(`.vs-dark .icon.${iconClass}, .hc-black .icon.${iconClass}`, `background-image: url("${item.iconLocation.dark.toString()}")`);
++				createCSSRule(`.icon.${iconClass}`, `background-image: url("${require.withBase(item.iconLocation.light || item.iconLocation.dark).toString()}")`);
++				createCSSRule(`.vs-dark .icon.${iconClass}, .hc-black .icon.${iconClass}`, `background-image: url("${require.withBase(item.iconLocation.dark).toString()}")`);
+ 				MenuEntryActionViewItem.ICON_PATH_TO_CSS_RULES.set(iconPathMapKey, iconClass);
+ 			}
+ 
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index 443e430fcd..fdd9900598 100644
 --- a/src/vs/platform/environment/common/environment.ts
@@ -271,6 +397,19 @@ index 9f68b645b6..fe380bb6f8 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/src/vs/platform/remote/browser/browserWebSocketFactory.ts b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
+index 6d9ecbcf5a..1ebd5a4b84 100644
+--- a/src/vs/platform/remote/browser/browserWebSocketFactory.ts
++++ b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
+@@ -79,7 +79,7 @@ class BrowserSocket implements ISocket {
+ export const browserWebSocketFactory = new class implements IWebSocketFactory {
+ 	connect(host: string, port: number, query: string, callback: IConnectCallback): void {
+ 		const errorListener = (err: any) => callback(err, undefined);
+-		const socket = new WebSocket(`ws://${host}:${port}/?${query}&skipWebSocketFrames=false`);
++		const socket = new WebSocket(`ws://${host}:${port}${window.location.pathname.replace(/\/+$/, '')}/?${query}&skipWebSocketFrames=false`);
+ 		socket.onopen = function (event) {
+ 			socket.removeEventListener('error', errorListener);
+ 			callback(undefined, new BrowserSocket(socket));
 diff --git a/src/vs/platform/telemetry/node/telemetryIpc.ts b/src/vs/platform/telemetry/node/telemetryIpc.ts
 index 8e1b68eb36..2b6a0d5b15 100644
 --- a/src/vs/platform/telemetry/node/telemetryIpc.ts
@@ -338,6 +477,26 @@ index 8e1b68eb36..2b6a0d5b15 100644
 +		return true;
 +	}
 +}
+diff --git a/src/vs/workbench/api/browser/viewsExtensionPoint.ts b/src/vs/workbench/api/browser/viewsExtensionPoint.ts
+index 8bace46843..c18eb109eb 100644
+--- a/src/vs/workbench/api/browser/viewsExtensionPoint.ts
++++ b/src/vs/workbench/api/browser/viewsExtensionPoint.ts
+@@ -327,7 +327,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
+ 
+ 			// Generate CSS to show the icon in the activity bar
+ 			const iconClass = `.monaco-workbench .activitybar .monaco-action-bar .action-label.${cssClass}`;
+-			createCSSRule(iconClass, `-webkit-mask: url('${icon}') no-repeat 50% 50%`);
++			createCSSRule(iconClass, `-webkit-mask: url('${require.withBase(icon)}') no-repeat 50% 50%`);
+ 		}
+ 
+ 		return viewContainer;
+@@ -456,4 +456,4 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
+ }
+ 
+ const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
+-workbenchRegistry.registerWorkbenchContribution(ViewsExtensionHandler, LifecyclePhase.Starting);
+\ No newline at end of file
++workbenchRegistry.registerWorkbenchContribution(ViewsExtensionHandler, LifecyclePhase.Starting);
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 2054ceece3..f99dfd0b73 100644
 --- a/src/vs/workbench/browser/dnd.ts
@@ -368,8 +527,62 @@ index 2054ceece3..f99dfd0b73 100644
  		}
  
  		// Make the window active to handle the drop properly within
+diff --git a/src/vs/workbench/browser/parts/activitybar/activitybarActions.ts b/src/vs/workbench/browser/parts/activitybar/activitybarActions.ts
+index 24d8fe70c7..0670ebb774 100644
+--- a/src/vs/workbench/browser/parts/activitybar/activitybarActions.ts
++++ b/src/vs/workbench/browser/parts/activitybar/activitybarActions.ts
+@@ -173,7 +173,7 @@ export class PlaceHolderViewletActivityAction extends ViewletActivityAction {
+ 		super({ id, name: id, cssClass: `extensionViewlet-placeholder-${id.replace(/\./g, '-')}` }, viewletService, layoutService, telemetryService);
+ 
+ 		const iconClass = `.monaco-workbench .activitybar .monaco-action-bar .action-label.${this.class}`; // Generate Placeholder CSS to show the icon in the activity bar
+-		DOM.createCSSRule(iconClass, `-webkit-mask: url('${iconUrl || ''}') no-repeat 50% 50%`);
++		DOM.createCSSRule(iconClass, `-webkit-mask: url('${iconUrl ? require.withBase(iconUrl) : ''}') no-repeat 50% 50%`);
+ 	}
+ 
+ 	setActivity(activity: IActivity): void {
+diff --git a/src/vs/workbench/browser/parts/editor/resourceViewer.ts b/src/vs/workbench/browser/parts/editor/resourceViewer.ts
+index a5e644112b..99f8271a59 100644
+--- a/src/vs/workbench/browser/parts/editor/resourceViewer.ts
++++ b/src/vs/workbench/browser/parts/editor/resourceViewer.ts
+@@ -548,7 +548,7 @@ class InlineImageView {
+ 			const img = container.querySelector('img');
+ 			if (img) {
+ 				if (typeof src === 'string') {
+-					img.src = src;
++					img.src = require.withBase(src);
+ 				} else {
+ 					const url = URL.createObjectURL(src);
+ 					disposables.add(toDisposable(() => URL.revokeObjectURL(url)));
+diff --git a/src/vs/workbench/browser/parts/quickinput/quickInputUtils.ts b/src/vs/workbench/browser/parts/quickinput/quickInputUtils.ts
+index babe949511..7bce969709 100644
+--- a/src/vs/workbench/browser/parts/quickinput/quickInputUtils.ts
++++ b/src/vs/workbench/browser/parts/quickinput/quickInputUtils.ts
+@@ -22,8 +22,8 @@ export function getIconClass(iconPath: { dark: URI; light?: URI; } | undefined):
+ 		iconClass = iconPathToClass[key];
+ 	} else {
+ 		iconClass = iconClassGenerator.nextId();
+-		dom.createCSSRule(`.${iconClass}`, `background-image: url("${(iconPath.light || iconPath.dark).toString()}")`);
+-		dom.createCSSRule(`.vs-dark .${iconClass}, .hc-black .${iconClass}`, `background-image: url("${iconPath.dark.toString()}")`);
++		dom.createCSSRule(`.${iconClass}`, `background-image: url("${require.withBase(iconPath.light || iconPath.dark).toString()}")`);
++		dom.createCSSRule(`.vs-dark .${iconClass}, .hc-black .${iconClass}`, `background-image: url("${require.withBase(iconPath.dark).toString()}")`);
+ 		iconPathToClass[key] = iconClass;
+ 	}
+ 
+diff --git a/src/vs/workbench/browser/parts/views/customView.ts b/src/vs/workbench/browser/parts/views/customView.ts
+index 5a758eb786..7fcacb5ca7 100644
+--- a/src/vs/workbench/browser/parts/views/customView.ts
++++ b/src/vs/workbench/browser/parts/views/customView.ts
+@@ -674,7 +674,7 @@ class TreeRenderer implements IRenderer {
+ 			templateData.resourceLabel.setResource({ name: label, description }, { title, hideIcon: true, extraClasses: ['custom-view-tree-node-item-resourceLabel'], matches });
+ 		}
+ 
+-		templateData.icon.style.backgroundImage = iconUrl ? `url('${iconUrl.toString(true)}')` : '';
++		templateData.icon.style.backgroundImage = iconUrl ? `url('${require.withBase(iconUrl).toString(true)}')` : '';
+ 		DOM.toggleClass(templateData.icon, 'custom-view-tree-node-item-icon', !!iconUrl);
+ 		templateData.actionBar.context = (<TreeViewItemHandleArg>{ $treeViewId: this.treeViewId, $treeItemHandle: node.handle });
+ 		templateData.actionBar.push(this.menus.getResourceActions(node), { icon: true, label: false });
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 1986fb6642..1bf169a4b4 100644
+index 1986fb6642..9b5ff6603c 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -35,6 +35,7 @@ import { SignService } from 'vs/platform/sign/browser/signService';
@@ -396,17 +609,17 @@ index 1986fb6642..1bf169a4b4 100644
  	}
  
  	private async initServices(): Promise<{ serviceCollection: ServiceCollection, logService: ILogService }> {
-@@ -115,6 +125,9 @@ class CodeRendererMain extends Disposable {
+@@ -114,7 +124,8 @@ class CodeRendererMain extends Disposable {
+ 			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  
- 			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
-+			fileService.registerProvider(Schemas.http, remoteFileSystemProvider);
-+			fileService.registerProvider(Schemas.https, remoteFileSystemProvider);
+-			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
++			fileService.registerProvider(Schemas.codeServer, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
  		}
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
-@@ -170,4 +183,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
+@@ -170,4 +181,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
  	const renderer = new CodeRendererMain(domElement, options);
  
  	return renderer.open();
@@ -530,8 +743,63 @@ index b253e573ae..e23d9c970e 100644
 -//#endregion
 \ No newline at end of file
 +//#endregion
+diff --git a/src/vs/workbench/contrib/comments/browser/commentNode.ts b/src/vs/workbench/contrib/comments/browser/commentNode.ts
+index f4ac3fe8dd..b4f36911c0 100644
+--- a/src/vs/workbench/contrib/comments/browser/commentNode.ts
++++ b/src/vs/workbench/contrib/comments/browser/commentNode.ts
+@@ -108,7 +108,7 @@ export class CommentNode extends Disposable {
+ 		const avatar = dom.append(this._domNode, dom.$('div.avatar-container'));
+ 		if (comment.userIconPath) {
+ 			const img = <HTMLImageElement>dom.append(avatar, dom.$('img.avatar'));
+-			img.src = comment.userIconPath.toString();
++			img.src = require.withBase(comment.userIconPath).toString();
+ 			img.onerror = _ => img.remove();
+ 		}
+ 		this._commentDetailsContainer = dom.append(this._domNode, dom.$('.review-comment-contents'));
+@@ -761,4 +761,4 @@ function fillInActions(groups: [string, Array<MenuItemAction | SubmenuItemAction
+ 			to.push(...actions);
+ 		}
+ 	}
+-}
+\ No newline at end of file
++}
+diff --git a/src/vs/workbench/contrib/comments/browser/reactionsAction.ts b/src/vs/workbench/contrib/comments/browser/reactionsAction.ts
+index c14030dab8..42b666446d 100644
+--- a/src/vs/workbench/contrib/comments/browser/reactionsAction.ts
++++ b/src/vs/workbench/contrib/comments/browser/reactionsAction.ts
+@@ -46,7 +46,7 @@ export class ReactionActionViewItem extends ActionViewItem {
+ 			let reactionIcon = dom.append(this.label, dom.$('.reaction-icon'));
+ 			reactionIcon.style.display = '';
+ 			let uri = URI.revive(action.icon);
+-			reactionIcon.style.backgroundImage = `url('${uri}')`;
++			reactionIcon.style.backgroundImage = `url('${require.withBase(uri)}')`;
+ 			reactionIcon.title = action.label;
+ 		}
+ 		if (action.count) {
+diff --git a/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts b/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
+index 31b80683ee..6e0099271e 100644
+--- a/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
++++ b/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
+@@ -108,8 +108,8 @@ export class ExtensionRenderer implements IListRenderer<ITreeNode<IExtensionData
+ 	public renderElement(node: ITreeNode<IExtensionData>, index: number, data: IExtensionTemplateData): void {
+ 		const extension = node.element.extension;
+ 		const onError = Event.once(domEvent(data.icon, 'error'));
+-		onError(() => data.icon.src = extension.iconUrlFallback, null, data.extensionDisposables);
+-		data.icon.src = extension.iconUrl;
++		onError(() => data.icon.src = require.withBase(extension.iconUrlFallback), null, data.extensionDisposables);
++		data.icon.src = require.withBase(extension.iconUrl);
+ 
+ 		if (!data.icon.complete) {
+ 			data.icon.style.visibility = 'hidden';
+@@ -261,4 +261,4 @@ export class ExtensionData implements IExtensionData {
+ 		}
+ 		return null;
+ 	}
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts
-index 86949eb39a..17373fb889 100644
+index 86949eb39a..b7d04352ce 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts
 +++ b/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts
 @@ -3,6 +3,7 @@
@@ -577,6 +845,17 @@ index 86949eb39a..17373fb889 100644
  				<link rel="stylesheet" type="text/css" href="${styleSheetPath}">
  			</head>
  			<body>
+@@ -291,8 +292,8 @@ export class ExtensionEditor extends BaseEditor {
+ 
+ 		const remoteBadge = this.instantiationService.createInstance(RemoteBadgeWidget, this.iconContainer, true);
+ 		const onError = Event.once(domEvent(this.icon, 'error'));
+-		onError(() => this.icon.src = extension.iconUrlFallback, null, this.transientDisposables);
+-		this.icon.src = extension.iconUrl;
++		onError(() => this.icon.src = require.withBase(extension.iconUrlFallback), null, this.transientDisposables);
++		this.icon.src = require.withBase(extension.iconUrl);
+ 
+ 		this.name.textContent = extension.displayName;
+ 		this.identifier.textContent = extension.identifier.id;
 @@ -370,7 +371,7 @@ export class ExtensionEditor extends BaseEditor {
  			this.instantiationService.createInstance(SetFileIconThemeAction, fileIconThemes),
  			this.instantiationService.createInstance(EnableDropDownAction),
@@ -844,7 +1123,7 @@ index aa632ac96e..b6d016f928 100644
 \ No newline at end of file
 +});
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts
-index 3f6427704d..f511aed474 100644
+index 3f6427704d..8d2d78f537 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts
 +++ b/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts
 @@ -13,7 +13,7 @@ import { IPagedRenderer } from 'vs/base/browser/ui/list/listPaging';
@@ -865,6 +1144,17 @@ index 3f6427704d..f511aed474 100644
  			this.instantiationService.createInstance(LocalInstallAction),
  			this.instantiationService.createInstance(MaliciousStatusLabelAction, false),
  			systemDisabledWarningAction,
+@@ -165,8 +165,8 @@ export class Renderer implements IPagedRenderer<IExtension, ITemplateData> {
+ 		this.extensionService.onDidChangeExtensions(() => updateEnablement(), this, data.extensionDisposables);
+ 
+ 		const onError = Event.once(domEvent(data.icon, 'error'));
+-		onError(() => data.icon.src = extension.iconUrlFallback, null, data.extensionDisposables);
+-		data.icon.src = extension.iconUrl;
++		onError(() => data.icon.src = require.withBase(extension.iconUrlFallback), null, data.extensionDisposables);
++		data.icon.src = require.withBase(extension.iconUrl);
+ 
+ 		if (!data.icon.complete) {
+ 			data.icon.style.visibility = 'hidden';
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts
 index 6dad2fb580..4ed25dd206 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts
@@ -1167,6 +1457,37 @@ index 9235c739fb..32d203eb32 100644
  			this._register(logService.onDidChangeLogLevel(level => logLevelClient.setLevel(level)));
  		}
  	}
+diff --git a/src/vs/workbench/contrib/scm/browser/scmViewlet.ts b/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
+index 4d8a5d6907..b464d5276f 100644
+--- a/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
++++ b/src/vs/workbench/contrib/scm/browser/scmViewlet.ts
+@@ -497,7 +497,7 @@ class ResourceRenderer implements IListRenderer<ISCMResource, ResourceTemplate>
+ 
+ 		if (icon) {
+ 			template.decorationIcon.style.display = '';
+-			template.decorationIcon.style.backgroundImage = `url('${icon}')`;
++			template.decorationIcon.style.backgroundImage = `url('${require.withBase(icon)}')`;
+ 			template.decorationIcon.title = resource.decorations.tooltip || '';
+ 		} else {
+ 			template.decorationIcon.style.display = 'none';
+diff --git a/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts b/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts
+index 6d4d096a9c..bbb7930e7a 100644
+--- a/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts
++++ b/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts
+@@ -39,10 +39,10 @@ export class WebviewEditorInput extends EditorInput {
+ 		this._icons.forEach((value, key) => {
+ 			const webviewSelector = `.show-file-icons .webview-${key}-name-file-icon::before`;
+ 			if (URI.isUri(value)) {
+-				cssRules.push(`${webviewSelector} { content: ""; background-image: url(${value.toString()}); }`);
++				cssRules.push(`${webviewSelector} { content: ""; background-image: url(${require.withBase(value).toString()}); }`);
+ 			} else {
+-				cssRules.push(`.vs ${webviewSelector} { content: ""; background-image: url(${value.light.toString()}); }`);
+-				cssRules.push(`.vs-dark ${webviewSelector} { content: ""; background-image: url(${value.dark.toString()}); }`);
++				cssRules.push(`.vs ${webviewSelector} { content: ""; background-image: url(${require.withBase(value.light).toString()}); }`);
++				cssRules.push(`.vs-dark ${webviewSelector} { content: ""; background-image: url(${require.withBase(value.dark).toString()}); }`);
+ 			}
+ 		});
+ 		this._styleElement.innerHTML = cssRules.join('\n');
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index 3525569601..a91a5fce7d 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
@@ -1280,6 +1601,28 @@ index a788aadc1f..09e6947fb7 100644
 -}
 \ No newline at end of file
 +}
+diff --git a/src/vs/workbench/services/themes/common/fileIconThemeData.ts b/src/vs/workbench/services/themes/common/fileIconThemeData.ts
+index 306d58f915..58c603ad3d 100644
+--- a/src/vs/workbench/services/themes/common/fileIconThemeData.ts
++++ b/src/vs/workbench/services/themes/common/fileIconThemeData.ts
+@@ -331,7 +331,7 @@ function _processIconThemeDocument(id: string, iconThemeDocumentLocation: URI, i
+ 	let fonts = iconThemeDocument.fonts;
+ 	if (Array.isArray(fonts)) {
+ 		fonts.forEach(font => {
+-			let src = font.src.map(l => `url('${resolvePath(l.path)}') format('${l.format}')`).join(', ');
++			let src = font.src.map(l => `url('${require.withBase(resolvePath(l.path))}') format('${l.format}')`).join(', ');
+ 			cssRules.push(`@font-face { src: ${src}; font-family: '${font.id}'; font-weight: ${font.weight}; font-style: ${font.style}; }`);
+ 		});
+ 		cssRules.push(`.show-file-icons .file-icon::before, .show-file-icons .folder-icon::before, .show-file-icons .rootfolder-icon::before { font-family: '${fonts[0].id}'; font-size: ${fonts[0].size || '150%'}}`);
+@@ -342,7 +342,7 @@ function _processIconThemeDocument(id: string, iconThemeDocumentLocation: URI, i
+ 		let definition = iconThemeDocument.iconDefinitions[defId];
+ 		if (definition) {
+ 			if (definition.iconPath) {
+-				cssRules.push(`${selectors.join(', ')} { content: ' '; background-image: url("${resolvePath(definition.iconPath)}"); }`);
++				cssRules.push(`${selectors.join(', ')} { content: ' '; background-image: url("${require.withBase(resolvePath(definition.iconPath))}"); }`);
+ 			}
+ 			if (definition.fontCharacter || definition.fontColor) {
+ 				let body = '';
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
 index c28adc0ad9..4517c308da 100644
 --- a/src/vs/workbench/workbench.web.main.ts

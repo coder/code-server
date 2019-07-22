@@ -94,7 +94,7 @@ export class ExtensionHostConnection extends Connection {
 	private spawn(buffer: VSBuffer): cp.ChildProcess {
 		const proc = cp.fork(
 			getPathFromAmdModule(require, "bootstrap-fork"),
-			[ "--type=extensionHost", `--uriTransformerPath=${uriTransformerPath()}` ],
+			[ "--type=extensionHost", `--uriTransformerPath=${uriTransformerPath}` ],
 			{
 				env: {
 					...process.env,

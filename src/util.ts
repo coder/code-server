@@ -45,14 +45,9 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 	return paths;
 };
 
-let transformer: string = "uriTransformerHttp";
-export const useHttpsTransformer = (): string => transformer = "uriTransformerHttps";
-export const uriTransformerPath = (): string => {
-	return getPathFromAmdModule(require, `vs/server/src/${transformer}`);
-};
-
+export const uriTransformerPath = getPathFromAmdModule(require, "vs/server/src/uriTransformer");
 export const getUriTransformer = (remoteAuthority: string): URITransformer => {
-	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath());
+	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
 	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
 	return new URITransformer(rawURITransformer);
 };

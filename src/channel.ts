@@ -164,7 +164,8 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	}
 
 	private transform(resource: UriComponents): URI {
-		// HACK: for now assume /out is relative to the build.
+		// HACK: for now assume /out is relative to the build (used for the
+		// walkthrough content).
 		if (resource.path.indexOf("/out") === 0) {
 			resource.path = this.environmentService.appRoot + resource.path;
 		}

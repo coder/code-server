@@ -55,7 +55,7 @@ import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/se
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { TelemetryClient } from "vs/server/src/insights";
 import { Protocol } from "vs/server/src/protocol";
-import { getMediaMime, getUriTransformer, useHttpsTransformer } from "vs/server/src/util";
+import { getMediaMime, getUriTransformer } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
@@ -116,7 +116,6 @@ export abstract class Server {
 	public constructor(public readonly options: ServerOptions) {
 		this.protocol = this.options.allowHttp ? "http" : "https";
 		if (this.options.cert && this.options.certKey) {
-			useHttpsTransformer();
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
 			this.server = httpolyglot.createServer({
 				cert: fs.readFileSync(this.options.cert),
@@ -196,11 +195,11 @@ export abstract class Server {
 			return { redirect: request.url };
 		}
 
-		const parsedUrl = url.parse(request.url || "", true);
+		const parsedUrl = request.url ? url.parse(request.url, true) : {} as url.UrlWithParsedQuery;
 		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
 		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
 		let [, base, requestPath] = match
-			? match.map((p) => p.replace(/\/$/, ""))
+			? match.map((p) => p.replace(/\/+$/, ""))
 			: ["", "", ""];
 		if (base.indexOf(".") !== -1) { // Assume it's a file at the root.
 			requestPath = base;
@@ -388,8 +387,8 @@ export class MainServer extends Server {
 			case "/node_modules":
 			case "/out":
 				return this.getResource(path.join(this.rootPath, base, requestPath));
-			// TODO: make this a /resources endpoint instead. Will require patching?
-			default: return this.getResource(path.join(base, requestPath));
+			case "/resources": return this.getResource(requestPath);
+			default: throw new HttpError("Not found", HttpCode.NotFound);
 		}
 	}
 
