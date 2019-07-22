@@ -111,8 +111,10 @@ export abstract class Server {
 	protected readonly server: http.Server | https.Server;
 	protected rootPath = path.resolve(__dirname, "../../../..");
 	private listenPromise: Promise<string> | undefined;
+	private readonly protocol: string;
 
 	public constructor(public readonly options: ServerOptions) {
+		this.protocol = this.options.allowHttp ? "http" : "https";
 		if (this.options.cert && this.options.certKey) {
 			useHttpsTransformer();
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
@@ -153,7 +155,7 @@ export abstract class Server {
 					: (address.address === "::" ? "localhost" : address.address)
 			) + ":" + address.port
 			: address;
-		return `${this.options.allowHttp ? "http" : "https"}://${endpoint}`;
+		return `${this.protocol}://${endpoint}`;
 	}
 
 	protected abstract handleRequest(
@@ -173,7 +175,9 @@ export abstract class Server {
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
 				"Cache-Control": "max-age=86400", // TODO: ETag?
 				"Content-Type": getMediaMime(payload.filePath),
-				...(payload.redirect ? { Location: payload.redirect } : {}),
+				...(payload.redirect ? {
+					Location: `${this.protocol}://${request.headers.host}${payload.redirect}`,
+				} : {}),
 				...payload.headers,
 			});
 			response.end(payload.content);
@@ -189,7 +193,7 @@ export abstract class Server {
 	private async preHandleRequest(request: http.IncomingMessage): Promise<Response> {
 		const secure = (request.connection as tls.TLSSocket).encrypted;
 		if (!this.options.allowHttp && !secure) {
-			return { redirect: "https://" + request.headers.host + request.url };
+			return { redirect: request.url };
 		}
 
 		const parsedUrl = url.parse(request.url || "", true);
@@ -215,7 +219,7 @@ export abstract class Server {
 				if (requestPath === "/favicon.ico") {
 					return this.getResource(path.join(this.rootPath, "/out/vs/server/src/favicon", requestPath));
 				} else if (!this.authenticate(request)) {
-					return { redirect: "https://" + request.headers.host + "/login" };
+					return { redirect: "/login" };
 				}
 				break;
 			case "/login":
@@ -240,13 +244,13 @@ export abstract class Server {
 	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
 		if (this.authenticate(request)) {
 			this.ensureGet(request);
-			return { redirect: "https://" + request.headers.host + "/" };
+			return { redirect: "/" };
 		}
 		if (request.method === "POST") {
 			const data = await this.getData<LoginPayload>(request);
 			if (this.authenticate(request, data)) {
 				return {
-					redirect: "https://" + request.headers.host + "/",
+					redirect: "/",
 					headers: {"Set-Cookie": `password=${data.password}` }
 				};
 			}
@@ -384,12 +388,7 @@ export class MainServer extends Server {
 			case "/node_modules":
 			case "/out":
 				return this.getResource(path.join(this.rootPath, base, requestPath));
-			// TODO: this setup means you can't request anything from the root if it
-			// starts with /node_modules or /out, although that's probably low risk.
-			// There doesn't seem to be a really good way to solve this since some
-			// resources are requested by the browser (like the extension icon) and
-			// some by the file provider (like the extension README). Maybe add a
-			// /resource prefix and a file provider that strips that prefix?
+			// TODO: make this a /resources endpoint instead. Will require patching?
 			default: return this.getResource(path.join(base, requestPath));
 		}
 	}
