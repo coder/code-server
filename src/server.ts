@@ -96,15 +96,16 @@ export class HttpError extends Error {
 }
 
 export interface ServerOptions {
-	readonly port?: number;
-	readonly host?: string;
-	readonly socket?: string;
 	readonly allowHttp?: boolean;
+	readonly auth?: boolean;
+	readonly basePath?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
-	readonly auth?: boolean;
-	readonly password?: string;
 	readonly folderUri?: string;
+	readonly host?: string;
+	readonly password?: string;
+	readonly port?: number;
+	readonly socket?: string;
 }
 
 export abstract class Server {
@@ -112,9 +113,13 @@ export abstract class Server {
 	protected rootPath = path.resolve(__dirname, "../../../..");
 	private listenPromise: Promise<string> | undefined;
 	private readonly protocol: string;
+	private readonly basePath: string = "";
 
 	public constructor(public readonly options: ServerOptions) {
 		this.protocol = this.options.allowHttp ? "http" : "https";
+		if (this.options.basePath) {
+			this.basePath = this.options.basePath.replace(/\/+$/, "");
+		}
 		if (this.options.cert && this.options.certKey) {
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
 			this.server = httpolyglot.createServer({
@@ -175,7 +180,7 @@ export abstract class Server {
 				"Cache-Control": "max-age=86400", // TODO: ETag?
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? {
-					Location: `${this.protocol}://${request.headers.host}${payload.redirect}`,
+					Location: `${this.protocol}://${request.headers.host}${this.basePath}${payload.redirect}`,
 				} : {}),
 				...payload.headers,
 			});

@@ -15,6 +15,7 @@ import { generateCertificate, generatePassword, open, unpackExecutables } from "
 interface Args extends ParsedArgs {
 	"allow-http"?: boolean;
 	auth?: boolean;
+	"base-path"?: string;
 	cert?: string;
 	"cert-key"?: string;
 	"extra-builtin-extensions-dir"?: string;
@@ -54,6 +55,7 @@ while (i--) {
 }
 
 options.push({ id: "allow-http", type: "boolean", cat: "o", description: "Allow http connections." });
+options.push({ id: "base-path", type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." });
 options.push({ id: "cert", type: "string", cat: "o", description: "Path to certificate." });
 options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to certificate key." });
 options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to extra builtin extension directory." });
@@ -118,6 +120,7 @@ const main = async (): Promise<void> => {
 	const options = {
 		allowHttp: args["allow-http"],
 		auth: typeof args.auth !== "undefined" ? args.auth : true,
+		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
 		folderUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
