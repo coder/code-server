@@ -1,5 +1,4 @@
 import * as os from "os";
-import * as path from "path";
 
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
@@ -8,13 +7,12 @@ import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/envi
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 
-import { MainServer, WebviewServer } from "vs/server/src/server";
+import { AuthType, MainServer, WebviewServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
+import { buildAllowedMessage, generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
-	"allow-http"?: boolean;
-	auth?: boolean;
+	auth?: AuthType;
 	"base-path"?: string;
 	cert?: string;
 	"cert-key"?: string;
@@ -54,14 +52,13 @@ while (i--) {
 	}
 }
 
-options.push({ id: "allow-http", type: "boolean", cat: "o", description: "Allow http connections." });
 options.push({ id: "base-path", type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." });
-options.push({ id: "cert", type: "string", cat: "o", description: "Path to certificate." });
-options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to certificate key." });
-options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to extra builtin extension directory." });
-options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to extra user extension directory." });
+options.push({ id: "cert", type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." });
+options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to the certificate's key if one was provided." });
+options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to an extra builtin extension directory." });
+options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to an extra user extension directory." });
 options.push({ id: "host", type: "string", cat: "o", description: "Host for the main and webview servers." });
-options.push({ id: "no-auth", type: "boolean", cat: "o", description: "Disable password authentication." });
+options.push({ id: "auth", type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` });
 options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
 options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
 options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
@@ -118,8 +115,7 @@ const main = async (): Promise<void> => {
 
 	const extra = args["_"] || [];
 	const options = {
-		allowHttp: args["allow-http"],
-		auth: typeof args.auth !== "undefined" ? args.auth : true,
+		auth: args.auth,
 		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
@@ -128,22 +124,20 @@ const main = async (): Promise<void> => {
 		password: process.env.PASSWORD,
 	};
 
-	if (!options.host) {
-		options.host = !options.auth || options.allowHttp ? "localhost" : "0.0.0.0";
+	if (options.auth && Object.keys(AuthType).filter((k) => AuthType[k] === options.auth).length === 0) {
+		throw new Error(`'${options.auth}' is not a valid authentication type.`);
+	} else if (options.auth && !options.password) {
+		options.password = await generatePassword();
 	}
 
-	let usingGeneratedCert = false;
-	if (!options.allowHttp && (!options.cert || !options.certKey)) {
+	if (!options.certKey && typeof options.certKey !== "undefined") {
+		throw new Error(`--cert-key cannot be blank`);
+	} else if (options.certKey && !options.cert) {
+		throw new Error(`--cert-key was provided but --cert was not`);
+	} if (!options.cert && typeof options.cert !== "undefined") {
 		const { cert, certKey } = await generateCertificate();
 		options.cert = cert;
 		options.certKey = certKey;
-		usingGeneratedCert = true;
-	}
-
-	let usingGeneratedPassword = false;
-	if (options.auth && !options.password) {
-		options.password = await generatePassword();
-		usingGeneratedPassword = true;
 	}
 
 	const webviewPort = args["webview-port"];
@@ -167,7 +161,7 @@ const main = async (): Promise<void> => {
 	console.log(`Main server listening on ${serverAddress}`);
 	console.log(`Webview server listening on ${webviewAddress}`);
 
-	if (usingGeneratedPassword) {
+	if (options.auth && !process.env.PASSWORD) {
 		console.log("  - Password is", options.password);
 		console.log("  - To use your own password, set the PASSWORD environment variable");
 	} else if (options.auth) {
@@ -176,17 +170,17 @@ const main = async (): Promise<void> => {
 		console.log("  - No authentication");
 	}
 
-	if (!options.allowHttp && options.cert && options.certKey) {
+	if (server.protocol === "https") {
 		console.log(
-			usingGeneratedCert
-				? `  - Using generated certificate and key in ${path.dirname(options.cert)} for HTTPS`
-				: "  - Using provided certificate and key for HTTPS",
+			args.cert
+				? `  - Using provided certificate${args["cert-key"] ? " and key" : ""} for HTTPS`
+				: `  - Using generated certificate and key for HTTPS`,
 		);
 	} else {
 		console.log("  - Not serving HTTPS");
 	}
 
-	if (!args.socket && args.open) {
+	if (!server.options.socket && args.open) {
 		// The web socket doesn't seem to work if using 0.0.0.0.
 		const openAddress = `http://localhost:${server.options.port}`;
 		await open(openAddress).catch(console.error);

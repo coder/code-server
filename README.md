@@ -1,15 +1,11 @@
-# code-server
-[!["Open Issues"](https://img.shields.io/github/issues-raw/cdr/code-server.svg)](https://github.com/cdr/code-server/issues)
-[!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest)
-[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cdr/code-server/blob/master/LICENSE)
-[![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
+# code-server [!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest) [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cdr/code-server/blob/master/LICENSE) [![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
 
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a
 remote server, accessible through the browser.
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -p 127.0.0.1:8444:8444 -v "$PWD:/home/coder/project" codercom/code-server --allow-http --no-auth
+docker run -it -p 127.0.0.1:8443:8443 -p 127.0.0.1:8444:8444 -v "$PWD:/home/coder/project" codercom/code-server
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
@@ -29,29 +25,20 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 See docker oneliner mentioned above. Dockerfile is at
 [/Dockerfile](/Dockerfile).
 
+To debug Golang using the
+[ms-vscode-go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go),
+you need to add `--security-opt seccomp=unconfined` to your `docker run`
+arguments when launching code-server with Docker. See
+[#725](https://github.com/cdr/code-server/issues/725) for details.
+
 ### Binaries
-1.  [Download a binary](https://github.com/cdr/code-server/releases) (Linux and
-    OS X supported. Windows coming soon)
-2.  Start the binary with the project directory as the first argument
+1. [Download a binary](https://github.com/cdr/code-server/releases) (Linux and
+    OS X supported. Windows coming soon).
+2. Unpack the downloaded file then run the binary.
+3. In your browser navigate to `localhost:8443`.
 
-```
-code-server <initial directory to open>
-```
-You will be prompted to enter the password shown in the CLI. `code-server`
-should now be running at https://localhost:8443.
-
-`code-server` uses a self-signed SSL certificate that may prompt your
-browser to ask you some additional questions before you proceed. Please
-[read here](doc/self-hosted/index.md) for more information.
-
-For detailed instructions and troubleshooting, see the
-[self-hosted quick start guide](doc/self-hosted/index.md).
-
-Quickstart guides for [Google Cloud](doc/admin/install/google_cloud.md),
-[AWS](doc/admin/install/aws.md), and
-[DigitalOcean](doc/admin/install/digitalocean.md).
-
-How to [secure your setup](/doc/security/ssl.md).
+- For self-hosting and other information see [doc/quickstart.md](doc/quickstart.md).
+- For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
 
 ### Build
 - If you also plan on developing, set the `OUT` environment variable:
@@ -69,12 +56,9 @@ How to [secure your setup](/doc/security/ssl.md).
   code into a single binary.
 
 ## Known Issues
+- Uploading .vsix files doesn't work.
 - Creating custom VS Code extensions and debugging them doesn't work.
-- To debug Golang using
-  [ms-vscode-go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go),
-  you need to add `--security-opt seccomp=unconfined` to your `docker run`
-  arguments when launching code-server with Docker. See
-  [#725](https://github.com/cdr/code-server/issues/725) for details.
+- Extension profiling and tips are currently disabled.
 
 ## Future
 - **Stay up to date!** Get notified about new releases of code-server.
@@ -86,17 +70,17 @@ How to [secure your setup](/doc/security/ssl.md).
 ## Extensions
 At the moment we can't use the official VSCode Marketplace. We've created a
 custom extension marketplace focused around open-sourced extensions. However,
-if you have access to the `.vsix` file, you can manually install the extension.
+you can manually download the extension to your extensions directory. It's also
+possible to host your own marketplace by setting the `SERVICE_URL` and
+`ITEM_URL` environment variables.
 
 ## Telemetry
-Use the `--disable-telemetry` flag to completely disable telemetry.
-
-We use the data collected to improve code-server.
+Use the `--disable-telemetry` flag to completely disable telemetry. We use the
+data collected to improve code-server.
 
 ## Contributing
-
 ### Development
-```fish
+```shell
 git clone https://github.com/microsoft/vscode
 cd vscode
 git checkout 1.36.1
@@ -107,7 +91,7 @@ yarn
 yarn watch
 # Wait for the initial compilation to complete (it will say "Finished compilation").
 # Run the next command in another shell.
-yarn start --allow-http --no-auth
+yarn start
 # Visit http://localhost:8443
 ```
 
@@ -130,7 +114,7 @@ Our changes include:
  - Rewrite assets used in the CSS (like icons) or as images to use the base URL.
  - Change the loader to use the base URL.
  - Change the web socket to use the base URL.
- - Set the favicon (using a relative path).
+ - Set the favicon using a relative path.
  - Modify the file service to support writing from an asynchronous stream (for
    uploading files).
  - Add a file prefix to ignore for temporary files created during upload.

@@ -95,9 +95,12 @@ export class HttpError extends Error {
 	}
 }
 
+export enum AuthType {
+	Password = "password",
+}
+
 export interface ServerOptions {
-	readonly allowHttp?: boolean;
-	readonly auth?: boolean;
+	readonly auth?: AuthType;
 	readonly basePath?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
@@ -112,19 +115,21 @@ export abstract class Server {
 	protected readonly server: http.Server | https.Server;
 	protected rootPath = path.resolve(__dirname, "../../../..");
 	private listenPromise: Promise<string> | undefined;
-	private readonly protocol: string;
-	private readonly basePath: string = "";
+	public readonly protocol: string;
+	public readonly options: ServerOptions;
 
-	public constructor(public readonly options: ServerOptions) {
-		this.protocol = this.options.allowHttp ? "http" : "https";
-		if (this.options.basePath) {
-			this.basePath = this.options.basePath.replace(/\/+$/, "");
-		}
-		if (this.options.cert && this.options.certKey) {
+	public constructor(options: ServerOptions) {
+		this.options = {
+			host: options.auth && options.cert ? "0.0.0.0" : "localhost",
+			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
+			...options,
+		};
+		this.protocol = this.options.cert ? "https" : "http";
+		if (this.protocol === "https") {
 			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
 			this.server = httpolyglot.createServer({
-				cert: fs.readFileSync(this.options.cert),
-				key: fs.readFileSync(this.options.certKey),
+				cert: this.options.cert && fs.readFileSync(this.options.cert),
+				key: this.options.certKey && fs.readFileSync(this.options.certKey),
 			}, this.onRequest);
 		} else {
 			this.server = http.createServer(this.onRequest);
@@ -180,7 +185,7 @@ export abstract class Server {
 				"Cache-Control": "max-age=86400", // TODO: ETag?
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? {
-					Location: `${this.protocol}://${request.headers.host}${this.basePath}${payload.redirect}`,
+					Location: `${this.protocol}://${request.headers.host}${this.options.basePath}${payload.redirect}`,
 				} : {}),
 				...payload.headers,
 			});
@@ -196,7 +201,7 @@ export abstract class Server {
 
 	private async preHandleRequest(request: http.IncomingMessage): Promise<Response> {
 		const secure = (request.connection as tls.TLSSocket).encrypted;
-		if (!this.options.allowHttp && !secure) {
+		if (this.options.cert && !secure) {
 			return { redirect: request.url };
 		}
 

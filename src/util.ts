@@ -12,6 +12,8 @@ import { extname } from "vs/base/common/path";
 import { URITransformer, IRawURITransformer } from "vs/base/common/uriIpc";
 import { mkdirp } from "vs/base/node/pfs";
 
+import { AuthType } from "vs/server/src/server";
+
 export const tmpdir = path.join(os.tmpdir(), "code-server");
 
 export const generateCertificate = async (): Promise<{ cert: string, certKey: string }> => {
@@ -107,4 +109,9 @@ export const unpackExecutables = async (): Promise<void> => {
 		await util.promisify(fs.writeFile)(destination, await util.promisify(fs.readFile)(rgPath));
 		await util.promisify(fs.chmod)(destination, "755");
 	}
+};
+
+export const buildAllowedMessage = (t: typeof AuthType): string => {
+	const values = <string[]>Object.keys(t).map((k) => t[k]);
+	return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(",")}`;
 };
