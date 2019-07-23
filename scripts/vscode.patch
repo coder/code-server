@@ -63,7 +63,7 @@ index ff62e0a65a..21cd50eaf9 100644
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
  
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 34f321f90d..9fc63daab2 100644
+index 34f321f90d..b1bd6a4ac9 100644
 --- a/src/vs/code/browser/workbench/workbench.js
 +++ b/src/vs/code/browser/workbench/workbench.js
 @@ -7,14 +7,19 @@
@@ -76,7 +76,7 @@ index 34f321f90d..9fc63daab2 100644
 -		baseUrl: `${window.location.origin}/out`,
 +		baseUrl: `${base}/out`,
 +		baseScheme: window.location.protocol.replace(/:$/, ''),
-+		basePath: basePath + "/resources",
++		basePath: basePath,
 +		baseAuthority: window.location.host,
  		paths: {
 -			'vscode-textmate': `${window.location.origin}/node_modules/vscode-textmate/release/main`,
@@ -93,39 +93,40 @@ index 34f321f90d..9fc63daab2 100644
  	});
  
 diff --git a/src/vs/loader.js b/src/vs/loader.js
-index 40b6d2aa32..5b12b272fe 100644
+index 40b6d2aa32..f64b7e70d8 100644
 --- a/src/vs/loader.js
 +++ b/src/vs/loader.js
-@@ -497,6 +497,28 @@ var AMDLoader;
+@@ -497,6 +497,29 @@ var AMDLoader;
              }
              return this._addUrlArgsIfNecessaryToUrl(result);
          };
 +        /**
-+         * Transform a url to use the site base.
++         * Transform a code-server:// URI, file:// URI, or plain path to use
++         * the site base.
 +         */
 +        Configuration.prototype.requireWithBase = function (resource) {
-+            if (!this.options.baseScheme || !this.options.basePath || !this.options.baseAuthority) {
++            if (typeof this.options.basePath === "undefined" || typeof this.options.baseAuthority === "undefined" || typeof this.options.baseScheme === "undefined") {
 +                return resource;
 +            }
 +            if (typeof resource === "string") {
-+              return resource.replace(
-+                /^(code-server|file):\/\/[^/]*/,
-+                `${this.options.baseScheme}://${this.options.baseAuthority}${this.options.basePath}`
-+              );
++              const base = `${this.options.baseScheme}://${this.options.baseAuthority}${this.options.basePath}`;
++              return resource.indexOf("/") !== 0
++                ? resource.replace(/^(code-server|file):\/\/[^/]*/, `${base}/resources`)
++                : `${base}${resource}`;
 +            }
-+            if (resource.scheme === this.options.baseScheme) {
++            if (resource.scheme !== "code-server" && resource.scheme !== "file") {
 +              return resource;
 +            }
 +            return resource.with({
 +              authority: this.options.baseAuthority,
 +              scheme: this.options.baseScheme,
-+              path: `${this.options.basePath}${resource.path}`,
++              path: `${this.options.basePath}/resources${resource.path}`,
 +            });
 +        };
          /**
           * Flag to indicate if current execution is as part of a build.
           */
-@@ -1427,6 +1449,9 @@ var AMDLoader;
+@@ -1427,6 +1450,9 @@ var AMDLoader;
              result.getStats = function () {
                  return _this.getLoaderEvents();
              };
@@ -585,7 +586,7 @@ index 1986fb6642..a3e4cbdb56 100644
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..cc6bb2535f 100644
+index b253e573ae..7a230fa3bd 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -53,6 +53,14 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
@@ -694,6 +695,24 @@ index b253e573ae..cc6bb2535f 100644
  
  //#endregion
  
+@@ -888,7 +924,7 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+ 		for (let i = 0; i < _uris.length; i++) {
+ 			const uri = _uris[i];
+ 			if ('folderUri' in uri) {
+-				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}`;
++				const newAddress = require.withBase(`/?folder=${uri.folderUri.path}`);
+ 				if (openFolderInNewWindow) {
+ 					window.open(newAddress);
+ 				} else {
+@@ -896,7 +932,7 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+ 				}
+ 			}
+ 			if ('workspaceUri' in uri) {
+-				const newAddress = `${document.location.origin}/?workspace=${uri.workspaceUri.path}`;
++				const newAddress = require.withBase(`/?workspace=${uri.workspaceUri.path}`);
+ 				if (openFolderInNewWindow) {
+ 					window.open(newAddress);
+ 				} else {
 diff --git a/src/vs/workbench/contrib/comments/browser/commentNode.ts b/src/vs/workbench/contrib/comments/browser/commentNode.ts
 index f4ac3fe8dd..3a3616b39e 100644
 --- a/src/vs/workbench/contrib/comments/browser/commentNode.ts
