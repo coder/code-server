@@ -50,7 +50,7 @@ index a7466e641a..6d91e66ad3 100644
 +	export const codeServer: string = 'code-server';
  }
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index ff62e0a65a..78c93aeb5a 100644
+index ff62e0a65a..21cd50eaf9 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
 @@ -4,6 +4,8 @@
@@ -62,15 +62,8 @@ index ff62e0a65a..78c93aeb5a 100644
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
  
-@@ -30,4 +32,4 @@
- 
- 	<!-- Startup via workbench.js -->
- 	<script src="./out/vs/code/browser/workbench/workbench.js"></script>
--</html>
-\ No newline at end of file
-+</html>
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 34f321f90d..48bab7db1c 100644
+index 34f321f90d..9fc63daab2 100644
 --- a/src/vs/code/browser/workbench/workbench.js
 +++ b/src/vs/code/browser/workbench/workbench.js
 @@ -7,14 +7,19 @@
@@ -99,13 +92,6 @@ index 34f321f90d..48bab7db1c 100644
  		}
  	});
  
-@@ -23,4 +28,4 @@
- 
- 		api.create(document.body, options);
- 	});
--})();
-\ No newline at end of file
-+})();
 diff --git a/src/vs/loader.js b/src/vs/loader.js
 index 40b6d2aa32..5b12b272fe 100644
 --- a/src/vs/loader.js
@@ -300,7 +286,7 @@ index 0000000000..ef1db87989
 +	}
 +}
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index e09049c5b9..d93ffa527a 100644
+index e09049c5b9..7af2c20efd 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 @@ -724,11 +724,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
@@ -360,15 +346,8 @@ index e09049c5b9..d93ffa527a 100644
  			.then(extensions => {
  				const toRemove: ILocalExtension[] = [];
  
-@@ -982,4 +993,4 @@ export class ExtensionManagementService extends Disposable implements IExtension
- 		*/
- 		this.telemetryService.publicLog(eventName, assign(extensionData, { success: !error, duration, errorcode }));
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
-index 9f68b645b6..fe380bb6f8 100644
+index 9f68b645b6..f0cae7111d 100644
 --- a/src/vs/platform/log/common/logIpc.ts
 +++ b/src/vs/platform/log/common/logIpc.ts
 @@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
@@ -390,13 +369,6 @@ index 9f68b645b6..fe380bb6f8 100644
  	setLevel(level: LogLevel): void {
  		this.channel.call('setLevel', level);
  	}
-@@ -56,4 +61,4 @@ export class FollowerLogService extends DelegatedLogService implements ILogServi
- 	setLevel(level: LogLevel): void {
- 		this.master.setLevel(level);
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/platform/remote/browser/browserWebSocketFactory.ts b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 index 6d9ecbcf5a..1ebd5a4b84 100644
 --- a/src/vs/platform/remote/browser/browserWebSocketFactory.ts
@@ -478,7 +450,7 @@ index 8e1b68eb36..2b6a0d5b15 100644
 +	}
 +}
 diff --git a/src/vs/workbench/api/browser/viewsExtensionPoint.ts b/src/vs/workbench/api/browser/viewsExtensionPoint.ts
-index 8bace46843..c18eb109eb 100644
+index 8bace46843..b261f40493 100644
 --- a/src/vs/workbench/api/browser/viewsExtensionPoint.ts
 +++ b/src/vs/workbench/api/browser/viewsExtensionPoint.ts
 @@ -327,7 +327,7 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
@@ -490,13 +462,6 @@ index 8bace46843..c18eb109eb 100644
  		}
  
  		return viewContainer;
-@@ -456,4 +456,4 @@ class ViewsExtensionHandler implements IWorkbenchContribution {
- }
- 
- const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
--workbenchRegistry.registerWorkbenchContribution(ViewsExtensionHandler, LifecyclePhase.Starting);
-\ No newline at end of file
-+workbenchRegistry.registerWorkbenchContribution(ViewsExtensionHandler, LifecyclePhase.Starting);
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
 index 2054ceece3..f99dfd0b73 100644
 --- a/src/vs/workbench/browser/dnd.ts
@@ -582,7 +547,7 @@ index 5a758eb786..7fcacb5ca7 100644
  		templateData.actionBar.context = (<TreeViewItemHandleArg>{ $treeViewId: this.treeViewId, $treeItemHandle: node.handle });
  		templateData.actionBar.push(this.menus.getResourceActions(node), { icon: true, label: false });
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 1986fb6642..9b5ff6603c 100644
+index 1986fb6642..a3e4cbdb56 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -35,6 +35,7 @@ import { SignService } from 'vs/platform/sign/browser/signService';
@@ -619,15 +584,8 @@ index 1986fb6642..9b5ff6603c 100644
  		}
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
-@@ -170,4 +181,4 @@ export function main(domElement: HTMLElement, options: IWorkbenchConstructionOpt
- 	const renderer = new CodeRendererMain(domElement, options);
- 
- 	return renderer.open();
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..e23d9c970e 100644
+index b253e573ae..cc6bb2535f 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -53,6 +53,14 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
@@ -736,15 +694,8 @@ index b253e573ae..e23d9c970e 100644
  
  //#endregion
  
-@@ -1288,4 +1324,4 @@ class SimpleTunnelService implements ITunnelService {
- 
- registerSingleton(ITunnelService, SimpleTunnelService);
- 
--//#endregion
-\ No newline at end of file
-+//#endregion
 diff --git a/src/vs/workbench/contrib/comments/browser/commentNode.ts b/src/vs/workbench/contrib/comments/browser/commentNode.ts
-index f4ac3fe8dd..b4f36911c0 100644
+index f4ac3fe8dd..3a3616b39e 100644
 --- a/src/vs/workbench/contrib/comments/browser/commentNode.ts
 +++ b/src/vs/workbench/contrib/comments/browser/commentNode.ts
 @@ -108,7 +108,7 @@ export class CommentNode extends Disposable {
@@ -756,13 +707,6 @@ index f4ac3fe8dd..b4f36911c0 100644
  			img.onerror = _ => img.remove();
  		}
  		this._commentDetailsContainer = dom.append(this._domNode, dom.$('.review-comment-contents'));
-@@ -761,4 +761,4 @@ function fillInActions(groups: [string, Array<MenuItemAction | SubmenuItemAction
- 			to.push(...actions);
- 		}
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/workbench/contrib/comments/browser/reactionsAction.ts b/src/vs/workbench/contrib/comments/browser/reactionsAction.ts
 index c14030dab8..42b666446d 100644
 --- a/src/vs/workbench/contrib/comments/browser/reactionsAction.ts
@@ -777,7 +721,7 @@ index c14030dab8..42b666446d 100644
  		}
  		if (action.count) {
 diff --git a/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts b/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
-index 31b80683ee..6e0099271e 100644
+index 31b80683ee..720b649c01 100644
 --- a/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
 +++ b/src/vs/workbench/contrib/extensions/browser/extensionsViewer.ts
 @@ -108,8 +108,8 @@ export class ExtensionRenderer implements IListRenderer<ITreeNode<IExtensionData
@@ -791,13 +735,6 @@ index 31b80683ee..6e0099271e 100644
  
  		if (!data.icon.complete) {
  			data.icon.style.visibility = 'hidden';
-@@ -261,4 +261,4 @@ export class ExtensionData implements IExtensionData {
- 		}
- 		return null;
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts
 index 86949eb39a..b7d04352ce 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionEditor.ts
@@ -875,7 +812,7 @@ index 86949eb39a..b7d04352ce 100644
  					}
  				}, null, this.contentDisposables));
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensions.contribution.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensions.contribution.ts
-index aa632ac96e..b6d016f928 100644
+index aa632ac96e..94ab4c042e 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensions.contribution.ts
 +++ b/src/vs/workbench/contrib/extensions/electron-browser/extensions.contribution.ts
 @@ -9,10 +9,10 @@ import { KeyMod, KeyChord, KeyCode } from 'vs/base/common/keyCodes';
@@ -936,20 +873,15 @@ index aa632ac96e..b6d016f928 100644
  // Running Extensions Editor
  
 -const runtimeExtensionsEditorDescriptor = new EditorDescriptor(
--	RuntimeExtensionsEditor,
--	RuntimeExtensionsEditor.ID,
--	localize('runtimeExtension', "Running Extensions")
--);
-+// const runtimeExtensionsEditorDescriptor = new EditorDescriptor(
-+// 	RuntimeExtensionsEditor,
-+// 	RuntimeExtensionsEditor.ID,
-+// 	localize('runtimeExtension', "Running Extensions")
-+// );
++/*const runtimeExtensionsEditorDescriptor = new EditorDescriptor(
+ 	RuntimeExtensionsEditor,
+ 	RuntimeExtensionsEditor.ID,
+ 	localize('runtimeExtension', "Running Extensions")
+ );
  
--Registry.as<IEditorRegistry>(EditorExtensions.Editors)
+ Registry.as<IEditorRegistry>(EditorExtensions.Editors)
 -	.registerEditor(runtimeExtensionsEditorDescriptor, [new SyncDescriptor(RuntimeExtensionsInput)]);
-+// Registry.as<IEditorRegistry>(EditorExtensions.Editors)
-+// 	.registerEditor(runtimeExtensionsEditorDescriptor, [new SyncDescriptor(RuntimeExtensionsInput)]);
++	.registerEditor(runtimeExtensionsEditorDescriptor, [new SyncDescriptor(RuntimeExtensionsInput)]);*/
  
  class RuntimeExtensionsInputFactory implements IEditorInputFactory {
  	serialize(editorInput: EditorInput): string {
@@ -962,166 +894,42 @@ index aa632ac96e..b6d016f928 100644
  actionRegistry.registerWorkbenchAction(new SyncActionDescriptor(ReinstallAction, ReinstallAction.ID, ReinstallAction.LABEL), 'Reinstall Extension...', localize('developer', "Developer"));
  
  Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration)
-@@ -270,25 +270,25 @@ CommandsRegistry.registerCommand('extension.open', (accessor: ServicesAccessor,
+@@ -270,7 +270,7 @@ CommandsRegistry.registerCommand('extension.open', (accessor: ServicesAccessor,
  	});
  });
  
 -CommandsRegistry.registerCommand(DebugExtensionHostAction.ID, (accessor: ServicesAccessor) => {
--	const instantiationService = accessor.get(IInstantiationService);
--	instantiationService.createInstance(DebugExtensionHostAction).run();
++/*CommandsRegistry.registerCommand(DebugExtensionHostAction.ID, (accessor: ServicesAccessor) => {
+ 	const instantiationService = accessor.get(IInstantiationService);
+ 	instantiationService.createInstance(DebugExtensionHostAction).run();
+ });
+@@ -288,7 +288,7 @@ CommandsRegistry.registerCommand(StopExtensionHostProfileAction.ID, (accessor: S
+ CommandsRegistry.registerCommand(SaveExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
+ 	const instantiationService = accessor.get(IInstantiationService);
+ 	instantiationService.createInstance(SaveExtensionHostProfileAction, SaveExtensionHostProfileAction.ID, SaveExtensionHostProfileAction.LABEL).run();
 -});
-+// CommandsRegistry.registerCommand(DebugExtensionHostAction.ID, (accessor: ServicesAccessor) => {
-+// 	const instantiationService = accessor.get(IInstantiationService);
-+// 	instantiationService.createInstance(DebugExtensionHostAction).run();
-+// });
- 
--CommandsRegistry.registerCommand(StartExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
--	const instantiationService = accessor.get(IInstantiationService);
--	instantiationService.createInstance(StartExtensionHostProfileAction, StartExtensionHostProfileAction.ID, StartExtensionHostProfileAction.LABEL).run();
--});
-+// CommandsRegistry.registerCommand(StartExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
-+// 	const instantiationService = accessor.get(IInstantiationService);
-+// 	instantiationService.createInstance(StartExtensionHostProfileAction, StartExtensionHostProfileAction.ID, StartExtensionHostProfileAction.LABEL).run();
-+// });
- 
--CommandsRegistry.registerCommand(StopExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
--	const instantiationService = accessor.get(IInstantiationService);
--	instantiationService.createInstance(StopExtensionHostProfileAction, StopExtensionHostProfileAction.ID, StopExtensionHostProfileAction.LABEL).run();
--});
-+// CommandsRegistry.registerCommand(StopExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
-+// 	const instantiationService = accessor.get(IInstantiationService);
-+// 	instantiationService.createInstance(StopExtensionHostProfileAction, StopExtensionHostProfileAction.ID, StopExtensionHostProfileAction.LABEL).run();
-+// });
- 
--CommandsRegistry.registerCommand(SaveExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
--	const instantiationService = accessor.get(IInstantiationService);
--	instantiationService.createInstance(SaveExtensionHostProfileAction, SaveExtensionHostProfileAction.ID, SaveExtensionHostProfileAction.LABEL).run();
--});
-+// CommandsRegistry.registerCommand(SaveExtensionHostProfileAction.ID, (accessor: ServicesAccessor) => {
-+// 	const instantiationService = accessor.get(IInstantiationService);
-+// 	instantiationService.createInstance(SaveExtensionHostProfileAction, SaveExtensionHostProfileAction.ID, SaveExtensionHostProfileAction.LABEL).run();
-+// });
++});*/
  
  // File menu registration
  
-@@ -332,58 +332,58 @@ MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
+@@ -332,7 +332,7 @@ MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
  
  // Running extensions
  
 -MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
--	command: {
--		id: DebugExtensionHostAction.ID,
--		title: DebugExtensionHostAction.LABEL,
--		iconLocation: {
--			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/start-inverse.svg`)),
--			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/start.svg`)),
--		}
--	},
--	group: 'navigation',
--	when: ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID)
++/*MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
+ 	command: {
+ 		id: DebugExtensionHostAction.ID,
+ 		title: DebugExtensionHostAction.LABEL,
+@@ -383,7 +383,7 @@ MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
+ 	},
+ 	group: 'navigation',
+ 	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID))
 -});
--
--MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
--	command: {
--		id: StartExtensionHostProfileAction.ID,
--		title: StartExtensionHostProfileAction.LABEL,
--		iconLocation: {
--			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/profile-start-inverse.svg`)),
--			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/profile-start.svg`)),
--		}
--	},
--	group: 'navigation',
--	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID), CONTEXT_PROFILE_SESSION_STATE.notEqualsTo('running'))
--});
--
--MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
--	command: {
--		id: StopExtensionHostProfileAction.ID,
--		title: StopExtensionHostProfileAction.LABEL,
--		iconLocation: {
--			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/profile-stop-inverse.svg`)),
--			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/profile-stop.svg`)),
--		}
--	},
--	group: 'navigation',
--	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID), CONTEXT_PROFILE_SESSION_STATE.isEqualTo('running'))
--});
--
--MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
--	command: {
--		id: SaveExtensionHostProfileAction.ID,
--		title: SaveExtensionHostProfileAction.LABEL,
--		iconLocation: {
--			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/save-inverse.svg`)),
--			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/electron-browser/media/save.svg`)),
--		},
--		precondition: CONTEXT_EXTENSION_HOST_PROFILE_RECORDED
--	},
--	group: 'navigation',
--	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID))
--});
-+// MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
-+// 	command: {
-+// 		id: DebugExtensionHostAction.ID,
-+// 		title: DebugExtensionHostAction.LABEL,
-+// 		iconLocation: {
-+// 			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/start-inverse.svg`)),
-+// 			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/start.svg`)),
-+// 		}
-+// 	},
-+// 	group: 'navigation',
-+// 	when: ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID)
-+// });
-+
-+// MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
-+// 	command: {
-+// 		id: StartExtensionHostProfileAction.ID,
-+// 		title: StartExtensionHostProfileAction.LABEL,
-+// 		iconLocation: {
-+// 			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/profile-start-inverse.svg`)),
-+// 			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/profile-start.svg`)),
-+// 		}
-+// 	},
-+// 	group: 'navigation',
-+// 	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID), CONTEXT_PROFILE_SESSION_STATE.notEqualsTo('running'))
-+// });
-+
-+// MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
-+// 	command: {
-+// 		id: StopExtensionHostProfileAction.ID,
-+// 		title: StopExtensionHostProfileAction.LABEL,
-+// 		iconLocation: {
-+// 			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/profile-stop-inverse.svg`)),
-+// 			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/profile-stop.svg`)),
-+// 		}
-+// 	},
-+// 	group: 'navigation',
-+// 	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID), CONTEXT_PROFILE_SESSION_STATE.isEqualTo('running'))
-+// });
-+
-+// MenuRegistry.appendMenuItem(MenuId.EditorTitle, {
-+// 	command: {
-+// 		id: SaveExtensionHostProfileAction.ID,
-+// 		title: SaveExtensionHostProfileAction.LABEL,
-+// 		iconLocation: {
-+// 			dark: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/save-inverse.svg`)),
-+// 			light: URI.parse(require.toUrl(`vs/workbench/contrib/extensions/browser/media/save.svg`)),
-+// 		},
-+// 		precondition: CONTEXT_EXTENSION_HOST_PROFILE_RECORDED
-+// 	},
-+// 	group: 'navigation',
-+// 	when: ContextKeyExpr.and(ActiveEditorContext.isEqualTo(RuntimeExtensionsEditor.ID))
-+// });
++}); */
  
  CommandsRegistry.registerCommand({
  	id: 'workbench.extensions.installExtension',
-@@ -457,4 +457,4 @@ MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
- 		title: localize('showExtensions', "Extensions")
- 	},
- 	order: 3
--});
-\ No newline at end of file
-+});
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts
 index 3f6427704d..8d2d78f537 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionsList.ts
@@ -1156,7 +964,7 @@ index 3f6427704d..8d2d78f537 100644
  		if (!data.icon.complete) {
  			data.icon.style.visibility = 'hidden';
 diff --git a/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts b/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts
-index 6dad2fb580..4ed25dd206 100644
+index 6dad2fb580..04e5d2a62b 100644
 --- a/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts
 +++ b/src/vs/workbench/contrib/extensions/electron-browser/extensionsViews.ts
 @@ -34,7 +34,7 @@ import { INotificationService, Severity } from 'vs/platform/notification/common/
@@ -1164,7 +972,7 @@ index 6dad2fb580..4ed25dd206 100644
  import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
  import { distinct, coalesce } from 'vs/base/common/arrays';
 -import { IExperimentService, IExperiment, ExperimentActionType } from 'vs/workbench/contrib/experiments/electron-browser/experimentService';
-+// import { IExperimentService, IExperiment, ExperimentActionType } from 'vs/workbench/contrib/experiments/electron-browser/experimentService';
++import { /*IExperimentService, */IExperiment/*, ExperimentActionType*/ } from 'vs/workbench/contrib/experiments/electron-browser/experimentService';
  import { alert } from 'vs/base/browser/ui/aria/aria';
  import { IListContextMenuEvent } from 'vs/base/browser/ui/list/list';
  import { createErrorWithActions } from 'vs/base/common/errorsWithActions';
@@ -1177,73 +985,24 @@ index 6dad2fb580..4ed25dd206 100644
  		@IWorkbenchThemeService private readonly workbenchThemeService: IWorkbenchThemeService,
  		@IExtensionManagementServerService protected readonly extensionManagementServerService: IExtensionManagementServerService,
  		@IProductService protected readonly productService: IProductService,
-@@ -448,14 +448,14 @@ export class ExtensionsListView extends ViewletPanel {
- 		if (text) {
- 			options = assign(options, { text: text.substr(0, 350), source: 'searchText' });
- 			if (!hasUserDefinedSortOrder) {
--				const searchExperiments = await this.getSearchExperiments();
--				for (const experiment of searchExperiments) {
--					if (experiment.action && text.toLowerCase() === experiment.action.properties['searchText'] && Array.isArray(experiment.action.properties['preferredResults'])) {
--						preferredResults = experiment.action.properties['preferredResults'];
--						options.source += `-experiment-${experiment.id}`;
--						break;
--					}
--				}
-+				// const searchExperiments = await this.getSearchExperiments();
-+				// for (const experiment of searchExperiments) {
-+				// 	if (experiment.action && text.toLowerCase() === experiment.action.properties['searchText'] && Array.isArray(experiment.action.properties['preferredResults'])) {
-+				// 		preferredResults = experiment.action.properties['preferredResults'];
-+				// 		options.source += `-experiment-${experiment.id}`;
-+				// 		break;
-+				// 	}
-+				// }
- 			}
- 		} else {
- 			options.source = 'viewlet';
-@@ -480,13 +480,13 @@ export class ExtensionsListView extends ViewletPanel {
- 
- 	}
- 
--	private _searchExperiments: Promise<IExperiment[]>;
--	private getSearchExperiments(): Promise<IExperiment[]> {
--		if (!this._searchExperiments) {
+@@ -483,7 +483,7 @@ export class ExtensionsListView extends ViewletPanel {
+ 	private _searchExperiments: Promise<IExperiment[]>;
+ 	private getSearchExperiments(): Promise<IExperiment[]> {
+ 		if (!this._searchExperiments) {
 -			this._searchExperiments = this.experimentService.getExperimentsByType(ExperimentActionType.ExtensionSearchResults);
--		}
--		return this._searchExperiments;
--	}
-+	// private _searchExperiments: Promise<IExperiment[]>;
-+	// private getSearchExperiments(): Promise<IExperiment[]> {
-+	// 	if (!this._searchExperiments) {
-+	// 		this._searchExperiments = this.experimentService.getExperimentsByType(ExperimentActionType.ExtensionSearchResults);
-+	// 	}
-+	// 	return this._searchExperiments;
-+	// }
- 
- 	private sortExtensions(extensions: IExtension[], options: IQueryOptions): IExtension[] {
- 		switch (options.sortBy) {
-@@ -551,14 +551,14 @@ export class ExtensionsListView extends ViewletPanel {
++			this._searchExperiments = Promise.resolve([]); // this.experimentService.getExperimentsByType(ExperimentActionType.ExtensionSearchResults);
+ 		}
+ 		return this._searchExperiments;
  	}
+@@ -552,7 +552,7 @@ export class ExtensionsListView extends ViewletPanel {
  
  	private async getCuratedModel(query: Query, options: IQueryOptions, token: CancellationToken): Promise<IPagedModel<IExtension>> {
--		const value = query.value.replace(/curated:/g, '').trim();
+ 		const value = query.value.replace(/curated:/g, '').trim();
 -		const names = await this.experimentService.getCuratedExtensionsList(value);
--		if (Array.isArray(names) && names.length) {
--			options.source = `curated:${value}`;
--			const pager = await this.extensionsWorkbenchService.queryGallery(assign(options, { names, pageSize: names.length }), token);
--			this.sortFirstPage(pager, names);
--			return this.getPagedModel(pager || []);
--		}
-+		// const value = query.value.replace(/curated:/g, '').trim();
-+		// const names = await this.experimentService.getCuratedExtensionsList(value);
-+		// if (Array.isArray(names) && names.length) {
-+		// 	options.source = `curated:${value}`;
-+		// 	const pager = await this.extensionsWorkbenchService.queryGallery(assign(options, { names, pageSize: names.length }), token);
-+		// 	this.sortFirstPage(pager, names);
-+		// 	return this.getPagedModel(pager || []);
-+		// }
- 		return new PagedModel([]);
- 	}
- 
++		const names = <string[]>[]; // await this.experimentService.getCuratedExtensionsList(value);
+ 		if (Array.isArray(names) && names.length) {
+ 			options.source = `curated:${value}`;
+ 			const pager = await this.extensionsWorkbenchService.queryGallery(assign(options, { names, pageSize: names.length }), token);
 @@ -843,14 +843,14 @@ export class ServerExtensionsView extends ExtensionsListView {
  		@ITelemetryService telemetryService: ITelemetryService,
  		@IConfigurationService configurationService: IConfigurationService,
@@ -1262,7 +1021,7 @@ index 6dad2fb580..4ed25dd206 100644
  	}
  
 diff --git a/src/vs/workbench/contrib/extensions/node/extensionsWorkbenchService.ts b/src/vs/workbench/contrib/extensions/node/extensionsWorkbenchService.ts
-index c08a6e37c1..31640d7e66 100644
+index c08a6e37c1..2e1deb01e6 100644
 --- a/src/vs/workbench/contrib/extensions/node/extensionsWorkbenchService.ts
 +++ b/src/vs/workbench/contrib/extensions/node/extensionsWorkbenchService.ts
 @@ -4,7 +4,7 @@
@@ -1274,27 +1033,26 @@ index c08a6e37c1..31640d7e66 100644
  import { Event, Emitter } from 'vs/base/common/event';
  import { index, distinct } from 'vs/base/common/arrays';
  import { ThrottledDelayer } from 'vs/base/common/async';
-@@ -26,7 +26,8 @@ import { IExtension, ExtensionState, IExtensionsWorkbenchService, AutoUpdateConf
+@@ -26,7 +26,7 @@ import { IExtension, ExtensionState, IExtensionsWorkbenchService, AutoUpdateConf
  import { IEditorService, SIDE_GROUP, ACTIVE_GROUP } from 'vs/workbench/services/editor/common/editorService';
  import { IURLService, IURLHandler } from 'vs/platform/url/common/url';
  import { ExtensionsInput } from 'vs/workbench/contrib/extensions/common/extensionsInput';
 -import product from 'vs/platform/product/node/product';
-+// import product from 'vs/platform/product/node/product';
-+import { IProductService } from 'vs/platform/product/common/product';
++import { IProductService } from 'vs/platform/product/common/product'; // import product from 'vs/platform/product/node/product';
  import { ILogService } from 'vs/platform/log/common/log';
  import { IProgressService, ProgressLocation } from 'vs/platform/progress/common/progress';
  import { INotificationService } from 'vs/platform/notification/common/notification';
-@@ -53,7 +54,8 @@ class Extension implements IExtension {
+@@ -53,7 +53,8 @@ class Extension implements IExtension {
  		public gallery: IGalleryExtension | undefined,
  		private telemetryService: ITelemetryService,
  		private logService: ILogService,
 -		private fileService: IFileService
 +		private fileService: IFileService,
-+		private productService: IProductService
++		private productService: IProductService,
  	) { }
  
  	get type(): ExtensionType | undefined {
-@@ -112,11 +114,11 @@ class Extension implements IExtension {
+@@ -112,11 +113,11 @@ class Extension implements IExtension {
  	}
  
  	get url(): string | undefined {
@@ -1308,7 +1066,7 @@ index c08a6e37c1..31640d7e66 100644
  	}
  
  	get iconUrl(): string {
-@@ -183,7 +185,7 @@ class Extension implements IExtension {
+@@ -183,7 +184,7 @@ class Extension implements IExtension {
  	}
  
  	get outdated(): boolean {
@@ -1317,7 +1075,7 @@ index c08a6e37c1..31640d7e66 100644
  	}
  
  	get telemetryData(): any {
-@@ -201,7 +203,7 @@ class Extension implements IExtension {
+@@ -201,7 +202,7 @@ class Extension implements IExtension {
  	}
  
  	private isGalleryOutdated(): boolean {
@@ -1326,7 +1084,7 @@ index c08a6e37c1..31640d7e66 100644
  	}
  
  	getManifest(token: CancellationToken): Promise<IExtensionManifest | null> {
-@@ -320,7 +322,8 @@ class Extensions extends Disposable {
+@@ -320,7 +321,8 @@ class Extensions extends Disposable {
  		@ITelemetryService private readonly telemetryService: ITelemetryService,
  		@ILogService private readonly logService: ILogService,
  		@IFileService private readonly fileService: IFileService,
@@ -1336,7 +1094,7 @@ index c08a6e37c1..31640d7e66 100644
  	) {
  		super();
  		this._register(server.extensionManagementService.onInstallExtension(e => this.onInstallExtension(e)));
-@@ -342,7 +345,7 @@ class Extensions extends Disposable {
+@@ -342,7 +344,7 @@ class Extensions extends Disposable {
  		const installed = await this.server.extensionManagementService.getInstalled();
  		const byId = index(this.installed, e => e.local ? e.local.identifier.id : e.identifier.id);
  		this.installed = installed.map(local => {
@@ -1345,7 +1103,7 @@ index c08a6e37c1..31640d7e66 100644
  			extension.local = local;
  			extension.enablementState = this.extensionEnablementService.getEnablementState(local);
  			return extension;
-@@ -395,7 +398,7 @@ class Extensions extends Disposable {
+@@ -395,7 +397,7 @@ class Extensions extends Disposable {
  		const { gallery } = event;
  		if (gallery) {
  			const extension = this.installed.filter(e => areSameExtensions(e.identifier, gallery.identifier))[0]
@@ -1354,7 +1112,7 @@ index c08a6e37c1..31640d7e66 100644
  			this.installing.push(extension);
  			this._onChange.fire(extension);
  		}
-@@ -406,7 +409,7 @@ class Extensions extends Disposable {
+@@ -406,7 +408,7 @@ class Extensions extends Disposable {
  		const installingExtension = gallery ? this.installing.filter(e => areSameExtensions(e.identifier, gallery.identifier))[0] : null;
  		this.installing = installingExtension ? this.installing.filter(e => e !== installingExtension) : this.installing;
  
@@ -1363,7 +1121,7 @@ index c08a6e37c1..31640d7e66 100644
  		if (extension) {
  			if (local) {
  				const installed = this.installed.filter(e => areSameExtensions(e.identifier, extension!.identifier))[0];
-@@ -501,7 +504,8 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+@@ -501,7 +503,8 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
  		@IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService,
  		@IStorageService private readonly storageService: IStorageService,
  		@IFileService private readonly fileService: IFileService,
@@ -1373,7 +1131,7 @@ index c08a6e37c1..31640d7e66 100644
  	) {
  		super();
  		this.localExtensions = this._register(instantiationService.createInstance(Extensions, extensionManagementServerService.localExtensionManagementServer, ext => this.getExtensionState(ext)));
-@@ -606,7 +610,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+@@ -606,7 +609,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
  			text = text.replace(extensionRegex, (m, ext) => {
  
  				// Get curated keywords
@@ -1382,7 +1140,7 @@ index c08a6e37c1..31640d7e66 100644
  				const keywords = lookup[ext] || [];
  
  				// Get mode name
-@@ -649,7 +653,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+@@ -649,7 +652,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
  		if (installed) {
  			return installed;
  		}
@@ -1391,7 +1149,7 @@ index c08a6e37c1..31640d7e66 100644
  		if (maliciousExtensionSet.has(extension.identifier.id)) {
  			extension.isMalicious = true;
  		}
-@@ -999,7 +1003,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
+@@ -999,7 +1002,7 @@ export class ExtensionsWorkbenchService extends Disposable implements IExtension
  
  	get allowedBadgeProviders(): string[] {
  		if (!this._extensionAllowedBadgeProviders) {
@@ -1502,7 +1260,7 @@ index 3525569601..a91a5fce7d 100644
  	get webviewResourceRoot(): string {
  		return this.webviewEndpoint ? this.webviewEndpoint + '/vscode-resource' : 'vscode-resource:';
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts
-index 611ab9aec9..4e4bea89be 100644
+index 611ab9aec9..820cc92c73 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/extensionManagementServerService.ts
 @@ -6,15 +6,15 @@
@@ -1526,21 +1284,18 @@ index 611ab9aec9..4e4bea89be 100644
  import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
  import { IProductService } from 'vs/platform/product/common/product';
  
-@@ -28,24 +28,28 @@ export class ExtensionManagementServerService implements IExtensionManagementSer
+@@ -28,24 +28,26 @@ export class ExtensionManagementServerService implements IExtensionManagementSer
  	readonly remoteExtensionManagementServer: IExtensionManagementServer | null = null;
  
  	constructor(
 -		@ISharedProcessService sharedProcessService: ISharedProcessService,
-+		// Replacing the shared process and setting to any so we don't get
-+		// compilation errors from the tests.
-+		@IExtensionManagementService localExtensionManagementService: any,
-+		// @ISharedProcessService sharedProcessService: ISharedProcessService,
++		// This is set to `any` just to keep the tests from showing errors.
++		@IExtensionManagementService localExtensionManagementService: any, // @ISharedProcessService sharedProcessService: ISharedProcessService,
  		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
  		@IExtensionGalleryService galleryService: IExtensionGalleryService,
  		@IConfigurationService configurationService: IConfigurationService,
  		@IProductService productService: IProductService,
--		@ILogService logService: ILogService
-+		@ILogService logService: ILogService,
+ 		@ILogService logService: ILogService
  	) {
 -		const localExtensionManagementService = new ExtensionManagementChannelClient(sharedProcessService.getChannel('extensions'));
 -
@@ -1565,15 +1320,8 @@ index 611ab9aec9..4e4bea89be 100644
  		if (location.scheme === Schemas.file) {
  			return this.localExtensionManagementServer;
  		}
-@@ -56,4 +60,4 @@ export class ExtensionManagementServerService implements IExtensionManagementSer
- 	}
- }
- 
--registerSingleton(IExtensionManagementServerService, ExtensionManagementServerService);
-\ No newline at end of file
-+registerSingleton(IExtensionManagementServerService, ExtensionManagementServerService);
 diff --git a/src/vs/workbench/services/files/common/fileService.ts b/src/vs/workbench/services/files/common/fileService.ts
-index a788aadc1f..09e6947fb7 100644
+index a788aadc1f..bcffa2c60a 100644
 --- a/src/vs/workbench/services/files/common/fileService.ts
 +++ b/src/vs/workbench/services/files/common/fileService.ts
 @@ -859,7 +859,7 @@ export class FileService extends Disposable implements IFileService {
@@ -1594,13 +1342,6 @@ index a788aadc1f..09e6947fb7 100644
  		}
  
  		return provider.writeFile(resource, buffer.buffer, { create: true, overwrite: true });
-@@ -1026,4 +1026,4 @@ export class FileService extends Disposable implements IFileService {
- 	}
- 
- 	//#endregion
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/workbench/services/themes/common/fileIconThemeData.ts b/src/vs/workbench/services/themes/common/fileIconThemeData.ts
 index 306d58f915..58c603ad3d 100644
 --- a/src/vs/workbench/services/themes/common/fileIconThemeData.ts
