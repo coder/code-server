@@ -17,7 +17,8 @@ function docker-build() {
 	if [[ "${image}" == "codercom/nbin-alpine" ]] ; then
 		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
 	else
-		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel
+		# TODO: at some point git existing but now it seems to have disappeared.
+		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git
 	fi
 
 	function docker-exec() {
