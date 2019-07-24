@@ -1247,6 +1247,19 @@ index 4d8a5d6907..b464d5276f 100644
  			template.decorationIcon.title = resource.decorations.tooltip || '';
  		} else {
  			template.decorationIcon.style.display = 'none';
+diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
+index a6be033e07..a4dcb7357a 100644
+--- a/src/vs/workbench/contrib/webview/browser/pre/main.js
++++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -355,7 +355,7 @@
+ 					// seeing the service worker applying properly.
+ 					// Fake load an empty on the correct origin and then write real html
+ 					// into it to get around this.
+-					newFrame.src = `/fake.html?id=${ID}`;
++					newFrame.src = `fake.html?id=${ID}`;
+ 				}
+ 				newFrame.style.cssText = 'display: block; margin: 0; overflow: hidden; position: absolute; width: 100%; height: 100%; visibility: hidden';
+ 				document.body.appendChild(newFrame);
 diff --git a/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts b/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts
 index 6d4d096a9c..bbb7930e7a 100644
 --- a/src/vs/workbench/contrib/webview/browser/webviewEditorInput.ts

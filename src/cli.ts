@@ -7,7 +7,7 @@ import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/envi
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 
-import { AuthType, MainServer, WebviewServer } from "vs/server/src/server";
+import { AuthType, MainServer } from "vs/server/src/server";
 import "vs/server/src/tar";
 import { buildAllowedMessage, generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
 
@@ -22,8 +22,6 @@ interface Args extends ParsedArgs {
 	open?: string;
 	port?: string;
 	socket?: string;
-	"webview-port"?: string;
-	"webview-socket"?: string;
 }
 
 // The last item is _ which is like -- so our options need to come before it.
@@ -57,13 +55,11 @@ options.push({ id: "cert", type: "string", cat: "o", description: "Path to certi
 options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to the certificate's key if one was provided." });
 options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to an extra builtin extension directory." });
 options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to an extra user extension directory." });
-options.push({ id: "host", type: "string", cat: "o", description: "Host for the main and webview servers." });
+options.push({ id: "host", type: "string", cat: "o", description: "Host for the server." });
 options.push({ id: "auth", type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` });
 options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
 options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
 options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
-options.push({ id: "webview-port", type: "string", cat: "o", description: "Port for the webview server." });
-options.push({ id: "webview-socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
 
 options.push(last);
 
@@ -140,26 +136,17 @@ const main = async (): Promise<void> => {
 		options.certKey = certKey;
 	}
 
-	const webviewPort = args["webview-port"];
-	const webviewServer = new WebviewServer({
-		...options,
-		port: typeof webviewPort !== "undefined" && parseInt(webviewPort, 10) || 8444,
-		socket: args["webview-socket"],
-	});
-
 	const server = new MainServer({
 		...options,
 		port: typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443,
 		socket: args.socket,
-	}, webviewServer, args);
+	}, args);
 
-	const [webviewAddress, serverAddress, /* ignore */] = await Promise.all([
-		webviewServer.listen(),
+	const [serverAddress, /* ignore */] = await Promise.all([
 		server.listen(),
 		unpackExecutables(),
 	]);
-	console.log(`Main server listening on ${serverAddress}`);
-	console.log(`Webview server listening on ${webviewAddress}`);
+	console.log(`Server listening on ${serverAddress}`);
 
 	if (options.auth && !process.env.PASSWORD) {
 		console.log("  - Password is", options.password);

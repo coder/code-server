@@ -121,8 +121,8 @@ export abstract class Server {
 	public constructor(options: ServerOptions) {
 		this.options = {
 			host: options.auth && options.cert ? "0.0.0.0" : "localhost",
-			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
 			...options,
+			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
 		};
 		this.protocol = this.options.cert ? "https" : "http";
 		if (this.protocol === "https") {
@@ -154,7 +154,7 @@ export abstract class Server {
 	/**
 	 * The local address of the server. If you pass in a request, it will use the
 	 * request's host if listening on a port (rather than a socket). This enables
-	 * accessing the webview server from the same host as the main server.
+	 * setting the webview endpoint to the same host the browser is using.
 	 */
 	public address(request?: http.IncomingMessage): string {
 		const address = this.server.address();
@@ -357,11 +357,7 @@ export class MainServer extends Server {
 	private readonly services = new ServiceCollection();
 	private readonly servicesPromise: Promise<void>;
 
-	public constructor(
-		options: ServerOptions,
-		private readonly webviewServer: WebviewServer,
-		args: ParsedArgs,
-	) {
+	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
 		this.server.on("upgrade", async (request, socket) => {
 			const protocol = this.createProtocol(request, socket);
@@ -398,6 +394,9 @@ export class MainServer extends Server {
 			case "/out":
 				return this.getResource(path.join(this.rootPath, base, requestPath));
 			case "/resources": return this.getResource(requestPath);
+			case "/webview":
+				const webviewPath = path.join(this.rootPath, "out/vs/workbench/contrib/webview/browser/pre");
+				return this.getResource(path.join(webviewPath, requestPath || "/index.html"));
 			default: throw new HttpError("Not found", HttpCode.NotFound);
 		}
 	}
@@ -406,11 +405,10 @@ export class MainServer extends Server {
 		const filePath = path.join(this.rootPath, "out/vs/code/browser/workbench/workbench.html");
 		let [content] = await Promise.all([
 			util.promisify(fs.readFile)(filePath, "utf8"),
-			this.webviewServer.listen(),
 			this.servicesPromise,
 		]);
 
-		const webviewEndpoint = this.webviewServer.address(request);
+		const webviewEndpoint = this.address(request) + "/webview/";
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
 		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
@@ -565,15 +563,5 @@ export class MainServer extends Server {
 	 */
 	private async getDebugPort(): Promise<number | undefined> {
 		return undefined;
-	}
-}
-
-export class WebviewServer extends Server {
-	protected async handleRequest(
-		base: string,
-		requestPath: string,
-	): Promise<Response> {
-		const webviewPath = path.join(this.rootPath, "out/vs/workbench/contrib/webview/browser/pre");
-		return this.getResource(path.join(webviewPath, base, requestPath || "/index.html"));
 	}
 }

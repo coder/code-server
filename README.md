@@ -5,7 +5,7 @@ remote server, accessible through the browser.
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -p 127.0.0.1:8444:8444 -v "$PWD:/home/coder/project" codercom/code-server
+docker run -it -p 127.0.0.1:8443:8443 -v "$PWD:/home/coder/project" codercom/code-server
 ```
 
 - Code on your Chromebook, tablet, and laptop with a consistent dev environment.
