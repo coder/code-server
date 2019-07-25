@@ -12,7 +12,9 @@ import { extname } from "vs/base/common/path";
 import { URITransformer, IRawURITransformer } from "vs/base/common/uriIpc";
 import { mkdirp } from "vs/base/node/pfs";
 
-import { AuthType } from "vs/server/src/server";
+export enum AuthType {
+	Password = "password",
+}
 
 export const tmpdir = path.join(os.tmpdir(), "code-server");
 

@@ -1,3 +1,4 @@
+import * as crypto from "crypto";
 import * as fs from "fs";
 import * as http from "http";
 import * as https from "https";
@@ -55,7 +56,7 @@ import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/se
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { TelemetryClient } from "vs/server/src/insights";
 import { Protocol } from "vs/server/src/protocol";
-import { getMediaMime, getUriTransformer } from "vs/server/src/util";
+import { AuthType, getMediaMime, getUriTransformer } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
@@ -93,10 +94,6 @@ export class HttpError extends Error {
 		this.name = this.constructor.name;
 		Error.captureStackTrace(this, this.constructor);
 	}
-}
-
-export enum AuthType {
-	Password = "password",
 }
 
 export interface ServerOptions {
@@ -140,6 +137,7 @@ export abstract class Server {
 		if (!this.listenPromise) {
 			this.listenPromise = new Promise((resolve, reject) => {
 				this.server.on("error", reject);
+				this.server.on("upgrade", this.onUpgrade);
 				const onListen = () => resolve(this.address());
 				if (this.options.socket) {
 					this.server.listen(this.options.socket, onListen);
@@ -167,6 +165,11 @@ export abstract class Server {
 		return `${this.protocol}://${endpoint}`;
 	}
 
+	protected abstract handleWebSocket(
+		socket: net.Socket,
+		parsedUrl: url.UrlWithParsedQuery
+	): Promise<void>;
+
 	protected abstract handleRequest(
 		base: string,
 		requestPath: string,
@@ -174,7 +177,8 @@ export abstract class Server {
 		request: http.IncomingMessage,
 	): Promise<Response>;
 
-	protected async getResource(filePath: string): Promise<Response> {
+	protected async getResource(...parts: string[]): Promise<Response> {
+		const filePath = path.join(...parts);
 		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
@@ -205,7 +209,7 @@ export abstract class Server {
 			return { redirect: request.url };
 		}
 
-		const parsedUrl = request.url ? url.parse(request.url, true) : {} as url.UrlWithParsedQuery;
+		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
 		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
 		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
 		let [, base, requestPath] = match
@@ -218,15 +222,13 @@ export abstract class Server {
 			base = "/";
 		}
 		base = path.normalize(base);
-		if (requestPath !== "") { // "" will become "." with normalize.
-			requestPath = path.normalize(requestPath);
-		}
+		requestPath = path.normalize(requestPath || "/index.html");
 
 		switch (base) {
 			case "/":
 				this.ensureGet(request);
 				if (requestPath === "/favicon.ico") {
-					return this.getResource(path.join(this.rootPath, "/out/vs/server/src/favicon", requestPath));
+					return this.getResource(this.rootPath, "/out/vs/server/src/favicon", requestPath);
 				} else if (!this.authenticate(request)) {
 					return { redirect: "/login" };
 				}
@@ -238,16 +240,51 @@ export abstract class Server {
 					return this.tryLogin(request);
 				}
 				this.ensureGet(request);
-				return this.getResource(path.join(this.rootPath, "/out/vs/server/src/login", requestPath));
+				return this.getResource(this.rootPath, "/out/vs/server/src/login", requestPath);
 			default:
 				this.ensureGet(request);
 				if (!this.authenticate(request)) {
-					throw new HttpError(`Unauthorized`, HttpCode.Unauthorized);
+					throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 				}
 				break;
 		}
 
 		return this.handleRequest(base, requestPath, parsedUrl, request);
+	}
+
+	private onUpgrade = async (request: http.IncomingMessage, socket: net.Socket): Promise<void> => {
+		try {
+			await this.preHandleWebSocket(request, socket);
+		} catch (error) {
+			socket.destroy();
+			console.error(error);
+		}
+	}
+
+	private preHandleWebSocket(request: http.IncomingMessage, socket: net.Socket): Promise<void> {
+		socket.on("error", () => socket.destroy());
+		socket.on("end", () => socket.destroy());
+
+		if (!this.authenticate(request)) {
+			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
+		} else if (request.headers.upgrade !== "websocket") {
+			throw new Error("HTTP/1.1 400 Bad Request");
+		}
+
+		// This magic value is specified by the websocket spec.
+		const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+		const reply = crypto.createHash("sha1")
+			.update(<string>request.headers["sec-websocket-key"] + magic)
+			.digest("base64");
+		socket.write([
+			"HTTP/1.1 101 Switching Protocols",
+			"Upgrade: websocket",
+			"Connection: Upgrade",
+			`Sec-WebSocket-Accept: ${reply}`,
+		].join("\r\n") + "\r\n\r\n");
+
+		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+		return this.handleWebSocket(socket, parsedUrl);
 	}
 
 	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
@@ -305,10 +342,7 @@ export abstract class Server {
 				const onData = (d: Buffer): void => {
 					body += d;
 					if (body.length > 1e6) {
-						onError(new HttpError(
-							"Payload is too large",
-							HttpCode.LargePayload,
-						));
+						onError(new HttpError("Payload is too large", HttpCode.LargePayload));
 						request.connection.destroy();
 					}
 				};
@@ -359,16 +393,6 @@ export class MainServer extends Server {
 
 	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
-		this.server.on("upgrade", async (request, socket) => {
-			const protocol = this.createProtocol(request, socket);
-			try {
-				await this.connect(await protocol.handshake(), protocol);
-			} catch (error) {
-				protocol.sendMessage({ type: "error", reason: error.message });
-				protocol.dispose();
-				protocol.getSocket().dispose();
-			}
-		});
 		this.servicesPromise = this.initializeServices(args);
 	}
 
@@ -382,6 +406,21 @@ export class MainServer extends Server {
 		return address;
 	}
 
+	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
+		const protocol = new Protocol(socket, {
+			reconnectionToken: <string>parsedUrl.query.reconnectionToken || "",
+			reconnection: parsedUrl.query.reconnection === "true",
+			skipWebSocketFrames: parsedUrl.query.skipWebSocketFrames === "true",
+		});
+		try {
+			await this.connect(await protocol.handshake(), protocol);
+		} catch (error) {
+			protocol.sendMessage({ type: "error", reason: error.message });
+			protocol.dispose();
+			protocol.getSocket().dispose();
+		}
+	}
+
 	protected async handleRequest(
 		base: string,
 		requestPath: string,
@@ -390,14 +429,15 @@ export class MainServer extends Server {
 	): Promise<Response> {
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
-			case "/node_modules":
-			case "/out":
-				return this.getResource(path.join(this.rootPath, base, requestPath));
 			case "/resources": return this.getResource(requestPath);
 			case "/webview":
-				const webviewPath = path.join(this.rootPath, "out/vs/workbench/contrib/webview/browser/pre");
-				return this.getResource(path.join(webviewPath, requestPath || "/index.html"));
-			default: throw new HttpError("Not found", HttpCode.NotFound);
+				return this.getResource(
+					this.rootPath,
+					"out/vs/workbench/contrib/webview/browser/pre",
+					requestPath
+				);
+			default:
+				return this.getResource(this.rootPath, base, requestPath);
 		}
 	}
 
@@ -438,18 +478,6 @@ export class MainServer extends Server {
 		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
 
 		return { content, filePath };
-	}
-
-	private createProtocol(request: http.IncomingMessage, socket: net.Socket): Protocol {
-		if (request.headers.upgrade !== "websocket") {
-			throw new Error("HTTP/1.1 400 Bad Request");
-		}
-		const query = request.url ? url.parse(request.url, true).query : {};
-		return new Protocol(<string>request.headers["sec-websocket-key"], socket, {
-			reconnectionToken: <string>query.reconnectionToken || "",
-			reconnection: query.reconnection === "true",
-			skipWebSocketFrames: query.skipWebSocketFrames === "true",
-		});
 	}
 
 	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {

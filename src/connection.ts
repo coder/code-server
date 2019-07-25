@@ -1,4 +1,5 @@
 import * as cp from "child_process";
+import * as tls from "tls";
 
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
@@ -88,7 +89,7 @@ export class ExtensionHostConnection extends Connection {
 			type: "VSCODE_EXTHOST_IPC_SOCKET",
 			initialDataChunk: (buffer.buffer as Buffer).toString("base64"),
 			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
-		}, socket);
+		}, socket instanceof tls.TLSSocket ? (<any>socket)._parent : socket);
 	}
 
 	private spawn(buffer: VSBuffer): cp.ChildProcess {

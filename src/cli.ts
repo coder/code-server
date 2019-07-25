@@ -7,9 +7,9 @@ import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/envi
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 
-import { AuthType, MainServer } from "vs/server/src/server";
+import { MainServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { buildAllowedMessage, generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
+import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
 
 interface Args extends ParsedArgs {
 	auth?: AuthType;

@@ -371,7 +371,7 @@ index 9f68b645b6..f0cae7111d 100644
  		this.channel.call('setLevel', level);
  	}
 diff --git a/src/vs/platform/remote/browser/browserWebSocketFactory.ts b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
-index 6d9ecbcf5a..1ebd5a4b84 100644
+index 6d9ecbcf5a..1b3499dddf 100644
 --- a/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 @@ -79,7 +79,7 @@ class BrowserSocket implements ISocket {
@@ -379,7 +379,7 @@ index 6d9ecbcf5a..1ebd5a4b84 100644
  	connect(host: string, port: number, query: string, callback: IConnectCallback): void {
  		const errorListener = (err: any) => callback(err, undefined);
 -		const socket = new WebSocket(`ws://${host}:${port}/?${query}&skipWebSocketFrames=false`);
-+		const socket = new WebSocket(`ws://${host}:${port}${window.location.pathname.replace(/\/+$/, '')}/?${query}&skipWebSocketFrames=false`);
++		const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${host}:${port}${window.location.pathname.replace(/\/+$/, '')}/?${query}&skipWebSocketFrames=false`);
  		socket.onopen = function (event) {
  			socket.removeEventListener('error', errorListener);
  			callback(undefined, new BrowserSocket(socket));
@@ -1397,7 +1397,7 @@ index 306d58f915..58c603ad3d 100644
  			if (definition.fontCharacter || definition.fontColor) {
  				let body = '';
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index c28adc0ad9..4517c308da 100644
+index c28adc0ad9..3d1adba3d9 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
 @@ -128,7 +128,7 @@ import 'vs/workbench/services/extensions/browser/extensionService';
@@ -1422,3 +1422,9 @@ index c28adc0ad9..4517c308da 100644
  
  // Output Panel
  import 'vs/workbench/contrib/output/browser/output.contribution';
+@@ -356,3 +356,5 @@ import 'vs/workbench/contrib/outline/browser/outline.contribution';
+ // import 'vs/workbench/contrib/issue/electron-browser/issue.contribution';
+ 
+ //#endregion
++
++import 'vs/server/src/client';

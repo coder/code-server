@@ -1,4 +1,3 @@
-import * as crypto from "crypto";
 import * as net from "net";
 
 import { VSBuffer } from "vs/base/common/buffer";
@@ -13,30 +12,12 @@ export interface SocketOptions {
 }
 
 export class Protocol extends PersistentProtocol {
-	public constructor(
-		secWebsocketKey: string,
-		socket: net.Socket,
-		public readonly options: SocketOptions,
-	) {
+	public constructor(socket: net.Socket, public readonly options: SocketOptions) {
 		super(
 			options.skipWebSocketFrames
 				? new NodeSocket(socket)
 				: new WebSocketNodeSocket(new NodeSocket(socket)),
 		);
-		socket.on("error", () => socket.destroy());
-		socket.on("end", () => socket.destroy());
-
-		// This magic value is specified by the websocket spec.
-		const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-		const reply = crypto.createHash("sha1")
-			.update(secWebsocketKey + magic)
-			.digest("base64");
-		socket.write([
-			"HTTP/1.1 101 Switching Protocols",
-			"Upgrade: websocket",
-			"Connection: Upgrade",
-			`Sec-WebSocket-Accept: ${reply}`,
-		].join("\r\n") + "\r\n\r\n");
 	}
 
 	public getUnderlyingSocket(): net.Socket {
