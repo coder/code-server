@@ -1,21 +1,14 @@
 @supports (-moz-appearance:none) {
-	/*
-	.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-button.monaco-text-button {
-		max-width: 100%;
-		width: auto;
+	/* Firefox doesn't support -webkit-margin-{before/after} so use margin. */
+	/* These are the collapsible section headings in a sidebar panel. */
+	.monaco-panel-view .panel > .panel-header h3.title {
+		margin-bottom: 0;
+		margin-top: 0;
 	}
 
-	.monaco-shell .screen-reader-detected-explanation .buttons a,
-	.monaco-workbench > .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-shrink,
-	.monaco-workbench .notifications-list-container .notification-list-item .notification-list-item-buttons-container .monaco-button {
-		max-width: -moz-fit-content;
-	}
-
-	.monaco-workbench > .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit,
-	.explorer-viewlet .panel-header .count,
-	.extensions-viewlet > .extensions .extension > .details > .header-container > .header > .version,
-	.debug-viewlet .debug-call-stack .stack-frame .label {
+	/* Firefox doesn't seem to support fit-content. */
+	/* These are the file tabs. */
+	.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.sizing-fit {
 		min-width: -moz-fit-content;
 	}
-	*/
 }

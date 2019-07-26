@@ -11,6 +11,31 @@ index 618861a5be..9d4fdea14e 100644
 +	withBase(path: string ): string;
 +	withBase(resource: { path: string }): { toString: (skipEncoding?: boolean) => string };
  }
+diff --git a/src/vs/base/browser/ui/menu/menu.ts b/src/vs/base/browser/ui/menu/menu.ts
+index 7913bb42fd..80d5970970 100644
+--- a/src/vs/base/browser/ui/menu/menu.ts
++++ b/src/vs/base/browser/ui/menu/menu.ts
+@@ -22,7 +22,7 @@ import { isLinux, isMacintosh } from 'vs/base/common/platform';
+ 
+ function createMenuMnemonicRegExp() {
+ 	try {
+-		return new RegExp('\\(&([^\\s&])\\)|(?<!&)&([^\\s&])');
++		return new RegExp('\\(&([^\\s&])\\)|([^&]|^)&([^\\s&])');
+ 	} catch (err) {
+ 		return new RegExp('\uFFFF'); // never match please
+ 	}
+@@ -799,7 +799,7 @@ export function cleanMnemonic(label: string): string {
+ 		return label;
+ 	}
+ 
+-	const mnemonicInText = matches[0].charAt(0) === '&';
++	const mnemonicInText = matches[3]; // matches[0].charAt(0) === '&';
+ 
+-	return label.replace(regex, mnemonicInText ? '$2' : '').trim();
+-}
+\ No newline at end of file
++	return label.replace(regex, mnemonicInText ? '$2$3' : '').trim();
++}
 diff --git a/src/vs/base/common/buffer.ts b/src/vs/base/common/buffer.ts
 index 7b4e9cc8d6..7722cb12c6 100644
 --- a/src/vs/base/common/buffer.ts
