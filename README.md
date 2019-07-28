@@ -84,7 +84,7 @@ Development guides are coming soon.
 
 ## Enterprise
 
-Visit [our enterprise page](https://coder.com/enterprise) for more information about our enterprise offering.
+Visit [our website](https://coder.com/) for more information about our enterprise offering.
 
 ## Commercialization
 
