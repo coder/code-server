@@ -1,3 +1,5 @@
+// This file is prepended to loader/entry code (like our main.js or VS Code's
+// bootstrap-fork.js). {{ROOT_PATH}} is replaced during the build process.
 if (!global.NBIN_LOADED) {
 	try {
 		const nbin = require("nbin");
