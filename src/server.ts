@@ -12,9 +12,10 @@ import * as querystring from "querystring";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
 import { UriComponents, URI } from "vs/base/common/uri";
+import { generateUuid } from "vs/base/common/uuid";
 import { getMachineId } from 'vs/base/node/id';
 import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
-import { mkdirp } from "vs/base/node/pfs";
+import { mkdirp, rimraf } from "vs/base/node/pfs";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
@@ -56,7 +57,7 @@ import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/se
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { TelemetryClient } from "vs/server/src/insights";
 import { Protocol } from "vs/server/src/protocol";
-import { AuthType, getMediaMime, getUriTransformer } from "vs/server/src/util";
+import { AuthType, getMediaMime, getUriTransformer, tmpdir } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
@@ -391,6 +392,11 @@ export class MainServer extends Server {
 	private readonly services = new ServiceCollection();
 	private readonly servicesPromise: Promise<void>;
 
+	public readonly _onProxyConnect = new Emitter<net.Socket>();
+	private proxyPipe = path.join(tmpdir, "tls-proxy");
+	private _proxyServer?: Promise<net.Server>;
+	private readonly proxyTimeout = 5000;
+
 	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
 		this.servicesPromise = this.initializeServices(args);
@@ -407,7 +413,7 @@ export class MainServer extends Server {
 	}
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
-		const protocol = new Protocol(socket, {
+		const protocol = new Protocol(await this.createProxy(socket), {
 			reconnectionToken: <string>parsedUrl.query.reconnectionToken || "",
 			reconnection: parsedUrl.query.reconnection === "true",
 			skipWebSocketFrames: parsedUrl.query.skipWebSocketFrames === "true",
@@ -591,5 +597,80 @@ export class MainServer extends Server {
 	 */
 	private async getDebugPort(): Promise<number | undefined> {
 		return undefined;
+	}
+
+	/**
+	 * Since we can't pass TLS sockets to children, use this to proxy the socket
+	 * and pass a non-TLS socket.
+	 */
+	private createProxy = async (socket: net.Socket): Promise<net.Socket> => {
+		if (!(socket instanceof tls.TLSSocket)) {
+			return socket;
+		}
+
+		await this.startProxyServer();
+
+		return new Promise((resolve, reject) => {
+			const timeout = setTimeout(() => {
+				listener.dispose();
+				socket.destroy();
+				proxy.destroy();
+				reject(new Error("TLS socket proxy timed out"));
+			}, this.proxyTimeout);
+
+			const listener = this._onProxyConnect.event((connection) => {
+				connection.once("data", (data) => {
+					if (!socket.destroyed && !proxy.destroyed && data.toString() === id) {
+						clearTimeout(timeout);
+						listener.dispose();
+						[[proxy, socket], [socket, proxy]].forEach(([a, b]) => {
+							a.pipe(b);
+							a.on("error", () => b.destroy());
+							a.on("close", () => b.destroy());
+							a.on("end", () => b.end());
+						});
+						resolve(connection);
+					}
+				});
+			});
+
+			const id = generateUuid();
+			const proxy = net.connect(this.proxyPipe);
+			proxy.once("connect", () => proxy.write(id));
+		});
+	}
+
+	private async startProxyServer(): Promise<net.Server> {
+		if (!this._proxyServer) {
+			this._proxyServer = new Promise(async (resolve) => {
+				this.proxyPipe = await this.findFreeSocketPath(this.proxyPipe);
+				await mkdirp(tmpdir);
+				await rimraf(this.proxyPipe);
+				const proxyServer = net.createServer((p) => this._onProxyConnect.fire(p));
+				proxyServer.once("listening", resolve);
+				proxyServer.listen(this.proxyPipe);
+			});
+		}
+		return this._proxyServer;
+	}
+
+	private async findFreeSocketPath(basePath: string, maxTries: number = 100): Promise<string> {
+		const canConnect = (path: string): Promise<boolean> => {
+			return new Promise((resolve) => {
+				const socket = net.connect(path);
+				socket.once("error", () => resolve(false));
+				socket.once("connect", () => {
+					socket.destroy();
+					resolve(true);
+				});
+			});
+		};
+
+		let i = 0;
+		let path = basePath;
+		while (await canConnect(path) && i < maxTries) {
+			path = `${basePath}-${++i}`;
+		}
+		return path;
 	}
 }
