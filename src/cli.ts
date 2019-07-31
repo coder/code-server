@@ -9,7 +9,9 @@ import product from "vs/platform/product/node/product";
 
 import { MainServer } from "vs/server/src/server";
 import "vs/server/src/tar";
-import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, open, unpackExecutables } from "vs/server/src/util";
+import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
+
+const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 
 interface Args extends ParsedArgs {
 	auth?: AuthType;
@@ -67,7 +69,7 @@ interface IMainCli {
 	main: (argv: ParsedArgs) => Promise<void>;
 }
 
-const main = async (): Promise<void> => {
+const main = async (): Promise<void | void[]> => {
 	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
 	["extra-extensions-dir", "extra-builtin-extensions-dir"].forEach((key) => {
 		if (typeof args[key] === "string") {
@@ -91,7 +93,7 @@ const main = async (): Promise<void> => {
 	}
 
 	if (args.version) {
-		return console.log(buildVersionMessage(version, product.commit));
+		return buildVersionMessage(version, product.commit).split("\n").map((line) => logger.info(line));
 	}
 
 	const shouldSpawnCliProcess = (): boolean => {
@@ -146,32 +148,32 @@ const main = async (): Promise<void> => {
 		server.listen(),
 		unpackExecutables(),
 	]);
-	console.log(`Server listening on ${serverAddress}`);
+	logger.info(`Server listening on ${serverAddress}`);
 
 	if (options.auth && !process.env.PASSWORD) {
-		console.log("  - Password is", options.password);
-		console.log("  - To use your own password, set the PASSWORD environment variable");
+		logger.info(`  - Password is ${options.password}`);
+		logger.info("  - To use your own password, set the PASSWORD environment variable");
 	} else if (options.auth) {
-		console.log("  - Using custom password for authentication");
+		logger.info("  - Using custom password for authentication");
 	} else {
-		console.log("  - No authentication");
+		logger.info("  - No authentication");
 	}
 
 	if (server.protocol === "https") {
-		console.log(
+		logger.info(
 			args.cert
 				? `  - Using provided certificate${args["cert-key"] ? " and key" : ""} for HTTPS`
 				: `  - Using generated certificate and key for HTTPS`,
 		);
 	} else {
-		console.log("  - Not serving HTTPS");
+		logger.info("  - Not serving HTTPS");
 	}
 
 	if (!server.options.socket && args.open) {
 		// The web socket doesn't seem to work if using 0.0.0.0.
 		const openAddress = `http://localhost:${server.options.port}`;
 		await open(openAddress).catch(console.error);
-		console.log(`  - Opened ${openAddress}`);
+		logger.info(`  - Opened ${openAddress}`);
 	}
 };
 

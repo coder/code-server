@@ -23,6 +23,7 @@
     "@types/node": "^10.12.12"
   },
   "dependencies": {
+    "@coder/logger": "^1.1.5",
     "httpolyglot": "^0.1.2",
     "pem": "^1.14.2",
     "safe-compare": "^1.1.4"

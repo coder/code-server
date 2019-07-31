@@ -57,7 +57,7 @@ import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/se
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { TelemetryClient } from "vs/server/src/insights";
 import { Protocol } from "vs/server/src/protocol";
-import { AuthType, getMediaMime, getUriTransformer, tmpdir } from "vs/server/src/util";
+import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
 
 export enum HttpCode {
 	Ok = 200,
@@ -124,7 +124,7 @@ export abstract class Server {
 		};
 		this.protocol = this.options.cert ? "https" : "http";
 		if (this.protocol === "https") {
-			const httpolyglot = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/httpolyglot/lib/index")) as typeof import("httpolyglot");
+			const httpolyglot = localRequire<typeof import("httpolyglot")>("httpolyglot/lib/index");
 			this.server = httpolyglot.createServer({
 				cert: this.options.cert && fs.readFileSync(this.options.cert),
 				key: this.options.certKey && fs.readFileSync(this.options.certKey),
@@ -213,7 +213,7 @@ export abstract class Server {
 		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
 		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
 		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
-		let [, base, requestPath] = match
+		let [/* ignore */, base, requestPath] = match
 			? match.map((p) => p.replace(/\/+$/, ""))
 			: ["", "", ""];
 		if (base.indexOf(".") !== -1) { // Assume it's a file at the root.
@@ -363,7 +363,7 @@ export abstract class Server {
 		if (!this.options.auth) {
 			return true;
 		}
-		const safeCompare = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/safe-compare/index")) as typeof import("safe-compare");
+		const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
 		if (typeof payload === "undefined") {
 			payload = this.parseCookies<LoginPayload>(request);
 		}

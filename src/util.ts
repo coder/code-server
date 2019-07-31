@@ -30,7 +30,7 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 	]);
 
 	if (!exists[0] || !exists[1]) {
-		const pem = require.__$__nodeRequire(path.resolve(__dirname, "../node_modules/pem/lib/pem")) as typeof import("pem");
+		const pem = localRequire<typeof import("pem")>("pem/lib/pem");
 		const certs = await new Promise<import("pem").CertificateCreationResult>((resolve, reject): void => {
 			pem.createCertificate({ selfSigned: true }, (error, result) => {
 				if (error) {
@@ -116,4 +116,12 @@ export const unpackExecutables = async (): Promise<void> => {
 export const buildAllowedMessage = (t: typeof AuthType): string => {
 	const values = <string[]>Object.keys(t).map((k) => t[k]);
 	return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(",")}`;
+};
+
+/**
+ * Require a local module. This is necessary since VS Code's loader only looks
+ * at the root for Node modules.
+ */
+export const localRequire = <T>(modulePath: string): T => {
+	return require.__$__nodeRequire(path.resolve(__dirname, "../node_modules", modulePath));
 };
