@@ -8,7 +8,7 @@ import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 
 import { MainServer } from "vs/server/src/server";
-import "vs/server/src/tar";
+import { enableExtensionTars } from "vs/server/src/tar";
 import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
@@ -95,6 +95,8 @@ const main = async (): Promise<void | void[]> => {
 	if (args.version) {
 		return buildVersionMessage(version, product.commit).split("\n").map((line) => logger.info(line));
 	}
+
+	enableExtensionTars();
 
 	const shouldSpawnCliProcess = (): boolean => {
 		return !!args["install-source"]

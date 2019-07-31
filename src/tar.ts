@@ -153,8 +153,13 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 	});
 };
 
-// Override original functionality so we can use tar instead of zip.
-const target = vszip as typeof vszip;
-target.zip = tar;
-target.extract = extract;
-target.buffer = buffer;
+/**
+ * Override original functionality so we can use extensions that are in a tar in
+ * addition to zips.
+ */
+export const enableExtensionTars = (): void => {
+	const target = vszip as typeof vszip;
+	target.zip = tar;
+	target.extract = extract;
+	target.buffer = buffer;
+};
