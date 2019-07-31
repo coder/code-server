@@ -437,6 +437,9 @@ export class MainServer extends Server {
 			case "/": return this.getRoot(request, parsedUrl);
 			case "/resources": return this.getResource(requestPath);
 			case "/webview":
+				if (requestPath.indexOf("/vscode-resource") === 0) {
+					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));
+				}
 				return this.getResource(
 					this.rootPath,
 					"out/vs/workbench/contrib/webview/browser/pre",
