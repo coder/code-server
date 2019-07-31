@@ -356,6 +356,11 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			res.end();
 		}
 	});
+	
+	// For loading contract from url
+	app.get("/contracts/:content", async (req, res) => {
+		console.log(req.params.content);
+	})
 
 	// Everything else just pulls from the static build directory.
 	app.use(staticGzip);
