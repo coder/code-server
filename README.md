@@ -113,7 +113,7 @@ Our changes include:
  - Allow multiple extension directories (both user and built-in).
  - Rewrite assets used in the CSS (like icons) or as images to use the base URL.
  - Change the loader to use the base URL.
- - Change the web socket to use the base URL.
+ - Change the web socket to use the base URL and TLS if necessary.
  - Set the favicon using a relative path.
  - Modify the file service to support writing from an asynchronous stream (for
    uploading files).
@@ -121,6 +121,8 @@ Our changes include:
  - Insert our upload service for use in editor windows and explorer.
  - Modify the log level to get its initial setting from the server.
  - Get telemetry working by adding a channel for it.
+ - Change a regular expression used for mnemonics so it works on Firefox.
+ - Make it possible for us to load code on the client.
 
 ## License
 [MIT](LICENSE)
