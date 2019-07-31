@@ -1,25 +1,19 @@
 import * as vscode from "vscode";
 
 import { localize } from "vs/nls";
-import { Action } from "vs/base/common/actions";
-import { SyncActionDescriptor, MenuRegistry, MenuId } from "vs/platform/actions/common/actions";
+import { SyncActionDescriptor } from "vs/platform/actions/common/actions";
 import { Registry } from "vs/platform/registry/common/platform";
 import { IWorkbenchActionRegistry, Extensions as ActionExtensions} from "vs/workbench/common/actions";
 import { CommandsRegistry, ICommandService } from "vs/platform/commands/common/commands";
-import { IStat, IWatchOptions, FileOverwriteOptions, FileDeleteOptions, FileOpenOptions, IFileChange, FileWriteOptions, FileSystemProviderCapabilities, IFileService, FileType, FileOperation, IFileSystemProvider } from "vs/platform/files/common/files";
-import { ITextFileService } from "vs/workbench/services/textfile/common/textfiles";
-import { IModelService } from "vs/editor/common/services/modelService";
-import { ITerminalService } from "vs/workbench/contrib/terminal/common/terminal";
+import { IStat, IWatchOptions, FileOverwriteOptions, FileDeleteOptions, FileOpenOptions, IFileChange, FileWriteOptions, FileSystemProviderCapabilities, IFileService, FileType, IFileSystemProvider } from "vs/platform/files/common/files";
 import { IStorageService } from "vs/platform/storage/common/storage";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { INotificationService } from "vs/platform/notification/common/notification";
-import { IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
-import Severity from "vs/base/common/severity";
 import { Emitter, Event } from "vs/base/common/event";
 import * as extHostTypes from "vs/workbench/api/common/extHostTypes";
 import { ServiceIdentifier, IInstantiationService } from "vs/platform/instantiation/common/instantiation";
 import { URI } from "vs/base/common/uri";
-import { ITreeViewDataProvider, IViewsRegistry, ITreeViewDescriptor, Extensions as ViewsExtensions, IViewContainersRegistry } from "vs/workbench/common/views";
+import { ITreeItem, ITreeViewDataProvider, IViewsRegistry, ITreeViewDescriptor, Extensions as ViewsExtensions, IViewContainersRegistry, TreeItemCollapsibleState } from "vs/workbench/common/views";
 import { CustomTreeViewPanel, CustomTreeView } from "vs/workbench/browser/parts/views/customView";
 import { ViewletRegistry, Extensions as ViewletExtensions, ViewletDescriptor, ShowViewletAction } from "vs/workbench/browser/viewlet";
 import { IExtensionService } from "vs/workbench/services/extensions/common/extensions";
@@ -35,6 +29,7 @@ import { IViewletService } from "vs/workbench/services/viewlet/browser/viewlet";
 import { IEditorGroupsService } from "vs/workbench/services/editor/common/editorGroupsService";
 import { createCSSRule } from "vs/base/browser/dom";
 import { IDisposable } from "vs/base/common/lifecycle";
+import { generateUuid } from "vs/base/common/uuid";
 
 /**
  * Client-side implementation of VS Code's API.
@@ -42,7 +37,7 @@ import { IDisposable } from "vs/base/common/lifecycle";
  * TODO: Implement menu items for views (for item actions).
  * TODO: File system provider doesn't work.
  */
-export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode => {
+export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof vscode> => {
 	const getService = <T>(id: ServiceIdentifier<T>): T => serviceCollection.get<T>(id) as T;
 	const commandService = getService(ICommandService);
 	const notificationService = getService(INotificationService);
@@ -61,149 +56,84 @@ export const vscodeApi = (serviceCollection: ServiceCollection): typeof vscode =
 		FileType: FileType,
 		Uri: URI,
 		commands: {
-			executeCommand: (commandId: string, ...args: any[]): any => {
+			executeCommand: <T = any>(commandId: string, ...args: any[]): Promise<T | undefined> => {
 				return commandService.executeCommand(commandId, ...args);
 			},
-			registerCommand: (id: string, command: () => void): any => {
+			registerCommand: (id: string, command: (...args: any[]) => any): IDisposable => {
 				return CommandsRegistry.registerCommand(id, command);
 			},
-		},
+		} as Partial<typeof vscode.commands>,
 		window: {
-			registerTreeDataProvider: (id: string, dataProvider: ITreeViewDataProvider): void => {
+			registerTreeDataProvider: <T>(id: string, dataProvider: vscode.TreeDataProvider<T>): IDisposable => {
+				const tree = new TreeViewDataProvider(dataProvider);
 				const view = viewsRegistry.getView(id);
-				if (view) {
-					(view as ITreeViewDescriptor).treeView.dataProvider = dataProvider;
-				}
+				(view as ITreeViewDescriptor).treeView.dataProvider = tree;
+				return {
+					dispose: () => tree.dispose(),
+				};
 			},
-			showErrorMessage: (message: string): void => {
+			showErrorMessage: async (message: string): Promise<string | undefined> => {
 				notificationService.error(message);
+				return undefined;
 			},
-		},
+		} as Partial<typeof vscode.window>,
 		workspace: {
 			registerFileSystemProvider: (scheme: string, provider: vscode.FileSystemProvider): IDisposable => {
 				return fileService.registerProvider(scheme, new FileSystemProvider(provider));
 			},
-		},
-	} as any;
+		} as Partial<typeof vscode.workspace>,
+	} as Partial<typeof vscode>; // Without this it complains that the type isn't `| undefined`.
 };
 
 /**
- * Coder API.
+ * Coder API. This should only provide functionality that can't be made
+ * available through the VS Code API.
  */
 export const coderApi = (serviceCollection: ServiceCollection): typeof coder => {
 	const getService = <T>(id: ServiceIdentifier<T>): T => serviceCollection.get<T>(id) as T;
 	return {
-		workbench: {
-			action: Action,
-			syncActionDescriptor: SyncActionDescriptor,
-			commandRegistry: CommandsRegistry,
-			actionsRegistry: Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions),
-			registerView: (viewId, viewName, containerId, containerName, icon): void =>  {
-				const cssClass = `extensionViewlet-${containerId}`;
-				const id = `workbench.view.extension.${containerId}`;
-				class CustomViewlet extends ViewContainerViewlet {
-					public constructor(
-						@IConfigurationService configurationService: IConfigurationService,
-						@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
-						@ITelemetryService telemetryService: ITelemetryService,
-						@IWorkspaceContextService contextService: IWorkspaceContextService,
-						@IStorageService storageService: IStorageService,
-						@IEditorService _editorService: IEditorService,
-						@IInstantiationService instantiationService: IInstantiationService,
-						@IThemeService themeService: IThemeService,
-						@IContextMenuService contextMenuService: IContextMenuService,
-						@IExtensionService extensionService: IExtensionService,
-					) {
-						super(id, `${id}.state`, true, configurationService, layoutService, telemetryService, storageService, instantiationService, themeService, contextMenuService, extensionService, contextService);
-					}
+		registerView: (viewId, viewName, containerId, containerName, icon): void =>  {
+			const cssClass = `extensionViewlet-${containerId}`;
+			const id = `workbench.view.extension.${containerId}`;
+			class CustomViewlet extends ViewContainerViewlet {
+				public constructor(
+					@IConfigurationService configurationService: IConfigurationService,
+					@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
+					@ITelemetryService telemetryService: ITelemetryService,
+					@IWorkspaceContextService contextService: IWorkspaceContextService,
+					@IStorageService storageService: IStorageService,
+					@IEditorService _editorService: IEditorService,
+					@IInstantiationService instantiationService: IInstantiationService,
+					@IThemeService themeService: IThemeService,
+					@IContextMenuService contextMenuService: IContextMenuService,
+					@IExtensionService extensionService: IExtensionService,
+				) {
+					super(id, `${id}.state`, true, configurationService, layoutService, telemetryService, storageService, instantiationService, themeService, contextMenuService, extensionService, contextService);
 				}
+			}
 
-				Registry.as<ViewletRegistry>(ViewletExtensions.Viewlets).registerViewlet(
-					new ViewletDescriptor(CustomViewlet as any, id, containerName, cssClass, undefined, URI.parse(icon)),
-				);
+			Registry.as<ViewletRegistry>(ViewletExtensions.Viewlets).registerViewlet(
+				new ViewletDescriptor(CustomViewlet as any, id, containerName, cssClass, undefined, URI.parse(icon)),
+			);
 
-				Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions).registerWorkbenchAction(
-					new SyncActionDescriptor(OpenCustomViewletAction as any, id, localize("showViewlet", "Show {0}", containerName)),
-					"View: Show {0}",
-					localize("view", "View"),
-				);
+			Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions).registerWorkbenchAction(
+				new SyncActionDescriptor(OpenCustomViewletAction as any, id, localize("showViewlet", "Show {0}", containerName)),
+				"View: Show {0}",
+				localize("view", "View"),
+			);
 
-				// Generate CSS to show the icon in the activity bar.
-				const iconClass = `.monaco-workbench .activitybar .monaco-action-bar .action-label.${cssClass}`;
-				createCSSRule(iconClass, `-webkit-mask: url('${icon}') no-repeat 50% 50%`);
+			// Generate CSS to show the icon in the activity bar.
+			const iconClass = `.monaco-workbench .activitybar .monaco-action-bar .action-label.${cssClass}`;
+			createCSSRule(iconClass, `-webkit-mask: url('${icon}') no-repeat 50% 50%`);
 
-				const container = Registry.as<IViewContainersRegistry>(ViewsExtensions.ViewContainersRegistry).registerViewContainer(containerId);
-				Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry).registerViews([{
-					id: viewId,
-					name: viewName,
-					ctorDescriptor: { ctor: CustomTreeViewPanel },
-					treeView: getService(IInstantiationService).createInstance(CustomTreeView as any, viewId, container),
-				}] as ITreeViewDescriptor[], container);
-			},
-			menuRegistry: MenuRegistry as any,
-			statusbarService: getService(IStatusbarService) as any,
-			notificationService: getService(INotificationService),
-			terminalService: getService(ITerminalService),
-			onFileCreate: (cb): void => {
-				getService<IFileService>(IFileService).onAfterOperation((e) => {
-					if (e.operation === FileOperation.CREATE) {
-						cb(e.resource.path);
-					}
-				});
-			},
-			onFileMove: (cb): void => {
-				getService<IFileService>(IFileService).onAfterOperation((e) => {
-					if (e.operation === FileOperation.MOVE) {
-						cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
-					}
-				});
-			},
-			onFileDelete: (cb): void => {
-				getService<IFileService>(IFileService).onAfterOperation((e) => {
-					if (e.operation === FileOperation.DELETE) {
-						cb(e.resource.path);
-					}
-				});
-			},
-			onFileSaved: (cb): void => {
-				getService<ITextFileService>(ITextFileService).models.onModelSaved((e) => {
-					cb(e.resource.path);
-				});
-			},
-			onFileCopy: (cb): void => {
-				getService<IFileService>(IFileService).onAfterOperation((e) => {
-					if (e.operation === FileOperation.COPY) {
-						cb(e.resource.path, e.target ? e.target.resource.path : undefined!);
-					}
-				});
-			},
-			onModelAdded: (cb): void => {
-				getService<IModelService>(IModelService).onModelAdded((e) => {
-					cb(e.uri.path, e.getLanguageIdentifier().language);
-				});
-			},
-			onModelRemoved: (cb): void => {
-				getService<IModelService>(IModelService).onModelRemoved((e) => {
-					cb(e.uri.path, e.getLanguageIdentifier().language);
-				});
-			},
-			onModelLanguageChange: (cb): void => {
-				getService<IModelService>(IModelService).onModelModeChanged((e) => {
-					cb(e.model.uri.path, e.model.getLanguageIdentifier().language, e.oldModeId);
-				});
-			},
-			onTerminalAdded: (cb): void => {
-				getService<ITerminalService>(ITerminalService).onInstanceCreated(() => cb());
-			},
-			onTerminalRemoved: (cb): void => {
-				getService<ITerminalService>(ITerminalService).onInstanceDisposed(() => cb());
-			},
+			const container = Registry.as<IViewContainersRegistry>(ViewsExtensions.ViewContainersRegistry).registerViewContainer(containerId);
+			Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry).registerViews([{
+				id: viewId,
+				name: viewName,
+				ctorDescriptor: { ctor: CustomTreeViewPanel },
+				treeView: getService(IInstantiationService).createInstance(CustomTreeView as any, viewId, container),
+			}] as ITreeViewDescriptor[], container);
 		},
-		// @ts-ignore
-		MenuId: MenuId,
-		Severity: Severity,
-		// @ts-ignore
-		StatusbarAlignment: StatusbarAlignment,
 	};
 };
 
@@ -280,5 +210,61 @@ class FileSystemProvider implements IFileSystemProvider {
 
 	public write(_fd: number, _pos: number, _data: Uint8Array, _offset: number, _length: number): Promise<number> {
 		throw new Error("not implemented");
+	}
+}
+
+class TreeViewDataProvider<T> implements ITreeViewDataProvider {
+	private readonly root = Symbol("root");
+	private readonly values = new Map<string, T>();
+	private readonly children = new Map<T | Symbol, ITreeItem[]>();
+
+	public constructor(private readonly provider: vscode.TreeDataProvider<T>) {}
+
+	public async getChildren(item?: ITreeItem): Promise<ITreeItem[]> {
+		const value = item && this.itemToValue(item);
+		const children = await Promise.all(
+			(await this.provider.getChildren(value) || [])
+				.map(async (childValue) => {
+					const treeItem = await this.provider.getTreeItem(childValue);
+					const handle = this.createHandle(treeItem);
+					this.values.set(handle, childValue);
+					return {
+						handle,
+						collapsibleState: TreeItemCollapsibleState.Collapsed,
+					};
+				})
+		);
+
+		this.clear(value || this.root, item);
+		this.children.set(value || this.root, children);
+
+		return children;
+	}
+
+	public dispose(): void {
+		throw new Error("not implemented");
+	}
+
+	private itemToValue(item: ITreeItem): T {
+		if (!this.values.has(item.handle)) {
+			throw new Error(`No element found with handle ${item.handle}`);
+		}
+		return this.values.get(item.handle)!;
+	}
+
+	private clear(value: T | Symbol, item?: ITreeItem): void {
+		if (this.children.has(value)) {
+			this.children.get(value)!.map((c) => this.clear(this.itemToValue(c), c));
+			this.children.delete(value);
+		}
+		if (item) {
+			this.values.delete(item.handle);
+		}
+	}
+
+	private createHandle(item: vscode.TreeItem): string {
+		return item.id
+			? `coder-tree-item-id/${item.id}`
+			: `coder-tree-item-uuid/${generateUuid()}`;
 	}
 }
