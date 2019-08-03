@@ -11,7 +11,7 @@ index 0dd2e5abf1..fc6875f3c2 100644
  // All Build
  const compileBuildTask = task.define('compile-build', task.parallel(compileClientBuildTask, compileExtensionsBuildTask));
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 84a6be26e8..7fb43686cd 100644
+index 84a6be26e8..e50618be3a 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -34,7 +34,8 @@ const deps = require('./dependencies');
@@ -85,16 +85,27 @@ index 84a6be26e8..7fb43686cd 100644
  	),
  	common.optimizeTask({
  		src: 'out-build',
-@@ -127,6 +134,20 @@ const minifyVSCodeTask = task.define('minify-vscode', task.series(
- 	common.minifyTask('out-vscode', `${sourceMappingURLBase}/core`)
+@@ -104,7 +111,8 @@ const optimizeVSCodeTask = task.define('optimize-vscode', task.series(
+ 		header: BUNDLED_FILE_HEADER,
+ 		out: 'out-vscode',
+ 		bundleInfo: undefined
+-	})
++	}),
++	() => writeProduct()
+ ));
+ 
+ 
+@@ -124,9 +132,36 @@ const minifyVSCodeTask = task.define('minify-vscode', task.series(
+ 		util.rimraf('out-vscode-min'),
+ 		optimizeIndexJSTask
+ 	),
+-	common.minifyTask('out-vscode', `${sourceMappingURLBase}/core`)
++	common.minifyTask('out-vscode', `${sourceMappingURLBase}/core`),
++	() => writeProduct('out-vscode-min')
  ));
  
 +function packageExtensionsTask() {
-+	return () => {
-+		const destination = path.join(root, ".build");
-+		const sources = ext.packageExtensionsStream();
-+		return sources.pipe(vfs.dest(destination));
-+	};
++	return () => ext.packageExtensionsStream().pipe(vfs.dest(path.join(root, '.build')));
 +}
 +gulp.task(task.define('extensions-build-package', task.series(
 +	compileExtensionsBuildTask,
@@ -102,6 +113,22 @@ index 84a6be26e8..7fb43686cd 100644
 +)));
 +gulp.task(optimizeVSCodeTask);
 +gulp.task(minifyVSCodeTask);
++function writeProduct(sourceFolderName) {
++	const checksums = sourceFolderName && computeChecksums(sourceFolderName, [
++		'vs/workbench/workbench.web.api.js',
++		'vs/workbench/workbench.web.api.css',
++		'vs/code/browser/workbench/workbench.html',
++		'vs/code/browser/workbench/workbench.js',
++		'vs/server/src/cli.js',
++		'vs/server/src/uriTransformer.js',
++		'vs/server/src/login/index.html'
++	]);
++	const date = new Date().toISOString();
++	const productJsonUpdate = { commit, date, checksums };
++	return gulp.src(['product.json'], { base: '.' })
++		.pipe(json(productJsonUpdate))
++		.pipe(vfs.dest(path.join(root, '.build')));
++}
 +
  // Package
  
