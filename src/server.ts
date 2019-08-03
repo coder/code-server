@@ -241,7 +241,7 @@ export abstract class Server {
 			case "/login":
 				if (!this.options.auth) {
 					throw new HttpError("Not found", HttpCode.NotFound);
-				} else if (requestPath === "") {
+				} else if (requestPath === "/index.html") {
 					return this.tryLogin(request);
 				}
 				this.ensureGet(request);
@@ -318,7 +318,7 @@ export abstract class Server {
 	}
 
 	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
-		const filePath = path.join(this.rootPath, "out/vs/server/src/login/login.html");
+		const filePath = path.join(this.rootPath, "out/vs/server/src/login/index.html");
 		const content = (await util.promisify(fs.readFile)(filePath, "utf8"))
 			.replace("{{ERROR}}", error)
 			.replace("display:none", error ? "display:block" : "display:none")
