@@ -8,7 +8,7 @@
     "watch": "yarn ensure-in-vscode && cd ../../../ && yarn watch",
     "build": "bash ./scripts/tasks.bash build",
     "package": "bash ./scripts/tasks.bash package",
-    "vstar": "bash ./scripts/tasks.bash vstar",
+    "package-prebuilt": "bash ./scripts/tasks.bash package-prebuilt",
     "binary": "bash ./scripts/tasks.bash binary",
     "patch:generate": "yarn ensure-in-vscode && cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
     "patch:apply": "yarn ensure-in-vscode && cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"

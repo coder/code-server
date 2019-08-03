@@ -44,8 +44,8 @@ arguments when launching code-server with Docker. See
   it will build in this directory which will cause issues because `yarn watch`
   will try to compile the build directory as well.
 - For now `@coder/nbin` is a global dependency.
-- Run `yarn build ${codeServerVersion} ${vscodeVersion} ${target} ${arch}` in
-  this directory (for example: `yarn build development 1.36.0 linux x64`).
+- Run `yarn build ${vscodeVersion} ${codeServerVersion}` in this directory (for
+  example: `yarn build 1.36.0 development`).
 - If you target the same VS Code version our Travis builds do everything will
   work but if you target some other version it might not (we have to do some
   patching to VS Code so different versions aren't always compatible).
@@ -93,6 +93,10 @@ yarn start
 # Visit http://localhost:8443
 ```
 
+If you run into issues about a different version of Node being used, try running
+`npm rebuild` in the VS Code directory and ignore the error at the end from
+`vscode-ripgrep`.
+
 ### Upgrading VS Code
 We have to patch VS Code to provide and fix some functionality. As the web
 portion of VS Code matures, we'll be able to shrink and maybe even entirely
@@ -121,6 +125,7 @@ Our changes include:
 - Get telemetry working by adding a channel for it.
 - Change a regular expression used for mnemonics so it works on Firefox.
 - Make it possible for us to load code on the client.
+- Modify the build process to include our code.
 
 ## License
 [MIT](LICENSE)

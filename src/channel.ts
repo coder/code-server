@@ -19,6 +19,7 @@ import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
 
+import { getTranslations } from "vs/server/src/nls";
 import { getUriTransformer } from "vs/server/src/util";
 
 /**
@@ -214,7 +215,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	}
 
 	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
-		const translations = {}; // TODO: translations
+		const translations = await getTranslations(locale, this.environment.userDataPath);
 
 		const scanMultiple = (isBuiltin: boolean, isUnderDevelopment: boolean, paths: string[]): Promise<IExtensionDescription[][]> => {
 			return Promise.all(paths.map((path) => {

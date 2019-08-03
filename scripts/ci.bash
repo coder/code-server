@@ -23,7 +23,7 @@ function docker-build() {
 
 	function docker-exec() {
 		local command="${1}" ; shift
-		local args="'${codeServerVersion}' '${vscodeVersion}' '${target}' '${arch}'"
+		local args="'${vscodeVersion}' '${codeServerVersion}'"
 		docker exec "${containerId}" \
 			bash -c "cd /src && CI=true yarn ${command} ${args}"
 	}
@@ -41,8 +41,7 @@ function docker-build() {
 function local-build() {
 	function local-exec() {
 		local command="${1}" ; shift
-		CI=true yarn "${command}" \
-			"${codeServerVersion}" "${vscodeVersion}" "${target}" "${arch}"
+		CI=true yarn "${command}" "${vscodeVersion}" "${codeServerVersion}"
 	}
 
 	local-exec build
@@ -56,7 +55,6 @@ function main() {
 	local vscodeVersion="${VSCODE_VERSION:-}"
 	local ostype="${OSTYPE:-}"
 	local target="${TARGET:-}"
-	local arch=x64
 
 	if [[ -z "${codeServerVersion}" ]] ; then
 		>&2 echo "Must set VERSION environment variable"; exit 1

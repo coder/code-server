@@ -13,14 +13,10 @@ RUN npm install -g yarn@1.13
 WORKDIR /src
 COPY . .
 
-
-# In the future, we can use https://github.com/yarnpkg/rfcs/pull/53 to make
-# yarn use the node_modules directly which should be fast as it is slow because
-# it populates its own cache every time.
 RUN yarn \
-	&& yarn build "${codeServerVersion}" "${vscodeVersion}" linux x64 \
-	&& yarn binary "${codeServerVersion}" "${vscodeVersion}" linux x64 \
-	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x64" /src/build/code-server
+	&& yarn build "${vscodeVersion}" "${codeServerVersion}" \
+	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
+	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04

@@ -5,9 +5,11 @@ import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter } from "vs/base/common/event";
 import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
 import { NodeSocket } from "vs/base/parts/ipc/node/ipc.net";
+import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { ILogService } from "vs/platform/log/common/log";
 import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
+import { getNlsConfiguration } from "vs/server/src/nls";
 import { Protocol } from "vs/server/src/protocol";
 import { uriTransformerPath } from "vs/server/src/util";
 
@@ -57,19 +59,25 @@ export class ManagementConnection extends Connection {
 }
 
 export class ExtensionHostConnection extends Connection {
-	private process: cp.ChildProcess;
+	private process?: cp.ChildProcess;
 
-	public constructor(protocol: Protocol, buffer: VSBuffer, private readonly log: ILogService) {
+	public constructor(
+		locale:string, protocol: Protocol, buffer: VSBuffer,
+		private readonly log: ILogService,
+		private readonly environment: IEnvironmentService,
+	) {
 		super(protocol);
 		this.protocol.dispose();
-		this.process = this.spawn(buffer);
+		this.spawn(locale, buffer).then((p) => this.process = p);
 		this.protocol.getUnderlyingSocket().pause();
 	}
 
 	protected dispose(): void {
 		if (!this.disposed) {
 			this.disposed = true;
-			this.process.kill();
+			if (this.process) {
+				this.process.kill();
+			}
 			this.protocol.getSocket().end();
 			this._onClose.fire();
 		}
@@ -85,14 +93,15 @@ export class ExtensionHostConnection extends Connection {
 	private sendInitMessage(buffer: VSBuffer): void {
 		const socket = this.protocol.getUnderlyingSocket();
 		socket.pause();
-		this.process.send({
+		this.process!.send({ // Process must be set at this point.
 			type: "VSCODE_EXTHOST_IPC_SOCKET",
 			initialDataChunk: (buffer.buffer as Buffer).toString("base64"),
 			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
 		}, socket);
 	}
 
-	private spawn(buffer: VSBuffer): cp.ChildProcess {
+	private async spawn(locale: string, buffer: VSBuffer): Promise<cp.ChildProcess> {
+		const config = await getNlsConfiguration(locale, this.environment.userDataPath);
 		const proc = cp.fork(
 			getPathFromAmdModule(require, "bootstrap-fork"),
 			[ "--type=extensionHost", `--uriTransformerPath=${uriTransformerPath}` ],
@@ -105,6 +114,7 @@ export class ExtensionHostConnection extends Connection {
 					VSCODE_EXTHOST_WILL_SEND_SOCKET: "true",
 					VSCODE_HANDLES_UNCAUGHT_ERRORS: "true",
 					VSCODE_LOG_STACK: "false",
+					VSCODE_NLS_CONFIG: JSON.stringify(config),
 				},
 				silent: true,
 			},

@@ -10,6 +10,7 @@ import product from "vs/platform/product/node/product";
 import { MainServer } from "vs/server/src/server";
 import { enableExtensionTars } from "vs/server/src/tar";
 import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
+import { main as vsCli } from "vs/code/node/cliProcessMain";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 
@@ -65,10 +66,6 @@ options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a
 
 options.push(last);
 
-interface IMainCli {
-	main: (argv: ParsedArgs) => Promise<void>;
-}
-
 const main = async (): Promise<void | void[]> => {
 	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
 	["extra-extensions-dir", "extra-builtin-extensions-dir"].forEach((key) => {
@@ -108,8 +105,7 @@ const main = async (): Promise<void | void[]> => {
 	};
 
 	if (shouldSpawnCliProcess()) {
-		const cli = await new Promise<IMainCli>((c, e) => require(["vs/code/node/cliProcessMain"], c, e));
-		await cli.main(args);
+		await vsCli(args);
 		return process.exit(0); // There is a WriteStream instance keeping it open.
 	}
 

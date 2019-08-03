@@ -14,8 +14,9 @@ import { sanitizeFilePath } from "vs/base/common/extpath";
 import { UriComponents, URI } from "vs/base/common/uri";
 import { generateUuid } from "vs/base/common/uuid";
 import { getMachineId } from 'vs/base/node/id';
-import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
+import { NLSConfiguration } from "vs/base/node/languagePacks";
 import { mkdirp, rimraf } from "vs/base/node/pfs";
+import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
@@ -33,6 +34,7 @@ import { InstantiationService } from "vs/platform/instantiation/common/instantia
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { ILocalizationsService } from "vs/platform/localizations/common/localizations";
 import { LocalizationsService } from "vs/platform/localizations/node/localizations";
+import { LocalizationsChannel } from "vs/platform/localizations/node/localizationsIpc";
 import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
@@ -56,6 +58,7 @@ import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
 import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
 import { TelemetryClient } from "vs/server/src/insights";
+import { getNlsConfiguration, getLocaleFromConfig } from "vs/server/src/nls";
 import { Protocol } from "vs/server/src/protocol";
 import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
 
@@ -74,6 +77,7 @@ export interface Options {
 	REMOTE_USER_DATA_URI: UriComponents | URI;
 	PRODUCT_CONFIGURATION: IProductConfiguration | null;
 	CONNECTION_AUTH_TOKEN: string;
+	NLS_CONFIGURATION: NLSConfiguration;
 }
 
 export interface Response {
@@ -456,7 +460,8 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.servicesPromise,
 		]);
-
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
+		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
 		const webviewEndpoint = this.address(request) + "/webview/";
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
@@ -479,6 +484,7 @@ export class MainServer extends Server {
 			),
 			PRODUCT_CONFIGURATION: product,
 			CONNECTION_AUTH_TOKEN: "",
+			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
 		};
 
 		Object.keys(options).forEach((key) => {
@@ -528,7 +534,10 @@ export class MainServer extends Server {
 				} else {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
-						protocol, buffer, this.services.get(ILogService) as ILogService,
+						message.args ? message.args.language : "en",
+						protocol, buffer,
+						this.services.get(ILogService) as ILogService,
+						this.services.get(IEnvironmentService) as IEnvironmentService,
 					);
 				}
 				connections.set(token, connection);
@@ -576,7 +585,9 @@ export class MainServer extends Server {
 
 		await new Promise((resolve) => {
 			const instantiationService = new InstantiationService(this.services);
-			this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
+			const localizationService = instantiationService.createInstance(LocalizationsService);
+			this.services.set(ILocalizationsService, localizationService);
+			this.ipc.registerChannel("localizations", new LocalizationsChannel(localizationService));
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));

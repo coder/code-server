@@ -1,3 +1,111 @@
+diff --git a/build/gulpfile.compile.js b/build/gulpfile.compile.js
+index 0dd2e5abf1..fc6875f3c2 100644
+--- a/build/gulpfile.compile.js
++++ b/build/gulpfile.compile.js
+@@ -12,6 +12,7 @@ const { compileExtensionsBuildTask } = require('./gulpfile.extensions');
+ 
+ // Full compile, including nls and inline sources in sourcemaps, for build
+ const compileClientBuildTask = task.define('compile-client-build', task.series(util.rimraf('out-build'), compilation.compileTask('src', 'out-build', true)));
++exports.compileClientBuildTask = compileClientBuildTask;
+ 
+ // All Build
+ const compileBuildTask = task.define('compile-build', task.parallel(compileClientBuildTask, compileExtensionsBuildTask));
+diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
+index 84a6be26e8..7fb43686cd 100644
+--- a/build/gulpfile.vscode.js
++++ b/build/gulpfile.vscode.js
+@@ -34,7 +34,8 @@ const deps = require('./dependencies');
+ const getElectronVersion = require('./lib/electron').getElectronVersion;
+ const createAsar = require('./lib/asar').createAsar;
+ const minimist = require('minimist');
+-const { compileBuildTask } = require('./gulpfile.compile');
++const { /*compileBuildTask, */compileClientBuildTask } = require('./gulpfile.compile');
++const { compileExtensionsBuildTask } = require('./gulpfile.extensions');
+ 
+ const productionDependencies = deps.getProductionDependencies(path.dirname(__dirname));
+ // @ts-ignore
+@@ -47,23 +48,28 @@ const nodeModules = ['electron', 'original-fs']
+ 
+ // Build
+ const vscodeEntryPoints = _.flatten([
+-	buildfile.entrypoint('vs/workbench/workbench.main'),
++	buildfile.entrypoint('vs/workbench/workbench.web.api'),
++	buildfile.entrypoint('vs/server/src/cli'),
++	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.linux'),
++	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.win'),
++	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.darwin'),
+ 	buildfile.base,
+-	buildfile.workbench,
+-	buildfile.code
++	buildfile.workbenchWeb,
++	// buildfile.code
+ ]);
+ 
+ const vscodeResources = [
+-	'out-build/main.js',
+-	'out-build/cli.js',
+-	'out-build/driver.js',
++	'out-build/vs/server/main.js',
++	'out-build/vs/server/src/uriTransformer.js',
++	// 'out-build/cli.js',
++	// 'out-build/driver.js',
+ 	'out-build/bootstrap.js',
+ 	'out-build/bootstrap-fork.js',
+ 	'out-build/bootstrap-amd.js',
+ 	'out-build/bootstrap-window.js',
+ 	'out-build/paths.js',
+ 	'out-build/vs/**/*.{svg,png,cur,html}',
+-	'!out-build/vs/code/browser/**/*.html',
++	// '!out-build/vs/code/browser/**/*.html',
+ 	'out-build/vs/base/common/performance.js',
+ 	'out-build/vs/base/node/languagePacks.js',
+ 	'out-build/vs/base/node/{stdForkStart.js,terminateProcess.sh,cpuUsage.sh,ps.sh}',
+@@ -78,10 +84,11 @@ const vscodeResources = [
+ 	'out-build/vs/workbench/contrib/welcome/walkThrough/**/*.md',
+ 	'out-build/vs/workbench/services/files/**/*.exe',
+ 	'out-build/vs/workbench/services/files/**/*.md',
+-	'out-build/vs/code/electron-browser/workbench/**',
+-	'out-build/vs/code/electron-browser/sharedProcess/sharedProcess.js',
+-	'out-build/vs/code/electron-browser/issue/issueReporter.js',
+-	'out-build/vs/code/electron-browser/processExplorer/processExplorer.js',
++	'out-build/vs/code/browser/workbench/**',
++	// 'out-build/vs/code/electron-browser/sharedProcess/sharedProcess.js',
++	// 'out-build/vs/code/electron-browser/issue/issueReporter.js',
++	// 'out-build/vs/code/electron-browser/processExplorer/processExplorer.js',
++	'!out-build/vs/server/doc/**',
+ 	'!**/test/**'
+ ];
+ 
+@@ -94,7 +101,7 @@ const BUNDLED_FILE_HEADER = [
+ const optimizeVSCodeTask = task.define('optimize-vscode', task.series(
+ 	task.parallel(
+ 		util.rimraf('out-vscode'),
+-		compileBuildTask
++		compileClientBuildTask // compileBuildTask
+ 	),
+ 	common.optimizeTask({
+ 		src: 'out-build',
+@@ -127,6 +134,20 @@ const minifyVSCodeTask = task.define('minify-vscode', task.series(
+ 	common.minifyTask('out-vscode', `${sourceMappingURLBase}/core`)
+ ));
+ 
++function packageExtensionsTask() {
++	return () => {
++		const destination = path.join(root, ".build");
++		const sources = ext.packageExtensionsStream();
++		return sources.pipe(vfs.dest(destination));
++	};
++}
++gulp.task(task.define('extensions-build-package', task.series(
++	compileExtensionsBuildTask,
++	packageExtensionsTask()
++)));
++gulp.task(optimizeVSCodeTask);
++gulp.task(minifyVSCodeTask);
++
+ // Package
+ 
+ // @ts-ignore JSON checking: darwinCredits is optional
 diff --git a/src/typings/require.d.ts b/src/typings/require.d.ts
 index 618861a5be..9d4fdea14e 100644
 --- a/src/typings/require.d.ts
@@ -74,8 +182,33 @@ index a7466e641a..6d91e66ad3 100644
 +
 +	export const codeServer: string = 'code-server';
  }
+diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
+index 4cba839fe5..b216c43bbc 100644
+--- a/src/vs/base/common/platform.ts
++++ b/src/vs/base/common/platform.ts
+@@ -53,8 +53,18 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
+ 	_isMacintosh = userAgent.indexOf('Macintosh') >= 0;
+ 	_isLinux = userAgent.indexOf('Linux') >= 0;
+ 	_isWeb = true;
+-	_locale = navigator.language;
+-	_language = _locale;
++	_locale = LANGUAGE_DEFAULT;
++	_language = LANGUAGE_DEFAULT;
++	const rawNlsConfig = typeof document !== 'undefined'
++		&& document.getElementById('vscode-remote-nls-configuration')!.getAttribute('data-settings')!;
++	if (rawNlsConfig) {
++		try {
++			const nlsConfig: NLSConfig = JSON.parse(rawNlsConfig);
++			_locale = nlsConfig.locale;
++			_translationsConfigFile = nlsConfig._translationsConfigFile;
++			_language = nlsConfig.availableLanguages['*'] || LANGUAGE_DEFAULT;
++		} catch (error) { /* Oh well. */ }
++	}
+ } else if (typeof process === 'object') {
+ 	_isWindows = (process.platform === 'win32');
+ 	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index ff62e0a65a..21cd50eaf9 100644
+index ff62e0a65a..924b65fa7a 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
 @@ -4,6 +4,8 @@
@@ -87,6 +220,14 @@ index ff62e0a65a..21cd50eaf9 100644
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
  
+@@ -20,6 +22,7 @@
+ 
+ 		<!-- Workaround to pass remote connection token-->
+ 		<meta id="vscode-remote-connection-token" data-settings="{{CONNECTION_AUTH_TOKEN}}">
++		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
+ 	</head>
+ 
+ 	<body class="vs-dark" aria-label="">
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
 index 34f321f90d..b1bd6a4ac9 100644
 --- a/src/vs/code/browser/workbench/workbench.js
@@ -372,6 +513,35 @@ index e09049c5b9..7af2c20efd 100644
  			.then(extensions => {
  				const toRemove: ILocalExtension[] = [];
  
+diff --git a/src/vs/platform/localizations/electron-browser/localizationsService.ts b/src/vs/platform/localizations/electron-browser/localizationsService.ts
+index 353161166e..7d64fe93c7 100644
+--- a/src/vs/platform/localizations/electron-browser/localizationsService.ts
++++ b/src/vs/platform/localizations/electron-browser/localizationsService.ts
+@@ -6,8 +6,9 @@
+ import { IChannel } from 'vs/base/parts/ipc/common/ipc';
+ import { Event } from 'vs/base/common/event';
+ import { ILocalizationsService, LanguageType } from 'vs/platform/localizations/common/localizations';
+-import { ISharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
++// import { ISharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
+ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ 
+ export class LocalizationsService implements ILocalizationsService {
+ 
+@@ -15,8 +16,11 @@ export class LocalizationsService implements ILocalizationsService {
+ 
+ 	private channel: IChannel;
+ 
+-	constructor(@ISharedProcessService sharedProcessService: ISharedProcessService) {
+-		this.channel = sharedProcessService.getChannel('localizations');
++	constructor(
++		// @ISharedProcessService sharedProcessService: ISharedProcessService
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
++	) {
++		this.channel = remoteAgentService.getConnection()!.getChannel('localizations');
+ 	}
+ 
+ 	get onDidLanguagesChange(): Event<void> { return this.channel.listen('onDidLanguagesChange'); }
 diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
 index 9f68b645b6..f0cae7111d 100644
 --- a/src/vs/platform/log/common/logIpc.ts
@@ -573,7 +743,7 @@ index 5a758eb786..7fcacb5ca7 100644
  		templateData.actionBar.context = (<TreeViewItemHandleArg>{ $treeViewId: this.treeViewId, $treeItemHandle: node.handle });
  		templateData.actionBar.push(this.menus.getResourceActions(node), { icon: true, label: false });
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 1986fb6642..453d3e3e48 100644
+index 1986fb6642..70b0c789e3 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -35,6 +35,7 @@ import { SignService } from 'vs/platform/sign/browser/signService';
@@ -584,16 +754,15 @@ index 1986fb6642..453d3e3e48 100644
  
  class CodeRendererMain extends Disposable {
  
-@@ -71,6 +72,8 @@ class CodeRendererMain extends Disposable {
+@@ -49,6 +50,7 @@ class CodeRendererMain extends Disposable {
  
- 		// Startup
- 		this.workbench.startup();
-+
-+		initialize(services.serviceCollection);
- 	}
+ 	async open(): Promise<void> {
+ 		const services = await this.initServices();
++		await initialize(services.serviceCollection);
  
- 	private async initServices(): Promise<{ serviceCollection: ServiceCollection, logService: ILogService }> {
-@@ -114,7 +117,8 @@ class CodeRendererMain extends Disposable {
+ 		await domContentLoaded();
+ 		mark('willStartWorkbench');
+@@ -114,7 +116,8 @@ class CodeRendererMain extends Disposable {
  			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  
@@ -604,7 +773,7 @@ index 1986fb6642..453d3e3e48 100644
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..7a230fa3bd 100644
+index b253e573ae..94b2b7f287 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -53,6 +53,14 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
@@ -731,6 +900,14 @@ index b253e573ae..7a230fa3bd 100644
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
+@@ -1100,6 +1136,7 @@ export class SimpleWindowsService implements IWindowsService {
+ 	}
+ 
+ 	relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
++		window.location.reload();
+ 		return Promise.resolve();
+ 	}
+ 
 diff --git a/src/vs/workbench/contrib/comments/browser/commentNode.ts b/src/vs/workbench/contrib/comments/browser/commentNode.ts
 index f4ac3fe8dd..3a3616b39e 100644
 --- a/src/vs/workbench/contrib/comments/browser/commentNode.ts
@@ -1415,9 +1592,20 @@ index 306d58f915..58c603ad3d 100644
  			if (definition.fontCharacter || definition.fontColor) {
  				let body = '';
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index c28adc0ad9..4517c308da 100644
+index c28adc0ad9..f76612a4d7 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
+@@ -72,8 +72,8 @@ import { BrowserLifecycleService } from 'vs/platform/lifecycle/browser/lifecycle
+ import { ILifecycleService } from 'vs/platform/lifecycle/common/lifecycle';
+ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
+ import { DialogService } from 'vs/platform/dialogs/browser/dialogService';
+-// import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
+-// import { LocalizationsService } from 'vs/platform/localizations/electron-browser/localizationsService';
++import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
++import { LocalizationsService } from 'vs/platform/localizations/electron-browser/localizationsService';
+ // import { ISharedProcessService, SharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
+ // import { IProductService } from 'vs/platform/product/common/product';
+ // import { ProductService } from 'vs/platform/product/node/productService';
 @@ -128,7 +128,7 @@ import 'vs/workbench/services/extensions/browser/extensionService';
  // import 'vs/workbench/services/contextmenu/electron-browser/contextmenuService';
  // import 'vs/workbench/services/extensions/node/multiExtensionManagement';
@@ -1427,6 +1615,24 @@ index c28adc0ad9..4517c308da 100644
  // import 'vs/workbench/services/remote/electron-browser/remoteAgentServiceImpl';
  import 'vs/workbench/services/notification/common/notificationService';
  // import 'vs/workbench/services/window/electron-browser/windowService';
+@@ -156,7 +156,7 @@ registerSingleton(IContextViewService, ContextViewService, true);
+ // registerSingleton(IExtensionGalleryService, ExtensionGalleryService, true);
+ // registerSingleton(IRequestService, RequestService, true);
+ registerSingleton(ILifecycleService, BrowserLifecycleService);
+-// registerSingleton(ILocalizationsService, LocalizationsService);
++registerSingleton(ILocalizationsService, LocalizationsService);
+ // registerSingleton(ISharedProcessService, SharedProcessService, true);
+ // registerSingleton(IWindowsService, WindowsService);
+ // registerSingleton(IUpdateService, UpdateService);
+@@ -194,7 +194,7 @@ import 'vs/workbench/services/files/common/workspaceWatcher';
+ import 'vs/workbench/contrib/telemetry/browser/telemetry.contribution';
+ 
+ // Localizations
+-// import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
++import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
+ 
+ // Preferences
+ import 'vs/workbench/contrib/preferences/browser/preferences.contribution';
 @@ -260,9 +260,9 @@ registerSingleton(IWebviewService, WebviewService, true);
  registerSingleton(IWebviewEditorService, WebviewEditorService, true);
  

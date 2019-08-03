@@ -16,6 +16,8 @@ matrix:
   - os: osx
     env:
       - VSCODE_VERSION="1.36.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
+before_install:
+- if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
 script:
 - scripts/ci.bash
 before_deploy:
