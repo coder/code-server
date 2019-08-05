@@ -240,18 +240,20 @@ function main() {
 		exit 0
 	fi
 
+	local codeServerVersion="${1}" ; shift
 	local ci="${CI:-}"
 	local minify="${MINIFY:-}"
-	local arch="x86_64"
-	local target="linux"
-	local ostype="${OSTYPE:-}"
-	if [[ "${ostype}" == "darwin"* ]] ; then
-		target="darwin"
-	else
-		arch=$(uname -m)
+	local arch
+	arch=$(uname -m)
+	local target="${1:-}"
+	if [[ -z "${target}" ]] ; then
+		local ostype="${OSTYPE:-}"
+		if [[ "${ostype}" == "darwin"* ]] ; then
+			target="darwin"
+		else
+			target="linux"
+		fi
 	fi
-
-	local codeServerVersion="${1}" ; shift
 	local binaryName="code-server${codeServerVersion}-vsc${vscodeVersion}-${target}-${arch}"
 	local buildPath="${stagingPath}/${binaryName}-built"
 
