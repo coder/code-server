@@ -11,7 +11,7 @@ index 0dd2e5abf1..fc6875f3c2 100644
  // All Build
  const compileBuildTask = task.define('compile-build', task.parallel(compileClientBuildTask, compileExtensionsBuildTask));
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 84a6be26e8..e50618be3a 100644
+index 84a6be26e8..d4c3ebc7bd 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -34,7 +34,8 @@ const deps = require('./dependencies');
@@ -54,8 +54,9 @@ index 84a6be26e8..e50618be3a 100644
  	'out-build/bootstrap-amd.js',
  	'out-build/bootstrap-window.js',
  	'out-build/paths.js',
- 	'out-build/vs/**/*.{svg,png,cur,html}',
+-	'out-build/vs/**/*.{svg,png,cur,html}',
 -	'!out-build/vs/code/browser/**/*.html',
++	'out-build/vs/**/*.{svg,png,cur,html,ico}',
 +	// '!out-build/vs/code/browser/**/*.html',
  	'out-build/vs/base/common/performance.js',
  	'out-build/vs/base/node/languagePacks.js',
