@@ -233,8 +233,9 @@ function main() {
 
 	if [[ "${task}" == "package-prebuilt" ]] ; then
 		local archiveName="vscode-${vscodeVersion}.tar.gz"
-		cd "${stagingPath}"
+		cd "${sourcePath}"
 		git reset --hard && git clean -xfd -e '.build/extensions' -e 'node_modules'
+		cd "${stagingPath}"
 		tar -czf "${archiveName}" "${sourceName}"
 		mkdir -p "${releasePath}" && mv -f "${archiveName}" "${releasePath}"
 		exit 0
