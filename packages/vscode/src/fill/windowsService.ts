@@ -46,6 +46,15 @@ export class WindowsService implements IWindowsService {
 
 	private readonly window = new electron.BrowserWindow();
 
+	constructor() {
+		window.addEventListener("focus", () => {
+			this.focusEmitter.emit(workbench.windowId);
+		});
+		window.addEventListener("blur", () => {
+			this.blurEmitter.emit(workbench.windowId);
+		});
+	}
+
 	// Dialogs
 	public async pickFileFolderAndOpen(options: INativeOpenDialogOptions): Promise<void> {
 		showOpenDialog({
