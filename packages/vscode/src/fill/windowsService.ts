@@ -256,6 +256,9 @@ export class WindowsService implements IWindowsService {
 	}
 
 	public relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
+		// @www.ps.dev
+		// Reproduce the loading window to make the language configuration take effect
+		window.location.reload();
 		throw new Error("not implemented");
 	}
 
