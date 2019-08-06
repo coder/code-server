@@ -30,6 +30,8 @@ export interface InitData {
 	readonly extraExtensionDirectories: string[];
 	readonly extraBuiltinExtensionDirectories: string[];
 	readonly env: jspb.Map<string, string>;
+	// @www.ps.dev
+	readonly languageTranslateData: string;
 }
 
 export interface SharedProcessData {
