@@ -281,6 +281,7 @@ export class Client {
 					extraExtensionDirectories: init.getExtraExtensionDirectoriesList(),
 					extraBuiltinExtensionDirectories: init.getExtraBuiltinExtensionDirectoriesList(),
 					env: init.getEnvMap(),
+					languageTranslateData: init.getLanguageTranslateData(), // @www.ps.dev
 				};
 				this.initDataEmitter.emit(this._initData);
 				break;
