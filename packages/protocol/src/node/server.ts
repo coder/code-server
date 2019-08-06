@@ -9,6 +9,11 @@ import { ChildProcessModuleProxy, ForkProvider, FsModuleProxy, NetModuleProxy, N
 
 // tslint:disable no-any
 
+// @www.ps.dev
+export interface LanguageConfiguration {
+	locale: string;
+}
+
 export interface ServerOptions {
 	readonly workingDirectory: string;
 	readonly dataDirectory: string;
@@ -18,6 +23,7 @@ export interface ServerOptions {
 	readonly extraExtensionDirectories?: string[];
 	readonly extraBuiltinExtensionDirectories?: string[];
 	readonly fork?: ForkProvider;
+	readonly getLanguageTranslateData?: () => Promise<LanguageConfiguration>; // @www.ps.dev
 }
 
 interface ProxyData {
@@ -104,13 +110,35 @@ export class Server {
 		initMsg.setExtraExtensionDirectoriesList(this.options.extraExtensionDirectories || []);
 		initMsg.setExtraBuiltinExtensionDirectoriesList(this.options.extraBuiltinExtensionDirectories || []);
 
+		// @www.ps.dev
+		const getLanguageTranslateData = this.options.getLanguageTranslateData
+			|| ((): Promise<LanguageConfiguration> => Promise.resolve({
+				locale: "en",
+			}));
+
+		getLanguageTranslateData().then((languageData) => {
+			try {
+				initMsg.setLanguageTranslateData(JSON.stringify(languageData));
+			} catch (error) {
+				logger.error("Unable to send language config", field("error", error));
+			}
+
+			const srvMsg = new ServerMessage();
+			srvMsg.setInit(initMsg);
+			connection.send(srvMsg.serializeBinary());
+		}).catch((error) => {
+			logger.error(error.message, field("error", error));
+		});
+		// end @www.ps.dev
+
 		for (let key in process.env) {
 			initMsg.getEnvMap().set(key,  process.env[key] as string);
 		}
 
-		const srvMsg = new ServerMessage();
-		srvMsg.setInit(initMsg);
-		connection.send(srvMsg.serializeBinary());
+		// @www.ps.dev move in getLanguageTranslateData 👆
+		// const srvMsg = new ServerMessage();
+		// srvMsg.setInit(initMsg);
+		// connection.send(srvMsg.serializeBinary());
 	}
 
 	/**
