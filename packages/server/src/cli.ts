@@ -11,6 +11,8 @@ import * as WebSocket from "ws";
 import { buildDir, cacheHome, dataHome, isCli, serveStatic } from "./constants";
 import { createApp } from "./server";
 import { forkModule, requireModule } from "./vscode/bootstrapFork";
+import { LanguageConfiguration } from "@coder/protocol/src/node/server";
+import * as language from "./vscode/language";
 import { SharedProcess, SharedProcessState } from "./vscode/sharedProcess";
 import opn = require("opn");
 
@@ -273,6 +275,7 @@ const bold = (text: string | number): string | number => {
 
 				return fork(modulePath, args, options);
 			},
+			getLanguageTranslateData: (): Promise<LanguageConfiguration> => language.getNlsConfiguration(dataDir, builtInExtensionsDir), // @www.ps.dev
 		},
 		password,
 		trustProxy: options.trustProxy,
