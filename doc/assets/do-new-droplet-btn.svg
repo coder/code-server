@@ -14,7 +14,8 @@
                     <polygon id="XMLID_46_" points="6.66666667 19.047619 3.80952381 19.047619 3.80952381 19.047619 3.80952381 16.1904762 6.66666667 16.1904762"></polygon>
                     <polygon id="XMLID_45_" points="3.80952381 16.1904762 0.952380952 16.1904762 0.952380952 16.1904762 0.952380952 13.3333333 0.952380952 13.3333333 3.80952381 13.3333333 3.80952381 13.3333333"></polygon>
                 </g>
-                <text id="Create-a-Droplet-Copy-3" font-family="Sailec-Medium, Sailec" font-size="16" font-weight="400" fill="#0069FF">
+                <!-- Modified to add GitHub font-family after DigitalOcean's font-family, otherwise it looks bad on GitHub -->
+                <text id="Create-a-Droplet-Copy-3" font-family="Sailec-Medium, Sailec, -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol" font-size="16" font-weight="400" fill="#0069FF">
                     <tspan x="58" y="26">Create a Droplet</tspan>
                 </text>
             </g>
