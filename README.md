@@ -1,5 +1,9 @@
 # code-server
 
+
+修复语言包支持 （Fix language support）
+需要安装于vscode相匹配的语言包版本，如果通过左侧扩展栏安装出现错误，请下载对应的 MS-CEINTL.vscode-language-pack-zh-hans-1.xx.x.vsix 文件 通过 shift+command (ctrl)+P 安装vsix文件
+
 [!["Open Issues"](https://img.shields.io/github/issues-raw/cdr/code-server.svg)](https://github.com/cdr/code-server/issues)
 [!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest)
 [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cdr/code-server/blob/master/LICENSE)
