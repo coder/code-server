@@ -147,6 +147,9 @@ export class WorkingInit extends jspb.Message {
 
   getEnvMap(): jspb.Map<string, string>;
   clearEnvMap(): void;
+  getLanguageTranslateData(): string;
+  setLanguageTranslateData(value: string): void;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WorkingInit.AsObject;
   static toObject(includeInstance: boolean, msg: WorkingInit): WorkingInit.AsObject;
@@ -170,6 +173,7 @@ export namespace WorkingInit {
     extraExtensionDirectoriesList: Array<string>,
     extraBuiltinExtensionDirectoriesList: Array<string>,
     envMap: Array<[string, string]>,
+    languageTranslateData: string,
   }
 
   export enum OperatingSystem {
