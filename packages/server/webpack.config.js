@@ -31,5 +31,10 @@ module.exports = merge(
 				"process.env.CLI": `"${process.env.CLI ? "true" : "false"}"`,
 			}),
 		],
+		resolve: {
+			alias: {
+				"vs": path.resolve(root, "lib/vscode/src/vs"), // @www.ps.dev
+			}
+		}
 	},
 );
