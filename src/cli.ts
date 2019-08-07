@@ -1,16 +1,27 @@
+import * as cp from "child_process";
 import * as os from "os";
 
+import { main as vsCli } from "vs/code/node/cliProcessMain";
 import { validatePaths } from "vs/code/node/paths";
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
-import { ParsedArgs } from "vs/platform/environment/common/environment";
 import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/environment/node/argv";
+import { ParsedArgs } from "vs/platform/environment/common/environment";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
+
+import { ipcMain } from "vs/server/src/ipc";
+
+product.extensionsGallery = {
+	serviceUrl: process.env.SERVICE_URL || "https://v1.extapi.coder.com",
+	itemUrl: process.env.ITEM_URL || "",
+	controlUrl: "",
+	recommendationsUrl: "",
+	...(product.extensionsGallery || {}),
+};
 
 import { MainServer } from "vs/server/src/server";
 import { enableExtensionTars } from "vs/server/src/tar";
 import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
-import { main as vsCli } from "vs/code/node/cliProcessMain";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 
@@ -27,88 +38,57 @@ interface Args extends ParsedArgs {
 	socket?: string;
 }
 
-// The last item is _ which is like -- so our options need to come before it.
-const last = options.pop()!;
+const getArgs = (): Args => {
+	// The last item is _ which is like -- so our options need to come before it.
+	const last = options.pop()!;
 
-// Remove options that won't work or don't make sense.
-let i = options.length;
-while (i--) {
-	switch (options[i].id) {
-		case "add":
-		case "diff":
-		case "file-uri":
-		case "folder-uri":
-		case "goto":
-		case "new-window":
-		case "reuse-window":
-		case "wait":
-		case "disable-gpu":
-		// TODO: pretty sure these don't work but not 100%.
-		case "max-memory":
-		case "prof-startup":
-		case "inspect-extensions":
-		case "inspect-brk-extensions":
-			options.splice(i, 1);
-			break;
+	// Remove options that won't work or don't make sense.
+	let i = options.length;
+	while (i--) {
+		switch (options[i].id) {
+			case "add":
+			case "diff":
+			case "file-uri":
+			case "folder-uri":
+			case "goto":
+			case "new-window":
+			case "reuse-window":
+			case "wait":
+			case "disable-gpu":
+			// TODO: pretty sure these don't work but not 100%.
+			case "max-memory":
+			case "prof-startup":
+			case "inspect-extensions":
+			case "inspect-brk-extensions":
+				options.splice(i, 1);
+				break;
+		}
 	}
-}
 
-options.push({ id: "base-path", type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." });
-options.push({ id: "cert", type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." });
-options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to the certificate's key if one was provided." });
-options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to an extra builtin extension directory." });
-options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to an extra user extension directory." });
-options.push({ id: "host", type: "string", cat: "o", description: "Host for the server." });
-options.push({ id: "auth", type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` });
-options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
-options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
-options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
+	options.push({ id: "base-path", type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." });
+	options.push({ id: "cert", type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." });
+	options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to the certificate's key if one was provided." });
+	options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to an extra builtin extension directory." });
+	options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to an extra user extension directory." });
+	options.push({ id: "host", type: "string", cat: "o", description: "Host for the server." });
+	options.push({ id: "auth", type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` });
+	options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
+	options.push({ id: "port", type: "string", cat: "o", description: "Port for the main server." });
+	options.push({ id: "socket", type: "string", cat: "o", description: "Listen on a socket instead of host:port." });
 
-options.push(last);
+	options.push(last);
 
-const main = async (): Promise<void | void[]> => {
 	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
 	["extra-extensions-dir", "extra-builtin-extensions-dir"].forEach((key) => {
 		if (typeof args[key] === "string") {
 			args[key] = [args[key]];
 		}
 	});
+	return args;
+};
 
-	if (!product.extensionsGallery) {
-		product.extensionsGallery = {
-			serviceUrl: process.env.SERVICE_URL || "https://v1.extapi.coder.com",
-			itemUrl: process.env.ITEM_URL || "",
-			controlUrl: "",
-			recommendationsUrl: "",
-		};
-	}
-
-	const version = `${(pkg as any).codeServerVersion || "development"}-vsc${pkg.version}`;
-	if (args.help) {
-		const executable = `${product.applicationName}${os.platform() === "win32" ? ".exe" : ""}`;
-		return console.log(buildHelpMessage(product.nameLong, executable, version, undefined, false));
-	}
-
-	if (args.version) {
-		return buildVersionMessage(version, product.commit).split("\n").map((line) => logger.info(line));
-	}
-
-	enableExtensionTars();
-
-	const shouldSpawnCliProcess = (): boolean => {
-		return !!args["install-source"]
-			|| !!args["list-extensions"]
-			|| !!args["install-extension"]
-			|| !!args["uninstall-extension"]
-			|| !!args["locate-extension"]
-			|| !!args["telemetry"];
-	};
-
-	if (shouldSpawnCliProcess()) {
-		await vsCli(args);
-		return process.exit(0); // There is a WriteStream instance keeping it open.
-	}
-
+const startVscode = async (): Promise<void | void[]> => {
+	const args = getArgs();
 	const extra = args["_"] || [];
 	const options = {
 		auth: args.auth,
@@ -135,6 +115,8 @@ const main = async (): Promise<void | void[]> => {
 		options.cert = cert;
 		options.certKey = certKey;
 	}
+
+	enableExtensionTars();
 
 	const server = new MainServer({
 		...options,
@@ -168,14 +150,99 @@ const main = async (): Promise<void | void[]> => {
 	}
 
 	if (!server.options.socket && args.open) {
-		// The web socket doesn't seem to work if using 0.0.0.0.
+		// The web socket doesn't seem to work if browsing with 0.0.0.0.
 		const openAddress = `http://localhost:${server.options.port}`;
 		await open(openAddress).catch(console.error);
 		logger.info(`  - Opened ${openAddress}`);
 	}
 };
 
+const startCli = (): boolean | Promise<void> => {
+	const args = getArgs();
+	if (args.help) {
+		const executable = `${product.applicationName}${os.platform() === "win32" ? ".exe" : ""}`;
+		console.log(buildHelpMessage(product.nameLong, executable, pkg.codeServerVersion, undefined, false));
+		return true;
+	}
+
+	if (args.version) {
+		buildVersionMessage(pkg.codeServerVersion, product.commit).split("\n").map((line) => logger.info(line));
+		return true;
+	}
+
+	const shouldSpawnCliProcess = (): boolean => {
+		return !!args["install-source"]
+			|| !!args["list-extensions"]
+			|| !!args["install-extension"]
+			|| !!args["uninstall-extension"]
+			|| !!args["locate-extension"]
+			|| !!args["telemetry"];
+	};
+
+	if (shouldSpawnCliProcess()) {
+		enableExtensionTars();
+		return vsCli(args);
+	}
+
+	return false;
+};
+
+export class WrapperProcess {
+	private process?: cp.ChildProcess;
+	private started?: Promise<void>;
+
+	public constructor() {
+		ipcMain.onMessage(async (message) => {
+			switch (message) {
+				case "relaunch":
+					logger.info("Relaunching...");
+					this.started = undefined;
+					if (this.process) {
+						this.process.kill();
+					}
+					try {
+						await this.start();
+					} catch (error) {
+						logger.error(error.message);
+						process.exit(typeof error.code === "number" ? error.code : 1);
+					}
+					break;
+				default:
+					logger.error(`Unrecognized message ${message}`);
+					break;
+			}
+		});
+	}
+
+	public start(): Promise<void> {
+		if (!this.started) {
+			const child = this.spawn();
+			this.started = ipcMain.handshake(child);
+			this.process = child;
+		}
+		return this.started;
+	}
+
+	private spawn(): cp.ChildProcess {
+		return cp.spawn(process.argv[0], process.argv.slice(1), {
+			env: {
+				...process.env,
+				LAUNCH_VSCODE: "true",
+			},
+			stdio: ["inherit", "inherit", "inherit", "ipc"],
+		});
+	}
+}
+
+const main = async(): Promise<boolean | void | void[]> => {
+	if (process.env.LAUNCH_VSCODE) {
+		await ipcMain.handshake();
+		return startVscode();
+	}
+	return startCli() || new WrapperProcess().start();
+};
+
 main().catch((error) => {
-	console.error(error);
-	process.exit(1);
+	logger.error(error.message);
+	process.exit(typeof error.code === "number" ? error.code : 1);
 });

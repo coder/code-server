@@ -593,6 +593,31 @@ index 9f68b645b6..f0cae7111d 100644
  	setLevel(level: LogLevel): void {
  		this.channel.call('setLevel', level);
  	}
+diff --git a/src/vs/platform/product/browser/productService.ts b/src/vs/platform/product/browser/productService.ts
+index 084144d009..d91176c9cd 100644
+--- a/src/vs/platform/product/browser/productService.ts
++++ b/src/vs/platform/product/browser/productService.ts
+@@ -17,7 +17,7 @@ export class ProductService implements IProductService {
+ 
+ 	_serviceBrand: ServiceIdentifier<IProductService>;
+ 
+-	get version(): string { return '1.35.0'; }
++	get version(): string { return this.productConfiguration ? (this.productConfiguration as any).version : 'development'; }
+ 
+ 	get commit(): string | undefined { return undefined; }
+ 
+diff --git a/src/vs/platform/product/node/package.ts b/src/vs/platform/product/node/package.ts
+index d39c5877d6..c189d6f19f 100644
+--- a/src/vs/platform/product/node/package.ts
++++ b/src/vs/platform/product/node/package.ts
+@@ -9,6 +9,7 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
+ export interface IPackageConfiguration {
+ 	name: string;
+ 	version: string;
++	codeServerVersion: string;
+ }
+ 
+ const rootPath = path.dirname(getPathFromAmdModule(require, ''));
 diff --git a/src/vs/platform/remote/browser/browserWebSocketFactory.ts b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 index 6d9ecbcf5a..1b3499dddf 100644
 --- a/src/vs/platform/remote/browser/browserWebSocketFactory.ts
@@ -673,6 +698,98 @@ index 8e1b68eb36..2b6a0d5b15 100644
 +		return true;
 +	}
 +}
+diff --git a/src/vs/platform/update/electron-browser/updateService.ts b/src/vs/platform/update/electron-browser/updateService.ts
+index 023ea3ea7d..455df76ee3 100644
+--- a/src/vs/platform/update/electron-browser/updateService.ts
++++ b/src/vs/platform/update/electron-browser/updateService.ts
+@@ -6,8 +6,9 @@
+ import { IChannel } from 'vs/base/parts/ipc/common/ipc';
+ import { Event, Emitter } from 'vs/base/common/event';
+ import { IUpdateService, State } from 'vs/platform/update/common/update';
+-import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
++// import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
+ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ 
+ export class UpdateService implements IUpdateService {
+ 
+@@ -21,8 +22,11 @@ export class UpdateService implements IUpdateService {
+ 
+ 	private channel: IChannel;
+ 
+-	constructor(@IMainProcessService mainProcessService: IMainProcessService) {
+-		this.channel = mainProcessService.getChannel('update');
++	constructor(
++		// @IMainProcessService mainProcessService: IMainProcessService
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService
++	) {
++		this.channel = remoteAgentService.getConnection()!.getChannel('update');
+ 
+ 		// always set this._state as the state changes
+ 		this.onStateChange(state => this._state = state);
+diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
+index fcca3cbfb9..101f3d33c9 100644
+--- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
++++ b/src/vs/platform/update/electron-main/abstractUpdateService.ts
+@@ -6,7 +6,7 @@
+ import { Event, Emitter } from 'vs/base/common/event';
+ import { timeout } from 'vs/base/common/async';
+ import { IConfigurationService, getMigratedSettingValue } from 'vs/platform/configuration/common/configuration';
+-import { ILifecycleService } from 'vs/platform/lifecycle/electron-main/lifecycleMain';
++// import { ILifecycleService } from 'vs/platform/lifecycle/electron-main/lifecycleMain';
+ import product from 'vs/platform/product/node/product';
+ import { IUpdateService, State, StateType, AvailableForDownload, UpdateType } from 'vs/platform/update/common/update';
+ import { IEnvironmentService } from 'vs/platform/environment/common/environment';
+@@ -40,7 +40,8 @@ export abstract class AbstractUpdateService implements IUpdateService {
+ 	}
+ 
+ 	constructor(
+-		@ILifecycleService private readonly lifecycleService: ILifecycleService,
++		_placeholder: any, // To prevent errors from the extending classes.
++		// @ILifecycleService private readonly lifecycleService: ILifecycleService,
+ 		@IConfigurationService protected configurationService: IConfigurationService,
+ 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
+ 		@IRequestService protected requestService: IRequestService,
+@@ -51,7 +52,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
+ 			return;
+ 		}
+ 
+-		if (!product.updateUrl || !product.commit) {
++		if (/*!product.updateUrl || */!product.commit) {
+ 			this.logService.info('update#ctor - updates are disabled as there is no update URL');
+ 			return;
+ 		}
+@@ -82,7 +83,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
+ 	}
+ 
+ 	private getProductQuality(updateMode: string): string | undefined {
+-		return updateMode === 'none' ? undefined : product.quality;
++		return updateMode === 'none' ? undefined : 'quality';
+ 	}
+ 
+ 	private scheduleCheckForUpdates(delay = 60 * 60 * 1000): Promise<void> {
+@@ -141,15 +142,15 @@ export abstract class AbstractUpdateService implements IUpdateService {
+ 
+ 		this.logService.trace('update#quitAndInstall(): before lifecycle quit()');
+ 
+-		this.lifecycleService.quit(true /* from update */).then(vetod => {
+-			this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
+-			if (vetod) {
+-				return;
+-			}
++		// this.quit(true /* from update */).then(vetod => {
++			// this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
++			// if (vetod) {
++			// 	return;
++			// }
+ 
+ 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
+ 			this.doQuitAndInstall();
+-		});
++		// });
+ 
+ 		return Promise.resolve(undefined);
+ 	}
 diff --git a/src/vs/workbench/api/browser/viewsExtensionPoint.ts b/src/vs/workbench/api/browser/viewsExtensionPoint.ts
 index 8bace46843..b261f40493 100644
 --- a/src/vs/workbench/api/browser/viewsExtensionPoint.ts
@@ -801,7 +918,7 @@ index 1986fb6642..70b0c789e3 100644
  
  		const payload = await this.resolveWorkspaceInitializationPayload();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index b253e573ae..94b2b7f287 100644
+index b253e573ae..164e50c3d1 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -53,6 +53,14 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
@@ -907,6 +1024,15 @@ index b253e573ae..94b2b7f287 100644
 +	}
 +}
 +registerSingleton(ITelemetryService, TelemetryService);
+ 
+ //#endregion
+ 
+@@ -714,7 +750,7 @@ export class SimpleUpdateService implements IUpdateService {
+ 	}
+ }
+ 
+-registerSingleton(IUpdateService, SimpleUpdateService);
++// registerSingleton(IUpdateService, SimpleUpdateService);
  
  //#endregion
  
@@ -1470,6 +1596,297 @@ index 4d8a5d6907..b464d5276f 100644
  			template.decorationIcon.title = resource.decorations.tooltip || '';
  		} else {
  			template.decorationIcon.style.display = 'none';
+diff --git a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
+index e39fa57979..d0548847a4 100644
+--- a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
++++ b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
+@@ -4,26 +4,26 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import 'vs/platform/update/node/update.config.contribution';
+-import * as platform from 'vs/base/common/platform';
++// import * as platform from 'vs/base/common/platform';
+ import { Registry } from 'vs/platform/registry/common/platform';
+ import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions } from 'vs/workbench/common/contributions';
+-import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
+-import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
+-import { ShowCurrentReleaseNotesAction, ProductContribution, UpdateContribution, Win3264BitContribution } from './update';
++// import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
++// import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
++import { /*ShowCurrentReleaseNotesAction, ProductContribution, */UpdateContribution/*, Win3264BitContribution */} from './update';
+ import { LifecyclePhase } from 'vs/platform/lifecycle/common/lifecycle';
+ 
+ const workbench = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
+ 
+-workbench.registerWorkbenchContribution(ProductContribution, LifecyclePhase.Restored);
++/* workbench.registerWorkbenchContribution(ProductContribution, LifecyclePhase.Restored);
+ 
+ if (platform.isWindows) {
+ 	if (process.arch === 'ia32') {
+ 		workbench.registerWorkbenchContribution(Win3264BitContribution, LifecyclePhase.Restored);
+ 	}
+-}
++} */
+ 
+ workbench.registerWorkbenchContribution(UpdateContribution, LifecyclePhase.Restored);
+ 
+ // Editor
+-Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions)
+-	.registerWorkbenchAction(new SyncActionDescriptor(ShowCurrentReleaseNotesAction, ShowCurrentReleaseNotesAction.ID, ShowCurrentReleaseNotesAction.LABEL), 'Show Release Notes');
++// Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions)
++// 	.registerWorkbenchAction(new SyncActionDescriptor(ShowCurrentReleaseNotesAction, ShowCurrentReleaseNotesAction.ID, ShowCurrentReleaseNotesAction.LABEL), 'Show Release Notes');
+diff --git a/src/vs/workbench/contrib/update/electron-browser/update.ts b/src/vs/workbench/contrib/update/electron-browser/update.ts
+index 7078a1bb2f..94b1ce31a7 100644
+--- a/src/vs/workbench/contrib/update/electron-browser/update.ts
++++ b/src/vs/workbench/contrib/update/electron-browser/update.ts
+@@ -7,32 +7,33 @@ import * as nls from 'vs/nls';
+ import severity from 'vs/base/common/severity';
+ import { Action } from 'vs/base/common/actions';
+ import { IDisposable, Disposable } from 'vs/base/common/lifecycle';
+-import pkg from 'vs/platform/product/node/package';
+-import product from 'vs/platform/product/node/product';
+-import { URI } from 'vs/base/common/uri';
++// import pkg from 'vs/platform/product/node/package';
++// import product from 'vs/platform/product/node/product';
++// import { URI } from 'vs/base/common/uri';
+ import { IActivityService, NumberBadge, IBadge, ProgressBadge } from 'vs/workbench/services/activity/common/activity';
+-import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
++// import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+ import { GLOBAL_ACTIVITY_ID } from 'vs/workbench/common/activity';
+-import { IOpenerService } from 'vs/platform/opener/common/opener';
++// import { IOpenerService } from 'vs/platform/opener/common/opener';
+ import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
+ import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+ import { IUpdateService, State as UpdateState, StateType, IUpdate } from 'vs/platform/update/common/update';
+-import * as semver from 'semver';
+-import { IEnvironmentService } from 'vs/platform/environment/common/environment';
++// import * as semver from 'semver';
++// import { IEnvironmentService } from 'vs/platform/environment/common/environment';
+ import { INotificationService, INotificationHandle, Severity } from 'vs/platform/notification/common/notification';
+ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
+ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+-import { ReleaseNotesManager } from './releaseNotesEditor';
+-import { isWindows } from 'vs/base/common/platform';
+-import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
++// import { ReleaseNotesManager } from './releaseNotesEditor';
++// import { isWindows } from 'vs/base/common/platform';
++// import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+ import { RawContextKey, IContextKey, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
+ import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
+ import { CommandsRegistry } from 'vs/platform/commands/common/commands';
+ import { FalseContext } from 'vs/platform/contextkey/common/contextkeys';
++import { IProductService } from 'vs/platform/product/common/product';
+ 
+ const CONTEXT_UPDATE_STATE = new RawContextKey<string>('updateState', StateType.Uninitialized);
+ 
+-let releaseNotesManager: ReleaseNotesManager | undefined = undefined;
++/*let releaseNotesManager: ReleaseNotesManager | undefined = undefined;
+ 
+ function showReleaseNotes(instantiationService: IInstantiationService, version: string) {
+ 	if (!releaseNotesManager) {
+@@ -150,7 +151,7 @@ export class ProductContribution implements IWorkbenchContribution {
+ 
+ 		storageService.store(ProductContribution.KEY, pkg.version, StorageScope.GLOBAL);
+ 	}
+-}
++} */
+ 
+ class NeverShowAgain {
+ 
+@@ -175,7 +176,7 @@ class NeverShowAgain {
+ 	}
+ }
+ 
+-export class Win3264BitContribution implements IWorkbenchContribution {
++/* export class Win3264BitContribution implements IWorkbenchContribution {
+ 
+ 	private static readonly KEY = 'update/win32-64bits';
+ 	private static readonly URL = 'https://code.visualstudio.com/updates/v1_15#_windows-64-bit';
+@@ -214,7 +215,7 @@ export class Win3264BitContribution implements IWorkbenchContribution {
+ 			{ sticky: true }
+ 		);
+ 	}
+-}
++} */
+ 
+ export class UpdateContribution extends Disposable implements IWorkbenchContribution {
+ 
+@@ -224,7 +225,8 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 
+ 	constructor(
+ 		@IStorageService private readonly storageService: IStorageService,
+-		@IInstantiationService private readonly instantiationService: IInstantiationService,
++		// @IInstantiationService private readonly instantiationService: IInstantiationService,
++		@IProductService private readonly productService: IProductService,
+ 		@INotificationService private readonly notificationService: INotificationService,
+ 		@IDialogService private readonly dialogService: IDialogService,
+ 		@IUpdateService private readonly updateService: IUpdateService,
+@@ -247,7 +249,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 		updated since 5 days.
+ 		*/
+ 
+-		const currentVersion = product.commit;
++		const currentVersion = this.productService.commit;
+ 		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
+ 
+ 		// if current version != stored version, clear both fields
+@@ -292,9 +294,9 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 		let clazz: string | undefined;
+ 
+ 		if (state.type === StateType.AvailableForDownload || state.type === StateType.Downloaded || state.type === StateType.Ready) {
+-			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
++			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameLong));
+ 		} else if (state.type === StateType.CheckingForUpdates || state.type === StateType.Downloading || state.type === StateType.Updating) {
+-			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
++			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameLong));
+ 			clazz = 'progress-badge';
+ 		}
+ 
+@@ -333,21 +335,21 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 
+ 		this.notificationService.prompt(
+ 			severity.Info,
+-			nls.localize('thereIsUpdateAvailable', "There is an available update."),
++			nls.localize('updateAvailable', "There's an update available: {0} {1}", this.productService.nameLong, update.productVersion),
+ 			[{
+-				label: nls.localize('download update', "Download Update"),
++				label: nls.localize('installUpdate', "Install Update"),
+ 				run: () => this.updateService.downloadUpdate()
+ 			}, {
+ 				label: nls.localize('later', "Later"),
+ 				run: () => { }
+-			}, {
++			}/*, {
+ 				label: nls.localize('releaseNotes', "Release Notes"),
+ 				run: () => {
+ 					const action = this.instantiationService.createInstance(ShowReleaseNotesAction, update.productVersion);
+ 					action.run();
+ 					action.dispose();
+ 				}
+-			}],
++			}*/],
+ 			{ sticky: true }
+ 		);
+ 	}
+@@ -360,30 +362,30 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 
+ 		this.notificationService.prompt(
+ 			severity.Info,
+-			nls.localize('updateAvailable', "There's an update available: {0} {1}", product.nameLong, update.productVersion),
++			nls.localize('updateAvailable', "There's an update available: {0} {1}", this.productService.nameLong, update.productVersion),
+ 			[{
+ 				label: nls.localize('installUpdate', "Install Update"),
+ 				run: () => this.updateService.applyUpdate()
+ 			}, {
+ 				label: nls.localize('later', "Later"),
+ 				run: () => { }
+-			}, {
++			}/*, {
+ 				label: nls.localize('releaseNotes', "Release Notes"),
+ 				run: () => {
+ 					const action = this.instantiationService.createInstance(ShowReleaseNotesAction, update.productVersion);
+ 					action.run();
+ 					action.dispose();
+ 				}
+-			}],
++			}*/],
+ 			{ sticky: true }
+ 		);
+ 	}
+ 
+ 	// windows fast updates
+ 	private onUpdateUpdating(update: IUpdate): void {
+-		if (isWindows && product.target === 'user') {
+-			return;
+-		}
++		// if (isWindows && product.target === 'user') {
++		// 	return;
++		// }
+ 
+ 		// windows fast updates (target === system)
+ 		const neverShowAgain = new NeverShowAgain('update/win32-fast-updates', this.storageService);
+@@ -394,7 +396,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 
+ 		const handle = this.notificationService.prompt(
+ 			severity.Info,
+-			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", product.nameLong, update.productVersion),
++			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", this.productService.nameLong, update.productVersion),
+ 			[{
+ 				label: nls.localize('neveragain', "Don't Show Again"),
+ 				isSecondary: true,
+@@ -408,20 +410,23 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 
+ 	// windows and mac
+ 	private onUpdateReady(update: IUpdate): void {
+-		if (!(isWindows && product.target !== 'user') && !this.shouldShowNotification()) {
+-			return;
+-		}
++		// if (!(isWindows && product.target !== 'user') && !this.shouldShowNotification()) {
++		// 	return;
++		// }
+ 
+ 		const actions = [{
+ 			label: nls.localize('updateNow', "Update Now"),
+-			run: () => this.updateService.quitAndInstall()
++			run: () => {
++				this.updateService.quitAndInstall();
++				window.location.reload();
++			}
+ 		}, {
+ 			label: nls.localize('later', "Later"),
+ 			run: () => { }
+ 		}];
+ 
+ 		// TODO@joao check why snap updates send `update` as falsy
+-		if (update.productVersion) {
++		/*if (update.productVersion) {
+ 			actions.push({
+ 				label: nls.localize('releaseNotes', "Release Notes"),
+ 				run: () => {
+@@ -430,19 +435,19 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 					action.dispose();
+ 				}
+ 			});
+-		}
++		}*/
+ 
+ 		// windows user fast updates and mac
+ 		this.notificationService.prompt(
+ 			severity.Info,
+-			nls.localize('updateAvailableAfterRestart', "Restart {0} to apply the latest update.", product.nameLong),
++			nls.localize('updateAvailableAfterRestart', "Restart {0} to apply the latest update.", this.productService.nameLong),
+ 			actions,
+ 			{ sticky: true }
+ 		);
+ 	}
+ 
+ 	private shouldShowNotification(): boolean {
+-		const currentVersion = product.commit;
++		const currentVersion = this.productService.commit;
+ 		const currentMillis = new Date().getTime();
+ 		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
+ 
+@@ -485,7 +490,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 			group: '5_update',
+ 			command: {
+ 				id: 'update.downloadNow',
+-				title: nls.localize('download update', "Download Update")
++				title: nls.localize('installUpdate...', "Install Update...")
+ 			},
+ 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.AvailableForDownload)
+ 		});
+@@ -522,7 +527,10 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.Updating)
+ 		});
+ 
+-		CommandsRegistry.registerCommand('update.restart', () => this.updateService.quitAndInstall());
++		CommandsRegistry.registerCommand('update.restart', () => {
++			this.updateService.quitAndInstall();
++			window.location.reload();
++		});
+ 		MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
+ 			group: '5_update',
+ 			command: {
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
 index a6be033e07..a4dcb7357a 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
@@ -1620,10 +2037,10 @@ index 306d58f915..58c603ad3d 100644
  			if (definition.fontCharacter || definition.fontColor) {
  				let body = '';
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index c28adc0ad9..f76612a4d7 100644
+index c28adc0ad9..56c86d7e39 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
-@@ -72,8 +72,8 @@ import { BrowserLifecycleService } from 'vs/platform/lifecycle/browser/lifecycle
+@@ -72,15 +72,15 @@ import { BrowserLifecycleService } from 'vs/platform/lifecycle/browser/lifecycle
  import { ILifecycleService } from 'vs/platform/lifecycle/common/lifecycle';
  import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
  import { DialogService } from 'vs/platform/dialogs/browser/dialogService';
@@ -1634,6 +2051,15 @@ index c28adc0ad9..f76612a4d7 100644
  // import { ISharedProcessService, SharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
  // import { IProductService } from 'vs/platform/product/common/product';
  // import { ProductService } from 'vs/platform/product/node/productService';
+ // import { IWindowsService } from 'vs/platform/windows/common/windows';
+ // import { WindowsService } from 'vs/platform/windows/electron-browser/windowsService';
+-// import { IUpdateService } from 'vs/platform/update/common/update';
+-// import { UpdateService } from 'vs/platform/update/electron-browser/updateService';
++import { IUpdateService } from 'vs/platform/update/common/update';
++import { UpdateService } from 'vs/platform/update/electron-browser/updateService';
+ // import { IIssueService } from 'vs/platform/issue/common/issue';
+ // import { IssueService } from 'vs/platform/issue/electron-browser/issueService';
+ // import { IWorkspacesService } from 'vs/platform/workspaces/common/workspaces';
 @@ -128,7 +128,7 @@ import 'vs/workbench/services/extensions/browser/extensionService';
  // import 'vs/workbench/services/contextmenu/electron-browser/contextmenuService';
  // import 'vs/workbench/services/extensions/node/multiExtensionManagement';
@@ -1643,7 +2069,7 @@ index c28adc0ad9..f76612a4d7 100644
  // import 'vs/workbench/services/remote/electron-browser/remoteAgentServiceImpl';
  import 'vs/workbench/services/notification/common/notificationService';
  // import 'vs/workbench/services/window/electron-browser/windowService';
-@@ -156,7 +156,7 @@ registerSingleton(IContextViewService, ContextViewService, true);
+@@ -156,10 +156,10 @@ registerSingleton(IContextViewService, ContextViewService, true);
  // registerSingleton(IExtensionGalleryService, ExtensionGalleryService, true);
  // registerSingleton(IRequestService, RequestService, true);
  registerSingleton(ILifecycleService, BrowserLifecycleService);
@@ -1651,7 +2077,11 @@ index c28adc0ad9..f76612a4d7 100644
 +registerSingleton(ILocalizationsService, LocalizationsService);
  // registerSingleton(ISharedProcessService, SharedProcessService, true);
  // registerSingleton(IWindowsService, WindowsService);
- // registerSingleton(IUpdateService, UpdateService);
+-// registerSingleton(IUpdateService, UpdateService);
++registerSingleton(IUpdateService, UpdateService);
+ // registerSingleton(IIssueService, IssueService);
+ // registerSingleton(IWorkspacesService, WorkspacesService);
+ // registerSingleton(IMenubarService, MenubarService);
 @@ -194,7 +194,7 @@ import 'vs/workbench/services/files/common/workspaceWatcher';
  import 'vs/workbench/contrib/telemetry/browser/telemetry.contribution';
  
@@ -1674,3 +2104,12 @@ index c28adc0ad9..f76612a4d7 100644
  
  // Output Panel
  import 'vs/workbench/contrib/output/browser/output.contribution';
+@@ -318,7 +318,7 @@ import 'vs/workbench/contrib/format/browser/format.contribution';
+ // import 'vs/workbench/contrib/feedback/browser/feedback.contribution';
+ 
+ // Update
+-// import 'vs/workbench/contrib/update/electron-browser/update.contribution';
++import 'vs/workbench/contrib/update/electron-browser/update.contribution';
+ 
+ // Surveys
+ // import 'vs/workbench/contrib/surveys/electron-browser/nps.contribution';

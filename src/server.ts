@@ -53,6 +53,7 @@ import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppen
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { TelemetryChannel } from "vs/platform/telemetry/node/telemetryIpc";
+import { UpdateChannel } from "vs/platform/update/node/updateIpc";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
@@ -60,6 +61,7 @@ import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/sr
 import { TelemetryClient } from "vs/server/src/insights";
 import { getNlsConfiguration, getLocaleFromConfig } from "vs/server/src/nls";
 import { Protocol } from "vs/server/src/protocol";
+import { UpdateService } from "vs/server/src/update";
 import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
 
 export enum HttpCode {
@@ -482,7 +484,11 @@ export class MainServer extends Server {
 			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
 				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
 			),
-			PRODUCT_CONFIGURATION: product,
+			PRODUCT_CONFIGURATION: {
+				...product,
+				// @ts-ignore workaround for getting the VS Code version to the browser.
+				version: pkg.version,
+			},
 			CONNECTION_AUTH_TOKEN: "",
 			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
 		};
@@ -560,14 +566,13 @@ export class MainServer extends Server {
 		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
 		if (!environmentService.args["disable-telemetry"]) {
-			const version = `${(pkg as any).codeServerVersion || "development"}-vsc${pkg.version}`;
 			this.services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [{
 				appender: combinedAppender(
 					new AppInsightsAppender("code-server", null, () => new TelemetryClient(), logService),
 					new LogAppender(logService),
 				),
 				commonProperties: resolveCommonProperties(
-					product.commit, version, await getMachineId(),
+					product.commit, pkg.codeServerVersion, await getMachineId(),
 					environmentService.installSourcePath, "code-server",
 				),
 				piiPaths: [
@@ -601,6 +606,8 @@ export class MainServer extends Server {
 				this.ipc.registerChannel("gallery", galleryChannel);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				this.ipc.registerChannel("telemetry", telemetryChannel);
+				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
+				this.ipc.registerChannel("update", updateChannel);
 				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});

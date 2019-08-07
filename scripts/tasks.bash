@@ -74,7 +74,7 @@ function build-code-server() {
 	cd "${buildPath}" && yarn --production --force --build-from-source
 	rm "${buildPath}/"{package.json,yarn.lock,.yarnrc}
 
-	local packageJson="{\"codeServerVersion\": \"${codeServerVersion}\"}"
+	local packageJson="{\"codeServerVersion\": \"${codeServerVersion}-vsc${vscodeVersion}\"}"
 	cp -r "${sourcePath}/.build/extensions" "${buildPath}"
 	node "${rootPath}/scripts/merge.js" "${sourcePath}/package.json" "${rootPath}/scripts/package.json" "${buildPath}/package.json" "${packageJson}"
 	node "${rootPath}/scripts/merge.js" "${sourcePath}/.build/product.json" "${rootPath}/scripts/product.json" "${buildPath}/product.json"
