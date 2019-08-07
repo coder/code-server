@@ -57,6 +57,8 @@ function prepend-loader() {
 function build-code-server() {
 	copy-server
 	local min=""
+	export BUILD_SOURCEVERSION
+	BUILD_SOURCEVERSION=$(node -p "require('${sourcePath}/build/lib/git.js').getVersion('${rootPath}')")
 	if [[ -n "${minify}" ]] ; then
 		min="-min"
 		yarn gulp minify-vscode --max-old-space-size=32384
