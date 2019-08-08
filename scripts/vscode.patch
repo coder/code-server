@@ -619,7 +619,7 @@ index d39c5877d6..c189d6f19f 100644
  
  const rootPath = path.dirname(getPathFromAmdModule(require, ''));
 diff --git a/src/vs/platform/remote/browser/browserWebSocketFactory.ts b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
-index 6d9ecbcf5a..1b3499dddf 100644
+index 6d9ecbcf5a..a3eb980965 100644
 --- a/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserWebSocketFactory.ts
 @@ -79,7 +79,7 @@ class BrowserSocket implements ISocket {
@@ -627,7 +627,7 @@ index 6d9ecbcf5a..1b3499dddf 100644
  	connect(host: string, port: number, query: string, callback: IConnectCallback): void {
  		const errorListener = (err: any) => callback(err, undefined);
 -		const socket = new WebSocket(`ws://${host}:${port}/?${query}&skipWebSocketFrames=false`);
-+		const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${host}:${port}${window.location.pathname.replace(/\/+$/, '')}/?${query}&skipWebSocketFrames=false`);
++		const socket = new WebSocket(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}${window.location.pathname}?${query}&skipWebSocketFrames=false`);
  		socket.onopen = function (event) {
  			socket.removeEventListener('error', errorListener);
  			callback(undefined, new BrowserSocket(socket));
