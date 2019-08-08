@@ -119,7 +119,7 @@ export abstract class Server {
 	protected readonly server: http.Server | https.Server;
 	protected rootPath = path.resolve(__dirname, "../../../..");
 	private listenPromise: Promise<string> | undefined;
-	public readonly protocol: string;
+	public readonly protocol: "http" | "https";
 	public readonly options: ServerOptions;
 
 	public constructor(options: ServerOptions) {
@@ -157,17 +157,12 @@ export abstract class Server {
 	}
 
 	/**
-	 * The local address of the server. If you pass in a request, it will use the
-	 * request's host if listening on a port (rather than a socket). This enables
-	 * setting the webview endpoint to the same host the browser is using.
+	 * The *local* address of the server.
 	 */
-	public address(request?: http.IncomingMessage): string {
+	public address(): string {
 		const address = this.server.address();
 		const endpoint = typeof address !== "string"
-			? (request
-					? request.headers.host!.split(":", 1)[0]
-					: (address.address === "::" ? "localhost" : address.address)
-			) + ":" + address.port
+			? (address.address === "::" ? "localhost" : address.address) + ":" + address.port
 			: address;
 		return `${this.protocol}://${endpoint}`;
 	}
@@ -189,15 +184,17 @@ export abstract class Server {
 		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
+	protected withBase(request: http.IncomingMessage, path: string): string {
+		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}`;
+	}
+
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
 		try {
 			const payload = await this.preHandleRequest(request);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
 				"Cache-Control": "max-age=86400", // TODO: ETag?
 				"Content-Type": getMediaMime(payload.filePath),
-				...(payload.redirect ? {
-					Location: `${this.protocol}://${request.headers.host}${this.options.basePath}${payload.redirect}`,
-				} : {}),
+				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
 				...payload.headers,
 			});
 			response.end(payload.content);
@@ -464,11 +461,11 @@ export class MainServer extends Server {
 		]);
 		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
-		const webviewEndpoint = this.address(request) + "/webview/";
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
 		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
 		const remoteAuthority = request.headers.host as string;
+		const webviewEndpoint = this.withBase(request, "/webview/");
 		const transformer = getUriTransformer(remoteAuthority);
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
