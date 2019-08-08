@@ -16,7 +16,7 @@ If you run R72, however, this is already enabled for you.
 
 After checking your prerequisites, follow the steps in [the self-host install guide](index.md)
 on installing code-server. Once done, make sure code-server works by running
-it. After running it, simply go to `penguin.linux.test:8443` to access
+it. After running it, simply go to `penguin.linux.test:8080` to access
 code-server. Now you should be greeted with this screen. If you did,
 congratulations, you have installed code-server in your Chromebook!
 
@@ -69,7 +69,7 @@ enter `enter-chroot` to enter your container.
 
 Follow the instructions set in [the self-host install guide](index.md) to
 install code-server. After that is done, run `code-server` and verify it works
-by going to `localhost:8443`.
+by going to `localhost:8080`.
 
 > At this point in writing, `localhost` seems to work in this method. However,
 > the author is not sure if it applies still to newer Chromebooks.

@@ -120,7 +120,7 @@ const startVscode = async (): Promise<void | void[]> => {
 
 	const server = new MainServer({
 		...options,
-		port: typeof args.port !== "undefined" && parseInt(args.port, 10) || 8443,
+		port: typeof args.port !== "undefined" && parseInt(args.port, 10) || 8080,
 		socket: args.socket,
 	}, args);
 

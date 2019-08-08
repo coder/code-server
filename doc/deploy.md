@@ -6,7 +6,7 @@
   on team size and number of repositories/languages enabled), then
   **Next: Configure Instance Details**.
 - Select **Next: ...** until you get to the **Configure Security Group** page,
-  then add a **Custom TCP Rule** rule with port range set to `8443` and source
+  then add a **Custom TCP Rule** rule with port range set to `8080` and source
   set to "Anywhere".
   > Rules with source of 0.0.0.0/0 allow all IP addresses to access your
   > instance. We recommend setting [security group rules](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-network-security.html?icmpid=docs_ec2_console)
@@ -51,9 +51,9 @@ to create a new droplet
   go to the "Networking" tab, then under network tags add "code-server".
 - Create your VM, and **take note** of its public IP address.
 - Visit "VPC network" in the console and go to "Firewall rules". Create a new
-  firewall rule called "http-8443". Under "Target tags" add "code-server", and
+  firewall rule called "http-8080". Under "Target tags" add "code-server", and
   under "Protocols and ports" tick "Specified protocols and ports" and "tcp".
-  Beside "tcp", add "8443", then create the rule.
+  Beside "tcp", add "8080", then create the rule.
 - Open a terminal on your computer and SSH into your Google Cloud VM:
   ```
   gcloud compute ssh --zone ${region} ${instance name}
@@ -68,6 +68,6 @@ to create a new droplet
   cd code-server{version}-linux-x64
   ./code-server
   ```
-- Open your browser and visit http://$public_ip:8443/ where `$public_ip` is
+- Open your browser and visit http://$public_ip:8080/ where `$public_ip` is
   your instance's public IP address.
 - For long-term use, set up a systemd service to run code-server.

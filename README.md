@@ -5,7 +5,7 @@ remote server, accessible through the browser.
 
 Try it out:
 ```bash
-docker run -it -p 127.0.0.1:8443:8443 -v "$PWD:/home/coder/project" codercom/code-server
+docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" codercom/code-server
 ```
 
 - **Consistent environment:** Code on your Chromebook, tablet, and laptop with a
@@ -34,7 +34,7 @@ arguments when launching code-server with Docker. See
 1. [Download a binary](https://github.com/cdr/code-server/releases). (Linux and
     OS X supported. Windows coming soon)
 2. Unpack the downloaded file then run the binary.
-3. In your browser navigate to `localhost:8443`.
+3. In your browser navigate to `localhost:8080`.
 
 - For self-hosting and other information see [doc/quickstart.md](doc/quickstart.md).
 - For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
@@ -90,7 +90,7 @@ yarn watch
 # Wait for the initial compilation to complete (it will say "Finished compilation").
 # Run the next command in another shell.
 yarn start
-# Visit http://localhost:8443
+# Visit http://localhost:8080
 ```
 
 If you run into issues about a different version of Node being used, try running

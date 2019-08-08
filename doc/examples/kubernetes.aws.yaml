@@ -10,7 +10,7 @@ metadata:
  namespace: code-server
 spec:
  ports:
- - port: 8443
+ - port: 8080
    name: https
    protocol: TCP
  selector:
@@ -62,7 +62,7 @@ spec:
         imagePullPolicy: Always
         name: code-servery
         ports:
-        - containerPort: 8443
+        - containerPort: 8080
           name: https
         volumeMounts:
         - name: code-server-storage
@@ -71,4 +71,3 @@ spec:
       - name: code-server-storage
         persistentVolumeClaim:
           claimName: code-store
-

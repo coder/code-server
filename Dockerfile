@@ -52,6 +52,6 @@ WORKDIR /home/coder/project
 VOLUME [ "/home/coder/project" ]
 
 COPY --from=0 /src/build/code-server /usr/local/bin/code-server
-EXPOSE 8443
+EXPOSE 8080
 
 ENTRYPOINT ["dumb-init", "code-server", "--host", "0.0.0.0"]

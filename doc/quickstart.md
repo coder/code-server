@@ -2,7 +2,7 @@
 1. Visit the [releases page](https://github.com/cdr/code-server/releases) and
    download the latest binary for your operating system.
 2. Unpack the downloaded file then run the binary.
-3. In your browser navigate to `localhost:8443`.
+3. In your browser navigate to `localhost:8080`.
 
 ## Usage
 Run `code-server --help` to view available options.
@@ -25,7 +25,7 @@ server {
   listen [::]:80;
   server_name code.example.com code.example.org;
   location /some/path/ { # Or / if hosting at the root.
-      proxy_pass http://localhost:8443/;
+      proxy_pass http://localhost:8080/;
       proxy_set_header Host $host;
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection upgrade;
@@ -41,17 +41,17 @@ server {
 
   RewriteEngine On
   RewriteCond %{HTTP:Upgrade} =websocket [NC]
-  RewriteRule /(.*)           ws://localhost:8443/$1 [P,L]
+  RewriteRule /(.*)           ws://localhost:8080/$1 [P,L]
   RewriteCond %{HTTP:Upgrade} !=websocket [NC]
-  RewriteRule /(.*)           http://localhost:8443/$1 [P,L]
+  RewriteRule /(.*)           http://localhost:8080/$1 [P,L]
 
   ProxyRequests off
 
   RequestHeader set X-Forwarded-Proto https
   RequestHeader set X-Forwarded-Port 443
 
-  ProxyPass / http://localhost:8443/ nocanon
-  ProxyPassReverse / http://localhost:8443/
+  ProxyPass / http://localhost:8080/ nocanon
+  ProxyPassReverse / http://localhost:8080/
 
 </VirtualHost>
 ```
