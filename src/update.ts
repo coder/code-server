@@ -1,23 +1,24 @@
 import * as cp from "child_process";
 import * as os from "os";
 import * as path from "path";
+import { Stream } from "stream";
 import * as util from "util";
-import * as zlib from 'zlib';
-
+import { toVSBufferReadableStream } from "vs/base/common/buffer";
 import { CancellationToken } from "vs/base/common/cancellation";
+import { URI } from "vs/base/common/uri";
 import * as pfs from "vs/base/node/pfs";
-import { asJson, download } from "vs/base/node/request";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
+import { IFileService } from "vs/platform/files/common/files";
 import { ILogService } from "vs/platform/log/common/log";
 import pkg from "vs/platform/product/node/package";
-import { IRequestService } from "vs/platform/request/node/request";
-import { State, UpdateType, StateType, AvailableForDownload } from "vs/platform/update/common/update";
+import { asJson, IRequestService } from "vs/platform/request/common/request";
+import { AvailableForDownload, State, StateType, UpdateType } from "vs/platform/update/common/update";
 import { AbstractUpdateService } from "vs/platform/update/electron-main/abstractUpdateService";
-
 import { ipcMain } from "vs/server/src/ipc";
+import { extract } from "vs/server/src/marketplace";
 import { tmpdir } from "vs/server/src/util";
-import { extract } from "vs/server/src/tar";
+import * as zlib from "zlib";
 
 interface IUpdate {
 	name: string;
@@ -30,7 +31,8 @@ export class UpdateService extends AbstractUpdateService {
 		@IConfigurationService configurationService: IConfigurationService,
 		@IEnvironmentService environmentService: IEnvironmentService,
 		@IRequestService requestService: IRequestService,
-		@ILogService logService: ILogService
+		@ILogService logService: ILogService,
+		@IFileService private readonly fileService: IFileService,
 	) {
 		super(null, configurationService, environmentService, requestService, logService);
 	}
@@ -92,10 +94,13 @@ export class UpdateService extends AbstractUpdateService {
 			const context = await this.requestService.request({ url }, CancellationToken.None);
 			// Decompress the gzip as we download. If the gzip encoding is set then
 			// the request service already does this.
+			// HACK: This uses knowledge of the internals of the request service.
 			if (target !== "darwin" && context.res.headers["content-encoding"] !== "gzip") {
-				context.stream = context.stream.pipe(zlib.createGunzip());
+				const stream = (context.res as any as Stream);
+				stream.removeAllListeners();
+				context.stream = toVSBufferReadableStream(stream.pipe(zlib.createGunzip()));
 			}
-			await download(downloadPath, context);
+			await this.fileService.writeFile(URI.file(downloadPath), context.stream);
 			await extract(downloadPath, extractPath, undefined, CancellationToken.None);
 			const newBinary = path.join(extractPath, releaseName, "code-server");
 			if (!pfs.exists(newBinary)) {

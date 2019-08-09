@@ -63,12 +63,12 @@ export const generatePassword = async (length: number = 24): Promise<string> => 
 };
 
 export const getMediaMime = (filePath?: string): string => {
-	return filePath && (vsGetMediaMime(filePath) || {
+	return filePath && (vsGetMediaMime(filePath) || (<{[index: string]: string}>{
 		".css": "text/css",
 		".html": "text/html",
 		".js": "text/javascript",
 		".json": "application/json",
-	}[extname(filePath)]) || "text/plain";
+	})[extname(filePath)]) || "text/plain";
 };
 
 export const isWsl = async (): Promise<boolean> => {
@@ -113,8 +113,16 @@ export const unpackExecutables = async (): Promise<void> => {
 	}
 };
 
-export const buildAllowedMessage = (t: typeof AuthType): string => {
-	const values = <string[]>Object.keys(t).map((k) => t[k]);
+export const enumToArray = (t: any): string[] => {
+	const values = <string[]>[];
+	for (const k in t) {
+		values.push(t[k]);
+	}
+	return values;
+};
+
+export const buildAllowedMessage = (t: any): string => {
+	const values = enumToArray(t);
 	return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(",")}`;
 };
 

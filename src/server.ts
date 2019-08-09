@@ -4,31 +4,34 @@ import * as http from "http";
 import * as https from "https";
 import * as net from "net";
 import * as path from "path";
-import * as tls from "tls";
-import * as util from "util";
-import * as url from "url";
 import * as querystring from "querystring";
-
+import * as tls from "tls";
+import * as url from "url";
+import * as util from "util";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
-import { UriComponents, URI } from "vs/base/common/uri";
+import { Schemas } from "vs/base/common/network";
+import { URI, UriComponents } from "vs/base/common/uri";
 import { generateUuid } from "vs/base/common/uuid";
 import { getMachineId } from 'vs/base/node/id';
 import { NLSConfiguration } from "vs/base/node/languagePacks";
 import { mkdirp, rimraf } from "vs/base/node/pfs";
-import { IPCServer, ClientConnectionEvent, StaticRouter } from "vs/base/parts/ipc/common/ipc";
+import { ClientConnectionEvent, IPCServer, StaticRouter } from "vs/base/parts/ipc/common/ipc";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
+import { ExtensionHostDebugBroadcastChannel } from "vs/platform/debug/common/extensionHostDebugIpc";
 import { IDialogService } from "vs/platform/dialogs/common/dialogs";
 import { DialogChannelClient } from "vs/platform/dialogs/node/dialogIpc";
 import { IEnvironmentService, ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
-import { IExtensionManagementService, IExtensionGalleryService } from "vs/platform/extensionManagement/common/extensionManagement";
-import { ExtensionGalleryChannel } from "vs/platform/extensionManagement/node/extensionGalleryIpc";
-import { ExtensionGalleryService } from "vs/platform/extensionManagement/node/extensionGalleryService";
-import { ExtensionManagementChannel } from "vs/platform/extensionManagement/node/extensionManagementIpc";
+import { ExtensionGalleryService } from "vs/platform/extensionManagement/common/extensionGalleryService";
+import { IExtensionGalleryService, IExtensionManagementService } from "vs/platform/extensionManagement/common/extensionManagement";
+import { ExtensionManagementChannel } from "vs/platform/extensionManagement/common/extensionManagementIpc";
 import { ExtensionManagementService } from "vs/platform/extensionManagement/node/extensionManagementService";
+import { IFileService } from "vs/platform/files/common/files";
+import { FileService } from "vs/platform/files/common/fileService";
+import { DiskFileSystemProvider } from "vs/platform/files/node/diskFileSystemProvider";
 import { SyncDescriptor } from "vs/platform/instantiation/common/descriptors";
 import { InstantiationService } from "vs/platform/instantiation/common/instantiationService";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
@@ -38,31 +41,32 @@ import { LocalizationsChannel } from "vs/platform/localizations/node/localizatio
 import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
-import { IProductConfiguration } from "vs/platform/product/common/product";
+import { IProductConfiguration, IProductService } from "vs/platform/product/common/product";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
+import { ProductService } from "vs/platform/product/node/productService";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
-import { IRequestService } from "vs/platform/request/node/request";
+import { IRequestService } from "vs/platform/request/common/request";
+import { RequestChannel } from "vs/platform/request/common/requestIpc";
 import { RequestService } from "vs/platform/request/node/requestService";
 import ErrorTelemetry from "vs/platform/telemetry/browser/errorTelemetry";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { NullTelemetryService, LogAppender, combinedAppender } from "vs/platform/telemetry/common/telemetryUtils";
-import { TelemetryService, ITelemetryServiceConfig } from "vs/platform/telemetry/common/telemetryService";
+import { ITelemetryServiceConfig, TelemetryService } from "vs/platform/telemetry/common/telemetryService";
+import { combinedAppender, LogAppender, NullTelemetryService } from "vs/platform/telemetry/common/telemetryUtils";
 import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
-import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
-import { TelemetryChannel } from "vs/platform/telemetry/node/telemetryIpc";
 import { UpdateChannel } from "vs/platform/update/node/updateIpc";
-import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
-
-import { Connection, ManagementConnection, ExtensionHostConnection } from "vs/server/src/connection";
-import { ExtensionEnvironmentChannel, FileProviderChannel , } from "vs/server/src/channel";
+import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/src/channel";
+import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/connection";
 import { TelemetryClient } from "vs/server/src/insights";
-import { getNlsConfiguration, getLocaleFromConfig } from "vs/server/src/nls";
+import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/nls";
 import { Protocol } from "vs/server/src/protocol";
+import { TelemetryChannel } from "vs/server/src/telemetry";
 import { UpdateService } from "vs/server/src/update";
 import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
+import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
+import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 export enum HttpCode {
 	Ok = 200,
@@ -192,9 +196,9 @@ export abstract class Server {
 		try {
 			const payload = await this.preHandleRequest(request);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
-				"Cache-Control": "max-age=86400", // TODO: ETag?
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
+				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath + "/" } : {}),
 				...payload.headers,
 			});
 			response.end(payload.content);
@@ -438,7 +442,7 @@ export class MainServer extends Server {
 	): Promise<Response> {
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
-			case "/resources": return this.getResource(requestPath);
+			case "/vscode-resources": return this.getResource(requestPath);
 			case "/webview":
 				if (requestPath.indexOf("/vscode-resource") === 0) {
 					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));
@@ -490,15 +494,19 @@ export class MainServer extends Server {
 			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
 		};
 
-		Object.keys(options).forEach((key) => {
-			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key])}'`);
-		});
+		for (const key in options) {
+			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
+		}
 		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
 
 		return { content, filePath };
 	}
 
 	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
+		if (product.commit && message.commit !== product.commit) {
+			throw new Error(`Version mismatch (${message.commit} instead of ${product.commit})`);
+		}
+
 		switch (message.desiredConnectionType) {
 			case ConnectionType.ExtensionHost:
 			case ConnectionType.Management:
@@ -552,16 +560,25 @@ export class MainServer extends Server {
 	}
 
 	private async initializeServices(args: ParsedArgs): Promise<void> {
-		const router = new StaticRouter((ctx: any) => ctx.clientId === "renderer");
 		const environmentService = new EnvironmentService(args, process.execPath);
 		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
-		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+		const fileService = new FileService(logService);
+		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
 
+		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
+
+		const router = new StaticRouter((ctx: any) => ctx.clientId === "renderer");
 		this.services.set(ILogService, logService);
 		this.services.set(IEnvironmentService, environmentService);
 		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
 		this.services.set(IRequestService, new SyncDescriptor(RequestService));
+		this.services.set(IFileService, fileService);
+		this.services.set(IProductService, new SyncDescriptor(ProductService));
+		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
 		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
+		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
+
 		if (!environmentService.args["disable-telemetry"]) {
 			this.services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [{
 				appender: combinedAppender(
@@ -582,8 +599,6 @@ export class MainServer extends Server {
 		} else {
 			this.services.set(ITelemetryService, NullTelemetryService);
 		}
-		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
-		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 
 		await new Promise((resolve) => {
 			const instantiationService = new InstantiationService(this.services);
@@ -592,19 +607,23 @@ export class MainServer extends Server {
 			this.ipc.registerChannel("localizations", new LocalizationsChannel(localizationService));
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
-				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
-				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
-				this.ipc.registerChannel("remoteextensionsenvironment", new ExtensionEnvironmentChannel(environmentService, logService, telemetryService));
+
 				const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
+				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
+
 				const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
-				this.ipc.registerChannel("extensions", extensionsChannel);
-				const galleryService = this.services.get(IExtensionGalleryService) as IExtensionGalleryService;
-				const galleryChannel = new ExtensionGalleryChannel(galleryService);
-				this.ipc.registerChannel("gallery", galleryChannel);
+				const extensionsEnvironmentChannel = new ExtensionEnvironmentChannel(environmentService, logService, telemetryService);
+				const fileChannel = new FileProviderChannel(environmentService, logService);
+				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
-				this.ipc.registerChannel("telemetry", telemetryChannel);
 				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
+
+				this.ipc.registerChannel("extensions", extensionsChannel);
+				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
+				this.ipc.registerChannel("request", requestChannel);
+				this.ipc.registerChannel("telemetry", telemetryChannel);
 				this.ipc.registerChannel("update", updateChannel);
+				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, fileChannel);
 				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});

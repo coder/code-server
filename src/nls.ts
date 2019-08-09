@@ -1,7 +1,6 @@
-import * as path from "path";
 import * as fs from "fs";
+import * as path from "path";
 import * as util from "util";
-
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import * as lp from "vs/base/node/languagePacks";
 import product from "vs/platform/product/node/product";

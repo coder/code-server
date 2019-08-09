@@ -81,7 +81,7 @@ data collected to improve code-server.
 ```shell
 git clone https://github.com/microsoft/vscode
 cd vscode
-git checkout 1.36.1
+git checkout 1.37.0
 git clone https://github.com/cdr/code-server src/vs/server
 cd src/vs/server
 yarn patch:apply
@@ -109,23 +109,19 @@ directory.
 
 Our changes include:
 - Add a `code-server` schema.
-- Make the extension sidebar work in the browser. Mostly involves removing
-  Node-specific code for the `extensions` channel client and adding a
-  `gallery` channel.
 - Allow multiple extension directories (both user and built-in).
-- Rewrite assets used in the CSS (like icons) or as images to use the base URL.
-- Change the loader to use the base URL.
-- Change the web socket to use the base URL and TLS if necessary.
-- Set the favicon using a relative path.
-- Modify the file service to support writing from an asynchronous stream (for
-  uploading files).
+- Rewrite assets requested by the browser to use the base URL.
+- Modify the loader to use the base URL.
+- Modify the web socket to use the base URL and TLS if necessary.
+- Send client-side telemetry through the server.
 - Add a file prefix to ignore for temporary files created during upload.
 - Insert our upload service for use in editor windows and explorer.
 - Modify the log level to get its initial setting from the server.
-- Get telemetry working by adding a channel for it.
 - Change a regular expression used for mnemonics so it works on Firefox.
 - Make it possible for us to load code on the client.
 - Modify the build process to include our code.
+- Fix a CSP issue within a webview.
+- Fix an issue displaying extension contributions.
 
 ## License
 [MIT](LICENSE)

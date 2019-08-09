@@ -2,11 +2,11 @@ import * as fs from "fs";
 import * as path from "path";
 import * as tarStream from "tar-stream";
 import * as util from "util";
-
-import * as nls from "vs/nls";
-import * as vszip from "vs/base/node/zip";
 import { CancellationToken } from "vs/base/common/cancellation";
 import { mkdirp } from "vs/base/node/pfs";
+import * as vszip from "vs/base/node/zip";
+import * as nls from "vs/nls";
+import product from "vs/platform/product/node/product";
 
 // We will be overriding these, so keep a reference to the original.
 const vszipExtract = vszip.extract;
@@ -154,10 +154,18 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 };
 
 /**
- * Override original functionality so we can use extensions that are in a tar in
- * addition to zips.
+ * Override original functionality so we can use a custom marketplace with
+ * either tars or zips.
  */
-export const enableExtensionTars = (): void => {
+export const enableCustomMarketplace = (): void => {
+	(<any>product).extensionsGallery = { // Use `any` to override readonly.
+		serviceUrl: process.env.SERVICE_URL || "https://v1.extapi.coder.com",
+		itemUrl: process.env.ITEM_URL || "",
+		controlUrl: "",
+		recommendationsUrl: "",
+		...(product.extensionsGallery || {}),
+	};
+
 	const target = vszip as typeof vszip;
 	target.zip = tar;
 	target.extract = extract;

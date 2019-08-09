@@ -1,5 +1,4 @@
 import * as cp from "child_process";
-
 import { Emitter } from "vs/base/common/event";
 
 enum ControlMessage {

@@ -1,8 +1,7 @@
 import * as net from "net";
-
 import { VSBuffer } from "vs/base/common/buffer";
-import { NodeSocket, WebSocketNodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { PersistentProtocol } from "vs/base/parts/ipc/common/ipc.net";
+import { NodeSocket, WebSocketNodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { AuthRequest, ConnectionTypeRequest, HandshakeMessage } from "vs/platform/remote/common/remoteAgentConnection";
 
 export interface SocketOptions {

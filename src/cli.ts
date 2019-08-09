@@ -1,27 +1,16 @@
 import * as cp from "child_process";
 import * as os from "os";
-
 import { main as vsCli } from "vs/code/node/cliProcessMain";
 import { validatePaths } from "vs/code/node/paths";
-import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
-import { buildHelpMessage, buildVersionMessage, options } from "vs/platform/environment/node/argv";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
+import { buildHelpMessage, buildVersionMessage, Option as VsOption, options as vsOptions } from "vs/platform/environment/node/argv";
+import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
-
 import { ipcMain } from "vs/server/src/ipc";
-
-product.extensionsGallery = {
-	serviceUrl: process.env.SERVICE_URL || "https://v1.extapi.coder.com",
-	itemUrl: process.env.ITEM_URL || "",
-	controlUrl: "",
-	recommendationsUrl: "",
-	...(product.extensionsGallery || {}),
-};
-
+import { enableCustomMarketplace } from "vs/server/src/marketplace";
 import { MainServer } from "vs/server/src/server";
-import { enableExtensionTars } from "vs/server/src/tar";
-import { AuthType, buildAllowedMessage, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
+import { AuthType, buildAllowedMessage, enumToArray, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 
@@ -30,15 +19,19 @@ interface Args extends ParsedArgs {
 	"base-path"?: string;
 	cert?: string;
 	"cert-key"?: string;
-	"extra-builtin-extensions-dir"?: string;
-	"extra-extensions-dir"?: string;
 	host?: string;
 	open?: string;
 	port?: string;
 	socket?: string;
 }
 
+// @ts-ignore: Force `keyof Args` to work.
+interface Option extends VsOption {
+	id: keyof Args;
+}
+
 const getArgs = (): Args => {
+	const options = vsOptions as Option[];
 	// The last item is _ which is like -- so our options need to come before it.
 	const last = options.pop()!;
 
@@ -78,13 +71,7 @@ const getArgs = (): Args => {
 
 	options.push(last);
 
-	const args = validatePaths(parseMainProcessArgv(process.argv)) as Args;
-	["extra-extensions-dir", "extra-builtin-extensions-dir"].forEach((key) => {
-		if (typeof args[key] === "string") {
-			args[key] = [args[key]];
-		}
-	});
-	return args;
+	return validatePaths(parseMainProcessArgv(process.argv));
 };
 
 const startVscode = async (): Promise<void | void[]> => {
@@ -100,7 +87,7 @@ const startVscode = async (): Promise<void | void[]> => {
 		password: process.env.PASSWORD,
 	};
 
-	if (options.auth && Object.keys(AuthType).filter((k) => AuthType[k] === options.auth).length === 0) {
+	if (options.auth && enumToArray(AuthType).filter((t) => t === options.auth).length === 0) {
 		throw new Error(`'${options.auth}' is not a valid authentication type.`);
 	} else if (options.auth && !options.password) {
 		options.password = await generatePassword();
@@ -116,7 +103,7 @@ const startVscode = async (): Promise<void | void[]> => {
 		options.certKey = certKey;
 	}
 
-	enableExtensionTars();
+	enableCustomMarketplace();
 
 	const server = new MainServer({
 		...options,
@@ -180,7 +167,7 @@ const startCli = (): boolean | Promise<void> => {
 	};
 
 	if (shouldSpawnCliProcess()) {
-		enableExtensionTars();
+		enableCustomMarketplace();
 		return vsCli(args);
 	}
 

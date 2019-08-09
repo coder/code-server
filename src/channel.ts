@@ -1,5 +1,4 @@
 import * as path from "path";
-
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
@@ -9,18 +8,17 @@ import { transformOutgoingURIs } from "vs/base/common/uriIpc";
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
 import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnosticsService";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
-import { IExtensionDescription, ExtensionIdentifier } from "vs/platform/extensions/common/extensions";
-import { FileDeleteOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions, FileOpenOptions } from "vs/platform/files/common/files";
+import { ExtensionIdentifier, IExtensionDescription } from "vs/platform/extensions/common/extensions";
+import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions } from "vs/platform/files/common/files";
+import { DiskFileSystemProvider } from "vs/platform/files/node/diskFileSystemProvider";
 import { ILogService } from "vs/platform/log/common/log";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
-import { DiskFileSystemProvider } from "vs/workbench/services/files/node/diskFileSystemProvider";
-
 import { getTranslations } from "vs/server/src/nls";
 import { getUriTransformer } from "vs/server/src/util";
+import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 
 /**
  * Extend the file provider to allow unwatching.
@@ -205,7 +203,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			appSettingsHome: this.environment.appSettingsHome,
 			settingsPath: this.environment.machineSettingsHome,
 			logsPath: URI.file(this.environment.logsPath),
-			extensionsPath: URI.file(this.environment.extensionsPath),
+			extensionsPath: URI.file(this.environment.extensionsPath!),
 			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, "extension-host")),
 			globalStorageHome: URI.file(this.environment.globalStorageHome),
 			userHome: URI.file(this.environment.userHome),
@@ -237,7 +235,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		};
 
 		const scanInstalled = async (): Promise<IExtensionDescription[][]> => {
-			return scanMultiple(false, true, [this.environment.extensionsPath, ...this.environment.extraExtensionPaths]);
+			return scanMultiple(false, true, [this.environment.extensionsPath!, ...this.environment.extraExtensionPaths]);
 		};
 
 		return Promise.all([scanBuiltin(), scanInstalled()]).then((allExtensions) => {

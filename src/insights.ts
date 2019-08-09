@@ -1,7 +1,6 @@
+import * as appInsights from "applicationinsights";
 import * as https from "https";
 import * as os from "os";
-
-import * as appInsights from "applicationinsights";
 
 export class TelemetryClient implements appInsights.TelemetryClient {
 	public config: any = {};

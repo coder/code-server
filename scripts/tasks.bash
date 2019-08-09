@@ -56,9 +56,9 @@ function prepend-loader() {
 # Copy code-server into VS Code then build it.
 function build-code-server() {
 	copy-server
+	yarn gulp compile-build --max-old-space-size=32384
+
 	local min=""
-	export BUILD_SOURCEVERSION
-	BUILD_SOURCEVERSION=$(node -p "require('${sourcePath}/build/lib/git.js').getVersion('${rootPath}')")
 	if [[ -n "${minify}" ]] ; then
 		min="-min"
 		yarn gulp minify-vscode --max-old-space-size=32384
@@ -74,11 +74,9 @@ function build-code-server() {
 	cd "${buildPath}" && yarn --production --force --build-from-source
 	rm "${buildPath}/"{package.json,yarn.lock,.yarnrc}
 
-	local packageJson="{\"codeServerVersion\": \"${codeServerVersion}-vsc${vscodeVersion}\"}"
 	cp -r "${sourcePath}/.build/extensions" "${buildPath}"
-	node "${rootPath}/scripts/merge.js" "${sourcePath}/package.json" "${rootPath}/scripts/package.json" "${buildPath}/package.json" "${packageJson}"
-	node "${rootPath}/scripts/merge.js" "${sourcePath}/.build/product.json" "${rootPath}/scripts/product.json" "${buildPath}/product.json"
 	cp -r "${sourcePath}/out-vscode${min}" "${buildPath}/out"
+	node "${rootPath}/scripts/build-json.js" "${sourcePath}" "${buildPath}" "${vscodeVersion}" "${codeServerVersion}"
 
 	# Only keep production dependencies for the server.
 	cp "${rootPath}/"{package.json,yarn.lock} "${buildPath}/out/vs/server"
@@ -143,7 +141,7 @@ function build-task() {
 			log "Pre-built VS Code ${vscodeVersion} has no built extensions" "error"
 			exit 1
 		fi
-		yarn gulp extensions-build-package --max-old-space-size=32384
+		yarn gulp compile-extensions-build --max-old-space-size=32384
 	fi
 	build-code-server
 }

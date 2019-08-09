@@ -1,5 +1,4 @@
 import * as cp from "child_process";
-
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter } from "vs/base/common/event";
@@ -7,11 +6,10 @@ import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
 import { NodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { ILogService } from "vs/platform/log/common/log";
-import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
-
 import { getNlsConfiguration } from "vs/server/src/nls";
 import { Protocol } from "vs/server/src/protocol";
 import { uriTransformerPath } from "vs/server/src/util";
+import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
 export abstract class Connection {
 	protected readonly _onClose = new Emitter<void>();
@@ -126,8 +124,8 @@ export class ExtensionHostConnection extends Connection {
 		proc.stderr.setEncoding("utf8").on("data", (d) => this.log.error("Extension host stderr", d));
 		proc.on("message", (event) => {
 			if (event && event.type === "__$console") {
-				const severity = this.log[event.severity] ? event.severity : "info";
-				this.log[severity]("Extension host", event.arguments);
+				const severity = (<any>this.log)[event.severity] ? event.severity : "info";
+				(<any>this.log)[severity]("Extension host", event.arguments);
 			}
 		});
 

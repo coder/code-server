@@ -1,18 +1,17 @@
-import { generateUuid } from "vs/base/common/uuid";
 import { DesktopDragAndDropData } from "vs/base/browser/ui/list/listView";
-import { VSBuffer, VSBufferReadable } from "vs/base/common/buffer";
-import { Emitter, Event } from "vs/base/common/event";
+import { VSBuffer, VSBufferReadableStream } from "vs/base/common/buffer";
 import { Disposable } from "vs/base/common/lifecycle";
 import * as path from "vs/base/common/path";
 import { URI } from "vs/base/common/uri";
+import { generateUuid } from "vs/base/common/uuid";
 import { IFileService } from "vs/platform/files/common/files";
-import { createDecorator, ServiceIdentifier, IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
+import { createDecorator, IInstantiationService, ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
 import { INotificationService, Severity } from "vs/platform/notification/common/notification";
-import { IProgress, IProgressStep, IProgressService, ProgressLocation } from "vs/platform/progress/common/progress";
+import { IProgress, IProgressService, IProgressStep, ProgressLocation } from "vs/platform/progress/common/progress";
+import { IWindowsService } from "vs/platform/windows/common/windows";
+import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
 import { ExplorerItem } from "vs/workbench/contrib/files/common/explorerModel";
 import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
-import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
-import { IWindowsService } from "vs/platform/windows/common/windows";
 import { IEditorService } from "vs/workbench/services/editor/common/editorService";
 
 export const IUploadService = createDecorator<IUploadService>("uploadService");
@@ -208,20 +207,15 @@ class Upload {
 			),
 		});
 		const reader = new Reader(file);
-		reader.onData((data) => {
-			if (data && data.length > 0) {
+		reader.on("data", (data) => {
+			if (data && data.byteLength > 0) {
 				this.uploaded += data.byteLength;
-			}
-		});
-		reader.onAbort(() => {
-			const remaining = file.size - reader.offset;
-			if (remaining > 0) {
-				this.uploaded += remaining;
 			}
 		});
 		this.uploadingFiles.set(filePath, reader);
 		await this.fileService.writeFile(tempUri, reader);
 		if (reader.aborted) {
+			this.uploaded += (file.size - reader.offset);
 			await this.fileService.del(tempUri);
 		} else {
 			await this.fileService.move(tempUri, uri, true);
@@ -292,17 +286,14 @@ class Upload {
 	}
 }
 
-class Reader implements VSBufferReadable {
+class Reader implements VSBufferReadableStream {
 	private _offset = 0;
 	private readonly size = 32000; // ~32kb max while reading in the file.
-	private readonly _onData = new Emitter<Uint8Array | null>();
-	public readonly onData: Event<Uint8Array | null> = this._onData.event;
-
 	private _aborted = false;
-	private readonly _onAbort = new Emitter<void>();
-	public readonly onAbort: Event<void> = this._onAbort.event;
-
 	private readonly reader = new FileReader();
+	private paused = true;
+	private buffer?: VSBuffer;
+	private callbacks = new Map<string, Array<(...args: any[]) => void>>();
 
 	public constructor(private readonly file: File) {
 		this.reader.addEventListener("load", this.onLoad);
@@ -311,35 +302,71 @@ class Reader implements VSBufferReadable {
 	public get offset(): number { return this._offset; }
 	public get aborted(): boolean { return this._aborted; }
 
+	public on(event: "data" | "error" | "end", callback: (...args:any[]) => void): void {
+		if (!this.callbacks.has(event)) {
+			this.callbacks.set(event, []);
+		}
+		this.callbacks.get(event)!.push(callback);
+		if (this.aborted) {
+			return this.emit("error", new Error("stream has been aborted"));
+		} else if (this.done) {
+			return this.emit("error", new Error("stream has ended"));
+		} else if (event === "end") { // Once this is being listened to we can safely start outputting data.
+			this.resume();
+		}
+	}
+
 	public abort = (): void => {
 		this._aborted = true;
 		this.reader.abort();
 		this.reader.removeEventListener("load", this.onLoad);
-		this._onAbort.fire();
+		this.emit("end");
 	}
 
-	public read = async (): Promise<VSBuffer | null> => {
-		return new Promise<VSBuffer | null>((resolve) => {
-			const disposables = [
-				this.onAbort(() => {
-					disposables.forEach((d) => d.dispose());
-					resolve(null);
-				}),
-				this.onData((data) => {
-					disposables.forEach((d) => d.dispose());
-					resolve(data && VSBuffer.wrap(data));
-				}),
-			];
-			if (this.aborted || this.offset >= this.file.size) {
-				return this._onData.fire(null);
+	public pause(): void {
+		this.paused = true;
+	}
+
+	public resume(): void {
+		if (this.paused) {
+			this.paused = false;
+			this.readNextChunk();
+		}
+	}
+
+	public destroy(): void {
+		this.abort();
+	}
+
+	private onLoad = (): void => {
+		this.buffer = VSBuffer.wrap(new Uint8Array(this.reader.result as ArrayBuffer));
+		if (!this.paused) {
+			this.readNextChunk();
+		}
+	}
+
+	private readNextChunk(): void {
+		if (this.buffer) {
+			this._offset += this.buffer.byteLength;
+			this.emit("data", this.buffer);
+			this.buffer = undefined;
+		}
+		if (!this.paused) { // Could be paused during the data event.
+			if (this.done) {
+				this.emit("end");
+			} else {
+				this.reader.readAsArrayBuffer(this.file.slice(this.offset, this.offset + this.size));
 			}
-			const slice = this.file.slice(this.offset, this.offset + this.size);
-			this._offset += this.size;
-			this.reader.readAsArrayBuffer(slice);
-		});
+		}
 	}
 
-	private onLoad = () => {
-		this._onData.fire(new Uint8Array(this.reader.result as ArrayBuffer));
+	private emit(event: "data" | "error" | "end", ...args: any[]): void {
+		if (this.callbacks.has(event)) {
+			this.callbacks.get(event)!.forEach((cb) => cb(...args));
+		}
+	}
+
+	private get done(): boolean {
+		return this.offset >= this.file.size;
 	}
 }

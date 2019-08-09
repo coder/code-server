@@ -1,35 +1,34 @@
-import * as vscode from "vscode";
-
+import { createCSSRule } from "vs/base/browser/dom";
+import { Emitter, Event } from "vs/base/common/event";
+import { IDisposable } from "vs/base/common/lifecycle";
+import { URI } from "vs/base/common/uri";
+import { generateUuid } from "vs/base/common/uuid";
 import { localize } from "vs/nls";
 import { SyncActionDescriptor } from "vs/platform/actions/common/actions";
-import { Registry } from "vs/platform/registry/common/platform";
-import { IWorkbenchActionRegistry, Extensions as ActionExtensions} from "vs/workbench/common/actions";
 import { CommandsRegistry, ICommandService } from "vs/platform/commands/common/commands";
-import { IStat, IWatchOptions, FileOverwriteOptions, FileDeleteOptions, FileOpenOptions, IFileChange, FileWriteOptions, FileSystemProviderCapabilities, IFileService, FileType, IFileSystemProvider } from "vs/platform/files/common/files";
-import { IStorageService } from "vs/platform/storage/common/storage";
+import { IConfigurationService } from "vs/platform/configuration/common/configuration";
+import { IContextMenuService } from "vs/platform/contextview/browser/contextView";
+import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileSystemProviderCapabilities, FileType, FileWriteOptions, IFileChange, IFileService, IFileSystemProvider, IStat, IWatchOptions } from "vs/platform/files/common/files";
+import { IInstantiationService, ServiceIdentifier } from "vs/platform/instantiation/common/instantiation";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { INotificationService } from "vs/platform/notification/common/notification";
-import { Emitter, Event } from "vs/base/common/event";
-import * as extHostTypes from "vs/workbench/api/common/extHostTypes";
-import { ServiceIdentifier, IInstantiationService } from "vs/platform/instantiation/common/instantiation";
-import { URI } from "vs/base/common/uri";
-import { ITreeItem, ITreeViewDataProvider, IViewsRegistry, ITreeViewDescriptor, Extensions as ViewsExtensions, IViewContainersRegistry, TreeItemCollapsibleState } from "vs/workbench/common/views";
-import { CustomTreeViewPanel, CustomTreeView } from "vs/workbench/browser/parts/views/customView";
-import { ViewletRegistry, Extensions as ViewletExtensions, ViewletDescriptor, ShowViewletAction } from "vs/workbench/browser/viewlet";
-import { IExtensionService } from "vs/workbench/services/extensions/common/extensions";
-import { ViewContainerViewlet } from "vs/workbench/browser/parts/views/viewsViewlet";
-import { IConfigurationService } from "vs/platform/configuration/common/configuration";
-import { IWorkbenchLayoutService } from "vs/workbench/services/layout/browser/layoutService";
+import { Registry } from "vs/platform/registry/common/platform";
+import { IStorageService } from "vs/platform/storage/common/storage";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
-import { IEditorService } from "vs/workbench/services/editor/common/editorService";
 import { IThemeService } from "vs/platform/theme/common/themeService";
-import { IContextMenuService } from "vs/platform/contextview/browser/contextView";
-import { IViewletService } from "vs/workbench/services/viewlet/browser/viewlet";
+import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
+import * as extHostTypes from "vs/workbench/api/common/extHostTypes";
+import { CustomTreeView, CustomTreeViewPanel } from "vs/workbench/browser/parts/views/customView";
+import { ViewContainerViewlet } from "vs/workbench/browser/parts/views/viewsViewlet";
+import { Extensions as ViewletExtensions, ShowViewletAction, ViewletDescriptor, ViewletRegistry } from "vs/workbench/browser/viewlet";
+import { Extensions as ActionExtensions, IWorkbenchActionRegistry } from "vs/workbench/common/actions";
+import { Extensions as ViewsExtensions, ITreeItem, ITreeViewDataProvider, ITreeViewDescriptor, IViewContainersRegistry, IViewsRegistry, TreeItemCollapsibleState } from "vs/workbench/common/views";
 import { IEditorGroupsService } from "vs/workbench/services/editor/common/editorGroupsService";
-import { createCSSRule } from "vs/base/browser/dom";
-import { IDisposable } from "vs/base/common/lifecycle";
-import { generateUuid } from "vs/base/common/uuid";
+import { IEditorService } from "vs/workbench/services/editor/common/editorService";
+import { IExtensionService } from "vs/workbench/services/extensions/common/extensions";
+import { IWorkbenchLayoutService } from "vs/workbench/services/layout/browser/layoutService";
+import { IViewletService } from "vs/workbench/services/viewlet/browser/viewlet";
+import * as vscode from "vscode";
 
 /**
  * Client-side implementation of VS Code's API.
