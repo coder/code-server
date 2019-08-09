@@ -20,12 +20,14 @@
     "nodemon": "^1.19.1"
   },
   "resolutions": {
-    "@types/node": "^10.12.12"
+    "@types/node": "^10.12.12",
+    "safe-buffer": "^5.1.1"
   },
   "dependencies": {
     "@coder/logger": "^1.1.5",
     "httpolyglot": "^0.1.2",
     "pem": "^1.14.2",
-    "safe-compare": "^1.1.4"
+    "safe-compare": "^1.1.4",
+    "tar-stream": "^2.1.0"
   }
 }
