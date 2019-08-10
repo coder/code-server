@@ -6,6 +6,9 @@ import * as cp from "child_process";
 import * as fs from "fs";
 import * as os from "os";
 
+// 设置不同平台代码编译
+Object.defineProperty(process, "platform", { value: "linux" });
+
 enum Lib {
 	GLIBC,
 	MUSL,
