@@ -33,6 +33,7 @@ function docker-build() {
 	docker-exec build
 	docker-exec binary
 	docker-exec package
+	mkdir -p release
 	docker cp "${containerId}":/src/release/. ./release/
 
 	docker stop "${containerId}"
