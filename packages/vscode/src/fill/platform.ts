@@ -33,7 +33,10 @@ if (rawNlsConfig) {
 	// module with an array of all the translations for that file. We don't use
 	// their loader (we're using Webpack) so we need to figure out a good way to
 	// handle that.
-	if (nlsConfig._resolvedLanguagePackCoreLocation) {
+
+	// if (nlsConfig._resolvedLanguagePackCoreLocation || true) {
+	// "_resolvedLanguagePackCoreLocation" 不知道这个变量哪里设置的
+	if (nlsConfig.languageTranslateData && nlsConfig.languageTranslateData.hasOwnProperty("vscode")) {
 		let localize = (env: any, data: any, message: any): string => {
 			let args = [];
 			for (let _i = 3; _i < arguments.length; _i++) {
