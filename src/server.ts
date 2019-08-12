@@ -189,7 +189,8 @@ export abstract class Server {
 	}
 
 	protected withBase(request: http.IncomingMessage, path: string): string {
-		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}`;
+		const split = request.url ? request.url.split("?", 2) : [];
+		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${split.length === 2 ? `?${split[1]}` : ""}`;
 	}
 
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
