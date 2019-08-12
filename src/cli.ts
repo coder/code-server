@@ -229,6 +229,12 @@ const main = async(): Promise<boolean | void | void[]> => {
 	return startCli() || new WrapperProcess().start();
 };
 
+// It's possible that the pipe has closed (for example if you run code-server
+// --version | head -1). Assume that means we're done.
+if (!process.stdout.isTTY) {
+	process.stdout.on("error", () => process.exit());
+}
+
 main().catch((error) => {
 	logger.error(error.message);
 	process.exit(typeof error.code === "number" ? error.code : 1);
