@@ -60,7 +60,7 @@ index 99bd930a91..319c4bd3c3 100644
  ];
  
 diff --git a/src/vs/base/browser/dom.ts b/src/vs/base/browser/dom.ts
-index fa12f62900..1dbaac1640 100644
+index fa12f62900..a4c72fee8e 100644
 --- a/src/vs/base/browser/dom.ts
 +++ b/src/vs/base/browser/dom.ts
 @@ -1187,6 +1187,7 @@ export function animate(fn: () => void): IDisposable {
@@ -80,7 +80,7 @@ index fa12f62900..1dbaac1640 100644
  		// rewrite vscode-remote-uris to uris of the window location
  		// so that they can be intercepted by the service worker
 -		return _location.with({ path: '/vscode-resources/fetch', query: `u=${JSON.stringify(uri)}` });
-+		return _location.with({ path: `${basePath}/vscode-resources/${uri.fsPath}` });
++		return _location.with({ path: `${basePath}/vscode-resources/fetch`, query: `u=${JSON.stringify(uri)}` });
  	}
  	return uri;
  }
@@ -715,6 +715,33 @@ index 9235c739fb..32d203eb32 100644
  			this._register(logService.onDidChangeLogLevel(level => logLevelClient.setLevel(level)));
  		}
  	}
+diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
+index 622bb7889b..66dd4b0bbc 100644
+--- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
++++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
+@@ -36,7 +36,8 @@ self.addEventListener('activate', event => {
+ //#region --- fetching/caching
+ 
+ const _cacheName = 'vscode-resources';
+-const _resourcePrefix = '/vscode-resources/fetch';
++const rootPath = self.location.pathname.replace(/\/out\/vs\/workbench\/contrib\/resources\/browser\/resourceServiceWorkerMain.js$/, '');
++const _resourcePrefix = `${rootPath}/vscode-resources/fetch`;
+ const _pendingFetch = new Map<string, Function>();
+ 
+ self.addEventListener('message', event => {
+diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
+index dfda6a1cfb..44a01fb0fb 100644
+--- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
++++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
+@@ -24,7 +24,7 @@ const _serviceWorker = new class ServiceWorkerStarter {
+ 	private _messageHandler?: (event: ExtendableMessageEvent) => void;
+ 
+ 	constructor() {
+-		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: '/' }).then(reg => {
++		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: window.location.pathname.replace(/\/+$/, '') }).then(reg => {
+ 			// console.debug('SW#reg', reg);
+ 			return reg.update();
+ 			// }).then(() => {
 diff --git a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
 index e39fa57979..3c775c9a06 100644
 --- a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts

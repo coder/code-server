@@ -198,7 +198,7 @@ export abstract class Server {
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
-				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath + "/" } : {}),
+				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath || "/" } : {}),
 				...payload.headers,
 			});
 			response.end(payload.content);
@@ -442,7 +442,20 @@ export class MainServer extends Server {
 	): Promise<Response> {
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
-			case "/vscode-resources": return this.getResource(requestPath);
+			case "/vscode-resources":
+				if (requestPath === "/fetch") {
+					// For some reason VS Code encodes the = so the query doesn't parse
+					// correctly. We'll look through what's available and try to find it.
+					for (let value in parsedUrl.query) {
+						if (value && typeof value === "string") {
+							const query = querystring.parse(value);
+							if (typeof query.u === "string") {
+								return this.getResource(JSON.parse(query.u).path);
+							}
+						}
+					}
+				}
+				throw new HttpError("Not found", HttpCode.NotFound);
 			case "/webview":
 				if (requestPath.indexOf("/vscode-resource") === 0) {
 					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));

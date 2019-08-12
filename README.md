@@ -110,9 +110,8 @@ directory.
 Our changes include:
 - Add a `code-server` schema.
 - Allow multiple extension directories (both user and built-in).
-- Rewrite assets requested by the browser to use the base URL.
-- Modify the loader, websocket, webview, and service worker to use the URL of
-  the page as a base (and TLS if necessary for the websocket).
+- Modify the loader, websocket, webview, service worker, and asset requests to
+  use the URL of the page as a base (and TLS if necessary for the websocket).
 - Send client-side telemetry through the server.
 - Add a file prefix to ignore for temporary files created during upload.
 - Insert our upload service for use in editor windows and explorer.
