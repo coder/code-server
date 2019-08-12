@@ -234,7 +234,7 @@ index a6c9eb9d11..3f8995b727 100644
 +	extraBuiltinExtensionPaths: string[];
  }
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index 9373b22383..33ebcfc081 100644
+index 9373b22383..a98ff4723c 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
 @@ -277,6 +277,15 @@ export class EnvironmentService implements IEnvironmentService {
@@ -248,7 +248,7 @@ index 9373b22383..33ebcfc081 100644
 +		return this.arrayify(this._args['extra-builtin-extensions-dir']).map((p) => <string>parsePathArg(p, process));
 +	}
 +	private arrayify<T>(arg: T | T[] = []): T[] {
-+		return (Array.isArray(arg) ? arg : [arg]);
++		return (Array.isArray(arg) ? arg : [arg]).filter((p) => !!p);
 +	}
  
  	constructor(private _args: ParsedArgs, private _execPath: string) {
