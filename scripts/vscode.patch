@@ -556,7 +556,7 @@ index ede771a03e..bb40fcdd6b 100644
  			if (!userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index 25414d8733..73aca01cd2 100644
+index 25414d8733..a0de828393 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -38,6 +38,9 @@ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteA
@@ -600,7 +600,7 @@ index 25414d8733..73aca01cd2 100644
  			const uri = _uris[i];
  			if ('folderUri' in uri) {
 -				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
-+				const newAddress = `${window.location}/?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
++				const newAddress = `${window.location}?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
@@ -609,7 +609,7 @@ index 25414d8733..73aca01cd2 100644
  			}
  			if ('workspaceUri' in uri) {
 -				const newAddress = `${document.location.origin}/?workspace=${uri.workspaceUri.path}`;
-+				const newAddress = `${window.location}/?workspace=${uri.workspaceUri.path}`;
++				const newAddress = `${window.location}?workspace=${uri.workspaceUri.path}`;
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
