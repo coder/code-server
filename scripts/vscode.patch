@@ -174,10 +174,10 @@ index 5b06636edb..60b508079a 100644
  	<!-- Require our AMD loader -->
  	<script src="./out/vs/loader.js"></script>
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 65fae7c82d..c9744007c9 100644
+index 65fae7c82d..9a9b8bbe3b 100644
 --- a/src/vs/code/browser/workbench/workbench.js
 +++ b/src/vs/code/browser/workbench/workbench.js
-@@ -7,15 +7,20 @@
+@@ -7,21 +7,26 @@
  
  (function () {
  
@@ -205,6 +205,14 @@ index 65fae7c82d..c9744007c9 100644
  		}
  	});
  
+ 	require(['vs/workbench/workbench.web.api'], function (api) {
+ 		const options = JSON.parse(document.getElementById('vscode-workbench-web-configuration').getAttribute('data-settings'));
+-
++		options.webviewEndpoint = `${base}/webview/`;
+ 		api.create(document.body, options);
+ 	});
+ })();
+\ No newline at end of file
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index a6c9eb9d11..3f8995b727 100644
 --- a/src/vs/platform/environment/common/environment.ts

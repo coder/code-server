@@ -469,7 +469,6 @@ export class MainServer extends Server {
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
 		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
 		const remoteAuthority = request.headers.host as string;
-		const webviewEndpoint = this.withBase(request, "/webview/");
 		const transformer = getUriTransformer(remoteAuthority);
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
@@ -480,7 +479,6 @@ export class MainServer extends Server {
 					? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
 					: undefined,
 				remoteAuthority,
-				webviewEndpoint,
 			},
 			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
 				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
@@ -497,7 +495,7 @@ export class MainServer extends Server {
 		for (const key in options) {
 			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
 		}
-		content = content.replace('{{WEBVIEW_ENDPOINT}}', webviewEndpoint);
+		content = content.replace("{{WEBVIEW_ENDPOINT}}", "");
 
 		return { content, filePath };
 	}
