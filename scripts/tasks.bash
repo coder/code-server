@@ -83,6 +83,17 @@ function build-code-server() {
 	cd "${buildPath}/out/vs/server" && yarn --production --ignore-scripts
 	rm "${buildPath}/out/vs/server/"{package.json,yarn.lock}
 
+	# onigasm 2.2.2 has a bug that makes it broken for PHP files so use 2.2.1.
+	# https://github.com/NeekSandhu/onigasm/issues/17
+	local onigasmPath="${buildPath}/node_modules/onigasm-umd"
+	rm -rf "${onigasmPath}"
+	git clone "https://github.com/alexandrudima/onigasm-umd" "${onigasmPath}"
+	cd "${onigasmPath}" && yarn && yarn add --dev onigasm@2.2.1 && yarn package
+	mkdir "${onigasmPath}-temp"
+	mv "${onigasmPath}/"{release,LICENSE} "${onigasmPath}-temp"
+	rm -rf "${onigasmPath}"
+	mv "${onigasmPath}-temp" "${onigasmPath}"
+
 	prepend-loader "out/vs/server/main.js"
 	prepend-loader "out/bootstrap-fork.js"
 
