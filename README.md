@@ -119,8 +119,9 @@ Our changes include:
 - Change a regular expression used for mnemonics so it works on Firefox.
 - Make it possible for us to load code on the client.
 - Modify the build process to include our code.
-- Fix a CSP issue within a webview.
+- Fix a CSP issue within webviews.
 - Fix an issue displaying extension contributions.
+- Make changing the display language work.
 
 ## License
 [MIT](LICENSE)

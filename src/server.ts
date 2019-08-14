@@ -443,8 +443,12 @@ export class MainServer extends Server {
 	): Promise<Response> {
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
+			case "/resources":
 			case "/vscode-resources":
 				if (requestPath === "/fetch") {
+					if (typeof parsedUrl.query.u === "string") {
+						return this.getResource(JSON.parse(parsedUrl.query.u).path);
+					}
 					// For some reason VS Code encodes the = so the query doesn't parse
 					// correctly. We'll look through what's available and try to find it.
 					for (let value in parsedUrl.query) {

@@ -174,15 +174,40 @@ index 5b06636edb..60b508079a 100644
  	<!-- Require our AMD loader -->
  	<script src="./out/vs/loader.js"></script>
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 65fae7c82d..9a9b8bbe3b 100644
+index 65fae7c82d..a1974cd941 100644
 --- a/src/vs/code/browser/workbench/workbench.js
 +++ b/src/vs/code/browser/workbench/workbench.js
-@@ -7,21 +7,26 @@
+@@ -7,21 +7,52 @@
  
  (function () {
  
 +	const basePath = window.location.pathname.replace(/\/+$/, '');
 +	const base = window.location.origin + basePath;
++
++	let nlsConfig;
++	try {
++		nlsConfig = JSON.parse(document.getElementById('vscode-remote-nls-configuration').getAttribute('data-settings'));
++		if (nlsConfig._resolvedLanguagePackCoreLocation) {
++			const bundles = Object.create(null);
++			nlsConfig.loadBundle = (bundle, language, cb) => {
++				let result = bundles[bundle];
++				if (result) {
++					return cb(undefined, result);
++				}
++				// FIXME: Only works if path separators are /.
++				const path = nlsConfig._resolvedLanguagePackCoreLocation
++					+ '/' + bundle.replace(/\//g, '!') + '.nls.json';
++				fetch(`${base}/resources/fetch?u=${JSON.stringify({ path })}`)
++					.then((response) => response.json())
++					.then((json) => {
++						bundles[bundle] = json;
++						cb(undefined, json);
++					})
++					.catch(cb);
++			};
++		}
++	} catch (error) { /* Probably fine. */ }
++
  	require.config({
 -		baseUrl: `${window.location.origin}/out`,
 +		baseUrl: `${base}/out`,
@@ -196,13 +221,15 @@ index 65fae7c82d..9a9b8bbe3b 100644
 -			'xterm-addon-search': `${window.location.origin}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
 -			'xterm-addon-web-links': `${window.location.origin}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
 -			'semver-umd': `${window.location.origin}/node_modules/semver-umd/lib/semver-umd.js`,
+-		}
 +			'vscode-textmate': `${base}/node_modules/vscode-textmate/release/main`,
 +			'onigasm-umd': `${base}/node_modules/onigasm-umd/release/main`,
 +			'xterm': `${base}/node_modules/xterm/lib/xterm.js`,
 +			'xterm-addon-search': `${base}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
 +			'xterm-addon-web-links': `${base}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
 +			'semver-umd': `${base}/node_modules/semver-umd/lib/semver-umd.js`,
- 		}
++		},
++		'vs/nls': nlsConfig
  	});
  
  	require(['vs/workbench/workbench.web.api'], function (api) {
