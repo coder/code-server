@@ -1033,7 +1033,7 @@ index 0d2d53003b..03489411bb 100644
  			group: '5_update',
  			command: {
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/index.html b/src/vs/workbench/contrib/webview/browser/pre/index.html
-index ac53ce590e..2ce2b9d9f2 100644
+index ac53ce590e..69dbbd859c 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ b/src/vs/workbench/contrib/webview/browser/pre/index.html
 @@ -4,7 +4,7 @@
@@ -1041,17 +1041,36 @@ index ac53ce590e..2ce2b9d9f2 100644
  	<meta charset="UTF-8">
  	<meta http-equiv="Content-Security-Policy"
 -		content="default-src 'none'; script-src 'self'; frame-src 'self'; style-src 'unsafe-inline'; worker-src 'self';" />
-+		content="default-src 'none'; script-src 'self'; frame-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; img-src https: data:;" />
++		content="default-src 'none'; script-src 'self' 'unsafe-inline'; frame-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; img-src https: data:; font-src 'self';" />
  
  	<meta name="viewport" content="width=device-width, initial-scale=1.0">
  	<meta http-equiv="X-UA-Compatible" content="ie=edge">
-@@ -16,4 +16,4 @@
- 	<script src="host.js"></script>
- </body>
+diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
+index 63585fc25c..f49b63e024 100644
+--- a/src/vs/workbench/contrib/webview/browser/pre/main.js
++++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -256,7 +256,7 @@
+ 		 */
+ 		function toContentHtml(data) {
+ 			const options = data.options;
+-			const text = data.contents;
++			const text = data.contents.replace(/vscode-resource:/g, "'self'");
+ 			const newDocument = new DOMParser().parseFromString(text, 'text/html');
  
--</html>
-\ No newline at end of file
-+</html>
+ 			newDocument.querySelectorAll('a').forEach(a => {
+@@ -265,6 +265,12 @@
+ 				}
+ 			});
+ 
++			// REVIEW: Why is it required for scripts to be loaded at the end?
++			// Without this the document in the iframe appears to simply truncate.
++			newDocument.querySelectorAll('script').forEach(script => {
++				newDocument.body.appendChild(script);
++			});
++
+ 			// apply default script
+ 			if (options.allowScripts) {
+ 				const defaultScript = newDocument.createElement('script');
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index 73e8b7c1d1..653d88e4f4 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
