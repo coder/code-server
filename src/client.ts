@@ -1,3 +1,4 @@
+import { URI } from "vs/base/common/uri";
 import { registerSingleton } from "vs/platform/instantiation/common/extensions";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
@@ -38,4 +39,29 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	(event as any).ide = target.ide;
 	(event as any).vscode = target.vscode;
 	window.dispatchEvent(event);
+};
+
+export interface Query {
+	[key: string]: string | undefined;
+}
+
+/**
+ * Return the URL modified with the specified query variables. It's pretty
+ * stupid so it probably doesn't cover any edge cases. Undefined values will
+ * unset existing values. Doesn't allow duplicates.
+ */
+export const withQuery = (url: string, replace: Query): string => {
+	const uri = URI.parse(url);
+	const query = { ...replace };
+	uri.query.split("&").forEach((kv) => {
+		const [key, value] = kv.split("=", 2);
+		if (!(key in query)) {
+			query[key] = value;
+		}
+	});
+	return uri.with({
+		query: Object.keys(query)
+			.filter((k) => typeof query[k] !== "undefined")
+			.map((k) => `${k}=${query[k]}`).join("&"),
+	}).toString(true);
 };

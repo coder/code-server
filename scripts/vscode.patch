@@ -583,20 +583,21 @@ index ede771a03e..bb40fcdd6b 100644
  			if (!userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index 25414d8733..a0de828393 100644
+index 25414d8733..20b0ad4a49 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
-@@ -38,6 +38,9 @@ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteA
+@@ -38,6 +38,10 @@ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteA
  import { IExperimentService, IExperiment, ExperimentActionType, ExperimentState } from 'vs/workbench/contrib/experiments/common/experimentService';
  import { ExtensionHostDebugChannelClient, ExtensionHostDebugBroadcastChannel } from 'vs/platform/debug/common/extensionHostDebugIpc';
  import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 +import { ExtensionManagementChannelClient } from 'vs/platform/extensionManagement/common/extensionManagementIpc';
++import { withQuery } from 'vs/server/src/client';
 +import { IUploadService, UploadService } from 'vs/server/src/upload';
 +registerSingleton(IUploadService, UploadService, true);
  
  //#region Extension Tips
  
-@@ -131,7 +134,15 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
+@@ -131,7 +135,15 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
  	}
  }
  
@@ -613,7 +614,7 @@ index 25414d8733..a0de828393 100644
  
  //#endregion
  
-@@ -251,7 +262,7 @@ export class SimpleUpdateService implements IUpdateService {
+@@ -251,7 +263,7 @@ export class SimpleUpdateService implements IUpdateService {
  	}
  }
  
@@ -622,25 +623,32 @@ index 25414d8733..a0de828393 100644
  
  //#endregion
  
-@@ -491,7 +502,7 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+@@ -491,7 +503,11 @@ export class SimpleWindowService extends Disposable implements IWindowService {
  		for (let i = 0; i < _uris.length; i++) {
  			const uri = _uris[i];
  			if ('folderUri' in uri) {
 -				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
-+				const newAddress = `${window.location}?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
++				const newAddress = withQuery(window.location.toString(), {
++					folder: uri.folderUri.path,
++					tkn: this.workbenchEnvironmentService.configuration.connectionToken,
++					workspace: undefined,
++				});
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
-@@ -499,7 +510,7 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+@@ -499,7 +515,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
  				}
  			}
  			if ('workspaceUri' in uri) {
 -				const newAddress = `${document.location.origin}/?workspace=${uri.workspaceUri.path}`;
-+				const newAddress = `${window.location}?workspace=${uri.workspaceUri.path}`;
++				const newAddress = withQuery(window.location.toString(), {
++					folder: undefined,
++					workspace: uri.workspaceUri.path,
++				});
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
-@@ -718,6 +729,7 @@ export class SimpleWindowsService implements IWindowsService {
+@@ -718,6 +737,7 @@ export class SimpleWindowsService implements IWindowsService {
  	}
  
  	relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
