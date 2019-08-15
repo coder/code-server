@@ -757,14 +757,18 @@ index 622bb7889b..66dd4b0bbc 100644
  
  self.addEventListener('message', event => {
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-index dfda6a1cfb..44a01fb0fb 100644
+index dfda6a1cfb..9bd1aa3e64 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-@@ -24,7 +24,7 @@ const _serviceWorker = new class ServiceWorkerStarter {
+@@ -24,7 +24,11 @@ const _serviceWorker = new class ServiceWorkerStarter {
  	private _messageHandler?: (event: ExtendableMessageEvent) => void;
  
  	constructor() {
 -		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: '/' }).then(reg => {
++		if (!navigator.serviceWorker) {
++			console.warn('Service workers are not enabled.');
++			return;
++		}
 +		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: window.location.pathname.replace(/\/+$/, '') }).then(reg => {
  			// console.debug('SW#reg', reg);
  			return reg.update();
