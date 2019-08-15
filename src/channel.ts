@@ -166,7 +166,15 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 		// HACK: for now assume /out is relative to the build (used for the
 		// walkthrough content).
 		if (resource.path.indexOf("/out") === 0) {
-			resource.path = this.environmentService.appRoot + resource.path;
+			return URI.file(this.environmentService.appRoot + resource.path);
+		// This is used by the webview service worker to load resources.
+		} else if (resource.path === "/vscode-resource" && resource.query) {
+			try {
+				const query = JSON.parse(resource.query);
+				if (query.requestResourcePath) {
+					return URI.file(query.requestResourcePath);
+				}
+			} catch (error) { /* Carry on. */ }
 		}
 		return URI.from(resource);
 	}
