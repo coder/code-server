@@ -1,5 +1,6 @@
 import * as cp from "child_process";
 import * as os from "os";
+import { setUnexpectedErrorHandler } from "vs/base/common/errors";
 import { main as vsCli } from "vs/code/node/cliProcessMain";
 import { validatePaths } from "vs/code/node/paths";
 import { ParsedArgs } from "vs/platform/environment/common/environment";
@@ -13,6 +14,7 @@ import { MainServer } from "vs/server/src/server";
 import { AuthType, buildAllowedMessage, enumToArray, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
+setUnexpectedErrorHandler((error) => logger.warn(error.message));
 
 interface Args extends ParsedArgs {
 	auth?: AuthType;
