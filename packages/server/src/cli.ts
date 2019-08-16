@@ -20,27 +20,41 @@ const collect = <T>(value: T, previous: T[]): T[] => {
 	return previous.concat(value);
 };
 
+const split = (value: string | undefined): string[] => {
+	if (!value) {
+		return [];
+	}
+	return value.split(',');
+}
+
+const envVarBool = (value: string | undefined, defaultVal: boolean): boolean => {
+	if (value) {
+		return value.toLowerCase() === 'true'
+	}
+	return defaultVal;
+}
+
 commander.version(process.env.VERSION || "development")
 	.name("code-server")
 	.description("Run VS Code on a remote server.")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
-	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.")
-	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, [])
-	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, [])
-	.option("-d, --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
+	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.", process.env.EXTENSIONS_DIR)
+	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, split(process.env.EXTRA_EXTENSIONS_DIR))
+	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, split(process.env.EXTRA_BULTIN_EXTENSIONS_DIR))
+	.option("-d, --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.", process.env.USER_DATA_DIR)
 	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
-	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
-	.option("-o, --open", "Open in the browser on startup.", false)
+	.option("-h, --host <value>", "Customize the hostname.", process.env.HOST || "0.0.0.0")
+	.option("-o, --open", "Open in the browser on startup.", envVarBool(process.env.OPEN, false))
 	.option("-p, --port <number>", "Port to bind on.", parseInt(process.env.PORT!, 10) || 8443)
-	.option("-N, --no-auth", "Start without requiring authentication.", false)
-	.option("-H, --allow-http", "Allow http connections.", false)
+	.option("-N, --no-auth", "Start without requiring authentication.", envVarBool(process.env.NO_AUTH, false))
+	.option("-H, --allow-http", "Allow http connections.", envVarBool(process.env.ALLOW_HTTP, false))
 	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
-	.option("--disable-telemetry", "Disables ALL telemetry.", false)
-	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
-	.option("--trust-proxy", "Trust the X-Forwarded-For header, useful when using a reverse proxy.", false)
-	.option("--install-extension <value>", "Install an extension by its ID.")
-	.option("--bootstrap-fork <name>", "Used for development. Never set.")
+	.option("--disable-telemetry", "Disables ALL telemetry.", envVarBool(process.env.DISABLE_TELEMETRY, false))
+	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.", process.env.SOCKET)
+	.option("--trust-proxy", "Trust the X-Forwarded-For header, useful when using a reverse proxy.", envVarBool(process.env.TRUST_PROXY, false))
+	.option("--install-extension <value>", "Install an extension by its ID.", process.env.INSTALL_EXTENSION)
+	.option("--bootstrap-fork <name>", "Used for development. Never set.", process.env.BOOTSTRAP_FORK)
 	.option("--extra-args <args>", "Used for development. Never set.")
 	.arguments("Specify working directory.")
 	.parse(process.argv);
