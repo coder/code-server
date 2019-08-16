@@ -60,7 +60,7 @@ index 99bd930a91..319c4bd3c3 100644
  ];
  
 diff --git a/src/vs/base/browser/dom.ts b/src/vs/base/browser/dom.ts
-index fa12f62900..a4c72fee8e 100644
+index fa12f62900..509e76ecb7 100644
 --- a/src/vs/base/browser/dom.ts
 +++ b/src/vs/base/browser/dom.ts
 @@ -1187,6 +1187,7 @@ export function animate(fn: () => void): IDisposable {
@@ -71,12 +71,8 @@ index fa12f62900..a4c72fee8e 100644
  const _location = URI.parse(window.location.href);
  
  export function asDomUri(uri: URI): URI {
-@@ -1197,10 +1198,10 @@ export function asDomUri(uri: URI): URI {
- 		//todo@joh remove this once we have sw in electron going
- 		return uri;
- 	}
--	if (Schemas.vscodeRemote === uri.scheme) {
-+	if (Schemas.codeServer === uri.scheme) {
+@@ -1200,7 +1201,7 @@ export function asDomUri(uri: URI): URI {
+ 	if (Schemas.vscodeRemote === uri.scheme) {
  		// rewrite vscode-remote-uris to uris of the window location
  		// so that they can be intercepted by the service worker
 -		return _location.with({ path: '/vscode-resources/fetch', query: `u=${JSON.stringify(uri)}` });
@@ -108,14 +104,15 @@ index c2b60a5dc9..3f40fa0bdf 100644
 +	return label.replace(regex, mnemonicInText ? '$2$3' : '').trim();
  }
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 46d2933a05..7e8ca77342 100644
+index 46d2933a05..42a3d77802 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -46,6 +46,7 @@ export namespace Schemas {
+@@ -45,7 +45,7 @@ export namespace Schemas {
+ 
  	export const command: string = 'command';
  
- 	export const vscodeRemote: string = 'vscode-remote';
-+	export const codeServer: string = 'code-server';
+-	export const vscodeRemote: string = 'vscode-remote';
++	export const vscodeRemote: string = 'code-server';
  
  	export const userData: string = 'vscode-userdata';
  }
@@ -425,19 +422,6 @@ index 6b24ec0781..4d05c63193 100644
  		const errorListener = socket.onError((err) => callback(err, undefined));
  		socket.onOpen(() => {
  			errorListener.dispose();
-diff --git a/src/vs/platform/remote/common/remoteHosts.ts b/src/vs/platform/remote/common/remoteHosts.ts
-index 5578246cc8..ba38bb0055 100644
---- a/src/vs/platform/remote/common/remoteHosts.ts
-+++ b/src/vs/platform/remote/common/remoteHosts.ts
-@@ -6,7 +6,7 @@
- import { URI } from 'vs/base/common/uri';
- import { Schemas } from 'vs/base/common/network';
- 
--export const REMOTE_HOST_SCHEME = Schemas.vscodeRemote;
-+export const REMOTE_HOST_SCHEME = Schemas.codeServer;
- 
- export function getRemoteAuthority(uri: URI): string | undefined {
- 	return uri.scheme === REMOTE_HOST_SCHEME ? uri.authority : undefined;
 diff --git a/src/vs/platform/update/electron-browser/updateService.ts b/src/vs/platform/update/electron-browser/updateService.ts
 index 952c39cdbe..fee00b3b39 100644
 --- a/src/vs/platform/update/electron-browser/updateService.ts
@@ -554,7 +538,7 @@ index cf1d6b5b60..be8fdb32f7 100644
  
  		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index ede771a03e..bb40fcdd6b 100644
+index ede771a03e..2621eb3755 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -43,6 +43,7 @@ import { getThemeTypeSelector, DARK, HIGH_CONTRAST, LIGHT } from 'vs/platform/th
@@ -573,11 +557,10 @@ index ede771a03e..bb40fcdd6b 100644
  
  		await domContentLoaded();
  		mark('willStartWorkbench');
-@@ -150,6 +152,8 @@ class CodeRendererMain extends Disposable {
+@@ -150,6 +152,7 @@ class CodeRendererMain extends Disposable {
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
-+			fileService.registerProvider(Schemas.codeServer, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
  
  			if (!userDataProvider) {
