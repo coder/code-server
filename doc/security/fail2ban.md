@@ -1,4 +1,7 @@
-# Protecting code-server from bruteforce attempts
+# Protecting code-server from Bruteforce Attempts
+
+<!-- TODO: remove this notice -->
+### **NOTE: FAILED LOGIN ATTEMPT LOGGING IS NOT IN THE CURRENT VERSION AND WILL BE RELEASED IN V2.**
 
 code-server outputs all failed login attempts, along with the IP address,
 provided password, user agent and timestamp by default. When using a reverse
@@ -39,4 +42,3 @@ authentication attempts for many applications through regex filters. A working
 filter for code-server can be found in `./code-server.fail2ban.conf`. Once this
 is installed and configured correctly, repeated failed login attempts should
 automatically be banned from connecting to your server.
-
