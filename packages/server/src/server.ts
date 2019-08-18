@@ -94,7 +94,6 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 						userAgent = userAgent.join(", ");
 					}
 					logger.info("Failed login attempt",
-						field("password", cookies.password),
 						field("remote_address", remoteAddress(req)),
 						field("user_agent", userAgent),
 						field("timestamp", timestamp));
