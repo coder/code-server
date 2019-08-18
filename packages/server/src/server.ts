@@ -31,6 +31,7 @@ interface CreateAppOptions {
 	httpsOptions?: https.ServerOptions;
 	allowHttp?: boolean;
 	bypassAuth?: boolean;
+	trustProxy?: boolean;
 }
 
 export const createApp = async (options: CreateAppOptions): Promise<{
@@ -62,6 +63,21 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		return true;
 	};
 
+	const remoteAddress = (req: http.IncomingMessage): string | void => {
+		let xForwardedFor = req.headers["x-forwarded-for"];
+		if (Array.isArray(xForwardedFor)) {
+			xForwardedFor = xForwardedFor.join(", ");
+		}
+
+		if (options.trustProxy && xForwardedFor !== undefined) {
+			const addresses = xForwardedFor.split(",").map(s => s.trim());
+
+			return addresses.pop();
+		}
+
+		return req.socket.remoteAddress;
+	};
+
 	const isAuthed = (req: http.IncomingMessage): boolean => {
 		try {
 			if (!options.password || options.bypassAuth) {
@@ -70,7 +86,22 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 			// Try/catch placed here just in case
 			const cookies = parseCookies(req);
-			if (cookies.password && safeCompare(cookies.password, options.password)) {
+			if (cookies.password) {
+				if (!safeCompare(cookies.password, options.password)) {
+					let userAgent = req.headers["user-agent"];
+					let timestamp = Math.floor(new Date().getTime() / 1000);
+					if (Array.isArray(userAgent)) {
+						userAgent = userAgent.join(", ");
+					}
+					logger.info("Failed login attempt",
+						field("password", cookies.password),
+						field("remote_address", remoteAddress(req)),
+						field("user_agent", userAgent),
+						field("timestamp", timestamp));
+
+					return false;
+				}
+
 				return true;
 			}
 		} catch (ex) {
@@ -214,7 +245,9 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 	const staticGzip = expressStaticGzip(path.join(baseDir, "build/web"));
 
 	app.use((req, res, next) => {
-		logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.originalUrl}`, field("host", req.hostname), field("ip", req.ip));
+		logger.trace(`\u001B[1m${req.method} ${res.statusCode} \u001B[0m${req.originalUrl}`,
+			field("host", req.hostname),
+			field("remote_address", remoteAddress(req)));
 
 		// Force HTTPS unless allowing HTTP.
 		if (!isEncrypted(req.socket) && !options.allowHttp) {

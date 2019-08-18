@@ -52,7 +52,15 @@ export type DialogOptions = OpenDialogOptions | SaveDialogOptions;
 
 export const showOpenDialog = (options: OpenDialogOptions): Promise<string> => {
 	return new Promise<string>((resolve, reject): void => {
-		const dialog = new Dialog(DialogType.Open, options);
+		// Make the default to show hidden files and directories since there is no
+		// other way to make them visible in the dialogs currently.
+		const dialog = new Dialog(DialogType.Open, typeof options.properties.showHiddenFiles === "undefined" ? {
+			...options,
+			properties: {
+				...options.properties,
+				showHiddenFiles: true,
+			},
+		} : options);
 		dialog.onSelect((e) => {
 			dialog.dispose();
 			resolve(e);
@@ -307,7 +315,6 @@ class Dialog {
 		}
 		buttonsNode.appendChild(confirmBtn);
 		this.root.appendChild(buttonsNode);
-		this.entryList.layout();
 
 		this.path = options.defaultPath || "/";
 	}
@@ -382,6 +389,8 @@ class Dialog {
 
 				return true;
 			});
+
+			this.entryList.layout();
 
 			this.entryList.setChildren(null, items.map((i: DialogEntry): ITreeElement<DialogEntry> => ({ element: i })));
 			this.entryList.domFocus();
@@ -505,9 +514,8 @@ class DialogEntryRenderer implements ITreeRenderer<DialogEntry, string, DialogEn
 	 */
 	private humanReadableSize(bytes: number): string {
 		const units = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
-		const i = Math.min(Math.floor(Math.log(bytes) / Math.log(1000)), units.length - 1);
+		const i = Math.min(Math.floor(bytes && Math.log(bytes) / Math.log(1000)), units.length - 1);
 
-		return (bytes / Math.pow(1000, i)).toFixed(2)
-			+ " " + units[i];
+		return (bytes / Math.pow(1000, i)).toFixed(2) + " " + units[i];
 	}
 }

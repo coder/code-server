@@ -12,6 +12,18 @@ export class EnvironmentService extends environment.EnvironmentService {
 	public get extensionsPath(): string {
 		return paths.getExtensionsDirectory();
 	}
+
+	public get builtinExtensionsPath(): string {
+		return paths.getBuiltInExtensionsDirectory();
+	}
+
+	public get extraExtensionPaths(): string[] {
+		return paths.getExtraExtensionDirectories();
+	}
+
+	public get extraBuiltinExtensionPaths(): string[] {
+		return paths.getExtraBuiltinExtensionDirectories();
+	}
 }
 
 const target = environment as typeof environment;

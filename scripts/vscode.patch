@@ -129,9 +129,12 @@ index f91ca2b..ef6fce9 100644
 -		const isMac = platform.isMacintosh;
 +		const isMac = browser.isMacintosh;
 diff --git a/src/vs/code/electron-browser/issue/issueReporterMain.ts b/src/vs/code/electron-browser/issue/issueReporterMain.ts
-index f08c996..f9de58c 100644
+index f08c996..7db13fa 100644
 --- a/src/vs/code/electron-browser/issue/issueReporterMain.ts
 +++ b/src/vs/code/electron-browser/issue/issueReporterMain.ts
+@@ -296 +296 @@ export class IssueReporter extends Disposable {
+-			const piiPaths = [this.environmentService.appRoot, this.environmentService.extensionsPath];
++			const piiPaths = [this.environmentService.appRoot, this.environmentService.extensionsPath, ...this.environmentService.extraExtensionPaths];
 @@ -425 +425 @@ export class IssueReporter extends Disposable {
 -			const cmdOrCtrlKey = platform.isMacintosh ? e.metaKey : e.ctrlKey;
 +			const cmdOrCtrlKey = browser.isMacintosh ? e.metaKey : e.ctrlKey;
@@ -146,25 +149,33 @@ index e0ff793..885de12 100644
 -		const cmdOrCtrlKey = platform.isMacintosh ? e.metaKey : e.ctrlKey;
 +		const cmdOrCtrlKey = browser.isMacintosh ? e.metaKey : e.ctrlKey;
 diff --git a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
-index 6fd8249..04c0933 100644
+index 6fd8249..6ae6b11 100644
 --- a/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 +++ b/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts
 @@ -50,0 +51,2 @@ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiatio
 +import { BackupMainService } from 'vs/platform/backup/electron-main/backupMainService';
 +import { mkdirp } from 'vs/base/node/pfs';
-@@ -93,0 +96,8 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -93,0 +96,10 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 +	Promise.all<boolean | undefined>([ // Copied from src/vs/code/electron-main/main.ts
 +		environmentService.extensionsPath,
 +		environmentService.nodeCachedDataDir,
 +		environmentService.logsPath,
 +		environmentService.globalStorageHome,
 +		environmentService.workspaceStorageHome,
-+		environmentService.backupHome
++		environmentService.backupHome,
++		...environmentService.extraExtensionPaths,
++		...environmentService.extraBuiltinExtensionPaths,
 +	].map((path): undefined | Promise<boolean> => path ? mkdirp(path) : undefined));
-@@ -119,0 +130,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+@@ -119,0 +132,2 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
 +	const backupMainService = instantiationService.createInstance(BackupMainService) as BackupMainService;
 +	backupMainService.initialize().catch(console.error);
-@@ -223,0 +236 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
+@@ -124 +138 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+-		const { appRoot, extensionsPath, extensionDevelopmentLocationURI, isBuilt, installSourcePath } = environmentService;
++		const { appRoot, extensionsPath, extraExtensionPaths, extensionDevelopmentLocationURI, isBuilt, installSourcePath } = environmentService;
+@@ -138 +152 @@ function main(server: Server, initData: ISharedProcessInitData, configuration: I
+-				piiPaths: [appRoot, extensionsPath]
++				piiPaths: [appRoot, extensionsPath, ...extraExtensionPaths]
+@@ -223,0 +238 @@ async function handshake(configuration: ISharedProcessConfiguration): Promise<vo
 +startup({ machineId: "1" });
 diff --git a/src/vs/code/node/cli.ts b/src/vs/code/node/cli.ts
 index 1f8b17a..2a875f9 100644
@@ -383,6 +394,81 @@ index 9952574..908a9ae 100644
 @@ -9 +9 @@ import { URI } from 'vs/base/common/uri';
 -import { isMacintosh } from 'vs/base/common/platform';
 +import { isMacintosh } from 'vs/base/browser/browser';
+diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
+index eb1873c..dbbacd0 100644
+--- a/src/vs/platform/environment/common/environment.ts
++++ b/src/vs/platform/environment/common/environment.ts
+@@ -120,0 +121,2 @@ export interface IEnvironmentService {
++	extraExtensionPaths: string[];
++	extraBuiltinExtensionPaths: string[];
+diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
+index 43866f8..e69b513 100644
+--- a/src/vs/platform/environment/node/environmentService.ts
++++ b/src/vs/platform/environment/node/environmentService.ts
+@@ -172,0 +173,8 @@ export class EnvironmentService implements IEnvironmentService {
++	@memoize
++	get extraExtensionPaths(): string[] {
++		return this._args['extra-extension-dirs'] || [];
++	}
++	@memoize
++	get extraBuiltinExtensionPaths(): string[] {
++		return this._args['extra-builtin-extension-dirs'] || [];
++	}
+diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+index c897029..f84d9b6 100644
+--- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
++++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
+@@ -733,5 +733,9 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-		const systemExtensionsPromise = this.scanExtensions(this.systemExtensionsPath, ExtensionType.System)
+-			.then(result => {
+-				this.logService.info('Scanned system extensions:', result.length);
+-				return result;
+-			});
++		const systemExtensionsPromise = Promise.all([
++			this.scanExtensions(this.systemExtensionsPath, ExtensionType.System),
++			...this.environmentService.extraBuiltinExtensionPaths
++				.map((path) => this.scanExtensions(path, ExtensionType.System))
++		]).then((results) => {
++			const result = results.reduce((flat, current) => flat.concat(current), []);
++			this.logService.info('Scanned system extensions:', result.length);
++			return result;
++		});
+@@ -761 +765 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-		return Promise.all([this.getUninstalledExtensions(), this.scanExtensions(this.extensionsPath, ExtensionType.User)])
++		return Promise.all([this.getUninstalledExtensions(), this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User)])
+@@ -772,0 +777,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
++	private scanAllUserExtensions(folderName: string, type: ExtensionType): Promise<ILocalExtension[]> {
++		return Promise.all([
++			this.scanExtensions(folderName, type),
++			...this.environmentService.extraExtensionPaths.map((p) => this.scanExtensions(p, ExtensionType.User))
++		]).then((results) => results.reduce((flat, current) => flat.concat(current), []));
++	}
++
+@@ -805 +816 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-			.then(uninstalled => this.scanExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
++			.then(uninstalled => this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
+@@ -814 +825 @@ export class ExtensionManagementService extends Disposable implements IExtension
+-		return this.scanExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
++		return this.scanAllUserExtensions(this.extensionsPath, ExtensionType.User) // All user extensions
+diff --git a/src/vs/platform/storage/node/storageMainService.ts b/src/vs/platform/storage/node/storageMainService.ts
+index 9845da1..567c195 100644
+--- a/src/vs/platform/storage/node/storageMainService.ts
++++ b/src/vs/platform/storage/node/storageMainService.ts
+@@ -169 +169,6 @@ export class StorageMainService extends Disposable implements IStorageMainServic
+-			return readdir(this.environmentService.extensionsPath).then(extensions => {
++			return Promise.all([
++				this.environmentService.extensionsPath,
++				...this.environmentService.extraExtensionPaths,
++			].map((p) => readdir(p)))
++				.then((results) => results.reduce((flat, current) => flat.concat(current), []))
++				.then(extensions => {
+diff --git a/src/vs/platform/telemetry/electron-browser/telemetryService.ts b/src/vs/platform/telemetry/electron-browser/telemetryService.ts
+index 31d0309..5b166af 100644
+--- a/src/vs/platform/telemetry/electron-browser/telemetryService.ts
++++ b/src/vs/platform/telemetry/electron-browser/telemetryService.ts
+@@ -42 +42 @@ export class TelemetryService extends Disposable implements ITelemetryService {
+-				piiPaths: [environmentService.appRoot, environmentService.extensionsPath]
++				piiPaths: [environmentService.appRoot, environmentService.extensionsPath, ...environmentService.extraExtensionPaths]
 diff --git a/src/vs/platform/windows/common/windows.ts b/src/vs/platform/windows/common/windows.ts
 index cbc55b3..9d27c01 100644
 --- a/src/vs/platform/windows/common/windows.ts
@@ -999,11 +1085,30 @@ index 75f0026..2e94683 100644
 -		if (!isMacintosh && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 +		if (!(isNative && isMacintosh) && getTitleBarStyle(configurationService, environmentService) === 'custom') {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
-index 059f821..2dde675 100644
+index 059f821..b19f292 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 +++ b/src/vs/workbench/services/extensions/electron-browser/cachedExtensionScanner.ts
 @@ -32,0 +33 @@ function getSystemExtensionsRoot(): string {
 +	return (require('vs/../../../../packages/vscode/src/fill/paths') as typeof import ('vs/../../../../packages/vscode/src/fill/paths')).getBuiltInExtensionsDirectory();
+@@ -191,2 +192,3 @@ export class CachedExtensionScanner {
+-			const folderStat = await pfs.stat(input.absoluteFolderPath);
+-			input.mtime = folderStat.mtime.getTime();
++			const folderStats = await Promise.all([pfs.stat(input.absoluteFolderPath), ...input.extraFolderPaths.map((p) => pfs.stat(p))]);
++			input.mtime = folderStats[0].mtime.getTime();
++			input.extraMtimes = folderStats.slice(1).map((s) => s.mtime.getTime());
+@@ -259 +261 @@ export class CachedExtensionScanner {
+-			new ExtensionScannerInput(version, commit, locale, devMode, getSystemExtensionsRoot(), true, false, translations),
++			new ExtensionScannerInput(version, commit, locale, devMode, getSystemExtensionsRoot(), true, false, translations, environmentService.extraBuiltinExtensionPaths),
+@@ -290 +292 @@ export class CachedExtensionScanner {
+-					new ExtensionScannerInput(version, commit, locale, devMode, environmentService.extensionsPath, false, false, translations),
++					new ExtensionScannerInput(version, commit, locale, devMode, environmentService.extensionsPath, false, false, translations, environmentService.extraExtensionPaths),
+diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts b/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+index 9133b7e..8c801b7 100644
+--- a/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
++++ b/src/vs/workbench/services/extensions/electron-browser/extensionHost.ts
+@@ -461 +461 @@ export class ExtensionHostProcessWorker implements IExtensionHostStarter {
+-		if (errorMessage === this._lastExtensionHostError) {
++		if (errorMessage === this._lastExtensionHostError || errorMessage === "disconnected") {
 diff --git a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts b/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
 index b337206..0477464 100644
 --- a/src/vs/workbench/services/extensions/electron-browser/extensionService.ts
@@ -1021,6 +1126,54 @@ index 838a9c7..2308cee 100644
 @@ -192 +192 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 -					process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
 +					// process.kill(initData.parentPid, 0); // throws an exception if the main process doesn't exist anymore.
+diff --git a/src/vs/workbench/services/extensions/node/extensionPoints.ts b/src/vs/workbench/services/extensions/node/extensionPoints.ts
+index 6e2179d..e6f38c9 100644
+--- a/src/vs/workbench/services/extensions/node/extensionPoints.ts
++++ b/src/vs/workbench/services/extensions/node/extensionPoints.ts
+@@ -445,0 +446 @@ export class ExtensionScannerInput {
++	public extraMtimes: number[] = [];
+@@ -455 +456,2 @@ export class ExtensionScannerInput {
+-		public readonly tanslations: Translations
++		public readonly tanslations: Translations,
++		public readonly extraFolderPaths: string[] = [],
+@@ -469,0 +472,16 @@ export class ExtensionScannerInput {
++		// Allow extra folder paths in any order. Doesn't account for duplicates though.
++		const eq = (a: string[] = [], b: string[] = [], atimes: number[] = [], btimes: number[] = []): boolean => {
++			if (a.length !== b.length || atimes.length !== btimes.length) {
++				return false;
++			}
++			for (let i = 0; i < a.length; ++i) {
++				const index = b.indexOf(a[i]);
++				if (index === -1) {
++					return false;
++				}
++				if (atimes[i] !== btimes[index]) {
++					return false;
++				}
++			}
++			return true;
++		};
+@@ -479,0 +498 @@ export class ExtensionScannerInput {
++			&& eq(a.extraFolderPaths, b.extraFolderPaths, a.extraMtimes, b.extraMtimes)
+@@ -530 +549 @@ export class ExtensionScanner {
+-	 * Scan a list of extensions defined in `absoluteFolderPath`
++	 * Scan a list of extensions defined in `absoluteFolderPath` and `extraFolderPaths`
+@@ -532 +551 @@ export class ExtensionScanner {
+-	public static async scanExtensions(input: ExtensionScannerInput, log: ILog, resolver: IExtensionResolver | null = null): Promise<IExtensionDescription[]> {
++	public static async scanExtensions(input: ExtensionScannerInput, log: ILog, resolvers: IExtensionResolver | IExtensionResolver[] | null = null): Promise<IExtensionDescription[]> {
+@@ -533,0 +553 @@ export class ExtensionScanner {
++		const extraFolderPaths = input.extraFolderPaths;
+@@ -537,2 +557,4 @@ export class ExtensionScanner {
+-		if (!resolver) {
+-			resolver = new DefaultExtensionResolver(absoluteFolderPath);
++		if (!resolvers) {
++			resolvers = [absoluteFolderPath, ...extraFolderPaths].map((p) => new DefaultExtensionResolver(p));
++		} else if (!Array.isArray(resolvers)) {
++			resolvers = [resolvers];
+@@ -552 +574,2 @@ export class ExtensionScanner {
+-			let refs = await resolver.resolveExtensions();
++			let refs = await Promise.all(resolvers.map((resolver) => resolver.resolveExtensions()))
++				.then((results) => results.reduce((flat, current) => flat.concat(current), []));
 diff --git a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts b/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts
 index 33d3697..af71b01 100644
 --- a/src/vs/workbench/services/files/node/watcher/nsfw/watcherService.ts

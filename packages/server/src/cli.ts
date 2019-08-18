@@ -16,13 +16,19 @@ import opn = require("opn");
 
 import * as commander from "commander";
 
+const collect = <T>(value: T, previous: T[]): T[] => {
+	return previous.concat(value);
+};
+
 commander.version(process.env.VERSION || "development")
 	.name("code-server")
 	.description("Run VS Code on a remote server.")
 	.option("--cert <value>")
 	.option("--cert-key <value>")
-	.option("-e, --extensions-dir <dir>", "Set the root path for extensions.")
-	.option("-d --user-data-dir <dir>", "	Specifies the directory that user data is kept in, useful when running as root.")
+	.option("-e, --extensions-dir <dir>", "Override the main default path for user extensions.")
+	.option("--extra-extensions-dir [dir]", "Path to an extra user extension directory (repeatable).", collect, [])
+	.option("--extra-builtin-extensions-dir [dir]", "Path to an extra built-in extension directory (repeatable).", collect, [])
+	.option("-d, --user-data-dir <dir>", "Specifies the directory that user data is kept in, useful when running as root.")
 	.option("--data-dir <value>", "DEPRECATED: Use '--user-data-dir' instead. Customize where user-data is stored.")
 	.option("-h, --host <value>", "Customize the hostname.", "0.0.0.0")
 	.option("-o, --open", "Open in the browser on startup.", false)
@@ -32,6 +38,7 @@ commander.version(process.env.VERSION || "development")
 	.option("-P, --password <value>", "DEPRECATED: Use the PASSWORD environment variable instead. Specify a password for authentication.")
 	.option("--disable-telemetry", "Disables ALL telemetry.", false)
 	.option("--socket <value>", "Listen on a UNIX socket. Host and port will be ignored when set.")
+	.option("--trust-proxy", "Trust the X-Forwarded-For header, useful when using a reverse proxy.", false)
 	.option("--install-extension <value>", "Install an extension by its ID.")
 	.option("--bootstrap-fork <name>", "Used for development. Never set.")
 	.option("--extra-args <args>", "Used for development. Never set.")
@@ -59,6 +66,8 @@ const bold = (text: string | number): string | number => {
 
 		readonly userDataDir?: string;
 		readonly extensionsDir?: string;
+		readonly extraExtensionsDir?: string[];
+		readonly extraBuiltinExtensionsDir?: string[];
 
 		readonly dataDir?: string;
 		readonly password?: string;
@@ -66,6 +75,7 @@ const bold = (text: string | number): string | number => {
 		readonly cert?: string;
 		readonly certKey?: string;
 		readonly socket?: string;
+		readonly trustProxy?: boolean;
 
 		readonly installExtension?: string;
 
@@ -84,6 +94,9 @@ const bold = (text: string | number): string | number => {
 
 	const dataDir = path.resolve(options.userDataDir || options.dataDir || path.join(dataHome, "code-server"));
 	const extensionsDir = options.extensionsDir ? path.resolve(options.extensionsDir) : path.resolve(dataDir, "extensions");
+	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
+	const extraExtensionDirs = options.extraExtensionsDir ? options.extraExtensionsDir.map((p) => path.resolve(p)) : [];
+	const extraBuiltinExtensionDirs = options.extraBuiltinExtensionsDir ? options.extraBuiltinExtensionsDir.map((p) => path.resolve(p)) : [];
 	const workingDir = path.resolve(args[0] || process.cwd());
 	const dependenciesDir = path.join(os.tmpdir(), "code-server/dependencies");
 
@@ -101,6 +114,8 @@ const bold = (text: string | number): string | number => {
 		fse.mkdirp(extensionsDir),
 		fse.mkdirp(workingDir),
 		fse.mkdirp(dependenciesDir),
+		...extraExtensionDirs.map((p) => fse.mkdirp(p)),
+		...extraBuiltinExtensionDirs.map((p) => fse.mkdirp(p)),
 	]);
 
 	const unpackExecutable = (binaryName: string): void => {
@@ -116,7 +131,6 @@ const bold = (text: string | number): string | number => {
 	// tslint:disable-next-line no-any
 	(<any>global).RIPGREP_LOCATION = path.join(dependenciesDir, "rg");
 
-	const builtInExtensionsDir = path.resolve(buildDir || path.join(__dirname, ".."), "build/extensions");
 	if (options.bootstrapFork) {
 		const modulePath = options.bootstrapFork;
 		if (!modulePath) {
@@ -192,7 +206,7 @@ const bold = (text: string | number): string | number => {
 	// TODO: fill in appropriate doc url
 	logger.info("Additional documentation: http://github.com/cdr/code-server");
 	logger.info("Initializing", field("data-dir", dataDir), field("extensions-dir", extensionsDir), field("working-dir", workingDir), field("log-dir", logDir));
-	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir);
+	const sharedProcess = new SharedProcess(dataDir, extensionsDir, builtInExtensionsDir, extraExtensionDirs, extraBuiltinExtensionDirs);
 	const sendSharedProcessReady = (socket: WebSocket): void => {
 		const active = new SharedProcessActive();
 		active.setSocketPath(sharedProcess.socketPath);
@@ -247,6 +261,8 @@ const bold = (text: string | number): string | number => {
 		serverOptions: {
 			extensionsDirectory: extensionsDir,
 			builtInExtensionsDirectory: builtInExtensionsDir,
+			extraExtensionDirectories: extraExtensionDirs,
+			extraBuiltinExtensionDirectories: extraBuiltinExtensionDirs,
 			dataDirectory: dataDir,
 			workingDirectory: workingDir,
 			cacheDirectory: cacheHome,
@@ -259,17 +275,41 @@ const bold = (text: string | number): string | number => {
 			},
 		},
 		password,
+		trustProxy: options.trustProxy,
 		httpsOptions: hasCustomHttps ? {
 			key: certKeyData,
 			cert: certData,
 		} : undefined,
 	});
 
-	logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
 	if (options.socket) {
-		app.server.listen(options.socket);
+		logger.info("Starting webserver via socket...", field("socket", options.socket));
+		app.server.listen(options.socket, () => {
+			logger.info(" ");
+			logger.info("Started on socket address:");
+			logger.info(options.socket!);
+			logger.info(" ");
+		});
 	} else {
-		app.server.listen(options.port, options.host);
+		logger.info("Starting webserver...", field("host", options.host), field("port", options.port));
+		app.server.listen(options.port, options.host, async () => {
+			const protocol = options.allowHttp ? "http" : "https";
+			const address = app.server.address();
+			const port = typeof address === "string" ? options.port : address.port;
+			const url = `${protocol}://localhost:${port}/`;
+			logger.info(" ");
+			logger.info("Started (click the link below to open):");
+			logger.info(url);
+			logger.info(" ");
+
+			if (options.open) {
+				try {
+					await opn(url);
+				} catch (e) {
+					logger.warn("Url couldn't be opened automatically.", field("url", url), field("error", e.message));
+				}
+			}
+		});
 	}
 	let clientId = 1;
 	app.wss.on("connection", (ws, req) => {
@@ -301,29 +341,16 @@ const bold = (text: string | number): string | number => {
 		logger.warn("Documentation on securing your setup: https://github.com/cdr/code-server/blob/master/doc/security/ssl.md");
 	}
 
-	if (!options.noAuth && !usingCustomPassword) {
+	if (!options.noAuth) {
 		logger.info(" ");
-		logger.info(`Password:\u001B[1m ${password}`);
+		logger.info(usingCustomPassword ? "Using custom password." : `Password:\u001B[1m ${password}`);
 	} else {
+		logger.warn(" ");
 		logger.warn("Launched without authentication.");
 	}
 	if (options.disableTelemetry) {
-		logger.info("Telemetry is disabled");
-	}
-
-	const protocol = options.allowHttp ? "http" : "https";
-	const url = `${protocol}://localhost:${options.port}/`;
-	logger.info(" ");
-	logger.info("Started (click the link below to open):");
-	logger.info(url);
-	logger.info(" ");
-
-	if (options.open) {
-		try {
-			await opn(url);
-		} catch (e) {
-			logger.warn("Url couldn't be opened automatically.", field("url", url), field("exception", e));
-		}
+		logger.info(" ");
+		logger.info("Telemetry is disabled.");
 	}
 })().catch((ex) => {
 	logger.error(ex);

@@ -28,12 +28,17 @@ class Product implements IProductConfiguration {
 		return this._dataFolderName;
 	}
 
-	public extensionsGallery = {
-		serviceUrl: global && global.process && global.process.env.SERVICE_URL
-			|| process.env.SERVICE_URL
-			|| "https://v1.extapi.coder.com",
-		// tslint:disable-next-line:no-any
-	} as any;
+	// tslint:disable-next-line:no-any
+	public extensionsGallery: any = {
+		get serviceUrl(): string {
+			return process.env.SERVICE_URL || "https://v1.extapi.coder.com";
+		},
+
+		get itemUrl(): string {
+			return process.env.ITEM_URL || "";
+		},
+
+	};
 
 	public extensionExecutionEnvironments = {
 		"wayou.vscode-todo-highlight": "worker",

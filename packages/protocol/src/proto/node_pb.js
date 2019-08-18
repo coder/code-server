@@ -583,7 +583,7 @@ proto.Argument.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     error: (f = msg.getError()) && proto.Argument.ErrorValue.toObject(includeInstance, f),
     buffer: (f = msg.getBuffer()) && proto.Argument.BufferValue.toObject(includeInstance, f),
     object: (f = msg.getObject()) && proto.Argument.ObjectValue.toObject(includeInstance, f),
@@ -843,7 +843,7 @@ proto.Argument.ErrorValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.ErrorValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     message: jspb.Message.getFieldWithDefault(msg, 1, ""),
     stack: jspb.Message.getFieldWithDefault(msg, 2, ""),
     code: jspb.Message.getFieldWithDefault(msg, 3, "")
@@ -1022,7 +1022,7 @@ proto.Argument.BufferValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.BufferValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     data: msg.getData_asB64()
   };
 
@@ -1171,7 +1171,7 @@ proto.Argument.ObjectValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.ObjectValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     dataMap: (f = msg.getDataMap()) ? f.toObject(includeInstance, proto.Argument.toObject) : []
   };
 
@@ -1308,7 +1308,7 @@ proto.Argument.ArrayValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.ArrayValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     dataList: jspb.Message.toObjectList(msg.getDataList(),
     proto.Argument.toObject, includeInstance)
   };
@@ -1455,7 +1455,7 @@ proto.Argument.ProxyValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.ProxyValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
@@ -1580,7 +1580,7 @@ proto.Argument.FunctionValue.prototype.toObject = function(opt_includeInstance) 
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.FunctionValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0)
   };
 
@@ -1705,7 +1705,7 @@ proto.Argument.NullValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.NullValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
 
   };
 
@@ -1804,7 +1804,7 @@ proto.Argument.UndefinedValue.prototype.toObject = function(opt_includeInstance)
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.UndefinedValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
 
   };
 
@@ -1903,7 +1903,7 @@ proto.Argument.DateValue.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Argument.DateValue.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     date: jspb.Message.getFieldWithDefault(msg, 1, "")
   };
 
@@ -2449,7 +2449,7 @@ proto.Method.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Method.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     namedProxy: (f = msg.getNamedProxy()) && proto.Method.Named.toObject(includeInstance, f),
     numberedProxy: (f = msg.getNumberedProxy()) && proto.Method.Numbered.toObject(includeInstance, f)
   };
@@ -2582,7 +2582,7 @@ proto.Method.Named.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Method.Named.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     module: jspb.Message.getFieldWithDefault(msg, 2, 0),
     method: jspb.Message.getFieldWithDefault(msg, 3, ""),
@@ -2817,7 +2817,7 @@ proto.Method.Numbered.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Method.Numbered.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     proxyId: jspb.Message.getFieldWithDefault(msg, 2, 0),
     method: jspb.Message.getFieldWithDefault(msg, 3, ""),
@@ -3045,7 +3045,7 @@ proto.Method.Fail.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Method.Fail.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     response: (f = msg.getResponse()) && proto.Argument.toObject(includeInstance, f)
   };
@@ -3217,7 +3217,7 @@ proto.Method.Success.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Method.Success.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     id: jspb.Message.getFieldWithDefault(msg, 1, 0),
     response: (f = msg.getResponse()) && proto.Argument.toObject(includeInstance, f)
   };
@@ -3481,7 +3481,7 @@ proto.Callback.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Callback.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     namedCallback: (f = msg.getNamedCallback()) && proto.Callback.Named.toObject(includeInstance, f),
     numberedCallback: (f = msg.getNumberedCallback()) && proto.Callback.Numbered.toObject(includeInstance, f)
   };
@@ -3614,7 +3614,7 @@ proto.Callback.Named.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Callback.Named.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     module: jspb.Message.getFieldWithDefault(msg, 1, 0),
     callbackId: jspb.Message.getFieldWithDefault(msg, 2, 0),
     argsList: jspb.Message.toObjectList(msg.getArgsList(),
@@ -3822,7 +3822,7 @@ proto.Callback.Numbered.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Callback.Numbered.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     proxyId: jspb.Message.getFieldWithDefault(msg, 1, 0),
     callbackId: jspb.Message.getFieldWithDefault(msg, 2, 0),
     argsList: jspb.Message.toObjectList(msg.getArgsList(),
@@ -4115,7 +4115,7 @@ proto.Event.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Event.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     namedEvent: (f = msg.getNamedEvent()) && proto.Event.Named.toObject(includeInstance, f),
     numberedEvent: (f = msg.getNumberedEvent()) && proto.Event.Numbered.toObject(includeInstance, f)
   };
@@ -4248,7 +4248,7 @@ proto.Event.Named.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Event.Named.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     module: jspb.Message.getFieldWithDefault(msg, 1, 0),
     event: jspb.Message.getFieldWithDefault(msg, 2, ""),
     argsList: jspb.Message.toObjectList(msg.getArgsList(),
@@ -4456,7 +4456,7 @@ proto.Event.Numbered.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Event.Numbered.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     proxyId: jspb.Message.getFieldWithDefault(msg, 1, 0),
     event: jspb.Message.getFieldWithDefault(msg, 2, ""),
     argsList: jspb.Message.toObjectList(msg.getArgsList(),
@@ -4723,7 +4723,7 @@ proto.Ping.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Ping.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
 
   };
 
@@ -4822,7 +4822,7 @@ proto.Pong.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.Pong.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
 
   };
 

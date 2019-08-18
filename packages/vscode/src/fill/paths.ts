@@ -1,5 +1,8 @@
 import { InitData, SharedProcessData } from "@coder/protocol";
 
+/**
+ * Provides paths.
+ */
 class Paths {
 	private _appData: string | undefined;
 	private _defaultUserData: string | undefined;
@@ -7,6 +10,8 @@ class Paths {
 	private _extensionsDirectory: string | undefined;
 	private _builtInExtensionsDirectory: string | undefined;
 	private _workingDirectory: string | undefined;
+	private _extraExtensionDirectories: string[] | undefined;
+	private _extraBuiltinExtensionDirectories: string[] | undefined;
 
 	public get appData(): string {
 		if (typeof this._appData === "undefined") {
@@ -48,6 +53,22 @@ class Paths {
 		return this._builtInExtensionsDirectory;
 	}
 
+	public get extraExtensionDirectories(): string[] {
+		if (!this._extraExtensionDirectories) {
+			throw new Error("trying to access extra extension directories before they have been set");
+		}
+
+		return this._extraExtensionDirectories;
+	}
+
+	public get extraBuiltinExtensionDirectories(): string[] {
+		if (!this._extraBuiltinExtensionDirectories) {
+			throw new Error("trying to access extra builtin extension directories before they have been set");
+		}
+
+		return this._extraBuiltinExtensionDirectories;
+	}
+
 	public get workingDirectory(): string {
 		if (!this._workingDirectory) {
 			throw new Error("trying to access working directory before it has been set");
@@ -56,6 +77,9 @@ class Paths {
 		return this._workingDirectory;
 	}
 
+	/**
+	 * Initialize paths using the provided data.
+	 */
 	public initialize(data: InitData, sharedData: SharedProcessData): void {
 		process.env.VSCODE_LOGS = sharedData.logPath;
 		this._appData = data.dataDirectory;
@@ -64,6 +88,8 @@ class Paths {
 		this._extensionsDirectory = data.extensionsDirectory;
 		this._builtInExtensionsDirectory = data.builtInExtensionsDirectory;
 		this._workingDirectory = data.workingDirectory;
+		this._extraExtensionDirectories = data.extraExtensionDirectories;
+		this._extraBuiltinExtensionDirectories = data.extraBuiltinExtensionDirectories;
 	}
 }
 
@@ -73,4 +99,6 @@ export const getDefaultUserDataPath = (): string => _paths.defaultUserData;
 export const getWorkingDirectory = (): string => _paths.workingDirectory;
 export const getExtensionsDirectory = (): string => _paths.extensionsDirectory;
 export const getBuiltInExtensionsDirectory = (): string => _paths.builtInExtensionsDirectory;
+export const getExtraExtensionDirectories = (): string[] => _paths.extraExtensionDirectories;
+export const getExtraBuiltinExtensionDirectories = (): string[] => _paths.extraBuiltinExtensionDirectories;
 export const getSocketPath = (): string => _paths.socketPath;

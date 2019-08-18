@@ -62,7 +62,7 @@ proto.SharedProcessActive.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.SharedProcessActive.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     socketPath: jspb.Message.getFieldWithDefault(msg, 1, ""),
     logPath: jspb.Message.getFieldWithDefault(msg, 2, "")
   };

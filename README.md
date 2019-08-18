@@ -1,9 +1,8 @@
-# code-server
+# code-server [!["Open Issues"](https://img.shields.io/github/issues-raw/cdr/code-server.svg)](https://github.com/cdr/code-server/issues) [!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest) [![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cdr/code-server/blob/master/LICENSE) [![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
 
-[!["Open Issues"](https://img.shields.io/github/issues-raw/cdr/code-server.svg)](https://github.com/cdr/code-server/issues)
-[!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest)
-[![MIT license](https://img.shields.io/badge/license-MIT-green.svg)](https://github.com/cdr/code-server/blob/master/LICENSE)
-[![Discord](https://img.shields.io/discord/463752820026376202.svg?label=&logo=discord&logoColor=ffffff&color=7389D8&labelColor=6A7EC2)](https://discord.gg/zxSwN8Z)
+**code-server v2 is almost out!**
+[Get the preview here](https://github.com/cdr/code-server/releases).
+(Linux builds only at the moment.)
 
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a remote server, accessible through the browser.
 
@@ -22,6 +21,8 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 ![Screenshot](/doc/assets/ide.png)
 
 ## Getting Started
+
+[![Create a Droplet](./doc/assets/do-new-droplet-btn.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
 ### Run over SSH
 
@@ -55,6 +56,7 @@ How to [secure your setup](/doc/security/ssl.md).
 ### Known Issues
 
 - Creating custom VS Code extensions and debugging them doesn't work.
+- To debug Golang using [ms-vscode-go extension](https://marketplace.visualstudio.com/items?itemName=ms-vscode.Go), you need to add `--security-opt seccomp=unconfined` to your `docker run` arguments when launching code-server with Docker. See [#725](https://github.com/cdr/code-server/issues/725) for details.
 
 ### Future
 - **Stay up to date!** Get notified about new releases of code-server.
@@ -83,7 +85,7 @@ Development guides are coming soon.
 
 ## Enterprise
 
-Visit [our enterprise page](https://coder.com/enterprise) for more information about our enterprise offering.
+Visit [our website](https://coder.com/) for more information about our enterprise offering.
 
 ## Commercialization
 

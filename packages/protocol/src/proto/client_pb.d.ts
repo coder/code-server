@@ -135,6 +135,18 @@ export class WorkingInit extends jspb.Message {
   getExtensionsDirectory(): string;
   setExtensionsDirectory(value: string): void;
 
+  clearExtraExtensionDirectoriesList(): void;
+  getExtraExtensionDirectoriesList(): Array<string>;
+  setExtraExtensionDirectoriesList(value: Array<string>): void;
+  addExtraExtensionDirectories(value: string, index?: number): string;
+
+  clearExtraBuiltinExtensionDirectoriesList(): void;
+  getExtraBuiltinExtensionDirectoriesList(): Array<string>;
+  setExtraBuiltinExtensionDirectoriesList(value: Array<string>): void;
+  addExtraBuiltinExtensionDirectories(value: string, index?: number): string;
+
+  getEnvMap(): jspb.Map<string, string>;
+  clearEnvMap(): void;
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): WorkingInit.AsObject;
   static toObject(includeInstance: boolean, msg: WorkingInit): WorkingInit.AsObject;
@@ -155,6 +167,9 @@ export namespace WorkingInit {
     shell: string,
     builtinExtensionsDir: string,
     extensionsDirectory: string,
+    extraExtensionDirectoriesList: Array<string>,
+    extraBuiltinExtensionDirectoriesList: Array<string>,
+    envMap: Array<[string, string]>,
   }
 
   export enum OperatingSystem {

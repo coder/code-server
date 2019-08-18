@@ -1,3 +1,5 @@
+import * as jspb from "google-protobuf";
+
 export interface SendableConnection {
 	send(data: Buffer | Uint8Array): void;
 }
@@ -25,6 +27,9 @@ export interface InitData {
 	readonly shell: string;
 	readonly extensionsDirectory: string;
 	readonly builtInExtensionsDirectory: string;
+	readonly extraExtensionDirectories: string[];
+	readonly extraBuiltinExtensionDirectories: string[];
+	readonly env: jspb.Map<string, string>;
 }
 
 export interface SharedProcessData {

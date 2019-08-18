@@ -72,7 +72,7 @@ if (goog.DEBUG && !COMPILED) {
  * @constructor
  */
 proto.WorkingInit = function(opt_data) {
-  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+  jspb.Message.initialize(this, opt_data, 0, -1, proto.WorkingInit.repeatedFields_, null);
 };
 goog.inherits(proto.WorkingInit, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
@@ -137,7 +137,7 @@ proto.ClientMessage.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.ClientMessage.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     method: (f = msg.getMethod()) && node_pb.Method.toObject(includeInstance, f),
     ping: (f = msg.getPing()) && node_pb.Ping.toObject(includeInstance, f)
   };
@@ -360,7 +360,7 @@ proto.ServerMessage.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.ServerMessage.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     fail: (f = msg.getFail()) && node_pb.Method.Fail.toObject(includeInstance, f),
     success: (f = msg.getSuccess()) && node_pb.Method.Success.toObject(includeInstance, f),
     event: (f = msg.getEvent()) && node_pb.Event.toObject(includeInstance, f),
@@ -759,6 +759,13 @@ proto.ServerMessage.prototype.hasSharedProcessActive = function() {
 
 
 
+/**
+ * List of repeated fields within this message type.
+ * @private {!Array<number>}
+ * @const
+ */
+proto.WorkingInit.repeatedFields_ = [9,10];
+
 
 
 if (jspb.Message.GENERATE_TO_OBJECT) {
@@ -787,7 +794,7 @@ proto.WorkingInit.prototype.toObject = function(opt_includeInstance) {
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
 proto.WorkingInit.toObject = function(includeInstance, msg) {
-  var obj = {
+  var f, obj = {
     homeDirectory: jspb.Message.getFieldWithDefault(msg, 1, ""),
     tmpDirectory: jspb.Message.getFieldWithDefault(msg, 2, ""),
     dataDirectory: jspb.Message.getFieldWithDefault(msg, 3, ""),
@@ -795,7 +802,10 @@ proto.WorkingInit.toObject = function(includeInstance, msg) {
     operatingSystem: jspb.Message.getFieldWithDefault(msg, 5, 0),
     shell: jspb.Message.getFieldWithDefault(msg, 6, ""),
     builtinExtensionsDir: jspb.Message.getFieldWithDefault(msg, 7, ""),
-    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, "")
+    extensionsDirectory: jspb.Message.getFieldWithDefault(msg, 8, ""),
+    extraExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 9),
+    extraBuiltinExtensionDirectoriesList: jspb.Message.getRepeatedField(msg, 10),
+    envMap: (f = msg.getEnvMap()) ? f.toObject(includeInstance, undefined) : []
   };
 
   if (includeInstance) {
@@ -863,6 +873,20 @@ proto.WorkingInit.deserializeBinaryFromReader = function(msg, reader) {
     case 8:
       var value = /** @type {string} */ (reader.readString());
       msg.setExtensionsDirectory(value);
+      break;
+    case 9:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addExtraExtensionDirectories(value);
+      break;
+    case 10:
+      var value = /** @type {string} */ (reader.readString());
+      msg.addExtraBuiltinExtensionDirectories(value);
+      break;
+    case 11:
+      var value = msg.getEnvMap();
+      reader.readMessage(value, function(message, reader) {
+        jspb.Map.deserializeBinary(message, reader, jspb.BinaryReader.prototype.readString, jspb.BinaryReader.prototype.readString, null, "");
+         });
       break;
     default:
       reader.skipField();
@@ -948,6 +972,24 @@ proto.WorkingInit.serializeBinaryToWriter = function(message, writer) {
       8,
       f
     );
+  }
+  f = message.getExtraExtensionDirectoriesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      9,
+      f
+    );
+  }
+  f = message.getExtraBuiltinExtensionDirectoriesList();
+  if (f.length > 0) {
+    writer.writeRepeatedString(
+      10,
+      f
+    );
+  }
+  f = message.getEnvMap(true);
+  if (f && f.getLength() > 0) {
+    f.serializeBinary(11, writer, jspb.BinaryWriter.prototype.writeString, jspb.BinaryWriter.prototype.writeString);
   }
 };
 
@@ -1078,6 +1120,91 @@ proto.WorkingInit.prototype.getExtensionsDirectory = function() {
 /** @param {string} value */
 proto.WorkingInit.prototype.setExtensionsDirectory = function(value) {
   jspb.Message.setProto3StringField(this, 8, value);
+};
+
+
+/**
+ * repeated string extra_extension_directories = 9;
+ * @return {!Array<string>}
+ */
+proto.WorkingInit.prototype.getExtraExtensionDirectoriesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 9));
+};
+
+
+/** @param {!Array<string>} value */
+proto.WorkingInit.prototype.setExtraExtensionDirectoriesList = function(value) {
+  jspb.Message.setField(this, 9, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ */
+proto.WorkingInit.prototype.addExtraExtensionDirectories = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 9, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ */
+proto.WorkingInit.prototype.clearExtraExtensionDirectoriesList = function() {
+  this.setExtraExtensionDirectoriesList([]);
+};
+
+
+/**
+ * repeated string extra_builtin_extension_directories = 10;
+ * @return {!Array<string>}
+ */
+proto.WorkingInit.prototype.getExtraBuiltinExtensionDirectoriesList = function() {
+  return /** @type {!Array<string>} */ (jspb.Message.getRepeatedField(this, 10));
+};
+
+
+/** @param {!Array<string>} value */
+proto.WorkingInit.prototype.setExtraBuiltinExtensionDirectoriesList = function(value) {
+  jspb.Message.setField(this, 10, value || []);
+};
+
+
+/**
+ * @param {string} value
+ * @param {number=} opt_index
+ */
+proto.WorkingInit.prototype.addExtraBuiltinExtensionDirectories = function(value, opt_index) {
+  jspb.Message.addToRepeatedField(this, 10, value, opt_index);
+};
+
+
+/**
+ * Clears the list making it empty but non-null.
+ */
+proto.WorkingInit.prototype.clearExtraBuiltinExtensionDirectoriesList = function() {
+  this.setExtraBuiltinExtensionDirectoriesList([]);
+};
+
+
+/**
+ * map<string, string> env = 11;
+ * @param {boolean=} opt_noLazyCreate Do not create the map if
+ * empty, instead returning `undefined`
+ * @return {!jspb.Map<string,string>}
+ */
+proto.WorkingInit.prototype.getEnvMap = function(opt_noLazyCreate) {
+  return /** @type {!jspb.Map<string,string>} */ (
+      jspb.Message.getMapField(this, 11, opt_noLazyCreate,
+      null));
+};
+
+
+/**
+ * Clears values from the map. The map will be non-null.
+ */
+proto.WorkingInit.prototype.clearEnvMap = function() {
+  this.getEnvMap().clear();
 };
 
 
