@@ -190,12 +190,21 @@ function binary-task() {
 	log "Binary: ${buildPath}/${binaryName}"
 }
 
+function absolute-path() {
+	local relative="${1}"; shift
+	if command -v realpath &> /dev/null ; then
+		realpath "${relative}"
+	else
+		readlink -f "${relative}"
+	fi
+}
+
 # Check if it looks like we are inside VS Code.
 function in-vscode () {
 	local dir="${1}" ; shift
 	local maybeVsCode
 	local dirName
-	maybeVsCode="$(realpath "${dir}/../../..")"
+	maybeVsCode="$(absolute-path "${dir}/../../..")"
 	dirName="$(basename "${maybeVsCode}")"
 	if [[ "${dirName}" != "vscode" ]] ; then
 		return 1
@@ -213,7 +222,7 @@ function main() {
 	local relativeRootPath
 	local rootPath
 	relativeRootPath="$(dirname "${0}")/.."
-	rootPath="$(realpath "${relativeRootPath}")"
+	rootPath="$(absolute-path "${relativeRootPath}")"
 
 	local task="${1}" ; shift
 	if [[ "${task}" == "ensure-in-vscode" ]] ; then
