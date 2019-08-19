@@ -122,4 +122,4 @@ code-server for you in the background as a service and restart it for you if it
 crashes. (Note: this doesn't apply for users of the Marketplace Droplet image.)
 
 [security-guide]: ../../security/index.md
-[systemd-guide]: https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/
+[systemd-guide]: https://www.digitalocean.com/community/tutorials/how-to-configure-a-linux-service-to-start-automatically-after-a-crash-or-reboot-part-1-practical-examples

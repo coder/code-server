@@ -50,7 +50,7 @@ containers.
 +---------+---------+-----------------------+------+------------+-----------+
 | penguin | RUNNING | 100.115.92.199 (eth0) |      | PERSISTENT | 0         |
 +---------+---------+-----------------------+------+------------+-----------+
-(termina) chronos@localhost ~ $ 
+(termina) chronos@localhost ~ $
 ```
 
 For this example, we show the default `penguin` container, which is exposed on

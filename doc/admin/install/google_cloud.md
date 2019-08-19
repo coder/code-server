@@ -19,9 +19,6 @@ If you get stuck or need help at anytime, [file an issue](create-issue),
 
 ## Deploy to Google Cloud VM
 
-> Pre-requisite: Please [set up Google Cloud SDK](gcloud-sdk) on your local
-> machine.
-
 [Open your Google Cloud console](create-instance) to create a new VM instance.
 
 1. Click **Create Instance**.
@@ -36,12 +33,14 @@ If you get stuck or need help at anytime, [file an issue](create-issue),
    `code-server`, and under **Protocols and ports** tick **Specified protocols and
    ports** and **tcp**. Beside **tcp**, add `8443`, then create the rule.
 
-[gcloud-sdk]: https://cloud.google.com/sdk/docs/
 [create-instance]: https://console.cloud.google.com/compute/instances
 
 ---
 
 ## Final Steps
+
+Please [set up Google Cloud SDK](gcloud-sdk) on your local machine, or access
+your instance terminal using another method.
 
 <!-- TODO: add a screenshot of the initial terminal like other guides -->
 
@@ -83,6 +82,7 @@ If you get stuck or need help at anytime, [file an issue](create-issue),
    Exception**, then finally **Confirm Security Exception**.
    <img src="../../assets/chrome_warning.png">
 
+[gcloud-sdk]: https://cloud.google.com/sdk/docs/
 [code-server-latest]: https://github.com/cdr/code-server/releases/latest
 
 ---
@@ -98,4 +98,4 @@ code-server for you in the background as a service and restart it for you if it
 crashes.
 
 [security-guide]: ../../security/index.md
-[systemd-guide]: https://www.linode.com/docs/quick-answers/linux/start-service-at-boot/
+[systemd-guide]: https://www.digitalocean.com/community/tutorials/how-to-configure-a-linux-service-to-start-automatically-after-a-crash-or-reboot-part-1-practical-examples
