@@ -6,6 +6,7 @@ function docker-build() {
 	local target="${TARGET:-}"
 	local image="codercom/nbin-${target}"
 	local token="${GITHUB_TOKEN:-}"
+	local minify="${MINIFY:-}"
 	if [[ "${target}" == "linux" ]] ; then
 		image="codercom/nbin-centos"
 	fi
@@ -27,7 +28,7 @@ function docker-build() {
 		local command="${1}" ; shift
 		local args="'${vscodeVersion}' '${codeServerVersion}' '${target}'"
 		docker exec "${containerId}" \
-			bash -c "cd /src && CI=true GITHUB_TOKEN=${token} yarn ${command} ${args}"
+			bash -c "cd /src && CI=true GITHUB_TOKEN=${token} MINIFY=${minify} yarn ${command} ${args}"
 	}
 
 	docker cp ./. "${containerId}":/src
