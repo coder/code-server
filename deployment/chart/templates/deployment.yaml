@@ -56,6 +56,9 @@ spec:
             runAsUser: {{ .Values.securityContext.runAsUser }}
           {{- end }}
           env:
+        {{- if .Values.extraVars }}
+{{ toYaml .Values.extraVars | indent 10 }}
+        {{- end }}
           - name: PASSWORD
             valueFrom:
               secretKeyRef:
@@ -65,12 +68,9 @@ spec:
                 name: {{ template "code-server.fullname" . }}
               {{- end }}
                 key: password
-        {{- if .Values.extraVars }}
-{{ toYaml .Values.extraVars | indent 12 }}
-        {{- end }}
         {{- if .Values.extraArgs }}
           args:
-{{ toYaml .Values.extraArgs | indent 12 }}
+{{ toYaml .Values.extraArgs | indent 10 }}
         {{- end }}
           volumeMounts:
           - name: data
