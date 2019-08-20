@@ -1,0 +1,135 @@
+# Default values for code-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+image:
+  repository: codercom/code-server
+  tag: 1.1156-vsc1.33.1
+  pullPolicy: Always
+
+nameOverride: ""
+fullnameOverride: ""
+hostnameOverride: ""
+
+service:
+  type: NodePort
+  port: 8443
+
+ingress:
+  enabled: false
+  #annotations:
+  #  kubernetes.io/ingress.class: nginx
+  #  kubernetes.io/tls-acme: "true"
+  #hosts:
+  #  - host: code-server.example.loc
+  #    paths:
+  #      - /
+
+  #tls:
+  #  - secretName: code-server
+  #    hosts:
+  #      - code-server.example.loc
+
+# Optional additional arguments
+extraArgs: []
+#  - --allow-http
+#  - --no-auth
+
+# Optional additional environment variables
+extraVars: []
+#  - name: DISABLE_TELEMETRY
+#    value: true
+
+##
+## Init containers parameters:
+## volumePermissions: Change the owner of the persist volume mountpoint to RunAsUser:fsGroup
+##
+volumePermissions:
+  enabled: true
+  securityContext:
+    runAsUser: 0
+
+## Pod Security Context
+## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/
+##
+securityContext:
+  enabled: true
+  fsGroup: 1000
+  runAsUser: 1000
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #  cpu: 100m
+  #  memory: 1000Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+## Persist data to a persistent volume
+persistence:
+  enabled: true
+  ## code-server data Persistent Volume Storage Class
+  ## If defined, storageClassName: <storageClass>
+  ## If set to "-", storageClassName: "", which disables dynamic provisioning
+  ## If undefined (the default) or set to null, no storageClassName spec is
+  ##   set, choosing the default provisioner.  (gp2 on AWS, standard on
+  ##   GKE, AWS & OpenStack)
+  ##
+  # storageClass: "-"
+  accessMode: ReadWriteOnce
+  size: 1Gi
+  annotations: {}
+
+serviceAccount:
+  create: true
+  name:
+
+## Enable an Specify container in extraContainers.
+## This is meant to allow adding code-server dependencies, like docker-dind.
+extraContainers: |
+#- name: docker-dind
+#  image: docker:19.03-dind
+#  imagePullPolicy: IfNotPresent
+#  resources:
+#    requests:
+#      cpu: 250m
+#      memory: 256M
+#  securityContext:
+#    privileged: true
+#    procMount: Default
+#  env:
+#  - name: DOCKER_TLS_CERTDIR
+#    value: ""
+#  - name: DOCKER_DRIVER
+#    value: "overlay2"
+
+## Additional code-server secret mounts
+extraSecretMounts: []
+  # - name: secret-files
+  #   mountPath: /etc/secrets
+  #   secretName: code-server-secret-files
+  #   readOnly: true
+
+## Additional code-server volume mounts
+extraVolumeMounts: []
+  # - name: extra-volume
+  #   mountPath: /mnt/volume
+  #   readOnly: true
+  #   existingClaim: volume-claim
+
+extraConfigmapMounts: []
+  # - name: certs-configmap
+  #   mountPath: /etc/code-server/ssl/
+  #   subPath: certificates.crt # (optional)
+  #   configMap: certs-configmap
+  #   readOnly: true
