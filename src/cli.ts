@@ -1,5 +1,6 @@
 import * as cp from "child_process";
 import * as os from "os";
+import * as path from "path";
 import { setUnexpectedErrorHandler } from "vs/base/common/errors";
 import { main as vsCli } from "vs/code/node/cliProcessMain";
 import { validatePaths } from "vs/code/node/paths";
@@ -73,7 +74,15 @@ const getArgs = (): Args => {
 
 	options.push(last);
 
-	return validatePaths(parseMainProcessArgv(process.argv));
+	const args = parseMainProcessArgv(process.argv);
+	if (!args["user-data-dir"]) {
+		args["user-data-dir"] = path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local/share"), "code-server");
+	}
+	if (!args["extensions-dir"]) {
+		args["extensions-dir"] = path.join(args["user-data-dir"], "extensions");
+	}
+
+	return validatePaths(args);
 };
 
 const startVscode = async (): Promise<void | void[]> => {
