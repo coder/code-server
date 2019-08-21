@@ -761,7 +761,7 @@ index 622bb7889b..66dd4b0bbc 100644
  
  self.addEventListener('message', event => {
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-index dfda6a1cfb..9bd1aa3e64 100644
+index dfda6a1cfb..2b36d35608 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
 @@ -24,7 +24,11 @@ const _serviceWorker = new class ServiceWorkerStarter {
@@ -777,6 +777,22 @@ index dfda6a1cfb..9bd1aa3e64 100644
  			// console.debug('SW#reg', reg);
  			return reg.update();
  			// }).then(() => {
+@@ -108,6 +112,7 @@ class ResourceServiceWorker {
+ 			if (!el.sheet) {
+ 				continue;
+ 			}
++			try {
+ 			const rules = (<CSSStyleSheet>el.sheet).rules;
+ 			for (let j = 0; j < rules.length; j++) {
+ 				const rule = rules[j];
+@@ -118,6 +123,7 @@ class ResourceServiceWorker {
+ 					updateCount += 1;
+ 				}
+ 			}
++			} catch (error) {/* Firefox errors if trying to modify style elements inserted by extensions. */}
+ 		}
+ 
+ 		// find any tag using remote uris
 diff --git a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
 index e39fa57979..3c775c9a06 100644
 --- a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
