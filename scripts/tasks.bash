@@ -56,7 +56,7 @@ function prepend-loader() {
 # Copy code-server into VS Code then build it.
 function build-code-server() {
 	copy-server
-	yarn gulp compile-build --max-old-space-size=32384
+	cd "${sourcePath}" && yarn gulp compile-build --max-old-space-size=32384
 
 	local min=""
 	if [[ -n "${minify}" ]] ; then
