@@ -212,7 +212,7 @@ function in-vscode () {
 	if [[ ! -f "${maybeVsCode}/package.json" ]] ; then
 		return 1
 	fi
-	if ! grep '"name": "code-oss-dev"' "${maybeVsCode}/package.json" --quiet ; then
+	if ! grep '"name": "code-oss-dev"' "${maybeVsCode}/package.json" -q ; then
 		return 1
 	fi
 	return 0
@@ -264,17 +264,24 @@ function main() {
 	local codeServerVersion="${1}" ; shift
 	local ci="${CI:-}"
 	local minify="${MINIFY:-}"
+
 	local arch
 	arch=$(uname -m)
-	local target="${1:-}"
-	if [[ -z "${target}" ]] ; then
-		local ostype="${OSTYPE:-}"
-		if [[ "${ostype}" == "darwin"* ]] ; then
-			target="darwin"
-		else
-			target="linux"
+
+	local target="linux"
+	local ostype="${OSTYPE:-}"
+	if [[ "${ostype}" == "darwin"* ]] ; then
+		target="darwin"
+	else
+		# On Alpine there seems no way to get the version except to use an invalid
+		# command which will output the version to stderr and exit with 1.
+		local output
+		output=$(ldd --version 2>&1 || :)
+		if [[ "${output}" == "musl"* ]] ; then
+			target="alpine"
 		fi
 	fi
+
 	local binaryName="code-server${codeServerVersion}-vsc${vscodeVersion}-${target}-${arch}"
 	local buildPath="${stagingPath}/${binaryName}-built"
 

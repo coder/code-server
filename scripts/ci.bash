@@ -26,7 +26,7 @@ function docker-build() {
 
 	function docker-exec() {
 		local command="${1}" ; shift
-		local args="'${vscodeVersion}' '${codeServerVersion}' '${target}'"
+		local args="'${vscodeVersion}' '${codeServerVersion}'"
 		docker exec "${containerId}" \
 			bash -c "cd /src && CI=true GITHUB_TOKEN=${token} MINIFY=${minify} yarn ${command} ${args}"
 	}

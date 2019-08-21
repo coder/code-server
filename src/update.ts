@@ -124,11 +124,11 @@ export class UpdateService extends AbstractUpdateService {
 	private async buildReleaseName(release: string): Promise<string> {
 		let target: string = os.platform();
 		if (target === "linux") {
-			const result = await util.promisify(cp.exec)("ldd --version");
-			if (result.stderr) {
-				throw new Error(result.stderr);
-			}
-			if (result.stdout.indexOf("musl") !== -1) {
+			const result = await util.promisify(cp.exec)("ldd --version").catch((error) => ({
+				stderr: error.message,
+				stdout: "",
+			}));
+			if (result.stderr.indexOf("musl") !== -1 || result.stdout.indexOf("musl") !== -1) {
 				target = "alpine";
 			}
 		}
