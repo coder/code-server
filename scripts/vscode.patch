@@ -278,7 +278,7 @@ index 9373b22383..a98ff4723c 100644
  	constructor(private _args: ParsedArgs, private _execPath: string) {
  		if (!process.env['VSCODE_LOGS']) {
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index 70cd46c824..33d661644b 100644
+index 70cd46c824..3a38a91d8b 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 @@ -725,11 +725,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
@@ -320,7 +320,20 @@ index 70cd46c824..33d661644b 100644
  			.then(([uninstalled, extensions]) => {
  				extensions = extensions.filter(e => !uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]);
  				if (excludeOutdated) {
-@@ -806,7 +817,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -768,6 +779,12 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 	private scanExtensions(root: string, type: ExtensionType): Promise<ILocalExtension[]> {
+ 		const limiter = new Limiter<any>(10);
+ 		return pfs.readdir(root)
++			.catch((error) => {
++				if (error.code !== 'ENOENT') {
++					throw error;
++				}
++				return [];
++			})
+ 			.then(extensionsFolders => Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, root, type)))))
+ 			.then(extensions => extensions.filter(e => e && e.identifier));
+ 	}
+@@ -806,7 +823,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  
  	private async removeUninstalledExtensions(): Promise<void> {
  		const uninstalled = await this.getUninstalledExtensions();
@@ -329,7 +342,7 @@ index 70cd46c824..33d661644b 100644
  		const installed: Set<string> = new Set<string>();
  		for (const e of extensions) {
  			if (!uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]) {
-@@ -825,7 +836,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -825,7 +842,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  	}
  
  	private removeOutdatedExtensions(): Promise<void> {

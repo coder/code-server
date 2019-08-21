@@ -481,6 +481,8 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.servicesPromise,
 		]);
+		const logger = this.services.get(ILogService) as ILogService;
+		logger.info("request.url", `"${request.url}"`);
 		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
 		const cwd = process.env.VSCODE_CWD || process.cwd();
