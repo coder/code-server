@@ -33,10 +33,12 @@ function docker-build() {
 
 	docker cp ./. "${containerId}":/src
 	docker-exec build
-	docker-exec binary
-	docker-exec package
-	mkdir -p release
-	docker cp "${containerId}":/src/release/. ./release/
+	if [[ -n "${package}" ]] ; then
+		docker-exec binary
+		docker-exec package
+		mkdir -p release
+		docker cp "${containerId}":/src/release/. ./release/
+	fi
 
 	docker stop "${containerId}"
 }
@@ -49,8 +51,10 @@ function local-build() {
 	}
 
 	local-exec build
-	local-exec binary
-	local-exec package
+	if [[ -n "${package}" ]] ; then
+		local-exec binary
+		local-exec package
+	fi
 }
 
 # Build code-server in the CI.
@@ -58,6 +62,7 @@ function main() {
 	local codeServerVersion="${VERSION:-}"
 	local vscodeVersion="${VSCODE_VERSION:-}"
 	local ostype="${OSTYPE:-}"
+	local package="${PACKAGE:-}"
 
 	if [[ -z "${codeServerVersion}" ]] ; then
 		>&2 echo "Must set VERSION environment variable"; exit 1
