@@ -1117,6 +1117,19 @@ index 63585fc25c..f49b63e024 100644
  			// apply default script
  			if (options.allowScripts) {
  				const defaultScript = newDocument.createElement('script');
+diff --git a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
+index 7a95ffda9e..fdb14da4ee 100644
+--- a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
++++ b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
+@@ -16,7 +16,7 @@ const typeId = 'workbench.editors.walkThroughInput';
+ const inputOptions: WalkThroughInputOptions = {
+ 	typeId,
+ 	name: localize('editorWalkThrough.title', "Interactive Playground"),
+-	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md'))
++	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md').replace(window.location.href.replace(/\/+$/, ''), window.location.origin))
+ 		.with({ scheme: Schemas.walkThrough }),
+ 	telemetryFrom: 'walkThrough'
+ };
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index 73e8b7c1d1..653d88e4f4 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
