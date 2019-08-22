@@ -24,6 +24,8 @@ docker run -it -p 127.0.0.1:8443:8443 -v "${PWD}:/home/coder/project" codercom/c
 
 [![Create a Droplet](./doc/assets/do-new-droplet-btn.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
+[![Deploy](https://raw.githubusercontent.com/mastappl/images/master/deployTo.png)](https://panel.d2c.io/?import=https://github.com/d2cio/code-server-stack/archive/master.zip/)
+
 ### Run over SSH
 
 Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
