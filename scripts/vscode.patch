@@ -80,6 +80,28 @@ index fa12f62900..509e76ecb7 100644
  	}
  	return uri;
  }
+diff --git a/src/vs/base/browser/mouseEvent.ts b/src/vs/base/browser/mouseEvent.ts
+index 4c7295e3b9..b0af2cdd62 100644
+--- a/src/vs/base/browser/mouseEvent.ts
++++ b/src/vs/base/browser/mouseEvent.ts
+@@ -160,6 +160,8 @@ export class StandardWheelEvent {
+ 				this.deltaY = e1.wheelDeltaY / 120;
+ 			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
+ 				this.deltaY = -e2.detail / 3;
++			} else if (browser.isFirefox) {
++				this.deltaY = -e.deltaY / 3;
+ 			} else {
+ 				this.deltaY = -e.deltaY / 40;
+ 			}
+@@ -173,6 +175,8 @@ export class StandardWheelEvent {
+ 				}
+ 			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
+ 				this.deltaX = -e.detail / 3;
++			} else if (browser.isFirefox) {
++				this.deltaX = -e.deltaX / 3;
+ 			} else {
+ 				this.deltaX = -e.deltaX / 40;
+ 			}
 diff --git a/src/vs/base/browser/ui/menu/menu.ts b/src/vs/base/browser/ui/menu/menu.ts
 index c2b60a5dc9..3f40fa0bdf 100644
 --- a/src/vs/base/browser/ui/menu/menu.ts
