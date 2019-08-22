@@ -96,6 +96,7 @@ function build-code-server() {
 
 	prepend-loader "out/vs/server/main.js"
 	prepend-loader "out/bootstrap-fork.js"
+	prepend-loader "extensions/node_modules/typescript/lib/tsserver.js"
 
 	log "Final build: ${buildPath}"
 }
