@@ -572,6 +572,36 @@ index cf1d6b5b60..be8fdb32f7 100644
  		}
  
  		// Make the window active to handle the drop properly within
+diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
+index a213ed7b02..df1ce972c6 100644
+--- a/src/vs/workbench/browser/layout.ts
++++ b/src/vs/workbench/browser/layout.ts
+@@ -230,7 +230,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+ 		if (visible !== this.state.menuBar.toggled) {
+ 			this.state.menuBar.toggled = visible;
+ 
+-			if (this.state.fullscreen && (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
++			if (this.state.menuBar.visibility === 'toggle' || (this.state.fullscreen && this.state.menuBar.visibility === 'default')) {
+ 				this._onTitleBarVisibilityChange.fire();
+ 				this.layout();
+ 			}
+@@ -519,13 +519,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+ 			case Parts.TITLEBAR_PART:
+ 				if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
+ 					return false;
+-				} else if (!this.state.fullscreen) {
+-					return true;
++				} else if (this.state.menuBar.visibility === 'default') {
++					return !this.state.fullscreen || this.state.menuBar.toggled;
+ 				} else if (isMacintosh && isNative) {
+ 					return false;
+ 				} else if (this.state.menuBar.visibility === 'visible') {
+ 					return true;
+-				} else if (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default') {
++				} else if (this.state.menuBar.visibility === 'toggle') {
+ 					return this.state.menuBar.toggled;
+ 				}
+ 
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
 index ede771a03e..2621eb3755 100644
 --- a/src/vs/workbench/browser/web.main.ts
