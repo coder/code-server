@@ -266,7 +266,7 @@ export abstract class Server {
 			await this.preHandleWebSocket(request, socket);
 		} catch (error) {
 			socket.destroy();
-			console.error(error);
+			console.error(error.message);
 		}
 	}
 
@@ -421,8 +421,11 @@ export class MainServer extends Server {
 	}
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
+		if (!parsedUrl.query.reconnectionToken) {
+			throw new Error("Reconnection token is missing from query parameters");
+		}
 		const protocol = new Protocol(await this.createProxy(socket), {
-			reconnectionToken: <string>parsedUrl.query.reconnectionToken || "",
+			reconnectionToken: <string>parsedUrl.query.reconnectionToken,
 			reconnection: parsedUrl.query.reconnection === "true",
 			skipWebSocketFrames: parsedUrl.query.skipWebSocketFrames === "true",
 		});
