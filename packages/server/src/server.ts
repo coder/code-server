@@ -52,6 +52,8 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 		return cookies;
 	};
 
+	const basicAuthString = "Basic " + new Buffer("user:" + options.password).toString("base64");
+
 	const ensureAuthed = (req: http.IncomingMessage, res: express.Response): boolean => {
 		if (!isAuthed(req)) {
 			res.status(401);
@@ -103,6 +105,10 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 				return true;
 			}
+
+			if (req.headers["authorization"] === basicAuthString) {
+				return true;
+			}
 		} catch (ex) {
 			logger.error("Failed to parse cookies", field("error", ex));
 		}
@@ -136,9 +142,18 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 		if (!fs.existsSync(selfSignedKeyPath) || !fs.existsSync(selfSignedCertPath)) {
 			try {
+				let altNames: string[] = [];
+				let networkInterfaces = os.networkInterfaces();
+				for(let ifName of Object.keys(networkInterfaces)){
+					let interfaces = networkInterfaces[ifName];
+					interfaces.filter(i => !i.internal && i.family === "IPv4").forEach(i => {
+						altNames.push(i.address);
+					});
+				}
 				const certs = await new Promise<pem.CertificateCreationResult>((res, rej): void => {
 					pem.createCertificate({
 						selfSigned: true,
+            altNames: altNames
 					}, (err, result) => {
 						if (err) {
 							rej(err);
