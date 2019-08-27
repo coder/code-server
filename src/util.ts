@@ -66,7 +66,7 @@ export const getMediaMime = (filePath?: string): string => {
 	return filePath && (vsGetMediaMime(filePath) || (<{[index: string]: string}>{
 		".css": "text/css",
 		".html": "text/html",
-		".js": "text/javascript",
+		".js": "application/javascript",
 		".json": "application/json",
 	})[extname(filePath)]) || "text/plain";
 };
