@@ -490,7 +490,7 @@ export class MainServer extends Server {
 		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
 		const cwd = process.env.VSCODE_CWD || process.cwd();
 		const workspacePath = parsedUrl.query.workspace as string | undefined;
-		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri || cwd: undefined;
+		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri : undefined;
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
 		const options: Options = {
