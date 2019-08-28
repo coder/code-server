@@ -14,7 +14,7 @@ WORKDIR /src
 COPY . .
 
 RUN yarn \
-	&& yarn build "${vscodeVersion}" "${codeServerVersion}" \
+	&& MINIFY=true yarn build "${vscodeVersion}" "${codeServerVersion}" \
 	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
 	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server
 
