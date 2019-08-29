@@ -123,3 +123,71 @@ Options:
 
   ### Help
   Use `code-server --help` to view the usage for the CLI. This is also shown at the beginning of this section.
+
+## Docker in Docker
+
+### Kubernetes Example
+
+This is a Kubernetes deployment for `code-server` that can run `docker` containers. It uses the official `dind` ([docker-in-docker](https://hub.docker.com/_/docker)) image and copies the `docker` binary to the `code-server` container on startup (in `/usr/local/bin`, which is empty by default).
+
+```
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: code-server
+  namespace: default
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: code-server
+    spec:
+      initContainers:
+      - name: copy-docker-binary
+        image: docker:stable-dind
+        command: ['sh', '-c', 'cp /usr/local/bin/docker /code-server-bin/']
+        volumeMounts:
+        - name: code-server-usr-local-bin
+          mountPath: /code-server-bin
+      containers:
+      - name: code-server
+        image: linuxserver/code-server
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8443
+          name: https
+        envFrom:
+        - configMapRef:
+            name: code-server
+        - secretRef:
+            name: code-server
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: false
+        - name: code-server-usr-local-bin
+          mountPath: /usr/local/bin
+      - name: dind-daemon
+        image: docker:stable-dind
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        resources:
+          requests:
+            cpu: 20m
+            memory: 512Mi
+        securityContext:
+            privileged: true
+        volumeMounts:
+          - name: docker-graph-storage
+            mountPath: /var/lib/docker
+      volumes:
+      - name: config
+        persistentVolumeClaim:
+          claimName: code-server-config
+      - name: docker-graph-storage
+        emptyDir: {}
+      - name: code-server-usr-local-bin
+        emptyDir: {}
+```
