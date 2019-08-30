@@ -181,13 +181,8 @@ function package-task() {
 
 # Bundle built code into a binary.
 function binary-task() {
-	# I had trouble getting VS Code to build with the @coder/nbin dependency due
-	# to the types it installs (tons of conflicts), so for now it's a global
-	# dependency.
 	cd "${rootPath}"
-	npm link @coder/nbin
 	node "${rootPath}/scripts/nbin.js" "${buildPath}" "${target}" "${binaryName}"
-	rm node_modules/@coder/nbin
 	log "Binary: ${buildPath}/${binaryName}"
 }
 
