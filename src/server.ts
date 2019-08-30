@@ -41,10 +41,9 @@ import { LocalizationsChannel } from "vs/platform/localizations/node/localizatio
 import { getLogLevel, ILogService } from "vs/platform/log/common/log";
 import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
-import { IProductConfiguration, IProductService } from "vs/platform/product/common/product";
+import { IProductService } from "vs/platform/product/common/product";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
-import { ProductService } from "vs/platform/product/node/productService";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 import { IRequestService } from "vs/platform/request/common/request";
@@ -81,8 +80,6 @@ export enum HttpCode {
 export interface Options {
 	WORKBENCH_WEB_CONGIGURATION: IWorkbenchConstructionOptions;
 	REMOTE_USER_DATA_URI: UriComponents | URI;
-	PRODUCT_CONFIGURATION: IProductConfiguration | null;
-	CONNECTION_AUTH_TOKEN: string;
 	NLS_CONFIGURATION: NLSConfiguration;
 }
 
@@ -110,6 +107,7 @@ export class HttpError extends Error {
 export interface ServerOptions {
 	readonly auth?: AuthType;
 	readonly basePath?: string;
+	readonly connectionToken?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
 	readonly folderUri?: string;
@@ -122,6 +120,8 @@ export interface ServerOptions {
 export abstract class Server {
 	protected readonly server: http.Server | https.Server;
 	protected rootPath = path.resolve(__dirname, "../../../..");
+	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
+	protected readonly allowedRequestPaths: string[] = [this.rootPath];
 	private listenPromise: Promise<string> | undefined;
 	public readonly protocol: "http" | "https";
 	public readonly options: ServerOptions;
@@ -185,6 +185,9 @@ export abstract class Server {
 
 	protected async getResource(...parts: string[]): Promise<Response> {
 		const filePath = path.join(...parts);
+		if (!this.isAllowedRequestPath(filePath)) {
+			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
+		}
 		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
@@ -193,10 +196,20 @@ export abstract class Server {
 		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${split.length === 2 ? `?${split[1]}` : ""}`;
 	}
 
+	private isAllowedRequestPath(path: string): boolean {
+		for (let i = 0; i < this.allowedRequestPaths.length; ++i) {
+			if (path.indexOf(this.allowedRequestPaths[i]) === 0) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
 		try {
 			const payload = await this.preHandleRequest(request);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
+				// "Cache-Control": "public, max-age=31536000",
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
 				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath || "/" } : {}),
@@ -233,25 +246,29 @@ export abstract class Server {
 		base = path.normalize(base);
 		requestPath = path.normalize(requestPath || "/index.html");
 
+		if (base !== "/login" || !this.options.auth || requestPath !== "/index.html") {
+			this.ensureGet(request);
+		}
+
 		switch (base) {
 			case "/":
-				this.ensureGet(request);
-				if (requestPath === "/favicon.ico") {
-					return this.getResource(this.rootPath, "/out/vs/server/src/favicon", requestPath);
-				} else if (!this.authenticate(request)) {
+				switch (requestPath) {
+					case "/favicon.ico":
+					case "/manifest.json":
+						return this.getResource(this.serverRoot, "media", requestPath);
+				}
+				if (!this.authenticate(request)) {
 					return { redirect: "/login" };
 				}
 				break;
+			case "/static":
+				return this.getResource(this.rootPath, requestPath);
 			case "/login":
-				if (!this.options.auth) {
+				if (!this.options.auth || requestPath !== "/index.html") {
 					throw new HttpError("Not found", HttpCode.NotFound);
-				} else if (requestPath === "/index.html") {
-					return this.tryLogin(request);
 				}
-				this.ensureGet(request);
-				return this.getResource(this.rootPath, "/out/vs/server/src/login", requestPath);
+				return this.tryLogin(request);
 			default:
-				this.ensureGet(request);
 				if (!this.authenticate(request)) {
 					throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 				}
@@ -274,6 +291,7 @@ export abstract class Server {
 		socket.on("error", () => socket.destroy());
 		socket.on("end", () => socket.destroy());
 
+		this.ensureGet(request);
 		if (!this.authenticate(request)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 		} else if (request.headers.upgrade !== "websocket") {
@@ -297,8 +315,7 @@ export abstract class Server {
 	}
 
 	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
-		if (this.authenticate(request)) {
-			this.ensureGet(request);
+		if (this.authenticate(request) && (request.method === "GET" || request.method === "POST")) {
 			return { redirect: "/" };
 		}
 		if (request.method === "POST") {
@@ -322,7 +339,7 @@ export abstract class Server {
 	}
 
 	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
-		const filePath = path.join(this.rootPath, "out/vs/server/src/login/index.html");
+		const filePath = path.join(this.serverRoot, "login/index.html");
 		const content = (await util.promisify(fs.readFile)(filePath, "utf8"))
 			.replace("{{ERROR}}", error)
 			.replace("display:none", error ? "display:block" : "display:none")
@@ -446,24 +463,12 @@ export class MainServer extends Server {
 	): Promise<Response> {
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
-			case "/resources":
-			case "/vscode-resources":
-				if (requestPath === "/fetch") {
-					if (typeof parsedUrl.query.u === "string") {
-						return this.getResource(JSON.parse(parsedUrl.query.u).path);
-					}
-					// For some reason VS Code encodes the = so the query doesn't parse
-					// correctly. We'll look through what's available and try to find it.
-					for (let value in parsedUrl.query) {
-						if (value && typeof value === "string") {
-							const query = querystring.parse(value);
-							if (typeof query.u === "string") {
-								return this.getResource(JSON.parse(query.u).path);
-							}
-						}
-					}
+			case "/resource":
+			case "/vscode-remote-resource":
+				if (typeof parsedUrl.query.path === "string") {
+					return this.getResource(parsedUrl.query.path);
 				}
-				throw new HttpError("Not found", HttpCode.NotFound);
+				break;
 			case "/webview":
 				if (requestPath.indexOf("/vscode-resource") === 0) {
 					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));
@@ -473,9 +478,8 @@ export class MainServer extends Server {
 					"out/vs/workbench/contrib/webview/browser/pre",
 					requestPath
 				);
-			default:
-				return this.getResource(this.rootPath, base, requestPath);
 		}
+		throw new HttpError("Not found", HttpCode.NotFound);
 	}
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
@@ -502,16 +506,11 @@ export class MainServer extends Server {
 					? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
 					: undefined,
 				remoteAuthority,
+				productConfiguration: product,
 			},
 			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
 				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
 			),
-			PRODUCT_CONFIGURATION: {
-				...product,
-				// @ts-ignore workaround for getting the VS Code version to the browser.
-				version: pkg.version,
-			},
-			CONNECTION_AUTH_TOKEN: "",
 			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
 		};
 
@@ -586,6 +585,14 @@ export class MainServer extends Server {
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
 
+		this.allowedRequestPaths.push(
+			path.join(environmentService.userDataPath, "clp"), // Language packs.
+			environmentService.extensionsPath,
+			environmentService.builtinExtensionsPath,
+			...environmentService.extraExtensionPaths,
+			...environmentService.extraBuiltinExtensionPaths,
+		);
+
 		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
 		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
@@ -595,7 +602,7 @@ export class MainServer extends Server {
 		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
 		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 		this.services.set(IFileService, fileService);
-		this.services.set(IProductService, new SyncDescriptor(ProductService));
+		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
 		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
 		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
 		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
@@ -608,14 +615,9 @@ export class MainServer extends Server {
 				),
 				commonProperties: resolveCommonProperties(
 					product.commit, pkg.codeServerVersion, await getMachineId(),
-					environmentService.installSourcePath, "code-server",
+					[], environmentService.installSourcePath, "code-server",
 				),
-				piiPaths: [
-					environmentService.appRoot,
-					environmentService.extensionsPath,
-					...environmentService.extraExtensionPaths,
-					...environmentService.extraBuiltinExtensionPaths,
-				],
+				piiPaths: this.allowedRequestPaths,
 			} as ITelemetryServiceConfig]));
 		} else {
 			this.services.set(ITelemetryService, NullTelemetryService);
@@ -633,7 +635,7 @@ export class MainServer extends Server {
 				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
 
 				const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
-				const extensionsEnvironmentChannel = new ExtensionEnvironmentChannel(environmentService, logService, telemetryService);
+				const extensionsEnvironmentChannel = new ExtensionEnvironmentChannel(environmentService, logService, telemetryService, this.options.connectionToken || "");
 				const fileChannel = new FileProviderChannel(environmentService, logService);
 				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);

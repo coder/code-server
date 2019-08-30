@@ -81,7 +81,7 @@ data collected to improve code-server.
 ```shell
 git clone https://github.com/microsoft/vscode
 cd vscode
-git checkout 1.37.0
+git checkout <see travis.yml for the VS Code version to use here>
 git clone https://github.com/cdr/code-server src/vs/server
 cd src/vs/server
 yarn patch:apply
@@ -98,30 +98,28 @@ If you run into issues about a different version of Node being used, try running
 `vscode-ripgrep`.
 
 ### Upgrading VS Code
-We have to patch VS Code to provide and fix some functionality. As the web
-portion of VS Code matures, we'll be able to shrink and maybe even entirely
-eliminate our patch. In the meantime, however, upgrading the VS Code version
-requires ensuring that the patch still applies and has the intended effects.
+We patch VS Code to provide and fix some functionality. As the web portion of VS
+Code matures, we'll be able to shrink and maybe even entirely eliminate our
+patch. In the meantime, however, upgrading the VS Code version requires ensuring
+that the patch still applies and has the intended effects.
 
 To generate a new patch, **stage all the changes** you want to be included in
 the patch in the VS Code source, then run `yarn patch:generate` in this
 directory.
 
 Our changes include:
-- Add a `code-server` schema.
+- Change the remote schema to `code-server`.
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
-- Send client-side telemetry through the server.
-- Add a file prefix to ignore for temporary files created during upload.
-- Insert our upload service for use in editor windows and explorer.
-- Modify the log level to get its initial setting from the server.
-- Change a regular expression used for mnemonics so it works on Firefox.
+- Send client-side telemetry through the server and get the initial log level
+  from the server.
+- Add an upload service for use in editor windows and the explorer along with a
+  file prefix to ignore for temporary files created during upload.
+- Make changing the display language work.
+- Make hiding or toggling the menu bar possible.
 - Make it possible for us to load code on the client.
 - Modify the build process to include our code.
-- Fix a CSP issue within webviews.
-- Fix an issue displaying extension contributions.
-- Make changing the display language work.
 
 ## License
 [MIT](LICENSE)

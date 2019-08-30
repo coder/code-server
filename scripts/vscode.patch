@@ -1,48 +1,44 @@
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 99bd930a91..319c4bd3c3 100644
+index 6bb695db68..ecbabe5dc8 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
-@@ -47,24 +47,31 @@ const nodeModules = ['electron', 'original-fs']
+@@ -47,24 +47,28 @@ const nodeModules = ['electron', 'original-fs']
  
  // Build
  const vscodeEntryPoints = _.flatten([
--	buildfile.entrypoint('vs/workbench/workbench.main'),
-+	// buildfile.entrypoint('vs/workbench/workbench.main'),
+-	buildfile.entrypoint('vs/workbench/workbench.desktop.main'),
 +	buildfile.entrypoint('vs/workbench/workbench.web.api'),
 +	buildfile.entrypoint('vs/server/src/cli'),
-+	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.linux'),
-+	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.win'),
-+	buildfile.entrypoint('vs/workbench/services/keybinding/browser/keyboardLayouts/layout.contribution.darwin'),
  	buildfile.base,
  	buildfile.serviceWorker,
--	buildfile.workbench,
+-	buildfile.workbenchDesktop,
 -	buildfile.code
 +	buildfile.workbenchWeb,
-+	// buildfile.code
++	buildfile.workerExtensionHost,
++	buildfile.keyboardMaps,
  ]);
  
  const vscodeResources = [
 -	'out-build/main.js',
 -	'out-build/cli.js',
 -	'out-build/driver.js',
-+	// 'out-build/main.js',
-+	// 'out-build/cli.js',
-+	// 'out-build/driver.js',
 +	'out-build/vs/server/main.js',
 +	'out-build/vs/server/src/uriTransformer.js',
++	'out-build/vs/code/browser/workbench/**',
++	'out-build/vs/server/src/media/*',
++	'out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js',
++	'!out-build/vs/server/doc/**',
  	'out-build/bootstrap.js',
  	'out-build/bootstrap-fork.js',
  	'out-build/bootstrap-amd.js',
  	'out-build/bootstrap-window.js',
  	'out-build/paths.js',
--	'out-build/vs/**/*.{svg,png,html}',
+ 	'out-build/vs/**/*.{svg,png,html}',
 -	'!out-build/vs/code/browser/**/*.html',
-+	'out-build/vs/**/*.{svg,png,html,ico}',
-+	// '!out-build/vs/code/browser/**/*.html',
  	'out-build/vs/base/common/performance.js',
  	'out-build/vs/base/node/languagePacks.js',
  	'out-build/vs/base/node/{stdForkStart.js,terminateProcess.sh,cpuUsage.sh,ps.sh}',
-@@ -79,10 +86,12 @@ const vscodeResources = [
+@@ -79,11 +83,7 @@ const vscodeResources = [
  	'out-build/vs/workbench/contrib/welcome/walkThrough/**/*.md',
  	'out-build/vs/platform/files/**/*.exe',
  	'out-build/vs/platform/files/**/*.md',
@@ -50,96 +46,69 @@ index 99bd930a91..319c4bd3c3 100644
 -	'out-build/vs/code/electron-browser/sharedProcess/sharedProcess.js',
 -	'out-build/vs/code/electron-browser/issue/issueReporter.js',
 -	'out-build/vs/code/electron-browser/processExplorer/processExplorer.js',
-+	'out-build/vs/code/browser/workbench/**',
-+	// 'out-build/vs/code/electron-browser/workbench/**',
-+	// 'out-build/vs/code/electron-browser/sharedProcess/sharedProcess.js',
-+	// 'out-build/vs/code/electron-browser/issue/issueReporter.js',
-+	// 'out-build/vs/code/electron-browser/processExplorer/processExplorer.js',
-+	'!out-build/vs/server/doc/**',
- 	'!**/test/**'
+-	'!**/test/**'
++	'!**/test/**',
  ];
  
-diff --git a/src/vs/base/browser/dom.ts b/src/vs/base/browser/dom.ts
-index fa12f62900..509e76ecb7 100644
---- a/src/vs/base/browser/dom.ts
-+++ b/src/vs/base/browser/dom.ts
-@@ -1187,6 +1187,7 @@ export function animate(fn: () => void): IDisposable {
- 
- 
- 
-+const basePath = window.location.pathname.replace(/\/+$/, '');
- const _location = URI.parse(window.location.href);
- 
- export function asDomUri(uri: URI): URI {
-@@ -1200,7 +1201,7 @@ export function asDomUri(uri: URI): URI {
- 	if (Schemas.vscodeRemote === uri.scheme) {
- 		// rewrite vscode-remote-uris to uris of the window location
- 		// so that they can be intercepted by the service worker
--		return _location.with({ path: '/vscode-resources/fetch', query: `u=${JSON.stringify(uri)}` });
-+		return _location.with({ path: `${basePath}/vscode-resources/fetch`, query: `u=${JSON.stringify(uri)}` });
+ const optimizeVSCodeTask = task.define('optimize-vscode', task.series(
+@@ -627,4 +627,3 @@ function getSettingsSearchBuildId(packageJson) {
+ 		throw new Error('Could not determine build number: ' + e.toString());
  	}
- 	return uri;
  }
+-
 diff --git a/src/vs/base/browser/mouseEvent.ts b/src/vs/base/browser/mouseEvent.ts
-index 4c7295e3b9..b0af2cdd62 100644
+index 4c7295e3b9..fc9694a18b 100644
 --- a/src/vs/base/browser/mouseEvent.ts
 +++ b/src/vs/base/browser/mouseEvent.ts
-@@ -160,6 +160,8 @@ export class StandardWheelEvent {
+@@ -158,7 +158,7 @@ export class StandardWheelEvent {
+ 			// vertical delta scroll
+ 			if (typeof e1.wheelDeltaY !== 'undefined') {
  				this.deltaY = e1.wheelDeltaY / 120;
- 			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
+-			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
++			} else if (browser.isFirefox || (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS)) {
  				this.deltaY = -e2.detail / 3;
-+			} else if (browser.isFirefox) {
-+				this.deltaY = -e.deltaY / 3;
  			} else {
  				this.deltaY = -e.deltaY / 40;
- 			}
-@@ -173,6 +175,8 @@ export class StandardWheelEvent {
+@@ -171,7 +171,7 @@ export class StandardWheelEvent {
+ 				} else {
+ 					this.deltaX = e1.wheelDeltaX / 120;
  				}
- 			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
+-			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
++			} else if (browser.isFirefox || (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS)) {
  				this.deltaX = -e.detail / 3;
-+			} else if (browser.isFirefox) {
-+				this.deltaX = -e.deltaX / 3;
  			} else {
  				this.deltaX = -e.deltaX / 40;
- 			}
-diff --git a/src/vs/base/browser/ui/menu/menu.ts b/src/vs/base/browser/ui/menu/menu.ts
-index c2b60a5dc9..3f40fa0bdf 100644
---- a/src/vs/base/browser/ui/menu/menu.ts
-+++ b/src/vs/base/browser/ui/menu/menu.ts
-@@ -22,7 +22,7 @@ import { isLinux, isMacintosh } from 'vs/base/common/platform';
- 
- function createMenuMnemonicRegExp() {
- 	try {
--		return new RegExp('\\(&([^\\s&])\\)|(?<!&)&([^\\s&])');
-+		return new RegExp('\\(&([^\\s&])\\)|([^&]|^)&([^\\s&])');
- 	} catch (err) {
- 		return new RegExp('\uFFFF'); // never match please
- 	}
-@@ -802,7 +802,7 @@ export function cleanMnemonic(label: string): string {
- 		return label;
- 	}
- 
--	const mnemonicInText = matches[0].charAt(0) === '&';
-+	const mnemonicInText = matches[3];
- 
--	return label.replace(regex, mnemonicInText ? '$2' : '').trim();
-+	return label.replace(regex, mnemonicInText ? '$2$3' : '').trim();
- }
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 46d2933a05..42a3d77802 100644
+index 4f93e06df0..ae63e64a7f 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -45,7 +45,7 @@ export namespace Schemas {
+@@ -48,7 +48,7 @@ export namespace Schemas {
  
  	export const command: string = 'command';
  
 -	export const vscodeRemote: string = 'vscode-remote';
 +	export const vscodeRemote: string = 'code-server';
  
- 	export const userData: string = 'vscode-userdata';
- }
+ 	export const vscodeRemoteResource: string = 'vscode-remote-resource';
+ 
+@@ -82,13 +82,11 @@ class RemoteAuthoritiesImpl {
+ 	}
+ 
+ 	public rewrite(authority: string, path: string): URI {
+-		const host = this._hosts[authority];
+-		const port = this._ports[authority];
+ 		const connectionToken = this._connectionTokens[authority];
+ 		return URI.from({
+ 			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
+-			authority: `${host}:${port}`,
+-			path: `/vscode-remote-resource`,
++			authority: window.location.host,
++			path: `${window.location.pathname.replace(/\/+$/, '')}/vscode-remote-resource`,
+ 			query: `path=${encodeURIComponent(path)}&tkn=${encodeURIComponent(connectionToken)}`
+ 		});
+ 	}
 diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
-index d7371552d3..d2ab92983e 100644
+index 07759dffe5..9148d7c1f0 100644
 --- a/src/vs/base/common/platform.ts
 +++ b/src/vs/base/common/platform.ts
 @@ -54,8 +54,18 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
@@ -164,45 +133,33 @@ index d7371552d3..d2ab92983e 100644
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index 5b06636edb..60b508079a 100644
+index 44f67f0a0b..00fc1deea8 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
-@@ -4,7 +4,7 @@
- 	<head>
- 		<meta charset="utf-8" />
+@@ -18,10 +18,11 @@
  
--		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
-+		<link rel="icon" href="./favicon.ico" type="image/x-icon" />
- 
- 		<!-- Disable pinch zooming -->
- 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -19,13 +19,14 @@
- 
- 		<!-- Workaround to pass product configuration-->
- 		<meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}">
+ 		<!-- Workarounds/Hacks (remote user data uri) -->
+ 		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
 +		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
+ 
+ 		<!-- Workbench Icon/Manifest/CSS -->
+-		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+-		<link rel="manifest" href="/manifest.json">
++		<link rel="icon" href="./favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="./manifest.json">
+ 		<link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.api.css">
  	</head>
  
- 	<body aria-label="">
- 	</body>
- 
- 	<!-- Application insights telemetry library -->
--	<script src="https://az416426.vo.msecnd.net/scripts/a/ai.0.js"></script>
-+	<!-- <script src="https://az416426.vo.msecnd.net/scripts/a/ai.0.js"></script> -->
- 
- 	<!-- Require our AMD loader -->
- 	<script src="./out/vs/loader.js"></script>
 diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 65fae7c82d..a1974cd941 100644
+index 2f09f53e43..ca969f19f6 100644
 --- a/src/vs/code/browser/workbench/workbench.js
 +++ b/src/vs/code/browser/workbench/workbench.js
-@@ -7,21 +7,52 @@
+@@ -8,24 +8,52 @@
  
  (function () {
  
 +	const basePath = window.location.pathname.replace(/\/+$/, '');
-+	const base = window.location.origin + basePath;
-+
++	const base = window.location.origin  + basePath;
 +	let nlsConfig;
 +	try {
 +		nlsConfig = JSON.parse(document.getElementById('vscode-remote-nls-configuration').getAttribute('data-settings'));
@@ -215,8 +172,8 @@ index 65fae7c82d..a1974cd941 100644
 +				}
 +				// FIXME: Only works if path separators are /.
 +				const path = nlsConfig._resolvedLanguagePackCoreLocation
-+					+ '/' + bundle.replace(/\//g, '!') + '.nls.json';
-+				fetch(`${base}/resources/fetch?u=${JSON.stringify({ path })}`)
++							+ '/' + bundle.replace(/\//g, '!') + '.nls.json';
++				fetch(`${base}/resource/?path=${encodeURIComponent(path)}`)
 +					.then((response) => response.json())
 +					.then((json) => {
 +						bundles[bundle] = json;
@@ -227,43 +184,43 @@ index 65fae7c82d..a1974cd941 100644
 +		}
 +	} catch (error) { /* Probably fine. */ }
 +
- 	require.config({
--		baseUrl: `${window.location.origin}/out`,
-+		baseUrl: `${base}/out`,
-+		baseScheme: window.location.protocol.replace(/:$/, ''),
-+		basePath: basePath,
-+		baseAuthority: window.location.host,
+ 	/** @type any */
+ 	const amdLoader = require;
+ 
+ 	amdLoader.config({
+-		baseUrl: `${window.location.origin}/static/out`,
++		baseUrl: `${base}/static/out`,
  		paths: {
--			'vscode-textmate': `${window.location.origin}/node_modules/vscode-textmate/release/main`,
--			'onigasm-umd': `${window.location.origin}/node_modules/onigasm-umd/release/main`,
--			'xterm': `${window.location.origin}/node_modules/xterm/lib/xterm.js`,
--			'xterm-addon-search': `${window.location.origin}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
--			'xterm-addon-web-links': `${window.location.origin}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
--			'semver-umd': `${window.location.origin}/node_modules/semver-umd/lib/semver-umd.js`,
+-			'vscode-textmate': `${window.location.origin}/static/node_modules/vscode-textmate/release/main`,
+-			'onigasm-umd': `${window.location.origin}/static/node_modules/onigasm-umd/release/main`,
+-			'xterm': `${window.location.origin}/static/node_modules/xterm/lib/xterm.js`,
+-			'xterm-addon-search': `${window.location.origin}/static/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
+-			'xterm-addon-web-links': `${window.location.origin}/static/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
+-			'semver-umd': `${window.location.origin}/static/node_modules/semver-umd/lib/semver-umd.js`,
+-			'@microsoft/applicationinsights-web': `${window.location.origin}/static/node_modules/@microsoft/applicationinsights-web/dist/applicationinsights-web.js`,
 -		}
-+			'vscode-textmate': `${base}/node_modules/vscode-textmate/release/main`,
-+			'onigasm-umd': `${base}/node_modules/onigasm-umd/release/main`,
-+			'xterm': `${base}/node_modules/xterm/lib/xterm.js`,
-+			'xterm-addon-search': `${base}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
-+			'xterm-addon-web-links': `${base}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
-+			'semver-umd': `${base}/node_modules/semver-umd/lib/semver-umd.js`,
++			'vscode-textmate': `${base}/static/node_modules/vscode-textmate/release/main`,
++			'onigasm-umd': `${base}/static/node_modules/onigasm-umd/release/main`,
++			'xterm': `${base}/static/node_modules/xterm/lib/xterm.js`,
++			'xterm-addon-search': `${base}/static/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
++			'xterm-addon-web-links': `${base}/static/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
++			'semver-umd': `${base}/static/node_modules/semver-umd/lib/semver-umd.js`,
++			'@microsoft/applicationinsights-web': `${base}/static/node_modules/@microsoft/applicationinsights-web/dist/applicationinsights-web.js`,
 +		},
 +		'vs/nls': nlsConfig
  	});
  
- 	require(['vs/workbench/workbench.web.api'], function (api) {
+ 	amdLoader(['vs/workbench/workbench.web.api'], function (api) {
  		const options = JSON.parse(document.getElementById('vscode-workbench-web-configuration').getAttribute('data-settings'));
--
 +		options.webviewEndpoint = `${base}/webview/`;
  		api.create(document.body, options);
  	});
  })();
-\ No newline at end of file
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
-index a6c9eb9d11..3f8995b727 100644
+index 3b45568e1b..aebe04ccfe 100644
 --- a/src/vs/platform/environment/common/environment.ts
 +++ b/src/vs/platform/environment/common/environment.ts
-@@ -81,6 +81,8 @@ export interface ParsedArgs {
+@@ -82,6 +82,8 @@ export interface ParsedArgs {
  
  	// Web flags
  	'web-user-data-dir'?: string;
@@ -272,21 +229,21 @@ index a6c9eb9d11..3f8995b727 100644
  }
  
  export const IEnvironmentService = createDecorator<IEnvironmentService>('environmentService');
-@@ -173,4 +175,6 @@ export interface IEnvironmentService {
- 	readonly webviewCspSource: string;
+@@ -162,4 +164,6 @@ export interface IEnvironmentService {
+ 	driverVerbose: boolean;
  
- 	readonly galleryMachineIdResource?: URI;
+ 	galleryMachineIdResource?: URI;
 +	extraExtensionPaths: string[];
 +	extraBuiltinExtensionPaths: string[];
  }
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index 9373b22383..a98ff4723c 100644
+index a07c4c8f48..028ed19657 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
-@@ -277,6 +277,15 @@ export class EnvironmentService implements IEnvironmentService {
+@@ -264,6 +264,15 @@ export class EnvironmentService implements IEnvironmentService {
  
- 	readonly webviewResourceRoot = 'vscode-resource:{{resource}}';
- 	readonly webviewCspSource = 'vscode-resource:';
+ 	get driverHandle(): string | undefined { return this._args['driver']; }
+ 	get driverVerbose(): boolean { return !!this._args['driver-verbose']; }
 +	@memoize get extraExtensionPaths(): string[] {
 +		return this.arrayify(this._args['extra-extensions-dir']).map((p) => <string>parsePathArg(p, process));
 +	}
@@ -300,10 +257,10 @@ index 9373b22383..a98ff4723c 100644
  	constructor(private _args: ParsedArgs, private _execPath: string) {
  		if (!process.env['VSCODE_LOGS']) {
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index 70cd46c824..3a38a91d8b 100644
+index 7d0b568fc7..23ab257b42 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-@@ -725,11 +725,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -731,11 +731,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
  
  	private scanSystemExtensions(): Promise<ILocalExtension[]> {
  		this.logService.trace('Started scanning system extensions');
@@ -324,7 +281,7 @@ index 70cd46c824..3a38a91d8b 100644
  		if (this.environmentService.isBuilt) {
  			return systemExtensionsPromise;
  		}
-@@ -751,9 +755,16 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -757,9 +761,16 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			.then(([systemExtensions, devSystemExtensions]) => [...systemExtensions, ...devSystemExtensions]);
  	}
  
@@ -342,7 +299,7 @@ index 70cd46c824..3a38a91d8b 100644
  			.then(([uninstalled, extensions]) => {
  				extensions = extensions.filter(e => !uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]);
  				if (excludeOutdated) {
-@@ -768,6 +779,12 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -774,6 +785,12 @@ export class ExtensionManagementService extends Disposable implements IExtension
  	private scanExtensions(root: string, type: ExtensionType): Promise<ILocalExtension[]> {
  		const limiter = new Limiter<any>(10);
  		return pfs.readdir(root)
@@ -355,7 +312,7 @@ index 70cd46c824..3a38a91d8b 100644
  			.then(extensionsFolders => Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, root, type)))))
  			.then(extensions => extensions.filter(e => e && e.identifier));
  	}
-@@ -806,7 +823,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -812,7 +829,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  
  	private async removeUninstalledExtensions(): Promise<void> {
  		const uninstalled = await this.getUninstalledExtensions();
@@ -364,7 +321,7 @@ index 70cd46c824..3a38a91d8b 100644
  		const installed: Set<string> = new Set<string>();
  		for (const e of extensions) {
  			if (!uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]) {
-@@ -825,7 +842,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -831,7 +848,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  	}
  
  	private removeOutdatedExtensions(): Promise<void> {
@@ -374,7 +331,7 @@ index 70cd46c824..3a38a91d8b 100644
  				const toRemove: ILocalExtension[] = [];
  
 diff --git a/src/vs/platform/localizations/electron-browser/localizationsService.ts b/src/vs/platform/localizations/electron-browser/localizationsService.ts
-index 353161166e..cff8e2750e 100644
+index add4dfb2fc..18fc71df51 100644
 --- a/src/vs/platform/localizations/electron-browser/localizationsService.ts
 +++ b/src/vs/platform/localizations/electron-browser/localizationsService.ts
 @@ -6,7 +6,7 @@
@@ -398,7 +355,7 @@ index 353161166e..cff8e2750e 100644
  
  	get onDidLanguagesChange(): Event<void> { return this.channel.listen('onDidLanguagesChange'); }
 diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
-index 9f68b645b6..54f9e26c88 100644
+index 9f68b645b6..b422a3c809 100644
 --- a/src/vs/platform/log/common/logIpc.ts
 +++ b/src/vs/platform/log/common/logIpc.ts
 @@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
@@ -409,29 +366,24 @@ index 9f68b645b6..54f9e26c88 100644
  		}
  
  		throw new Error(`Call not found: ${command}`);
-@@ -43,6 +44,9 @@ export class LogLevelSetterChannelClient {
+@@ -43,6 +44,10 @@ export class LogLevelSetterChannelClient {
  	setLevel(level: LogLevel): void {
  		this.channel.call('setLevel', level);
  	}
++
 +	getLevel(): Promise<LogLevel> {
 +		return this.channel.call('getLevel');
 +	}
  }
  
  export class FollowerLogService extends DelegatedLogService implements ILogService {
-diff --git a/src/vs/platform/product/browser/productService.ts b/src/vs/platform/product/browser/productService.ts
-index fbdf03fd3e..d498d4d192 100644
---- a/src/vs/platform/product/browser/productService.ts
-+++ b/src/vs/platform/product/browser/productService.ts
-@@ -17,7 +17,7 @@ export class ProductService implements IProductService {
- 
- 	_serviceBrand: ServiceIdentifier<IProductService>;
- 
--	get version(): string { return '1.35.0'; }
-+	get version(): string { return this.productConfiguration ? (this.productConfiguration as any).version : 'development'; }
- 
- 	get commit(): string | undefined { return this.productConfiguration ? this.productConfiguration.commit : undefined; }
- 
+@@ -56,4 +61,4 @@ export class FollowerLogService extends DelegatedLogService implements ILogServi
+ 	setLevel(level: LogLevel): void {
+ 		this.master.setLevel(level);
+ 	}
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/platform/product/node/package.ts b/src/vs/platform/product/node/package.ts
 index d39c5877d6..c189d6f19f 100644
 --- a/src/vs/platform/product/node/package.ts
@@ -445,7 +397,7 @@ index d39c5877d6..c189d6f19f 100644
  
  const rootPath = path.dirname(getPathFromAmdModule(require, ''));
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
-index 6b24ec0781..4d05c63193 100644
+index 6b24ec0781..43dd9c12c8 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserSocketFactory.ts
 @@ -133,7 +133,7 @@ export class BrowserSocketFactory implements ISocketFactory {
@@ -457,8 +409,15 @@ index 6b24ec0781..4d05c63193 100644
  		const errorListener = socket.onError((err) => callback(err, undefined));
  		socket.onOpen(() => {
  			errorListener.dispose();
+@@ -141,6 +141,3 @@ export class BrowserSocketFactory implements ISocketFactory {
+ 		});
+ 	}
+ }
+-
+-
+-
 diff --git a/src/vs/platform/update/electron-browser/updateService.ts b/src/vs/platform/update/electron-browser/updateService.ts
-index 952c39cdbe..fee00b3b39 100644
+index bd8fa6cc18..cf6108a57b 100644
 --- a/src/vs/platform/update/electron-browser/updateService.ts
 +++ b/src/vs/platform/update/electron-browser/updateService.ts
 @@ -6,7 +6,7 @@
@@ -482,7 +441,7 @@ index 952c39cdbe..fee00b3b39 100644
  		// always set this._state as the state changes
  		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
-index 2a1240b1eb..342e9aa51d 100644
+index d789bf4e09..e25c9c9d6a 100644
 --- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
 +++ b/src/vs/platform/update/electron-main/abstractUpdateService.ts
 @@ -6,7 +6,6 @@
@@ -511,7 +470,7 @@ index 2a1240b1eb..342e9aa51d 100644
  			this.logService.info('update#ctor - updates are disabled as there is no update URL');
  			return;
  		}
-@@ -86,7 +85,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
+@@ -93,7 +92,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
  	}
  
  	private getProductQuality(updateMode: string): string | undefined {
@@ -520,7 +479,7 @@ index 2a1240b1eb..342e9aa51d 100644
  	}
  
  	private scheduleCheckForUpdates(delay = 60 * 60 * 1000): Promise<void> {
-@@ -145,15 +144,15 @@ export abstract class AbstractUpdateService implements IUpdateService {
+@@ -152,15 +151,15 @@ export abstract class AbstractUpdateService implements IUpdateService {
  
  		this.logService.trace('update#quitAndInstall(): before lifecycle quit()');
  
@@ -530,10 +489,10 @@ index 2a1240b1eb..342e9aa51d 100644
 -				return;
 -			}
 +		// this.lifecycleService.quit(true /* from update */).then(vetod => {
-+			// this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
-+			// if (vetod) {
-+			// 	return;
-+			// }
++		// 	this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
++		// 	if (vetod) {
++		// 		return;
++		// 	}
  
  			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
  			this.doQuitAndInstall();
@@ -543,7 +502,7 @@ index 2a1240b1eb..342e9aa51d 100644
  		return Promise.resolve(undefined);
  	}
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index cf1d6b5b60..be8fdb32f7 100644
+index b99f800164..eb82443e74 100644
 --- a/src/vs/workbench/browser/dnd.ts
 +++ b/src/vs/workbench/browser/dnd.ts
 @@ -32,6 +32,7 @@ import { IRecentFile } from 'vs/platform/history/common/history';
@@ -573,19 +532,19 @@ index cf1d6b5b60..be8fdb32f7 100644
  
  		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
-index a213ed7b02..df1ce972c6 100644
+index 9fdeeeb1a1..db2dc002c3 100644
 --- a/src/vs/workbench/browser/layout.ts
 +++ b/src/vs/workbench/browser/layout.ts
-@@ -230,7 +230,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+@@ -260,7 +260,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
  		if (visible !== this.state.menuBar.toggled) {
  			this.state.menuBar.toggled = visible;
  
 -			if (this.state.fullscreen && (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
 +			if (this.state.menuBar.visibility === 'toggle' || (this.state.fullscreen && this.state.menuBar.visibility === 'default')) {
  				this._onTitleBarVisibilityChange.fire();
- 				this.layout();
- 			}
-@@ -519,13 +519,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
+ 
+ 				if (this.workbenchGrid instanceof SerializableGrid) {
+@@ -563,13 +563,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
  			case Parts.TITLEBAR_PART:
  				if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
  					return false;
@@ -603,13 +562,13 @@ index a213ed7b02..df1ce972c6 100644
  				}
  
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index ede771a03e..2621eb3755 100644
+index f5944ce974..a3fcc391fd 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
-@@ -43,6 +43,7 @@ import { getThemeTypeSelector, DARK, HIGH_CONTRAST, LIGHT } from 'vs/platform/th
- import { IRequestService } from 'vs/platform/request/common/request';
- import { RequestService } from 'vs/workbench/services/request/browser/requestService';
- import { InMemoryUserDataProvider } from 'vs/workbench/services/userData/common/inMemoryUserDataProvider';
+@@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
+ import { toLocalISOString } from 'vs/base/common/date';
+ import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedDBLogProvider';
+ import { InMemoryLogProvider } from 'vs/workbench/services/log/common/inMemoryLogProvider';
 +import { initialize } from 'vs/server/src/client';
  
  class CodeRendererMain extends Disposable {
@@ -622,47 +581,27 @@ index ede771a03e..2621eb3755 100644
  
  		await domContentLoaded();
  		mark('willStartWorkbench');
-@@ -150,6 +152,7 @@ class CodeRendererMain extends Disposable {
+@@ -204,6 +206,7 @@ class CodeRendererMain extends Disposable {
+ 			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
- 
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
  
- 			if (!userDataProvider) {
+ 			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index 25414d8733..20b0ad4a49 100644
+index 895a8a0393..6530b66cbb 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
-@@ -38,6 +38,10 @@ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteA
- import { IExperimentService, IExperiment, ExperimentActionType, ExperimentState } from 'vs/workbench/contrib/experiments/common/experimentService';
- import { ExtensionHostDebugChannelClient, ExtensionHostDebugBroadcastChannel } from 'vs/platform/debug/common/extensionHostDebugIpc';
- import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
-+import { ExtensionManagementChannelClient } from 'vs/platform/extensionManagement/common/extensionManagementIpc';
+@@ -33,6 +33,7 @@ import { localize } from 'vs/nls';
+ import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
+ // tslint:disable-next-line: import-patterns
+ import { IWorkspaceStatsService, Tags } from 'vs/workbench/contrib/stats/common/workspaceStats';
 +import { withQuery } from 'vs/server/src/client';
-+import { IUploadService, UploadService } from 'vs/server/src/upload';
-+registerSingleton(IUploadService, UploadService, true);
  
- //#region Extension Tips
+ //#region Update
  
-@@ -131,7 +135,15 @@ export class SimpleExtensionManagementService implements IExtensionManagementSer
- 	}
- }
- 
--registerSingleton(IExtensionManagementService, SimpleExtensionManagementService);
-+// registerSingleton(IExtensionManagementService, SimpleExtensionManagementService);
-+class LocalExtensionManagementService extends ExtensionManagementChannelClient {
-+	public constructor(
-+		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
-+	) {
-+		super(remoteAgentService.getConnection()!.getChannel('extensions'));
-+	}
-+}
-+registerSingleton(IExtensionManagementService, LocalExtensionManagementService);
- 
- //#endregion
- 
-@@ -251,7 +263,7 @@ export class SimpleUpdateService implements IUpdateService {
+@@ -64,7 +65,7 @@ export class SimpleUpdateService implements IUpdateService {
  	}
  }
  
@@ -671,20 +610,19 @@ index 25414d8733..20b0ad4a49 100644
  
  //#endregion
  
-@@ -491,7 +503,11 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+@@ -285,7 +286,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
  		for (let i = 0; i < _uris.length; i++) {
  			const uri = _uris[i];
  			if ('folderUri' in uri) {
--				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}${this.workbenchEnvironmentService.configuration.connectionToken ? `&tkn=${this.workbenchEnvironmentService.configuration.connectionToken}` : ''}`;
+-				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}`;
 +				const newAddress = withQuery(window.location.toString(), {
 +					folder: uri.folderUri.path,
-+					tkn: this.workbenchEnvironmentService.configuration.connectionToken,
 +					workspace: undefined,
 +				});
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
-@@ -499,7 +515,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
+@@ -293,7 +297,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
  				}
  			}
  			if ('workspaceUri' in uri) {
@@ -696,53 +634,21 @@ index 25414d8733..20b0ad4a49 100644
  				if (openFolderInNewWindow) {
  					window.open(newAddress);
  				} else {
-@@ -718,6 +737,7 @@ export class SimpleWindowsService implements IWindowsService {
- 	}
- 
- 	relaunch(_options: { addArgs?: string[], removeArgs?: string[] }): Promise<void> {
-+		window.location.reload();
- 		return Promise.resolve();
- 	}
- 
-diff --git a/src/vs/workbench/contrib/extensions/browser/extensionEditor.ts b/src/vs/workbench/contrib/extensions/browser/extensionEditor.ts
-index d29d891120..6550d32c42 100644
---- a/src/vs/workbench/contrib/extensions/browser/extensionEditor.ts
-+++ b/src/vs/workbench/contrib/extensions/browser/extensionEditor.ts
-@@ -8,7 +8,7 @@ import { localize } from 'vs/nls';
- import * as marked from 'vs/base/common/marked/marked';
- import { createCancelablePromise } from 'vs/base/common/async';
- import * as arrays from 'vs/base/common/arrays';
--import { OS } from 'vs/base/common/platform';
-+import { OS, OperatingSystem } from 'vs/base/common/platform';
- import { Event, Emitter } from 'vs/base/common/event';
- import { Cache, CacheResult } from 'vs/base/common/cache';
- import { Action } from 'vs/base/common/actions';
-@@ -60,7 +60,7 @@ function renderBody(body: string): string {
- 		<html>
- 			<head>
- 				<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
--				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src vscode-resource:; child-src 'none'; frame-src 'none';">
-+				<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src https: data:; media-src https:; script-src 'none'; style-src 'self'; child-src 'none'; frame-src 'none';">
- 				<link rel="stylesheet" type="text/css" href="${styleSheetPath}">
- 			</head>
- 			<body>
-@@ -1076,10 +1076,10 @@ export class ExtensionEditor extends BaseEditor {
- 	private resolveKeybinding(rawKeyBinding: IKeyBinding): ResolvedKeybinding | null {
- 		let key: string | undefined;
- 
--		switch (process.platform) {
--			case 'win32': key = rawKeyBinding.win; break;
--			case 'linux': key = rawKeyBinding.linux; break;
--			case 'darwin': key = rawKeyBinding.mac; break;
-+		switch (OS) {
-+			case OperatingSystem.Windows: key = rawKeyBinding.win; break;
-+			case OperatingSystem.Linux: key = rawKeyBinding.linux; break;
-+			case OperatingSystem.Macintosh: key = rawKeyBinding.mac; break;
- 		}
- 
- 		const keyBinding = KeybindingParser.parseKeybinding(key || rawKeyBinding.key, OS);
+diff --git a/src/vs/workbench/buildfile.web.js b/src/vs/workbench/buildfile.web.js
+index 47a8453302..4a7a8c7775 100644
+--- a/src/vs/workbench/buildfile.web.js
++++ b/src/vs/workbench/buildfile.web.js
+@@ -20,5 +20,8 @@ function createModuleDescription(name, exclude) {
+ exports.collectModules = function () {
+ 	return [
+ 		createModuleDescription('vs/workbench/contrib/output/common/outputLinkComputer', ['vs/base/common/worker/simpleWorker', 'vs/editor/common/services/editorSimpleWorker']),
++		createModuleDescription('vs/platform/files/node/watcher/unix/watcherApp', []),
++		createModuleDescription('vs/platform/files/node/watcher/nsfw/watcherApp', []),
++		createModuleDescription('vs/workbench/services/extensions/node/extensionHostProcess', []),
+ 	];
+ };
 diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
-index b219a608bd..f35f5fa410 100644
+index 19fcd5b0ac..30df54ac1a 100644
 --- a/src/vs/workbench/contrib/files/browser/files.contribution.ts
 +++ b/src/vs/workbench/contrib/files/browser/files.contribution.ts
 @@ -224,7 +224,7 @@ configurationRegistry.registerConfiguration({
@@ -755,18 +661,18 @@ index b219a608bd..f35f5fa410 100644
  			'additionalProperties': {
  				'anyOf': [
 diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-index 6543070e81..3d2780f1ba 100644
+index 0c368120df..52ece63cd0 100644
 --- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-@@ -46,6 +46,7 @@ import { IEditorService } from 'vs/workbench/services/editor/common/editorServic
- import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/workspaces';
+@@ -47,6 +47,7 @@ import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/work
  import { findValidPasteFileTarget } from 'vs/workbench/contrib/files/browser/fileActions';
  import { FuzzyScore, createMatches } from 'vs/base/common/filters';
+ import { Emitter } from 'vs/base/common/event';
 +import { IUploadService } from 'vs/server/src/upload';
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
  
-@@ -453,7 +454,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+@@ -450,7 +451,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@ITextFileService private textFileService: ITextFileService,
  		@IWindowService private windowService: IWindowService,
@@ -776,7 +682,7 @@ index 6543070e81..3d2780f1ba 100644
  	) {
  		this.toDispose = [];
  
-@@ -615,6 +617,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+@@ -612,6 +614,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
  
  
  	private async handleExternalDrop(data: DesktopDragAndDropData, target: ExplorerItem, originalEvent: DragEvent): Promise<void> {
@@ -785,10 +691,10 @@ index 6543070e81..3d2780f1ba 100644
  		// Check for dropped external files to be folders
  		const result = await this.fileService.resolveAll(droppedResources);
 diff --git a/src/vs/workbench/contrib/remote/common/remote.contribution.ts b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-index 9235c739fb..32d203eb32 100644
+index 404f5a2a78..a04c825fa2 100644
 --- a/src/vs/workbench/contrib/remote/common/remote.contribution.ts
 +++ b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-@@ -55,7 +55,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
+@@ -79,7 +79,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
  		const connection = remoteAgentService.getConnection();
  		if (connection) {
  			const logLevelClient = new LogLevelSetterChannelClient(connection.getChannel('loglevel'));
@@ -799,54 +705,44 @@ index 9235c739fb..32d203eb32 100644
  		}
  	}
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-index 622bb7889b..66dd4b0bbc 100644
+index 3534ef147d..216dc0604f 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-@@ -36,7 +36,8 @@ self.addEventListener('activate', event => {
+@@ -34,7 +34,8 @@ self.addEventListener('activate', event => {
  //#region --- fetching/caching
  
- const _cacheName = 'vscode-resources';
--const _resourcePrefix = '/vscode-resources/fetch';
+ const _cacheName = 'vscode-extension-resources';
+-const _resourcePrefix = '/vscode-remote-resource';
 +const rootPath = self.location.pathname.replace(/\/out\/vs\/workbench\/contrib\/resources\/browser\/resourceServiceWorkerMain.js$/, '');
-+const _resourcePrefix = `${rootPath}/vscode-resources/fetch`;
++const _resourcePrefix = `${rootPath}/vscode-remote-resources`;
  const _pendingFetch = new Map<string, Function>();
  
  self.addEventListener('message', event => {
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-index dfda6a1cfb..2b36d35608 100644
+index 326dfb49ee..adf72747bd 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-@@ -24,7 +24,11 @@ const _serviceWorker = new class ServiceWorkerStarter {
- 	private _messageHandler?: (event: ExtendableMessageEvent) => void;
- 
- 	constructor() {
--		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: '/' }).then(reg => {
+@@ -18,7 +18,11 @@ class ResourceServiceWorker {
+ 	constructor(
+ 		@ILogService private readonly _logService: ILogService,
+ 	) {
+-		navigator.serviceWorker.register(ResourceServiceWorker._url, { scope: '/' }).then(reg => {
 +		if (!navigator.serviceWorker) {
 +			console.warn('Service workers are not enabled.');
 +			return;
 +		}
-+		navigator.serviceWorker.register(ServiceWorkerStarter._url, { scope: window.location.pathname.replace(/\/+$/, '') }).then(reg => {
- 			// console.debug('SW#reg', reg);
++		navigator.serviceWorker.register(ResourceServiceWorker._url, { scope: window.location.pathname.replace(/\/+$/, '') }).then(reg => {
+ 			this._logService.trace('SW#reg', reg);
  			return reg.update();
- 			// }).then(() => {
-@@ -108,6 +112,7 @@ class ResourceServiceWorker {
- 			if (!el.sheet) {
- 				continue;
- 			}
-+			try {
- 			const rules = (<CSSStyleSheet>el.sheet).rules;
- 			for (let j = 0; j < rules.length; j++) {
- 				const rule = rules[j];
-@@ -118,6 +123,7 @@ class ResourceServiceWorker {
- 					updateCount += 1;
- 				}
- 			}
-+			} catch (error) {/* Firefox errors if trying to modify style elements inserted by extensions. */}
- 		}
- 
- 		// find any tag using remote uris
+ 		}).then(() => {
+@@ -45,5 +49,3 @@ Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkb
+ 	ResourceServiceWorker,
+ 	LifecyclePhase.Ready
+ );
+-
+-
 diff --git a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
-index e39fa57979..3c775c9a06 100644
+index e39fa57979..c7e1113846 100644
 --- a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
 +++ b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
 @@ -4,26 +4,11 @@
@@ -859,8 +755,8 @@ index e39fa57979..3c775c9a06 100644
 -import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
 -import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
 -import { ShowCurrentReleaseNotesAction, ProductContribution, UpdateContribution, Win3264BitContribution } from './update';
-+import { UpdateContribution } from './update';
  import { LifecyclePhase } from 'vs/platform/lifecycle/common/lifecycle';
++import { UpdateContribution } from 'vs/workbench/contrib/update/electron-browser/update';
  
  const workbench = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
  
@@ -878,19 +774,20 @@ index e39fa57979..3c775c9a06 100644
 -Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions)
 -	.registerWorkbenchAction(new SyncActionDescriptor(ShowCurrentReleaseNotesAction, ShowCurrentReleaseNotesAction.ID, ShowCurrentReleaseNotesAction.LABEL), 'Show Release Notes');
 diff --git a/src/vs/workbench/contrib/update/electron-browser/update.ts b/src/vs/workbench/contrib/update/electron-browser/update.ts
-index 0d2d53003b..03489411bb 100644
+index d429d21347..32559b70f0 100644
 --- a/src/vs/workbench/contrib/update/electron-browser/update.ts
 +++ b/src/vs/workbench/contrib/update/electron-browser/update.ts
-@@ -7,34 +7,24 @@ import * as nls from 'vs/nls';
+@@ -5,36 +5,24 @@
+ 
+ import * as nls from 'vs/nls';
  import severity from 'vs/base/common/severity';
- import { Action } from 'vs/base/common/actions';
+-import { Action } from 'vs/base/common/actions';
  import { Disposable, MutableDisposable } from 'vs/base/common/lifecycle';
 -import pkg from 'vs/platform/product/node/package';
 -import product from 'vs/platform/product/node/product';
 -import { URI } from 'vs/base/common/uri';
  import { IActivityService, NumberBadge, IBadge, ProgressBadge } from 'vs/workbench/services/activity/common/activity';
 -import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
-+// import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
  import { GLOBAL_ACTIVITY_ID } from 'vs/workbench/common/activity';
 -import { IOpenerService } from 'vs/platform/opener/common/opener';
  import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
@@ -898,7 +795,7 @@ index 0d2d53003b..03489411bb 100644
  import { IUpdateService, State as UpdateState, StateType, IUpdate } from 'vs/platform/update/common/update';
 -import * as semver from 'semver-umd';
 -import { IEnvironmentService } from 'vs/platform/environment/common/environment';
- import { INotificationService, INotificationHandle, Severity } from 'vs/platform/notification/common/notification';
+ import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
  import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
  import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 -import { ReleaseNotesManager } from './releaseNotesEditor';
@@ -919,26 +816,8 @@ index 0d2d53003b..03489411bb 100644
  
  function showReleaseNotes(instantiationService: IInstantiationService, version: string) {
  	if (!releaseNotesManager) {
-@@ -160,7 +150,7 @@ export class ProductContribution implements IWorkbenchContribution {
- 			storageService.store(ProductContribution.KEY, pkg.version, StorageScope.GLOBAL);
- 		});
- 	}
--}
-+} */
- 
- class NeverShowAgain {
- 
-@@ -185,7 +175,7 @@ class NeverShowAgain {
- 	}
- }
- 
--export class Win3264BitContribution implements IWorkbenchContribution {
-+/*export class Win3264BitContribution implements IWorkbenchContribution {
- 
- 	private static readonly KEY = 'update/win32-64bits';
- 	private static readonly URL = 'https://code.visualstudio.com/updates/v1_15#_windows-64-bit';
-@@ -224,7 +214,7 @@ export class Win3264BitContribution implements IWorkbenchContribution {
- 			{ sticky: true }
+@@ -190,7 +178,7 @@ export class Win3264BitContribution implements IWorkbenchContribution {
+ 			}
  		);
  	}
 -}
@@ -946,12 +825,11 @@ index 0d2d53003b..03489411bb 100644
  
  export class UpdateContribution extends Disposable implements IWorkbenchContribution {
  
-@@ -234,13 +224,14 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -200,13 +188,13 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  
  	constructor(
  		@IStorageService private readonly storageService: IStorageService,
 -		@IInstantiationService private readonly instantiationService: IInstantiationService,
-+		// @IInstantiationService private readonly instantiationService: IInstantiationService,
  		@INotificationService private readonly notificationService: INotificationService,
  		@IDialogService private readonly dialogService: IDialogService,
  		@IUpdateService private readonly updateService: IUpdateService,
@@ -963,7 +841,7 @@ index 0d2d53003b..03489411bb 100644
  	) {
  		super();
  		this.state = updateService.state;
-@@ -257,7 +248,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -223,7 +211,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  		updated since 5 days.
  		*/
  
@@ -972,19 +850,19 @@ index 0d2d53003b..03489411bb 100644
  		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
  
  		// if current version != stored version, clear both fields
-@@ -302,9 +293,9 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -268,9 +256,9 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  		let clazz: string | undefined;
  
  		if (state.type === StateType.AvailableForDownload || state.type === StateType.Downloaded || state.type === StateType.Ready) {
 -			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
-+			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameLong));
++			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameShort));
  		} else if (state.type === StateType.CheckingForUpdates || state.type === StateType.Downloading || state.type === StateType.Updating) {
 -			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
-+			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameLong));
++			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameShort));
  			clazz = 'progress-badge';
  		}
  
-@@ -350,14 +341,14 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -316,14 +304,14 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  			}, {
  				label: nls.localize('later', "Later"),
  				run: () => { }
@@ -1001,7 +879,7 @@ index 0d2d53003b..03489411bb 100644
  			{ sticky: true }
  		);
  	}
-@@ -370,30 +361,27 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -336,35 +324,32 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  
  		this.notificationService.prompt(
  			severity.Info,
@@ -1034,17 +912,14 @@ index 0d2d53003b..03489411bb 100644
 -		}
  
  		// windows fast updates (target === system)
- 		const neverShowAgain = new NeverShowAgain('update/win32-fast-updates', this.storageService);
-@@ -404,7 +392,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 
- 		const handle = this.notificationService.prompt(
+ 		this.notificationService.prompt(
  			severity.Info,
 -			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", product.nameLong, update.productVersion),
 +			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", this.productService.nameLong, update.productVersion),
- 			[{
- 				label: nls.localize('neveragain', "Don't Show Again"),
- 				isSecondary: true,
-@@ -418,20 +406,17 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+ 			[],
+ 			{
+ 				neverShowAgain: { id: 'neverShowAgain:update/win32-fast-updates', isSecondary: true }
+@@ -374,20 +359,17 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  
  	// windows and mac
  	private onUpdateReady(update: IUpdate): void {
@@ -1067,7 +942,7 @@ index 0d2d53003b..03489411bb 100644
  			actions.push({
  				label: nls.localize('releaseNotes', "Release Notes"),
  				run: () => {
-@@ -440,19 +425,19 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -396,19 +378,19 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  					action.dispose();
  				}
  			});
@@ -1090,16 +965,16 @@ index 0d2d53003b..03489411bb 100644
  		const currentMillis = new Date().getTime();
  		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
  
-@@ -495,7 +480,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -451,7 +433,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  			group: '5_update',
  			command: {
  				id: 'update.downloadNow',
 -				title: nls.localize('download update', "Download Update")
-+				title: nls.localize('installUpdate...', "Install Update...")
++				title: nls.localize('installUpdate', "Install Update")
  			},
  			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.AvailableForDownload)
  		});
-@@ -532,7 +517,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
+@@ -488,7 +470,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
  			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.Updating)
  		});
  
@@ -1108,33 +983,11 @@ index 0d2d53003b..03489411bb 100644
  		MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
  			group: '5_update',
  			command: {
-diff --git a/src/vs/workbench/contrib/webview/browser/pre/index.html b/src/vs/workbench/contrib/webview/browser/pre/index.html
-index ac53ce590e..5411601483 100644
---- a/src/vs/workbench/contrib/webview/browser/pre/index.html
-+++ b/src/vs/workbench/contrib/webview/browser/pre/index.html
-@@ -4,7 +4,7 @@
- <head>
- 	<meta charset="UTF-8">
- 	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'self'; frame-src 'self'; style-src 'unsafe-inline'; worker-src 'self';" />
-+		content="default-src 'none'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; frame-src 'self'; style-src 'self' 'unsafe-inline'; worker-src 'self'; img-src https: data:; font-src 'self';" />
- 
- 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
- 	<meta http-equiv="X-UA-Compatible" content="ie=edge">
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
-index 63585fc25c..16102b89f1 100644
+index c97da43b4c..6a66b9435f 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
 +++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -256,7 +256,7 @@
- 		 */
- 		function toContentHtml(data) {
- 			const options = data.options;
--			const text = data.contents;
-+			const text = data.contents.replace(/vscode-resource:/g, "'self'");
- 			const newDocument = new DOMParser().parseFromString(text, 'text/html');
- 
- 			newDocument.querySelectorAll('a').forEach(a => {
-@@ -379,7 +379,7 @@
+@@ -411,7 +411,7 @@
  
  				newFrame.contentWindow.addEventListener('keydown', handleInnerKeydown);
  
@@ -1143,50 +996,56 @@ index 63585fc25c..16102b89f1 100644
  					if (host.fakeLoad) {
  						newFrame.contentDocument.open();
  						newFrame.contentDocument.write(newDocument);
+diff --git a/src/vs/workbench/contrib/webview/browser/webviewElement.ts b/src/vs/workbench/contrib/webview/browser/webviewElement.ts
+index a7b1d1bd42..61fe0f205e 100644
+--- a/src/vs/workbench/contrib/webview/browser/webviewElement.ts
++++ b/src/vs/workbench/contrib/webview/browser/webviewElement.ts
+@@ -184,7 +184,7 @@ export class IFrameWebview extends Disposable implements Webview {
+ 
+ 	private preprocessHtml(value: string): string {
+ 		return value.replace(/(["'])vscode-resource:([^\s'"]+?)(["'])/gi, (_, startQuote, path, endQuote) =>
+-			`${startQuote}${this.endpoint}/vscode-resource${path}${endQuote}`);
++			`${startQuote}${this.endpoint}/vscode-resource${path}${endQuote}`).replace(/vscode-resource:/g, `'self'`);
+ 	}
+ 
+ 	public update(html: string, options: WebviewContentOptions, retainContextWhenHidden: boolean) {
 diff --git a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
-index 7a95ffda9e..fdb14da4ee 100644
+index 8493b87f2c..b5c47ea23f 100644
 --- a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
 +++ b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
-@@ -16,7 +16,7 @@ const typeId = 'workbench.editors.walkThroughInput';
+@@ -16,7 +16,8 @@ const typeId = 'workbench.editors.walkThroughInput';
  const inputOptions: WalkThroughInputOptions = {
  	typeId,
  	name: localize('editorWalkThrough.title', "Interactive Playground"),
 -	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md'))
-+	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md').replace(window.location.href.replace(/\/+$/, ''), window.location.origin))
++	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md')
++											.replace(`${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}`, window.location.origin))
  		.with({ scheme: Schemas.walkThrough }),
  	telemetryFrom: 'walkThrough'
  };
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index 73e8b7c1d1..653d88e4f4 100644
+index 7c3b6ae53e..18dec6effa 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -176,6 +176,8 @@ export class BrowserWorkbenchEnvironmentService implements IEnvironmentService {
+@@ -177,6 +177,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 	driverHandle?: string;
  	driverVerbose: boolean;
- 	webviewEndpoint?: string;
  	galleryMachineIdResource?: URI;
 +	extraExtensionPaths: string[];
 +	extraBuiltinExtensionPaths: string[];
+ 	readonly logFile: URI;
  
  	get webviewResourceRoot(): string {
- 		return this.webviewEndpoint ? this.webviewEndpoint + '/vscode-resource{{resource}}' : 'vscode-resource:{{resource}}';
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index 4d5cf7bfbf..bc76a25106 100644
+index 681fc606b6..e34ef5d4bc 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
-@@ -126,7 +126,6 @@ import 'vs/workbench/services/extensionManagement/common/extensionEnablementServ
- // import 'vs/workbench/services/remote/electron-browser/remoteAgentServiceImpl';
- import 'vs/workbench/services/notification/common/notificationService';
- // import 'vs/workbench/services/window/electron-browser/windowService';
+@@ -34,7 +34,7 @@ import 'vs/workbench/services/textfile/browser/textFileService';
+ import 'vs/workbench/services/keybinding/browser/keymapService';
+ import 'vs/workbench/services/extensions/browser/extensionService';
+ import 'vs/workbench/services/extensionManagement/common/extensionManagementServerService';
 -import 'vs/workbench/services/telemetry/browser/telemetryService';
++// import 'vs/workbench/services/telemetry/browser/telemetryService';
  import 'vs/workbench/services/configurationResolver/browser/configurationResolverService';
- import { IContextViewService, IContextMenuService } from 'vs/platform/contextview/browser/contextView';
- import { ContextMenuService } from 'vs/platform/contextview/browser/contextMenuService';
-@@ -195,7 +194,7 @@ import 'vs/workbench/services/files/common/workspaceWatcher';
- import 'vs/workbench/contrib/telemetry/browser/telemetry.contribution';
- 
- // Localizations
--// import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
-+import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
- 
- // Preferences
- import 'vs/workbench/contrib/preferences/browser/preferences.contribution';
+ import 'vs/workbench/services/credentials/browser/credentialsService';
+ import 'vs/workbench/services/url/browser/urlService';

@@ -133,7 +133,7 @@ function build-task() {
 	mkdir -p "${stagingPath}"
 	if [[ ! -d "${sourcePath}" ]] ; then
 		if ! download-pre-built "vscode-${vscodeVersion}.tar.gz" ; then
-			git clone https://github.com/microsoft/vscode  --quiet \
+			git clone https://github.com/microsoft/vscode --quiet \
 				--branch "${vscodeVersion}" --single-branch --depth=1 \
 				"${sourcePath}"
 		fi

@@ -7,6 +7,7 @@ import { LocalizationsService } from "vs/platform/localizations/electron-browser
 import { IUpdateService } from "vs/platform/update/common/update";
 import { UpdateService } from "vs/platform/update/electron-browser/updateService";
 import { TelemetryChannelClient } from "vs/server/src/telemetry";
+import { IUploadService, UploadService } from 'vs/server/src/upload';
 import { IRemoteAgentService } from "vs/workbench/services/remote/common/remoteAgentService";
 
 class TelemetryService extends TelemetryChannelClient {
@@ -18,12 +19,13 @@ class TelemetryService extends TelemetryChannelClient {
 }
 
 registerSingleton(ILocalizationsService, LocalizationsService);
-registerSingleton(IUpdateService, UpdateService);
 registerSingleton(ITelemetryService, TelemetryService);
+registerSingleton(IUpdateService, UpdateService);
+registerSingleton(IUploadService, UploadService, true);
 
 import "vs/workbench/contrib/update/electron-browser/update.contribution";
+import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
 
-import "vs/css!./media/firefox";
 import { coderApi, vscodeApi } from "vs/server/src/api";
 
 /**

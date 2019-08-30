@@ -6,7 +6,7 @@ import { OS } from "vs/base/common/platform";
 import { URI, UriComponents } from "vs/base/common/uri";
 import { transformOutgoingURIs } from "vs/base/common/uriIpc";
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
-import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnosticsService";
+import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnostics";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { ExtensionIdentifier, IExtensionDescription } from "vs/platform/extensions/common/extensions";
 import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions } from "vs/platform/files/common/files";
@@ -163,11 +163,10 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 	}
 
 	private transform(resource: UriComponents): URI {
-		// HACK: for now assume /out is relative to the build (used for the
-		// walkthrough content).
-		if (resource.path.indexOf("/out") === 0) {
-			return URI.file(this.environmentService.appRoot + resource.path);
-		// This is used by the webview service worker to load resources.
+		// Used for walkthrough content.
+		if (resource.path.indexOf("/static") === 0) {
+			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static/, ""));
+		// Used by the webview service worker to load resources.
 		} else if (resource.path === "/vscode-resource" && resource.query) {
 			try {
 				const query = JSON.parse(resource.query);
@@ -185,6 +184,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		private readonly environment: IEnvironmentService,
 		private readonly log: ILogService,
 		private readonly telemetry: ITelemetryService,
+		private readonly connectionToken: string,
 	) {}
 
 	public listen(_: unknown, event: string): Event<any> {
@@ -207,6 +207,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	private async getEnvironmentData(locale: string): Promise<IRemoteAgentEnvironment> {
 		return {
 			pid: process.pid,
+			connectionToken: this.connectionToken,
 			appRoot: URI.file(this.environment.appRoot),
 			appSettingsHome: this.environment.appSettingsHome,
 			settingsPath: this.environment.machineSettingsHome,
