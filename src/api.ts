@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { CoderApi, VSCodeApi } from "../typings/api";
 import { createCSSRule } from "vs/base/browser/dom";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
@@ -37,7 +38,7 @@ import { IViewletService } from "vs/workbench/services/viewlet/browser/viewlet";
  * TODO: Implement menu items for views (for item actions).
  * TODO: File system provider doesn't work.
  */
-export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof vscode> => {
+export const vscodeApi = (serviceCollection: ServiceCollection): VSCodeApi => {
 	const getService = <T>(id: ServiceIdentifier<T>): T => serviceCollection.get<T>(id) as T;
 	const commandService = getService(ICommandService);
 	const notificationService = getService(INotificationService);
@@ -51,13 +52,13 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 	// browser's main thread, but I'm not sure how much jank that would require.
 	// We could have a web worker host but we want DOM access.
 	return {
-		EventEmitter: Emitter,
-		TreeItemCollapsibleState: extHostTypes.TreeItemCollapsibleState,
+		EventEmitter: <any>Emitter, // It can take T so T | undefined should work.
 		FileSystemError: extHostTypes.FileSystemError,
 		FileType,
+		StatusBarAlignment: extHostTypes.StatusBarAlignment,
+		ThemeColor: extHostTypes.ThemeColor,
+		TreeItemCollapsibleState: extHostTypes.TreeItemCollapsibleState,
 		Uri: URI,
-		StatusBarAlignment,
-		ThemeColor,
 		commands: {
 			executeCommand: <T = any>(commandId: string, ...args: any[]): Promise<T | undefined> => {
 				return commandService.executeCommand(commandId, ...args);
@@ -65,10 +66,10 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 			registerCommand: (id: string, command: (...args: any[]) => any): IDisposable => {
 				return CommandsRegistry.registerCommand(id, command);
 			},
-		} as Partial<typeof vscode.commands>,
+		},
 		window: {
-			createStatusBarItem: (alignment?: vscode.StatusBarAlignment, priority?: number): vscode.StatusBarItem => {
-				return new StatusBarEntry(statusbarService, alignment, priority);
+			createStatusBarItem(alignmentOrOptions?: extHostTypes.StatusBarAlignment | vscode.window.StatusBarItemOptions, priority?: number): StatusBarEntry {
+				return new StatusBarEntry(statusbarService, alignmentOrOptions, priority);
 			},
 			registerTreeDataProvider: <T>(id: string, dataProvider: vscode.TreeDataProvider<T>): IDisposable => {
 				const tree = new TreeViewDataProvider(dataProvider);
@@ -82,20 +83,20 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 				notificationService.error(message);
 				return undefined;
 			},
-		} as Partial<typeof vscode.window>,
+		},
 		workspace: {
 			registerFileSystemProvider: (scheme: string, provider: vscode.FileSystemProvider): IDisposable => {
 				return fileService.registerProvider(scheme, new FileSystemProvider(provider));
 			},
-		} as Partial<typeof vscode.workspace>,
-	} as Partial<typeof vscode>; // Without this it complains that the type isn't `| undefined`.
+		},
+	};
 };
 
 /**
  * Coder API. This should only provide functionality that can't be made
  * available through the VS Code API.
  */
-export const coderApi = (serviceCollection: ServiceCollection): typeof coder => {
+export const coderApi = (serviceCollection: ServiceCollection): CoderApi => {
 	const getService = <T>(id: ServiceIdentifier<T>): T => serviceCollection.get<T>(id) as T;
 	return {
 		registerView: (viewId, viewName, containerId, containerName, icon): void =>  {
@@ -275,21 +276,9 @@ class TreeViewDataProvider<T> implements ITreeViewDataProvider {
 	}
 }
 
-class ThemeColor {
-	public id: string;
-	constructor(id: string) {
-		this.id = id;
-	}
-}
-
 interface IStatusBarEntry extends IStatusbarEntry {
 	alignment: StatusbarAlignment;
 	priority?: number;
-}
-
-enum StatusBarAlignment {
-	Left = 1,
-	Right = 2
 }
 
 class StatusBarEntry implements vscode.StatusBarItem {
@@ -297,50 +286,61 @@ class StatusBarEntry implements vscode.StatusBarItem {
 
 	private _id: number;
 	private entry: IStatusBarEntry;
-	private _visible: boolean;
+	private visible: boolean;
 	private disposed: boolean;
 	private statusId: string;
 	private statusName: string;
 	private accessor?: IStatusbarEntryAccessor;
 	private timeout: any;
 
-	constructor(private readonly statusbarService: IStatusbarService, alignment?: vscode.StatusBarAlignment, priority?: number) {
+	constructor(private readonly statusbarService: IStatusbarService, alignmentOrOptions?: extHostTypes.StatusBarAlignment | vscode.window.StatusBarItemOptions, priority?: number) {
 		this._id = StatusBarEntry.ID--;
-		this.statusId = "web-api";
-		this.statusName = "Web API";
-		this.entry = {
-			alignment: alignment && alignment === StatusBarAlignment.Left
-				? StatusbarAlignment.LEFT : StatusbarAlignment.RIGHT,
-			text: "",
-			priority,
-		};
+		if (alignmentOrOptions && typeof alignmentOrOptions !== "number") {
+			this.statusId = alignmentOrOptions.id;
+			this.statusName = alignmentOrOptions.name;
+			this.entry = {
+				alignment: alignmentOrOptions.alignment === extHostTypes.StatusBarAlignment.Right
+					? StatusbarAlignment.RIGHT : StatusbarAlignment.LEFT,
+				priority,
+				text: "",
+			};
+		} else {
+			this.statusId = "web-api";
+			this.statusName = "Web API";
+			this.entry = {
+				alignment: alignmentOrOptions === extHostTypes.StatusBarAlignment.Right
+					? StatusbarAlignment.RIGHT : StatusbarAlignment.LEFT,
+				priority,
+				text: "",
+			};
+		}
 	}
 
-	public get alignment(): vscode.StatusBarAlignment {
-		return this.entry.alignment === StatusbarAlignment.LEFT
-			? StatusBarAlignment.Left : StatusBarAlignment.Right;
+	public get alignment(): extHostTypes.StatusBarAlignment {
+		return this.entry.alignment === StatusbarAlignment.RIGHT
+			? extHostTypes.StatusBarAlignment.Right : extHostTypes.StatusBarAlignment.Left;
 	}
 
 	public get id(): number { return this._id; }
 	public get priority(): number | undefined { return this.entry.priority; }
 	public get text(): string { return this.entry.text; }
 	public get tooltip(): string | undefined { return this.entry.tooltip; }
-	public get color(): string | ThemeColor | undefined { return this.entry.color; }
+	public get color(): string | extHostTypes.ThemeColor | undefined { return this.entry.color; }
 	public get command(): string | undefined { return this.entry.command; }
 
 	public set text(text: string) { this.update({ text }); }
 	public set tooltip(tooltip: string | undefined) { this.update({ tooltip }); }
-	public set color(color: string | ThemeColor | undefined) { this.update({ color }); }
+	public set color(color: string | extHostTypes.ThemeColor | undefined) { this.update({ color }); }
 	public set command(command: string | undefined) { this.update({ command }); }
 
 	public show(): void {
-		this._visible = true;
+		this.visible = true;
 		this.update();
 	}
 
 	public hide(): void {
 		clearTimeout(this.timeout);
-		this._visible = false;
+		this.visible = false;
 		if (this.accessor) {
 			this.accessor.dispose();
 			this.accessor = undefined;
@@ -349,7 +349,7 @@ class StatusBarEntry implements vscode.StatusBarItem {
 
 	private update(values?: Partial<IStatusBarEntry>): void {
 		this.entry = { ...this.entry, ...values };
-		if (this.disposed || !this._visible) {
+		if (this.disposed || !this.visible) {
 			return;
 		}
 		clearTimeout(this.timeout);

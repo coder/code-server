@@ -1,10 +1,35 @@
 import * as vscode from "vscode";
 
-export { vscode };
+// Only export the subset of VS Code we have implemented.
+export interface VSCodeApi {
+	EventEmitter: typeof vscode.EventEmitter;
+	FileSystemError: typeof vscode.FileSystemError;
+	FileType: typeof vscode.FileType;
+	StatusBarAlignment: typeof vscode.StatusBarAlignment;
+	ThemeColor: typeof vscode.ThemeColor;
+	TreeItemCollapsibleState: typeof vscode.TreeItemCollapsibleState;
+	Uri: typeof vscode.Uri;
+	commands: {
+		executeCommand: typeof vscode.commands.executeCommand;
+		registerCommand: typeof vscode.commands.registerCommand;
+	};
+	window: {
+		createStatusBarItem: typeof vscode.window.createStatusBarItem;
+		registerTreeDataProvider: typeof vscode.window.registerTreeDataProvider;
+		showErrorMessage: typeof vscode.window.showErrorMessage;
+	};
+	workspace: {
+		registerFileSystemProvider: typeof vscode.workspace.registerFileSystemProvider;
+	};
+}
+
+export interface CoderApi {
+	registerView: (viewId: string, viewName: string, containerId: string, containerName: string, icon: string) => void;
+}
 
 export interface IdeReadyEvent extends CustomEvent<void> {
-	readonly vscode: typeof vscode;
-	readonly ide: typeof coder;
+	readonly vscode: VSCodeApi;
+	readonly ide: CoderApi;
 }
 
 declare global {
@@ -12,12 +37,12 @@ declare global {
 		/**
 		 * Full VS Code extension API.
 		 */
-		vscode?: typeof vscode;
+		vscode?: VSCodeApi;
 
 		/**
 		 * Coder API.
 		 */
-		ide?: typeof coder;
+		ide?: CoderApi;
 
 		/**
 		 * Listen for when the IDE API has been set and is ready to use.
