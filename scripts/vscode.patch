@@ -355,7 +355,7 @@ index add4dfb2fc..18fc71df51 100644
  
  	get onDidLanguagesChange(): Event<void> { return this.channel.listen('onDidLanguagesChange'); }
 diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
-index 9f68b645b6..b422a3c809 100644
+index 9f68b645b6..1e224cc29a 100644
 --- a/src/vs/platform/log/common/logIpc.ts
 +++ b/src/vs/platform/log/common/logIpc.ts
 @@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
@@ -377,13 +377,6 @@ index 9f68b645b6..b422a3c809 100644
  }
  
  export class FollowerLogService extends DelegatedLogService implements ILogService {
-@@ -56,4 +61,4 @@ export class FollowerLogService extends DelegatedLogService implements ILogServi
- 	setLevel(level: LogLevel): void {
- 		this.master.setLevel(level);
- 	}
--}
-\ No newline at end of file
-+}
 diff --git a/src/vs/platform/product/node/package.ts b/src/vs/platform/product/node/package.ts
 index d39c5877d6..c189d6f19f 100644
 --- a/src/vs/platform/product/node/package.ts
@@ -562,7 +555,7 @@ index 9fdeeeb1a1..db2dc002c3 100644
  				}
  
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index f5944ce974..a3fcc391fd 100644
+index f5944ce974..f2094de18b 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
@@ -573,14 +566,14 @@ index f5944ce974..a3fcc391fd 100644
  
  class CodeRendererMain extends Disposable {
  
-@@ -57,6 +58,7 @@ class CodeRendererMain extends Disposable {
+@@ -94,6 +95,7 @@ class CodeRendererMain extends Disposable {
  
- 	async open(): Promise<void> {
- 		const services = await this.initServices();
+ 		// Startup
+ 		workbench.startup();
 +		await initialize(services.serviceCollection);
+ 	}
  
- 		await domContentLoaded();
- 		mark('willStartWorkbench');
+ 	private restoreBaseTheme(): void {
 @@ -204,6 +206,7 @@ class CodeRendererMain extends Disposable {
  			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));

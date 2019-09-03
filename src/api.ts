@@ -1,3 +1,4 @@
+import * as vscode from "vscode";
 import { createCSSRule } from "vs/base/browser/dom";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
@@ -13,6 +14,7 @@ import { IInstantiationService, ServiceIdentifier } from "vs/platform/instantiat
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { Registry } from "vs/platform/registry/common/platform";
+import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
 import { IStorageService } from "vs/platform/storage/common/storage";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { IThemeService } from "vs/platform/theme/common/themeService";
@@ -28,7 +30,6 @@ import { IEditorService } from "vs/workbench/services/editor/common/editorServic
 import { IExtensionService } from "vs/workbench/services/extensions/common/extensions";
 import { IWorkbenchLayoutService } from "vs/workbench/services/layout/browser/layoutService";
 import { IViewletService } from "vs/workbench/services/viewlet/browser/viewlet";
-import * as vscode from "vscode";
 
 /**
  * Client-side implementation of VS Code's API.
@@ -42,6 +43,7 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 	const notificationService = getService(INotificationService);
 	const fileService = getService(IFileService);
 	const viewsRegistry = Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry);
+	const statusbarService = getService(IStatusbarService);
 
 	// It would be nice to just export what VS Code creates but it looks to me
 	// that it assumes it's running in the extension host and wouldn't work here.
@@ -52,8 +54,10 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 		EventEmitter: Emitter,
 		TreeItemCollapsibleState: extHostTypes.TreeItemCollapsibleState,
 		FileSystemError: extHostTypes.FileSystemError,
-		FileType: FileType,
+		FileType,
 		Uri: URI,
+		StatusBarAlignment,
+		ThemeColor,
 		commands: {
 			executeCommand: <T = any>(commandId: string, ...args: any[]): Promise<T | undefined> => {
 				return commandService.executeCommand(commandId, ...args);
@@ -63,6 +67,9 @@ export const vscodeApi = (serviceCollection: ServiceCollection): Partial<typeof 
 			},
 		} as Partial<typeof vscode.commands>,
 		window: {
+			createStatusBarItem: (alignment?: vscode.StatusBarAlignment, priority?: number): vscode.StatusBarItem => {
+				return new StatusBarEntry(statusbarService, alignment, priority);
+			},
 			registerTreeDataProvider: <T>(id: string, dataProvider: vscode.TreeDataProvider<T>): IDisposable => {
 				const tree = new TreeViewDataProvider(dataProvider);
 				const view = viewsRegistry.getView(id);
@@ -265,5 +272,98 @@ class TreeViewDataProvider<T> implements ITreeViewDataProvider {
 		return item.id
 			? `coder-tree-item-id/${item.id}`
 			: `coder-tree-item-uuid/${generateUuid()}`;
+	}
+}
+
+class ThemeColor {
+	public id: string;
+	constructor(id: string) {
+		this.id = id;
+	}
+}
+
+interface IStatusBarEntry extends IStatusbarEntry {
+	alignment: StatusbarAlignment;
+	priority?: number;
+}
+
+enum StatusBarAlignment {
+	Left = 1,
+	Right = 2
+}
+
+class StatusBarEntry implements vscode.StatusBarItem {
+	private static ID = 0;
+
+	private _id: number;
+	private entry: IStatusBarEntry;
+	private _visible: boolean;
+	private disposed: boolean;
+	private statusId: string;
+	private statusName: string;
+	private accessor?: IStatusbarEntryAccessor;
+	private timeout: any;
+
+	constructor(private readonly statusbarService: IStatusbarService, alignment?: vscode.StatusBarAlignment, priority?: number) {
+		this._id = StatusBarEntry.ID--;
+		this.statusId = "web-api";
+		this.statusName = "Web API";
+		this.entry = {
+			alignment: alignment && alignment === StatusBarAlignment.Left
+				? StatusbarAlignment.LEFT : StatusbarAlignment.RIGHT,
+			text: "",
+			priority,
+		};
+	}
+
+	public get alignment(): vscode.StatusBarAlignment {
+		return this.entry.alignment === StatusbarAlignment.LEFT
+			? StatusBarAlignment.Left : StatusBarAlignment.Right;
+	}
+
+	public get id(): number { return this._id; }
+	public get priority(): number | undefined { return this.entry.priority; }
+	public get text(): string { return this.entry.text; }
+	public get tooltip(): string | undefined { return this.entry.tooltip; }
+	public get color(): string | ThemeColor | undefined { return this.entry.color; }
+	public get command(): string | undefined { return this.entry.command; }
+
+	public set text(text: string) { this.update({ text }); }
+	public set tooltip(tooltip: string | undefined) { this.update({ tooltip }); }
+	public set color(color: string | ThemeColor | undefined) { this.update({ color }); }
+	public set command(command: string | undefined) { this.update({ command }); }
+
+	public show(): void {
+		this._visible = true;
+		this.update();
+	}
+
+	public hide(): void {
+		clearTimeout(this.timeout);
+		this._visible = false;
+		if (this.accessor) {
+			this.accessor.dispose();
+			this.accessor = undefined;
+		}
+	}
+
+	private update(values?: Partial<IStatusBarEntry>): void {
+		this.entry = { ...this.entry, ...values };
+		if (this.disposed || !this._visible) {
+			return;
+		}
+		clearTimeout(this.timeout);
+		this.timeout = setTimeout(() => {
+			if (!this.accessor) {
+				this.accessor = this.statusbarService.addEntry(this.entry, this.statusId, this.statusName, this.entry.alignment, this.priority);
+			} else {
+				this.accessor.update(this.entry);
+			}
+		}, 0);
+	}
+
+	public dispose(): void {
+		this.hide();
+		this.disposed = true;
 	}
 }
