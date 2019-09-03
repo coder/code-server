@@ -207,7 +207,7 @@ function in-vscode () {
 
 function main() {
 	local rootPath
-	rootPath="$(cd "$(dirname "${0}/..")" ; pwd -P)"
+	rootPath="$(cd "$(dirname "${0}")/.." ; pwd -P)"
 
 	local task="${1}" ; shift
 	if [[ "${task}" == "ensure-in-vscode" ]] ; then

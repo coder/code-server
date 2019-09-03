@@ -5,7 +5,7 @@ import * as path from "vs/base/common/path";
 import { URI } from "vs/base/common/uri";
 import { generateUuid } from "vs/base/common/uuid";
 import { IFileService } from "vs/platform/files/common/files";
-import { createDecorator, IInstantiationService, ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
+import { createDecorator, IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { INotificationService, Severity } from "vs/platform/notification/common/notification";
 import { IProgress, IProgressService, IProgressStep, ProgressLocation } from "vs/platform/progress/common/progress";
 import { IWindowsService } from "vs/platform/windows/common/windows";
@@ -17,13 +17,13 @@ import { IEditorService } from "vs/workbench/services/editor/common/editorServic
 export const IUploadService = createDecorator<IUploadService>("uploadService");
 
 export interface IUploadService {
-	_serviceBrand: ServiceIdentifier<any>;
+	_serviceBrand: undefined;
 	handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup | undefined, afterDrop: (targetGroup: IEditorGroup | undefined) => void, targetIndex?: number): Promise<void>;
 	handleExternalDrop(data: DesktopDragAndDropData, target: ExplorerItem, originalEvent: DragEvent): Promise<void>;
 }
 
 export class UploadService extends Disposable implements IUploadService {
-	public _serviceBrand: any;
+	public _serviceBrand: undefined;
 	public upload: Upload;
 
 	public constructor(
