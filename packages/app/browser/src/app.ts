@@ -2,6 +2,7 @@
 import { MDCTextField } from "@material/textfield";
 //@ts-ignore
 import { MDCCheckbox } from "@material/checkbox";
+import { createHash } from "crypto";
 import "material-components-web/dist/material-components-web.css";
 import "./app.scss";
 
@@ -26,9 +27,13 @@ if (!form) {
 	throw new Error("No password form found");
 }
 
+const hash = (guid: string): string => {
+	return createHash("sha256").update(guid).digest("hex");
+};
+
 form.addEventListener("submit", (e) => {
 	e.preventDefault();
-	document.cookie = `password=${password.value}; `
+	document.cookie = `password=${hash(password.value)}; `
 		+ `path=${location.pathname.replace(/\/login\/?$/, "/")}; `
 		+ `domain=${location.hostname}`;
 	location.reload();

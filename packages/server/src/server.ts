@@ -22,6 +22,7 @@ import * as url from "url";
 import * as ws from "ws";
 import { buildDir } from "./constants";
 import { createPortScanner } from "./portScanner";
+import { createHash } from "crypto";
 import safeCompare = require("safe-compare");
 
 interface CreateAppOptions {
@@ -87,7 +88,7 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 			// Try/catch placed here just in case
 			const cookies = parseCookies(req);
 			if (cookies.password) {
-				if (!safeCompare(cookies.password, options.password)) {
+				if (!safeCompare(cookies.password, hash(options.password))) {
 					let userAgent = req.headers["user-agent"];
 					let timestamp = Math.floor(new Date().getTime() / 1000);
 					if (Array.isArray(userAgent)) {
@@ -118,6 +119,10 @@ export const createApp = async (options: CreateAppOptions): Promise<{
 
 		// tslint:disable-next-line:no-any
 		return (socket as any).encrypted;
+	};
+
+	const hash = (guid: string): string => {
+		return createHash("sha256").update(guid).digest("hex");
 	};
 
 	const app = express();
