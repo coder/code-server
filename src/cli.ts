@@ -12,7 +12,7 @@ import product from "vs/platform/product/node/product";
 import { ipcMain } from "vs/server/src/ipc";
 import { enableCustomMarketplace } from "vs/server/src/marketplace";
 import { MainServer } from "vs/server/src/server";
-import { AuthType, buildAllowedMessage, enumToArray, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
+import { AuthType, buildAllowedMessage, enumToArray, FormatType, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 setUnexpectedErrorHandler((error) => logger.warn(error.message));
@@ -22,6 +22,7 @@ interface Args extends ParsedArgs {
 	"base-path"?: string;
 	cert?: string;
 	"cert-key"?: string;
+	format?: string;
 	host?: string;
 	open?: string;
 	port?: string;
@@ -66,6 +67,7 @@ const getArgs = (): Args => {
 	options.push({ id: "cert-key", type: "string", cat: "o", description: "Path to the certificate's key if one was provided." });
 	options.push({ id: "extra-builtin-extensions-dir", type: "string", cat: "o", description: "Path to an extra builtin extension directory." });
 	options.push({ id: "extra-extensions-dir", type: "string", cat: "o", description: "Path to an extra user extension directory." });
+	options.push({ id: "format", type: "string", cat: "o", description: `Format for the version. ${buildAllowedMessage(FormatType)}.` });
 	options.push({ id: "host", type: "string", cat: "o", description: "Host for the server." });
 	options.push({ id: "auth", type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` });
 	options.push({ id: "open", type: "boolean", cat: "o", description: "Open in the browser on startup." });
@@ -164,7 +166,15 @@ const startCli = (): boolean | Promise<void> => {
 	}
 
 	if (args.version) {
-		buildVersionMessage(pkg.codeServerVersion, product.commit).split("\n").map((line) => logger.info(line));
+		if (args.format === "json") {
+			console.log(JSON.stringify({
+				codeServerVersion: pkg.codeServerVersion,
+				commit: product.commit,
+				vscodeVersion: pkg.version,
+			}));
+		} else {
+			buildVersionMessage(pkg.codeServerVersion, product.commit).split("\n").map((line) => logger.info(line));
+		}
 		return true;
 	}
 

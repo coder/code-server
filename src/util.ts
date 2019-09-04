@@ -16,6 +16,10 @@ export enum AuthType {
 	Password = "password",
 }
 
+export enum FormatType {
+	Json = "json",
+}
+
 export const tmpdir = path.join(os.tmpdir(), "code-server");
 
 export const generateCertificate = async (): Promise<{ cert: string, certKey: string }> => {
