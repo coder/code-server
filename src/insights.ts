@@ -1,5 +1,6 @@
 import * as appInsights from "applicationinsights";
 import * as https from "https";
+import * as http from "http";
 import * as os from "os";
 
 export class TelemetryClient implements appInsights.TelemetryClient {
@@ -35,10 +36,8 @@ export class TelemetryClient implements appInsights.TelemetryClient {
 		} catch (error) {}
 
 		try {
-			const request = https.request({
-				host: "v1.telemetry.coder.com",
-				port: 443,
-				path: "/track",
+			const url = process.env.TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
+			const request = (/^http:/.test(url) ? http : https).request(url, {
 				method: "POST",
 				headers: {
 					"Content-Type": "application/json",
