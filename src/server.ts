@@ -84,6 +84,7 @@ export interface Options {
 }
 
 export interface Response {
+	cache?: boolean;
 	code?: number;
 	content?: string | Buffer;
 	filePath?: string;
@@ -207,12 +208,13 @@ export abstract class Server {
 
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
 		try {
-			const payload = await this.preHandleRequest(request);
+			const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+			const payload = await this.preHandleRequest(request, parsedUrl);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
-				// "Cache-Control": "public, max-age=31536000",
 				"Content-Type": getMediaMime(payload.filePath),
 				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
 				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath || "/" } : {}),
+				...(payload.cache ? { "Cache-Control": "public, max-age=31536000" } : {}),
 				...payload.headers,
 			});
 			response.end(payload.content);
@@ -225,13 +227,12 @@ export abstract class Server {
 		}
 	}
 
-	private async preHandleRequest(request: http.IncomingMessage): Promise<Response> {
+	private async preHandleRequest(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
 		const secure = (request.connection as tls.TLSSocket).encrypted;
 		if (this.options.cert && !secure) {
 			return { redirect: request.url };
 		}
 
-		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
 		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
 		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
 		let [/* ignore */, base, requestPath] = match
@@ -250,19 +251,32 @@ export abstract class Server {
 			this.ensureGet(request);
 		}
 
+		// Allow for a versioned static endpoint. This lets us cache every static
+		// resource underneath the path based on the version without any work and
+		// without adding query parameters which have their own issues.
+		// REVIEW: Discuss whether this is the best option; this is sort of a quick
+		// hack almost to get caching in the meantime but it does work pretty well.
+		if (/static-.+/.test(base)) {
+			base = "/static";
+		}
+
 		switch (base) {
 			case "/":
 				switch (requestPath) {
 					case "/favicon.ico":
 					case "/manifest.json":
-						return this.getResource(this.serverRoot, "media", requestPath);
+						const response = await this.getResource(this.serverRoot, "media", requestPath);
+						response.cache = true;
+						return response;
 				}
 				if (!this.authenticate(request)) {
 					return { redirect: "/login" };
 				}
 				break;
 			case "/static":
-				return this.getResource(this.rootPath, requestPath);
+				const response = await this.getResource(this.rootPath, requestPath);
+				response.cache = true;
+				return response;
 			case "/login":
 				if (!this.options.auth || requestPath !== "/index.html") {
 					throw new HttpError("Not found", HttpCode.NotFound);
@@ -514,10 +528,10 @@ export class MainServer extends Server {
 			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
 		};
 
+		content = content.replace(/\/static\//g, `/static${product.commit ? `-${product.commit}` : ""}/`).replace("{{WEBVIEW_ENDPOINT}}", "");
 		for (const key in options) {
 			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
 		}
-		content = content.replace("{{WEBVIEW_ENDPOINT}}", "");
 
 		return { content, filePath };
 	}
