@@ -1031,6 +1031,38 @@ index 6895dee469..762b8e0ee9 100644
  	readonly logFile: URI;
  
  	get webviewResourceRoot(): string {
+diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
+index 6d31b177ac..a586ac7466 100644
+--- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
++++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
+@@ -116,7 +116,7 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 						protocol.onClose(() => onTerminate());
+ 						resolve(protocol);
+ 
+-						if (msg.skipWebSocketFrames) {
++						// if (msg.skipWebSocketFrames) {
+ 							// Wait for rich client to reconnect
+ 							protocol.onSocketClose(() => {
+ 								// The socket has closed, let's give the renderer a certain amount of time to reconnect
+@@ -125,12 +125,12 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 									onTerminate();
+ 								}, ProtocolConstants.ReconnectionGraceTime);
+ 							});
+-						} else {
+-							// Do not wait for web companion to reconnect
+-							protocol.onSocketClose(() => {
+-								onTerminate();
+-							});
+-						}
++						// } else {
++						// 	// Do not wait for web companion to reconnect
++						// 	protocol.onSocketClose(() => {
++						// 		onTerminate();
++						// 	});
++						// }
+ 					}
+ 				}
+ 			});
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
 index 681fc606b6..e34ef5d4bc 100644
 --- a/src/vs/workbench/workbench.web.main.ts
