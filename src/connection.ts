@@ -12,47 +12,53 @@ import { uriTransformerPath } from "vs/server/src/util";
 import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
 export abstract class Connection {
-	protected readonly _onClose = new Emitter<void>();
+	private readonly _onClose = new Emitter<void>();
 	public readonly onClose = this._onClose.event;
-	protected disposed: boolean = false;
-	public constructor(protected protocol: Protocol) {}
+	private disposed = false;
+	private _offline: number | undefined;
+
+	public constructor(protected protocol: Protocol) {
+		protocol.onClose(() => this.dispose()); // Explicit close.
+		protocol.onSocketClose(() => this._offline = Date.now()); // Might reconnect.
+	}
+
+	public get offline(): number | undefined {
+		return this._offline;
+	}
+
+	public reconnect(socket: ISocket, buffer: VSBuffer): void {
+		this._offline = undefined;
+		this.doReconnect(socket, buffer);
+	}
+
+	public dispose(): void {
+		if (!this.disposed) {
+			this.disposed = true;
+			this.doDispose();
+			this._onClose.fire();
+		}
+	}
+
 	/**
 	 * Set up the connection on a new socket.
 	 */
-	public abstract reconnect(socket: ISocket, buffer: VSBuffer): void;
-	protected abstract dispose(): void;
+	protected abstract doReconnect(socket: ISocket, buffer: VSBuffer): void;
+	protected abstract doDispose(): void;
 }
 
 /**
  * Used for all the IPC channels.
  */
 export class ManagementConnection extends Connection {
-	private timeout: NodeJS.Timeout | undefined;
-	private readonly wait = 1000 * 60;
-
-	public constructor(protocol: Protocol) {
-		super(protocol);
-		protocol.onClose(() => this.dispose());
-		protocol.onSocketClose(() => {
-			this.timeout = setTimeout(() => this.dispose(), this.wait);
-		});
+	protected doDispose(): void {
+		this.protocol.sendDisconnect();
+		this.protocol.dispose();
+		this.protocol.getSocket().end();
 	}
 
-	public reconnect(socket: ISocket, buffer: VSBuffer): void {
-		clearTimeout(this.timeout as any); // Not sure why the type doesn't work.
+	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
 		this.protocol.beginAcceptReconnection(socket, buffer);
 		this.protocol.endAcceptReconnection();
-	}
-
-	protected dispose(): void {
-		if (!this.disposed) {
-			clearTimeout(this.timeout as any); // Not sure why the type doesn't work.
-			this.disposed = true;
-			this.protocol.sendDisconnect();
-			this.protocol.dispose();
-			this.protocol.getSocket().end();
-			this._onClose.fire();
-		}
 	}
 }
 
@@ -70,18 +76,14 @@ export class ExtensionHostConnection extends Connection {
 		this.protocol.getUnderlyingSocket().pause();
 	}
 
-	protected dispose(): void {
-		if (!this.disposed) {
-			this.disposed = true;
-			if (this.process) {
-				this.process.kill();
-			}
-			this.protocol.getSocket().end();
-			this._onClose.fire();
+	protected doDispose(): void {
+		if (this.process) {
+			this.process.kill();
 		}
+		this.protocol.getSocket().end();
 	}
 
-	public reconnect(socket: ISocket, buffer: VSBuffer): void {
+	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
 		// This is just to set the new socket.
 		this.protocol.beginAcceptReconnection(socket, null);
 		this.protocol.dispose();

@@ -426,6 +426,7 @@ export class MainServer extends Server {
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
 	private readonly ipc = new IPCServer(this.onDidClientConnect);
 
+	private readonly maxOfflineConnections = 5;
 	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	private readonly services = new ServiceCollection();
@@ -586,11 +587,22 @@ export class MainServer extends Server {
 					);
 				}
 				connections.set(token, connection);
+				this.disposeOldOfflineConnections();
 				connection.onClose(() => connections.delete(token));
 				break;
 			case ConnectionType.Tunnel: return protocol.tunnel();
 			default: throw new Error("Unrecognized connection type");
 		}
+	}
+
+	private disposeOldOfflineConnections(): void {
+		this.connections.forEach((connections) => {
+			const offline = Array.from(connections.values())
+				.filter((connection) => typeof connection.offline !== "undefined");
+			for (let i = 0, max = offline.length - this.maxOfflineConnections; i < max; ++i) {
+				offline[i].dispose();
+			}
+		});
 	}
 
 	private async initializeServices(args: ParsedArgs): Promise<void> {
