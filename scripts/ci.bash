@@ -59,6 +59,8 @@ function local-build() {
 
 # Build code-server in the CI.
 function main() {
+	cd "$(dirname "${0}")/.."
+
 	local codeServerVersion="${VERSION:-}"
 	local vscodeVersion="${VSCODE_VERSION:-}"
 	local ostype="${OSTYPE:-}"
