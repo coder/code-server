@@ -108,7 +108,7 @@ index 4f93e06df0..ae63e64a7f 100644
  		});
  	}
 diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
-index a657f4a4d9..76ae76127f 100644
+index 07759dffe5..9148d7c1f0 100644
 --- a/src/vs/base/common/platform.ts
 +++ b/src/vs/base/common/platform.ts
 @@ -54,8 +54,18 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
@@ -133,10 +133,10 @@ index a657f4a4d9..76ae76127f 100644
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index 1d9a0b8308..d8204187c6 100644
+index 44f67f0a0b..00fc1deea8 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
-@@ -28,10 +28,11 @@
+@@ -18,10 +18,11 @@
  
  		<!-- Workarounds/Hacks (remote user data uri) -->
  		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
@@ -219,7 +219,7 @@ index 2f09f53e43..0f5eef1c9e 100644
  	});
  })();
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
-index cfb931c013..0767c9dad8 100644
+index 3b45568e1b..aebe04ccfe 100644
 --- a/src/vs/platform/environment/common/environment.ts
 +++ b/src/vs/platform/environment/common/environment.ts
 @@ -82,6 +82,8 @@ export interface ParsedArgs {
@@ -239,10 +239,10 @@ index cfb931c013..0767c9dad8 100644
 +	extraBuiltinExtensionPaths: string[];
  }
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index 3eb487a5c4..14c1a2d022 100644
+index a07c4c8f48..028ed19657 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
-@@ -263,6 +263,15 @@ export class EnvironmentService implements IEnvironmentService {
+@@ -264,6 +264,15 @@ export class EnvironmentService implements IEnvironmentService {
  
  	get driverHandle(): string | undefined { return this._args['driver']; }
  	get driverVerbose(): boolean { return !!this._args['driver-verbose']; }
@@ -259,7 +259,7 @@ index 3eb487a5c4..14c1a2d022 100644
  	constructor(private _args: ParsedArgs, private _execPath: string) {
  		if (!process.env['VSCODE_LOGS']) {
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index bab2df5a3f..5a4ebe24e7 100644
+index 7d0b568fc7..23ab257b42 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 @@ -731,11 +731,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
@@ -333,7 +333,7 @@ index bab2df5a3f..5a4ebe24e7 100644
  				const toRemove: ILocalExtension[] = [];
  
 diff --git a/src/vs/platform/localizations/electron-browser/localizationsService.ts b/src/vs/platform/localizations/electron-browser/localizationsService.ts
-index 57e62509c5..c2ea449c79 100644
+index add4dfb2fc..18fc71df51 100644
 --- a/src/vs/platform/localizations/electron-browser/localizationsService.ts
 +++ b/src/vs/platform/localizations/electron-browser/localizationsService.ts
 @@ -6,7 +6,7 @@
@@ -342,10 +342,10 @@ index 57e62509c5..c2ea449c79 100644
  import { ILocalizationsService, LanguageType } from 'vs/platform/localizations/common/localizations';
 -import { ISharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
  
  export class LocalizationsService implements ILocalizationsService {
- 
-@@ -14,8 +14,8 @@ export class LocalizationsService implements ILocalizationsService {
+@@ -15,8 +15,8 @@ export class LocalizationsService implements ILocalizationsService {
  
  	private channel: IChannel;
  
@@ -357,7 +357,7 @@ index 57e62509c5..c2ea449c79 100644
  
  	get onDidLanguagesChange(): Event<void> { return this.channel.listen('onDidLanguagesChange'); }
 diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
-index 5f631b8b9d..d145190881 100644
+index 9f68b645b6..1e224cc29a 100644
 --- a/src/vs/platform/log/common/logIpc.ts
 +++ b/src/vs/platform/log/common/logIpc.ts
 @@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
@@ -412,7 +412,7 @@ index 6b24ec0781..43dd9c12c8 100644
 -
 -
 diff --git a/src/vs/platform/update/electron-browser/updateService.ts b/src/vs/platform/update/electron-browser/updateService.ts
-index fe6e5be934..4b77f9953b 100644
+index bd8fa6cc18..cf6108a57b 100644
 --- a/src/vs/platform/update/electron-browser/updateService.ts
 +++ b/src/vs/platform/update/electron-browser/updateService.ts
 @@ -6,7 +6,7 @@
@@ -421,10 +421,10 @@ index fe6e5be934..4b77f9953b 100644
  import { IUpdateService, State } from 'vs/platform/update/common/update';
 -import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
  
  export class UpdateService implements IUpdateService {
- 
-@@ -20,8 +20,8 @@ export class UpdateService implements IUpdateService {
+@@ -21,8 +21,8 @@ export class UpdateService implements IUpdateService {
  
  	private channel: IChannel;
  
@@ -436,7 +436,7 @@ index fe6e5be934..4b77f9953b 100644
  		// always set this._state as the state changes
  		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
-index 7ae90deb9b..69f98f83be 100644
+index d789bf4e09..e25c9c9d6a 100644
 --- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
 +++ b/src/vs/platform/update/electron-main/abstractUpdateService.ts
 @@ -6,7 +6,6 @@
@@ -527,7 +527,7 @@ index b99f800164..eb82443e74 100644
  
  		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
-index 80ae6faffc..511c05db2c 100644
+index 2e1e63986f..563c4b2472 100644
 --- a/src/vs/workbench/browser/layout.ts
 +++ b/src/vs/workbench/browser/layout.ts
 @@ -260,7 +260,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
@@ -557,7 +557,7 @@ index 80ae6faffc..511c05db2c 100644
  				}
  
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 2ef453c688..212e29ec8b 100644
+index f5944ce974..f2094de18b 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
@@ -585,7 +585,7 @@ index 2ef453c688..212e29ec8b 100644
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index caf44465e7..e6baaf5406 100644
+index 895a8a0393..6530b66cbb 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -33,6 +33,7 @@ import { localize } from 'vs/nls';
@@ -686,10 +686,10 @@ index 0c368120df..52ece63cd0 100644
  		// Check for dropped external files to be folders
  		const result = await this.fileService.resolveAll(droppedResources);
 diff --git a/src/vs/workbench/contrib/remote/common/remote.contribution.ts b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-index 8ec38b3795..467c099d25 100644
+index 404f5a2a78..a04c825fa2 100644
 --- a/src/vs/workbench/contrib/remote/common/remote.contribution.ts
 +++ b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-@@ -80,7 +80,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
+@@ -79,7 +79,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
  		const connection = remoteAgentService.getConnection();
  		if (connection) {
  			const logLevelClient = new LogLevelSetterChannelClient(connection.getChannel('loglevel'));
@@ -700,10 +700,10 @@ index 8ec38b3795..467c099d25 100644
  		}
  	}
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-index dfad93af11..6da087895f 100644
+index 3534ef147d..773f711863 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-@@ -85,7 +85,8 @@ self.addEventListener('activate', event => {
+@@ -34,7 +34,8 @@ self.addEventListener('activate', event => {
  //#region --- fetching/caching
  
  const _cacheName = 'vscode-extension-resources';
@@ -714,10 +714,10 @@ index dfad93af11..6da087895f 100644
  
  self.addEventListener('message', event => {
 diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-index 935753f002..75c08ee013 100644
+index 326dfb49ee..adf72747bd 100644
 --- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
 +++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-@@ -15,7 +15,11 @@ class ResourceServiceWorker {
+@@ -18,7 +18,11 @@ class ResourceServiceWorker {
  	constructor(
  		@ILogService private readonly _logService: ILogService,
  	) {
@@ -730,7 +730,7 @@ index 935753f002..75c08ee013 100644
  			this._logService.trace('SW#reg', reg);
  			return reg.update();
  		}).then(() => {
-@@ -32,5 +36,3 @@ Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkb
+@@ -45,5 +49,3 @@ Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkb
  	ResourceServiceWorker,
  	LifecyclePhase.Ready
  );
@@ -1019,10 +1019,10 @@ index 8493b87f2c..b5c47ea23f 100644
  	telemetryFrom: 'walkThrough'
  };
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index 6895dee469..762b8e0ee9 100644
+index 7c3b6ae53e..18dec6effa 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -176,6 +176,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+@@ -177,6 +177,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  	driverHandle?: string;
  	driverVerbose: boolean;
  	galleryMachineIdResource?: URI;
