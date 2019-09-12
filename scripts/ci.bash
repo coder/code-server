@@ -21,7 +21,7 @@ function docker-build() {
 		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
 	else
 		# TODO: at some point git existed but it seems to have disappeared.
-		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git
+		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git -C
 	fi
 
 	function docker-exec() {
