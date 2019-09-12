@@ -16,7 +16,9 @@ COPY . .
 RUN yarn \
 	&& MINIFY=true yarn build "${vscodeVersion}" "${codeServerVersion}" \
 	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
-	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server
+	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
+	&& rm -r /src/build/vscode-* \
+	&& rm -r /src/build/code-server*-linux-*
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
