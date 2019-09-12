@@ -1,0 +1,5 @@
+{
+  "name": "code-server",
+  "main": "out/vs/server/main",
+  "desktopName": "code-server-url-handler.desktop"
+}

@@ -1,5 +1,0 @@
-apiVersion: v1
-appVersion: "1.0"
-description: A Helm chart for code-server
-name: code-server
-version: 1.0.0

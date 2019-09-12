@@ -1,0 +1,94 @@
+html {
+	box-sizing: border-box;
+}
+
+*, *:before, *:after {
+	box-sizing: inherit;
+}
+
+html, body {
+	background-color: #FFFFFF;
+	height: 100%;
+	min-height: 100%;
+}
+
+body {
+	align-items: center;
+	display: flex;
+	font-family: "monospace";
+	justify-content: center;
+	margin: 0;
+	padding: 10px;
+}
+
+.login-form {
+	border-radius: 5px;
+	box-shadow: 0 18px 80px 10px rgba(69, 65, 78, 0.08);
+	color: #575962;
+	margin-top: -10%;
+	max-width: 328px;
+	padding: 40px;
+	position: relative;
+	width: 100%;
+}
+
+.login-form > .title {
+	text-align: center;
+	text-transform: uppercase;
+	font-size: 12px;
+	font-weight: 500;
+	letter-spacing: 1.5px;
+	line-height: 15px;
+	margin-bottom: 0px;
+	margin-bottom: 5px;
+	margin-top: 0px;
+}
+
+.login-form > .subtitle {
+	font-size: 19px;
+	font-weight: bold;
+	line-height: 25px;
+	margin-bottom: 45px;
+	margin: 0;
+	text-align: center;
+}
+
+.login-form > .field {
+	text-align: left;
+	font-size: 12px;
+	color: #797E84;
+	margin: 16px 0;
+}
+
+.login-form > .field > .input {
+	background: none !important;
+	border: 1px solid #ccc;
+	border-radius: 2px;
+	padding: 5px;
+	width: 100%;
+}
+
+.login-form > .button {
+	border: none;
+	border-radius: 24px;
+	box-shadow: 0 12px 17px 2px rgba(171,173,163,0.14), 0 5px 22px 4px rgba(171,173,163,0.12), 0 7px 8px -4px rgba(171,173,163,0.2);
+	cursor: pointer;
+	display: block;
+	padding: 15px 5px;
+	width: 100%;
+}
+
+.login-form > .button:hover {
+	background-color: rgb(0, 122, 204);
+	color: #fff;
+}
+
+.error-display {
+	box-sizing: border-box;
+	color: #bb2d0f;
+	font-size: 14px;
+	font-weight: 400;
+	line-height: 12px;
+	padding: 20px 8px 0;
+	text-align: center;
+}
