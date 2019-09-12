@@ -5,6 +5,7 @@ import * as https from "https";
 import * as net from "net";
 import * as path from "path";
 import * as querystring from "querystring";
+import { Readable } from "stream";
 import * as tls from "tls";
 import * as url from "url";
 import * as util from "util";
@@ -67,6 +68,8 @@ import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from 
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
+const tarFs = localRequire<typeof import("tar-fs")>("tar-fs/index");
+
 export enum HttpCode {
 	Ok = 200,
 	Redirect = 302,
@@ -89,7 +92,9 @@ export interface Response {
 	content?: string | Buffer;
 	filePath?: string;
 	headers?: http.OutgoingHttpHeaders;
+	mime?: string;
 	redirect?: string;
+	stream?: Readable;
 }
 
 export interface LoginPayload {
@@ -185,11 +190,21 @@ export abstract class Server {
 	): Promise<Response>;
 
 	protected async getResource(...parts: string[]): Promise<Response> {
+		const filePath = this.ensureAuthorizedFilePath(...parts);
+		return { content: await util.promisify(fs.readFile)(filePath), filePath };
+	}
+
+	protected async getTarredResource(...parts: string[]): Promise<Response> {
+		const filePath = this.ensureAuthorizedFilePath(...parts);
+		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar" };
+	}
+
+	protected ensureAuthorizedFilePath(...parts: string[]): string {
 		const filePath = path.join(...parts);
 		if (!this.isAllowedRequestPath(filePath)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 		}
-		return { content: await util.promisify(fs.readFile)(filePath), filePath };
+		return filePath;
 	}
 
 	protected withBase(request: http.IncomingMessage, path: string): string {
@@ -211,13 +226,21 @@ export abstract class Server {
 			const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
 			const payload = await this.preHandleRequest(request, parsedUrl);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
-				"Content-Type": getMediaMime(payload.filePath),
+				"Content-Type": payload.mime || getMediaMime(payload.filePath),
 				...(payload.redirect ? { Location: this.withBase(request, payload.redirect) } : {}),
 				...(request.headers["service-worker"] ? { "Service-Worker-Allowed": this.options.basePath || "/" } : {}),
 				...(payload.cache ? { "Cache-Control": "public, max-age=31536000" } : {}),
 				...payload.headers,
 			});
-			response.end(payload.content);
+			if (payload.stream) {
+				payload.stream.on("error", (error: NodeJS.ErrnoException) => {
+					response.writeHead(error.code === "ENOENT" ? HttpCode.NotFound : HttpCode.ServerError);
+					response.end(error.message);
+				});
+				payload.stream.pipe(response);
+			} else {
+				response.end(payload.content);
+			}
 		} catch (error) {
 			if (error.code === "ENOENT" || error.code === "EISDIR") {
 				error = new HttpError("Not found", HttpCode.NotFound);
@@ -482,6 +505,11 @@ export class MainServer extends Server {
 			case "/vscode-remote-resource":
 				if (typeof parsedUrl.query.path === "string") {
 					return this.getResource(parsedUrl.query.path);
+				}
+				break;
+			case "/tar":
+				if (typeof parsedUrl.query.path === "string") {
+					return this.getTarredResource(parsedUrl.query.path);
 				}
 				break;
 			case "/webview":

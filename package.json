@@ -17,6 +17,7 @@
     "@coder/nbin": "^1.2.0",
     "@types/pem": "^1.9.5",
     "@types/safe-compare": "^1.1.0",
+    "@types/tar-fs": "^1.16.1",
     "@types/tar-stream": "^1.6.1",
     "nodemon": "^1.19.1"
   },
@@ -29,6 +30,7 @@
     "httpolyglot": "^0.1.2",
     "pem": "^1.14.2",
     "safe-compare": "^1.1.4",
+    "tar-fs": "^2.0.0",
     "tar-stream": "^2.1.0"
   }
 }
