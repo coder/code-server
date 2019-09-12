@@ -18,12 +18,6 @@ docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" codercom/cod
 ![Screenshot](/doc/assets/ide.gif)
 
 ## Getting Started
-<<<<<<< HEAD
-=======
-
-[![Create a Droplet](./doc/assets/do-new-droplet-btn.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
-
->>>>>>> master
 ### Run over SSH
 Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
@@ -131,13 +125,8 @@ Our changes include:
 [MIT](LICENSE)
 
 ## Enterprise
-<<<<<<< HEAD
 Visit [our enterprise page](https://coder.com/enterprise) for more information
 about our enterprise offering.
-=======
-
-Visit [our website](https://coder.com/) for more information about our enterprise offering.
->>>>>>> master
 
 ## Commercialization
 If you would like to commercialize code-server, please contact
