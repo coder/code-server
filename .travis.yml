@@ -20,7 +20,7 @@ before_install:
 - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
 - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
 script:
-- scripts/ci.bash
+- travis_wait 30 scripts/ci.bash
 before_deploy:
 - echo "$VERSION" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"
