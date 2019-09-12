@@ -22,10 +22,10 @@ before_install:
 script:
 - travis_wait 30 scripts/ci.bash
 before_deploy:
-- echo "$VERSION" "$TRAVIS_COMMIT"
+- echo "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
 - git config --local user.name "$USER_NAME"
 - git config --local user.email "$USER_EMAIL"
-- git tag "$VERSION" "$TRAVIS_COMMIT"
+- git tag "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
 deploy:
   provider: releases
   file_glob: true
