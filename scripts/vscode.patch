@@ -57,27 +57,27 @@ index 6bb695db68..ecbabe5dc8 100644
  }
 -
 diff --git a/src/vs/base/browser/mouseEvent.ts b/src/vs/base/browser/mouseEvent.ts
-index 4c7295e3b9..fc9694a18b 100644
+index 4c7295e3b9..b0af2cdd62 100644
 --- a/src/vs/base/browser/mouseEvent.ts
 +++ b/src/vs/base/browser/mouseEvent.ts
-@@ -158,7 +158,7 @@ export class StandardWheelEvent {
- 			// vertical delta scroll
- 			if (typeof e1.wheelDeltaY !== 'undefined') {
+@@ -160,6 +160,8 @@ export class StandardWheelEvent {
  				this.deltaY = e1.wheelDeltaY / 120;
--			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
-+			} else if (browser.isFirefox || (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS)) {
+ 			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
  				this.deltaY = -e2.detail / 3;
++			} else if (browser.isFirefox) {
++				this.deltaY = -e.deltaY / 3;
  			} else {
  				this.deltaY = -e.deltaY / 40;
-@@ -171,7 +171,7 @@ export class StandardWheelEvent {
- 				} else {
- 					this.deltaX = e1.wheelDeltaX / 120;
+ 			}
+@@ -173,6 +175,8 @@ export class StandardWheelEvent {
  				}
--			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
-+			} else if (browser.isFirefox || (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS)) {
+ 			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
  				this.deltaX = -e.detail / 3;
++			} else if (browser.isFirefox) {
++				this.deltaX = -e.deltaX / 3;
  			} else {
  				this.deltaX = -e.deltaX / 40;
+ 			}
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index 4f93e06df0..ae63e64a7f 100644
 --- a/src/vs/base/common/network.ts
