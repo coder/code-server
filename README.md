@@ -18,6 +18,7 @@ docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home
 ![Screenshot](/doc/assets/ide.gif)
 
 ## Getting Started
+
 ### Run over SSH
 Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
@@ -29,6 +30,9 @@ To debug Golang using the
 you need to add `--security-opt seccomp=unconfined` to your `docker run`
 arguments when launching code-server with Docker. See
 [#725](https://github.com/cdr/code-server/issues/725) for details.
+
+### Digital Ocean
+[![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
 ### Binaries
 1. [Download a binary](https://github.com/cdr/code-server/releases). (Linux and
