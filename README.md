@@ -18,7 +18,6 @@ docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home
 ![Screenshot](/doc/assets/ide.gif)
 
 ## Getting Started
-
 ### Run over SSH
 Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
@@ -57,7 +56,6 @@ arguments when launching code-server with Docker. See
   code into a single binary.
 
 ## Known Issues
-- Uploading .vsix files doesn't work.
 - Creating custom VS Code extensions and debugging them doesn't work.
 - Extension profiling and tips are currently disabled.
 
