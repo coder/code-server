@@ -17,10 +17,7 @@ export abstract class Connection {
 	private disposed = false;
 	private _offline: number | undefined;
 
-	public constructor(protected protocol: Protocol) {
-		protocol.onClose(() => this.dispose()); // Explicit close.
-		protocol.onSocketClose(() => this._offline = Date.now()); // Might reconnect.
-	}
+	public constructor(protected protocol: Protocol, public readonly token: string) {}
 
 	public get offline(): number | undefined {
 		return this._offline;
@@ -39,6 +36,12 @@ export abstract class Connection {
 		}
 	}
 
+	protected setOffline(): void {
+		if (!this._offline) {
+			this._offline = Date.now();
+		}
+	}
+
 	/**
 	 * Set up the connection on a new socket.
 	 */
@@ -50,6 +53,12 @@ export abstract class Connection {
  * Used for all the IPC channels.
  */
 export class ManagementConnection extends Connection {
+	public constructor(protected protocol: Protocol, token: string) {
+		super(protocol, token);
+		protocol.onClose(() => this.dispose()); // Explicit close.
+		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
+	}
+
 	protected doDispose(): void {
 		this.protocol.sendDisconnect();
 		this.protocol.dispose();
@@ -66,11 +75,11 @@ export class ExtensionHostConnection extends Connection {
 	private process?: cp.ChildProcess;
 
 	public constructor(
-		locale:string, protocol: Protocol, buffer: VSBuffer,
+		locale:string, protocol: Protocol, buffer: VSBuffer, token: string,
 		private readonly log: ILogService,
 		private readonly environment: IEnvironmentService,
 	) {
-		super(protocol);
+		super(protocol, token);
 		this.protocol.dispose();
 		this.spawn(locale, buffer).then((p) => this.process = p);
 		this.protocol.getUnderlyingSocket().pause();
@@ -128,6 +137,9 @@ export class ExtensionHostConnection extends Connection {
 			if (event && event.type === "__$console") {
 				const severity = (<any>this.log)[event.severity] ? event.severity : "info";
 				(<any>this.log)[severity]("Extension host", event.arguments);
+			}
+			if (event && event.type === "VSCODE_EXTHOST_DISCONNECTED") {
+				this.setOffline();
 			}
 		});
 

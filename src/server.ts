@@ -449,7 +449,7 @@ export class MainServer extends Server {
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
 	private readonly ipc = new IPCServer(this.onDidClientConnect);
 
-	private readonly maxOfflineConnections = 5;
+	private readonly maxExtraOfflineConnections = 0;
 	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
 
 	private readonly services = new ServiceCollection();
@@ -601,7 +601,7 @@ export class MainServer extends Server {
 
 				let connection: Connection;
 				if (message.desiredConnectionType === ConnectionType.Management) {
-					connection = new ManagementConnection(protocol);
+					connection = new ManagementConnection(protocol, token);
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
@@ -609,28 +609,26 @@ export class MainServer extends Server {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
 						message.args ? message.args.language : "en",
-						protocol, buffer,
+						protocol, buffer, token,
 						this.services.get(ILogService) as ILogService,
 						this.services.get(IEnvironmentService) as IEnvironmentService,
 					);
 				}
 				connections.set(token, connection);
-				this.disposeOldOfflineConnections();
 				connection.onClose(() => connections.delete(token));
+				this.disposeOldOfflineConnections(connections);
 				break;
 			case ConnectionType.Tunnel: return protocol.tunnel();
 			default: throw new Error("Unrecognized connection type");
 		}
 	}
 
-	private disposeOldOfflineConnections(): void {
-		this.connections.forEach((connections) => {
-			const offline = Array.from(connections.values())
-				.filter((connection) => typeof connection.offline !== "undefined");
-			for (let i = 0, max = offline.length - this.maxOfflineConnections; i < max; ++i) {
-				offline[i].dispose();
-			}
-		});
+	private disposeOldOfflineConnections(connections: Map<string, Connection>): void {
+		const offline = Array.from(connections.values())
+			.filter((connection) => typeof connection.offline !== "undefined");
+		for (let i = 0, max = offline.length - this.maxExtraOfflineConnections; i < max; ++i) {
+			offline[i].dispose();
+		}
 	}
 
 	private async initializeServices(args: ParsedArgs): Promise<void> {
