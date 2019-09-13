@@ -47,7 +47,6 @@ arguments when launching code-server with Docker. See
 - If you also plan on developing, set the `OUT` environment variable. Otherwise
   it will build in this directory which will cause issues because `yarn watch`
   will try to compile the build directory as well.
-- For now `@coder/nbin` is a global dependency.
 - Run `yarn build ${vscodeVersion} ${codeServerVersion}` in this directory (for
   example: `yarn build 1.36.0 development`).
 - If you target the same VS Code version our Travis builds do everything will
