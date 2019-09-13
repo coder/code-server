@@ -1032,15 +1032,30 @@ index 7c3b6ae53e..18dec6effa 100644
  
  	get webviewResourceRoot(): string {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-index 6d31b177ac..d7c1705c57 100644
+index 6d31b177ac..67c955a59d 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
+@@ -41,12 +41,12 @@ const args = minimist(process.argv.slice(2), {
+ 	const Module = require.__$__nodeRequire('module') as any;
+ 	const originalLoad = Module._load;
+ 
+-	Module._load = function (request: string) {
++	Module._load = function (request: string, parent: object, isMain: boolean) {
+ 		if (request === 'natives') {
+ 			throw new Error('Either the extension or a NPM dependency is using the "natives" node module which is unsupported as it can cause a crash of the extension host. Click [here](https://go.microsoft.com/fwlink/?linkid=871887) to find out more');
+ 		}
+ 
+-		return originalLoad.apply(this, arguments);
++		return originalLoad.apply(this, [request.replace(/node_modules\.asar(\.unpacked)?/, 'node_modules'), parent, isMain]);
+ 	};
+ })();
+ 
 @@ -128,7 +128,7 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
  						} else {
  							// Do not wait for web companion to reconnect
  							protocol.onSocketClose(() => {
 -								onTerminate();
-+								process.send!('VSCODE_EXTHOST_DISCONNECTED'); // onTerminate();
++								process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
  							});
  						}
  					}
