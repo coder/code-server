@@ -55,3 +55,62 @@ server {
 
 </VirtualHost>
 ```
+
+### Run automatically at startup
+
+In some cases you might need to run code-server automatically once the host starts. You may use your local init service to do so.
+
+#### Systemd
+
+```ini
+[Unit]
+
+Description=VSCode in a browser
+
+After=network.target
+
+[Service]
+
+Type=simple
+
+ExecStart=/usr/bin/code-server $(pwd)
+
+WorkingDirectory=$HOME/projects
+
+ExecStop=/sbin/start-stop-daemon --stop -x /usr/bin/code-server
+
+Restart=on-failure
+
+User=1000
+
+[Install]
+
+WantedBy=multi-user.target
+```
+
+#### OpenRC
+
+```sh
+#!/sbin/openrc-run
+
+depend() {
+    after net-online
+    need net
+}
+
+supervisor=supervise-daemon
+name="code-server"
+command="/opt/cdr/code-server"
+command_args=""
+
+pidfile="/var/run/cdr.pid"
+respawn_delay=5
+
+set -o allexport
+if [ -f /etc/environment ]; then source /etc/environment; fi
+set +o allexport
+```
+
+#### Kubernetes/Docker
+
+Make sure you set your restart policy to always - this will ensure your container starts as the daemon starts.
