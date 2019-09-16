@@ -14,7 +14,7 @@
     "patch:apply": "yarn ensure-in-vscode && cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
   },
   "devDependencies": {
-    "@coder/nbin": "^1.2.0",
+    "@coder/nbin": "^1.2.2",
     "@types/pem": "^1.9.5",
     "@types/safe-compare": "^1.1.0",
     "@types/tar-fs": "^1.16.1",
