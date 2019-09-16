@@ -46,13 +46,8 @@ server {
   RewriteRule /(.*)           http://localhost:8080/$1 [P,L]
 
   ProxyRequests off
-
-  RequestHeader set X-Forwarded-Proto https
-  RequestHeader set X-Forwarded-Port 443
-
-  ProxyPass / http://localhost:8080/ nocanon
+  ProxyPass        / http://localhost:8080/ nocanon
   ProxyPassReverse / http://localhost:8080/
-
 </VirtualHost>
 ```
 

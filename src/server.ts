@@ -331,7 +331,7 @@ export abstract class Server {
 		this.ensureGet(request);
 		if (!this.authenticate(request)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
-		} else if (request.headers.upgrade !== "websocket") {
+		} else if (!request.headers.upgrade || request.headers.upgrade.toLowerCase() !== "websocket") {
 			throw new Error("HTTP/1.1 400 Bad Request");
 		}
 
