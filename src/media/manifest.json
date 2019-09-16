@@ -1,0 +1,13 @@
+{
+	"name": "code-server",
+	"short_name": "code-server",
+	"start_url": ".",
+	"display": "standalone",
+	"background-color": "#fff",
+	"description": "Run VS Code on a remote server.",
+	"icons": [{
+		"src": "static/code-server.png",
+		"sizes": "128x128",
+		"type": "image/png"
+	}]
+}

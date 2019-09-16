@@ -1,9 +1,0 @@
-out
-cli*
-!cli.ts
-build
-resources
-
-# This file is generated when the binary is created.
-# We want to use the parent tsconfig so we can ignore it.
-tsconfig.json

@@ -1,5 +1,0 @@
-runtime: nodejs10
-service: cdrdns
-network:
-  forwarded_ports:
-    - 53/udp
