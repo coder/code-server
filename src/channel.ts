@@ -164,8 +164,8 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 
 	private transform(resource: UriComponents): URI {
 		// Used for walkthrough content.
-		if (resource.path.indexOf("/static") === 0) {
-			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static/, ""));
+		if (/^\/static[^/]*\//.test(resource.path)) {
+			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static[^/]*\//, "/"));
 		// Used by the webview service worker to load resources.
 		} else if (resource.path === "/vscode-resource" && resource.query) {
 			try {

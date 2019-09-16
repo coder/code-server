@@ -279,7 +279,7 @@ export abstract class Server {
 		// without adding query parameters which have their own issues.
 		// REVIEW: Discuss whether this is the best option; this is sort of a quick
 		// hack almost to get caching in the meantime but it does work pretty well.
-		if (/static-.+/.test(base)) {
+		if (/^\/static-.+/.test(base)) {
 			base = "/static";
 		}
 
