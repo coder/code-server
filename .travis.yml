@@ -67,10 +67,11 @@ deploy:
 
   - provider: script
     skip_cleanup: true
-    script: if [[ -n "$DOCKER_BUILD" ]] ; then docker push codercom/code-server:"$VERSION" && docker push codercom/code-server:v2 ; fi
+    script: docker push codercom/code-server:"$VERSION" ; docker push codercom/code-server:v2
     on:
       repo: cdr/code-server
       branch: master
+      condition: -n "$DOCKER_BUILD"
 
 cache:
   yarn: true
