@@ -46,7 +46,7 @@ before_deploy:
   - git config --local user.name "$USER_NAME"
   - git config --local user.email "$USER_EMAIL"
   - if ! git tag "$TAG" "$TRAVIS_COMMIT" ; then echo "$TAG already exists"; fi
-  - if [[ "$DOCKER_BUILD" == "true" ]] ; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin hub.docker.com; fi
+  - if [[ -n "$DOCKER_BUILD" ]] ; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin hub.docker.com ; fi
 
 deploy:
   - provider: releases
@@ -67,11 +67,10 @@ deploy:
 
   - provider: script
     skip_cleanup: true
-    script: docker push codercom/code-server:"$VERSION" ; docker push codercom/code-server:v2
+    script: if [[ -n "$DOCKER_BUILD" ]] ; then docker push codercom/code-server:"$VERSION" && docker push codercom/code-server:v2 ; fi
     on:
       repo: cdr/code-server
       branch: master
-      condition: "$DOCKER_BUILD" == "true"
 
 cache:
   yarn: true
