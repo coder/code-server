@@ -1,0 +1,19 @@
+{
+	"nameShort": "code-server",
+	"nameLong": "code-server",
+	"applicationName": "code-server",
+	"dataFolderName": ".code-server",
+	"win32MutexName": "codeserver",
+	"win32DirName": "Code Server",
+	"win32NameVersion": "Code Server",
+	"win32RegValueName": "CodeServer",
+	"win32AppId": "",
+	"win32x64AppId": "",
+	"win32UserAppId": "",
+	"win32x64UserAppId": "",
+	"win32AppUserModelId": "CodeServer",
+	"win32ShellNameShort": "C&ode Server",
+	"darwinBundleIdentifier": "com.code.server",
+	"linuxIconName": "com.code.server",
+	"urlProtocol": "code-server"
+}

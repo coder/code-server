@@ -1,1 +1,0 @@
-exports.text = "moo";
