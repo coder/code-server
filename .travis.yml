@@ -36,7 +36,7 @@ jobs:
       if: branch == master AND tag IS blank
       script:
         - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin hub.docker.com
-        - docker build -t codercom/code-server:$VERSION .
+        - docker build -t codercom/code-server:$VERSION -t codercom/code-server:v2 .
 
 git:
   depth: 3
@@ -64,7 +64,9 @@ deploy:
       repo: cdr/code-server
       branch: master
   - provider: script
-    script: docker push codercom/code-server:$VERSION
+    script:
+      - docker push codercom/code-server:$VERSION
+      - docker push codercom/code-server:v2
     on:
       repo: cdr/code-server
       branch: master
