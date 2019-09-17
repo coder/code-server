@@ -36,7 +36,7 @@ jobs:
       dist: trusty
       env: DOCKER_BUILD="true"
       if: branch == master AND tag IS blank
-      script: docker build -e GITHUB_TOKEN="$GITHUB_TOKEN" --build-arg codeServerVersion="$VERSION" --build-arg vscodeVersion="$VSCODE_VERSION" -t codercom/code-server:"$VERSION" -t codercom/code-server:v2 .
+      script: docker build --build-arg githubToken="$GITHUB_TOKEN" --build-arg codeServerVersion="$VERSION" --build-arg vscodeVersion="$VSCODE_VERSION" -t codercom/code-server:"$VERSION" -t codercom/code-server:v2 .
 
 git:
   depth: 3
