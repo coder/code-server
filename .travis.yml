@@ -1,31 +1,44 @@
 language: node_js
 node_js:
-- 10.16.0
+  - 10.16.0
 services:
-- docker
-matrix:
-  include:
-  - os: linux
-    dist: trusty
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="linux"
-  - os: linux
-    dist: trusty
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="alpine"
-  - os: osx
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
+  - docker
+
 before_install:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
-script:
-- travis_wait 30 scripts/ci.bash
+  - export MAJOR_VERSION="2"
+  - export VSCODE_VERSION="1.38.1"
+  - export VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
+
+# Don't build on tags because we'll already have built the commit.
+jobs:
+  include:
+    - name: "Linux build"
+      os: linux
+      dist: trusty
+      env: TARGET="linux"
+      if: tag IS blank
+    - name: "Alpine build"
+      os: linux
+      dist: trusty
+      env: TARGET="alpine"
+      if: tag IS blank
+    - name: "MacOS build"
+      os: osx
+      if: tag IS blank
+
+git:
+  depth: 3
+
+script: travis_wait 30 scripts/ci.bash
+
 before_deploy:
-- echo "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
-- git config --local user.name "$USER_NAME"
-- git config --local user.email "$USER_EMAIL"
-- git tag "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
+  - echo "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
+  - git config --local user.name "$USER_NAME"
+  - git config --local user.email "$USER_EMAIL"
+  - git tag "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
+
 deploy:
   provider: releases
   file_glob: true
@@ -42,8 +55,9 @@ deploy:
   on:
     repo: cdr/code-server
     branch: master
+
 cache:
   yarn: true
   timeout: 1000
   directories:
-  - .cache
+    - .cache
