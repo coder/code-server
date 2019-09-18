@@ -21,7 +21,7 @@ docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home
 
 ### Requirements
 
-- Minimum GLIBC version of 2.15 and a minimum version of GLIBCXX of 3.4.15.
+- Minimum GLIBC version of 2.17 and a minimum version of GLIBCXX of 3.4.15.
   - This is the main requirement for building Visual Studio Code. We cannot go lower than this.
 - A 64-bit host with at least 1GB RAM and 2 cores.
    - 1 core hosts would work but not optimally.
