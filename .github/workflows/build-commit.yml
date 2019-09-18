@@ -10,6 +10,7 @@ jobs:
       - name: Build code-server Binary
         run: scripts/ci.bash  
         env:
+           VERSION: master
            VSCODE_VERSION: '1.38.1'
            MINIFY: 'true' 
            PACKAGE: 'true'
