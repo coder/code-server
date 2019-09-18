@@ -15,5 +15,5 @@ jobs:
         run: scripts/ci.bash  
         env:
            VSCODE_VERSION: '1.38.1'
-           MINIFY: 'false'
+           MINIFY: 'true' 
            PACKAGE: 'true'

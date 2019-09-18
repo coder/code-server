@@ -18,8 +18,9 @@ jobs:
            VSCODE_VERSION: '1.38.1'
            MINIFY: 'true' 
            PACKAGE: 'true'
-    - uses: ncipollo/release-action@v1
-      with:
-        artifacts: "release/*.tar.gz,release/*.zip"
-        bodyFile: "CHANGELOG.md"
-        token: ${{ secrets.GITHUB_TOKEN }}
+           
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/*.tar.gz,release/*.zip"
+          bodyFile: "CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
