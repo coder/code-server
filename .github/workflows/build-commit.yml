@@ -1,9 +1,5 @@
 name: Build
-on:
-  push:
-    branches:    
-      - master
-      - '*' 
+on: [push, pull_request]
 jobs:
   build:
     name: Build
