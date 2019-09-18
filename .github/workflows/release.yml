@@ -1,0 +1,26 @@
+name: Build
+on:
+  push:
+    tags:
+      - '*'
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build code-server Binary
+        run: scripts/ci.bash  
+        env:
+           MAJOR_VERSION: '2'
+           VERSION: '${MAJOR_VERSION}.${GITHUB_SHA}'
+           VSCODE_VERSION: '1.38.1'
+           MINIFY: 'false'
+           PACKAGE: 'true'
+      - name: Upload artifacts
+        uses: skx/github-action-publish-binaries@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          args: 'releases/*.*'

@@ -1,0 +1,19 @@
+name: Build
+on:
+  push:
+    branches:    
+      - master
+      - '*' 
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build code-server Binary
+        run: scripts/ci.bash  
+        env:
+           VSCODE_VERSION: '1.38.1'
+           MINIFY: 'false'
+           PACKAGE: 'true'
