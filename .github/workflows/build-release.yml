@@ -1,19 +1,68 @@
-name: Build
+name: Release
 on:
   push:
     tags:
       - '*'
 jobs:
-  release:
-    name: Build
+
+  release_amd64:
+    name: Release (AMD64 - CentOS 7 Target)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
 
       - name: Build code-server Binary
-        run: bash ./scripts/ci.bash    
+        run: yarn && bash ./scripts/ci.bash    
         env:
            MAJOR_VERSION: '2'
+           TARGET: 'linux'
+           VERSION: '${MAJOR_VERSION}.${GITHUB_SHA}'
+           VSCODE_VERSION: '1.38.1'
+           MINIFY: 'true' 
+           PACKAGE: 'true'
+           
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/*.tar.gz,release/*.zip"
+          bodyFile: "CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release_amd64_alpine:
+    name: Build (AMD64 - Alpine Target)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Build code-server Binary
+        run: yarn && bash ./scripts/ci.bash    
+        env:
+           MAJOR_VERSION: '2'
+           TARGET: 'alpine'
+           VERSION: '${MAJOR_VERSION}.${GITHUB_SHA}'
+           VSCODE_VERSION: '1.38.1'
+           MINIFY: 'true' 
+           PACKAGE: 'true'
+           
+      - uses: ncipollo/release-action@v1
+        with:
+          artifacts: "release/*.tar.gz,release/*.zip"
+          bodyFile: "CHANGELOG.md"
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+  release_macos:
+    name: Build (macOS Target)
+    runs-on: macOS-latest
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Workaround outdated Node in CI
+        run: brew uninstall node@6 && brew install node@12
+
+      - name: Build code-server Binary
+        run: yarn && bash ./scripts/ci.bash    
+        env:
+           MAJOR_VERSION: '2'
+           TARGET: 'linux'
            VERSION: '${MAJOR_VERSION}.${GITHUB_SHA}'
            VSCODE_VERSION: '1.38.1'
            MINIFY: 'true' 
