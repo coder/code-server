@@ -531,30 +531,45 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.servicesPromise,
 		]);
+
 		const logger = this.services.get(ILogService) as ILogService;
 		logger.info("request.url", `"${request.url}"`);
-		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
-		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
+
 		const cwd = process.env.VSCODE_CWD || process.cwd();
-		const workspacePath = parsedUrl.query.workspace as string | undefined;
-		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri : undefined;
+
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
+		const validatePath = async (filePath: string[] | string | undefined, isDirectory: boolean, unsetFallback?: string): Promise<UriComponents | undefined> => {
+			if (!filePath || filePath.length === 0) {
+				if (!unsetFallback) {
+					return undefined;
+				}
+				filePath = unsetFallback;
+			} else if (Array.isArray(filePath)) {
+				filePath = filePath[0];
+			}
+			const uri = URI.file(sanitizeFilePath(filePath, cwd));
+			try {
+				const stat = await util.promisify(fs.stat)(uri.fsPath);
+				if (isDirectory !== stat.isDirectory()) {
+					return undefined;
+				}
+			} catch (error) {
+				return undefined;
+			}
+			return transformer.transformOutgoing(uri);
+		};
+
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
-				workspaceUri: workspacePath
-					? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd)))
-					: undefined,
-				folderUri: folderPath
-					? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
-					: undefined,
+				workspaceUri: await validatePath(parsedUrl.query.workspace, false),
+				folderUri: !parsedUrl.query.workspace ? await validatePath(parsedUrl.query.folder, true, this.options.folderUri) : undefined,
 				remoteAuthority,
 				productConfiguration: product,
 			},
-			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
-				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
-			),
-			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
+			REMOTE_USER_DATA_URI: transformer.transformOutgoing((<EnvironmentService>environment).webUserDataHome),
+			NLS_CONFIGURATION: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
 		};
 
 		content = content.replace(/\/static\//g, `/static${product.commit ? `-${product.commit}` : ""}/`).replace("{{WEBVIEW_ENDPOINT}}", "");
