@@ -8,6 +8,7 @@ services:
       - "8080:8080"
     volumes:
       - "${PWD}:/home/coder/project"
+      - "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server"
     environment:
       PASSWORD: ${PASSWORD}
     command: --auth=password
