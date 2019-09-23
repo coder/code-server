@@ -5,9 +5,9 @@ services:
     container_name: code-server
     image: codercom/code-server
     ports:
-      - "8443:8443"
+      - "8080:8080"
     volumes:
       - "${PWD}:/home/coder/project"
     environment:
       PASSWORD: ${PASSWORD}
-    command: --allow-http --no-auth
+    command: --auth=password
