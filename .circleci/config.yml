@@ -22,8 +22,8 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.tgz
-          
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.tgz
+
   build_git_alpine:
     machine:
       image: circleci/classic:edge
@@ -42,7 +42,7 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.tgz
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.tgz
 
   build_git_macos:
     macos:
@@ -62,4 +62,4 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.zip      
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.zip      
