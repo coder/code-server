@@ -7,7 +7,7 @@ jobs:
   build_git_linux:
     machine: 
       image: ubuntu-1604:201903-01 
-    env:
+    environment:
       # We're allowing people to download nightlies through CircleCI's artifacts
       # so we're gonna be packaging it as close as possible to the released versions.
       VSCODE_VERSION: '1.38.1'
@@ -26,7 +26,7 @@ jobs:
   build_git_alpine:
     machine: 
       image: ubuntu-1604:201903-01 
-    env:
+    environment:
       VSCODE_VERSION: '1.38.1'
       VERSION: .git-nightly
       MINIFY: true
@@ -43,7 +43,7 @@ jobs:
   build_git_macos:
     macos:
       xcode: 11.0.0 
-    env:
+    environment:
       VSCODE_VERSION: '1.38.1'
       VERSION: .git-nightly
       MINIFY: true
