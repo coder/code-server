@@ -12,8 +12,8 @@ jobs:
       # so we're gonna be packaging it as close as possible to the released versions.
       VSCODE_VERSION: '1.38.1'
       VERSION: .git-nightly
-      MINIFY: true
-      PACKAGE: true
+      MINIFY: 'true'
+      PACKAGE: 'true'
       TARGET: linux
     steps:
       - checkout
@@ -29,8 +29,8 @@ jobs:
     environment:
       VSCODE_VERSION: '1.38.1'
       VERSION: .git-nightly
-      MINIFY: true
-      PACKAGE: true
+      MINIFY: 'true'
+      PACKAGE: 'true'
       TARGET: alpine
     steps:
       - checkout
@@ -46,8 +46,8 @@ jobs:
     environment:
       VSCODE_VERSION: '1.38.1'
       VERSION: .git-nightly
-      MINIFY: true
-      PACKAGE: true
+      MINIFY: 'true'
+      PACKAGE: 'true'
       TARGET: ''
     steps:
       - checkout
