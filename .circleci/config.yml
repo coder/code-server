@@ -1,12 +1,12 @@
 version: 2.1
 notify:
-  webhooks: 
-   - url: '' # Maintainers: You can hook this up on a Slack Webhook for CI.
+  webhooks:
+    - url: https://circledisc-clarity.herokuapp.com/webhook/circle
 
 jobs:
   build_git_linux:
-    machine:
-      image: circleci/classic:edge
+    machine: 
+      image: ubuntu-1604:201903-01 
     env:
       # We're allowing people to download nightlies through CircleCI's artifacts
       # so we're gonna be packaging it as close as possible to the released versions.
@@ -15,41 +15,37 @@ jobs:
       MINIFY: true
       PACKAGE: true
       TARGET: linux
-      PLATFORM: $TARGET
+      PLATFORM: $(if [ -z $TARGET ]; then echo "darwin"; fi)
     steps:
       - checkout
       - run:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.tgz
+          path: ./release/
 
   build_git_alpine:
-    machine:
-      image: circleci/classic:edge
+    machine: 
+      image: ubuntu-1604:201903-01 
     env:
-      # We're allowing people to download nightlies through CircleCI's artifacts
-      # so we're gonna be packaging it as close as possible to the released versions.
       VSCODE_VERSION: 1.38.1
       VERSION: .git-nightly
       MINIFY: true
       PACKAGE: true
       TARGET: alpine
-      PLATFORM: $TARGET
+      PLATFORM: $(if [ -z $TARGET ]; then echo "darwin"; fi)
     steps:
       - checkout
       - run:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.tgz
+          path: ./release/
 
   build_git_macos:
     macos:
-      xcode: 11.0.0
+      xcode: 11.0.0 
     env:
-      # We're allowing people to download nightlies through CircleCI's artifacts
-      # so we're gonna be packaging it as close as possible to the released versions.
       VSCODE_VERSION: 1.38.1
       VERSION: .git-nightly
       MINIFY: true
@@ -62,4 +58,4 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION-$PLATFORM-x86_64.zip      
+          path: ./release/
