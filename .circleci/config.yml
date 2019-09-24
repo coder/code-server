@@ -1,0 +1,65 @@
+version: 2.1
+notify:
+  webhooks: 
+   - url: '' # Maintainers: You can hook this up on a Slack Webhook for CI.
+
+jobs:
+  build_git_linux:
+    machine:
+      image: circleci/classic:edge
+    env:
+      # We're allowing people to download nightlies through CircleCI's artifacts
+      # so we're gonna be packaging it as close as possible to the released versions.
+      VSCODE_VERSION: 1.38.1
+      VERSION: .git-nightly
+      MINIFY: true
+      PACKAGE: true
+      TARGET: linux
+      PLATFORM: $TARGET
+    steps:
+      - checkout
+      - run:
+         name: "Run CI Steps"
+         command: ./scripts/ci.bash
+      - store_artifacts:
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.tgz
+          
+  build_git_alpine:
+    machine:
+      image: circleci/classic:edge
+    env:
+      # We're allowing people to download nightlies through CircleCI's artifacts
+      # so we're gonna be packaging it as close as possible to the released versions.
+      VSCODE_VERSION: 1.38.1
+      VERSION: .git-nightly
+      MINIFY: true
+      PACKAGE: true
+      TARGET: alpine
+      PLATFORM: $TARGET
+    steps:
+      - checkout
+      - run:
+         name: "Run CI Steps"
+         command: ./scripts/ci.bash
+      - store_artifacts:
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.tgz
+
+  build_git_macos:
+    macos:
+      xcode: 11.0.0
+    env:
+      # We're allowing people to download nightlies through CircleCI's artifacts
+      # so we're gonna be packaging it as close as possible to the released versions.
+      VSCODE_VERSION: 1.38.1
+      VERSION: .git-nightly
+      MINIFY: true
+      PACKAGE: true
+      TARGET: ''
+      PLATFORM: $(if [ -z $TARGET ]; then echo "darwin"; fi)
+    steps:
+      - checkout
+      - run:
+         name: "Run CI Steps"
+         command: ./scripts/ci.bash
+      - store_artifacts:
+          path: ./release/code-server$VERSION-vsc$VSCODE_VERSION_$PLATFORM.zip      
