@@ -34,6 +34,8 @@ function docker-build() {
 	docker cp ./. "${containerId}":/src
 	docker-exec build
 	if [[ -n "${package}" ]] ; then
+	    #FIXME: Packages is not being preloaded in-container.
+		docker exec "${containerId}" bash -c "cd /src && yarn"
 		docker-exec binary
 		docker-exec package
 		mkdir -p release
@@ -52,6 +54,8 @@ function local-build() {
 
 	local-exec build
 	if [[ -n "${package}" ]] ; then
+	    # FIXME: initialize node_modules as always
+		yarn 
 		local-exec binary
 		local-exec package
 	fi

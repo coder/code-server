@@ -19,7 +19,7 @@ jobs:
       - checkout
       - run:
          name: "Run CI Steps"
-         command: yarn && ./scripts/ci.bash
+         command: ./scripts/ci.bash
       - store_artifacts:
           path: ./release/
 
@@ -36,7 +36,7 @@ jobs:
       - checkout
       - run:
          name: "Run CI Steps"
-         command: yarn && ./scripts/ci.bash
+         command: ./scripts/ci.bash
       - store_artifacts:
           path: ./release/
 
@@ -53,7 +53,7 @@ jobs:
       - checkout
       - run:
          name: "Run CI Steps"
-         command: yarn && ./scripts/ci.bash
+         command: ./scripts/ci.bash
       - store_artifacts:
           path: ./release/
 
