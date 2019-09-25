@@ -21,7 +21,7 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/*.tar.gz
+          path: ./release/
 
   build_git_alpine:
     machine: 
@@ -38,7 +38,7 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/*.tar.gz
+          path: ./release/
 
   build_git_macos:
     macos:
@@ -55,7 +55,7 @@ jobs:
          name: "Run CI Steps"
          command: ./scripts/ci.bash
       - store_artifacts:
-          path: ./release/*.tar.gz
+          path: ./release/
 
 workflows:
   version: 2
