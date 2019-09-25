@@ -1,7 +1,4 @@
 version: 2
-notify:
-  webhooks:
-    - url: '' # MAINTAINERS: feel free to link this to a Slack or Discord Channel. for Discord, you'll need a webhook delegate.
 
 jobs:
   build_git_linux:
