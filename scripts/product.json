@@ -12,7 +12,7 @@
 	"win32UserAppId": "",
 	"win32x64UserAppId": "",
 	"win32AppUserModelId": "CodeServer",
-	"win32ShellNameShort": "C&ode Server",
+	"win32ShellNameShort": "Code Server",
 	"darwinBundleIdentifier": "com.code.server",
 	"linuxIconName": "com.code.server",
 	"urlProtocol": "code-server"
