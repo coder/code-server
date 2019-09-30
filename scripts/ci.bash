@@ -9,20 +9,26 @@ function docker-build() {
 	local minify="${MINIFY:-}"
 	if [[ "${target}" == "linux" ]] ; then
 		image="codercom/nbin-centos"
-	fi
+	fi 
 
 	local containerId
 	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
 	docker start "${containerId}"
 	docker exec "${containerId}" mkdir -p /src
 
-	# TODO: temporary as long as we are rebuilding modules.
-	if [[ "${image}" == "codercom/nbin-alpine" ]] ; then
-		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
-	else
-		# TODO: at some point git existed but it seems to have disappeared.
-		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git
-	fi
+
+	case "${image}" in 
+	   codercom/nbin-alpine-arm | codercom/nbin-apline-arm64 )
+	     docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev git
+		 ;;
+	   codercom/nbin-arm | codercom-nbin-arm64)
+	     docker exec "${containerId}" apt -y install libxkbfile-dev libsecret-dev git
+		 ;;
+	   *)
+	     # Assume anything else is CentOS/Fedora/RHEL
+	     docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git
+		;;
+	esac	
 
 	function docker-exec() {
 		local command="${1}" ; shift
@@ -34,6 +40,8 @@ function docker-build() {
 	docker cp ./. "${containerId}":/src
 	docker-exec build
 	if [[ -n "${package}" ]] ; then
+	    #FIXME: Packages is not being preloaded in-container.
+		docker exec "${containerId}" bash -c "cd /src && yarn"
 		docker-exec binary
 		docker-exec package
 		mkdir -p release
@@ -52,6 +60,8 @@ function local-build() {
 
 	local-exec build
 	if [[ -n "${package}" ]] ; then
+	    # FIXME: initialize node_modules as always
+		yarn 
 		local-exec binary
 		local-exec package
 	fi
