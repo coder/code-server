@@ -13,6 +13,7 @@ function docker-build() {
 
 	local containerId
 	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
+	docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
 	docker start "${containerId}"
 	docker exec "${containerId}" mkdir -p /src
 
