@@ -132,6 +132,19 @@ index 07759dffe5..9148d7c1f0 100644
  } else if (typeof process === 'object') {
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
+diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
+index 3ae24454cb..d637d02855 100644
+--- a/src/vs/base/node/languagePacks.js
++++ b/src/vs/base/node/languagePacks.js
+@@ -146,7 +146,7 @@ function factory(nodeRequire, path, fs, perf) {
+ 	function getLanguagePackConfigurations(userDataPath) {
+ 		const configFile = path.join(userDataPath, 'languagepacks.json');
+ 		try {
+-			return nodeRequire(configFile);
++			return JSON.parse(fs.readFileSync(configFile, "utf8"));
+ 		} catch (err) {
+ 			// Do nothing. If we can't read the file we have no
+ 			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
 index 44f67f0a0b..00fc1deea8 100644
 --- a/src/vs/code/browser/workbench/workbench.html

@@ -123,6 +123,7 @@ export class ExtensionHostConnection extends Connection {
 					VSCODE_EXTHOST_WILL_SEND_SOCKET: "true",
 					VSCODE_HANDLES_UNCAUGHT_ERRORS: "true",
 					VSCODE_LOG_STACK: "false",
+					VSCODE_LOG_LEVEL: this.environment.verbose ? "trace" : this.environment.log,
 					VSCODE_NLS_CONFIG: JSON.stringify(config),
 				},
 				silent: true,

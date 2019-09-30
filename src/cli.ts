@@ -120,7 +120,7 @@ const startVscode = async (): Promise<void | void[]> => {
 
 	const server = new MainServer({
 		...options,
-		port: typeof args.port !== "undefined" && parseInt(args.port, 10) || 8080,
+		port: typeof args.port !== "undefined" ? parseInt(args.port, 10) : 8080,
 		socket: args.socket,
 	}, args);
 
@@ -151,7 +151,7 @@ const startVscode = async (): Promise<void | void[]> => {
 
 	if (!server.options.socket && args.open) {
 		// The web socket doesn't seem to work if browsing with 0.0.0.0.
-		const openAddress = `http://localhost:${server.options.port}`;
+		const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost");
 		await open(openAddress).catch(console.error);
 		logger.info(`  - Opened ${openAddress}`);
 	}
