@@ -19,7 +19,7 @@ function docker-build() {
 
 
 	case "${image}" in 
-	   codercom/nbin-alpine-arm | codercom/nbin-apline-arm64 )
+	   codercom/nbin-alpine-arm | codercom/nbin-apline-arm64 | codercom/nbin-alpine)
 	     docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev git
 		 ;;
 	   codercom/nbin-arm | codercom-nbin-arm64)
