@@ -1,0 +1,12 @@
+[Unit]
+Description=code-server
+After=syslog.target network.target
+
+[Service]
+User=0
+Group=0
+WorkingDirectory=/root
+ExecStart=/root/code-server1.1156-vsc1.33.1-linux-x64/code-server
+
+[Install]
+WantedBy=multi-user.target
