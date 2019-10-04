@@ -4,4 +4,4 @@
 // while still allowing us to access files within the binary.
 process.env.NBIN_BYPASS = true;
 
-require("../../bootstrap-amd").load("vs/server/src/cli");
+require("../../bootstrap-amd").load("vs/server/src/node/cli");

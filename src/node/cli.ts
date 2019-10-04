@@ -9,10 +9,10 @@ import { buildHelpMessage, buildVersionMessage, Option as VsOption, options as v
 import { parseMainProcessArgv } from "vs/platform/environment/node/argvHelper";
 import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
-import { ipcMain } from "vs/server/src/ipc";
-import { enableCustomMarketplace } from "vs/server/src/marketplace";
-import { MainServer } from "vs/server/src/server";
-import { AuthType, buildAllowedMessage, enumToArray, FormatType, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/util";
+import { ipcMain } from "vs/server/src/node/ipc";
+import { enableCustomMarketplace } from "vs/server/src/node/marketplace";
+import { MainServer } from "vs/server/src/node/server";
+import { AuthType, buildAllowedMessage, enumToArray, FormatType, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/node/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 setUnexpectedErrorHandler((error) => logger.warn(error.message));

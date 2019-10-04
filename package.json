@@ -27,10 +27,13 @@
   },
   "dependencies": {
     "@coder/logger": "^1.1.8",
+    "@coder/node-browser": "^1.0.0",
+    "@coder/requirefs": "^1.0.3",
     "httpolyglot": "^0.1.2",
     "pem": "^1.14.2",
     "safe-compare": "^1.1.4",
     "tar-fs": "^2.0.0",
-    "tar-stream": "^2.1.0"
+    "tar-stream": "^2.1.0",
+    "util": "^0.12.1"
   }
 }

@@ -1,5 +1,5 @@
 diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 6bb695db68..ecbabe5dc8 100644
+index 6bb695db68..7f6c5cd3cb 100644
 --- a/build/gulpfile.vscode.js
 +++ b/build/gulpfile.vscode.js
 @@ -47,24 +47,28 @@ const nodeModules = ['electron', 'original-fs']
@@ -8,7 +8,7 @@ index 6bb695db68..ecbabe5dc8 100644
  const vscodeEntryPoints = _.flatten([
 -	buildfile.entrypoint('vs/workbench/workbench.desktop.main'),
 +	buildfile.entrypoint('vs/workbench/workbench.web.api'),
-+	buildfile.entrypoint('vs/server/src/cli'),
++	buildfile.entrypoint('vs/server/src/node/cli'),
  	buildfile.base,
  	buildfile.serviceWorker,
 -	buildfile.workbenchDesktop,
@@ -23,7 +23,7 @@ index 6bb695db68..ecbabe5dc8 100644
 -	'out-build/cli.js',
 -	'out-build/driver.js',
 +	'out-build/vs/server/main.js',
-+	'out-build/vs/server/src/uriTransformer.js',
++	'out-build/vs/server/src/node/uriTransformer.js',
 +	'out-build/vs/code/browser/workbench/**',
 +	'out-build/vs/server/src/media/*',
 +	'out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js',
@@ -509,15 +509,296 @@ index d789bf4e09..e25c9c9d6a 100644
  
  		return Promise.resolve(undefined);
  	}
+diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
+index 2905c52411..303ddf211f 100644
+--- a/src/vs/workbench/api/browser/extensionHost.contribution.ts
++++ b/src/vs/workbench/api/browser/extensionHost.contribution.ts
+@@ -57,6 +57,7 @@ import './mainThreadComments';
+ import './mainThreadTask';
+ import './mainThreadLabelService';
+ import 'vs/workbench/api/common/apiCommands';
++import 'vs/server/src/browser/mainThreadNodeProxy';
+ 
+ export class ExtensionPoints implements IWorkbenchContribution {
+ 
+diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
+index c5fd74ffe7..e972b03f79 100644
+--- a/src/vs/workbench/api/common/extHost.api.impl.ts
++++ b/src/vs/workbench/api/common/extHost.api.impl.ts
+@@ -68,6 +68,7 @@ import { ILogService } from 'vs/platform/log/common/log';
+ import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransformerService';
+ import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
+ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitDataService';
++import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
+ 
+ export interface IExtensionApiFactory {
+ 	(extension: IExtensionDescription, registry: ExtensionDescriptionRegistry, configProvider: ExtHostConfigProvider): typeof vscode;
+@@ -87,6 +88,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+ 	const rpcProtocol = accessor.get(IExtHostRpcService);
+ 	const extHostStorage = accessor.get(IExtHostStorage);
+ 	const extHostLogService = accessor.get(ILogService);
++	const extHostNodeProxy = accessor.get(IExtHostNodeProxy);
+ 
+ 	// register addressable instances
+ 	rpcProtocol.set(ExtHostContext.ExtHostLogService, <ExtHostLogServiceShape><any>extHostLogService);
+@@ -94,6 +96,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+ 	rpcProtocol.set(ExtHostContext.ExtHostConfiguration, extHostConfiguration);
+ 	rpcProtocol.set(ExtHostContext.ExtHostExtensionService, extensionService);
+ 	rpcProtocol.set(ExtHostContext.ExtHostStorage, extHostStorage);
++	rpcProtocol.set(ExtHostContext.ExtHostNodeProxy, extHostNodeProxy);
+ 
+ 	// automatically create and register addressable instances
+ 	const extHostDecorations = rpcProtocol.set(ExtHostContext.ExtHostDecorations, accessor.get(IExtHostDecorations));
+diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
+index a6ac9b8086..c0027b8f74 100644
+--- a/src/vs/workbench/api/common/extHost.protocol.ts
++++ b/src/vs/workbench/api/common/extHost.protocol.ts
+@@ -614,6 +614,10 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+ 	$unregisterResourceLabelFormatter(handle: number): void;
+ }
+ 
++export interface MainThreadNodeProxyShape extends IDisposable {
++	$send(message: string): void;
++}
++
+ export interface MainThreadSearchShape extends IDisposable {
+ 	$registerFileSearchProvider(handle: number, scheme: string): void;
+ 	$registerTextSearchProvider(handle: number, scheme: string): void;
+@@ -844,6 +848,13 @@ export interface ExtHostLabelServiceShape {
+ 	$registerResourceLabelFormatter(formatter: ResourceLabelFormatter): IDisposable;
+ }
+ 
++export interface ExtHostNodeProxyShape {
++	$onMessage(message: string): void;
++	$onClose(): void;
++	$onDown(): void;
++	$onUp(): void;
++}
++
+ export interface ExtHostSearchShape {
+ 	$provideFileSearchResults(handle: number, session: number, query: search.IRawQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
+ 	$provideTextSearchResults(handle: number, session: number, query: search.IRawTextQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
+@@ -1351,7 +1362,8 @@ export const MainContext = {
+ 	MainThreadSearch: createMainId<MainThreadSearchShape>('MainThreadSearch'),
+ 	MainThreadTask: createMainId<MainThreadTaskShape>('MainThreadTask'),
+ 	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
+-	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService')
++	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService'),
++	MainThreadNodeProxy: createMainId<MainThreadNodeProxyShape>('MainThreadNodeProxy')
+ };
+ 
+ export const ExtHostContext = {
+@@ -1385,5 +1397,6 @@ export const ExtHostContext = {
+ 	ExtHostStorage: createMainId<ExtHostStorageShape>('ExtHostStorage'),
+ 	ExtHostUrls: createExtId<ExtHostUrlsShape>('ExtHostUrls'),
+ 	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
+-	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService')
++	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService'),
++	ExtHostNodeProxy: createMainId<ExtHostNodeProxyShape>('ExtHostNodeProxy')
+ };
+diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
+index 8c903a6027..7199c1e467 100644
+--- a/src/vs/workbench/api/common/extHostExtensionService.ts
++++ b/src/vs/workbench/api/common/extHostExtensionService.ts
+@@ -5,7 +5,7 @@
+ 
+ import * as nls from 'vs/nls';
+ import * as path from 'vs/base/common/path';
+-import { originalFSPath, joinPath } from 'vs/base/common/resources';
++import { originalFSPath } from 'vs/base/common/resources';
+ import { Barrier } from 'vs/base/common/async';
+ import { dispose, toDisposable, DisposableStore } from 'vs/base/common/lifecycle';
+ import { TernarySearchTree } from 'vs/base/common/map';
+@@ -32,6 +32,7 @@ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitData
+ import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
+ import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
+ import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
++import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
+ 
+ interface ITestRunner {
+ 	/** Old test runner API, as exported from `vscode/lib/testrunner` */
+@@ -75,6 +76,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+ 	protected readonly _extHostWorkspace: ExtHostWorkspace;
+ 	protected readonly _extHostConfiguration: ExtHostConfiguration;
+ 	protected readonly _logService: ILogService;
++	protected readonly _nodeProxy: IExtHostNodeProxy;
+ 
+ 	protected readonly _mainThreadWorkspaceProxy: MainThreadWorkspaceShape;
+ 	protected readonly _mainThreadTelemetryProxy: MainThreadTelemetryShape;
+@@ -103,7 +105,8 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+ 		@IExtHostConfiguration extHostConfiguration: IExtHostConfiguration,
+ 		@ILogService logService: ILogService,
+ 		@IExtHostInitDataService initData: IExtHostInitDataService,
+-		@IExtensionStoragePaths storagePath: IExtensionStoragePaths
++		@IExtensionStoragePaths storagePath: IExtensionStoragePaths,
++		@IExtHostNodeProxy nodeProxy: IExtHostNodeProxy,
+ 	) {
+ 		this._hostUtils = hostUtils;
+ 		this._extHostContext = extHostContext;
+@@ -112,6 +115,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+ 		this._extHostWorkspace = extHostWorkspace;
+ 		this._extHostConfiguration = extHostConfiguration;
+ 		this._logService = logService;
++		this._nodeProxy = nodeProxy;
+ 		this._disposables = new DisposableStore();
+ 
+ 		this._mainThreadWorkspaceProxy = this._extHostContext.getProxy(MainContext.MainThreadWorkspace);
+@@ -331,15 +335,15 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+ 		this._logService.info(`ExtensionService#_doActivateExtension ${extensionDescription.identifier.value} ${JSON.stringify(reason)}`);
+ 
+ 		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
+-		return Promise.all<any>([
+-			this._loadCommonJSModule(joinPath(extensionDescription.extensionLocation, extensionDescription.main), activationTimesBuilder),
++		return Promise.all([
++			this._loadCommonJSModule<IExtensionModule>(extensionDescription, activationTimesBuilder),
+ 			this._loadExtensionContext(extensionDescription)
+ 		]).then(values => {
+ 			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, <IExtensionModule>values[0], <IExtensionContext>values[1], activationTimesBuilder);
+ 		});
+ 	}
+ 
+-	protected abstract _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
++	protected abstract _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
+ 
+ 	private _loadExtensionContext(extensionDescription: IExtensionDescription): Promise<vscode.ExtensionContext> {
+ 
+diff --git a/src/vs/workbench/api/node/extHost.services.ts b/src/vs/workbench/api/node/extHost.services.ts
+index a227d8a67b..92553a976c 100644
+--- a/src/vs/workbench/api/node/extHost.services.ts
++++ b/src/vs/workbench/api/node/extHost.services.ts
+@@ -26,6 +26,8 @@ import { ExtHostExtensionService } from 'vs/workbench/api/node/extHostExtensionS
+ import { IExtHostStorage, ExtHostStorage } from 'vs/workbench/api/common/extHostStorage';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { ExtHostLogService } from 'vs/workbench/api/node/extHostLogService';
++import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
++import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
+ 
+ // register singleton services
+ registerSingleton(ILogService, ExtHostLogService);
+@@ -42,3 +44,19 @@ registerSingleton(IExtHostSearch, ExtHostSearch);
+ registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
+ registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
+ registerSingleton(IExtHostStorage, ExtHostStorage);
++
++function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
++	return <any>class {
++		constructor() {
++			return new Proxy({}, {
++				get(target: any, prop: string | number) {
++					if (target[prop]) {
++						return target[prop];
++					}
++					throw new Error(`Not Implemented: ${name}->${String(prop)}`);
++				}
++			});
++		}
++	};
++}
++registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy(IExtHostNodeProxy) {});
+diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
+index 8e96e6738e..5a3a48101a 100644
+--- a/src/vs/workbench/api/node/extHostExtensionService.ts
++++ b/src/vs/workbench/api/node/extHostExtensionService.ts
+@@ -13,6 +13,8 @@ import { ExtHostDownloadService } from 'vs/workbench/api/node/extHostDownloadSer
+ import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
+ import { URI } from 'vs/base/common/uri';
+ import { Schemas } from 'vs/base/common/network';
++import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
++import { joinPath } from 'vs/base/common/resources';
+ 
+ class NodeModuleRequireInterceptor extends RequireInterceptor {
+ 
+@@ -75,7 +77,10 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+ 		};
+ 	}
+ 
+-	protected _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
++	protected _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
++		if (!URI.isUri(module)) {
++			module = joinPath(module.extensionLocation, module.main!);
++		}
+ 		if (module.scheme !== Schemas.file) {
+ 			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
+ 		}
+diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
+index 4fcb6db76f..840ac56c3b 100644
+--- a/src/vs/workbench/api/worker/extHostExtensionService.ts
++++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
+@@ -10,6 +10,9 @@ import { endsWith, startsWith } from 'vs/base/common/strings';
+ import { URI } from 'vs/base/common/uri';
+ import { joinPath } from 'vs/base/common/resources';
+ import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
++import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
++import { fromTar } from 'vs/server/node_modules/@coder/requirefs/out/src/requirefs';
++import { Client } from 'vs/server/node_modules/@coder/node-browser/out/client/client';
+ 
+ class ExportsTrap {
+ 
+@@ -105,7 +108,44 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+ 		await this._fakeModules.install();
+ 	}
+ 
+-	protected _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
++	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
++		if (!URI.isUri(module) && module.extensionKind !== 'web') {
++			const fetchUri = URI.from({
++				scheme: self.location.protocol.replace(':', ''),
++				authority: self.location.host,
++				path: `${self.location.pathname.replace(/\/static\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
++				query: `path=${encodeURIComponent(module.extensionLocation.path)}`,
++			});
++			const response = await fetch(fetchUri.toString(true));
++			if (response.status !== 200) {
++				throw new Error(`Failed to download extension '${module.extensionLocation.path}'`);
++			}
++			const client = new Client(this._nodeProxy, { logger: this._logService });
++			const init = await client.handshake();
++			const buffer = new Uint8Array(await response.arrayBuffer());
++			const rfs = fromTar(buffer);
++			(<any>self).global = self;
++			rfs.provide('vscode', this._fakeModules.getModule('vscode', module.extensionLocation));
++			Object.keys(client.modules).forEach((key) => {
++				const mod = (client.modules as any)[key];
++				if (key === 'process') {
++					(<any>self).process = mod;
++					(<any>self).process.env = init.env;
++					return;
++				}
++
++				rfs.provide(key, mod);
++				switch (key) {
++					case 'buffer':
++						(<any>self).Buffer = mod.Buffer;
++						break;
++					case 'timers':
++						(<any>self).setImmediate = mod.setImmediate;
++						break;
++				}
++			});
++			return rfs.require('.');
++		}
+ 
+ 		(<any>self).window = self; // <- that's improper but might help extensions that aren't authored correctly
+ 
+@@ -132,6 +172,9 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+ 
+ 			return trap.claim();
+ 		};
++		if (!URI.isUri(module)) {
++			module = joinPath(module.extensionLocation, module.main!);
++		}
+ 
+ 		try {
+ 			activationTimesBuilder.codeLoadingStart();
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index b99f800164..eb82443e74 100644
+index b99f800164..bf44f1d9c4 100644
 --- a/src/vs/workbench/browser/dnd.ts
 +++ b/src/vs/workbench/browser/dnd.ts
 @@ -32,6 +32,7 @@ import { IRecentFile } from 'vs/platform/history/common/history';
  import { IWorkspaceEditingService } from 'vs/workbench/services/workspace/common/workspaceEditing';
  import { withNullAsUndefined } from 'vs/base/common/types';
  import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
-+import { IUploadService } from 'vs/server/src/upload';
++import { IUploadService } from 'vs/server/src/browser/upload';
  
  export interface IDraggedResource {
  	resource: URI;
@@ -570,14 +851,14 @@ index 2e1e63986f..563c4b2472 100644
  				}
  
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index f5944ce974..f2094de18b 100644
+index f5944ce974..66bedce55c 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
  import { toLocalISOString } from 'vs/base/common/date';
  import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedDBLogProvider';
  import { InMemoryLogProvider } from 'vs/workbench/services/log/common/inMemoryLogProvider';
-+import { initialize } from 'vs/server/src/client';
++import { initialize } from 'vs/server/src/browser/client';
  
  class CodeRendererMain extends Disposable {
  
@@ -598,14 +879,14 @@ index f5944ce974..f2094de18b 100644
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index 895a8a0393..6530b66cbb 100644
+index 895a8a0393..e9fa627fba 100644
 --- a/src/vs/workbench/browser/web.simpleservices.ts
 +++ b/src/vs/workbench/browser/web.simpleservices.ts
 @@ -33,6 +33,7 @@ import { localize } from 'vs/nls';
  import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
  // tslint:disable-next-line: import-patterns
  import { IWorkspaceStatsService, Tags } from 'vs/workbench/contrib/stats/common/workspaceStats';
-+import { withQuery } from 'vs/server/src/client';
++import { withQuery } from 'vs/server/src/browser/client';
  
  //#region Update
  
@@ -669,14 +950,14 @@ index 19fcd5b0ac..30df54ac1a 100644
  			'additionalProperties': {
  				'anyOf': [
 diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-index 0c368120df..52ece63cd0 100644
+index 0c368120df..6396d2316b 100644
 --- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 @@ -47,6 +47,7 @@ import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/work
  import { findValidPasteFileTarget } from 'vs/workbench/contrib/files/browser/fileActions';
  import { FuzzyScore, createMatches } from 'vs/base/common/filters';
  import { Emitter } from 'vs/base/common/event';
-+import { IUploadService } from 'vs/server/src/upload';
++import { IUploadService } from 'vs/server/src/browser/upload';
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
  
@@ -1044,6 +1325,31 @@ index 7c3b6ae53e..18dec6effa 100644
  	readonly logFile: URI;
  
  	get webviewResourceRoot(): string {
+diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
+index 0f09ebb5b6..1efd5fb196 100644
+--- a/src/vs/workbench/services/extensions/browser/extensionService.ts
++++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
+@@ -119,6 +119,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+ 
+ 		} else {
+ 			// remote: only enabled and none-web'ish extension
++			localExtensions.push(...remoteEnv.extensions.filter(extension => this._isEnabled(extension) && isWebExtension(extension, this._configService)));
+ 			remoteEnv.extensions = remoteEnv.extensions.filter(extension => this._isEnabled(extension) && !isWebExtension(extension, this._configService));
+ 			this._checkEnableProposedApi(remoteEnv.extensions);
+ 
+diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
+index a1496708db..e65acfffbe 100644
+--- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
++++ b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
+@@ -12,7 +12,7 @@ import { IProductService } from 'vs/platform/product/common/product';
+ 
+ export function isWebExtension(manifest: IExtensionManifest, configurationService: IConfigurationService): boolean {
+ 	const extensionKind = getExtensionKind(manifest, configurationService);
+-	return extensionKind === 'web';
++	return extensionKind === 'web' || manifest.name === 'vim';
+ }
+ 
+ export function isUIExtension(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 index 6d31b177ac..67c955a59d 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
@@ -1072,6 +1378,26 @@ index 6d31b177ac..67c955a59d 100644
  							});
  						}
  					}
+diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
+index bf4a779155..1aa90b3e36 100644
+--- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
++++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
+@@ -21,6 +21,7 @@ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensio
+ import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
++import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
+ 
+ // register singleton services
+ registerSingleton(ILogService, ExtHostLogService);
+@@ -32,6 +33,7 @@ registerSingleton(IExtHostCommands, ExtHostCommands);
+ registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
+ registerSingleton(IExtHostStorage, ExtHostStorage);
+ registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
++registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
+ 
+ // register services that only throw errors
+ function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
 index 681fc606b6..e34ef5d4bc 100644
 --- a/src/vs/workbench/workbench.web.main.ts

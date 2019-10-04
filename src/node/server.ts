@@ -57,14 +57,15 @@ import { combinedAppender, LogAppender, NullTelemetryService } from "vs/platform
 import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
 import { UpdateChannel } from "vs/platform/update/node/updateIpc";
-import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/src/channel";
-import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/connection";
-import { TelemetryClient } from "vs/server/src/insights";
-import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/nls";
-import { Protocol } from "vs/server/src/protocol";
-import { TelemetryChannel } from "vs/server/src/telemetry";
-import { UpdateService } from "vs/server/src/update";
-import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
+import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
+import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
+import { TelemetryClient } from "vs/server/src/node/insights";
+import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
+import { NodeProxyChannel } from "vs/server/src/common/nodeProxy";
+import { Protocol } from "vs/server/src/node/protocol";
+import { TelemetryChannel } from "vs/server/src/common/telemetry";
+import { UpdateService } from "vs/server/src/node/update";
+import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
@@ -125,7 +126,7 @@ export interface ServerOptions {
 
 export abstract class Server {
 	protected readonly server: http.Server | https.Server;
-	protected rootPath = path.resolve(__dirname, "../../../..");
+	protected rootPath = path.resolve(__dirname, "../../../../..");
 	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
 	protected readonly allowedRequestPaths: string[] = [this.rootPath];
 	private listenPromise: Promise<string> | undefined;
@@ -707,11 +708,13 @@ export class MainServer extends Server {
 				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
+				const nodeProxyChannel = new NodeProxyChannel(instantiationService.createInstance(NodeProxyService));
 
 				this.ipc.registerChannel("extensions", extensionsChannel);
 				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
 				this.ipc.registerChannel("request", requestChannel);
 				this.ipc.registerChannel("telemetry", telemetryChannel);
+				this.ipc.registerChannel("nodeProxy", nodeProxyChannel);
 				this.ipc.registerChannel("update", updateChannel);
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, fileChannel);
 				resolve(new ErrorTelemetry(telemetryService));

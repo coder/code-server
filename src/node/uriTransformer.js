@@ -5,20 +5,20 @@ module.exports = (remoteAuthority) => {
 		transformIncoming: (uri) => {
 			switch (uri.scheme) {
 				case "code-server": return { scheme: "file", path: uri.path };
-				case "file": return { scheme: "code-server-local", path: uri.path };
+				case "file": return { scheme: "code-server", path: uri.path };
 				default: return uri;
 			}
 		},
 		transformOutgoing: (uri) => {
 			switch (uri.scheme) {
-				case "code-server-local": return { scheme: "file", path: uri.path };
+				case "code-server": return { scheme: "file", path: uri.path };
 				case "file": return { scheme: "code-server", authority: remoteAuthority, path: uri.path };
 				default: return uri;
 			}
 		},
 		transformOutgoingScheme: (scheme) => {
 			switch (scheme) {
-				case "code-server-local": return "file";
+				case "code-server": return "file";
 				case "file": return "code-server";
 				default: return scheme;
 			}

@@ -1,13 +1,18 @@
+import { Emitter } from "vs/base/common/event";
 import { URI } from "vs/base/common/uri";
 import { registerSingleton } from "vs/platform/instantiation/common/extensions";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
-import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { ILocalizationsService } from "vs/platform/localizations/common/localizations";
 import { LocalizationsService } from "vs/platform/localizations/electron-browser/localizationsService";
+import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { IUpdateService } from "vs/platform/update/common/update";
 import { UpdateService } from "vs/platform/update/electron-browser/updateService";
-import { TelemetryChannelClient } from "vs/server/src/telemetry";
-import { IUploadService, UploadService } from 'vs/server/src/upload';
+import { coderApi, vscodeApi } from "vs/server/src/browser/api";
+import { IUploadService, UploadService } from "vs/server/src/browser/upload";
+import { INodeProxyService, NodeProxyChannelClient } from "vs/server/src/common/nodeProxy";
+import { TelemetryChannelClient } from "vs/server/src/common/telemetry";
+import "vs/workbench/contrib/localizations/browser/localizations.contribution";
+import "vs/workbench/contrib/update/electron-browser/update.contribution";
 import { IRemoteAgentService } from "vs/workbench/services/remote/common/remoteAgentService";
 
 class TelemetryService extends TelemetryChannelClient {
@@ -18,15 +23,27 @@ class TelemetryService extends TelemetryChannelClient {
 	}
 }
 
+class NodeProxyService extends NodeProxyChannelClient implements INodeProxyService {
+	private readonly _onClose = new Emitter<void>();
+	public readonly onClose = this._onClose.event;
+	private readonly _onDown = new Emitter<void>();
+	public readonly onDown = this._onDown.event;
+	private readonly _onUp = new Emitter<void>();
+	public readonly onUp = this._onUp.event;
+
+	public constructor(
+		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
+	) {
+		// TODO: up/down/close
+		super(remoteAgentService.getConnection()!.getChannel("nodeProxy"));
+	}
+}
+
 registerSingleton(ILocalizationsService, LocalizationsService);
+registerSingleton(INodeProxyService, NodeProxyService);
 registerSingleton(ITelemetryService, TelemetryService);
 registerSingleton(IUpdateService, UpdateService);
 registerSingleton(IUploadService, UploadService, true);
-
-import "vs/workbench/contrib/update/electron-browser/update.contribution";
-import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
-
-import { coderApi, vscodeApi } from "vs/server/src/api";
 
 /**
  * This is called by vs/workbench/browser/web.main.ts after the workbench has
