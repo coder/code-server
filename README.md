@@ -4,8 +4,9 @@
 remote server, accessible through the browser.
 
 Try it out:
+
 ```bash
-docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server" -v "$PWD:/home/coder/project" codercom/code-server
+docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server" -v "$PWD:/home/coder/project" codercom/code-server:v2
 ```
 
 - **Consistent environment:** Code on your Chromebook, tablet, and laptop with a
@@ -18,10 +19,21 @@ docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home
 ![Screenshot](/doc/assets/ide.gif)
 
 ## Getting Started
+
+### Requirements
+
+- Minimum GLIBC version of 2.17 and a minimum version of GLIBCXX of 3.4.15.
+  - This is the main requirement for building Visual Studio Code. We cannot go lower than this.
+- A 64-bit host with at least 1GB RAM and 2 cores.
+  - 1 core hosts would work but not optimally.
+- Docker (for Docker versions of `code-server`).
+
 ### Run over SSH
+
 Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 ### Docker
+
 See the Docker one-liner mentioned above. Dockerfile is at [/Dockerfile](/Dockerfile).
 
 To debug Golang using the
@@ -31,11 +43,13 @@ arguments when launching code-server with Docker. See
 [#725](https://github.com/cdr/code-server/issues/725) for details.
 
 ### Digital Ocean
+
 [![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
 ### Binaries
+
 1. [Download a binary](https://github.com/cdr/code-server/releases). (Linux and
-    OS X supported. Windows coming soon)
+   OS X supported. Windows coming soon)
 2. Unpack the downloaded file then run the binary.
 3. In your browser navigate to `localhost:8080`.
 
@@ -43,6 +57,7 @@ arguments when launching code-server with Docker. See
 - For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
 
 ### Build
+
 - If you also plan on developing, set the `OUT` environment variable. Otherwise
   it will build in this directory which will cause issues because `yarn watch`
   will try to compile the build directory as well.
@@ -56,10 +71,12 @@ arguments when launching code-server with Docker. See
   code into a single binary.
 
 ## Known Issues
+
 - Creating custom VS Code extensions and debugging them doesn't work.
 - Extension profiling and tips are currently disabled.
 
 ## Future
+
 - **Stay up to date!** Get notified about new releases of code-server.
   ![Screenshot](/doc/assets/release.gif)
 - Windows support.
@@ -67,18 +84,28 @@ arguments when launching code-server with Docker. See
 - Run VS Code unit tests against our builds to ensure features work as expected.
 
 ## Extensions
-At the moment we can't use the official VS Code Marketplace. We've created a
-custom extension marketplace focused around open-sourced extensions. However,
-you can manually download the extension to your extensions directory. It's also
-possible to set your own marketplace URLs by setting the `SERVICE_URL` and
-`ITEM_URL` environment variables.
+
+code-server does not provide access to the official
+[Visual Studio Marketplace](https://marketplace.visualstudio.com/vscode). Instead,
+Coder has created a custom extension marketplace that we manage for open-source
+extensions. If you want to use an extension with code-server that we do not have
+in our marketplace please look for a release in the extension’s repository,
+contact us to see if we have one in the works or, if you build an extension
+locally from open source, you can copy it to the `extensions` folder. If you
+build one locally from open-source please contribute it to the project and let
+us know so we can give you props! If you have your own custom marketplace, it is
+possible to point code-server to it by setting the `SERVICE_URL` and `ITEM_URL`
+environment variables.
 
 ## Telemetry
+
 Use the `--disable-telemetry` flag to completely disable telemetry. We use the
 data collected to improve code-server.
 
 ## Contributing
+
 ### Development
+
 ```shell
 git clone https://github.com/microsoft/vscode
 cd vscode
@@ -99,6 +126,7 @@ If you run into issues about a different version of Node being used, try running
 `vscode-ripgrep`.
 
 ### Upgrading VS Code
+
 We patch VS Code to provide and fix some functionality. As the web portion of VS
 Code matures, we'll be able to shrink and maybe even entirely eliminate our
 patch. In the meantime, however, upgrading the VS Code version requires ensuring
@@ -109,6 +137,7 @@ the patch in the VS Code source, then run `yarn patch:generate` in this
 directory.
 
 Our changes include:
+
 - Change the remote schema to `code-server`.
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
@@ -123,12 +152,15 @@ Our changes include:
 - Modify the build process to include our code.
 
 ## License
+
 [MIT](LICENSE)
 
 ## Enterprise
+
 Visit [our enterprise page](https://coder.com/enterprise) for more information
 about our enterprise offering.
 
 ## Commercialization
+
 If you would like to commercialize code-server, please contact
 contact@coder.com.

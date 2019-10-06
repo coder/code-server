@@ -6,7 +6,7 @@ import { mkdirp } from "vs/base/node/pfs";
 import * as vszip from "vs/base/node/zip";
 import * as nls from "vs/nls";
 import product from "vs/platform/product/node/product";
-import { localRequire } from "vs/server/src/util";
+import { localRequire } from "vs/server/src/node/util";
 
 const tarStream = localRequire<typeof import("tar-stream")>("tar-stream/index");
 
@@ -79,52 +79,55 @@ export const buffer = (targetPath: string, filePath: string): Promise<Buffer> =>
 };
 
 const extractAssets = async (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
-	const buffer = await util.promisify(fs.readFile)(tarPath);
-	return new Promise<void>(async (resolve, reject): Promise<void> => {
+	return new Promise<void>((resolve, reject): void => {
 		const extractor = tarStream.extract();
-		extractor.once("error", reject);
+		const fail = (error: Error) => {
+			extractor.destroy();
+			reject(error);
+		};
+		extractor.once("error", fail);
 		extractor.on("entry", async (header, stream, next) => {
 			const name = header.name;
 			if (match.test(name)) {
 				extractData(stream).then((data) => {
 					callback(name, data);
 					next();
-				}).catch(reject);
-				stream.resume();
+				}).catch(fail);
 			} else {
 				stream.on("end", () => next());
-				stream.resume();
+				stream.resume(); // Just drain it.
 			}
 		});
 		extractor.on("finish", resolve);
-		extractor.write(buffer);
-		extractor.end();
+		fs.createReadStream(tarPath).pipe(extractor);
 	});
 };
 
 const extractData = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
 	return new Promise((resolve, reject): void => {
 		const fileData: Buffer[] = [];
-		stream.on("data", (data) => fileData.push(data));
-		stream.on("end", () => resolve(Buffer.concat(fileData)));
 		stream.on("error", reject);
+		stream.on("end", () => resolve(Buffer.concat(fileData)));
+		stream.on("data", (data) => fileData.push(data));
 	});
 };
 
 const extractTar = async (tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
-	const buffer = await util.promisify(fs.readFile)(tarPath);
-	return new Promise<void>(async (resolve, reject): Promise<void> => {
+	return new Promise<void>((resolve, reject): void => {
 		const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : "");
 		const extractor = tarStream.extract();
-		extractor.once("error", reject);
+		const fail = (error: Error) => {
+			extractor.destroy();
+			reject(error);
+		};
+		extractor.once("error", fail);
 		extractor.on("entry", async (header, stream, next) => {
-			const rawName = path.normalize(header.name);
-
 			const nextEntry = (): void => {
+				stream.on("end", () => next());
 				stream.resume();
-				next();
 			};
 
+			const rawName = path.normalize(header.name);
 			if (token.isCancellationRequested || !sourcePathRegex.test(rawName)) {
 				return nextEntry();
 			}
@@ -138,20 +141,18 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 			const dirName = path.dirname(fileName);
 			const targetDirName = path.join(targetPath, dirName);
 			if (targetDirName.indexOf(targetPath) !== 0) {
-				return reject(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName));
+				return fail(new Error(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName)));
 			}
 
-			return mkdirp(targetDirName, undefined, token).then(() => {
-				const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
-				fstream.once("close", () => next());
-				fstream.once("error", reject);
-				stream.pipe(fstream);
-				stream.resume();
-			});
+			await mkdirp(targetDirName, undefined, token);
+
+			const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
+			fstream.once("close", () => next());
+			fstream.once("error", fail);
+			stream.pipe(fstream);
 		});
 		extractor.once("finish", resolve);
-		extractor.write(buffer);
-		extractor.end();
+		fs.createReadStream(tarPath).pipe(extractor);
 	});
 };
 

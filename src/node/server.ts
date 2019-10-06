@@ -57,14 +57,15 @@ import { combinedAppender, LogAppender, NullTelemetryService } from "vs/platform
 import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
 import { UpdateChannel } from "vs/platform/update/node/updateIpc";
-import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/src/channel";
-import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/connection";
-import { TelemetryClient } from "vs/server/src/insights";
-import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/nls";
-import { Protocol } from "vs/server/src/protocol";
-import { TelemetryChannel } from "vs/server/src/telemetry";
-import { UpdateService } from "vs/server/src/update";
-import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
+import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
+import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
+import { TelemetryClient } from "vs/server/src/node/insights";
+import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
+import { NodeProxyChannel } from "vs/server/src/common/nodeProxy";
+import { Protocol } from "vs/server/src/node/protocol";
+import { TelemetryChannel } from "vs/server/src/common/telemetry";
+import { UpdateService } from "vs/server/src/node/update";
+import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
@@ -125,7 +126,7 @@ export interface ServerOptions {
 
 export abstract class Server {
 	protected readonly server: http.Server | https.Server;
-	protected rootPath = path.resolve(__dirname, "../../../..");
+	protected rootPath = path.resolve(__dirname, "../../../../..");
 	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
 	protected readonly allowedRequestPaths: string[] = [this.rootPath];
 	private listenPromise: Promise<string> | undefined;
@@ -279,7 +280,7 @@ export abstract class Server {
 		// without adding query parameters which have their own issues.
 		// REVIEW: Discuss whether this is the best option; this is sort of a quick
 		// hack almost to get caching in the meantime but it does work pretty well.
-		if (/static-.+/.test(base)) {
+		if (/^\/static-.+/.test(base)) {
 			base = "/static";
 		}
 
@@ -331,7 +332,7 @@ export abstract class Server {
 		this.ensureGet(request);
 		if (!this.authenticate(request)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
-		} else if (request.headers.upgrade !== "websocket") {
+		} else if (!request.headers.upgrade || request.headers.upgrade.toLowerCase() !== "websocket") {
 			throw new Error("HTTP/1.1 400 Bad Request");
 		}
 
@@ -531,30 +532,45 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.servicesPromise,
 		]);
+
 		const logger = this.services.get(ILogService) as ILogService;
 		logger.info("request.url", `"${request.url}"`);
-		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
-		const locale = environment.args.locale || await getLocaleFromConfig(environment.userDataPath);
+
 		const cwd = process.env.VSCODE_CWD || process.cwd();
-		const workspacePath = parsedUrl.query.workspace as string | undefined;
-		const folderPath = !workspacePath ? parsedUrl.query.folder as string | undefined || this.options.folderUri : undefined;
+
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
+		const validatePath = async (filePath: string[] | string | undefined, isDirectory: boolean, unsetFallback?: string): Promise<UriComponents | undefined> => {
+			if (!filePath || filePath.length === 0) {
+				if (!unsetFallback) {
+					return undefined;
+				}
+				filePath = unsetFallback;
+			} else if (Array.isArray(filePath)) {
+				filePath = filePath[0];
+			}
+			const uri = URI.file(sanitizeFilePath(filePath, cwd));
+			try {
+				const stat = await util.promisify(fs.stat)(uri.fsPath);
+				if (isDirectory !== stat.isDirectory()) {
+					return undefined;
+				}
+			} catch (error) {
+				return undefined;
+			}
+			return transformer.transformOutgoing(uri);
+		};
+
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
-				workspaceUri: workspacePath
-					? transformer.transformOutgoing(URI.file(sanitizeFilePath(workspacePath, cwd)))
-					: undefined,
-				folderUri: folderPath
-					? transformer.transformOutgoing(URI.file(sanitizeFilePath(folderPath, cwd)))
-					: undefined,
+				workspaceUri: await validatePath(parsedUrl.query.workspace, false),
+				folderUri: !parsedUrl.query.workspace ? await validatePath(parsedUrl.query.folder, true, this.options.folderUri) : undefined,
 				remoteAuthority,
 				productConfiguration: product,
 			},
-			REMOTE_USER_DATA_URI: transformer.transformOutgoing(
-				(this.services.get(IEnvironmentService) as EnvironmentService).webUserDataHome,
-			),
-			NLS_CONFIGURATION: await getNlsConfiguration(locale, environment.userDataPath),
+			REMOTE_USER_DATA_URI: transformer.transformOutgoing((<EnvironmentService>environment).webUserDataHome),
+			NLS_CONFIGURATION: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
 		};
 
 		content = content.replace(/\/static\//g, `/static${product.commit ? `-${product.commit}` : ""}/`).replace("{{WEBVIEW_ENDPOINT}}", "");
@@ -692,11 +708,13 @@ export class MainServer extends Server {
 				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
+				const nodeProxyChannel = new NodeProxyChannel(instantiationService.createInstance(NodeProxyService));
 
 				this.ipc.registerChannel("extensions", extensionsChannel);
 				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
 				this.ipc.registerChannel("request", requestChannel);
 				this.ipc.registerChannel("telemetry", telemetryChannel);
+				this.ipc.registerChannel("nodeProxy", nodeProxyChannel);
 				this.ipc.registerChannel("update", updateChannel);
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, fileChannel);
 				resolve(new ErrorTelemetry(telemetryService));

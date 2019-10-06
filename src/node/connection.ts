@@ -6,9 +6,9 @@ import { ISocket } from "vs/base/parts/ipc/common/ipc.net";
 import { NodeSocket } from "vs/base/parts/ipc/node/ipc.net";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { ILogService } from "vs/platform/log/common/log";
-import { getNlsConfiguration } from "vs/server/src/nls";
-import { Protocol } from "vs/server/src/protocol";
-import { uriTransformerPath } from "vs/server/src/util";
+import { getNlsConfiguration } from "vs/server/src/node/nls";
+import { Protocol } from "vs/server/src/node/protocol";
+import { uriTransformerPath } from "vs/server/src/node/util";
 import { IExtHostReadyMessage } from "vs/workbench/services/extensions/common/extensionHostProtocol";
 
 export abstract class Connection {
@@ -123,6 +123,7 @@ export class ExtensionHostConnection extends Connection {
 					VSCODE_EXTHOST_WILL_SEND_SOCKET: "true",
 					VSCODE_HANDLES_UNCAUGHT_ERRORS: "true",
 					VSCODE_LOG_STACK: "false",
+					VSCODE_LOG_LEVEL: this.environment.verbose ? "trace" : this.environment.log,
 					VSCODE_NLS_CONFIG: JSON.stringify(config),
 				},
 				silent: true,

@@ -16,9 +16,11 @@ import pkg from "vs/platform/product/node/package";
 import product from "vs/platform/product/node/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { getTranslations } from "vs/server/src/nls";
-import { getUriTransformer } from "vs/server/src/util";
+import { INodeProxyService } from "vs/server/src/common/nodeProxy";
+import { getTranslations } from "vs/server/src/node/nls";
+import { getUriTransformer } from "vs/server/src/node/util";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
+import { Server } from "vs/server/node_modules/@coder/node-browser/out/server/server";
 
 /**
  * Extend the file provider to allow unwatching.
@@ -164,8 +166,8 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 
 	private transform(resource: UriComponents): URI {
 		// Used for walkthrough content.
-		if (resource.path.indexOf("/static") === 0) {
-			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static/, ""));
+		if (/^\/static[^/]*\//.test(resource.path)) {
+			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static[^/]*\//, "/"));
 		// Used by the webview service worker to load resources.
 		} else if (resource.path === "/vscode-resource" && resource.query) {
 			try {
@@ -272,5 +274,39 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 
 	private async disableTelemetry(): Promise<void> {
 		this.telemetry.setEnabled(false);
+	}
+}
+
+export class NodeProxyService implements INodeProxyService {
+	public _serviceBrand = undefined;
+
+	public readonly server: Server;
+
+	private readonly _onMessage = new Emitter<string>();
+	public readonly onMessage = this._onMessage.event;
+	private readonly _$onMessage = new Emitter<string>();
+	public readonly $onMessage = this._$onMessage.event;
+	private readonly _onClose = new Emitter<void>();
+	public readonly onClose = this._onClose.event;
+	private readonly _onDown = new Emitter<void>();
+	public readonly onDown = this._onDown.event;
+	private readonly _onUp = new Emitter<void>();
+	public readonly onUp = this._onUp.event;
+
+	public constructor() {
+		// TODO: close/down/up
+		this.server = new Server({
+			onMessage: this.$onMessage,
+			onClose: this.onClose,
+			onDown: this.onDown,
+			onUp: this.onUp,
+			send: (message: string): void => {
+				this._onMessage.fire(message);
+			}
+		});
+	}
+
+	public send(message: string): void {
+		this._$onMessage.fire(message);
 	}
 }

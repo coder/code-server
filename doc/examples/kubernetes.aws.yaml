@@ -58,7 +58,7 @@ spec:
         app: code-server
     spec:
       containers:
-      - image: codercom/code-server
+      - image: codercom/code-server:v2
         imagePullPolicy: Always
         name: code-servery
         ports:

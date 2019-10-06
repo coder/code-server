@@ -1,49 +1,80 @@
 language: node_js
 node_js:
-- 10.16.0
+  - 10.16.0
 services:
-- docker
-matrix:
-  include:
-  - os: linux
-    dist: trusty
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="linux"
-  - os: linux
-    dist: trusty
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER" TARGET="alpine"
-  - os: osx
-    env:
-      - VSCODE_VERSION="1.38.1" MAJOR_VERSION="2" VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
+  - docker
+
 before_install:
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
-- if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
-script:
-- travis_wait 30 scripts/ci.bash
+  - export MAJOR_VERSION="2"
+  - export VSCODE_VERSION="1.38.1"
+  - export VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
+  - export TAG="$VERSION-vsc$VSCODE_VERSION"
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
+  - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
+
+# Don't build on tags because we'll already have built the commit.
+jobs:
+  include:
+    - name: "Linux build"
+      os: linux
+      dist: trusty
+      env: TARGET="linux"
+      if: tag IS blank
+      script: scripts/ci.bash
+    - name: "Alpine build"
+      os: linux
+      dist: trusty
+      env: TARGET="alpine"
+      if: tag IS blank
+      script: scripts/ci.bash
+    - name: "MacOS build"
+      os: osx
+      if: tag IS blank
+      script: travis_wait 30 scripts/ci.bash
+    - name: "Docker build"
+      os: linux
+      dist: trusty
+      env: DOCKER_BUILD="true"
+      if: branch == master AND tag IS blank
+      script: docker build --build-arg githubToken="$GITHUB_TOKEN" --build-arg codeServerVersion="$VERSION" --build-arg vscodeVersion="$VSCODE_VERSION" -t codercom/code-server:"$TAG" -t codercom/code-server:v2 .
+
+git:
+  depth: 3
+
 before_deploy:
-- echo "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
-- git config --local user.name "$USER_NAME"
-- git config --local user.email "$USER_EMAIL"
-- git tag "$VERSION-vsc$VSCODE_VERSION" "$TRAVIS_COMMIT"
+  - echo "$TAG" "$TRAVIS_COMMIT"
+  - git config --local user.name "$USER_NAME"
+  - git config --local user.email "$USER_EMAIL"
+  - if ! git tag "$TAG" "$TRAVIS_COMMIT" ; then echo "$TAG already exists"; fi
+  - if [[ -n "$DOCKER_BUILD" ]] ; then echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin ; fi
+
 deploy:
-  provider: releases
-  file_glob: true
-  draft: true
-  tag_name: "$VERSION-vsc$VSCODE_VERSION"
-  target_commitish: "$TRAVIS_COMMIT"
-  name: "$VERSION-vsc$VSCODE_VERSION"
-  skip_cleanup: true
-  api_key:
-    secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
-  file:
-    - release/*.tar.gz
-    - release/*.zip
-  on:
-    repo: cdr/code-server
-    branch: master
+  - provider: releases
+    file_glob: true
+    draft: true
+    tag_name: "$TAG"
+    target_commitish: "$TRAVIS_COMMIT"
+    name: "$TAG"
+    skip_cleanup: true
+    api_key:
+      secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
+    file:
+      - release/*.tar.gz
+      - release/*.zip
+    on:
+      repo: cdr/code-server
+      branch: master
+
+  - provider: script
+    skip_cleanup: true
+    script: docker push codercom/code-server:"$TAG" ; docker push codercom/code-server:v2
+    on:
+      repo: cdr/code-server
+      branch: master
+      condition: -n "$DOCKER_BUILD"
+
 cache:
   yarn: true
   timeout: 1000
   directories:
-  - .cache
+    - .cache

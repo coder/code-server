@@ -46,12 +46,62 @@ server {
   RewriteRule /(.*)           http://localhost:8080/$1 [P,L]
 
   ProxyRequests off
-
-  RequestHeader set X-Forwarded-Proto https
-  RequestHeader set X-Forwarded-Port 443
-
-  ProxyPass / http://localhost:8080/ nocanon
+  ProxyPass        / http://localhost:8080/ nocanon
   ProxyPassReverse / http://localhost:8080/
-
 </VirtualHost>
 ```
+
+### Run automatically at startup
+
+In some cases you might need to run code-server automatically once the host starts. You may use your local init service to do so.
+
+#### Systemd
+
+```ini
+[Unit]
+Description=Code Server IDE
+After=network.target
+
+[Service]
+Type=simple
+User=<USER>
+EnvironmentFile=$HOME/.profile
+WorkingDirectory=$HOME
+Restart=on-failure
+RestartSec=10
+
+ExecStart=<PATH TO BINARY> $(pwd)
+
+StandardOutput=file:/var/log/code-server-output.log
+StandardError=file:/var/log/code-server-error.log
+
+[Install]
+WantedBy=multi-user.target
+```
+
+#### OpenRC
+
+```sh
+#!/sbin/openrc-run
+
+depend() {
+    after net-online
+    need net
+}
+
+supervisor=supervise-daemon
+name="code-server"
+command="/opt/cdr/code-server"
+command_args=""
+
+pidfile="/var/run/cdr.pid"
+respawn_delay=5
+
+set -o allexport
+if [ -f /etc/environment ]; then source /etc/environment; fi
+set +o allexport
+```
+
+#### Kubernetes/Docker
+
+Make sure you set your restart policy to always - this will ensure your container starts as the daemon starts.

@@ -1,6 +1,7 @@
 FROM node:10.16.0
 ARG codeServerVersion=docker
 ARG vscodeVersion
+ARG githubToken
 
 # Install VS Code's deps. These are the only two it seems we need.
 RUN apt-get update && apt-get install -y \
@@ -14,7 +15,7 @@ WORKDIR /src
 COPY . .
 
 RUN yarn \
-	&& MINIFY=true yarn build "${vscodeVersion}" "${codeServerVersion}" \
+	&& MINIFY=true GITHUB_TOKEN="${githubToken}" yarn build "${vscodeVersion}" "${codeServerVersion}" \
 	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
 	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
 	&& rm -r /src/build/vscode-* \
