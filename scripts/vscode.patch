@@ -146,10 +146,10 @@ index 3ae24454cb..d637d02855 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index 44f67f0a0b..00fc1deea8 100644
+index 44f67f0a0b..50d29b1e87 100644
 --- a/src/vs/code/browser/workbench/workbench.html
 +++ b/src/vs/code/browser/workbench/workbench.html
-@@ -18,10 +18,11 @@
+@@ -18,10 +18,12 @@
  
  		<!-- Workarounds/Hacks (remote user data uri) -->
  		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
@@ -160,6 +160,7 @@ index 44f67f0a0b..00fc1deea8 100644
 -		<link rel="manifest" href="/manifest.json">
 +		<link rel="icon" href="./favicon.ico" type="image/x-icon" />
 +		<link rel="manifest" href="./manifest.json">
++		<link rel="apple-touch-icon" href="./static/out/vs/server/src/media/code-server.png" />
  		<link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.api.css">
  	</head>
  
