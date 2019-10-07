@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@coder/logger@^1.1.11":
-  version "1.1.11"
-  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.11.tgz#e6f36dba9436ae61e66e3f66787d75c768617605"
-  integrity sha512-EEh1dqSU0AaqjjjMsVqumgZGbrZimKFKIb4t5E6o3FLfVUxJCReSME78Yj2N1xWUVAHMnqafDCxLostpuIotzw==
-
 "@coder/logger@^1.1.8":
   version "1.1.8"
   resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.8.tgz#416a7221d84161ee35eca9cfa93ba9377639b4ee"
@@ -23,17 +18,15 @@
     node-fetch "^2.3.0"
     ora "^3.2.0"
 
-"@coder/node-browser@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.0.tgz#f7de3320f5e8020672129250da68236a5f9b4757"
-  integrity sha512-QdTIYB1ybV+DKr9cm87Gm8Qgspqig1YMtNe7heb7v5Z57JKMYQeQVDtGuCG2RxoSSGzQqqFsJRTp3640BwCQYg==
-  dependencies:
-    "@coder/logger" "^1.1.11"
+"@coder/node-browser@^1.0.1":
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.1.tgz#0b3d685f042052cfadb9a8f5d3bd88a0080985ba"
+  integrity sha512-lbDxT6AdEkHEleIzZBL5zncyrPikLG8klgE75ZTw8z4xYRRO3eYoNFt6rM9CgwbjBLxf20xQ8YjmkWNVzCPeBQ==
 
-"@coder/requirefs@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.0.3.tgz#89c256795d2c6c4cd67db013da8b47c65ae32daf"
-  integrity sha512-qm/SVcQ9MR0fbmwETaVYkoTdNEHhppskjRN44NeJxI92mkWikXrfsVR1jkz64hTLAylIB9LGrjoz0PXEn9LijQ==
+"@coder/requirefs@^1.0.5":
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.0.5.tgz#60b0b410f33527594ab35b40d6184ced6c1c5a58"
+  integrity sha512-GstGO+1HFdN39MpZbdh85NUMHhHu5kUcpKyQ7+j3oA6J5uW5ZUhRXDmwMuxGi8XjZ6z8hnqIhcl2/OF5T+1GhQ==
   optionalDependencies:
     jszip "2.6.0"
 
