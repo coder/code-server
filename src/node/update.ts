@@ -37,9 +37,17 @@ export class UpdateService extends AbstractUpdateService {
 		super(null, configurationService, environmentService, requestService, logService);
 	}
 
-	public async isLatestVersion(): Promise<boolean | undefined> {
-		const latest = await this.getLatestVersion();
-		return !latest || latest.name === pkg.codeServerVersion;
+	public async isLatestVersion(latest?: IUpdate | null): Promise<boolean | undefined> {
+		if (!latest) {
+			latest = await this.getLatestVersion();
+		}
+		if (latest) {
+			const latestMajor = parseInt(latest.name);
+			const currentMajor = parseInt(pkg.codeServerVersion);
+			return !isNaN(latestMajor) && !isNaN(currentMajor) &&
+				currentMajor <= latestMajor && latest.name === pkg.codeServerVersion;
+		}
+		return true;
 	}
 
 	protected buildUpdateFeedUrl(): string {
@@ -57,7 +65,7 @@ export class UpdateService extends AbstractUpdateService {
 		this.setState(State.CheckingForUpdates(context));
 		try {
 			const update = await this.getLatestVersion();
-			if (!update || !update.name || update.name === pkg.codeServerVersion) {
+			if (!update || this.isLatestVersion(update)) {
 				this.setState(State.Idle(UpdateType.Archive));
 			} else {
 				this.setState(State.AvailableForDownload({
