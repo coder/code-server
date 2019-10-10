@@ -14,6 +14,7 @@ import { TelemetryChannelClient } from "vs/server/src/common/telemetry";
 import "vs/workbench/contrib/localizations/browser/localizations.contribution";
 import "vs/workbench/contrib/update/electron-browser/update.contribution";
 import { IRemoteAgentService } from "vs/workbench/services/remote/common/remoteAgentService";
+import { PersistentConnectionEventType } from "vs/platform/remote/common/remoteAgentConnection";
 
 class TelemetryService extends TelemetryChannelClient {
 	public constructor(
@@ -34,8 +35,17 @@ class NodeProxyService extends NodeProxyChannelClient implements INodeProxyServi
 	public constructor(
 		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
 	) {
-		// TODO: up/down/close
 		super(remoteAgentService.getConnection()!.getChannel("nodeProxy"));
+		remoteAgentService.getConnection()!.onDidStateChange((state) => {
+			switch (state.type) {
+				case PersistentConnectionEventType.ConnectionGain:
+					return this._onUp.fire();
+				case PersistentConnectionEventType.ConnectionLost:
+					return this._onDown.fire();
+				case PersistentConnectionEventType.ReconnectionPermanentFailure:
+					return this._onClose.fire();
+			}
+		});
 	}
 }
 
