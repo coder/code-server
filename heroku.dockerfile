@@ -1,25 +1,4 @@
-FROM node:10.16.0
-ARG codeServerVersion=docker
-ARG vscodeVersion=1.38.1
-ARG githubToken
-
-# Install VS Code's deps. These are the only two it seems we need.
-RUN apt-get update && apt-get install -y \
-	libxkbfile-dev \
-	libsecret-1-dev
-
-# Ensure latest yarn.
-RUN npm install -g yarn@1.13
-
-WORKDIR /src
-COPY . .
-
-RUN yarn \
-	&& MINIFY=true GITHUB_TOKEN="${githubToken}" yarn build "${vscodeVersion}" "${codeServerVersion}" \
-	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
-	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
-	&& rm -r /src/build/vscode-* \
-	&& rm -r /src/build/code-server*-linux-*
+FROM codercom/code-server:v2 as base
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
@@ -50,7 +29,4 @@ RUN mkdir -p /home/coder/project
 
 WORKDIR /home/coder/project
 
-COPY --from=0 /src/build/code-server /usr/local/bin/code-server
-EXPOSE 8080
-
-ENTRYPOINT ["dumb-init", "code-server", "--host", "0.0.0.0"]
+COPY --from=base /usr/local/bin/code-server /usr/local/bin/code-server
