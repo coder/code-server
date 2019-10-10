@@ -1,5 +1,6 @@
 # code-server &middot; [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cdr/code-server/blob/master/LICENSE) [!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest) [![Build Status](https://img.shields.io/travis/com/cdr/code-server/master)](https://github.com/cdr/code-server)
 
+
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a
 remote server, accessible through the browser.
 
@@ -8,6 +9,8 @@ Try it out:
 ```bash
 docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server" -v "$PWD:/home/coder/project" codercom/code-server:v2
 ```
+
+[![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://deploy.cloud.run)
 
 - **Consistent environment:** Code on your Chromebook, tablet, and laptop with a
   consistent dev environment. develop more easily for Linux if you have a
