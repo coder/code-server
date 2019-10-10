@@ -1,6 +1,6 @@
 FROM node:10.16.0
 ARG codeServerVersion=docker
-ARG vscodeVersion
+ARG vscodeVersion=1.38.1
 ARG githubToken
 
 # Install VS Code's deps. These are the only two it seems we need.
