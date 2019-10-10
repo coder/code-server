@@ -18,9 +18,8 @@ import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEn
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { INodeProxyService } from "vs/server/src/common/nodeProxy";
 import { getTranslations } from "vs/server/src/node/nls";
-import { getUriTransformer } from "vs/server/src/node/util";
+import { getUriTransformer, localRequire } from "vs/server/src/node/util";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
-import { Server } from "vs/server/node_modules/@coder/node-browser/out/server/server";
 
 /**
  * Extend the file provider to allow unwatching.
@@ -280,7 +279,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 export class NodeProxyService implements INodeProxyService {
 	public _serviceBrand = undefined;
 
-	public readonly server: Server;
+	public readonly server: import("@coder/node-browser/out/server/server").Server;
 
 	private readonly _onMessage = new Emitter<string>();
 	public readonly onMessage = this._onMessage.event;
@@ -295,6 +294,7 @@ export class NodeProxyService implements INodeProxyService {
 
 	public constructor() {
 		// TODO: close/down/up
+		const { Server } = localRequire<typeof import("@coder/node-browser/out/server/server")>("@coder/node-browser/out/server/server");
 		this.server = new Server({
 			onMessage: this.$onMessage,
 			onClose: this.onClose,

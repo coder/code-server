@@ -18,15 +18,15 @@
     node-fetch "^2.3.0"
     ora "^3.2.0"
 
-"@coder/node-browser@^1.0.1":
-  version "1.0.1"
-  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.1.tgz#0b3d685f042052cfadb9a8f5d3bd88a0080985ba"
-  integrity sha512-lbDxT6AdEkHEleIzZBL5zncyrPikLG8klgE75ZTw8z4xYRRO3eYoNFt6rM9CgwbjBLxf20xQ8YjmkWNVzCPeBQ==
-
-"@coder/requirefs@^1.0.5":
+"@coder/node-browser@^1.0.5":
   version "1.0.5"
-  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.0.5.tgz#60b0b410f33527594ab35b40d6184ced6c1c5a58"
-  integrity sha512-GstGO+1HFdN39MpZbdh85NUMHhHu5kUcpKyQ7+j3oA6J5uW5ZUhRXDmwMuxGi8XjZ6z8hnqIhcl2/OF5T+1GhQ==
+  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.5.tgz#58275041cbe11808574260bb2f41db3965388f88"
+  integrity sha512-9iN6RqJCErlp30Da/PJBGf8YT9phSTCtCgoufDQqSkSMmnV+Oho4nkFKPKB3jVb9RG5lqgi7oJpNMSXPluvlyw==
+
+"@coder/requirefs@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.0.6.tgz#d2d9b529d55e00da5b779aba0ac37c534a9fe55c"
+  integrity sha512-AEHfWXXJV1FGB0CjTVz+BhyS9G5xUlC0L1+/jDgGE9CuKK2obZzg3xdALFXadZhcpQGa2vXFEmrtkkW2xP6X2A==
   optionalDependencies:
     jszip "2.6.0"
 

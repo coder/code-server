@@ -722,7 +722,7 @@ index 8e96e6738e..5a3a48101a 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index 4fcb6db76f..840ac56c3b 100644
+index 4fcb6db76f..b6c92528f4 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
 @@ -10,6 +10,9 @@ import { endsWith, startsWith } from 'vs/base/common/strings';
@@ -730,7 +730,7 @@ index 4fcb6db76f..840ac56c3b 100644
  import { joinPath } from 'vs/base/common/resources';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
-+import { fromTar } from 'vs/server/node_modules/@coder/requirefs/out/src/requirefs';
++import { fromTar } from 'vs/server/node_modules/@coder/requirefs/out/requirefs';
 +import { Client } from 'vs/server/node_modules/@coder/node-browser/out/client/client';
  
  class ExportsTrap {
@@ -745,7 +745,7 @@ index 4fcb6db76f..840ac56c3b 100644
 +			const fetchUri = URI.from({
 +				scheme: self.location.protocol.replace(':', ''),
 +				authority: self.location.host,
-+				path: `${self.location.pathname.replace(/\/static\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
++				path: `${self.location.pathname.replace(/\/static.*\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
 +				query: `path=${encodeURIComponent(module.extensionLocation.path)}`,
 +			});
 +			const response = await fetch(fetchUri.toString(true));
