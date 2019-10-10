@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: heroku.dockerfile
+
+# Setting sane default to add a password.
+# Since we'll be running it on a public PaaS
+run:
+  web: dumb-init code-server --host=0.0.0 --auth=password
