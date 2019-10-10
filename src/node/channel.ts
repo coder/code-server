@@ -285,12 +285,14 @@ export class NodeProxyService implements INodeProxyService {
 	public readonly onMessage = this._onMessage.event;
 	private readonly _$onMessage = new Emitter<string>();
 	public readonly $onMessage = this._$onMessage.event;
+	public readonly _onDown = new Emitter<void>();
+	public readonly onDown = this._onDown.event;
+	public readonly _onUp = new Emitter<void>();
+	public readonly onUp = this._onUp.event;
+
+	// Unused because the server connection will never permanently close.
 	private readonly _onClose = new Emitter<void>();
 	public readonly onClose = this._onClose.event;
-	private readonly _onDown = new Emitter<void>();
-	public readonly onDown = this._onDown.event;
-	private readonly _onUp = new Emitter<void>();
-	public readonly onUp = this._onUp.event;
 
 	public constructor() {
 		// TODO: close/down/up

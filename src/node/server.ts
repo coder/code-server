@@ -61,7 +61,7 @@ import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } fr
 import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
 import { TelemetryClient } from "vs/server/src/node/insights";
 import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
-import { NodeProxyChannel } from "vs/server/src/common/nodeProxy";
+import { NodeProxyChannel, INodeProxyService } from "vs/server/src/common/nodeProxy";
 import { Protocol } from "vs/server/src/node/protocol";
 import { TelemetryChannel } from "vs/server/src/common/telemetry";
 import { UpdateService } from "vs/server/src/node/update";
@@ -621,6 +621,11 @@ export class MainServer extends Server {
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
+					// NOTE: We can do this because we only have one connection at a
+					// time but if that changes we need a way to determine which clients
+					// belong to a connection and dispose only those.
+					(this.services.get(INodeProxyService) as NodeProxyService)._onUp.fire();
+					connection.onClose(() => (this.services.get(INodeProxyService) as NodeProxyService)._onDown.fire());
 				} else {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
@@ -695,6 +700,8 @@ export class MainServer extends Server {
 			const instantiationService = new InstantiationService(this.services);
 			const localizationService = instantiationService.createInstance(LocalizationsService);
 			this.services.set(ILocalizationsService, localizationService);
+			const proxyService = instantiationService.createInstance(NodeProxyService);
+			this.services.set(INodeProxyService, proxyService);
 			this.ipc.registerChannel("localizations", new LocalizationsChannel(localizationService));
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
@@ -708,7 +715,7 @@ export class MainServer extends Server {
 				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
-				const nodeProxyChannel = new NodeProxyChannel(instantiationService.createInstance(NodeProxyService));
+				const nodeProxyChannel = new NodeProxyChannel(proxyService);
 
 				this.ipc.registerChannel("extensions", extensionsChannel);
 				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
