@@ -17,7 +17,8 @@ RUN apt-get update && apt-get install -y \
 RUN locale-gen en_US.UTF-8
 # We cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
-ENV LC_ALL=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8 \
+    SHELL=bash
 
 RUN adduser --gecos '' --disabled-password coder && \
 	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
