@@ -5,8 +5,8 @@
       "vscode",
       "code-server"
     ],
-    "repository": "https://github.com/ClarityCafe/F.Lute",
-    "logo": "https://cdn.discordapp.com/avatars/436026947974463488/7eb55b489b3335e1bf78891bc3b38ae1.png?size=512",
+    "repository": "https://github.com/cdr/code-server",
+    "logo": "",
     "env": {
       "PASSWORD": {
         "description": "Password for your instance. This is required.",
