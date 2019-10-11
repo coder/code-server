@@ -197,7 +197,7 @@ export abstract class Server {
 
 	protected async getTarredResource(...parts: string[]): Promise<Response> {
 		const filePath = this.ensureAuthorizedFilePath(...parts);
-		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar" };
+		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar", cache: true };
 	}
 
 	protected ensureAuthorizedFilePath(...parts: string[]): string {
