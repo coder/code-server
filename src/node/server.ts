@@ -653,9 +653,9 @@ export class MainServer extends Server {
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
-					// NOTE: We can do this because we only have one connection at a
-					// time but if that changes we need a way to determine which clients
-					// belong to a connection and dispose only those.
+					// TODO: Need a way to match clients with a connection. For now
+					// dispose everything which only works because no extensions currently
+					// utilize long-running proxies.
 					(this.services.get(INodeProxyService) as NodeProxyService)._onUp.fire();
 					connection.onClose(() => (this.services.get(INodeProxyService) as NodeProxyService)._onDown.fire());
 				} else {
