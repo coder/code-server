@@ -1,0 +1,1 @@
+FROM codercom/code-server:v2
