@@ -57,14 +57,15 @@ import { combinedAppender, LogAppender, NullTelemetryService } from "vs/platform
 import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
 import { UpdateChannel } from "vs/platform/update/node/updateIpc";
-import { ExtensionEnvironmentChannel, FileProviderChannel } from "vs/server/src/channel";
-import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/connection";
-import { TelemetryClient } from "vs/server/src/insights";
-import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/nls";
-import { Protocol } from "vs/server/src/protocol";
-import { TelemetryChannel } from "vs/server/src/telemetry";
-import { UpdateService } from "vs/server/src/update";
-import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/util";
+import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
+import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
+import { TelemetryClient } from "vs/server/src/node/insights";
+import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
+import { NodeProxyChannel, INodeProxyService } from "vs/server/src/common/nodeProxy";
+import { Protocol } from "vs/server/src/node/protocol";
+import { TelemetryChannel } from "vs/server/src/common/telemetry";
+import { UpdateService } from "vs/server/src/node/update";
+import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
@@ -125,7 +126,7 @@ export interface ServerOptions {
 
 export abstract class Server {
 	protected readonly server: http.Server | https.Server;
-	protected rootPath = path.resolve(__dirname, "../../../..");
+	protected rootPath = path.resolve(__dirname, "../../../../..");
 	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
 	protected readonly allowedRequestPaths: string[] = [this.rootPath];
 	private listenPromise: Promise<string> | undefined;
@@ -196,7 +197,7 @@ export abstract class Server {
 
 	protected async getTarredResource(...parts: string[]): Promise<Response> {
 		const filePath = this.ensureAuthorizedFilePath(...parts);
-		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar" };
+		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar", cache: true };
 	}
 
 	protected ensureAuthorizedFilePath(...parts: string[]): string {
@@ -444,6 +445,15 @@ export abstract class Server {
 	}
 }
 
+interface StartPath {
+	path?: string[] | string;
+	workspace?: boolean;
+}
+
+interface Settings {
+	lastVisited?: StartPath;
+}
+
 export class MainServer extends Server {
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
@@ -459,6 +469,8 @@ export class MainServer extends Server {
 	private proxyPipe = path.join(tmpdir, "tls-proxy");
 	private _proxyServer?: Promise<net.Server>;
 	private readonly proxyTimeout = 5000;
+
+	private settings: Settings = {};
 
 	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
@@ -527,44 +539,37 @@ export class MainServer extends Server {
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
 		const filePath = path.join(this.rootPath, "out/vs/code/browser/workbench/workbench.html");
-		let [content] = await Promise.all([
+		let [content, startPath] = await Promise.all([
 			util.promisify(fs.readFile)(filePath, "utf8"),
+			this.getFirstValidPath([
+				{ path: parsedUrl.query.workspace, workspace: true },
+				{ path: parsedUrl.query.folder },
+				(await this.readSettings()).lastVisited,
+				{ path: this.options.folderUri }
+			]),
 			this.servicesPromise,
 		]);
+
+		if (startPath) {
+			this.writeSettings({
+				lastVisited: {
+					path: startPath.uri.fsPath,
+					workspace: startPath.workspace
+				},
+			});
+		}
 
 		const logger = this.services.get(ILogService) as ILogService;
 		logger.info("request.url", `"${request.url}"`);
 
-		const cwd = process.env.VSCODE_CWD || process.cwd();
-
 		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
-		const validatePath = async (filePath: string[] | string | undefined, isDirectory: boolean, unsetFallback?: string): Promise<UriComponents | undefined> => {
-			if (!filePath || filePath.length === 0) {
-				if (!unsetFallback) {
-					return undefined;
-				}
-				filePath = unsetFallback;
-			} else if (Array.isArray(filePath)) {
-				filePath = filePath[0];
-			}
-			const uri = URI.file(sanitizeFilePath(filePath, cwd));
-			try {
-				const stat = await util.promisify(fs.stat)(uri.fsPath);
-				if (isDirectory !== stat.isDirectory()) {
-					return undefined;
-				}
-			} catch (error) {
-				return undefined;
-			}
-			return transformer.transformOutgoing(uri);
-		};
 
 		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const options: Options = {
 			WORKBENCH_WEB_CONGIGURATION: {
-				workspaceUri: await validatePath(parsedUrl.query.workspace, false),
-				folderUri: !parsedUrl.query.workspace ? await validatePath(parsedUrl.query.folder, true, this.options.folderUri) : undefined,
+				workspaceUri: startPath && startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
+				folderUri: startPath && !startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
 				remoteAuthority,
 				productConfiguration: product,
 			},
@@ -578,6 +583,34 @@ export class MainServer extends Server {
 		}
 
 		return { content, filePath };
+	}
+
+	/**
+	 * Choose the first valid path.
+	 */
+	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ uri: URI, workspace?: boolean} | undefined> {
+		const logger = this.services.get(ILogService) as ILogService;
+		const cwd = process.env.VSCODE_CWD || process.cwd();
+		for (let i = 0; i < startPaths.length; ++i) {
+			const startPath = startPaths[i];
+			if (!startPath) {
+				continue;
+			}
+			const paths = typeof startPath.path === "string" ? [startPath.path] : (startPath.path || []);
+			for (let j = 0; j < paths.length; ++j) {
+				const uri = URI.file(sanitizeFilePath(paths[j], cwd));
+				try {
+					const stat = await util.promisify(fs.stat)(uri.fsPath);
+					// Workspace must be a file.
+					if (!!startPath.workspace !== stat.isDirectory()) {
+						return { uri, workspace: startPath.workspace };
+					}
+				} catch (error) {
+					logger.warn(error.message);
+				}
+			}
+		}
+		return undefined;
 	}
 
 	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
@@ -620,6 +653,11 @@ export class MainServer extends Server {
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
+					// TODO: Need a way to match clients with a connection. For now
+					// dispose everything which only works because no extensions currently
+					// utilize long-running proxies.
+					(this.services.get(INodeProxyService) as NodeProxyService)._onUp.fire();
+					connection.onClose(() => (this.services.get(INodeProxyService) as NodeProxyService)._onDown.fire());
 				} else {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
@@ -694,6 +732,8 @@ export class MainServer extends Server {
 			const instantiationService = new InstantiationService(this.services);
 			const localizationService = instantiationService.createInstance(LocalizationsService);
 			this.services.set(ILocalizationsService, localizationService);
+			const proxyService = instantiationService.createInstance(NodeProxyService);
+			this.services.set(INodeProxyService, proxyService);
 			this.ipc.registerChannel("localizations", new LocalizationsChannel(localizationService));
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
@@ -707,11 +747,13 @@ export class MainServer extends Server {
 				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
 				const telemetryChannel = new TelemetryChannel(telemetryService);
 				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
+				const nodeProxyChannel = new NodeProxyChannel(proxyService);
 
 				this.ipc.registerChannel("extensions", extensionsChannel);
 				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
 				this.ipc.registerChannel("request", requestChannel);
 				this.ipc.registerChannel("telemetry", telemetryChannel);
+				this.ipc.registerChannel("nodeProxy", nodeProxyChannel);
 				this.ipc.registerChannel("update", updateChannel);
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, fileChannel);
 				resolve(new ErrorTelemetry(telemetryService));
@@ -799,5 +841,42 @@ export class MainServer extends Server {
 			path = `${basePath}-${++i}`;
 		}
 		return path;
+	}
+
+	/**
+	 * Return the file path for Coder settings.
+	 */
+	private get settingsPath(): string {
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
+		return path.join(environment.userDataPath, "coder.json");
+	}
+
+	/**
+	 * Read settings from the file. On a failure return last known settings and
+	 * log a warning.
+	 *
+	 */
+	private async readSettings(): Promise<Settings> {
+		try {
+			const raw = (await util.promisify(fs.readFile)(this.settingsPath, "utf8")).trim();
+			this.settings = raw ? JSON.parse(raw) : {};
+		} catch (error) {
+			if (error.code !== "ENOENT") {
+				(this.services.get(ILogService) as ILogService).warn(error.message);
+			}
+		}
+		return this.settings;
+	}
+
+	/**
+	 * Write settings combined with current settings. On failure log a warning.
+	 */
+	private async writeSettings(newSettings: Partial<Settings>): Promise<void> {
+		this.settings = { ...this.settings, ...newSettings };
+		try {
+			await util.promisify(fs.writeFile)(this.settingsPath, JSON.stringify(this.settings));
+		} catch (error) {
+			(this.services.get(ILogService) as ILogService).warn(error.message);
+		}
 	}
 }

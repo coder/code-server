@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { CoderApi, VSCodeApi } from "../typings/api";
+import { CoderApi, VSCodeApi } from "../../typings/api";
 import { createCSSRule } from "vs/base/browser/dom";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";

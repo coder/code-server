@@ -45,8 +45,8 @@ const writeProduct = () => {
 		"vs/workbench/workbench.web.api.css",
 		"vs/code/browser/workbench/workbench.html",
 		"vs/code/browser/workbench/workbench.js",
-		"vs/server/src/cli.js",
-		"vs/server/src/uriTransformer.js",
+		"vs/server/src/node/cli.js",
+		"vs/server/src/node/uriTransformer.js",
 		"vs/server/src/login/index.html"
 	]);
 	const date = new Date().toISOString();
