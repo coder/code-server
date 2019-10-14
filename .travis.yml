@@ -15,14 +15,30 @@ before_install:
 # Don't build on tags because we'll already have built the commit.
 jobs:
   include:
-    - name: "Linux build"
+    - name: "Linux build - x86"
       os: linux
+      arch: amd64
       dist: trusty
       env: TARGET="linux"
       if: tag IS blank
       script: scripts/ci.bash
-    - name: "Alpine build"
+    - name: "Alpine build - x86"
       os: linux
+      arch: amd64
+      dist: trusty
+      env: TARGET="alpine"
+      if: tag IS blank
+      script: scripts/ci.bash
+    - name: "Linux build - ARM"
+      os: linux
+      arch: arm64
+      dist: trusty
+      env: TARGET="linux"
+      if: tag IS blank
+      script: scripts/ci.bash
+    - name: "Alpine build - ARM"
+      os: linux
+      arch: arm64
       dist: trusty
       env: TARGET="alpine"
       if: tag IS blank
@@ -31,9 +47,17 @@ jobs:
       os: osx
       if: tag IS blank
       script: travis_wait 30 scripts/ci.bash
-    - name: "Docker build"
+    - name: "Docker build - x86"
       os: linux
       dist: trusty
+      arch: amd64
+      env: DOCKER_BUILD="true"
+      if: branch == master AND tag IS blank
+      script: docker build --build-arg githubToken="$GITHUB_TOKEN" --build-arg codeServerVersion="$VERSION" --build-arg vscodeVersion="$VSCODE_VERSION" -t codercom/code-server:"$TAG" -t codercom/code-server:v2 .
+    - name: "Docker build - ARM"
+      os: linux
+      dist: trusty
+      arch: arm64
       env: DOCKER_BUILD="true"
       if: branch == master AND tag IS blank
       script: docker build --build-arg githubToken="$GITHUB_TOKEN" --build-arg codeServerVersion="$VERSION" --build-arg vscodeVersion="$VSCODE_VERSION" -t codercom/code-server:"$TAG" -t codercom/code-server:v2 .
