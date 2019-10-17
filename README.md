@@ -1,6 +1,5 @@
 # code-server &middot; [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/cdr/code-server/blob/master/LICENSE) [!["Latest Release"](https://img.shields.io/github/release/cdr/code-server.svg)](https://github.com/cdr/code-server/releases/latest) [![Build Status](https://img.shields.io/travis/com/cdr/code-server/master)](https://github.com/cdr/code-server)
 
-
 `code-server` is [VS Code](https://github.com/Microsoft/vscode) running on a
 remote server, accessible through the browser.
 
