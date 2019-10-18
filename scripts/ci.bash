@@ -1,7 +1,6 @@
 #!/bin/bash
 set -euo pipefail
 
-# Build using a Docker container.
 function docker-build() {
 	local target="${TARGET:-}"
 	local image="codercom/nbin-${target}"
@@ -12,15 +11,15 @@ function docker-build() {
 	fi
 
 	local containerId
-	containerId=$(docker create --network=host --rm -it -v "$(pwd)"/.cache:/src/.cache "${image}")
+	# Use a mount so we can cache the results.
+	containerId=$(docker create --network=host --rm -it -v "$(pwd)":/src "${image}")
 	docker start "${containerId}"
-	docker exec "${containerId}" mkdir -p /src
 
-	# TODO: temporary as long as we are rebuilding modules.
+	# TODO: Might be better to move these dependencies to the images or create new
+	# ones on top of these.
 	if [[ "${image}" == "codercom/nbin-alpine" ]] ; then
 		docker exec "${containerId}" apk add libxkbfile-dev libsecret-dev
 	else
-		# TODO: at some point git existed but it seems to have disappeared.
 		docker exec "${containerId}" yum install -y libxkbfile-devel libsecret-devel git
 	fi
 
@@ -31,19 +30,15 @@ function docker-build() {
 			bash -c "cd /src && CI=true GITHUB_TOKEN=${token} MINIFY=${minify} yarn ${command} ${args}"
 	}
 
-	docker cp ./. "${containerId}":/src
 	docker-exec build
 	if [[ -n "${package}" ]] ; then
 		docker-exec binary
 		docker-exec package
-		mkdir -p release
-		docker cp "${containerId}":/src/release/. ./release/
 	fi
 
-	docker stop "${containerId}"
+	docker kill "${containerId}"
 }
 
-# Build locally.
 function local-build() {
 	function local-exec() {
 		local command="${1}" ; shift

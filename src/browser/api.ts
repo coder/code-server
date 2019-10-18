@@ -15,7 +15,7 @@ import { IInstantiationService, ServiceIdentifier } from "vs/platform/instantiat
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { INotificationService } from "vs/platform/notification/common/notification";
 import { Registry } from "vs/platform/registry/common/platform";
-import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from "vs/platform/statusbar/common/statusbar";
+import { IStatusbarEntry, IStatusbarEntryAccessor, IStatusbarService, StatusbarAlignment } from "vs/workbench/services/statusbar/common/statusbar";
 import { IStorageService } from "vs/platform/storage/common/storage";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { IThemeService } from "vs/platform/theme/common/themeService";

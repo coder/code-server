@@ -8,8 +8,8 @@ import { IFileService } from "vs/platform/files/common/files";
 import { createDecorator, IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { INotificationService, Severity } from "vs/platform/notification/common/notification";
 import { IProgress, IProgressService, IProgressStep, ProgressLocation } from "vs/platform/progress/common/progress";
-import { IWindowsService } from "vs/platform/windows/common/windows";
 import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
+import { IWorkspacesService } from 'vs/platform/workspaces/common/workspaces';
 import { ExplorerItem } from "vs/workbench/contrib/files/common/explorerModel";
 import { IEditorGroup } from "vs/workbench/services/editor/common/editorGroupsService";
 import { IEditorService } from "vs/workbench/services/editor/common/editorService";
@@ -29,7 +29,7 @@ export class UploadService extends Disposable implements IUploadService {
 	public constructor(
 		@IInstantiationService instantiationService: IInstantiationService,
 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
-		@IWindowsService private readonly windowsService: IWindowsService,
+		@IWorkspacesService private readonly workspacesService: IWorkspacesService,
 		@IEditorService private readonly editorService: IEditorService,
 	) {
 		super();
@@ -38,10 +38,10 @@ export class UploadService extends Disposable implements IUploadService {
 
 	public async handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup | undefined, afterDrop: (targetGroup: IEditorGroup | undefined) => void, targetIndex?: number): Promise<void> {
 		// TODO: should use the workspace for the editor it was dropped on?
-		const target =this.contextService.getWorkspace().folders[0].uri;
+		const target = this.contextService.getWorkspace().folders[0].uri;
 		const uris = (await this.upload.uploadDropped(event, target)).map((u) => URI.file(u));
 		if (uris.length > 0) {
-			await this.windowsService.addRecentlyOpened(uris.map((u) => ({ fileUri: u })));
+			await this.workspacesService.addRecentlyOpened(uris.map((u) => ({ fileUri: u })));
 		}
 		const editors = uris.map((uri) => ({
 			resource: uri,

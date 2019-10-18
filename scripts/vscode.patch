@@ -1,102 +1,24 @@
-diff --git a/build/gulpfile.vscode.js b/build/gulpfile.vscode.js
-index 6bb695db68..7f6c5cd3cb 100644
---- a/build/gulpfile.vscode.js
-+++ b/build/gulpfile.vscode.js
-@@ -47,24 +47,28 @@ const nodeModules = ['electron', 'original-fs']
- 
- // Build
- const vscodeEntryPoints = _.flatten([
--	buildfile.entrypoint('vs/workbench/workbench.desktop.main'),
-+	buildfile.entrypoint('vs/workbench/workbench.web.api'),
-+	buildfile.entrypoint('vs/server/src/node/cli'),
- 	buildfile.base,
- 	buildfile.serviceWorker,
--	buildfile.workbenchDesktop,
--	buildfile.code
-+	buildfile.workbenchWeb,
-+	buildfile.workerExtensionHost,
-+	buildfile.keyboardMaps,
- ]);
- 
- const vscodeResources = [
--	'out-build/main.js',
--	'out-build/cli.js',
--	'out-build/driver.js',
-+	'out-build/vs/server/main.js',
-+	'out-build/vs/server/src/node/uriTransformer.js',
-+	'out-build/vs/code/browser/workbench/**',
-+	'out-build/vs/server/src/media/*',
-+	'out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js',
-+	'!out-build/vs/server/doc/**',
- 	'out-build/bootstrap.js',
- 	'out-build/bootstrap-fork.js',
- 	'out-build/bootstrap-amd.js',
- 	'out-build/bootstrap-window.js',
- 	'out-build/paths.js',
- 	'out-build/vs/**/*.{svg,png,html}',
--	'!out-build/vs/code/browser/**/*.html',
- 	'out-build/vs/base/common/performance.js',
- 	'out-build/vs/base/node/languagePacks.js',
- 	'out-build/vs/base/node/{stdForkStart.js,terminateProcess.sh,cpuUsage.sh,ps.sh}',
-@@ -79,11 +83,7 @@ const vscodeResources = [
- 	'out-build/vs/workbench/contrib/welcome/walkThrough/**/*.md',
- 	'out-build/vs/platform/files/**/*.exe',
- 	'out-build/vs/platform/files/**/*.md',
--	'out-build/vs/code/electron-browser/workbench/**',
--	'out-build/vs/code/electron-browser/sharedProcess/sharedProcess.js',
--	'out-build/vs/code/electron-browser/issue/issueReporter.js',
--	'out-build/vs/code/electron-browser/processExplorer/processExplorer.js',
--	'!**/test/**'
-+	'!**/test/**',
- ];
- 
- const optimizeVSCodeTask = task.define('optimize-vscode', task.series(
-@@ -627,4 +627,3 @@ function getSettingsSearchBuildId(packageJson) {
- 		throw new Error('Could not determine build number: ' + e.toString());
- 	}
- }
--
-diff --git a/src/vs/base/browser/mouseEvent.ts b/src/vs/base/browser/mouseEvent.ts
-index 4c7295e3b9..b0af2cdd62 100644
---- a/src/vs/base/browser/mouseEvent.ts
-+++ b/src/vs/base/browser/mouseEvent.ts
-@@ -160,6 +160,8 @@ export class StandardWheelEvent {
- 				this.deltaY = e1.wheelDeltaY / 120;
- 			} else if (typeof e2.VERTICAL_AXIS !== 'undefined' && e2.axis === e2.VERTICAL_AXIS) {
- 				this.deltaY = -e2.detail / 3;
-+			} else if (browser.isFirefox) {
-+				this.deltaY = -e.deltaY / 3;
- 			} else {
- 				this.deltaY = -e.deltaY / 40;
- 			}
-@@ -173,6 +175,8 @@ export class StandardWheelEvent {
- 				}
- 			} else if (typeof e2.HORIZONTAL_AXIS !== 'undefined' && e2.axis === e2.HORIZONTAL_AXIS) {
- 				this.deltaX = -e.detail / 3;
-+			} else if (browser.isFirefox) {
-+				this.deltaX = -e.deltaX / 3;
- 			} else {
- 				this.deltaX = -e.deltaX / 40;
- 			}
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 4f93e06df0..ae63e64a7f 100644
+index 6d41e85e42..f845d0bf9e 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -48,7 +48,7 @@ export namespace Schemas {
+@@ -48,7 +48,9 @@ export namespace Schemas {
  
  	export const command: string = 'command';
  
 -	export const vscodeRemote: string = 'vscode-remote';
++	// NOTE@coder: Changed this so it'll be reflected in the explorer to prevent
++	// confusion with vscode-remote itself.
 +	export const vscodeRemote: string = 'code-server';
  
  	export const vscodeRemoteResource: string = 'vscode-remote-resource';
  
-@@ -82,13 +82,11 @@ class RemoteAuthoritiesImpl {
- 	}
- 
- 	public rewrite(authority: string, path: string): URI {
--		const host = this._hosts[authority];
+@@ -96,12 +98,12 @@ class RemoteAuthoritiesImpl {
+ 		if (host && host.indexOf(':') !== -1) {
+ 			host = `[${host}]`;
+ 		}
 -		const port = this._ports[authority];
++		// NOTE@coder: Changed this to work against the current path.
  		const connectionToken = this._connectionTokens[authority];
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
@@ -104,23 +26,19 @@ index 4f93e06df0..ae63e64a7f 100644
 -			path: `/vscode-remote-resource`,
 +			authority: window.location.host,
 +			path: `${window.location.pathname.replace(/\/+$/, '')}/vscode-remote-resource`,
- 			query: `path=${encodeURIComponent(path)}&tkn=${encodeURIComponent(connectionToken)}`
+ 			query: `path=${encodeURIComponent(uri.path)}&tkn=${encodeURIComponent(connectionToken)}`
  		});
  	}
 diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
-index 07759dffe5..9148d7c1f0 100644
+index a657f4a4d9..66bd13dffa 100644
 --- a/src/vs/base/common/platform.ts
 +++ b/src/vs/base/common/platform.ts
-@@ -54,8 +54,18 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
- 	_isMacintosh = _userAgent.indexOf('Macintosh') >= 0;
- 	_isLinux = _userAgent.indexOf('Linux') >= 0;
+@@ -56,6 +56,16 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
  	_isWeb = true;
--	_locale = navigator.language;
--	_language = _locale;
-+	_locale = LANGUAGE_DEFAULT;
-+	_language = LANGUAGE_DEFAULT;
-+	const rawNlsConfig = typeof document !== 'undefined'
-+		&& document.getElementById('vscode-remote-nls-configuration')!.getAttribute('data-settings')!;
+ 	_locale = navigator.language;
+ 	_language = _locale;
++	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
++	const rawNlsConfig = el && el.getAttribute('data-settings');
 +	if (rawNlsConfig) {
 +		try {
 +			const nlsConfig: NLSConfig = JSON.parse(rawNlsConfig);
@@ -133,147 +51,73 @@ index 07759dffe5..9148d7c1f0 100644
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
-index 3ae24454cb..d637d02855 100644
+index 3ae24454cb..fac8679290 100644
 --- a/src/vs/base/node/languagePacks.js
 +++ b/src/vs/base/node/languagePacks.js
-@@ -146,7 +146,7 @@ function factory(nodeRequire, path, fs, perf) {
+@@ -146,7 +146,10 @@ function factory(nodeRequire, path, fs, perf) {
  	function getLanguagePackConfigurations(userDataPath) {
  		const configFile = path.join(userDataPath, 'languagepacks.json');
  		try {
 -			return nodeRequire(configFile);
++			// NOTE@coder: Swapped require with readFile since require is cached and
++			// we don't restart the server-side portion of code-server when the
++			// language changes.
 +			return JSON.parse(fs.readFileSync(configFile, "utf8"));
  		} catch (err) {
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
-diff --git a/src/vs/code/browser/workbench/workbench.html b/src/vs/code/browser/workbench/workbench.html
-index 44f67f0a0b..50d29b1e87 100644
---- a/src/vs/code/browser/workbench/workbench.html
-+++ b/src/vs/code/browser/workbench/workbench.html
-@@ -18,10 +18,12 @@
- 
- 		<!-- Workarounds/Hacks (remote user data uri) -->
- 		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
-+		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
- 
- 		<!-- Workbench Icon/Manifest/CSS -->
--		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
--		<link rel="manifest" href="/manifest.json">
-+		<link rel="icon" href="./favicon.ico" type="image/x-icon" />
-+		<link rel="manifest" href="./manifest.json">
-+		<link rel="apple-touch-icon" href="./static/out/vs/server/src/media/code-server.png" />
- 		<link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.api.css">
- 	</head>
- 
-diff --git a/src/vs/code/browser/workbench/workbench.js b/src/vs/code/browser/workbench/workbench.js
-index 2f09f53e43..0f5eef1c9e 100644
---- a/src/vs/code/browser/workbench/workbench.js
-+++ b/src/vs/code/browser/workbench/workbench.js
-@@ -8,24 +8,53 @@
- 
- (function () {
- 
-+	const basePath = window.location.pathname.replace(/\/+$/, '');
-+	const base = window.location.origin  + basePath;
-+	const options = JSON.parse(document.getElementById('vscode-workbench-web-configuration').getAttribute('data-settings'));
-+	options.webviewEndpoint = `${base}/webview/`;
-+	let nlsConfig;
-+	try {
-+		nlsConfig = JSON.parse(document.getElementById('vscode-remote-nls-configuration').getAttribute('data-settings'));
-+		if (nlsConfig._resolvedLanguagePackCoreLocation) {
-+			const bundles = Object.create(null);
-+			nlsConfig.loadBundle = (bundle, language, cb) => {
-+				let result = bundles[bundle];
-+				if (result) {
-+					return cb(undefined, result);
-+				}
-+				// FIXME: Only works if path separators are /.
-+				const path = nlsConfig._resolvedLanguagePackCoreLocation
-+							+ '/' + bundle.replace(/\//g, '!') + '.nls.json';
-+				fetch(`${base}/resource/?path=${encodeURIComponent(path)}`)
-+					.then((response) => response.json())
-+					.then((json) => {
-+						bundles[bundle] = json;
-+						cb(undefined, json);
-+					})
-+					.catch(cb);
-+			};
-+		}
-+	} catch (error) { /* Probably fine. */ }
-+
- 	/** @type any */
- 	const amdLoader = require;
- 
-+	const staticBase = base + `/static${options.productConfiguration && options.productConfiguration.commit ? `-${options.productConfiguration.commit}` : ''}`;
- 	amdLoader.config({
--		baseUrl: `${window.location.origin}/static/out`,
-+		baseUrl: `${staticBase}/out`,
- 		paths: {
--			'vscode-textmate': `${window.location.origin}/static/node_modules/vscode-textmate/release/main`,
--			'onigasm-umd': `${window.location.origin}/static/node_modules/onigasm-umd/release/main`,
--			'xterm': `${window.location.origin}/static/node_modules/xterm/lib/xterm.js`,
--			'xterm-addon-search': `${window.location.origin}/static/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
--			'xterm-addon-web-links': `${window.location.origin}/static/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
--			'semver-umd': `${window.location.origin}/static/node_modules/semver-umd/lib/semver-umd.js`,
--			'@microsoft/applicationinsights-web': `${window.location.origin}/static/node_modules/@microsoft/applicationinsights-web/dist/applicationinsights-web.js`,
--		}
-+			'vscode-textmate': `${staticBase}/node_modules/vscode-textmate/release/main`,
-+			'onigasm-umd': `${staticBase}/node_modules/onigasm-umd/release/main`,
-+			'xterm': `${staticBase}/node_modules/xterm/lib/xterm.js`,
-+			'xterm-addon-search': `${staticBase}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
-+			'xterm-addon-web-links': `${staticBase}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
-+			'semver-umd': `${staticBase}/node_modules/semver-umd/lib/semver-umd.js`,
-+			'@microsoft/applicationinsights-web': `${staticBase}/node_modules/@microsoft/applicationinsights-web/dist/applicationinsights-web.js`,
-+		},
-+		'vs/nls': nlsConfig
- 	});
- 
- 	amdLoader(['vs/workbench/workbench.web.api'], function (api) {
--		const options = JSON.parse(document.getElementById('vscode-workbench-web-configuration').getAttribute('data-settings'));
- 		api.create(document.body, options);
- 	});
- })();
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
-index 3b45568e1b..aebe04ccfe 100644
+index 990755c4f3..06449bb9cb 100644
 --- a/src/vs/platform/environment/common/environment.ts
 +++ b/src/vs/platform/environment/common/environment.ts
-@@ -82,6 +82,8 @@ export interface ParsedArgs {
- 
- 	// Web flags
- 	'web-user-data-dir'?: string;
-+	'extra-extensions-dir'?: string | string[];
-+	'extra-builtin-extensions-dir'?: string | string[];
- }
- 
- export const IEnvironmentService = createDecorator<IEnvironmentService>('environmentService');
-@@ -162,4 +164,6 @@ export interface IEnvironmentService {
+@@ -36,6 +36,8 @@ export interface ParsedArgs {
+ 	logExtensionHostCommunication?: boolean;
+ 	'extensions-dir'?: string;
+ 	'builtin-extensions-dir'?: string;
++	'extra-extensions-dir'?: string[];
++	'extra-builtin-extensions-dir'?: string[];
+ 	extensionDevelopmentPath?: string[]; // // undefined or array of 1 or more local paths or URIs
+ 	extensionTestsPath?: string; // either a local path or a URI
+ 	'extension-development-confirm-save'?: boolean;
+@@ -169,4 +171,6 @@ export interface IEnvironmentService {
  	driverVerbose: boolean;
  
  	galleryMachineIdResource?: URI;
 +	extraExtensionPaths: string[];
 +	extraBuiltinExtensionPaths: string[];
  }
+diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
+index 3e48fe4ddd..e0962b8736 100644
+--- a/src/vs/platform/environment/node/argv.ts
++++ b/src/vs/platform/environment/node/argv.ts
+@@ -58,6 +58,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
+ 
+ 	'extensions-dir': { type: 'string', deprecates: 'extensionHomePath', cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
+ 	'builtin-extensions-dir': { type: 'string' },
++	'extra-builtin-extensions-dir': { type: 'string[]', cat: 'o', description: 'Path to an extra builtin extension directory.' },
++	'extra-extensions-dir': { type: 'string[]', cat: 'o', description: 'Path to an extra user extension directory.' },
+ 	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
+ 	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
+ 	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index a07c4c8f48..028ed19657 100644
+index f7d207009d..5c37b52dab 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
-@@ -264,6 +264,15 @@ export class EnvironmentService implements IEnvironmentService {
+@@ -260,6 +260,12 @@ export class EnvironmentService implements IEnvironmentService {
  
  	get driverHandle(): string | undefined { return this._args['driver']; }
  	get driverVerbose(): boolean { return !!this._args['driver-verbose']; }
 +	@memoize get extraExtensionPaths(): string[] {
-+		return this.arrayify(this._args['extra-extensions-dir']).map((p) => <string>parsePathArg(p, process));
++		return (this._args['extra-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
 +	}
 +	@memoize get extraBuiltinExtensionPaths(): string[] {
-+		return this.arrayify(this._args['extra-builtin-extensions-dir']).map((p) => <string>parsePathArg(p, process));
-+	}
-+	private arrayify<T>(arg: T | T[] = []): T[] {
-+		return (Array.isArray(arg) ? arg : [arg]).filter((p) => !!p);
++		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
 +	}
  
  	constructor(private _args: ParsedArgs, private _execPath: string) {
  		if (!process.env['VSCODE_LOGS']) {
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index 7d0b568fc7..23ab257b42 100644
+index f0eaa74a59..3abf9e1752 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 @@ -731,11 +731,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
@@ -291,7 +135,7 @@ index 7d0b568fc7..23ab257b42 100644
 +				.map((path) => this.scanExtensions(path, ExtensionType.System))
 +		]).then((results) => {
 +			const result = results.reduce((flat, current) => flat.concat(current), []);
-+			this.logService.info('Scanned system extensions:', result.length);
++			this.logService.trace('Scanned system extensions:', result.length);
 +			return result;
 +		});
  		if (this.environmentService.isBuilt) {
@@ -346,167 +190,113 @@ index 7d0b568fc7..23ab257b42 100644
  			.then(extensions => {
  				const toRemove: ILocalExtension[] = [];
  
-diff --git a/src/vs/platform/localizations/electron-browser/localizationsService.ts b/src/vs/platform/localizations/electron-browser/localizationsService.ts
-index add4dfb2fc..18fc71df51 100644
---- a/src/vs/platform/localizations/electron-browser/localizationsService.ts
-+++ b/src/vs/platform/localizations/electron-browser/localizationsService.ts
-@@ -6,7 +6,7 @@
- import { IChannel } from 'vs/base/parts/ipc/common/ipc';
- import { Event } from 'vs/base/common/event';
- import { ILocalizationsService, LanguageType } from 'vs/platform/localizations/common/localizations';
--import { ISharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
-+import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
- import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
- 
- export class LocalizationsService implements ILocalizationsService {
-@@ -15,8 +15,8 @@ export class LocalizationsService implements ILocalizationsService {
- 
- 	private channel: IChannel;
- 
--	constructor(@ISharedProcessService sharedProcessService: ISharedProcessService) {
--		this.channel = sharedProcessService.getChannel('localizations');
-+	constructor(@IRemoteAgentService remoteAgentService: IRemoteAgentService) {
-+		this.channel = remoteAgentService.getConnection()!.getChannel('localizations');
+diff --git a/src/vs/platform/product/common/product.ts b/src/vs/platform/product/common/product.ts
+index 2de51e8d32..837770990e 100644
+--- a/src/vs/platform/product/common/product.ts
++++ b/src/vs/platform/product/common/product.ts
+@@ -22,10 +22,16 @@ if (isWeb) {
+ 	if (Object.keys(product).length === 0) {
+ 		assign(product, {
+ 			version: '1.39.0-dev',
++			codeServerVersion: 'dev',
+ 			nameLong: 'Visual Studio Code Web Dev',
+ 			nameShort: 'VSCode Web Dev'
+ 		});
  	}
- 
- 	get onDidLanguagesChange(): Event<void> { return this.channel.listen('onDidLanguagesChange'); }
-diff --git a/src/vs/platform/log/common/logIpc.ts b/src/vs/platform/log/common/logIpc.ts
-index 9f68b645b6..1e224cc29a 100644
---- a/src/vs/platform/log/common/logIpc.ts
-+++ b/src/vs/platform/log/common/logIpc.ts
-@@ -26,6 +26,7 @@ export class LogLevelSetterChannel implements IServerChannel {
- 	call(_: unknown, command: string, arg?: any): Promise<any> {
- 		switch (command) {
- 			case 'setLevel': this.service.setLevel(arg); return Promise.resolve();
-+			case 'getLevel': return Promise.resolve(this.service.getLevel());
- 		}
- 
- 		throw new Error(`Call not found: ${command}`);
-@@ -43,6 +44,10 @@ export class LogLevelSetterChannelClient {
- 	setLevel(level: LogLevel): void {
- 		this.channel.call('setLevel', level);
- 	}
-+
-+	getLevel(): Promise<LogLevel> {
-+		return this.channel.call('getLevel');
++	const el = document.getElementById('vscode-remote-product-configuration');
++	const rawProductConfiguration = el && el.getAttribute('data-settings');
++	if (rawProductConfiguration) {
++		assign(product, JSON.parse(rawProductConfiguration));
 +	}
  }
  
- export class FollowerLogService extends DelegatedLogService implements ILogService {
-diff --git a/src/vs/platform/product/node/package.ts b/src/vs/platform/product/node/package.ts
-index d39c5877d6..c189d6f19f 100644
---- a/src/vs/platform/product/node/package.ts
-+++ b/src/vs/platform/product/node/package.ts
-@@ -9,6 +9,7 @@ import { getPathFromAmdModule } from 'vs/base/common/amd';
- export interface IPackageConfiguration {
- 	name: string;
- 	version: string;
-+	codeServerVersion: string;
+ // Node: AMD loader
+@@ -35,7 +41,7 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+ 	const rootPath = path.dirname(getPathFromAmdModule(require, ''));
+ 
+ 	product = assign({}, require.__$__nodeRequire(path.join(rootPath, 'product.json')) as IProductConfiguration);
+-	const pkg = require.__$__nodeRequire(path.join(rootPath, 'package.json')) as { version: string; };
++	const pkg = require.__$__nodeRequire(path.join(rootPath, 'package.json')) as { version: string; codeServerVersion: string; };
+ 
+ 	// Running out of sources
+ 	if (env['VSCODE_DEV']) {
+@@ -47,7 +53,8 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+ 	}
+ 
+ 	assign(product, {
+-		version: pkg.version
++		version: pkg.version,
++		codeServerVersion: pkg.codeServerVersion,
+ 	});
  }
  
- const rootPath = path.dirname(getPathFromAmdModule(require, ''));
+diff --git a/src/vs/platform/product/common/productService.ts b/src/vs/platform/product/common/productService.ts
+index 5aa5c32d7e..e4e7fd4174 100644
+--- a/src/vs/platform/product/common/productService.ts
++++ b/src/vs/platform/product/common/productService.ts
+@@ -15,6 +15,7 @@ export interface IProductService extends Readonly<IProductConfiguration> {
+ 
+ export interface IProductConfiguration {
+ 	readonly version: string;
++	readonly codeServerVersion: string;
+ 	readonly date?: string;
+ 	readonly quality?: string;
+ 	readonly commit?: string;
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
-index 6b24ec0781..43dd9c12c8 100644
+index d0f6e6b18a..1966fd297d 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -133,7 +133,7 @@ export class BrowserSocketFactory implements ISocketFactory {
+@@ -205,7 +205,8 @@ export class BrowserSocketFactory implements ISocketFactory {
  	}
  
  	connect(host: string, port: number, query: string, callback: IConnectCallback): void {
 -		const socket = this._webSocketFactory.create(`ws://${host}:${port}/?${query}&skipWebSocketFrames=false`);
++		// NOTE@coder: Modified to work against the current path.
 +		const socket = this._webSocketFactory.create(`${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}${window.location.pathname}?${query}&skipWebSocketFrames=false`);
  		const errorListener = socket.onError((err) => callback(err, undefined));
  		socket.onOpen(() => {
  			errorListener.dispose();
-@@ -141,6 +141,3 @@ export class BrowserSocketFactory implements ISocketFactory {
+@@ -213,6 +214,3 @@ export class BrowserSocketFactory implements ISocketFactory {
  		});
  	}
  }
 -
 -
 -
-diff --git a/src/vs/platform/update/electron-browser/updateService.ts b/src/vs/platform/update/electron-browser/updateService.ts
-index bd8fa6cc18..cf6108a57b 100644
---- a/src/vs/platform/update/electron-browser/updateService.ts
-+++ b/src/vs/platform/update/electron-browser/updateService.ts
-@@ -6,7 +6,7 @@
- import { IChannel } from 'vs/base/parts/ipc/common/ipc';
- import { Event, Emitter } from 'vs/base/common/event';
- import { IUpdateService, State } from 'vs/platform/update/common/update';
--import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
-+import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
- import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
- 
- export class UpdateService implements IUpdateService {
-@@ -21,8 +21,8 @@ export class UpdateService implements IUpdateService {
- 
- 	private channel: IChannel;
- 
--	constructor(@IMainProcessService mainProcessService: IMainProcessService) {
--		this.channel = mainProcessService.getChannel('update');
-+	constructor(@IRemoteAgentService mainProcessService: IRemoteAgentService) {
-+		this.channel = mainProcessService.getConnection()!.getChannel('update');
- 
- 		// always set this._state as the state changes
- 		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
-index d789bf4e09..e25c9c9d6a 100644
+index 8a1c95d37b..8225a85d47 100644
 --- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
 +++ b/src/vs/platform/update/electron-main/abstractUpdateService.ts
 @@ -6,7 +6,6 @@
  import { Event, Emitter } from 'vs/base/common/event';
  import { timeout } from 'vs/base/common/async';
  import { IConfigurationService, getMigratedSettingValue } from 'vs/platform/configuration/common/configuration';
--import { ILifecycleService } from 'vs/platform/lifecycle/electron-main/lifecycleMain';
- import product from 'vs/platform/product/node/product';
+-import { ILifecycleMainService } from 'vs/platform/lifecycle/electron-main/lifecycleMainService';
+ import product from 'vs/platform/product/common/product';
  import { IUpdateService, State, StateType, AvailableForDownload, UpdateType } from 'vs/platform/update/common/update';
  import { IEnvironmentService } from 'vs/platform/environment/common/environment';
 @@ -44,7 +43,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
  	}
  
  	constructor(
--		@ILifecycleService private readonly lifecycleService: ILifecycleService,
-+		_placeholder: any, // To prevent errors from the extending classes.
+-		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
++		_: any, // NOTE@coder: This depends on Electron so we skip it.
  		@IConfigurationService protected configurationService: IConfigurationService,
  		@IEnvironmentService private readonly environmentService: IEnvironmentService,
  		@IRequestService protected requestService: IRequestService,
-@@ -55,7 +54,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
- 			return;
- 		}
- 
--		if (!product.updateUrl || !product.commit) {
-+		if (!product.commit) {
- 			this.logService.info('update#ctor - updates are disabled as there is no update URL');
- 			return;
- 		}
-@@ -93,7 +92,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
- 	}
- 
- 	private getProductQuality(updateMode: string): string | undefined {
--		return updateMode === 'none' ? undefined : product.quality;
-+		return updateMode === 'none' ? undefined : 'unused';
- 	}
- 
- 	private scheduleCheckForUpdates(delay = 60 * 60 * 1000): Promise<void> {
-@@ -152,15 +151,15 @@ export abstract class AbstractUpdateService implements IUpdateService {
+@@ -152,15 +151,8 @@ export abstract class AbstractUpdateService implements IUpdateService {
  
  		this.logService.trace('update#quitAndInstall(): before lifecycle quit()');
  
--		this.lifecycleService.quit(true /* from update */).then(vetod => {
+-		this.lifecycleMainService.quit(true /* from update */).then(vetod => {
 -			this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
 -			if (vetod) {
 -				return;
 -			}
-+		// this.lifecycleService.quit(true /* from update */).then(vetod => {
-+		// 	this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
-+		// 	if (vetod) {
-+		// 		return;
-+		// 	}
- 
+-
  			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
  			this.doQuitAndInstall();
 -		});
-+		// });
  
  		return Promise.resolve(undefined);
  	}
@@ -523,10 +313,10 @@ index 2905c52411..303ddf211f 100644
  export class ExtensionPoints implements IWorkbenchContribution {
  
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index c5fd74ffe7..e972b03f79 100644
+index 230d09a290..84753e6ac7 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
-@@ -68,6 +68,7 @@ import { ILogService } from 'vs/platform/log/common/log';
+@@ -67,6 +67,7 @@ import { ILogService } from 'vs/platform/log/common/log';
  import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransformerService';
  import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
  import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitDataService';
@@ -534,7 +324,7 @@ index c5fd74ffe7..e972b03f79 100644
  
  export interface IExtensionApiFactory {
  	(extension: IExtensionDescription, registry: ExtensionDescriptionRegistry, configProvider: ExtHostConfigProvider): typeof vscode;
-@@ -87,6 +88,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -86,6 +87,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	const rpcProtocol = accessor.get(IExtHostRpcService);
  	const extHostStorage = accessor.get(IExtHostStorage);
  	const extHostLogService = accessor.get(ILogService);
@@ -542,7 +332,7 @@ index c5fd74ffe7..e972b03f79 100644
  
  	// register addressable instances
  	rpcProtocol.set(ExtHostContext.ExtHostLogService, <ExtHostLogServiceShape><any>extHostLogService);
-@@ -94,6 +96,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -93,6 +95,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	rpcProtocol.set(ExtHostContext.ExtHostConfiguration, extHostConfiguration);
  	rpcProtocol.set(ExtHostContext.ExtHostExtensionService, extensionService);
  	rpcProtocol.set(ExtHostContext.ExtHostStorage, extHostStorage);
@@ -551,10 +341,10 @@ index c5fd74ffe7..e972b03f79 100644
  	// automatically create and register addressable instances
  	const extHostDecorations = rpcProtocol.set(ExtHostContext.ExtHostDecorations, accessor.get(IExtHostDecorations));
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index a6ac9b8086..c0027b8f74 100644
+index 7bd6aa6cb7..7c28136366 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
-@@ -614,6 +614,10 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+@@ -627,6 +627,10 @@ export interface MainThreadLabelServiceShape extends IDisposable {
  	$unregisterResourceLabelFormatter(handle: number): void;
  }
  
@@ -565,7 +355,7 @@ index a6ac9b8086..c0027b8f74 100644
  export interface MainThreadSearchShape extends IDisposable {
  	$registerFileSearchProvider(handle: number, scheme: string): void;
  	$registerTextSearchProvider(handle: number, scheme: string): void;
-@@ -844,6 +848,13 @@ export interface ExtHostLabelServiceShape {
+@@ -860,6 +864,13 @@ export interface ExtHostLabelServiceShape {
  	$registerResourceLabelFormatter(formatter: ResourceLabelFormatter): IDisposable;
  }
  
@@ -579,7 +369,7 @@ index a6ac9b8086..c0027b8f74 100644
  export interface ExtHostSearchShape {
  	$provideFileSearchResults(handle: number, session: number, query: search.IRawQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
  	$provideTextSearchResults(handle: number, session: number, query: search.IRawTextQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
-@@ -1351,7 +1362,8 @@ export const MainContext = {
+@@ -1384,7 +1395,8 @@ export const MainContext = {
  	MainThreadSearch: createMainId<MainThreadSearchShape>('MainThreadSearch'),
  	MainThreadTask: createMainId<MainThreadTaskShape>('MainThreadTask'),
  	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
@@ -589,7 +379,7 @@ index a6ac9b8086..c0027b8f74 100644
  };
  
  export const ExtHostContext = {
-@@ -1385,5 +1397,6 @@ export const ExtHostContext = {
+@@ -1418,5 +1430,6 @@ export const ExtHostContext = {
  	ExtHostStorage: createMainId<ExtHostStorageShape>('ExtHostStorage'),
  	ExtHostUrls: createExtId<ExtHostUrlsShape>('ExtHostUrls'),
  	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
@@ -598,7 +388,7 @@ index a6ac9b8086..c0027b8f74 100644
 +	ExtHostNodeProxy: createMainId<ExtHostNodeProxyShape>('ExtHostNodeProxy')
  };
 diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
-index 8c903a6027..7199c1e467 100644
+index b5ce835e07..22be8516c1 100644
 --- a/src/vs/workbench/api/common/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/common/extHostExtensionService.ts
 @@ -5,7 +5,7 @@
@@ -618,7 +408,7 @@ index 8c903a6027..7199c1e467 100644
  
  interface ITestRunner {
  	/** Old test runner API, as exported from `vscode/lib/testrunner` */
-@@ -75,6 +76,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -76,6 +77,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  	protected readonly _extHostWorkspace: ExtHostWorkspace;
  	protected readonly _extHostConfiguration: ExtHostConfiguration;
  	protected readonly _logService: ILogService;
@@ -626,7 +416,7 @@ index 8c903a6027..7199c1e467 100644
  
  	protected readonly _mainThreadWorkspaceProxy: MainThreadWorkspaceShape;
  	protected readonly _mainThreadTelemetryProxy: MainThreadTelemetryShape;
-@@ -103,7 +105,8 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -104,7 +106,8 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  		@IExtHostConfiguration extHostConfiguration: IExtHostConfiguration,
  		@ILogService logService: ILogService,
  		@IExtHostInitDataService initData: IExtHostInitDataService,
@@ -636,7 +426,7 @@ index 8c903a6027..7199c1e467 100644
  	) {
  		this._hostUtils = hostUtils;
  		this._extHostContext = extHostContext;
-@@ -112,6 +115,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -113,6 +116,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  		this._extHostWorkspace = extHostWorkspace;
  		this._extHostConfiguration = extHostConfiguration;
  		this._logService = logService;
@@ -644,17 +434,15 @@ index 8c903a6027..7199c1e467 100644
  		this._disposables = new DisposableStore();
  
  		this._mainThreadWorkspaceProxy = this._extHostContext.getProxy(MainContext.MainThreadWorkspace);
-@@ -331,15 +335,15 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
- 		this._logService.info(`ExtensionService#_doActivateExtension ${extensionDescription.identifier.value} ${JSON.stringify(reason)}`);
+@@ -331,14 +335,14 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  
  		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
--		return Promise.all<any>([
--			this._loadCommonJSModule(joinPath(extensionDescription.extensionLocation, extensionDescription.main), activationTimesBuilder),
-+		return Promise.all([
+ 		return Promise.all([
+-			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, extensionDescription.main), activationTimesBuilder),
 +			this._loadCommonJSModule<IExtensionModule>(extensionDescription, activationTimesBuilder),
  			this._loadExtensionContext(extensionDescription)
  		]).then(values => {
- 			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, <IExtensionModule>values[0], <IExtensionContext>values[1], activationTimesBuilder);
+ 			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, values[0], values[1], activationTimesBuilder);
  		});
  	}
  
@@ -697,7 +485,7 @@ index a227d8a67b..92553a976c 100644
 +}
 +registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy(IExtHostNodeProxy) {});
 diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
-index 8e96e6738e..5a3a48101a 100644
+index 49a8e254fd..99d233aed5 100644
 --- a/src/vs/workbench/api/node/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/node/extHostExtensionService.ts
 @@ -13,6 +13,8 @@ import { ExtHostDownloadService } from 'vs/workbench/api/node/extHostDownloadSer
@@ -722,24 +510,25 @@ index 8e96e6738e..5a3a48101a 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index 4fcb6db76f..b6c92528f4 100644
+index afd82468c0..67d938e9ab 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
-@@ -10,6 +10,9 @@ import { endsWith, startsWith } from 'vs/base/common/strings';
+@@ -9,6 +9,10 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
+ import { endsWith } from 'vs/base/common/strings';
  import { URI } from 'vs/base/common/uri';
- import { joinPath } from 'vs/base/common/resources';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
++import { joinPath } from 'vs/base/common/resources';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 +import { fromTar } from 'vs/server/node_modules/@coder/requirefs/out/requirefs';
 +import { Client } from 'vs/server/node_modules/@coder/node-browser/out/client/client';
  
- class ExportsTrap {
+ class WorkerRequireInterceptor extends RequireInterceptor {
  
-@@ -105,7 +108,44 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -41,7 +45,48 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		await this._fakeModules.install();
  	}
  
--	protected _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
+-	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +		if (!URI.isUri(module) && module.extensionKind !== 'web') {
 +			const fetchUri = URI.from({
@@ -778,37 +567,40 @@ index 4fcb6db76f..b6c92528f4 100644
 +			});
 +			return rfs.require('.');
 +		}
- 
- 		(<any>self).window = self; // <- that's improper but might help extensions that aren't authored correctly
- 
-@@ -132,6 +172,9 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
- 
- 			return trap.claim();
- 		};
++
 +		if (!URI.isUri(module)) {
 +			module = joinPath(module.extensionLocation, module.main!);
 +		}
  
- 		try {
- 			activationTimesBuilder.codeLoadingStart();
+ 		module = module.with({ path: ensureSuffix(module.path, '.js') });
+ 		const response = await fetch(module.toString(true));
+@@ -57,7 +102,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+ 		const _exports = {};
+ 		const _module = { exports: _exports };
+ 		const _require = (request: string) => {
+-			const result = this._fakeModules.getModule(request, module);
++			const result = this._fakeModules.getModule(request, <URI>module);
+ 			if (result === undefined) {
+ 				throw new Error(`Cannot load module '${request}'`);
+ 			}
 diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index b99f800164..bf44f1d9c4 100644
+index 005a025aa9..ab392630c0 100644
 --- a/src/vs/workbench/browser/dnd.ts
 +++ b/src/vs/workbench/browser/dnd.ts
-@@ -32,6 +32,7 @@ import { IRecentFile } from 'vs/platform/history/common/history';
- import { IWorkspaceEditingService } from 'vs/workbench/services/workspace/common/workspaceEditing';
+@@ -32,6 +32,7 @@ import { IWorkspaceEditingService } from 'vs/workbench/services/workspaces/commo
  import { withNullAsUndefined } from 'vs/base/common/types';
  import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+ import { IHostService } from 'vs/workbench/services/host/browser/host';
 +import { IUploadService } from 'vs/server/src/browser/upload';
  
  export interface IDraggedResource {
  	resource: URI;
-@@ -166,14 +167,15 @@ export class ResourcesDropHandler {
- 		@IUntitledEditorService private readonly untitledEditorService: IUntitledEditorService,
+@@ -167,14 +168,15 @@ export class ResourcesDropHandler {
  		@IEditorService private readonly editorService: IEditorService,
  		@IConfigurationService private readonly configurationService: IConfigurationService,
--		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService
-+		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
+ 		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
+-		@IHostService private readonly hostService: IHostService
++		@IHostService private readonly hostService: IHostService,
 +		@IUploadService private readonly uploadService: IUploadService,
  	) {
  	}
@@ -821,57 +613,27 @@ index b99f800164..bf44f1d9c4 100644
  		}
  
  		// Make the window active to handle the drop properly within
-diff --git a/src/vs/workbench/browser/layout.ts b/src/vs/workbench/browser/layout.ts
-index 2e1e63986f..563c4b2472 100644
---- a/src/vs/workbench/browser/layout.ts
-+++ b/src/vs/workbench/browser/layout.ts
-@@ -260,7 +260,7 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
- 		if (visible !== this.state.menuBar.toggled) {
- 			this.state.menuBar.toggled = visible;
- 
--			if (this.state.fullscreen && (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default')) {
-+			if (this.state.menuBar.visibility === 'toggle' || (this.state.fullscreen && this.state.menuBar.visibility === 'default')) {
- 				this._onTitleBarVisibilityChange.fire();
- 
- 				if (this.workbenchGrid instanceof SerializableGrid) {
-@@ -563,13 +563,13 @@ export abstract class Layout extends Disposable implements IWorkbenchLayoutServi
- 			case Parts.TITLEBAR_PART:
- 				if (getTitleBarStyle(this.configurationService, this.environmentService) === 'native') {
- 					return false;
--				} else if (!this.state.fullscreen) {
--					return true;
-+				} else if (this.state.menuBar.visibility === 'default') {
-+					return !this.state.fullscreen || this.state.menuBar.toggled;
- 				} else if (isMacintosh && isNative) {
- 					return false;
- 				} else if (this.state.menuBar.visibility === 'visible') {
- 					return true;
--				} else if (this.state.menuBar.visibility === 'toggle' || this.state.menuBar.visibility === 'default') {
-+				} else if (this.state.menuBar.visibility === 'toggle') {
- 					return this.state.menuBar.toggled;
- 				}
- 
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index f5944ce974..66bedce55c 100644
+index 84c46faa36..957e8412e1 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
-@@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
- import { toLocalISOString } from 'vs/base/common/date';
+@@ -48,6 +48,7 @@ import { toLocalISOString } from 'vs/base/common/date';
  import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedDBLogProvider';
  import { InMemoryLogProvider } from 'vs/workbench/services/log/common/inMemoryLogProvider';
+ import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
 +import { initialize } from 'vs/server/src/browser/client';
  
- class CodeRendererMain extends Disposable {
+ class BrowserMain extends Disposable {
  
-@@ -94,6 +95,7 @@ class CodeRendererMain extends Disposable {
+@@ -84,6 +85,7 @@ class BrowserMain extends Disposable {
  
  		// Startup
  		workbench.startup();
 +		await initialize(services.serviceCollection);
  	}
  
- 	private restoreBaseTheme(): void {
-@@ -204,6 +206,7 @@ class CodeRendererMain extends Disposable {
+ 	private registerListeners(workbench: Workbench, storageService: BrowserStorageService): void {
+@@ -238,6 +240,7 @@ class BrowserMain extends Disposable {
  			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
  			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
@@ -879,69 +641,11 @@ index f5944ce974..66bedce55c 100644
  
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
-diff --git a/src/vs/workbench/browser/web.simpleservices.ts b/src/vs/workbench/browser/web.simpleservices.ts
-index 895a8a0393..e9fa627fba 100644
---- a/src/vs/workbench/browser/web.simpleservices.ts
-+++ b/src/vs/workbench/browser/web.simpleservices.ts
-@@ -33,6 +33,7 @@ import { localize } from 'vs/nls';
- import { IClipboardService } from 'vs/platform/clipboard/common/clipboardService';
- // tslint:disable-next-line: import-patterns
- import { IWorkspaceStatsService, Tags } from 'vs/workbench/contrib/stats/common/workspaceStats';
-+import { withQuery } from 'vs/server/src/browser/client';
- 
- //#region Update
- 
-@@ -64,7 +65,7 @@ export class SimpleUpdateService implements IUpdateService {
- 	}
- }
- 
--registerSingleton(IUpdateService, SimpleUpdateService);
-+// registerSingleton(IUpdateService, SimpleUpdateService);
- 
- //#endregion
- 
-@@ -285,7 +286,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
- 		for (let i = 0; i < _uris.length; i++) {
- 			const uri = _uris[i];
- 			if ('folderUri' in uri) {
--				const newAddress = `${document.location.origin}/?folder=${uri.folderUri.path}`;
-+				const newAddress = withQuery(window.location.toString(), {
-+					folder: uri.folderUri.path,
-+					workspace: undefined,
-+				});
- 				if (openFolderInNewWindow) {
- 					window.open(newAddress);
- 				} else {
-@@ -293,7 +297,10 @@ export class SimpleWindowService extends Disposable implements IWindowService {
- 				}
- 			}
- 			if ('workspaceUri' in uri) {
--				const newAddress = `${document.location.origin}/?workspace=${uri.workspaceUri.path}`;
-+				const newAddress = withQuery(window.location.toString(), {
-+					folder: undefined,
-+					workspace: uri.workspaceUri.path,
-+				});
- 				if (openFolderInNewWindow) {
- 					window.open(newAddress);
- 				} else {
-diff --git a/src/vs/workbench/buildfile.web.js b/src/vs/workbench/buildfile.web.js
-index 47a8453302..4a7a8c7775 100644
---- a/src/vs/workbench/buildfile.web.js
-+++ b/src/vs/workbench/buildfile.web.js
-@@ -20,5 +20,8 @@ function createModuleDescription(name, exclude) {
- exports.collectModules = function () {
- 	return [
- 		createModuleDescription('vs/workbench/contrib/output/common/outputLinkComputer', ['vs/base/common/worker/simpleWorker', 'vs/editor/common/services/editorSimpleWorker']),
-+		createModuleDescription('vs/platform/files/node/watcher/unix/watcherApp', []),
-+		createModuleDescription('vs/platform/files/node/watcher/nsfw/watcherApp', []),
-+		createModuleDescription('vs/workbench/services/extensions/node/extensionHostProcess', []),
- 	];
- };
 diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
-index 19fcd5b0ac..30df54ac1a 100644
+index 1f4cd95f65..061931cbde 100644
 --- a/src/vs/workbench/contrib/files/browser/files.contribution.ts
 +++ b/src/vs/workbench/contrib/files/browser/files.contribution.ts
-@@ -224,7 +224,7 @@ configurationRegistry.registerConfiguration({
+@@ -209,7 +209,7 @@ configurationRegistry.registerConfiguration({
  		'files.exclude': {
  			'type': 'object',
  			'markdownDescription': nls.localize('exclude', "Configure glob patterns for excluding files and folders. For example, the files explorer decides which files and folders to show or hide based on this setting. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options)."),
@@ -951,7 +655,7 @@ index 19fcd5b0ac..30df54ac1a 100644
  			'additionalProperties': {
  				'anyOf': [
 diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-index 0c368120df..6396d2316b 100644
+index cc4bcb28c5..98679a8b32 100644
 --- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 +++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
 @@ -47,6 +47,7 @@ import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/work
@@ -962,362 +666,51 @@ index 0c368120df..6396d2316b 100644
  
  export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
  
-@@ -450,7 +451,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+@@ -444,7 +445,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
  		@IInstantiationService private instantiationService: IInstantiationService,
  		@ITextFileService private textFileService: ITextFileService,
- 		@IWindowService private windowService: IWindowService,
+ 		@IHostService private hostService: IHostService,
 -		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService
 +		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
 +		@IUploadService private readonly uploadService: IUploadService,
  	) {
  		this.toDispose = [];
  
-@@ -612,6 +614,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
- 
+@@ -605,6 +607,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
+ 	}
  
  	private async handleExternalDrop(data: DesktopDragAndDropData, target: ExplorerItem, originalEvent: DragEvent): Promise<void> {
 +		return this.uploadService.handleExternalDrop(data, target, originalEvent);
  		const droppedResources = extractResources(originalEvent, true);
  		// Check for dropped external files to be folders
  		const result = await this.fileService.resolveAll(droppedResources);
-diff --git a/src/vs/workbench/contrib/remote/common/remote.contribution.ts b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-index 404f5a2a78..a04c825fa2 100644
---- a/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-+++ b/src/vs/workbench/contrib/remote/common/remote.contribution.ts
-@@ -79,7 +79,8 @@ class RemoteChannelsContribution extends Disposable implements IWorkbenchContrib
- 		const connection = remoteAgentService.getConnection();
- 		if (connection) {
- 			const logLevelClient = new LogLevelSetterChannelClient(connection.getChannel('loglevel'));
--			logLevelClient.setLevel(logService.getLevel());
-+			logLevelClient.getLevel().then((level) => logService.setLevel(level));
-+			logLevelClient.onDidChangeLogLevel((level) => logService.setLevel(level));
- 			this._register(logService.onDidChangeLogLevel(level => logLevelClient.setLevel(level)));
- 		}
- 	}
-diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-index 3534ef147d..773f711863 100644
---- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-+++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorker.ts
-@@ -34,7 +34,8 @@ self.addEventListener('activate', event => {
- //#region --- fetching/caching
- 
- const _cacheName = 'vscode-extension-resources';
--const _resourcePrefix = '/vscode-remote-resource';
-+const rootPath = (<any>self).location.pathname.replace(/\/out\/vs\/workbench\/contrib\/resources\/browser\/resourceServiceWorkerMain.js$/, '');
-+const _resourcePrefix = `${rootPath}/vscode-remote-resources`;
- const _pendingFetch = new Map<string, Function>();
- 
- self.addEventListener('message', event => {
-diff --git a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-index 326dfb49ee..adf72747bd 100644
---- a/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-+++ b/src/vs/workbench/contrib/resources/browser/resourceServiceWorkerClient.ts
-@@ -18,7 +18,11 @@ class ResourceServiceWorker {
- 	constructor(
- 		@ILogService private readonly _logService: ILogService,
- 	) {
--		navigator.serviceWorker.register(ResourceServiceWorker._url, { scope: '/' }).then(reg => {
-+		if (!navigator.serviceWorker) {
-+			console.warn('Service workers are not enabled.');
-+			return;
-+		}
-+		navigator.serviceWorker.register(ResourceServiceWorker._url, { scope: window.location.pathname.replace(/\/+$/, '') }).then(reg => {
- 			this._logService.trace('SW#reg', reg);
- 			return reg.update();
- 		}).then(() => {
-@@ -45,5 +49,3 @@ Registry.as<IWorkbenchContributionsRegistry>(Extensions.Workbench).registerWorkb
- 	ResourceServiceWorker,
- 	LifecyclePhase.Ready
- );
--
--
-diff --git a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
-index e39fa57979..c7e1113846 100644
---- a/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
-+++ b/src/vs/workbench/contrib/update/electron-browser/update.contribution.ts
-@@ -4,26 +4,11 @@
-  *--------------------------------------------------------------------------------------------*/
- 
- import 'vs/platform/update/node/update.config.contribution';
--import * as platform from 'vs/base/common/platform';
- import { Registry } from 'vs/platform/registry/common/platform';
- import { IWorkbenchContributionsRegistry, Extensions as WorkbenchExtensions } from 'vs/workbench/common/contributions';
--import { IWorkbenchActionRegistry, Extensions as ActionExtensions } from 'vs/workbench/common/actions';
--import { SyncActionDescriptor } from 'vs/platform/actions/common/actions';
--import { ShowCurrentReleaseNotesAction, ProductContribution, UpdateContribution, Win3264BitContribution } from './update';
- import { LifecyclePhase } from 'vs/platform/lifecycle/common/lifecycle';
-+import { UpdateContribution } from 'vs/workbench/contrib/update/electron-browser/update';
- 
- const workbench = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
- 
--workbench.registerWorkbenchContribution(ProductContribution, LifecyclePhase.Restored);
--
--if (platform.isWindows) {
--	if (process.arch === 'ia32') {
--		workbench.registerWorkbenchContribution(Win3264BitContribution, LifecyclePhase.Restored);
--	}
--}
--
- workbench.registerWorkbenchContribution(UpdateContribution, LifecyclePhase.Restored);
--
--// Editor
--Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions)
--	.registerWorkbenchAction(new SyncActionDescriptor(ShowCurrentReleaseNotesAction, ShowCurrentReleaseNotesAction.ID, ShowCurrentReleaseNotesAction.LABEL), 'Show Release Notes');
-diff --git a/src/vs/workbench/contrib/update/electron-browser/update.ts b/src/vs/workbench/contrib/update/electron-browser/update.ts
-index d429d21347..32559b70f0 100644
---- a/src/vs/workbench/contrib/update/electron-browser/update.ts
-+++ b/src/vs/workbench/contrib/update/electron-browser/update.ts
-@@ -5,36 +5,24 @@
- 
- import * as nls from 'vs/nls';
- import severity from 'vs/base/common/severity';
--import { Action } from 'vs/base/common/actions';
- import { Disposable, MutableDisposable } from 'vs/base/common/lifecycle';
--import pkg from 'vs/platform/product/node/package';
--import product from 'vs/platform/product/node/product';
--import { URI } from 'vs/base/common/uri';
- import { IActivityService, NumberBadge, IBadge, ProgressBadge } from 'vs/workbench/services/activity/common/activity';
--import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
- import { GLOBAL_ACTIVITY_ID } from 'vs/workbench/common/activity';
--import { IOpenerService } from 'vs/platform/opener/common/opener';
- import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
- import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
- import { IUpdateService, State as UpdateState, StateType, IUpdate } from 'vs/platform/update/common/update';
--import * as semver from 'semver-umd';
--import { IEnvironmentService } from 'vs/platform/environment/common/environment';
- import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
- import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
- import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
--import { ReleaseNotesManager } from './releaseNotesEditor';
--import { isWindows } from 'vs/base/common/platform';
--import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
- import { RawContextKey, IContextKey, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
- import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
- import { CommandsRegistry } from 'vs/platform/commands/common/commands';
- import { FalseContext } from 'vs/platform/contextkey/common/contextkeys';
--import { ShowCurrentReleaseNotesActionId } from 'vs/workbench/contrib/update/common/update';
--import { IWindowService, IWindowsService } from 'vs/platform/windows/common/windows';
-+import { IProductService } from 'vs/platform/product/common/product';
- 
- const CONTEXT_UPDATE_STATE = new RawContextKey<string>('updateState', StateType.Uninitialized);
- 
--let releaseNotesManager: ReleaseNotesManager | undefined = undefined;
-+/*let releaseNotesManager: ReleaseNotesManager | undefined = undefined;
- 
- function showReleaseNotes(instantiationService: IInstantiationService, version: string) {
- 	if (!releaseNotesManager) {
-@@ -190,7 +178,7 @@ export class Win3264BitContribution implements IWorkbenchContribution {
- 			}
- 		);
- 	}
--}
-+}*/
- 
- export class UpdateContribution extends Disposable implements IWorkbenchContribution {
- 
-@@ -200,13 +188,13 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 
- 	constructor(
- 		@IStorageService private readonly storageService: IStorageService,
--		@IInstantiationService private readonly instantiationService: IInstantiationService,
- 		@INotificationService private readonly notificationService: INotificationService,
- 		@IDialogService private readonly dialogService: IDialogService,
- 		@IUpdateService private readonly updateService: IUpdateService,
- 		@IActivityService private readonly activityService: IActivityService,
- 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
--		@IContextKeyService private readonly contextKeyService: IContextKeyService
-+		@IContextKeyService private readonly contextKeyService: IContextKeyService,
-+		@IProductService private readonly productService: IProductService,
- 	) {
- 		super();
- 		this.state = updateService.state;
-@@ -223,7 +211,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 		updated since 5 days.
- 		*/
- 
--		const currentVersion = product.commit;
-+		const currentVersion = this.productService.commit;
- 		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
- 
- 		// if current version != stored version, clear both fields
-@@ -268,9 +256,9 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 		let clazz: string | undefined;
- 
- 		if (state.type === StateType.AvailableForDownload || state.type === StateType.Downloaded || state.type === StateType.Ready) {
--			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
-+			badge = new NumberBadge(1, () => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameShort));
- 		} else if (state.type === StateType.CheckingForUpdates || state.type === StateType.Downloading || state.type === StateType.Updating) {
--			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", product.nameShort));
-+			badge = new ProgressBadge(() => nls.localize('updateIsReady', "New {0} update available.", this.productService.nameShort));
- 			clazz = 'progress-badge';
- 		}
- 
-@@ -316,14 +304,14 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 			}, {
- 				label: nls.localize('later', "Later"),
- 				run: () => { }
--			}, {
-+			}/*, {
- 				label: nls.localize('releaseNotes', "Release Notes"),
- 				run: () => {
- 					const action = this.instantiationService.createInstance(ShowReleaseNotesAction, update.productVersion);
- 					action.run();
- 					action.dispose();
- 				}
--			}],
-+			}*/],
- 			{ sticky: true }
- 		);
- 	}
-@@ -336,35 +324,32 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 
- 		this.notificationService.prompt(
- 			severity.Info,
--			nls.localize('updateAvailable', "There's an update available: {0} {1}", product.nameLong, update.productVersion),
-+			nls.localize('updateAvailable', "There's an update available: {0} {1}", this.productService.nameLong, update.productVersion),
- 			[{
- 				label: nls.localize('installUpdate', "Install Update"),
- 				run: () => this.updateService.applyUpdate()
- 			}, {
- 				label: nls.localize('later', "Later"),
- 				run: () => { }
--			}, {
-+			}/*, {
- 				label: nls.localize('releaseNotes', "Release Notes"),
- 				run: () => {
- 					const action = this.instantiationService.createInstance(ShowReleaseNotesAction, update.productVersion);
- 					action.run();
- 					action.dispose();
- 				}
--			}],
-+			}*/],
- 			{ sticky: true }
- 		);
- 	}
- 
- 	// windows fast updates
- 	private onUpdateUpdating(update: IUpdate): void {
--		if (isWindows && product.target === 'user') {
--			return;
--		}
- 
- 		// windows fast updates (target === system)
- 		this.notificationService.prompt(
- 			severity.Info,
--			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", product.nameLong, update.productVersion),
-+			nls.localize('updateInstalling', "{0} {1} is being installed in the background; we'll let you know when it's done.", this.productService.nameLong, update.productVersion),
- 			[],
- 			{
- 				neverShowAgain: { id: 'neverShowAgain:update/win32-fast-updates', isSecondary: true }
-@@ -374,20 +359,17 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 
- 	// windows and mac
- 	private onUpdateReady(update: IUpdate): void {
--		if (!(isWindows && product.target !== 'user') && !this.shouldShowNotification()) {
--			return;
--		}
- 
- 		const actions = [{
- 			label: nls.localize('updateNow', "Update Now"),
--			run: () => this.updateService.quitAndInstall()
-+			run: () => { this.updateService.quitAndInstall(); window.location.reload(); }
- 		}, {
- 			label: nls.localize('later', "Later"),
- 			run: () => { }
- 		}];
- 
- 		// TODO@joao check why snap updates send `update` as falsy
--		if (update.productVersion) {
-+		/*if (update.productVersion) {
- 			actions.push({
- 				label: nls.localize('releaseNotes', "Release Notes"),
- 				run: () => {
-@@ -396,19 +378,19 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 					action.dispose();
- 				}
- 			});
--		}
-+		}*/
- 
- 		// windows user fast updates and mac
- 		this.notificationService.prompt(
- 			severity.Info,
--			nls.localize('updateAvailableAfterRestart', "Restart {0} to apply the latest update.", product.nameLong),
-+			nls.localize('updateAvailableAfterRestart', "Restart {0} to apply the latest update.", this.productService.nameLong),
- 			actions,
- 			{ sticky: true }
- 		);
- 	}
- 
- 	private shouldShowNotification(): boolean {
--		const currentVersion = product.commit;
-+		const currentVersion = this.productService.commit;
- 		const currentMillis = new Date().getTime();
- 		const lastKnownVersion = this.storageService.get('update/lastKnownVersion', StorageScope.GLOBAL);
- 
-@@ -451,7 +433,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 			group: '5_update',
- 			command: {
- 				id: 'update.downloadNow',
--				title: nls.localize('download update', "Download Update")
-+				title: nls.localize('installUpdate', "Install Update")
- 			},
- 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.AvailableForDownload)
- 		});
-@@ -488,7 +470,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
- 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.Updating)
- 		});
- 
--		CommandsRegistry.registerCommand('update.restart', () => this.updateService.quitAndInstall());
-+		CommandsRegistry.registerCommand('update.restart', () => { this.updateService.quitAndInstall(); window.location.reload(); });
- 		MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
- 			group: '5_update',
- 			command: {
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
-index c97da43b4c..6a66b9435f 100644
+index e6b9fd854b..a3d0a46e3a 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
 +++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -411,7 +411,7 @@
+@@ -308,7 +308,8 @@
+ 			} else {
+ 				// Rewrite vscode-resource in csp
+ 				if (data.endpoint) {
+-					csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:/g, data.endpoint));
++					// NOTE@coder: Add back the trailing slash so it'll work for sub-paths.
++					csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:/g, data.endpoint + "/"));
+ 				}
+ 			}
  
- 				newFrame.contentWindow.addEventListener('keydown', handleInnerKeydown);
- 
--				newFrame.contentWindow.addEventListener('DOMContentLoaded', e => {
-+				newFrame.contentWindow.addEventListener('load', e => {
- 					if (host.fakeLoad) {
- 						newFrame.contentDocument.open();
- 						newFrame.contentDocument.write(newDocument);
-diff --git a/src/vs/workbench/contrib/webview/browser/webviewElement.ts b/src/vs/workbench/contrib/webview/browser/webviewElement.ts
-index a7b1d1bd42..61fe0f205e 100644
---- a/src/vs/workbench/contrib/webview/browser/webviewElement.ts
-+++ b/src/vs/workbench/contrib/webview/browser/webviewElement.ts
-@@ -184,7 +184,7 @@ export class IFrameWebview extends Disposable implements Webview {
- 
- 	private preprocessHtml(value: string): string {
- 		return value.replace(/(["'])vscode-resource:([^\s'"]+?)(["'])/gi, (_, startQuote, path, endQuote) =>
--			`${startQuote}${this.endpoint}/vscode-resource${path}${endQuote}`);
-+			`${startQuote}${this.endpoint}/vscode-resource${path}${endQuote}`).replace(/vscode-resource:/g, `'self'`);
- 	}
- 
- 	public update(html: string, options: WebviewContentOptions, retainContextWhenHidden: boolean) {
-diff --git a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
-index 8493b87f2c..b5c47ea23f 100644
---- a/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
-+++ b/src/vs/workbench/contrib/welcome/walkThrough/browser/editor/editorWalkThrough.ts
-@@ -16,7 +16,8 @@ const typeId = 'workbench.editors.walkThroughInput';
- const inputOptions: WalkThroughInputOptions = {
- 	typeId,
- 	name: localize('editorWalkThrough.title', "Interactive Playground"),
--	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md'))
-+	resource: URI.parse(require.toUrl('./vs_code_editor_walkthrough.md')
-+											.replace(`${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}`, window.location.origin))
- 		.with({ scheme: Schemas.walkThrough }),
- 	telemetryFrom: 'walkThrough'
- };
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index 7c3b6ae53e..18dec6effa 100644
+index 5f221e07ff..bfd592382c 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -177,6 +177,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+@@ -15,7 +15,6 @@ import { IPath, IPathsToWaitFor, IWindowConfiguration } from 'vs/platform/window
+ import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from 'vs/platform/workspaces/common/workspaces';
+ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+ import { IWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
+-import product from 'vs/platform/product/common/product';
+ 
+ export class BrowserWindowConfiguration implements IWindowConfiguration {
+ 
+@@ -180,12 +179,13 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  	driverHandle?: string;
  	driverVerbose: boolean;
  	galleryMachineIdResource?: URI;
@@ -1325,9 +718,17 @@ index 7c3b6ae53e..18dec6effa 100644
 +	extraBuiltinExtensionPaths: string[];
  	readonly logFile: URI;
  
+ 	get webviewExternalEndpoint(): string {
+-		// TODO: get fallback from product.json
+-		return (this.options.webviewEndpoint || 'https://{{uuid}}.vscode-webview-test.com/{{commit}}')
+-			.replace('{{commit}}', product.commit || '211fa02efe8c041fd7baa8ec3dce199d5185aa44');
++		// NOTE@coder: Modified to work against the current URL.
++		return `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview/`;
+ 	}
+ 
  	get webviewResourceRoot(): string {
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index 0f09ebb5b6..1efd5fb196 100644
+index 000e5f7b4a..39f46e68a1 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
 @@ -119,6 +119,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
@@ -1339,10 +740,10 @@ index 0f09ebb5b6..1efd5fb196 100644
  			this._checkEnableProposedApi(remoteEnv.extensions);
  
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-index a1496708db..e65acfffbe 100644
+index 49b2d270c0..45200ccdbb 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 +++ b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-@@ -12,7 +12,7 @@ import { IProductService } from 'vs/platform/product/common/product';
+@@ -12,7 +12,7 @@ import { IProductService } from 'vs/platform/product/common/productService';
  
  export function isWebExtension(manifest: IExtensionManifest, configurationService: IConfigurationService): boolean {
  	const extensionKind = getExtensionKind(manifest, configurationService);
@@ -1352,10 +753,10 @@ index a1496708db..e65acfffbe 100644
  
  export function isUIExtension(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-index 6d31b177ac..67c955a59d 100644
+index 9f5a14f6cb..ca952f3d4d 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-@@ -41,12 +41,12 @@ const args = minimist(process.argv.slice(2), {
+@@ -42,12 +42,13 @@ const args = minimist(process.argv.slice(2), {
  	const Module = require.__$__nodeRequire('module') as any;
  	const originalLoad = Module._load;
  
@@ -1366,21 +767,27 @@ index 6d31b177ac..67c955a59d 100644
  		}
  
 -		return originalLoad.apply(this, arguments);
++		// NOTE@coder: Map node_module.asar requests to regular node_modules.
 +		return originalLoad.apply(this, [request.replace(/node_modules\.asar(\.unpacked)?/, 'node_modules'), parent, isMain]);
  	};
  })();
  
-@@ -128,7 +128,7 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
- 						} else {
- 							// Do not wait for web companion to reconnect
- 							protocol.onSocketClose(() => {
--								onTerminate();
-+								process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
- 							});
- 						}
+@@ -120,8 +121,11 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+ 
+ 						// Wait for rich client to reconnect
+ 						protocol.onSocketClose(() => {
+-							// The socket has closed, let's give the renderer a certain amount of time to reconnect
+-							disconnectRunner1.schedule();
++							// NOTE@coder: Inform the server so we can manage offline
++							// connections there instead. Our goal is to persist connections
++							// forever (to a reasonable point) to account for things like
++							// hibernating overnight.
++							process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
+ 						});
  					}
+ 				}
 diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-index bf4a779155..1aa90b3e36 100644
+index 3bdfa1a79f..ded21cf9c6 100644
 --- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
 +++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
 @@ -21,6 +21,7 @@ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensio
@@ -1399,16 +806,74 @@ index bf4a779155..1aa90b3e36 100644
  
  // register services that only throw errors
  function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
+diff --git a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
+index 99394090da..4891e0fece 100644
+--- a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
++++ b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
+@@ -5,17 +5,17 @@
+ 
+ import { createChannelSender } from 'vs/base/parts/ipc/node/ipc';
+ import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
+-import { ISharedProcessService } from 'vs/platform/ipc/electron-browser/sharedProcessService';
+ import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ 
+ export class LocalizationsService {
+ 
+ 	_serviceBrand: undefined;
+ 
+ 	constructor(
+-		@ISharedProcessService sharedProcessService: ISharedProcessService,
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
+ 	) {
+-		return createChannelSender<ILocalizationsService>(sharedProcessService.getChannel('localizations'));
++		return createChannelSender<ILocalizationsService>(remoteAgentService.getConnection()!.getChannel('localizations'));
+ 	}
+ }
+ 
+diff --git a/src/vs/workbench/services/update/electron-browser/updateService.ts b/src/vs/workbench/services/update/electron-browser/updateService.ts
+index b8f6558b2c..b1fe6b14fd 100644
+--- a/src/vs/workbench/services/update/electron-browser/updateService.ts
++++ b/src/vs/workbench/services/update/electron-browser/updateService.ts
+@@ -6,7 +6,7 @@
+ import { IChannel } from 'vs/base/parts/ipc/common/ipc';
+ import { Event, Emitter } from 'vs/base/common/event';
+ import { IUpdateService, State } from 'vs/platform/update/common/update';
+-import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+ import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
+ 
+ export class NativeUpdateService implements IUpdateService {
+@@ -21,8 +21,9 @@ export class NativeUpdateService implements IUpdateService {
+ 
+ 	private channel: IChannel;
+ 
+-	constructor(@IMainProcessService mainProcessService: IMainProcessService) {
+-		this.channel = mainProcessService.getChannel('update');
++	// NOTE@coder: patched to work in the browser.
++	constructor(@IRemoteAgentService remoteAgentService: IRemoteAgentService) {
++		this.channel = remoteAgentService.getConnection()!.getChannel('update');
+ 
+ 		// always set this._state as the state changes
+ 		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index 681fc606b6..e34ef5d4bc 100644
+index fa9c9dd7a9..688d6c1934 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
-@@ -34,7 +34,7 @@ import 'vs/workbench/services/textfile/browser/textFileService';
+@@ -34,11 +34,14 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
  import 'vs/workbench/services/keybinding/browser/keymapService';
  import 'vs/workbench/services/extensions/browser/extensionService';
  import 'vs/workbench/services/extensionManagement/common/extensionManagementServerService';
 -import 'vs/workbench/services/telemetry/browser/telemetryService';
++// NOTE@coder: We send it all to the server side to be processed there instead.
 +// import 'vs/workbench/services/telemetry/browser/telemetryService';
  import 'vs/workbench/services/configurationResolver/browser/configurationResolverService';
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
+-import 'vs/workbench/services/update/browser/updateService';
++// NOTE@coder: Use the electron-browser version since it already comes with a
++// channel which lets us actually perform updates.
++import 'vs/workbench/services/update/electron-browser/updateService';
+ import 'vs/workbench/contrib/stats/browser/workspaceStatsService';
+ import 'vs/workbench/services/workspaces/browser/workspacesService';
+ import 'vs/workbench/services/workspaces/browser/workspaceEditingService';
