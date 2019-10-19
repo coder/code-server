@@ -58,17 +58,13 @@ arguments when launching code-server with Docker. See
 
 ### Build
 
-- If you also plan on developing, set the `OUT` environment variable. Otherwise
-  it will build in this directory which will cause issues because `yarn watch`
-  will try to compile the build directory as well.
-- Run `yarn build ${vscodeVersion} ${codeServerVersion}` in this directory (for
-  example: `yarn build 1.36.0 development`).
-- If you target the same VS Code version our Travis builds do everything will
-  work but if you target some other version it might not (we have to do some
-  patching to VS Code so different versions aren't always compatible).
-- You can run the built code with `node path/to/build/out/vs/server/main.js` or run
-  `yarn binary` with the same arguments in the previous step to package the
-  code into a single binary.
+```shell
+export OUT=/path/to/output/build                  # Optional if only building. Required if also developing.
+yarn build ${vscodeVersion} ${codeServerVersion}  # See travis.yml for the VS Code version to use.
+                                                  # The code-server version can be anything you want.
+node ~/path/to/output/build/out/vs/server/main.js # You can run the built JavaScript with Node.
+yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a binary.
+```
 
 ## Known Issues
 
@@ -109,11 +105,12 @@ data collected to improve code-server.
 ```shell
 git clone https://github.com/microsoft/vscode
 cd vscode
-git checkout <see travis.yml for the VS Code version to use here>
+git checkout ${vscodeVersion} # See travis.yml for the version to use.
+yarn
 git clone https://github.com/cdr/code-server src/vs/server
 cd src/vs/server
-yarn patch:apply
 yarn
+yarn patch:apply
 yarn watch
 # Wait for the initial compilation to complete (it will say "Finished compilation").
 # Run the next command in another shell.

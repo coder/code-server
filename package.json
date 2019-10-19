@@ -2,15 +2,13 @@
   "license": "MIT",
   "scripts": {
     "runner": "cd ./scripts && node --max-old-space-size=32384 -r ts-node/register ./build.ts",
-    "preinstall": "yarn runner ensure-in-vscode && cd ../../../ && yarn || true",
-    "postinstall": "rm -rf node_modules/@types/node",
-    "start": "yarn runner ensure-in-vscode && nodemon --watch ../../../out --verbose ../../../out/vs/server/main.js",
-    "watch": "yarn runner ensure-in-vscode && cd ../../../ && yarn watch",
-    "build": "yarn --ignore-scripts && yarn runner build",
+    "start": "nodemon --watch ../../../out --verbose ../../../out/vs/server/main.js",
+    "watch": "cd ../../../ && yarn watch",
+    "build": "yarn && yarn runner build",
     "package": "yarn runner package",
     "binary": "yarn runner binary",
-    "patch:generate": "yarn runner ensure-in-vscode && cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
-    "patch:apply": "yarn runner ensure-in-vscode && cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
+    "patch:generate": "cd ../../../ && git diff --staged > ./src/vs/server/scripts/vscode.patch",
+    "patch:apply": "cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
   },
   "devDependencies": {
     "@coder/nbin": "^1.2.2",

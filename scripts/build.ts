@@ -20,21 +20,34 @@ class Builder {
 	private readonly rootPath = path.resolve(__dirname, "..");
 	private readonly outPath = process.env.OUT || this.rootPath;
 	private _target?: "darwin" | "alpine" | "linux";
-	private task?: Task;
+	private currentTask?: Task;
 
 	public run(task: Task | undefined, args: string[]): void {
-		this.task = task;
+		this.currentTask = task;
 		this.doRun(task, args).catch((error) => {
 			console.error(error.message);
 			process.exit(1);
 		});
 	}
 
+	private async task<T>(message: string, fn: () => Promise<T>): Promise<T> {
+		const time = Date.now();
+		this.log(`${message}...`, true);
+		try {
+			const t = await fn();
+			process.stdout.write(`took ${Date.now() - time}ms\n`);
+			return t;
+		} catch (error) {
+			process.stdout.write("failed\n");
+			throw error;
+		}
+	}
+
 	/**
 	 * Writes to stdout with an optional newline.
 	 */
 	private log(message: string, skipNewline: boolean = false): void {
-		process.stdout.write(`[${this.task || "default"}] ${message}`);
+		process.stdout.write(`[${this.currentTask || "default"}] ${message}`);
 		if (!skipNewline) {
 			process.stdout.write("\n");
 		}
@@ -140,24 +153,9 @@ class Builder {
 	 * Build code-server within VS Code.
 	 */
 	private async build(vscodeSourcePath: string, vscodeVersion: string, codeServerVersion: string, finalBuildPath: string): Promise<void> {
-		const task = async <T>(message: string, fn: () => Promise<T>): Promise<T> => {
-			const time = Date.now();
-			this.log(`${message}...`, true);
-			try {
-				const t = await fn();
-				process.stdout.write(`took ${Date.now() - time}ms\n`);
-				return t;
-			} catch (error) {
-				process.stdout.write("failed\n");
-				throw error;
-			}
-		};
-
 		// Install dependencies (should be cached by CI).
-		// Ignore scripts since we'll install VS Code dependencies separately.
-		await task("Installing code-server dependencies", async () => {
-			await util.promisify(cp.exec)("yarn --ignore-scripts", { cwd: this.rootPath });
-			await util.promisify(cp.exec)("yarn postinstall", { cwd: this.rootPath });
+		await this.task("Installing code-server dependencies", async () => {
+			await util.promisify(cp.exec)("yarn", { cwd: this.rootPath });
 		});
 
 		// Download and prepare VS Code if necessary (should be cached by CI).
@@ -165,18 +163,18 @@ class Builder {
 		if (exists) {
 			this.log("Using existing VS Code directory");
 		} else {
-			await task("Cloning VS Code", () => {
+			await this.task("Cloning VS Code", () => {
 				return util.promisify(cp.exec)(
 					"git clone https://github.com/microsoft/vscode"
 						+ ` --quiet --branch "${vscodeVersion}"`
 						+ ` --single-branch --depth=1 "${vscodeSourcePath}"`);
 			});
 
-			await task("Installing VS Code dependencies", () => {
+			await this.task("Installing VS Code dependencies", () => {
 				return util.promisify(cp.exec)("yarn", { cwd: vscodeSourcePath });
 			});
 
-			await task("Building default extensions", () => {
+			await this.task("Building default extensions", () => {
 				return util.promisify(cp.exec)(
 					"yarn gulp compile-extensions-build --max-old-space-size=32384",
 					{ cwd: vscodeSourcePath },
@@ -185,14 +183,14 @@ class Builder {
 		}
 
 		// Clean before patching or it could fail if already patched.
-		await task("Patching VS Code", async () => {
+		await this.task("Patching VS Code", async () => {
 			await util.promisify(cp.exec)("git reset --hard", { cwd: vscodeSourcePath });
 			await util.promisify(cp.exec)("git clean -fd", { cwd: vscodeSourcePath });
 			await util.promisify(cp.exec)(`git apply ${this.rootPath}/scripts/vscode.patch`, { cwd: vscodeSourcePath });
 		});
 
 		const serverPath = path.join(vscodeSourcePath, "src/vs/server");
-		await task("Copying code-server into VS Code", async () => {
+		await this.task("Copying code-server into VS Code", async () => {
 			await fs.remove(serverPath);
 			await fs.mkdirp(serverPath);
 			await Promise.all(["main.js", "node_modules", "src", "typings"].map((fileName) => {
@@ -200,16 +198,16 @@ class Builder {
 			}));
 		});
 
-		await task("Building VS Code", () => {
+		await this.task("Building VS Code", () => {
 			return util.promisify(cp.exec)("yarn gulp compile-build --max-old-space-size=32384", { cwd: vscodeSourcePath });
 		});
 
-		await task("Optimizing VS Code", async () => {
+		await this.task("Optimizing VS Code", async () => {
 			await fs.copyFile(path.join(this.rootPath, "scripts/optimize.js"), path.join(vscodeSourcePath, "coder.js"));
 			await util.promisify(cp.exec)(`yarn gulp optimize --max-old-space-size=32384 --gulpfile ./coder.js`, { cwd: vscodeSourcePath });
 		});
 
-		const { productJson, packageJson } = await task("Generating final package.json and product.json", async () => {
+		const { productJson, packageJson } = await this.task("Generating final package.json and product.json", async () => {
 			const merge = async (name: string, extraJson: { [key: string]: string } = {}): Promise<{ [key: string]: string }> => {
 				const [aJson, bJson] = (await Promise.all([
 					fs.readFile(path.join(vscodeSourcePath, `${name}.json`), "utf8"),
@@ -247,13 +245,13 @@ class Builder {
 		});
 
 		if (process.env.MINIFY) {
-			await task("Minifying VS Code", () => {
+			await this.task("Minifying VS Code", () => {
 				return util.promisify(cp.exec)("yarn gulp minify --max-old-space-size=32384 --gulpfile ./coder.js", { cwd: vscodeSourcePath });
 			});
 		}
 
 		const finalServerPath = path.join(finalBuildPath, "out/vs/server");
-		await task("Copying into final build directory", async () => {
+		await this.task("Copying into final build directory", async () => {
 			await fs.remove(finalBuildPath);
 			await fs.mkdirp(finalBuildPath);
 			await Promise.all([
@@ -271,7 +269,7 @@ class Builder {
 		});
 
 		if (process.env.MINIFY) {
-			await task("Restricting to production dependencies", async () => {
+			await this.task("Restricting to production dependencies", async () => {
 				await Promise.all(["package.json", "yarn.lock"].map((fileName) => {
 					Promise.all([
 						fs.copy(path.join(this.rootPath, fileName), path.join(finalServerPath, fileName)),
@@ -279,10 +277,9 @@ class Builder {
 					]);
 				}));
 
-				await Promise.all([
-					util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: finalServerPath }),
-					util.promisify(cp.exec)("yarn --production", { cwd: finalBuildPath }),
-				]);
+				await Promise.all([finalServerPath, finalBuildPath].map((cwd) => {
+					return util.promisify(cp.exec)("yarn --production", { cwd });
+				}));
 
 				await Promise.all(["package.json", "yarn.lock"].map((fileName) => {
 					return Promise.all([
@@ -293,7 +290,7 @@ class Builder {
 			});
 		}
 
-		await task("Writing final package.json and product.json", () => {
+		await this.task("Writing final package.json and product.json", () => {
 			return Promise.all([
 				fs.writeFile(path.join(finalBuildPath, "package.json"), JSON.stringify(packageJson, null, 2)),
 				fs.writeFile(path.join(finalBuildPath, "product.json"), JSON.stringify(productJson, null, 2)),
@@ -301,7 +298,7 @@ class Builder {
 		});
 
 		// This is so it doesn't get cached along with VS Code (no point).
-		await task("Removing copied server", () => fs.remove(serverPath));
+		await this.task("Removing copied server", () => fs.remove(serverPath));
 
 		// Prepend code to the target which enables finding files within the binary.
 		const prependLoader = async (relativeFilePath: string): Promise<void> => {
@@ -322,7 +319,7 @@ class Builder {
 			await fs.writeFile(filePath, shim + (await fs.readFile(filePath, "utf8")));
 		};
 
-		await task("Prepending nbin loader", () => {
+		await this.task("Prepending nbin loader", () => {
 			return Promise.all([
 				prependLoader("out/vs/server/main.js"),
 				prependLoader("out/bootstrap-fork.js"),
