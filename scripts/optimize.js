@@ -24,6 +24,7 @@ const vscodeResources = [
 	"out-build/vs/server/src/node/uriTransformer.js",
 	"!out-build/vs/server/doc/**",
 	"out-build/vs/code/browser/workbench/**",
+	"out-build/vs/server/src/browser/*.html",
 	"out-build/vs/server/src/media/*",
 	"out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js",
 	"out-build/bootstrap.js",

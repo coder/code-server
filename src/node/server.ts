@@ -375,7 +375,7 @@ export abstract class Server {
 	}
 
 	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
-		const filePath = path.join(this.serverRoot, "login/index.html");
+		const filePath = path.join(this.serverRoot, "browser/login.html");
 		const content = (await util.promisify(fs.readFile)(filePath, "utf8"))
 			.replace("{{ERROR}}", error)
 			.replace("display:none", error ? "display:block" : "display:none")
@@ -536,7 +536,7 @@ export class MainServer extends Server {
 	}
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
-		const filePath = path.join(this.rootPath, "out/vs/server/src/browser/workbench.html");
+		const filePath = path.join(this.serverRoot, "browser/workbench.html");
 		let [content, startPath] = await Promise.all([
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.getFirstValidPath([

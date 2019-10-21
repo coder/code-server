@@ -261,7 +261,7 @@ class Builder {
 						fs.remove(path.join(finalServerPath, "node_modules")).then(() => {
 							return fs.copy(path.join(serverPath, "node_modules"), path.join(finalServerPath, "node_modules"));
 						}),
-						fs.copy(path.join(serverPath, "src/browser/workbench-build.html"), path.join(finalServerPath, "src/browser/workbench.html")),
+						fs.copy(path.join(finalServerPath, "src/browser/workbench-build.html"), path.join(finalServerPath, "src/browser/workbench.html")),
 					]);
 				}),
 			]);
