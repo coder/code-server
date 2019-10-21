@@ -30,7 +30,7 @@ jobs:
     - name: "MacOS build"
       os: osx
       if: tag IS blank
-      script: travis_wait 30 scripts/ci.bash
+      script: travis_wait 40 scripts/ci.bash
     - name: "Docker build"
       os: linux
       dist: trusty
@@ -75,6 +75,5 @@ deploy:
 
 cache:
   yarn: true
-  timeout: 1000
   directories:
-    - .cache
+    - build/vscode-1.39.2-source
