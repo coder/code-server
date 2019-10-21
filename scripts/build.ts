@@ -99,7 +99,7 @@ class Builder {
 	 */
 	private async target(): Promise<"darwin" | "alpine" | "linux"> {
 		if (!this._target) {
-			if (process.env.OSTYPE && /^darwin/.test(process.env.OSTYPE)) {
+			if (os.platform() === "darwin" || (process.env.OSTYPE && /^darwin/.test(process.env.OSTYPE))) {
 				this._target = "darwin";
 			} else {
 				// Alpine's ldd doesn't have a version flag but if you use an invalid flag
