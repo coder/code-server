@@ -76,4 +76,4 @@ deploy:
 cache:
   yarn: true
   directories:
-    - build/vscode-1.39.2-source
+    - source
