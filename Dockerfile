@@ -17,7 +17,7 @@ COPY . .
 RUN yarn \
 	&& MINIFY=true GITHUB_TOKEN="${githubToken}" yarn build "${vscodeVersion}" "${codeServerVersion}" \
 	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
-	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
+	&& mv "/src/binaries/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
 	&& rm -r /src/build/vscode-* \
 	&& rm -r /src/build/code-server*-linux-*
 
