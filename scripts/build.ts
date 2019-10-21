@@ -106,7 +106,7 @@ class Builder {
 				// (like --version) it outputs the version to stderr and exits with 1.
 				const result = await util.promisify(cp.exec)("ldd --version")
 					.catch((error) => ({ stderr: error.message, stdout: "" }));
-				if (/^musl/.test(result.stderr) || /^musl/.test(result.stdout)) {
+				if (/musl/.test(result.stderr) || /musl/.test(result.stdout)) {
 					this._target = "alpine";
 				} else {
 					this._target = "linux";
@@ -130,8 +130,8 @@ class Builder {
 
 	/**
 	 * Return true if it looks like we're inside VS Code. This is used to prevent
-	 * accidentally building inside while developing or to prevent trying to run
-	 * `yarn` in VS Code when we aren't in VS Code.
+	 * accidentally building inside VS Code while developing which causes issues
+	 * because the watcher will try compiling those built files.
 	 */
 	private isInVscode(pathToCheck: string): boolean {
 		let inside = false;

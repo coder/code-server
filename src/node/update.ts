@@ -130,7 +130,7 @@ export class UpdateService extends AbstractUpdateService {
 				stderr: error.message,
 				stdout: "",
 			}));
-			if (/^musl/.test(result.stderr) || /^musl/.test(result.stdout)) {
+			if (/musl/.test(result.stderr) || /musl/.test(result.stdout)) {
 				target = "alpine";
 			}
 		}
