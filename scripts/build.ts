@@ -303,8 +303,16 @@ class Builder {
 			]);
 		});
 
-		// This is so it doesn't get cached along with VS Code (no point).
-		await this.task("Removing copied server", () => fs.remove(serverPath));
+		// This is so it doesn't get cached along with VS Code. There's no point
+		// since there isn't anything like an incremental build.
+		await this.task("Removing build files for smaller cache", () => {
+			return Promise.all([
+				fs.remove(serverPath),
+				fs.remove(path.join(vscodeSourcePath, "out-vscode")),
+				fs.remove(path.join(vscodeSourcePath, "out-vscode-min")),
+				fs.remove(path.join(vscodeSourcePath, "out-build")),
+			]);
+		});
 
 		// Prepend code to the target which enables finding files within the binary.
 		const prependLoader = async (relativeFilePath: string): Promise<void> => {
