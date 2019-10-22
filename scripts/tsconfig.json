@@ -1,0 +1,17 @@
+{
+	"compilerOptions": {
+		"module": "commonjs",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"experimentalDecorators": true,
+		"noImplicitReturns": true,
+		"noUnusedLocals": true,
+		"noImplicitThis": true,
+		"alwaysStrict": true,
+		"strictBindCallApply": true,
+		"strictNullChecks": true,
+		"forceConsistentCasingInFileNames": true,
+		"baseUrl": ".",
+		"target": "esnext"
+	}
+}

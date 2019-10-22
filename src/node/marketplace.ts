@@ -5,7 +5,7 @@ import { CancellationToken } from "vs/base/common/cancellation";
 import { mkdirp } from "vs/base/node/pfs";
 import * as vszip from "vs/base/node/zip";
 import * as nls from "vs/nls";
-import product from "vs/platform/product/node/product";
+import product from "vs/platform/product/common/product";
 import { localRequire } from "vs/server/src/node/util";
 
 const tarStream = localRequire<typeof import("tar-stream")>("tar-stream/index");

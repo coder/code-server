@@ -11,9 +11,9 @@ import { IConfigurationService } from "vs/platform/configuration/common/configur
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { IFileService } from "vs/platform/files/common/files";
 import { ILogService } from "vs/platform/log/common/log";
-import pkg from "vs/platform/product/node/package";
+import product from "vs/platform/product/common/product";
 import { asJson, IRequestService } from "vs/platform/request/common/request";
-import { AvailableForDownload, State, StateType, UpdateType } from "vs/platform/update/common/update";
+import { AvailableForDownload, State, UpdateType } from "vs/platform/update/common/update";
 import { AbstractUpdateService } from "vs/platform/update/electron-main/abstractUpdateService";
 import { ipcMain } from "vs/server/src/node/ipc";
 import { extract } from "vs/server/src/node/marketplace";
@@ -43,25 +43,22 @@ export class UpdateService extends AbstractUpdateService {
 		}
 		if (latest) {
 			const latestMajor = parseInt(latest.name);
-			const currentMajor = parseInt(pkg.codeServerVersion);
+			const currentMajor = parseInt(product.codeServerVersion);
 			return !isNaN(latestMajor) && !isNaN(currentMajor) &&
-				currentMajor <= latestMajor && latest.name === pkg.codeServerVersion;
+				currentMajor <= latestMajor && latest.name === product.codeServerVersion;
 		}
 		return true;
 	}
 
-	protected buildUpdateFeedUrl(): string {
-		return "https://api.github.com/repos/cdr/code-server/releases/latest";
+	protected buildUpdateFeedUrl(quality: string): string {
+		return `${product.updateUrl}/${quality}`;
 	}
 
-	protected doQuitAndInstall(): void {
+	public async doQuitAndInstall(): Promise<void> {
 		ipcMain.relaunch();
 	}
 
 	protected async doCheckForUpdates(context: any): Promise<void> {
-		if (this.state.type !== StateType.Idle) {
-			return Promise.resolve();
-		}
 		this.setState(State.CheckingForUpdates(context));
 		try {
 			const update = await this.getLatestVersion();
@@ -81,15 +78,13 @@ export class UpdateService extends AbstractUpdateService {
 	private async getLatestVersion(): Promise<IUpdate | null> {
 		const data = await this.requestService.request({
 			url: this.url,
-			headers: {
-				"User-Agent": "code-server",
-			},
+			headers: { "User-Agent": "code-server" },
 		}, CancellationToken.None);
 		return asJson(data);
 	}
 
 	protected async doDownloadUpdate(state: AvailableForDownload): Promise<void> {
-		this.setState(State.Updating(state.update));
+		this.setState(State.Downloading(state.update));
 		const target = os.platform();
 		const releaseName = await this.buildReleaseName(state.update.version);
 		const url = "https://github.com/cdr/code-server/releases/download/"
@@ -125,8 +120,7 @@ export class UpdateService extends AbstractUpdateService {
 
 	private onRequestError(error: Error, showNotification?: boolean): void {
 		this.logService.error(error);
-		const message: string | undefined = showNotification ? (error.message || error.toString()) : undefined;
-		this.setState(State.Idle(UpdateType.Archive, message));
+		this.setState(State.Idle(UpdateType.Archive, showNotification ? (error.message || error.toString()) : undefined));
 	}
 
 	private async buildReleaseName(release: string): Promise<string> {
@@ -136,7 +130,7 @@ export class UpdateService extends AbstractUpdateService {
 				stderr: error.message,
 				stdout: "",
 			}));
-			if (result.stderr.indexOf("musl") !== -1 || result.stdout.indexOf("musl") !== -1) {
+			if (/musl/.test(result.stderr) || /musl/.test(result.stdout)) {
 				target = "alpine";
 			}
 		}

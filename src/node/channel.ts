@@ -12,8 +12,7 @@ import { ExtensionIdentifier, IExtensionDescription } from "vs/platform/extensio
 import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions } from "vs/platform/files/common/files";
 import { DiskFileSystemProvider } from "vs/platform/files/node/diskFileSystemProvider";
 import { ILogService } from "vs/platform/log/common/log";
-import pkg from "vs/platform/product/node/package";
-import product from "vs/platform/product/node/product";
+import product from "vs/platform/product/common/product";
 import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { INodeProxyService } from "vs/server/src/common/nodeProxy";
@@ -228,7 +227,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 		const scanMultiple = (isBuiltin: boolean, isUnderDevelopment: boolean, paths: string[]): Promise<IExtensionDescription[][]> => {
 			return Promise.all(paths.map((path) => {
 				return ExtensionScanner.scanExtensions(new ExtensionScannerInput(
-					pkg.version,
+					product.version,
 					product.commit,
 					locale,
 					!!process.env.VSCODE_DEV,
@@ -295,7 +294,7 @@ export class NodeProxyService implements INodeProxyService {
 	public readonly onClose = this._onClose.event;
 
 	public constructor() {
-		// TODO: close/down/up
+		// TODO: down/up
 		const { Server } = localRequire<typeof import("@coder/node-browser/out/server/server")>("@coder/node-browser/out/server/server");
 		this.server = new Server({
 			onMessage: this.$onMessage,

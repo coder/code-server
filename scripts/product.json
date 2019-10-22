@@ -15,5 +15,7 @@
 	"win32ShellNameShort": "C&ode Server",
 	"darwinBundleIdentifier": "com.code.server",
 	"linuxIconName": "com.code.server",
-	"urlProtocol": "code-server"
+	"urlProtocol": "code-server",
+	"updateUrl": "https://api.github.com/repos/cdr/code-server/releases",
+	"quality": "latest"
 }

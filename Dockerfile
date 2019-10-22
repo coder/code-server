@@ -17,9 +17,9 @@ COPY . .
 RUN yarn \
 	&& MINIFY=true GITHUB_TOKEN="${githubToken}" yarn build "${vscodeVersion}" "${codeServerVersion}" \
 	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
-	&& mv "/src/build/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64-built/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/build/code-server \
-	&& rm -r /src/build/vscode-* \
-	&& rm -r /src/build/code-server*-linux-*
+	&& mv "/src/binaries/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/binaries/code-server \
+	&& rm -r /src/build \
+	&& rm -r /src/source
 
 # We deploy with ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
@@ -54,7 +54,7 @@ WORKDIR /home/coder/project
 # mount. So that they do not lose their data if they delete the container.
 VOLUME [ "/home/coder/project" ]
 
-COPY --from=0 /src/build/code-server /usr/local/bin/code-server
+COPY --from=0 /src/binaries/code-server /usr/local/bin/code-server
 EXPOSE 8080
 
 ENTRYPOINT ["dumb-init", "code-server", "--host", "0.0.0.0"]

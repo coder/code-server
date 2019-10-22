@@ -3,7 +3,7 @@ import * as path from "path";
 import * as util from "util";
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import * as lp from "vs/base/node/languagePacks";
-import product from "vs/platform/product/node/product";
+import product from "vs/platform/product/common/product";
 import { Translations } from "vs/workbench/services/extensions/common/extensionPoints";
 
 const configurations = new Map<string, Promise<lp.NLSConfiguration>>();
@@ -27,6 +27,12 @@ export const getNlsConfiguration = async (locale: string, userDataPath: string):
 				: DefaultConfiguration;
 			if (isInternalConfiguration(config)) {
 				config._languagePackSupport = true;
+			}
+			// If the configuration has no results keep trying since code-server
+			// doesn't restart when a language is installed so this result would
+			// persist (the plugin might not be installed yet or something).
+			if (config.locale !== "en" && config.locale !== "en-us" && Object.keys(config.availableLanguages).length === 0) {
+				configurations.delete(id);
 			}
 			resolve(config);
 		}));

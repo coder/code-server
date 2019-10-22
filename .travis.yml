@@ -6,23 +6,23 @@ services:
 
 before_install:
   - export MAJOR_VERSION="2"
-  - export VSCODE_VERSION="1.38.1"
+  - export VSCODE_VERSION="1.39.2"
   - export VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
-  - export TAG="$VERSION-vsc$VSCODE_VERSION"
+  - export TAG="$VERSION-vsc$VSCODE_VERSION-$(uname -m)"
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export PACKAGE="true"; fi
 
 # Don't build on tags because we'll already have built the commit.
 jobs:
   include:
-    - name: "Linux build - x86"
+    - name: "Linux build - x86_64"
       os: linux
       arch: amd64
       dist: trusty
       env: TARGET="linux"
       if: tag IS blank
       script: scripts/ci.bash
-    - name: "Alpine build - x86"
+    - name: "Alpine build - x86_64"
       os: linux
       arch: amd64
       dist: trusty
@@ -46,8 +46,8 @@ jobs:
     - name: "MacOS build"
       os: osx
       if: tag IS blank
-      script: travis_wait 30 scripts/ci.bash
-    - name: "Docker build - x86"
+      script: travis_wait 40 scripts/ci.bash
+    - name: "Docker build - x86_64"
       os: linux
       dist: trusty
       arch: amd64
@@ -99,6 +99,5 @@ deploy:
 
 cache:
   yarn: true
-  timeout: 1000
   directories:
-    - .cache
+    - source

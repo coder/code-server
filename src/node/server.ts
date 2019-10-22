@@ -17,13 +17,12 @@ import { generateUuid } from "vs/base/common/uuid";
 import { getMachineId } from 'vs/base/node/id';
 import { NLSConfiguration } from "vs/base/node/languagePacks";
 import { mkdirp, rimraf } from "vs/base/node/pfs";
-import { ClientConnectionEvent, IPCServer, StaticRouter } from "vs/base/parts/ipc/common/ipc";
+import { ClientConnectionEvent, IPCServer } from "vs/base/parts/ipc/common/ipc";
+import { createChannelReceiver } from "vs/base/parts/ipc/node/ipc";
 import { LogsDataCleaner } from "vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner";
 import { IConfigurationService } from "vs/platform/configuration/common/configuration";
 import { ConfigurationService } from "vs/platform/configuration/node/configurationService";
 import { ExtensionHostDebugBroadcastChannel } from "vs/platform/debug/common/extensionHostDebugIpc";
-import { IDialogService } from "vs/platform/dialogs/common/dialogs";
-import { DialogChannelClient } from "vs/platform/dialogs/node/dialogIpc";
 import { IEnvironmentService, ParsedArgs } from "vs/platform/environment/common/environment";
 import { EnvironmentService } from "vs/platform/environment/node/environmentService";
 import { ExtensionGalleryService } from "vs/platform/extensionManagement/common/extensionGalleryService";
@@ -38,13 +37,11 @@ import { InstantiationService } from "vs/platform/instantiation/common/instantia
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { ILocalizationsService } from "vs/platform/localizations/common/localizations";
 import { LocalizationsService } from "vs/platform/localizations/node/localizations";
-import { LocalizationsChannel } from "vs/platform/localizations/node/localizationsIpc";
 import { getLogLevel, ILogService } from "vs/platform/log/common/log";
-import { LogLevelSetterChannel } from "vs/platform/log/common/logIpc";
+import { LoggerChannel } from "vs/platform/log/common/logIpc";
 import { SpdLogService } from "vs/platform/log/node/spdlogService";
-import { IProductService } from "vs/platform/product/common/product";
-import pkg from "vs/platform/product/node/package";
-import product from "vs/platform/product/node/product";
+import product from 'vs/platform/product/common/product';
+import { IProductService } from "vs/platform/product/common/productService";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
 import { IRequestService } from "vs/platform/request/common/request";
@@ -56,14 +53,14 @@ import { ITelemetryServiceConfig, TelemetryService } from "vs/platform/telemetry
 import { combinedAppender, LogAppender, NullTelemetryService } from "vs/platform/telemetry/common/telemetryUtils";
 import { AppInsightsAppender } from "vs/platform/telemetry/node/appInsightsAppender";
 import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProperties";
-import { UpdateChannel } from "vs/platform/update/node/updateIpc";
+import { UpdateChannel } from "vs/platform/update/electron-main/updateIpc";
+import { INodeProxyService, NodeProxyChannel } from "vs/server/src/common/nodeProxy";
+import { TelemetryChannel } from "vs/server/src/common/telemetry";
 import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
 import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
 import { TelemetryClient } from "vs/server/src/node/insights";
 import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
-import { NodeProxyChannel, INodeProxyService } from "vs/server/src/common/nodeProxy";
 import { Protocol } from "vs/server/src/node/protocol";
-import { TelemetryChannel } from "vs/server/src/common/telemetry";
 import { UpdateService } from "vs/server/src/node/update";
 import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
@@ -82,8 +79,9 @@ export enum HttpCode {
 }
 
 export interface Options {
-	WORKBENCH_WEB_CONGIGURATION: IWorkbenchConstructionOptions;
+	WORKBENCH_WEB_CONFIGURATION: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents };
 	REMOTE_USER_DATA_URI: UriComponents | URI;
+	PRODUCT_CONFIGURATION: Partial<IProductService>;
 	NLS_CONFIGURATION: NLSConfiguration;
 }
 
@@ -280,7 +278,7 @@ export abstract class Server {
 		// without adding query parameters which have their own issues.
 		// REVIEW: Discuss whether this is the best option; this is sort of a quick
 		// hack almost to get caching in the meantime but it does work pretty well.
-		if (/^\/static-.+/.test(base)) {
+		if (/^\/static-/.test(base)) {
 			base = "/static";
 		}
 
@@ -361,7 +359,7 @@ export abstract class Server {
 			if (this.authenticate(request, data)) {
 				return {
 					redirect: "/",
-					headers: {"Set-Cookie": `password=${data.password}` }
+					headers: { "Set-Cookie": `password=${data.password}` }
 				};
 			}
 			console.error("Failed login attempt", JSON.stringify({
@@ -377,7 +375,7 @@ export abstract class Server {
 	}
 
 	private async getLogin(error: string = "", payload?: LoginPayload): Promise<Response> {
-		const filePath = path.join(this.serverRoot, "login/index.html");
+		const filePath = path.join(this.serverRoot, "browser/login.html");
 		const content = (await util.promisify(fs.readFile)(filePath, "utf8"))
 			.replace("{{ERROR}}", error)
 			.replace("display:none", error ? "display:block" : "display:none")
@@ -538,7 +536,7 @@ export class MainServer extends Server {
 	}
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
-		const filePath = path.join(this.rootPath, "out/vs/code/browser/workbench/workbench.html");
+		const filePath = path.join(this.serverRoot, "browser/workbench.html");
 		let [content, startPath] = await Promise.all([
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.getFirstValidPath([
@@ -567,17 +565,20 @@ export class MainServer extends Server {
 
 		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const options: Options = {
-			WORKBENCH_WEB_CONGIGURATION: {
+			WORKBENCH_WEB_CONFIGURATION: {
 				workspaceUri: startPath && startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
 				folderUri: startPath && !startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
 				remoteAuthority,
-				productConfiguration: product,
+				logLevel: getLogLevel(environment),
 			},
-			REMOTE_USER_DATA_URI: transformer.transformOutgoing((<EnvironmentService>environment).webUserDataHome),
+			REMOTE_USER_DATA_URI: transformer.transformOutgoing(URI.file(environment.userDataPath)),
+			PRODUCT_CONFIGURATION: {
+				extensionsGallery: product.extensionsGallery,
+			},
 			NLS_CONFIGURATION: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
 		};
 
-		content = content.replace(/\/static\//g, `/static${product.commit ? `-${product.commit}` : ""}/`).replace("{{WEBVIEW_ENDPOINT}}", "");
+		content = content.replace(/{{COMMIT}}/g, product.commit || "");
 		for (const key in options) {
 			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
 		}
@@ -698,17 +699,15 @@ export class MainServer extends Server {
 			...environmentService.extraBuiltinExtensionPaths,
 		);
 
-		this.ipc.registerChannel("loglevel", new LogLevelSetterChannel(logService));
+		this.ipc.registerChannel("logger", new LoggerChannel(logService));
 		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
-		const router = new StaticRouter((ctx: any) => ctx.clientId === "renderer");
 		this.services.set(ILogService, logService);
 		this.services.set(IEnvironmentService, environmentService);
 		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
 		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 		this.services.set(IFileService, fileService);
 		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
-		this.services.set(IDialogService, new DialogChannelClient(this.ipc.getChannel("dialog", router)));
 		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
 		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 
@@ -719,7 +718,7 @@ export class MainServer extends Server {
 					new LogAppender(logService),
 				),
 				commonProperties: resolveCommonProperties(
-					product.commit, pkg.codeServerVersion, await getMachineId(),
+					product.commit, product.codeServerVersion, await getMachineId(),
 					[], environmentService.installSourcePath, "code-server",
 				),
 				piiPaths: this.allowedRequestPaths,
@@ -730,32 +729,25 @@ export class MainServer extends Server {
 
 		await new Promise((resolve) => {
 			const instantiationService = new InstantiationService(this.services);
-			const localizationService = instantiationService.createInstance(LocalizationsService);
-			this.services.set(ILocalizationsService, localizationService);
-			const proxyService = instantiationService.createInstance(NodeProxyService);
-			this.services.set(INodeProxyService, proxyService);
-			this.ipc.registerChannel("localizations", new LocalizationsChannel(localizationService));
+			this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
+			this.services.set(INodeProxyService, instantiationService.createInstance(NodeProxyService));
+
 			instantiationService.invokeFunction(() => {
 				instantiationService.createInstance(LogsDataCleaner);
-
-				const extensionsService = this.services.get(IExtensionManagementService) as IExtensionManagementService;
 				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
-
-				const extensionsChannel = new ExtensionManagementChannel(extensionsService, (context) => getUriTransformer(context.remoteAuthority));
-				const extensionsEnvironmentChannel = new ExtensionEnvironmentChannel(environmentService, logService, telemetryService, this.options.connectionToken || "");
-				const fileChannel = new FileProviderChannel(environmentService, logService);
-				const requestChannel = new RequestChannel(this.services.get(IRequestService) as IRequestService);
-				const telemetryChannel = new TelemetryChannel(telemetryService);
-				const updateChannel = new UpdateChannel(instantiationService.createInstance(UpdateService));
-				const nodeProxyChannel = new NodeProxyChannel(proxyService);
-
-				this.ipc.registerChannel("extensions", extensionsChannel);
-				this.ipc.registerChannel("remoteextensionsenvironment", extensionsEnvironmentChannel);
-				this.ipc.registerChannel("request", requestChannel);
-				this.ipc.registerChannel("telemetry", telemetryChannel);
-				this.ipc.registerChannel("nodeProxy", nodeProxyChannel);
-				this.ipc.registerChannel("update", updateChannel);
-				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, fileChannel);
+				this.ipc.registerChannel("extensions", new ExtensionManagementChannel(
+					this.services.get(IExtensionManagementService) as IExtensionManagementService,
+					(context) => getUriTransformer(context.remoteAuthority),
+				));
+				this.ipc.registerChannel("remoteextensionsenvironment", new ExtensionEnvironmentChannel(
+					environmentService, logService, telemetryService, this.options.connectionToken || "",
+				));
+				this.ipc.registerChannel("request", new RequestChannel(this.services.get(IRequestService) as IRequestService));
+				this.ipc.registerChannel("telemetry", new TelemetryChannel(telemetryService));
+				this.ipc.registerChannel("nodeProxy", new NodeProxyChannel(this.services.get(INodeProxyService) as INodeProxyService));
+				this.ipc.registerChannel("localizations", createChannelReceiver(this.services.get(ILocalizationsService) as ILocalizationsService));
+				this.ipc.registerChannel("update", new UpdateChannel(instantiationService.createInstance(UpdateService)));
+				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});
