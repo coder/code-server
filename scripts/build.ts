@@ -158,9 +158,8 @@ class Builder {
 		});
 
 		// Download and prepare VS Code if necessary (should be cached by CI).
-		const exists = fs.existsSync(vscodeSourcePath);
-		if (exists) {
-			this.log("Using existing VS Code directory");
+		if (fs.existsSync(vscodeSourcePath)) {
+			this.log("Using existing VS Code clone");
 		} else {
 			await this.task("Cloning VS Code", () => {
 				return util.promisify(cp.exec)(
@@ -168,11 +167,19 @@ class Builder {
 						+ ` --quiet --branch "${vscodeVersion}"`
 						+ ` --single-branch --depth=1 "${vscodeSourcePath}"`);
 			});
+		}
 
+		if (fs.existsSync(path.join(vscodeSourcePath, "node_modules"))) {
+			this.log("Using existing VS Code node_modules");
+		} else {
 			await this.task("Installing VS Code dependencies", () => {
 				return util.promisify(cp.exec)("yarn", { cwd: vscodeSourcePath });
 			});
+		}
 
+		if (fs.existsSync(path.join(vscodeSourcePath, ".build/extensions"))) {
+			this.log("Using existing built-in-extensions");
+		} else {
 			await this.task("Building default extensions", () => {
 				return util.promisify(cp.exec)(
 					"yarn gulp compile-extensions-build --max-old-space-size=32384",
