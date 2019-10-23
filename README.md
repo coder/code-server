@@ -56,6 +56,20 @@ arguments when launching code-server with Docker. See
 - For self-hosting and other information see [doc/quickstart.md](doc/quickstart.md).
 - For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
 
+### Build
+
+See
+[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+before building.
+
+```shell
+export OUT=/path/to/output/build                  # Optional if only building. Required if also developing.
+yarn build ${vscodeVersion} ${codeServerVersion}  # See travis.yml for the VS Code version to use.
+                                                  # The code-server version can be anything you want.
+node ~/path/to/output/build/out/vs/server/main.js # You can run the built JavaScript with Node.
+yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a binary.
+```
+
 ## Security
 
 ### Authentication
@@ -82,20 +96,6 @@ for free.
 
 Do not expose `code-server` to the open internet without SSL, whether built-in
 or through a proxy.
-
-### Build
-
-See
-[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
-before building.
-
-```shell
-export OUT=/path/to/output/build                  # Optional if only building. Required if also developing.
-yarn build ${vscodeVersion} ${codeServerVersion}  # See travis.yml for the VS Code version to use.
-                                                  # The code-server version can be anything you want.
-node ~/path/to/output/build/out/vs/server/main.js # You can run the built JavaScript with Node.
-yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a binary.
-```
 
 ## Known Issues
 
