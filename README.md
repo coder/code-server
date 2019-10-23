@@ -58,6 +58,10 @@ arguments when launching code-server with Docker. See
 
 ### Build
 
+See
+[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+before building.
+
 ```shell
 export OUT=/path/to/output/build                  # Optional if only building. Required if also developing.
 yarn build ${vscodeVersion} ${codeServerVersion}  # See travis.yml for the VS Code version to use.
@@ -101,6 +105,10 @@ data collected to improve code-server.
 ## Contributing
 
 ### Development
+
+See
+[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+before developing.
 
 ```shell
 git clone https://github.com/microsoft/vscode

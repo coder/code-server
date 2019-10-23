@@ -158,9 +158,8 @@ class Builder {
 		});
 
 		// Download and prepare VS Code if necessary (should be cached by CI).
-		const exists = fs.existsSync(vscodeSourcePath);
-		if (exists) {
-			this.log("Using existing VS Code directory");
+		if (fs.existsSync(vscodeSourcePath)) {
+			this.log("Using existing VS Code clone");
 		} else {
 			await this.task("Cloning VS Code", () => {
 				return util.promisify(cp.exec)(
@@ -168,11 +167,19 @@ class Builder {
 						+ ` --quiet --branch "${vscodeVersion}"`
 						+ ` --single-branch --depth=1 "${vscodeSourcePath}"`);
 			});
+		}
 
+		if (fs.existsSync(path.join(vscodeSourcePath, "node_modules"))) {
+			this.log("Using existing VS Code node_modules");
+		} else {
 			await this.task("Installing VS Code dependencies", () => {
 				return util.promisify(cp.exec)("yarn", { cwd: vscodeSourcePath });
 			});
+		}
 
+		if (fs.existsSync(path.join(vscodeSourcePath, ".build/extensions"))) {
+			this.log("Using existing built-in-extensions");
+		} else {
 			await this.task("Building default extensions", () => {
 				return util.promisify(cp.exec)(
 					"yarn gulp compile-extensions-build --max-old-space-size=32384",
@@ -296,8 +303,16 @@ class Builder {
 			]);
 		});
 
-		// This is so it doesn't get cached along with VS Code (no point).
-		await this.task("Removing copied server", () => fs.remove(serverPath));
+		// This is so it doesn't get cached along with VS Code. There's no point
+		// since there isn't anything like an incremental build.
+		await this.task("Removing build files for smaller cache", () => {
+			return Promise.all([
+				fs.remove(serverPath),
+				fs.remove(path.join(vscodeSourcePath, "out-vscode")),
+				fs.remove(path.join(vscodeSourcePath, "out-vscode-min")),
+				fs.remove(path.join(vscodeSourcePath, "out-build")),
+			]);
+		});
 
 		// Prepend code to the target which enables finding files within the binary.
 		const prependLoader = async (relativeFilePath: string): Promise<void> => {
@@ -326,19 +341,25 @@ class Builder {
 			]);
 		});
 
-		// TODO: fix onigasm dep
-		// # onigasm 2.2.2 has a bug that makes it broken for PHP files so use 2.2.1.
-		// # https://github.com/NeekSandhu/onigasm/issues/17
-		// function fix-onigasm() {
-		// 	local onigasmPath="${buildPath}/node_modules/onigasm-umd"
-		// 	rm -rf "${onigasmPath}"
-		// 	git clone "https://github.com/alexandrudima/onigasm-umd" "${onigasmPath}"
-		// 	cd "${onigasmPath}" && yarn && yarn add --dev onigasm@2.2.1 && yarn package
-		// 	mkdir "${onigasmPath}-temp"
-		// 	mv "${onigasmPath}/"{release,LICENSE} "${onigasmPath}-temp"
-		// 	rm -rf "${onigasmPath}"
-		// 	mv "${onigasmPath}-temp" "${onigasmPath}"
-		// }
+		// onigasm 2.2.2 has a bug that makes it broken for PHP files so use 2.2.1.
+		// https://github.com/NeekSandhu/onigasm/issues/17
+		await this.task("Applying onigasm PHP fix", async () => {
+			const onigasmPath = path.join(finalBuildPath, "node_modules/onigasm-umd");
+			const onigasmTmpPath = `${onigasmPath}-temp`;
+			await Promise.all([
+				fs.remove(onigasmPath),
+				fs.mkdir(onigasmTmpPath),
+			]);
+			await util.promisify(cp.exec)(`git clone "https://github.com/alexandrudima/onigasm-umd" "${onigasmPath}"`);
+			await util.promisify(cp.exec)("yarn", { cwd: onigasmPath });
+			await util.promisify(cp.exec)("yarn add --dev onigasm@2.2.1", { cwd: onigasmPath });
+			await util.promisify(cp.exec)("yarn package", { cwd: onigasmPath });
+			await Promise.all(["release", "LICENSE", "package.json"].map((fileName) => {
+				return fs.copy(path.join(onigasmPath, fileName), path.join(onigasmTmpPath, fileName));
+			}));
+			await fs.remove(onigasmPath);
+			await fs.move(onigasmTmpPath, onigasmPath);
+		});
 
 		this.log(`Final build: ${finalBuildPath}`);
 	}
