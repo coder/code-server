@@ -174,14 +174,14 @@ Our changes include:
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
-- Send client-side telemetry through the server and get the initial log level
-  from the server.
-- Add an upload service for use in editor windows and the explorer along with a
-  file prefix to ignore for temporary files created during upload.
+- Send client-side telemetry through the server.
+- Add an upload service along with a file prefix to ignore for temporary files
+  created during upload.
 - Make changing the display language work.
-- Make hiding or toggling the menu bar possible.
 - Make it possible for us to load code on the client.
-- Modify the build process to include our code.
+- Make extensions work in the browser.
+- Fix getting permanently disconnected when you sleep or hibernate for a while.
+- Make it possible to automatically update the binary.
 
 ## License
 
