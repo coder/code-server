@@ -18,7 +18,7 @@ jobs:
     - name: "Linux build - x86_64"
       os: linux
       arch: amd64
-      dist: trusty
+      dist: precise
       env: TARGET="linux" PUSH_DOCKER="true"
       if: tag IS blank
       script: scripts/ci.bash
@@ -32,7 +32,7 @@ jobs:
     - name: "Linux build - ARM"
       os: linux
       arch: arm64
-      dist: trusty
+      dist: precise
       env: TARGET="linux"
       if: tag IS blank
       script: scripts/ci.bash
