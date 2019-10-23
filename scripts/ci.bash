@@ -70,7 +70,7 @@ function main() {
 		>&2 echo "Must set VSCODE_VERSION environment variable"; exit 1
 	fi
 
-	if [[ "${ostype}" == "darwin"* || "${target}" == "linux" ]];; then
+	if [[ "${ostype}" == "darwin"* || "${target}" == "linux" ]]; then
 		local-build
 	else
 		docker-build
