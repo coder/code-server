@@ -32,7 +32,7 @@ jobs:
     - name: "Linux build - ARM"
       os: linux
       arch: arm64
-      dist: precise
+      dist: xenial
       env: TARGET="linux"
       if: tag IS blank
       script: scripts/ci.bash
