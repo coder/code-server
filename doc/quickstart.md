@@ -7,15 +7,6 @@
 ## Usage
 Run `code-server --help` to view available options.
 
-### Encrypting traffic with HTTPS
-To encrypt the traffic between the browser and server use `code-server --cert`
-followed by the path to your certificate. Additionally, you can use certificate
-keys with `--cert-key` followed by the path to your key. If you pass `--cert`
-without any path code-server will generate a self-signed certificate.
-
-You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
-for free.
-
 ### Nginx Reverse Proxy
 The trailing slashes are important.
 

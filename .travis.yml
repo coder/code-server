@@ -61,7 +61,7 @@ deploy:
 
   - provider: script
     skip_cleanup: true
-    script: docker build -f ./scripts/ci.dockerfile --build-arg -t codercom/code-server:"$TAG" -t codercom/code-server:v2 . && docker push codercom/code-server:"$TAG" && docker push codercom/code-server:v2
+    script: docker build -f ./scripts/ci.dockerfile -t codercom/code-server:"$TAG" -t codercom/code-server:v2 . && docker push codercom/code-server:"$TAG" && docker push codercom/code-server:v2
     on:
       repo: cdr/code-server
       branch: master

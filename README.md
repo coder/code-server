@@ -56,6 +56,33 @@ arguments when launching code-server with Docker. See
 - For self-hosting and other information see [doc/quickstart.md](doc/quickstart.md).
 - For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
 
+## Security
+
+### Authentication
+To enable built-in password authentication use `code-server --auth password`. By
+default it will use a randomly generated password but you can set the
+`$PASSWORD` environment variable to use your own.
+
+Do not expose `code-server` to the open internet without some form of
+authentication.
+
+### Encrypting traffic with HTTPS
+If you aren't doing SSL termination elsewhere you can directly give
+`code-server` a certificate with `code-server --cert` followed by the path to
+your certificate. Additionally, you can use certificate keys with `--cert-key`
+followed by the path to your key. If you pass `--cert` without any path
+`code-server` will generate a self-signed certificate.
+
+If `code-server` has been passed a certificate it will also respond to HTTPS
+requests and will redirect all HTTP requests to HTTPS. Otherwise it will respond
+only to HTTP requests.
+
+You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
+for free.
+
+Do not expose `code-server` to the open internet without SSL, whether built-in
+or through a proxy.
+
 ### Build
 
 See
