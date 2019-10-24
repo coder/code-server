@@ -46,10 +46,6 @@ arguments when launching code-server with Docker. See
 
 [![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
-### Google Cloud
-
-[![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://deploy.cloud.run?dir=gcloud/)
-
 ### Binaries
 
 1. [Download a binary](https://github.com/cdr/code-server/releases). (Linux and
