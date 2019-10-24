@@ -86,7 +86,7 @@ const startVscode = async (): Promise<void | void[]> => {
 	const args = getArgs();
 	const extra = args["_"] || [];
 	const options = {
-		auth: args.auth,
+		auth: args.auth || AuthType.Password,
 		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
@@ -95,9 +95,9 @@ const startVscode = async (): Promise<void | void[]> => {
 		password: process.env.PASSWORD,
 	};
 
-	if (options.auth && enumToArray(AuthType).filter((t) => t === options.auth).length === 0) {
+	if (enumToArray(AuthType).filter((t) => t === options.auth).length === 0) {
 		throw new Error(`'${options.auth}' is not a valid authentication type.`);
-	} else if (options.auth && !options.password) {
+	} else if (options.auth === "password" && !options.password) {
 		options.password = await generatePassword();
 	}
 
@@ -125,10 +125,13 @@ const startVscode = async (): Promise<void | void[]> => {
 	]);
 	logger.info(`Server listening on ${serverAddress}`);
 
-	if (options.auth && !process.env.PASSWORD) {
+	if (options.auth === "password" && !process.env.PASSWORD) {
 		logger.info(`  - Password is ${options.password}`);
-		logger.info("  - To use your own password, set the PASSWORD environment variable");
-	} else if (options.auth) {
+		logger.info("    - To use your own password, set the PASSWORD environment variable");
+		if (!args.auth) {
+			logger.info("    - To disable use `--auth none`");
+		}
+	} else if (options.auth === "password") {
 		logger.info("  - Using custom password for authentication");
 	} else {
 		logger.info("  - No authentication");

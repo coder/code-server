@@ -73,9 +73,9 @@ yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a
 ## Security
 
 ### Authentication
-To enable built-in password authentication use `code-server --auth password`. By
-default it will use a randomly generated password but you can set the
-`$PASSWORD` environment variable to use your own.
+By default `code-server` enables password authentication using a randomly
+generated password. You can set the `PASSWORD` environment variable to use your
+own instead or use `--auth none` to disable password authentication.
 
 Do not expose `code-server` to the open internet without some form of
 authentication.

@@ -14,6 +14,7 @@ import { mkdirp } from "vs/base/node/pfs";
 
 export enum AuthType {
 	Password = "password",
+	None = "none",
 }
 
 export enum FormatType {
@@ -127,7 +128,7 @@ export const enumToArray = (t: any): string[] => {
 
 export const buildAllowedMessage = (t: any): string => {
 	const values = enumToArray(t);
-	return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(",")}`;
+	return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(", ")}`;
 };
 
 /**

@@ -110,7 +110,7 @@ export class HttpError extends Error {
 }
 
 export interface ServerOptions {
-	readonly auth?: AuthType;
+	readonly auth: AuthType;
 	readonly basePath?: string;
 	readonly connectionToken?: string;
 	readonly cert?: string;
@@ -133,7 +133,7 @@ export abstract class Server {
 
 	public constructor(options: ServerOptions) {
 		this.options = {
-			host: options.auth && options.cert ? "0.0.0.0" : "localhost",
+			host: options.auth === "password" && options.cert ? "0.0.0.0" : "localhost",
 			...options,
 			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
 		};
@@ -269,7 +269,7 @@ export abstract class Server {
 		base = path.normalize(base);
 		requestPath = path.normalize(requestPath || "/index.html");
 
-		if (base !== "/login" || !this.options.auth || requestPath !== "/index.html") {
+		if (base !== "/login" || this.options.auth !== "password" || requestPath !== "/index.html") {
 			this.ensureGet(request);
 		}
 
@@ -300,7 +300,7 @@ export abstract class Server {
 				response.cache = true;
 				return response;
 			case "/login":
-				if (!this.options.auth || requestPath !== "/index.html") {
+				if (this.options.auth !== "password" || requestPath !== "/index.html") {
 					throw new HttpError("Not found", HttpCode.NotFound);
 				}
 				return this.tryLogin(request);
@@ -421,7 +421,7 @@ export abstract class Server {
 	}
 
 	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): boolean {
-		if (!this.options.auth) {
+		if (this.options.auth !== "password") {
 			return true;
 		}
 		const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
