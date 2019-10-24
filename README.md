@@ -8,7 +8,6 @@ Try it out:
 ```bash
 docker run -it -p 127.0.0.1:8080:8080 -v "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server" -v "$PWD:/home/coder/project" codercom/code-server:v2
 ```
-[![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://deploy.cloud.run?dir=gcloud/)
 
 - **Consistent environment:** Code on your Chromebook, tablet, and laptop with a
   consistent dev environment. develop more easily for Linux if you have a
@@ -46,6 +45,10 @@ arguments when launching code-server with Docker. See
 ### Digital Ocean
 
 [![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
+
+### Google Cloud
+
+[![Run on Google Cloud](https://storage.googleapis.com/cloudrun/button.svg)](https://deploy.cloud.run?dir=gcloud/)
 
 ### Binaries
 
