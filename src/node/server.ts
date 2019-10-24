@@ -523,8 +523,8 @@ export class MainServer extends Server {
 				}
 				break;
 			case "/webview":
-				if (requestPath.indexOf("/vscode-resource") === 0) {
-					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));
+				if (/^\/vscode-resource/.test(requestPath)) {
+					return this.getResource(requestPath.replace(/^\/vscode-resource(\/file)?/, ""));
 				}
 				return this.getResource(
 					this.rootPath,
