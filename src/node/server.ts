@@ -469,6 +469,9 @@ export class MainServer extends Server {
 	private readonly proxyTimeout = 5000;
 
 	private settings: Settings = {};
+	private heartbeatTimer?: NodeJS.Timeout;
+	private heartbeatInterval = 60000;
+	private lastHeartbeat = 0;
 
 	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
@@ -486,6 +489,7 @@ export class MainServer extends Server {
 	}
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
+		this.heartbeat();
 		if (!parsedUrl.query.reconnectionToken) {
 			throw new Error("Reconnection token is missing from query parameters");
 		}
@@ -509,6 +513,7 @@ export class MainServer extends Server {
 		parsedUrl: url.UrlWithParsedQuery,
 		request: http.IncomingMessage,
 	): Promise<Response> {
+		this.heartbeat();
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
 			case "/resource":
@@ -869,6 +874,50 @@ export class MainServer extends Server {
 			await util.promisify(fs.writeFile)(this.settingsPath, JSON.stringify(this.settings));
 		} catch (error) {
 			(this.services.get(ILogService) as ILogService).warn(error.message);
+		}
+	}
+
+	/**
+	 * Return the file path for the heartbeat file.
+	 */
+	private get heartbeatPath(): string {
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
+		return path.join(environment.userDataPath, "heartbeat");
+	}
+
+	/**
+	 * Return all online connections regardless of type.
+	 */
+	private get onlineConnections(): Connection[] {
+		const online = <Connection[]>[];
+		this.connections.forEach((connections) => {
+			connections.forEach((connection) => {
+				if (typeof connection.offline === "undefined") {
+					online.push(connection);
+				}
+			});
+		});
+		return online;
+	}
+
+	/**
+	 * Write to the heartbeat file if we haven't already done so within the
+	 * timeout and start or reset a timer that keeps running as long as there are
+	 * active connections. Failures are logged as warnings.
+	 */
+	private heartbeat(): void {
+		const now = Date.now();
+		if (now - this.lastHeartbeat >= this.heartbeatInterval) {
+			util.promisify(fs.writeFile)(this.heartbeatPath, "").catch((error) => {
+				(this.services.get(ILogService) as ILogService).warn(error.message);
+			});
+			this.lastHeartbeat = now;
+			clearTimeout(this.heartbeatTimer!); // We can clear undefined so ! is fine.
+			this.heartbeatTimer = setTimeout(() => {
+				if (this.onlineConnections.length > 0) {
+					this.heartbeat();
+				}
+			}, this.heartbeatInterval);
 		}
 	}
 }
