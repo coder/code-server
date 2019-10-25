@@ -193,6 +193,11 @@ export abstract class Server {
 		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
+	protected async getAnyResource(...parts: string[]): Promise<Response> {
+		const filePath = path.join(...parts);
+		return { content: await util.promisify(fs.readFile)(filePath), filePath };
+	}
+
 	protected async getTarredResource(...parts: string[]): Promise<Response> {
 		const filePath = this.ensureAuthorizedFilePath(...parts);
 		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar", cache: true };
@@ -524,7 +529,7 @@ export class MainServer extends Server {
 				break;
 			case "/webview":
 				if (/^\/vscode-resource/.test(requestPath)) {
-					return this.getResource(requestPath.replace(/^\/vscode-resource(\/file)?/, ""));
+					return this.getAnyResource(requestPath.replace(/^\/vscode-resource(\/file)?/, ""));
 				}
 				return this.getResource(
 					this.rootPath,
