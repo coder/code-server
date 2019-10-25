@@ -101,8 +101,11 @@ const startVscode = async (): Promise<void | void[]> => {
 		options.password = await generatePassword();
 	}
 
-	// This is necessary since VS Code filters out empty strings.
-	if (typeof options.cert === "undefined" && process.argv.indexOf("--cert") !== -1) {
+	if (!options.certKey && typeof options.certKey !== "undefined") {
+		throw new Error(`--cert-key cannot be blank`);
+	} else if (options.certKey && !options.cert) {
+		throw new Error(`--cert-key was provided but --cert was not`);
+	} if (!options.cert && typeof options.cert !== "undefined") {
 		const { cert, certKey } = await generateCertificate();
 		options.cert = cert;
 		options.certKey = certKey;

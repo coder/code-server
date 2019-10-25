@@ -87,7 +87,7 @@ index 990755c4f3..06449bb9cb 100644
 +	extraBuiltinExtensionPaths: string[];
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 3e48fe4ddd..e0962b8736 100644
+index 3e48fe4ddd..2212ff5471 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -58,6 +58,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
@@ -99,6 +99,15 @@ index 3e48fe4ddd..e0962b8736 100644
  	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
  	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
  	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
+@@ -185,7 +187,7 @@ export function parseArgs<T>(args: string[], options: OptionDescriptions<T>, err
+ 			delete parsedArgs[o.deprecates];
+ 		}
+ 
+-		if (val) {
++		if (typeof val !== 'undefined') {
+ 			if (o.type === 'string[]') {
+ 				if (val && !Array.isArray(val)) {
+ 					val = [val];
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
 index f7d207009d..5c37b52dab 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
