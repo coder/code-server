@@ -30,7 +30,7 @@ jobs:
     - name: "MacOS build"
       os: osx
       if: tag IS blank
-      script: travis_wait 40 scripts/ci.bash
+      script: travis_wait 60 scripts/ci.bash
 
 git:
   depth: 3

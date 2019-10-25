@@ -303,14 +303,16 @@ class Builder {
 			]);
 		});
 
-		// This is so it doesn't get cached along with VS Code. There's no point
-		// since there isn't anything like an incremental build.
-		await this.task("Removing build files for smaller cache", () => {
+		// Prevent needless cache changes.
+		await this.task("Cleaning for smaller cache", () => {
 			return Promise.all([
 				fs.remove(serverPath),
 				fs.remove(path.join(vscodeSourcePath, "out-vscode")),
 				fs.remove(path.join(vscodeSourcePath, "out-vscode-min")),
 				fs.remove(path.join(vscodeSourcePath, "out-build")),
+				util.promisify(cp.exec)("git reset --hard", { cwd: vscodeSourcePath }).then(() => {
+					return util.promisify(cp.exec)("git clean -fd", { cwd: vscodeSourcePath });
+				}),
 			]);
 		});
 
