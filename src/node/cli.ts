@@ -204,6 +204,7 @@ export class WrapperProcess {
 					logger.info("Relaunching...");
 					this.started = undefined;
 					if (this.process) {
+						this.process.removeAllListeners();
 						this.process.kill();
 					}
 					try {
@@ -223,7 +224,9 @@ export class WrapperProcess {
 	public start(): Promise<void> {
 		if (!this.started) {
 			const child = this.spawn();
-			this.started = ipcMain.handshake(child);
+			this.started = ipcMain.handshake(child).then(() => {
+				child.once("exit", (code) => exit(code!));
+			});
 			this.process = child;
 		}
 		return this.started;
