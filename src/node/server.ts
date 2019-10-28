@@ -116,7 +116,7 @@ export interface ServerOptions {
 	readonly connectionToken?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
-	readonly folderUri?: string;
+	readonly openUri?: string;
 	readonly host?: string;
 	readonly password?: string;
 	readonly port?: number;
@@ -552,9 +552,9 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.getFirstValidPath([
 				{ path: parsedUrl.query.workspace, workspace: true },
-				{ path: parsedUrl.query.folder },
+				{ path: parsedUrl.query.folder, workspace: false },
 				(await this.readSettings()).lastVisited,
-				{ path: this.options.folderUri }
+				{ path: this.options.openUri }
 			]),
 			this.servicesPromise,
 		]);
@@ -598,7 +598,9 @@ export class MainServer extends Server {
 	}
 
 	/**
-	 * Choose the first valid path.
+	 * Choose the first valid path. If `workspace` is undefined then either a
+	 * workspace or a directory are acceptable. Otherwise it must be a file if a
+	 * workspace or a directory otherwise.
 	 */
 	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ uri: URI, workspace?: boolean} | undefined> {
 		const logger = this.services.get(ILogService) as ILogService;
@@ -613,9 +615,8 @@ export class MainServer extends Server {
 				const uri = URI.file(sanitizeFilePath(paths[j], cwd));
 				try {
 					const stat = await util.promisify(fs.stat)(uri.fsPath);
-					// Workspace must be a file.
-					if (!!startPath.workspace !== stat.isDirectory()) {
-						return { uri, workspace: startPath.workspace };
+					if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
+						return { uri, workspace: !stat.isDirectory() };
 					}
 				} catch (error) {
 					logger.warn(error.message);

@@ -90,7 +90,7 @@ const startVscode = async (): Promise<void | void[]> => {
 		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
-		folderUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
+		openUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
 		host: args.host,
 		password: process.env.PASSWORD,
 	};
