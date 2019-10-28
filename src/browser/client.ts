@@ -3,15 +3,16 @@ import { URI } from "vs/base/common/uri";
 import { registerSingleton } from "vs/platform/instantiation/common/extensions";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { ILocalizationsService } from "vs/platform/localizations/common/localizations";
-import { LocalizationsService } from "vs/workbench/services/localizations/electron-browser/localizationsService";
+import { PersistentConnectionEventType } from "vs/platform/remote/common/remoteAgentConnection";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { coderApi, vscodeApi } from "vs/server/src/browser/api";
 import { IUploadService, UploadService } from "vs/server/src/browser/upload";
 import { INodeProxyService, NodeProxyChannelClient } from "vs/server/src/common/nodeProxy";
 import { TelemetryChannelClient } from "vs/server/src/common/telemetry";
+import { split } from "vs/server/src/common/util";
 import "vs/workbench/contrib/localizations/browser/localizations.contribution";
+import { LocalizationsService } from "vs/workbench/services/localizations/electron-browser/localizationsService";
 import { IRemoteAgentService } from "vs/workbench/services/remote/common/remoteAgentService";
-import { PersistentConnectionEventType } from "vs/platform/remote/common/remoteAgentConnection";
 
 class TelemetryService extends TelemetryChannelClient {
 	public constructor(
@@ -79,7 +80,7 @@ export const withQuery = (url: string, replace: Query): string => {
 	const uri = URI.parse(url);
 	const query = { ...replace };
 	uri.query.split("&").forEach((kv) => {
-		const [key, value] = kv.split("=", 2);
+		const [key, value] = split(kv, "=");
 		if (!(key in query)) {
 			query[key] = value;
 		}

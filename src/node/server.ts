@@ -56,6 +56,7 @@ import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProper
 import { UpdateChannel } from "vs/platform/update/electron-main/updateIpc";
 import { INodeProxyService, NodeProxyChannel } from "vs/server/src/common/nodeProxy";
 import { TelemetryChannel } from "vs/server/src/common/telemetry";
+import { split } from "vs/server/src/common/util";
 import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
 import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
 import { TelemetryClient } from "vs/server/src/node/insights";
@@ -212,8 +213,8 @@ export abstract class Server {
 	}
 
 	protected withBase(request: http.IncomingMessage, path: string): string {
-		const split = request.url ? request.url.split("?", 2) : [];
-		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${split.length === 2 ? `?${split[1]}` : ""}`;
+		const [, query] = request.url ? split(request.url, "?") : [];
+		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${query ? `?${query}` : ""}`;
 	}
 
 	private isAllowedRequestPath(path: string): boolean {
@@ -440,11 +441,8 @@ export abstract class Server {
 		const cookies: { [key: string]: string } = {};
 		if (request.headers.cookie) {
 			request.headers.cookie.split(";").forEach((keyValue) => {
-				// key=value -> { [key]: value } and key -> { [key]: "" }
-				const index = keyValue.indexOf("=");
-				const key = keyValue.substring(0, index).trim();
-				const value = keyValue.substring(index + 1);
-				cookies[key || value] = decodeURI(key ? value : "");
+				const [key, value] = split(keyValue, "=");
+				cookies[key] = decodeURI(value);
 			});
 		}
 		return cookies as T;
