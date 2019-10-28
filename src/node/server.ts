@@ -525,7 +525,7 @@ export class MainServer extends Server {
 			case "/resource":
 			case "/vscode-remote-resource":
 				if (typeof parsedUrl.query.path === "string") {
-					return this.getResource(parsedUrl.query.path);
+					return this.getAnyResource(parsedUrl.query.path);
 				}
 				break;
 			case "/tar":
