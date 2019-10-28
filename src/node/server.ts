@@ -440,8 +440,11 @@ export abstract class Server {
 		const cookies: { [key: string]: string } = {};
 		if (request.headers.cookie) {
 			request.headers.cookie.split(";").forEach((keyValue) => {
-				const [key, value] = keyValue.split("=", 2);
-				cookies[key.trim()] = decodeURI(value);
+				// key=value -> { [key]: value } and key -> { [key]: "" }
+				const index = keyValue.indexOf("=");
+				const key = keyValue.substring(0, index).trim();
+				const value = keyValue.substring(index + 1);
+				cookies[key || value] = decodeURI(key ? value : "");
 			});
 		}
 		return cookies as T;
