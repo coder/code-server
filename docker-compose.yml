@@ -11,4 +11,3 @@ services:
       - "${HOME}/.local/share/code-server:/home/coder/.local/share/code-server"
     environment:
       PASSWORD: ${PASSWORD}
-    command: --auth=password
