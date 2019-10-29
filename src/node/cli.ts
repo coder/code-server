@@ -237,6 +237,7 @@ export class WrapperProcess {
 			env: {
 				...process.env,
 				LAUNCH_VSCODE: "true",
+				VSCODE_PARENT_PID: process.pid.toString(),
 			},
 			stdio: ["inherit", "inherit", "inherit", "ipc"],
 		});
@@ -256,6 +257,20 @@ process.exit = function (code?: number) {
 	const err = new Error(`process.exit() was prevented: ${code || "unknown code"}.`);
 	console.warn(err.stack);
 } as (code?: number) => never;
+
+// Copy the extension host behavior of killing oneself if the parent dies. This
+// also exists in bootstrap-fork.js but spawning with that won't work because we
+// override process.exit.
+if (typeof process.env.VSCODE_PARENT_PID !== "undefined") {
+	const parentPid = parseInt(process.env.VSCODE_PARENT_PID, 10);
+	setInterval(() => {
+		try {
+			process.kill(parentPid, 0); // Throws an exception if the process doesn't exist anymore.
+		} catch (e) {
+			exit();
+		}
+	}, 5000);
+}
 
 // It's possible that the pipe has closed (for example if you run code-server
 // --version | head -1). Assume that means we're done.
