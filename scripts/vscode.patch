@@ -1,19 +1,8 @@
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 6d41e85e42..f845d0bf9e 100644
+index 6d41e85e42..64f39687a4 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -48,7 +48,9 @@ export namespace Schemas {
- 
- 	export const command: string = 'command';
- 
--	export const vscodeRemote: string = 'vscode-remote';
-+	// NOTE@coder: Changed this so it'll be reflected in the explorer to prevent
-+	// confusion with vscode-remote itself.
-+	export const vscodeRemote: string = 'code-server';
- 
- 	export const vscodeRemoteResource: string = 'vscode-remote-resource';
- 
-@@ -96,12 +98,12 @@ class RemoteAuthoritiesImpl {
+@@ -96,12 +96,12 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
