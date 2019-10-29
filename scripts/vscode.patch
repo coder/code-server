@@ -619,6 +619,34 @@ index 84c46faa36..957e8412e1 100644
  
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
+diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
+index 53de865d8f..df234821a9 100644
+--- a/src/vs/workbench/common/resources.ts
++++ b/src/vs/workbench/common/resources.ts
+@@ -15,6 +15,7 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
+ import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
+ import { withNullAsUndefined } from 'vs/base/common/types';
++import { Schemas } from 'vs/base/common/network';
+ 
+ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
+ 
+@@ -63,7 +64,7 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
+ 	set(value: URI | null) {
+ 		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
+ 			this._resourceKey.set(value);
+-			this._schemeKey.set(value ? value.scheme : null);
++			this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
+ 			this._filenameKey.set(value ? basename(value) : null);
+ 			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
+ 			this._extensionKey.set(value ? extname(value) : null);
+@@ -200,4 +201,4 @@ export class ResourceGlobMatcher extends Disposable {
+ 
+ 		return !!expressionForRoot(resourcePathToMatch);
+ 	}
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
 index 1f4cd95f65..061931cbde 100644
 --- a/src/vs/workbench/contrib/files/browser/files.contribution.ts
