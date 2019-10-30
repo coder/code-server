@@ -16,7 +16,7 @@ module.exports = (remoteAuthority) => {
 		},
 		transformOutgoingScheme: (scheme) => {
 			switch (scheme) {
-				case "file": return "vscode-local";
+				case "file": return "vscode-remote";
 				default: return scheme;
 			}
 		},
