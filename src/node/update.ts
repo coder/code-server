@@ -37,6 +37,9 @@ export class UpdateService extends AbstractUpdateService {
 		super(null, configurationService, environmentService, requestService, logService);
 	}
 
+	/**
+	 * Return true if the currently installed version is the latest.
+	 */
 	public async isLatestVersion(latest?: IUpdate | null): Promise<boolean | undefined> {
 		if (!latest) {
 			latest = await this.getLatestVersion();
@@ -44,8 +47,12 @@ export class UpdateService extends AbstractUpdateService {
 		if (latest) {
 			const latestMajor = parseInt(latest.name);
 			const currentMajor = parseInt(product.codeServerVersion);
-			return !isNaN(latestMajor) && !isNaN(currentMajor) &&
-				currentMajor <= latestMajor && latest.name === product.codeServerVersion;
+			// If these are invalid versions we can't compare meaningfully.
+			return isNaN(latestMajor) || isNaN(currentMajor) ||
+				// This can happen when there is a pre-release for a new major version.
+				currentMajor > latestMajor ||
+				// Otherwise assume that if it's not the same then we're out of date.
+				latest.name === product.codeServerVersion;
 		}
 		return true;
 	}
@@ -62,7 +69,7 @@ export class UpdateService extends AbstractUpdateService {
 		this.setState(State.CheckingForUpdates(context));
 		try {
 			const update = await this.getLatestVersion();
-			if (!update || this.isLatestVersion(update)) {
+			if (!update || await this.isLatestVersion(update)) {
 				this.setState(State.Idle(UpdateType.Archive));
 			} else {
 				this.setState(State.AvailableForDownload({
