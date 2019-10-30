@@ -46,7 +46,8 @@ jobs:
     - name: "MacOS build"
       os: osx
       if: tag IS blank
-      script: travis_wait 40 scripts/ci.bash
+      script: travis_wait 60 scripts/ci.bash
+
 git:
   depth: 3
 
@@ -76,7 +77,7 @@ deploy:
 
   - provider: script
     skip_cleanup: true
-    script: docker build -f ./scripts/ci.dockerfile --build-arg -t codercom/code-server:"$TAG" -t codercom/code-server:v2 . && docker push codercom/code-server:"$TAG" && docker push codercom/code-server:v2
+    script: docker build -f ./scripts/ci.dockerfile -t codercom/code-server:"$TAG" -t codercom/code-server:v2 -t codercom/code-server . && docker push codercom/code-server:"$TAG" && docker push codercom/code-server:v2 && docker push codercom/code-server
     on:
       repo: cdr/code-server
       branch: master

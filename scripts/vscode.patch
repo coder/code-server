@@ -1,19 +1,8 @@
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 6d41e85e42..f845d0bf9e 100644
+index 6d41e85e42..64f39687a4 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -48,7 +48,9 @@ export namespace Schemas {
- 
- 	export const command: string = 'command';
- 
--	export const vscodeRemote: string = 'vscode-remote';
-+	// NOTE@coder: Changed this so it'll be reflected in the explorer to prevent
-+	// confusion with vscode-remote itself.
-+	export const vscodeRemote: string = 'code-server';
- 
- 	export const vscodeRemoteResource: string = 'vscode-remote-resource';
- 
-@@ -96,12 +98,12 @@ class RemoteAuthoritiesImpl {
+@@ -96,12 +96,12 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
@@ -50,6 +39,21 @@ index a657f4a4d9..66bd13dffa 100644
  } else if (typeof process === 'object') {
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
+diff --git a/src/vs/base/common/processes.ts b/src/vs/base/common/processes.ts
+index c52f7b3774..5635cfac8a 100644
+--- a/src/vs/base/common/processes.ts
++++ b/src/vs/base/common/processes.ts
+@@ -110,7 +110,9 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
+ 		/^ELECTRON_.+$/,
+ 		/^GOOGLE_API_KEY$/,
+ 		/^VSCODE_.+$/,
+-		/^SNAP(|_.*)$/
++		/^SNAP(|_.*)$/,
++		/^NBIN_BYPASS$/,
++		/^LAUNCH_VSCODE$/
+ 	];
+ 	const envKeys = Object.keys(env);
+ 	envKeys
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
 index 3ae24454cb..fac8679290 100644
 --- a/src/vs/base/node/languagePacks.js
@@ -87,7 +91,7 @@ index 990755c4f3..06449bb9cb 100644
 +	extraBuiltinExtensionPaths: string[];
  }
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 3e48fe4ddd..e0962b8736 100644
+index 3e48fe4ddd..2212ff5471 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -58,6 +58,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
@@ -99,6 +103,15 @@ index 3e48fe4ddd..e0962b8736 100644
  	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
  	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
  	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
+@@ -185,7 +187,7 @@ export function parseArgs<T>(args: string[], options: OptionDescriptions<T>, err
+ 			delete parsedArgs[o.deprecates];
+ 		}
+ 
+-		if (val) {
++		if (typeof val !== 'undefined') {
+ 			if (o.type === 'string[]') {
+ 				if (val && !Array.isArray(val)) {
+ 					val = [val];
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
 index f7d207009d..5c37b52dab 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
@@ -510,62 +523,27 @@ index 49a8e254fd..99d233aed5 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index afd82468c0..67d938e9ab 100644
+index afd82468c0..289145be54 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
-@@ -9,6 +9,10 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
+@@ -9,6 +9,9 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
  import { endsWith } from 'vs/base/common/strings';
  import { URI } from 'vs/base/common/uri';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
 +import { joinPath } from 'vs/base/common/resources';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
-+import { fromTar } from 'vs/server/node_modules/@coder/requirefs/out/requirefs';
-+import { Client } from 'vs/server/node_modules/@coder/node-browser/out/client/client';
++import { loadCommonJSModule } from 'vs/server/src/browser/worker';
  
  class WorkerRequireInterceptor extends RequireInterceptor {
  
-@@ -41,7 +45,48 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -41,7 +44,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		await this._fakeModules.install();
  	}
  
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +		if (!URI.isUri(module) && module.extensionKind !== 'web') {
-+			const fetchUri = URI.from({
-+				scheme: self.location.protocol.replace(':', ''),
-+				authority: self.location.host,
-+				path: `${self.location.pathname.replace(/\/static.*\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
-+				query: `path=${encodeURIComponent(module.extensionLocation.path)}`,
-+			});
-+			const response = await fetch(fetchUri.toString(true));
-+			if (response.status !== 200) {
-+				throw new Error(`Failed to download extension '${module.extensionLocation.path}'`);
-+			}
-+			const client = new Client(this._nodeProxy, { logger: this._logService });
-+			const init = await client.handshake();
-+			const buffer = new Uint8Array(await response.arrayBuffer());
-+			const rfs = fromTar(buffer);
-+			(<any>self).global = self;
-+			rfs.provide('vscode', this._fakeModules.getModule('vscode', module.extensionLocation));
-+			Object.keys(client.modules).forEach((key) => {
-+				const mod = (client.modules as any)[key];
-+				if (key === 'process') {
-+					(<any>self).process = mod;
-+					(<any>self).process.env = init.env;
-+					return;
-+				}
-+
-+				rfs.provide(key, mod);
-+				switch (key) {
-+					case 'buffer':
-+						(<any>self).Buffer = mod.Buffer;
-+						break;
-+					case 'timers':
-+						(<any>self).setImmediate = mod.setImmediate;
-+						break;
-+				}
-+			});
-+			return rfs.require('.');
++			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules.getModule('vscode', module.extensionLocation));
 +		}
 +
 +		if (!URI.isUri(module)) {
@@ -574,7 +552,7 @@ index afd82468c0..67d938e9ab 100644
  
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
-@@ -57,7 +102,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -57,7 +67,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		const _exports = {};
  		const _module = { exports: _exports };
  		const _require = (request: string) => {
@@ -641,6 +619,34 @@ index 84c46faa36..957e8412e1 100644
  
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
+diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
+index 53de865d8f..df234821a9 100644
+--- a/src/vs/workbench/common/resources.ts
++++ b/src/vs/workbench/common/resources.ts
+@@ -15,6 +15,7 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
+ import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
+ import { withNullAsUndefined } from 'vs/base/common/types';
++import { Schemas } from 'vs/base/common/network';
+ 
+ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
+ 
+@@ -63,7 +64,7 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
+ 	set(value: URI | null) {
+ 		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
+ 			this._resourceKey.set(value);
+-			this._schemeKey.set(value ? value.scheme : null);
++			this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
+ 			this._filenameKey.set(value ? basename(value) : null);
+ 			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
+ 			this._extensionKey.set(value ? extname(value) : null);
+@@ -200,4 +201,4 @@ export class ResourceGlobMatcher extends Disposable {
+ 
+ 		return !!expressionForRoot(resourcePathToMatch);
+ 	}
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
 index 1f4cd95f65..061931cbde 100644
 --- a/src/vs/workbench/contrib/files/browser/files.contribution.ts

@@ -70,6 +70,33 @@ node ~/path/to/output/build/out/vs/server/main.js # You can run the built JavaSc
 yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a binary.
 ```
 
+## Security
+
+### Authentication
+By default `code-server` enables password authentication using a randomly
+generated password. You can set the `PASSWORD` environment variable to use your
+own instead or use `--auth none` to disable password authentication.
+
+Do not expose `code-server` to the open internet without some form of
+authentication.
+
+### Encrypting traffic with HTTPS
+If you aren't doing SSL termination elsewhere you can directly give
+`code-server` a certificate with `code-server --cert` followed by the path to
+your certificate. Additionally, you can use certificate keys with `--cert-key`
+followed by the path to your key. If you pass `--cert` without any path
+`code-server` will generate a self-signed certificate.
+
+If `code-server` has been passed a certificate it will also respond to HTTPS
+requests and will redirect all HTTP requests to HTTPS. Otherwise it will respond
+only to HTTP requests.
+
+You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
+for free.
+
+Do not expose `code-server` to the open internet without SSL, whether built-in
+or through a proxy.
+
 ## Known Issues
 
 - Creating custom VS Code extensions and debugging them doesn't work.
@@ -147,14 +174,14 @@ Our changes include:
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
-- Send client-side telemetry through the server and get the initial log level
-  from the server.
-- Add an upload service for use in editor windows and the explorer along with a
-  file prefix to ignore for temporary files created during upload.
+- Send client-side telemetry through the server.
+- Add an upload service along with a file prefix to ignore for temporary files
+  created during upload.
 - Make changing the display language work.
-- Make hiding or toggling the menu bar possible.
 - Make it possible for us to load code on the client.
-- Modify the build process to include our code.
+- Make extensions work in the browser.
+- Fix getting permanently disconnected when you sleep or hibernate for a while.
+- Make it possible to automatically update the binary.
 
 ## License
 

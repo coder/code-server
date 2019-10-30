@@ -86,18 +86,18 @@ const startVscode = async (): Promise<void | void[]> => {
 	const args = getArgs();
 	const extra = args["_"] || [];
 	const options = {
-		auth: args.auth,
+		auth: args.auth || AuthType.Password,
 		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
-		folderUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
+		openUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
 		host: args.host,
 		password: process.env.PASSWORD,
 	};
 
-	if (options.auth && enumToArray(AuthType).filter((t) => t === options.auth).length === 0) {
+	if (enumToArray(AuthType).filter((t) => t === options.auth).length === 0) {
 		throw new Error(`'${options.auth}' is not a valid authentication type.`);
-	} else if (options.auth && !options.password) {
+	} else if (options.auth === "password" && !options.password) {
 		options.password = await generatePassword();
 	}
 
@@ -125,10 +125,13 @@ const startVscode = async (): Promise<void | void[]> => {
 	]);
 	logger.info(`Server listening on ${serverAddress}`);
 
-	if (options.auth && !process.env.PASSWORD) {
+	if (options.auth === "password" && !process.env.PASSWORD) {
 		logger.info(`  - Password is ${options.password}`);
-		logger.info("  - To use your own password, set the PASSWORD environment variable");
-	} else if (options.auth) {
+		logger.info("    - To use your own password, set the PASSWORD environment variable");
+		if (!args.auth) {
+			logger.info("    - To disable use `--auth none`");
+		}
+	} else if (options.auth === "password") {
 		logger.info("  - Using custom password for authentication");
 	} else {
 		logger.info("  - No authentication");
@@ -201,6 +204,7 @@ export class WrapperProcess {
 					logger.info("Relaunching...");
 					this.started = undefined;
 					if (this.process) {
+						this.process.removeAllListeners();
 						this.process.kill();
 					}
 					try {
@@ -220,7 +224,9 @@ export class WrapperProcess {
 	public start(): Promise<void> {
 		if (!this.started) {
 			const child = this.spawn();
-			this.started = ipcMain.handshake(child);
+			this.started = ipcMain.handshake(child).then(() => {
+				child.once("exit", (code) => exit(code!));
+			});
 			this.process = child;
 		}
 		return this.started;
@@ -231,6 +237,7 @@ export class WrapperProcess {
 			env: {
 				...process.env,
 				LAUNCH_VSCODE: "true",
+				VSCODE_PARENT_PID: process.pid.toString(),
 			},
 			stdio: ["inherit", "inherit", "inherit", "ipc"],
 		});
@@ -250,6 +257,20 @@ process.exit = function (code?: number) {
 	const err = new Error(`process.exit() was prevented: ${code || "unknown code"}.`);
 	console.warn(err.stack);
 } as (code?: number) => never;
+
+// Copy the extension host behavior of killing oneself if the parent dies. This
+// also exists in bootstrap-fork.js but spawning with that won't work because we
+// override process.exit.
+if (typeof process.env.VSCODE_PARENT_PID !== "undefined") {
+	const parentPid = parseInt(process.env.VSCODE_PARENT_PID, 10);
+	setInterval(() => {
+		try {
+			process.kill(parentPid, 0); // Throws an exception if the process doesn't exist anymore.
+		} catch (e) {
+			exit();
+		}
+	}, 5000);
+}
 
 // It's possible that the pipe has closed (for example if you run code-server
 // --version | head -1). Assume that means we're done.

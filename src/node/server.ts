@@ -56,6 +56,7 @@ import { resolveCommonProperties } from "vs/platform/telemetry/node/commonProper
 import { UpdateChannel } from "vs/platform/update/electron-main/updateIpc";
 import { INodeProxyService, NodeProxyChannel } from "vs/server/src/common/nodeProxy";
 import { TelemetryChannel } from "vs/server/src/common/telemetry";
+import { split } from "vs/server/src/common/util";
 import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
 import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
 import { TelemetryClient } from "vs/server/src/node/insights";
@@ -110,12 +111,12 @@ export class HttpError extends Error {
 }
 
 export interface ServerOptions {
-	readonly auth?: AuthType;
+	readonly auth: AuthType;
 	readonly basePath?: string;
 	readonly connectionToken?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
-	readonly folderUri?: string;
+	readonly openUri?: string;
 	readonly host?: string;
 	readonly password?: string;
 	readonly port?: number;
@@ -133,7 +134,7 @@ export abstract class Server {
 
 	public constructor(options: ServerOptions) {
 		this.options = {
-			host: options.auth && options.cert ? "0.0.0.0" : "localhost",
+			host: options.auth === "password" && options.cert ? "0.0.0.0" : "localhost",
 			...options,
 			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
 		};
@@ -193,6 +194,11 @@ export abstract class Server {
 		return { content: await util.promisify(fs.readFile)(filePath), filePath };
 	}
 
+	protected async getAnyResource(...parts: string[]): Promise<Response> {
+		const filePath = path.join(...parts);
+		return { content: await util.promisify(fs.readFile)(filePath), filePath };
+	}
+
 	protected async getTarredResource(...parts: string[]): Promise<Response> {
 		const filePath = this.ensureAuthorizedFilePath(...parts);
 		return { stream: tarFs.pack(filePath), filePath, mime: "application/tar", cache: true };
@@ -207,8 +213,8 @@ export abstract class Server {
 	}
 
 	protected withBase(request: http.IncomingMessage, path: string): string {
-		const split = request.url ? request.url.split("?", 2) : [];
-		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${split.length === 2 ? `?${split[1]}` : ""}`;
+		const [, query] = request.url ? split(request.url, "?") : [];
+		return `${this.protocol}://${request.headers.host}${this.options.basePath}${path}${query ? `?${query}` : ""}`;
 	}
 
 	private isAllowedRequestPath(path: string): boolean {
@@ -269,7 +275,7 @@ export abstract class Server {
 		base = path.normalize(base);
 		requestPath = path.normalize(requestPath || "/index.html");
 
-		if (base !== "/login" || !this.options.auth || requestPath !== "/index.html") {
+		if (base !== "/login" || this.options.auth !== "password" || requestPath !== "/index.html") {
 			this.ensureGet(request);
 		}
 
@@ -300,7 +306,7 @@ export abstract class Server {
 				response.cache = true;
 				return response;
 			case "/login":
-				if (!this.options.auth || requestPath !== "/index.html") {
+				if (this.options.auth !== "password" || requestPath !== "/index.html") {
 					throw new HttpError("Not found", HttpCode.NotFound);
 				}
 				return this.tryLogin(request);
@@ -421,7 +427,7 @@ export abstract class Server {
 	}
 
 	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): boolean {
-		if (!this.options.auth) {
+		if (this.options.auth !== "password") {
 			return true;
 		}
 		const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
@@ -435,8 +441,8 @@ export abstract class Server {
 		const cookies: { [key: string]: string } = {};
 		if (request.headers.cookie) {
 			request.headers.cookie.split(";").forEach((keyValue) => {
-				const [key, value] = keyValue.split("=", 2);
-				cookies[key.trim()] = decodeURI(value);
+				const [key, value] = split(keyValue, "=");
+				cookies[key] = decodeURI(value);
 			});
 		}
 		return cookies as T;
@@ -469,6 +475,9 @@ export class MainServer extends Server {
 	private readonly proxyTimeout = 5000;
 
 	private settings: Settings = {};
+	private heartbeatTimer?: NodeJS.Timeout;
+	private heartbeatInterval = 60000;
+	private lastHeartbeat = 0;
 
 	public constructor(options: ServerOptions, args: ParsedArgs) {
 		super(options);
@@ -486,6 +495,7 @@ export class MainServer extends Server {
 	}
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
+		this.heartbeat();
 		if (!parsedUrl.query.reconnectionToken) {
 			throw new Error("Reconnection token is missing from query parameters");
 		}
@@ -509,12 +519,13 @@ export class MainServer extends Server {
 		parsedUrl: url.UrlWithParsedQuery,
 		request: http.IncomingMessage,
 	): Promise<Response> {
+		this.heartbeat();
 		switch (base) {
 			case "/": return this.getRoot(request, parsedUrl);
 			case "/resource":
 			case "/vscode-remote-resource":
 				if (typeof parsedUrl.query.path === "string") {
-					return this.getResource(parsedUrl.query.path);
+					return this.getAnyResource(parsedUrl.query.path);
 				}
 				break;
 			case "/tar":
@@ -523,8 +534,8 @@ export class MainServer extends Server {
 				}
 				break;
 			case "/webview":
-				if (requestPath.indexOf("/vscode-resource") === 0) {
-					return this.getResource(requestPath.replace(/^\/vscode-resource/, ""));
+				if (/^\/vscode-resource/.test(requestPath)) {
+					return this.getAnyResource(requestPath.replace(/^\/vscode-resource(\/file)?/, ""));
 				}
 				return this.getResource(
 					this.rootPath,
@@ -541,9 +552,9 @@ export class MainServer extends Server {
 			util.promisify(fs.readFile)(filePath, "utf8"),
 			this.getFirstValidPath([
 				{ path: parsedUrl.query.workspace, workspace: true },
-				{ path: parsedUrl.query.folder },
+				{ path: parsedUrl.query.folder, workspace: false },
 				(await this.readSettings()).lastVisited,
-				{ path: this.options.folderUri }
+				{ path: this.options.openUri }
 			]),
 			this.servicesPromise,
 		]);
@@ -587,7 +598,9 @@ export class MainServer extends Server {
 	}
 
 	/**
-	 * Choose the first valid path.
+	 * Choose the first valid path. If `workspace` is undefined then either a
+	 * workspace or a directory are acceptable. Otherwise it must be a file if a
+	 * workspace or a directory otherwise.
 	 */
 	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ uri: URI, workspace?: boolean} | undefined> {
 		const logger = this.services.get(ILogService) as ILogService;
@@ -602,9 +615,8 @@ export class MainServer extends Server {
 				const uri = URI.file(sanitizeFilePath(paths[j], cwd));
 				try {
 					const stat = await util.promisify(fs.stat)(uri.fsPath);
-					// Workspace must be a file.
-					if (!!startPath.workspace !== stat.isDirectory()) {
-						return { uri, workspace: startPath.workspace };
+					if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
+						return { uri, workspace: !stat.isDirectory() };
 					}
 				} catch (error) {
 					logger.warn(error.message);
@@ -869,6 +881,50 @@ export class MainServer extends Server {
 			await util.promisify(fs.writeFile)(this.settingsPath, JSON.stringify(this.settings));
 		} catch (error) {
 			(this.services.get(ILogService) as ILogService).warn(error.message);
+		}
+	}
+
+	/**
+	 * Return the file path for the heartbeat file.
+	 */
+	private get heartbeatPath(): string {
+		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
+		return path.join(environment.userDataPath, "heartbeat");
+	}
+
+	/**
+	 * Return all online connections regardless of type.
+	 */
+	private get onlineConnections(): Connection[] {
+		const online = <Connection[]>[];
+		this.connections.forEach((connections) => {
+			connections.forEach((connection) => {
+				if (typeof connection.offline === "undefined") {
+					online.push(connection);
+				}
+			});
+		});
+		return online;
+	}
+
+	/**
+	 * Write to the heartbeat file if we haven't already done so within the
+	 * timeout and start or reset a timer that keeps running as long as there are
+	 * active connections. Failures are logged as warnings.
+	 */
+	private heartbeat(): void {
+		const now = Date.now();
+		if (now - this.lastHeartbeat >= this.heartbeatInterval) {
+			util.promisify(fs.writeFile)(this.heartbeatPath, "").catch((error) => {
+				(this.services.get(ILogService) as ILogService).warn(error.message);
+			});
+			this.lastHeartbeat = now;
+			clearTimeout(this.heartbeatTimer!); // We can clear undefined so ! is fine.
+			this.heartbeatTimer = setTimeout(() => {
+				if (this.onlineConnections.length > 0) {
+					this.heartbeat();
+				}
+			}, this.heartbeatInterval);
 		}
 	}
 }
