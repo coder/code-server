@@ -528,7 +528,8 @@ export class MainServer extends Server {
 	protected async handleSSHSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
 		this.heartbeat();
 
-		// TODO: code-server needs to make its own SSH server, not rely on 22.
+		// At some point code-server should ensure some ssh client is available
+		// instead of relying on 22.
 		const sshSocket = net.connect(22, "localhost");
 		const sender = new WSSender(socket);
 		const receiver = new WSReceiver('arraybuffer');
@@ -562,7 +563,6 @@ export class MainServer extends Server {
 
 		// WebSocket Receiver handlers
 		receiver.on('drain', () => {
-			console.log('resume');
 			socket.resume();
 		});
 		receiver.on('message', data => {
