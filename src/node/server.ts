@@ -68,6 +68,8 @@ import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 const tarFs = localRequire<typeof import("tar-fs")>("tar-fs/index");
+const WSSender = localRequire<typeof import("ws/lib/sender")>("ws/lib/sender");
+const WSReceiver = localRequire<typeof import("ws/lib/receiver")>("ws/lib/receiver");
 
 export enum HttpCode {
 	Ok = 200,
@@ -178,6 +180,11 @@ export abstract class Server {
 	}
 
 	protected abstract handleWebSocket(
+		socket: net.Socket,
+		parsedUrl: url.UrlWithParsedQuery
+	): Promise<void>;
+
+	protected abstract handleSSHSocket(
 		socket: net.Socket,
 		parsedUrl: url.UrlWithParsedQuery
 	): Promise<void>;
@@ -334,7 +341,10 @@ export abstract class Server {
 		socket.on("end", () => socket.destroy());
 
 		this.ensureGet(request);
-		if (!this.authenticate(request)) {
+		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+		const isSSH = parsedUrl.path === "/ssh";
+
+		if (!isSSH && !this.authenticate(request)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 		} else if (!request.headers.upgrade || request.headers.upgrade.toLowerCase() !== "websocket") {
 			throw new Error("HTTP/1.1 400 Bad Request");
@@ -352,7 +362,9 @@ export abstract class Server {
 			`Sec-WebSocket-Accept: ${reply}`,
 		].join("\r\n") + "\r\n\r\n");
 
-		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+		if (isSSH) {
+			return this.handleSSHSocket(socket, parsedUrl);
+		}
 		return this.handleWebSocket(socket, parsedUrl);
 	}
 
@@ -511,6 +523,51 @@ export class MainServer extends Server {
 			protocol.dispose();
 			protocol.getSocket().dispose();
 		}
+	}
+
+	protected async handleSSHSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
+		this.heartbeat();
+
+		// TODO: code-server needs to make its own SSH server, not rely on 22.
+		const sshSocket = net.connect(22, "localhost");
+		const sender = new WSSender(socket);
+		const receiver = new WSReceiver('arraybuffer');
+
+		// Socket handlers
+		socket.on('data', data => {
+			const couldWrite = receiver.write(data);
+			if (!couldWrite) {
+				socket.pause();
+			}
+		});
+		socket.on('close', () => sshSocket.destroy());
+		socket.on('error', err => {
+			console.error('handleSSHSocket socket error:', err);
+			sshSocket.destroy();
+		});
+
+		// SSH Socket handlers
+		sshSocket.on('data', data => {
+			sender.send(data, {
+				binary: true,
+				compress: true,
+				fin: true,
+			});
+		});
+		sshSocket.on('close', () => socket.destroy());
+		sshSocket.on('error', err => {
+			console.error('handleSSHSocket sshSocket error:', err);
+			socket.destroy();
+		});
+
+		// WebSocket Receiver handlers
+		receiver.on('drain', () => {
+			console.log('resume');
+			socket.resume();
+		});
+		receiver.on('message', data => {
+			sshSocket.write(Buffer.from(data));
+		});
 	}
 
 	protected async handleRequest(
