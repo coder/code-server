@@ -196,12 +196,14 @@ const startCli = (): boolean | Promise<void> => {
 export class WrapperProcess {
 	private process?: cp.ChildProcess;
 	private started?: Promise<void>;
+	private currentVersion = product.codeServerVersion;
 
 	public constructor() {
 		ipcMain.onMessage(async (message) => {
-			switch (message) {
+			switch (message.type) {
 				case "relaunch":
-					logger.info("Relaunching...");
+					logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`);
+					this.currentVersion = message.version;
 					this.started = undefined;
 					if (this.process) {
 						this.process.removeAllListeners();
@@ -233,10 +235,16 @@ export class WrapperProcess {
 	}
 
 	private spawn(): cp.ChildProcess {
-		return cp.spawn(process.argv[0], process.argv.slice(1), {
+		// If we're using loose files then we need to specify the path. If we're in
+		// the binary we need to let the binary determine the path (via nbin) since
+		// it could be different between binaries which presents a problem when
+		// upgrading (different version numbers or different staging directories).
+		const isBinary = (global as any).NBIN_LOADED;
+		return cp.spawn(process.argv[0], process.argv.slice(isBinary ? 2 : 1), {
 			env: {
 				...process.env,
 				LAUNCH_VSCODE: "true",
+				NBIN_BYPASS: undefined,
 				VSCODE_PARENT_PID: process.pid.toString(),
 			},
 			stdio: ["inherit", "inherit", "inherit", "ipc"],

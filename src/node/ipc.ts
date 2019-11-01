@@ -6,7 +6,12 @@ enum ControlMessage {
 	okFromChild = "ok<",
 }
 
-export type Message = "relaunch";
+interface RelaunchMessage {
+	type: "relaunch";
+	version: string;
+}
+
+export type Message = RelaunchMessage;
 
 class IpcMain {
 	protected readonly _onMessage = new Emitter<Message>();
@@ -41,11 +46,15 @@ class IpcMain {
 		});
 	}
 
-	public relaunch(): void {
+	public relaunch(version: string): void {
+		this.send({ type: "relaunch", version });
+	}
+
+	private send(message: Message): void {
 		if (!process.send) {
 			throw new Error("Not a child process with IPC enabled");
 		}
-		process.send("relaunch");
+		process.send(message);
 	}
 }
 

@@ -13,7 +13,7 @@ import { IFileService } from "vs/platform/files/common/files";
 import { ILogService } from "vs/platform/log/common/log";
 import product from "vs/platform/product/common/product";
 import { asJson, IRequestService } from "vs/platform/request/common/request";
-import { AvailableForDownload, State, UpdateType } from "vs/platform/update/common/update";
+import { AvailableForDownload, State, UpdateType, StateType } from "vs/platform/update/common/update";
 import { AbstractUpdateService } from "vs/platform/update/electron-main/abstractUpdateService";
 import { ipcMain } from "vs/server/src/node/ipc";
 import { extract } from "vs/server/src/node/marketplace";
@@ -62,7 +62,9 @@ export class UpdateService extends AbstractUpdateService {
 	}
 
 	public async doQuitAndInstall(): Promise<void> {
-		ipcMain.relaunch();
+		if (this.state.type === StateType.Ready) {
+			ipcMain.relaunch(this.state.update.version);
+		}
 	}
 
 	protected async doCheckForUpdates(context: any): Promise<void> {
