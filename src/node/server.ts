@@ -58,7 +58,7 @@ import { INodeProxyService, NodeProxyChannel } from "vs/server/src/common/nodePr
 import { TelemetryChannel } from "vs/server/src/common/telemetry";
 import { split } from "vs/server/src/common/util";
 import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from "vs/server/src/node/channel";
-import { Connection, ExtensionHostConnection, ManagementConnection } from "vs/server/src/node/connection";
+import { Connection, ExtensionHostConnection, ManagementConnection, SSHConnection } from "vs/server/src/node/connection";
 import { TelemetryClient } from "vs/server/src/node/insights";
 import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
 import { Protocol } from "vs/server/src/node/protocol";
@@ -529,6 +529,17 @@ export class MainServer extends Server {
 		const sender = new WSSender(socket);
 		const receiver = new WSReceiver('arraybuffer');
 
+		// We don't have a reconnect token like other connections, so generate a random ID
+		const connectionId = Math.random().toString();
+		const connections = this.getConnectionsByType(ConnectionType.Tunnel);
+		const connection = new SSHConnection(socket, sshSocket);
+		connections.set(connectionId, connection);
+		this.disposeOldOfflineConnections(connections);
+
+		const deleteConnection = () => {
+			connections.delete(connectionId);
+		};
+
 		// Socket handlers
 		socket.on('data', data => {
 			const couldWrite = receiver.write(data);
@@ -536,10 +547,10 @@ export class MainServer extends Server {
 				socket.pause();
 			}
 		});
-		socket.on('close', () => sshSocket.destroy());
+		socket.on('close', () => deleteConnection());
 		socket.on('error', err => {
 			console.error('handleSSHSocket socket error:', err);
-			sshSocket.destroy();
+			deleteConnection();
 		});
 
 		// SSH Socket handlers
@@ -550,10 +561,10 @@ export class MainServer extends Server {
 				fin: true,
 			});
 		});
-		sshSocket.on('close', () => socket.destroy());
+		sshSocket.on('close', () => deleteConnection());
 		sshSocket.on('error', err => {
 			console.error('handleSSHSocket sshSocket error:', err);
-			socket.destroy();
+			deleteConnection();
 		});
 
 		// WebSocket Receiver handlers
@@ -686,10 +697,7 @@ export class MainServer extends Server {
 		switch (message.desiredConnectionType) {
 			case ConnectionType.ExtensionHost:
 			case ConnectionType.Management:
-				if (!this.connections.has(message.desiredConnectionType)) {
-					this.connections.set(message.desiredConnectionType, new Map());
-				}
-				const connections = this.connections.get(message.desiredConnectionType)!;
+				const connections = this.getConnectionsByType(message.desiredConnectionType);
 
 				const ok = async () => {
 					return message.desiredConnectionType === ConnectionType.ExtensionHost
@@ -714,7 +722,7 @@ export class MainServer extends Server {
 
 				let connection: Connection;
 				if (message.desiredConnectionType === ConnectionType.Management) {
-					connection = new ManagementConnection(protocol, token);
+					connection = new ManagementConnection(protocol);
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
@@ -727,7 +735,8 @@ export class MainServer extends Server {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
 						message.args ? message.args.language : "en",
-						protocol, buffer, token,
+						protocol,
+						buffer,
 						this.services.get(ILogService) as ILogService,
 						this.services.get(IEnvironmentService) as IEnvironmentService,
 					);
@@ -739,6 +748,13 @@ export class MainServer extends Server {
 			case ConnectionType.Tunnel: return protocol.tunnel();
 			default: throw new Error("Unrecognized connection type");
 		}
+	}
+
+	private getConnectionsByType(type: ConnectionType): Map<string, Connection> {
+		if (!this.connections.has(type)) {
+			this.connections.set(type, new Map());
+		}
+		return this.connections.get(type)!;
 	}
 
 	private disposeOldOfflineConnections(connections: Map<string, Connection>): void {

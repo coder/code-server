@@ -1,4 +1,5 @@
 import * as cp from "child_process";
+import * as net from "net";
 import { getPathFromAmdModule } from "vs/base/common/amd";
 import { VSBuffer } from "vs/base/common/buffer";
 import { Emitter } from "vs/base/common/event";
@@ -16,8 +17,6 @@ export abstract class Connection {
 	public readonly onClose = this._onClose.event;
 	private disposed = false;
 	private _offline: number | undefined;
-
-	public constructor(protected protocol: Protocol, public readonly token: string) {}
 
 	public get offline(): number | undefined {
 		return this._offline;
@@ -53,8 +52,8 @@ export abstract class Connection {
  * Used for all the IPC channels.
  */
 export class ManagementConnection extends Connection {
-	public constructor(protected protocol: Protocol, token: string) {
-		super(protocol, token);
+	public constructor(protected protocol: Protocol) {
+		super();
 		protocol.onClose(() => this.dispose()); // Explicit close.
 		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
 	}
@@ -75,11 +74,13 @@ export class ExtensionHostConnection extends Connection {
 	private process?: cp.ChildProcess;
 
 	public constructor(
-		locale:string, protocol: Protocol, buffer: VSBuffer, token: string,
+		locale: string,
+		protected protocol: Protocol,
+		buffer: VSBuffer,
 		private readonly log: ILogService,
 		private readonly environment: IEnvironmentService,
 	) {
-		super(protocol, token);
+		super();
 		this.protocol.dispose();
 		this.spawn(locale, buffer).then((p) => this.process = p);
 		this.protocol.getUnderlyingSocket().pause();
@@ -152,5 +153,27 @@ export class ExtensionHostConnection extends Connection {
 		};
 
 		return proc.on("message", listen);
+	}
+}
+
+/**
+ * SSH connections have no reconnect ability
+ */
+export class SSHConnection extends Connection {
+	public constructor(protected netSocket: net.Socket, protected sshSocket: net.Socket) {
+		super();
+		netSocket.on("close", () => this.dispose());
+		netSocket.on("error", () => this.dispose());
+		sshSocket.on("close", () => this.dispose());
+		sshSocket.on("error", () => this.dispose());
+	}
+
+	protected doDispose(): void {
+		this.netSocket.destroy();
+		this.sshSocket.destroy();
+	}
+
+	protected doReconnect(): void {
+		// no-op
 	}
 }
