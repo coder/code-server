@@ -812,6 +812,21 @@ index 3bdfa1a79f..ded21cf9c6 100644
  
  // register services that only throw errors
  function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
+diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
+index 3b5706ce76..f390ed35dc 100644
+--- a/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
++++ b/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
+@@ -36,7 +36,9 @@ const nativeAddEventLister = addEventListener.bind(self);
+ self.addEventLister = () => console.trace(`'addEventListener' has been blocked`);
+ 
+ self.indexedDB.open = () => console.trace(`'indexedDB.open' has been blocked`);
+-self.caches.open = () => console.trace(`'indexedDB.caches' has been blocked`);
++if (self.caches) { // NOTE@coder: on insecure domains this exists in Firefox but not Chromium or Safari.
++	self.caches.open = () => console.trace(`'indexedDB.caches' has been blocked`);
++}
+ 
+ //#endregion ---
+ 
 diff --git a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
 index 99394090da..4891e0fece 100644
 --- a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
