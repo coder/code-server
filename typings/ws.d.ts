@@ -1,11 +1,13 @@
 /**
- * `Sender` class which isn't exported with the default packages, and isn't
- * typed by the @types definition.
+ * Custom typing for the `Sender` and `Receiver` classes which aren't typed in
+ * the @types/ws module.
  */
 
-declare module "ws/lib/sender" {
+declare module "ws" {
+  import { Writable } from 'stream';
   import { Socket } from 'net';
 
+  /*** Sender class & types ***/
   export interface FrameOptions {
     opcode?: number;
     readOnly?: boolean;
@@ -21,7 +23,7 @@ declare module "ws/lib/sender" {
     mask?: boolean;
   }
 
-  export default class Sender {
+  export class Sender {
     static frame(data: Buffer, options?: FrameOptions): Buffer[];
 
     constructor(socket: Socket);
@@ -30,5 +32,11 @@ declare module "ws/lib/sender" {
     pong(data?: any, mask?: boolean, cb?: Function): void;
     send(data: any, options: SendOptions, cb?: Function): void;
   }
-}
 
+  /*** Receiver class & types ***/
+  export type BINARY_TYPES = 'nodebuffer' | 'arraybuffer' | 'fragments';
+
+  export class Receiver extends Writable {
+    constructor(binaryType: BINARY_TYPES);
+  }
+}

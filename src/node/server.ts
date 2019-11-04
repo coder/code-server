@@ -68,8 +68,7 @@ import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
 const tarFs = localRequire<typeof import("tar-fs")>("tar-fs/index");
-const WSSender = localRequire<typeof import("ws/lib/sender")>("ws/lib/sender");
-const WSReceiver = localRequire<typeof import("ws/lib/receiver")>("ws/lib/receiver");
+const { Sender: WSSender, Receiver: WSReceiver } = localRequire<typeof import("ws")>("ws/index");
 
 export enum HttpCode {
 	Ok = 200,
