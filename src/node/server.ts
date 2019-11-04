@@ -536,9 +536,9 @@ export class MainServer extends Server {
 		connections.set(connectionId, connection);
 		this.disposeOldOfflineConnections(connections);
 
-		const deleteConnection = () => {
+		connection.onClose(() => {
 			connections.delete(connectionId);
-		};
+		});
 
 		// Socket handlers
 		socket.on('data', data => {
@@ -546,11 +546,6 @@ export class MainServer extends Server {
 			if (!couldWrite) {
 				socket.pause();
 			}
-		});
-		socket.on('close', () => deleteConnection());
-		socket.on('error', err => {
-			console.error('handleSSHSocket socket error:', err);
-			deleteConnection();
 		});
 
 		// SSH Socket handlers
@@ -560,11 +555,6 @@ export class MainServer extends Server {
 				compress: true,
 				fin: true,
 			});
-		});
-		sshSocket.on('close', () => deleteConnection());
-		sshSocket.on('error', err => {
-			console.error('handleSSHSocket sshSocket error:', err);
-			deleteConnection();
 		});
 
 		// WebSocket Receiver handlers
