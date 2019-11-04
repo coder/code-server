@@ -184,11 +184,6 @@ export abstract class Server {
 		parsedUrl: url.UrlWithParsedQuery
 	): Promise<void>;
 
-	protected abstract handleSSHSocket(
-		socket: net.Socket,
-		parsedUrl: url.UrlWithParsedQuery
-	): Promise<void>;
-
 	protected abstract handleRequest(
 		base: string,
 		requestPath: string,
@@ -344,6 +339,7 @@ export abstract class Server {
 		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
 		const isSSH = parsedUrl.path === "/ssh";
 
+		// SSH uses its own form of authentication
 		if (!isSSH && !this.authenticate(request)) {
 			throw new HttpError("Unauthorized", HttpCode.Unauthorized);
 		} else if (!request.headers.upgrade || request.headers.upgrade.toLowerCase() !== "websocket") {
@@ -362,9 +358,6 @@ export abstract class Server {
 			`Sec-WebSocket-Accept: ${reply}`,
 		].join("\r\n") + "\r\n\r\n");
 
-		if (isSSH) {
-			return this.handleSSHSocket(socket, parsedUrl);
-		}
 		return this.handleWebSocket(socket, parsedUrl);
 	}
 
@@ -508,6 +501,11 @@ export class MainServer extends Server {
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
 		this.heartbeat();
+
+		if (parsedUrl.path === "/ssh") {
+			return this.handleSSHSocket(socket);
+		}
+
 		if (!parsedUrl.query.reconnectionToken) {
 			throw new Error("Reconnection token is missing from query parameters");
 		}
@@ -525,9 +523,7 @@ export class MainServer extends Server {
 		}
 	}
 
-	protected async handleSSHSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
-		this.heartbeat();
-
+	protected async handleSSHSocket(socket: net.Socket): Promise<void> {
 		// At some point code-server should ensure some ssh client is available
 		// instead of relying on 22.
 		const sshSocket = net.connect(22, "localhost");
