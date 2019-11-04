@@ -11,7 +11,7 @@ import product from "vs/platform/product/common/product";
 import { ipcMain } from "vs/server/src/node/ipc";
 import { enableCustomMarketplace } from "vs/server/src/node/marketplace";
 import { MainServer } from "vs/server/src/node/server";
-import { AuthType, buildAllowedMessage, enumToArray, FormatType, generateCertificate, generatePassword, localRequire, open, unpackExecutables } from "vs/server/src/node/util";
+import { AuthType, buildAllowedMessage, enumToArray, FormatType, generateCertificate, generatePassword, localRequire, open, unpackExecutables, generateSSHHostKey } from "vs/server/src/node/util";
 
 const { logger } = localRequire<typeof import("@coder/logger/out/index")>("@coder/logger/out/index");
 setUnexpectedErrorHandler((error) => logger.warn(error.message));
@@ -21,6 +21,7 @@ interface Args extends ParsedArgs {
 	"base-path"?: string;
 	cert?: string;
 	"cert-key"?: string;
+	"ssh-host-key"?: string;
 	format?: string;
 	host?: string;
 	open?: boolean;
@@ -60,6 +61,7 @@ const getArgs = (): Args => {
 	options["base-path"] = { type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." };
 	options["cert"] = { type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." };
 	options["cert-key"] = { type: "string", cat: "o", description: "Path to the certificate's key if one was provided." };
+	options["ssh-host-key"] = { type: "string", cat: "o", description: "Path to the SSH host key. If omitted, will use the same key as --cert-key." };
 	options["format"] = { type: "string", cat: "o", description: `Format for the version. ${buildAllowedMessage(FormatType)}.` };
 	options["host"] = { type: "string", cat: "o", description: "Host for the server." };
 	options["auth"] = { type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` };
@@ -90,6 +92,7 @@ const startVscode = async (): Promise<void | void[]> => {
 		basePath: args["base-path"],
 		cert: args.cert,
 		certKey: args["cert-key"],
+		sshHostKey: args["ssh-host-key"],
 		openUri: extra.length > 1 ? extra[extra.length - 1] : undefined,
 		host: args.host,
 		password: process.env.PASSWORD,
@@ -109,6 +112,12 @@ const startVscode = async (): Promise<void | void[]> => {
 		const { cert, certKey } = await generateCertificate();
 		options.cert = cert;
 		options.certKey = certKey;
+	}
+
+	if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
+		throw new Error(`--ssh-host-key cannot be blank`);
+	} else if (!options.sshHostKey) {
+		options.sshHostKey = await generateSSHHostKey();
 	}
 
 	enableCustomMarketplace();

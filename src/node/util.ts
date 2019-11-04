@@ -54,6 +54,12 @@ export const generateCertificate = async (): Promise<{ cert: string, certKey: st
 	return paths;
 };
 
+export const generateSSHHostKey = async (): Promise<string> => {
+	// Just reuse the SSL cert as the SSH host key
+	const { certKey } = await generateCertificate();
+	return certKey;
+};
+
 export const uriTransformerPath = getPathFromAmdModule(require, "vs/server/src/node/uriTransformer");
 export const getUriTransformer = (remoteAuthority: string): URITransformer => {
 	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);

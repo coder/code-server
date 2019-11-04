@@ -9,6 +9,7 @@ import { Readable } from "stream";
 import * as tls from "tls";
 import * as url from "url";
 import * as util from "util";
+import * as sshTypes from "ssh2";
 import { Emitter } from "vs/base/common/event";
 import { sanitizeFilePath } from "vs/base/common/extpath";
 import { Schemas } from "vs/base/common/network";
@@ -66,9 +67,11 @@ import { UpdateService } from "vs/server/src/node/update";
 import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
+import { fillSSHSession, forwardSSHPort } from "vs/server/src/node/ssh";
 
 const tarFs = localRequire<typeof import("tar-fs")>("tar-fs/index");
 const { Sender: WSSender, Receiver: WSReceiver } = localRequire<typeof import("ws")>("ws/index");
+const ssh = localRequire<typeof import("ssh2")>("ssh2/lib/client");
 
 export enum HttpCode {
 	Ok = 200,
@@ -117,6 +120,7 @@ export interface ServerOptions {
 	readonly connectionToken?: string;
 	readonly cert?: string;
 	readonly certKey?: string;
+	readonly sshHostKey?: string;
 	readonly openUri?: string;
 	readonly host?: string;
 	readonly password?: string;
@@ -126,6 +130,7 @@ export interface ServerOptions {
 
 export abstract class Server {
 	protected readonly server: http.Server | https.Server;
+	protected readonly sshServer: sshTypes.Server | undefined;
 	protected rootPath = path.resolve(__dirname, "../../../../..");
 	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
 	protected readonly allowedRequestPaths: string[] = [this.rootPath];
@@ -148,6 +153,23 @@ export abstract class Server {
 			}, this.onRequest);
 		} else {
 			this.server = http.createServer(this.onRequest);
+		}
+
+		if (this.options.sshHostKey) {
+			const hostKey = fs.readFileSync(this.options.sshHostKey);
+			const sshServer = new ssh.Server({ hostKeys: [hostKey] }, (client, info) => {
+				this.handleSSH(client, info);
+			});
+			sshServer.listen(() => {
+				// TODO: Get in cli logger instead to get correct formatting + get rid of jank set timeout
+				setTimeout(() => {
+					console.log(`        - SSH server listening on localhost:${sshServer.address().port}`);
+				}, 20);
+			});
+			sshServer.on('error', err => {
+				console.log('SSH error:', err);
+			});
+			this.sshServer = sshServer;
 		}
 	}
 
@@ -189,6 +211,11 @@ export abstract class Server {
 		parsedUrl: url.UrlWithParsedQuery,
 		request: http.IncomingMessage,
 	): Promise<Response>;
+
+	protected abstract handleSSH(
+		client: sshTypes.Connection,
+		info: sshTypes.ClientInfo,
+	): void;
 
 	protected async getResource(...parts: string[]): Promise<Response> {
 		const filePath = this.ensureAuthorizedFilePath(...parts);
@@ -336,7 +363,7 @@ export abstract class Server {
 
 		this.ensureGet(request);
 		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
-		const isSSH = parsedUrl.path === "/ssh";
+		const isSSH = parsedUrl.path === "/ssh" && !!this.sshServer;
 
 		// SSH uses its own form of authentication
 		if (!isSSH && !this.authenticate(request)) {
@@ -523,9 +550,13 @@ export class MainServer extends Server {
 	}
 
 	protected async handleSSHSocket(socket: net.Socket): Promise<void> {
-		// At some point code-server should ensure some ssh client is available
-		// instead of relying on 22.
-		const sshSocket = net.connect(22, "localhost");
+		// This should never happen, but just in case
+		if (!this.sshServer) {
+			socket.destroy();
+			return;
+		}
+
+		const sshSocket = net.connect(this.sshServer.address().port, "localhost");
 		const sender = new WSSender(socket);
 		const receiver = new WSReceiver('arraybuffer');
 
@@ -564,6 +595,34 @@ export class MainServer extends Server {
 		receiver.on('message', data => {
 			sshSocket.write(Buffer.from(data));
 		});
+	}
+
+	protected handleSSH(
+		client: sshTypes.Connection,
+		info: sshTypes.ClientInfo,
+	): void {
+		client.on('authentication', ctx => {
+			// Allow any auth if we have no password
+			if (!this.options.password) {
+				return ctx.accept();
+			}
+
+			// Otherwise require the same password as code-server
+			if (ctx.method === 'password') {
+				if (ctx.password.length === this.options.password.length) {
+					const optPass = Buffer.from(this.options.password);
+					const ctxPass = Buffer.from(ctx.password);
+					if (crypto.timingSafeEqual(optPass, ctxPass)) {
+						return ctx.accept();
+					}
+				}
+			}
+
+			// Reject, let them know to try the password method
+			ctx.reject(['password']);
+		});
+		client.on('tcpip', forwardSSHPort);
+		client.on('session', fillSSHSession);
 	}
 
 	protected async handleRequest(
