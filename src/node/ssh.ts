@@ -56,8 +56,7 @@ export function fillSSHSession(accept: () => sshTypes.Session) {
 	});
 
 	session.on("shell", accept => {
-		// TODO: Allow default shell customization?
-		cmd("/bin/bash", accept());
+		cmd(process.env.SHELL || "/usr/bin/env bash", accept());
 	});
 
 	session.on("exec", (accept, _, info) => {
