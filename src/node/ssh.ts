@@ -272,8 +272,6 @@ export function forwardSSHPort(
 	fwdSocket.on('connect', () => {
 		const channel = accept();
 		channel.pipe(fwdSocket);
-		channel.on('close', () => fwdSocket.destroy());
 		fwdSocket.pipe(channel);
-		fwdSocket.on('end', () => channel.close());
 	});
 }
