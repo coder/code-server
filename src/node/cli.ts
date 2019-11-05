@@ -22,6 +22,7 @@ interface Args extends ParsedArgs {
 	cert?: string;
 	"cert-key"?: string;
 	"ssh-host-key"?: string;
+	"disable-ssh"?: boolean;
 	format?: string;
 	host?: string;
 	open?: boolean;
@@ -62,6 +63,7 @@ const getArgs = (): Args => {
 	options["cert"] = { type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." };
 	options["cert-key"] = { type: "string", cat: "o", description: "Path to the certificate's key if one was provided." };
 	options["ssh-host-key"] = { type: "string", cat: "o", description: "Path to the SSH host key. If omitted, will use the same key as --cert-key." };
+	options["disable-ssh"] = { type: "boolean", cat: "o", description: "Disable the SSH tunnel at /ssh." };
 	options["format"] = { type: "string", cat: "o", description: `Format for the version. ${buildAllowedMessage(FormatType)}.` };
 	options["host"] = { type: "string", cat: "o", description: "Host for the server." };
 	options["auth"] = { type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` };
@@ -114,10 +116,12 @@ const startVscode = async (): Promise<void | void[]> => {
 		options.certKey = certKey;
 	}
 
-	if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
-		throw new Error(`--ssh-host-key cannot be blank`);
-	} else if (!options.sshHostKey) {
-		options.sshHostKey = await generateSSHHostKey();
+	if (!args["disable-ssh"]) {
+		if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
+			throw new Error(`--ssh-host-key cannot be blank`);
+		} else if (!options.sshHostKey) {
+			options.sshHostKey = await generateSSHHostKey();
+		}
 	}
 
 	enableCustomMarketplace();
@@ -128,7 +132,7 @@ const startVscode = async (): Promise<void | void[]> => {
 		socket: args.socket,
 	}, args);
 
-	const [serverAddress, /* ignore */] = await Promise.all([
+	const [[serverAddress, sshPort], /* ignore */] = await Promise.all([
 		server.listen(),
 		unpackExecutables(),
 	]);
@@ -154,6 +158,10 @@ const startVscode = async (): Promise<void | void[]> => {
 		);
 	} else {
 		logger.info("  - Not serving HTTPS");
+	}
+
+	if (sshPort) {
+		logger.info(`  - SSH server started on port ${sshPort}`);
 	}
 
 	if (!server.options.socket && args.open) {

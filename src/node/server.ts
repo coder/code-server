@@ -121,6 +121,7 @@ export interface ServerOptions {
 	readonly cert?: string;
 	readonly certKey?: string;
 	readonly sshHostKey?: string;
+	readonly disableSSH?: boolean;
 	readonly openUri?: string;
 	readonly host?: string;
 	readonly password?: string;
@@ -134,7 +135,7 @@ export abstract class Server {
 	protected rootPath = path.resolve(__dirname, "../../../../..");
 	protected serverRoot = path.join(this.rootPath, "/out/vs/server/src");
 	protected readonly allowedRequestPaths: string[] = [this.rootPath];
-	private listenPromise: Promise<string> | undefined;
+	private listenPromise: Promise<[string, number?]> | undefined;
 	public readonly protocol: "http" | "https";
 	public readonly options: ServerOptions;
 
@@ -157,25 +158,15 @@ export abstract class Server {
 
 		if (this.options.sshHostKey) {
 			const hostKey = fs.readFileSync(this.options.sshHostKey);
-			const sshServer = new ssh.Server({ hostKeys: [hostKey] }, (client, info) => {
+			this.sshServer = new ssh.Server({ hostKeys: [hostKey] }, (client, info) => {
 				this.handleSSH(client, info);
 			});
-			sshServer.listen(() => {
-				// TODO: Get in cli logger instead to get correct formatting + get rid of jank set timeout
-				setTimeout(() => {
-					console.log(`        - SSH server listening on localhost:${sshServer.address().port}`);
-				}, 20);
-			});
-			sshServer.on('error', err => {
-				console.log('SSH error:', err);
-			});
-			this.sshServer = sshServer;
 		}
 	}
 
-	public listen(): Promise<string> {
+	public listen(): Promise<[string, number?]> {
 		if (!this.listenPromise) {
-			this.listenPromise = new Promise((resolve, reject) => {
+			const serverPromise = new Promise<string>((resolve, reject) => {
 				this.server.on("error", reject);
 				this.server.on("upgrade", this.onUpgrade);
 				const onListen = () => resolve(this.address());
@@ -185,6 +176,18 @@ export abstract class Server {
 					this.server.listen(this.options.port, this.options.host, onListen);
 				}
 			});
+
+			const sshPromise = new Promise<number | undefined>((resolve, reject) => {
+				if (!this.sshServer) {
+					return resolve(undefined);
+				}
+				this.sshServer.on('error', err => reject(err));
+				this.sshServer.listen(() => {
+					resolve(this.sshServer!.address().port);
+				});
+			});
+
+			this.listenPromise = Promise.all([serverPromise, sshPromise]);
 		}
 		return this.listenPromise;
 	}
@@ -515,14 +518,14 @@ export class MainServer extends Server {
 		this.servicesPromise = this.initializeServices(args);
 	}
 
-	public async listen(): Promise<string> {
+	public async listen(): Promise<[string, number?]> {
 		const environment = (this.services.get(IEnvironmentService) as EnvironmentService);
-		const [address] = await Promise.all<string>([
-			super.listen(), ...[
-				environment.extensionsPath,
-			].map((p) => mkdirp(p).then(() => p)),
+		// Do async actions simultaneously
+		const [addresses] = await Promise.all([
+			super.listen(),
+			mkdirp(environment.extensionsPath),
 		]);
-		return address;
+		return addresses;
 	}
 
 	protected async handleWebSocket(socket: net.Socket, parsedUrl: url.UrlWithParsedQuery): Promise<void> {
