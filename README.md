@@ -60,14 +60,14 @@ arguments when launching code-server with Docker. See
 ### Build
 
 See
-[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+[VS Code's prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
 before building.
 
 ```shell
 export OUT=/path/to/output/build                  # Optional if only building. Required if also developing.
 yarn build ${vscodeVersion} ${codeServerVersion}  # See travis.yml for the VS Code version to use.
                                                   # The code-server version can be anything you want.
-node ~/path/to/output/build/out/vs/server/main.js # You can run the built JavaScript with Node.
+node /path/to/output/build/out/vs/server/main.js  # You can run the built JavaScript with Node.
 yarn binary ${vscodeVersion} ${codeServerVersion} # Or you can package it into a binary.
 ```
 
@@ -135,7 +135,7 @@ data collected to improve code-server.
 ### Development
 
 See
-[VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+[VS Code's prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
 before developing.
 
 ```shell
@@ -155,8 +155,7 @@ yarn start
 ```
 
 If you run into issues about a different version of Node being used, try running
-`npm rebuild` in the VS Code directory and ignore the error at the end from
-`vscode-ripgrep`.
+`npm rebuild` in the VS Code directory.
 
 ### Upgrading VS Code
 
@@ -171,7 +170,6 @@ directory.
 
 Our changes include:
 
-- Change the remote schema to `code-server`.
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
