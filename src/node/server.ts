@@ -72,6 +72,7 @@ import { fillSSHSession, forwardSSHPort } from "vs/server/src/node/ssh";
 const tarFs = localRequire<typeof import("tar-fs")>("tar-fs/index");
 const { Sender: WSSender, Receiver: WSReceiver } = localRequire<typeof import("ws")>("ws/index");
 const ssh = localRequire<typeof import("ssh2")>("ssh2/lib/client");
+const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
 
 export enum HttpCode {
 	Ok = 200,
@@ -464,7 +465,6 @@ export abstract class Server {
 		if (this.options.auth !== "password") {
 			return true;
 		}
-		const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
 		if (typeof payload === "undefined") {
 			payload = this.parseCookies<LoginPayload>(request);
 		}
@@ -612,12 +612,8 @@ export class MainServer extends Server {
 
 			// Otherwise require the same password as code-server
 			if (ctx.method === 'password') {
-				if (ctx.password.length === this.options.password.length) {
-					const optPass = Buffer.from(this.options.password);
-					const ctxPass = Buffer.from(ctx.password);
-					if (crypto.timingSafeEqual(optPass, ctxPass)) {
-						return ctx.accept();
-					}
+				if (safeCompare(this.options.password, ctx.password)) {
+					return ctx.accept();
 				}
 			}
 
