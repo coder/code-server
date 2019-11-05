@@ -9,6 +9,8 @@ import * as sshTypes from "ssh2";
 import * as nodePty from "node-pty";
 import { FileEntry, SFTPStream } from "ssh2-streams";
 import { localRequire } from 'vs/server/src/node/util';
+import { sanitizeProcessEnvironment } from 'vs/base/common/processes';
+import { IProcessEnvironment } from 'vs/base/common/platform';
 
 const ssh = localRequire<typeof import("ssh2")>("ssh2/lib/client");
 
@@ -26,9 +28,19 @@ export function fillSSHSession(accept: () => sshTypes.Session) {
 	// Run a command, stream back the data
 	const cmd = (command: string, channel: sshTypes.ServerChannel): void => {
 		if (ptyInfo) {
+			// Remove undefined env vars and remove VSCode / code-server env vars
+			const env = Object.keys(process.env).reduce((prev, k) => {
+				if (process.env[k] !== undefined) {
+					prev[k] = process.env[k] as string;
+				}
+				return prev;
+			}, {} as IProcessEnvironment);
+			sanitizeProcessEnvironment(env as IProcessEnvironment);
+
 			pty = nodePty.spawn(command, [], {
 				cols: ptyInfo.cols,
 				rows: ptyInfo.rows,
+				env,
 			});
 			pty.onData((d) => channel.write(d));
 			pty.on("exit", (exitCode) => {
