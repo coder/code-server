@@ -98,14 +98,24 @@ function fillSFTPStream(accept: () => SFTPStream) {
 		read: boolean
 	} } = {};
 
-	const failureOrOk = (reqID: number, err?: NodeJS.ErrnoException) => {
-		return sftp.status(reqID, err ? ssh.SFTP_STATUS_CODE.FAILURE : ssh.SFTP_STATUS_CODE.OK);
+	const sftpStatus = (reqID: number, err?: NodeJS.ErrnoException) => {
+		let code = ssh.SFTP_STATUS_CODE.OK;
+		if (err) {
+			if (err.code === "EACCES") {
+				code = ssh.SFTP_STATUS_CODE.PERMISSION_DENIED;
+			}
+			if (err.code === "ENOENT") {
+				code = ssh.SFTP_STATUS_CODE.NO_SUCH_FILE;
+			}
+			code = ssh.SFTP_STATUS_CODE.FAILURE;
+		}
+		return sftp.status(reqID, code);
 	};
 
 	sftp.on("OPEN", (reqID, filename) => {
 		fs.open(filename, "w", (err, fd) => {
 			if (err) {
-				return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
+				return sftpStatus(reqID, err);
 			}
 			fds[fd] = true;
 			const buf = Buffer.alloc(4);
@@ -136,7 +146,7 @@ function fillSFTPStream(accept: () => SFTPStream) {
 		}
 		return fs.readdir(ods[od].path, (err, files) => {
 			if (err) {
-				return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
+				return sftpStatus(reqID, err);
 			}
 			return Promise.all(files.map((f) => {
 				return new Promise<FileEntry>((resolve, reject) => {
@@ -176,7 +186,7 @@ function fillSFTPStream(accept: () => SFTPStream) {
 		if (!fds[fd]) {
 			return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
 		}
-		return fs.write(fd, data, offset, err => failureOrOk(reqID, err));
+		return fs.write(fd, data, offset, err => sftpStatus(reqID, err));
 	});
 
 	sftp.on("CLOSE", (reqID, handle) => {
@@ -188,13 +198,13 @@ function fillSFTPStream(accept: () => SFTPStream) {
 			}
 			return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
 		}
-		return fs.close(fd, err => failureOrOk(reqID, err));
+		return fs.close(fd, err => sftpStatus(reqID, err));
 	});
 
 	sftp.on("STAT", (reqID, path) => {
 		fs.stat(path, (err, stats) => {
 			if (err) {
-				return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
+				return sftpStatus(reqID, err);
 			}
 			return sftp.attrs(reqID, {
 				atime: stats.atime.getTime(),
@@ -208,13 +218,13 @@ function fillSFTPStream(accept: () => SFTPStream) {
 	});
 
 	sftp.on("MKDIR", (reqID, path) => {
-		fs.mkdir(path, err => failureOrOk(reqID, err));
+		fs.mkdir(path, err => sftpStatus(reqID, err));
 	});
 
 	sftp.on("LSTAT", (reqID, path) => {
 		fs.lstat(path, (err, stats) => {
 			if (err) {
-				return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
+				return sftpStatus(reqID, err);
 			}
 			return sftp.attrs(reqID, {
 				atime: stats.atimeMs,
@@ -228,17 +238,17 @@ function fillSFTPStream(accept: () => SFTPStream) {
 	});
 
 	sftp.on("REMOVE", (reqID, path) => {
-		fs.unlink(path, err => failureOrOk(reqID, err));
+		fs.unlink(path, err => sftpStatus(reqID, err));
 	});
 
 	sftp.on("RMDIR", (reqID, path) => {
-		fs.rmdir(path, err => failureOrOk(reqID, err));
+		fs.rmdir(path, err => sftpStatus(reqID, err));
 	});
 
 	sftp.on("REALPATH", (reqID, path) => {
 		fs.realpath(path, (err, resolved) => {
 			if (err) {
-				return sftp.status(reqID, ssh.SFTP_STATUS_CODE.NO_SUCH_FILE);
+				return sftpStatus(reqID, err);
 			}
 			sftp.name(reqID, [{
 				filename: resolved,
