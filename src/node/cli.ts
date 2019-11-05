@@ -62,8 +62,8 @@ const getArgs = (): Args => {
 	options["base-path"] = { type: "string", cat: "o", description: "Base path of the URL at which code-server is hosted (used for login redirects)." };
 	options["cert"] = { type: "string", cat: "o", description: "Path to certificate. If the path is omitted, both this and --cert-key will be generated." };
 	options["cert-key"] = { type: "string", cat: "o", description: "Path to the certificate's key if one was provided." };
-	options["ssh-host-key"] = { type: "string", cat: "o", description: "Path to the SSH host key. If omitted, will use the same key as --cert-key." };
-	options["disable-ssh"] = { type: "boolean", cat: "o", description: "Disable the SSH tunnel at /ssh." };
+	options["ssh-host-key"] = { type: "string", cat: "o", description: "Path to the SSH host key used for the /ssh endpoint. If omitted, will use the same key as --cert-key." };
+	options["disable-ssh"] = { type: "boolean", cat: "o", description: "Disable the SSH server accessible at /ssh." };
 	options["format"] = { type: "string", cat: "o", description: `Format for the version. ${buildAllowedMessage(FormatType)}.` };
 	options["host"] = { type: "string", cat: "o", description: "Host for the server." };
 	options["auth"] = { type: "string", cat: "o", description: `The type of authentication to use. ${buildAllowedMessage(AuthType)}.` };
