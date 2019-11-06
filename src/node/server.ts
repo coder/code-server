@@ -622,6 +622,9 @@ export class MainServer extends Server {
 		});
 		client.on('tcpip', forwardSSHPort);
 		client.on('session', fillSSHSession);
+		client.on('error', err => {
+			console.error('handleSSH error:', err);
+		});
 	}
 
 	protected async handleRequest(
