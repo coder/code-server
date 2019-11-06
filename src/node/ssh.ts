@@ -51,7 +51,7 @@ export function fillSSHSession(accept: () => sshTypes.Session) {
 			return;
 		}
 
-		const proc = cp.exec(command);
+		const proc = cp.spawn(command);
 		proc.stdout.on("data", (d) => channel.stdout.write(d));
 		proc.stderr.on("data", (d) => channel.stderr.write(d));
 		proc.on("exit", (exitCode) => {
