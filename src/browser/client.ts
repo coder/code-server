@@ -1,8 +1,11 @@
 import { Emitter } from "vs/base/common/event";
 import { URI } from "vs/base/common/uri";
+import { localize } from "vs/nls";
+import { Extensions, IConfigurationRegistry } from "vs/platform/configuration/common/configurationRegistry";
 import { registerSingleton } from "vs/platform/instantiation/common/extensions";
 import { ServiceCollection } from "vs/platform/instantiation/common/serviceCollection";
 import { ILocalizationsService } from "vs/platform/localizations/common/localizations";
+import { Registry } from "vs/platform/registry/common/platform";
 import { PersistentConnectionEventType } from "vs/platform/remote/common/remoteAgentConnection";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { coderApi, vscodeApi } from "vs/server/src/browser/api";
@@ -21,6 +24,23 @@ class TelemetryService extends TelemetryChannelClient {
 		super(remoteAgentService.getConnection()!.getChannel("telemetry"));
 	}
 }
+
+const TELEMETRY_SECTION_ID = "telemetry";
+
+Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
+	"id": TELEMETRY_SECTION_ID,
+	"order": 110,
+	"type": "object",
+	"title": localize("telemetryConfigurationTitle", "Telemetry"),
+	"properties": {
+		"telemetry.enableTelemetry": {
+			"type": "boolean",
+			"description": localize("telemetry.enableTelemetry", "Enable usage data and errors to be sent to a Microsoft online service."),
+			"default": true,
+			"tags": ["usesOnlineServices"]
+		}
+	}
+});
 
 class NodeProxyService extends NodeProxyChannelClient implements INodeProxyService {
 	private readonly _onClose = new Emitter<void>();
