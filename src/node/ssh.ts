@@ -284,6 +284,10 @@ export function forwardSSHPort(
 	fwdSocket.on('connect', () => {
 		const channel = accept();
 		channel.pipe(fwdSocket);
+		channel.on('close', () => fwdSocket.end());
 		fwdSocket.pipe(channel);
+		fwdSocket.on('close', () => channel.close());
+		fwdSocket.on('error', () => channel.end());
+		fwdSocket.on('end', () => channel.end());
 	});
 }
