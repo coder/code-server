@@ -114,11 +114,11 @@ function fillSFTPStream(accept: () => SFTPStream) {
 		if (err) {
 			if (err.code === "EACCES") {
 				code = ssh.SFTP_STATUS_CODE.PERMISSION_DENIED;
-			}
-			if (err.code === "ENOENT") {
+			} else if (err.code === "ENOENT") {
 				code = ssh.SFTP_STATUS_CODE.NO_SUCH_FILE;
+			} else {
+				code = ssh.SFTP_STATUS_CODE.FAILURE;
 			}
-			code = ssh.SFTP_STATUS_CODE.FAILURE;
 		}
 		return sftp.status(reqID, code);
 	};
