@@ -67,6 +67,10 @@ export const generatePassword = async (length: number = 24): Promise<string> => 
 	return buffer.toString("hex").substring(0, length);
 };
 
+export const hash = (str: string): string => {
+	return crypto.createHash("sha256").update(str).digest("hex");
+};
+
 export const getMediaMime = (filePath?: string): string => {
 	return filePath && (vsGetMediaMime(filePath) || (<{[index: string]: string}>{
 		".css": "text/css",

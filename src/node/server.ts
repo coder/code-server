@@ -63,7 +63,7 @@ import { TelemetryClient } from "vs/server/src/node/insights";
 import { getLocaleFromConfig, getNlsConfiguration } from "vs/server/src/node/nls";
 import { Protocol } from "vs/server/src/node/protocol";
 import { UpdateService } from "vs/server/src/node/update";
-import { AuthType, getMediaMime, getUriTransformer, localRequire, tmpdir } from "vs/server/src/node/util";
+import { AuthType, getMediaMime, getUriTransformer, hash, localRequire, tmpdir } from "vs/server/src/node/util";
 import { RemoteExtensionLogFileName } from "vs/workbench/services/remote/common/remoteAgentService";
 import { IWorkbenchConstructionOptions } from "vs/workbench/workbench.web.api";
 
@@ -98,7 +98,11 @@ export interface Response {
 }
 
 export interface LoginPayload {
-	password?: string[] | string;
+	password?: string;
+}
+
+export interface AuthPayload {
+	key?: string[];
 }
 
 export class HttpError extends Error {
@@ -137,6 +141,7 @@ export abstract class Server {
 			host: options.auth === "password" && options.cert ? "0.0.0.0" : "localhost",
 			...options,
 			basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
+			password: options.password ? hash(options.password) : undefined,
 		};
 		this.protocol = this.options.cert ? "https" : "http";
 		if (this.protocol === "https") {
@@ -357,11 +362,11 @@ export abstract class Server {
 	}
 
 	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
-		const redirect = (password?: string | string[] | true) => {
+		const redirect = (password: string | true) => {
 			return {
 				redirect: "/",
 				headers: typeof password === "string"
-					? { "Set-Cookie": `password=${password}; Path=${this.options.basePath || "/"}; HttpOnly; SameSite=strict` }
+					? { "Set-Cookie": `key=${password}; Path=${this.options.basePath || "/"}; HttpOnly; SameSite=strict` }
 					: {},
 			};
 		};
@@ -371,8 +376,11 @@ export abstract class Server {
 		}
 		if (request.method === "POST") {
 			const data = await this.getData<LoginPayload>(request);
-			if (this.authenticate(request, data)) {
-				return redirect(data.password);
+			const password = this.authenticate(request, {
+				key: typeof data.password === "string" ? [hash(data.password)] : undefined,
+			});
+			if (password) {
+				return redirect(password);
 			}
 			console.error("Failed login attempt", JSON.stringify({
 				xForwardedFor: request.headers["x-forwarded-for"],
@@ -432,19 +440,18 @@ export abstract class Server {
 			: Promise.resolve({} as T);
 	}
 
-	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): string | boolean {
-		if (this.options.auth !== "password") {
+	private authenticate(request: http.IncomingMessage, payload?: AuthPayload): string | boolean {
+		if (this.options.auth === "none") {
 			return true;
 		}
 		const safeCompare = localRequire<typeof import("safe-compare")>("safe-compare/index");
 		if (typeof payload === "undefined") {
-			payload = this.parseCookies<LoginPayload>(request);
+			payload = this.parseCookies<AuthPayload>(request);
 		}
-		if (this.options.password && payload.password) {
-			const toTest = Array.isArray(payload.password) ? payload.password : [payload.password];
-			for (let i = 0; i < toTest.length; ++i) {
-				if (safeCompare(toTest[i], this.options.password)) {
-					return toTest[i];
+		if (this.options.password && payload.key) {
+			for (let i = 0; i < payload.key.length; ++i) {
+				if (safeCompare(payload.key[i], this.options.password)) {
+					return payload.key[i];
 				}
 			}
 		}
