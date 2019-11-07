@@ -98,7 +98,7 @@ export interface Response {
 }
 
 export interface LoginPayload {
-	password?: string;
+	password?: string[] | string;
 }
 
 export class HttpError extends Error {
@@ -298,10 +298,7 @@ export abstract class Server {
 						return response;
 				}
 				if (!this.authenticate(request)) {
-					return { 
-			   			redirect: "/login",
-			   			headers: { "Set-Cookie": `password=` }
-			   		};
+					return { redirect: "/login" };
 				}
 				break;
 			case "/static":
@@ -360,16 +357,22 @@ export abstract class Server {
 	}
 
 	private async tryLogin(request: http.IncomingMessage): Promise<Response> {
-		if (this.authenticate(request) && (request.method === "GET" || request.method === "POST")) {
-			return { redirect: "/" };
+		const redirect = (password?: string | string[] | true) => {
+			return {
+				redirect: "/",
+				headers: typeof password === "string"
+					? { "Set-Cookie": `password=${password}; Path=${this.options.basePath || "/"}; HttpOnly; SameSite=strict` }
+					: {},
+			};
+		};
+		const providedPassword = this.authenticate(request);
+		if (providedPassword && (request.method === "GET" || request.method === "POST")) {
+			return redirect(providedPassword);
 		}
 		if (request.method === "POST") {
 			const data = await this.getData<LoginPayload>(request);
 			if (this.authenticate(request, data)) {
-				return {
-					redirect: "/",
-					headers: { "Set-Cookie": `password=${data.password}` }
-				};
+				return redirect(data.password);
 			}
 			console.error("Failed login attempt", JSON.stringify({
 				xForwardedFor: request.headers["x-forwarded-for"],
@@ -429,7 +432,7 @@ export abstract class Server {
 			: Promise.resolve({} as T);
 	}
 
-	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): boolean {
+	private authenticate(request: http.IncomingMessage, payload?: LoginPayload): string | boolean {
 		if (this.options.auth !== "password") {
 			return true;
 		}
@@ -437,15 +440,26 @@ export abstract class Server {
 		if (typeof payload === "undefined") {
 			payload = this.parseCookies<LoginPayload>(request);
 		}
-		return !!this.options.password && safeCompare(payload.password || "", this.options.password);
+		if (this.options.password && payload.password) {
+			const toTest = Array.isArray(payload.password) ? payload.password : [payload.password];
+			for (let i = 0; i < toTest.length; ++i) {
+				if (safeCompare(toTest[i], this.options.password)) {
+					return toTest[i];
+				}
+			}
+		}
+		return false;
 	}
 
 	private parseCookies<T extends object>(request: http.IncomingMessage): T {
-		const cookies: { [key: string]: string } = {};
+		const cookies: { [key: string]: string[] } = {};
 		if (request.headers.cookie) {
 			request.headers.cookie.split(";").forEach((keyValue) => {
 				const [key, value] = split(keyValue, "=");
-				cookies[key] = decodeURI(value);
+				if (!cookies[key]) {
+					cookies[key] = [];
+				}
+				cookies[key].push(decodeURI(value));
 			});
 		}
 		return cookies as T;
