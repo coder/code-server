@@ -298,7 +298,10 @@ export abstract class Server {
 						return response;
 				}
 				if (!this.authenticate(request)) {
-					return { redirect: "/login" };
+					return { 
+			   			redirect: "/login",
+			   			headers: { "Set-Cookie": `password=` }
+			   		};
 				}
 				break;
 			case "/static":
