@@ -30,6 +30,6 @@ accessible from the internet (use localhost or block it in your firewall).
 ## Fail2Ban
 Fail2Ban allows for automatically banning and logging repeated failed
 authentication attempts for many applications through regex filters. A working
-filter for code-server can be found in `./code-server.fail2ban.conf`. Once this
+filter for code-server can be found in `./examples/fail2ban.conf`. Once this
 is installed and configured correctly, repeated failed login attempts should
 automatically be banned from connecting to your server.
