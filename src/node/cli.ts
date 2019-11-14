@@ -47,7 +47,6 @@ const getArgs = (): Args => {
 			case "wait":
 			case "disable-gpu":
 			// TODO: pretty sure these don't work but not 100%.
-			case "max-memory":
 			case "prof-startup":
 			case "inspect-extensions":
 			case "inspect-brk-extensions":
@@ -82,8 +81,7 @@ const getArgs = (): Args => {
 	return validatePaths(args);
 };
 
-const startVscode = async (): Promise<void | void[]> => {
-	const args = getArgs();
+const startVscode = async (args: Args): Promise<void | void[]> => {
 	const extra = args["_"] || [];
 	const options = {
 		auth: args.auth || AuthType.Password,
@@ -155,8 +153,7 @@ const startVscode = async (): Promise<void | void[]> => {
 	}
 };
 
-const startCli = (): boolean | Promise<void> => {
-	const args = getArgs();
+const startCli = (args: Args): boolean | Promise<void> => {
 	if (args.help) {
 		const executable = `${product.applicationName}${os.platform() === "win32" ? ".exe" : ""}`;
 		console.log(buildHelpMessage(product.nameLong, executable, product.codeServerVersion, OPTIONS, false));
@@ -198,7 +195,7 @@ export class WrapperProcess {
 	private started?: Promise<void>;
 	private currentVersion = product.codeServerVersion;
 
-	public constructor() {
+	public constructor(private readonly args: Args) {
 		ipcMain.onMessage(async (message) => {
 			switch (message.type) {
 				case "relaunch":
@@ -235,6 +232,14 @@ export class WrapperProcess {
 	}
 
 	private spawn(): cp.ChildProcess {
+		// Flags to pass along to the Node binary. We use the environment variable
+		// since otherwise the code-server binary will swallow them.
+		const maxMemory = this.args["max-memory"] || 2048;
+		let nodeOptions = `${process.env.NODE_OPTIONS || ""} ${this.args["js-flags"] || ""}`;
+		if (!/max_old_space_size=(\d+)/g.exec(nodeOptions)) {
+			nodeOptions += ` --max_old_space_size=${maxMemory}`;
+		}
+
 		// If we're using loose files then we need to specify the path. If we're in
 		// the binary we need to let the binary determine the path (via nbin) since
 		// it could be different between binaries which presents a problem when
@@ -246,6 +251,7 @@ export class WrapperProcess {
 				LAUNCH_VSCODE: "true",
 				NBIN_BYPASS: undefined,
 				VSCODE_PARENT_PID: process.pid.toString(),
+				NODE_OPTIONS: nodeOptions,
 			},
 			stdio: ["inherit", "inherit", "inherit", "ipc"],
 		});
@@ -253,11 +259,12 @@ export class WrapperProcess {
 }
 
 const main = async(): Promise<boolean | void | void[]> => {
+	const args = getArgs();
 	if (process.env.LAUNCH_VSCODE) {
 		await ipcMain.handshake();
-		return startVscode();
+		return startVscode(args);
 	}
-	return startCli() || new WrapperProcess().start();
+	return startCli(args) || new WrapperProcess(args).start();
 };
 
 const exit = process.exit;
