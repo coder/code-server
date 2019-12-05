@@ -49,6 +49,8 @@ USER coder
 # We create first instead of just using WORKDIR as when WORKDIR creates, the
 # user is root.
 RUN mkdir -p /home/coder/project
+# To avoid EACCES issues on f.ex Crostini (ChromeOS)
+RUN mkdir -p /home/coder/.local/code-server
 
 WORKDIR /home/coder/project
 
