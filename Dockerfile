@@ -50,7 +50,7 @@ USER coder
 # user is root.
 RUN mkdir -p /home/coder/project
 # To avoid EACCES issues on f.ex Crostini (ChromeOS)
-RUN mkdir -p /home/coder/.local/code-server
+RUN mkdir -p /home/coder/.local/share/code-server
 
 WORKDIR /home/coder/project
 
