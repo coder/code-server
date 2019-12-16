@@ -6,7 +6,7 @@
 	"background-color": "#fff",
 	"description": "Run VS Code on a remote server.",
 	"icons": [{
-		"src": "./static/out/vs/server/src/media/code-server.png",
+		"src": "./code-server.png",
 		"sizes": "384x384",
 		"type": "image/png"
 	}]

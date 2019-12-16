@@ -6,7 +6,7 @@ services:
 
 before_install:
   - export MAJOR_VERSION="2"
-  - export VSCODE_VERSION="1.39.2"
+  - export VSCODE_VERSION="1.41.0"
   - export VERSION="$MAJOR_VERSION.$TRAVIS_BUILD_NUMBER"
   - export TAG="$VERSION-vsc$VSCODE_VERSION"
   - if [[ "$TRAVIS_BRANCH" == "master" ]]; then export MINIFY="true"; fi

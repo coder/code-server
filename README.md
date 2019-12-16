@@ -174,8 +174,6 @@ Our changes include:
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
 - Send client-side telemetry through the server.
-- Add an upload service along with a file prefix to ignore for temporary files
-  created during upload.
 - Make changing the display language work.
 - Make it possible for us to load code on the client.
 - Make extensions work in the browser.

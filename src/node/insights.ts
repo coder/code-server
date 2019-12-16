@@ -3,14 +3,81 @@ import * as https from "https";
 import * as http from "http";
 import * as os from "os";
 
-export class TelemetryClient implements appInsights.TelemetryClient {
+class Channel {
+	public get _sender() {
+		throw new Error("unimplemented");
+	}
+	public get _buffer() {
+		throw new Error("unimplemented");
+	}
+
+	public setUseDiskRetryCaching(): void {
+		throw new Error("unimplemented");
+	}
+	public send(): void {
+		throw new Error("unimplemented");
+	}
+	public triggerSend(): void {
+		throw new Error("unimplemented");
+	}
+}
+
+export class TelemetryClient  {
+	public context: any = undefined;
+	public commonProperties: any = undefined;
 	public config: any = {};
 
-	public channel = {
-		setUseDiskRetryCaching: (): void => undefined,
-	};
+	public channel: any = new Channel();
 
-	public trackEvent(options: appInsights.EventTelemetry): void {
+	public addTelemetryProcessor(): void {
+		throw new Error("unimplemented");
+	}
+
+	public clearTelemetryProcessors(): void {
+		throw new Error("unimplemented");
+	}
+
+	public runTelemetryProcessors(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackTrace(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackMetric(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackException(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackRequest(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackDependency(): void {
+		throw new Error("unimplemented");
+	}
+
+	public track(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackNodeHttpRequestSync(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackNodeHttpRequest(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackNodeHttpDependency(): void {
+		throw new Error("unimplemented");
+	}
+
+	public trackEvent(options: appInsights.Contracts.EventTelemetry): void {
 		if (!options.properties) {
 			options.properties = {};
 		}
@@ -43,13 +110,13 @@ export class TelemetryClient implements appInsights.TelemetryClient {
 					"Content-Type": "application/json",
 				},
 			});
-			request.on("error", () => { /* We don't care. */ });
+			request.on("error", () => { /* We don"t care. */ });
 			request.write(JSON.stringify(options));
 			request.end();
 		} catch (error) {}
 	}
 
-	public flush(options: appInsights.FlushOptions): void {
+	public flush(options: { callback: (v: string) => void }): void {
 		if (options.callback) {
 			options.callback("");
 		}

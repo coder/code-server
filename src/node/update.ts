@@ -1,9 +1,7 @@
 import * as cp from "child_process";
 import * as os from "os";
 import * as path from "path";
-import { Stream } from "stream";
 import * as util from "util";
-import { toVSBufferReadableStream } from "vs/base/common/buffer";
 import { CancellationToken } from "vs/base/common/cancellation";
 import { URI } from "vs/base/common/uri";
 import * as pfs from "vs/base/node/pfs";
@@ -18,7 +16,6 @@ import { AbstractUpdateService } from "vs/platform/update/electron-main/abstract
 import { ipcMain } from "vs/server/src/node/ipc";
 import { extract } from "vs/server/src/node/marketplace";
 import { tmpdir } from "vs/server/src/node/util";
-import * as zlib from "zlib";
 
 interface IUpdate {
 	name: string;
@@ -103,15 +100,7 @@ export class UpdateService extends AbstractUpdateService {
 		const extractPath = path.join(tmpdir, state.update.version);
 		try {
 			await pfs.mkdirp(tmpdir);
-			const context = await this.requestService.request({ url }, CancellationToken.None);
-			// Decompress the gzip as we download. If the gzip encoding is set then
-			// the request service already does this.
-			// HACK: This uses knowledge of the internals of the request service.
-			if (target !== "darwin" && context.res.headers["content-encoding"] !== "gzip") {
-				const stream = (context.res as any as Stream);
-				stream.removeAllListeners();
-				context.stream = toVSBufferReadableStream(stream.pipe(zlib.createGunzip()));
-			}
+			const context = await this.requestService.request({ url }, CancellationToken.None, true);
 			await this.fileService.writeFile(URI.file(downloadPath), context.stream);
 			await extract(downloadPath, extractPath, undefined, CancellationToken.None);
 			const newBinary = path.join(extractPath, releaseName, "code-server");

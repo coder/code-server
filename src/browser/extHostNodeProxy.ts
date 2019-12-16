@@ -1,5 +1,5 @@
 import { Emitter } from "vs/base/common/event";
-import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
+import { createDecorator } from "vs/platform/instantiation/common/instantiation";
 import { ExtHostNodeProxyShape, MainContext, MainThreadNodeProxyShape } from "vs/workbench/api/common/extHost.protocol";
 import { IExtHostRpcService } from "vs/workbench/api/common/extHostRpcService";
 
@@ -43,4 +43,4 @@ export class ExtHostNodeProxy implements ExtHostNodeProxyShape {
 }
 
 export interface IExtHostNodeProxy extends ExtHostNodeProxy { }
-export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>('IExtHostNodeProxy');
+export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>("IExtHostNodeProxy");

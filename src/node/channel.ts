@@ -1,23 +1,26 @@
 import * as path from "path";
-import { VSBuffer } from "vs/base/common/buffer";
+import { VSBuffer, VSBufferReadableStream } from "vs/base/common/buffer";
 import { Emitter, Event } from "vs/base/common/event";
 import { IDisposable } from "vs/base/common/lifecycle";
 import { OS } from "vs/base/common/platform";
+import { ReadableStreamEventPayload } from "vs/base/common/stream";
 import { URI, UriComponents } from "vs/base/common/uri";
 import { transformOutgoingURIs } from "vs/base/common/uriIpc";
 import { IServerChannel } from "vs/base/parts/ipc/common/ipc";
 import { IDiagnosticInfo } from "vs/platform/diagnostics/common/diagnostics";
 import { IEnvironmentService } from "vs/platform/environment/common/environment";
 import { ExtensionIdentifier, IExtensionDescription } from "vs/platform/extensions/common/extensions";
-import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileType, IStat, IWatchOptions } from "vs/platform/files/common/files";
+import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileReadStreamOptions, FileType, FileWriteOptions, IStat, IWatchOptions } from "vs/platform/files/common/files";
+import { createReadStream } from "vs/platform/files/common/io";
 import { DiskFileSystemProvider } from "vs/platform/files/node/diskFileSystemProvider";
 import { ILogService } from "vs/platform/log/common/log";
 import product from "vs/platform/product/common/product";
-import { IRemoteAgentEnvironment } from "vs/platform/remote/common/remoteAgentEnvironment";
+import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from "vs/platform/remote/common/remoteAgentEnvironment";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { INodeProxyService } from "vs/server/src/common/nodeProxy";
 import { getTranslations } from "vs/server/src/node/nls";
 import { getUriTransformer, localRequire } from "vs/server/src/node/util";
+import { IFileChangeDto } from "vs/workbench/api/common/extHost.protocol";
 import { ExtensionScanner, ExtensionScannerInput } from "vs/workbench/services/extensions/node/extensionPoints";
 
 /**
@@ -42,7 +45,7 @@ class Watcher extends DiskFileSystemProvider {
 	}
 }
 
-export class FileProviderChannel implements IServerChannel, IDisposable {
+export class FileProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
 	private readonly provider: DiskFileSystemProvider;
 	private readonly watchers = new Map<string, Watcher>();
 
@@ -53,39 +56,56 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 		this.provider = new DiskFileSystemProvider(this.logService);
 	}
 
-	public listen(context: any, event: string, args?: any): Event<any> {
+	public listen(context: RemoteAgentConnectionContext, event: string, args?: any): Event<any> {
 		switch (event) {
-			// This is where the actual file changes are sent. The watch method just
-			// adds things that will fire here. That means we have to split up
-			// watchers based on the session otherwise sessions would get events for
-			// other sessions. There is also no point in having the watcher unless
-			// something is listening. I'm not sure there is a different way to
-			// dispose, anyway.
-			case "filechange":
-				const session = args[0];
-				const emitter = new Emitter({
-					onFirstListenerAdd: () => {
-						const provider = new Watcher(this.logService);
-						this.watchers.set(session, provider);
-						const transformer = getUriTransformer(context.remoteAuthority);
-						provider.onDidChangeFile((events) => {
-							emitter.fire(events.map((event) => ({
-								...event,
-								resource: transformer.transformOutgoing(event.resource),
-							})));
-						});
-						provider.onDidErrorOccur((event) => emitter.fire(event));
-					},
-					onLastListenerRemove: () => {
-						this.watchers.get(session)!.dispose();
-						this.watchers.delete(session);
-					},
-				});
-
-				return emitter.event;
+			case "filechange": return this.filechange(context, args[0]);
+			case "readFileStream": return this.readFileStream(args[0], args[1]);
 		}
 
 		throw new Error(`Invalid listen "${event}"`);
+	}
+
+	private filechange(context: RemoteAgentConnectionContext, session: string): Event<IFileChangeDto[]> {
+		const emitter = new Emitter<IFileChangeDto[]>({
+			onFirstListenerAdd: () => {
+				const provider = new Watcher(this.logService);
+				this.watchers.set(session, provider);
+				const transformer = getUriTransformer(context.remoteAuthority);
+				provider.onDidChangeFile((events) => {
+					emitter.fire(events.map((event) => ({
+						...event,
+						resource: transformer.transformOutgoing(event.resource),
+					})));
+				});
+				provider.onDidErrorOccur((event) => this.logService.error(event));
+			},
+			onLastListenerRemove: () => {
+				this.watchers.get(session)!.dispose();
+				this.watchers.delete(session);
+			},
+		});
+
+		return emitter.event;
+	}
+
+	private readFileStream(resource: UriComponents, opts: FileReadStreamOptions): Event<ReadableStreamEventPayload<VSBuffer>> {
+		let fileStream: VSBufferReadableStream | undefined;
+		const emitter = new Emitter<ReadableStreamEventPayload<VSBuffer>>({
+			onFirstListenerAdd: () => {
+				if (!fileStream) {
+					fileStream = createReadStream(this.provider, this.transform(resource), {
+						...opts,
+						bufferSize: 64 * 1024, // From DiskFileSystemProvider
+					});
+					fileStream.on("data", (data) => emitter.fire(data));
+					fileStream.on("error", (error) => emitter.fire(error));
+					fileStream.on("end", () => emitter.fire("end"));
+				}
+			},
+			onLastListenerRemove: () => fileStream && fileStream.destroy(),
+		});
+
+		return emitter.event;
 	}
 
 	public call(_: unknown, command: string, args?: any): Promise<any> {
@@ -94,7 +114,9 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 			case "open": return this.open(args[0], args[1]);
 			case "close": return this.close(args[0]);
 			case "read": return this.read(args[0], args[1], args[2]);
+			case "readFile": return this.readFile(args[0]);
 			case "write": return this.write(args[0], args[1], args[2], args[3], args[4]);
+			case "writeFile": return this.writeFile(args[0], args[1], args[2]);
 			case "delete": return this.delete(args[0], args[1]);
 			case "mkdir": return this.mkdir(args[0]);
 			case "readdir": return this.readdir(args[0]);
@@ -130,8 +152,16 @@ export class FileProviderChannel implements IServerChannel, IDisposable {
 		return [buffer, bytesRead];
 	}
 
+	private async readFile(resource: UriComponents): Promise<VSBuffer> {
+		return VSBuffer.wrap(await this.provider.readFile(this.transform(resource)));
+	}
+
 	private write(fd: number, pos: number, buffer: VSBuffer, offset: number, length: number): Promise<number> {
 		return this.provider.write(fd, pos, buffer.buffer, offset, length);
+	}
+
+	private writeFile(resource: UriComponents, buffer: VSBuffer, opts: FileWriteOptions): Promise<void> {
+		return this.provider.writeFile(this.transform(resource), buffer.buffer, opts);
 	}
 
 	private async delete(resource: UriComponents, opts: FileDeleteOptions): Promise<void> {

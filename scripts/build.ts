@@ -339,26 +339,6 @@ class Builder {
 			]);
 		});
 
-		// onigasm 2.2.2 has a bug that makes it broken for PHP files so use 2.2.1.
-		// https://github.com/NeekSandhu/onigasm/issues/17
-		await this.task("Applying onigasm PHP fix", async () => {
-			const onigasmPath = path.join(finalBuildPath, "node_modules/onigasm-umd");
-			const onigasmTmpPath = `${onigasmPath}-temp`;
-			await Promise.all([
-				fs.remove(onigasmPath),
-				fs.mkdir(onigasmTmpPath),
-			]);
-			await util.promisify(cp.exec)(`git clone "https://github.com/alexandrudima/onigasm-umd" "${onigasmPath}"`);
-			await util.promisify(cp.exec)("yarn", { cwd: onigasmPath });
-			await util.promisify(cp.exec)("yarn add --dev onigasm@2.2.1", { cwd: onigasmPath });
-			await util.promisify(cp.exec)("yarn package", { cwd: onigasmPath });
-			await Promise.all(["release", "LICENSE", "package.json"].map((fileName) => {
-				return fs.copy(path.join(onigasmPath, fileName), path.join(onigasmTmpPath, fileName));
-			}));
-			await fs.remove(onigasmPath);
-			await fs.move(onigasmTmpPath, onigasmPath);
-		});
-
 		this.log(`Final build: ${finalBuildPath}`);
 	}
 

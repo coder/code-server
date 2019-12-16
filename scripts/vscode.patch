@@ -1,31 +1,37 @@
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 6d41e85e42..64f39687a4 100644
+index 231180d513..5b98e191c1 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -96,12 +96,12 @@ class RemoteAuthoritiesImpl {
+@@ -88,16 +88,17 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
 -		const port = this._ports[authority];
-+		// NOTE@coder: Changed this to work against the current path.
++		// const port = this._ports[authority];
  		const connectionToken = this._connectionTokens[authority];
+ 		let query = `path=${encodeURIComponent(uri.path)}`;
+ 		if (typeof connectionToken === 'string') {
+ 			query += `&tkn=${encodeURIComponent(connectionToken)}`;
+ 		}
++		// NOTE@coder: Changed this to work against the current path.
  		return URI.from({
  			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
 -			authority: `${host}:${port}`,
 -			path: `/vscode-remote-resource`,
 +			authority: window.location.host,
 +			path: `${window.location.pathname.replace(/\/+$/, '')}/vscode-remote-resource`,
- 			query: `path=${encodeURIComponent(uri.path)}&tkn=${encodeURIComponent(connectionToken)}`
+ 			query
  		});
  	}
 diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
-index a657f4a4d9..66bd13dffa 100644
+index 5a631e0b39..8a2b1518d6 100644
 --- a/src/vs/base/common/platform.ts
 +++ b/src/vs/base/common/platform.ts
-@@ -56,6 +56,16 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
+@@ -59,6 +59,17 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
  	_isWeb = true;
  	_locale = navigator.language;
  	_language = _locale;
++	// NOTE@coder: make languages work.
 +	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
 +	const rawNlsConfig = el && el.getAttribute('data-settings');
 +	if (rawNlsConfig) {
@@ -40,25 +46,26 @@ index a657f4a4d9..66bd13dffa 100644
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/base/common/processes.ts b/src/vs/base/common/processes.ts
-index c52f7b3774..5635cfac8a 100644
+index c52f7b3774..5a7e7f579e 100644
 --- a/src/vs/base/common/processes.ts
 +++ b/src/vs/base/common/processes.ts
-@@ -110,7 +110,9 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
+@@ -110,7 +110,10 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
  		/^ELECTRON_.+$/,
  		/^GOOGLE_API_KEY$/,
  		/^VSCODE_.+$/,
 -		/^SNAP(|_.*)$/
 +		/^SNAP(|_.*)$/,
++		// NOTE@coder: add our own environment variables.
 +		/^NBIN_BYPASS$/,
 +		/^LAUNCH_VSCODE$/
  	];
  	const envKeys = Object.keys(env);
  	envKeys
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
-index 3ae24454cb..fac8679290 100644
+index 2c64061da7..c0ef8faedd 100644
 --- a/src/vs/base/node/languagePacks.js
 +++ b/src/vs/base/node/languagePacks.js
-@@ -146,7 +146,10 @@ function factory(nodeRequire, path, fs, perf) {
+@@ -128,7 +128,10 @@ function factory(nodeRequire, path, fs, perf) {
  	function getLanguagePackConfigurations(userDataPath) {
  		const configFile = path.join(userDataPath, 'languagepacks.json');
  		try {
@@ -71,10 +78,10 @@ index 3ae24454cb..fac8679290 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
-index 990755c4f3..06449bb9cb 100644
+index 033cdc575f..23f775f27d 100644
 --- a/src/vs/platform/environment/common/environment.ts
 +++ b/src/vs/platform/environment/common/environment.ts
-@@ -36,6 +36,8 @@ export interface ParsedArgs {
+@@ -37,6 +37,8 @@ export interface ParsedArgs {
  	logExtensionHostCommunication?: boolean;
  	'extensions-dir'?: string;
  	'builtin-extensions-dir'?: string;
@@ -83,18 +90,20 @@ index 990755c4f3..06449bb9cb 100644
  	extensionDevelopmentPath?: string[]; // // undefined or array of 1 or more local paths or URIs
  	extensionTestsPath?: string; // either a local path or a URI
  	'extension-development-confirm-save'?: boolean;
-@@ -169,4 +171,6 @@ export interface IEnvironmentService {
- 	driverVerbose: boolean;
- 
- 	galleryMachineIdResource?: URI;
+@@ -144,6 +146,8 @@ export interface IEnvironmentService extends IUserHomeProvider {
+ 	disableExtensions: boolean | string[];
+ 	builtinExtensionsPath: string;
+ 	extensionsPath?: string;
 +	extraExtensionPaths: string[];
 +	extraBuiltinExtensionPaths: string[];
- }
+ 	extensionDevelopmentLocationURI?: URI[];
+ 	extensionTestsLocationURI?: URI;
+ 	logExtensionHostCommunication?: boolean;
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 3e48fe4ddd..2212ff5471 100644
+index 6832b93c5c..1e451584eb 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
-@@ -58,6 +58,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
+@@ -55,6 +55,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
  
  	'extensions-dir': { type: 'string', deprecates: 'extensionHomePath', cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
  	'builtin-extensions-dir': { type: 'string' },
@@ -103,20 +112,16 @@ index 3e48fe4ddd..2212ff5471 100644
  	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
  	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
  	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
-@@ -185,7 +187,7 @@ export function parseArgs<T>(args: string[], options: OptionDescriptions<T>, err
- 			delete parsedArgs[o.deprecates];
- 		}
- 
--		if (val) {
-+		if (typeof val !== 'undefined') {
- 			if (o.type === 'string[]') {
- 				if (val && !Array.isArray(val)) {
- 					val = [val];
+@@ -308,4 +310,3 @@ export function buildHelpMessage(productName: string, executableName: string, ve
+ export function buildVersionMessage(version: string | undefined, commit: string | undefined): string {
+ 	return `${version || localize('unknownVersion', "Unknown version")}\n${commit || localize('unknownCommit', "Unknown commit")}\n${process.arch}`;
+ }
+-
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index f7d207009d..5c37b52dab 100644
+index 99cab4bba2..531b1d7177 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
-@@ -260,6 +260,12 @@ export class EnvironmentService implements IEnvironmentService {
+@@ -266,6 +266,12 @@ export class EnvironmentService implements IEnvironmentService {
  
  	get driverHandle(): string | undefined { return this._args['driver']; }
  	get driverVerbose(): boolean { return !!this._args['driver-verbose']; }
@@ -130,10 +135,10 @@ index f7d207009d..5c37b52dab 100644
  	constructor(private _args: ParsedArgs, private _execPath: string) {
  		if (!process.env['VSCODE_LOGS']) {
 diff --git a/src/vs/platform/extensionManagement/node/extensionManagementService.ts b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-index f0eaa74a59..3abf9e1752 100644
+index 5bfc2bb66c..49a6ce8540 100644
 --- a/src/vs/platform/extensionManagement/node/extensionManagementService.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionManagementService.ts
-@@ -731,11 +731,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -741,11 +741,15 @@ export class ExtensionManagementService extends Disposable implements IExtension
  
  	private scanSystemExtensions(): Promise<ILocalExtension[]> {
  		this.logService.trace('Started scanning system extensions');
@@ -154,7 +159,7 @@ index f0eaa74a59..3abf9e1752 100644
  		if (this.environmentService.isBuilt) {
  			return systemExtensionsPromise;
  		}
-@@ -757,9 +761,16 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -767,9 +771,16 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			.then(([systemExtensions, devSystemExtensions]) => [...systemExtensions, ...devSystemExtensions]);
  	}
  
@@ -172,7 +177,7 @@ index f0eaa74a59..3abf9e1752 100644
  			.then(([uninstalled, extensions]) => {
  				extensions = extensions.filter(e => !uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]);
  				if (excludeOutdated) {
-@@ -774,6 +785,12 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -784,6 +795,12 @@ export class ExtensionManagementService extends Disposable implements IExtension
  	private scanExtensions(root: string, type: ExtensionType): Promise<ILocalExtension[]> {
  		const limiter = new Limiter<any>(10);
  		return pfs.readdir(root)
@@ -185,7 +190,7 @@ index f0eaa74a59..3abf9e1752 100644
  			.then(extensionsFolders => Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, root, type)))))
  			.then(extensions => extensions.filter(e => e && e.identifier));
  	}
-@@ -812,7 +829,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -822,7 +839,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  
  	private async removeUninstalledExtensions(): Promise<void> {
  		const uninstalled = await this.getUninstalledExtensions();
@@ -194,7 +199,7 @@ index f0eaa74a59..3abf9e1752 100644
  		const installed: Set<string> = new Set<string>();
  		for (const e of extensions) {
  			if (!uninstalled[new ExtensionIdentifierWithVersion(e.identifier, e.manifest.version).key()]) {
-@@ -831,7 +848,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -841,7 +858,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  	}
  
  	private removeOutdatedExtensions(): Promise<void> {
@@ -204,18 +209,21 @@ index f0eaa74a59..3abf9e1752 100644
  				const toRemove: ILocalExtension[] = [];
  
 diff --git a/src/vs/platform/product/common/product.ts b/src/vs/platform/product/common/product.ts
-index 2de51e8d32..837770990e 100644
+index 804d113856..4b651e5c77 100644
 --- a/src/vs/platform/product/common/product.ts
 +++ b/src/vs/platform/product/common/product.ts
-@@ -22,10 +22,16 @@ if (isWeb) {
+@@ -22,11 +22,19 @@ if (isWeb) {
  	if (Object.keys(product).length === 0) {
  		assign(product, {
- 			version: '1.39.0-dev',
+ 			version: '1.41.0-dev',
 +			codeServerVersion: 'dev',
  			nameLong: 'Visual Studio Code Web Dev',
- 			nameShort: 'VSCode Web Dev'
+ 			nameShort: 'VSCode Web Dev',
+ 			urlProtocol: 'code-oss'
  		});
  	}
++
++	// NOTE@coder: enable injecting settings from the server.
 +	const el = document.getElementById('vscode-remote-product-configuration');
 +	const rawProductConfiguration = el && el.getAttribute('data-settings');
 +	if (rawProductConfiguration) {
@@ -224,7 +232,7 @@ index 2de51e8d32..837770990e 100644
  }
  
  // Node: AMD loader
-@@ -35,7 +41,7 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+@@ -36,7 +44,7 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
  	const rootPath = path.dirname(getPathFromAmdModule(require, ''));
  
  	product = assign({}, require.__$__nodeRequire(path.join(rootPath, 'product.json')) as IProductConfiguration);
@@ -233,7 +241,7 @@ index 2de51e8d32..837770990e 100644
  
  	// Running out of sources
  	if (env['VSCODE_DEV']) {
-@@ -47,7 +53,8 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+@@ -48,7 +56,8 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
  	}
  
  	assign(product, {
@@ -244,10 +252,10 @@ index 2de51e8d32..837770990e 100644
  }
  
 diff --git a/src/vs/platform/product/common/productService.ts b/src/vs/platform/product/common/productService.ts
-index 5aa5c32d7e..e4e7fd4174 100644
+index 6db9725704..779b3cbdea 100644
 --- a/src/vs/platform/product/common/productService.ts
 +++ b/src/vs/platform/product/common/productService.ts
-@@ -15,6 +15,7 @@ export interface IProductService extends Readonly<IProductConfiguration> {
+@@ -16,6 +16,7 @@ export interface IProductService extends Readonly<IProductConfiguration> {
  
  export interface IProductConfiguration {
  	readonly version: string;
@@ -276,6 +284,59 @@ index d0f6e6b18a..1966fd297d 100644
 -
 -
 -
+diff --git a/src/vs/platform/request/common/request.ts b/src/vs/platform/request/common/request.ts
+index 81ec255e65..c94829fc6a 100644
+--- a/src/vs/platform/request/common/request.ts
++++ b/src/vs/platform/request/common/request.ts
+@@ -16,7 +16,7 @@ export const IRequestService = createDecorator<IRequestService>('requestService'
+ export interface IRequestService {
+ 	_serviceBrand: undefined;
+ 
+-	request(options: IRequestOptions, token: CancellationToken): Promise<IRequestContext>;
++	request(options: IRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext>;
+ 
+ 	resolveProxy(url: string): Promise<string | undefined>;
+ }
+diff --git a/src/vs/platform/request/node/requestService.ts b/src/vs/platform/request/node/requestService.ts
+index ad44dcbc33..7a7b5261ff 100644
+--- a/src/vs/platform/request/node/requestService.ts
++++ b/src/vs/platform/request/node/requestService.ts
+@@ -57,7 +57,7 @@ export class RequestService extends Disposable implements IRequestService {
+ 		this.authorization = config.http && config.http.proxyAuthorization;
+ 	}
+ 
+-	async request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
++	async request(options: NodeRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext> {
+ 		this.logService.trace('RequestService#request', options.url);
+ 
+ 		const { proxyUrl, strictSSL } = this;
+@@ -70,7 +70,7 @@ export class RequestService extends Disposable implements IRequestService {
+ 			options.headers = assign(options.headers || {}, { 'Proxy-Authorization': this.authorization });
+ 		}
+ 
+-		return this._request(options, token);
++		return this._request(options, token, gzip);
+ 	}
+ 
+ 	private async getNodeRequest(options: IRequestOptions): Promise<IRawRequestFunction> {
+@@ -79,7 +79,7 @@ export class RequestService extends Disposable implements IRequestService {
+ 		return module.request;
+ 	}
+ 
+-	private _request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
++	private _request(options: NodeRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext> {
+ 
+ 		return new Promise<IRequestContext>(async (c, e) => {
+ 			let req: http.ClientRequest;
+@@ -114,7 +114,7 @@ export class RequestService extends Disposable implements IRequestService {
+ 				} else {
+ 					let stream: streams.ReadableStream<Uint8Array> = res;
+ 
+-					if (res.headers['content-encoding'] === 'gzip') {
++					if (gzip || res.headers['content-encoding'] === 'gzip') {
+ 						stream = res.pipe(createGunzip());
+ 					}
+ 
 diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
 index 8a1c95d37b..8225a85d47 100644
 --- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
@@ -326,7 +387,7 @@ index 2905c52411..303ddf211f 100644
  export class ExtensionPoints implements IWorkbenchContribution {
  
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index 230d09a290..84753e6ac7 100644
+index ea5ad7991f..8d8e99339e 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
 @@ -67,6 +67,7 @@ import { ILogService } from 'vs/platform/log/common/log';
@@ -354,10 +415,10 @@ index 230d09a290..84753e6ac7 100644
  	// automatically create and register addressable instances
  	const extHostDecorations = rpcProtocol.set(ExtHostContext.ExtHostDecorations, accessor.get(IExtHostDecorations));
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index 7bd6aa6cb7..7c28136366 100644
+index 3dab81c9c5..73fc57118a 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
-@@ -627,6 +627,10 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+@@ -655,6 +655,10 @@ export interface MainThreadLabelServiceShape extends IDisposable {
  	$unregisterResourceLabelFormatter(handle: number): void;
  }
  
@@ -368,7 +429,7 @@ index 7bd6aa6cb7..7c28136366 100644
  export interface MainThreadSearchShape extends IDisposable {
  	$registerFileSearchProvider(handle: number, scheme: string): void;
  	$registerTextSearchProvider(handle: number, scheme: string): void;
-@@ -860,6 +864,13 @@ export interface ExtHostLabelServiceShape {
+@@ -888,6 +892,13 @@ export interface ExtHostLabelServiceShape {
  	$registerResourceLabelFormatter(formatter: ResourceLabelFormatter): IDisposable;
  }
  
@@ -382,7 +443,7 @@ index 7bd6aa6cb7..7c28136366 100644
  export interface ExtHostSearchShape {
  	$provideFileSearchResults(handle: number, session: number, query: search.IRawQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
  	$provideTextSearchResults(handle: number, session: number, query: search.IRawTextQuery, token: CancellationToken): Promise<search.ISearchCompleteStats>;
-@@ -1384,7 +1395,8 @@ export const MainContext = {
+@@ -1431,7 +1442,8 @@ export const MainContext = {
  	MainThreadSearch: createMainId<MainThreadSearchShape>('MainThreadSearch'),
  	MainThreadTask: createMainId<MainThreadTaskShape>('MainThreadTask'),
  	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
@@ -392,7 +453,7 @@ index 7bd6aa6cb7..7c28136366 100644
  };
  
  export const ExtHostContext = {
-@@ -1418,5 +1430,6 @@ export const ExtHostContext = {
+@@ -1465,5 +1477,6 @@ export const ExtHostContext = {
  	ExtHostStorage: createMainId<ExtHostStorageShape>('ExtHostStorage'),
  	ExtHostUrls: createExtId<ExtHostUrlsShape>('ExtHostUrls'),
  	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
@@ -401,7 +462,7 @@ index 7bd6aa6cb7..7c28136366 100644
 +	ExtHostNodeProxy: createMainId<ExtHostNodeProxyShape>('ExtHostNodeProxy')
  };
 diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
-index b5ce835e07..22be8516c1 100644
+index a3b5ed0057..f47a97336d 100644
 --- a/src/vs/workbench/api/common/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/common/extHostExtensionService.ts
 @@ -5,7 +5,7 @@
@@ -447,7 +508,7 @@ index b5ce835e07..22be8516c1 100644
  		this._disposables = new DisposableStore();
  
  		this._mainThreadWorkspaceProxy = this._extHostContext.getProxy(MainContext.MainThreadWorkspace);
-@@ -331,14 +335,14 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -337,14 +341,14 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  
  		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
  		return Promise.all([
@@ -465,7 +526,7 @@ index b5ce835e07..22be8516c1 100644
  	private _loadExtensionContext(extensionDescription: IExtensionDescription): Promise<vscode.ExtensionContext> {
  
 diff --git a/src/vs/workbench/api/node/extHost.services.ts b/src/vs/workbench/api/node/extHost.services.ts
-index a227d8a67b..92553a976c 100644
+index 9ae085f536..4e3ccca3d3 100644
 --- a/src/vs/workbench/api/node/extHost.services.ts
 +++ b/src/vs/workbench/api/node/extHost.services.ts
 @@ -26,6 +26,8 @@ import { ExtHostExtensionService } from 'vs/workbench/api/node/extHostExtensionS
@@ -477,7 +538,7 @@ index a227d8a67b..92553a976c 100644
  
  // register singleton services
  registerSingleton(ILogService, ExtHostLogService);
-@@ -42,3 +44,19 @@ registerSingleton(IExtHostSearch, ExtHostSearch);
+@@ -42,3 +44,19 @@ registerSingleton(IExtHostSearch, NativeExtHostSearch);
  registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
  registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
  registerSingleton(IExtHostStorage, ExtHostStorage);
@@ -498,7 +559,7 @@ index a227d8a67b..92553a976c 100644
 +}
 +registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy(IExtHostNodeProxy) {});
 diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
-index 49a8e254fd..99d233aed5 100644
+index a1c3e50ffd..910627aaf9 100644
 --- a/src/vs/workbench/api/node/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/node/extHostExtensionService.ts
 @@ -13,6 +13,8 @@ import { ExtHostDownloadService } from 'vs/workbench/api/node/extHostDownloadSer
@@ -510,7 +571,7 @@ index 49a8e254fd..99d233aed5 100644
  
  class NodeModuleRequireInterceptor extends RequireInterceptor {
  
-@@ -75,7 +77,10 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -76,7 +78,10 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		};
  	}
  
@@ -523,7 +584,7 @@ index 49a8e254fd..99d233aed5 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index afd82468c0..289145be54 100644
+index 4781f22676..25143a97c0 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
 @@ -9,6 +9,9 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
@@ -543,7 +604,7 @@ index afd82468c0..289145be54 100644
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +		if (!URI.isUri(module) && module.extensionKind !== 'web') {
-+			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules.getModule('vscode', module.extensionLocation));
++			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules!.getModule('vscode', module.extensionLocation));
 +		}
 +
 +		if (!URI.isUri(module)) {
@@ -556,54 +617,24 @@ index afd82468c0..289145be54 100644
  		const _exports = {};
  		const _module = { exports: _exports };
  		const _require = (request: string) => {
--			const result = this._fakeModules.getModule(request, module);
-+			const result = this._fakeModules.getModule(request, <URI>module);
+-			const result = this._fakeModules!.getModule(request, module);
++			const result = this._fakeModules!.getModule(request, <URI>module);
  			if (result === undefined) {
  				throw new Error(`Cannot load module '${request}'`);
  			}
-diff --git a/src/vs/workbench/browser/dnd.ts b/src/vs/workbench/browser/dnd.ts
-index 005a025aa9..ab392630c0 100644
---- a/src/vs/workbench/browser/dnd.ts
-+++ b/src/vs/workbench/browser/dnd.ts
-@@ -32,6 +32,7 @@ import { IWorkspaceEditingService } from 'vs/workbench/services/workspaces/commo
- import { withNullAsUndefined } from 'vs/base/common/types';
- import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
- import { IHostService } from 'vs/workbench/services/host/browser/host';
-+import { IUploadService } from 'vs/server/src/browser/upload';
- 
- export interface IDraggedResource {
- 	resource: URI;
-@@ -167,14 +168,15 @@ export class ResourcesDropHandler {
- 		@IEditorService private readonly editorService: IEditorService,
- 		@IConfigurationService private readonly configurationService: IConfigurationService,
- 		@IWorkspaceEditingService private readonly workspaceEditingService: IWorkspaceEditingService,
--		@IHostService private readonly hostService: IHostService
-+		@IHostService private readonly hostService: IHostService,
-+		@IUploadService private readonly uploadService: IUploadService,
- 	) {
- 	}
- 
- 	async handleDrop(event: DragEvent, resolveTargetGroup: () => IEditorGroup | undefined, afterDrop: (targetGroup: IEditorGroup | undefined) => void, targetIndex?: number): Promise<void> {
- 		const untitledOrFileResources = extractResources(event).filter(r => this.fileService.canHandleResource(r.resource) || r.resource.scheme === Schemas.untitled);
- 		if (!untitledOrFileResources.length) {
--			return;
-+			return this.uploadService.handleDrop(event, resolveTargetGroup, afterDrop, targetIndex);
- 		}
- 
- 		// Make the window active to handle the drop properly within
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 84c46faa36..957e8412e1 100644
+index 807ac56d8f..a22bd92a82 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
-@@ -48,6 +48,7 @@ import { toLocalISOString } from 'vs/base/common/date';
- import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedDBLogProvider';
+@@ -50,6 +50,7 @@ import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedD
  import { InMemoryLogProvider } from 'vs/workbench/services/log/common/inMemoryLogProvider';
  import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
+ import { getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
 +import { initialize } from 'vs/server/src/browser/client';
  
  class BrowserMain extends Disposable {
  
-@@ -84,6 +85,7 @@ class BrowserMain extends Disposable {
+@@ -86,6 +87,7 @@ class BrowserMain extends Disposable {
  
  		// Startup
  		workbench.startup();
@@ -611,16 +642,16 @@ index 84c46faa36..957e8412e1 100644
  	}
  
  	private registerListeners(workbench: Workbench, storageService: BrowserStorageService): void {
-@@ -238,6 +240,7 @@ class BrowserMain extends Disposable {
+@@ -247,6 +249,7 @@ class BrowserMain extends Disposable {
  			const channel = connection.getChannel<IChannel>(REMOTE_FILE_SYSTEM_CHANNEL_NAME);
- 			const remoteFileSystemProvider = this._register(new RemoteExtensionsFileSystemProvider(channel, remoteAgentService.getEnvironment()));
+ 			const remoteFileSystemProvider = this._register(new RemoteFileSystemProvider(channel, remoteAgentService.getEnvironment()));
  			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
 +			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
  
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
-index 53de865d8f..df234821a9 100644
+index c509716fc4..e416413084 100644
 --- a/src/vs/workbench/common/resources.ts
 +++ b/src/vs/workbench/common/resources.ts
 @@ -15,6 +15,7 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
@@ -631,138 +662,85 @@ index 53de865d8f..df234821a9 100644
  
  export class ResourceContextKey extends Disposable implements IContextKey<URI> {
  
-@@ -63,7 +64,7 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
+@@ -63,7 +64,8 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
  	set(value: URI | null) {
  		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
  			this._resourceKey.set(value);
 -			this._schemeKey.set(value ? value.scheme : null);
++			// NOTE@coder: fixes extensions matching against file schemas.
 +			this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
  			this._filenameKey.set(value ? basename(value) : null);
  			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
  			this._extensionKey.set(value ? extname(value) : null);
-@@ -200,4 +201,4 @@ export class ResourceGlobMatcher extends Disposable {
- 
- 		return !!expressionForRoot(resourcePathToMatch);
- 	}
--}
-\ No newline at end of file
-+}
-diff --git a/src/vs/workbench/contrib/files/browser/files.contribution.ts b/src/vs/workbench/contrib/files/browser/files.contribution.ts
-index 1f4cd95f65..061931cbde 100644
---- a/src/vs/workbench/contrib/files/browser/files.contribution.ts
-+++ b/src/vs/workbench/contrib/files/browser/files.contribution.ts
-@@ -209,7 +209,7 @@ configurationRegistry.registerConfiguration({
- 		'files.exclude': {
- 			'type': 'object',
- 			'markdownDescription': nls.localize('exclude', "Configure glob patterns for excluding files and folders. For example, the files explorer decides which files and folders to show or hide based on this setting. Read more about glob patterns [here](https://code.visualstudio.com/docs/editor/codebasics#_advanced-search-options)."),
--			'default': { '**/.git': true, '**/.svn': true, '**/.hg': true, '**/CVS': true, '**/.DS_Store': true },
-+			'default': { '**/.git': true, '**/.svn': true, '**/.hg': true, '**/CVS': true, '**/.DS_Store': true, '**/.code-server-partial-upload-*': true },
- 			'scope': ConfigurationScope.RESOURCE,
- 			'additionalProperties': {
- 				'anyOf': [
-diff --git a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-index cc4bcb28c5..98679a8b32 100644
---- a/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-+++ b/src/vs/workbench/contrib/files/browser/views/explorerViewer.ts
-@@ -47,6 +47,7 @@ import { IWorkspaceFolderCreationData } from 'vs/platform/workspaces/common/work
- import { findValidPasteFileTarget } from 'vs/workbench/contrib/files/browser/fileActions';
- import { FuzzyScore, createMatches } from 'vs/base/common/filters';
- import { Emitter } from 'vs/base/common/event';
-+import { IUploadService } from 'vs/server/src/browser/upload';
- 
- export class ExplorerDelegate implements IListVirtualDelegate<ExplorerItem> {
- 
-@@ -444,7 +445,8 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
- 		@IInstantiationService private instantiationService: IInstantiationService,
- 		@ITextFileService private textFileService: ITextFileService,
- 		@IHostService private hostService: IHostService,
--		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService
-+		@IWorkspaceEditingService private workspaceEditingService: IWorkspaceEditingService,
-+		@IUploadService private readonly uploadService: IUploadService,
- 	) {
- 		this.toDispose = [];
- 
-@@ -605,6 +607,7 @@ export class FileDragAndDrop implements ITreeDragAndDrop<ExplorerItem> {
- 	}
- 
- 	private async handleExternalDrop(data: DesktopDragAndDropData, target: ExplorerItem, originalEvent: DragEvent): Promise<void> {
-+		return this.uploadService.handleExternalDrop(data, target, originalEvent);
- 		const droppedResources = extractResources(originalEvent, true);
- 		// Check for dropped external files to be folders
- 		const result = await this.fileService.resolveAll(droppedResources);
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
-index e6b9fd854b..a3d0a46e3a 100644
+index 138707c9a9..9134d5f503 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
 +++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -308,7 +308,8 @@
- 			} else {
- 				// Rewrite vscode-resource in csp
+@@ -329,7 +329,8 @@
  				if (data.endpoint) {
--					csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:/g, data.endpoint));
-+					// NOTE@coder: Add back the trailing slash so it'll work for sub-paths.
-+					csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:/g, data.endpoint + "/"));
- 				}
- 			}
- 
+ 					try {
+ 						const endpointUrl = new URL(data.endpoint);
+-						csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:(?=(\s|;|$))/g, endpointUrl.origin));
++						// NOTE@coder: Add back the trailing slash so it'll work for sub-paths.
++						csp.setAttribute('content', csp.getAttribute('content').replace(/vscode-resource:(?=(\s|;|$))/g, endpointUrl.origin + "/"));
+ 					} catch (e) {
+ 						console.error('Could not rewrite csp');
+ 					}
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index 5f221e07ff..bfd592382c 100644
+index d54e68fa70..b2c4ea5f6a 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -15,7 +15,6 @@ import { IPath, IPathsToWaitFor, IWindowConfiguration } from 'vs/platform/window
- import { ISingleFolderWorkspaceIdentifier, IWorkspaceIdentifier } from 'vs/platform/workspaces/common/workspaces';
- import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
- import { IWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
--import product from 'vs/platform/product/common/product';
+@@ -189,8 +189,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  
- export class BrowserWindowConfiguration implements IWindowConfiguration {
- 
-@@ -180,12 +179,13 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
- 	driverHandle?: string;
- 	driverVerbose: boolean;
- 	galleryMachineIdResource?: URI;
-+	extraExtensionPaths: string[];
-+	extraBuiltinExtensionPaths: string[];
- 	readonly logFile: URI;
- 
+ 	@memoize
  	get webviewExternalEndpoint(): string {
 -		// TODO: get fallback from product.json
--		return (this.options.webviewEndpoint || 'https://{{uuid}}.vscode-webview-test.com/{{commit}}')
--			.replace('{{commit}}', product.commit || '211fa02efe8c041fd7baa8ec3dce199d5185aa44');
+-		return (this.options.webviewEndpoint || 'https://{{uuid}}.vscode-webview-test.com/{{commit}}').replace('{{commit}}', product.commit || '0d728c31ebdf03869d2687d9be0b017667c9ff37');
 +		// NOTE@coder: Modified to work against the current URL.
 +		return `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview/`;
  	}
  
- 	get webviewResourceRoot(): string {
+ 	@memoize
+@@ -267,6 +267,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 	//#region TODO ENABLE IN WEB
+ 
+ 	galleryMachineIdResource?: URI;
++	extraExtensionPaths!: string[];
++	extraBuiltinExtensionPaths!: string[];
+ 
+ 	//#endregion
+ 
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index 000e5f7b4a..39f46e68a1 100644
+index d164f2c127..5a08106f04 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
 @@ -119,6 +119,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
  
  		} else {
  			// remote: only enabled and none-web'ish extension
-+			localExtensions.push(...remoteEnv.extensions.filter(extension => this._isEnabled(extension) && isWebExtension(extension, this._configService)));
- 			remoteEnv.extensions = remoteEnv.extensions.filter(extension => this._isEnabled(extension) && !isWebExtension(extension, this._configService));
++			localExtensions.push(...remoteEnv.extensions.filter(extension => this._isEnabled(extension) && canExecuteOnWeb(extension, this._productService, this._configService)));
+ 			remoteEnv.extensions = remoteEnv.extensions.filter(extension => this._isEnabled(extension) && !canExecuteOnWeb(extension, this._productService, this._configService));
  			this._checkEnableProposedApi(remoteEnv.extensions);
  
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-index 49b2d270c0..45200ccdbb 100644
+index 75f715cc51..1d6299309d 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 +++ b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-@@ -12,7 +12,7 @@ import { IProductService } from 'vs/platform/product/common/productService';
+@@ -32,7 +32,8 @@ export function canExecuteOnWorkspace(manifest: IExtensionManifest, productServi
  
- export function isWebExtension(manifest: IExtensionManifest, configurationService: IConfigurationService): boolean {
- 	const extensionKind = getExtensionKind(manifest, configurationService);
--	return extensionKind === 'web';
-+	return extensionKind === 'web' || manifest.name === 'vim';
+ export function canExecuteOnWeb(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
+ 	const extensionKind = getExtensionKind(manifest, productService, configurationService);
+-	return extensionKind.some(kind => kind === 'web');
++	// NOTE@coder: hardcode vim for now.
++	return extensionKind.some(kind => kind === 'web') || manifest.name === 'vim';
  }
  
- export function isUIExtension(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
+ export function getExtensionKind(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): ExtensionKind[] {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-index 9f5a14f6cb..ca952f3d4d 100644
+index 0f35c54431..32fff09b18 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-@@ -42,12 +42,13 @@ const args = minimist(process.argv.slice(2), {
+@@ -53,12 +53,13 @@ const args = minimist(process.argv.slice(2), {
  	const Module = require.__$__nodeRequire('module') as any;
  	const originalLoad = Module._load;
  
@@ -778,7 +756,7 @@ index 9f5a14f6cb..ca952f3d4d 100644
  	};
  })();
  
-@@ -120,8 +121,11 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+@@ -131,8 +132,11 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
  
  						// Wait for rich client to reconnect
  						protocol.onSocketClose(() => {
@@ -793,7 +771,7 @@ index 9f5a14f6cb..ca952f3d4d 100644
  					}
  				}
 diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-index 3bdfa1a79f..ded21cf9c6 100644
+index 8a65101aa4..80cedfdf57 100644
 --- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
 +++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
 @@ -21,6 +21,7 @@ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensio
@@ -804,29 +782,14 @@ index 3bdfa1a79f..ded21cf9c6 100644
  
  // register singleton services
  registerSingleton(ILogService, ExtHostLogService);
-@@ -32,6 +33,7 @@ registerSingleton(IExtHostCommands, ExtHostCommands);
- registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
+@@ -33,6 +34,7 @@ registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
  registerSingleton(IExtHostStorage, ExtHostStorage);
  registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
+ registerSingleton(IExtHostSearch, ExtHostSearch);
 +registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
  
  // register services that only throw errors
  function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
-diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
-index 3b5706ce76..f390ed35dc 100644
---- a/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
-+++ b/src/vs/workbench/services/extensions/worker/extensionHostWorker.ts
-@@ -36,7 +36,9 @@ const nativeAddEventLister = addEventListener.bind(self);
- self.addEventLister = () => console.trace(`'addEventListener' has been blocked`);
- 
- self.indexedDB.open = () => console.trace(`'indexedDB.open' has been blocked`);
--self.caches.open = () => console.trace(`'indexedDB.caches' has been blocked`);
-+if (self.caches) { // NOTE@coder: on insecure domains this exists in Firefox but not Chromium or Safari.
-+	self.caches.open = () => console.trace(`'indexedDB.caches' has been blocked`);
-+}
- 
- //#endregion ---
- 
 diff --git a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
 index 99394090da..4891e0fece 100644
 --- a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
@@ -878,7 +841,7 @@ index b8f6558b2c..b1fe6b14fd 100644
  		// always set this._state as the state changes
  		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index fa9c9dd7a9..688d6c1934 100644
+index f424c87d92..af681c3c12 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
 @@ -34,11 +34,14 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
@@ -895,6 +858,6 @@ index fa9c9dd7a9..688d6c1934 100644
 +// NOTE@coder: Use the electron-browser version since it already comes with a
 +// channel which lets us actually perform updates.
 +import 'vs/workbench/services/update/electron-browser/updateService';
- import 'vs/workbench/contrib/stats/browser/workspaceStatsService';
+ import 'vs/workbench/contrib/tags/browser/workspaceTagsService';
  import 'vs/workbench/services/workspaces/browser/workspacesService';
  import 'vs/workbench/services/workspaces/browser/workspaceEditingService';

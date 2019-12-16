@@ -21,7 +21,7 @@ import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
 import { IThemeService } from "vs/platform/theme/common/themeService";
 import { IWorkspaceContextService } from "vs/platform/workspace/common/workspace";
 import * as extHostTypes from "vs/workbench/api/common/extHostTypes";
-import { CustomTreeView, CustomTreeViewPanel } from "vs/workbench/browser/parts/views/customView";
+import { CustomTreeView, CustomTreeViewPane } from "vs/workbench/browser/parts/views/customView";
 import { ViewContainerViewlet } from "vs/workbench/browser/parts/views/viewsViewlet";
 import { Extensions as ViewletExtensions, ShowViewletAction, ViewletDescriptor, ViewletRegistry } from "vs/workbench/browser/viewlet";
 import { Extensions as ActionExtensions, IWorkbenchActionRegistry } from "vs/workbench/common/actions";
@@ -120,11 +120,11 @@ export const coderApi = (serviceCollection: ServiceCollection): CoderApi => {
 			}
 
 			Registry.as<ViewletRegistry>(ViewletExtensions.Viewlets).registerViewlet(
-				new ViewletDescriptor(CustomViewlet as any, id, containerName, cssClass, undefined, URI.parse(icon)),
+				ViewletDescriptor.create(CustomViewlet as any, id, containerName, cssClass, undefined, URI.parse(icon)),
 			);
 
 			Registry.as<IWorkbenchActionRegistry>(ActionExtensions.WorkbenchActions).registerWorkbenchAction(
-				new SyncActionDescriptor(OpenCustomViewletAction as any, id, localize("showViewlet", "Show {0}", containerName)),
+				SyncActionDescriptor.create(OpenCustomViewletAction as any, id, localize("showViewlet", "Show {0}", containerName)),
 				"View: Show {0}",
 				localize("view", "View"),
 			);
@@ -137,7 +137,7 @@ export const coderApi = (serviceCollection: ServiceCollection): CoderApi => {
 			Registry.as<IViewsRegistry>(ViewsExtensions.ViewsRegistry).registerViews([{
 				id: viewId,
 				name: viewName,
-				ctorDescriptor: { ctor: CustomTreeViewPanel },
+				ctorDescriptor: { ctor: CustomTreeViewPane },
 				treeView: getService(IInstantiationService).createInstance(CustomTreeView as any, viewId, container),
 			}] as ITreeViewDescriptor[], container);
 		},
@@ -286,8 +286,8 @@ class StatusBarEntry implements vscode.StatusBarItem {
 
 	private _id: number;
 	private entry: IStatusBarEntry;
-	private visible: boolean;
-	private disposed: boolean;
+	private visible?: boolean;
+	private disposed?: boolean;
 	private statusId: string;
 	private statusName: string;
 	private accessor?: IStatusbarEntryAccessor;

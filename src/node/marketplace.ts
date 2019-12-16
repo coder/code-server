@@ -144,7 +144,7 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 				return fail(new Error(nls.localize("invalid file", "Error extracting {0}. Invalid file.", fileName)));
 			}
 
-			await mkdirp(targetDirName, undefined, token);
+			await mkdirp(targetDirName, undefined);
 
 			const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
 			fstream.once("close", () => next());
