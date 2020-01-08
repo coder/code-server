@@ -11,7 +11,7 @@
     "patch:apply": "cd ../../../ && git apply ./src/vs/server/scripts/vscode.patch"
   },
   "devDependencies": {
-    "@coder/nbin": "^1.2.3",
+    "@coder/nbin": "^1.2.7",
     "@types/fs-extra": "^8.0.1",
     "@types/node": "^10.12.12",
     "@types/pem": "^1.9.5",
