@@ -1,4 +1,4 @@
-FROM node:10.16.0
+FROM node:12.14.0
 ARG codeServerVersion=docker
 ARG vscodeVersion
 ARG githubToken
@@ -7,9 +7,6 @@ ARG githubToken
 RUN apt-get update && apt-get install -y \
 	libxkbfile-dev \
 	libsecret-1-dev
-
-# Ensure latest yarn.
-RUN npm install -g yarn@1.13
 
 WORKDIR /src
 COPY . .
