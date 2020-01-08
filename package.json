@@ -28,7 +28,7 @@
     "safe-buffer": "^5.1.1"
   },
   "dependencies": {
-    "@coder/logger": "^1.1.8",
+    "@coder/logger": "^1.1.12",
     "@coder/node-browser": "^1.0.6",
     "@coder/requirefs": "^1.0.6",
     "httpolyglot": "^0.1.2",
