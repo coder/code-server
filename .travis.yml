@@ -68,6 +68,7 @@ deploy:
       condition: -n "$PUSH_DOCKER"
 
 cache:
+  timeout: 1000
   yarn: true
   directories:
     - source
