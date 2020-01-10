@@ -11,17 +11,17 @@ steps:
    image: node:12
    commands:
      - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn package 1.41.1 daily; else yarn package 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: build-alpine
    image: node:12-alpine
    commands:
      - apk add libxkbfile-dev libsecret-dev build-base git
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn package 1.41.1 daily; else yarn package 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
    image: debian
@@ -50,17 +50,17 @@ steps:
    image: node:12
    commands:
      - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn package 1.41.1 daily; else yarn package 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: build-alpine
    image: node:12-alpine
    commands:
      - apk add libxkbfile-dev libsecret-dev build-base git
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn package 1.41.1 daily; else yarn package 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
    image: debian
@@ -90,16 +90,16 @@ steps:
    commands:
      - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
      - yarn
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
 
  - name: build-alpine
    image: node:12-alpine
    commands:
      - apk add libxkbfile-dev libsecret-dev build-base git
-     - if [ ! -n $DRONE_TAG ]; then yarn build 1.41.1 daily; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn binary 1.41.1 daily; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ ! -n $DRONE_TAG ]; then yarn package 1.41.1 daily; else yarn package 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
    image: debian
