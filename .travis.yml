@@ -15,18 +15,6 @@ before_install:
 # Don't build on tags because we'll already have built the commit.
 jobs:
   include:
-    - name: "Linux build"
-      os: linux
-      dist: trusty
-      env: TARGET="linux" PUSH_DOCKER="true"
-      if: tag IS blank
-      script: scripts/ci.bash
-    - name: "Alpine build"
-      os: linux
-      dist: trusty
-      env: TARGET="alpine"
-      if: tag IS blank
-      script: scripts/ci.bash
     - name: "MacOS build"
       os: osx
       if: tag IS blank
