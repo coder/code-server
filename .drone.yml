@@ -24,15 +24,11 @@ steps:
      - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
-   image: debian
-   commands:
-     - apt-get update && apt-get install -y wget
-     - wget -qO -  https://github.com/tcnksm/ghr/releases/download/v0.12.0/ghr_v0.12.0_linux_amd64.tar.gz | tar -xvz
-     - chmod -R 777 ghr_v0.12.0_linux_amd64/*
-     - ./ghr_v0.12.0_linux_amd64/ghr "$DRONE_TAG" ./release/
-   environment:
-    GITHUB_TOKEN:
-      from_secret: gh-token
+   image: plugins/github-release
+   settings:
+    api_key:
+      from_secret: github_token
+    files: release/*.tar.gz
    when:
     event: tag
 
@@ -63,15 +59,11 @@ steps:
      - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
-   image: debian
-   commands:
-     - apt-get update && apt-get install -y wget
-     - wget -qO -  https://github.com/tcnksm/ghr/releases/download/v0.12.0/ghr_v0.12.0_linux_amd64.tar.gz | tar -xvz
-     - chmod -R 777 ghr_v0.12.0_linux_amd64/*
-     - ./ghr_v0.12.0_linux_amd64/ghr "$DRONE_TAG" ./release/
-   environment:
-    GITHUB_TOKEN:
-      from_secret: gh-token
+   image: plugins/github-release
+   settings:
+    api_key:
+      from_secret: github_token
+    files: release/*.tar.gz
    when:
     event: tag
 
@@ -102,14 +94,10 @@ steps:
      - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
 
  - name: publish
-   image: debian
-   commands:
-     - apt-get update && apt-get install -y wget
-     - wget -qO -  https://github.com/tcnksm/ghr/releases/download/v0.12.0/ghr_v0.12.0_linux_amd64.tar.gz | tar -xvz
-     - chmod -R 777 ghr_v0.12.0_linux_amd64/*
-     - ./ghr_v0.12.0_linux_amd64/ghr "$DRONE_TAG" ./release/
-   environment:
-    GITHUB_TOKEN:
-      from_secret: gh-token
+   image: plugins/github-release
+   settings:
+    api_key:
+      from_secret: github_token
+    files: release/*.tar.gz
    when:
     event: tag
