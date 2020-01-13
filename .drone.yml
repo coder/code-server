@@ -41,9 +41,9 @@ steps:
       from_secret: docker_password
     tags:
       - latest
-      - $DRONE_TAG
+      - ${DRONE_TAG}
     build_args:
-      - codeServerVersion=$DRONE_TAG
+      - codeServerVersion=${DRONE_TAG}
       - vscodeVersion=1.41.1
   when:
     event: tag
@@ -91,8 +91,8 @@ steps:
     password:
       from_secret: docker_password
     tags:
-      - latest
-      - $DRONE_TAG
+      - latest-arm64
+      - ${DRONE_TAG}-arm64
     build_args:
       - codeServerVersion=$DRONE_TAG
       - vscodeVersion=1.41.1
