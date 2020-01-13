@@ -32,21 +32,21 @@ steps:
    when:
     event: tag
 
-- name: docker-publish
-  image: banzaicloud/drone-kaniko
-  settings:
-    username:
-      from_secret: docker_user
-    password:
-      from_secret: docker_password
-    tags:
-      - latest
-      - ${DRONE_TAG}
-    build_args:
-      - codeServerVersion=${DRONE_TAG}
-      - vscodeVersion=1.41.1
-  when:
-    event: tag
+ - name: docker-publish
+   image: banzaicloud/drone-kaniko
+   settings:
+     username:
+       from_secret: docker_user
+     password:
+       from_secret: docker_password
+     tags:
+       - latest
+       - ${DRONE_TAG}
+     build_args:
+       - codeServerVersion=${DRONE_TAG}
+       - vscodeVersion=1.41.1
+   when:
+     event: tag
 
 ---
 kind: pipeline
@@ -83,21 +83,21 @@ steps:
    when:
     event: tag
 
-- name: docker-publish
-  image: banzaicloud/drone-kaniko
-  settings:
-    username:
-      from_secret: docker_user
-    password:
-      from_secret: docker_password
-    tags:
-      - latest-arm64
-      - ${DRONE_TAG}-arm64
-    build_args:
-      - codeServerVersion=$DRONE_TAG
-      - vscodeVersion=1.41.1
-  when:
-    event: tag
+ - name: docker-publish
+   image: banzaicloud/drone-kaniko
+   settings:
+     username:
+       from_secret: docker_user
+     password:
+       from_secret: docker_password
+     tags:
+       - latest-arm64
+       - ${DRONE_TAG}-arm64
+     build_args:
+       - codeServerVersion=$DRONE_TAG
+       - vscodeVersion=1.41.1
+   when:
+     event: tag
 
 # ---
 # kind: pipeline
