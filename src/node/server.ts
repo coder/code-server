@@ -267,7 +267,12 @@ export abstract class Server {
 			return { redirect: request.url };
 		}
 
-		const fullPath = decodeURIComponent(parsedUrl.pathname || "/");
+		// handle basePath
+		let fullPath = decodeURIComponent(parsedUrl.pathname || "/");
+		if (this.options.basePath) {
+			fullPath = fullPath.replace(this.options.basePath, "") || "/";
+		}
+
 		const match = fullPath.match(/^(\/?[^/]*)(.*)$/);
 		let [/* ignore */, base, requestPath] = match
 			? match.map((p) => p.replace(/\/+$/, ""))
