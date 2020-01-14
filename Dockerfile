@@ -12,7 +12,6 @@ COPY . .
 
 RUN yarn \
 	&& DRONE_TAG="$tag" MINIFY=true BINARY=true GITHUB_TOKEN="$githubToken" ./scripts/ci.bash \
-	&& mv /src/binaries/* /src/binaries/code-server \
 	&& rm -r /src/build \
 	&& rm -r /src/source
 

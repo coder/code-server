@@ -50,12 +50,14 @@ steps:
    event: tag
 
 - name: publish:docker
-  image: banzaicloud/drone-kaniko
+  image: plugins/docker
   settings:
     username:
       from_secret: docker_user
     password:
       from_secret: docker_password
+    repo: codercom/code-server
+    dockerfile: scripts/ci.dockerfile
     tags:
       - latest
       - v2
@@ -170,17 +172,19 @@ steps:
    event: tag
 
 - name: publish:docker
-  image: banzaicloud/drone-kaniko
+  image: plugins/docker
   settings:
     username:
       from_secret: docker_user
     password:
       from_secret: docker_password
+    repo: codercom/code-server
+    dockerfile: scripts/ci.dockerfile
     tags:
       - arm64
       - ${DRONE_TAG}-arm64
     build_args:
-      - tag=$DRONE_TAG
+      - tag=${DRONE_TAG}
   when:
     event: tag
 
@@ -289,17 +293,19 @@ steps:
    event: tag
 
 - name: publish:docker
-  image: banzaicloud/drone-kaniko
+  image: plugins/docker
   settings:
     username:
       from_secret: docker_user
     password:
       from_secret: docker_password
+    repo: codercom/code-server
+    dockerfile: scripts/ci.dockerfile
     tags:
       - arm
       - ${DRONE_TAG}-arm
     build_args:
-      - tag=$DRONE_TAG
+      - tag=${DRONE_TAG}
   when:
     event: tag
 

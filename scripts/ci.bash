@@ -21,7 +21,7 @@ function main() {
 		mv "vscode-$vscode_version-source" "source/vscode-$vscode_version-source"
 	fi
 
-	# Only minify and package on tags since that's when releases are pushed.
+	# Always minify and package on tags since that's when releases are pushed.
 	if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
 		export MINIFY="true"
 		export PACKAGE="true"
@@ -32,8 +32,17 @@ function main() {
 	}
 
 	run-yarn build
-	[[ -n ${PACKAGE:-} || -n ${BINARY:-} ]] && run-yarn binary
-	[[ -n ${PACKAGE:-} ]] && run-yarn package
+	if [[ -n ${PACKAGE:-} || -n ${BINARY:-} ]] ; then
+		run-yarn binary
+	fi
+	if [[ -n ${PACKAGE:-} ]] ; then
+		run-yarn package
+	fi
+
+	# In this case provide a plainly named "code-server" binary.
+	if [[ -n ${BINARY:-} ]] ; then
+		mv binaries/code-server*-vsc* binaries/code-server
+	fi
 }
 
 main "$@"
