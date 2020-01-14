@@ -1,135 +1,353 @@
 kind: pipeline
 type: docker
-name: build-amd64
+name: amd64:linux
 
 platform:
   arch: amd64
 
 steps:
+- name: cache:restore
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
 
- - name: build
-   image: node:12
-   commands:
-     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
-     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+- name: build
+  image: node:12
+  commands:
+    - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
 
- - name: build-alpine
-   image: node:12-alpine
-   commands:
-     - apk add libxkbfile-dev libsecret-dev build-base git
-     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+- name: cache:package
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
 
- - name: publish
-   image: plugins/github-release
-   settings:
-    api_key:
-      from_secret: github_token
-    files: release/*.tar.gz
-   when:
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag
+
+- name: publish:docker
+  image: banzaicloud/drone-kaniko
+  settings:
+    username:
+      from_secret: docker_user
+    password:
+      from_secret: docker_password
+    tags:
+      - latest
+      - v2
+      - ${DRONE_TAG}
+    build_args:
+      - codeServerVersion=${DRONE_TAG}
+      - vscodeVersion=1.41.1
+  when:
     event: tag
-
- - name: docker-publish
-   image: banzaicloud/drone-kaniko
-   settings:
-     username:
-       from_secret: docker_user
-     password:
-       from_secret: docker_password
-     tags:
-       - latest
-       - ${DRONE_TAG}
-     build_args:
-       - codeServerVersion=${DRONE_TAG}
-       - vscodeVersion=1.41.1
-   when:
-     event: tag
 
 ---
 kind: pipeline
 type: docker
-name: build-arm64
+name: amd64:alpine
+
+platform:
+  arch: amd64
+
+steps:
+- name: cache:restore
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+
+- name: build
+  image: node:12-alpine
+  commands:
+    - apk add libxkbfile-dev libsecret-dev build-base git bash python
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
+
+- name: cache:package
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
+
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12-alpine
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag
+
+---
+kind: pipeline
+type: docker
+name: arm64:linux
 
 platform:
   arch: arm64
 
 steps:
+- name: cache:restore
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
 
- - name: build
-   image: node:12
-   commands:
-     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
-     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+- name: build
+  image: node:12
+  commands:
+    - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
 
- - name: build-alpine
-   image: node:12-alpine
-   commands:
-     - apk add libxkbfile-dev libsecret-dev build-base git
-     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+- name: cache:package
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
 
- - name: publish
-   image: plugins/github-release
-   settings:
-    api_key:
-      from_secret: github_token
-    files: release/*.tar.gz
-   when:
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag
+
+- name: publish:docker
+  image: banzaicloud/drone-kaniko
+  settings:
+    username:
+      from_secret: docker_user
+    password:
+      from_secret: docker_password
+    tags:
+      - arm64
+      - ${DRONE_TAG}-arm64
+    build_args:
+      - codeServerVersion=$DRONE_TAG
+      - vscodeVersion=1.41.1
+  when:
     event: tag
 
- - name: docker-publish
-   image: banzaicloud/drone-kaniko
-   settings:
-     username:
-       from_secret: docker_user
-     password:
-       from_secret: docker_password
-     tags:
-       - latest-arm64
-       - ${DRONE_TAG}-arm64
-     build_args:
-       - codeServerVersion=$DRONE_TAG
-       - vscodeVersion=1.41.1
-   when:
-     event: tag
+---
+kind: pipeline
+type: docker
+name: arm64:alpine
 
-# ---
-# kind: pipeline
-# type: docker
-# name: build-arm
-#
-# platform:
-#  arch: arm
-#
-# steps:
-#
-# - name: build
-#   image: node:12
-#   commands:
-#     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
-#     - yarn
-#     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-#     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-#
-# - name: build-alpine
-#   image: node:12-alpine
-#   commands:
-#     - apk add libxkbfile-dev libsecret-dev build-base git
-#     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
-#     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
-#     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
-#
-# - name: publish
-#   image: plugins/github-release
-#   settings:
-#    api_key:
-#      from_secret: github_token
-#    files: release/*.tar.gz
-#   when:
-#    event: tag
+platform:
+  arch: arm64
+
+steps:
+- name: cache:restore
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+
+- name: build
+  image: node:12-alpine
+  commands:
+    - apk add libxkbfile-dev libsecret-dev build-base git bash python
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
+
+- name: cache:package
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
+
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12-alpine
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag
+
+---
+kind: pipeline
+type: docker
+name: arm:linux
+
+platform:
+  arch: arm
+
+steps:
+- name: cache:restore
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
+
+- name: build
+  image: node:12
+  commands:
+    - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
+
+- name: cache:package
+  image: node:12
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
+
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag
+
+- name: publish:docker
+  image: banzaicloud/drone-kaniko
+  settings:
+    username:
+      from_secret: docker_user
+    password:
+      from_secret: docker_password
+    tags:
+      - arm
+      - ${DRONE_TAG}-arm
+    build_args:
+      - codeServerVersion=$DRONE_TAG
+      - vscodeVersion=1.41.1
+  when:
+    event: tag
+
+---
+kind: pipeline
+type: docker
+name: arm:alpine
+
+platform:
+  arch: arm
+
+steps:
+- name: cache:restore
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+
+- name: build
+  image: node:12-alpine
+  commands:
+    - apk add libxkbfile-dev libsecret-dev build-base git bash python
+    - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
+
+- name: cache:package
+  image: node:12-alpine
+  commands:
+    - ./scripts/cacher.sh
+  when:
+    event: push
+
+- name: cache:push
+  image: plugins/gcs
+  settings:
+     source: cache-upload/
+     target: codesrv-ci.cdr.sh
+     token:
+       from_secret: gcs-token
+  when:
+    event: push
+
+- name: test
+  image: node:12-alpine
+  commands:
+    - yarn test
+
+- name: publish:github
+  image: plugins/github-release
+  settings:
+   api_key:
+     from_secret: github_token
+   files: release/*.tar.gz
+  when:
+   event: tag

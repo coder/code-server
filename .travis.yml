@@ -59,4 +59,4 @@ cache:
   timeout: 1000
   yarn: true
   directories:
-    - source
+    - source/vscode-1.41.1-source
