@@ -57,16 +57,18 @@ function main() {
 	cd "$(dirname "${0}")/.."
 
 	local codeServerVersion="${VERSION:-}"
-	local vscodeVersion="${VSCODE_VERSION:-}"
+	local vscodeVersion="${VSCODE_VERSION:-1.41.1}"
 	local ostype="${OSTYPE:-}"
 	local package="${PACKAGE:-}"
 
 	if [[ -z "${codeServerVersion}" ]] ; then
-		>&2 echo "Must set VERSION environment variable"; exit 1
+		codeServerVersion="2.${TRAVIS_TAG:-${DRONE_TAG:-daily}}"
 	fi
 
-	if [[ -z "${vscodeVersion}" ]] ; then
-		>&2 echo "Must set VSCODE_VERSION environment variable"; exit 1
+	local branch="${TRAVIS_BRANCH:-DRONE_BRANCH}"
+	if [[ $branch == "master" ]] ; then
+		export MINIFY="true"
+		export PACKAGE="true"
 	fi
 
 	if [[ "${ostype}" == "darwin"* ]]; then
