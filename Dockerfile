@@ -1,6 +1,5 @@
 FROM node:12.14.0
-ARG codeServerVersion=docker
-ARG vscodeVersion
+ARG tag
 ARG githubToken
 
 # Install VS Code's deps. These are the only two it seems we need.
@@ -12,13 +11,12 @@ WORKDIR /src
 COPY . .
 
 RUN yarn \
-	&& MINIFY=true GITHUB_TOKEN="${githubToken}" yarn build "${vscodeVersion}" "${codeServerVersion}" \
-	&& yarn binary "${vscodeVersion}" "${codeServerVersion}" \
-	&& mv "/src/binaries/code-server${codeServerVersion}-vsc${vscodeVersion}-linux-x86_64" /src/binaries/code-server \
+	&& DRONE_TAG="$tag" MINIFY=true BINARY=true GITHUB_TOKEN="$githubToken" ./scripts/ci.bash \
+	&& mv /src/binaries/* /src/binaries/code-server \
 	&& rm -r /src/build \
 	&& rm -r /src/source
 
-# We deploy with ubuntu so that devs have a familiar environment.
+# We deploy with Ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y \
@@ -31,7 +29,7 @@ RUN apt-get update && apt-get install -y \
 	vim \
 	curl \
 	wget \
-  && rm -rf /var/lib/apt/lists/*
+	&& rm -rf /var/lib/apt/lists/*
 
 RUN locale-gen en_US.UTF-8
 # We cannot use update-locale because docker will not use the env variables
@@ -43,10 +41,9 @@ RUN adduser --gecos '' --disabled-password coder && \
 	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 USER coder
-# We create first instead of just using WORKDIR as when WORKDIR creates, the
-# user is root.
+# Create first so these directories will be owned by coder instead of root
+# (workdir and mounting appear to both default to root).
 RUN mkdir -p /home/coder/project
-# To avoid EACCES issues on f.ex Crostini (ChromeOS)
 RUN mkdir -p /home/coder/.local/share/code-server
 
 WORKDIR /home/coder/project

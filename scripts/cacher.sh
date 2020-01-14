@@ -23,7 +23,7 @@ restore() {
 # the cache-upload directory will be uploaded as-is to the code-server bucket.
 package() {
 	mkdir -p "cache-upload/cache/$1"
-	tar czfv "cache-upload/cache/$1/$tar.tar.gz" node_modules source/vscode-1.41.1-source
+	tar czfv "cache-upload/cache/$1/$tar.tar.gz" node_modules source
 }
 
 main() {

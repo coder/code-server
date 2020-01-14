@@ -1,4 +1,4 @@
-# We deploy with ubuntu so that devs have a familiar environment.
+# We deploy with Ubuntu so that devs have a familiar environment.
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y \
@@ -22,9 +22,10 @@ RUN adduser --gecos '' --disabled-password coder && \
 	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 USER coder
-# We create first instead of just using WORKDIR as when WORKDIR creates, the
-# user is root.
+# Create first so these directories will be owned by coder instead of root
+# (workdir and mounting appear to both default to root).
 RUN mkdir -p /home/coder/project
+RUN mkdir -p /home/coder/.local/share/code-server
 
 WORKDIR /home/coder/project
 
