@@ -49,6 +49,11 @@ RUN mkdir -p /home/coder/project
 # To avoid EACCES issues on f.ex Crostini (ChromeOS)
 RUN mkdir -p /home/coder/.local/share/code-server
 
+# FIXME: permission fix required for bind-mounts
+# See GH-1270
+RUN sudo chmod -R g+rw /home/coder/project && sudo chmod -R g+rw /home/coder/.local/share/code-server && \
+    sudo chown -R coder:coder /home/coder
+
 WORKDIR /home/coder/project
 
 # This ensures we have a volume mounted even if the user forgot to do bind

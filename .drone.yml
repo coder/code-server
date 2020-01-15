@@ -1,0 +1,135 @@
+kind: pipeline
+type: docker
+name: build-amd64
+
+platform:
+  arch: amd64
+
+steps:
+
+ - name: build
+   image: node:12
+   commands:
+     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+
+ - name: build-alpine
+   image: node:12-alpine
+   commands:
+     - apk add libxkbfile-dev libsecret-dev build-base git
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+
+ - name: publish
+   image: plugins/github-release
+   settings:
+    api_key:
+      from_secret: github_token
+    files: release/*.tar.gz
+   when:
+    event: tag
+
+ - name: docker-publish
+   image: banzaicloud/drone-kaniko
+   settings:
+     username:
+       from_secret: docker_user
+     password:
+       from_secret: docker_password
+     tags:
+       - latest
+       - ${DRONE_TAG}
+     build_args:
+       - codeServerVersion=${DRONE_TAG}
+       - vscodeVersion=1.41.1
+   when:
+     event: tag
+
+---
+kind: pipeline
+type: docker
+name: build-arm64
+
+platform:
+  arch: arm64
+
+steps:
+
+ - name: build
+   image: node:12
+   commands:
+     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+
+ - name: build-alpine
+   image: node:12-alpine
+   commands:
+     - apk add libxkbfile-dev libsecret-dev build-base git
+     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+
+ - name: publish
+   image: plugins/github-release
+   settings:
+    api_key:
+      from_secret: github_token
+    files: release/*.tar.gz
+   when:
+    event: tag
+
+ - name: docker-publish
+   image: banzaicloud/drone-kaniko
+   settings:
+     username:
+       from_secret: docker_user
+     password:
+       from_secret: docker_password
+     tags:
+       - latest-arm64
+       - ${DRONE_TAG}-arm64
+     build_args:
+       - codeServerVersion=$DRONE_TAG
+       - vscodeVersion=1.41.1
+   when:
+     event: tag
+
+# ---
+# kind: pipeline
+# type: docker
+# name: build-arm
+#
+# platform:
+#  arch: arm
+#
+# steps:
+#
+# - name: build
+#   image: node:12
+#   commands:
+#     - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+#     - yarn
+#     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+#     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+#
+# - name: build-alpine
+#   image: node:12-alpine
+#   commands:
+#     - apk add libxkbfile-dev libsecret-dev build-base git
+#     - if [ -z $DRONE_TAG ]; then yarn build 1.41.1 daily ; else yarn build 1.41.1 $DRONE_TAG; fi
+#     - if [ -z $DRONE_TAG ]; then yarn binary 1.41.1 daily ; else yarn binary 1.41.1 $DRONE_TAG; fi
+#     - if [ -z $DRONE_TAG ]; then yarn package 1.41.1 daily ; else yarn package 1.41.1 $DRONE_TAG; fi
+#
+# - name: publish
+#   image: plugins/github-release
+#   settings:
+#    api_key:
+#      from_secret: github_token
+#    files: release/*.tar.gz
+#   when:
+#    event: tag
