@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # ci.bash -- Build code-server in the CI.
 
 set -euo pipefail
@@ -9,7 +9,7 @@ function main() {
 	# Get the version information. If a specific version wasn't set, generate it
 	# from the tag and VS Code version.
 	local vscode_version=${VSCODE_VERSION:-1.41.1}
-	local code_server_version=${VERSION:-2.${TRAVIS_TAG:-${DRONE_TAG:-daily}}-vsc$vscode_version}
+	local code_server_version=${VERSION:-2.${TRAVIS_TAG:-${DRONE_TAG:-daily}}}
 
 	# Remove everything that isn't the current VS Code source for caching
 	# (otherwise the cache will contain old versions).
@@ -32,9 +32,7 @@ function main() {
 	}
 
 	run-yarn build
-	if [[ -n ${PACKAGE:-} || -n ${BINARY:-} ]] ; then
-		run-yarn binary
-	fi
+	run-yarn binary
 	if [[ -n ${PACKAGE:-} ]] ; then
 		run-yarn package
 	fi

@@ -3,6 +3,7 @@
   "scripts": {
     "runner": "cd ./scripts && node --max-old-space-size=32384 -r ts-node/register ./build.ts",
     "start": "nodemon --watch ../../../out --verbose ../../../out/vs/server/main.js",
+    "test": "./scripts/test.sh",
     "watch": "cd ../../../ && yarn watch",
     "build": "yarn && yarn runner build",
     "package": "yarn runner package",
