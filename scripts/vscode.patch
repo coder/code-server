@@ -583,6 +583,70 @@ index a1c3e50ffd..910627aaf9 100644
  		if (module.scheme !== Schemas.file) {
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
+diff --git a/src/vs/workbench/api/node/extHostStoragePaths.ts b/src/vs/workbench/api/node/extHostStoragePaths.ts
+index afdd6bf398..ac91318ce3 100644
+--- a/src/vs/workbench/api/node/extHostStoragePaths.ts
++++ b/src/vs/workbench/api/node/extHostStoragePaths.ts
+@@ -5,13 +5,14 @@
+ 
+ import * as path from 'vs/base/common/path';
+ import { URI } from 'vs/base/common/uri';
+-import * as pfs from 'vs/base/node/pfs';
+-import { IEnvironment, IStaticWorkspaceData } from 'vs/workbench/api/common/extHost.protocol';
++import { IEnvironment, IStaticWorkspaceData, MainContext } from 'vs/workbench/api/common/extHost.protocol';
+ import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
+ import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
+ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitDataService';
+ import { withNullAsUndefined } from 'vs/base/common/types';
+ import { ILogService } from 'vs/platform/log/common/log';
++import { IExtHostRpcService } from '../common/extHostRpcService';
++import { VSBuffer } from 'vs/base/common/buffer';
+ 
+ export class ExtensionStoragePaths implements IExtensionStoragePaths {
+ 
+@@ -26,6 +27,7 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
+ 	constructor(
+ 		@IExtHostInitDataService initData: IExtHostInitDataService,
+ 		@ILogService private readonly _logService: ILogService,
++		@IExtHostRpcService private readonly _extHostRpc: IExtHostRpcService,
+ 	) {
+ 		this._workspace = withNullAsUndefined(initData.workspace);
+ 		this._environment = initData.environment;
+@@ -54,21 +56,25 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
+ 		const storageName = this._workspace.id;
+ 		const storagePath = path.join(this._environment.appSettingsHome.fsPath, 'workspaceStorage', storageName);
+ 
+-		const exists = await pfs.dirExists(storagePath);
++		// NOTE@coder: Use the file system proxy so this will work in the browser.
++		// writeFile performs a mkdirp so we don't need to bother ourselves.
++		const fileSystem = this._extHostRpc.getProxy(MainContext.MainThreadFileSystem);
++		const exists = fileSystem.$stat(URI.file(storagePath))
+ 
+ 		if (exists) {
+ 			return storagePath;
+ 		}
+ 
+ 		try {
+-			await pfs.mkdirp(storagePath);
+-			await pfs.writeFile(
+-				path.join(storagePath, 'meta.json'),
+-				JSON.stringify({
+-					id: this._workspace.id,
+-					configuration: this._workspace.configuration && URI.revive(this._workspace.configuration).toString(),
+-					name: this._workspace.name
+-				}, undefined, 2)
++			await fileSystem.$writeFile(
++				URI.file(path.join(storagePath, 'meta.json')),
++				VSBuffer.fromString(
++					JSON.stringify({
++						id: this._workspace.id,
++						configuration: this._workspace.configuration && URI.revive(this._workspace.configuration).toString(),
++						name: this._workspace.name
++					}, undefined, 2)
++				)
+ 			);
+ 			return storagePath;
+ 
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
 index 4781f22676..25143a97c0 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
@@ -771,25 +835,49 @@ index 0f35c54431..32fff09b18 100644
  					}
  				}
 diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-index 8a65101aa4..80cedfdf57 100644
+index 8a65101aa4..e9c66b3b20 100644
 --- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
 +++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-@@ -21,6 +21,7 @@ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensio
- import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
+@@ -18,9 +18,10 @@ import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePa
+ import { IExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
+ import { IExtHostStorage, ExtHostStorage } from 'vs/workbench/api/common/extHostStorage';
+ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensionService';
+-import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
  import { ILogService } from 'vs/platform/log/common/log';
  import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
 +import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
++import { ExtensionStoragePaths } from 'vs/workbench/api/node/extHostStoragePaths';
  
  // register singleton services
  registerSingleton(ILogService, ExtHostLogService);
-@@ -33,6 +34,7 @@ registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
+@@ -33,25 +34,9 @@ registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
  registerSingleton(IExtHostStorage, ExtHostStorage);
  registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
  registerSingleton(IExtHostSearch, ExtHostSearch);
 +registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
  
- // register services that only throw errors
- function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
+-// register services that only throw errors
+-function NotImplementedProxy<T>(name: ServiceIdentifier<T>): { new(): T } {
+-	return <any>class {
+-		constructor() {
+-			return new Proxy({}, {
+-				get(target: any, prop: string | number) {
+-					if (target[prop]) {
+-						return target[prop];
+-					}
+-					throw new Error(`Not Implemented: ${name}->${String(prop)}`);
+-				}
+-			});
+-		}
+-	};
+-}
+ registerSingleton(IExtHostTerminalService, WorkerExtHostTerminalService);
+ registerSingleton(IExtHostTask, WorkerExtHostTask);
+ registerSingleton(IExtHostDebugService, WorkerExtHostDebugService);
+-registerSingleton(IExtensionStoragePaths, class extends NotImplementedProxy(IExtensionStoragePaths) {
+-	whenReady = Promise.resolve();
+-});
++registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
 diff --git a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
 index 99394090da..4891e0fece 100644
 --- a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
