@@ -4,7 +4,6 @@ node_js:
 services:
   - docker
 
-# Don't build on tags because we'll already have built the commit.
 jobs:
   include:
     - name: "MacOS build"
