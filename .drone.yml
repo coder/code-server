@@ -46,6 +46,8 @@ steps:
      from_secret: github_token
    files: release/*.tar.gz
    draft: true
+   overwrite: true
+   title: ${DRONE_TAG}
   when:
    event: tag
 
@@ -55,15 +57,11 @@ steps:
     username:
       from_secret: docker_user
     password:
-      from_secret: docker_password
+      from_secret: docker_pass
     repo: codercom/code-server
     dockerfile: scripts/ci.dockerfile
     tags:
-      - latest
-      - v2
       - ${DRONE_TAG}
-    build_args:
-      - tag=${DRONE_TAG}
   when:
     event: tag
 
@@ -116,6 +114,8 @@ steps:
      from_secret: github_token
    files: release/*.tar.gz
    draft: true
+   overwrite: true
+   title: ${DRONE_TAG}
   when:
    event: tag
 
@@ -168,6 +168,8 @@ steps:
      from_secret: github_token
    files: release/*.tar.gz
    draft: true
+   overwrite: true
+   title: ${DRONE_TAG}
   when:
    event: tag
 
@@ -177,14 +179,11 @@ steps:
     username:
       from_secret: docker_user
     password:
-      from_secret: docker_password
+      from_secret: docker_pass
     repo: codercom/code-server
     dockerfile: scripts/ci.dockerfile
     tags:
-      - arm64
       - ${DRONE_TAG}-arm64
-    build_args:
-      - tag=${DRONE_TAG}
   when:
     event: tag
 
@@ -237,6 +236,8 @@ steps:
      from_secret: github_token
    files: release/*.tar.gz
    draft: true
+   overwrite: true
+   title: ${DRONE_TAG}
   when:
    event: tag
 
@@ -283,32 +284,31 @@ steps:
   commands:
     - yarn test
 
-- name: publish:github
-  image: plugins/github-release
-  settings:
-   api_key:
-     from_secret: github_token
-   files: release/*.tar.gz
-   draft: true
-  when:
-   event: tag
+# - name: publish:github
+#   image: plugins/github-release
+#   settings:
+#    api_key:
+#      from_secret: github_token
+#    files: release/*.tar.gz
+#    draft: true
+#    overwrite: true
+#    title: ${DRONE_TAG}
+#   when:
+#    event: tag
 
-- name: publish:docker
-  image: plugins/docker
-  settings:
-    username:
-      from_secret: docker_user
-    password:
-      from_secret: docker_password
-    repo: codercom/code-server
-    dockerfile: scripts/ci.dockerfile
-    tags:
-      - arm
-      - ${DRONE_TAG}-arm
-    build_args:
-      - tag=${DRONE_TAG}
-  when:
-    event: tag
+# - name: publish:docker
+#   image: plugins/docker
+#   settings:
+#     username:
+#       from_secret: docker_user
+#     password:
+#       from_secret: docker_pass
+#     repo: codercom/code-server
+#     dockerfile: scripts/ci.dockerfile
+#     tags:
+#       - ${DRONE_TAG}-arm
+#   when:
+#     event: tag
 
 ---
 kind: pipeline
@@ -353,12 +353,15 @@ steps:
   commands:
     - yarn test
 
-- name: publish:github
-  image: plugins/github-release
-  settings:
-   api_key:
-     from_secret: github_token
-   files: release/*.tar.gz
-   draft: true
-  when:
-   event: tag
+# - name: publish:github
+#   image: plugins/github-release
+#   failure: ignore
+#   settings:
+#    api_key:
+#      from_secret: github_token
+#    files: release/*.tar.gz
+#    draft: true
+#    overwrite: true
+#    title: ${DRONE_TAG}
+#   when:
+#    event: tag
