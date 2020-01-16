@@ -750,6 +750,25 @@ index 138707c9a9..9134d5f503 100644
  					} catch (e) {
  						console.error('Could not rewrite csp');
  					}
+diff --git a/src/vs/workbench/services/dialogs/browser/dialogService.ts b/src/vs/workbench/services/dialogs/browser/dialogService.ts
+index f67f9aa064..add754cd5a 100644
+--- a/src/vs/workbench/services/dialogs/browser/dialogService.ts
++++ b/src/vs/workbench/services/dialogs/browser/dialogService.ts
+@@ -122,11 +122,12 @@ export class DialogService implements IDialogService {
+ 
+ 	async about(): Promise<void> {
+ 		const detail = nls.localize('aboutDetail',
+-			"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++			"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}\nCode Server Version: {4}",
+ 			this.productService.version || 'Unknown',
+ 			this.productService.commit || 'Unknown',
+ 			this.productService.date || 'Unknown',
+-			navigator.userAgent
++			navigator.userAgent,
++			this.productService.codeServerVersion || 'Unknown',
+ 		);
+ 
+ 		const { choice } = await this.show(Severity.Info, this.productService.nameLong, [nls.localize('copy', "Copy"), nls.localize('ok', "OK")], { detail, cancelId: 1 });
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index d54e68fa70..b2c4ea5f6a 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
