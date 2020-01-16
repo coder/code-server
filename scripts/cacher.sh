@@ -23,7 +23,7 @@ restore() {
 # the cache-upload directory will be uploaded as-is to the code-server bucket.
 package() {
 	mkdir -p "cache-upload/cache/$1"
-	tar czfv "cache-upload/cache/$1/$tar.tar.gz" node_modules source /usr/local/share/.cache/yarn
+	tar czfv "cache-upload/cache/$1/$tar.tar.gz" node_modules source yarn-cache
 }
 
 main() {

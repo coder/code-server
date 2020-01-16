@@ -21,6 +21,9 @@ function main() {
 		mv "vscode-$vscode_version-source" "source/vscode-$vscode_version-source"
 	fi
 
+	YARN_CACHE_FOLDER="$(pwd)/yarn-cache"
+	export YARN_CACHE_FOLDER
+
 	# Always minify and package on tags since that's when releases are pushed.
 	if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
 		export MINIFY="true"
