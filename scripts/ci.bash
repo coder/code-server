@@ -9,7 +9,7 @@ function main() {
 	# Get the version information. If a specific version wasn't set, generate it
 	# from the tag and VS Code version.
 	local vscode_version=${VSCODE_VERSION:-1.41.1}
-	local code_server_version=${VERSION:-2.${TRAVIS_TAG:-${DRONE_TAG:-daily}}}
+	local code_server_version=${VERSION:-${TRAVIS_TAG:-${DRONE_TAG:-daily}}}
 
 	# Remove everything that isn't the current VS Code source for caching
 	# (otherwise the cache will contain old versions).
