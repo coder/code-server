@@ -296,6 +296,12 @@ export abstract class Server {
 
 		switch (base) {
 			case "/":
+				switch (requestPath) {
+					case "/manifest.json":
+						const response = await this.getResource(this.serverRoot, "media", requestPath);
+						response.cache = true;
+						return response;
+				}
 				if (!this.authenticate(request)) {
 					return { redirect: "/login" };
 				}
