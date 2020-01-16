@@ -300,6 +300,7 @@ export abstract class Server {
 					// NOTE: This must be served at the correct location based on the
 					// start_url in the manifest.
 					case "/manifest.json":
+					case "/code-server.png":
 						const response = await this.getResource(this.serverRoot, "media", requestPath);
 						response.cache = true;
 						return response;
