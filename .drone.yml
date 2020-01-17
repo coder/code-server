@@ -12,9 +12,10 @@ steps:
     - ./scripts/cacher.sh
 
 - name: build
-  image: node:12
+  image: codercom/nbin:centos
   commands:
-    - apt update && apt install -y build-essential git libsecret-1-dev libx11-dev libxkbfile-dev
+    - yum install -y libxkbfile-devel libsecret-devel
+    - . /opt/rh/devtoolset-6/enable
     - timeout 50m ./scripts/ci.bash || echo 'Timed out or failed; continuing so we can preserve cache for the next run'
 
 - name: cache:package
