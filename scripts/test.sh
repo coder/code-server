@@ -11,7 +11,7 @@ main() {
 	version=$(./binaries/code-server* --version | head -1)
 	echo "Got '$version' for the version"
 	case $version in
-		*2.*-vsc1.41.1) exit 0 ;;
+		*-vsc1.41.1) exit 0 ;;
 		*) exit 1 ;;
 	esac
 }
