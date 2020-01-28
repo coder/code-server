@@ -79,7 +79,7 @@ class Builder {
 
 		const vscodeSourcePath = path.join(this.outPath, "source", `vscode-${vscodeVersion}-source`);
 		const binariesPath = path.join(this.outPath, "binaries");
-		const binaryName = `code-server${codeServerVersion}-vsc${vscodeVersion}-${target}-${arch}`;
+		const binaryName = `code-server${codeServerVersion}-${target}-${arch}`;
 		const finalBuildPath = path.join(this.outPath, "build", `${binaryName}-built`);
 
 		switch (task) {
@@ -231,7 +231,7 @@ class Builder {
 
 			const [productJson, packageJson] = await Promise.all([
 				merge("product", { commit, date }),
-				merge("package", { codeServerVersion: `${codeServerVersion}-vsc${vscodeVersion}` }),
+				merge("package", { codeServerVersion: codeServerVersion }),
 			]);
 
 			// We could do this before the optimization but then it'd be copied into
