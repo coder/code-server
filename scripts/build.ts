@@ -79,7 +79,7 @@ class Builder {
 
 		const vscodeSourcePath = path.join(this.outPath, "source", `vscode-${vscodeVersion}-source`);
 		const binariesPath = path.join(this.outPath, "binaries");
-		const binaryName = `code-server${codeServerVersion}-${target}-${arch}`;
+		const binaryName = `code-server-${codeServerVersion}-${target}-${arch}`;
 		const finalBuildPath = path.join(this.outPath, "build", `${binaryName}-built`);
 
 		switch (task) {
