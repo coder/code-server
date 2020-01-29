@@ -11,7 +11,9 @@ main() {
 	version=$(./binaries/code-server* --version | head -1)
 	echo "Got '$version' for the version"
 	case $version in
-		*-vsc1.41.1) exit 0 ;;
+	    # FIXME: this isn't semver compliant yet but its based on what our latest tag is!
+		*[0123456789].+[0123456789]) exit 0 ;;
+		*daily) echo "Assuming test builds, exiting."; exit 0 ;; 
 		*) exit 1 ;;
 	esac
 }
