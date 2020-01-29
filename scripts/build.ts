@@ -231,7 +231,7 @@ class Builder {
 
 			const [productJson, packageJson] = await Promise.all([
 				merge("product", { commit, date }),
-				merge("package", { codeServerVersion: codeServerVersion }),
+				merge("package", { codeServerVersion }),
 			]);
 
 			// We could do this before the optimization but then it'd be copied into
