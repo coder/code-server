@@ -66,6 +66,16 @@ steps:
   when:
     event: tag
 
+- name: publish:gcs
+  image: plugins/gcs
+  settings:
+    source: gcs_bucket
+    target: codesrv-ci.cdr.sh/
+    token:
+      from_secret: gcs-token
+  when:
+    event: tag
+
 ---
 kind: pipeline
 type: docker
@@ -119,6 +129,16 @@ steps:
    title: ${DRONE_TAG}
   when:
    event: tag
+
+- name: publish:gcs
+  image: plugins/gcs
+  settings:
+    source: gcs_bucket
+    target: codesrv-ci.cdr.sh/
+    token:
+      from_secret: gcs-token
+  when:
+    event: tag
 
 ---
 kind: pipeline
@@ -188,6 +208,16 @@ steps:
   when:
     event: tag
 
+- name: publish:gcs
+  image: plugins/gcs
+  settings:
+    source: gcs_bucket
+    target: codesrv-ci.cdr.sh/
+    token:
+      from_secret: gcs-token
+  when:
+    event: tag
+
 ---
 kind: pipeline
 type: docker
@@ -241,6 +271,16 @@ steps:
    title: ${DRONE_TAG}
   when:
    event: tag
+
+- name: publish:gcs
+  image: plugins/gcs
+  settings:
+    source: gcs_bucket
+    target: codesrv-ci.cdr.sh/
+    token:
+      from_secret: gcs-token
+  when:
+    event: tag
 
 ---
 kind: pipeline
