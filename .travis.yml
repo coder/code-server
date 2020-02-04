@@ -1,0 +1,37 @@
+language: node_js
+node_js:
+  - 12.14.0
+services:
+  - docker
+
+jobs:
+  include:
+    - name: "MacOS build"
+      os: osx
+      script: travis_wait 60 scripts/ci.bash
+
+git:
+  depth: 3
+
+deploy:
+  - provider: releases
+    file_glob: true
+    draft: true
+    tag_name: "$TRAVIS_TAG"
+    target_commitish: "$TRAVIS_COMMIT"
+    name: "$TRAVIS_TAG"
+    skip_cleanup: true
+    api_key:
+      secure: YL/x24KjYjgYXPcJWk3FV7FGxI79Mh6gBECQEcdlf3fkLEoKFVgzHBoUNWrFPzyR4tgLyWNAgcpD9Lkme1TRWTom7UPjXcwMNyLcLa+uec7ciSAnYD9ntLTpiCuPDD1u0LtRGclSi/EHQ+F8YVq+HZJpXTsJeAmOmihma3GVbGKSZr+BRum+0YZSG4w+o4TOlYzw/4bLWS52MogZcwpjd+hemBbgXLuGU2ziKv2vEKCZFbEeA16II4x1WLI4mutDdCeh7+3aLzGLwDa49NxtsVYNjyNFF75JhCTCNA55e2YMiLz9Uq69IXe/mi5F7xUaFfhIqqLNyKBnKeEOzu3dYnc+8n3LjnQ+00PmkF05nx9kBn3UfV1kwQGh6QbyDmTtBP07rtUMyI14aeQqHjxsaVRdMnwj9Q2DjXRr8UDqESZF0rmK3pHCXS2fBhIzLE8tLVW5Heiba2pQRFMHMZW+KBE97FzcFh7is90Ait3T8enfcd/PWFPYoBejDAdjwxwOkezh5N5ZkYquEfDYuWrFi6zRFCktsruaAcA+xGtTf9oilBBzUqu8Ie+YFWH5me83xakcblJWdaW/D2rLJAJH3m6LFm8lBqyUgDX5t/etob6CpDuYHu5D1J3XINOj/+aLAcadq6qlh70PMZS3zYffUu3JlzaD2amlSHIT8b5YXFc=
+    file:
+      - release/*.tar.gz
+      - release/*.zip
+    on:
+      repo: cdr/code-server
+      tags: true
+
+cache:
+  timeout: 1000
+  yarn: true
+  directories:
+    - source
