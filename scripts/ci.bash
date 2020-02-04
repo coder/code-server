@@ -3,6 +3,19 @@
 
 set -euo pipefail
 
+function target() {
+	local os=$(uname | tr '[:upper:]' '[:lower:]')
+	if [[ "$os" == "linux" ]]; then
+		# Using the same strategy to detect Alpine as build.ts.
+		local ldd_output=$(ldd --version 2>&1 || true)
+		if echo "$ldd_output" | grep -iq musl; then
+			os="alpine"
+		fi
+	fi
+
+	echo "${os}-$(uname -m)"
+}
+
 function main() {
 	cd "$(dirname "${0}")/.."
 
@@ -43,6 +56,17 @@ function main() {
 	# In this case provide a plainly named "code-server" binary.
 	if [[ -n ${BINARY:-} ]] ; then
 		mv binaries/code-server*-vsc* binaries/code-server
+	fi
+
+	# Prepare GCS bucket directory on release.
+	if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
+		local gcp_dir="gcs_bucket/releases/$code_server_version/$(target)"
+
+		mkdir -p "$gcp_dir"
+		mv binaries/code-server*-vsc* "$gcp_dir"
+		if [[ "$(target)" == "linux-x86_64" ]] ; then
+			mv binaries/code-server*-vsc* "gcs_bucket/latest-linux"
+		fi
 	fi
 }
 
