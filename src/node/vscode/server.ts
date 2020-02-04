@@ -24,7 +24,7 @@ export class VscodeHttpProvider extends HttpProvider {
   private _vscode?: Promise<cp.ChildProcess>
   private workbenchOptions?: WorkbenchOptions
 
-  public constructor(private readonly args: string[], options: HttpProviderOptions) {
+  public constructor(options: HttpProviderOptions, private readonly args: string[]) {
     super(options)
     this.vsRootPath = path.resolve(this.rootPath, "lib/vscode")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")

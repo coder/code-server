@@ -18,7 +18,7 @@ interface LoginPayload extends PostData {
 export class ApiHttpProvider extends HttpProvider {
   private readonly ws = new ws.Server({ noServer: true })
 
-  public constructor(private readonly server: HttpServer, options: HttpProviderOptions) {
+  public constructor(options: HttpProviderOptions, private readonly server: HttpServer) {
     super(options)
   }
 

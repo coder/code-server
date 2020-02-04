@@ -88,10 +88,12 @@ export interface HttpStringFileResponse extends HttpResponse {
 }
 
 export interface HttpServerOptions {
+  readonly auth?: AuthType
   readonly basePath?: string
   readonly cert?: string
   readonly certKey?: string
   readonly host?: string
+  readonly password?: string
   readonly port?: number
   readonly socket?: string
 }
@@ -108,7 +110,7 @@ interface ProviderRoute {
 export interface HttpProviderOptions {
   readonly base: string
   readonly auth: AuthType
-  readonly password: string | false
+  readonly password?: string
 }
 
 /**
@@ -320,6 +322,14 @@ export class Heart {
   }
 }
 
+export interface HttpProvider0<T> {
+  new (options: HttpProviderOptions): T
+}
+
+export interface HttpProvider1<A1, T> {
+  new (options: HttpProviderOptions, a1: A1): T
+}
+
 /**
  * An HTTP server. Its main role is to route incoming HTTP requests to the
  * appropriate provider for that endpoint then write out the response. It also
@@ -372,7 +382,14 @@ export class HttpServer {
   /**
    * Register a provider for a top-level endpoint.
    */
-  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: T): void {
+  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): void
+  public registerHttpProvider<A1, T extends HttpProvider>(
+    endpoint: string,
+    provider: HttpProvider1<A1, T>,
+    a1: A1
+  ): void
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  public registerHttpProvider(endpoint: string, provider: any, a1?: any): void {
     endpoint = endpoint.replace(/^\/+|\/+$/g, "")
     if (this.providers.has(`/${endpoint}`)) {
       throw new Error(`${endpoint} is already registered`)
@@ -380,7 +397,17 @@ export class HttpServer {
     if (/\//.test(endpoint)) {
       throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
     }
-    this.providers.set(`/${endpoint}`, provider)
+    this.providers.set(
+      `/${endpoint}`,
+      new provider(
+        {
+          auth: this.options.auth || AuthType.None,
+          base: endpoint,
+          password: this.options.password,
+        },
+        a1
+      )
+    )
   }
 
   /**

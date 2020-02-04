@@ -20,6 +20,9 @@ export interface Args {
 }
 
 const main = async (args: Args = {}): Promise<void> => {
+  const auth = args.auth || AuthType.Password
+  const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
+
   // Spawn the main HTTP server.
   const options = {
     basePath: args["base-path"],
@@ -28,6 +31,8 @@ const main = async (args: Args = {}): Promise<void> => {
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     port: typeof args.port !== "undefined" ? parseInt(args.port, 10) : 8080,
     socket: args.socket,
+    auth,
+    password: originalPassword ? hash(originalPassword) : undefined,
   }
   if (!options.cert && typeof options.cert !== "undefined") {
     const { cert, certKey } = await generateCertificate()
@@ -37,17 +42,9 @@ const main = async (args: Args = {}): Promise<void> => {
   const httpServer = new HttpServer(options)
 
   // Register all the providers.
-  // TODO: Might be cleaner to be able to register with just the class name
-  //       then let HttpServer instantiate with the common arguments.
-  const auth = args.auth || AuthType.Password
-  const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
-  const password = originalPassword && hash(originalPassword)
-  httpServer.registerHttpProvider("/", new MainHttpProvider({ base: "/", auth, password }))
-  httpServer.registerHttpProvider("/api", new ApiHttpProvider(httpServer, { base: "/", auth, password }))
-  httpServer.registerHttpProvider(
-    "/vscode-embed",
-    new VscodeHttpProvider([], { base: "/vscode-embed", auth, password })
-  )
+  httpServer.registerHttpProvider("/", MainHttpProvider)
+  httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
+  httpServer.registerHttpProvider("/vscode-embed", VscodeHttpProvider, [])
 
   ipcMain().onDispose(() => httpServer.dispose())
 
