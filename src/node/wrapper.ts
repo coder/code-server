@@ -22,14 +22,6 @@ export class ProcessError extends Error {
 }
 
 /**
- * Ensure we control when the process exits.
- */
-const exit = process.exit
-process.exit = function(code?: number) {
-  logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
-} as (code?: number) => never
-
-/**
  * Allows the wrapper and inner processes to communicate.
  */
 export class IpcMain {
@@ -37,11 +29,18 @@ export class IpcMain {
   public readonly onMessage = this._onMessage.event
   private readonly _onDispose = new Emitter<NodeJS.Signals | undefined>()
   public readonly onDispose = this._onDispose.event
+  public readonly exit: (code?: number) => never
 
   public constructor(public readonly parentPid?: number) {
     process.on("SIGINT", () => this._onDispose.emit("SIGINT"))
     process.on("SIGTERM", () => this._onDispose.emit("SIGTERM"))
     process.on("exit", () => this._onDispose.emit(undefined))
+
+    // Ensure we control when the process exits.
+    this.exit = process.exit
+    process.exit = function(code?: number) {
+      logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
+    } as (code?: number) => never
 
     this.onDispose((signal) => {
       // Remove listeners to avoid possibly triggering disposal again.
@@ -49,7 +48,7 @@ export class IpcMain {
 
       // Let any other handlers run first then exit.
       logger.debug(`${parentPid ? "inner process" : "wrapper"} ${process.pid} disposing`, field("code", signal))
-      setTimeout(() => exit(0), 0)
+      setTimeout(() => this.exit(0), 0)
     })
 
     // Kill the inner process if the parent dies. This is for the case where the
@@ -117,9 +116,17 @@ export class IpcMain {
   }
 }
 
-export const ipcMain = new IpcMain(
-  typeof process.env.CODE_SERVER_PARENT_PID !== "undefined" ? parseInt(process.env.CODE_SERVER_PARENT_PID) : undefined
-)
+let _ipcMain: IpcMain
+export const ipcMain = (): IpcMain => {
+  if (!_ipcMain) {
+    _ipcMain = new IpcMain(
+      typeof process.env.CODE_SERVER_PARENT_PID !== "undefined"
+        ? parseInt(process.env.CODE_SERVER_PARENT_PID)
+        : undefined
+    )
+  }
+  return _ipcMain
+}
 
 export interface WrapperOptions {
   maxMemory?: number
@@ -135,14 +142,14 @@ export class WrapperProcess {
   private started?: Promise<void>
 
   public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
-    ipcMain.onDispose(() => {
+    ipcMain().onDispose(() => {
       if (this.process) {
         this.process.removeAllListeners()
         this.process.kill()
       }
     })
 
-    ipcMain.onMessage(async (message) => {
+    ipcMain().onMessage(async (message) => {
       switch (message.type) {
         case "relaunch":
           logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`)
@@ -156,7 +163,7 @@ export class WrapperProcess {
             await this.start()
           } catch (error) {
             logger.error(error.message)
-            exit(typeof error.code === "number" ? error.code : 1)
+            ipcMain().exit(typeof error.code === "number" ? error.code : 1)
           }
           break
         default:
@@ -170,12 +177,14 @@ export class WrapperProcess {
     if (!this.started) {
       const child = this.spawn()
       logger.debug(`spawned inner process ${child.pid}`)
-      this.started = ipcMain.handshake(child).then(() => {
-        child.once("exit", (code) => {
-          logger.debug(`inner process ${child.pid} exited unexpectedly`)
-          exit(code || 0)
+      this.started = ipcMain()
+        .handshake(child)
+        .then(() => {
+          child.once("exit", (code) => {
+            logger.debug(`inner process ${child.pid} exited unexpectedly`)
+            ipcMain().exit(code || 0)
+          })
         })
-      })
       this.process = child
     }
     return this.started
@@ -201,23 +210,23 @@ export class WrapperProcess {
 // // It's possible that the pipe has closed (for example if you run code-server
 // // --version | head -1). Assume that means we're done.
 if (!process.stdout.isTTY) {
-  process.stdout.on("error", () => exit())
+  process.stdout.on("error", () => ipcMain().exit())
 }
 
 export const wrap = (fn: () => Promise<void>): void => {
-  if (ipcMain.parentPid) {
-    ipcMain
+  if (ipcMain().parentPid) {
+    ipcMain()
       .handshake()
       .then(() => fn())
       .catch((error: ProcessError): void => {
         logger.error(error.message)
-        exit(typeof error.code === "number" ? error.code : 1)
+        ipcMain().exit(typeof error.code === "number" ? error.code : 1)
       })
   } else {
     const wrapper = new WrapperProcess(require("../../package.json").version)
     wrapper.start().catch((error) => {
       logger.error(error.message)
-      exit(typeof error.code === "number" ? error.code : 1)
+      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
     })
   }
 }

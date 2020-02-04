@@ -46,7 +46,18 @@ main() {
 
   # The action is determined by the name of the step.
   case $DRONE_STEP_NAME in
-    *restore*) restore "$branch" "$DRONE_REPO_BRANCH" ;;
+    *restore*)
+      # Sub-modules must be pulled first since extracting the cache directories
+      # will prevent git from cloning into them.
+      git submodule update --init
+
+      restore "$branch" "$DRONE_REPO_BRANCH"
+
+      # Now make sure the pulled Node modules are up to date.
+      YARN_CACHE_FOLDER="$(pwd)/yarn-cache"
+      export YARN_CACHE_FOLDER
+      yarn
+    ;;
     *rebuild*|*package*) package "$branch" ;;
     *) exit 1 ;;
   esac

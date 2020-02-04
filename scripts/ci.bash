@@ -3,6 +3,7 @@
 
 set -euo pipefail
 
+# This script assumes that yarn has already ran.
 function main() {
   cd "$(dirname "${0}")/.."
 
@@ -19,10 +20,6 @@ function main() {
   if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
     export MINIFY="true"
     export PACKAGE="true"
-  fi
-
-  if [[ -z ${SKIP_YARN:-} ]] ; then
-    yarn
   fi
 
   yarn build

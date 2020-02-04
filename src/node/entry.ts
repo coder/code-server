@@ -49,7 +49,7 @@ const main = async (args: Args = {}): Promise<void> => {
     new VscodeHttpProvider([], { base: "/vscode-embed", auth, password })
   )
 
-  ipcMain.onDispose(() => httpServer.dispose())
+  ipcMain().onDispose(() => httpServer.dispose())
 
   const serverAddress = await httpServer.listen()
   logger.info(`Server listening on ${serverAddress}`)
@@ -84,4 +84,18 @@ const main = async (args: Args = {}): Promise<void> => {
   }
 }
 
-wrap(main)
+// TODO: Implement CLI parser.
+if (process.argv.includes("--version")) {
+  const version = require("../../package.json").version
+  if (process.argv.includes("--json")) {
+    console.log({
+      codeServer: version,
+      vscode: require("../../lib/vscode/package.json").version,
+    })
+  } else {
+    console.log(version)
+  }
+  process.exit(0)
+} else {
+  wrap(main)
+}
