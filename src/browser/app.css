@@ -1,0 +1,18 @@
+html,
+body,
+#root,
+iframe {
+  height: 100%;
+  width: 100%;
+}
+
+iframe {
+  border: none;
+}
+
+body {
+  background: #272727;
+  margin: 0;
+  font-family: 'IBM Plex Sans', sans-serif;
+  overflow: hidden;
+}

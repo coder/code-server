@@ -1,3 +1,137 @@
+diff --git a/.gitignore b/.gitignore
+index 160c42ed74..0d544c495c 100644
+--- a/.gitignore
++++ b/.gitignore
+@@ -23,7 +23,6 @@ out-vscode-reh-web-min/
+ out-vscode-reh-web-pkg/
+ out-vscode-web/
+ out-vscode-web-min/
+-src/vs/server
+ resources/server
+ build/node_modules
+ coverage/
+diff --git a/coder.js b/coder.js
+new file mode 100644
+index 0000000000..fc18355f89
+--- /dev/null
++++ b/coder.js
+@@ -0,0 +1,70 @@
++// This must be ran from VS Code's root.
++const gulp = require("gulp");
++const path = require("path");
++const _ = require("underscore");
++const buildfile = require("./src/buildfile");
++const common = require("./build/lib/optimize");
++const util = require("./build/lib/util");
++const deps = require("./build/dependencies");
++
++const vscodeEntryPoints = _.flatten([
++	buildfile.entrypoint("vs/workbench/workbench.web.api"),
++	buildfile.entrypoint("vs/server/entry"),
++	buildfile.base,
++	buildfile.workbenchWeb,
++	buildfile.workerExtensionHost,
++	buildfile.keyboardMaps,
++	buildfile.entrypoint('vs/platform/files/node/watcher/unix/watcherApp', ["vs/css", "vs/nls"]),
++	buildfile.entrypoint('vs/platform/files/node/watcher/nsfw/watcherApp', ["vs/css", "vs/nls"]),
++	buildfile.entrypoint('vs/workbench/services/extensions/node/extensionHostProcess', ["vs/css", "vs/nls"]),
++]);
++
++const vscodeResources = [
++	"out-build/vs/server/fork.js",
++	"out-build/vs/server/node/uriTransformer.js",
++	"!out-build/vs/server/doc/**",
++	"out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js",
++	"out-build/bootstrap.js",
++	"out-build/bootstrap-fork.js",
++	"out-build/bootstrap-amd.js",
++	"out-build/paths.js",
++	'out-build/vs/**/*.{svg,png,html}',
++	"!out-build/vs/code/browser/workbench/*.html",
++	'!out-build/vs/code/electron-browser/**',
++	"out-build/vs/base/common/performance.js",
++	"out-build/vs/base/node/languagePacks.js",
++	"out-build/vs/base/browser/ui/octiconLabel/octicons/**",
++	"out-build/vs/base/browser/ui/codiconLabel/codicon/**",
++	"out-build/vs/workbench/browser/media/*-theme.css",
++	"out-build/vs/workbench/contrib/debug/**/*.json",
++	"out-build/vs/workbench/contrib/externalTerminal/**/*.scpt",
++	"out-build/vs/workbench/contrib/webview/browser/pre/*.js",
++	"out-build/vs/**/markdown.css",
++	"out-build/vs/workbench/contrib/tasks/**/*.json",
++	"out-build/vs/platform/files/**/*.md",
++	"!**/test/**"
++];
++
++const rootPath = __dirname;
++const nodeModules = ["electron", "original-fs"]
++	.concat(_.uniq(deps.getProductionDependencies(rootPath).map((d) => d.name)))
++	.concat(_.uniq(deps.getProductionDependencies(path.join(rootPath, "src/vs/server")).map((d) => d.name)))
++	.concat(Object.keys(process.binding("natives")).filter((n) => !/^_|\//.test(n)));
++
++gulp.task("optimize", gulp.series(
++	util.rimraf("out-vscode"),
++	common.optimizeTask({
++		src: "out-build",
++		entryPoints: vscodeEntryPoints,
++		resources: vscodeResources,
++		loaderConfig: common.loaderConfig(nodeModules),
++		out: "out-vscode",
++		inlineAmdImages: true,
++		bundleInfo: undefined
++	}),
++));
++
++gulp.task("minify", gulp.series(
++	util.rimraf("out-vscode-min"),
++	common.minifyTask("out-vscode")
++));
+diff --git a/extensions/vscode-api-tests/package.json b/extensions/vscode-api-tests/package.json
+index 8ac6b2806c..60b1255e2c 100644
+--- a/extensions/vscode-api-tests/package.json
++++ b/extensions/vscode-api-tests/package.json
+@@ -121,7 +121,7 @@
+ 		"@types/node": "^12.11.7",
+ 		"mocha-junit-reporter": "^1.17.0",
+ 		"mocha-multi-reporters": "^1.1.7",
+-		"typescript": "^1.6.2",
++    "typescript": "3.7.2",
+ 		"vscode": "1.1.5"
+ 	}
+ }
+diff --git a/extensions/vscode-api-tests/yarn.lock b/extensions/vscode-api-tests/yarn.lock
+index 2d8b725ff2..a8d93a17ca 100644
+--- a/extensions/vscode-api-tests/yarn.lock
++++ b/extensions/vscode-api-tests/yarn.lock
+@@ -1855,10 +1855,10 @@ tweetnacl@^0.14.3, tweetnacl@~0.14.0:
+   resolved "https://registry.yarnpkg.com/tweetnacl/-/tweetnacl-0.14.5.tgz#5ae68177f192d4456269d108afa93ff8743f4f64"
+   integrity sha1-WuaBd/GS1EViadEIr6k/+HQ/T2Q=
+ 
+-typescript@^1.6.2:
+-  version "1.8.10"
+-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-1.8.10.tgz#b475d6e0dff0bf50f296e5ca6ef9fbb5c7320f1e"
+-  integrity sha1-tHXW4N/wv1DyluXKbvn7tccyDx4=
++typescript@3.7.2:
++  version "3.7.2"
++  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
++  integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
+ 
+ unique-stream@^2.0.2:
+   version "2.2.1"
+diff --git a/package.json b/package.json
+index ade5fcdaf0..73d661eb57 100644
+--- a/package.json
++++ b/package.json
+@@ -30,6 +30,9 @@
+     "web": "node scripts/code-web.js"
+   },
+   "dependencies": {
++    "@coder/logger": "^1.1.11",
++    "@coder/node-browser": "^1.0.8",
++    "@coder/requirefs": "^1.0.6",
+     "applicationinsights": "1.0.8",
+     "chokidar": "3.2.3",
+     "graceful-fs": "4.1.11",
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index 231180d513..5b98e191c1 100644
 --- a/src/vs/base/common/network.ts
@@ -24,14 +158,14 @@ index 231180d513..5b98e191c1 100644
  		});
  	}
 diff --git a/src/vs/base/common/platform.ts b/src/vs/base/common/platform.ts
-index 5a631e0b39..8a2b1518d6 100644
+index 5a631e0b39..4114bd9287 100644
 --- a/src/vs/base/common/platform.ts
 +++ b/src/vs/base/common/platform.ts
 @@ -59,6 +59,17 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
  	_isWeb = true;
  	_locale = navigator.language;
  	_language = _locale;
-+	// NOTE@coder: make languages work.
++	// NOTE@coder: Make languages work.
 +	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
 +	const rawNlsConfig = el && el.getAttribute('data-settings');
 +	if (rawNlsConfig) {
@@ -46,17 +180,16 @@ index 5a631e0b39..8a2b1518d6 100644
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
 diff --git a/src/vs/base/common/processes.ts b/src/vs/base/common/processes.ts
-index c52f7b3774..5a7e7f579e 100644
+index c52f7b3774..4c9a0c4bab 100644
 --- a/src/vs/base/common/processes.ts
 +++ b/src/vs/base/common/processes.ts
-@@ -110,7 +110,10 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
+@@ -110,7 +110,9 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
  		/^ELECTRON_.+$/,
  		/^GOOGLE_API_KEY$/,
  		/^VSCODE_.+$/,
 -		/^SNAP(|_.*)$/
 +		/^SNAP(|_.*)$/,
-+		// NOTE@coder: add our own environment variables.
-+		/^NBIN_BYPASS$/,
++		// NOTE@coder: Add our variables.
 +		/^LAUNCH_VSCODE$/
  	];
  	const envKeys = Object.keys(env);
@@ -209,10 +342,10 @@ index 5bfc2bb66c..49a6ce8540 100644
  				const toRemove: ILocalExtension[] = [];
  
 diff --git a/src/vs/platform/product/common/product.ts b/src/vs/platform/product/common/product.ts
-index 804d113856..4b651e5c77 100644
+index 804d113856..30a349f69f 100644
 --- a/src/vs/platform/product/common/product.ts
 +++ b/src/vs/platform/product/common/product.ts
-@@ -22,11 +22,19 @@ if (isWeb) {
+@@ -22,11 +22,18 @@ if (isWeb) {
  	if (Object.keys(product).length === 0) {
  		assign(product, {
  			version: '1.41.0-dev',
@@ -222,8 +355,7 @@ index 804d113856..4b651e5c77 100644
  			urlProtocol: 'code-oss'
  		});
  	}
-+
-+	// NOTE@coder: enable injecting settings from the server.
++	// NOTE@coder: Add the ability to inject settings from the server.
 +	const el = document.getElementById('vscode-remote-product-configuration');
 +	const rawProductConfiguration = el && el.getAttribute('data-settings');
 +	if (rawProductConfiguration) {
@@ -232,7 +364,7 @@ index 804d113856..4b651e5c77 100644
  }
  
  // Node: AMD loader
-@@ -36,7 +44,7 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+@@ -36,7 +43,7 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
  	const rootPath = path.dirname(getPathFromAmdModule(require, ''));
  
  	product = assign({}, require.__$__nodeRequire(path.join(rootPath, 'product.json')) as IProductConfiguration);
@@ -241,7 +373,7 @@ index 804d113856..4b651e5c77 100644
  
  	// Running out of sources
  	if (env['VSCODE_DEV']) {
-@@ -48,7 +56,8 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
+@@ -48,7 +55,8 @@ else if (typeof require !== 'undefined' && typeof require.__$__nodeRequire === '
  	}
  
  	assign(product, {
@@ -284,117 +416,2311 @@ index d0f6e6b18a..1966fd297d 100644
 -
 -
 -
-diff --git a/src/vs/platform/request/common/request.ts b/src/vs/platform/request/common/request.ts
-index 81ec255e65..c94829fc6a 100644
---- a/src/vs/platform/request/common/request.ts
-+++ b/src/vs/platform/request/common/request.ts
-@@ -16,7 +16,7 @@ export const IRequestService = createDecorator<IRequestService>('requestService'
- export interface IRequestService {
- 	_serviceBrand: undefined;
- 
--	request(options: IRequestOptions, token: CancellationToken): Promise<IRequestContext>;
-+	request(options: IRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext>;
- 
- 	resolveProxy(url: string): Promise<string | undefined>;
- }
-diff --git a/src/vs/platform/request/node/requestService.ts b/src/vs/platform/request/node/requestService.ts
-index ad44dcbc33..7a7b5261ff 100644
---- a/src/vs/platform/request/node/requestService.ts
-+++ b/src/vs/platform/request/node/requestService.ts
-@@ -57,7 +57,7 @@ export class RequestService extends Disposable implements IRequestService {
- 		this.authorization = config.http && config.http.proxyAuthorization;
- 	}
- 
--	async request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
-+	async request(options: NodeRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext> {
- 		this.logService.trace('RequestService#request', options.url);
- 
- 		const { proxyUrl, strictSSL } = this;
-@@ -70,7 +70,7 @@ export class RequestService extends Disposable implements IRequestService {
- 			options.headers = assign(options.headers || {}, { 'Proxy-Authorization': this.authorization });
- 		}
- 
--		return this._request(options, token);
-+		return this._request(options, token, gzip);
- 	}
- 
- 	private async getNodeRequest(options: IRequestOptions): Promise<IRawRequestFunction> {
-@@ -79,7 +79,7 @@ export class RequestService extends Disposable implements IRequestService {
- 		return module.request;
- 	}
- 
--	private _request(options: NodeRequestOptions, token: CancellationToken): Promise<IRequestContext> {
-+	private _request(options: NodeRequestOptions, token: CancellationToken, gzip?: boolean): Promise<IRequestContext> {
- 
- 		return new Promise<IRequestContext>(async (c, e) => {
- 			let req: http.ClientRequest;
-@@ -114,7 +114,7 @@ export class RequestService extends Disposable implements IRequestService {
- 				} else {
- 					let stream: streams.ReadableStream<Uint8Array> = res;
- 
--					if (res.headers['content-encoding'] === 'gzip') {
-+					if (gzip || res.headers['content-encoding'] === 'gzip') {
- 						stream = res.pipe(createGunzip());
- 					}
- 
-diff --git a/src/vs/platform/update/electron-main/abstractUpdateService.ts b/src/vs/platform/update/electron-main/abstractUpdateService.ts
-index 8a1c95d37b..8225a85d47 100644
---- a/src/vs/platform/update/electron-main/abstractUpdateService.ts
-+++ b/src/vs/platform/update/electron-main/abstractUpdateService.ts
-@@ -6,7 +6,6 @@
- import { Event, Emitter } from 'vs/base/common/event';
- import { timeout } from 'vs/base/common/async';
- import { IConfigurationService, getMigratedSettingValue } from 'vs/platform/configuration/common/configuration';
--import { ILifecycleMainService } from 'vs/platform/lifecycle/electron-main/lifecycleMainService';
- import product from 'vs/platform/product/common/product';
- import { IUpdateService, State, StateType, AvailableForDownload, UpdateType } from 'vs/platform/update/common/update';
- import { IEnvironmentService } from 'vs/platform/environment/common/environment';
-@@ -44,7 +43,7 @@ export abstract class AbstractUpdateService implements IUpdateService {
- 	}
- 
- 	constructor(
--		@ILifecycleMainService private readonly lifecycleMainService: ILifecycleMainService,
-+		_: any, // NOTE@coder: This depends on Electron so we skip it.
- 		@IConfigurationService protected configurationService: IConfigurationService,
- 		@IEnvironmentService private readonly environmentService: IEnvironmentService,
- 		@IRequestService protected requestService: IRequestService,
-@@ -152,15 +151,8 @@ export abstract class AbstractUpdateService implements IUpdateService {
- 
- 		this.logService.trace('update#quitAndInstall(): before lifecycle quit()');
- 
--		this.lifecycleMainService.quit(true /* from update */).then(vetod => {
--			this.logService.trace(`update#quitAndInstall(): after lifecycle quit() with veto: ${vetod}`);
--			if (vetod) {
--				return;
--			}
--
- 			this.logService.trace('update#quitAndInstall(): running raw#quitAndInstall()');
- 			this.doQuitAndInstall();
--		});
- 
- 		return Promise.resolve(undefined);
- 	}
+diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
+new file mode 100644
+index 0000000000..8e7c5af184
+--- /dev/null
++++ b/src/vs/server/browser/client.ts
+@@ -0,0 +1,162 @@
++import { Emitter } from 'vs/base/common/event';
++import { URI } from 'vs/base/common/uri';
++import { localize } from 'vs/nls';
++import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
++import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
++import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
++import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
++import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
++import { Registry } from 'vs/platform/registry/common/platform';
++import { PersistentConnectionEventType } from 'vs/platform/remote/common/remoteAgentConnection';
++import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++import { INodeProxyService, NodeProxyChannelClient } from 'vs/server/common/nodeProxy';
++import { TelemetryChannelClient } from 'vs/server/common/telemetry';
++import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
++import { LocalizationsService } from 'vs/workbench/services/localizations/electron-browser/localizationsService';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
++
++class TelemetryService extends TelemetryChannelClient {
++	public constructor(
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
++	) {
++		super(remoteAgentService.getConnection()!.getChannel('telemetry'));
++	}
++}
++
++const TELEMETRY_SECTION_ID = 'telemetry';
++
++Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
++	'id': TELEMETRY_SECTION_ID,
++	'order': 110,
++	'type': 'object',
++	'title': localize('telemetryConfigurationTitle', 'Telemetry'),
++	'properties': {
++		'telemetry.enableTelemetry': {
++			'type': 'boolean',
++			'description': localize('telemetry.enableTelemetry', 'Enable usage data and errors to be sent to a Microsoft online service.'),
++			'default': true,
++			'tags': ['usesOnlineServices']
++		}
++	}
++});
++
++class NodeProxyService extends NodeProxyChannelClient implements INodeProxyService {
++	private readonly _onClose = new Emitter<void>();
++	public readonly onClose = this._onClose.event;
++	private readonly _onDown = new Emitter<void>();
++	public readonly onDown = this._onDown.event;
++	private readonly _onUp = new Emitter<void>();
++	public readonly onUp = this._onUp.event;
++
++	public constructor(
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
++	) {
++		super(remoteAgentService.getConnection()!.getChannel('nodeProxy'));
++		remoteAgentService.getConnection()!.onDidStateChange((state) => {
++			switch (state.type) {
++				case PersistentConnectionEventType.ConnectionGain:
++					return this._onUp.fire();
++				case PersistentConnectionEventType.ConnectionLost:
++					return this._onDown.fire();
++				case PersistentConnectionEventType.ReconnectionPermanentFailure:
++					return this._onClose.fire();
++			}
++		});
++	}
++}
++
++registerSingleton(ILocalizationsService, LocalizationsService);
++registerSingleton(INodeProxyService, NodeProxyService);
++registerSingleton(ITelemetryService, TelemetryService);
++
++/**
++ * This is called by vs/workbench/browser/web.main.ts after the workbench has
++ * been initialized so we can initialize our own client-side code.
++ */
++export const initialize = async (services: ServiceCollection): Promise<void> => {
++	const event = new CustomEvent('ide-ready');
++	window.dispatchEvent(event);
++
++	if (parent) {
++		// Tell the parent loading has completed.
++		parent.postMessage({ event: 'loaded' }, window.location.origin);
++
++		// Proxy or stop proxing events as requested by the parent.
++		const listeners = new Map<string, (event: Event) => void>();
++		window.addEventListener('message', (parentEvent) => {
++			const eventName = parentEvent.data.bind || parentEvent.data.unbind;
++			if (eventName) {
++				const oldListener = listeners.get(eventName);
++				if (oldListener) {
++					document.removeEventListener(eventName, oldListener);
++				}
++			}
++
++			if (parentEvent.data.bind && parentEvent.data.prop) {
++				const listener = (event: Event) => {
++					parent.postMessage({
++						event: parentEvent.data.event,
++						[parentEvent.data.prop]: event[parentEvent.data.prop as keyof Event]
++					}, window.location.origin);
++				};
++				listeners.set(parentEvent.data.bind, listener);
++				document.addEventListener(parentEvent.data.bind, listener);
++			}
++		});
++	}
++
++	if (!window.isSecureContext) {
++		(services.get(INotificationService) as INotificationService).notify({
++			severity: Severity.Warning,
++			message: "code-server is being accessed over an insecure domain. Some functionality may not work as expected.",
++			actions: {
++				primary: [{
++					id: "understand",
++					label: "I understand",
++					tooltip: "",
++					class: undefined,
++					enabled: true,
++					checked: true,
++					dispose: () => undefined,
++					run: () => {
++						return Promise.resolve();
++					}
++				}],
++			}
++		});
++	}
++};
++
++export interface Query {
++	[key: string]: string | undefined;
++}
++
++/**
++ * Split a string up to the delimiter. If the delimiter doesn't exist the first
++ * item will have all the text and the second item will be an empty string.
++ */
++export const split = (str: string, delimiter: string): [string, string] => {
++	const index = str.indexOf(delimiter);
++	return index !== -1 ? [str.substring(0, index).trim(), str.substring(index + 1)] : [str, ''];
++};
++
++/**
++ * Return the URL modified with the specified query variables. It's pretty
++ * stupid so it probably doesn't cover any edge cases. Undefined values will
++ * unset existing values. Doesn't allow duplicates.
++ */
++export const withQuery = (url: string, replace: Query): string => {
++	const uri = URI.parse(url);
++	const query = { ...replace };
++	uri.query.split('&').forEach((kv) => {
++		const [key, value] = split(kv, '=');
++		if (!(key in query)) {
++			query[key] = value;
++		}
++	});
++	return uri.with({
++		query: Object.keys(query)
++			.filter((k) => typeof query[k] !== 'undefined')
++			.map((k) => `${k}=${query[k]}`).join('&'),
++	}).toString(true);
++};
+diff --git a/src/vs/server/browser/extHostNodeProxy.ts b/src/vs/server/browser/extHostNodeProxy.ts
+new file mode 100644
+index 0000000000..ed7c078077
+--- /dev/null
++++ b/src/vs/server/browser/extHostNodeProxy.ts
+@@ -0,0 +1,46 @@
++import { Emitter } from 'vs/base/common/event';
++import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
++import { ExtHostNodeProxyShape, MainContext, MainThreadNodeProxyShape } from 'vs/workbench/api/common/extHost.protocol';
++import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
++
++export class ExtHostNodeProxy implements ExtHostNodeProxyShape {
++	_serviceBrand: any;
++
++	private readonly _onMessage = new Emitter<string>();
++	public readonly onMessage = this._onMessage.event;
++	private readonly _onClose = new Emitter<void>();
++	public readonly onClose = this._onClose.event;
++	private readonly _onDown = new Emitter<void>();
++	public readonly onDown = this._onDown.event;
++	private readonly _onUp = new Emitter<void>();
++	public readonly onUp = this._onUp.event;
++
++	private readonly proxy: MainThreadNodeProxyShape;
++
++	constructor(@IExtHostRpcService rpc: IExtHostRpcService) {
++		this.proxy = rpc.getProxy(MainContext.MainThreadNodeProxy);
++	}
++
++	public $onMessage(message: string): void {
++		this._onMessage.fire(message);
++	}
++
++	public $onClose(): void {
++		this._onClose.fire();
++	}
++
++	public $onUp(): void {
++		this._onUp.fire();
++	}
++
++	public $onDown(): void {
++		this._onDown.fire();
++	}
++
++	public send(message: string): void {
++		this.proxy.$send(message);
++	}
++}
++
++export interface IExtHostNodeProxy extends ExtHostNodeProxy { }
++export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>('IExtHostNodeProxy');
+diff --git a/src/vs/server/browser/mainThreadNodeProxy.ts b/src/vs/server/browser/mainThreadNodeProxy.ts
+new file mode 100644
+index 0000000000..0d2e93edae
+--- /dev/null
++++ b/src/vs/server/browser/mainThreadNodeProxy.ts
+@@ -0,0 +1,37 @@
++import { IDisposable } from 'vs/base/common/lifecycle';
++import { INodeProxyService } from 'vs/server/common/nodeProxy';
++import { ExtHostContext, IExtHostContext, MainContext, MainThreadNodeProxyShape } from 'vs/workbench/api/common/extHost.protocol';
++import { extHostNamedCustomer } from 'vs/workbench/api/common/extHostCustomers';
++
++@extHostNamedCustomer(MainContext.MainThreadNodeProxy)
++export class MainThreadNodeProxy implements MainThreadNodeProxyShape {
++	private disposed = false;
++	private disposables = <IDisposable[]>[];
++
++	constructor(
++		extHostContext: IExtHostContext,
++		@INodeProxyService private readonly proxyService: INodeProxyService,
++	) {
++		if (!extHostContext.remoteAuthority) { // HACK: A terrible way to detect if running in the worker.
++			const proxy = extHostContext.getProxy(ExtHostContext.ExtHostNodeProxy);
++			this.disposables = [
++				this.proxyService.onMessage((message: string) => proxy.$onMessage(message)),
++				this.proxyService.onClose(() => proxy.$onClose()),
++				this.proxyService.onDown(() => proxy.$onDown()),
++				this.proxyService.onUp(() => proxy.$onUp()),
++			];
++		}
++	}
++
++	$send(message: string): void {
++		if (!this.disposed) {
++			this.proxyService.send(message);
++		}
++	}
++
++	dispose(): void {
++		this.disposables.forEach((d) => d.dispose());
++		this.disposables = [];
++		this.disposed = true;
++	}
++}
+diff --git a/src/vs/server/browser/workbench-build.html b/src/vs/server/browser/workbench-build.html
+new file mode 100644
+index 0000000000..50f48cd74c
+--- /dev/null
++++ b/src/vs/server/browser/workbench-build.html
+@@ -0,0 +1,92 @@
++<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
++<!DOCTYPE html>
++<html>
++	<head>
++		<meta charset="utf-8" />
++
++		<!-- Disable pinch zooming -->
++		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
++
++		<!-- Workbench Configuration -->
++		<meta id="vscode-workbench-web-configuration" data-settings="{{WORKBENCH_WEB_CONFIGURATION}}">
++
++		<!-- Workarounds/Hacks (remote user data uri) -->
++		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
++		<!-- NOTE@coder: Added the commit for use in caching, the product for the
++		extensions gallery URL, and nls for language support. -->
++		<meta id="vscode-remote-commit" data-settings="{{COMMIT}}">
++		<meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}">
++		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
++
++		<!-- Workbench Icon/Manifest/CSS -->
++		<link rel="icon" href="../static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="../static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
++		<link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.css">
++		<link rel="apple-touch-icon" href="./static-{{COMMIT}}/src/browser/media/code-server.png" />
++		<meta name="apple-mobile-web-app-capable" content="yes">
++
++		<!-- Prefetch to avoid waterfall -->
++		<link rel="prefetch" href="./static-{{COMMIT}}/node_modules/semver-umd/lib/semver-umd.js">
++	</head>
++
++	<body aria-label="">
++	</body>
++
++	<!-- Startup (do not modify order of script tags!) -->
++	<!-- NOTE:coder: Modified to work against the current path and use the commit for caching. -->
++	<script>
++		// NOTE: Changes to inline scripts require update of content security policy
++		const basePath = window.location.pathname.replace(/\/+$/, '');
++		const base = window.location.origin  + basePath;
++		const el = document.getElementById('vscode-remote-commit');
++		const commit = el ? el.getAttribute('data-settings') : "";
++		const staticBase = base + '/static-' + commit;
++		let nlsConfig;
++		try {
++			nlsConfig = JSON.parse(document.getElementById('vscode-remote-nls-configuration').getAttribute('data-settings'));
++			if (nlsConfig._resolvedLanguagePackCoreLocation) {
++				const bundles = Object.create(null);
++				nlsConfig.loadBundle = (bundle, language, cb) => {
++					let result = bundles[bundle];
++					if (result) {
++						return cb(undefined, result);
++					}
++					// FIXME: Only works if path separators are /.
++					const path = nlsConfig._resolvedLanguagePackCoreLocation
++								+ '/' + bundle.replace(/\//g, '!') + '.nls.json';
++					fetch(`${base}/resource/?path=${encodeURIComponent(path)}`)
++						.then((response) => response.json())
++						.then((json) => {
++							bundles[bundle] = json;
++							cb(undefined, json);
++						})
++						.catch(cb);
++				};
++			}
++		} catch (error) { /* Probably fine. */ }
++		self.require = {
++			baseUrl: `${staticBase}/out`,
++			paths: {
++				'vscode-textmate': `${staticBase}/node_modules/vscode-textmate/release/main`,
++				'onigasm-umd': `${staticBase}/node_modules/onigasm-umd/release/main`,
++				'xterm': `${staticBase}/node_modules/xterm/lib/xterm.js`,
++				'xterm-addon-search': `${staticBase}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
++				'xterm-addon-web-links': `${staticBase}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
++				'xterm-addon-webgl': `${staticBase}/node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js`,
++				'semver-umd': `${staticBase}/node_modules/semver-umd/lib/semver-umd.js`,
++			},
++			'vs/nls': nlsConfig,
++		};
++	</script>
++	<script src="./static-{{COMMIT}}/out/vs/loader.js"></script>
++	<script src="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.nls.js"></script>
++	<script src="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.js"></script>
++	<!-- TODO@coder: This errors with multiple anonymous define calls (one is
++	workbench.js and one is semver-umd.js). For now use the same method found in
++	workbench-dev.html. Appears related to the timing of the script load events. -->
++	<!-- <script src="./static-{{COMMIT}}/out/vs/workbench/workbench.js"></script> -->
++	<script>
++		// NOTE: Changes to inline scripts require update of content security policy
++		require(['vs/code/browser/workbench/workbench'], function() {});
++	</script>
++</html>
+diff --git a/src/vs/server/browser/workbench.html b/src/vs/server/browser/workbench.html
+new file mode 100644
+index 0000000000..47d76f388b
+--- /dev/null
++++ b/src/vs/server/browser/workbench.html
+@@ -0,0 +1,55 @@
++<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
++<!DOCTYPE html>
++<html>
++	<head>
++		<meta charset="utf-8" />
++
++		<!-- Disable pinch zooming -->
++		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
++
++		<!-- Workbench Configuration -->
++		<meta id="vscode-workbench-web-configuration" data-settings="{{WORKBENCH_WEB_CONFIGURATION}}">
++
++		<!-- Workarounds/Hacks (remote user data uri) -->
++		<meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
++		<!-- NOTE@coder: Added the commit for use in caching, the product for the
++		extensions gallery URL, and nls for language support. -->
++		<meta id="vscode-remote-commit" data-settings="{{COMMIT}}">
++		<meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}">
++		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
++
++		<!-- Workbench Icon/Manifest/CSS -->
++		<link rel="icon" href="../static/src/browser/media/favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="../static/src/browser/media/manifest.json" crossorigin="use-credentials">
++		<link rel="apple-touch-icon" href="./static/src/browser/media/code-server.png" />
++		<meta name="apple-mobile-web-app-capable" content="yes">
++	</head>
++
++	<body aria-label="">
++	</body>
++
++	<!-- Startup (do not modify order of script tags!) -->
++	<script>
++		const basePath = window.location.pathname.replace(/\/+$/, '');
++		const base = window.location.origin  + basePath;
++		const el = document.getElementById('vscode-remote-commit');
++		const commit = el ? el.getAttribute('data-settings') : "";
++		const staticBase = base + '/static-' + commit;
++		self.require = {
++			baseUrl: `${staticBase}/out`,
++			paths: {
++				'vscode-textmate': `${staticBase}/node_modules/vscode-textmate/release/main`,
++				'onigasm-umd': `${staticBase}/node_modules/onigasm-umd/release/main`,
++				'xterm': `${staticBase}/node_modules/xterm/lib/xterm.js`,
++				'xterm-addon-search': `${staticBase}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
++				'xterm-addon-web-links': `${staticBase}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
++				'xterm-addon-webgl': `${staticBase}/node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js`,
++				'semver-umd': `${staticBase}/node_modules/semver-umd/lib/semver-umd.js`,
++			},
++		};
++	</script>
++	<script src="./static/out/vs/loader.js"></script>
++	<script>
++		require(['vs/code/browser/workbench/workbench'], function() {});
++	</script>
++</html>
+diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
+new file mode 100644
+index 0000000000..0ba93cc070
+--- /dev/null
++++ b/src/vs/server/browser/worker.ts
+@@ -0,0 +1,57 @@
++import { Client } from '@coder/node-browser';
++import { fromTar } from '@coder/requirefs';
++import { URI } from 'vs/base/common/uri';
++import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
++import { ILogService } from 'vs/platform/log/common/log';
++import { ExtensionActivationTimesBuilder } from 'vs/workbench/api/common/extHostExtensionActivator';
++import { IExtHostNodeProxy } from './extHostNodeProxy';
++
++export const loadCommonJSModule = async <T>(
++	module: IExtensionDescription,
++	activationTimesBuilder: ExtensionActivationTimesBuilder,
++	nodeProxy: IExtHostNodeProxy,
++	logService: ILogService,
++	vscode: any,
++): Promise<T> => {
++	const fetchUri = URI.from({
++		scheme: self.location.protocol.replace(':', ''),
++		authority: self.location.host,
++		path: `${self.location.pathname.replace(/\/static.*\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
++		query: `path=${encodeURIComponent(module.extensionLocation.path)}`,
++	});
++	const response = await fetch(fetchUri.toString(true));
++	if (response.status !== 200) {
++		throw new Error(`Failed to download extension "${module.extensionLocation.path}"`);
++	}
++	const client = new Client(nodeProxy, { logger: logService });
++	const init = await client.handshake();
++	const buffer = new Uint8Array(await response.arrayBuffer());
++	const rfs = fromTar(buffer);
++	(<any>self).global = self;
++	rfs.provide('vscode', vscode);
++	Object.keys(client.modules).forEach((key) => {
++		const mod = (client.modules as any)[key];
++		if (key === 'process') {
++			(<any>self).process = mod;
++			(<any>self).process.env = init.env;
++			return;
++		}
++
++		rfs.provide(key, mod);
++		switch (key) {
++			case 'buffer':
++				(<any>self).Buffer = mod.Buffer;
++				break;
++			case 'timers':
++				(<any>self).setImmediate = mod.setImmediate;
++				break;
++		}
++	});
++
++	try {
++		activationTimesBuilder.codeLoadingStart();
++		return rfs.require('.');
++	} finally {
++		activationTimesBuilder.codeLoadingStop();
++	}
++};
+diff --git a/src/vs/server/common/nodeProxy.ts b/src/vs/server/common/nodeProxy.ts
+new file mode 100644
+index 0000000000..14b9de879c
+--- /dev/null
++++ b/src/vs/server/common/nodeProxy.ts
+@@ -0,0 +1,47 @@
++import { ReadWriteConnection } from '@coder/node-browser';
++import { Event } from 'vs/base/common/event';
++import { IChannel, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
++import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
++
++export const INodeProxyService = createDecorator<INodeProxyService>('nodeProxyService');
++
++export interface INodeProxyService extends ReadWriteConnection {
++	_serviceBrand: any;
++	send(message: string): void;
++	onMessage: Event<string>;
++	onUp: Event<void>;
++	onClose: Event<void>;
++	onDown: Event<void>;
++}
++
++export class NodeProxyChannel implements IServerChannel {
++	constructor(private service: INodeProxyService) {}
++
++	listen(_: unknown, event: string): Event<any> {
++		switch (event) {
++			case 'onMessage': return this.service.onMessage;
++		}
++		throw new Error(`Invalid listen ${event}`);
++	}
++
++	async call(_: unknown, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case 'send': return this.service.send(args[0]);
++		}
++		throw new Error(`Invalid call ${command}`);
++	}
++}
++
++export class NodeProxyChannelClient {
++	_serviceBrand: any;
++
++	public readonly onMessage: Event<string>;
++
++	constructor(private readonly channel: IChannel) {
++		this.onMessage = this.channel.listen<string>('onMessage');
++	}
++
++	public send(data: string): void {
++		this.channel.call('send', [data]);
++	}
++}
+diff --git a/src/vs/server/common/telemetry.ts b/src/vs/server/common/telemetry.ts
+new file mode 100644
+index 0000000000..eb62b87798
+--- /dev/null
++++ b/src/vs/server/common/telemetry.ts
+@@ -0,0 +1,49 @@
++import { ITelemetryData } from 'vs/base/common/actions';
++import { Event } from 'vs/base/common/event';
++import { IChannel, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
++import { ClassifiedEvent, GDPRClassification, StrictPropertyCheck } from 'vs/platform/telemetry/common/gdprTypings';
++import { ITelemetryInfo, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++
++export class TelemetryChannel implements IServerChannel {
++	constructor(private service: ITelemetryService) {}
++
++	listen(_: unknown, event: string): Event<any> {
++		throw new Error(`Invalid listen ${event}`);
++	}
++
++	call(_: unknown, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case 'publicLog': return this.service.publicLog(args[0], args[1], args[2]);
++			case 'publicLog2': return this.service.publicLog2(args[0], args[1], args[2]);
++			case 'setEnabled': return Promise.resolve(this.service.setEnabled(args[0]));
++			case 'getTelemetryInfo': return this.service.getTelemetryInfo();
++		}
++		throw new Error(`Invalid call ${command}`);
++	}
++}
++
++export class TelemetryChannelClient implements ITelemetryService {
++	_serviceBrand: any;
++
++	constructor(private readonly channel: IChannel) {}
++
++	public publicLog(eventName: string, data?: ITelemetryData, anonymizeFilePaths?: boolean): Promise<void> {
++		return this.channel.call('publicLog', [eventName, data, anonymizeFilePaths]);
++	}
++
++	public publicLog2<E extends ClassifiedEvent<T> = never, T extends GDPRClassification<T> = never>(eventName: string, data?: StrictPropertyCheck<T, E>, anonymizeFilePaths?: boolean): Promise<void> {
++		return this.channel.call('publicLog2', [eventName, data, anonymizeFilePaths]);
++	}
++
++	public setEnabled(value: boolean): void {
++		this.channel.call('setEnable', [value]);
++	}
++
++	public getTelemetryInfo(): Promise<ITelemetryInfo> {
++		return this.channel.call('getTelemetryInfo');
++	}
++
++	public get isOptedIn(): boolean {
++		return true;
++	}
++}
+diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
+new file mode 100644
+index 0000000000..cb606e6a68
+--- /dev/null
++++ b/src/vs/server/entry.ts
+@@ -0,0 +1,67 @@
++import { field } from '@coder/logger';
++import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
++import { CodeServerMessage, VscodeMessage } from 'vs/server/ipc';
++import { logger } from 'vs/server/node/logger';
++import { enableCustomMarketplace } from 'vs/server/node/marketplace';
++import { Vscode } from 'vs/server/node/server';
++
++setUnexpectedErrorHandler((error) => logger.warn(error.message));
++enableCustomMarketplace();
++
++/**
++ * Ensure we control when the process exits.
++ */
++const exit = process.exit;
++process.exit = function(code?: number) {
++	logger.warn(`process.exit() was prevented: ${code || 'unknown code'}.`);
++} as (code?: number) => never;
++
++// Kill VS Code if the parent process dies.
++if (typeof process.env.CODE_SERVER_PARENT_PID !== 'undefined') {
++	const parentPid = parseInt(process.env.CODE_SERVER_PARENT_PID, 10);
++	setInterval(() => {
++		try {
++			process.kill(parentPid, 0); // Throws an exception if the process doesn't exist anymore.
++		} catch (e) {
++			exit();
++		}
++	}, 5000);
++} else {
++	logger.error('no parent process');
++	exit(1);
++}
++
++const vscode = new Vscode();
++const send = (message: VscodeMessage): void => {
++	if (!process.send) {
++		throw new Error('not spawned with IPC');
++	}
++	process.send(message);
++};
++
++// Wait for the init message then start up VS Code. Future messages will return
++// new workbench options without starting a new instance.
++process.on('message', async (message: CodeServerMessage, socket) => {
++	logger.debug('got message from code-server', field('message', message));
++	switch (message.type) {
++		case 'init':
++			try {
++				const options = await vscode.initialize(message.options);
++				send({ type: 'options', id: message.id, options });
++			} catch (error) {
++				logger.error(error.message);
++				exit(1);
++			}
++			break;
++		case 'socket':
++			vscode.handleWebSocket(socket, message.query);
++			break;
++	}
++});
++if (!process.send) {
++	logger.error('not spawned with IPC');
++	exit(1);
++} else {
++	// This lets the parent know the child is ready to receive messages.
++	send({ type: 'ready' });
++}
+diff --git a/src/vs/server/fork.js b/src/vs/server/fork.js
+new file mode 100644
+index 0000000000..56331ff1fc
+--- /dev/null
++++ b/src/vs/server/fork.js
+@@ -0,0 +1,3 @@
++// This must be a JS file otherwise when it gets compiled it turns into AMD
++// syntax which will not work without the right loader.
++require('../../bootstrap-amd').load('vs/server/entry');
+diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
+new file mode 100644
+index 0000000000..218faa34d2
+--- /dev/null
++++ b/src/vs/server/ipc.d.ts
+@@ -0,0 +1,93 @@
++/**
++ * External interfaces for integration into code-server over IPC. No vs imports
++ * should be made in this file.
++ */
++
++export interface InitMessage {
++	type: 'init';
++	id: string;
++	options: VscodeOptions;
++}
++
++export type Query = { [key: string]: string | string[] | undefined };
++
++export interface SocketMessage {
++	type: 'socket';
++	query: Query;
++}
++
++export type CodeServerMessage = InitMessage | SocketMessage;
++
++export interface ReadyMessage {
++	type: 'ready';
++}
++
++export interface OptionsMessage {
++	id: string;
++	type: 'options';
++	options: WorkbenchOptions;
++}
++
++export type VscodeMessage = ReadyMessage | OptionsMessage;
++
++export interface StartPath {
++	path?: string[] | string;
++	workspace?: boolean;
++}
++
++export interface Settings {
++	lastVisited?: StartPath;
++}
++
++export interface VscodeOptions {
++	readonly remoteAuthority: string;
++	readonly query: Query;
++	readonly args?: string[];
++	readonly settings: Settings;
++}
++
++export interface VscodeOptionsMessage extends VscodeOptions {
++	readonly id: string;
++}
++
++export interface UriComponents {
++	readonly scheme: string;
++	readonly authority: string;
++	readonly path: string;
++	readonly query: string;
++	readonly fragment: string;
++}
++
++export interface NLSConfiguration {
++	locale: string;
++	availableLanguages: {
++		[key: string]: string;
++	};
++	pseudo?: boolean;
++	_languagePackSupport?: boolean;
++}
++
++export interface WorkbenchOptions {
++	readonly startPath?: StartPath;
++	readonly workbenchWebConfiguration: {
++		readonly remoteAuthority?: string;
++		readonly folderUri?: UriComponents;
++		readonly workspaceUri?: UriComponents;
++		readonly logLevel?: number;
++	};
++	readonly remoteUserDataUri: UriComponents;
++	readonly productConfiguration: {
++		readonly extensionsGallery?: {
++			readonly serviceUrl: string;
++			readonly itemUrl: string;
++			readonly controlUrl: string;
++			readonly recommendationsUrl: string;
++		};
++	};
++	readonly nlsConfiguration: NLSConfiguration;
++	readonly commit: string;
++}
++
++export interface WorkbenchOptionsMessage {
++	id: string;
++}
+diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
+new file mode 100644
+index 0000000000..9c240b992d
+--- /dev/null
++++ b/src/vs/server/node/channel.ts
+@@ -0,0 +1,343 @@
++import { Server } from '@coder/node-browser';
++import * as path from 'path';
++import { VSBuffer, VSBufferReadableStream } from 'vs/base/common/buffer';
++import { Emitter, Event } from 'vs/base/common/event';
++import { IDisposable } from 'vs/base/common/lifecycle';
++import { OS } from 'vs/base/common/platform';
++import { ReadableStreamEventPayload } from 'vs/base/common/stream';
++import { URI, UriComponents } from 'vs/base/common/uri';
++import { transformOutgoingURIs } from 'vs/base/common/uriIpc';
++import { IServerChannel } from 'vs/base/parts/ipc/common/ipc';
++import { IDiagnosticInfo } from 'vs/platform/diagnostics/common/diagnostics';
++import { IEnvironmentService } from 'vs/platform/environment/common/environment';
++import { ExtensionIdentifier, IExtensionDescription } from 'vs/platform/extensions/common/extensions';
++import { FileDeleteOptions, FileOpenOptions, FileOverwriteOptions, FileReadStreamOptions, FileType, FileWriteOptions, IStat, IWatchOptions } from 'vs/platform/files/common/files';
++import { createReadStream } from 'vs/platform/files/common/io';
++import { DiskFileSystemProvider } from 'vs/platform/files/node/diskFileSystemProvider';
++import { ILogService } from 'vs/platform/log/common/log';
++import product from 'vs/platform/product/common/product';
++import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
++import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++import { INodeProxyService } from 'vs/server/common/nodeProxy';
++import { getTranslations } from 'vs/server/node/nls';
++import { getUriTransformer } from 'vs/server/node/util';
++import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
++import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
++
++/**
++ * Extend the file provider to allow unwatching.
++ */
++class Watcher extends DiskFileSystemProvider {
++	public readonly watches = new Map<number, IDisposable>();
++
++	public dispose(): void {
++		this.watches.forEach((w) => w.dispose());
++		this.watches.clear();
++		super.dispose();
++	}
++
++	public _watch(req: number, resource: URI, opts: IWatchOptions): void {
++		this.watches.set(req, this.watch(resource, opts));
++	}
++
++	public unwatch(req: number): void {
++		this.watches.get(req)!.dispose();
++		this.watches.delete(req);
++	}
++}
++
++export class FileProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
++	private readonly provider: DiskFileSystemProvider;
++	private readonly watchers = new Map<string, Watcher>();
++
++	public constructor(
++		private readonly environmentService: IEnvironmentService,
++		private readonly logService: ILogService,
++	) {
++		this.provider = new DiskFileSystemProvider(this.logService);
++	}
++
++	public listen(context: RemoteAgentConnectionContext, event: string, args?: any): Event<any> {
++		switch (event) {
++			case 'filechange': return this.filechange(context, args[0]);
++			case 'readFileStream': return this.readFileStream(args[0], args[1]);
++		}
++
++		throw new Error(`Invalid listen '${event}'`);
++	}
++
++	private filechange(context: RemoteAgentConnectionContext, session: string): Event<IFileChangeDto[]> {
++		const emitter = new Emitter<IFileChangeDto[]>({
++			onFirstListenerAdd: () => {
++				const provider = new Watcher(this.logService);
++				this.watchers.set(session, provider);
++				const transformer = getUriTransformer(context.remoteAuthority);
++				provider.onDidChangeFile((events) => {
++					emitter.fire(events.map((event) => ({
++						...event,
++						resource: transformer.transformOutgoing(event.resource),
++					})));
++				});
++				provider.onDidErrorOccur((event) => this.logService.error(event));
++			},
++			onLastListenerRemove: () => {
++				this.watchers.get(session)!.dispose();
++				this.watchers.delete(session);
++			},
++		});
++
++		return emitter.event;
++	}
++
++	private readFileStream(resource: UriComponents, opts: FileReadStreamOptions): Event<ReadableStreamEventPayload<VSBuffer>> {
++		let fileStream: VSBufferReadableStream | undefined;
++		const emitter = new Emitter<ReadableStreamEventPayload<VSBuffer>>({
++			onFirstListenerAdd: () => {
++				if (!fileStream) {
++					fileStream = createReadStream(this.provider, this.transform(resource), {
++						...opts,
++						bufferSize: 64 * 1024, // From DiskFileSystemProvider
++					});
++					fileStream.on('data', (data) => emitter.fire(data));
++					fileStream.on('error', (error) => emitter.fire(error));
++					fileStream.on('end', () => emitter.fire('end'));
++				}
++			},
++			onLastListenerRemove: () => fileStream && fileStream.destroy(),
++		});
++
++		return emitter.event;
++	}
++
++	public call(_: unknown, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case 'stat': return this.stat(args[0]);
++			case 'open': return this.open(args[0], args[1]);
++			case 'close': return this.close(args[0]);
++			case 'read': return this.read(args[0], args[1], args[2]);
++			case 'readFile': return this.readFile(args[0]);
++			case 'write': return this.write(args[0], args[1], args[2], args[3], args[4]);
++			case 'writeFile': return this.writeFile(args[0], args[1], args[2]);
++			case 'delete': return this.delete(args[0], args[1]);
++			case 'mkdir': return this.mkdir(args[0]);
++			case 'readdir': return this.readdir(args[0]);
++			case 'rename': return this.rename(args[0], args[1], args[2]);
++			case 'copy': return this.copy(args[0], args[1], args[2]);
++			case 'watch': return this.watch(args[0], args[1], args[2], args[3]);
++			case 'unwatch': return this.unwatch(args[0], args[1]);
++		}
++
++		throw new Error(`Invalid call '${command}'`);
++	}
++
++	public dispose(): void {
++		this.watchers.forEach((w) => w.dispose());
++		this.watchers.clear();
++	}
++
++	private async stat(resource: UriComponents): Promise<IStat> {
++		return this.provider.stat(this.transform(resource));
++	}
++
++	private async open(resource: UriComponents, opts: FileOpenOptions): Promise<number> {
++		return this.provider.open(this.transform(resource), opts);
++	}
++
++	private async close(fd: number): Promise<void> {
++		return this.provider.close(fd);
++	}
++
++	private async read(fd: number, pos: number, length: number): Promise<[VSBuffer, number]> {
++		const buffer = VSBuffer.alloc(length);
++		const bytesRead = await this.provider.read(fd, pos, buffer.buffer, 0, length);
++		return [buffer, bytesRead];
++	}
++
++	private async readFile(resource: UriComponents): Promise<VSBuffer> {
++		return VSBuffer.wrap(await this.provider.readFile(this.transform(resource)));
++	}
++
++	private write(fd: number, pos: number, buffer: VSBuffer, offset: number, length: number): Promise<number> {
++		return this.provider.write(fd, pos, buffer.buffer, offset, length);
++	}
++
++	private writeFile(resource: UriComponents, buffer: VSBuffer, opts: FileWriteOptions): Promise<void> {
++		return this.provider.writeFile(this.transform(resource), buffer.buffer, opts);
++	}
++
++	private async delete(resource: UriComponents, opts: FileDeleteOptions): Promise<void> {
++		return this.provider.delete(this.transform(resource), opts);
++	}
++
++	private async mkdir(resource: UriComponents): Promise<void> {
++		return this.provider.mkdir(this.transform(resource));
++	}
++
++	private async readdir(resource: UriComponents): Promise<[string, FileType][]> {
++		return this.provider.readdir(this.transform(resource));
++	}
++
++	private async rename(resource: UriComponents, target: UriComponents, opts: FileOverwriteOptions): Promise<void> {
++		return this.provider.rename(this.transform(resource), URI.from(target), opts);
++	}
++
++	private copy(resource: UriComponents, target: UriComponents, opts: FileOverwriteOptions): Promise<void> {
++		return this.provider.copy(this.transform(resource), URI.from(target), opts);
++	}
++
++	private async watch(session: string, req: number, resource: UriComponents, opts: IWatchOptions): Promise<void> {
++		this.watchers.get(session)!._watch(req, this.transform(resource), opts);
++	}
++
++	private async unwatch(session: string, req: number): Promise<void> {
++		this.watchers.get(session)!.unwatch(req);
++	}
++
++	private transform(resource: UriComponents): URI {
++		// Used for walkthrough content.
++		if (/^\/static[^/]*\//.test(resource.path)) {
++			return URI.file(this.environmentService.appRoot + resource.path.replace(/^\/static[^/]*\//, '/'));
++		// Used by the webview service worker to load resources.
++		} else if (resource.path === '/vscode-resource' && resource.query) {
++			try {
++				const query = JSON.parse(resource.query);
++				if (query.requestResourcePath) {
++					return URI.file(query.requestResourcePath);
++				}
++			} catch (error) { /* Carry on. */ }
++		}
++		return URI.from(resource);
++	}
++}
++
++export class ExtensionEnvironmentChannel implements IServerChannel {
++	public constructor(
++		private readonly environment: IEnvironmentService,
++		private readonly log: ILogService,
++		private readonly telemetry: ITelemetryService,
++		private readonly connectionToken: string,
++	) {}
++
++	public listen(_: unknown, event: string): Event<any> {
++		throw new Error(`Invalid listen '${event}'`);
++	}
++
++	public async call(context: any, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case 'getEnvironmentData':
++				return transformOutgoingURIs(
++					await this.getEnvironmentData(args.language),
++					getUriTransformer(context.remoteAuthority),
++				);
++			case 'getDiagnosticInfo': return this.getDiagnosticInfo();
++			case 'disableTelemetry': return this.disableTelemetry();
++		}
++		throw new Error(`Invalid call '${command}'`);
++	}
++
++	private async getEnvironmentData(locale: string): Promise<IRemoteAgentEnvironment> {
++		return {
++			pid: process.pid,
++			connectionToken: this.connectionToken,
++			appRoot: URI.file(this.environment.appRoot),
++			appSettingsHome: this.environment.appSettingsHome,
++			settingsPath: this.environment.machineSettingsHome,
++			logsPath: URI.file(this.environment.logsPath),
++			extensionsPath: URI.file(this.environment.extensionsPath!),
++			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, 'extension-host')),
++			globalStorageHome: URI.file(this.environment.globalStorageHome),
++			userHome: URI.file(this.environment.userHome),
++			extensions: await this.scanExtensions(locale),
++			os: OS,
++		};
++	}
++
++	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
++		const translations = await getTranslations(locale, this.environment.userDataPath);
++
++		const scanMultiple = (isBuiltin: boolean, isUnderDevelopment: boolean, paths: string[]): Promise<IExtensionDescription[][]> => {
++			return Promise.all(paths.map((path) => {
++				return ExtensionScanner.scanExtensions(new ExtensionScannerInput(
++					product.version,
++					product.commit,
++					locale,
++					!!process.env.VSCODE_DEV,
++					path,
++					isBuiltin,
++					isUnderDevelopment,
++					translations,
++				), this.log);
++			}));
++		};
++
++		const scanBuiltin = async (): Promise<IExtensionDescription[][]> => {
++			return scanMultiple(true, false, [this.environment.builtinExtensionsPath, ...this.environment.extraBuiltinExtensionPaths]);
++		};
++
++		const scanInstalled = async (): Promise<IExtensionDescription[][]> => {
++			return scanMultiple(false, true, [this.environment.extensionsPath!, ...this.environment.extraExtensionPaths]);
++		};
++
++		return Promise.all([scanBuiltin(), scanInstalled()]).then((allExtensions) => {
++			const uniqueExtensions = new Map<string, IExtensionDescription>();
++			allExtensions.forEach((multipleExtensions) => {
++				multipleExtensions.forEach((extensions) => {
++					extensions.forEach((extension) => {
++						const id = ExtensionIdentifier.toKey(extension.identifier);
++						if (uniqueExtensions.has(id)) {
++							const oldPath = uniqueExtensions.get(id)!.extensionLocation.fsPath;
++							const newPath = extension.extensionLocation.fsPath;
++							this.log.warn(`${oldPath} has been overridden ${newPath}`);
++						}
++						uniqueExtensions.set(id, extension);
++					});
++				});
++			});
++			return Array.from(uniqueExtensions.values());
++		});
++	}
++
++	private getDiagnosticInfo(): Promise<IDiagnosticInfo> {
++		throw new Error('not implemented');
++	}
++
++	private async disableTelemetry(): Promise<void> {
++		this.telemetry.setEnabled(false);
++	}
++}
++
++export class NodeProxyService implements INodeProxyService {
++	public _serviceBrand = undefined;
++
++	public readonly server: Server;
++
++	private readonly _onMessage = new Emitter<string>();
++	public readonly onMessage = this._onMessage.event;
++	private readonly _$onMessage = new Emitter<string>();
++	public readonly $onMessage = this._$onMessage.event;
++	public readonly _onDown = new Emitter<void>();
++	public readonly onDown = this._onDown.event;
++	public readonly _onUp = new Emitter<void>();
++	public readonly onUp = this._onUp.event;
++
++	// Unused because the server connection will never permanently close.
++	private readonly _onClose = new Emitter<void>();
++	public readonly onClose = this._onClose.event;
++
++	public constructor() {
++		// TODO: down/up
++		this.server = new Server({
++			onMessage: this.$onMessage,
++			onClose: this.onClose,
++			onDown: this.onDown,
++			onUp: this.onUp,
++			send: (message: string): void => {
++				this._onMessage.fire(message);
++			}
++		});
++	}
++
++	public send(message: string): void {
++		this._$onMessage.fire(message);
++	}
++}
+diff --git a/src/vs/server/node/cli.ts b/src/vs/server/node/cli.ts
+new file mode 100644
+index 0000000000..117cc4900a
+--- /dev/null
++++ b/src/vs/server/node/cli.ts
+@@ -0,0 +1,75 @@
++import * as os from 'os';
++import * as path from 'path';
++import { main as vsCli } from 'vs/code/node/cliProcessMain';
++import { validatePaths } from 'vs/code/node/paths';
++import { ParsedArgs } from 'vs/platform/environment/common/environment';
++import { buildHelpMessage, buildVersionMessage, OPTIONS } from 'vs/platform/environment/node/argv';
++import { parseMainProcessArgv } from 'vs/platform/environment/node/argvHelper';
++import product from 'vs/platform/product/common/product';
++import { logger } from 'vs/server/node/logger';
++import { xdgLocalDir } from 'vs/server/node/util';
++
++export const parseArgs = (rawArgs: string[]): ParsedArgs => {
++	// Remove options that won't work or don't make sense.
++	for (let key in OPTIONS) {
++		switch (key) {
++			case 'add':
++			case 'diff':
++			case 'file-uri':
++			case 'folder-uri':
++			case 'goto':
++			case 'new-window':
++			case 'reuse-window':
++			case 'wait':
++			case 'disable-gpu':
++			// TODO: pretty sure these don't work but not 100%.
++			case 'prof-startup':
++			case 'inspect-extensions':
++			case 'inspect-brk-extensions':
++				delete OPTIONS[key];
++				break;
++		}
++	}
++
++	const args = parseMainProcessArgv(rawArgs);
++	if (!args['user-data-dir']) {
++		args['user-data-dir'] = xdgLocalDir;
++	}
++	if (!args['extensions-dir']) {
++		args['extensions-dir'] = path.join(args['user-data-dir'], 'extensions');
++	}
++
++	if (!args.verbose && !args.log && process.env.LOG_LEVEL) {
++		args.log = process.env.LOG_LEVEL;
++	}
++
++	return validatePaths(args);
++};
++
++export const startCli = (args: ParsedArgs): boolean | Promise<void> => {
++	if (args.help) {
++		const executable = `${product.applicationName}${os.platform() === 'win32' ? '.exe' : ''}`;
++		console.log(buildHelpMessage(product.nameLong, executable, product.version, OPTIONS, false));
++		return true;
++	}
++
++	if (args.version) {
++		buildVersionMessage(product.version, product.commit).split('\n').map((line) => logger.info(line));
++		return true;
++	}
++
++	const shouldSpawnCliProcess = (): boolean => {
++		return !!args['install-source']
++			|| !!args['list-extensions']
++			|| !!args['install-extension']
++			|| !!args['uninstall-extension']
++			|| !!args['locate-extension']
++			|| !!args['telemetry'];
++	};
++
++	if (shouldSpawnCliProcess()) {
++		return vsCli(args);
++	}
++
++	return false;
++};
+diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
+new file mode 100644
+index 0000000000..3b42933419
+--- /dev/null
++++ b/src/vs/server/node/connection.ts
+@@ -0,0 +1,156 @@
++import * as cp from 'child_process';
++import { getPathFromAmdModule } from 'vs/base/common/amd';
++import { VSBuffer } from 'vs/base/common/buffer';
++import { Emitter } from 'vs/base/common/event';
++import { ISocket } from 'vs/base/parts/ipc/common/ipc.net';
++import { NodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
++import { IEnvironmentService } from 'vs/platform/environment/common/environment';
++import { ILogService } from 'vs/platform/log/common/log';
++import { getNlsConfiguration } from 'vs/server/node/nls';
++import { Protocol } from 'vs/server/node/protocol';
++import { uriTransformerPath } from 'vs/server/node/util';
++import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
++
++export abstract class Connection {
++	private readonly _onClose = new Emitter<void>();
++	public readonly onClose = this._onClose.event;
++	private disposed = false;
++	private _offline: number | undefined;
++
++	public constructor(protected protocol: Protocol, public readonly token: string) {}
++
++	public get offline(): number | undefined {
++		return this._offline;
++	}
++
++	public reconnect(socket: ISocket, buffer: VSBuffer): void {
++		this._offline = undefined;
++		this.doReconnect(socket, buffer);
++	}
++
++	public dispose(): void {
++		if (!this.disposed) {
++			this.disposed = true;
++			this.doDispose();
++			this._onClose.fire();
++		}
++	}
++
++	protected setOffline(): void {
++		if (!this._offline) {
++			this._offline = Date.now();
++		}
++	}
++
++	/**
++	 * Set up the connection on a new socket.
++	 */
++	protected abstract doReconnect(socket: ISocket, buffer: VSBuffer): void;
++	protected abstract doDispose(): void;
++}
++
++/**
++ * Used for all the IPC channels.
++ */
++export class ManagementConnection extends Connection {
++	public constructor(protected protocol: Protocol, token: string) {
++		super(protocol, token);
++		protocol.onClose(() => this.dispose()); // Explicit close.
++		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
++	}
++
++	protected doDispose(): void {
++		this.protocol.sendDisconnect();
++		this.protocol.dispose();
++		this.protocol.getSocket().end();
++	}
++
++	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
++		this.protocol.beginAcceptReconnection(socket, buffer);
++		this.protocol.endAcceptReconnection();
++	}
++}
++
++export class ExtensionHostConnection extends Connection {
++	private process?: cp.ChildProcess;
++
++	public constructor(
++		locale:string, protocol: Protocol, buffer: VSBuffer, token: string,
++		private readonly log: ILogService,
++		private readonly environment: IEnvironmentService,
++	) {
++		super(protocol, token);
++		this.protocol.dispose();
++		this.spawn(locale, buffer).then((p) => this.process = p);
++		this.protocol.getUnderlyingSocket().pause();
++	}
++
++	protected doDispose(): void {
++		if (this.process) {
++			this.process.kill();
++		}
++		this.protocol.getSocket().end();
++	}
++
++	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
++		// This is just to set the new socket.
++		this.protocol.beginAcceptReconnection(socket, null);
++		this.protocol.dispose();
++		this.sendInitMessage(buffer);
++	}
++
++	private sendInitMessage(buffer: VSBuffer): void {
++		const socket = this.protocol.getUnderlyingSocket();
++		socket.pause();
++		this.process!.send({ // Process must be set at this point.
++			type: 'VSCODE_EXTHOST_IPC_SOCKET',
++			initialDataChunk: (buffer.buffer as Buffer).toString('base64'),
++			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
++		}, socket);
++	}
++
++	private async spawn(locale: string, buffer: VSBuffer): Promise<cp.ChildProcess> {
++		const config = await getNlsConfiguration(locale, this.environment.userDataPath);
++		const proc = cp.fork(
++			getPathFromAmdModule(require, 'bootstrap-fork'),
++			[ '--type=extensionHost', `--uriTransformerPath=${uriTransformerPath}` ],
++			{
++				env: {
++					...process.env,
++					AMD_ENTRYPOINT: 'vs/workbench/services/extensions/node/extensionHostProcess',
++					PIPE_LOGGING: 'true',
++					VERBOSE_LOGGING: 'true',
++					VSCODE_EXTHOST_WILL_SEND_SOCKET: 'true',
++					VSCODE_HANDLES_UNCAUGHT_ERRORS: 'true',
++					VSCODE_LOG_STACK: 'false',
++					VSCODE_LOG_LEVEL: this.environment.verbose ? 'trace' : this.environment.log,
++					VSCODE_NLS_CONFIG: JSON.stringify(config),
++				},
++				silent: true,
++			},
++		);
++
++		proc.on('error', () => this.dispose());
++		proc.on('exit', () => this.dispose());
++		proc.stdout.setEncoding('utf8').on('data', (d) => this.log.info('Extension host stdout', d));
++		proc.stderr.setEncoding('utf8').on('data', (d) => this.log.error('Extension host stderr', d));
++		proc.on('message', (event) => {
++			if (event && event.type === '__$console') {
++				const severity = (<any>this.log)[event.severity] ? event.severity : 'info';
++				(<any>this.log)[severity]('Extension host', event.arguments);
++			}
++			if (event && event.type === 'VSCODE_EXTHOST_DISCONNECTED') {
++				this.setOffline();
++			}
++		});
++
++		const listen = (message: IExtHostReadyMessage) => {
++			if (message.type === 'VSCODE_EXTHOST_IPC_READY') {
++				proc.removeListener('message', listen);
++				this.sendInitMessage(buffer);
++			}
++		};
++
++		return proc.on('message', listen);
++	}
++}
+diff --git a/src/vs/server/node/insights.ts b/src/vs/server/node/insights.ts
+new file mode 100644
+index 0000000000..a0ece345f2
+--- /dev/null
++++ b/src/vs/server/node/insights.ts
+@@ -0,0 +1,124 @@
++import * as appInsights from 'applicationinsights';
++import * as https from 'https';
++import * as http from 'http';
++import * as os from 'os';
++
++class Channel {
++	public get _sender() {
++		throw new Error('unimplemented');
++	}
++	public get _buffer() {
++		throw new Error('unimplemented');
++	}
++
++	public setUseDiskRetryCaching(): void {
++		throw new Error('unimplemented');
++	}
++	public send(): void {
++		throw new Error('unimplemented');
++	}
++	public triggerSend(): void {
++		throw new Error('unimplemented');
++	}
++}
++
++export class TelemetryClient  {
++	public context: any = undefined;
++	public commonProperties: any = undefined;
++	public config: any = {};
++
++	public channel: any = new Channel();
++
++	public addTelemetryProcessor(): void {
++		throw new Error('unimplemented');
++	}
++
++	public clearTelemetryProcessors(): void {
++		throw new Error('unimplemented');
++	}
++
++	public runTelemetryProcessors(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackTrace(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackMetric(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackException(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackRequest(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackDependency(): void {
++		throw new Error('unimplemented');
++	}
++
++	public track(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackNodeHttpRequestSync(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackNodeHttpRequest(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackNodeHttpDependency(): void {
++		throw new Error('unimplemented');
++	}
++
++	public trackEvent(options: appInsights.Contracts.EventTelemetry): void {
++		if (!options.properties) {
++			options.properties = {};
++		}
++		if (!options.measurements) {
++			options.measurements = {};
++		}
++
++		try {
++			const cpus = os.cpus();
++			options.measurements.cores = cpus.length;
++			options.properties['common.cpuModel'] = cpus[0].model;
++		} catch (error) {}
++
++		try {
++			options.measurements.memoryFree = os.freemem();
++			options.measurements.memoryTotal = os.totalmem();
++		} catch (error) {}
++
++		try {
++			options.properties['common.shell'] = os.userInfo().shell;
++			options.properties['common.release'] = os.release();
++			options.properties['common.arch'] = os.arch();
++		} catch (error) {}
++
++		try {
++			const url = process.env.TELEMETRY_URL || 'https://v1.telemetry.coder.com/track';
++			const request = (/^http:/.test(url) ? http : https).request(url, {
++				method: 'POST',
++				headers: {
++					'Content-Type': 'application/json',
++				},
++			});
++			request.on('error', () => { /* We don't care. */ });
++			request.write(JSON.stringify(options));
++			request.end();
++		} catch (error) {}
++	}
++
++	public flush(options: { callback: (v: string) => void }): void {
++		if (options.callback) {
++			options.callback('');
++		}
++	}
++}
+diff --git a/src/vs/server/node/ipc.ts b/src/vs/server/node/ipc.ts
+new file mode 100644
+index 0000000000..5e560eb46e
+--- /dev/null
++++ b/src/vs/server/node/ipc.ts
+@@ -0,0 +1,61 @@
++import * as cp from 'child_process';
++import { Emitter } from 'vs/base/common/event';
++
++enum ControlMessage {
++	okToChild = 'ok>',
++	okFromChild = 'ok<',
++}
++
++interface RelaunchMessage {
++	type: 'relaunch';
++	version: string;
++}
++
++export type Message = RelaunchMessage;
++
++class IpcMain {
++	protected readonly _onMessage = new Emitter<Message>();
++	public readonly onMessage = this._onMessage.event;
++
++	public handshake(child?: cp.ChildProcess): Promise<void> {
++		return new Promise((resolve, reject) => {
++			const target = child || process;
++			if (!target.send) {
++				throw new Error('Not spawned with IPC enabled');
++			}
++			target.on('message', (message) => {
++				if (message === child ? ControlMessage.okFromChild : ControlMessage.okToChild) {
++					target.removeAllListeners();
++					target.on('message', (msg) => this._onMessage.fire(msg));
++					if (child) {
++						target.send!(ControlMessage.okToChild);
++					}
++					resolve();
++				}
++			});
++			if (child) {
++				child.once('error', reject);
++				child.once('exit', (code) => {
++					const error = new Error(`Unexpected exit with code ${code}`);
++					(error as any).code = code;
++					reject(error);
++				});
++			} else {
++				target.send(ControlMessage.okFromChild);
++			}
++		});
++	}
++
++	public relaunch(version: string): void {
++		this.send({ type: 'relaunch', version });
++	}
++
++	private send(message: Message): void {
++		if (!process.send) {
++			throw new Error('Not a child process with IPC enabled');
++		}
++		process.send(message);
++	}
++}
++
++export const ipcMain = new IpcMain();
+diff --git a/src/vs/server/node/logger.ts b/src/vs/server/node/logger.ts
+new file mode 100644
+index 0000000000..2a39c524aa
+--- /dev/null
++++ b/src/vs/server/node/logger.ts
+@@ -0,0 +1,2 @@
++import { logger as baseLogger } from '@coder/logger';
++export const logger = baseLogger.named('vscode');
+diff --git a/src/vs/server/node/marketplace.ts b/src/vs/server/node/marketplace.ts
+new file mode 100644
+index 0000000000..9960ccfd07
+--- /dev/null
++++ b/src/vs/server/node/marketplace.ts
+@@ -0,0 +1,174 @@
++import * as fs from 'fs';
++import * as path from 'path';
++import * as tarStream from 'tar-stream';
++import * as util from 'util';
++import { CancellationToken } from 'vs/base/common/cancellation';
++import { mkdirp } from 'vs/base/node/pfs';
++import * as vszip from 'vs/base/node/zip';
++import * as nls from 'vs/nls';
++import product from 'vs/platform/product/common/product';
++
++// We will be overriding these, so keep a reference to the original.
++const vszipExtract = vszip.extract;
++const vszipBuffer = vszip.buffer;
++
++export interface IExtractOptions {
++	overwrite?: boolean;
++	/**
++	 * Source path within the TAR/ZIP archive. Only the files
++	 * contained in this path will be extracted.
++	 */
++	sourcePath?: string;
++}
++
++export interface IFile {
++	path: string;
++	contents?: Buffer | string;
++	localPath?: string;
++}
++
++export const tar = async (tarPath: string, files: IFile[]): Promise<string> => {
++	const pack = tarStream.pack();
++	const chunks: Buffer[] = [];
++	const ended = new Promise<Buffer>((resolve) => {
++		pack.on('end', () => resolve(Buffer.concat(chunks)));
++	});
++	pack.on('data', (chunk: Buffer) => chunks.push(chunk));
++	for (let i = 0; i < files.length; i++) {
++		const file = files[i];
++		pack.entry({ name: file.path }, file.contents);
++	}
++	pack.finalize();
++	await util.promisify(fs.writeFile)(tarPath, await ended);
++	return tarPath;
++};
++
++export const extract = async (archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
++	try {
++		await extractTar(archivePath, extractPath, options, token);
++	} catch (error) {
++		if (error.toString().includes('Invalid tar header')) {
++			await vszipExtract(archivePath, extractPath, options, token);
++		}
++	}
++};
++
++export const buffer = (targetPath: string, filePath: string): Promise<Buffer> => {
++	return new Promise<Buffer>(async (resolve, reject) => {
++		try {
++			let done: boolean = false;
++			await extractAssets(targetPath, new RegExp(filePath), (assetPath: string, data: Buffer) => {
++				if (path.normalize(assetPath) === path.normalize(filePath)) {
++					done = true;
++					resolve(data);
++				}
++			});
++			if (!done) {
++				throw new Error('couldn\'t find asset ' + filePath);
++			}
++		} catch (error) {
++			if (error.toString().includes('Invalid tar header')) {
++				vszipBuffer(targetPath, filePath).then(resolve).catch(reject);
++			} else {
++				reject(error);
++			}
++		}
++	});
++};
++
++const extractAssets = async (tarPath: string, match: RegExp, callback: (path: string, data: Buffer) => void): Promise<void> => {
++	return new Promise<void>((resolve, reject): void => {
++		const extractor = tarStream.extract();
++		const fail = (error: Error) => {
++			extractor.destroy();
++			reject(error);
++		};
++		extractor.once('error', fail);
++		extractor.on('entry', async (header, stream, next) => {
++			const name = header.name;
++			if (match.test(name)) {
++				extractData(stream).then((data) => {
++					callback(name, data);
++					next();
++				}).catch(fail);
++			} else {
++				stream.on('end', () => next());
++				stream.resume(); // Just drain it.
++			}
++		});
++		extractor.on('finish', resolve);
++		fs.createReadStream(tarPath).pipe(extractor);
++	});
++};
++
++const extractData = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
++	return new Promise((resolve, reject): void => {
++		const fileData: Buffer[] = [];
++		stream.on('error', reject);
++		stream.on('end', () => resolve(Buffer.concat(fileData)));
++		stream.on('data', (data) => fileData.push(data));
++	});
++};
++
++const extractTar = async (tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
++	return new Promise<void>((resolve, reject): void => {
++		const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : '');
++		const extractor = tarStream.extract();
++		const fail = (error: Error) => {
++			extractor.destroy();
++			reject(error);
++		};
++		extractor.once('error', fail);
++		extractor.on('entry', async (header, stream, next) => {
++			const nextEntry = (): void => {
++				stream.on('end', () => next());
++				stream.resume();
++			};
++
++			const rawName = path.normalize(header.name);
++			if (token.isCancellationRequested || !sourcePathRegex.test(rawName)) {
++				return nextEntry();
++			}
++
++			const fileName = rawName.replace(sourcePathRegex, '');
++			const targetFileName = path.join(targetPath, fileName);
++			if (/\/$/.test(fileName)) {
++				return mkdirp(targetFileName).then(nextEntry);
++			}
++
++			const dirName = path.dirname(fileName);
++			const targetDirName = path.join(targetPath, dirName);
++			if (targetDirName.indexOf(targetPath) !== 0) {
++				return fail(new Error(nls.localize('invalid file', 'Error extracting {0}. Invalid file.', fileName)));
++			}
++
++			await mkdirp(targetDirName, undefined);
++
++			const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
++			fstream.once('close', () => next());
++			fstream.once('error', fail);
++			stream.pipe(fstream);
++		});
++		extractor.once('finish', resolve);
++		fs.createReadStream(tarPath).pipe(extractor);
++	});
++};
++
++/**
++ * Override original functionality so we can use a custom marketplace with
++ * either tars or zips.
++ */
++export const enableCustomMarketplace = (): void => {
++	(<any>product).extensionsGallery = { // Use `any` to override readonly.
++		serviceUrl: process.env.SERVICE_URL || 'https://v1.extapi.coder.com',
++		itemUrl: process.env.ITEM_URL || '',
++		controlUrl: '',
++		recommendationsUrl: '',
++		...(product.extensionsGallery || {}),
++	};
++
++	const target = vszip as typeof vszip;
++	target.zip = tar;
++	target.extract = extract;
++	target.buffer = buffer;
++};
+diff --git a/src/vs/server/node/nls.ts b/src/vs/server/node/nls.ts
+new file mode 100644
+index 0000000000..61c79d0d80
+--- /dev/null
++++ b/src/vs/server/node/nls.ts
+@@ -0,0 +1,86 @@
++import * as fs from 'fs';
++import * as path from 'path';
++import * as util from 'util';
++import { getPathFromAmdModule } from 'vs/base/common/amd';
++import * as lp from 'vs/base/node/languagePacks';
++import product from 'vs/platform/product/common/product';
++import { Translations } from 'vs/workbench/services/extensions/common/extensionPoints';
++
++const configurations = new Map<string, Promise<lp.NLSConfiguration>>();
++const metadataPath = path.join(getPathFromAmdModule(require, ''), 'nls.metadata.json');
++
++export const isInternalConfiguration = (config: lp.NLSConfiguration): config is lp.InternalNLSConfiguration => {
++	return config && !!(<lp.InternalNLSConfiguration>config)._languagePackId;
++};
++
++const DefaultConfiguration = {
++	locale: 'en',
++	availableLanguages: {},
++};
++
++export const getNlsConfiguration = async (locale: string, userDataPath: string): Promise<lp.NLSConfiguration> => {
++	const id = `${locale}: ${userDataPath}`;
++	if (!configurations.has(id)) {
++		configurations.set(id, new Promise(async (resolve) =>  {
++			const config = product.commit && await util.promisify(fs.exists)(metadataPath)
++				? await lp.getNLSConfiguration(product.commit, userDataPath, metadataPath, locale)
++				: DefaultConfiguration;
++			if (isInternalConfiguration(config)) {
++				config._languagePackSupport = true;
++			}
++			// If the configuration has no results keep trying since code-server
++			// doesn't restart when a language is installed so this result would
++			// persist (the plugin might not be installed yet or something).
++			if (config.locale !== 'en' && config.locale !== 'en-us' && Object.keys(config.availableLanguages).length === 0) {
++				configurations.delete(id);
++			}
++			resolve(config);
++		}));
++	}
++	return configurations.get(id)!;
++};
++
++export const getTranslations = async (locale: string, userDataPath: string): Promise<Translations> => {
++	const config = await getNlsConfiguration(locale, userDataPath);
++	if (isInternalConfiguration(config)) {
++		try {
++			return JSON.parse(await util.promisify(fs.readFile)(config._translationsConfigFile, 'utf8'));
++		} catch (error) { /* Nothing yet. */}
++	}
++	return {};
++};
++
++export const getLocaleFromConfig = async (userDataPath: string): Promise<string> => {
++	let locale = 'en';
++	try {
++		const localeConfigUri = path.join(userDataPath, 'User/locale.json');
++		const content = stripComments(await util.promisify(fs.readFile)(localeConfigUri, 'utf8'));
++		locale = JSON.parse(content).locale;
++	} catch (error) { /* Ignore. */ }
++	return locale;
++};
++
++// Taken from src/main.js in the main VS Code source.
++const stripComments = (content: string): string => {
++	const regexp = /('(?:[^\\']*(?:\\.)?)*')|('(?:[^\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
++
++	return content.replace(regexp, (match, _m1, _m2, m3, m4) => {
++		// Only one of m1, m2, m3, m4 matches
++		if (m3) {
++			// A block comment. Replace with nothing
++			return '';
++		} else if (m4) {
++			// A line comment. If it ends in \r?\n then keep it.
++			const length_1 = m4.length;
++			if (length_1 > 2 && m4[length_1 - 1] === '\n') {
++				return m4[length_1 - 2] === '\r' ? '\r\n' : '\n';
++			}
++			else {
++				return '';
++			}
++		} else {
++			// We match a string
++			return match;
++		}
++	});
++};
+diff --git a/src/vs/server/node/protocol.ts b/src/vs/server/node/protocol.ts
+new file mode 100644
+index 0000000000..3c74512192
+--- /dev/null
++++ b/src/vs/server/node/protocol.ts
+@@ -0,0 +1,73 @@
++import * as net from 'net';
++import { VSBuffer } from 'vs/base/common/buffer';
++import { PersistentProtocol } from 'vs/base/parts/ipc/common/ipc.net';
++import { NodeSocket, WebSocketNodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
++import { AuthRequest, ConnectionTypeRequest, HandshakeMessage } from 'vs/platform/remote/common/remoteAgentConnection';
++
++export interface SocketOptions {
++	readonly reconnectionToken: string;
++	readonly reconnection: boolean;
++	readonly skipWebSocketFrames: boolean;
++}
++
++export class Protocol extends PersistentProtocol {
++	public constructor(socket: net.Socket, public readonly options: SocketOptions) {
++		super(
++			options.skipWebSocketFrames
++				? new NodeSocket(socket)
++				: new WebSocketNodeSocket(new NodeSocket(socket)),
++		);
++	}
++
++	public getUnderlyingSocket(): net.Socket {
++		const socket = this.getSocket();
++		return socket instanceof NodeSocket
++			? socket.socket
++			: (socket as WebSocketNodeSocket).socket.socket;
++	}
++
++	/**
++	 * Perform a handshake to get a connection request.
++	 */
++	public handshake(): Promise<ConnectionTypeRequest> {
++		return new Promise((resolve, reject) => {
++			const handler = this.onControlMessage((rawMessage) => {
++				try {
++					const message = JSON.parse(rawMessage.toString());
++					switch (message.type) {
++						case 'auth': return this.authenticate(message);
++						case 'connectionType':
++							handler.dispose();
++							return resolve(message);
++						default: throw new Error('Unrecognized message type');
++					}
++				} catch (error) {
++					handler.dispose();
++					reject(error);
++				}
++			});
++		});
++	}
++
++	/**
++	 * TODO: This ignores the authentication process entirely for now.
++	 */
++	private authenticate(_message: AuthRequest): void {
++		this.sendMessage({ type: 'sign', data: '' });
++	}
++
++	/**
++	 * TODO: implement.
++	 */
++	public tunnel(): void {
++		throw new Error('Tunnel is not implemented yet');
++	}
++
++	/**
++	 * Send a handshake message. In the case of the extension host, it just sends
++	 * back a debug port.
++	 */
++	public sendMessage(message: HandshakeMessage | { debugPort?: number } ): void {
++		this.sendControl(VSBuffer.fromString(JSON.stringify(message)));
++	}
++}
+diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
+new file mode 100644
+index 0000000000..5207c90081
+--- /dev/null
++++ b/src/vs/server/node/server.ts
+@@ -0,0 +1,293 @@
++import * as fs from 'fs-extra';
++import * as net from 'net';
++import * as path from 'path';
++import { Emitter } from 'vs/base/common/event';
++import { sanitizeFilePath } from 'vs/base/common/extpath';
++import { Schemas } from 'vs/base/common/network';
++import { URI } from 'vs/base/common/uri';
++import { getMachineId } from 'vs/base/node/id';
++import { ClientConnectionEvent, IPCServer, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
++import { createChannelReceiver } from 'vs/base/parts/ipc/node/ipc';
++import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
++import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
++import { ConfigurationService } from 'vs/platform/configuration/node/configurationService';
++import { ExtensionHostDebugBroadcastChannel } from 'vs/platform/debug/common/extensionHostDebugIpc';
++import { IEnvironmentService, ParsedArgs } from 'vs/platform/environment/common/environment';
++import { EnvironmentService } from 'vs/platform/environment/node/environmentService';
++import { ExtensionGalleryService } from 'vs/platform/extensionManagement/common/extensionGalleryService';
++import { IExtensionGalleryService, IExtensionManagementService } from 'vs/platform/extensionManagement/common/extensionManagement';
++import { ExtensionManagementChannel } from 'vs/platform/extensionManagement/common/extensionManagementIpc';
++import { ExtensionManagementService } from 'vs/platform/extensionManagement/node/extensionManagementService';
++import { IFileService } from 'vs/platform/files/common/files';
++import { FileService } from 'vs/platform/files/common/fileService';
++import { DiskFileSystemProvider } from 'vs/platform/files/node/diskFileSystemProvider';
++import { SyncDescriptor } from 'vs/platform/instantiation/common/descriptors';
++import { InstantiationService } from 'vs/platform/instantiation/common/instantiationService';
++import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
++import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
++import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
++import { getLogLevel, ILogService } from 'vs/platform/log/common/log';
++import { LoggerChannel } from 'vs/platform/log/common/logIpc';
++import { SpdLogService } from 'vs/platform/log/node/spdlogService';
++import product from 'vs/platform/product/common/product';
++import { IProductService } from 'vs/platform/product/common/productService';
++import { ConnectionType, ConnectionTypeRequest } from 'vs/platform/remote/common/remoteAgentConnection';
++import { RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
++import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/platform/remote/common/remoteAgentFileSystemChannel';
++import { IRequestService } from 'vs/platform/request/common/request';
++import { RequestChannel } from 'vs/platform/request/common/requestIpc';
++import { RequestService } from 'vs/platform/request/node/requestService';
++import ErrorTelemetry from 'vs/platform/telemetry/browser/errorTelemetry';
++import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++import { ITelemetryServiceConfig, TelemetryService } from 'vs/platform/telemetry/common/telemetryService';
++import { combinedAppender, LogAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
++import { AppInsightsAppender } from 'vs/platform/telemetry/node/appInsightsAppender';
++import { resolveCommonProperties } from 'vs/platform/telemetry/node/commonProperties';
++import { INodeProxyService, NodeProxyChannel } from 'vs/server/common/nodeProxy';
++import { TelemetryChannel } from 'vs/server/common/telemetry';
++import { Query, StartPath, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
++import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from 'vs/server/node/channel';
++import { parseArgs } from 'vs/server/node/cli';
++import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/node/connection';
++import { TelemetryClient } from 'vs/server/node/insights';
++import { logger } from 'vs/server/node/logger';
++import { getLocaleFromConfig, getNlsConfiguration } from 'vs/server/node/nls';
++import { Protocol } from 'vs/server/node/protocol';
++import { getUriTransformer } from 'vs/server/node/util';
++import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
++
++export class Vscode {
++	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
++	public readonly onDidClientConnect = this._onDidClientConnect.event;
++	private readonly ipc = new IPCServer<RemoteAgentConnectionContext>(this.onDidClientConnect);
++
++	private readonly maxExtraOfflineConnections = 0;
++	private readonly connections = new Map<ConnectionType, Map<string, Connection>>();
++
++	private readonly services = new ServiceCollection();
++	private servicesPromise?: Promise<void>;
++	private args?: ParsedArgs;
++
++	public async initialize(options: VscodeOptions): Promise<WorkbenchOptions> {
++		if (!this.args) {
++			this.args = parseArgs(options.args || []);
++		}
++		const transformer = getUriTransformer(options.remoteAuthority);
++		const startPath = await this.getFirstValidPath([
++			options.settings.lastVisited,
++			{ path: this.args._[0] },
++		]);
++		if (!this.servicesPromise) {
++			this.servicesPromise = this.initializeServices(this.args);
++		}
++		await this.servicesPromise;
++		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
++		return {
++			startPath,
++			workbenchWebConfiguration: {
++				workspaceUri: startPath && startPath.workspace ? transformer.transformOutgoing(URI.file(startPath.path)) : undefined,
++				folderUri: startPath && !startPath.workspace ? transformer.transformOutgoing(URI.file(startPath.path)) : undefined,
++				remoteAuthority: options.remoteAuthority,
++				logLevel: getLogLevel(environment),
++			},
++			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
++			productConfiguration: {
++				extensionsGallery: product.extensionsGallery,
++			},
++			nlsConfiguration: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
++			commit: product.commit || '',
++		};
++	}
++
++	public async handleWebSocket(socket: net.Socket, query: Query): Promise<true> {
++		if (!query.reconnectionToken) {
++			throw new Error('Reconnection token is missing from query parameters');
++		}
++		const protocol = new Protocol(socket, {
++			reconnectionToken: <string>query.reconnectionToken,
++			reconnection: query.reconnection === 'true',
++			skipWebSocketFrames: query.skipWebSocketFrames === 'true',
++		});
++		try {
++			await this.connect(await protocol.handshake(), protocol);
++		} catch (error) {
++			protocol.sendMessage({ type: 'error', reason: error.message });
++			protocol.dispose();
++			protocol.getSocket().dispose();
++		}
++		return true;
++	}
++
++	/**
++	 * Choose the first valid path. If `workspace` is undefined then either a
++	 * workspace or a directory are acceptable. Otherwise it must be a file if a
++	 * workspace or a directory otherwise.
++	 */
++	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ path: string, workspace?: boolean} | undefined> {
++		const cwd = process.env.VSCODE_CWD || process.cwd();
++		for (let i = 0; i < startPaths.length; ++i) {
++			const startPath = startPaths[i];
++			if (!startPath) {
++				continue;
++			}
++			const paths = typeof startPath.path === 'string' ? [startPath.path] : (startPath.path || []);
++			for (let j = 0; j < paths.length; ++j) {
++				const p = sanitizeFilePath(paths[j], cwd);
++				try {
++					const stat = await fs.stat(p);
++					if (typeof startPath.workspace === 'undefined' || startPath.workspace !== stat.isDirectory()) {
++						return { path: p, workspace: !stat.isDirectory() };
++					}
++				} catch (error) {
++					logger.warn(error.message);
++				}
++			}
++		}
++		return undefined;
++	}
++
++	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
++		if (product.commit && message.commit !== product.commit) {
++			throw new Error(`Version mismatch (${message.commit} instead of ${product.commit})`);
++		}
++
++		switch (message.desiredConnectionType) {
++			case ConnectionType.ExtensionHost:
++			case ConnectionType.Management:
++				if (!this.connections.has(message.desiredConnectionType)) {
++					this.connections.set(message.desiredConnectionType, new Map());
++				}
++				const connections = this.connections.get(message.desiredConnectionType)!;
++
++				const ok = async () => {
++					return message.desiredConnectionType === ConnectionType.ExtensionHost
++						? { debugPort: await this.getDebugPort() }
++						: { type: 'ok' };
++				};
++
++				const token = protocol.options.reconnectionToken;
++				if (protocol.options.reconnection && connections.has(token)) {
++					protocol.sendMessage(await ok());
++					const buffer = protocol.readEntireBuffer();
++					protocol.dispose();
++					return connections.get(token)!.reconnect(protocol.getSocket(), buffer);
++				} else if (protocol.options.reconnection || connections.has(token)) {
++					throw new Error(protocol.options.reconnection
++						? 'Unrecognized reconnection token'
++						: 'Duplicate reconnection token'
++					);
++				}
++
++				protocol.sendMessage(await ok());
++
++				let connection: Connection;
++				if (message.desiredConnectionType === ConnectionType.Management) {
++					connection = new ManagementConnection(protocol, token);
++					this._onDidClientConnect.fire({
++						protocol, onDidClientDisconnect: connection.onClose,
++					});
++					// TODO: Need a way to match clients with a connection. For now
++					// dispose everything which only works because no extensions currently
++					// utilize long-running proxies.
++					(this.services.get(INodeProxyService) as NodeProxyService)._onUp.fire();
++					connection.onClose(() => (this.services.get(INodeProxyService) as NodeProxyService)._onDown.fire());
++				} else {
++					const buffer = protocol.readEntireBuffer();
++					connection = new ExtensionHostConnection(
++						message.args ? message.args.language : 'en',
++						protocol, buffer, token,
++						this.services.get(ILogService) as ILogService,
++						this.services.get(IEnvironmentService) as IEnvironmentService,
++					);
++				}
++				connections.set(token, connection);
++				connection.onClose(() => connections.delete(token));
++				this.disposeOldOfflineConnections(connections);
++				break;
++			case ConnectionType.Tunnel: return protocol.tunnel();
++			default: throw new Error('Unrecognized connection type');
++		}
++	}
++
++	private disposeOldOfflineConnections(connections: Map<string, Connection>): void {
++		const offline = Array.from(connections.values())
++			.filter((connection) => typeof connection.offline !== 'undefined');
++		for (let i = 0, max = offline.length - this.maxExtraOfflineConnections; i < max; ++i) {
++			offline[i].dispose();
++		}
++	}
++
++	private async initializeServices(args: ParsedArgs): Promise<void> {
++		const environmentService = new EnvironmentService(args, process.execPath);
++		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
++		const fileService = new FileService(logService);
++		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
++
++		const piiPaths = [
++			path.join(environmentService.userDataPath, 'clp'), // Language packs.
++			environmentService.extensionsPath,
++			environmentService.builtinExtensionsPath,
++			...environmentService.extraExtensionPaths,
++			...environmentService.extraBuiltinExtensionPaths,
++		];
++
++		this.ipc.registerChannel('logger', new LoggerChannel(logService));
++		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
++
++		this.services.set(ILogService, logService);
++		this.services.set(IEnvironmentService, environmentService);
++		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource]));
++		this.services.set(IRequestService, new SyncDescriptor(RequestService));
++		this.services.set(IFileService, fileService);
++		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
++		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
++		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
++
++		if (!environmentService.args['disable-telemetry']) {
++			this.services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [{
++				appender: combinedAppender(
++					new AppInsightsAppender('code-server', null, () => new TelemetryClient() as any, logService),
++					new LogAppender(logService),
++				),
++				commonProperties: resolveCommonProperties(
++					product.commit, product.version, await getMachineId(),
++					[], environmentService.installSourcePath, 'code-server',
++				),
++				piiPaths,
++			} as ITelemetryServiceConfig]));
++		} else {
++			this.services.set(ITelemetryService, NullTelemetryService);
++		}
++
++		await new Promise((resolve) => {
++			const instantiationService = new InstantiationService(this.services);
++			this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
++			this.services.set(INodeProxyService, instantiationService.createInstance(NodeProxyService));
++
++			instantiationService.invokeFunction(() => {
++				instantiationService.createInstance(LogsDataCleaner);
++				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
++				this.ipc.registerChannel('extensions', new ExtensionManagementChannel(
++					this.services.get(IExtensionManagementService) as IExtensionManagementService,
++					(context) => getUriTransformer(context.remoteAuthority),
++				));
++				this.ipc.registerChannel('remoteextensionsenvironment', new ExtensionEnvironmentChannel(
++					environmentService, logService, telemetryService, '',
++				));
++				this.ipc.registerChannel('request', new RequestChannel(this.services.get(IRequestService) as IRequestService));
++				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
++				this.ipc.registerChannel('nodeProxy', new NodeProxyChannel(this.services.get(INodeProxyService) as INodeProxyService));
++				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(this.services.get(ILocalizationsService) as ILocalizationsService));
++				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
++				resolve(new ErrorTelemetry(telemetryService));
++			});
++		});
++	}
++
++	/**
++	 * TODO: implement.
++	 */
++	private async getDebugPort(): Promise<number | undefined> {
++		return undefined;
++	}
++}
+diff --git a/src/vs/server/node/uriTransformer.js b/src/vs/server/node/uriTransformer.js
+new file mode 100644
+index 0000000000..fc69441cf0
+--- /dev/null
++++ b/src/vs/server/node/uriTransformer.js
+@@ -0,0 +1,24 @@
++// This file is included via a regular Node require. I'm not sure how (or if)
++// we can write this in Typescript and have it compile to non-AMD syntax.
++module.exports = (remoteAuthority) => {
++	return {
++		transformIncoming: (uri) => {
++			switch (uri.scheme) {
++				case "vscode-remote": return { scheme: "file", path: uri.path };
++				default: return uri;
++			}
++		},
++		transformOutgoing: (uri) => {
++			switch (uri.scheme) {
++				case "file": return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
++				default: return uri;
++			}
++		},
++		transformOutgoingScheme: (scheme) => {
++			switch (scheme) {
++				case "file": return "vscode-remote";
++				default: return scheme;
++			}
++		},
++	};
++};
+diff --git a/src/vs/server/node/util.ts b/src/vs/server/node/util.ts
+new file mode 100644
+index 0000000000..ac950994b9
+--- /dev/null
++++ b/src/vs/server/node/util.ts
+@@ -0,0 +1,27 @@
++import * as path from 'path';
++import * as os from 'os';
++import { getPathFromAmdModule } from 'vs/base/common/amd';
++import { URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
++
++export const uriTransformerPath = getPathFromAmdModule(require, 'vs/server/node/uriTransformer');
++export const getUriTransformer = (remoteAuthority: string): URITransformer => {
++	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
++	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
++	return new URITransformer(rawURITransformer);
++};
++
++const getXdgDataDir = (): string => {
++	switch (process.platform) {
++		case 'win32':
++			return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), 'AppData/Local'), 'code-server/Data');
++		case 'darwin':
++			return path.join(
++				process.env.XDG_DATA_HOME || path.join(os.homedir(), 'Library/Application Support'),
++				'code-server'
++			);
++		default:
++			return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local/share'), 'code-server');
++	}
++};
++
++export const xdgLocalDir = getXdgDataDir();
 diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
-index 2905c52411..303ddf211f 100644
+index 2905c52411..6ecfae2634 100644
 --- a/src/vs/workbench/api/browser/extensionHost.contribution.ts
 +++ b/src/vs/workbench/api/browser/extensionHost.contribution.ts
 @@ -57,6 +57,7 @@ import './mainThreadComments';
  import './mainThreadTask';
  import './mainThreadLabelService';
  import 'vs/workbench/api/common/apiCommands';
-+import 'vs/server/src/browser/mainThreadNodeProxy';
++import 'vs/server/browser/mainThreadNodeProxy';
  
  export class ExtensionPoints implements IWorkbenchContribution {
  
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index ea5ad7991f..8d8e99339e 100644
+index ea5ad7991f..e5e0ec0fce 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
 @@ -67,6 +67,7 @@ import { ILogService } from 'vs/platform/log/common/log';
  import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransformerService';
  import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
  import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitDataService';
-+import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
++import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
  
  export interface IExtensionApiFactory {
  	(extension: IExtensionDescription, registry: ExtensionDescriptionRegistry, configProvider: ExtHostConfigProvider): typeof vscode;
@@ -462,7 +2788,7 @@ index 3dab81c9c5..73fc57118a 100644
 +	ExtHostNodeProxy: createMainId<ExtHostNodeProxyShape>('ExtHostNodeProxy')
  };
 diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
-index a3b5ed0057..f47a97336d 100644
+index a3b5ed0057..679be7f377 100644
 --- a/src/vs/workbench/api/common/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/common/extHostExtensionService.ts
 @@ -5,7 +5,7 @@
@@ -478,7 +2804,7 @@ index a3b5ed0057..f47a97336d 100644
  import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
  import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
  import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
-+import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
++import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
  
  interface ITestRunner {
  	/** Old test runner API, as exported from `vscode/lib/testrunner` */
@@ -490,7 +2816,7 @@ index a3b5ed0057..f47a97336d 100644
  
  	protected readonly _mainThreadWorkspaceProxy: MainThreadWorkspaceShape;
  	protected readonly _mainThreadTelemetryProxy: MainThreadTelemetryShape;
-@@ -104,7 +106,8 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -104,15 +106,18 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  		@IExtHostConfiguration extHostConfiguration: IExtHostConfiguration,
  		@ILogService logService: ILogService,
  		@IExtHostInitDataService initData: IExtHostInitDataService,
@@ -500,7 +2826,9 @@ index a3b5ed0057..f47a97336d 100644
  	) {
  		this._hostUtils = hostUtils;
  		this._extHostContext = extHostContext;
-@@ -113,6 +116,7 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+ 		this._initData = initData;
++		this._nodeProxy = nodeProxy;
+ 
  		this._extHostWorkspace = extHostWorkspace;
  		this._extHostConfiguration = extHostConfiguration;
  		this._logService = logService;
@@ -508,7 +2836,7 @@ index a3b5ed0057..f47a97336d 100644
  		this._disposables = new DisposableStore();
  
  		this._mainThreadWorkspaceProxy = this._extHostContext.getProxy(MainContext.MainThreadWorkspace);
-@@ -337,14 +341,14 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
+@@ -337,14 +342,14 @@ export abstract class AbstractExtHostExtensionService implements ExtHostExtensio
  
  		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
  		return Promise.all([
@@ -526,7 +2854,7 @@ index a3b5ed0057..f47a97336d 100644
  	private _loadExtensionContext(extensionDescription: IExtensionDescription): Promise<vscode.ExtensionContext> {
  
 diff --git a/src/vs/workbench/api/node/extHost.services.ts b/src/vs/workbench/api/node/extHost.services.ts
-index 9ae085f536..4e3ccca3d3 100644
+index 9ae085f536..2510c86617 100644
 --- a/src/vs/workbench/api/node/extHost.services.ts
 +++ b/src/vs/workbench/api/node/extHost.services.ts
 @@ -26,6 +26,8 @@ import { ExtHostExtensionService } from 'vs/workbench/api/node/extHostExtensionS
@@ -534,7 +2862,7 @@ index 9ae085f536..4e3ccca3d3 100644
  import { ILogService } from 'vs/platform/log/common/log';
  import { ExtHostLogService } from 'vs/workbench/api/node/extHostLogService';
 +import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
-+import { IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
++import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
  
  // register singleton services
  registerSingleton(ILogService, ExtHostLogService);
@@ -584,7 +2912,7 @@ index a1c3e50ffd..910627aaf9 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/node/extHostStoragePaths.ts b/src/vs/workbench/api/node/extHostStoragePaths.ts
-index afdd6bf398..ac91318ce3 100644
+index afdd6bf398..604fdd255c 100644
 --- a/src/vs/workbench/api/node/extHostStoragePaths.ts
 +++ b/src/vs/workbench/api/node/extHostStoragePaths.ts
 @@ -5,13 +5,14 @@
@@ -620,7 +2948,7 @@ index afdd6bf398..ac91318ce3 100644
 +		// NOTE@coder: Use the file system proxy so this will work in the browser.
 +		// writeFile performs a mkdirp so we don't need to bother ourselves.
 +		const fileSystem = this._extHostRpc.getProxy(MainContext.MainThreadFileSystem);
-+		const exists = fileSystem.$stat(URI.file(storagePath))
++		const exists = fileSystem.$stat(URI.file(storagePath));
  
  		if (exists) {
  			return storagePath;
@@ -648,7 +2976,7 @@ index afdd6bf398..ac91318ce3 100644
  			return storagePath;
  
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index 4781f22676..25143a97c0 100644
+index 4781f22676..86c9246f51 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
 @@ -9,6 +9,9 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
@@ -657,7 +2985,7 @@ index 4781f22676..25143a97c0 100644
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
 +import { joinPath } from 'vs/base/common/resources';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
-+import { loadCommonJSModule } from 'vs/server/src/browser/worker';
++import { loadCommonJSModule } from 'vs/server/browser/worker';
  
  class WorkerRequireInterceptor extends RequireInterceptor {
  
@@ -687,14 +3015,14 @@ index 4781f22676..25143a97c0 100644
  				throw new Error(`Cannot load module '${request}'`);
  			}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 807ac56d8f..a22bd92a82 100644
+index 807ac56d8f..7482c92fd4 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -50,6 +50,7 @@ import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedD
  import { InMemoryLogProvider } from 'vs/workbench/services/log/common/inMemoryLogProvider';
  import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
  import { getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
-+import { initialize } from 'vs/server/src/browser/client';
++import { initialize } from 'vs/server/browser/client';
  
  class BrowserMain extends Disposable {
  
@@ -715,7 +3043,7 @@ index 807ac56d8f..a22bd92a82 100644
  			if (!this.configuration.userDataProvider) {
  				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
-index c509716fc4..e416413084 100644
+index c509716fc4..2b4c847d1e 100644
 --- a/src/vs/workbench/common/resources.ts
 +++ b/src/vs/workbench/common/resources.ts
 @@ -15,6 +15,7 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
@@ -731,7 +3059,7 @@ index c509716fc4..e416413084 100644
  		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
  			this._resourceKey.set(value);
 -			this._schemeKey.set(value ? value.scheme : null);
-+			// NOTE@coder: fixes extensions matching against file schemas.
++			// NOTE@coder: Fixes extensions matching against file schemas.
 +			this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
  			this._filenameKey.set(value ? basename(value) : null);
  			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
@@ -770,7 +3098,7 @@ index f67f9aa064..add754cd5a 100644
  
  		const { choice } = await this.show(Severity.Info, this.productService.nameLong, [nls.localize('copy', "Copy"), nls.localize('ok', "OK")], { detail, cancelId: 1 });
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index d54e68fa70..b2c4ea5f6a 100644
+index d54e68fa70..d1cd9c4c1b 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
 @@ -189,8 +189,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
@@ -784,15 +3112,15 @@ index d54e68fa70..b2c4ea5f6a 100644
  	}
  
  	@memoize
-@@ -267,6 +267,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
- 	//#region TODO ENABLE IN WEB
+@@ -245,6 +245,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 	installSourcePath!: string;
  
- 	galleryMachineIdResource?: URI;
+ 	builtinExtensionsPath!: string;
 +	extraExtensionPaths!: string[];
 +	extraBuiltinExtensionPaths!: string[];
  
- 	//#endregion
- 
+ 	globalStorageHome!: string;
+ 	workspaceStorageHome!: string;
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
 index d164f2c127..5a08106f04 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
@@ -806,7 +3134,7 @@ index d164f2c127..5a08106f04 100644
  			this._checkEnableProposedApi(remoteEnv.extensions);
  
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-index 75f715cc51..1d6299309d 100644
+index 75f715cc51..4422cfa418 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 +++ b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 @@ -32,7 +32,8 @@ export function canExecuteOnWorkspace(manifest: IExtensionManifest, productServi
@@ -814,7 +3142,7 @@ index 75f715cc51..1d6299309d 100644
  export function canExecuteOnWeb(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
  	const extensionKind = getExtensionKind(manifest, productService, configurationService);
 -	return extensionKind.some(kind => kind === 'web');
-+	// NOTE@coder: hardcode vim for now.
++	// NOTE@coder: Hardcode vim for now.
 +	return extensionKind.some(kind => kind === 'web') || manifest.name === 'vim';
  }
  
@@ -854,7 +3182,7 @@ index 0f35c54431..32fff09b18 100644
  					}
  				}
 diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-index 8a65101aa4..e9c66b3b20 100644
+index 8a65101aa4..1c4923dd6d 100644
 --- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
 +++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
 @@ -18,9 +18,10 @@ import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePa
@@ -864,7 +3192,7 @@ index 8a65101aa4..e9c66b3b20 100644
 -import { ServiceIdentifier } from 'vs/platform/instantiation/common/instantiation';
  import { ILogService } from 'vs/platform/log/common/log';
  import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
-+import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/src/browser/extHostNodeProxy';
++import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
 +import { ExtensionStoragePaths } from 'vs/workbench/api/node/extHostStoragePaths';
  
  // register singleton services
@@ -897,11 +3225,28 @@ index 8a65101aa4..e9c66b3b20 100644
 -	whenReady = Promise.resolve();
 -});
 +registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
+diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
+index 79455414c0..5ba66b2d83 100644
+--- a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
++++ b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
+@@ -14,7 +14,11 @@
+ 
+ 	require.config({
+ 		baseUrl: monacoBaseUrl,
+-		catchError: true
++		catchError: true,
++		paths: {
++			'@coder/node-browser': `../../static-{{COMMIT}}/node_modules/@coder/node-browser/out/client/client.js`,
++			'@coder/requirefs': `../../static-{{COMMIT}}/node_modules/@coder/requirefs/out/requirefs.js`,
++		}
+ 	});
+ 
+ 	require(['vs/workbench/services/extensions/worker/extensionHostWorker'], () => { }, err => console.error(err));
 diff --git a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
-index 99394090da..4891e0fece 100644
+index 99394090da..fa86aef420 100644
 --- a/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
 +++ b/src/vs/workbench/services/localizations/electron-browser/localizationsService.ts
-@@ -5,17 +5,17 @@
+@@ -5,17 +5,18 @@
  
  import { createChannelSender } from 'vs/base/parts/ipc/node/ipc';
  import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
@@ -913,6 +3258,7 @@ index 99394090da..4891e0fece 100644
  
  	_serviceBrand: undefined;
  
++	// NOTE@coder: Patched to work in the browser.
  	constructor(
 -		@ISharedProcessService sharedProcessService: ISharedProcessService,
 +		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
@@ -922,36 +3268,11 @@ index 99394090da..4891e0fece 100644
  	}
  }
  
-diff --git a/src/vs/workbench/services/update/electron-browser/updateService.ts b/src/vs/workbench/services/update/electron-browser/updateService.ts
-index b8f6558b2c..b1fe6b14fd 100644
---- a/src/vs/workbench/services/update/electron-browser/updateService.ts
-+++ b/src/vs/workbench/services/update/electron-browser/updateService.ts
-@@ -6,7 +6,7 @@
- import { IChannel } from 'vs/base/parts/ipc/common/ipc';
- import { Event, Emitter } from 'vs/base/common/event';
- import { IUpdateService, State } from 'vs/platform/update/common/update';
--import { IMainProcessService } from 'vs/platform/ipc/electron-browser/mainProcessService';
-+import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
- import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
- 
- export class NativeUpdateService implements IUpdateService {
-@@ -21,8 +21,9 @@ export class NativeUpdateService implements IUpdateService {
- 
- 	private channel: IChannel;
- 
--	constructor(@IMainProcessService mainProcessService: IMainProcessService) {
--		this.channel = mainProcessService.getChannel('update');
-+	// NOTE@coder: patched to work in the browser.
-+	constructor(@IRemoteAgentService remoteAgentService: IRemoteAgentService) {
-+		this.channel = remoteAgentService.getConnection()!.getChannel('update');
- 
- 		// always set this._state as the state changes
- 		this.onStateChange(state => this._state = state);
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index f424c87d92..af681c3c12 100644
+index f424c87d92..6fb1e4f2ed 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
-@@ -34,11 +34,14 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
+@@ -34,7 +34,8 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
  import 'vs/workbench/services/keybinding/browser/keymapService';
  import 'vs/workbench/services/extensions/browser/extensionService';
  import 'vs/workbench/services/extensionManagement/common/extensionManagementServerService';
@@ -961,10 +3282,142 @@ index f424c87d92..af681c3c12 100644
  import 'vs/workbench/services/configurationResolver/browser/configurationResolverService';
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
--import 'vs/workbench/services/update/browser/updateService';
-+// NOTE@coder: Use the electron-browser version since it already comes with a
-+// channel which lets us actually perform updates.
-+import 'vs/workbench/services/update/electron-browser/updateService';
- import 'vs/workbench/contrib/tags/browser/workspaceTagsService';
- import 'vs/workbench/services/workspaces/browser/workspacesService';
- import 'vs/workbench/services/workspaces/browser/workspaceEditingService';
+diff --git a/test/automation/package.json b/test/automation/package.json
+index 297dce969b..06e0199c74 100644
+--- a/test/automation/package.json
++++ b/test/automation/package.json
+@@ -22,12 +22,12 @@
+   "devDependencies": {
+     "@types/mkdirp": "0.5.1",
+     "@types/ncp": "2.0.1",
+-    "@types/node": "8.0.33",
++    "@types/node": "^10.12.12",
+     "@types/puppeteer": "^1.19.0",
+     "@types/tmp": "0.1.0",
+     "concurrently": "^3.5.1",
+     "cpx": "^1.5.0",
+-    "typescript": "2.9.2",
++    "typescript": "3.7.2",
+     "watch": "^1.0.2"
+   },
+   "dependencies": {
+diff --git a/test/automation/yarn.lock b/test/automation/yarn.lock
+index 94a1350861..d75660c5af 100644
+--- a/test/automation/yarn.lock
++++ b/test/automation/yarn.lock
+@@ -21,10 +21,10 @@
+   resolved "https://registry.yarnpkg.com/@types/node/-/node-12.7.1.tgz#3b5c3a26393c19b400844ac422bd0f631a94d69d"
+   integrity sha512-aK9jxMypeSrhiYofWWBf/T7O+KwaiAHzM4sveCdWPn71lzUSMimRnKzhXDKfKwV1kWoBo2P1aGgaIYGLf9/ljw==
+ 
+-"@types/node@8.0.33":
+-  version "8.0.33"
+-  resolved "https://registry.yarnpkg.com/@types/node/-/node-8.0.33.tgz#1126e94374014e54478092830704f6ea89df04cd"
+-  integrity sha512-vmCdO8Bm1ExT+FWfC9sd9r4jwqM7o97gGy2WBshkkXbf/2nLAJQUrZfIhw27yVOtLUev6kSZc4cav/46KbDd8A==
++"@types/node@^10.12.12":
++  version "10.17.13"
++  resolved "https://registry.yarnpkg.com/@types/node/-/node-10.17.13.tgz#ccebcdb990bd6139cd16e84c39dc2fb1023ca90c"
++  integrity sha512-pMCcqU2zT4TjqYFrWtYHKal7Sl30Ims6ulZ4UFXxI4xbtQqK/qqKwkDoBFCfooRqqmRu9vY3xaJRwxSh673aYg==
+ 
+ "@types/puppeteer@^1.19.0":
+   version "1.19.1"
+@@ -1751,10 +1751,10 @@ typedarray@^0.0.6:
+   resolved "https://registry.yarnpkg.com/typedarray/-/typedarray-0.0.6.tgz#867ac74e3864187b1d3d47d996a78ec5c8830777"
+   integrity sha1-hnrHTjhkGHsdPUfZlqeOxciDB3c=
+ 
+-typescript@2.9.2:
+-  version "2.9.2"
+-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
+-  integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
++typescript@3.7.2:
++  version "3.7.2"
++  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
++  integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
+ 
+ union-value@^1.0.0:
+   version "1.0.1"
+diff --git a/test/smoke/package.json b/test/smoke/package.json
+index 2ae2926ada..14b0c621ff 100644
+--- a/test/smoke/package.json
++++ b/test/smoke/package.json
+@@ -27,7 +27,7 @@
+     "rimraf": "^2.6.1",
+     "strip-json-comments": "^2.0.1",
+     "tmp": "0.0.33",
+-    "typescript": "2.9.2",
++    "typescript": "3.7.2",
+     "watch": "^1.0.2"
+   }
+ }
+diff --git a/test/smoke/yarn.lock b/test/smoke/yarn.lock
+index 82626a55c7..5d3ee1b69b 100644
+--- a/test/smoke/yarn.lock
++++ b/test/smoke/yarn.lock
+@@ -2122,10 +2122,10 @@ tree-kill@^1.1.0:
+   resolved "https://registry.yarnpkg.com/tree-kill/-/tree-kill-1.2.0.tgz#5846786237b4239014f05db156b643212d4c6f36"
+   integrity sha512-DlX6dR0lOIRDFxI0mjL9IYg6OTncLm/Zt+JiBhE5OlFcAR8yc9S7FFXU9so0oda47frdM/JFsk7UjNt9vscKcg==
+ 
+-typescript@2.9.2:
+-  version "2.9.2"
+-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-2.9.2.tgz#1cbf61d05d6b96269244eb6a3bce4bd914e0f00c"
+-  integrity sha512-Gr4p6nFNaoufRIY4NMdpQRNmgxVIGMs4Fcu/ujdYk3nAZqk7supzBE9idmvfZIlH/Cuj//dvi+019qEue9lV0w==
++typescript@3.7.2:
++  version "3.7.2"
++  resolved "https://registry.yarnpkg.com/typescript/-/typescript-3.7.2.tgz#27e489b95fa5909445e9fef5ee48d81697ad18fb"
++  integrity sha512-ml7V7JfiN2Xwvcer+XAf2csGO1bPBdRbFCkYBczNZggrBZ9c7G3riSUeJmqEU5uOtXNPMhE3n+R4FA/3YOAWOQ==
+ 
+ union-value@^1.0.0:
+   version "1.0.1"
+diff --git a/yarn.lock b/yarn.lock
+index edbbc9743d..fabb9c1491 100644
+--- a/yarn.lock
++++ b/yarn.lock
+@@ -95,6 +95,23 @@
+     lodash "^4.17.11"
+     to-fast-properties "^2.0.0"
+ 
++"@coder/logger@^1.1.11":
++  version "1.1.11"
++  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.11.tgz#e6f36dba9436ae61e66e3f66787d75c768617605"
++  integrity sha512-EEh1dqSU0AaqjjjMsVqumgZGbrZimKFKIb4t5E6o3FLfVUxJCReSME78Yj2N1xWUVAHMnqafDCxLostpuIotzw==
++
++"@coder/node-browser@^1.0.8":
++  version "1.0.8"
++  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.8.tgz#c22f581b089ad7d95ad1362fd351c57b7fbc6e70"
++  integrity sha512-NLF9sYMRCN9WK1C224pHax1Cay3qKypg25BhVg7VfNbo3Cpa3daata8RF/rT8JK3lPsu8PmFgDRQjzGC9X1Lrw==
++
++"@coder/requirefs@^1.0.6":
++  version "1.0.6"
++  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.0.6.tgz#d2d9b529d55e00da5b779aba0ac37c534a9fe55c"
++  integrity sha512-AEHfWXXJV1FGB0CjTVz+BhyS9G5xUlC0L1+/jDgGE9CuKK2obZzg3xdALFXadZhcpQGa2vXFEmrtkkW2xP6X2A==
++  optionalDependencies:
++    jszip "2.6.0"
++
+ "@types/applicationinsights@0.20.0":
+   version "0.20.0"
+   resolved "https://registry.yarnpkg.com/@types/applicationinsights/-/applicationinsights-0.20.0.tgz#fa7b36dc954f635fa9037cad27c378446b1048fb"
+@@ -4943,6 +4960,13 @@ jsprim@^1.2.2:
+     json-schema "0.2.3"
+     verror "1.10.0"
+ 
++jszip@2.6.0:
++  version "2.6.0"
++  resolved "https://registry.yarnpkg.com/jszip/-/jszip-2.6.0.tgz#7fb3e9c2f11c8a9840612db5dabbc8cf3a7534b7"
++  integrity sha1-f7PpwvEciphAYS212rvIzzp1NLc=
++  dependencies:
++    pako "~1.0.0"
++
+ just-debounce@^1.0.0:
+   version "1.0.0"
+   resolved "https://registry.yarnpkg.com/just-debounce/-/just-debounce-1.0.0.tgz#87fccfaeffc0b68cd19d55f6722943f929ea35ea"
+@@ -6248,6 +6272,11 @@ p-try@^2.0.0:
+   resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.0.0.tgz#85080bb87c64688fa47996fe8f7dfbe8211760b1"
+   integrity sha512-hMp0onDKIajHfIkdRk3P4CdCmErkYAxxDtP3Wx/4nZ3aGlau2VKh3mZpcuFkH27WQkL/3WBCPOktzA9ZOAnMQQ==
+ 
++pako@~1.0.0:
++  version "1.0.10"
++  resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.10.tgz#4328badb5086a426aa90f541977d4955da5c9732"
++  integrity sha512-0DTvPVU3ed8+HNXOu5Bs+o//Mbdj9VNQMUOe9oKCwh8l0GNwpTDMKCWbRjgtD291AWnkAgkqA/LOnQS8AmS1tw==
++
+ pako@~1.0.5:
+   version "1.0.6"
+   resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"

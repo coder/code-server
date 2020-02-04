@@ -1,0 +1,28 @@
+.field-error {
+  color: red;
+}
+
+.request-error {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.37);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-weight: 700;
+  justify-content: center;
+  padding: 20px;
+  text-transform: uppercase;
+}
+
+.request-error > .close {
+  background: transparent;
+  border: none;
+  color: #b6b6b6;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.request-error + .request-error {
+  border-top: 1px solid #b6b6b6;
+}

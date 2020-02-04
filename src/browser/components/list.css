@@ -1,0 +1,108 @@
+.app-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 -10px; /* To counter app padding. */
+  flex: 1;
+}
+
+.app-loader {
+  align-items: center;
+  color: #b6b6b6;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.app-loader > .loader {
+  color: #b6b6b6;
+}
+
+.app-row {
+  color: #b6b6b6;
+  cursor: pointer;
+  display: flex;
+  font-size: 1em;
+  line-height: 1em;
+  width: 100%;
+}
+
+.app-row > .launch,
+.app-row > .kill {
+  background-color: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1em;
+  line-height: 1em;
+  margin: 1px 0;
+  padding: 3px 10px;
+}
+
+.app-row > .launch {
+  border-radius: 50px;
+  display: flex;
+  flex: 1;
+}
+
+.app-row > .launch:hover,
+.app-row > .kill:hover {
+  color: #000;
+}
+
+.app-row .icon {
+  height: 1em;
+  margin-right: 5px;
+  width: 1em;
+}
+
+.app-row .icon.-missing {
+  background-color: #eee;
+  color: #b6b6b6;
+  text-align: center;
+}
+
+.app-row .icon.-missing::after {
+  content: "?";
+  font-size: 0.7em;
+  vertical-align: middle;
+}
+
+.app-row.-selected {
+  background-color: #bcc6fa;
+}
+
+.app-loader > .opening {
+  margin-bottom: 10px;
+}
+
+.app-loader > .app-row {
+  color: #000;
+  justify-content: center;
+}
+
+.app-loader > .cancel {
+  background: transparent;
+  border: none;
+  color: #b6b6b6;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.app-list + .app-list {
+  border-top: 1px solid #b6b6b6;
+  margin-top: 1em;
+  padding-top: 1em;
+}
+
+.app-list > .header {
+  color: #b6b6b6;
+  font-size: 1em;
+  margin-bottom: 1em;
+  margin-top: 0;
+}
+
+.app-list > .loader {
+  color: #b6b6b6;
+}

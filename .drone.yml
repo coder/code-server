@@ -6,6 +6,11 @@ platform:
   arch: amd64
 
 steps:
+- name: submodules
+  image: alpine/git
+  commands:
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12
   commands:
@@ -69,7 +74,7 @@ steps:
 - name: publish:gcs
   image: plugins/gcs
   settings:
-    source: gcs_bucket
+    source: binary-upload
     target: codesrv-ci.cdr.sh/
     token:
       from_secret: gcs-token
@@ -85,6 +90,11 @@ platform:
   arch: amd64
 
 steps:
+- name: submodules
+  image: alpine/git
+  commands:
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12-alpine
   commands:
@@ -133,7 +143,7 @@ steps:
 - name: publish:gcs
   image: plugins/gcs
   settings:
-    source: gcs_bucket
+    source: binary-upload
     target: codesrv-ci.cdr.sh/
     token:
       from_secret: gcs-token
@@ -149,6 +159,12 @@ platform:
   arch: arm64
 
 steps:
+- name: submodules
+  image: alpine
+  commands:
+    - apk add git
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12
   commands:
@@ -211,7 +227,7 @@ steps:
 - name: publish:gcs
   image: plugins/gcs
   settings:
-    source: gcs_bucket
+    source: binary-upload
     target: codesrv-ci.cdr.sh/
     token:
       from_secret: gcs-token
@@ -227,6 +243,12 @@ platform:
   arch: arm64
 
 steps:
+- name: submodules
+  image: alpine
+  commands:
+    - apk add git
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12-alpine
   commands:
@@ -275,7 +297,7 @@ steps:
 - name: publish:gcs
   image: plugins/gcs
   settings:
-    source: gcs_bucket
+    source: binary-upload
     target: codesrv-ci.cdr.sh/
     token:
       from_secret: gcs-token
@@ -291,6 +313,12 @@ platform:
   arch: arm
 
 steps:
+- name: submodules
+  image: alpine
+  commands:
+    - apk add git
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12
   commands:
@@ -360,6 +388,12 @@ platform:
   arch: arm
 
 steps:
+- name: submodules
+  image: alpine
+  commands:
+    - apk add git
+    - git submodule update --init
+
 - name: cache:restore
   image: node:12-alpine
   commands:

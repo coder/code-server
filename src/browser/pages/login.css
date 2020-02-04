@@ -1,0 +1,35 @@
+.login-form {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.37);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  font-weight: 700;
+  justify-content: center;
+  text-transform: uppercase;
+}
+
+.login-form > .field {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.login-form > .field-error {
+  margin-top: 10px;
+}
+
+.login-form > .field > .input {
+  border: 1px solid #b6b6b6;
+  box-sizing: border-box;
+  padding: 10px;
+  flex: 1;
+}
+
+.login-form > .field > .submit {
+  background-color: transparent;
+  border: 1px solid #b6b6b6;
+  box-sizing: border-box;
+  margin-left: -1px;
+  padding: 10px 20px;
+}

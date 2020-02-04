@@ -1,0 +1,8 @@
+.orientation-guide {
+  align-items: center;
+  color: #b6b6b6;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+}

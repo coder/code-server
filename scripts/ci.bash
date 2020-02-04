@@ -3,71 +3,62 @@
 
 set -euo pipefail
 
-function target() {
-	local os=$(uname | tr '[:upper:]' '[:lower:]')
-	if [[ "$os" == "linux" ]]; then
-		# Using the same strategy to detect Alpine as build.ts.
-		local ldd_output=$(ldd --version 2>&1 || true)
-		if echo "$ldd_output" | grep -iq musl; then
-			os="alpine"
-		fi
-	fi
-
-	echo "${os}-$(uname -m)"
-}
-
 function main() {
-	cd "$(dirname "${0}")/.."
+  cd "$(dirname "${0}")/.."
 
-	# Get the version information. If a specific version wasn't set, generate it
-	# from the tag and VS Code version.
-	local vscode_version=${VSCODE_VERSION:-1.41.1}
-	local code_server_version=${VERSION:-${TRAVIS_TAG:-${DRONE_TAG:-daily}}}
+  local code_server_version=${VERSION:-${TRAVIS_TAG:-${DRONE_TAG:-}}}
+  if [[ -z $code_server_version ]] ; then
+    code_server_version=$(grep version ./package.json | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[:space:]')
+  fi
+  export VERSION=$code_server_version
 
-	# Remove everything that isn't the current VS Code source for caching
-	# (otherwise the cache will contain old versions).
-	if [[ -d "source/vscode-$vscode_version-source" ]] ; then
-		mv "source/vscode-$vscode_version-source" "vscode-$vscode_version-source"
-	fi
-	rm -rf source/vscode-*-source
-	if [[ -d "vscode-$vscode_version-source" ]] ; then
-		mv "vscode-$vscode_version-source" "source/vscode-$vscode_version-source"
-	fi
+  YARN_CACHE_FOLDER="$(pwd)/yarn-cache"
+  export YARN_CACHE_FOLDER
 
-	YARN_CACHE_FOLDER="$(pwd)/yarn-cache"
-	export YARN_CACHE_FOLDER
+  # Always minify and package on tags since that's when releases are pushed.
+  if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
+    export MINIFY="true"
+    export PACKAGE="true"
+  fi
 
-	# Always minify and package on tags since that's when releases are pushed.
-	if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
-		export MINIFY="true"
-		export PACKAGE="true"
-	fi
+  if [[ -z ${SKIP_YARN:-} ]] ; then
+    yarn
+  fi
 
-	function run-yarn() {
-		yarn "$1" "$vscode_version" "$code_server_version"
-	}
+  yarn build
+  yarn binary
+  if [[ -n ${PACKAGE:-} ]] ; then
+    yarn package
+  fi
 
-	run-yarn build
-	run-yarn binary
-	if [[ -n ${PACKAGE:-} ]] ; then
-		run-yarn package
-	fi
+  cd binaries
 
-	# In this case provide a plainly named "code-server" binary.
-	if [[ -n ${BINARY:-} ]] ; then
-		mv binaries/code-server*-vsc* binaries/code-server
-	fi
+  if [[ -n ${STRIP_BIN_TARGET:-} ]] ; then
+    # In this case provide plainly named binaries.
+    for binary in code-server* ; do
+      echo "Moving $binary to code-server"
+      mv "$binary" code-server
+    done
+  elif [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
+    # Prepare directory for uploading binaries on release.
+    for binary in code-server* ; do
+      mkdir -p "../binary-upload"
 
-	# Prepare GCS bucket directory on release.
-	if [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]] ; then
-		local gcp_dir="gcs_bucket/releases/$code_server_version/$(target)"
+      local prefix="code-server-$code_server_version-"
+      local target="${binary#$prefix}"
+      if [[ $target == "linux-x86_64" ]] ; then
+        echo "Copying $binary to ../binary-upload/latest-linux"
+        cp "$binary" "../binary-upload/latest-linux"
+      fi
 
-		mkdir -p "$gcp_dir"
-		mv binaries/code-server*-vsc* "$gcp_dir"
-		if [[ "$(target)" == "linux-x86_64" ]] ; then
-			mv binaries/code-server*-vsc* "gcs_bucket/latest-linux"
-		fi
-	fi
+      local gcp_dir
+      gcp_dir="../binary-upload/releases/$code_server_version/$target"
+      mkdir -p "$gcp_dir"
+
+      echo "Copying $binary to $gcp_dir/code-server"
+      cp "$binary" "$gcp_dir/code-server"
+    done
+  fi
 }
 
 main "$@"

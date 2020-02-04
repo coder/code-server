@@ -2,24 +2,24 @@
 FROM ubuntu:18.04
 
 RUN apt-get update && apt-get install -y \
-	openssl \
-	net-tools \
-	git \
-	locales \
-	sudo \
-	dumb-init \
-	vim \
-	curl \
-	wget
+  openssl \
+  net-tools \
+  git \
+  locales \
+  sudo \
+  dumb-init \
+  vim \
+  curl \
+  wget
 
 RUN locale-gen en_US.UTF-8
 # We cannot use update-locale because docker will not use the env variables
 # configured in /etc/default/locale so we need to set it manually.
 ENV LC_ALL=en_US.UTF-8 \
-	SHELL=/bin/bash
+  SHELL=/bin/bash
 
 RUN adduser --gecos '' --disabled-password coder && \
-	echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
+  echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 USER coder
 # Create first so these directories will be owned by coder instead of root
