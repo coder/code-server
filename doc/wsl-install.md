@@ -14,6 +14,8 @@ Before proceeding further in this guide, please enable Windows Subsystem for Lin
 ![Windows Optional Features Dialogue](assets/wsl-optional-features.png)
 
 > **Note**: If you wish to use Windows Subsystem for Linux 2, enable the virtualization platform. Which can be found on the same dialogue as well.
+>
+> Keep in mind that Windows Subsystem for Linux 2 is only available to Windows Insiders at this time of writing.
 
 When prompted to restart, restart your machine and log in again.
 
