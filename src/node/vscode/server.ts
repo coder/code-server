@@ -128,7 +128,11 @@ export class VscodeHttpProvider extends HttpProvider {
         if (!this.authenticated(request)) {
           return { redirect: "/login" }
         }
-        return this.getRoot(request, query)
+        try {
+          return await this.getRoot(request, query)
+        } catch (error) {
+          return this.getErrorRoot(error)
+        }
       case "/static": {
         switch (requestPath) {
           case "/out/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js": {
@@ -171,7 +175,7 @@ export class VscodeHttpProvider extends HttpProvider {
   private async getRoot(request: http.IncomingMessage, query: querystring.ParsedUrlQuery): Promise<HttpResponse> {
     const settings = await this.settings.read()
     const [response, options] = await Promise.all([
-      this.getUtf8Resource(this.serverRootPath, "browser/workbench.html"),
+      await this.getUtf8Resource(this.rootPath, `src/node/vscode/workbench${!this.isDev ? "-build" : ""}.html`),
       this.initialize({
         args: this.args,
         query,
@@ -200,5 +204,14 @@ export class VscodeHttpProvider extends HttpProvider {
         .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
         .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
     }
+  }
+
+  private async getErrorRoot(error: Error): Promise<HttpResponse> {
+    const response = await this.getUtf8Resource(this.rootPath, "src/node/vscode/error.html")
+    const message = `VS Code failed to load. ${
+      this.isDev ? "It might not have finished compiling (check for 'Finished compilation' in the output)." : ""
+    } <br><br>${error}`
+    response.content = response.content.replace(/{{COMMIT}}/g, this.options.commit).replace(/{{ERROR}}/g, message)
+    return response
   }
 }

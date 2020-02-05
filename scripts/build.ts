@@ -246,18 +246,11 @@ class Builder {
     await this.task("copying vs code into build directory", async () => {
       await fs.mkdirp(vscodeBuildPath)
       await Promise.all([
-        (async (): Promise<void> => {
-          await fs.move(
-            path.join(this.vscodeSourcePath, `out-vscode${process.env.MINIFY ? "-min" : ""}`),
-            path.join(vscodeBuildPath, "out")
-          )
-          await fs.remove(path.join(vscodeBuildPath, "out/vs/server/browser/workbench.html"))
-          await fs.move(
-            path.join(vscodeBuildPath, "out/vs/server/browser/workbench-build.html"),
-            path.join(vscodeBuildPath, "out/vs/server/browser/workbench.html")
-          )
-        })(),
-        await fs.copy(path.join(this.vscodeSourcePath, ".build/extensions"), path.join(vscodeBuildPath, "extensions")),
+        fs.move(
+          path.join(this.vscodeSourcePath, `out-vscode${process.env.MINIFY ? "-min" : ""}`),
+          path.join(vscodeBuildPath, "out")
+        ),
+        fs.copy(path.join(this.vscodeSourcePath, ".build/extensions"), path.join(vscodeBuildPath, "extensions")),
       ])
     })
 

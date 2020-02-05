@@ -19,7 +19,7 @@ export class MainHttpProvider extends HttpProvider {
   ): Promise<HttpResponse | undefined> {
     if (base === "/static") {
       const response = await this.getResource(this.rootPath, requestPath)
-      if (this.options.commit && this.options.commit !== "development") {
+      if (!this.isDev) {
         response.cache = true
       }
       return response
@@ -41,7 +41,7 @@ export class MainHttpProvider extends HttpProvider {
 
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/index.html")
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit || "development")
+      .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/"{{OPTIONS}}"/g, `'${JSON.stringify(options)}'`)
       .replace(/{{COMPONENT}}/g, ReactDOMServer.renderToString(<App options={options} />))
     return response

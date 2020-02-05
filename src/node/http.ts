@@ -112,7 +112,7 @@ export interface HttpProviderOptions {
   readonly base: string
   readonly auth: AuthType
   readonly password?: string
-  readonly commit?: string
+  readonly commit: string
 }
 
 /**
@@ -149,6 +149,10 @@ export abstract class HttpProvider {
     query: querystring.ParsedUrlQuery,
     request: http.IncomingMessage
   ): Promise<HttpResponse | undefined>
+
+  protected get isDev(): boolean {
+    return this.options.commit === "development"
+  }
 
   /**
    * Return the specified path with the base path prepended.

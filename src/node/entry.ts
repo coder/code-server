@@ -23,7 +23,7 @@ const main = async (args: Args = {}): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
-  let commit = "development"
+  let commit: string | undefined
   try {
     commit = require("../../package.json").commit
   } catch (error) {
@@ -36,7 +36,7 @@ const main = async (args: Args = {}): Promise<void> => {
     basePath: args["base-path"],
     cert: args.cert,
     certKey: args["cert-key"],
-    commit,
+    commit: commit || "development",
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? parseInt(args.port, 10) : 8080,
