@@ -330,7 +330,7 @@ class Builder {
       if (server) {
         server.kill()
       }
-      const s = cp.fork(path.join(this.rootPath, "out/node/entry.js"))
+      const s = cp.fork(path.join(this.rootPath, "out/node/entry.js"), process.argv.slice(2))
       console.log(`[server] spawned process ${s.pid}`)
       s.on("exit", () => console.log(`[server] process ${s.pid} exited`))
       server = s
