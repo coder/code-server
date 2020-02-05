@@ -4,7 +4,6 @@ import * as crypto from "crypto"
 import * as http from "http"
 import * as net from "net"
 import * as path from "path"
-import * as querystring from "querystring"
 import {
   CodeServerMessage,
   Settings,
@@ -13,7 +12,7 @@ import {
   WorkbenchOptions,
 } from "../../../lib/vscode/src/vs/server/ipc"
 import { generateUuid } from "../../common/util"
-import { HttpProvider, HttpProviderOptions, HttpResponse } from "../http"
+import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { SettingsProvider } from "../settings"
 import { xdgLocalDir } from "../util"
 
@@ -76,13 +75,7 @@ export class VscodeHttpProvider extends HttpProvider {
     return this._vscode
   }
 
-  public async handleWebSocket(
-    _base: string,
-    _requestPath: string,
-    query: querystring.ParsedUrlQuery,
-    request: http.IncomingMessage,
-    socket: net.Socket
-  ): Promise<true> {
+  public async handleWebSocket(route: Route, request: http.IncomingMessage, socket: net.Socket): Promise<true> {
     if (!this.authenticated(request)) {
       throw new Error("not authenticated")
     }
@@ -105,7 +98,7 @@ export class VscodeHttpProvider extends HttpProvider {
     )
 
     const vscode = await this._vscode
-    this.send({ type: "socket", query }, vscode, socket)
+    this.send({ type: "socket", query: route.query }, vscode, socket)
     return true
   }
 
@@ -116,27 +109,20 @@ export class VscodeHttpProvider extends HttpProvider {
     vscode.send(message, socket)
   }
 
-  public async handleRequest(
-    base: string,
-    requestPath: string,
-    query: querystring.ParsedUrlQuery,
-    request: http.IncomingMessage
-  ): Promise<HttpResponse | undefined> {
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
     this.ensureGet(request)
-    switch (base) {
+    this.ensureAuthenticated(request)
+    switch (route.base) {
       case "/":
-        if (!this.authenticated(request)) {
-          return { redirect: "/login" }
-        }
         try {
-          return await this.getRoot(request, query)
+          return await this.getRoot(request, route)
         } catch (error) {
           return this.getErrorRoot(error)
         }
       case "/static": {
-        switch (requestPath) {
+        switch (route.requestPath) {
           case "/out/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js": {
-            const response = await this.getUtf8Resource(this.vsRootPath, requestPath)
+            const response = await this.getUtf8Resource(this.vsRootPath, route.requestPath)
             response.content = response.content.replace(
               /{{COMMIT}}/g,
               this.workbenchOptions ? this.workbenchOptions.commit : ""
@@ -145,40 +131,37 @@ export class VscodeHttpProvider extends HttpProvider {
             return response
           }
         }
-        const response = await this.getResource(this.vsRootPath, requestPath)
+        const response = await this.getResource(this.vsRootPath, route.requestPath)
         response.cache = true
         return response
       }
       case "/resource":
       case "/vscode-remote-resource":
-        this.ensureAuthenticated(request)
-        if (typeof query.path === "string") {
-          return this.getResource(query.path)
+        if (typeof route.query.path === "string") {
+          return this.getResource(route.query.path)
         }
         break
       case "/tar":
-        this.ensureAuthenticated(request)
-        if (typeof query.path === "string") {
-          return this.getTarredResource(query.path)
+        if (typeof route.query.path === "string") {
+          return this.getTarredResource(route.query.path)
         }
         break
       case "/webview":
-        this.ensureAuthenticated(request)
-        if (/^\/vscode-resource/.test(requestPath)) {
-          return this.getResource(requestPath.replace(/^\/vscode-resource(\/file)?/, ""))
+        if (/^\/vscode-resource/.test(route.requestPath)) {
+          return this.getResource(route.requestPath.replace(/^\/vscode-resource(\/file)?/, ""))
         }
-        return this.getResource(this.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", requestPath)
+        return this.getResource(this.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", route.requestPath)
     }
     return undefined
   }
 
-  private async getRoot(request: http.IncomingMessage, query: querystring.ParsedUrlQuery): Promise<HttpResponse> {
+  private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     const settings = await this.settings.read()
     const [response, options] = await Promise.all([
       await this.getUtf8Resource(this.rootPath, `src/node/vscode/workbench${!this.isDev ? "-build" : ""}.html`),
       this.initialize({
         args: this.args,
-        query,
+        query: route.query,
         remoteAuthority: request.headers.host as string,
         settings,
       }),

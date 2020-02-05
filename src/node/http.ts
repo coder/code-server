@@ -47,8 +47,9 @@ export interface HttpResponse<T = string | Buffer | object> {
   content?: T
   /**
    * Cookie to write with the response.
+   * NOTE: Cookie paths must be absolute. The default is /.
    */
-  cookie?: { key: string; value: string }
+  cookie?: { key: string; value: string; path?: string }
   /**
    * Used to automatically determine the appropriate mime type.
    */
@@ -64,7 +65,7 @@ export interface HttpResponse<T = string | Buffer | object> {
   /**
    * Redirect to this path. Will rewrite against the base path but NOT the
    * provider endpoint so you must include it. This allows redirecting outside
-   * of your endpoint. Use `withBase()` to redirect within your endpoint.
+   * of your endpoint.
    */
   redirect?: string
   /**
@@ -87,9 +88,12 @@ export interface HttpStringFileResponse extends HttpResponse {
   filePath: string
 }
 
+export interface RedirectResponse extends HttpResponse {
+  redirect: string
+}
+
 export interface HttpServerOptions {
   readonly auth?: AuthType
-  readonly basePath?: string
   readonly cert?: string
   readonly certKey?: string
   readonly commit?: string
@@ -99,13 +103,16 @@ export interface HttpServerOptions {
   readonly socket?: string
 }
 
-interface ProviderRoute {
+export interface Route {
   base: string
   requestPath: string
   query: querystring.ParsedUrlQuery
-  provider: HttpProvider
   fullPath: string
   originalPath: string
+}
+
+interface ProviderRoute extends Route {
+  provider: HttpProvider
 }
 
 export interface HttpProviderOptions {
@@ -132,9 +139,7 @@ export abstract class HttpProvider {
    * Handle web sockets on the registered endpoint.
    */
   public abstract handleWebSocket(
-    base: string,
-    requestPath: string,
-    query: querystring.ParsedUrlQuery,
+    route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer
@@ -143,22 +148,18 @@ export abstract class HttpProvider {
   /**
    * Handle requests to the registered endpoint.
    */
-  public abstract handleRequest(
-    base: string,
-    requestPath: string,
-    query: querystring.ParsedUrlQuery,
-    request: http.IncomingMessage
-  ): Promise<HttpResponse | undefined>
+  public abstract handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined>
+
+  /**
+   * Get the base relative to the provided route.
+   */
+  public base(route: Route): string {
+    const depth = route.fullPath ? (route.fullPath.match(/\//g) || []).length : 1
+    return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
+  }
 
   protected get isDev(): boolean {
     return this.options.commit === "development"
-  }
-
-  /**
-   * Return the specified path with the base path prepended.
-   */
-  protected withBase(path: string): string {
-    return normalize(`${this.options.base}/${path}`)
   }
 
   /**
@@ -346,19 +347,14 @@ export class HttpServer {
   private listenPromise: Promise<string | null> | undefined
   public readonly protocol: "http" | "https"
   private readonly providers = new Map<string, HttpProvider>()
-  private readonly options: HttpServerOptions
   private readonly heart: Heart
 
-  public constructor(options: HttpServerOptions) {
+  public constructor(private readonly options: HttpServerOptions) {
     this.heart = new Heart(path.join(xdgLocalDir, "heartbeat"), async () => {
       const connections = await this.getConnections()
       logger.trace(`${connections} active connection${plural(connections)}`)
       return connections !== 0
     })
-    this.options = {
-      ...options,
-      basePath: options.basePath ? options.basePath.replace(/\/+$/, "") : "",
-    }
     this.protocol = this.options.cert ? "https" : "http"
     if (this.protocol === "https") {
       this.server = httpolyglot.createServer(
@@ -452,30 +448,19 @@ export class HttpServer {
     try {
       this.heart.beat()
       const route = this.parseUrl(request)
-      const payload =
-        this.maybeRedirect(request, route) ||
-        (await route.provider.handleRequest(route.base, route.requestPath, route.query, request))
+      const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
       if (!payload) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
-      const basePath = this.options.basePath || "/"
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
-        ...(payload.redirect
-          ? {
-              Location: this.constructRedirect(
-                request.headers.host as string,
-                route.fullPath,
-                normalize(`${basePath}/${payload.redirect}`) + "/",
-                { ...route.query, ...(payload.query || {}) }
-              ),
-            }
-          : {}),
-        ...(request.headers["service-worker"] ? { "Service-Worker-Allowed": basePath } : {}),
+        ...(payload.redirect ? { Location: payload.redirect } : {}),
+        ...(request.headers["service-worker"] ? { "Service-Worker-Allowed": route.provider.base(route) } : {}),
         ...(payload.cache ? { "Cache-Control": "public, max-age=31536000" } : {}),
         ...(payload.cookie
           ? {
-              "Set-Cookie": `${payload.cookie.key}=${payload.cookie.value}; Path=${basePath}; HttpOnly; SameSite=strict`,
+              "Set-Cookie": `${payload.cookie.key}=${payload.cookie.value}; Path=${payload.cookie.path ||
+                "/"}; HttpOnly; SameSite=strict`,
             }
           : {}),
         ...payload.headers,
@@ -497,9 +482,8 @@ export class HttpServer {
       let e = error
       if (error.code === "ENOENT" || error.code === "EISDIR") {
         e = new HttpError("Not found", HttpCode.NotFound)
-      } else {
-        logger.error(error.stack)
       }
+      logger.debug(error.stack)
       response.writeHead(typeof e.code === "number" ? e.code : HttpCode.ServerError)
       response.end(error.message)
     }
@@ -509,14 +493,29 @@ export class HttpServer {
    * Return any necessary redirection before delegating to a provider.
    */
   private maybeRedirect(request: http.IncomingMessage, route: ProviderRoute): HttpResponse | undefined {
-    // Redirect to HTTPS.
-    if (this.options.cert && !(request.connection as tls.TLSSocket).encrypted) {
-      return { redirect: route.fullPath }
+    const redirect = (path: string): string => {
+      Object.keys(route.query).forEach((key) => {
+        if (typeof route.query[key] === "undefined") {
+          delete route.query[key]
+        }
+      })
+      // If we're handling TLS ensure all requests are redirected to HTTPS.
+      return this.options.cert
+        ? `${this.protocol}://${request.headers.host}`
+        : "" +
+            normalize(`${route.provider.base(route)}/${path}`, true) +
+            (Object.keys(route.query).length > 0 ? `?${querystring.stringify(route.query)}` : "")
     }
-    // Redirect indexes to a trailing slash so relative paths will operate
-    // against the provider.
-    if (route.requestPath === "/index.html" && !route.originalPath.endsWith("/")) {
-      return { redirect: route.fullPath } // Redirect always includes a trailing slash.
+
+    // Redirect to HTTPS if we're handling the TLS.
+    if (this.options.cert && !(request.connection as tls.TLSSocket).encrypted) {
+      return { redirect: redirect(route.fullPath) }
+    }
+
+    // Redirect our indexes to a trailing slash so relative paths in the served
+    // HTML will operate against the base path properly.
+    if (route.requestPath === "/index.html" && !route.originalPath.endsWith("/") && this.providers.has(route.base)) {
+      return { redirect: redirect(route.fullPath + "/") }
     }
     return undefined
   }
@@ -534,12 +533,12 @@ export class HttpServer {
         throw new HttpError("HTTP/1.1 400 Bad Request", HttpCode.BadRequest)
       }
 
-      const { base, requestPath, query, provider } = this.parseUrl(request)
-      if (!provider) {
+      const route = this.parseUrl(request)
+      if (!route.provider) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
 
-      if (!(await provider.handleWebSocket(base, requestPath, query, request, socket, head))) {
+      if (!(await route.provider.handleWebSocket(route, request, socket, head))) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
     } catch (error) {
@@ -592,22 +591,5 @@ export class HttpServer {
       throw new Error(`No provider for ${base}`)
     }
     return { base, fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
-  }
-
-  /**
-   * Return the request URL with the specified base and new path.
-   */
-  private constructRedirect(host: string, oldPath: string, newPath: string, query: Query): string {
-    if (oldPath && oldPath !== "/" && !query.to && /\/login(\/|$)/.test(newPath) && !/\/login(\/|$)/.test(oldPath)) {
-      query.to = oldPath
-    }
-    Object.keys(query).forEach((key) => {
-      if (typeof query[key] === "undefined") {
-        delete query[key]
-      }
-    })
-    return (
-      `${this.protocol}://${host}${newPath}` + (Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : "")
-    )
   }
 }

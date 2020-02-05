@@ -1,3 +1,4 @@
+import { getBasepath } from "hookrouter"
 import { Application, ApplicationsResponse, CreateSessionResponse, FilesResponse, RecentResponse } from "../common/api"
 import { ApiEndpoint, HttpCode, HttpError } from "../common/http"
 
@@ -18,7 +19,7 @@ export function setAuthed(authed: boolean): void {
  * Also set authed to false if the request returns unauthorized.
  */
 const tryRequest = async (endpoint: string, options?: RequestInit): Promise<Response> => {
-  const response = await fetch("/api" + endpoint + "/", options)
+  const response = await fetch(getBasepath() + "/api" + endpoint + "/", options)
   if (response.status === HttpCode.Unauthorized) {
     setAuthed(false)
   }
@@ -33,14 +34,9 @@ const tryRequest = async (endpoint: string, options?: RequestInit): Promise<Resp
  * Try authenticating.
  */
 export const authenticate = async (body?: AuthBody): Promise<void> => {
-  let formBody: URLSearchParams | undefined
-  if (body) {
-    formBody = new URLSearchParams()
-    formBody.append("password", body.password)
-  }
   const response = await tryRequest(ApiEndpoint.login, {
     method: "POST",
-    body: formBody,
+    body: JSON.stringify({ ...body, basePath: getBasepath() }),
     headers: {
       "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
     },

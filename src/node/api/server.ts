@@ -1,16 +1,19 @@
 import { field, logger } from "@coder/logger"
 import * as http from "http"
 import * as net from "net"
-import * as querystring from "querystring"
 import * as ws from "ws"
-import { ApplicationsResponse, ClientMessage, FilesResponse, LoginResponse, ServerMessage } from "../../common/api"
+import {
+  ApplicationsResponse,
+  ClientMessage,
+  FilesResponse,
+  LoginRequest,
+  LoginResponse,
+  ServerMessage,
+} from "../../common/api"
 import { ApiEndpoint, HttpCode } from "../../common/http"
-import { HttpProvider, HttpProviderOptions, HttpResponse, HttpServer, PostData } from "../http"
+import { normalize } from "../../common/util"
+import { HttpProvider, HttpProviderOptions, HttpResponse, HttpServer, Route } from "../http"
 import { hash } from "../util"
-
-interface LoginPayload extends PostData {
-  password?: string | string[]
-}
 
 /**
  * API HTTP provider.
@@ -22,13 +25,8 @@ export class ApiHttpProvider extends HttpProvider {
     super(options)
   }
 
-  public async handleRequest(
-    base: string,
-    _requestPath: string,
-    _query: querystring.ParsedUrlQuery,
-    request: http.IncomingMessage
-  ): Promise<HttpResponse | undefined> {
-    switch (base) {
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
+    switch (route.base) {
       case ApiEndpoint.login:
         if (request.method === "POST") {
           return this.login(request)
@@ -38,7 +36,7 @@ export class ApiHttpProvider extends HttpProvider {
         if (!this.authenticated(request)) {
           return { code: HttpCode.Unauthorized }
         }
-        switch (base) {
+        switch (route.base) {
           case ApiEndpoint.applications:
             return this.applications()
           case ApiEndpoint.files:
@@ -49,9 +47,7 @@ export class ApiHttpProvider extends HttpProvider {
   }
 
   public async handleWebSocket(
-    _base: string,
-    _requestPath: string,
-    _query: querystring.ParsedUrlQuery,
+    _route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer
@@ -93,39 +89,45 @@ export class ApiHttpProvider extends HttpProvider {
    * unauthorized.
    */
   private async login(request: http.IncomingMessage): Promise<HttpResponse<LoginResponse>> {
-    const ok = (password: string | true): HttpResponse<LoginResponse> => {
-      return {
-        content: {
-          success: true,
-        },
-        cookie: typeof password === "string" ? { key: "key", value: password } : undefined,
-      }
-    }
-
     // Already authenticated via cookies?
     const providedPassword = this.authenticated(request)
     if (providedPassword) {
-      return ok(providedPassword)
+      return { code: HttpCode.Ok }
     }
 
     const data = await this.getData(request)
-    const payload: LoginPayload = data ? querystring.parse(data) : {}
+    const payload: LoginRequest = data ? JSON.parse(data) : {}
     const password = this.authenticated(request, {
       key: typeof payload.password === "string" ? [hash(payload.password)] : undefined,
     })
     if (password) {
-      return ok(password)
+      return {
+        content: {
+          success: true,
+        },
+        cookie:
+          typeof password === "string"
+            ? {
+                key: "key",
+                value: password,
+                path: normalize(payload.basePath),
+              }
+            : undefined,
+      }
     }
 
-    console.error(
-      "Failed login attempt",
-      JSON.stringify({
-        xForwardedFor: request.headers["x-forwarded-for"],
-        remoteAddress: request.connection.remoteAddress,
-        userAgent: request.headers["user-agent"],
-        timestamp: Math.floor(new Date().getTime() / 1000),
-      })
-    )
+    // Only log if it was an actual login attempt.
+    if (payload && payload.password) {
+      console.error(
+        "Failed login attempt",
+        JSON.stringify({
+          xForwardedFor: request.headers["x-forwarded-for"],
+          remoteAddress: request.connection.remoteAddress,
+          userAgent: request.headers["user-agent"],
+          timestamp: Math.floor(new Date().getTime() / 1000),
+        })
+      )
+    }
 
     return { code: HttpCode.Unauthorized }
   }

@@ -3,13 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-    <!-- <meta http-equiv="Content-Security-Policy" content="font-src 'self'; connect-src 'self'; default-src ws: wss:; style-src 'self'; script-src 'self' 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:;"> -->
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self' fonts.gstatic.com; connect-src 'self'; default-src ws: wss: 'self'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; script-src 'self' 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:;">
     <title>code-server</title>
-    <link rel="icon" href="./static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link rel="manifest" href="./static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
-    <link rel="apple-touch-icon" href="./static-{{COMMIT}}/src/browser/media/code-server.png" />
-    <link href="https://fonts.googleapis.com/css?family=IBM+Plex+Sans&display=swap" rel="stylesheet" />
-    <meta id="coder-options" data-settings="{{OPTIONS}}">
   </head>
   <body>
     <div id="root" style="color:#f4f4f4;padding:20px;max-width:700px;">

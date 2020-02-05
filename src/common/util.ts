@@ -3,8 +3,9 @@ import { Application } from "../common/api"
 
 export interface Options {
   app?: Application
-  authed?: boolean
-  logLevel?: number
+  authed: boolean
+  basePath: string
+  logLevel: number
 }
 
 /**

@@ -128,7 +128,6 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
           <aside className="sidebar-nav">
             <nav className="links">
               {props.authed ? (
-                // TEMP: Remove once we don't auto-load vscode.
                 <>
                   <button className="link" onClick={(): void => setSection(Section.Recent)}>
                     Recent

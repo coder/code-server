@@ -22,6 +22,11 @@ export enum SessionError {
   Unknown,
 }
 
+export interface LoginRequest {
+  password: string
+  basePath: string
+}
+
 export interface LoginResponse {
   success: boolean
 }
