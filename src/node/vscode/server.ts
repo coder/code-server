@@ -11,6 +11,7 @@ import {
   VscodeOptions,
   WorkbenchOptions,
 } from "../../../lib/vscode/src/vs/server/ipc"
+import { HttpCode, HttpError } from "../../common/http"
 import { generateUuid } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { SettingsProvider } from "../settings"
@@ -114,6 +115,9 @@ export class VscodeHttpProvider extends HttpProvider {
     this.ensureAuthenticated(request)
     switch (route.base) {
       case "/":
+        if (route.requestPath !== "/index.html") {
+          throw new HttpError("Not found", HttpCode.NotFound)
+        }
         try {
           return await this.getRoot(request, route)
         } catch (error) {

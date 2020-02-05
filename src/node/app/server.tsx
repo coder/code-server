@@ -3,6 +3,7 @@ import * as http from "http"
 import * as React from "react"
 import * as ReactDOMServer from "react-dom/server"
 import App from "../../browser/app"
+import { HttpCode, HttpError } from "../../common/http"
 import { Options } from "../../common/util"
 import { HttpProvider, HttpResponse, Route } from "../http"
 
@@ -21,6 +22,9 @@ export class MainHttpProvider extends HttpProvider {
       }
 
       case "/": {
+        if (route.requestPath !== "/index.html") {
+          throw new HttpError("Not found", HttpCode.NotFound)
+        }
         const options: Options = {
           authed: !!this.authenticated(request),
           basePath: this.base(route),
