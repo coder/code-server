@@ -12,7 +12,12 @@ iframe {
 
 body {
   background: #272727;
+  color: #f4f4f4;
   margin: 0;
   font-family: 'IBM Plex Sans', sans-serif;
   overflow: hidden;
+}
+
+button {
+  font-family: inherit;
 }

@@ -151,6 +151,7 @@ export class ApiHttpProvider extends HttpProvider {
           {
             name: "VS Code",
             path: "/vscode",
+            embedPath: "/vscode-embed",
           },
         ],
       },

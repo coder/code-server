@@ -23,25 +23,32 @@ const main = async (args: Args = {}): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
+  let commit = "development"
+  try {
+    commit = require("../../package.json").commit
+  } catch (error) {
+    logger.warn(error.message)
+  }
+
   // Spawn the main HTTP server.
   const options = {
+    auth,
     basePath: args["base-path"],
     cert: args.cert,
     certKey: args["cert-key"],
+    commit,
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
+    password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? parseInt(args.port, 10) : 8080,
     socket: args.socket,
-    auth,
-    password: originalPassword ? hash(originalPassword) : undefined,
   }
   if (!options.cert && typeof options.cert !== "undefined") {
     const { cert, certKey } = await generateCertificate()
     options.cert = cert
     options.certKey = certKey
   }
-  const httpServer = new HttpServer(options)
 
-  // Register all the providers.
+  const httpServer = new HttpServer(options)
   httpServer.registerHttpProvider("/", MainHttpProvider)
   httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
   httpServer.registerHttpProvider("/vscode-embed", VscodeHttpProvider, [])

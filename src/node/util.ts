@@ -207,10 +207,3 @@ export function extend(...args: any[]): any {
   }
   return c
 }
-
-/**
- * Remove extra and trailing slashes in a URL.
- */
-export const normalize = (url: string): string => {
-  return url.replace(/\/\/+/g, "/").replace(/\/+$/, "")
-}

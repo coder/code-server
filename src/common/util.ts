@@ -1,6 +1,9 @@
 import { logger } from "@coder/logger"
+import { Application } from "../common/api"
 
 export interface Options {
+  app?: Application
+  authed?: boolean
   logLevel?: number
 }
 
@@ -27,6 +30,9 @@ export const generateUuid = (length = 24): string => {
  * Get options embedded in the HTML from the server.
  */
 export const getOptions = <T extends Options>(): T => {
+  if (typeof document === "undefined") {
+    return {} as T
+  }
   const el = document.getElementById("coder-options")
   try {
     if (!el) {
@@ -45,4 +51,11 @@ export const getOptions = <T extends Options>(): T => {
     logger.warn(error.message)
     return {} as T
   }
+}
+
+/**
+ * Remove extra slashes in a URL.
+ */
+export const normalize = (url: string, keepTrailing = false): string => {
+  return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
 }

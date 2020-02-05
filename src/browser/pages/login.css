@@ -4,9 +4,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  font-weight: 700;
   justify-content: center;
-  text-transform: uppercase;
 }
 
 .login-form > .field {
@@ -16,13 +14,13 @@
 }
 
 .login-form > .field-error {
-  margin-top: 10px;
+  margin-top: 1em;
 }
 
 .login-form > .field > .input {
   border: 1px solid #b6b6b6;
   box-sizing: border-box;
-  padding: 10px;
+  padding: 1em;
   flex: 1;
 }
 
@@ -31,5 +29,11 @@
   border: 1px solid #b6b6b6;
   box-sizing: border-box;
   margin-left: -1px;
-  padding: 10px 20px;
+  padding: 1em 2em;
+}
+
+.login-header {
+  align-items: center;
+  color: #b6b6b6;
+  margin-bottom: 1em;
 }

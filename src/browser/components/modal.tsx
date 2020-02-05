@@ -1,12 +1,12 @@
 import { logger } from "@coder/logger"
 import * as React from "react"
-import { NavLink, Route, RouteComponentProps, Switch } from "react-router-dom"
 import { Application, isExecutableApplication } from "../../common/api"
 import { HttpError } from "../../common/http"
 import { RequestError } from "../components/error"
 import { Browse } from "../pages/browse"
 import { Home } from "../pages/home"
 import { Login } from "../pages/login"
+import { Missing } from "../pages/missing"
 import { Open } from "../pages/open"
 import { Recent } from "../pages/recent"
 import { Animate } from "./animate"
@@ -19,9 +19,18 @@ export interface ModalProps {
   setError(error?: HttpError | Error | string): void
 }
 
+enum Section {
+  Browse,
+  Home,
+  Login,
+  Open,
+  Recent,
+}
+
 export const Modal: React.FunctionComponent<ModalProps> = (props) => {
   const [showModal, setShowModal] = React.useState<boolean>(false)
-  const [showBar, setShowBar] = React.useState<boolean>(true)
+  const [showBar, setShowBar] = React.useState<boolean>(false) // TEMP: Will be true.
+  const [section, setSection] = React.useState<Section>(Section.Home)
 
   const setApp = (app: Application): void => {
     setShowModal(false)
@@ -36,7 +45,8 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
         clearTimeout(timeout)
         timeout = undefined
       } else if (clientY <= 30 && !timeout) {
-        timeout = setTimeout(() => setShowBar(true), 1000)
+        // TEMP: No bar for now.
+        // timeout = setTimeout(() => setShowBar(true), 1000)
       }
     }
 
@@ -91,39 +101,49 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
     }
   }, [showBar, props.error, showModal, props.app])
 
+  const content = (): React.ReactElement => {
+    if (!props.authed) {
+      return <Login />
+    }
+    switch (section) {
+      case Section.Recent:
+        return <Recent app={props.app} setApp={setApp} />
+      case Section.Home:
+        return <Home app={props.app} />
+      case Section.Browse:
+        return <Browse />
+      case Section.Login:
+        return <Login />
+      case Section.Open:
+        return <Open app={props.app} setApp={setApp} />
+      default:
+        return <Missing />
+    }
+  }
+
   return props.error || showModal || !props.app || !props.app.loaded ? (
     <div className="modal-container">
       <div className="modal">
         {props.authed && (!props.app || props.app.loaded) ? (
-          <aside className="sidebar">
+          <aside className="sidebar-nav">
             <nav className="links">
-              {!props.authed ? (
-                <NavLink className="link" to="/login">
+              {props.authed ? (
+                // TEMP: Remove once we don't auto-load vscode.
+                <>
+                  <button className="link" onClick={(): void => setSection(Section.Recent)}>
+                    Recent
+                  </button>
+                  <button className="link" onClick={(): void => setSection(Section.Open)}>
+                    Open
+                  </button>
+                  <button className="link" onClick={(): void => setSection(Section.Browse)}>
+                    Browse
+                  </button>
+                </>
+              ) : (
+                <button className="link" onClick={(): void => setSection(Section.Login)}>
                   Login
-                </NavLink>
-              ) : (
-                undefined
-              )}
-              {props.authed ? (
-                <NavLink className="link" exact to="/recent/">
-                  Recent
-                </NavLink>
-              ) : (
-                undefined
-              )}
-              {props.authed ? (
-                <NavLink className="link" exact to="/open/">
-                  Open
-                </NavLink>
-              ) : (
-                undefined
-              )}
-              {props.authed ? (
-                <NavLink className="link" exact to="/browse/">
-                  Browse
-                </NavLink>
-              ) : (
-                undefined
+                </button>
               )}
             </nav>
             <div className="footer">
@@ -148,23 +168,7 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
             }}
           />
         ) : (
-          <div className="content">
-            <Switch>
-              <Route path="/login" component={Login} />
-              <Route
-                path="/recent"
-                render={(p: RouteComponentProps): React.ReactElement => (
-                  <Recent app={props.app} setApp={setApp} {...p} />
-                )}
-              />
-              <Route path="/browse" component={Browse} />
-              <Route
-                path="/open"
-                render={(p: RouteComponentProps): React.ReactElement => <Open app={props.app} setApp={setApp} {...p} />}
-              />
-              <Route path="/" component={Home} />
-            </Switch>
-          </div>
+          <div className="content">{content()}</div>
         )}
       </div>
     </div>

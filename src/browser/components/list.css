@@ -20,7 +20,6 @@
 
 .app-row {
   color: #b6b6b6;
-  cursor: pointer;
   display: flex;
   font-size: 1em;
   line-height: 1em;
@@ -105,4 +104,8 @@
 
 .app-list > .loader {
   color: #b6b6b6;
+}
+
+.app-list > .app-row {
+  cursor: pointer;
 }

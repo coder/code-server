@@ -1,5 +1,4 @@
 import * as React from "react"
-import { RouteComponentProps } from "react-router"
 import { HttpError } from "../../common/http"
 import { authenticate } from "../api"
 import { FieldError } from "../components/error"
@@ -7,35 +6,25 @@ import { FieldError } from "../components/error"
 /**
  * Login page. Will redirect on success.
  */
-export const Login: React.FunctionComponent<RouteComponentProps> = (props) => {
+export const Login: React.FunctionComponent = () => {
   const [password, setPassword] = React.useState<string>("")
   const [error, setError] = React.useState<HttpError>()
 
-  function redirect(): void {
-    // TEMP: Always redirect to VS Code.
-    console.log("is authed")
-    props.history.push("../vscode/")
-    // const params = new URLSearchParams(window.location.search)
-    // props.history.push(params.get("to") || "/")
-  }
-
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
-    authenticate({ password })
-      .then(redirect)
-      .catch(setError)
+    authenticate({ password }).catch(setError)
   }
 
   React.useEffect(() => {
-    authenticate()
-      .then(redirect)
-      .catch(() => {
-        // Do nothing; we're already at the login page.
-      })
+    authenticate().catch(() => undefined)
   }, [])
 
   return (
     <form className="login-form" onSubmit={handleSubmit}>
+      <div className="login-header">
+        <div className="main">Welcome to code-server</div>
+        <div className="sub">Please log in below</div>
+      </div>
       <div className="field">
         <input
           autoFocus

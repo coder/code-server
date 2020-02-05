@@ -12,8 +12,8 @@ import * as tarFs from "tar-fs"
 import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
-import { plural, split } from "../common/util"
-import { getMediaMime, normalize, xdgLocalDir } from "./util"
+import { normalize, plural, split } from "../common/util"
+import { getMediaMime, xdgLocalDir } from "./util"
 
 export type Cookies = { [key: string]: string[] | undefined }
 export type PostData = { [key: string]: string | string[] | undefined }
@@ -92,6 +92,7 @@ export interface HttpServerOptions {
   readonly basePath?: string
   readonly cert?: string
   readonly certKey?: string
+  readonly commit?: string
   readonly host?: string
   readonly password?: string
   readonly port?: number
@@ -111,6 +112,7 @@ export interface HttpProviderOptions {
   readonly base: string
   readonly auth: AuthType
   readonly password?: string
+  readonly commit?: string
 }
 
 /**
@@ -120,7 +122,7 @@ export interface HttpProviderOptions {
 export abstract class HttpProvider {
   protected readonly rootPath = path.resolve(__dirname, "../..")
 
-  public constructor(private readonly options: HttpProviderOptions) {}
+  public constructor(protected readonly options: HttpProviderOptions) {}
 
   public dispose(): void {
     // No default behavior.
@@ -403,6 +405,7 @@ export class HttpServer {
         {
           auth: this.options.auth || AuthType.None,
           base: endpoint,
+          commit: this.options.commit,
           password: this.options.password,
         },
         a1

@@ -4,6 +4,7 @@ import { HttpError } from "../../common/http"
 export interface ErrorProps {
   error: HttpError | Error | string
   onClose?: () => void
+  onCloseText?: string
 }
 
 /**
@@ -15,7 +16,7 @@ export const RequestError: React.FunctionComponent<ErrorProps> = (props) => {
       <div className="error">{typeof props.error === "string" ? props.error : props.error.message}</div>
       {props.onClose ? (
         <button className="close" onClick={props.onClose}>
-          Go Back
+          {props.onCloseText || "Close"}
         </button>
       ) : (
         undefined

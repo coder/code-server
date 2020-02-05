@@ -173,6 +173,21 @@ class Builder {
     })
 
     await this.copyDependencies("code-server", this.rootPath, this.buildPath)
+
+    await this.task("writing final code-server package.json", async () => {
+      const json = JSON.parse(await fs.readFile(path.join(this.buildPath, "package.json"), "utf8"))
+      return fs.writeFile(
+        path.join(this.buildPath, "package.json"),
+        JSON.stringify(
+          {
+            ...json,
+            commit,
+          },
+          null,
+          2
+        )
+      )
+    })
   }
 
   private async buildVscode(commit: string): Promise<void> {
@@ -368,6 +383,9 @@ class Builder {
     })
     bundler.on("buildEnd", () => {
       console.log("[parcel] bundled")
+    })
+    bundler.on("buildError", (error) => {
+      console.error("[parcel]", error)
     })
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))

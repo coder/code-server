@@ -100,19 +100,22 @@
   width: 100%;
 }
 
-.modal-container > .modal > .sidebar {
-  border-right: 1.5px solid rgba(0, 0, 0, 0.37);
+.sidebar-nav {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-width: 145px;
 }
 
-.modal-container > .modal > .sidebar > .links {
+.sidebar-nav > .links {
   display: flex;
   flex-direction: column;
 }
 
-.modal-container > .modal > .sidebar > .links > .link {
+.sidebar-nav > .links > .link {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
   color: rgba(0, 0, 0, 0.37);
   font-size: 1.4em;
   height: 31px;
@@ -122,7 +125,7 @@
   transition: 150ms color ease, 150ms height ease, 150ms margin-bottom ease;
 }
 
-.modal-container > .modal > .sidebar > .footer > .close {
+.sidebar-nav > .footer > .close {
   background: transparent;
   border: none;
   color: #b6b6b6;
@@ -130,12 +133,10 @@
   width: 100%;
 }
 
-.modal-container > .modal > .sidebar > .footer > .close:hover {
+.sidebar-nav > .links > .link[aria-current="page"],
+.sidebar-nav > .links > .link:hover,
+.sidebar-nav > .footer > .close:hover {
   color: #000;
-}
-
-.modal-container > .modal > .links > .link[aria-current="page"] {
-  color: rgba(0, 0, 0, 1);
 }
 
 .modal-container > .modal > .content {
@@ -144,4 +145,8 @@
   flex-direction: column;
   overflow: auto;
   padding: 0 20px;
+}
+
+.modal-container > .modal > .sidebar-nav {
+  border-right: 1.5px solid rgba(0, 0, 0, 0.37);
 }

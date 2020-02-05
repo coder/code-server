@@ -1,6 +1,7 @@
 export interface Application {
   readonly comment?: string
   readonly directory?: string
+  readonly embedPath?: string
   readonly exec?: string
   readonly icon?: string
   readonly loaded?: boolean

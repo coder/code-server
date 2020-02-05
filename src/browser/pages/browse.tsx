@@ -1,5 +1,4 @@
 import * as React from "react"
-import { RouteComponentProps } from "react-router"
 import { FilesResponse } from "../../common/api"
 import { HttpError } from "../../common/http"
 import { getFiles } from "../api"
@@ -8,14 +7,14 @@ import { RequestError } from "../components/error"
 /**
  * File browser.
  */
-export const Browse: React.FunctionComponent<RouteComponentProps> = (props) => {
+export const Browse: React.FunctionComponent = (props) => {
   const [response, setResponse] = React.useState<FilesResponse>()
   const [error, setError] = React.useState<HttpError>()
 
   React.useEffect(() => {
     getFiles()
       .then(setResponse)
-      .catch((e) => setError(e.message))
+      .catch(setError)
   }, [props])
 
   return (

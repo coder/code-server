@@ -1,5 +1,6 @@
 import * as assert from "assert"
-import { extend, normalize } from "../src/node/util"
+import { normalize } from "../src/common/util"
+import { extend } from "../src/node/util"
 
 describe("util", () => {
   describe("extend", () => {
@@ -44,6 +45,11 @@ describe("util", () => {
 
     it("should remove trailing slashes", () => {
       assert.equal(normalize("qux///"), "qux")
+    })
+
+    it("should preserve trailing slash if it exists", () => {
+      assert.equal(normalize("qux///", true), "qux/")
+      assert.equal(normalize("qux", true), "qux")
     })
   })
 })

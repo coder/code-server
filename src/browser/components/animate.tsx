@@ -5,6 +5,10 @@ export interface DelayProps {
   readonly delay: number
 }
 
+/**
+ * Animate a component before unmounting (by delaying unmounting) or after
+ * mounting.
+ */
 export const Animate: React.FunctionComponent<DelayProps> = (props) => {
   const [timer, setTimer] = React.useState<NodeJS.Timeout>()
   const [mount, setMount] = React.useState<boolean>(false)
