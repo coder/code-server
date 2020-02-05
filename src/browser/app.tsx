@@ -3,6 +3,7 @@ import * as React from "react"
 import { Application, isExecutableApplication } from "../common/api"
 import { HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
+import { Logo } from "./components/logo"
 import { Modal } from "./components/modal"
 
 export interface AppProps {
@@ -31,10 +32,19 @@ const App: React.FunctionComponent<AppProps> = (props) => {
 
   return (
     <>
+      {!app || !app.loaded ? (
+        <div className="coder-splash">
+          <Logo />
+        </div>
+      ) : (
+        undefined
+      )}
       <Modal app={app} setApp={setApp} authed={authed} error={error} setError={setError} />
       {authed && app && app.embedPath ? (
         <iframe id="iframe" src={normalize(`${getBasepath()}/${app.embedPath}/`, true)}></iframe>
-      ) : null}
+      ) : (
+        undefined
+      )}
     </>
   )
 }

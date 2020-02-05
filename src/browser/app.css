@@ -21,3 +21,21 @@ body {
 button {
   font-family: inherit;
 }
+
+.coder-splash {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  left: 0;
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 5;
+}
+
+.coder-splash > .logo {
+  color: rgba(255, 255, 255, 0.03);
+  width: 100%;
+}
