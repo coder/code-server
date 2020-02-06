@@ -934,10 +934,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..3bfef75d81
+index 0000000000..f3e358096f
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,91 @@
+@@ -0,0 +1,102 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -976,6 +976,17 @@ index 0000000000..3bfef75d81
 +}
 +
 +export interface Args {
++	'user-data-dir'?: string;
++
++	'extensions-dir'?: string;
++	'builtin-extensions-dir'?: string;
++	'extra-extensions-dir'?: string[];
++	'extra-builtin-extensions-dir'?: string[];
++
++	log?: string;
++	trace?: boolean;
++	verbose?: boolean;
++
 +	_: string[];
 +}
 +
@@ -1378,87 +1389,6 @@ index 0000000000..9c240b992d
 +		this._$onMessage.fire(message);
 +	}
 +}
-diff --git a/src/vs/server/node/cli.ts b/src/vs/server/node/cli.ts
-new file mode 100644
-index 0000000000..117cc4900a
---- /dev/null
-+++ b/src/vs/server/node/cli.ts
-@@ -0,0 +1,75 @@
-+import * as os from 'os';
-+import * as path from 'path';
-+import { main as vsCli } from 'vs/code/node/cliProcessMain';
-+import { validatePaths } from 'vs/code/node/paths';
-+import { ParsedArgs } from 'vs/platform/environment/common/environment';
-+import { buildHelpMessage, buildVersionMessage, OPTIONS } from 'vs/platform/environment/node/argv';
-+import { parseMainProcessArgv } from 'vs/platform/environment/node/argvHelper';
-+import product from 'vs/platform/product/common/product';
-+import { logger } from 'vs/server/node/logger';
-+import { xdgLocalDir } from 'vs/server/node/util';
-+
-+export const parseArgs = (rawArgs: string[]): ParsedArgs => {
-+	// Remove options that won't work or don't make sense.
-+	for (let key in OPTIONS) {
-+		switch (key) {
-+			case 'add':
-+			case 'diff':
-+			case 'file-uri':
-+			case 'folder-uri':
-+			case 'goto':
-+			case 'new-window':
-+			case 'reuse-window':
-+			case 'wait':
-+			case 'disable-gpu':
-+			// TODO: pretty sure these don't work but not 100%.
-+			case 'prof-startup':
-+			case 'inspect-extensions':
-+			case 'inspect-brk-extensions':
-+				delete OPTIONS[key];
-+				break;
-+		}
-+	}
-+
-+	const args = parseMainProcessArgv(rawArgs);
-+	if (!args['user-data-dir']) {
-+		args['user-data-dir'] = xdgLocalDir;
-+	}
-+	if (!args['extensions-dir']) {
-+		args['extensions-dir'] = path.join(args['user-data-dir'], 'extensions');
-+	}
-+
-+	if (!args.verbose && !args.log && process.env.LOG_LEVEL) {
-+		args.log = process.env.LOG_LEVEL;
-+	}
-+
-+	return validatePaths(args);
-+};
-+
-+export const startCli = (args: ParsedArgs): boolean | Promise<void> => {
-+	if (args.help) {
-+		const executable = `${product.applicationName}${os.platform() === 'win32' ? '.exe' : ''}`;
-+		console.log(buildHelpMessage(product.nameLong, executable, product.version, OPTIONS, false));
-+		return true;
-+	}
-+
-+	if (args.version) {
-+		buildVersionMessage(product.version, product.commit).split('\n').map((line) => logger.info(line));
-+		return true;
-+	}
-+
-+	const shouldSpawnCliProcess = (): boolean => {
-+		return !!args['install-source']
-+			|| !!args['list-extensions']
-+			|| !!args['install-extension']
-+			|| !!args['uninstall-extension']
-+			|| !!args['locate-extension']
-+			|| !!args['telemetry'];
-+	};
-+
-+	if (shouldSpawnCliProcess()) {
-+		return vsCli(args);
-+	}
-+
-+	return false;
-+};
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
 index 0000000000..3b42933419
@@ -2468,12 +2398,10 @@ index 0000000000..fc69441cf0
 +};
 diff --git a/src/vs/server/node/util.ts b/src/vs/server/node/util.ts
 new file mode 100644
-index 0000000000..ac950994b9
+index 0000000000..06b080044c
 --- /dev/null
 +++ b/src/vs/server/node/util.ts
-@@ -0,0 +1,27 @@
-+import * as path from 'path';
-+import * as os from 'os';
+@@ -0,0 +1,9 @@
 +import { getPathFromAmdModule } from 'vs/base/common/amd';
 +import { URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
 +
@@ -2483,22 +2411,6 @@ index 0000000000..ac950994b9
 +	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
 +	return new URITransformer(rawURITransformer);
 +};
-+
-+const getXdgDataDir = (): string => {
-+	switch (process.platform) {
-+		case 'win32':
-+			return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), 'AppData/Local'), 'code-server/Data');
-+		case 'darwin':
-+			return path.join(
-+				process.env.XDG_DATA_HOME || path.join(os.homedir(), 'Library/Application Support'),
-+				'code-server'
-+			);
-+		default:
-+			return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), '.local/share'), 'code-server');
-+	}
-+};
-+
-+export const xdgLocalDir = getXdgDataDir();
 diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
 index 2905c52411..6ecfae2634 100644
 --- a/src/vs/workbench/api/browser/extensionHost.contribution.ts
