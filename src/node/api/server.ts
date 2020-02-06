@@ -39,16 +39,15 @@ export class ApiHttpProvider extends HttpProvider {
           return this.login(request)
         }
         break
-      default:
-        if (!this.authenticated(request)) {
-          return { code: HttpCode.Unauthorized }
-        }
-        switch (route.base) {
-          case ApiEndpoint.applications:
-            return this.applications()
-          case ApiEndpoint.files:
-            return this.files()
-        }
+    }
+    if (!this.authenticated(request)) {
+      return { code: HttpCode.Unauthorized }
+    }
+    switch (route.base) {
+      case ApiEndpoint.applications:
+        return this.applications()
+      case ApiEndpoint.files:
+        return this.files()
     }
     return undefined
   }
