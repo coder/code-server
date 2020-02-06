@@ -3,6 +3,7 @@ import * as http from "http"
 import * as net from "net"
 import * as ws from "ws"
 import {
+  Application,
   ApplicationsResponse,
   ClientMessage,
   FilesResponse,
@@ -14,6 +15,12 @@ import { ApiEndpoint, HttpCode } from "../../common/http"
 import { normalize } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, HttpServer, Route } from "../http"
 import { hash } from "../util"
+
+export const Vscode: Application = {
+  name: "VS Code",
+  path: "/",
+  embedPath: "./vscode-embed",
+}
 
 /**
  * API HTTP provider.
@@ -104,6 +111,8 @@ export class ApiHttpProvider extends HttpProvider {
       return {
         content: {
           success: true,
+          // TEMP: Auto-load VS Code.
+          app: Vscode,
         },
         cookie:
           typeof password === "string"
@@ -149,13 +158,7 @@ export class ApiHttpProvider extends HttpProvider {
   private async applications(): Promise<HttpResponse<ApplicationsResponse>> {
     return {
       content: {
-        applications: [
-          {
-            name: "VS Code",
-            path: "/vscode",
-            embedPath: "/vscode-embed",
-          },
-        ],
+        applications: [Vscode],
       },
     }
   }

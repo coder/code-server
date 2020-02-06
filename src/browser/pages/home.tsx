@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Application } from "../../common/api"
-import { authenticate } from "../api"
+import { authenticate, setAuthed } from "../api"
 
 export interface HomeProps {
   app?: Application
@@ -8,7 +8,9 @@ export interface HomeProps {
 
 export const Home: React.FunctionComponent<HomeProps> = (props) => {
   React.useEffect(() => {
-    authenticate().catch(() => undefined)
+    authenticate()
+      .then(() => setAuthed(true))
+      .catch(() => undefined)
   }, [])
 
   return (

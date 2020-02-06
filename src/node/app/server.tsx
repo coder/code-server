@@ -5,6 +5,7 @@ import * as ReactDOMServer from "react-dom/server"
 import App from "../../browser/app"
 import { HttpCode, HttpError } from "../../common/http"
 import { Options } from "../../common/util"
+import { Vscode } from "../api/server"
 import { HttpProvider, HttpResponse, Route } from "../http"
 
 /**
@@ -21,37 +22,38 @@ export class MainHttpProvider extends HttpProvider {
         return response
       }
 
+      case "/vscode":
       case "/": {
         if (route.requestPath !== "/index.html") {
           throw new HttpError("Not found", HttpCode.NotFound)
         }
+
         const options: Options = {
           authed: !!this.authenticated(request),
           basePath: this.base(route),
           logLevel: logger.level,
         }
 
-        if (options.authed) {
-          // TEMP: Auto-load VS Code for now. In future versions we'll need to check
-          // the URL for the appropriate application to load, if any.
-          options.app = {
-            name: "VS Code",
-            path: "/",
-            embedPath: "/vscode-embed",
-          }
+        // TODO: Load other apps based on the URL as well.
+        if (route.base === Vscode.path && options.authed) {
+          options.app = Vscode
         }
 
-        const response = await this.getUtf8Resource(this.rootPath, "src/browser/index.html")
-        response.content = response.content
-          .replace(/{{COMMIT}}/g, this.options.commit)
-          .replace(/{{BASE}}/g, this.base(route))
-          .replace(/"{{OPTIONS}}"/g, `'${JSON.stringify(options)}'`)
-          .replace(/{{COMPONENT}}/g, ReactDOMServer.renderToString(<App options={options} />))
-        return response
+        return this.getRoot(route, options)
       }
     }
 
     return undefined
+  }
+
+  public async getRoot(route: Route, options: Options): Promise<HttpResponse> {
+    const response = await this.getUtf8Resource(this.rootPath, "src/browser/index.html")
+    response.content = response.content
+      .replace(/{{COMMIT}}/g, this.options.commit)
+      .replace(/{{BASE}}/g, this.base(route))
+      .replace(/"{{OPTIONS}}"/g, `'${JSON.stringify(options)}'`)
+      .replace(/{{COMPONENT}}/g, ReactDOMServer.renderToString(<App options={options} />))
+    return response
   }
 
   public async handleWebSocket(): Promise<undefined> {

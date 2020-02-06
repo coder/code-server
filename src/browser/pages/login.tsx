@@ -1,22 +1,36 @@
 import * as React from "react"
+import { Application } from "../../common/api"
 import { HttpError } from "../../common/http"
-import { authenticate } from "../api"
+import { authenticate, setAuthed } from "../api"
 import { FieldError } from "../components/error"
+
+export interface LoginProps {
+  setApp(app: Application): void
+}
 
 /**
  * Login page. Will redirect on success.
  */
-export const Login: React.FunctionComponent = () => {
+export const Login: React.FunctionComponent<LoginProps> = (props) => {
   const [password, setPassword] = React.useState<string>("")
   const [error, setError] = React.useState<HttpError>()
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault()
-    authenticate({ password }).catch(setError)
+    authenticate({ password })
+      .then((response) => {
+        if (response.app) {
+          props.setApp(response.app)
+        }
+        setAuthed(true)
+      })
+      .catch(setError)
   }
 
   React.useEffect(() => {
-    authenticate().catch(() => undefined)
+    authenticate()
+      .then(() => setAuthed(true))
+      .catch(() => undefined)
   }, [])
 
   return (

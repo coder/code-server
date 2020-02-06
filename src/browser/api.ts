@@ -1,5 +1,12 @@
 import { getBasepath } from "hookrouter"
-import { Application, ApplicationsResponse, CreateSessionResponse, FilesResponse, RecentResponse } from "../common/api"
+import {
+  Application,
+  ApplicationsResponse,
+  CreateSessionResponse,
+  FilesResponse,
+  LoginResponse,
+  RecentResponse,
+} from "../common/api"
 import { ApiEndpoint, HttpCode, HttpError } from "../common/http"
 
 export interface AuthBody {
@@ -33,7 +40,7 @@ const tryRequest = async (endpoint: string, options?: RequestInit): Promise<Resp
 /**
  * Try authenticating.
  */
-export const authenticate = async (body?: AuthBody): Promise<void> => {
+export const authenticate = async (body?: AuthBody): Promise<LoginResponse> => {
   const response = await tryRequest(ApiEndpoint.login, {
     method: "POST",
     body: JSON.stringify({ ...body, basePath: getBasepath() }),
@@ -41,10 +48,7 @@ export const authenticate = async (body?: AuthBody): Promise<void> => {
       "Content-Type": "application/x-www-form-urlencoded; charset=utf-8",
     },
   })
-  const json = await response.json()
-  if (json && json.success) {
-    setAuthed(true)
-  }
+  return response.json()
 }
 
 export const getFiles = async (): Promise<FilesResponse> => {

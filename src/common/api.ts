@@ -23,11 +23,15 @@ export enum SessionError {
 }
 
 export interface LoginRequest {
-  password: string
   basePath: string
+  password: string
 }
 
 export interface LoginResponse {
+  /**
+   * An application to load immediately after logging in.
+   */
+  app?: Application
   success: boolean
 }
 

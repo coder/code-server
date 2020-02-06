@@ -10,34 +10,33 @@ export interface AppProps {
   options: Options
 }
 
+interface RedirectedApplication extends Application {
+  redirected?: boolean
+}
+
+const origin = typeof window !== "undefined" ? window.location.origin + window.location.pathname : undefined
+
 const App: React.FunctionComponent<AppProps> = (props) => {
   const [authed, setAuthed] = React.useState<boolean>(props.options.authed)
-  const [app, setApp] = React.useState<Application | undefined>(props.options.app)
+  const [app, setApp] = React.useState<RedirectedApplication | undefined>(props.options.app)
   const [error, setError] = React.useState<HttpError | Error | string>()
 
   if (typeof window !== "undefined") {
-    const url = new URL(window.location.origin + window.location.pathname + props.options.basePath)
+    const url = new URL(origin + props.options.basePath)
     setBasepath(normalize(url.pathname))
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     ;(window as any).setAuthed = (a: boolean): void => {
       if (authed !== a) {
         setAuthed(a)
-        // TEMP: Remove when no longer auto-loading VS Code.
-        if (a && !app) {
-          setApp({
-            name: "VS Code",
-            path: "/",
-            embedPath: "/vscode-embed",
-          })
-        }
       }
     }
   }
 
   React.useEffect(() => {
-    if (app && !isExecutableApplication(app)) {
+    if (app && !isExecutableApplication(app) && !app.redirected) {
       navigate(normalize(`${getBasepath()}/${app.path}/`, true))
+      setApp({ ...app, redirected: true })
     }
   }, [app])
 
@@ -51,7 +50,7 @@ const App: React.FunctionComponent<AppProps> = (props) => {
         undefined
       )}
       <Modal app={app} setApp={setApp} authed={authed} error={error} setError={setError} />
-      {authed && app && app.embedPath ? (
+      {authed && app && app.embedPath && app.redirected ? (
         <iframe id="iframe" src={normalize(`./${app.embedPath}/`, true)}></iframe>
       ) : (
         undefined

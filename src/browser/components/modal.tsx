@@ -22,7 +22,6 @@ export interface ModalProps {
 enum Section {
   Browse,
   Home,
-  Login,
   Open,
   Recent,
 }
@@ -103,7 +102,7 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
 
   const content = (): React.ReactElement => {
     if (!props.authed) {
-      return <Login />
+      return <Login setApp={setApp} />
     }
     switch (section) {
       case Section.Recent:
@@ -112,8 +111,6 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
         return <Home app={props.app} />
       case Section.Browse:
         return <Browse />
-      case Section.Login:
-        return <Login />
       case Section.Open:
         return <Open app={props.app} setApp={setApp} />
       default:
@@ -140,9 +137,7 @@ export const Modal: React.FunctionComponent<ModalProps> = (props) => {
                   </button>
                 </>
               ) : (
-                <button className="link" onClick={(): void => setSection(Section.Login)}>
-                  Login
-                </button>
+                undefined
               )}
             </nav>
             <div className="footer">

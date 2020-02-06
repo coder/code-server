@@ -116,7 +116,6 @@ interface ProviderRoute extends Route {
 }
 
 export interface HttpProviderOptions {
-  readonly base: string
   readonly auth: AuthType
   readonly password?: string
   readonly commit: string
@@ -154,7 +153,7 @@ export abstract class HttpProvider {
    * Get the base relative to the provided route.
    */
   public base(route: Route): string {
-    const depth = route.fullPath ? (route.fullPath.match(/\//g) || []).length : 1
+    const depth = ((route.fullPath + "/").match(/\//g) || []).length
     return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
   }
 
@@ -404,7 +403,6 @@ export class HttpServer {
       new provider(
         {
           auth: this.options.auth || AuthType.None,
-          base: endpoint,
           commit: this.options.commit,
           password: this.options.password,
         },
