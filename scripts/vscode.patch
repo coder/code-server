@@ -852,7 +852,7 @@ index 0000000000..eb62b87798
 +}
 diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
 new file mode 100644
-index 0000000000..cb606e6a68
+index 0000000000..9995e9f7fc
 --- /dev/null
 +++ b/src/vs/server/entry.ts
 @@ -0,0 +1,67 @@
@@ -897,8 +897,8 @@ index 0000000000..cb606e6a68
 +	process.send(message);
 +};
 +
-+// Wait for the init message then start up VS Code. Future messages will return
-+// new workbench options without starting a new instance.
++// Wait for the init message then start up VS Code. Subsequent messages will
++// return new workbench options without starting a new instance.
 +process.on('message', async (message: CodeServerMessage, socket) => {
 +	logger.debug('got message from code-server', field('message', message));
 +	switch (message.type) {
@@ -934,10 +934,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..218faa34d2
+index 0000000000..3bfef75d81
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,93 @@
+@@ -0,0 +1,91 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -971,19 +971,18 @@ index 0000000000..218faa34d2
 +export type VscodeMessage = ReadyMessage | OptionsMessage;
 +
 +export interface StartPath {
-+	path?: string[] | string;
-+	workspace?: boolean;
++	url: string;
++	workspace: boolean;
 +}
 +
-+export interface Settings {
-+	lastVisited?: StartPath;
++export interface Args {
++	_: string[];
 +}
 +
 +export interface VscodeOptions {
 +	readonly remoteAuthority: string;
-+	readonly query: Query;
-+	readonly args?: string[];
-+	readonly settings: Settings;
++	readonly args: Args;
++	readonly startPath?: StartPath;
 +}
 +
 +export interface VscodeOptionsMessage extends VscodeOptions {
@@ -1008,7 +1007,6 @@ index 0000000000..218faa34d2
 +}
 +
 +export interface WorkbenchOptions {
-+	readonly startPath?: StartPath;
 +	readonly workbenchWebConfiguration: {
 +		readonly remoteAuthority?: string;
 +		readonly folderUri?: UriComponents;
@@ -2181,15 +2179,13 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..5207c90081
+index 0000000000..81d275a80a
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,293 @@
-+import * as fs from 'fs-extra';
+@@ -0,0 +1,253 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import { Emitter } from 'vs/base/common/event';
-+import { sanitizeFilePath } from 'vs/base/common/extpath';
 +import { Schemas } from 'vs/base/common/network';
 +import { URI } from 'vs/base/common/uri';
 +import { getMachineId } from 'vs/base/node/id';
@@ -2232,12 +2228,10 @@ index 0000000000..5207c90081
 +import { resolveCommonProperties } from 'vs/platform/telemetry/node/commonProperties';
 +import { INodeProxyService, NodeProxyChannel } from 'vs/server/common/nodeProxy';
 +import { TelemetryChannel } from 'vs/server/common/telemetry';
-+import { Query, StartPath, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
++import { Query, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
 +import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from 'vs/server/node/channel';
-+import { parseArgs } from 'vs/server/node/cli';
 +import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/node/connection';
 +import { TelemetryClient } from 'vs/server/node/insights';
-+import { logger } from 'vs/server/node/logger';
 +import { getLocaleFromConfig, getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
 +import { getUriTransformer } from 'vs/server/node/util';
@@ -2253,27 +2247,19 @@ index 0000000000..5207c90081
 +
 +	private readonly services = new ServiceCollection();
 +	private servicesPromise?: Promise<void>;
-+	private args?: ParsedArgs;
 +
 +	public async initialize(options: VscodeOptions): Promise<WorkbenchOptions> {
-+		if (!this.args) {
-+			this.args = parseArgs(options.args || []);
-+		}
 +		const transformer = getUriTransformer(options.remoteAuthority);
-+		const startPath = await this.getFirstValidPath([
-+			options.settings.lastVisited,
-+			{ path: this.args._[0] },
-+		]);
 +		if (!this.servicesPromise) {
-+			this.servicesPromise = this.initializeServices(this.args);
++			this.servicesPromise = this.initializeServices(options.args);
 +		}
 +		await this.servicesPromise;
 +		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
++		const startPath = options.startPath;
 +		return {
-+			startPath,
 +			workbenchWebConfiguration: {
-+				workspaceUri: startPath && startPath.workspace ? transformer.transformOutgoing(URI.file(startPath.path)) : undefined,
-+				folderUri: startPath && !startPath.workspace ? transformer.transformOutgoing(URI.file(startPath.path)) : undefined,
++				workspaceUri: startPath && startPath.workspace ? URI.parse(startPath.url) : undefined,
++				folderUri: startPath && !startPath.workspace ? URI.parse(startPath.url) : undefined,
 +				remoteAuthority: options.remoteAuthority,
 +				logLevel: getLogLevel(environment),
 +			},
@@ -2303,34 +2289,6 @@ index 0000000000..5207c90081
 +			protocol.getSocket().dispose();
 +		}
 +		return true;
-+	}
-+
-+	/**
-+	 * Choose the first valid path. If `workspace` is undefined then either a
-+	 * workspace or a directory are acceptable. Otherwise it must be a file if a
-+	 * workspace or a directory otherwise.
-+	 */
-+	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ path: string, workspace?: boolean} | undefined> {
-+		const cwd = process.env.VSCODE_CWD || process.cwd();
-+		for (let i = 0; i < startPaths.length; ++i) {
-+			const startPath = startPaths[i];
-+			if (!startPath) {
-+				continue;
-+			}
-+			const paths = typeof startPath.path === 'string' ? [startPath.path] : (startPath.path || []);
-+			for (let j = 0; j < paths.length; ++j) {
-+				const p = sanitizeFilePath(paths[j], cwd);
-+				try {
-+					const stat = await fs.stat(p);
-+					if (typeof startPath.workspace === 'undefined' || startPath.workspace !== stat.isDirectory()) {
-+						return { path: p, workspace: !stat.isDirectory() };
-+					}
-+				} catch (error) {
-+					logger.warn(error.message);
-+				}
-+			}
-+		}
-+		return undefined;
 +	}
 +
 +	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {

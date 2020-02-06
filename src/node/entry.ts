@@ -1,25 +1,13 @@
 import { logger } from "@coder/logger"
 import { ApiHttpProvider } from "./api/server"
 import { MainHttpProvider } from "./app/server"
+import { Args, parse } from "./cli"
 import { AuthType, HttpServer } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
 import { VscodeHttpProvider } from "./vscode/server"
 import { ipcMain, wrap } from "./wrapper"
 
-export interface Args {
-  auth?: AuthType
-  "base-path"?: string
-  cert?: string
-  "cert-key"?: string
-  format?: string
-  host?: string
-  open?: boolean
-  port?: string
-  socket?: string
-  _?: string[]
-}
-
-const main = async (args: Args = {}): Promise<void> => {
+const main = async (args: Args): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
@@ -51,7 +39,7 @@ const main = async (args: Args = {}): Promise<void> => {
   const httpServer = new HttpServer(options)
   httpServer.registerHttpProvider("/", MainHttpProvider)
   httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
-  httpServer.registerHttpProvider("/vscode-embed", VscodeHttpProvider, [])
+  httpServer.registerHttpProvider("/vscode-embed", VscodeHttpProvider, args)
 
   ipcMain().onDispose(() => httpServer.dispose())
 
@@ -88,10 +76,10 @@ const main = async (args: Args = {}): Promise<void> => {
   }
 }
 
-// TODO: Implement CLI parser.
-if (process.argv.includes("--version")) {
+const args = parse()
+if (args.version) {
   const version = require("../../package.json").version
-  if (process.argv.includes("--json")) {
+  if (args.json) {
     console.log({
       codeServer: version,
       vscode: require("../../lib/vscode/package.json").version,
@@ -101,5 +89,5 @@ if (process.argv.includes("--version")) {
   }
   process.exit(0)
 } else {
-  wrap(main)
+  wrap(() => main(args))
 }

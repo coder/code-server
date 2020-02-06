@@ -1,21 +1,28 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as crypto from "crypto"
+import * as fs from "fs-extra"
 import * as http from "http"
 import * as net from "net"
 import * as path from "path"
+import * as url from "url"
 import {
   CodeServerMessage,
-  Settings,
+  StartPath,
   VscodeMessage,
   VscodeOptions,
   WorkbenchOptions,
 } from "../../../lib/vscode/src/vs/server/ipc"
 import { HttpCode, HttpError } from "../../common/http"
 import { generateUuid } from "../../common/util"
+import { Args } from "../cli"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { SettingsProvider } from "../settings"
 import { xdgLocalDir } from "../util"
+
+export interface Settings {
+  lastVisited: StartPath
+}
 
 export class VscodeHttpProvider extends HttpProvider {
   private readonly serverRootPath: string
@@ -24,7 +31,7 @@ export class VscodeHttpProvider extends HttpProvider {
   private _vscode?: Promise<cp.ChildProcess>
   private workbenchOptions?: WorkbenchOptions
 
-  public constructor(options: HttpProviderOptions, private readonly args: string[]) {
+  public constructor(options: HttpProviderOptions, private readonly args: Args) {
     super(options)
     this.vsRootPath = path.resolve(this.rootPath, "lib/vscode")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
@@ -161,24 +168,26 @@ export class VscodeHttpProvider extends HttpProvider {
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     const settings = await this.settings.read()
+    const startPath = await this.getFirstValidPath([
+      { url: route.query.workspace, workspace: true },
+      { url: route.query.folder, workspace: false },
+      settings.lastVisited,
+      this.args._ && this.args._.length > 0 ? { url: this.urlify(this.args._[0]) } : undefined,
+    ])
     const [response, options] = await Promise.all([
       await this.getUtf8Resource(this.rootPath, `src/node/vscode/workbench${!this.isDev ? "-build" : ""}.html`),
       this.initialize({
         args: this.args,
-        query: route.query,
         remoteAuthority: request.headers.host as string,
-        settings,
+        startPath,
       }),
     ])
 
     this.workbenchOptions = options
 
-    if (options.startPath) {
+    if (startPath) {
       this.settings.write({
-        lastVisited: {
-          path: options.startPath.path,
-          workspace: options.startPath.workspace,
-        },
+        lastVisited: startPath,
       })
     }
 
@@ -200,5 +209,41 @@ export class VscodeHttpProvider extends HttpProvider {
     } <br><br>${error}`
     response.content = response.content.replace(/{{COMMIT}}/g, this.options.commit).replace(/{{ERROR}}/g, message)
     return response
+  }
+
+  /**
+   * Choose the first valid path. If `workspace` is undefined then either a
+   * workspace or a directory are acceptable. Otherwise it must be a file if a
+   * workspace or a directory otherwise.
+   */
+  private async getFirstValidPath(
+    startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>
+  ): Promise<StartPath | undefined> {
+    for (let i = 0; i < startPaths.length; ++i) {
+      const startPath = startPaths[i]
+      if (!startPath) {
+        continue
+      }
+      const paths = typeof startPath.url === "string" ? [startPath.url] : startPath.url || []
+      for (let j = 0; j < paths.length; ++j) {
+        const u = url.parse(paths[j])
+        try {
+          if (!u.pathname) {
+            throw new Error(`${paths[j]} is not a valid URL`)
+          }
+          const stat = await fs.stat(u.pathname)
+          if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
+            return { url: u.href, workspace: !stat.isDirectory() }
+          }
+        } catch (error) {
+          logger.warn(error.message)
+        }
+      }
+    }
+    return undefined
+  }
+
+  private urlify(p: string): string {
+    return "vscode-remote://host" + path.resolve(p)
   }
 }
