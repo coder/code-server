@@ -42,8 +42,8 @@ RUN adduser --gecos '' --disabled-password coder && \
 USER coder
 # Create first so these directories will be owned by coder instead of root
 # (workdir and mounting appear to both default to root).
-RUN mkdir -p /home/coder/project
-RUN mkdir -p /home/coder/.local/share/code-server
+RUN mkdir -p /home/coder/project \
+  && mkdir -p /home/coder/.local/share/code-server
 
 WORKDIR /home/coder/project
 
