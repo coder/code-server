@@ -17,11 +17,15 @@
   margin-top: 1em;
 }
 
-.login-form > .field > .input {
+.login-form > .field > .password {
   border: 1px solid #b6b6b6;
   box-sizing: border-box;
   padding: 1em;
   flex: 1;
+}
+
+.login-form > .field > .user {
+  display: none;
 }
 
 .login-form > .field > .submit {

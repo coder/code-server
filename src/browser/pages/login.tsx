@@ -40,9 +40,10 @@ export const Login: React.FunctionComponent<LoginProps> = (props) => {
         <div className="sub">Please log in below</div>
       </div>
       <div className="field">
+        <input className="user" type="text" autoComplete="username" />
         <input
           autoFocus
-          className="input"
+          className="password"
           type="password"
           placeholder="password"
           autoComplete="current-password"
