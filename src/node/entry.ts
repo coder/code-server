@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger"
 import { ApiHttpProvider } from "./api/server"
 import { MainHttpProvider } from "./app/server"
-import { Args, parse } from "./cli"
+import { Args, optionDescriptions, parse } from "./cli"
 import { AuthType, HttpServer } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
 import { VscodeHttpProvider } from "./vscode/server"
@@ -21,16 +21,15 @@ const main = async (args: Args): Promise<void> => {
   // Spawn the main HTTP server.
   const options = {
     auth,
-    basePath: args["base-path"],
-    cert: args.cert,
+    cert: args.cert ? args.cert.value : undefined,
     certKey: args["cert-key"],
     commit: commit || "development",
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
-    port: typeof args.port !== "undefined" ? parseInt(args.port, 10) : 8080,
+    port: typeof args.port !== "undefined" ? args.port : 8080,
     socket: args.socket,
   }
-  if (!options.cert && typeof options.cert !== "undefined") {
+  if (!options.cert && args.cert) {
     const { cert, certKey } = await generateCertificate()
     options.cert = cert
     options.certKey = certKey
@@ -60,7 +59,7 @@ const main = async (args: Args): Promise<void> => {
 
   if (httpServer.protocol === "https") {
     logger.info(
-      args.cert
+      typeof args.cert === "string"
         ? `  - Using provided certificate${args["cert-key"] ? " and key" : ""} for HTTPS`
         : `  - Using generated certificate and key for HTTPS`
     )
@@ -76,8 +75,17 @@ const main = async (args: Args): Promise<void> => {
   }
 }
 
-const args = parse()
-if (args.version) {
+const args = parse(process.argv.slice(2))
+if (args.help) {
+  console.log("code-server", require("../../package.json").version)
+  console.log("")
+  console.log(`Usage: code-server [options] [path]`)
+  console.log("")
+  console.log("Options")
+  optionDescriptions().forEach((description) => {
+    console.log("", description)
+  })
+} else if (args.version) {
   const version = require("../../package.json").version
   if (args.json) {
     console.log({
