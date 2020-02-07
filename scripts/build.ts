@@ -172,21 +172,9 @@ class Builder {
       ])
     })
 
-    await this.copyDependencies("code-server", this.rootPath, this.buildPath)
-
-    await this.task("writing final code-server package.json", async () => {
-      const json = JSON.parse(await fs.readFile(path.join(this.buildPath, "package.json"), "utf8"))
-      return fs.writeFile(
-        path.join(this.buildPath, "package.json"),
-        JSON.stringify(
-          {
-            ...json,
-            commit,
-          },
-          null,
-          2
-        )
-      )
+    await this.copyDependencies("code-server", this.rootPath, this.buildPath, {
+      commit,
+      version: process.env.VERSION,
     })
   }
 
@@ -214,34 +202,6 @@ class Builder {
       })
     }
 
-    const { productJson, packageJson } = await this.task("generating vs code product configuration", async () => {
-      const merge = async (name: string, json: { [key: string]: string } = {}): Promise<{ [key: string]: string }> => {
-        return {
-          ...JSON.parse(await fs.readFile(path.join(this.vscodeSourcePath, `${name}.json`), "utf8")),
-          ...json,
-        }
-      }
-
-      const date = new Date().toISOString()
-      const [packageJson, productJson] = await Promise.all([merge("package", {}), merge("product", { commit, date })])
-
-      return { productJson, packageJson }
-    })
-
-    await this.task("inserting vs code product configuration", async () => {
-      const filePath = path.join(this.vscodeSourcePath, "out-build/vs/platform/product/common/product.js")
-      return fs.writeFile(
-        filePath,
-        (await fs.readFile(filePath, "utf8")).replace(
-          "{ /*BUILD->INSERT_PRODUCT_CONFIGURATION*/}",
-          JSON.stringify({
-            version: packageJson.version,
-            ...productJson,
-          })
-        )
-      )
-    })
-
     const vscodeBuildPath = path.join(this.buildPath, "lib/vscode")
     await this.task("copying vs code into build directory", async () => {
       await fs.mkdirp(vscodeBuildPath)
@@ -254,19 +214,34 @@ class Builder {
       ])
     })
 
-    await this.copyDependencies("vs code", this.vscodeSourcePath, vscodeBuildPath)
-
-    await this.task("writing final vs code product.json", () => {
-      return fs.writeFile(path.join(vscodeBuildPath, "product.json"), JSON.stringify(productJson, null, 2))
+    await this.copyDependencies("vs code", this.vscodeSourcePath, vscodeBuildPath, {
+      commit,
+      date: new Date().toISOString(),
     })
   }
 
-  private async copyDependencies(name: string, sourcePath: string, buildPath: string): Promise<void> {
+  private async copyDependencies(name: string, sourcePath: string, buildPath: string, merge: object): Promise<void> {
     await this.task(`copying ${name} dependencies`, async () => {
       return Promise.all(
         ["node_modules", "package.json", "yarn.lock"].map((fileName) => {
           return fs.copy(path.join(sourcePath, fileName), path.join(buildPath, fileName))
         })
+      )
+    })
+
+    const fileName = name === "code-server" ? "package" : "product"
+    await this.task(`writing final ${name} ${fileName}.json`, async () => {
+      const json = JSON.parse(await fs.readFile(path.join(sourcePath, `${fileName}.json`), "utf8"))
+      return fs.writeFile(
+        path.join(buildPath, `${fileName}.json`),
+        JSON.stringify(
+          {
+            ...json,
+            ...merge,
+          },
+          null,
+          2
+        )
       )
     })
 

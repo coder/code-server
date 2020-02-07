@@ -2108,10 +2108,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..81d275a80a
+index 0000000000..ac6bbc8e98
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,253 @@
+@@ -0,0 +1,252 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import { Emitter } from 'vs/base/common/event';
@@ -2161,6 +2161,7 @@ index 0000000000..81d275a80a
 +import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from 'vs/server/node/channel';
 +import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/node/connection';
 +import { TelemetryClient } from 'vs/server/node/insights';
++import { logger } from 'vs/server/node/logger';
 +import { getLocaleFromConfig, getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
 +import { getUriTransformer } from 'vs/server/node/util';
@@ -2193,11 +2194,9 @@ index 0000000000..81d275a80a
 +				logLevel: getLogLevel(environment),
 +			},
 +			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
-+			productConfiguration: {
-+				extensionsGallery: product.extensionsGallery,
-+			},
++			productConfiguration: product,
 +			nlsConfiguration: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
-+			commit: product.commit || '',
++			commit: product.commit || 'development',
 +		};
 +	}
 +
@@ -2222,7 +2221,7 @@ index 0000000000..81d275a80a
 +
 +	private async connect(message: ConnectionTypeRequest, protocol: Protocol): Promise<void> {
 +		if (product.commit && message.commit !== product.commit) {
-+			throw new Error(`Version mismatch (${message.commit} instead of ${product.commit})`);
++			logger.warn(`Version mismatch (${message.commit} instead of ${product.commit})`);
 +		}
 +
 +		switch (message.desiredConnectionType) {
