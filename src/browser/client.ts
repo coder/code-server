@@ -9,7 +9,6 @@ import { INotificationService, Severity } from "vs/platform/notification/common/
 import { Registry } from "vs/platform/registry/common/platform";
 import { PersistentConnectionEventType } from "vs/platform/remote/common/remoteAgentConnection";
 import { ITelemetryService } from "vs/platform/telemetry/common/telemetry";
-import { coderApi, vscodeApi } from "vs/server/src/browser/api";
 import { INodeProxyService, NodeProxyChannelClient } from "vs/server/src/common/nodeProxy";
 import { TelemetryChannelClient } from "vs/server/src/common/telemetry";
 import { split } from "vs/server/src/common/util";
@@ -76,13 +75,7 @@ registerSingleton(ITelemetryService, TelemetryService);
  * been initialized so we can initialize our own client-side code.
  */
 export const initialize = async (services: ServiceCollection): Promise<void> => {
-	const target = window as any;
-	target.ide = coderApi(services);
-	target.vscode = vscodeApi(services);
-
 	const event = new CustomEvent("ide-ready");
-	(event as any).ide = target.ide;
-	(event as any).vscode = target.vscode;
 	window.dispatchEvent(event);
 
 	if (!window.isSecureContext) {

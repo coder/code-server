@@ -44,7 +44,7 @@ import product from 'vs/platform/product/common/product';
 import { IProductService } from "vs/platform/product/common/productService";
 import { ConnectionType, ConnectionTypeRequest } from "vs/platform/remote/common/remoteAgentConnection";
 import { RemoteAgentConnectionContext } from "vs/platform/remote/common/remoteAgentEnvironment";
-import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/platform/remote/common/remoteAgentFileSystemChannel";
+import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/workbench/services/remote/common/remoteAgentFileSystemChannel";
 import { IRequestService } from "vs/platform/request/common/request";
 import { RequestChannel } from "vs/platform/request/common/requestIpc";
 import { RequestService } from "vs/platform/request/node/requestService";
@@ -177,7 +177,7 @@ export abstract class Server {
 	 */
 	public address(): string {
 		const address = this.server.address();
-		const endpoint = typeof address !== "string"
+		const endpoint = address && typeof address !== "string"
 			? (address.address === "::" ? "localhost" : address.address) + ":" + address.port
 			: address;
 		return `${this.protocol}://${endpoint}`;
@@ -234,7 +234,7 @@ export abstract class Server {
 
 	private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
 		try {
-			const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+			const parsedUrl = url.parse(request.url || "", true);
 			const payload = await this.preHandleRequest(request, parsedUrl);
 			response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
 				"Content-Type": payload.mime || getMediaMime(payload.filePath),
@@ -259,7 +259,7 @@ export abstract class Server {
 			response.writeHead(typeof error.code === "number" ? error.code : HttpCode.ServerError);
 			response.end(error.message);
 		}
-	}
+	};
 
 	private async preHandleRequest(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
 		const secure = (request.connection as tls.TLSSocket).encrypted;
@@ -335,7 +335,7 @@ export abstract class Server {
 			socket.destroy();
 			console.error(error.message);
 		}
-	}
+	};
 
 	private preHandleWebSocket(request: http.IncomingMessage, socket: net.Socket): Promise<void> {
 		socket.on("error", () => socket.destroy());
@@ -360,7 +360,7 @@ export abstract class Server {
 			`Sec-WebSocket-Accept: ${reply}`,
 		].join("\r\n") + "\r\n\r\n");
 
-		const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}};
+		const parsedUrl = url.parse(request.url || "", true);
 		return this.handleWebSocket(socket, parsedUrl);
 	}
 
@@ -616,9 +616,11 @@ export class MainServer extends Server {
 			NLS_CONFIGURATION: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
 		};
 
-		content = content.replace(/{{COMMIT}}/g, product.commit || "");
-		for (const key in options) {
-			content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
+		if (content) {
+			content = content.replace(/{{COMMIT}}/g, product.commit || "");
+			for (const key in options) {
+				content = content.replace(`"{{${key}}}"`, `'${JSON.stringify(options[key as keyof Options])}'`);
+			}
 		}
 
 		return { content, filePath };

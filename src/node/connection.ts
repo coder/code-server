@@ -132,8 +132,10 @@ export class ExtensionHostConnection extends Connection {
 
 		proc.on("error", () => this.dispose());
 		proc.on("exit", () => this.dispose());
-		proc.stdout.setEncoding("utf8").on("data", (d) => this.log.info("Extension host stdout", d));
-		proc.stderr.setEncoding("utf8").on("data", (d) => this.log.error("Extension host stderr", d));
+		if (proc.stdout && proc.stderr) {
+			proc.stdout.setEncoding("utf8").on("data", (d) => this.log.info("Extension host stdout", d));
+			proc.stderr.setEncoding("utf8").on("data", (d) => this.log.error("Extension host stderr", d));
+		}
 		proc.on("message", (event) => {
 			if (event && event.type === "__$console") {
 				const severity = (<any>this.log)[event.severity] ? event.severity : "info";
