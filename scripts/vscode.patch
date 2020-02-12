@@ -76,6 +76,46 @@ index 2c64061da7..c0ef8faedd 100644
  		} catch (err) {
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
+diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
+index a599f5a7eb..ec7ccd43f8 100644
+--- a/src/vs/code/browser/workbench/workbench.ts
++++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -298,35 +298,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
+ 	let workspace: IWorkspace;
+ 	let payload = Object.create(null);
+ 
+-	const query = new URL(document.location.href).searchParams;
+-	query.forEach((value, key) => {
+-		switch (key) {
+-
+-			// Folder
+-			case WorkspaceProvider.QUERY_PARAM_FOLDER:
+-				workspace = { folderUri: URI.parse(value) };
+-				foundWorkspace = true;
+-				break;
+-
+-			// Workspace
+-			case WorkspaceProvider.QUERY_PARAM_WORKSPACE:
+-				workspace = { workspaceUri: URI.parse(value) };
+-				foundWorkspace = true;
+-				break;
+-
+-			// Empty
+-			case WorkspaceProvider.QUERY_PARAM_EMPTY_WINDOW:
+-				workspace = undefined;
+-				foundWorkspace = true;
+-				break;
+-
+-			// Payload
+-			case WorkspaceProvider.QUERY_PARAM_PAYLOAD:
+-				payload = JSON.parse(value);
+-				break;
+-		}
+-	});
+-
+ 	// If no workspace is provided through the URL, check for config attribute from server
+ 	if (!foundWorkspace) {
+ 		if (config.folderUri) {
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index abd1e33b18..bf75952ce1 100644
 --- a/src/vs/platform/environment/common/environment.ts
@@ -680,7 +720,7 @@ index 4781f22676..25143a97c0 100644
  				throw new Error(`Cannot load module '${request}'`);
  			}
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 94e7052574..4219adda2c 100644
+index 94e7052574..7e5563b417 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -49,6 +49,7 @@ import { IndexedDBLogProvider } from 'vs/workbench/services/log/browser/indexedD
@@ -699,14 +739,6 @@ index 94e7052574..4219adda2c 100644
  	}
  
  	private registerListeners(workbench: Workbench, storageService: BrowserStorageService): void {
-@@ -245,6 +247,7 @@ class BrowserMain extends Disposable {
- 			// Remote file system
- 			const remoteFileSystemProvider = this._register(new RemoteFileSystemProvider(remoteAgentService));
- 			fileService.registerProvider(Schemas.vscodeRemote, remoteFileSystemProvider);
-+			fileService.registerProvider(Schemas.file, remoteFileSystemProvider);
- 
- 			if (!this.configuration.userDataProvider) {
- 				const remoteUserDataUri = this.getRemoteUserDataUri();
 diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
 index c509716fc4..e416413084 100644
 --- a/src/vs/workbench/common/resources.ts

@@ -10,7 +10,6 @@ import * as tls from "tls";
 import * as url from "url";
 import * as util from "util";
 import { Emitter } from "vs/base/common/event";
-import { sanitizeFilePath } from "vs/base/common/extpath";
 import { Schemas } from "vs/base/common/network";
 import { URI, UriComponents } from "vs/base/common/uri";
 import { generateUuid } from "vs/base/common/uuid";
@@ -574,6 +573,7 @@ export class MainServer extends Server {
 	}
 
 	private async getRoot(request: http.IncomingMessage, parsedUrl: url.UrlWithParsedQuery): Promise<Response> {
+		const remoteAuthority = request.headers.host as string;
 		const filePath = path.join(this.serverRoot, "browser/workbench.html");
 		let [content, startPath] = await Promise.all([
 			util.promisify(fs.readFile)(filePath, "utf8"),
@@ -582,14 +582,14 @@ export class MainServer extends Server {
 				{ path: parsedUrl.query.folder, workspace: false },
 				(await this.readSettings()).lastVisited,
 				{ path: this.options.openUri }
-			]),
+			], remoteAuthority),
 			this.servicesPromise,
 		]);
 
 		if (startPath) {
 			this.writeSettings({
 				lastVisited: {
-					path: startPath.uri.fsPath,
+					path: startPath.uri,
 					workspace: startPath.workspace
 				},
 			});
@@ -598,14 +598,13 @@ export class MainServer extends Server {
 		const logger = this.services.get(ILogService) as ILogService;
 		logger.info("request.url", `"${request.url}"`);
 
-		const remoteAuthority = request.headers.host as string;
 		const transformer = getUriTransformer(remoteAuthority);
 
 		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 		const options: Options = {
 			WORKBENCH_WEB_CONFIGURATION: {
-				workspaceUri: startPath && startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
-				folderUri: startPath && !startPath.workspace ? transformer.transformOutgoing(startPath.uri) : undefined,
+				workspaceUri: startPath && startPath.workspace ? URI.parse(startPath.uri) : undefined,
+				folderUri: startPath && !startPath.workspace ? URI.parse(startPath.uri) : undefined,
 				remoteAuthority,
 				logLevel: getLogLevel(environment),
 			},
@@ -631,9 +630,8 @@ export class MainServer extends Server {
 	 * workspace or a directory are acceptable. Otherwise it must be a file if a
 	 * workspace or a directory otherwise.
 	 */
-	private async getFirstValidPath(startPaths: Array<StartPath | undefined>): Promise<{ uri: URI, workspace?: boolean} | undefined> {
+	private async getFirstValidPath(startPaths: Array<StartPath | undefined>, remoteAuthority: string): Promise<{ uri: string, workspace?: boolean} | undefined> {
 		const logger = this.services.get(ILogService) as ILogService;
-		const cwd = process.env.VSCODE_CWD || process.cwd();
 		for (let i = 0; i < startPaths.length; ++i) {
 			const startPath = startPaths[i];
 			if (!startPath) {
@@ -641,11 +639,20 @@ export class MainServer extends Server {
 			}
 			const paths = typeof startPath.path === "string" ? [startPath.path] : (startPath.path || []);
 			for (let j = 0; j < paths.length; ++j) {
-				const uri = URI.file(sanitizeFilePath(paths[j], cwd));
+				const uri = url.parse(paths[j]);
 				try {
-					const stat = await util.promisify(fs.stat)(uri.fsPath);
+					if (!uri.pathname) {
+						throw new Error(`${paths[j]} is not valid`);
+					}
+					const stat = await util.promisify(fs.stat)(uri.pathname);
 					if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
-						return { uri, workspace: !stat.isDirectory() };
+						return { uri: url.format({
+							protocol: uri.protocol || "vscode-remote",
+							hostname: remoteAuthority.split(":")[0],
+							port: remoteAuthority.split(":")[1],
+							pathname: uri.pathname,
+							slashes: true,
+						}), workspace: !stat.isDirectory() };
 					}
 				} catch (error) {
 					logger.warn(error.message);
