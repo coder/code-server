@@ -199,6 +199,8 @@ export class VscodeHttpProvider extends HttpProvider {
       ...response,
       content: response.content
         .replace(/{{COMMIT}}/g, options.commit)
+        .replace(/{{BASE}}/g, this.base(route))
+        .replace(/{{VS_BASE}}/g, this.base(route) + this.options.base)
         .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
         .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
         .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)

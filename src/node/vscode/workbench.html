@@ -19,9 +19,9 @@
     <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="../static/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link rel="manifest" href="../static/src/browser/media/manifest.json" crossorigin="use-credentials">
-    <link rel="apple-touch-icon" href="../static/src/browser/media/code-server.png" />
+    <link rel="icon" href="{{BASE}}/static/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="{{BASE}}/static/src/browser/media/manifest.json" crossorigin="use-credentials">
+    <link rel="apple-touch-icon" href="{{BASE}}/static/src/browser/media/code-server.png" />
     <meta name="apple-mobile-web-app-capable" content="yes">
   </head>
 
@@ -30,11 +30,12 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script>
-    const basePath = window.location.pathname.replace(/\/+$/, '');
-    const base = window.location.origin  + basePath;
+    const parts = window.location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = "{{VS_BASE}}"
+    const url = new URL(window.location.origin + "/" + parts.join("/"))
     const el = document.getElementById('vscode-remote-commit');
     const commit = el ? el.getAttribute('data-settings') : "";
-    const staticBase = base + '/static-' + commit;
+    const staticBase = url.href + '/static-' + commit;
     self.require = {
         baseUrl: `${staticBase}/out`,
         paths: {
@@ -48,7 +49,7 @@
         },
     };
   </script>
-  <script src="./static/out/vs/loader.js"></script>
+  <script src="{{VS_BASE}}/static/out/vs/loader.js"></script>
   <script>
     require(['vs/code/browser/workbench/workbench'], function() {});
   </script>

@@ -19,28 +19,27 @@
     <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="../static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link rel="manifest" href="../static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
-    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.css">
-    <link rel="apple-touch-icon" href="../static-{{COMMIT}}/src/browser/media/code-server.png" />
+    <link rel="icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
+    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.css">
+    <link rel="apple-touch-icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png" />
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <!-- Prefetch to avoid waterfall -->
-    <link rel="prefetch" href="./static-{{COMMIT}}/node_modules/semver-umd/lib/semver-umd.js">
+    <link rel="prefetch" href="{{BASE}}/static-{{COMMIT}}/node_modules/semver-umd/lib/semver-umd.js">
   </head>
 
   <body aria-label="">
   </body>
 
   <!-- Startup (do not modify order of script tags!) -->
-  <!-- NOTE:coder: Modified to work against the current path and use the commit for caching. -->
   <script>
-    // NOTE: Changes to inline scripts require update of content security policy
-    const basePath = window.location.pathname.replace(/\/+$/, '');
-    const base = window.location.origin  + basePath;
+    const parts = window.location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = "{{VS_BASE}}"
+    const url = new URL(window.location.origin + "/" + parts.join("/"))
     const el = document.getElementById('vscode-remote-commit');
     const commit = el ? el.getAttribute('data-settings') : "";
-    const staticBase = base + '/static-' + commit;
+    const staticBase = url.href + '/static-' + commit;
     let nlsConfig;
     try {
         nlsConfig = JSON.parse(document.getElementById('vscode-remote-nls-configuration').getAttribute('data-settings'));
@@ -54,7 +53,7 @@
                 // FIXME: Only works if path separators are /.
                 const path = nlsConfig._resolvedLanguagePackCoreLocation
                       + '/' + bundle.replace(/\//g, '!') + '.nls.json';
-                fetch(`${base}/resource/?path=${encodeURIComponent(path)}`)
+                fetch(`${url.href}/resource/?path=${encodeURIComponent(path)}`)
                     .then((response) => response.json())
                     .then((json) => {
                         bundles[bundle] = json;
@@ -78,15 +77,14 @@
         'vs/nls': nlsConfig,
     };
   </script>
-  <script src="./static-{{COMMIT}}/out/vs/loader.js"></script>
-  <script src="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.nls.js"></script>
-  <script src="./static-{{COMMIT}}/out/vs/workbench/workbench.web.api.js"></script>
+  <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/loader.js"></script>
+  <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.nls.js"></script>
+  <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.js"></script>
   <!-- TODO@coder: This errors with multiple anonymous define calls (one is
        workbench.js and one is semver-umd.js). For now use the same method found in
        workbench-dev.html. Appears related to the timing of the script load events. -->
-  <!-- <script src="./static-{{COMMIT}}/out/vs/workbench/workbench.js"></script> -->
+  <!-- <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.js"></script> -->
   <script>
-    // NOTE: Changes to inline scripts require update of content security policy
     require(['vs/code/browser/workbench/workbench'], function() {});
   </script>
 </html>

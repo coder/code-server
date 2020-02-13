@@ -117,8 +117,9 @@ interface ProviderRoute extends Route {
 
 export interface HttpProviderOptions {
   readonly auth: AuthType
-  readonly password?: string
+  readonly base: string
   readonly commit: string
+  readonly password?: string
 }
 
 /**
@@ -150,10 +151,16 @@ export abstract class HttpProvider {
   public abstract handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined>
 
   /**
-   * Get the base relative to the provided route.
+   * Get the base relative to the provided route. For each slash we need to go
+   * up a directory. For example:
+   * / => ./
+   * /foo => ./
+   * /foo/ => ./../
+   * /foo/bar => ./../
+   * /foo/bar/ => ./../../
    */
   public base(route: Route): string {
-    const depth = ((route.fullPath + "/").match(/\//g) || []).length
+    const depth = (route.originalPath.match(/\//g) || []).length
     return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
   }
 
@@ -403,6 +410,7 @@ export class HttpServer {
       new provider(
         {
           auth: this.options.auth || AuthType.None,
+          base: `/${endpoint}`,
           commit: this.options.commit,
           password: this.options.password,
         },
@@ -510,11 +518,6 @@ export class HttpServer {
       return { redirect: redirect(route.fullPath) }
     }
 
-    // Redirect our indexes to a trailing slash so relative paths in the served
-    // HTML will operate against the base path properly.
-    if (route.requestPath === "/index.html" && !route.originalPath.endsWith("/") && this.providers.has(route.base)) {
-      return { redirect: redirect(route.fullPath + "/") }
-    }
     return undefined
   }
 
@@ -572,7 +575,7 @@ export class HttpServer {
     }
 
     const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}, pathname: "" }
-    const originalPath = parsedUrl.pathname || ""
+    const originalPath = parsedUrl.pathname || "/"
     const fullPath = normalize(originalPath)
     const { base, requestPath } = parse(fullPath)
 
