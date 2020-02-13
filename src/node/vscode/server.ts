@@ -167,18 +167,22 @@ export class VscodeHttpProvider extends HttpProvider {
   }
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
+    const remoteAuthority = request.headers.host as string
     const settings = await this.settings.read()
-    const startPath = await this.getFirstValidPath([
-      { url: route.query.workspace, workspace: true },
-      { url: route.query.folder, workspace: false },
-      settings.lastVisited,
-      this.args._ && this.args._.length > 0 ? { url: this.urlify(this.args._[0]) } : undefined,
-    ])
+    const startPath = await this.getFirstValidPath(
+      [
+        { url: route.query.workspace, workspace: true },
+        { url: route.query.folder, workspace: false },
+        settings.lastVisited,
+        this.args._ && this.args._.length > 0 ? { url: this.args._[0] } : undefined,
+      ],
+      remoteAuthority
+    )
     const [response, options] = await Promise.all([
       await this.getUtf8Resource(this.rootPath, `src/node/vscode/workbench${!this.isDev ? "-build" : ""}.html`),
       this.initialize({
         args: this.args,
-        remoteAuthority: request.headers.host as string,
+        remoteAuthority,
         startPath,
       }),
     ])
@@ -217,7 +221,8 @@ export class VscodeHttpProvider extends HttpProvider {
    * workspace or a directory otherwise.
    */
   private async getFirstValidPath(
-    startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>
+    startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>,
+    remoteAuthority: string
   ): Promise<StartPath | undefined> {
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]
@@ -226,14 +231,23 @@ export class VscodeHttpProvider extends HttpProvider {
       }
       const paths = typeof startPath.url === "string" ? [startPath.url] : startPath.url || []
       for (let j = 0; j < paths.length; ++j) {
-        const u = url.parse(paths[j])
+        const uri = url.parse(paths[j])
         try {
-          if (!u.pathname) {
+          if (!uri.pathname) {
             throw new Error(`${paths[j]} is not a valid URL`)
           }
-          const stat = await fs.stat(u.pathname)
+          const stat = await fs.stat(uri.pathname)
           if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
-            return { url: u.href, workspace: !stat.isDirectory() }
+            return {
+              url: url.format({
+                protocol: uri.protocol || "vscode-remote",
+                hostname: remoteAuthority.split(":")[0],
+                port: remoteAuthority.split(":")[1],
+                pathname: uri.pathname,
+                slashes: true,
+              }),
+              workspace: !stat.isDirectory(),
+            }
           }
         } catch (error) {
           logger.warn(error.message)
@@ -241,9 +255,5 @@ export class VscodeHttpProvider extends HttpProvider {
       }
     }
     return undefined
-  }
-
-  private urlify(p: string): string {
-    return "vscode-remote://host" + path.resolve(p)
   }
 }
