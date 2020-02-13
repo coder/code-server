@@ -4,6 +4,8 @@
   <head>
     <meta charset="utf-8" />
 
+    <meta http-equiv="Content-Security-Policy" content="font-src 'self'; connect-src 'self' https:; default-src ws: wss: 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; manifest-src 'self'; img-src 'self' data:;">
+
     <!-- Disable pinch zooming -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 
@@ -12,8 +14,6 @@
 
     <!-- Workarounds/Hacks (remote user data uri) -->
     <meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}">
-    <!-- NOTE@coder: Added the commit for use in caching, the product for the
-         extensions gallery URL, and nls for language support. -->
     <meta id="vscode-remote-commit" data-settings="{{COMMIT}}">
     <meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}">
     <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
@@ -21,12 +21,16 @@
     <!-- Workbench Icon/Manifest/CSS -->
     <link rel="icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
     <link rel="manifest" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
+    <!-- PROD_ONLY
     <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.css">
+    END_PROD_ONLY -->
     <link rel="apple-touch-icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png" />
     <meta name="apple-mobile-web-app-capable" content="yes">
 
     <!-- Prefetch to avoid waterfall -->
-    <link rel="prefetch" href="{{BASE}}/static-{{COMMIT}}/node_modules/semver-umd/lib/semver-umd.js">
+    <!-- PROD_ONLY
+    <link rel="prefetch" href="{{VS_BASE}}/static-{{COMMIT}}/node_modules/semver-umd/lib/semver-umd.js">
+    END_PROD_ONLY -->
   </head>
 
   <body aria-label="">
@@ -78,12 +82,10 @@
     };
   </script>
   <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/loader.js"></script>
+  <!-- PROD_ONLY
   <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.nls.js"></script>
   <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.web.api.js"></script>
-  <!-- TODO@coder: This errors with multiple anonymous define calls (one is
-       workbench.js and one is semver-umd.js). For now use the same method found in
-       workbench-dev.html. Appears related to the timing of the script load events. -->
-  <!-- <script src="{{VS_BASE}}/static-{{COMMIT}}/out/vs/workbench/workbench.js"></script> -->
+  END_PROD_ONLY -->
   <script>
     require(['vs/code/browser/workbench/workbench'], function() {});
   </script>

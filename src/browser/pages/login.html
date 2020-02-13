@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self'; script-src 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:;">
+    <title>code-server login</title>
+    <link rel="icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
+    <link rel="apple-touch-icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png" />
+    <link href="{{BASE}}/static-{{COMMIT}}/dist/app.css" rel="stylesheet">
+  </head>
+  <body>
+    <div class="center-container">
+      <form class="login-form" method="post">
+        <div class="header">
+          <div class="main">Welcome to code-server</div>
+          <div class="sub">Please log in below</div>
+        </div>
+        <input class="user" type="text" autocomplete="username" />
+        <input id="base" type="hidden" name="base" value="/" />
+        <div class="field">
+          <!-- The onfocus code places the cursor at the end of the value. -->
+          <input
+            required autofocus
+            value="{{VALUE}}"
+            onfocus="const value=this.value;this.value='';this.value=value;"
+            class="password"
+            type="password"
+            placeholder="password"
+            name="password"
+            autocomplete="current-password"
+            />
+          <button class="submit" type="submit">
+            Log In
+          </button>
+        </div>
+        {{ERROR}}
+      </form>
+    </div>
+  </body>
+  <script>
+    const parts = window.location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = "{{BASE}}"
+    const url = new URL(window.location.origin + "/" + parts.join("/"))
+    document.getElementById("base").value = url.pathname
+  </script>
+</html>

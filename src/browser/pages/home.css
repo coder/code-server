@@ -1,8 +1,70 @@
-.orientation-guide {
-  align-items: center;
+.app-lists {
+  max-width: 400px;
+  width: 100%;
+}
+
+.app-list > .header {
+  margin: 1rem 0;
+}
+
+.app-list > .none {
   color: #b6b6b6;
+}
+
+.app-list + .app-list {
+  border-top: 1px solid #666;
+  margin-top: 1rem;
+}
+
+.app-row {
+  display: flex;
+}
+
+.app-row > .open {
+  color: #b6b6b6;
+  cursor: pointer;
   display: flex;
   flex: 1;
-  flex-direction: column;
-  justify-content: center;
+  text-decoration: none;
+}
+
+.app-row > .open:hover {
+  color: #fafafa;
+}
+
+.app-row > .open > .icon {
+  height: 1rem;
+  margin-right: 5px;
+  width: 1rem;
+}
+
+.app-row > .open > .icon.-missing {
+  background-color: #eee;
+  color: #b6b6b6;
+  text-align: center;
+}
+
+.app-row > .open > .icon.-missing::after {
+  content: "?";
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.kill-form {
+  display: inline-block;
+}
+
+.kill-form > .kill {
+  background-color: transparent;
+  border: none;
+  color: #b6b6b6;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1rem;
+  margin: 0;
+  padding: 0;
+}
+
+.kill-form > .kill:hover {
+  color: #fafafa;
 }

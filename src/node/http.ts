@@ -164,6 +164,17 @@ export abstract class HttpProvider {
     return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
   }
 
+  public async getErrorRoot(route: Route, title: string, header: string, body: string): Promise<HttpResponse> {
+    const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/error.html")
+    response.content = response.content
+      .replace(/{{COMMIT}}/g, this.options.commit)
+      .replace(/{{BASE}}/g, this.base(route))
+      .replace(/{{ERROR_TITLE}}/g, title)
+      .replace(/{{ERROR_HEADER}}/g, header)
+      .replace(/{{ERROR_BODY}}/g, body)
+    return response
+  }
+
   protected get isDev(): boolean {
     return this.options.commit === "development"
   }
@@ -194,10 +205,11 @@ export abstract class HttpProvider {
   }
 
   /**
-   * Helper to error on anything that's not a GET.
+   * Helper to error on invalid methods (default GET).
    */
-  protected ensureGet(request: http.IncomingMessage): void {
-    if (request.method !== "GET") {
+  protected ensureMethod(request: http.IncomingMessage, method?: string | string[]): void {
+    const check = Array.isArray(method) ? method : [method || "GET"]
+    if (!request.method || !check.includes(request.method)) {
       throw new HttpError(`Unsupported method ${request.method}`, HttpCode.BadRequest)
     }
   }
@@ -390,14 +402,10 @@ export class HttpServer {
   /**
    * Register a provider for a top-level endpoint.
    */
-  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): void
-  public registerHttpProvider<A1, T extends HttpProvider>(
-    endpoint: string,
-    provider: HttpProvider1<A1, T>,
-    a1: A1
-  ): void
+  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): T
+  public registerHttpProvider<A1, T extends HttpProvider>(endpoint: string, provider: HttpProvider1<A1, T>, a1: A1): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public registerHttpProvider(endpoint: string, provider: any, a1?: any): void {
+  public registerHttpProvider(endpoint: string, provider: any, a1?: any): any {
     endpoint = endpoint.replace(/^\/+|\/+$/g, "")
     if (this.providers.has(`/${endpoint}`)) {
       throw new Error(`${endpoint} is already registered`)
@@ -405,18 +413,17 @@ export class HttpServer {
     if (/\//.test(endpoint)) {
       throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
     }
-    this.providers.set(
-      `/${endpoint}`,
-      new provider(
-        {
-          auth: this.options.auth || AuthType.None,
-          base: `/${endpoint}`,
-          commit: this.options.commit,
-          password: this.options.password,
-        },
-        a1
-      )
+    const p = new provider(
+      {
+        auth: this.options.auth || AuthType.None,
+        base: `/${endpoint}`,
+        commit: this.options.commit,
+        password: this.options.password,
+      },
+      a1
     )
+    this.providers.set(`/${endpoint}`, p)
+    return p
   }
 
   /**
@@ -451,22 +458,26 @@ export class HttpServer {
   }
 
   private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
+    this.heart.beat()
+    const route = this.parseUrl(request)
     try {
-      this.heart.beat()
-      const route = this.parseUrl(request)
       const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
       if (!payload) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
-        ...(payload.redirect ? { Location: payload.redirect } : {}),
+        ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
         ...(request.headers["service-worker"] ? { "Service-Worker-Allowed": route.provider.base(route) } : {}),
         ...(payload.cache ? { "Cache-Control": "public, max-age=31536000" } : {}),
         ...(payload.cookie
           ? {
-              "Set-Cookie": `${payload.cookie.key}=${payload.cookie.value}; Path=${payload.cookie.path ||
-                "/"}; HttpOnly; SameSite=strict`,
+              "Set-Cookie": [
+                `${payload.cookie.key}=${payload.cookie.value}`,
+                `Path=${normalize(payload.cookie.path || "/", true)}`,
+                "HttpOnly",
+                "SameSite=strict",
+              ].join(";"),
             }
           : {}),
         ...payload.headers,
@@ -490,35 +501,47 @@ export class HttpServer {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
       logger.debug(error.stack)
-      response.writeHead(typeof e.code === "number" ? e.code : HttpCode.ServerError)
-      response.end(error.message)
+      const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
+      const content = (await route.provider.getErrorRoot(route, code, code, e.message)).content
+      response.writeHead(code)
+      response.end(content)
     }
   }
 
   /**
    * Return any necessary redirection before delegating to a provider.
    */
-  private maybeRedirect(request: http.IncomingMessage, route: ProviderRoute): HttpResponse | undefined {
-    const redirect = (path: string): string => {
-      Object.keys(route.query).forEach((key) => {
-        if (typeof route.query[key] === "undefined") {
-          delete route.query[key]
-        }
-      })
-      // If we're handling TLS ensure all requests are redirected to HTTPS.
-      return this.options.cert
-        ? `${this.protocol}://${request.headers.host}`
-        : "" +
-            normalize(`${route.provider.base(route)}/${path}`, true) +
-            (Object.keys(route.query).length > 0 ? `?${querystring.stringify(route.query)}` : "")
-    }
-
-    // Redirect to HTTPS if we're handling the TLS.
+  private maybeRedirect(request: http.IncomingMessage, route: ProviderRoute): RedirectResponse | undefined {
+    // If we're handling TLS ensure all requests are redirected to HTTPS.
     if (this.options.cert && !(request.connection as tls.TLSSocket).encrypted) {
-      return { redirect: redirect(route.fullPath) }
+      return { redirect: route.fullPath }
     }
 
     return undefined
+  }
+
+  /**
+   * Given a path that goes from the base, construct a relative redirect URL
+   * that will get you there considering that the app may be served from an
+   * unknown base path. If handling TLS, also ensure HTTPS.
+   */
+  private constructRedirect(request: http.IncomingMessage, route: ProviderRoute, payload: RedirectResponse): string {
+    const query = {
+      ...route.query,
+      ...(payload.query || {}),
+    }
+
+    Object.keys(query).forEach((key) => {
+      if (typeof query[key] === "undefined") {
+        delete query[key]
+      }
+    })
+
+    return (
+      (this.options.cert ? `${this.protocol}://${request.headers.host}` : "") +
+      normalize(`${route.provider.base(route)}/${payload.redirect}`, true) +
+      (Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : "")
+    )
   }
 
   private onUpgrade = async (request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<void> => {

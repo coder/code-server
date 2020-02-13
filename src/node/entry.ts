@@ -1,13 +1,17 @@
 import { logger } from "@coder/logger"
-import { ApiHttpProvider } from "./api/server"
-import { MainHttpProvider } from "./app/server"
 import { Args, optionDescriptions, parse } from "./cli"
+import { ApiHttpProvider } from "./app/api"
+import { MainHttpProvider } from "./app/app"
+import { LoginHttpProvider } from "./app/login"
+import { VscodeHttpProvider } from "./app/vscode"
 import { AuthType, HttpServer } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
-import { VscodeHttpProvider } from "./vscode/server"
 import { ipcMain, wrap } from "./wrapper"
 
 const main = async (args: Args): Promise<void> => {
+  // For any future forking bypass nbin and drop straight to Node.
+  process.env.NBIN_BYPASS = "true"
+
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
@@ -36,9 +40,10 @@ const main = async (args: Args): Promise<void> => {
   }
 
   const httpServer = new HttpServer(options)
-  httpServer.registerHttpProvider("/", MainHttpProvider)
-  httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
-  httpServer.registerHttpProvider("/vscode-embed", VscodeHttpProvider, args)
+  const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
+  httpServer.registerHttpProvider("/vscode", VscodeHttpProvider, args)
+  httpServer.registerHttpProvider("/login", LoginHttpProvider)
+  httpServer.registerHttpProvider("/", MainHttpProvider, api)
 
   ipcMain().onDispose(() => httpServer.dispose())
 

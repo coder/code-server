@@ -1,20 +1,16 @@
 html,
 body,
 #root,
-iframe {
+.center-container {
   height: 100%;
   width: 100%;
-}
-
-iframe {
-  border: none;
 }
 
 body {
   background: #272727;
   color: #f4f4f4;
   margin: 0;
-  font-family: 'IBM Plex Sans', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
   overflow: hidden;
 }
 
@@ -22,20 +18,10 @@ button {
   font-family: inherit;
 }
 
-.coder-splash {
+.center-container {
   align-items: center;
   box-sizing: border-box;
   display: flex;
-  height: 100%;
   justify-content: center;
-  left: 0;
-  position: fixed;
-  top: 0;
-  width: 100%;
-  z-index: 5;
-}
-
-.coder-splash > .logo {
-  color: rgba(255, 255, 255, 0.03);
-  width: 100%;
+  padding: 20px;
 }

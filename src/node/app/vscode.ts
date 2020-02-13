@@ -118,18 +118,28 @@ export class VscodeHttpProvider extends HttpProvider {
   }
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
-    this.ensureGet(request)
-    this.ensureAuthenticated(request)
+    this.ensureMethod(request)
+
     switch (route.base) {
       case "/":
         if (route.requestPath !== "/index.html") {
           throw new HttpError("Not found", HttpCode.NotFound)
+        } else if (!this.authenticated(request)) {
+          return { redirect: "/login", query: { to: this.options.base } }
         }
         try {
           return await this.getRoot(request, route)
         } catch (error) {
-          return this.getErrorRoot(error)
+          const message = `${
+            this.isDev ? "It might not have finished compiling (check for 'Finished compilation' in the output)." : ""
+          } <br><br>${error}`
+          return this.getErrorRoot(route, "VS Code failed to load", "VS Code failed to load", message)
         }
+    }
+
+    this.ensureAuthenticated(request)
+
+    switch (route.base) {
       case "/static": {
         switch (route.requestPath) {
           case "/out/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js": {
@@ -179,7 +189,7 @@ export class VscodeHttpProvider extends HttpProvider {
       remoteAuthority
     )
     const [response, options] = await Promise.all([
-      await this.getUtf8Resource(this.rootPath, `src/node/vscode/workbench${!this.isDev ? "-build" : ""}.html`),
+      await this.getUtf8Resource(this.rootPath, "src/browser/pages/vscode.html"),
       this.initialize({
         args: this.args,
         remoteAuthority,
@@ -195,6 +205,10 @@ export class VscodeHttpProvider extends HttpProvider {
       })
     }
 
+    if (!this.isDev) {
+      response.content = response.content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "")
+    }
+
     return {
       ...response,
       content: response.content
@@ -206,15 +220,6 @@ export class VscodeHttpProvider extends HttpProvider {
         .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
         .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
     }
-  }
-
-  private async getErrorRoot(error: Error): Promise<HttpResponse> {
-    const response = await this.getUtf8Resource(this.rootPath, "src/node/vscode/error.html")
-    const message = `VS Code failed to load. ${
-      this.isDev ? "It might not have finished compiling (check for 'Finished compilation' in the output)." : ""
-    } <br><br>${error}`
-    response.content = response.content.replace(/{{COMMIT}}/g, this.options.commit).replace(/{{ERROR}}/g, message)
-    return response
   }
 
   /**

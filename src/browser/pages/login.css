@@ -1,10 +1,25 @@
 .login-form {
   align-items: center;
+  background: #fcfcfc;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.37);
   display: flex;
-  flex: 1;
   flex-direction: column;
+  flex: 1;
+  height: 100%;
   justify-content: center;
+  max-height: 400px;
+  max-width: 664px;
+  padding: 20px;
+  position: relative;
+  width: 100%;
+}
+
+.login-form > .header {
+  align-items: center;
+  color: #b6b6b6;
+  margin-bottom: 1rem;
 }
 
 .login-form > .field {
@@ -13,18 +28,19 @@
   width: 100%;
 }
 
-.login-form > .field-error {
-  margin-top: 1em;
+.login-form > .error {
+  color: red;
+  margin-top: 1rem;
 }
 
 .login-form > .field > .password {
   border: 1px solid #b6b6b6;
   box-sizing: border-box;
-  padding: 1em;
+  padding: 1rem;
   flex: 1;
 }
 
-.login-form > .field > .user {
+.login-form > .user {
   display: none;
 }
 
@@ -33,11 +49,5 @@
   border: 1px solid #b6b6b6;
   box-sizing: border-box;
   margin-left: -1px;
-  padding: 1em 2em;
-}
-
-.login-header {
-  align-items: center;
-  color: #b6b6b6;
-  margin-bottom: 1em;
+  padding: 1rem 2rem;
 }

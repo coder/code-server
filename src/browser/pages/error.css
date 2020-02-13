@@ -1,0 +1,20 @@
+.error-display {
+  box-sizing: border-box;
+  color: #fcfcfc;
+  padding: 20px;
+  text-align: center;
+}
+
+.error-display > .links {
+  margin-top: 1rem;
+}
+
+.error-display > .links > .link {
+  color: #b6b6b6;
+  text-decoration: none;
+}
+
+.error-display > .links > .link:hover {
+  color: #fcfcfc;
+  text-decoration: underline;
+}

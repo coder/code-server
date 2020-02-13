@@ -1,11 +1,9 @@
 import { logger } from "@coder/logger"
-import { Application } from "../common/api"
 
 export interface Options {
-  app?: Application
-  authed: boolean
-  basePath: string
+  base: string
   logLevel: number
+  sessionId: string
 }
 
 /**

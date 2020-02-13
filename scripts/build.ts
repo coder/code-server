@@ -247,7 +247,10 @@ class Builder {
 
     if (process.env.MINIFY) {
       await this.task(`restricting ${name} to production dependencies`, async () => {
-        return util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: buildPath })
+        await util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: buildPath })
+        if (name === "code-server") {
+          await util.promisify(cp.exec)("yarn postinstall", { cwd: buildPath })
+        }
       })
     }
   }
@@ -419,7 +422,7 @@ class Builder {
   }
 
   private createBundler(out = "dist", commit?: string): Bundler {
-    return new Bundler(path.join(this.rootPath, "src/browser/index.tsx"), {
+    return new Bundler(path.join(this.rootPath, "src/browser/pages/app.ts"), {
       cache: true,
       cacheDir: path.join(this.rootPath, ".cache"),
       detailedReport: true,
