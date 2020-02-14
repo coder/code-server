@@ -9,31 +9,17 @@
     <link rel="manifest" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/manifest.json" crossorigin="use-credentials">
     <link rel="apple-touch-icon" href="{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png" />
     <link href="{{BASE}}/static-{{COMMIT}}/dist/app.css" rel="stylesheet">
-    <meta id="coder-options" data-settings="{{OPTIONS}}">
   </head>
   <body>
     <div class="center-container">
-      <div class="info-blocks">
-        <div class="info-block">
-          <h2 class="header">Running Applications</h2>
-          {{APP_LIST:RUNNING}}
+      <form class="update-form" method="post">
+        <h2 class="header">Update</h2>
+        {{UPDATE_STATUS}}
+        {{ERROR}}
+        <div class="links">
+          <a class="link" href="{{BASE}}">go home</a>
         </div>
-
-        <div class="info-block">
-          <h2 class="header">Update</h2>
-          {{UPDATE:NAME}}
-        </div>
-
-        <div class="info-block">
-          <h2 class="header">Editors</h2>
-          {{APP_LIST:EDITORS}}
-        </div>
-
-        <div class="info-block">
-          <h2 class="header">Other</h2>
-          {{APP_LIST:OTHER}}
-        </div>
-      </div>
+      </form>
     </div>
   </body>
 </html>

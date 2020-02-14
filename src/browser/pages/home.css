@@ -1,50 +1,54 @@
-.app-lists {
-  max-width: 400px;
+.info-blocks {
+  max-width: 500px;
   width: 100%;
 }
 
-.app-list > .header {
-  margin: 1rem 0;
+.info-block > .header {
+  font-size: 1.3rem;
+  margin: 1.5rem 0;
 }
 
-.app-list > .none {
+.info-block > .none {
   color: #b6b6b6;
 }
 
-.app-list + .app-list {
+.info-block + .info-block {
   border-top: 1px solid #666;
   margin-top: 1rem;
 }
 
-.app-row {
+.block-row {
   display: flex;
 }
 
-.app-row > .open {
+.block-row > .item {
   color: #b6b6b6;
-  cursor: pointer;
   display: flex;
   flex: 1;
   text-decoration: none;
 }
 
-.app-row > .open:hover {
+.block-row > .item.-link {
+  cursor: pointer;
+}
+
+.block-row > .item.-link:hover {
   color: #fafafa;
 }
 
-.app-row > .open > .icon {
+.block-row > .item > .icon {
   height: 1rem;
   margin-right: 5px;
   width: 1rem;
 }
 
-.app-row > .open > .icon.-missing {
+.block-row > .item > .icon.-missing {
   background-color: #eee;
   color: #b6b6b6;
   text-align: center;
 }
 
-.app-row > .open > .icon.-missing::after {
+.block-row > .item > .icon.-missing::after {
   content: "?";
   font-size: 0.7rem;
   vertical-align: middle;

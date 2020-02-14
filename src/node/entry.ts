@@ -3,6 +3,7 @@ import { Args, optionDescriptions, parse } from "./cli"
 import { ApiHttpProvider } from "./app/api"
 import { MainHttpProvider } from "./app/app"
 import { LoginHttpProvider } from "./app/login"
+import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { AuthType, HttpServer } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
@@ -41,9 +42,10 @@ const main = async (args: Args): Promise<void> => {
 
   const httpServer = new HttpServer(options)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
+  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
   httpServer.registerHttpProvider("/vscode", VscodeHttpProvider, args)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
-  httpServer.registerHttpProvider("/", MainHttpProvider, api)
+  httpServer.registerHttpProvider("/", MainHttpProvider, api, update)
 
   ipcMain().onDispose(() => httpServer.dispose())
 
@@ -71,6 +73,8 @@ const main = async (args: Args): Promise<void> => {
   } else {
     logger.info("  - Not serving HTTPS")
   }
+
+  logger.info(`  - Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.

@@ -6,12 +6,17 @@ import { HttpCode, HttpError } from "../../common/http"
 import { Options } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { ApiHttpProvider } from "./api"
+import { UpdateHttpProvider } from "./update"
 
 /**
  * Top-level and fallback HTTP provider.
  */
 export class MainHttpProvider extends HttpProvider {
-  public constructor(options: HttpProviderOptions, private readonly api: ApiHttpProvider) {
+  public constructor(
+    options: HttpProviderOptions,
+    private readonly api: ApiHttpProvider,
+    private readonly update: UpdateHttpProvider
+  ) {
     super(options)
   }
 
@@ -77,13 +82,14 @@ export class MainHttpProvider extends HttpProvider {
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{BASE}}/g, this.base(route))
-      .replace(/{{APP_LIST:RUNNING}}/g, this.getAppRows(recent.running))
+      .replace(/{{UPDATE:NAME}}/, await this.getUpdate())
+      .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(recent.running))
       .replace(
-        /{{APP_LIST:EDITORS}}/g,
+        /{{APP_LIST:EDITORS}}/,
         this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor")))
       )
       .replace(
-        /{{APP_LIST:OTHER}}/g,
+        /{{APP_LIST:OTHER}}/,
         this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor")))
       )
     return response
@@ -94,8 +100,8 @@ export class MainHttpProvider extends HttpProvider {
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{BASE}}/g, this.base(route))
-      .replace(/{{APP_NAME}}/g, name)
-      .replace(/"{{OPTIONS}}"/g, `'${JSON.stringify(options)}'`)
+      .replace(/{{APP_NAME}}/, name)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -108,8 +114,8 @@ export class MainHttpProvider extends HttpProvider {
   }
 
   private getAppRow(app: Application): string {
-    return `<div class="app-row">
-      <a class="open" href=".${app.path}">
+    return `<div class="block-row">
+      <a class="item -link" href=".${app.path}">
         ${
           app.icon
             ? `<img class="icon" src="data:image/png;base64,${app.icon}"></img>`
@@ -125,6 +131,25 @@ export class MainHttpProvider extends HttpProvider {
              </form>`
           : ""
       }
+    </div>`
+  }
+
+  private async getUpdate(): Promise<string> {
+    if (!this.update.enabled) {
+      return "Updates are disabled"
+    }
+
+    const update = await this.update.getUpdate()
+    if (!update) {
+      return `<div class="block-row">
+        <span class="item">No updates available</span>
+        <span class="current" >Current: ${this.update.currentVersion}</span>
+      </div>`
+    }
+
+    return `<div class="block-row">
+      <a class="item -link" href="./update">Update available: ${update.version}</a>
+      <span class="current" >Current: ${this.update.currentVersion}</span>
     </div>`
   }
 }

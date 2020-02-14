@@ -16,6 +16,7 @@ body {
 
 button {
   font-family: inherit;
+  font-size: inherit;
 }
 
 .center-container {

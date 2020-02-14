@@ -355,6 +355,10 @@ export interface HttpProvider1<A1, T> {
   new (options: HttpProviderOptions, a1: A1): T
 }
 
+export interface HttpProvider2<A1, A2, T> {
+  new (options: HttpProviderOptions, a1: A1, a2: A2): T
+}
+
 /**
  * An HTTP server. Its main role is to route incoming HTTP requests to the
  * appropriate provider for that endpoint then write out the response. It also
@@ -404,8 +408,14 @@ export class HttpServer {
    */
   public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): T
   public registerHttpProvider<A1, T extends HttpProvider>(endpoint: string, provider: HttpProvider1<A1, T>, a1: A1): T
+  public registerHttpProvider<A1, A2, T extends HttpProvider>(
+    endpoint: string,
+    provider: HttpProvider2<A1, A2, T>,
+    a1: A1,
+    a2: A2
+  ): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public registerHttpProvider(endpoint: string, provider: any, a1?: any): any {
+  public registerHttpProvider(endpoint: string, provider: any, ...args: any[]): any {
     endpoint = endpoint.replace(/^\/+|\/+$/g, "")
     if (this.providers.has(`/${endpoint}`)) {
       throw new Error(`${endpoint} is already registered`)
@@ -420,7 +430,7 @@ export class HttpServer {
         commit: this.options.commit,
         password: this.options.password,
       },
-      a1
+      ...args
     )
     this.providers.set(`/${endpoint}`, p)
     return p
