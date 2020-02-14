@@ -1,7 +1,4 @@
 printWidth: 120
 semi: false
-tabWidth: 2
-singleQuote: false
-trailingComma: es5
-useTabs: false
+trailingComma: all
 arrowParens: always
