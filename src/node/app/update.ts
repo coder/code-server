@@ -1,4 +1,5 @@
 import { field, logger } from "@coder/logger"
+import zip from "adm-zip"
 import * as cp from "child_process"
 import * as fs from "fs-extra"
 import * as http from "http"
@@ -10,14 +11,15 @@ import { Readable, Writable } from "stream"
 import * as tar from "tar-fs"
 import * as url from "url"
 import * as util from "util"
-import zip from "adm-zip"
 import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
+import { settings } from "../settings"
 import { tmpdir } from "../util"
 import { ipcMain } from "../wrapper"
 
 export interface Update {
+  checked: number
   version: string
 }
 
@@ -25,7 +27,8 @@ export interface Update {
  * Update HTTP provider.
  */
 export class UpdateHttpProvider extends HttpProvider {
-  private update?: Promise<Update | undefined>
+  private update?: Promise<Update>
+  private updateInterval = 1000 * 60 * 60 * 24 // Milliseconds between update checks.
 
   public constructor(options: HttpProviderOptions, public readonly enabled: boolean) {
     super(options)
@@ -33,6 +36,10 @@ export class UpdateHttpProvider extends HttpProvider {
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
     switch (route.base) {
+      case "/check":
+        this.ensureMethod(request)
+        this.getUpdate(true)
+        return { redirect: "/login" }
       case "/": {
         this.ensureMethod(request, ["GET", "POST"])
         if (route.requestPath !== "/index.html") {
@@ -70,29 +77,38 @@ export class UpdateHttpProvider extends HttpProvider {
   /**
    * Query for and return the latest update.
    */
-  public async getUpdate(): Promise<Update | undefined> {
+  public async getUpdate(force?: boolean): Promise<Update> {
     if (!this.enabled) {
       throw new Error("updates are not enabled")
     }
 
     if (!this.update) {
-      this.update = this._getUpdate()
+      this.update = this._getUpdate(force)
+      this.update.then(() => (this.update = undefined))
     }
 
     return this.update
   }
 
-  private async _getUpdate(): Promise<Update | undefined> {
+  private async _getUpdate(force?: boolean): Promise<Update> {
     const url = "https://api.github.com/repos/cdr/code-server/releases/latest"
+    const now = Date.now()
     try {
-      const buffer = await this.request(url)
-      const data = JSON.parse(buffer.toString())
-      const latest = { version: data.name }
-      logger.debug("Got latest version", field("latest", latest.version))
-      return this.isLatestVersion(latest) ? undefined : latest
+      let { update } = !force ? await settings.read() : { update: undefined }
+      if (!update || update.checked + this.updateInterval < now) {
+        const buffer = await this.request(url)
+        const data = JSON.parse(buffer.toString())
+        update = { checked: now, version: data.name as string }
+        settings.write({ update })
+      }
+      logger.debug("Got latest version", field("latest", update.version))
+      return update
     } catch (error) {
       logger.error("Failed to get latest version", field("error", error.message))
-      return undefined
+      return {
+        checked: now,
+        version: "unknown",
+      }
     }
   }
 
@@ -103,10 +119,14 @@ export class UpdateHttpProvider extends HttpProvider {
   /**
    * Return true if the currently installed version is the latest.
    */
-  private isLatestVersion(latest: Update): boolean {
+  public isLatestVersion(latest: Update): boolean {
     const version = this.currentVersion
     logger.debug("Comparing versions", field("current", version), field("latest", latest.version))
-    return latest.version === version || semver.lt(latest.version, version)
+    try {
+      return latest.version === version || semver.lt(latest.version, version)
+    } catch (error) {
+      return true
+    }
   }
 
   private async getUpdateHtml(): Promise<string> {
@@ -115,8 +135,8 @@ export class UpdateHttpProvider extends HttpProvider {
     }
 
     const update = await this.getUpdate()
-    if (!update) {
-      return "No updates available"
+    if (this.isLatestVersion(update)) {
+      throw new Error("No update available")
     }
 
     return `<button type="submit" class="apply">
@@ -128,7 +148,7 @@ export class UpdateHttpProvider extends HttpProvider {
   public async tryUpdate(route: Route): Promise<HttpResponse> {
     try {
       const update = await this.getUpdate()
-      if (!update) {
+      if (this.isLatestVersion(update)) {
         throw new Error("no update available")
       }
       await this.downloadUpdate(update)

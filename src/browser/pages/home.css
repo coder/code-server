@@ -22,17 +22,24 @@
 }
 
 .block-row > .item {
-  color: #b6b6b6;
-  display: flex;
+  color: #c4c4c4;
   flex: 1;
+}
+
+.block-row > .item.-row {
+  display: flex;
+}
+
+.block-row > .item > .sub {
+  color: #888;
+}
+
+.block-row .-link {
+  cursor: pointer;
   text-decoration: none;
 }
 
-.block-row > .item.-link {
-  cursor: pointer;
-}
-
-.block-row > .item.-link:hover {
+.block-row .-link:hover {
   color: #fafafa;
 }
 

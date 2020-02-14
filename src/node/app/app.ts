@@ -115,7 +115,7 @@ export class MainHttpProvider extends HttpProvider {
 
   private getAppRow(app: Application): string {
     return `<div class="block-row">
-      <a class="item -link" href=".${app.path}">
+      <a class="item -row -link" href=".${app.path}">
         ${
           app.icon
             ? `<img class="icon" src="data:image/png;base64,${app.icon}"></img>`
@@ -139,17 +139,40 @@ export class MainHttpProvider extends HttpProvider {
       return "Updates are disabled"
     }
 
+    const humanize = (time: number): string => {
+      const d = new Date(time)
+      const pad = (t: number): string => (t < 10 ? "0" : "") + t
+      return (
+        `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}` +
+        ` ${pad(d.getHours())}:${pad(d.getMinutes())}`
+      )
+    }
+
     const update = await this.update.getUpdate()
-    if (!update) {
+    if (this.update.isLatestVersion(update)) {
       return `<div class="block-row">
-        <span class="item">No updates available</span>
-        <span class="current" >Current: ${this.update.currentVersion}</span>
+        <div class="item">
+          ${update.version}
+          <div class="sub">Up to date</div>
+        </div>
+        <div class="item">
+          ${humanize(update.checked)}
+          <a class="sub -link" href="./update/check">Check now</a>
+        </div>
+        <div class="item" >Current: ${this.update.currentVersion}</div>
       </div>`
     }
 
     return `<div class="block-row">
-      <a class="item -link" href="./update">Update available: ${update.version}</a>
-      <span class="current" >Current: ${this.update.currentVersion}</span>
+      <a class="item -link" href="./update">
+        ${update.version}
+        <div class="sub">Out of date</div>
+      </a>
+      <div class="item">
+        ${humanize(update.checked)}
+        <a class="sub -link" href="./update/check">Check now</a>
+      </div>
+      <div class="item" >Current: ${this.update.currentVersion}</div>
     </div>`
   }
 }
