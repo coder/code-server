@@ -9,4 +9,7 @@ RUN curl -L https://github.com/mvdan/sh/releases/download/v3.0.1/shfmt_v3.0.1_li
 
 COPY entrypoint.sh /bin/entrypoint.sh
 
+ENV PAGER=cat
+ENV CI=true
+
 ENTRYPOINT ["dumb-init", "/bin/entrypoint.sh"]

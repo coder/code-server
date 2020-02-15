@@ -68,7 +68,7 @@ export class ApiHttpProvider extends HttpProvider {
     route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
-    head: Buffer
+    head: Buffer,
   ): Promise<true | undefined> {
     if (!this.authenticated(request)) {
       throw new Error("not authenticated")
@@ -120,7 +120,7 @@ export class ApiHttpProvider extends HttpProvider {
     route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
-    head: Buffer
+    head: Buffer,
   ): Promise<true> {
     const sessionId = route.requestPath.replace(/^\//, "")
     logger.debug("connecting session", field("sessionId", sessionId))
@@ -149,8 +149,8 @@ export class ApiHttpProvider extends HttpProvider {
       Buffer.from(
         JSON.stringify({
           protocol: "TODO",
-        })
-      )
+        }),
+      ),
     )
 
     return true

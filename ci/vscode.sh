@@ -10,7 +10,7 @@ main() {
   git submodule update --init
 
   # If the patch fails to apply, then it's likely already applied
-  yarn vscode:patch &>/dev/null || true
+  yarn vscode:patch &> /dev/null || true
 
   # Install VS Code dependencies.
   (cd lib/vscode && yarn)

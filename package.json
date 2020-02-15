@@ -7,12 +7,9 @@
     "vscode": "ci/vscode.sh",
     "vscode:patch": "cd ./lib/vscode && git apply ../../ci/vscode.patch",
     "vscode:diff": "cd ./lib/vscode && git diff HEAD > ../../ci/vscode.patch",
-
     "test": "mocha -r ts-node/register ./test/*.test.ts",
-
     "lint": "ci/lint.sh",
     "fmt": "ci/fmt.sh",
-
     "runner": "cd ./scripts && NODE_OPTIONS=--max_old_space_size=32384 ts-node ./build.ts",
     "build": "yarn runner build",
     "watch": "yarn runner watch",

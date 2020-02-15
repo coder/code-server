@@ -92,13 +92,13 @@ export const optionDescriptions = (): string[] => {
       long: k.length > prev.long ? k.length : prev.long,
       short: v.short && v.short.length > prev.short ? v.short.length : prev.short,
     }),
-    { short: 0, long: 0 }
+    { short: 0, long: 0 },
   )
   return entries.map(
     ([k, v]) =>
       `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k}${" ".repeat(
-        widths.long - k.length
-      )} ${v.description}${typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : ""}`
+        widths.long - k.length,
+      )} ${v.description}${typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : ""}`,
   )
 }
 

@@ -14,7 +14,7 @@ const getXdgDataDir = (): string => {
     case "darwin":
       return path.join(
         process.env.XDG_DATA_HOME || path.join(os.homedir(), "Library/Application Support"),
-        "code-server"
+        "code-server",
       )
     default:
       return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local/share"), "code-server")

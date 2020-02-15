@@ -63,7 +63,7 @@ export class MainHttpProvider extends HttpProvider {
           base: this.base(route),
           logLevel: logger.level,
         },
-        (app && app.name) || ""
+        (app && app.name) || "",
       )
     }
 
@@ -80,11 +80,11 @@ export class MainHttpProvider extends HttpProvider {
       .replace(/{{APP_LIST:RUNNING}}/g, this.getAppRows(recent.running))
       .replace(
         /{{APP_LIST:EDITORS}}/g,
-        this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor")))
+        this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor"))),
       )
       .replace(
         /{{APP_LIST:OTHER}}/g,
-        this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor")))
+        this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor"))),
       )
     return response
   }

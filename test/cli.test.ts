@@ -73,7 +73,7 @@ describe("cli", () => {
         "user-data-dir": path.resolve("bar"),
         verbose: true,
         version: true,
-      }
+      },
     )
   })
 

@@ -20,8 +20,5 @@
     "rootDir": "./src",
     "typeRoots": ["./node_modules/@types", "./typings"]
   },
-  "include": [
-    "./src/**/*.ts",
-    "./src/**/*.tsx"
-  ]
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
 }

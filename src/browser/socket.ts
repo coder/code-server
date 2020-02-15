@@ -159,7 +159,7 @@ export class ReconnectingSocket {
         const socket = new WebSocket(
           `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${this.customPath || location.pathname}${
             location.search ? `?${location.search}` : ""
-          }`
+          }`,
         )
 
         const reject = (): void => {

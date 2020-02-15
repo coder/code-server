@@ -26,7 +26,7 @@ class Builder {
     this.ensureArgument("rootPath", this.rootPath)
     this.codeServerVersion = this.ensureArgument(
       "codeServerVersion",
-      process.env.VERSION || require(path.join(this.rootPath, "package.json")).version
+      process.env.VERSION || require(path.join(this.rootPath, "package.json")).version,
     )
   }
 
@@ -208,7 +208,7 @@ class Builder {
       await Promise.all([
         fs.move(
           path.join(this.vscodeSourcePath, `out-vscode${process.env.MINIFY ? "-min" : ""}`),
-          path.join(vscodeBuildPath, "out")
+          path.join(vscodeBuildPath, "out"),
         ),
         fs.copy(path.join(this.vscodeSourcePath, ".build/extensions"), path.join(vscodeBuildPath, "extensions")),
       ])
@@ -225,7 +225,7 @@ class Builder {
       return Promise.all(
         ["node_modules", "package.json", "yarn.lock"].map((fileName) => {
           return fs.copy(path.join(sourcePath, fileName), path.join(buildPath, fileName))
-        })
+        }),
       )
     })
 
@@ -240,8 +240,8 @@ class Builder {
             ...merge,
           },
           null,
-          2
-        )
+          2,
+        ),
       )
     })
 
@@ -290,7 +290,7 @@ class Builder {
     await fs.copyFile(path.join(this.vscodeSourcePath, "LICENSE.txt"), path.join(archivePath, "LICENSE.txt"))
     await fs.copyFile(
       path.join(this.vscodeSourcePath, "ThirdPartyNotices.txt"),
-      path.join(archivePath, "ThirdPartyNotices.txt")
+      path.join(archivePath, "ThirdPartyNotices.txt"),
     )
 
     if ((await this.target()) === "darwin") {

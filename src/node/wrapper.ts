@@ -76,7 +76,7 @@ export class IpcMain {
           `${child ? "wrapper" : "inner process"} ${process.pid} received message from ${
             child ? child.pid : this.parentPid
           }`,
-          field("message", message)
+          field("message", message),
         )
         if (message.type === "handshake") {
           target.removeListener("message", onMessage)
@@ -122,7 +122,7 @@ export const ipcMain = (): IpcMain => {
     _ipcMain = new IpcMain(
       typeof process.env.CODE_SERVER_PARENT_PID !== "undefined"
         ? parseInt(process.env.CODE_SERVER_PARENT_PID)
-        : undefined
+        : undefined,
     )
   }
   return _ipcMain

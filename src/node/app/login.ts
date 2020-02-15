@@ -109,7 +109,7 @@ export class LoginHttpProvider extends HttpProvider {
           remoteAddress: request.connection.remoteAddress,
           userAgent: request.headers["user-agent"],
           timestamp: Math.floor(new Date().getTime() / 1000),
-        })
+        }),
       )
 
       throw new Error("Incorrect password")

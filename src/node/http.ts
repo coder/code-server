@@ -142,7 +142,7 @@ export abstract class HttpProvider {
     route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
-    head: Buffer
+    head: Buffer,
   ): Promise<true | undefined>
 
   /**
@@ -380,7 +380,7 @@ export class HttpServer {
           cert: this.options.cert && fs.readFileSync(this.options.cert),
           key: this.options.certKey && fs.readFileSync(this.options.certKey),
         },
-        this.onRequest
+        this.onRequest,
       )
     } else {
       this.server = http.createServer(this.onRequest)
@@ -420,7 +420,7 @@ export class HttpServer {
         commit: this.options.commit,
         password: this.options.password,
       },
-      a1
+      a1,
     )
     this.providers.set(`/${endpoint}`, p)
     return p
