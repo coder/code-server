@@ -3,11 +3,10 @@ FROM debian:10
 RUN apt-get update
 RUN apt-get install -y curl
 
-ARG DOWNLOAD_URL=https://github.com/cdr/code-server/releases/download/2.1698/code-server2.1698-vsc1.41.1-linux-x86_64.tar.gz
-
-RUN cd /tmp && curl -L "$DOWNLOAD_URL" | \
-  tar -xz && \
+COPY code-server*.tar.gz /tmp
+RUN cd /tmp && tar -xzf code-server*.tar.gz && \
   cp code-server*/code-server /usr/local/bin/code-server
+RUN rm -rf /tmp/*
 
 # https://wiki.debian.org/Locale#Manually
 RUN apt-get install -y locales
