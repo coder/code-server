@@ -1,7 +1,8 @@
-FROM node:12-buster
+FROM node:12
 
 RUN apt-get update && apt-get install -y \
 	libxkbfile-dev \
+	libx11-dev \
 	libsecret-1-dev \
 	dumb-init
 

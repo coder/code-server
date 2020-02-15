@@ -3,11 +3,6 @@
 set -euo pipefail
 
 main() {
-  if [[ ${CI-} ]]; then
-    cd "$(dirname "$0")/.."
-    ./ci/vscode.sh
-  fi
-
   shfmt -i 2 -w -s -sr $(git ls-files "*.sh")
 
   local prettierExts
