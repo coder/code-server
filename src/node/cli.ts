@@ -15,6 +15,7 @@ export interface Args extends VsArgs {
   readonly cert?: OptionalString
   readonly "cert-key"?: string
   readonly "disable-updates"?: boolean
+  readonly "disable-telemetry"?: boolean
   readonly help?: boolean
   readonly host?: string
   readonly json?: boolean
@@ -22,6 +23,9 @@ export interface Args extends VsArgs {
   readonly port?: number
   readonly socket?: string
   readonly version?: boolean
+  readonly "list-extensions"?: boolean
+  readonly "install-extension"?: string[]
+  readonly "uninstall-extension"?: string[]
   readonly _: string[]
 }
 
@@ -68,6 +72,7 @@ const options: Options<Required<Args>> = {
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-updates": { type: "boolean", description: "Disable automatic updates." },
+  "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
   host: { type: "string", description: "Host for the HTTP server." },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
@@ -82,6 +87,9 @@ const options: Options<Required<Args>> = {
   "builtin-extensions-dir": { type: "string", path: true },
   "extra-extensions-dir": { type: "string[]", path: true },
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
+  "list-extensions": { type: "boolean" },
+  "install-extension": { type: "string[]" },
+  "uninstall-extension": { type: "string[]" },
 
   log: { type: "string" },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
@@ -193,7 +201,12 @@ export const parse = (argv: string[]): Args => {
   if (process.env.LOG_LEVEL === "trace" || args.verbose) {
     args.verbose = true
     args.log = "trace"
+  } else if (!args.log) {
+    args.log = process.env.LOG_LEVEL
   }
+
+  // Ensure this passes down to forked processes.
+  process.env.LOG_LEVEL = args.log
 
   switch (args.log) {
     case "trace":

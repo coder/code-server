@@ -1,10 +1,13 @@
-import { logger } from "@coder/logger"
-import { Args, optionDescriptions, parse } from "./cli"
+import { field, logger } from "@coder/logger"
+import * as cp from "child_process"
+import * as path from "path"
+import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
 import { ApiHttpProvider } from "./app/api"
 import { MainHttpProvider } from "./app/app"
 import { LoginHttpProvider } from "./app/login"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
+import { Args, optionDescriptions, parse } from "./cli"
 import { AuthType, HttpServer } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
@@ -105,6 +108,29 @@ if (args.help) {
     console.log(version)
   }
   process.exit(0)
+} else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
+  process.env.NBIN_BYPASS = "true"
+  logger.debug("Forking VS Code CLI...")
+  const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
+    env: {
+      ...process.env,
+      CODE_SERVER_PARENT_PID: process.pid.toString(),
+    },
+  })
+  vscode.once("message", (message) => {
+    logger.debug("Got message from VS Code", field("message", message))
+    if (message.type !== "ready") {
+      logger.error("Unexpected response waiting for ready response")
+      process.exit(1)
+    }
+    const send: CliMessage = { type: "cli", args }
+    vscode.send(send)
+  })
+  vscode.once("error", (error) => {
+    logger.error(error.message)
+    process.exit(1)
+  })
+  vscode.on("exit", (code) => process.exit(code || 0))
 } else {
   wrap(() => main(args))
 }

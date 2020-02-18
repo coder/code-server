@@ -1,13 +1,13 @@
 {
   "name": "code-server",
   "short_name": "code-server",
-  "start_url": "../../../..",
+  "start_url": "{{BASE}}",
   "display": "fullscreen",
   "background-color": "#fff",
   "description": "Run editors on a remote server.",
   "icons": [
     {
-      "src": "./code-server.png",
+      "src": "{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png",
       "sizes": "384x384",
       "type": "image/png"
     }
