@@ -12,7 +12,7 @@ index 160c42ed74..0d544c495c 100644
  coverage/
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000..fc18355f89
+index 0000000000..6aee0e46bc
 --- /dev/null
 +++ b/coder.js
 @@ -0,0 +1,70 @@
@@ -32,9 +32,9 @@ index 0000000000..fc18355f89
 +	buildfile.workbenchWeb,
 +	buildfile.workerExtensionHost,
 +	buildfile.keyboardMaps,
-+	buildfile.entrypoint('vs/platform/files/node/watcher/unix/watcherApp', ["vs/css", "vs/nls"]),
-+	buildfile.entrypoint('vs/platform/files/node/watcher/nsfw/watcherApp', ["vs/css", "vs/nls"]),
-+	buildfile.entrypoint('vs/workbench/services/extensions/node/extensionHostProcess', ["vs/css", "vs/nls"]),
++	buildfile.entrypoint("vs/platform/files/node/watcher/unix/watcherApp", ["vs/css", "vs/nls"]),
++	buildfile.entrypoint("vs/platform/files/node/watcher/nsfw/watcherApp", ["vs/css", "vs/nls"]),
++	buildfile.entrypoint("vs/workbench/services/extensions/node/extensionHostProcess", ["vs/css", "vs/nls"]),
 +]);
 +
 +const vscodeResources = [
@@ -894,10 +894,10 @@ index 0000000000..eb62b87798
 +}
 diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
 new file mode 100644
-index 0000000000..9995e9f7fc
+index 0000000000..0d7feaa24e
 --- /dev/null
 +++ b/src/vs/server/entry.ts
-@@ -0,0 +1,67 @@
+@@ -0,0 +1,76 @@
 +import { field } from '@coder/logger';
 +import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
 +import { CodeServerMessage, VscodeMessage } from 'vs/server/ipc';
@@ -953,6 +953,15 @@ index 0000000000..9995e9f7fc
 +				exit(1);
 +			}
 +			break;
++		case 'cli':
++			try {
++				await vscode.cli(message.args);
++				exit(0);
++			} catch (error) {
++				logger.error(error.message);
++				exit(1);
++			}
++			break;
 +		case 'socket':
 +			vscode.handleWebSocket(socket, message.query);
 +			break;
@@ -976,10 +985,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..a1047fff86
+index 0000000000..82566066ff
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,101 @@
+@@ -0,0 +1,106 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -998,7 +1007,12 @@ index 0000000000..a1047fff86
 +	query: Query;
 +}
 +
-+export type CodeServerMessage = InitMessage | SocketMessage;
++export interface CliMessage {
++	type: 'cli';
++	args: Args;
++}
++
++export type CodeServerMessage = InitMessage | SocketMessage | CliMessage;
 +
 +export interface ReadyMessage {
 +	type: 'ready';
@@ -1032,8 +1046,8 @@ index 0000000000..a1047fff86
 +}
 +
 +export interface VscodeOptions {
-+	readonly remoteAuthority: string;
 +	readonly args: Args;
++	readonly remoteAuthority: string;
 +	readonly startPath?: StartPath;
 +}
 +
@@ -2152,10 +2166,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..13d71949ce
+index 0000000000..20dbca69b2
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,252 @@
+@@ -0,0 +1,257 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import { Emitter } from 'vs/base/common/event';
@@ -2165,6 +2179,7 @@ index 0000000000..13d71949ce
 +import { ClientConnectionEvent, IPCServer, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
 +import { createChannelReceiver } from 'vs/base/parts/ipc/node/ipc';
 +import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
++import { main } from "vs/code/node/cliProcessMain";
 +import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 +import { ConfigurationService } from 'vs/platform/configuration/node/configurationService';
 +import { ExtensionHostDebugBroadcastChannel } from 'vs/platform/debug/common/extensionHostDebugIpc';
@@ -2221,6 +2236,10 @@ index 0000000000..13d71949ce
 +
 +	private readonly services = new ServiceCollection();
 +	private servicesPromise?: Promise<void>;
++
++	public async cli(args: ParsedArgs): Promise<void> {
++		return main(args);
++	}
 +
 +	public async initialize(options: VscodeOptions): Promise<WorkbenchOptions> {
 +		const transformer = getUriTransformer(options.remoteAuthority);

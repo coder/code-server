@@ -136,7 +136,7 @@ export class MainHttpProvider extends HttpProvider {
 
   private async getUpdate(): Promise<string> {
     if (!this.update.enabled) {
-      return "Updates are disabled"
+      return `<div class="block-row"><div class="item"><div class="sub">Updates are disabled</div></div></div>`
     }
 
     const humanize = (time: number): string => {
