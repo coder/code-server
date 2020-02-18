@@ -46,6 +46,7 @@
 .block-row > .item > .icon {
   height: 1rem;
   margin-right: 5px;
+  vertical-align: top;
   width: 1rem;
 }
 

@@ -174,7 +174,7 @@ class Builder {
 
     await this.copyDependencies("code-server", this.rootPath, this.buildPath, {
       commit,
-      version: process.env.VERSION,
+      version: this.codeServerVersion,
     })
   }
 
@@ -204,13 +204,17 @@ class Builder {
 
     const vscodeBuildPath = path.join(this.buildPath, "lib/vscode")
     await this.task("copying vs code into build directory", async () => {
-      await fs.mkdirp(vscodeBuildPath)
+      await fs.mkdirp(path.join(vscodeBuildPath, "resources/linux"))
       await Promise.all([
         fs.move(
           path.join(this.vscodeSourcePath, `out-vscode${process.env.MINIFY ? "-min" : ""}`),
           path.join(vscodeBuildPath, "out"),
         ),
         fs.copy(path.join(this.vscodeSourcePath, ".build/extensions"), path.join(vscodeBuildPath, "extensions")),
+        fs.copy(
+          path.join(this.vscodeSourcePath, "resources/linux/code.png"),
+          path.join(vscodeBuildPath, "resources/linux/code.png"),
+        ),
       ])
     })
 
@@ -256,6 +260,38 @@ class Builder {
    * Bundles the built code into a binary.
    */
   private async binary(binaryName: string): Promise<void> {
+    // Prepend code to the target which enables finding files within the binary.
+    const prependLoader = async (relativeFilePath: string): Promise<void> => {
+      const filePath = path.join(this.buildPath, relativeFilePath)
+      const shim = `
+        if (!global.NBIN_LOADED) {
+          try {
+            const nbin = require("nbin");
+            nbin.shimNativeFs("${this.buildPath}");
+            global.NBIN_LOADED = true;
+            const path = require("path");
+            const rg = require("vscode-ripgrep");
+            rg.binaryRgPath = rg.rgPath;
+            rg.rgPath = path.join(require("os").tmpdir(), "code-server", path.basename(rg.binaryRgPath));
+          } catch (error) { /*  Not in the binary. */ }
+        }
+      `
+      const content = await fs.readFile(filePath, "utf8")
+      if (!content.startsWith(shim)) {
+        await fs.writeFile(filePath, shim + content)
+      }
+    }
+
+    await this.task("Prepending nbin loader", () => {
+      return Promise.all([
+        prependLoader("out/node/entry.js"),
+        prependLoader("lib/vscode/out/vs/server/entry.js"),
+        prependLoader("lib/vscode/out/vs/server/fork.js"),
+        prependLoader("lib/vscode/out/bootstrap-fork.js"),
+        prependLoader("lib/vscode/extensions/node_modules/typescript/lib/tsserver.js"),
+      ])
+    })
+
     const bin = new Binary({
       mainFile: path.join(this.buildPath, "out/node/entry.js"),
       target: await this.target(),

@@ -21,25 +21,36 @@
   <body>
     <div class="center-container">
       <div class="info-blocks">
+        <!-- TEMP: Only VS Code for now. -->
+        <!-- <div class="info-block"> -->
+        <!--   <h2 class="header">Running Applications</h2> -->
+        <!--   {{APP_LIST:RUNNING}} -->
+        <!-- </div> -->
+
         <div class="info-block">
-          <h2 class="header">Running Applications</h2>
-          {{APP_LIST:RUNNING}}
+          <h2 class="header">Launch</h2>
+          <div class="block-row">
+            <a class="item -link" href="./vscode">
+              <img class="icon" src="./static-{{COMMIT}}/lib/vscode/resources/linux/code.png" />
+              VS Code
+            </a>
+          </div>
         </div>
 
         <div class="info-block">
-          <h2 class="header">Update</h2>
+          <h2 class="header">Version</h2>
           {{UPDATE:NAME}}
         </div>
 
-        <div class="info-block">
-          <h2 class="header">Editors</h2>
-          {{APP_LIST:EDITORS}}
-        </div>
+        <!-- <div class="info-block"> -->
+        <!--   <h2 class="header">Editors</h2> -->
+        <!--   {{APP_LIST:EDITORS}} -->
+        <!-- </div> -->
 
-        <div class="info-block">
-          <h2 class="header">Other</h2>
-          {{APP_LIST:OTHER}}
-        </div>
+        <!-- <div class="info-block"> -->
+        <!--   <h2 class="header">Other</h2> -->
+        <!--   {{APP_LIST:OTHER}} -->
+        <!-- </div> -->
       </div>
     </div>
   </body>

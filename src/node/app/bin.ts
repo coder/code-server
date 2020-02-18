@@ -11,6 +11,7 @@ const getVscodeVersion = (): string => {
 
 export const Vscode: Application = {
   categories: ["Editor"],
+  installed: true,
   name: "VS Code",
   path: "/vscode",
   version: getVscodeVersion(),
@@ -23,5 +24,5 @@ export const findApplications = async (): Promise<ReadonlyArray<Application>> =>
 }
 
 export const findWhitelistedApplications = async (): Promise<ReadonlyArray<Application>> => {
-  return []
+  return [Vscode]
 }

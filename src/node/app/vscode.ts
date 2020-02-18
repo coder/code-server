@@ -35,10 +35,10 @@ export class VscodeHttpProvider extends HttpProvider {
     const id = generateUuid()
     const vscode = await this.fork()
 
-    logger.debug("Setting up VS Code...")
+    logger.debug("setting up vs code...")
     return new Promise<WorkbenchOptions>((resolve, reject) => {
       vscode.once("message", (message: VscodeMessage) => {
-        logger.debug("Got message from VS Code", field("message", message))
+        logger.debug("got message from vs code", field("message", message))
         return message.type === "options" && message.id === id
           ? resolve(message.options)
           : reject(new Error("Unexpected response during initialization"))
@@ -51,7 +51,7 @@ export class VscodeHttpProvider extends HttpProvider {
 
   private fork(): Promise<cp.ChildProcess> {
     if (!this._vscode) {
-      logger.debug("Forking VS Code...")
+      logger.debug("forking vs code...")
       const vscode = cp.fork(path.join(this.serverRootPath, "fork"))
       vscode.on("error", (error) => {
         logger.error(error.message)
@@ -64,7 +64,7 @@ export class VscodeHttpProvider extends HttpProvider {
 
       this._vscode = new Promise((resolve, reject) => {
         vscode.once("message", (message: VscodeMessage) => {
-          logger.debug("Got message from VS Code", field("message", message))
+          logger.debug("got message from vs code", field("message", message))
           return message.type === "ready"
             ? resolve(vscode)
             : reject(new Error("Unexpected response waiting for ready response"))

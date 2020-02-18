@@ -110,7 +110,7 @@ if (args.help) {
   process.exit(0)
 } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
   process.env.NBIN_BYPASS = "true"
-  logger.debug("Forking VS Code CLI...")
+  logger.debug("forking vs code cli...")
   const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
     env: {
       ...process.env,

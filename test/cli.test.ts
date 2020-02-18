@@ -4,6 +4,10 @@ import { parse } from "../src/node/cli"
 import { xdgLocalDir } from "../src/node/util"
 
 describe("cli", () => {
+  beforeEach(() => {
+    delete process.env.LOG_LEVEL
+  })
+
   it("should set defaults", () => {
     assert.deepEqual(parse([]), {
       _: [],
@@ -86,6 +90,29 @@ describe("cli", () => {
       verbose: true,
       version: true,
     })
+    assert.equal(process.env.LOG_LEVEL, "trace")
+  })
+
+  it("should use log level env var", () => {
+    process.env.LOG_LEVEL = "debug"
+    assert.deepEqual(parse([]), {
+      _: [],
+      "extensions-dir": path.join(xdgLocalDir, "extensions"),
+      "user-data-dir": xdgLocalDir,
+      log: "debug",
+    })
+    assert.equal(process.env.LOG_LEVEL, "debug")
+  })
+
+  it("should prefer --log to env var", () => {
+    process.env.LOG_LEVEL = "debug"
+    assert.deepEqual(parse(["--log", "info"]), {
+      _: [],
+      "extensions-dir": path.join(xdgLocalDir, "extensions"),
+      "user-data-dir": xdgLocalDir,
+      log: "info",
+    })
+    assert.equal(process.env.LOG_LEVEL, "info")
   })
 
   it("should error if value isn't provided", () => {

@@ -198,15 +198,16 @@ export const parse = (argv: string[]): Args => {
 
   logger.debug("parsed command line", field("args", args))
 
-  if (process.env.LOG_LEVEL === "trace" || args.verbose) {
+  // Ensure the environment variable and the flag are synced up. The flag takes
+  // priority over the environment variable.
+  if (args.log === "trace" || process.env.LOG_LEVEL === "trace" || args.verbose) {
+    args.log = process.env.LOG_LEVEL = "trace"
     args.verbose = true
-    args.log = "trace"
-  } else if (!args.log) {
+  } else if (!args.log && process.env.LOG_LEVEL) {
     args.log = process.env.LOG_LEVEL
+  } else if (args.log) {
+    process.env.LOG_LEVEL = args.log
   }
-
-  // Ensure this passes down to forked processes.
-  process.env.LOG_LEVEL = args.log
 
   switch (args.log) {
     case "trace":
