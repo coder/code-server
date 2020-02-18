@@ -12,20 +12,26 @@ jobs:
 
     - stage: Release
       name: Linux Release
-      script: travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+      script:
+        - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+        - ./ci/release-image/push.sh
     - name: Linux ARM64 Release
-      script: travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+      script:
+        - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+        - ./ci/release-image/push.sh
       arch: arm64
     - name: MacOS Release
       os: osx
       language: node_js
       node_js: 12
       script: yarn && yarn vscode && travis_wait 60 ci/release.sh
+    - name: Docker Release
+      script: ./ci/release-image/push.sh
 
 stages:
   - name: Code
   - name: Release
-    if: $TRAVIS_TAG != ""
+    if: env(TRAVIS_TAG) IS present
 
 deploy:
   - provider: releases

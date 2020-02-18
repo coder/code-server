@@ -3,7 +3,7 @@ FROM debian:10
 RUN apt-get update
 RUN apt-get install -y curl
 
-COPY code-server*.tar.gz /tmp
+COPY release/code-server*.tar.gz /tmp
 RUN cd /tmp && tar -xzf code-server*.tar.gz && \
   cp code-server*/code-server /usr/local/bin/code-server
 RUN rm -rf /tmp/*
