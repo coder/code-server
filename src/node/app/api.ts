@@ -1,13 +1,17 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
+import * as fs from "fs-extra"
 import * as http from "http"
 import * as net from "net"
+import * as path from "path"
+import * as url from "url"
 import * as WebSocket from "ws"
 import {
   Application,
   ApplicationsResponse,
   ClientMessage,
   RecentResponse,
+  RunningResponse,
   ServerMessage,
   SessionError,
   SessionResponse,
@@ -22,6 +26,12 @@ interface ServerSession {
   readonly app: Application
 }
 
+interface VsRecents {
+  [key: string]: (string | object)[]
+}
+
+type VsSettings = [string, string][]
+
 /**
  * API HTTP provider.
  */
@@ -29,7 +39,11 @@ export class ApiHttpProvider extends HttpProvider {
   private readonly ws = new WebSocket.Server({ noServer: true })
   private readonly sessions = new Map<string, ServerSession>()
 
-  public constructor(options: HttpProviderOptions, private readonly server: HttpServer) {
+  public constructor(
+    options: HttpProviderOptions,
+    private readonly server: HttpServer,
+    private readonly dataDir?: string,
+  ) {
     super(options)
   }
 
@@ -60,6 +74,11 @@ export class ApiHttpProvider extends HttpProvider {
         return {
           content: await this.recent(),
         } as HttpResponse<RecentResponse>
+      case ApiEndpoint.running:
+        this.ensureMethod(request)
+        return {
+          content: await this.running(),
+        } as HttpResponse<RunningResponse>
     }
     return undefined
   }
@@ -280,12 +299,58 @@ export class ApiHttpProvider extends HttpProvider {
   }
 
   /**
-   * Return recent sessions.
+   * Return VS Code's recent paths.
    */
   public async recent(): Promise<RecentResponse> {
+    try {
+      if (!this.dataDir) {
+        throw new Error("data directory is not set")
+      }
+
+      const state: VsSettings = JSON.parse(await fs.readFile(path.join(this.dataDir, "User/state/global.json"), "utf8"))
+      const setting = Array.isArray(state) && state.find((item) => item[0] === "recently.opened")
+      if (!setting) {
+        throw new Error("settings appear malformed")
+      }
+
+      const paths: { [key: string]: Promise<string> } = {}
+      Object.values(JSON.parse(setting[1]) as VsRecents).forEach((recents) => {
+        recents
+          .filter((recent) => typeof recent === "string")
+          .forEach((recent) => {
+            try {
+              const pathname = url.parse(recent as string).pathname
+              if (pathname && !paths[pathname]) {
+                paths[pathname] = new Promise<string>((resolve) => {
+                  fs.stat(pathname)
+                    .then(() => resolve(pathname))
+                    .catch(() => resolve())
+                })
+              }
+            } catch (error) {
+              logger.debug("invalid path", field("path", recent))
+            }
+          })
+      })
+
+      return {
+        paths: await Promise.all(Object.values(paths)),
+      }
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error
+      }
+    }
+
+    return { paths: [] }
+  }
+
+  /**
+   * Return running sessions.
+   */
+  public async running(): Promise<RunningResponse> {
     return {
-      recent: [], // TODO
-      running: Array.from(this.sessions).map(([sessionId, session]) => ({
+      applications: Array.from(this.sessions).map(([sessionId, session]) => ({
         ...session.app,
         sessionId,
       })),

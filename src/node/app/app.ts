@@ -90,14 +90,14 @@ export class MainHttpProvider extends HttpProvider {
   }
 
   public async getRoot(route: Route): Promise<HttpResponse> {
-    const recent = await this.api.recent()
+    const running = await this.api.running()
     const apps = await this.api.installedApplications()
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/home.html")
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{BASE}}/g, this.base(route))
       .replace(/{{UPDATE:NAME}}/, await this.getUpdate())
-      .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(recent.running))
+      .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(running.applications))
       .replace(
         /{{APP_LIST:EDITORS}}/,
         this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor"))),

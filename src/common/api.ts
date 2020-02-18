@@ -33,8 +33,11 @@ export interface SessionResponse {
 }
 
 export interface RecentResponse {
-  readonly recent: ReadonlyArray<Application>
-  readonly running: ReadonlyArray<Application>
+  readonly paths: string[]
+}
+
+export interface RunningResponse {
+  readonly applications: ReadonlyArray<Application>
 }
 
 export interface HealthRequest {

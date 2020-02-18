@@ -19,6 +19,7 @@ export enum ApiEndpoint {
   applications = "/applications",
   recent = "/recent",
   run = "/run",
+  running = "/running",
   session = "/session",
   status = "/status",
 }

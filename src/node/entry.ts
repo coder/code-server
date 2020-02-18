@@ -44,7 +44,7 @@ const main = async (args: Args): Promise<void> => {
   }
 
   const httpServer = new HttpServer(options)
-  const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer)
+  const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
   httpServer.registerHttpProvider("/vscode", VscodeHttpProvider, args)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
