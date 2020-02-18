@@ -1,0 +1,46 @@
+language: minimal
+
+jobs:
+  include:
+    - stage: Code
+      name: Format
+      script: ./ci/image/run.sh "yarn && yarn vscode && yarn fmt"
+    - name: Lint
+      script: ./ci/image/run.sh "yarn && yarn vscode && yarn lint"
+    - name: Test
+      script: ./ci/image/run.sh "yarn && yarn vscode && yarn test"
+
+    - stage: Release
+      name: Linux Release
+      script: travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+    - name: Linux ARM64 Release
+      script: travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+      arch: arm64
+    - name: MacOS Release
+      os: osx
+      language: node_js
+      node_js: 12
+      script: yarn && yarn vscode && travis_wait 60 ci/release.sh
+
+stages:
+  - name: Code
+  - name: Release
+    if: $TRAVIS_TAG != ""
+
+deploy:
+  - provider: releases
+    edge: true
+    draft: true
+    tag_name: $TRAVIS_TAG
+    target_commitish: $TRAVIS_COMMIT
+    name: $TRAVIS_TAG
+    file:
+      - release/*.tar.gz
+      - release/*.zip
+    on:
+      tags: true
+      condition: $TRAVIS_BUILD_STAGE_NAME == Release
+
+cache:
+  timeout: 600
+  yarn: true

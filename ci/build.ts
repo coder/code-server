@@ -248,9 +248,6 @@ class Builder {
     if (process.env.MINIFY) {
       await this.task(`restricting ${name} to production dependencies`, async () => {
         await util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: buildPath })
-        if (name === "code-server") {
-          await util.promisify(cp.exec)("yarn postinstall", { cwd: buildPath })
-        }
       })
     }
   }
