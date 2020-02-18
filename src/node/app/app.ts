@@ -15,7 +15,7 @@ export class MainHttpProvider extends HttpProvider {
   public constructor(
     options: HttpProviderOptions,
     private readonly api: ApiHttpProvider,
-    private readonly update: UpdateHttpProvider
+    private readonly update: UpdateHttpProvider,
   ) {
     super(options)
   }
@@ -68,7 +68,7 @@ export class MainHttpProvider extends HttpProvider {
           base: this.base(route),
           logLevel: logger.level,
         },
-        (app && app.name) || ""
+        (app && app.name) || "",
       )
     }
 
@@ -100,11 +100,11 @@ export class MainHttpProvider extends HttpProvider {
       .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(recent.running))
       .replace(
         /{{APP_LIST:EDITORS}}/,
-        this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor")))
+        this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor"))),
       )
       .replace(
         /{{APP_LIST:OTHER}}/,
-        this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor")))
+        this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor"))),
       )
     return response
   }

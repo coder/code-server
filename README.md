@@ -74,6 +74,7 @@ reset VS Code then run `yarn patch:apply`.
 ## Security
 
 ### Authentication
+
 By default `code-server` enables password authentication using a randomly
 generated password. You can set the `PASSWORD` environment variable to use your
 own instead or use `--auth none` to disable password authentication.
@@ -82,6 +83,7 @@ Do not expose `code-server` to the open internet without some form of
 authentication.
 
 ### Encrypting traffic with HTTPS
+
 If you aren't doing SSL termination elsewhere you can directly give
 `code-server` a certificate with `code-server --cert` followed by the path to
 your certificate. Additionally, you can use certificate keys with `--cert-key`

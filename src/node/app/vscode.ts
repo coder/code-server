@@ -96,7 +96,7 @@ export class VscodeHttpProvider extends HttpProvider {
         "Upgrade: websocket",
         "Connection: Upgrade",
         `Sec-WebSocket-Accept: ${reply}`,
-      ].join("\r\n") + "\r\n\r\n"
+      ].join("\r\n") + "\r\n\r\n",
     )
 
     const vscode = await this._vscode
@@ -140,7 +140,7 @@ export class VscodeHttpProvider extends HttpProvider {
             const response = await this.getUtf8Resource(this.vsRootPath, route.requestPath)
             response.content = response.content.replace(
               /{{COMMIT}}/g,
-              this.workbenchOptions ? this.workbenchOptions.commit : ""
+              this.workbenchOptions ? this.workbenchOptions.commit : "",
             )
             response.cache = true
             return response
@@ -180,7 +180,7 @@ export class VscodeHttpProvider extends HttpProvider {
         lastVisited,
         this.args._ && this.args._.length > 0 ? { url: this.args._[0] } : undefined,
       ],
-      remoteAuthority
+      remoteAuthority,
     )
     const [response, options] = await Promise.all([
       await this.getUtf8Resource(this.rootPath, "src/browser/pages/vscode.html"),
@@ -223,7 +223,7 @@ export class VscodeHttpProvider extends HttpProvider {
    */
   private async getFirstValidPath(
     startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>,
-    remoteAuthority: string
+    remoteAuthority: string,
   ): Promise<StartPath | undefined> {
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]

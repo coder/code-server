@@ -5,6 +5,6 @@ declare module "httpolyglot" {
   function createServer(requestListener?: (req: http.IncomingMessage, res: http.ServerResponse) => void): http.Server
   function createServer(
     options: https.ServerOptions,
-    requestListener?: (req: http.IncomingMessage, res: http.ServerResponse) => void
+    requestListener?: (req: http.IncomingMessage, res: http.ServerResponse) => void,
   ): https.Server
 }

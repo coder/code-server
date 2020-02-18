@@ -5,9 +5,11 @@
   "display": "fullscreen",
   "background-color": "#fff",
   "description": "Run editors on a remote server.",
-  "icons": [{
-    "src": "{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png",
-    "sizes": "384x384",
-    "type": "image/png"
-  }]
+  "icons": [
+    {
+      "src": "{{BASE}}/static-{{COMMIT}}/src/browser/media/code-server.png",
+      "sizes": "384x384",
+      "type": "image/png"
+    }
+  ]
 }

@@ -142,7 +142,7 @@ export abstract class HttpProvider {
     route: Route,
     request: http.IncomingMessage,
     socket: net.Socket,
-    head: Buffer
+    head: Buffer,
   ): Promise<true | undefined>
 
   /**
@@ -384,7 +384,7 @@ export class HttpServer {
           cert: this.options.cert && fs.readFileSync(this.options.cert),
           key: this.options.certKey && fs.readFileSync(this.options.certKey),
         },
-        this.onRequest
+        this.onRequest,
       )
     } else {
       this.server = http.createServer(this.onRequest)
@@ -412,7 +412,7 @@ export class HttpServer {
     endpoint: string,
     provider: HttpProvider2<A1, A2, T>,
     a1: A1,
-    a2: A2
+    a2: A2,
   ): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public registerHttpProvider(endpoint: string, provider: any, ...args: any[]): any {
@@ -430,7 +430,7 @@ export class HttpServer {
         commit: this.options.commit,
         password: this.options.password,
       },
-      ...args
+      ...args,
     )
     this.providers.set(`/${endpoint}`, p)
     return p

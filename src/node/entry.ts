@@ -71,7 +71,7 @@ const main = async (args: Args): Promise<void> => {
     logger.info(
       typeof args.cert === "string"
         ? `  - Using provided certificate${args["cert-key"] ? " and key" : ""} for HTTPS`
-        : `  - Using generated certificate and key for HTTPS`
+        : `  - Using generated certificate and key for HTTPS`,
     )
   } else {
     logger.info("  - Not serving HTTPS")
