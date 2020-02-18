@@ -24,7 +24,7 @@ export class MainHttpProvider extends HttpProvider {
     switch (route.base) {
       case "/static": {
         this.ensureMethod(request)
-        const response = await this.getResource(this.rootPath, route.requestPath)
+        const response = await this.getReplacedResource(route)
         if (!this.isDev) {
           response.cache = true
         }
@@ -73,6 +73,20 @@ export class MainHttpProvider extends HttpProvider {
     }
 
     return this.getErrorRoot(route, "404", "404", "Application not found")
+  }
+
+  /**
+   * Return a resource with variables replaced where necessary.
+   */
+  protected async getReplacedResource(route: Route): Promise<HttpResponse> {
+    if (route.requestPath.endsWith("/manifest.json")) {
+      const response = await this.getUtf8Resource(this.rootPath, route.requestPath)
+      response.content = response.content
+        .replace(/{{BASE}}/g, this.base(route))
+        .replace(/{{COMMIT}}/g, this.options.commit)
+      return response
+    }
+    return this.getResource(this.rootPath, route.requestPath)
   }
 
   public async getRoot(route: Route): Promise<HttpResponse> {
