@@ -17,17 +17,11 @@ import { HttpCode, HttpError } from "../../common/http"
 import { generateUuid } from "../../common/util"
 import { Args } from "../cli"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
-import { SettingsProvider } from "../settings"
-import { xdgLocalDir } from "../util"
-
-export interface Settings {
-  lastVisited: StartPath
-}
+import { settings } from "../settings"
 
 export class VscodeHttpProvider extends HttpProvider {
   private readonly serverRootPath: string
   private readonly vsRootPath: string
-  private readonly settings = new SettingsProvider<Settings>(path.join(xdgLocalDir, "coder.json"))
   private _vscode?: Promise<cp.ChildProcess>
   private workbenchOptions?: WorkbenchOptions
 
@@ -178,12 +172,12 @@ export class VscodeHttpProvider extends HttpProvider {
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     const remoteAuthority = request.headers.host as string
-    const settings = await this.settings.read()
+    const { lastVisited } = await settings.read()
     const startPath = await this.getFirstValidPath(
       [
         { url: route.query.workspace, workspace: true },
         { url: route.query.folder, workspace: false },
-        settings.lastVisited,
+        lastVisited,
         this.args._ && this.args._.length > 0 ? { url: this.args._[0] } : undefined,
       ],
       remoteAuthority,
@@ -200,7 +194,7 @@ export class VscodeHttpProvider extends HttpProvider {
     this.workbenchOptions = options
 
     if (startPath) {
-      this.settings.write({
+      settings.write({
         lastVisited: startPath,
       })
     }

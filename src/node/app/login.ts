@@ -50,8 +50,8 @@ export class LoginHttpProvider extends HttpProvider {
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{BASE}}/g, this.base(route))
-      .replace(/{{VALUE}}/g, value || "")
-      .replace(/{{ERROR}}/g, error ? `<div class="error">${error.message}</div>` : "")
+      .replace(/{{VALUE}}/, value || "")
+      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
     return response
   }
 

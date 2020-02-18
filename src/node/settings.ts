@@ -1,6 +1,7 @@
 import * as fs from "fs-extra"
+import * as path from "path"
+import { extend, xdgLocalDir } from "./util"
 import { logger } from "@coder/logger"
-import { extend } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
 
@@ -32,9 +33,28 @@ export class SettingsProvider<T> {
    */
   public async write(settings: Partial<T>): Promise<void> {
     try {
-      await fs.writeFile(this.settingsPath, JSON.stringify(extend(this.read(), settings)))
+      await fs.writeFile(this.settingsPath, JSON.stringify(extend(await this.read(), settings), null, 2))
     } catch (error) {
       logger.warn(error.message)
     }
   }
 }
+
+/**
+ * Global code-server settings.
+ */
+export interface CoderSettings {
+  lastVisited: {
+    url: string
+    workspace: boolean
+  }
+  update: {
+    checked: number
+    version: string
+  }
+}
+
+/**
+ * Global code-server settings file.
+ */
+export const settings = new SettingsProvider<CoderSettings>(path.join(xdgLocalDir, "coder.json"))

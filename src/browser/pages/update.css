@@ -1,0 +1,40 @@
+.update-form {
+  text-align: center;
+}
+
+.update-form > .apply {
+  background-color: transparent;
+  color: #b6b6b6;
+  cursor: pointer;
+  border: 1px solid #b6b6b6;
+  box-sizing: border-box;
+  padding: 1rem 2rem;
+}
+
+.update-form > .apply:hover {
+  color: #fafafa;
+  border-color: #fafafa;
+}
+
+.update-form > .current {
+  margin-top: 1rem;
+}
+
+.update-form > .links {
+  margin-top: 1rem;
+}
+
+.update-form > .links > .link {
+  color: #b6b6b6;
+  text-decoration: none;
+}
+
+.update-form > .links > .link:hover {
+  color: #fcfcfc;
+  text-decoration: underline;
+}
+
+.update-form > .error {
+  color: red;
+  margin-top: 1rem;
+}
