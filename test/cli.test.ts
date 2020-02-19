@@ -119,9 +119,10 @@ describe("cli", () => {
     assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
   })
 
-  it("should error if number option is invalid", () => {
+  it("should error if value is invalid", () => {
     assert.throws(() => parse(["--port", "foo"]), /--port must be a number/)
     assert.throws(() => parse(["--auth", "invalid"]), /--auth valid values: \[password, none\]/)
+    assert.throws(() => parse(["--log", "invalid"]), /--log valid values: \[trace, debug, info, warn, error\]/)
   })
 
   it("should error if the option doesn't exist", () => {

@@ -8,6 +8,14 @@ export class Optional<T> {
   public constructor(public readonly value?: T) {}
 }
 
+export enum LogLevel {
+  Trace = "trace",
+  Debug = "debug",
+  Info = "info",
+  Warn = "warn",
+  Error = "error",
+}
+
 export class OptionalString extends Optional<string> {}
 
 export interface Args extends VsArgs {
@@ -19,6 +27,7 @@ export interface Args extends VsArgs {
   readonly help?: boolean
   readonly host?: string
   readonly json?: boolean
+  log?: LogLevel
   readonly open?: boolean
   readonly port?: number
   readonly socket?: string
@@ -49,6 +58,8 @@ type OptionType<T> = T extends boolean
   ? "boolean"
   : T extends OptionalString
   ? typeof OptionalString
+  : T extends LogLevel
+  ? typeof LogLevel
   : T extends AuthType
   ? typeof AuthType
   : T extends number
@@ -76,7 +87,7 @@ const options: Options<Required<Args>> = {
   host: { type: "string", description: "Host for the HTTP server." },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
-  open: { type: "boolean", description: "Open in the browser on startup. Does not work remotely." },
+  open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
   port: { type: "number", description: "Port for the HTTP server." },
   socket: { type: "string", path: true, description: "Path to a socket (host and port will be ignored)." },
   version: { type: "boolean", short: "v", description: "Display version information." },
@@ -91,7 +102,7 @@ const options: Options<Required<Args>> = {
   "install-extension": { type: "string[]" },
   "uninstall-extension": { type: "string[]" },
 
-  log: { type: "string" },
+  log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 }
 
@@ -207,29 +218,29 @@ export const parse = (argv: string[]): Args => {
 
   // Ensure the environment variable and the flag are synced up. The flag takes
   // priority over the environment variable.
-  if (args.log === "trace" || process.env.LOG_LEVEL === "trace" || args.verbose) {
-    args.log = process.env.LOG_LEVEL = "trace"
+  if (args.log === LogLevel.Trace || process.env.LOG_LEVEL === LogLevel.Trace || args.verbose) {
+    args.log = process.env.LOG_LEVEL = LogLevel.Trace
     args.verbose = true
   } else if (!args.log && process.env.LOG_LEVEL) {
-    args.log = process.env.LOG_LEVEL
+    args.log = process.env.LOG_LEVEL as LogLevel
   } else if (args.log) {
     process.env.LOG_LEVEL = args.log
   }
 
   switch (args.log) {
-    case "trace":
+    case LogLevel.Trace:
       logger.level = Level.Trace
       break
-    case "debug":
+    case LogLevel.Debug:
       logger.level = Level.Debug
       break
-    case "info":
+    case LogLevel.Info:
       logger.level = Level.Info
       break
-    case "warning":
+    case LogLevel.Warn:
       logger.level = Level.Warning
       break
-    case "error":
+    case LogLevel.Error:
       logger.level = Level.Error
       break
   }
