@@ -1,5 +1,10 @@
 # FAQ
 
+## Questions?
+
+Please file all questions and support requests at https://www.reddit.com/r/codeserver/
+The issue tracker is only for bugs.
+
 ## What's the deal with extensions?
 
 Unfortunately, the Microsoft VS Code Marketplace license prohibits use with any non Microsoft
