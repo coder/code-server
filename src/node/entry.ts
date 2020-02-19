@@ -87,7 +87,16 @@ const main = async (args: Args): Promise<void> => {
   }
 }
 
-const args = parse(process.argv.slice(2))
+const tryParse = (): Args => {
+  try {
+    return parse(process.argv.slice(2))
+  } catch (error) {
+    console.error(error.message)
+    process.exit(1)
+  }
+}
+
+const args = tryParse()
 if (args.help) {
   console.log("code-server", require("../../package.json").version)
   console.log("")
