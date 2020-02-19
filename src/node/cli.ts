@@ -128,8 +128,11 @@ export const parse = (argv: string[]): Args => {
     // Options start with a dash and require a value if non-boolean.
     if (!ended && arg.startsWith("-")) {
       let key: keyof Args | undefined
+      let value: string | undefined
       if (arg.startsWith("--")) {
-        key = arg.replace(/^--/, "") as keyof Args
+        const split = arg.replace(/^--/, "").split("=", 2)
+        key = split[0] as keyof Args
+        value = split[1]
       } else {
         const short = arg.replace(/^-/, "")
         const pair = Object.entries(options).find(([, v]) => v.short === short)
@@ -148,13 +151,17 @@ export const parse = (argv: string[]): Args => {
         continue
       }
 
-      // A value is only valid if it doesn't look like an option.
-      let value = argv[i + 1] && !argv[i + 1].startsWith("-") ? argv[++i] : undefined
+      // Might already have a value if it was the --long=value format.
+      if (typeof value === "undefined") {
+        // A value is only valid if it doesn't look like an option.
+        value = argv[i + 1] && !argv[i + 1].startsWith("-") ? argv[++i] : undefined
+      }
+
       if (!value && option.type === OptionalString) {
         ;(args[key] as OptionalString) = new OptionalString(value)
         continue
       } else if (!value) {
-        throw new Error(`${arg} requires a value`)
+        throw new Error(`--${key} requires a value`)
       }
 
       if (option.path) {
@@ -174,7 +181,7 @@ export const parse = (argv: string[]): Args => {
         case "number":
           ;(args[key] as number) = parseInt(value, 10)
           if (isNaN(args[key] as number)) {
-            throw new Error(`${arg} must be a number`)
+            throw new Error(`--${key} must be a number`)
           }
           break
         case OptionalString:
@@ -182,7 +189,7 @@ export const parse = (argv: string[]): Args => {
           break
         default: {
           if (!Object.values(option.type).find((v) => v === value)) {
-            throw new Error(`${arg} valid values: [${Object.values(option.type).join(", ")}]`)
+            throw new Error(`--${key} valid values: [${Object.values(option.type).join(", ")}]`)
           }
           ;(args[key] as string) = value
           break

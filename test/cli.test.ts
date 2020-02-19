@@ -36,19 +36,16 @@ describe("cli", () => {
         "error",
         "--help",
         "--open",
-        "--socket",
-        "mumble",
+        "--socket=mumble",
         "3",
         "--user-data-dir",
         "bar",
-        "--cert",
-        "baz",
+        "--cert=baz",
         "--cert-key",
         "qux",
         "--version",
         "--json",
-        "--port",
-        "8081",
+        "--port=8081",
         "--host",
         "0.0.0.0",
         "4",
@@ -117,6 +114,9 @@ describe("cli", () => {
 
   it("should error if value isn't provided", () => {
     assert.throws(() => parse(["--auth"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
   })
 
   it("should error if number option is invalid", () => {
