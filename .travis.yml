@@ -3,6 +3,7 @@ language: minimal
 jobs:
   include:
     - name: Test
+      if: tag IS blank
       script: ./ci/image/run.sh "yarn && yarn vscode && ./ci/ci.sh"
       deploy: null
     - name: Linux Release

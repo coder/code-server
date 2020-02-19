@@ -4,7 +4,7 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
-  soruce ./ci/lib.sh
+  source ./ci/lib.sh
   set_version
 
   if [[ ${CI:-} ]]; then
@@ -17,7 +17,7 @@ main() {
     imageTag+="-arm64"
     latest="codercom/code-server:arm64"
   fi
-  docker build -t "$imageTag" -t "$latest" -f ./ci/release-image/Dockerfile
+  docker build -t "$imageTag" -t "$latest" -f ./ci/release-image/Dockerfile .
   docker push codercom/code-server
 }
 

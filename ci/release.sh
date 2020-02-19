@@ -35,7 +35,7 @@ function main() {
     for binary in code-server*; do
       mkdir -p "../binary-upload"
 
-      local prefix="code-server-$code_server_version-"
+      local prefix="code-server-$VERSION-"
       local target="${binary#$prefix}"
       if [[ $target == "linux-x86_64" ]]; then
         echo "Copying $binary to ../binary-upload/latest-linux"
@@ -43,7 +43,7 @@ function main() {
       fi
 
       local gcp_dir
-      gcp_dir="../binary-upload/releases/$code_server_version/$target"
+      gcp_dir="../binary-upload/releases/$VERSION/$target"
       mkdir -p "$gcp_dir"
 
       echo "Copying $binary to $gcp_dir/code-server"
