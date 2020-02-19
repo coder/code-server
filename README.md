@@ -44,9 +44,6 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 2. Unpack the downloaded file then run the binary.
 3. In your browser navigate to `localhost:8080`.
 
-- For self-hosting and other information see [doc/quickstart.md](doc/quickstart.md).
-- For hosting on cloud platforms see [doc/deploy.md](doc/deploy.md).
-
 ## FAQ
 
 See [./doc/FAQ.md](./doc/FAQ.md).

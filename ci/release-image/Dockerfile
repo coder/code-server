@@ -33,4 +33,4 @@ RUN rm -rf /var/lib/apt/lists/*
 EXPOSE 8080
 USER coder
 WORKDIR /home/coder
-ENTRYPOINT ["dumb-init", "fixuid", "-q", "code-server", "--host=0.0.0.0", "--auth=none"]
+ENTRYPOINT ["dumb-init", "fixuid", "-q", "code-server", "--host", "0.0.0.0", "."]

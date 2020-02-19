@@ -1,8 +1,30 @@
 # FAQ
 
+## Questions?
+
+Please file all questions and support requests at https://www.reddit.com/r/codeserver/
+The issue tracker is only for bugs.
+
 ## What's the deal with extensions?
 
-Unfortunately, the Microsoft VS Code Marketplace is
+Unfortunately, the Microsoft VS Code Marketplace license prohibits use with any non Microsoft
+product.
+
+See https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-Marketplace-Terms-of-Use.pdf
+
+> Marketplace Offerings are intended for use only with Visual Studio Products and Services
+> and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
+
+As a result, Coder has created its own marketplace for open source extensions. It works by scraping
+GitHub for VS Code extensions and building them. It's not perfect but getting better by the day with
+more and more extensions.
+
+Issue [https://github.com/cdr/code-server/issues/1299](#1299) is a big one in making the experience here
+better by allowing the community to submit extensions and repos to avoid waiting until the scraper finds
+an extension.
+
+If an extension does not work, try to grab its VSIX from its Github releases or build it yourself and
+copy it to the extensions folder.
 
 ## How is this different from VS Code Online?
 
@@ -34,16 +56,45 @@ only to HTTP requests.
 You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
 
-## Why are there x86 releases?
+## x86 releases?
 
-32 bit releases have been
+node has dropped support for x86 and so we decided to as well. See
+[nodejs/build/issues/885](https://github.com/nodejs/build/issues/885).
+
+## Alpine builds?
+
+Just install `libc-dev` and code-server should work.
 
 ## Multi Tenancy
 
-If you want to run multiple code-server's on shared infrastructure, we recommend using
-something like kubernetes and the code-server docker image.
+If you want to run multiple code-server's on shared infrastructure, we recommend using virtual
+machines with a VM per user. This will easily allow users to run a docker daemon. If you want
+to use kubernetes, you'll definitely want to use [kubevirt](https://kubevirt.io) to give each
+user a virtual machine instead of just a container. Docker in docker while supported requires
+privileged containers which are a security risk in a multi tenant infrastructure.
+
+## Docker in code-server docker container?
+
+If you'd like to access docker inside of code-server, we'd recommend running a docker:dind container
+and mounting in a /var/run directory to share between that and the code-server container. Install
+the docker CLI in the code-server container and you should be able to access the daemon.
+
+In order to make volume mounts work, mount the home directory in the code-server container and the
+dind container at the same path. i.e you'd volume mount a directory from the host to `/home/coder`
+on both. This will allow any volume mounts in the home directory to work. Similar process
+to make volume mounts in any other directory work.
+
+## Collaboration
+
+At the moment we have no plans for multi user collaboration on code-server but we understand this
+is a heavily requested feature and will work on it when the time is right.
 
 ## How can I disable telemetry?
 
 Use the `--disable-telemetry` flag to completely disable telemetry. We use the
 data collected only to improve code-server.
+
+## Enterprise
+
+Visit [our enterprise page](https://coder.com) for more information about our
+enterprise offerings.
