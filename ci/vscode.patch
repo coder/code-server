@@ -1815,7 +1815,7 @@ index 0000000000..2a39c524aa
 +export const logger = baseLogger.named('vscode');
 diff --git a/src/vs/server/node/marketplace.ts b/src/vs/server/node/marketplace.ts
 new file mode 100644
-index 0000000000..9960ccfd07
+index 0000000000..8956fc40d4
 --- /dev/null
 +++ b/src/vs/server/node/marketplace.ts
 @@ -0,0 +1,174 @@
@@ -1981,7 +1981,7 @@ index 0000000000..9960ccfd07
 + */
 +export const enableCustomMarketplace = (): void => {
 +	(<any>product).extensionsGallery = { // Use `any` to override readonly.
-+		serviceUrl: process.env.SERVICE_URL || 'https://v1.extapi.coder.com',
++		serviceUrl: process.env.SERVICE_URL || 'https://extensions.coder.com/api',
 +		itemUrl: process.env.ITEM_URL || '',
 +		controlUrl: '',
 +		recommendationsUrl: '',
