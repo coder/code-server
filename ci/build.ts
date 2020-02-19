@@ -260,35 +260,64 @@ class Builder {
    * Bundles the built code into a binary.
    */
   private async binary(binaryName: string): Promise<void> {
-    // Prepend code to the target which enables finding files within the binary.
-    const prependLoader = async (relativeFilePath: string): Promise<void> => {
+    const prependCode = async (code: string, relativeFilePath: string): Promise<void> => {
       const filePath = path.join(this.buildPath, relativeFilePath)
-      const shim = `
-        if (!global.NBIN_LOADED) {
-          try {
-            const nbin = require("nbin");
-            nbin.shimNativeFs("${this.buildPath}");
-            global.NBIN_LOADED = true;
-            const path = require("path");
-            const rg = require("vscode-ripgrep");
-            rg.binaryRgPath = rg.rgPath;
-            rg.rgPath = path.join(require("os").tmpdir(), "code-server", path.basename(rg.binaryRgPath));
-          } catch (error) { /*  Not in the binary. */ }
-        }
-      `
       const content = await fs.readFile(filePath, "utf8")
-      if (!content.startsWith(shim)) {
-        await fs.writeFile(filePath, shim + content)
+      if (!content.startsWith(code)) {
+        await fs.writeFile(filePath, code + content)
       }
     }
 
+    // Unpack binaries since we can't run them within the binary.
+    const unpack = `
+      if (global.NBIN_LOADED) {
+        try {
+           const fs = require("fs-extra")
+           const rg = require("vscode-ripgrep")
+           const path = require("path")
+           const { logger, field } = require("@coder/logger")
+
+           const unpackExecutables = async (filePath, destination) => {
+             logger.debug("unpacking executable", field("src", filePath), field("dest", destination))
+             await fs.mkdirp(path.dirname(destination))
+             if (filePath && !(await fs.pathExists(destination))) {
+               await fs.writeFile(destination, await fs.readFile(filePath))
+               await fs.chmod(destination, "755")
+             }
+           }
+
+           unpackExecutables(rg.binaryRgPath, rg.rgPath).catch((error) => console.warn(error))
+        } catch (error) {
+          console.warn(error)
+        }
+      }
+    `
+
+    // Enable finding files within the binary.
+    const loader = `
+      if (!global.NBIN_LOADED) {
+        try {
+          const nbin = require("nbin")
+          nbin.shimNativeFs("${this.buildPath}")
+          global.NBIN_LOADED = true
+          require("@coder/logger").logger.debug("shimmed file system at ${this.buildPath}")
+          const path = require("path")
+          const rg = require("vscode-ripgrep")
+          rg.binaryRgPath = rg.rgPath
+          rg.rgPath = path.join(require("os").tmpdir(), "code-server/binaries", path.basename(rg.binaryRgPath))
+        } catch (error) {
+          // Most likely not in the binary.
+        }
+      }
+    `
+
     await this.task("Prepending nbin loader", () => {
       return Promise.all([
-        prependLoader("out/node/entry.js"),
-        prependLoader("lib/vscode/out/vs/server/entry.js"),
-        prependLoader("lib/vscode/out/vs/server/fork.js"),
-        prependLoader("lib/vscode/out/bootstrap-fork.js"),
-        prependLoader("lib/vscode/extensions/node_modules/typescript/lib/tsserver.js"),
+        prependCode(loader, "out/node/entry.js"),
+        prependCode(loader, "lib/vscode/out/vs/server/entry.js"),
+        prependCode(loader + unpack, "lib/vscode/out/vs/server/fork.js"),
+        prependCode(loader, "lib/vscode/out/bootstrap-fork.js"),
+        prependCode(loader, "lib/vscode/extensions/node_modules/typescript/lib/tsserver.js"),
       ])
     })
 

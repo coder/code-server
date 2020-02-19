@@ -152,19 +152,6 @@ export const open = async (url: string): Promise<void> => {
 }
 
 /**
- * Extract a file to the temporary directory and make it executable. This is
- * required since we can't execute binaries stored within our binary.
- */
-export const unpackExecutables = async (filePath: string): Promise<void> => {
-  const destination = path.join(tmpdir, "binaries", path.basename(filePath))
-  if (filePath && !(await util.promisify(fs.exists)(destination))) {
-    await fs.mkdirp(tmpdir)
-    await fs.writeFile(destination, await fs.readFile(filePath))
-    await util.promisify(fs.chmod)(destination, "755")
-  }
-}
-
-/**
  * For iterating over an enum's values.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
