@@ -1,4 +1,4 @@
-import { logger } from "@coder/logger"
+import { field, logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import * as http from "http"
 import * as httpolyglot from "httpolyglot"
@@ -13,6 +13,7 @@ import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, plural, split } from "../common/util"
+import { SocketProxyProvider } from "./socket"
 import { getMediaMime, xdgLocalDir } from "./util"
 
 export type Cookies = { [key: string]: string[] | undefined }
@@ -370,6 +371,7 @@ export class HttpServer {
   public readonly protocol: "http" | "https"
   private readonly providers = new Map<string, HttpProvider>()
   private readonly heart: Heart
+  private readonly socketProvider = new SocketProxyProvider()
 
   public constructor(private readonly options: HttpServerOptions) {
     this.heart = new Heart(path.join(xdgLocalDir, "heartbeat"), async () => {
@@ -392,6 +394,7 @@ export class HttpServer {
   }
 
   public dispose(): void {
+    this.socketProvider.stop()
     this.providers.forEach((p) => p.dispose())
   }
 
@@ -510,6 +513,7 @@ export class HttpServer {
       if (error.code === "ENOENT" || error.code === "EISDIR") {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
+      logger.debug("Request error", field("url", request.url))
       logger.debug(error.stack)
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
       const content = (await route.provider.getErrorRoot(route, code, code, e.message)).content
@@ -547,11 +551,13 @@ export class HttpServer {
       }
     })
 
-    return (
-      (this.options.cert ? `${this.protocol}://${request.headers.host}` : "") +
+    const secure = (request.connection as tls.TLSSocket).encrypted
+    const redirect =
+      (this.options.cert && !secure ? `${this.protocol}://${request.headers.host}/` : "") +
       normalize(`${route.provider.base(route)}/${payload.redirect}`, true) +
       (Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : "")
-    )
+    logger.debug("Redirecting", field("secure", !!secure), field("from", request.url), field("to", redirect))
+    return redirect
   }
 
   private onUpgrade = async (request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<void> => {
@@ -572,7 +578,9 @@ export class HttpServer {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
 
-      if (!(await route.provider.handleWebSocket(route, request, socket, head))) {
+      if (
+        !(await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head))
+      ) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
     } catch (error) {
@@ -609,7 +617,7 @@ export class HttpServer {
 
     const parsedUrl = request.url ? url.parse(request.url, true) : { query: {}, pathname: "" }
     const originalPath = parsedUrl.pathname || "/"
-    const fullPath = normalize(originalPath)
+    const fullPath = normalize(originalPath, true)
     const { base, requestPath } = parse(fullPath)
 
     // Providers match on the path after their base so we need to account for
