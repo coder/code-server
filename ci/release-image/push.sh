@@ -4,6 +4,8 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
+  soruce ./ci/lib.sh
+  set_version
 
   if [[ ${CI:-} ]]; then
     echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin

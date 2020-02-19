@@ -1,4 +1,4 @@
-FROM node:12
+FROM node:12.14.0
 
 RUN apt-get update && apt-get install -y \
 	libxkbfile-dev \

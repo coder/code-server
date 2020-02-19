@@ -2,36 +2,26 @@ language: minimal
 
 jobs:
   include:
-    - stage: Code
-      name: Format
-      script: ./ci/image/run.sh "yarn && yarn vscode && yarn fmt"
-    - name: Lint
-      script: ./ci/image/run.sh "yarn && yarn vscode && yarn lint"
     - name: Test
-      script: ./ci/image/run.sh "yarn && yarn vscode && yarn test"
-
-    - stage: Release
-      name: Linux Release
+      script: ./ci/image/run.sh "yarn && yarn vscode && ./ci/ci.sh"
+      deploy: null
+    - name: Linux Release
+      if: tag IS present
       script:
         - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
         - ./ci/release-image/push.sh
     - name: Linux ARM64 Release
+      if: tag IS present
       script:
         - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
         - ./ci/release-image/push.sh
       arch: arm64
     - name: MacOS Release
+      if: tag IS present
       os: osx
       language: node_js
       node_js: 12
       script: yarn && yarn vscode && travis_wait 60 ci/release.sh
-    - name: Docker Release
-      script: ./ci/release-image/push.sh
-
-stages:
-  - name: Code
-  - name: Release
-    if: env(TRAVIS_TAG) IS present
 
 deploy:
   - provider: releases
@@ -45,7 +35,6 @@ deploy:
       - release/*.zip
     on:
       tags: true
-      condition: $TRAVIS_BUILD_STAGE_NAME == Release
 
 cache:
   timeout: 600

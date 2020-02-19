@@ -39,7 +39,7 @@
     "parcel-bundler": "^1.12.4",
     "prettier": "^1.18.2",
     "stylelint": "^13.0.0",
-    "stylelint-config-standard": "^19.0.0",
+    "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^8.4.1",
     "typescript": "3.7.2"
   },

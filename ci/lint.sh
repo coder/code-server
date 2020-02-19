@@ -4,7 +4,7 @@ set -euo pipefail
 
 main() {
   eslint --max-warnings=0 --fix $(git ls-files "*.ts" "*.tsx" "*.js")
-  stylelint --fix $(git ls-files "*.css")
+  stylelint $(git ls-files "*.css")
   tsc --noEmit
 }
 

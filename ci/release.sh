@@ -6,12 +6,9 @@ set -euo pipefail
 # This script assumes that yarn has already ran.
 function main() {
   cd "$(dirname "${0}")/.."
+  source ./ci/lib.sh
 
-  local code_server_version=${VERSION:-${TRAVIS_TAG:-}}
-  if [[ -z $code_server_version ]]; then
-    code_server_version=$(grep version ./package.json | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[:space:]')
-  fi
-  export VERSION=$code_server_version
+  set_version
 
   # Always minify and package on CI since that's when releases are pushed.
   if [[ ${CI:-} ]]; then
