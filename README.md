@@ -9,9 +9,9 @@ Try it out:
 docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" codercom/code-server
 ```
 
-- **Consistent environment:** Code on your Chromebook, tablet, and laptop with a
-  consistent dev environment. Develop more easily for Linux if you have a
-  Windows or Mac and pick up where you left off when switching workstations.
+- **Code anywhere:** Code on your Chromebook, tablet, and laptop with a
+  consistent dev environment. Develop on a Linux machine and pick up from any
+  device with a web browser.
 - **Server-powered:** Take advantage of large cloud servers to speed up tests,
   compilations, downloads, and more. Preserve battery life when you're on the go
   since all intensive computation runs on your server.

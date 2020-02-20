@@ -38,6 +38,12 @@ By far the most secure method of using code-server is via
 [sshcode](https://github.com/codercom/sshcode) as it runs code-server and then forwards
 its port over SSH and requires no setup on your part other than having a working SSH server.
 
+You can also forward your SSH key and GPG agent to the remote machine to securely access GitHub
+and securely sign commits without duplicating your keys onto the the remote machine.
+
+1. https://developer.github.com/v3/guides/using-ssh-agent-forwarding/
+1. https://wiki.gnupg.org/AgentForwarding
+
 If you cannot use sshcode, then you will need to ensure there is some sort of authorization in
 front of code-server and that you are using HTTPS to secure all connections.
 
@@ -76,8 +82,9 @@ privileged containers which are a security risk in a multi tenant infrastructure
 ## Docker in code-server docker container?
 
 If you'd like to access docker inside of code-server, we'd recommend running a docker:dind container
-and mounting in a /var/run directory to share between that and the code-server container. Install
-the docker CLI in the code-server container and you should be able to access the daemon.
+and mounting in a directory to share between dind and the code-server container at /var/run. After, install
+the docker CLI in the code-server container and you should be able to access the daemon as the socket
+will be shared at /var/run/docker.sock.
 
 In order to make volume mounts work, mount the home directory in the code-server container and the
 dind container at the same path. i.e you'd volume mount a directory from the host to `/home/coder`
@@ -86,8 +93,8 @@ to make volume mounts in any other directory work.
 
 ## Collaboration
 
-At the moment we have no plans for multi user collaboration on code-server but we understand this
-is a heavily requested feature and will work on it when the time is right.
+At the moment we have no plans for multi user collaboration on code-server but we understand there is strong
+demand and will work on it when the time is right.
 
 ## How can I disable telemetry?
 
