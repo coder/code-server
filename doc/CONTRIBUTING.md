@@ -12,9 +12,6 @@ yarn watch # Visit http://localhost:8080 once completed.
 
 Any changes made to the source will be live reloaded.
 
-If you run into issues about a different version of Node being used, try running
-`npm rebuild` in the VS Code directory.
-
 If changes are made to the patch and you've built previously you must manually
 reset VS Code then run `yarn vscode:patch`.
 

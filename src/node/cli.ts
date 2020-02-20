@@ -35,6 +35,7 @@ export interface Args extends VsArgs {
   readonly "list-extensions"?: boolean
   readonly "install-extension"?: string[]
   readonly "uninstall-extension"?: string[]
+  readonly locale?: string
   readonly _: string[]
 }
 

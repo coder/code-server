@@ -13,7 +13,13 @@ main() {
   yarn vscode:patch &> /dev/null || true
 
   # Install VS Code dependencies.
-  (cd lib/vscode && yarn)
+  # The second yarn is required as for whatever reason, we get
+  # NODE_MODULE_VERSION mismatch errors without it.
+  (
+    cd lib/vscode
+    yarn
+    yarn --ignore-scripts
+  )
 }
 
 main "$@"
