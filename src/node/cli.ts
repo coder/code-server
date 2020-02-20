@@ -102,6 +102,7 @@ const options: Options<Required<Args>> = {
   "install-extension": { type: "string[]" },
   "uninstall-extension": { type: "string[]" },
 
+  locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 }

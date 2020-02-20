@@ -457,18 +457,18 @@ class Builder {
     }
 
     let startingVscode = false
+    let startedVscode = false
     onLine(vscode, (line, original) => {
       console.log("[vscode]", original)
       // Wait for watch-client since "Finished compilation" will appear multiple
       // times before the client starts building.
       if (!startingVscode && line.includes("Starting watch-client")) {
         startingVscode = true
-      } else if (startingVscode && line.includes("Finished compilation") && process.env.AUTO_PATCH) {
-        cp.exec("yarn patch:generate", { cwd: this.rootPath }, (error, _, stderr) => {
-          if (error || stderr) {
-            console.error(error ? error.message : stderr)
-          }
-        })
+      } else if (startingVscode && line.includes("Finished compilation")) {
+        if (startedVscode) {
+          bundle.then(restartServer)
+        }
+        startedVscode = true
       }
     })
 

@@ -985,10 +985,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..82566066ff
+index 0000000000..a0d1d0df54
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,106 @@
+@@ -0,0 +1,108 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1038,6 +1038,8 @@ index 0000000000..82566066ff
 +	'builtin-extensions-dir'?: string;
 +	'extra-extensions-dir'?: string[];
 +	'extra-builtin-extensions-dir'?: string[];
++
++	locale?: string
 +
 +	log?: string;
 +	verbose?: boolean;
@@ -1995,10 +1997,10 @@ index 0000000000..8956fc40d4
 +};
 diff --git a/src/vs/server/node/nls.ts b/src/vs/server/node/nls.ts
 new file mode 100644
-index 0000000000..61c79d0d80
+index 0000000000..3d428a57d3
 --- /dev/null
 +++ b/src/vs/server/node/nls.ts
-@@ -0,0 +1,86 @@
+@@ -0,0 +1,88 @@
 +import * as fs from 'fs';
 +import * as path from 'path';
 +import * as util from 'util';
@@ -2052,13 +2054,15 @@ index 0000000000..61c79d0d80
 +};
 +
 +export const getLocaleFromConfig = async (userDataPath: string): Promise<string> => {
-+	let locale = 'en';
-+	try {
-+		const localeConfigUri = path.join(userDataPath, 'User/locale.json');
-+		const content = stripComments(await util.promisify(fs.readFile)(localeConfigUri, 'utf8'));
-+		locale = JSON.parse(content).locale;
-+	} catch (error) { /* Ignore. */ }
-+	return locale;
++	const files = ['locale.json', 'argv.json'];
++	for (let i = 0; i < files.length; ++i) {
++		try {
++			const localeConfigUri = path.join(userDataPath, 'User', files[i]);
++			const content = stripComments(await util.promisify(fs.readFile)(localeConfigUri, 'utf8'));
++			return JSON.parse(content).locale;
++		} catch (error) { /* Ignore. */ }
++	}
++	return 'en';
 +};
 +
 +// Taken from src/main.js in the main VS Code source.
