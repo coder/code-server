@@ -500,6 +500,7 @@ export class HttpServer {
           response.writeHead(error.code === "ENOENT" ? HttpCode.NotFound : HttpCode.ServerError)
           response.end(error.message)
         })
+        payload.stream.on("close", () => response.end())
         payload.stream.pipe(response)
       } else if (typeof payload.content === "string" || payload.content instanceof Buffer) {
         response.end(payload.content)

@@ -40,17 +40,20 @@ export class SettingsProvider<T> {
   }
 }
 
-/**
- * Global code-server settings.
- */
-export interface CoderSettings {
-  lastVisited: {
-    url: string
-    workspace: boolean
-  }
+export interface UpdateSettings {
   update: {
     checked: number
     version: string
+  }
+}
+
+/**
+ * Global code-server settings.
+ */
+export interface CoderSettings extends UpdateSettings {
+  lastVisited: {
+    url: string
+    workspace: boolean
   }
 }
 

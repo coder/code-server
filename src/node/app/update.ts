@@ -14,13 +14,17 @@ import * as util from "util"
 import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
-import { settings } from "../settings"
+import { settings as globalSettings, SettingsProvider, UpdateSettings } from "../settings"
 import { tmpdir } from "../util"
 import { ipcMain } from "../wrapper"
 
 export interface Update {
   checked: number
   version: string
+}
+
+export interface LatestResponse {
+  name: string
 }
 
 /**
@@ -30,7 +34,26 @@ export class UpdateHttpProvider extends HttpProvider {
   private update?: Promise<Update>
   private updateInterval = 1000 * 60 * 60 * 24 // Milliseconds between update checks.
 
-  public constructor(options: HttpProviderOptions, public readonly enabled: boolean) {
+  public constructor(
+    options: HttpProviderOptions,
+    public readonly enabled: boolean,
+    /**
+     * The URL for getting the latest version of code-server. Should return JSON
+     * that fulfills `LatestResponse`.
+     */
+    private readonly latestUrl = "https://api.github.com/repos/cdr/code-server/releases/latest",
+    /**
+     * The URL for downloading a version of code-server. {{VERSION}} and
+     * {{RELEASE_NAME}} will be replaced (for example 2.1.0 and
+     * code-server-2.1.0-linux-x86_64.tar.gz).
+     */
+    private readonly downloadUrl = "https://github.com/cdr/code-server/releases/download/{{VERSION}}/{{RELEASE_NAME}}",
+    /**
+     * Update information will be stored here. If not provided, the global
+     * settings will be used.
+     */
+    private readonly settings: SettingsProvider<UpdateSettings> = globalSettings,
+  ) {
     super(options)
   }
 
@@ -82,6 +105,7 @@ export class UpdateHttpProvider extends HttpProvider {
       throw new Error("updates are not enabled")
     }
 
+    // Don't run multiple requests at a time.
     if (!this.update) {
       this.update = this._getUpdate(force)
       this.update.then(() => (this.update = undefined))
@@ -91,15 +115,14 @@ export class UpdateHttpProvider extends HttpProvider {
   }
 
   private async _getUpdate(force?: boolean): Promise<Update> {
-    const url = "https://api.github.com/repos/cdr/code-server/releases/latest"
     const now = Date.now()
     try {
-      let { update } = !force ? await settings.read() : { update: undefined }
+      let { update } = !force ? await this.settings.read() : { update: undefined }
       if (!update || update.checked + this.updateInterval < now) {
-        const buffer = await this.request(url)
-        const data = JSON.parse(buffer.toString())
-        update = { checked: now, version: data.name as string }
-        settings.write({ update })
+        const buffer = await this.request(this.latestUrl)
+        const data = JSON.parse(buffer.toString()) as LatestResponse
+        update = { checked: now, version: data.name }
+        await this.settings.write({ update })
       }
       logger.debug("Got latest version", field("latest", update.version))
       return update
@@ -160,16 +183,16 @@ export class UpdateHttpProvider extends HttpProvider {
     }
   }
 
-  private async downloadUpdate(update: Update): Promise<void> {
-    const releaseName = await this.getReleaseName(update)
-    const url = `https://github.com/cdr/code-server/releases/download/${update.version.replace}/${releaseName}`
+  public async downloadUpdate(update: Update, targetPath?: string, target?: string): Promise<void> {
+    const releaseName = await this.getReleaseName(update, target)
+    const url = this.downloadUrl.replace("{{VERSION}}", update.version).replace("{{RELEASE_NAME}}", releaseName)
 
-    await fs.mkdirp(tmpdir)
+    let downloadPath = path.join(tmpdir, "updates", releaseName)
+    fs.mkdirp(path.dirname(downloadPath))
 
     const response = await this.requestResponse(url)
 
     try {
-      let downloadPath = path.join(tmpdir, releaseName)
       if (downloadPath.endsWith(".tar.gz")) {
         downloadPath = await this.extractTar(response, downloadPath)
       } else {
@@ -177,12 +200,53 @@ export class UpdateHttpProvider extends HttpProvider {
       }
       logger.debug("Downloaded update", field("path", downloadPath))
 
-      const target = path.resolve(__dirname, "../")
-      logger.debug("Replacing files", field("target", target))
-      await fs.unlink(target)
-      await fs.move(downloadPath, target)
+      // The archive should have a code-server directory at the top level.
+      try {
+        const stat = await fs.stat(path.join(downloadPath, "code-server"))
+        if (!stat.isDirectory()) {
+          throw new Error("ENOENT")
+        }
+      } catch (error) {
+        throw new Error("no code-server directory found in downloaded archive")
+      }
 
-      ipcMain().relaunch(update.version)
+      // The archive might contain a binary or it might contain loose files.
+      // This is probably stupid but just check if `node` exists since we
+      // package it with the loose files.
+      const isBinary = !(await fs.pathExists(path.join(downloadPath, "code-server/node")))
+
+      // In the binary we need to replace the binary, otherwise we can replace
+      // the directory.
+      if (!targetPath) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        targetPath = (process.versions as any).nbin ? process.argv[0] : path.resolve(__dirname, "../../../")
+      }
+
+      // If we're currently running a binary it must be unlinked to avoid
+      // ETXTBSY.
+      try {
+        const stat = await fs.stat(targetPath)
+        if (stat.isFile()) {
+          await fs.unlink(targetPath)
+        }
+      } catch (error) {
+        if (error.code !== "ENOENT") {
+          throw error
+        }
+      }
+
+      logger.debug("Replacing files", field("target", targetPath), field("isBinary", isBinary))
+      if (isBinary) {
+        await fs.move(path.join(downloadPath, "code-server/code-server"), targetPath, { overwrite: true })
+      } else {
+        await fs.move(path.join(downloadPath, "code-server"), targetPath, { overwrite: true })
+      }
+
+      await fs.remove(downloadPath)
+
+      if (process.send) {
+        ipcMain().relaunch(update.version)
+      }
     } catch (error) {
       response.destroy(error)
       throw error
@@ -252,8 +316,7 @@ export class UpdateHttpProvider extends HttpProvider {
   /**
    * Given an update return the name for the packaged archived.
    */
-  private async getReleaseName(update: Update): Promise<string> {
-    let target: string = os.platform()
+  private async getReleaseName(update: Update, target: string = os.platform()): Promise<string> {
     if (target === "linux") {
       const result = await util
         .promisify(cp.exec)("ldd --version")
@@ -294,7 +357,8 @@ export class UpdateHttpProvider extends HttpProvider {
     return new Promise((resolve, reject) => {
       const request = (uri: string): void => {
         logger.debug("Making request", field("uri", uri))
-        https.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
+        const httpx = uri.startsWith("https") ? https : http
+        httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
           if (
             response.statusCode &&
             response.statusCode >= 300 &&
