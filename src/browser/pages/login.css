@@ -1,31 +1,48 @@
+body {
+  overflow: auto;
+}
+.center-container {
+  width: 100vw;
+  height: 100vh;
+  padding: 20px 40px;
+  min-height: 400px;
+}
+
 .login-form {
-  align-items: center;
-  background: #fcfcfc;
-  border-radius: 10px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  box-shadow: rgba(60, 66, 87, 0.117647) 0px 7px 14px 0px, rgba(0, 0, 0, 0.117647) 0px 3px 6px 0px;
   color: rgba(0, 0, 0, 0.37);
   display: flex;
   flex-direction: column;
   flex: 1;
-  height: 100%;
   justify-content: center;
-  max-height: 400px;
-  max-width: 664px;
-  padding: 20px;
+  padding: 20px 40px;
   position: relative;
-  width: 100%;
+
+  height: 300px;
+  min-width: 320px;
+  max-width: 500px;
+}
+
+.main {
+  font-size: 40px;
 }
 
 .login-form > .header {
   align-items: center;
-  color: #b6b6b6;
-  margin-bottom: 1rem;
+  color: black;
+}
+
+.login-form > .header > .sub {
+  margin-top: 10px;
 }
 
 .login-form > .field {
+  margin-top: 40px;
   display: flex;
   flex-direction: row;
   width: 100%;
+  height: 50px;
 }
 
 .login-form > .error {
@@ -34,10 +51,15 @@
 }
 
 .login-form > .field > .password {
-  border: 1px solid #b6b6b6;
+  border: 1px solid #ddd;
+  background: rgb(244, 247, 252);
   box-sizing: border-box;
   padding: 1rem;
   flex: 1;
+  font-size: 20px;
+  border-radius: 5px;
+  color: black;
+  min-width: 100px;
 }
 
 .login-form > .user {
@@ -45,9 +67,14 @@
 }
 
 .login-form > .field > .submit {
-  background-color: transparent;
-  border: 1px solid #b6b6b6;
+  font-size: 20px;
+  border: none;
   box-sizing: border-box;
-  margin-left: -1px;
-  padding: 1rem 2rem;
+  margin-left: 20px;
+
+  background-color: rgb(87, 114, 245);
+  color: white;
+  font-family: monospace;
+  padding: 10px 20px;
+  border-radius: 5px;
 }
