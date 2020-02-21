@@ -100,7 +100,7 @@ export interface HttpServerOptions {
   readonly commit?: string
   readonly host?: string
   readonly password?: string
-  readonly port?: number
+  readonly port?: number | string
   readonly socket?: string
 }
 
