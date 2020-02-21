@@ -178,7 +178,7 @@ export class VscodeHttpProvider extends HttpProvider {
         { url: route.query.workspace, workspace: true },
         { url: route.query.folder, workspace: false },
         lastVisited,
-        this.args._ && this.args._.length > 0 ? { url: this.args._[0] } : undefined,
+        this.args._ && this.args._.length > 0 ? { url: this.args._[this.args._.length - 1] } : undefined,
       ],
       remoteAuthority,
     )

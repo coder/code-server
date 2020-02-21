@@ -151,4 +151,13 @@ describe("cli", () => {
     })
     assert.throws(() => parse(["--cert", "--socket-path-value"]), /Unknown option --socket-path-value/)
   })
+
+  it("should allow positional arguments before options", () => {
+    assert.deepEqual(parse(["foo", "test", "--auth", "none"]), {
+      _: ["foo", "test"],
+      "extensions-dir": path.join(xdgLocalDir, "extensions"),
+      "user-data-dir": xdgLocalDir,
+      auth: "none",
+    })
+  })
 })
