@@ -3,11 +3,6 @@ FROM debian:10
 RUN apt-get update
 RUN apt-get install -y curl
 
-COPY release/code-server*.tar.gz /tmp
-RUN cd /tmp && tar -xzf code-server*.tar.gz && \
-  cp code-server*/code-server /usr/local/bin/code-server
-RUN rm -rf /tmp/*
-
 # https://wiki.debian.org/Locale#Manually
 RUN apt-get install -y locales
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
@@ -30,6 +25,12 @@ RUN curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.
     printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 RUN rm -rf /var/lib/apt/lists/*
+
+COPY release/code-server*.tar.gz /tmp
+RUN cd /tmp && tar -xzf code-server*.tar.gz && \
+  cp code-server*/code-server /usr/local/bin/code-server
+RUN rm -rf /tmp/*
+
 EXPOSE 8080
 USER coder
 WORKDIR /home/coder

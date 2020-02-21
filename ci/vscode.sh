@@ -12,13 +12,13 @@ main() {
   # If the patch fails to apply, then it's likely already applied
   yarn vscode:patch &> /dev/null || true
 
-  # Install VS Code dependencies.
-  # The second yarn is required as for whatever reason, we get
-  # NODE_MODULE_VERSION mismatch errors without it.
   (
     cd lib/vscode
+    # Install VS Code dependencies.
     yarn
-    yarn --ignore-scripts
+
+    # NODE_MODULE_VERSION mismatch errors without this.
+    npm rebuild
   )
 }
 
