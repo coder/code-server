@@ -37,10 +37,13 @@ const main = async (args: Args): Promise<void> => {
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT !== "" ? process.env.PORT : 8080,
     socket: args.socket,
   }
+
   if (!options.cert && args.cert) {
     const { cert, certKey } = await generateCertificate()
     options.cert = cert
     options.certKey = certKey
+  } else if (args.cert && !args["cert-key"]) {
+    throw new Error("--cert-key is missing")
   }
 
   const httpServer = new HttpServer(options)
@@ -70,7 +73,7 @@ const main = async (args: Args): Promise<void> => {
   if (httpServer.protocol === "https") {
     logger.info(
       typeof args.cert === "string"
-        ? `  - Using provided certificate${args["cert-key"] ? " and key" : ""} for HTTPS`
+        ? `  - Using provided certificate and key for HTTPS`
         : `  - Using generated certificate and key for HTTPS`,
     )
   } else {
