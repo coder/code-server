@@ -34,7 +34,7 @@ const main = async (args: Args): Promise<void> => {
     commit: commit || "development",
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
-    port: typeof args.port !== "undefined" ? args.port : process.env.PORT !== "" ? process.env.PORT : 8080,
+    port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
     socket: args.socket,
   }
 
