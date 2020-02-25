@@ -2676,7 +2676,7 @@ index a1c3e50ffd..910627aaf9 100644
  			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
  		}
 diff --git a/src/vs/workbench/api/node/extHostStoragePaths.ts b/src/vs/workbench/api/node/extHostStoragePaths.ts
-index afdd6bf398..604fdd255c 100644
+index afdd6bf398..1633daf93d 100644
 --- a/src/vs/workbench/api/node/extHostStoragePaths.ts
 +++ b/src/vs/workbench/api/node/extHostStoragePaths.ts
 @@ -5,13 +5,14 @@
@@ -2704,18 +2704,20 @@ index afdd6bf398..604fdd255c 100644
  	) {
  		this._workspace = withNullAsUndefined(initData.workspace);
  		this._environment = initData.environment;
-@@ -54,21 +56,25 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
+@@ -54,21 +56,26 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
  		const storageName = this._workspace.id;
  		const storagePath = path.join(this._environment.appSettingsHome.fsPath, 'workspaceStorage', storageName);
 
 -		const exists = await pfs.dirExists(storagePath);
+-
+-		if (exists) {
 +		// NOTE@coder: Use the file system proxy so this will work in the browser.
-+		// writeFile performs a mkdirp so we don't need to bother ourselves.
 +		const fileSystem = this._extHostRpc.getProxy(MainContext.MainThreadFileSystem);
-+		const exists = fileSystem.$stat(URI.file(storagePath));
-
- 		if (exists) {
++		try {
++			await fileSystem.$stat(URI.file(storagePath));
  			return storagePath;
++		} catch (error) {
++			// Doesn't exist.
  		}
 
  		try {
@@ -2727,6 +2729,7 @@ index afdd6bf398..604fdd255c 100644
 -					configuration: this._workspace.configuration && URI.revive(this._workspace.configuration).toString(),
 -					name: this._workspace.name
 -				}, undefined, 2)
++			// NOTE@coder: $writeFile performs a mkdirp.
 +			await fileSystem.$writeFile(
 +				URI.file(path.join(storagePath, 'meta.json')),
 +				VSBuffer.fromString(
