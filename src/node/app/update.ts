@@ -200,47 +200,18 @@ export class UpdateHttpProvider extends HttpProvider {
       }
       logger.debug("Downloaded update", field("path", downloadPath))
 
-      // The archive should have a code-server directory at the top level.
-      try {
-        const stat = await fs.stat(path.join(downloadPath, "code-server"))
-        if (!stat.isDirectory()) {
-          throw new Error("ENOENT")
-        }
-      } catch (error) {
-        throw new Error("no code-server directory found in downloaded archive")
-      }
+      // The archive should have a directory inside at the top level with the
+      // same name as the archive.
+      const directoryPath = path.join(downloadPath, path.basename(downloadPath))
+      await fs.stat(directoryPath)
 
-      // The archive might contain a binary or it might contain loose files.
-      // This is probably stupid but just check if `node` exists since we
-      // package it with the loose files.
-      const isBinary = !(await fs.pathExists(path.join(downloadPath, "code-server/node")))
-
-      // In the binary we need to replace the binary, otherwise we can replace
-      // the directory.
       if (!targetPath) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        targetPath = (process.versions as any).nbin ? process.argv[0] : path.resolve(__dirname, "../../../")
+        targetPath = path.resolve(__dirname, "../../../")
       }
 
-      // If we're currently running a binary it must be unlinked to avoid
-      // ETXTBSY.
-      try {
-        const stat = await fs.stat(targetPath)
-        if (stat.isFile()) {
-          await fs.unlink(targetPath)
-        }
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          throw error
-        }
-      }
-
-      logger.debug("Replacing files", field("target", targetPath), field("isBinary", isBinary))
-      if (isBinary) {
-        await fs.move(path.join(downloadPath, "code-server/code-server"), targetPath, { overwrite: true })
-      } else {
-        await fs.move(path.join(downloadPath, "code-server"), targetPath, { overwrite: true })
-      }
+      logger.debug("Replacing files", field("target", targetPath))
+      await fs.move(directoryPath, targetPath, { overwrite: true })
 
       await fs.remove(downloadPath)
 

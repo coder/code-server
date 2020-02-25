@@ -13,9 +13,6 @@ import { generateCertificate, generatePassword, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 const main = async (args: Args): Promise<void> => {
-  // For any future forking bypass nbin and drop straight to Node.
-  process.env.NBIN_BYPASS = "true"
-
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
@@ -121,7 +118,6 @@ if (args.help) {
   }
   process.exit(0)
 } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
-  process.env.NBIN_BYPASS = "true"
   logger.debug("forking vs code cli...")
   const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
     env: {

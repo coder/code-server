@@ -2,7 +2,6 @@ import zip from "adm-zip"
 import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
-import * as os from "os"
 import * as path from "path"
 import * as tar from "tar-fs"
 import * as zlib from "zlib"
@@ -12,12 +11,7 @@ import { SettingsProvider, UpdateSettings } from "../src/node/settings"
 import { tmpdir } from "../src/node/util"
 
 describe("update", () => {
-  const archivePaths = {
-    loose: path.join(tmpdir, "tests/updates/code-server-loose-source"),
-    binary: path.join(tmpdir, "tests/updates/code-server-binary-source"),
-  }
-
-  let useBinary = false
+  const archivePath = path.join(tmpdir, "tests/updates/code-server-loose-source")
   let version = "1.0.0"
   let spy: string[] = []
   const server = http.createServer((request: http.IncomingMessage, response: http.ServerResponse) => {
@@ -33,8 +27,7 @@ describe("update", () => {
       return response.end(JSON.stringify(latest))
     }
 
-    const path =
-      (useBinary ? archivePaths.binary : archivePaths.loose) + (request.url.endsWith(".tar.gz") ? ".tar.gz" : ".zip")
+    const path = archivePath + (request.url.endsWith(".tar.gz") ? ".tar.gz" : ".zip")
 
     const stream = fs.createReadStream(path)
     stream.on("error", (error: NodeJS.ErrnoException) => {
@@ -72,40 +65,36 @@ describe("update", () => {
   }
 
   before(async () => {
+    const archiveName = "code-server-9999999.99999.9999-linux-x86_64"
     await fs.remove(path.join(tmpdir, "tests/updates"))
-    await Promise.all(Object.values(archivePaths).map((p) => fs.mkdirp(path.join(p, "code-server"))))
+    await fs.mkdirp(path.join(archivePath, archiveName))
 
     await Promise.all([
-      fs.writeFile(path.join(archivePaths.binary, "code-server", "code-server"), "BINARY"),
-      fs.writeFile(path.join(archivePaths.loose, "code-server", "code-server"), `console.log("UPDATED")`),
-      fs.writeFile(path.join(archivePaths.loose, "code-server", "node"), `NODE BINARY`),
+      fs.writeFile(path.join(archivePath, archiveName, "code-server"), `console.log("UPDATED")`),
+      fs.writeFile(path.join(archivePath, archiveName, "node"), `NODE BINARY`),
     ])
 
-    await Promise.all(
-      Object.values(archivePaths).map((p) => {
-        return Promise.all([
-          new Promise((resolve, reject) => {
-            const write = fs.createWriteStream(p + ".tar.gz")
-            const compress = zlib.createGzip()
-            compress.pipe(write)
-            compress.on("error", (error) => compress.destroy(error))
-            compress.on("close", () => write.end())
-            tar.pack(p).pipe(compress)
-            write.on("close", reject)
-            write.on("finish", () => {
-              resolve()
-            })
-          }),
-          new Promise((resolve, reject) => {
-            const zipFile = new zip()
-            zipFile.addLocalFolder(p)
-            zipFile.writeZip(p + ".zip", (error) => {
-              return error ? reject(error) : resolve(error)
-            })
-          }),
-        ])
+    await Promise.all([
+      new Promise((resolve, reject) => {
+        const write = fs.createWriteStream(archivePath + ".tar.gz")
+        const compress = zlib.createGzip()
+        compress.pipe(write)
+        compress.on("error", (error) => compress.destroy(error))
+        compress.on("close", () => write.end())
+        tar.pack(archivePath).pipe(compress)
+        write.on("close", reject)
+        write.on("finish", () => {
+          resolve()
+        })
       }),
-    )
+      new Promise((resolve, reject) => {
+        const zipFile = new zip()
+        zipFile.addLocalFolder(archivePath)
+        zipFile.writeZip(archivePath + ".zip", (error) => {
+          return error ? reject(error) : resolve(error)
+        })
+      }),
+    ])
 
     await new Promise((resolve, reject) => {
       server.on("error", reject)
@@ -216,41 +205,18 @@ describe("update", () => {
     assert.equal(`console.log("OLD")`, await fs.readFile(entry, "utf8"))
 
     // Updating should replace the existing version.
-    await p.downloadUpdate(update, destination)
+    await p.downloadUpdate(update, destination, "linux")
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
     // Should still work if there is no existing version somehow.
     await fs.remove(destination)
-    await p.downloadUpdate(update, destination)
+    await p.downloadUpdate(update, destination, "linux")
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
-    // Try the other platform.
-    const altTarget = os.platform() === "darwin" ? "linux" : "darwin"
-    await fs.writeFile(entry, `console.log("OLD")`)
-    await p.downloadUpdate(update, destination, altTarget)
-    assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
-
-    // Extracting a binary should also work.
-    useBinary = true
-    await p.downloadUpdate(update, destination)
-    assert.equal(`BINARY`, await fs.readFile(destination, "utf8"))
-
-    // Back to flat files.
-    useBinary = false
-    await fs.remove(destination)
-    await p.downloadUpdate(update, destination)
-    assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
-
-    const target = os.platform()
-    const targetExt = target === "darwin" ? "zip" : "tar.gz"
-    const altTargetExt = altTarget === "darwin" ? "zip" : "tar.gz"
     assert.deepEqual(spy, [
       "/latest",
-      `/download/${version}/code-server-${version}-${target}-x86_64.${targetExt}`,
-      `/download/${version}/code-server-${version}-${target}-x86_64.${targetExt}`,
-      `/download/${version}/code-server-${version}-${altTarget}-x86_64.${altTargetExt}`,
-      `/download/${version}/code-server-${version}-${target}-x86_64.${targetExt}`,
-      `/download/${version}/code-server-${version}-${target}-x86_64.${targetExt}`,
+      `/download/${version}/code-server-${version}-linux-x86_64.tar.gz`,
+      `/download/${version}/code-server-${version}-linux-x86_64.tar.gz`,
     ])
   })
 })

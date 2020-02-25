@@ -12,12 +12,9 @@
     "fmt": "ci/fmt.sh",
     "runner": "cd ./ci && NODE_OPTIONS=--max_old_space_size=32384 ts-node ./build.ts",
     "build": "yarn runner build",
-    "watch": "yarn runner watch",
-    "binary": "yarn runner binary",
-    "package": "yarn runner package"
+    "watch": "yarn runner watch"
   },
   "devDependencies": {
-    "@coder/nbin": "^1.2.7",
     "@types/adm-zip": "^0.4.32",
     "@types/fs-extra": "^8.0.1",
     "@types/mocha": "^5.2.7",

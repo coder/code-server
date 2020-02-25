@@ -1,14 +1,10 @@
-import { Binary } from "@coder/nbin"
 import * as cp from "child_process"
 import * as fs from "fs-extra"
-import * as os from "os"
 import Bundler from "parcel-bundler"
 import * as path from "path"
 import * as util from "util"
 
 enum Task {
-  Binary = "binary",
-  Package = "package",
   Build = "build",
   Watch = "watch",
 }
@@ -16,10 +12,8 @@ enum Task {
 class Builder {
   private readonly rootPath = path.resolve(__dirname, "..")
   private readonly vscodeSourcePath = path.join(this.rootPath, "lib/vscode")
-  private readonly binariesPath = path.join(this.rootPath, "binaries")
   private readonly buildPath = path.join(this.rootPath, "build")
   private readonly codeServerVersion: string
-  private _target?: "darwin" | "alpine" | "linux"
   private currentTask?: Task
 
   public constructor() {
@@ -66,45 +60,14 @@ class Builder {
       throw new Error("No task provided")
     }
 
-    const arch = this.ensureArgument("arch", os.arch().replace(/^x/, "x86_"))
-    const target = this.ensureArgument("target", await this.target())
-    const binaryName = `code-server-${this.codeServerVersion}-${target}-${arch}`
-
     switch (task) {
       case Task.Watch:
         return this.watch()
-      case Task.Binary:
-        return this.binary(binaryName)
-      case Task.Package:
-        return this.package(binaryName)
       case Task.Build:
         return this.build()
       default:
         throw new Error(`No task matching "${task}"`)
     }
-  }
-
-  /**
-   * Get the target of the system.
-   */
-  private async target(): Promise<"darwin" | "alpine" | "linux"> {
-    if (!this._target) {
-      if (os.platform() === "darwin" || (process.env.OSTYPE && /^darwin/.test(process.env.OSTYPE))) {
-        this._target = "darwin"
-      } else {
-        // Alpine's ldd doesn't have a version flag but if you use an invalid flag
-        // (like --version) it outputs the version to stderr and exits with 1.
-        const result = await util
-          .promisify(cp.exec)("ldd --version")
-          .catch((error) => ({ stderr: error.message, stdout: "" }))
-        if (/musl/.test(result.stderr) || /musl/.test(result.stdout)) {
-          this._target = "alpine"
-        } else {
-          this._target = "linux"
-        }
-      }
-    }
-    return this._target
   }
 
   /**
@@ -253,114 +216,6 @@ class Builder {
       await this.task(`restricting ${name} to production dependencies`, async () => {
         await util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: buildPath })
       })
-    }
-  }
-
-  /**
-   * Bundles the built code into a binary.
-   */
-  private async binary(binaryName: string): Promise<void> {
-    const prependCode = async (code: string, relativeFilePath: string): Promise<void> => {
-      const filePath = path.join(this.buildPath, relativeFilePath)
-      const content = await fs.readFile(filePath, "utf8")
-      if (!content.startsWith(code)) {
-        await fs.writeFile(filePath, code + content)
-      }
-    }
-
-    // Unpack binaries since we can't run them within the binary.
-    const unpack = `
-      if (global.NBIN_LOADED) {
-        try {
-           const fs = require("fs-extra")
-           const rg = require("vscode-ripgrep")
-           const path = require("path")
-           const { logger, field } = require("@coder/logger")
-
-           const unpackExecutables = async (filePath, destination) => {
-             logger.debug("unpacking executable", field("src", filePath), field("dest", destination))
-             await fs.mkdirp(path.dirname(destination))
-             if (filePath && !(await fs.pathExists(destination))) {
-               await fs.writeFile(destination, await fs.readFile(filePath))
-               await fs.chmod(destination, "755")
-             }
-           }
-
-           unpackExecutables(rg.binaryRgPath, rg.rgPath).catch((error) => console.warn(error))
-        } catch (error) {
-          console.warn(error)
-        }
-      }
-    `
-
-    // Enable finding files within the binary.
-    const loader = `
-      if (!global.NBIN_LOADED) {
-        try {
-          const nbin = require("nbin")
-          nbin.shimNativeFs("${this.buildPath}")
-          global.NBIN_LOADED = true
-          require("@coder/logger").logger.debug("shimmed file system at ${this.buildPath}")
-          const path = require("path")
-          const rg = require("vscode-ripgrep")
-          rg.binaryRgPath = rg.rgPath
-          rg.rgPath = path.join(require("os").tmpdir(), "code-server/binaries", path.basename(rg.binaryRgPath))
-        } catch (error) {
-          // Most likely not in the binary.
-        }
-      }
-    `
-
-    await this.task("Prepending nbin loader", () => {
-      return Promise.all([
-        prependCode(loader, "out/node/entry.js"),
-        prependCode(loader, "lib/vscode/out/vs/server/entry.js"),
-        prependCode(loader + unpack, "lib/vscode/out/vs/server/fork.js"),
-        prependCode(loader, "lib/vscode/out/bootstrap-fork.js"),
-        prependCode(loader, "lib/vscode/extensions/node_modules/typescript/lib/tsserver.js"),
-      ])
-    })
-
-    const bin = new Binary({
-      mainFile: path.join(this.buildPath, "out/node/entry.js"),
-      target: await this.target(),
-    })
-
-    bin.writeFiles(path.join(this.buildPath, "**"))
-
-    await fs.mkdirp(this.binariesPath)
-
-    const binaryPath = path.join(this.binariesPath, binaryName)
-    await fs.writeFile(binaryPath, await bin.build())
-    await fs.chmod(binaryPath, "755")
-
-    this.log(`binary: ${binaryPath}`)
-  }
-
-  /**
-   * Package the binary into a release archive.
-   */
-  private async package(binaryName: string): Promise<void> {
-    const releasePath = path.join(this.rootPath, "release")
-    const archivePath = path.join(releasePath, binaryName)
-
-    await fs.remove(archivePath)
-    await fs.mkdirp(archivePath)
-
-    await fs.copyFile(path.join(this.binariesPath, binaryName), path.join(archivePath, "code-server"))
-    await fs.copyFile(path.join(this.rootPath, "README.md"), path.join(archivePath, "README.md"))
-    await fs.copyFile(path.join(this.vscodeSourcePath, "LICENSE.txt"), path.join(archivePath, "LICENSE.txt"))
-    await fs.copyFile(
-      path.join(this.vscodeSourcePath, "ThirdPartyNotices.txt"),
-      path.join(archivePath, "ThirdPartyNotices.txt"),
-    )
-
-    if ((await this.target()) === "darwin") {
-      await util.promisify(cp.exec)(`zip -r "${binaryName}.zip" "${binaryName}"`, { cwd: releasePath })
-      this.log(`archive: ${archivePath}.zip`)
-    } else {
-      await util.promisify(cp.exec)(`tar -czf "${binaryName}.tar.gz" "${binaryName}"`, { cwd: releasePath })
-      this.log(`archive: ${archivePath}.tar.gz`)
     }
   }
 

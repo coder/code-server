@@ -3,52 +3,72 @@
 
 set -euo pipefail
 
+function package() {
+  local target
+  target=$(uname | tr '[:upper:]' '[:lower:]')
+  if [[ $target == "linux" ]]; then
+    # Alpine's ldd doesn't have a version flag but if you use an invalid flag
+    # (like --version) it outputs the version to stderr and exits with 1.
+    local ldd_output
+    ldd_output=$(ldd --version 2>&1 || true)
+    if echo "$ldd_output" | grep -iq musl; then
+      target="alpine"
+    fi
+  fi
+
+  local arch
+  arch="$(uname -m)"
+
+  echo -n "Creating release..."
+
+  cp "$(command -v node)" ./build
+  cp README.md ./build
+  cp LICENSE.txt ./build
+  cp ./lib/vscode/ThirdPartyNotices.txt ./build
+  cp ./ci/code-server.sh ./build/code-server
+
+  local archive_name="code-server-$VERSION-$target-$arch"
+  mkdir -p ./release
+
+  local ext
+  if [[ $target == "linux" ]]; then
+    ext=".tar.gz"
+    tar -czf "release/$archive_name$ext" --transform "s/^\.\/build/$archive_name/" ./build
+  else
+    mv ./build "./$archive_name"
+    ext=".zip"
+    zip -r "release/$archive_name$ext" ./code-server
+    mv "./$archive_name" ./build
+  fi
+
+  echo "done (release/$archive_name)"
+
+  mkdir -p "./release-upload/$VERSION"
+  cp "./release/$archive_name$ext" "./release-upload/$VERSION/$target-$arch.tar.gz"
+  mkdir -p "./release-upload/latest"
+  cp "./release/$archive_name$ext" "./release-upload/latest/$target-$arch.tar.gz"
+}
+
 # This script assumes that yarn has already ran.
+function build() {
+  # Always minify and package on CI.
+  if [[ ${CI:-} ]]; then
+    export MINIFY="true"
+  fi
+
+  yarn build
+}
+
 function main() {
   cd "$(dirname "${0}")/.."
   source ./ci/lib.sh
 
   set_version
 
-  # Always minify and package on CI since that's when releases are pushed.
+  build
+
   if [[ ${CI:-} ]]; then
-    export MINIFY="true"
-    export PACKAGE="true"
-  fi
-
-  yarn build
-  yarn binary
-  if [[ -n ${PACKAGE:-} ]]; then
-    yarn package
-  fi
-
-  cd binaries
-
-  if [[ -n ${STRIP_BIN_TARGET:-} ]]; then
-    # In this case provide plainly named binaries.
-    for binary in code-server*; do
-      echo "Moving $binary to code-server"
-      mv "$binary" code-server
-    done
-  elif [[ -n ${DRONE_TAG:-} || -n ${TRAVIS_TAG:-} ]]; then
-    # Prepare directory for uploading binaries on release.
-    for binary in code-server*; do
-      mkdir -p "../binary-upload"
-
-      local prefix="code-server-$VERSION-"
-      local target="${binary#$prefix}"
-      if [[ $target == "linux-x86_64" ]]; then
-        echo "Copying $binary to ../binary-upload/latest-linux"
-        cp "$binary" "../binary-upload/latest-linux"
-      fi
-
-      local gcp_dir
-      gcp_dir="../binary-upload/releases/$VERSION/$target"
-      mkdir -p "$gcp_dir"
-
-      echo "Copying $binary to $gcp_dir/code-server"
-      cp "$binary" "$gcp_dir/code-server"
-    done
+    package
   fi
 }
 

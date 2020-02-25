@@ -25,6 +25,5 @@ works internally.
 ```shell
 yarn
 yarn build
-node build/out/entry.js # You can run the built JavaScript with Node.
-yarn binary             # Or you can package it into a binary.
+node build/out/entry.js # Run the built JavaScript with Node.
 ```

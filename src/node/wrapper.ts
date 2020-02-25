@@ -1,7 +1,5 @@
 import { logger, field } from "@coder/logger"
 import * as cp from "child_process"
-import * as fs from "fs-extra"
-import * as path from "path"
 import { Emitter } from "../common/emitter"
 
 interface HandshakeMessage {
@@ -200,22 +198,12 @@ export class WrapperProcess {
       nodeOptions += ` --max_old_space_size=${(this.options && this.options.maxMemory) || 2048}`
     }
 
-    // This is to handle the upgrade from binary release to loose release. This
-    // will only work for users that restart code-server entirely between
-    // upgrading to this version and the loose file version since this is the
-    // wrapper code that does not get updated. The hope is that it'll be likely
-    // for that to happen to most users in that timeframe to minimize disruption
-    // when loose files are release. This can be removed with that release.
-    const bundledNodePath = path.join(process.argv[0], "node")
-    const binary = (await fs.pathExists(bundledNodePath)) ? bundledNodePath : process.argv[0]
-
     // Use spawn (instead of fork) to use the new binary in case it was updated.
-    return cp.spawn(binary, process.argv.slice(1), {
+    return cp.spawn(process.argv[0], process.argv.slice(1), {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: nodeOptions,
-        NBIN_BYPASS: undefined,
       },
       stdio: ["inherit", "inherit", "inherit", "ipc"],
     })
