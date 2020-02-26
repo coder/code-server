@@ -52,6 +52,9 @@ randomly generated password so you can use that. You can set the `PASSWORD` envi
 to use your own instead. If you want to handle authentication yourself, use `--auth none`
 to disable password authentication.
 
+If you want to use external authentication you should handle this with a reverse
+proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy).
+
 For HTTPS, you can use a self signed certificate by passing in just `--cert` or pass in an existing
 certificate by providing the path to `--cert` and the path to its key with `--cert-key`.
 
