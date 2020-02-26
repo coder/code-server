@@ -22,31 +22,34 @@
   </head>
   <body>
     <div class="center-container">
-      <form class="login-form" method="post">
+      <div class="card-box">
         <div class="header">
-          <div class="main">Welcome to code-server</div>
+          <h1 class="main">Welcome to code-server</h1>
           <div class="sub">Please log in below. Check code-server's logs for the generated password.</div>
         </div>
-        <input class="user" type="text" autocomplete="username" />
-        <input id="base" type="hidden" name="base" value="/" />
-        <div class="field">
-          <!-- The onfocus code places the cursor at the end of the value. -->
-          <input
-            required
-            autofocus
-            value="{{VALUE}}"
-            onfocus="const value=this.value;this.value='';this.value=value;"
-            class="password"
-            type="password"
-            placeholder="PASSWORD"
-            name="password"
-            autocomplete="current-password"
-          />
-
-          <input class="submit" value="SUBMIT" type="submit" />
+        <div class="content">
+          <form class="login-form" method="post">
+            <input class="user" type="text" autocomplete="username" />
+            <input id="base" type="hidden" name="base" value="/" />
+            <div class="field">
+              <!-- The onfocus code places the cursor at the end of the value. -->
+              <input
+                required
+                autofocus
+                value="{{VALUE}}"
+                onfocus="const value=this.value;this.value='';this.value=value;"
+                class="password"
+                type="password"
+                placeholder="PASSWORD"
+                name="password"
+                autocomplete="current-password"
+              />
+              <input class="submit -button" value="SUBMIT" type="submit" />
+            </div>
+            {{ERROR}}
+          </form>
         </div>
-        {{ERROR}}
-      </form>
+      </div>
     </div>
   </body>
   <script>

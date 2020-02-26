@@ -166,7 +166,7 @@ export class MainHttpProvider extends HttpProvider {
     if (this.update.isLatestVersion(update)) {
       return `<div class="block-row">
         <div class="item">
-          ${update.version}
+          Latest: ${update.version}
           <div class="sub">Up to date</div>
         </div>
         <div class="item">
@@ -178,13 +178,13 @@ export class MainHttpProvider extends HttpProvider {
     }
 
     return `<div class="block-row">
-      <a class="item -link" href="./update">
-        ${update.version}
+      <div class="item">
+        Latest: ${update.version}
         <div class="sub">Out of date</div>
-      </a>
+      </div>
       <div class="item">
         ${humanize(update.checked)}
-        <a class="sub -link" href="./update/check">Check now</a>
+        <a class="sub -link" href="./update">Update now</a>
       </div>
       <div class="item" >Current: ${this.update.currentVersion}</div>
     </div>`

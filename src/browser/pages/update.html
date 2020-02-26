@@ -19,13 +19,18 @@
   </head>
   <body>
     <div class="center-container">
-      <form class="update-form" method="post">
-        <h2 class="header">Update</h2>
-        {{UPDATE_STATUS}} {{ERROR}}
-        <div class="links">
-          <a class="link" href="{{BASE}}">go home</a>
+      <div class="card-box">
+        <div class="header">
+          <h1 class="main">Update</h1>
+          <div class="sub">Update code-server.</div>
         </div>
-      </form>
+        <div class="content">
+          <form class="update-form" method="post">
+            {{UPDATE_STATUS}} {{ERROR}}
+            <a class="cancel -button" href="{{BASE}}">Cancel</a>
+          </form>
+        </div>
+      </div>
     </div>
   </body>
 </html>

@@ -20,15 +20,18 @@
   </head>
   <body>
     <div class="center-container">
-      <div class="info-blocks">
-        <!-- TEMP: Only VS Code for now. -->
-        <!-- <div class="info-block"> -->
-        <!--   <h2 class="header">Running Applications</h2> -->
-        <!--   {{APP_LIST:RUNNING}} -->
-        <!-- </div> -->
+      <!-- TEMP: Only VS Code for now. -->
+      <!-- <div class="info-block"> -->
+      <!--   <h2 class="header">Running Applications</h2> -->
+      <!--   {{APP_LIST:RUNNING}} -->
+      <!-- </div> -->
 
-        <div class="info-block">
-          <h2 class="header">Launch</h2>
+      <div class="card-box">
+        <div class="header">
+          <h2 class="main">Launch</h2>
+          <div class="sub">Choose an application to launch below.</div>
+        </div>
+        <div class="content">
           <div class="block-row">
             <a class="item -link" href="./vscode">
               <img class="icon" src="./static-{{COMMIT}}/lib/vscode/resources/linux/code.png" />
@@ -36,22 +39,27 @@
             </a>
           </div>
         </div>
+      </div>
 
-        <div class="info-block">
-          <h2 class="header">Version</h2>
+      <div class="card-box">
+        <div class="header">
+          <h2 class="main">Version</h2>
+          <div class="sub">Version information and updates.</div>
+        </div>
+        <div class="content">
           {{UPDATE:NAME}}
         </div>
-
-        <!-- <div class="info-block"> -->
-        <!--   <h2 class="header">Editors</h2> -->
-        <!--   {{APP_LIST:EDITORS}} -->
-        <!-- </div> -->
-
-        <!-- <div class="info-block"> -->
-        <!--   <h2 class="header">Other</h2> -->
-        <!--   {{APP_LIST:OTHER}} -->
-        <!-- </div> -->
       </div>
+
+      <!-- <div class="info-block"> -->
+      <!--   <h2 class="header">Editors</h2> -->
+      <!--   {{APP_LIST:EDITORS}} -->
+      <!-- </div> -->
+
+      <!-- <div class="info-block"> -->
+      <!--   <h2 class="header">Other</h2> -->
+      <!--   {{APP_LIST:OTHER}} -->
+      <!-- </div> -->
     </div>
   </body>
 </html>

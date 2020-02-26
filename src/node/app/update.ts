@@ -162,10 +162,7 @@ export class UpdateHttpProvider extends HttpProvider {
       throw new Error("No update available")
     }
 
-    return `<button type="submit" class="apply">
-      Update to ${update.version}
-    </button>
-    <div class="current">Current: ${this.currentVersion}</div>`
+    return `<button type="submit" class="apply -button">Update to ${update.version}</button>`
   }
 
   public async tryUpdate(route: Route): Promise<HttpResponse> {

@@ -1,28 +1,8 @@
-.info-blocks {
-  max-width: 500px;
-  width: 100%;
-}
-
-.info-block > .header {
-  font-size: 1.3rem;
-  margin: 1.5rem 0;
-}
-
-.info-block > .none {
-  color: #b6b6b6;
-}
-
-.info-block + .info-block {
-  border-top: 1px solid #666;
-  margin-top: 1rem;
-}
-
 .block-row {
   display: flex;
 }
 
 .block-row > .item {
-  color: #c4c4c4;
   flex: 1;
 }
 
@@ -31,16 +11,17 @@
 }
 
 .block-row > .item > .sub {
-  color: #888;
+  font-size: 0.95em;
 }
 
 .block-row .-link {
-  cursor: pointer;
+  color: rgb(87, 114, 245);
+  display: block;
   text-decoration: none;
 }
 
 .block-row .-link:hover {
-  color: #fafafa;
+  text-decoration: underline;
 }
 
 .block-row > .item > .icon {
@@ -51,8 +32,8 @@
 }
 
 .block-row > .item > .icon.-missing {
-  background-color: #eee;
-  color: #b6b6b6;
+  background-color: rgb(87, 114, 245);
+  color: #fff;
   text-align: center;
 }
 
@@ -67,16 +48,12 @@
 }
 
 .kill-form > .kill {
-  background-color: transparent;
+  background-color: rgb(87, 114, 245);
   border: none;
-  color: #b6b6b6;
+  color: #fff;
   cursor: pointer;
   font-size: 1rem;
   line-height: 1rem;
   margin: 0;
   padding: 0;
-}
-
-.kill-form > .kill:hover {
-  color: #fafafa;
 }
