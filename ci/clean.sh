@@ -3,7 +3,7 @@
 set -euo pipefail
 
 main() {
-  git clean -xffd
+  git clean -Xffd
   git submodule foreach --recursive git clean -xffd
   git submodule foreach --recursive git reset --hard
 }
