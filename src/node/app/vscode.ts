@@ -124,10 +124,12 @@ export class VscodeHttpProvider extends HttpProvider {
         try {
           return await this.getRoot(request, route)
         } catch (error) {
-          const message = `${
-            this.isDev ? "It might not have finished compiling (check for 'Finished compilation' in the output)." : ""
+          const message = `<div>VS Code failed to load.</div> ${
+            this.isDev
+              ? "<div>It might not have finished compiling.</div>Check for 'Finished compilation' in the output."
+              : ""
           } <br><br>${error}`
-          return this.getErrorRoot(route, "VS Code failed to load", "VS Code failed to load", message)
+          return this.getErrorRoot(route, "VS Code failed to load", "500", message)
         }
     }
 
