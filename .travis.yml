@@ -24,6 +24,9 @@ jobs:
       node_js: 12
       script: yarn && yarn vscode && travis_wait 60 ci/release.sh
 
+before_deploy:
+  - openssl aes-256-cbc -K $encrypted_0c1654c01c97_key -iv $encrypted_0c1654c01c97_iv -in ./ci/key.json.enc -out ./ci/key.json -d
+
 deploy:
   - provider: releases
     edge: true
@@ -34,6 +37,13 @@ deploy:
     file:
       - release/*.tar.gz
       - release/*.zip
+    on:
+      tags: true
+  - provider: gcs
+    edge: true
+    bucket: "codesrv-ci.cdr.sh"
+    key_file: ./ci/key.json
+    local_dir: release-upload
     on:
       tags: true
 
