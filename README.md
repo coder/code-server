@@ -37,11 +37,11 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 [![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
 
-### Binaries
+### Releases
 
-1. [Download a binary](https://github.com/cdr/code-server/releases). (Linux and
-   OS X supported. Windows coming soon)
-2. Unpack the downloaded file then run the binary.
+1. [Download a release](https://github.com/cdr/code-server/releases). (Linux and
+   OS X supported. Windows support planned.)
+2. Unpack the downloaded release then run the included `code-server` script.
 3. In your browser navigate to `localhost:8080`.
 
 ## FAQ
