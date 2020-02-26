@@ -24,6 +24,7 @@ works internally.
 
 ```shell
 yarn
+yarn vscode
 yarn build
-node build/out/entry.js # Run the built JavaScript with Node.
+node ./build/out/entry.js # Run the built JavaScript with Node.
 ```
