@@ -16,8 +16,6 @@ docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" codercom/cod
   compilations, downloads, and more. Preserve battery life when you're on the go
   since all intensive computation runs on your server.
 
-![Example gif](/doc/assets/ide.gif)
-
 ## Getting Started
 
 ### Requirements
