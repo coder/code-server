@@ -48,11 +48,9 @@ export class LoginHttpProvider extends HttpProvider {
   public async getRoot(route: Route, value?: string, error?: Error): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/login.html")
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
-      .replace(/{{BASE}}/g, this.base(route))
       .replace(/{{VALUE}}/, value || "")
       .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
-    return response
+    return this.replaceTemplates(route, response)
   }
 
   /**

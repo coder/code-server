@@ -339,17 +339,24 @@ class Builder {
   }
 
   private createBundler(out = "dist", commit?: string): Bundler {
-    return new Bundler(path.join(this.rootPath, "src/browser/pages/app.ts"), {
-      cache: true,
-      cacheDir: path.join(this.rootPath, ".cache"),
-      detailedReport: true,
-      minify: !!process.env.MINIFY,
-      hmr: false,
-      logLevel: 1,
-      outDir: path.join(this.rootPath, out),
-      publicUrl: `/static-${commit}/dist`,
-      target: "browser",
-    })
+    return new Bundler(
+      [
+        path.join(this.rootPath, "src/browser/pages/app.ts"),
+        path.join(this.rootPath, "src/browser/register.ts"),
+        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
+      ],
+      {
+        cache: true,
+        cacheDir: path.join(this.rootPath, ".cache"),
+        detailedReport: true,
+        minify: !!process.env.MINIFY,
+        hmr: false,
+        logLevel: 1,
+        outDir: path.join(this.rootPath, out),
+        publicUrl: `/static-${commit || "development"}/dist`,
+        target: "browser",
+      },
+    )
   }
 }
 

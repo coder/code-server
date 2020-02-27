@@ -2,8 +2,9 @@ import { logger } from "@coder/logger"
 
 export interface Options {
   base: string
+  commit: string
   logLevel: number
-  sessionId: string
+  sessionId?: string
 }
 
 /**
@@ -26,6 +27,13 @@ export const generateUuid = (length = 24): string => {
 }
 
 /**
+ * Remove extra slashes in a URL.
+ */
+export const normalize = (url: string, keepTrailing = false): string => {
+  return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
+}
+
+/**
  * Get options embedded in the HTML from the server.
  */
 export const getOptions = <T extends Options>(): T => {
@@ -45,16 +53,15 @@ export const getOptions = <T extends Options>(): T => {
     if (typeof options.logLevel !== "undefined") {
       logger.level = options.logLevel
     }
-    return options
+    const parts = window.location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = options.base
+    const url = new URL(window.location.origin + "/" + parts.join("/"))
+    return {
+      ...options,
+      base: normalize(url.pathname, true),
+    }
   } catch (error) {
     logger.warn(error.message)
     return {} as T
   }
-}
-
-/**
- * Remove extra slashes in a URL.
- */
-export const normalize = (url: string, keepTrailing = false): string => {
-  return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
 }

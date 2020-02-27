@@ -1,9 +1,7 @@
-import { logger } from "@coder/logger"
 import * as http from "http"
 import * as querystring from "querystring"
 import { Application } from "../../common/api"
 import { HttpCode, HttpError } from "../../common/http"
-import { Options } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { ApiHttpProvider } from "./api"
 import { UpdateHttpProvider } from "./update"
@@ -61,15 +59,7 @@ export class MainHttpProvider extends HttpProvider {
     }
 
     if (sessionId) {
-      return this.getAppRoot(
-        route,
-        {
-          sessionId,
-          base: this.base(route),
-          logLevel: logger.level,
-        },
-        (app && app.name) || "",
-      )
+      return this.getAppRoot(route, (app && app.name) || "", sessionId)
     }
 
     return this.getErrorRoot(route, "404", "404", "Application not found")
@@ -79,12 +69,12 @@ export class MainHttpProvider extends HttpProvider {
    * Return a resource with variables replaced where necessary.
    */
   protected async getReplacedResource(route: Route): Promise<HttpResponse> {
-    if (route.requestPath.endsWith("/manifest.json")) {
-      const response = await this.getUtf8Resource(this.rootPath, route.requestPath)
-      response.content = response.content
-        .replace(/{{BASE}}/g, this.base(route))
-        .replace(/{{COMMIT}}/g, this.options.commit)
-      return response
+    const split = route.requestPath.split("/")
+    switch (split[split.length - 1]) {
+      case "manifest.json": {
+        const response = await this.getUtf8Resource(this.rootPath, route.requestPath)
+        return this.replaceTemplates(route, response)
+      }
     }
     return this.getResource(this.rootPath, route.requestPath)
   }
@@ -94,8 +84,6 @@ export class MainHttpProvider extends HttpProvider {
     const apps = await this.api.installedApplications()
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/home.html")
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
-      .replace(/{{BASE}}/g, this.base(route))
       .replace(/{{UPDATE:NAME}}/, await this.getUpdate())
       .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(running.applications))
       .replace(
@@ -106,17 +94,13 @@ export class MainHttpProvider extends HttpProvider {
         /{{APP_LIST:OTHER}}/,
         this.getAppRows(apps.filter((app) => !app.categories || !app.categories.includes("Editor"))),
       )
-    return response
+    return this.replaceTemplates(route, response)
   }
 
-  public async getAppRoot(route: Route, options: Options, name: string): Promise<HttpResponse> {
+  public async getAppRoot(route: Route, name: string, sessionId: string): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/app.html")
-    response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
-      .replace(/{{BASE}}/g, this.base(route))
-      .replace(/{{APP_NAME}}/, name)
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
-    return response
+    response.content = response.content.replace(/{{APP_NAME}}/, name)
+    return this.replaceTemplates(route, response, sessionId)
   }
 
   public async handleWebSocket(): Promise<undefined> {

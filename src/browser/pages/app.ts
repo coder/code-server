@@ -8,8 +8,5 @@ import "./login.css"
 import "./update.css"
 
 const options = getOptions()
-const parts = window.location.pathname.replace(/^\//g, "").split("/")
-parts[parts.length - 1] = options.base
-const url = new URL(window.location.origin + "/" + parts.join("/"))
 
-console.log(url)
+console.log(options)

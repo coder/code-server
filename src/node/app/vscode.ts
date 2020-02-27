@@ -219,17 +219,13 @@ export class VscodeHttpProvider extends HttpProvider {
       response.content = response.content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "")
     }
 
-    return {
-      ...response,
-      content: response.content
-        .replace(/{{COMMIT}}/g, options.commit)
-        .replace(/{{BASE}}/g, this.base(route))
-        .replace(/{{VS_BASE}}/g, this.base(route) + this.options.base)
-        .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
-        .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
-        .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
-        .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
-    }
+    response.content = response.content
+      .replace(/{{VS_BASE}}/g, this.base(route) + this.options.base)
+      .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
+      .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
+      .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
+      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`)
+    return this.replaceTemplates(route, response)
   }
 
   /**

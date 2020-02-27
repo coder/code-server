@@ -12,7 +12,7 @@
       "sizes": "96x96"
     },
     {
-      "src": "/{{BASE}}/static-{{COMMIT}}/src/browser/media/pwa-icon-128.png",
+      "src": "{{BASE}}/static-{{COMMIT}}/src/browser/media/pwa-icon-128.png",
       "type": "image/png",
       "sizes": "128x128"
     },

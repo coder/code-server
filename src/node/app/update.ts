@@ -86,11 +86,9 @@ export class UpdateHttpProvider extends HttpProvider {
   public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/update.html")
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
-      .replace(/{{BASE}}/g, this.base(route))
       .replace(/{{UPDATE_STATUS}}/, await this.getUpdateHtml())
       .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
-    return response
+    return this.replaceTemplates(route, response)
   }
 
   public async handleWebSocket(): Promise<undefined> {

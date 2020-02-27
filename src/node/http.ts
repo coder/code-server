@@ -12,7 +12,7 @@ import * as tarFs from "tar-fs"
 import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, plural, split } from "../common/util"
+import { normalize, Options, plural, split } from "../common/util"
 import { SocketProxyProvider } from "./socket"
 import { getMediaMime, xdgLocalDir } from "./util"
 
@@ -165,14 +165,36 @@ export abstract class HttpProvider {
     return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
   }
 
+  /**
+   * Get error response.
+   */
   public async getErrorRoot(route: Route, title: string, header: string, body: string): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/error.html")
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
-      .replace(/{{BASE}}/g, this.base(route))
       .replace(/{{ERROR_TITLE}}/g, title)
       .replace(/{{ERROR_HEADER}}/g, header)
       .replace(/{{ERROR_BODY}}/g, body)
+    return this.replaceTemplates(route, response)
+  }
+
+  /**
+   * Replace common templates strings.
+   */
+  protected replaceTemplates(
+    route: Route,
+    response: HttpStringFileResponse,
+    sessionId?: string,
+  ): HttpStringFileResponse {
+    const options: Options = {
+      base: this.base(route),
+      commit: this.options.commit,
+      logLevel: logger.level,
+      sessionId,
+    }
+    response.content = response.content
+      .replace(/{{COMMIT}}/g, this.options.commit)
+      .replace(/{{BASE}}/g, this.base(route))
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -338,11 +360,15 @@ export class Heart {
         clearTimeout(this.heartbeatTimer)
       }
       this.heartbeatTimer = setTimeout(() => {
-        this.isActive().then((active) => {
-          if (active) {
-            this.beat()
-          }
-        })
+        this.isActive()
+          .then((active) => {
+            if (active) {
+              this.beat()
+            }
+          })
+          .catch((error) => {
+            logger.warn(error.message)
+          })
       }, this.heartbeatInterval)
     }
   }
