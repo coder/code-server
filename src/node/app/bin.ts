@@ -1,3 +1,4 @@
+import * as fs from "fs"
 import * as path from "path"
 import { Application } from "../../common/api"
 
@@ -11,6 +12,7 @@ const getVscodeVersion = (): string => {
 
 export const Vscode: Application = {
   categories: ["Editor"],
+  icon: fs.readFileSync(path.resolve(__dirname, "../../../lib/vscode/resources/linux/code.png")).toString("base64"),
   installed: true,
   name: "VS Code",
   path: "/vscode",

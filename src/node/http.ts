@@ -360,6 +360,10 @@ export interface HttpProvider2<A1, A2, T> {
   new (options: HttpProviderOptions, a1: A1, a2: A2): T
 }
 
+export interface HttpProvider3<A1, A2, A3, T> {
+  new (options: HttpProviderOptions, a1: A1, a2: A2, a3: A3): T
+}
+
 /**
  * An HTTP server. Its main role is to route incoming HTTP requests to the
  * appropriate provider for that endpoint then write out the response. It also
@@ -416,6 +420,13 @@ export class HttpServer {
     provider: HttpProvider2<A1, A2, T>,
     a1: A1,
     a2: A2,
+  ): T
+  public registerHttpProvider<A1, A2, A3, T extends HttpProvider>(
+    endpoint: string,
+    provider: HttpProvider3<A1, A2, A3, T>,
+    a1: A1,
+    a2: A2,
+    a3: A3,
   ): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public registerHttpProvider(endpoint: string, provider: any, ...args: any[]): any {

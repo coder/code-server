@@ -20,26 +20,35 @@
   </head>
   <body>
     <div class="center-container">
-      <!-- TEMP: Only VS Code for now. -->
-      <!-- <div class="info-block"> -->
-      <!--   <h2 class="header">Running Applications</h2> -->
-      <!--   {{APP_LIST:RUNNING}} -->
-      <!-- </div> -->
+      <div class="card-box">
+        <div class="header">
+          <h2 class="main">Running</h2>
+          <div class="sub">Currently running applications.</div>
+        </div>
+        <div class="content">
+          {{APP_LIST:RUNNING}}
+        </div>
+      </div>
 
       <div class="card-box">
         <div class="header">
-          <h2 class="main">Launch</h2>
-          <div class="sub">Choose an application to launch below.</div>
+          <h2 class="main">Editors</h2>
+          <div class="sub">Choose an editor to launch below.</div>
         </div>
         <div class="content">
-          <div class="block-row">
-            <a class="item -link" href="./vscode">
-              <img class="icon" src="./static-{{COMMIT}}/lib/vscode/resources/linux/code.png" />
-              VS Code
-            </a>
-          </div>
+          {{APP_LIST:EDITORS}}
         </div>
       </div>
+
+      <!-- <div class="card-box"> -->
+      <!--   <div class="header"> -->
+      <!--     <h2 class="main">Other</h2> -->
+      <!--     <div class="sub">Choose an application to launch below.</div> -->
+      <!--   </div> -->
+      <!--   <div class="content"> -->
+      <!--     {{APP_LIST:OTHER}} -->
+      <!--   </div> -->
+      <!-- </div> -->
 
       <div class="card-box">
         <div class="header">
@@ -50,16 +59,6 @@
           {{UPDATE:NAME}}
         </div>
       </div>
-
-      <!-- <div class="info-block"> -->
-      <!--   <h2 class="header">Editors</h2> -->
-      <!--   {{APP_LIST:EDITORS}} -->
-      <!-- </div> -->
-
-      <!-- <div class="info-block"> -->
-      <!--   <h2 class="header">Other</h2> -->
-      <!--   {{APP_LIST:OTHER}} -->
-      <!-- </div> -->
     </div>
   </body>
 </html>

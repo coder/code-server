@@ -32,15 +32,8 @@
 }
 
 .block-row > .item > .icon.-missing {
-  background-color: rgb(87, 114, 245);
-  color: #fff;
+  background-color: rgba(87, 114, 245, 0.2);
   text-align: center;
-}
-
-.block-row > .item > .icon.-missing::after {
-  content: "?";
-  font-size: 0.7rem;
-  vertical-align: middle;
 }
 
 .kill-form {
@@ -48,12 +41,6 @@
 }
 
 .kill-form > .kill {
-  background-color: rgb(87, 114, 245);
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-size: 1rem;
-  line-height: 1rem;
-  margin: 0;
-  padding: 0;
+  border-radius: 3px;
+  padding: 2px 5px;
 }

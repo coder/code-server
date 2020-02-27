@@ -19,7 +19,8 @@ import {
 import { ApiEndpoint, HttpCode } from "../../common/http"
 import { normalize } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, HttpServer, Route } from "../http"
-import { findApplications, findWhitelistedApplications } from "./bin"
+import { findApplications, findWhitelistedApplications, Vscode } from "./bin"
+import { VscodeHttpProvider } from "./vscode"
 
 interface ServerSession {
   process?: cp.ChildProcess
@@ -42,6 +43,7 @@ export class ApiHttpProvider extends HttpProvider {
   public constructor(
     options: HttpProviderOptions,
     private readonly server: HttpServer,
+    private readonly vscode: VscodeHttpProvider,
     private readonly dataDir?: string,
   ) {
     super(options)
@@ -256,17 +258,24 @@ export class ApiHttpProvider extends HttpProvider {
   /**
    * Kill a session identified by `app.sessionId`.
    */
-  public deleteSession(sessionId: string): HttpResponse {
+  public async deleteSession(sessionId: string): Promise<HttpResponse> {
     logger.debug("deleting session", field("sessionId", sessionId))
-    const session = this.sessions.get(sessionId)
-    if (!session) {
-      throw new Error("session does not exist")
+    switch (sessionId) {
+      case "vscode":
+        await this.vscode.dispose()
+        return { code: HttpCode.Ok }
+      default: {
+        const session = this.sessions.get(sessionId)
+        if (!session) {
+          throw new Error("session does not exist")
+        }
+        if (session.process) {
+          session.process.kill()
+        }
+        this.sessions.delete(sessionId)
+        return { code: HttpCode.Ok }
+      }
     }
-    if (session.process) {
-      session.process.kill()
-    }
-    this.sessions.delete(sessionId)
-    return { code: HttpCode.Ok }
   }
 
   /**
@@ -350,10 +359,20 @@ export class ApiHttpProvider extends HttpProvider {
    */
   public async running(): Promise<RunningResponse> {
     return {
-      applications: Array.from(this.sessions).map(([sessionId, session]) => ({
-        ...session.app,
-        sessionId,
-      })),
+      applications: (this.vscode.running
+        ? [
+            {
+              ...Vscode,
+              sessionId: "vscode",
+            },
+          ]
+        : []
+      ).concat(
+        Array.from(this.sessions).map(([sessionId, session]) => ({
+          ...session.app,
+          sessionId,
+        })),
+      ),
     }
   }
 

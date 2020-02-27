@@ -26,3 +26,7 @@
 .error-display > .links > .link:hover {
   text-decoration: underline;
 }
+
+.error-display .success {
+  color: green;
+}

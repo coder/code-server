@@ -124,7 +124,9 @@ export class MainHttpProvider extends HttpProvider {
   }
 
   private getAppRows(apps: ReadonlyArray<Application>): string {
-    return apps.length > 0 ? apps.map((app) => this.getAppRow(app)).join("\n") : `<div class="none">None</div>`
+    return apps.length > 0
+      ? apps.map((app) => this.getAppRow(app)).join("\n")
+      : `<div class="none">No applications are currently running.</div>`
   }
 
   private getAppRow(app: Application): string {
@@ -141,7 +143,7 @@ export class MainHttpProvider extends HttpProvider {
         app.sessionId
           ? `<form class="kill-form" action="./delete" method="POST">
                <input type="hidden" name="sessionId" value="${app.sessionId}">
-               <button class="kill" type="submit">Kill</button>
+               <button class="kill -button" type="submit">Kill</button>
              </form>`
           : ""
       }

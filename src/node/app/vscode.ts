@@ -31,6 +31,19 @@ export class VscodeHttpProvider extends HttpProvider {
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
   }
 
+  public get running(): boolean {
+    return !!this._vscode
+  }
+
+  public async dispose(): Promise<void> {
+    if (this._vscode) {
+      const vscode = await this._vscode
+      vscode.removeAllListeners()
+      this._vscode = undefined
+      vscode.kill()
+    }
+  }
+
   private async initialize(options: VscodeOptions): Promise<WorkbenchOptions> {
     const id = generateUuid()
     const vscode = await this.fork()
@@ -126,7 +139,8 @@ export class VscodeHttpProvider extends HttpProvider {
         } catch (error) {
           const message = `<div>VS Code failed to load.</div> ${
             this.isDev
-              ? "<div>It might not have finished compiling.</div>Check for 'Finished compilation' in the output."
+              ? `<div>It might not have finished compiling.</div>` +
+                `Check for <code>Finished <span class="success">compilation</span></code> in the output.`
               : ""
           } <br><br>${error}`
           return this.getErrorRoot(route, "VS Code failed to load", "500", message)
