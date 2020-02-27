@@ -42,6 +42,7 @@ deploy:
   - provider: gcs
     edge: true
     bucket: "codesrv-ci.cdr.sh"
+    upload_dir: "releases"
     key_file: ./ci/key.json
     local_dir: release-upload
     on:
