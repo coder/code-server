@@ -1,7 +1,6 @@
 html,
 body,
-#root,
-.center-container {
+#root {
   height: 100%;
   width: 100%;
 }
@@ -39,7 +38,9 @@ button {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  min-height: 100%;
   padding: 20px;
+  width: 100%;
 }
 
 .card-box {

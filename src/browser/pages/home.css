@@ -4,6 +4,7 @@
 
 .block-row > .item {
   flex: 1;
+  margin: 2px 0;
 }
 
 .block-row > .item.-row {
