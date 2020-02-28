@@ -33,12 +33,9 @@
             <input class="user" type="text" autocomplete="username" />
             <input id="base" type="hidden" name="base" value="/" />
             <div class="field">
-              <!-- The onfocus code places the cursor at the end of the value. -->
               <input
                 required
                 autofocus
-                value="{{VALUE}}"
-                onfocus="const value=this.value;this.value='';this.value=value;"
                 class="password"
                 type="password"
                 placeholder="PASSWORD"

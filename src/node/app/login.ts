@@ -45,11 +45,9 @@ export class LoginHttpProvider extends HttpProvider {
     return undefined
   }
 
-  public async getRoot(route: Route, value?: string, error?: Error): Promise<HttpResponse> {
+  public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/login.html")
-    response.content = response.content
-      .replace(/{{VALUE}}/, value || "")
-      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
+    response.content = response.content.replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
     return this.replaceTemplates(route, response)
   }
 
@@ -63,15 +61,12 @@ export class LoginHttpProvider extends HttpProvider {
       return { code: HttpCode.Ok }
     }
 
-    let payload: LoginPayload | undefined
     try {
       const data = await this.getData(request)
-      const p = data ? querystring.parse(data) : {}
-      payload = p
-
-      return await this.login(p, route, request)
+      const payload = data ? querystring.parse(data) : {}
+      return await this.login(payload, route, request)
     } catch (error) {
-      return this.getRoot(route, payload ? payload.password : undefined, error)
+      return this.getRoot(route, error)
     }
   }
 
