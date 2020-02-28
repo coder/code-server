@@ -52,6 +52,7 @@ const main = async (args: Args): Promise<void> => {
 
   ipcMain().onDispose(() => httpServer.dispose())
 
+  logger.info(`code-server ${require("../../package.json").version}`)
   const serverAddress = await httpServer.listen()
   logger.info(`Server listening on ${serverAddress}`)
 
