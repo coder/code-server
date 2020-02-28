@@ -174,7 +174,7 @@ export class VscodeHttpProvider extends HttpProvider {
         break
       case "/tar":
         if (typeof route.query.path === "string") {
-          return this.getTarredResource(route.query.path)
+          return this.getTarredResource(request, route.query.path)
         }
         break
       case "/webview":

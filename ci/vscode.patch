@@ -119,7 +119,7 @@ index 2d8b725ff2..a8d93a17ca 100644
  unique-stream@^2.0.2:
    version "2.2.1"
 diff --git a/package.json b/package.json
-index fde05321d2..1a7ed2fa47 100644
+index fde05321d2..2427e7d4ae 100644
 --- a/package.json
 +++ b/package.json
 @@ -32,6 +32,9 @@
@@ -128,7 +128,7 @@ index fde05321d2..1a7ed2fa47 100644
    "dependencies": {
 +    "@coder/logger": "^1.1.12",
 +    "@coder/node-browser": "^1.0.8",
-+    "@coder/requirefs": "^1.1.4",
++    "@coder/requirefs": "^1.1.5",
      "applicationinsights": "1.0.8",
      "chokidar": "3.2.3",
      "graceful-fs": "4.1.11",
@@ -3109,7 +3109,7 @@ index 82626a55c7..5d3ee1b69b 100644
  union-value@^1.0.0:
    version "1.0.1"
 diff --git a/yarn.lock b/yarn.lock
-index a98533bad9..19e94f8c4a 100644
+index a98533bad9..f4da0987c9 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
@@ -3126,10 +3126,10 @@ index a98533bad9..19e94f8c4a 100644
 +  resolved "https://registry.yarnpkg.com/@coder/node-browser/-/node-browser-1.0.8.tgz#c22f581b089ad7d95ad1362fd351c57b7fbc6e70"
 +  integrity sha512-NLF9sYMRCN9WK1C224pHax1Cay3qKypg25BhVg7VfNbo3Cpa3daata8RF/rT8JK3lPsu8PmFgDRQjzGC9X1Lrw==
 +
-+"@coder/requirefs@^1.1.4":
-+  version "1.1.4"
-+  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.1.4.tgz#ca59223a396021f2f606f71b833c43dbba06b10b"
-+  integrity sha512-E+WB3Wvr31v7eqWdItBW4eVQ0tWr4iKH6qjzCMnRxTsbiiNzLgtDzRBYt/3KxnPrtWXXX6Fn02Ut933soZXJ+g==
++"@coder/requirefs@^1.1.5":
++  version "1.1.5"
++  resolved "https://registry.yarnpkg.com/@coder/requirefs/-/requirefs-1.1.5.tgz#259db370d563a79a96fb150bc9d69c7db6edc9fb"
++  integrity sha512-3jB47OFCql9+9FI6Vc4YX0cfFnG5rxBfrZUH45S4XYtYGOz+/Xl4h4d2iMk50b7veHkeSWGlB4VHC3UZ16zuYQ==
 +  optionalDependencies:
 +    jszip "2.6.0"
 +

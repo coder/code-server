@@ -11,6 +11,7 @@ import { Readable } from "stream"
 import * as tarFs from "tar-fs"
 import * as tls from "tls"
 import * as url from "url"
+import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options, plural, split } from "../common/util"
 import { SocketProxyProvider } from "./socket"
@@ -222,9 +223,20 @@ export abstract class HttpProvider {
   /**
    * Tar up and stream a directory.
    */
-  protected async getTarredResource(...parts: string[]): Promise<HttpResponse> {
+  protected async getTarredResource(request: http.IncomingMessage, ...parts: string[]): Promise<HttpResponse> {
     const filePath = path.join(...parts)
-    return { stream: tarFs.pack(filePath), filePath, mime: "application/tar", cache: true }
+    let stream: Readable = tarFs.pack(filePath)
+    const headers: http.OutgoingHttpHeaders = {}
+    if (request.headers["accept-encoding"] && request.headers["accept-encoding"].includes("gzip")) {
+      logger.debug("gzipping tar", field("filePath", filePath))
+      const compress = zlib.createGzip()
+      stream.pipe(compress)
+      stream.on("error", (error) => compress.destroy(error))
+      stream.on("close", () => compress.end())
+      stream = compress
+      headers["content-encoding"] = "gzip"
+    }
+    return { stream, filePath, mime: "application/gzip", cache: true, headers }
   }
 
   /**
