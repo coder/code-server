@@ -17,7 +17,7 @@ interface LoginPayload {
  * Login HTTP provider.
  */
 export class LoginHttpProvider extends HttpProvider {
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     if (this.options.auth !== AuthType.Password) {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
@@ -42,7 +42,7 @@ export class LoginHttpProvider extends HttpProvider {
         }
     }
 
-    return undefined
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {

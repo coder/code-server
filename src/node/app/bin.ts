@@ -15,7 +15,7 @@ export const Vscode: Application = {
   icon: fs.readFileSync(path.resolve(__dirname, "../../../lib/vscode/resources/linux/code.png")).toString("base64"),
   installed: true,
   name: "VS Code",
-  path: "/vscode",
+  path: "/",
   version: getVscodeVersion(),
 }
 

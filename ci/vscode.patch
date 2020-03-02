@@ -2968,7 +2968,7 @@ index bbb72e9511..0785d3391d 100644
 -registerSingleton(IExtensionStoragePaths, class extends NotImplementedProxy(IExtensionStoragePaths) { whenReady = Promise.resolve(); });
 +registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
 diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
-index 79455414c0..5ba66b2d83 100644
+index 79455414c0..a407593b4d 100644
 --- a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
 +++ b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
 @@ -14,7 +14,11 @@
@@ -2978,8 +2978,8 @@ index 79455414c0..5ba66b2d83 100644
 -		catchError: true
 +		catchError: true,
 +		paths: {
-+			'@coder/node-browser': `../../static-{{COMMIT}}/node_modules/@coder/node-browser/out/client/client.js`,
-+			'@coder/requirefs': `../../static-{{COMMIT}}/node_modules/@coder/requirefs/out/requirefs.js`,
++			'@coder/node-browser': `../node_modules/@coder/node-browser/out/client/client.js`,
++			'@coder/requirefs': `../node_modules/@coder/requirefs/out/requirefs.js`,
 +		}
  	});
 

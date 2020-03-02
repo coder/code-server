@@ -655,13 +655,6 @@ export class HttpServer {
         base = "/"
       }
       requestPath = requestPath || "/index.html"
-      // Allow for a versioned static endpoint. This lets us cache every static
-      // resource underneath the path based on the version without any work and
-      // without adding query parameters which have their own issues.
-      if (/^\/static-/.test(base)) {
-        base = "/static"
-      }
-
       return { base, requestPath }
     }
 

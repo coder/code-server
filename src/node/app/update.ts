@@ -57,18 +57,24 @@ export class UpdateHttpProvider extends HttpProvider {
     super(options)
   }
 
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
+    this.ensureAuthenticated(request)
+
     switch (route.base) {
       case "/check":
         this.ensureMethod(request)
         this.getUpdate(true)
-        return { redirect: "/login" }
+        if (route.query && route.query.to) {
+          return {
+            redirect: Array.isArray(route.query.to) ? route.query.to[0] : route.query.to,
+            query: { to: undefined },
+          }
+        }
+        return this.getRoot(route)
       case "/": {
         this.ensureMethod(request, ["GET", "POST"])
         if (route.requestPath !== "/index.html") {
           throw new HttpError("Not found", HttpCode.NotFound)
-        } else if (!this.authenticated(request)) {
-          return { redirect: "/login" }
         }
 
         switch (request.method) {
@@ -80,7 +86,7 @@ export class UpdateHttpProvider extends HttpProvider {
       }
     }
 
-    return undefined
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
@@ -91,8 +97,8 @@ export class UpdateHttpProvider extends HttpProvider {
     return this.replaceTemplates(route, response)
   }
 
-  public async handleWebSocket(): Promise<undefined> {
-    return undefined
+  public async handleWebSocket(): Promise<true> {
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   /**
@@ -166,13 +172,10 @@ export class UpdateHttpProvider extends HttpProvider {
   public async tryUpdate(route: Route): Promise<HttpResponse> {
     try {
       const update = await this.getUpdate()
-      if (this.isLatestVersion(update)) {
-        throw new Error("no update available")
+      if (!this.isLatestVersion(update)) {
+        await this.downloadUpdate(update)
       }
-      await this.downloadUpdate(update)
-      return {
-        redirect: (Array.isArray(route.query.to) ? route.query.to[0] : route.query.to) || "/",
-      }
+      return this.getRoot(route)
     } catch (error) {
       return this.getRoot(route, error)
     }

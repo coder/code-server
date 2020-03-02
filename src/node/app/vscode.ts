@@ -23,7 +23,6 @@ export class VscodeHttpProvider extends HttpProvider {
   private readonly serverRootPath: string
   private readonly vsRootPath: string
   private _vscode?: Promise<cp.ChildProcess>
-  private workbenchOptions?: WorkbenchOptions
 
   public constructor(options: HttpProviderOptions, private readonly args: Args) {
     super(options)
@@ -124,7 +123,7 @@ export class VscodeHttpProvider extends HttpProvider {
     vscode.send(message, socket)
   }
 
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     this.ensureMethod(request)
 
     switch (route.base) {
@@ -150,22 +149,6 @@ export class VscodeHttpProvider extends HttpProvider {
     this.ensureAuthenticated(request)
 
     switch (route.base) {
-      case "/static": {
-        switch (route.requestPath) {
-          case "/out/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js": {
-            const response = await this.getUtf8Resource(this.vsRootPath, route.requestPath)
-            response.content = response.content.replace(
-              /{{COMMIT}}/g,
-              this.workbenchOptions ? this.workbenchOptions.commit : "",
-            )
-            response.cache = true
-            return response
-          }
-        }
-        const response = await this.getResource(this.vsRootPath, route.requestPath)
-        response.cache = true
-        return response
-      }
       case "/resource":
       case "/vscode-remote-resource":
         if (typeof route.query.path === "string") {
@@ -183,7 +166,8 @@ export class VscodeHttpProvider extends HttpProvider {
         }
         return this.getResource(this.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", route.requestPath)
     }
-    return undefined
+
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
@@ -207,8 +191,6 @@ export class VscodeHttpProvider extends HttpProvider {
       }),
     ])
 
-    this.workbenchOptions = options
-
     if (startPath) {
       settings.write({
         lastVisited: startPath,
@@ -220,7 +202,6 @@ export class VscodeHttpProvider extends HttpProvider {
     }
 
     response.content = response.content
-      .replace(/{{VS_BASE}}/g, this.base(route) + this.options.base)
       .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
       .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
       .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)

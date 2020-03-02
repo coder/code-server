@@ -353,7 +353,7 @@ class Builder {
         hmr: false,
         logLevel: 1,
         outDir: path.join(this.rootPath, out),
-        publicUrl: `/static-${commit || "development"}/dist`,
+        publicUrl: `/static/${commit || "development"}/dist`,
         target: "browser",
       },
     )

@@ -16,7 +16,7 @@ import {
   SessionError,
   SessionResponse,
 } from "../../common/api"
-import { ApiEndpoint, HttpCode } from "../../common/http"
+import { ApiEndpoint, HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, HttpServer, Route } from "../http"
 import { findApplications, findWhitelistedApplications, Vscode } from "./bin"
@@ -57,10 +57,9 @@ export class ApiHttpProvider extends HttpProvider {
     })
   }
 
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
-    if (!this.authenticated(request)) {
-      return { code: HttpCode.Unauthorized }
-    }
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
+    this.ensureAuthenticated(request)
+
     switch (route.base) {
       case ApiEndpoint.applications:
         this.ensureMethod(request)
@@ -82,7 +81,8 @@ export class ApiHttpProvider extends HttpProvider {
           content: await this.running(),
         } as HttpResponse<RunningResponse>
     }
-    return undefined
+
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   public async handleWebSocket(
@@ -90,7 +90,7 @@ export class ApiHttpProvider extends HttpProvider {
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer,
-  ): Promise<true | undefined> {
+  ): Promise<true> {
     if (!this.authenticated(request)) {
       throw new Error("not authenticated")
     }
@@ -100,7 +100,8 @@ export class ApiHttpProvider extends HttpProvider {
       case ApiEndpoint.run:
         return this.handleRunSocket(route, request, socket, head)
     }
-    return undefined
+
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   private async handleStatusSocket(request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<true> {
@@ -220,12 +221,12 @@ export class ApiHttpProvider extends HttpProvider {
   /**
    * Handle /session endpoint.
    */
-  private async session(request: http.IncomingMessage): Promise<HttpResponse | undefined> {
+  private async session(request: http.IncomingMessage): Promise<HttpResponse> {
     this.ensureMethod(request, ["DELETE", "POST"])
 
     const data = await this.getData(request)
     if (!data) {
-      return undefined
+      throw new HttpError("Not found", HttpCode.NotFound)
     }
 
     switch (request.method) {
@@ -252,7 +253,7 @@ export class ApiHttpProvider extends HttpProvider {
       }
     }
 
-    return undefined
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   /**
