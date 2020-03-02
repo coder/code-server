@@ -54,7 +54,7 @@
     const url = new URL(window.location.origin + "/" + parts.join("/"))
     const el = document.getElementById("vscode-remote-commit")
     const commit = el ? el.getAttribute("data-settings") : ""
-    const staticBase = url.href + "/static/" + commit + "/lib/vscode"
+    const staticBase = url.href.replace(/\/+$/, "") + "/static/" + commit + "/lib/vscode"
     let nlsConfig
     try {
       nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))

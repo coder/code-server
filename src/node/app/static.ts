@@ -23,8 +23,7 @@ export class StaticHttpProvider extends HttpProvider {
     const split = route.requestPath.split("/").slice(1)
 
     switch (split[split.length - 1]) {
-      case "manifest.json":
-      case "extensionHostWorkerMain.js": {
+      case "manifest.json": {
         const response = await this.getUtf8Resource(this.rootPath, ...split)
         return this.replaceTemplates(route, response)
       }
