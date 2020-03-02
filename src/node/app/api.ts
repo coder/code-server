@@ -28,7 +28,7 @@ interface ServerSession {
 }
 
 interface VsRecents {
-  [key: string]: (string | object)[]
+  [key: string]: (string | { configURIPath: string })[]
 }
 
 type VsSettings = [string, string][]
@@ -322,28 +322,34 @@ export class ApiHttpProvider extends HttpProvider {
         throw new Error("settings appear malformed")
       }
 
-      const paths: { [key: string]: Promise<string> } = {}
+      const pathPromises: { [key: string]: Promise<string> } = {}
+      const workspacePromises: { [key: string]: Promise<string> } = {}
       Object.values(JSON.parse(setting[1]) as VsRecents).forEach((recents) => {
-        recents
-          .filter((recent) => typeof recent === "string")
-          .forEach((recent) => {
-            try {
-              const pathname = url.parse(recent as string).pathname
-              if (pathname && !paths[pathname]) {
-                paths[pathname] = new Promise<string>((resolve) => {
-                  fs.stat(pathname)
-                    .then(() => resolve(pathname))
-                    .catch(() => resolve())
-                })
-              }
-            } catch (error) {
-              logger.debug("invalid path", field("path", recent))
+        recents.forEach((recent) => {
+          try {
+            const target = typeof recent === "string" ? pathPromises : workspacePromises
+            const pathname = url.parse(typeof recent === "string" ? recent : recent.configURIPath).pathname
+            if (pathname && !target[pathname]) {
+              target[pathname] = new Promise<string>((resolve) => {
+                fs.stat(pathname)
+                  .then(() => resolve(pathname))
+                  .catch(() => resolve())
+              })
             }
-          })
+          } catch (error) {
+            logger.debug("invalid path", field("path", recent))
+          }
+        })
       })
 
+      const [paths, workspaces] = await Promise.all([
+        Promise.all(Object.values(pathPromises)),
+        Promise.all(Object.values(workspacePromises)),
+      ])
+
       return {
-        paths: await Promise.all(Object.values(paths)),
+        paths: paths.filter((p) => !!p),
+        workspaces: workspaces.filter((p) => !!p),
       }
     } catch (error) {
       if (error.code !== "ENOENT") {
@@ -351,7 +357,7 @@ export class ApiHttpProvider extends HttpProvider {
       }
     }
 
-    return { paths: [] }
+    return { paths: [], workspaces: [] }
   }
 
   /**

@@ -34,6 +34,7 @@ export interface SessionResponse {
 
 export interface RecentResponse {
   readonly paths: string[]
+  readonly workspaces: string[]
 }
 
 export interface RunningResponse {

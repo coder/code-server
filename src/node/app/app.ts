@@ -1,6 +1,6 @@
 import * as http from "http"
 import * as querystring from "querystring"
-import { Application } from "../../common/api"
+import { Application, RecentResponse } from "../../common/api"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { ApiHttpProvider } from "./api"
@@ -86,6 +86,7 @@ export class MainHttpProvider extends HttpProvider {
     response.content = response.content
       .replace(/{{UPDATE:NAME}}/, await this.getUpdate())
       .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(running.applications))
+      .replace(/{{APP_LIST:RECENT_PROJECTS}}/, this.getRecentProjectRows(await this.api.recent()))
       .replace(
         /{{APP_LIST:EDITORS}}/,
         this.getAppRows(apps.filter((app) => app.categories && app.categories.includes("Editor"))),
@@ -105,6 +106,21 @@ export class MainHttpProvider extends HttpProvider {
 
   public async handleWebSocket(): Promise<undefined> {
     return undefined
+  }
+
+  private getRecentProjectRows(recents: RecentResponse): string {
+    return recents.paths.length > 0 || recents.workspaces.length > 0
+      ? recents.paths.map((recent) => this.getRecentProjectRow(recent)).join("\n") +
+          recents.workspaces.map((recent) => this.getRecentProjectRow(recent, true)).join("\n")
+      : `<div class="none">No recent directories or workspaces.</div>`
+  }
+
+  private getRecentProjectRow(recent: string, workspace?: boolean): string {
+    return `<div class="block-row">
+      <a class="item -row -link" href="./vscode/?${workspace ? "workspace" : "folder"}=${recent}">
+        <div class="name">${recent}${workspace ? " (workspace)" : ""}</div>
+      </a>
+    </div>`
   }
 
   private getAppRows(apps: ReadonlyArray<Application>): string {
