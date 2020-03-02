@@ -940,7 +940,7 @@ index 0000000000..eb62b87798
 +}
 diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
 new file mode 100644
-index 0000000000..0d7feaa24e
+index 0000000000..220a0f4223
 --- /dev/null
 +++ b/src/vs/server/entry.ts
 @@ -0,0 +1,76 @@
@@ -951,7 +951,7 @@ index 0000000000..0d7feaa24e
 +import { enableCustomMarketplace } from 'vs/server/node/marketplace';
 +import { Vscode } from 'vs/server/node/server';
 +
-+setUnexpectedErrorHandler((error) => logger.warn(error.message));
++setUnexpectedErrorHandler((error) => logger.warn(error instanceof Error ? error.message : error));
 +enableCustomMarketplace();
 +
 +/**
