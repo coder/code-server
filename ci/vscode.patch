@@ -444,10 +444,10 @@ index d0f6e6b18a..1966fd297d 100644
 -
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..3a62205b38
+index 0000000000..1e6bca3b52
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,162 @@
+@@ -0,0 +1,224 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -455,6 +455,7 @@ index 0000000000..3a62205b38
 +import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 +import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 +import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
++import { ILogService } from 'vs/platform/log/common/log';
 +import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 +import { Registry } from 'vs/platform/registry/common/platform';
 +import { PersistentConnectionEventType } from 'vs/platform/remote/common/remoteAgentConnection';
@@ -575,6 +576,67 @@ index 0000000000..3a62205b38
 +			}
 +		});
 +	}
++
++	const applyUpdate = async (): Promise<void> => {
++		(services.get(ILogService) as ILogService).debug("Applying update...");
++
++		const response = await fetch("./update/apply", {
++			headers: { "content-type": "application/json" },
++		});
++		if (response.status !== 200) {
++			throw new Error("Unexpected response");
++		}
++
++		const json = await response.json();
++		if (!json.isLatest) {
++			throw new Error("Update failed");
++		}
++
++		(services.get(INotificationService) as INotificationService).info(`Updated to ${json.version}`);
++	};
++
++	const getUpdate = async (): Promise<void> => {
++		(services.get(ILogService) as ILogService).debug("Checking for update...");
++
++		const response = await fetch("./update", {
++			headers: { "content-type": "application/json" },
++		});
++		if (response.status !== 200) {
++			throw new Error("unexpected response");
++		}
++
++		const json = await response.json();
++		if (json.isLatest) {
++			return;
++		}
++
++		(services.get(INotificationService) as INotificationService).notify({
++			severity: Severity.Info,
++			message: `code-server has an update: ${json.version}`,
++			actions: {
++				primary: [{
++					id: 'update',
++					label: 'Apply Update',
++					tooltip: '',
++					class: undefined,
++					enabled: true,
++					checked: true,
++					dispose: () => undefined,
++					run: applyUpdate,
++				}],
++			}
++		});
++	};
++
++	const updateLoop = (): void => {
++		getUpdate().catch((error) => {
++			(services.get(ILogService) as ILogService).warn(error);
++		}).finally(() => {
++			setTimeout(updateLoop, 300000);
++		});
++	};
++
++	updateLoop();
 +};
 +
 +export interface Query {
@@ -2968,7 +3030,7 @@ index bbb72e9511..0785d3391d 100644
 -registerSingleton(IExtensionStoragePaths, class extends NotImplementedProxy(IExtensionStoragePaths) { whenReady = Promise.resolve(); });
 +registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
 diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
-index 79455414c0..a407593b4d 100644
+index 79455414c0..8931c1355a 100644
 --- a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
 +++ b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
 @@ -14,7 +14,11 @@
@@ -2978,8 +3040,8 @@ index 79455414c0..a407593b4d 100644
 -		catchError: true
 +		catchError: true,
 +		paths: {
-+			'@coder/node-browser': `../node_modules/@coder/node-browser/out/client/client.js`,
-+			'@coder/requirefs': `../node_modules/@coder/requirefs/out/requirefs.js`,
++			'@coder/node-browser': `{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/@coder/node-browser/out/client/client.js`,
++			'@coder/requirefs': `{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/@coder/requirefs/out/requirefs.js`,
 +		}
  	});
 

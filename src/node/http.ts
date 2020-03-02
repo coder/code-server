@@ -140,12 +140,16 @@ export abstract class HttpProvider {
   /**
    * Handle web sockets on the registered endpoint.
    */
-  public abstract handleWebSocket(
-    route: Route,
-    request: http.IncomingMessage,
-    socket: net.Socket,
-    head: Buffer,
-  ): Promise<true | undefined>
+  public handleWebSocket(
+    /* eslint-disable @typescript-eslint/no-unused-vars */
+    _route: Route,
+    _request: http.IncomingMessage,
+    _socket: net.Socket,
+    _head: Buffer,
+    /* eslint-enable @typescript-eslint/no-unused-vars */
+  ): Promise<true | undefined> {
+    throw new HttpError("Not found", HttpCode.NotFound)
+  }
 
   /**
    * Handle requests to the registered endpoint.
@@ -194,6 +198,7 @@ export abstract class HttpProvider {
     }
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
+      .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
       .replace(/{{BASE}}/g, this.base(route))
       .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response

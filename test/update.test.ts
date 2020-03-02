@@ -205,12 +205,12 @@ describe("update", () => {
     assert.equal(`console.log("OLD")`, await fs.readFile(entry, "utf8"))
 
     // Updating should replace the existing version.
-    await p.downloadUpdate(update, destination, "linux")
+    await p.downloadAndApplyUpdate(update, destination, "linux")
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
     // Should still work if there is no existing version somehow.
     await fs.remove(destination)
-    await p.downloadUpdate(update, destination, "linux")
+    await p.downloadAndApplyUpdate(update, destination, "linux")
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
     assert.deepEqual(spy, [

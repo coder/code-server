@@ -15,7 +15,7 @@
       crossorigin="use-credentials"
     />
     <link rel="apple-touch-icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/code-server.png" />
-    <link href="{{BASE}}/static/{{COMMIT}}/dist/app.css" rel="stylesheet" />
+    <link href="{{BASE}}/static/{{COMMIT}}/dist/pages/app.css" rel="stylesheet" />
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
   </head>
   <body>
@@ -26,9 +26,11 @@
           <div class="sub">Update code-server.</div>
         </div>
         <div class="content">
-          <form class="update-form" method="post">
+          <form class="update-form" action="{{BASE}}/update/apply">
             {{UPDATE_STATUS}} {{ERROR}}
-            <a class="cancel -button" href="{{BASE}}">Cancel</a>
+            <div class="links">
+              <a class="link" href="{{BASE}}{{TO}}">go home</a>
+            </div>
           </form>
         </div>
       </div>

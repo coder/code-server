@@ -20,10 +20,14 @@ export class DashboardHttpProvider extends HttpProvider {
   }
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
+    if (route.requestPath !== "/index.html") {
+      throw new HttpError("Not found", HttpCode.NotFound)
+    }
+
     switch (route.base) {
       case "/delete": {
-        this.ensureMethod(request, "POST")
         this.ensureAuthenticated(request)
+        this.ensureMethod(request, "POST")
         const data = await this.getData(request)
         const p = data ? querystring.parse(data) : {}
         this.api.deleteSession(p.sessionId as string)
@@ -32,9 +36,7 @@ export class DashboardHttpProvider extends HttpProvider {
 
       case "/": {
         this.ensureMethod(request)
-        if (route.requestPath !== "/index.html") {
-          throw new HttpError("Not found", HttpCode.NotFound)
-        } else if (!this.authenticated(request)) {
+        if (!this.authenticated(request)) {
           return { redirect: "/login", query: { to: this.options.base } }
         }
         return this.getRoot(route)
@@ -67,10 +69,6 @@ export class DashboardHttpProvider extends HttpProvider {
         ),
       )
     return this.replaceTemplates(route, response)
-  }
-
-  public async handleWebSocket(): Promise<true> {
-    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   private getRecentProjectRows(base: string, recents: RecentResponse): string {
@@ -151,7 +149,7 @@ export class DashboardHttpProvider extends HttpProvider {
       </div>
       <div class="item">
         ${humanize(update.checked)}
-        <a class="sub -link" href="${base}/update">Update now</a>
+        <a class="sub -link" href="${base}/update?to=${this.options.base}">Update now</a>
       </div>
       <div class="item" >Current: ${this.update.currentVersion}</div>
     </div>`

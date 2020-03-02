@@ -59,10 +59,14 @@ export class UpdateHttpProvider extends HttpProvider {
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     this.ensureAuthenticated(request)
+    this.ensureMethod(request)
+
+    if (route.requestPath !== "/index.html") {
+      throw new HttpError("Not found", HttpCode.NotFound)
+    }
 
     switch (route.base) {
       case "/check":
-        this.ensureMethod(request)
         this.getUpdate(true)
         if (route.query && route.query.to) {
           return {
@@ -70,35 +74,43 @@ export class UpdateHttpProvider extends HttpProvider {
             query: { to: undefined },
           }
         }
-        return this.getRoot(route)
-      case "/": {
-        this.ensureMethod(request, ["GET", "POST"])
-        if (route.requestPath !== "/index.html") {
-          throw new HttpError("Not found", HttpCode.NotFound)
-        }
-
-        switch (request.method) {
-          case "GET":
-            return this.getRoot(route)
-          case "POST":
-            return this.tryUpdate(route)
-        }
-      }
+        return this.getRoot(route, request)
+      case "/apply":
+        return this.tryUpdate(route, request)
+      case "/":
+        return this.getRoot(route, request)
     }
 
     throw new HttpError("Not found", HttpCode.NotFound)
   }
 
-  public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
+  public async getRoot(
+    route: Route,
+    request: http.IncomingMessage,
+    appliedUpdate?: string,
+    error?: Error,
+  ): Promise<HttpResponse> {
+    if (request.headers["content-type"] === "application/json") {
+      if (!this.enabled) {
+        return {
+          content: {
+            isLatest: true,
+          },
+        }
+      }
+      const update = await this.getUpdate()
+      return {
+        content: {
+          ...update,
+          isLatest: this.isLatestVersion(update),
+        },
+      }
+    }
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/update.html")
     response.content = response.content
-      .replace(/{{UPDATE_STATUS}}/, await this.getUpdateHtml())
+      .replace(/{{UPDATE_STATUS}}/, appliedUpdate ? `Updated to ${appliedUpdate}` : await this.getUpdateHtml())
       .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
     return this.replaceTemplates(route, response)
-  }
-
-  public async handleWebSocket(): Promise<true> {
-    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   /**
@@ -163,25 +175,26 @@ export class UpdateHttpProvider extends HttpProvider {
 
     const update = await this.getUpdate()
     if (this.isLatestVersion(update)) {
-      throw new Error("No update available")
+      return "No update available"
     }
 
     return `<button type="submit" class="apply -button">Update to ${update.version}</button>`
   }
 
-  public async tryUpdate(route: Route): Promise<HttpResponse> {
+  public async tryUpdate(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     try {
       const update = await this.getUpdate()
       if (!this.isLatestVersion(update)) {
-        await this.downloadUpdate(update)
+        await this.downloadAndApplyUpdate(update)
+        return this.getRoot(route, request, update.version)
       }
-      return this.getRoot(route)
+      return this.getRoot(route, request)
     } catch (error) {
-      return this.getRoot(route, error)
+      return this.getRoot(route, request, undefined, error)
     }
   }
 
-  public async downloadUpdate(update: Update, targetPath?: string, target?: string): Promise<void> {
+  public async downloadAndApplyUpdate(update: Update, targetPath?: string, target?: string): Promise<void> {
     const releaseName = await this.getReleaseName(update, target)
     const url = this.downloadUrl.replace("{{VERSION}}", update.version).replace("{{RELEASE_NAME}}", releaseName)
 

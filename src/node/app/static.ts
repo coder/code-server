@@ -1,5 +1,4 @@
 import * as http from "http"
-import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpResponse, Route } from "../http"
 
 /**
@@ -31,9 +30,5 @@ export class StaticHttpProvider extends HttpProvider {
       }
     }
     return this.getResource(this.rootPath, ...split)
-  }
-
-  public async handleWebSocket(): Promise<true> {
-    throw new HttpError("Not found", HttpCode.NotFound)
   }
 }

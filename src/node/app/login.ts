@@ -18,17 +18,14 @@ interface LoginPayload {
  */
 export class LoginHttpProvider extends HttpProvider {
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    if (this.options.auth !== AuthType.Password) {
+    if (this.options.auth !== AuthType.Password || route.requestPath !== "/index.html") {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
     switch (route.base) {
       case "/":
-        if (route.requestPath !== "/index.html") {
-          throw new HttpError("Not found", HttpCode.NotFound)
-        }
-
         switch (request.method) {
           case "POST":
+            this.ensureMethod(request, ["GET", "POST"])
             return this.tryLogin(route, request)
           default:
             this.ensureMethod(request)
@@ -109,9 +106,5 @@ export class LoginHttpProvider extends HttpProvider {
     }
 
     throw new Error("Missing password")
-  }
-
-  public async handleWebSocket(): Promise<undefined> {
-    return undefined
   }
 }

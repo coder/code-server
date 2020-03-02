@@ -16,6 +16,11 @@ export class AppHttpProvider extends HttpProvider {
       return { redirect: "/login", query: { to: route.fullPath } }
     }
 
+    this.ensureMethod(request)
+    if (route.requestPath !== "/index.html") {
+      throw new HttpError("Not found", HttpCode.NotFound)
+    }
+
     // Run an existing app, but if it doesn't exist go ahead and start it.
     let app = this.api.getRunningApplication(route.base)
     let sessionId = app && app.sessionId
@@ -37,9 +42,5 @@ export class AppHttpProvider extends HttpProvider {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/app.html")
     response.content = response.content.replace(/{{APP_NAME}}/, name)
     return this.replaceTemplates(route, response, sessionId)
-  }
-
-  public async handleWebSocket(): Promise<true> {
-    throw new HttpError("Not found", HttpCode.NotFound)
   }
 }
