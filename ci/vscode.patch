@@ -444,7 +444,7 @@ index d0f6e6b18a..1966fd297d 100644
 -
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..1e6bca3b52
+index 0000000000..95e70869f2
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
 @@ -0,0 +1,224 @@
@@ -559,7 +559,7 @@ index 0000000000..1e6bca3b52
 +	if (!window.isSecureContext) {
 +		(services.get(INotificationService) as INotificationService).notify({
 +			severity: Severity.Warning,
-+			message: 'code-server is being accessed over an insecure domain. Some functionality may not work as expected.',
++			message: 'code-server is being accessed over an insecure domain. Web views, the clipboard, and other functionality will not work as expected.',
 +			actions: {
 +				primary: [{
 +					id: 'understand',
