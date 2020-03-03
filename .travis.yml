@@ -25,7 +25,7 @@ jobs:
       script: yarn && yarn vscode && travis_wait 60 ci/release.sh
 
 before_deploy:
-  - openssl aes-256-cbc -K $encrypted_0c1654c01c97_key -iv $encrypted_0c1654c01c97_iv -in ./ci/key.json.enc -out ./ci/key.json -d
+  - echo "$JSON_KEY" | base64 -d > ./ci/key.json
 
 deploy:
   - provider: releases
