@@ -1,0 +1,105 @@
+<!-- Copyright (C) Microsoft Corporation. All rights reserved. -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="font-src 'self'; connect-src ws: wss: 'self' https:; default-src ws: wss: 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; manifest-src 'self'; img-src 'self' data: https:;"
+    />
+
+    <!-- Disable pinch zooming -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+    />
+
+    <!-- Workbench Configuration -->
+    <meta id="vscode-workbench-web-configuration" data-settings="{{WORKBENCH_WEB_CONFIGURATION}}" />
+
+    <!-- Workarounds/Hacks (remote user data uri) -->
+    <meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}" />
+    <meta id="vscode-remote-commit" data-settings="{{COMMIT}}" />
+    <meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}" />
+    <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}" />
+
+    <!-- Workbench Icon/Manifest/CSS -->
+    <link rel="icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link
+      rel="manifest"
+      href="{{BASE}}/static/{{COMMIT}}/src/browser/media/manifest.json"
+      crossorigin="use-credentials"
+    />
+    <!-- PROD_ONLY
+    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.css">
+    END_PROD_ONLY -->
+    <link rel="apple-touch-icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/code-server.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <!-- Prefetch to avoid waterfall -->
+    <!-- PROD_ONLY
+    <link rel="prefetch" href="{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/semver-umd/lib/semver-umd.js">
+    END_PROD_ONLY -->
+
+    <meta id="coder-options" data-settings="{{OPTIONS}}" />
+  </head>
+
+  <body aria-label=""></body>
+
+  <!-- Startup (do not modify order of script tags!) -->
+  <script>
+    const parts = window.location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = "{{BASE}}"
+    const url = new URL(window.location.origin + "/" + parts.join("/"))
+    const el = document.getElementById("vscode-remote-commit")
+    const commit = el ? el.getAttribute("data-settings") : ""
+    const staticBase = url.href.replace(/\/+$/, "") + "/static/" + commit + "/lib/vscode"
+    let nlsConfig
+    try {
+      nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
+      if (nlsConfig._resolvedLanguagePackCoreLocation) {
+        const bundles = Object.create(null)
+        nlsConfig.loadBundle = (bundle, language, cb) => {
+          let result = bundles[bundle]
+          if (result) {
+            return cb(undefined, result)
+          }
+          // FIXME: Only works if path separators are /.
+          const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
+          fetch(`${url.href}/resource/?path=${encodeURIComponent(path)}`)
+            .then((response) => response.json())
+            .then((json) => {
+              bundles[bundle] = json
+              cb(undefined, json)
+            })
+            .catch(cb)
+        }
+      }
+    } catch (error) {
+      /* Probably fine. */
+    }
+    self.require = {
+      baseUrl: `${staticBase}/out`,
+      paths: {
+        "vscode-textmate": `${staticBase}/node_modules/vscode-textmate/release/main`,
+        "onigasm-umd": `${staticBase}/node_modules/onigasm-umd/release/main`,
+        xterm: `${staticBase}/node_modules/xterm/lib/xterm.js`,
+        "xterm-addon-search": `${staticBase}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
+        "xterm-addon-web-links": `${staticBase}/node_modules/xterm-addon-web-links/lib/xterm-addon-web-links.js`,
+        "xterm-addon-webgl": `${staticBase}/node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js`,
+        "semver-umd": `${staticBase}/node_modules/semver-umd/lib/semver-umd.js`,
+      },
+      "vs/nls": nlsConfig,
+    }
+  </script>
+  <script src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
+  <script src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/loader.js"></script>
+  <!-- PROD_ONLY
+  <script src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>
+  <script src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.js"></script>
+  END_PROD_ONLY -->
+  <script>
+    require(["vs/code/browser/workbench/workbench"], function() {})
+  </script>
+</html>

@@ -1,0 +1,10 @@
+FROM node:12.14.0
+
+RUN apt-get update && apt-get install -y \
+	libxkbfile-dev \
+	libx11-dev \
+	libsecret-1-dev
+
+RUN curl -L https://github.com/mvdan/sh/releases/download/v3.0.1/shfmt_v3.0.1_linux_amd64 > /usr/local/bin/shfmt && chmod +x /usr/local/bin/shfmt
+
+ENTRYPOINT ["/bin/bash", "-c"]

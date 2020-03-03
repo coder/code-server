@@ -1,0 +1,39 @@
+body {
+  overflow: auto;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  justify-content: center;
+}
+
+.login-form > .field {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.login-form > .error {
+  color: red;
+  margin-top: 16px;
+}
+
+.login-form > .field > .password {
+  background-color: rgb(244, 247, 252);
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  box-sizing: border-box;
+  color: black;
+  flex: 1;
+  padding: 16px;
+}
+
+.login-form > .user {
+  display: none;
+}
+
+.login-form > .field > .submit {
+  margin-left: 20px;
+}

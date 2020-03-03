@@ -1,0 +1,23 @@
+parser: "@typescript-eslint/parser"
+env:
+  browser: true
+  es6: true # Map, etc.
+  mocha: true
+  node: true
+
+parserOptions:
+  ecmaVersion: 2018
+  sourceType: module
+
+extends:
+  - eslint:recommended
+  - plugin:@typescript-eslint/recommended
+  - plugin:import/recommended
+  - plugin:import/typescript
+  - plugin:prettier/recommended
+  - prettier # Removes eslint rules that conflict with prettier.
+  - prettier/@typescript-eslint # Remove conflicts again.
+
+rules:
+  # For overloads.
+  no-dupe-class-members: off

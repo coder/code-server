@@ -1,8 +1,0 @@
-{
-	"extends": [
-		"../../../tslint.json"
-	],
-	"rules": {
-		"no-unexternalized-strings": false
-	}
-}

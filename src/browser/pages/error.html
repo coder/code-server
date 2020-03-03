@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"
+    />
+    <meta http-equiv="Content-Security-Policy" content="style-src 'self'; manifest-src 'self'; img-src 'self' data:;" />
+    <title>{{ERROR_TITLE}} - code-server</title>
+    <link rel="icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link
+      rel="manifest"
+      href="{{BASE}}/static/{{COMMIT}}/src/browser/media/manifest.json"
+      crossorigin="use-credentials"
+    />
+    <link rel="apple-touch-icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/code-server.png" />
+    <link href="{{BASE}}/static/{{COMMIT}}/dist/pages/app.css" rel="stylesheet" />
+    <meta id="coder-options" data-settings="{{OPTIONS}}" />
+  </head>
+  <body>
+    <div class="center-container">
+      <div class="error-display">
+        <h2 class="header">{{ERROR_HEADER}}</h2>
+        <div class="body">
+          {{ERROR_BODY}}
+        </div>
+        <div class="links">
+          <a class="link" href="{{BASE}}{{TO}}">go home</a>
+        </div>
+      </div>
+    </div>
+    <script src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
+  </body>
+</html>

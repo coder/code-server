@@ -1,0 +1,2 @@
+extends:
+  - stylelint-config-recommended

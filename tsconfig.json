@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "forceConsistentCasingInFileNames": true,
+    "outDir": "./out",
+    "allowJs": false,
+    "jsx": "react",
+    "declaration": true,
+    "experimentalDecorators": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "sourceMap": true,
+    "tsBuildInfoFile": "./.tsbuildinfo",
+    "incremental": true,
+    "rootDir": "./src",
+    "typeRoots": ["./node_modules/@types", "./typings"]
+  },
+  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+}
