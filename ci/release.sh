@@ -37,7 +37,7 @@ function package() {
   else
     mv ./build "./$archive_name"
     ext=".zip"
-    zip -r "release/$archive_name$ext" ./code-server
+    zip -r "release/$archive_name$ext" "./$archive_name"
     mv "./$archive_name" ./build
   fi
 
