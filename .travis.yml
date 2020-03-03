@@ -51,3 +51,5 @@ deploy:
 cache:
   timeout: 600
   yarn: true
+  directories:
+    - lib/vscode/.build/extensions
