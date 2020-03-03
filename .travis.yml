@@ -25,7 +25,7 @@ jobs:
       script: yarn && yarn vscode && travis_wait 60 ci/release.sh
 
 before_deploy:
-  - echo "$JSON_KEY" | base64 -d > ./ci/key.json
+  - echo "$JSON_KEY" | base64 --decode > ./ci/key.json
 
 deploy:
   - provider: releases
