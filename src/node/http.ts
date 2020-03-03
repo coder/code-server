@@ -241,7 +241,7 @@ export abstract class HttpProvider {
       stream = compress
       headers["content-encoding"] = "gzip"
     }
-    return { stream, filePath, mime: "application/gzip", cache: true, headers }
+    return { stream, filePath, mime: "application/x-tar", cache: true, headers }
   }
 
   /**
