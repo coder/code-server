@@ -44,9 +44,9 @@ function package() {
   echo "done (release/$archive_name)"
 
   mkdir -p "./release-upload/$VERSION"
-  cp "./release/$archive_name$ext" "./release-upload/$VERSION/$target-$arch.tar.gz"
+  cp "./release/$archive_name$ext" "./release-upload/$VERSION/$target-$arch$ext"
   mkdir -p "./release-upload/latest"
-  cp "./release/$archive_name$ext" "./release-upload/latest/$target-$arch.tar.gz"
+  cp "./release/$archive_name$ext" "./release-upload/latest/$target-$arch$ext"
 }
 
 # This script assumes that yarn has already ran.
