@@ -26,11 +26,10 @@ RUN curl -SsL https://github.com/boxboat/fixuid/releases/download/v0.4/fixuid-0.
 
 RUN rm -rf /var/lib/apt/lists/*
 
-COPY release/code-server*.tar.gz /tmp
+COPY release/code-server*.tar.gz /tmp/
 RUN cd /tmp && tar -xzf code-server*.tar.gz && rm code-server*.tar.gz && \
   mv code-server* /usr/local/lib/code-server && \
-  sed 's/\$0/\/usr\/local\/lib\/code-server\/code-server/g' /usr/local/lib/code-server/code-server > /usr/local/bin/code-server && \
-  chmod +x /usr/local/bin/code-server
+  ln -s /usr/local/lib/code-server/code-server /usr/local/bin/code-server
 
 EXPOSE 8080
 USER coder
