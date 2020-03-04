@@ -194,8 +194,8 @@ export class UpdateHttpProvider extends HttpProvider {
     }
   }
 
-  public async downloadAndApplyUpdate(update: Update, targetPath?: string, target?: string): Promise<void> {
-    const releaseName = await this.getReleaseName(update, target)
+  public async downloadAndApplyUpdate(update: Update, targetPath?: string): Promise<void> {
+    const releaseName = await this.getReleaseName(update)
     const url = this.downloadUrl.replace("{{VERSION}}", update.version).replace("{{RELEASE_NAME}}", releaseName)
 
     let downloadPath = path.join(tmpdir, "updates", releaseName)
@@ -298,7 +298,8 @@ export class UpdateHttpProvider extends HttpProvider {
   /**
    * Given an update return the name for the packaged archived.
    */
-  private async getReleaseName(update: Update, target: string = os.platform()): Promise<string> {
+  public async getReleaseName(update: Update): Promise<string> {
+    let target: string = os.platform()
     if (target === "linux") {
       const result = await util
         .promisify(cp.exec)("ldd --version")

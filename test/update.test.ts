@@ -2,6 +2,7 @@ import zip from "adm-zip"
 import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
+import * as os from "os"
 import * as path from "path"
 import * as tar from "tar-fs"
 import * as zlib from "zlib"
@@ -65,7 +66,20 @@ describe("update", () => {
   }
 
   before(async () => {
-    const archiveName = "code-server-9999999.99999.9999-linux-x86_64"
+    await new Promise((resolve, reject) => {
+      server.on("error", reject)
+      server.on("listening", resolve)
+      server.listen({
+        port: 0,
+        host: "localhost",
+      })
+    })
+
+    const p = provider()
+    const archiveName = (await p.getReleaseName({ version: "9999999.99999.9999", checked: 0 })).replace(
+      /.tar.gz$|.zip$/,
+      "",
+    )
     await fs.remove(path.join(tmpdir, "tests/updates"))
     await fs.mkdirp(path.join(archivePath, archiveName))
 
@@ -74,8 +88,16 @@ describe("update", () => {
       fs.writeFile(path.join(archivePath, archiveName, "node"), `NODE BINARY`),
     ])
 
-    await Promise.all([
-      new Promise((resolve, reject) => {
+    if (os.platform() === "darwin") {
+      await new Promise((resolve, reject) => {
+        const zipFile = new zip()
+        zipFile.addLocalFolder(archivePath)
+        zipFile.writeZip(archivePath + ".zip", (error) => {
+          return error ? reject(error) : resolve(error)
+        })
+      })
+    } else {
+      await new Promise((resolve, reject) => {
         const write = fs.createWriteStream(archivePath + ".tar.gz")
         const compress = zlib.createGzip()
         compress.pipe(write)
@@ -86,24 +108,8 @@ describe("update", () => {
         write.on("finish", () => {
           resolve()
         })
-      }),
-      new Promise((resolve, reject) => {
-        const zipFile = new zip()
-        zipFile.addLocalFolder(archivePath)
-        zipFile.writeZip(archivePath + ".zip", (error) => {
-          return error ? reject(error) : resolve(error)
-        })
-      }),
-    ])
-
-    await new Promise((resolve, reject) => {
-      server.on("error", reject)
-      server.on("listening", resolve)
-      server.listen({
-        port: 0,
-        host: "localhost",
       })
-    })
+    }
   })
 
   after(() => {
@@ -205,18 +211,15 @@ describe("update", () => {
     assert.equal(`console.log("OLD")`, await fs.readFile(entry, "utf8"))
 
     // Updating should replace the existing version.
-    await p.downloadAndApplyUpdate(update, destination, "linux")
+    await p.downloadAndApplyUpdate(update, destination)
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
     // Should still work if there is no existing version somehow.
     await fs.remove(destination)
-    await p.downloadAndApplyUpdate(update, destination, "linux")
+    await p.downloadAndApplyUpdate(update, destination)
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
-    assert.deepEqual(spy, [
-      "/latest",
-      `/download/${version}/code-server-${version}-linux-x86_64.tar.gz`,
-      `/download/${version}/code-server-${version}-linux-x86_64.tar.gz`,
-    ])
+    const archiveName = await p.getReleaseName(update)
+    assert.deepEqual(spy, ["/latest", `/download/${version}/${archiveName}`, `/download/${version}/${archiveName}`])
   })
 })
