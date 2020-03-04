@@ -148,7 +148,7 @@ class Builder {
 
     await this.task("building builtin extensions", async () => {
       const exists = await fs.pathExists(path.join(this.vscodeSourcePath, ".build/extensions"))
-      if (exists) {
+      if (exists && !process.env.CI) {
         process.stdout.write("already built, skipping...")
       } else {
         await util.promisify(cp.exec)("yarn gulp compile-extensions-build", { cwd: this.vscodeSourcePath })
