@@ -14,7 +14,7 @@ jobs:
     - name: Linux ARM64 Release
       if: tag IS present
       script:
-        - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+        - ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
         - ./ci/release-image/push.sh
       arch: arm64
     - name: MacOS Release
