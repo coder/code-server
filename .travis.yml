@@ -31,7 +31,6 @@ deploy:
   - provider: releases
     edge: true
     draft: true
-    overwrite: true
     tag_name: $TRAVIS_TAG
     target_commitish: $TRAVIS_COMMIT
     name: $TRAVIS_TAG
