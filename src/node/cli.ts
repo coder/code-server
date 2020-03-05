@@ -32,6 +32,7 @@ export interface Args extends VsArgs {
   readonly port?: number
   readonly socket?: string
   readonly version?: boolean
+  readonly force?: boolean
   readonly "list-extensions"?: boolean
   readonly "install-extension"?: string[]
   readonly "uninstall-extension"?: string[]
@@ -100,7 +101,8 @@ const options: Options<Required<Args>> = {
   "extra-extensions-dir": { type: "string[]", path: true },
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean" },
-  "install-extension": { type: "string[]" },
+  force: { type: "boolean" },
+  "install-extension": { type: "string[]", description: "Install or update an extension by id or vsix." },
   "uninstall-extension": { type: "string[]" },
 
   locale: { type: "string" },
