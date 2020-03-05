@@ -53,6 +53,7 @@ Our changes include:
 - Make extensions work in the browser.
 - Fix getting permanently disconnected when you sleep or hibernate for a while.
 - Make it possible to automatically update the binary.
+- Add connection type to web socket query parameters.
 
 ## Future
 

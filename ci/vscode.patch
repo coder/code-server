@@ -442,6 +442,19 @@ index d0f6e6b18a..1966fd297d 100644
 -
 -
 -
+diff --git a/src/vs/platform/remote/common/remoteAgentConnection.ts b/src/vs/platform/remote/common/remoteAgentConnection.ts
+index eab8591492..26668701f7 100644
+--- a/src/vs/platform/remote/common/remoteAgentConnection.ts
++++ b/src/vs/platform/remote/common/remoteAgentConnection.ts
+@@ -88,7 +88,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
+ 		options.socketFactory.connect(
+ 			options.host,
+ 			options.port,
+-			`reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`,
++			`type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`,
+ 			(err: any, socket: ISocket | undefined) => {
+ 				if (err || !socket) {
+ 					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
 index 0000000000..95e70869f2
