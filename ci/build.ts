@@ -34,7 +34,7 @@ class Builder {
 
   private async task<T>(message: string, fn: () => Promise<T>): Promise<T> {
     const time = Date.now()
-    this.log(`${message}...`, true)
+    this.log(`${message}...`, !process.env.CI)
     try {
       const t = await fn()
       process.stdout.write(`took ${Date.now() - time}ms\n`)
