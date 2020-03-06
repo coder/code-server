@@ -3,4 +3,4 @@
 
 dir="$(dirname "$(readlink -f "$0" || realpath "$0")")"
 
-"$dir/node" "$dir/out/node/entry.js" "$@"
+exec "$dir/node" "$dir/out/node/entry.js" "$@"
