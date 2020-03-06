@@ -16,8 +16,8 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 # https://wiki.debian.org/Locale#Manually
-RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen
-RUN locale-gen
+RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
+  && locale-gen
 ENV LANG=en_US.UTF-8
 
 RUN chsh -s /bin/bash
