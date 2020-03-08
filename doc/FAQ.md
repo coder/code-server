@@ -30,7 +30,7 @@ copy it to the extensions folder.
 
 VS Code Online is a closed source managed service by Microsoft and only runs on Azure.
 
-code-server is open source and can be freely ran on any machine.
+code-server is open source and can be freely run on any machine.
 
 ## How should I expose code-server to the internet?
 
