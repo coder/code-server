@@ -35,7 +35,7 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 ### Digital Ocean
 
-[![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server?action=deploy)
+[![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server)
 
 ### Releases
 
