@@ -196,10 +196,39 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index a599f5a7eb..ec7ccd43f8 100644
+index a599f5a7eb..d988288ffe 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -298,35 +298,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -12,6 +12,7 @@ import { request } from 'vs/base/parts/request/browser/request';
+ import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/windows/common/windows';
+ import { isEqual } from 'vs/base/common/resources';
+ import { isStandalone } from 'vs/base/browser/browser';
++import { Schemas } from 'vs/base/common/network';
+
+ interface ICredential {
+ 	service: string;
+@@ -242,12 +243,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
+
+ 		// Folder
+ 		else if (isFolderToOpen(workspace)) {
+-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${encodeURIComponent(workspace.folderUri.toString())}`;
++			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
++				? workspace.folderUri.path
++				: encodeURIComponent(workspace.folderUri.toString());
++			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
+ 		}
+
+ 		// Workspace
+ 		else if (isWorkspaceToOpen(workspace)) {
+-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${encodeURIComponent(workspace.workspaceUri.toString())}`;
++			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
++				? workspace.workspaceUri.path
++				: encodeURIComponent(workspace.workspaceUri.toString());
++			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
+ 		}
+
+ 		// Append payload if any
+@@ -298,35 +305,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
  	let workspace: IWorkspace;
  	let payload = Object.create(null);
 
