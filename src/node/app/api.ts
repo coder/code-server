@@ -93,7 +93,7 @@ export class ApiHttpProvider extends HttpProvider {
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer,
-  ): Promise<true> {
+  ): Promise<void> {
     if (!this.authenticated(request)) {
       throw new Error("not authenticated")
     }
@@ -107,7 +107,7 @@ export class ApiHttpProvider extends HttpProvider {
     throw new HttpError("Not found", HttpCode.NotFound)
   }
 
-  private async handleStatusSocket(request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<true> {
+  private async handleStatusSocket(request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<void> {
     const getMessageResponse = async (event: "health"): Promise<ServerMessage> => {
       switch (event) {
         case "health":
@@ -134,8 +134,6 @@ export class ApiHttpProvider extends HttpProvider {
         resolve()
       })
     })
-
-    return true
   }
 
   /**
@@ -146,7 +144,7 @@ export class ApiHttpProvider extends HttpProvider {
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer,
-  ): Promise<true> {
+  ): Promise<void> {
     const sessionId = route.requestPath.replace(/^\//, "")
     logger.debug("connecting session", field("sessionId", sessionId))
     const ws = await new Promise<WebSocket>((resolve, reject) => {
@@ -177,8 +175,6 @@ export class ApiHttpProvider extends HttpProvider {
         }),
       ),
     )
-
-    return true
   }
 
   /**

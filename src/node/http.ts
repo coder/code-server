@@ -147,14 +147,14 @@ export abstract class HttpProvider {
     _socket: net.Socket,
     _head: Buffer,
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): Promise<true | undefined> {
+  ): Promise<void> {
     throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   /**
    * Handle requests to the registered endpoint.
    */
-  public abstract handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse | undefined>
+  public abstract handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse>
 
   /**
    * Get the base relative to the provided route. For each slash we need to go
@@ -529,9 +529,6 @@ export class HttpServer {
     const route = this.parseUrl(request)
     try {
       const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
-      if (!payload) {
-        throw new HttpError("Not found", HttpCode.NotFound)
-      }
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
         ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
@@ -633,11 +630,7 @@ export class HttpServer {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
 
-      if (
-        !(await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head))
-      ) {
-        throw new HttpError("Not found", HttpCode.NotFound)
-      }
+      await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head)
     } catch (error) {
       socket.destroy(error)
       logger.warn(`discarding socket connection: ${error.message}`)

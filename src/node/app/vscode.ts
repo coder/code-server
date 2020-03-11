@@ -89,7 +89,7 @@ export class VscodeHttpProvider extends HttpProvider {
     return this._vscode
   }
 
-  public async handleWebSocket(route: Route, request: http.IncomingMessage, socket: net.Socket): Promise<true> {
+  public async handleWebSocket(route: Route, request: http.IncomingMessage, socket: net.Socket): Promise<void> {
     if (!this.authenticated(request)) {
       throw new Error("not authenticated")
     }
@@ -113,7 +113,6 @@ export class VscodeHttpProvider extends HttpProvider {
 
     const vscode = await this._vscode
     this.send({ type: "socket", query: route.query }, vscode, socket)
-    return true
   }
 
   private send(message: CodeServerMessage, vscode?: cp.ChildProcess, socket?: net.Socket): void {
