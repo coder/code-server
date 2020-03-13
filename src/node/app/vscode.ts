@@ -205,6 +205,7 @@ export class VscodeHttpProvider extends HttpProvider {
       .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
       .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
       .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`)
+      .replace("{{DISABLE_TELEMETRY}}", this.args["disable-telemetry"] ? "true" : "false")
     return this.replaceTemplates(route, response)
   }
 

@@ -486,10 +486,10 @@ index eab8591492..26668701f7 100644
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..95e70869f2
+index 0000000000..3f53907de0
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,224 @@
+@@ -0,0 +1,227 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -518,6 +518,9 @@ index 0000000000..95e70869f2
 +
 +const TELEMETRY_SECTION_ID = 'telemetry';
 +
++const el = document.getElementById("vscode-disable-telemetry");
++const disableTelemetry = el && el.getAttribute("data-value") === "true" || false;
++
 +Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
 +	'id': TELEMETRY_SECTION_ID,
 +	'order': 110,
@@ -527,7 +530,7 @@ index 0000000000..95e70869f2
 +		'telemetry.enableTelemetry': {
 +			'type': 'boolean',
 +			'description': localize('telemetry.enableTelemetry', 'Enable usage data and errors to be sent to a Microsoft online service.'),
-+			'default': true,
++			'default': !disableTelemetry,
 +			'tags': ['usesOnlineServices']
 +		}
 +	}
