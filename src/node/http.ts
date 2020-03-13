@@ -185,22 +185,30 @@ export abstract class HttpProvider {
   /**
    * Replace common templates strings.
    */
+  protected replaceTemplates(route: Route, response: HttpStringFileResponse, sessionId?: string): HttpStringFileResponse
+  protected replaceTemplates<T extends object>(
+    route: Route,
+    response: HttpStringFileResponse,
+    options: T,
+  ): HttpStringFileResponse
   protected replaceTemplates(
     route: Route,
     response: HttpStringFileResponse,
-    sessionId?: string,
+    sessionIdOrOptions?: string | object,
   ): HttpStringFileResponse {
-    const options: Options = {
-      base: this.base(route),
-      commit: this.options.commit,
-      logLevel: logger.level,
-      sessionId,
+    if (typeof sessionIdOrOptions === "undefined" || typeof sessionIdOrOptions === "string") {
+      sessionIdOrOptions = {
+        base: this.base(route),
+        commit: this.options.commit,
+        logLevel: logger.level,
+        sessionID: sessionIdOrOptions,
+      } as Options
     }
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
       .replace(/{{BASE}}/g, this.base(route))
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(sessionIdOrOptions)}'`)
     return response
   }
 

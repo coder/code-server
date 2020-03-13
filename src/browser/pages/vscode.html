@@ -20,10 +20,8 @@
 
     <!-- Workarounds/Hacks (remote user data uri) -->
     <meta id="vscode-remote-user-data-uri" data-settings="{{REMOTE_USER_DATA_URI}}" />
-    <meta id="vscode-remote-commit" data-settings="{{COMMIT}}" />
     <meta id="vscode-remote-product-configuration" data-settings="{{PRODUCT_CONFIGURATION}}" />
     <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}" />
-    <meta id="vscode-disable-telemetry" data-value="{{DISABLE_TELEMETRY}}" />
 
     <!-- Workbench Icon/Manifest/CSS -->
     <link rel="icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
@@ -53,9 +51,7 @@
     const parts = window.location.pathname.replace(/^\//g, "").split("/")
     parts[parts.length - 1] = "{{BASE}}"
     const url = new URL(window.location.origin + "/" + parts.join("/"))
-    const el = document.getElementById("vscode-remote-commit")
-    const commit = el ? el.getAttribute("data-settings") : ""
-    const staticBase = url.href.replace(/\/+$/, "") + "/static/" + commit + "/lib/vscode"
+    const staticBase = url.href.replace(/\/+$/, "") + "/static/{{COMMIT}}/lib/vscode"
     let nlsConfig
     try {
       nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
