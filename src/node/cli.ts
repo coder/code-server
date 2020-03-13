@@ -35,6 +35,7 @@ export interface Args extends VsArgs {
   readonly force?: boolean
   readonly "list-extensions"?: boolean
   readonly "install-extension"?: string[]
+  readonly "show-versions"?: boolean
   readonly "uninstall-extension"?: string[]
   readonly locale?: string
   readonly _: string[]
@@ -100,10 +101,11 @@ const options: Options<Required<Args>> = {
   "builtin-extensions-dir": { type: "string", path: true },
   "extra-extensions-dir": { type: "string[]", path: true },
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
-  "list-extensions": { type: "boolean" },
+  "list-extensions": { type: "boolean", description: "Listed installed extensions." },
   force: { type: "boolean" },
   "install-extension": { type: "string[]", description: "Install or update an extension by id or vsix." },
   "uninstall-extension": { type: "string[]" },
+  "show-versions": { type: "boolean", description: "Show extension versions." },
 
   locale: { type: "string" },
   log: { type: LogLevel },
