@@ -71,6 +71,15 @@ button {
   padding: 40px;
 }
 
+.card-box > .content > .none {
+  margin: 2px 0;
+}
+
 .card-box + .card-box {
   margin-top: 26px;
+}
+
+canvas {
+  top: 0;
+  left: 0;
 }

@@ -514,8 +514,7 @@ export class HttpServer {
   private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
     this.heart.beat()
     const route = this.parseUrl(request)
-    try {
-      const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
+    const write = (payload: HttpResponse): void => {
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
         ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
@@ -547,6 +546,13 @@ export class HttpServer {
       } else {
         response.end()
       }
+    }
+    try {
+      const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
+      if (!payload) {
+        throw new HttpError("Not found", HttpCode.NotFound)
+      }
+      write(payload)
     } catch (error) {
       let e = error
       if (error.code === "ENOENT" || error.code === "EISDIR") {
@@ -555,9 +561,11 @@ export class HttpServer {
       logger.debug("Request error", field("url", request.url))
       logger.debug(error.stack)
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
-      const content = (await route.provider.getErrorRoot(route, code, code, e.message)).content
-      response.writeHead(code)
-      response.end(content)
+      const payload = await route.provider.getErrorRoot(route, code, code, e.message)
+      write({
+        code,
+        ...payload,
+      })
     }
   }
 
@@ -595,7 +603,7 @@ export class HttpServer {
       (this.options.cert && !secure ? `${this.protocol}://${request.headers.host}/` : "") +
       normalize(`${route.provider.base(route)}/${payload.redirect}`, true) +
       (Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : "")
-    logger.debug("Redirecting", field("secure", !!secure), field("from", request.url), field("to", redirect))
+    logger.debug("redirecting", field("secure", !!secure), field("from", request.url), field("to", redirect))
     return redirect
   }
 

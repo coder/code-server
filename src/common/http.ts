@@ -17,9 +17,8 @@ export class HttpError extends Error {
 
 export enum ApiEndpoint {
   applications = "/applications",
+  process = "/process",
   recent = "/recent",
   run = "/run",
-  running = "/running",
-  session = "/session",
   status = "/status",
 }

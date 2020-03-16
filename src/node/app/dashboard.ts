@@ -1,10 +1,10 @@
 import * as http from "http"
 import * as querystring from "querystring"
-import { Application, RecentResponse } from "../../common/api"
+import { Application } from "../../common/api"
 import { HttpCode, HttpError } from "../../common/http"
+import { normalize } from "../../common/util"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { ApiHttpProvider } from "./api"
-import { Vscode } from "./bin"
 import { UpdateHttpProvider } from "./update"
 
 /**
@@ -25,21 +25,27 @@ export class DashboardHttpProvider extends HttpProvider {
     }
 
     switch (route.base) {
-      case "/delete": {
+      case "/spawn": {
         this.ensureAuthenticated(request)
         this.ensureMethod(request, "POST")
         const data = await this.getData(request)
-        const p = data ? querystring.parse(data) : {}
-        this.api.deleteSession(p.sessionId as string)
+        const app = data ? querystring.parse(data) : {}
+        if (app.path) {
+          return { redirect: Array.isArray(app.path) ? app.path[0] : app.path }
+        }
+        if (!app.exec) {
+          throw new Error("No exec was provided")
+        }
+        this.api.spawnProcess(Array.isArray(app.exec) ? app.exec[0] : app.exec)
         return { redirect: this.options.base }
       }
-
+      case "/app":
       case "/": {
         this.ensureMethod(request)
         if (!this.authenticated(request)) {
           return { redirect: "/login", query: { to: this.options.base } }
         }
-        return this.getRoot(route)
+        return route.base === "/" ? this.getRoot(route) : this.getAppRoot(route)
       }
     }
 
@@ -52,8 +58,6 @@ export class DashboardHttpProvider extends HttpProvider {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/home.html")
     response.content = response.content
       .replace(/{{UPDATE:NAME}}/, await this.getUpdate(base))
-      .replace(/{{APP_LIST:RUNNING}}/, this.getAppRows(base, (await this.api.running()).applications))
-      .replace(/{{APP_LIST:RECENT_PROJECTS}}/, this.getRecentProjectRows(base, await this.api.recent()))
       .replace(
         /{{APP_LIST:EDITORS}}/,
         this.getAppRows(
@@ -71,46 +75,32 @@ export class DashboardHttpProvider extends HttpProvider {
     return this.replaceTemplates(route, response)
   }
 
-  private getRecentProjectRows(base: string, recents: RecentResponse): string {
-    return recents.paths.length > 0 || recents.workspaces.length > 0
-      ? recents.paths.map((recent) => this.getRecentProjectRow(base, recent)).join("\n") +
-          recents.workspaces.map((recent) => this.getRecentProjectRow(base, recent, true)).join("\n")
-      : `<div class="none">No recent directories or workspaces.</div>`
-  }
-
-  private getRecentProjectRow(base: string, recent: string, workspace?: boolean): string {
-    return `<div class="block-row">
-      <a class="item -row -link" href="${base}${Vscode.path}?${workspace ? "workspace" : "folder"}=${recent}">
-        <div class="name">${recent}${workspace ? " (workspace)" : ""}</div>
-      </a>
-    </div>`
+  public async getAppRoot(route: Route): Promise<HttpResponse> {
+    const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/app.html")
+    return this.replaceTemplates(route, response)
   }
 
   private getAppRows(base: string, apps: ReadonlyArray<Application>): string {
     return apps.length > 0
       ? apps.map((app) => this.getAppRow(base, app)).join("\n")
-      : `<div class="none">No applications are currently running.</div>`
+      : `<div class="none">No applications found.</div>`
   }
 
   private getAppRow(base: string, app: Application): string {
-    return `<div class="block-row">
-      <a class="item -row -link" href="${base}${app.path}">
+    return `<form class="block-row${app.exec ? " -x11" : ""}" method="post" action="${normalize(
+      `${base}${this.options.base}/spawn`,
+    )}">
+      <button class="item -row -link">
+        <input type="hidden" name="path" value="${app.path || ""}">
+        <input type="hidden" name="exec" value="${app.exec || ""}">
         ${
           app.icon
             ? `<img class="icon" src="data:image/png;base64,${app.icon}"></img>`
-            : `<div class="icon -missing"></div>`
+            : `<span class="icon -missing"></span>`
         }
-        <div class="name">${app.name}</div>
-      </a>
-      ${
-        app.sessionId
-          ? `<form class="kill-form" action="${base}${this.options.base}/delete" method="POST">
-               <input type="hidden" name="sessionId" value="${app.sessionId}">
-               <button class="kill -button" type="submit">Kill</button>
-             </form>`
-          : ""
-      }
-    </div>`
+        <span class="name">${app.name}</span>
+      </button>
+    </form>`
   }
 
   private async getUpdate(base: string): Promise<string> {

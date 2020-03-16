@@ -7,8 +7,14 @@ export interface Application {
   readonly icon?: string
   readonly installed?: boolean
   readonly name: string
+  /**
+   * Path if this is a browser app (like VS Code).
+   */
   readonly path?: string
-  readonly sessionId?: string
+  /**
+   * PID if this is a process.
+   */
+  readonly pid?: number
   readonly version?: string
 }
 
@@ -17,28 +23,23 @@ export interface ApplicationsResponse {
 }
 
 export enum SessionError {
-  NotFound = 4000,
-  FailedToStart,
-  Starting,
-  InvalidState,
-  Unknown,
+  FailedToStart = 4000,
+  Starting = 4001,
+  InvalidState = 4002,
+  Unknown = 4003,
 }
 
 export interface SessionResponse {
   /**
-   * Whether the session was created or an existing one was returned.
+   * Whether the process was spawned or an existing one was returned.
    */
   created: boolean
-  sessionId: string
+  pid: number
 }
 
 export interface RecentResponse {
   readonly paths: string[]
   readonly workspaces: string[]
-}
-
-export interface RunningResponse {
-  readonly applications: ReadonlyArray<Application>
 }
 
 export interface HealthRequest {

@@ -3,7 +3,6 @@ import * as cp from "child_process"
 import * as path from "path"
 import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
 import { ApiHttpProvider } from "./app/api"
-import { AppHttpProvider } from "./app/app"
 import { DashboardHttpProvider } from "./app/dashboard"
 import { LoginHttpProvider } from "./app/login"
 import { StaticHttpProvider } from "./app/static"
@@ -49,7 +48,6 @@ const main = async (args: Args): Promise<void> => {
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
-  httpServer.registerHttpProvider("/app", AppHttpProvider, api)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)

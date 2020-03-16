@@ -1,10 +1,10 @@
-import { logger } from "@coder/logger"
+import { logger, field } from "@coder/logger"
 
 export interface Options {
   base: string
   commit: string
   logLevel: number
-  sessionId?: string
+  pid?: number
 }
 
 /**
@@ -34,14 +34,12 @@ export const normalize = (url: string, keepTrailing = false): string => {
 }
 
 /**
- * Get options embedded in the HTML from the server.
+ * Get options embedded in the HTML or query params.
  */
 export const getOptions = <T extends Options>(): T => {
-  if (typeof document === "undefined") {
-    return {} as T
-  }
-  const el = document.getElementById("coder-options")
+  let options: T
   try {
+    const el = document.getElementById("coder-options")
     if (!el) {
       throw new Error("no options element")
     }
@@ -49,19 +47,31 @@ export const getOptions = <T extends Options>(): T => {
     if (!value) {
       throw new Error("no options value")
     }
-    const options = JSON.parse(value)
-    if (typeof options.logLevel !== "undefined") {
-      logger.level = options.logLevel
-    }
-    const parts = window.location.pathname.replace(/^\//g, "").split("/")
-    parts[parts.length - 1] = options.base
-    const url = new URL(window.location.origin + "/" + parts.join("/"))
-    return {
-      ...options,
-      base: normalize(url.pathname, true),
-    }
+    options = JSON.parse(value)
   } catch (error) {
-    logger.warn(error.message)
-    return {} as T
+    options = {} as T
   }
+
+  const params = new URLSearchParams(location.search)
+  const queryOpts = params.get("options")
+  if (queryOpts) {
+    options = {
+      ...options,
+      ...JSON.parse(queryOpts),
+    }
+  }
+
+  if (typeof options.logLevel !== "undefined") {
+    logger.level = options.logLevel
+  }
+  if (options.base) {
+    const parts = location.pathname.replace(/^\//g, "").split("/")
+    parts[parts.length - 1] = options.base
+    const url = new URL(location.origin + "/" + parts.join("/"))
+    options.base = normalize(url.pathname, true)
+  }
+
+  logger.debug("got options", field("options", options))
+
+  return options
 }

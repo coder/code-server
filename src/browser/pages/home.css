@@ -7,8 +7,11 @@
   margin: 2px 0;
 }
 
-.block-row > .item.-row {
-  display: flex;
+.block-row > button.item {
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
 }
 
 .block-row > .item > .sub {
@@ -34,6 +37,7 @@
 
 .block-row > .item > .icon.-missing {
   background-color: rgba(87, 114, 245, 0.2);
+  display: inline-block;
   text-align: center;
 }
 
