@@ -210,7 +210,7 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 45f6f17ce0..ecdb80a5ba 100644
+index 45f6f17ce0..79fde0b92c 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -246,12 +246,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
@@ -219,7 +219,7 @@ index 45f6f17ce0..ecdb80a5ba 100644
  		else if (isFolderToOpen(workspace)) {
 -			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${encodeURIComponent(workspace.folderUri.toString())}`;
 +			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
-+				? workspace.folderUri.path
++				? encodeURIComponent(workspace.folderUri.path).replace(/%2F/g, "/")
 +				: encodeURIComponent(workspace.folderUri.toString());
 +			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
  		}
@@ -228,7 +228,7 @@ index 45f6f17ce0..ecdb80a5ba 100644
  		else if (isWorkspaceToOpen(workspace)) {
 -			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${encodeURIComponent(workspace.workspaceUri.toString())}`;
 +			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
-+				? workspace.workspaceUri.path
++				? encodeURIComponent(workspace.workspaceUri.path).replace(/%2F/g, "/")
 +				: encodeURIComponent(workspace.workspaceUri.toString());
 +			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
  		}
