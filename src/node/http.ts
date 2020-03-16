@@ -525,7 +525,7 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
-                "HttpOnly",
+                // "HttpOnly",
                 "SameSite=strict",
               ].join(";"),
             }

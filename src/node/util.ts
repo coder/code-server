@@ -44,6 +44,12 @@ export const generateCertificate = async (): Promise<{ cert: string; certKey: st
   return paths
 }
 
+export const generateSshHostKey = async (): Promise<string> => {
+  // Just reuse the SSL cert as the SSH host key
+  const { certKey } = await generateCertificate()
+  return certKey
+}
+
 export const generatePassword = async (length = 24): Promise<string> => {
   const buffer = Buffer.alloc(Math.ceil(length / 2))
   await util.promisify(crypto.randomFill)(buffer)

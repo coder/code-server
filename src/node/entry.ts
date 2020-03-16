@@ -10,7 +10,8 @@ import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, optionDescriptions, parse } from "./cli"
 import { AuthType, HttpServer } from "./http"
-import { generateCertificate, generatePassword, hash, open } from "./util"
+import { SshProvider } from "./ssh/server"
+import { generateCertificate, generatePassword, generateSshHostKey, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 const main = async (args: Args): Promise<void> => {
@@ -29,6 +30,7 @@ const main = async (args: Args): Promise<void> => {
     auth,
     cert: args.cert ? args.cert.value : undefined,
     certKey: args["cert-key"],
+    sshHostKey: args["ssh-host-key"],
     commit: commit || "development",
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
@@ -43,6 +45,13 @@ const main = async (args: Args): Promise<void> => {
   } else if (args.cert && !args["cert-key"]) {
     throw new Error("--cert-key is missing")
   }
+  if (!args["disable-ssh"]) {
+    if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
+      throw new Error("--ssh-host-key cannot be blank")
+    } else if (!options.sshHostKey) {
+      options.sshHostKey = await generateSshHostKey()
+    }
+  }
 
   const httpServer = new HttpServer(options)
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
@@ -55,6 +64,13 @@ const main = async (args: Args): Promise<void> => {
   ipcMain().onDispose(() => httpServer.dispose())
 
   logger.info(`code-server ${require("../../package.json").version}`)
+
+  let sshPort = ""
+  if (!args["disable-ssh"]) {
+    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
+    sshPort = await sshProvider.listen()
+  }
+
   const serverAddress = await httpServer.listen()
   logger.info(`Server listening on ${serverAddress}`)
 
@@ -81,6 +97,12 @@ const main = async (args: Args): Promise<void> => {
   }
 
   logger.info(`  - Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
+
+  if (sshPort) {
+    logger.info(`  - SSH Server - Listening :${sshPort}`)
+  } else {
+    logger.info("  - SSH Server - Disabled")
+  }
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
