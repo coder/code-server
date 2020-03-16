@@ -3101,7 +3101,7 @@ index 99394090da..4891e0fece 100644
  }
 
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index a73f3a3e53..73509ffa21 100644
+index a73f3a3e53..7c4ce1acb8 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
 @@ -34,7 +34,8 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
@@ -3114,6 +3114,16 @@ index a73f3a3e53..73509ffa21 100644
  import 'vs/workbench/services/configurationResolver/browser/configurationResolverService';
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
+@@ -119,7 +120,7 @@ import 'vs/workbench/contrib/welcome/telemetryOptOut/browser/telemetryOptOut.con
+ // Issues
+ import 'vs/workbench/contrib/issue/browser/issue.contribution';
+
+-// Open In Desktop
+-import 'vs/workbench/contrib/openInDesktop/browser/openInDesktop.web.contribution';
++// Open In Desktop NOTE@coder: remove
++// import 'vs/workbench/contrib/openInDesktop/browser/openInDesktop.web.contribution';
+
+ //#endregion
 diff --git a/yarn.lock b/yarn.lock
 index a820c6344a..7e4f410db9 100644
 --- a/yarn.lock
