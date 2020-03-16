@@ -45,11 +45,16 @@ const main = async (args: Args): Promise<void> => {
   } else if (args.cert && !args["cert-key"]) {
     throw new Error("--cert-key is missing")
   }
+
   if (!args["disable-ssh"]) {
     if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
       throw new Error("--ssh-host-key cannot be blank")
     } else if (!options.sshHostKey) {
-      options.sshHostKey = await generateSshHostKey()
+      try {
+        options.sshHostKey = await generateSshHostKey()
+      } catch (error) {
+        logger.error("Unable to start SSH server", field("error", error.message))
+      }
     }
   }
 
@@ -66,7 +71,7 @@ const main = async (args: Args): Promise<void> => {
   logger.info(`code-server ${require("../../package.json").version}`)
 
   let sshPort = ""
-  if (!args["disable-ssh"]) {
+  if (!args["disable-ssh"] && options.sshHostKey) {
     const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
     sshPort = await sshProvider.listen()
   }
