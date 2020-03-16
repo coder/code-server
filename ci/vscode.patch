@@ -819,7 +819,7 @@ index 0000000000..0d2e93edae
 +}
 diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
 new file mode 100644
-index 0000000000..0ba93cc070
+index 0000000000..a93381631a
 --- /dev/null
 +++ b/src/vs/server/browser/worker.ts
 @@ -0,0 +1,57 @@
@@ -841,8 +841,8 @@ index 0000000000..0ba93cc070
 +	const fetchUri = URI.from({
 +		scheme: self.location.protocol.replace(':', ''),
 +		authority: self.location.host,
-+		path: `${self.location.pathname.replace(/\/static.*\/out\/vs\/workbench\/services\/extensions\/worker\/extensionHostWorkerMain.js$/, '')}/tar`,
-+		query: `path=${encodeURIComponent(module.extensionLocation.path)}`,
++		path: self.location.pathname.replace(/\/static\/([^\/]+)\/.*$/, '/static/$1\/'),
++		query: `tar=${encodeURIComponent(module.extensionLocation.path)}`,
 +	});
 +	const response = await fetch(fetchUri.toString(true));
 +	if (response.status !== 200) {

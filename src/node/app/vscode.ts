@@ -155,11 +155,6 @@ export class VscodeHttpProvider extends HttpProvider {
           return this.getResource(route.query.path)
         }
         break
-      case "/tar":
-        if (typeof route.query.path === "string") {
-          return this.getTarredResource(request, route.query.path)
-        }
-        break
       case "/webview":
         if (/^\/vscode-resource/.test(route.requestPath)) {
           return this.getResource(route.requestPath.replace(/^\/vscode-resource(\/file)?/, ""))
