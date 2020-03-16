@@ -135,7 +135,7 @@ class Builder {
       ])
     })
 
-    await this.copyDependencies("code-server", this.rootPath, this.buildPath, {
+    await this.copyDependencies("code-server", this.rootPath, this.buildPath, false, {
       commit,
       version: this.codeServerVersion,
     })
@@ -181,13 +181,19 @@ class Builder {
       ])
     })
 
-    await this.copyDependencies("vs code", this.vscodeSourcePath, vscodeBuildPath, {
+    await this.copyDependencies("vs code", this.vscodeSourcePath, vscodeBuildPath, true, {
       commit,
       date: new Date().toISOString(),
     })
   }
 
-  private async copyDependencies(name: string, sourcePath: string, buildPath: string, merge: object): Promise<void> {
+  private async copyDependencies(
+    name: string,
+    sourcePath: string,
+    buildPath: string,
+    ignoreScripts: boolean,
+    merge: object,
+  ): Promise<void> {
     await this.task(`copying ${name} dependencies`, async () => {
       return Promise.all(
         ["node_modules", "package.json", "yarn.lock"].map((fileName) => {
@@ -214,7 +220,9 @@ class Builder {
 
     if (process.env.MINIFY) {
       await this.task(`restricting ${name} to production dependencies`, async () => {
-        await util.promisify(cp.exec)("yarn --production --ignore-scripts", { cwd: buildPath })
+        await util.promisify(cp.exec)(`yarn --production ${ignoreScripts ? "--ignore-scripts" : ""}`, {
+          cwd: buildPath,
+        })
       })
     }
   }
