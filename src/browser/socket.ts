@@ -44,7 +44,7 @@ export class ReconnectingSocket {
 
   private _binaryType: typeof WebSocket.prototype.binaryType = "arraybuffer"
 
-  public constructor(private customPath?: string, public readonly id: string = generateUuid(4)) {
+  public constructor(private path: string, public readonly id: string = generateUuid(4)) {
     // On Firefox the socket seems to somehow persist a page reload so the close
     // event runs and we see "attempting to reconnect".
     if (typeof window !== "undefined") {
@@ -155,12 +155,8 @@ export class ReconnectingSocket {
         this.logger.info(`retrying in ${this.retryDelay}ms...`)
       }
       setTimeout(() => {
-        this.logger.info("connecting...")
-        const socket = new WebSocket(
-          `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}${this.customPath || location.pathname}${
-            location.search ? `?${location.search}` : ""
-          }`,
-        )
+        this.logger.info("connecting...", field("path", this.path))
+        const socket = new WebSocket(this.path)
 
         const reject = (): void => {
           _reject(new Error("socket closed"))
