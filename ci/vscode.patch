@@ -179,6 +179,20 @@ index 5a631e0b39..4114bd9287 100644
  } else if (typeof process === 'object') {
  	_isWindows = (process.platform === 'win32');
  	_isMacintosh = (process.platform === 'darwin');
+diff --git a/src/vs/base/common/processes.ts b/src/vs/base/common/processes.ts
+index c52f7b3774..08a87fa970 100644
+--- a/src/vs/base/common/processes.ts
++++ b/src/vs/base/common/processes.ts
+@@ -110,7 +110,8 @@ export function sanitizeProcessEnvironment(env: IProcessEnvironment, ...preserve
+ 		/^ELECTRON_.+$/,
+ 		/^GOOGLE_API_KEY$/,
+ 		/^VSCODE_.+$/,
+-		/^SNAP(|_.*)$/
++		/^SNAP(|_.*)$/,
++		/^CODE_SERVER_.+$/,
+ 	];
+ 	const envKeys = Object.keys(env);
+ 	envKeys
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
 index 2c64061da7..c0ef8faedd 100644
 --- a/src/vs/base/node/languagePacks.js
