@@ -1,7 +1,6 @@
 import { getOptions, normalize } from "../../common/util"
 import { ApiEndpoint } from "../../common/http"
 
-import "./app.css"
 import "./error.css"
 import "./global.css"
 import "./home.css"
