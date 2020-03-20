@@ -48,6 +48,10 @@ Use [sshcode](https://github.com/codercom/sshcode) for a simple setup.
 
 See [./doc/FAQ.md](./doc/FAQ.md).
 
+## Contributing
+
+See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
+
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com) for more information about our
