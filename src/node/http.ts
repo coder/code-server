@@ -526,9 +526,12 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
+                request.headers.host ? `Domain=${request.headers.host}` : undefined,
                 // "HttpOnly",
                 "SameSite=strict",
-              ].join(";"),
+              ]
+                .filter((l) => !!l)
+                .join(";"),
             }
           : {}),
         ...payload.headers,
