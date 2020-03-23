@@ -1,50 +1,52 @@
 import * as http from "http"
 import { HttpCode, HttpError } from "../../common/http"
-import { AuthType, HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
+import { HttpProvider, HttpProviderOptions, HttpProxyProvider, HttpResponse, Route } from "../http"
 
 /**
  * Proxy HTTP provider.
  */
-export class ProxyHttpProvider extends HttpProvider {
-  public constructor(options: HttpProviderOptions, private readonly proxyDomains: string[]) {
+export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider {
+  public readonly proxyDomains: string[]
+
+  public constructor(options: HttpProviderOptions, proxyDomains: string[] = []) {
     super(options)
+    this.proxyDomains = proxyDomains.map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
   }
 
-  public async handleRequest(route: Route): Promise<HttpResponse> {
-    if (this.options.auth !== AuthType.Password || route.requestPath !== "/index.html") {
-      throw new HttpError("Not found", HttpCode.NotFound)
+  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
+    if (!this.authenticated(request)) {
+      if (route.requestPath === "/index.html") {
+        return { redirect: "/login", query: { to: route.fullPath } }
+      }
+      throw new HttpError("Unauthorized", HttpCode.Unauthorized)
     }
+
     const payload = this.proxy(route.base.replace(/^\//, ""))
-    if (!payload) {
-      throw new HttpError("Not found", HttpCode.NotFound)
+    if (payload) {
+      return payload
     }
-    return payload
+
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
-  public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
-    const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/login.html")
-    response.content = response.content.replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
-    return this.replaceTemplates(route, response)
-  }
-
-  /**
-   * Return a response if the request should be proxied. Anything that ends in a
-   * proxy domain and has a subdomain should be proxied. The port is found in
-   * the top-most subdomain.
-   *
-   * For example, if the proxy domain is `coder.com` then `8080.coder.com` and
-   * `test.8080.coder.com` will both proxy to `8080` but `8080.test.coder.com`
-   * will have an error because `test` isn't a port. If the proxy domain was
-   * `test.coder.com` then it would work.
-   */
-  public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
-    const host = request.headers.host
+  public getProxyDomain(host?: string): string | undefined {
     if (!host || !this.proxyDomains) {
       return undefined
     }
 
-    const proxyDomain = this.proxyDomains.find((d) => host.endsWith(d))
-    if (!proxyDomain) {
+    return this.proxyDomains.find((d) => host.endsWith(d))
+  }
+
+  public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
+    // No proxy until we're authenticated. This will cause the login page to
+    // show as well as let our assets keep loading normally.
+    if (!this.authenticated(request)) {
+      return undefined
+    }
+
+    const host = request.headers.host
+    const proxyDomain = this.getProxyDomain(host)
+    if (!host || !proxyDomain) {
       return undefined
     }
 

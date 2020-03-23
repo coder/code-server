@@ -395,7 +395,29 @@ export interface HttpProvider3<A1, A2, A3, T> {
 }
 
 export interface HttpProxyProvider {
+  /**
+   * Return a response if the request should be proxied. Anything that ends in a
+   * proxy domain and has a subdomain should be proxied. The port is found in
+   * the top-most subdomain.
+   *
+   * For example, if the proxy domain is `coder.com` then `8080.coder.com` and
+   * `test.8080.coder.com` will both proxy to `8080` but `8080.test.coder.com`
+   * will have an error because `test` isn't a port. If the proxy domain was
+   * `test.coder.com` then it would work.
+   */
   maybeProxy(request: http.IncomingMessage): HttpResponse | undefined
+
+  /**
+   * Get the matching proxy domain based on the provided host.
+   */
+  getProxyDomain(host: string): string | undefined
+
+  /**
+   * Domains can be provided in the form `coder.com` or `*.coder.com`. Either
+   * way, `<number>.coder.com` will be proxied to `number`. The domains are
+   * stored here without the `*.`.
+   */
+  readonly proxyDomains: string[]
 }
 
 /**
@@ -538,7 +560,13 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
-                request.headers.host ? `Domain=${request.headers.host}` : undefined,
+                // Set the cookie against the host so it can be used in
+                // subdomains. Use a matching proxy domain if possible so
+                // requests to any of those subdomains will already be
+                // authenticated.
+                request.headers.host
+                  ? `Domain=${(this.proxy && this.proxy.getProxyDomain(request.headers.host)) || request.headers.host}`
+                  : undefined,
                 // "HttpOnly",
                 "SameSite=strict",
               ]
@@ -566,8 +594,8 @@ export class HttpServer {
 
     try {
       const payload =
-        (this.proxy && this.proxy.maybeProxy(request)) ||
         this.maybeRedirect(request, route) ||
+        (this.proxy && this.proxy.maybeProxy(request)) ||
         (await route.provider.handleRequest(route, request))
       if (!payload) {
         throw new HttpError("Not found", HttpCode.NotFound)

@@ -56,19 +56,11 @@ const main = async (args: Args): Promise<void> => {
     throw new Error("--cert-key is missing")
   }
 
-  /**
-   * Domains can be in the form `coder.com` or `*.coder.com`. Either way,
-   * `[number].coder.com` will be proxied to `number`.
-   */
-  const proxyDomains = args["proxy-domain"]
-    ? args["proxy-domain"].map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
-    : []
-
   const httpServer = new HttpServer(options)
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
-  const proxy = httpServer.registerHttpProvider("/proxy", ProxyHttpProvider, proxyDomains)
+  const proxy = httpServer.registerHttpProvider("/proxy", ProxyHttpProvider, args["proxy-domain"])
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)
@@ -102,11 +94,11 @@ const main = async (args: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (proxyDomains.length === 1) {
-    logger.info(`  - Proxying *.${proxyDomains[0]}`)
-  } else if (proxyDomains && proxyDomains.length > 1) {
+  if (proxy.proxyDomains.length === 1) {
+    logger.info(`  - Proxying *.${proxy.proxyDomains[0]}`)
+  } else if (proxy.proxyDomains.length > 1) {
     logger.info("  - Proxying the following domains:")
-    proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
+    proxy.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
