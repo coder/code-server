@@ -6,8 +6,15 @@ import { HttpProvider, HttpProviderOptions, HttpProxyProvider, HttpResponse, Rou
  * Proxy HTTP provider.
  */
 export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider {
+  /**
+   * Proxy domains are stored here without the leading `*.`
+   */
   public readonly proxyDomains: string[]
 
+  /**
+   * Domains can be provided in the form `coder.com` or `*.coder.com`. Either
+   * way, `<number>.coder.com` will be proxied to `number`.
+   */
   public constructor(options: HttpProviderOptions, proxyDomains: string[] = []) {
     super(options)
     this.proxyDomains = proxyDomains.map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
@@ -29,12 +36,14 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     throw new HttpError("Not found", HttpCode.NotFound)
   }
 
-  public getProxyDomain(host?: string): string | undefined {
-    if (!host || !this.proxyDomains) {
-      return undefined
-    }
-
-    return this.proxyDomains.find((d) => host.endsWith(d))
+  public getCookieDomain(host: string): string {
+    let current: string | undefined
+    this.proxyDomains.forEach((domain) => {
+      if (host.endsWith(domain) && (!current || domain.length < current.length)) {
+        current = domain
+      }
+    })
+    return current || host
   }
 
   public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
@@ -44,23 +53,21 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
       return undefined
     }
 
+    // At minimum there needs to be sub.domain.tld.
     const host = request.headers.host
-    const proxyDomain = this.getProxyDomain(host)
-    if (!host || !proxyDomain) {
+    const parts = host && host.split(".")
+    if (!parts || parts.length < 3) {
       return undefined
     }
 
-    const proxyDomainLength = proxyDomain.split(".").length
-    const portStr = host
-      .split(".")
-      .slice(0, -proxyDomainLength)
-      .pop()
-
-    if (!portStr) {
+    // There must be an exact match.
+    const port = parts.shift()
+    const proxyDomain = parts.join(".")
+    if (!port || !this.proxyDomains.includes(proxyDomain)) {
       return undefined
     }
 
-    return this.proxy(portStr)
+    return this.proxy(port)
   }
 
   private proxy(portStr: string): HttpResponse {

@@ -397,27 +397,20 @@ export interface HttpProvider3<A1, A2, A3, T> {
 export interface HttpProxyProvider {
   /**
    * Return a response if the request should be proxied. Anything that ends in a
-   * proxy domain and has a subdomain should be proxied. The port is found in
-   * the top-most subdomain.
+   * proxy domain and has a *single* subdomain should be proxied. Anything else
+   * should return `undefined` and will be handled as normal.
    *
-   * For example, if the proxy domain is `coder.com` then `8080.coder.com` and
-   * `test.8080.coder.com` will both proxy to `8080` but `8080.test.coder.com`
-   * will have an error because `test` isn't a port. If the proxy domain was
-   * `test.coder.com` then it would work.
+   * For example if `coder.com` is specified `8080.coder.com` will be proxied
+   * but `8080.test.coder.com` and `test.8080.coder.com` will not.
    */
   maybeProxy(request: http.IncomingMessage): HttpResponse | undefined
 
   /**
-   * Get the matching proxy domain based on the provided host.
+   * Get the domain that should be used for setting a cookie. This will allow
+   * the user to authenticate only once. This will return the highest level
+   * domain (e.g. `coder.com` over `test.coder.com` if both are specified).
    */
-  getProxyDomain(host: string): string | undefined
-
-  /**
-   * Domains can be provided in the form `coder.com` or `*.coder.com`. Either
-   * way, `<number>.coder.com` will be proxied to `number`. The domains are
-   * stored here without the `*.`.
-   */
-  readonly proxyDomains: string[]
+  getCookieDomain(host: string): string | undefined
 }
 
 /**
@@ -560,12 +553,8 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
-                // Set the cookie against the host so it can be used in
-                // subdomains. Use a matching proxy domain if possible so
-                // requests to any of those subdomains will already be
-                // authenticated.
                 request.headers.host
-                  ? `Domain=${(this.proxy && this.proxy.getProxyDomain(request.headers.host)) || request.headers.host}`
+                  ? `Domain=${(this.proxy && this.proxy.getCookieDomain(request.headers.host)) || request.headers.host}`
                   : undefined,
                 // "HttpOnly",
                 "SameSite=strict",
