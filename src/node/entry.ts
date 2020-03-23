@@ -35,6 +35,14 @@ const main = async (args: Args): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
+  /**
+   * Domains can be in the form `coder.com` or `*.coder.com`. Either way,
+   * `[number].coder.com` will be proxied to `number`.
+   */
+  const normalizeProxyDomains = (domains?: string[]): string[] => {
+    return domains ? domains.map((d) => d.replace(/^\*\./, "")).filter((d, i) => domains.indexOf(d) === i) : []
+  }
+
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
     auth,
@@ -42,6 +50,7 @@ const main = async (args: Args): Promise<void> => {
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
+    proxyDomains: normalizeProxyDomains(args["proxy-domain"]),
     socket: args.socket,
     ...(args.cert && !args.cert.value
       ? await generateCertificate()
@@ -89,6 +98,15 @@ const main = async (args: Args): Promise<void> => {
     )
   } else {
     logger.info("  - Not serving HTTPS")
+  }
+
+  if (options.proxyDomains && options.proxyDomains.length === 1) {
+    logger.info(`  - Proxying *.${options.proxyDomains[0]}`)
+  } else if (options.proxyDomains && options.proxyDomains.length > 1) {
+    logger.info("  - Proxying the following domains:")
+    options.proxyDomains.forEach((domain) => {
+      logger.info(`    - *.${domain}`)
+    })
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
