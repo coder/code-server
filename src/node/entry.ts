@@ -9,7 +9,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, optionDescriptions, parse } from "./cli"
-import { AuthType, HttpServer } from "./http"
+import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { SshProvider } from "./ssh/server"
 import { generateCertificate, generatePassword, generateSshHostKey, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
@@ -36,36 +36,23 @@ const main = async (args: Args): Promise<void> => {
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
   // Spawn the main HTTP server.
-  const options = {
+  const options: HttpServerOptions = {
     auth,
-    cert: args.cert ? args.cert.value : undefined,
-    certKey: args["cert-key"],
-    sshHostKey: args["ssh-host-key"],
     commit,
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
     socket: args.socket,
+    ...(args.cert && !args.cert.value
+      ? await generateCertificate()
+      : {
+          cert: args.cert && args.cert.value,
+          certKey: args["cert-key"],
+        }),
   }
 
-  if (!options.cert && args.cert) {
-    const { cert, certKey } = await generateCertificate()
-    options.cert = cert
-    options.certKey = certKey
-  } else if (args.cert && !args["cert-key"]) {
+  if (options.cert && !options.certKey) {
     throw new Error("--cert-key is missing")
-  }
-
-  if (!args["disable-ssh"]) {
-    if (!options.sshHostKey && typeof options.sshHostKey !== "undefined") {
-      throw new Error("--ssh-host-key cannot be blank")
-    } else if (!options.sshHostKey) {
-      try {
-        options.sshHostKey = await generateSshHostKey()
-      } catch (error) {
-        logger.error("Unable to start SSH server", field("error", error.message))
-      }
-    }
   }
 
   const httpServer = new HttpServer(options)
@@ -84,7 +71,7 @@ const main = async (args: Args): Promise<void> => {
 
   if (auth === AuthType.Password && !process.env.PASSWORD) {
     logger.info(`  - Password is ${originalPassword}`)
-    logger.info("    - To use your own password, set the PASSWORD environment variable")
+    logger.info("    - To use your own password set the PASSWORD environment variable")
     if (!args.auth) {
       logger.info("    - To disable use `--auth none`")
     }
@@ -96,7 +83,7 @@ const main = async (args: Args): Promise<void> => {
 
   if (httpServer.protocol === "https") {
     logger.info(
-      typeof args.cert === "string"
+      args.cert && args.cert.value
         ? `  - Using provided certificate and key for HTTPS`
         : `  - Using generated certificate and key for HTTPS`,
     )
@@ -106,9 +93,18 @@ const main = async (args: Args): Promise<void> => {
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
 
+  let sshHostKey = args["ssh-host-key"]
+  if (!args["disable-ssh"] && !sshHostKey) {
+    try {
+      sshHostKey = await generateSshHostKey()
+    } catch (error) {
+      logger.error("Unable to start SSH server", field("error", error.message))
+    }
+  }
+
   let sshPort: number | undefined
-  if (!args["disable-ssh"] && options.sshHostKey) {
-    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
+  if (!args["disable-ssh"] && sshHostKey) {
+    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, sshHostKey)
     try {
       sshPort = await sshProvider.listen()
     } catch (error) {
@@ -118,6 +114,7 @@ const main = async (args: Args): Promise<void> => {
 
   if (typeof sshPort !== "undefined") {
     logger.info(`SSH server listening on localhost:${sshPort}`)
+    logger.info("  - To disable use `--disable-ssh`")
   } else {
     logger.info("SSH server disabled")
   }
