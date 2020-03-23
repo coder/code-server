@@ -5,6 +5,7 @@ import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
 import { ApiHttpProvider } from "./app/api"
 import { DashboardHttpProvider } from "./app/dashboard"
 import { LoginHttpProvider } from "./app/login"
+import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
@@ -35,14 +36,6 @@ const main = async (args: Args): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
-  /**
-   * Domains can be in the form `coder.com` or `*.coder.com`. Either way,
-   * `[number].coder.com` will be proxied to `number`.
-   */
-  const normalizeProxyDomains = (domains?: string[]): string[] => {
-    return domains ? domains.map((d) => d.replace(/^\*\./, "")).filter((d, i) => domains.indexOf(d) === i) : []
-  }
-
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
     auth,
@@ -50,7 +43,6 @@ const main = async (args: Args): Promise<void> => {
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
-    proxyDomains: normalizeProxyDomains(args["proxy-domain"]),
     socket: args.socket,
     ...(args.cert && !args.cert.value
       ? await generateCertificate()
@@ -64,13 +56,23 @@ const main = async (args: Args): Promise<void> => {
     throw new Error("--cert-key is missing")
   }
 
+  /**
+   * Domains can be in the form `coder.com` or `*.coder.com`. Either way,
+   * `[number].coder.com` will be proxied to `number`.
+   */
+  const proxyDomains = args["proxy-domain"]
+    ? args["proxy-domain"].map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
+    : []
+
   const httpServer = new HttpServer(options)
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
+  const proxy = httpServer.registerHttpProvider("/proxy", ProxyHttpProvider, proxyDomains)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)
+  httpServer.registerProxy(proxy)
 
   ipcMain().onDispose(() => httpServer.dispose())
 
@@ -100,13 +102,11 @@ const main = async (args: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (options.proxyDomains && options.proxyDomains.length === 1) {
-    logger.info(`  - Proxying *.${options.proxyDomains[0]}`)
-  } else if (options.proxyDomains && options.proxyDomains.length > 1) {
+  if (proxyDomains.length === 1) {
+    logger.info(`  - Proxying *.${proxyDomains[0]}`)
+  } else if (proxyDomains && proxyDomains.length > 1) {
     logger.info("  - Proxying the following domains:")
-    options.proxyDomains.forEach((domain) => {
-      logger.info(`    - *.${domain}`)
-    })
+    proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)

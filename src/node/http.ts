@@ -99,7 +99,6 @@ export interface HttpServerOptions {
   readonly commit?: string
   readonly host?: string
   readonly password?: string
-  readonly proxyDomains?: string[]
   readonly port?: number
   readonly socket?: string
 }
@@ -395,6 +394,10 @@ export interface HttpProvider3<A1, A2, A3, T> {
   new (options: HttpProviderOptions, a1: A1, a2: A2, a3: A3): T
 }
 
+export interface HttpProxyProvider {
+  maybeProxy(request: http.IncomingMessage): HttpResponse | undefined
+}
+
 /**
  * An HTTP server. Its main role is to route incoming HTTP requests to the
  * appropriate provider for that endpoint then write out the response. It also
@@ -407,6 +410,7 @@ export class HttpServer {
   private readonly providers = new Map<string, HttpProvider>()
   private readonly heart: Heart
   private readonly socketProvider = new SocketProxyProvider()
+  private proxy?: HttpProxyProvider
 
   public constructor(private readonly options: HttpServerOptions) {
     this.heart = new Heart(path.join(xdgLocalDir, "heartbeat"), async () => {
@@ -482,6 +486,14 @@ export class HttpServer {
   }
 
   /**
+   * Register a provider as a proxy. It will be consulted before any other
+   * provider.
+   */
+  public registerProxy(proxy: HttpProxyProvider): void {
+    this.proxy = proxy
+  }
+
+  /**
    * Start listening on the specified port.
    */
   public listen(): Promise<string | null> {
@@ -551,8 +563,12 @@ export class HttpServer {
         response.end()
       }
     }
+
     try {
-      const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
+      const payload =
+        (this.proxy && this.proxy.maybeProxy(request)) ||
+        this.maybeRedirect(request, route) ||
+        (await route.provider.handleRequest(route, request))
       if (!payload) {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
