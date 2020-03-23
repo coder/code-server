@@ -61,7 +61,8 @@ export class UpdateHttpProvider extends HttpProvider {
     this.ensureAuthenticated(request)
     this.ensureMethod(request)
 
-    if (route.requestPath !== "/index.html") {
+    // Only serve root pages.
+    if (route.requestPath && route.requestPath !== "/index.html") {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
 

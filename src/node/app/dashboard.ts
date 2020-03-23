@@ -20,7 +20,8 @@ export class DashboardHttpProvider extends HttpProvider {
   }
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    if (route.requestPath !== "/index.html") {
+    // Only serve root pages.
+    if (route.requestPath && route.requestPath !== "/index.html") {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
 

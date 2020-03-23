@@ -77,6 +77,10 @@ export interface HttpResponse<T = string | Buffer | object> {
    * `undefined` to remove a query variable.
    */
   query?: Query
+  /**
+   * Indicates the request was handled and nothing else needs to be done.
+   */
+  handled?: boolean
 }
 
 /**
@@ -104,10 +108,26 @@ export interface HttpServerOptions {
 }
 
 export interface Route {
+  /**
+   * Base path part (in /test/path it would be "/test").
+   */
   base: string
+  /**
+   * Remaining part of the route (in /test/path it would be "/path"). It can be
+   * blank.
+   */
   requestPath: string
+  /**
+   * Query variables included in the request.
+   */
   query: querystring.ParsedUrlQuery
+  /**
+   * Normalized version of `originalPath`.
+   */
   fullPath: string
+  /**
+   * Original path of the request without any modifications.
+   */
   originalPath: string
 }
 
@@ -152,7 +172,11 @@ export abstract class HttpProvider {
   /**
    * Handle requests to the registered endpoint.
    */
-  public abstract handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse>
+  public abstract handleRequest(
+    route: Route,
+    request: http.IncomingMessage,
+    response: http.ServerResponse,
+  ): Promise<HttpResponse>
 
   /**
    * Get the base relative to the provided route. For each slash we need to go
@@ -403,7 +427,21 @@ export interface HttpProxyProvider {
    * For example if `coder.com` is specified `8080.coder.com` will be proxied
    * but `8080.test.coder.com` and `test.8080.coder.com` will not.
    */
-  maybeProxy(request: http.IncomingMessage): HttpResponse | undefined
+  maybeProxyRequest(
+    route: Route,
+    request: http.IncomingMessage,
+    response: http.ServerResponse,
+  ): HttpResponse | undefined
+
+  /**
+   * Same concept as `maybeProxyRequest` but for web sockets.
+   */
+  maybeProxyWebSocket(
+    route: Route,
+    request: http.IncomingMessage,
+    socket: net.Socket,
+    head: Buffer,
+  ): HttpResponse | undefined
 
   /**
    * Get the domain that should be used for setting a cookie. This will allow
@@ -584,12 +622,11 @@ export class HttpServer {
     try {
       const payload =
         this.maybeRedirect(request, route) ||
-        (this.proxy && this.proxy.maybeProxy(request)) ||
-        (await route.provider.handleRequest(route, request))
-      if (!payload) {
-        throw new HttpError("Not found", HttpCode.NotFound)
+        (this.proxy && this.proxy.maybeProxyRequest(route, request, response)) ||
+        (await route.provider.handleRequest(route, request, response))
+      if (!payload.handled) {
+        write(payload)
       }
-      write(payload)
     } catch (error) {
       let e = error
       if (error.code === "ENOENT" || error.code === "EISDIR") {
@@ -662,7 +699,9 @@ export class HttpServer {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
 
-      await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head)
+      if (!this.proxy || !this.proxy.maybeProxyWebSocket(route, request, socket, head)) {
+        await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head)
+      }
     } catch (error) {
       socket.destroy(error)
       logger.warn(`discarding socket connection: ${error.message}`)
@@ -684,7 +723,6 @@ export class HttpServer {
         // Happens if it's a plain `domain.com`.
         base = "/"
       }
-      requestPath = requestPath || "/index.html"
       return { base, requestPath }
     }
 

@@ -128,7 +128,8 @@ export class VscodeHttpProvider extends HttpProvider {
 
     switch (route.base) {
       case "/":
-        if (route.requestPath !== "/index.html") {
+        // Only serve this at the root.
+        if (route.requestPath && route.requestPath !== "/index.html") {
           throw new HttpError("Not found", HttpCode.NotFound)
         } else if (!this.authenticated(request)) {
           return { redirect: "/login", query: { to: this.options.base } }
