@@ -581,6 +581,9 @@ export class HttpServer {
     this.heart.beat()
     const route = this.parseUrl(request)
     const write = (payload: HttpResponse): void => {
+      const host = request.headers.host || ""
+      const idx = host.indexOf(":")
+      const domain = idx !== -1 ? host.substring(0, idx) : host
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
         ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
@@ -591,9 +594,7 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
-                request.headers.host
-                  ? `Domain=${(this.proxy && this.proxy.getCookieDomain(request.headers.host)) || request.headers.host}`
-                  : undefined,
+                domain ? `Domain=${(this.proxy && this.proxy.getCookieDomain(domain)) || domain}` : undefined,
                 // "HttpOnly",
                 "SameSite=strict",
               ]

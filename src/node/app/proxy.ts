@@ -61,7 +61,9 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
         current = domain
       }
     })
-    return current || host
+    // Setting the domain to localhost doesn't seem to work for subdomains (for
+    // example dev.localhost).
+    return current && current !== "localhost" ? current : host
   }
 
   public maybeProxyRequest(
@@ -90,12 +92,11 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
       return undefined
     }
 
-    // At minimum there needs to be sub.domain.tld.
-    const host = request.headers.host
-    const parts = host && host.split(".")
-    if (!parts || parts.length < 3) {
-      return undefined
-    }
+    // Split into parts.
+    const host = request.headers.host || ""
+    const idx = host.indexOf(":")
+    const domain = idx !== -1 ? host.substring(0, idx) : host
+    const parts = domain.split(".")
 
     // There must be an exact match.
     const port = parts.shift()
