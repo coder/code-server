@@ -20,7 +20,7 @@ export class SshProvider extends HttpProvider {
     this.sshServer = new ssh.Server({ hostKeys: [hostKey] }, this.handleSsh)
 
     this.sshServer.on("error", (err) => {
-      logger.error(`SSH server error: ${err.stack}`)
+      logger.trace(`SSH server error: ${err.stack}`)
     })
   }
 

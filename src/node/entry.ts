@@ -73,7 +73,11 @@ const main = async (args: Args): Promise<void> => {
   let sshPort = ""
   if (!args["disable-ssh"] && options.sshHostKey) {
     const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
-    sshPort = await sshProvider.listen()
+    try {
+      sshPort = await sshProvider.listen()
+    } catch (error) {
+      logger.warn(`SSH server: ${error.message}`)
+    }
   }
 
   const serverAddress = await httpServer.listen()
