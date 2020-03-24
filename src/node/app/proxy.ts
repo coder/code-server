@@ -1,3 +1,4 @@
+import { logger } from "@coder/logger"
 import * as http from "http"
 import proxy from "http-proxy"
 import * as net from "net"
@@ -21,6 +22,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
   public constructor(options: HttpProviderOptions, proxyDomains: string[] = []) {
     super(options)
     this.proxyDomains = proxyDomains.map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
+    this.proxy.on("error", (error) => logger.warn(error.message))
   }
 
   public async handleRequest(
