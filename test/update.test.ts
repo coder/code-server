@@ -222,4 +222,23 @@ describe("update", () => {
     const archiveName = await p.getReleaseName(update)
     assert.deepEqual(spy, ["/latest", `/download/${version}/${archiveName}`, `/download/${version}/${archiveName}`])
   })
+
+  it("should not reject if unable to fetch", async () => {
+    const options = {
+      auth: AuthType.None,
+      base: "/update",
+      commit: "test",
+    }
+    let provider = new UpdateHttpProvider(options, true, "invalid", "invalid", settings)
+    await assert.doesNotReject(() => provider.getUpdate(true))
+
+    provider = new UpdateHttpProvider(
+      options,
+      true,
+      "http://probably.invalid.dev.localhost/latest",
+      "http://probably.invalid.dev.localhost/download",
+      settings,
+    )
+    await assert.doesNotReject(() => provider.getUpdate(true))
+  })
 })

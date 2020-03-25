@@ -341,7 +341,7 @@ export class UpdateHttpProvider extends HttpProvider {
       const request = (uri: string): void => {
         logger.debug("Making request", field("uri", uri))
         const httpx = uri.startsWith("https") ? https : http
-        httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
+        const client = httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
           if (
             response.statusCode &&
             response.statusCode >= 300 &&
@@ -362,6 +362,7 @@ export class UpdateHttpProvider extends HttpProvider {
 
           resolve(response)
         })
+        client.on("error", reject)
       }
       request(uri)
     })
