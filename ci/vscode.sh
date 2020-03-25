@@ -16,9 +16,6 @@ main() {
     cd lib/vscode
     # Install VS Code dependencies.
     yarn
-
-    # NODE_MODULE_VERSION mismatch errors without this.
-    npm rebuild
   )
 }
 
