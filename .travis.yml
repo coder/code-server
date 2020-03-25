@@ -9,12 +9,12 @@ jobs:
     - name: Linux Release
       if: tag IS present
       script:
-        - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+        - travis_wait 60 ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh && ./ci/build-test.sh"
         - ./ci/release-image/push.sh
     - name: Linux ARM64 Release
       if: tag IS present
       script:
-        - ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh"
+        - ./ci/image/run.sh "yarn && yarn vscode && ci/release.sh && ./ci/build-test.sh"
         - ./ci/release-image/push.sh
       arch: arm64
     - name: MacOS Release
@@ -22,7 +22,7 @@ jobs:
       os: osx
       language: node_js
       node_js: 12
-      script: yarn && yarn vscode && travis_wait 60 ci/release.sh
+      script: yarn && yarn vscode && travis_wait 60 ci/release.sh && ./ci/build-test.sh
 
 before_deploy:
   - echo "$JSON_KEY" | base64 --decode > ./ci/key.json
