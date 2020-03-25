@@ -50,7 +50,7 @@
       </div>
     </div>
   </body>
-  <script src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
+  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
   <script>
     const parts = window.location.pathname.replace(/^\//g, "").split("/")
     parts[parts.length - 1] = "{{BASE}}"
