@@ -952,10 +952,10 @@
     "@types/node" "*"
     "@types/ssh2-streams" "*"
 
-"@types/tar-fs@^1.16.1":
-  version "1.16.2"
-  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-1.16.2.tgz#6f5acea15d3b7777b8bf3f1c6d4e80ce71288f34"
-  integrity sha512-eds/pbRf0Fe0EKmrHDbs8mRkfbjz2upAdoUfREw14dPboZaHqqZ1Y+uVeoakoPavpZMpj22nhUTAYkX5bz3DXA==
+"@types/tar-fs@^1.16.2":
+  version "1.16.3"
+  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-1.16.3.tgz#425b2b817c405d13d051f36ec6ec6ebd25e31069"
+  integrity sha512-Y+fdeg11tb9J3UNIatNtrTPM1i8U+WLv2mMhZ3W13mtU19stCgrXJ4iXLkTpoF8jqHi3T/qTS8+fQ3IPzXxpuA==
   dependencies:
     "@types/node" "*"
     "@types/tar-stream" "*"

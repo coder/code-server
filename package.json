@@ -26,7 +26,6 @@
     "@types/tar-fs": "^1.16.2",
     "@types/ssh2": "0.5.39",
     "@types/ssh2-streams": "^0.1.6",
-    "@types/tar-fs": "^1.16.1",
     "@types/tar-stream": "^1.6.1",
     "@types/ws": "^6.0.4",
     "@typescript-eslint/eslint-plugin": "^2.0.0",
