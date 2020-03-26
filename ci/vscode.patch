@@ -21,6 +21,33 @@ index 7808166004..1e16cde724 100644
 +disturl "http://nodejs.org/dist"
 +target "12.4.0"
 +runtime "node"
+diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
+index 7a2320d828..5768890636 100644
+--- a/build/npm/postinstall.js
++++ b/build/npm/postinstall.js
+@@ -33,9 +33,9 @@ function yarnInstall(location, opts) {
+ 
+ yarnInstall('extensions'); // node modules shared by all extensions
+ 
+-yarnInstall('remote'); // node modules used by vscode server
++// yarnInstall('remote'); // node modules used by vscode server
+ 
+-yarnInstall('remote/web'); // node modules used by vscode web
++// yarnInstall('remote/web'); // node modules used by vscode web
+ 
+ const allExtensionFolders = fs.readdirSync('extensions');
+ const extensions = allExtensionFolders.filter(e => {
+@@ -68,7 +68,7 @@ runtime "${runtime}"`;
+ }
+ 
+ yarnInstall(`build`); // node modules required for build
+-yarnInstall('test/automation'); // node modules required for smoketest
+-yarnInstall('test/smoke'); // node modules required for smoketest
+-yarnInstall('test/integration/browser'); // node modules required for integration
++// yarnInstall('test/automation'); // node modules required for smoketest
++// yarnInstall('test/smoke'); // node modules required for smoketest
++// yarnInstall('test/integration/browser'); // node modules required for integration
+ yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
 diff --git a/coder.js b/coder.js
 new file mode 100644
 index 0000000000..6aee0e46bc
