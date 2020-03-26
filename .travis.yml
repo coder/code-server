@@ -47,6 +47,8 @@ deploy:
     local_dir: release-upload
     on:
       tags: true
+      # TODO: The gcs provider fails to install on arm64.
+      condition: $TRAVIS_CPU_ARCH = amd64
 
 cache:
   timeout: 600

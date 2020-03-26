@@ -17,7 +17,7 @@ function package() {
   fi
 
   local arch
-  arch="$(uname -m)"
+  arch=$(uname -m | sed 's/aarch/arm/')
 
   echo -n "Creating release..."
 
