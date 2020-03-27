@@ -4,7 +4,7 @@ jobs:
   include:
     - name: Test
       if: tag IS blank
-      script: ./ci/image/run.sh "yarn && GITHUB_TOKEN=3229b0eec0a1622d6d1d1e00fca5b626070f5a10 yarn vscode && ./ci/ci.sh"
+      script: ./ci/image/run.sh "yarn && git submodule update --init && yarn vscode:patch && ./ci/ci.sh"
       deploy: null
     - name: Linux Release
       if: tag IS present
