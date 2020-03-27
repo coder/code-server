@@ -100,4 +100,11 @@
   <script>
     require(["vs/code/browser/workbench/workbench"], function() {})
   </script>
+  <script>
+    try {
+      document.body.style.background = JSON.parse(localStorage.getItem("colorThemeData")).colorMap["editor.background"]
+    } catch (error) {
+      // Oh well.
+    }
+  </script>
 </html>
