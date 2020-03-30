@@ -24,11 +24,11 @@ export class SshProvider extends HttpProvider {
     })
   }
 
-  public async listen(): Promise<string> {
+  public async listen(): Promise<number> {
     return new Promise((resolve, reject) => {
       this.sshServer.once("error", reject)
       this.sshServer.listen(() => {
-        resolve(this.sshServer.address().port.toString())
+        resolve(this.sshServer.address().port)
       })
     })
   }

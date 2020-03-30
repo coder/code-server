@@ -14,6 +14,13 @@ import { SshProvider } from "./ssh/server"
 import { generateCertificate, generatePassword, generateSshHostKey, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
+process.on("uncaughtException", (error) => {
+  logger.error(`Uncaught exception: ${error.message}`)
+  if (typeof error.stack !== "undefined") {
+    logger.error(error.stack)
+  }
+})
+
 let pkg: { version?: string; commit?: string } = {}
 try {
   pkg = require("../../package.json")
@@ -73,7 +80,7 @@ const main = async (args: Args): Promise<void> => {
 
   logger.info(`code-server ${version} ${commit}`)
 
-  let sshPort = ""
+  let sshPort: number | undefined
   if (!args["disable-ssh"] && options.sshHostKey) {
     const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
     try {
@@ -84,7 +91,7 @@ const main = async (args: Args): Promise<void> => {
   }
 
   const serverAddress = await httpServer.listen()
-  logger.info(`Server listening on ${serverAddress}`)
+  logger.info(`HTTP server listening on ${serverAddress}`)
 
   if (auth === AuthType.Password && !process.env.PASSWORD) {
     logger.info(`  - Password is ${originalPassword}`)
@@ -108,19 +115,19 @@ const main = async (args: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  logger.info(`  - Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
+  logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
 
-  if (sshPort) {
-    logger.info(`  - SSH Server - Listening :${sshPort}`)
+  if (typeof sshPort !== "undefined") {
+    logger.info(`SSH server listening on localhost:${sshPort}`)
   } else {
-    logger.info("  - SSH Server - Disabled")
+    logger.info("SSH server disabled")
   }
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
     const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost")
     await open(openAddress).catch(console.error)
-    logger.info(`  - Opened ${openAddress}`)
+    logger.info(`Opened ${openAddress}`)
   }
 }
 
