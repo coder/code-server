@@ -98,8 +98,8 @@ const options: Options<Required<Args>> = {
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
 
-  "disable-ssh": { type: "boolean" },
-  "ssh-host-key": { type: "string", path: true },
+  "disable-ssh": { type: "boolean", description: "Disable the SSH server." },
+  "ssh-host-key": { type: "string", path: true, description: "SSH server host key." },
 
   "user-data-dir": { type: "string", path: true, description: "Path to the user data directory." },
   "extensions-dir": { type: "string", path: true, description: "Path to the extensions directory." },
