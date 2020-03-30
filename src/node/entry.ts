@@ -14,16 +14,19 @@ import { SshProvider } from "./ssh/server"
 import { generateCertificate, generatePassword, generateSshHostKey, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
+let pkg: { version?: string; commit?: string } = {}
+try {
+  pkg = require("../../package.json")
+} catch (error) {
+  logger.warn(error.message)
+}
+
+const version = pkg.version || "development"
+const commit = pkg.commit || "development"
+
 const main = async (args: Args): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
-
-  let commit: string | undefined
-  try {
-    commit = require("../../package.json").commit
-  } catch (error) {
-    logger.warn(error.message)
-  }
 
   // Spawn the main HTTP server.
   const options = {
@@ -31,7 +34,7 @@ const main = async (args: Args): Promise<void> => {
     cert: args.cert ? args.cert.value : undefined,
     certKey: args["cert-key"],
     sshHostKey: args["ssh-host-key"],
-    commit: commit || "development",
+    commit,
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
@@ -68,7 +71,7 @@ const main = async (args: Args): Promise<void> => {
 
   ipcMain().onDispose(() => httpServer.dispose())
 
-  logger.info(`code-server ${require("../../package.json").version}`)
+  logger.info(`code-server ${version} ${commit}`)
 
   let sshPort = ""
   if (!args["disable-ssh"] && options.sshHostKey) {
@@ -132,7 +135,7 @@ const tryParse = (): Args => {
 
 const args = tryParse()
 if (args.help) {
-  console.log("code-server", require("../../package.json").version)
+  console.log("code-server", version, commit)
   console.log("")
   console.log(`Usage: code-server [options] [path]`)
   console.log("")
@@ -141,14 +144,14 @@ if (args.help) {
     console.log("", description)
   })
 } else if (args.version) {
-  const version = require("../../package.json").version
   if (args.json) {
     console.log({
       codeServer: version,
+      commit,
       vscode: require("../../lib/vscode/package.json").version,
     })
   } else {
-    console.log(version)
+    console.log(version, commit)
   }
   process.exit(0)
 } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
