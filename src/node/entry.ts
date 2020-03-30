@@ -79,17 +79,6 @@ const main = async (args: Args): Promise<void> => {
   ipcMain().onDispose(() => httpServer.dispose())
 
   logger.info(`code-server ${version} ${commit}`)
-
-  let sshPort: number | undefined
-  if (!args["disable-ssh"] && options.sshHostKey) {
-    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
-    try {
-      sshPort = await sshProvider.listen()
-    } catch (error) {
-      logger.warn(`SSH server: ${error.message}`)
-    }
-  }
-
   const serverAddress = await httpServer.listen()
   logger.info(`HTTP server listening on ${serverAddress}`)
 
@@ -116,6 +105,16 @@ const main = async (args: Args): Promise<void> => {
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
+
+  let sshPort: number | undefined
+  if (!args["disable-ssh"] && options.sshHostKey) {
+    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, options.sshHostKey as string)
+    try {
+      sshPort = await sshProvider.listen()
+    } catch (error) {
+      logger.warn(`SSH server: ${error.message}`)
+    }
+  }
 
   if (typeof sshPort !== "undefined") {
     logger.info(`SSH server listening on localhost:${sshPort}`)
