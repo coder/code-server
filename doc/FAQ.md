@@ -66,10 +66,12 @@ You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
 
 ## How do I access web services?
+
 code-server is capable of proxying to any port using either a subdomain or a
 subpath.
 
 ### Sub-domains
+
 Set up a wildcard certificate for your domain and a wildcard DNS entry (or you
 can configure each subdomain individually for the ports you expect to use).
 
@@ -83,6 +85,7 @@ Now you can browse to `<port>.coder.com`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
 
 ### Sub-paths
+
 Just browse to `/proxy/<port>/`.
 
 ## x86 releases?

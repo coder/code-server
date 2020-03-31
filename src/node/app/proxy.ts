@@ -2,6 +2,7 @@ import { logger } from "@coder/logger"
 import * as http from "http"
 import proxy from "http-proxy"
 import * as net from "net"
+import * as querystring from "querystring"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpProxyProvider, HttpResponse, Route } from "../http"
 
@@ -47,7 +48,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
       }
     }
 
-    const payload = this.doProxy(route.requestPath, request, response, base)
+    const payload = this.doProxy(route.requestPath, route.query, request, response, base)
     if (payload) {
       return payload
     }
@@ -62,7 +63,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     head: Buffer,
   ): Promise<void> {
     this.ensureAuthenticated(request)
-    this.doProxy(route.requestPath, request, socket, head, route.base.replace(/^\//, ""))
+    this.doProxy(route.requestPath, route.query, request, socket, head, route.base.replace(/^\//, ""))
   }
 
   public getCookieDomain(host: string): string {
@@ -83,7 +84,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     response: http.ServerResponse,
   ): HttpResponse | undefined {
     const port = this.getPort(request)
-    return port ? this.doProxy(route.fullPath, request, response, port) : undefined
+    return port ? this.doProxy(route.fullPath, route.query, request, response, port) : undefined
   }
 
   public maybeProxyWebSocket(
@@ -93,7 +94,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     head: Buffer,
   ): HttpResponse | undefined {
     const port = this.getPort(request)
-    return port ? this.doProxy(route.fullPath, request, socket, head, port) : undefined
+    return port ? this.doProxy(route.fullPath, route.query, request, socket, head, port) : undefined
   }
 
   private getPort(request: http.IncomingMessage): string | undefined {
@@ -121,12 +122,14 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
 
   private doProxy(
     path: string,
+    query: querystring.ParsedUrlQuery,
     request: http.IncomingMessage,
     response: http.ServerResponse,
     portStr: string,
   ): HttpResponse
   private doProxy(
     path: string,
+    query: querystring.ParsedUrlQuery,
     request: http.IncomingMessage,
     socket: net.Socket,
     head: Buffer,
@@ -134,6 +137,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
   ): HttpResponse
   private doProxy(
     path: string,
+    query: querystring.ParsedUrlQuery,
     request: http.IncomingMessage,
     responseOrSocket: http.ServerResponse | net.Socket,
     headOrPortStr: Buffer | string,
@@ -159,7 +163,9 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
       autoRewrite: true,
       changeOrigin: true,
       ignorePath: true,
-      target: `http://127.0.0.1:${port}${path}`,
+      target: `http://127.0.0.1:${port}${path}${
+        Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : ""
+      }`,
     }
 
     if (responseOrSocket instanceof net.Socket) {
