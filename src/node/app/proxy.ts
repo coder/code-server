@@ -6,6 +6,10 @@ import * as querystring from "querystring"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpProxyProvider, HttpResponse, Route } from "../http"
 
+interface Request extends http.IncomingMessage {
+  base?: string
+}
+
 /**
  * Proxy HTTP provider.
  */
@@ -24,6 +28,12 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     super(options)
     this.proxyDomains = proxyDomains.map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
     this.proxy.on("error", (error) => logger.warn(error.message))
+    // Intercept the response to rewrite absolute redirects against the base path.
+    this.proxy.on("proxyRes", (response, request: Request) => {
+      if (response.headers.location && response.headers.location.startsWith("/") && request.base) {
+        response.headers.location = request.base + response.headers.location
+      }
+    })
   }
 
   public async handleRequest(
@@ -41,14 +51,15 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     }
 
     // Ensure there is a trailing slash so relative paths work correctly.
-    const base = route.base.replace(/^\//, "")
-    if (isRoot && !route.originalPath.endsWith("/")) {
+    const port = route.base.replace(/^\//, "")
+    const base = `${this.options.base}/${port}`
+    if (isRoot && !route.fullPath.endsWith("/")) {
       return {
-        redirect: `/proxy/${base}/`,
+        redirect: `${base}/`,
       }
     }
 
-    const payload = this.doProxy(route.requestPath, route.query, request, response, base)
+    const payload = this.doProxy(route, request, response, port, base)
     if (payload) {
       return payload
     }
@@ -63,7 +74,9 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     head: Buffer,
   ): Promise<void> {
     this.ensureAuthenticated(request)
-    this.doProxy(route.requestPath, route.query, request, socket, head, route.base.replace(/^\//, ""))
+    const port = route.base.replace(/^\//, "")
+    const base = `${this.options.base}/${port}`
+    this.doProxy(route, request, { socket, head }, port, base)
   }
 
   public getCookieDomain(host: string): string {
@@ -84,7 +97,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     response: http.ServerResponse,
   ): HttpResponse | undefined {
     const port = this.getPort(request)
-    return port ? this.doProxy(route.fullPath, route.query, request, response, port) : undefined
+    return port ? this.doProxy(route, request, response, port) : undefined
   }
 
   public maybeProxyWebSocket(
@@ -94,7 +107,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     head: Buffer,
   ): HttpResponse | undefined {
     const port = this.getPort(request)
-    return port ? this.doProxy(route.fullPath, route.query, request, socket, head, port) : undefined
+    return port ? this.doProxy(route, request, { socket, head }, port) : undefined
   }
 
   private getPort(request: http.IncomingMessage): string | undefined {
@@ -121,57 +134,55 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
   }
 
   private doProxy(
-    path: string,
-    query: querystring.ParsedUrlQuery,
+    route: Route,
     request: http.IncomingMessage,
     response: http.ServerResponse,
     portStr: string,
+    base?: string,
   ): HttpResponse
   private doProxy(
-    path: string,
-    query: querystring.ParsedUrlQuery,
+    route: Route,
     request: http.IncomingMessage,
-    socket: net.Socket,
-    head: Buffer,
+    response: { socket: net.Socket; head: Buffer },
     portStr: string,
+    base?: string,
   ): HttpResponse
   private doProxy(
-    path: string,
-    query: querystring.ParsedUrlQuery,
+    route: Route,
     request: http.IncomingMessage,
-    responseOrSocket: http.ServerResponse | net.Socket,
-    headOrPortStr: Buffer | string,
-    portStr?: string,
+    response: http.ServerResponse | { socket: net.Socket; head: Buffer },
+    portStr: string,
+    base?: string,
   ): HttpResponse {
-    const _portStr = typeof headOrPortStr === "string" ? headOrPortStr : portStr
-    if (!_portStr) {
-      return {
-        code: HttpCode.BadRequest,
-        content: "Port must be provided",
-      }
-    }
-
-    const port = parseInt(_portStr, 10)
+    const port = parseInt(portStr, 10)
     if (isNaN(port)) {
       return {
         code: HttpCode.BadRequest,
-        content: `"${_portStr}" is not a valid number`,
+        content: `"${portStr}" is not a valid number`,
       }
     }
 
+    // REVIEW: Absolute redirects need to be based on the subpath but I'm not
+    // sure how best to get this information to the `proxyRes` event handler.
+    // For now I'm sticking it on the request object which is passed through to
+    // the event.
+    ;(request as Request).base = base
+
+    const hxxp = response instanceof http.ServerResponse
+    const path = base ? route.fullPath.replace(base, "") : route.fullPath
     const options: proxy.ServerOptions = {
-      autoRewrite: true,
       changeOrigin: true,
       ignorePath: true,
-      target: `http://127.0.0.1:${port}${path}${
-        Object.keys(query).length > 0 ? `?${querystring.stringify(query)}` : ""
+      target: `${hxxp ? "http" : "ws"}://127.0.0.1:${port}${path}${
+        Object.keys(route.query).length > 0 ? `?${querystring.stringify(route.query)}` : ""
       }`,
+      ws: !hxxp,
     }
 
-    if (responseOrSocket instanceof net.Socket) {
-      this.proxy.ws(request, responseOrSocket, headOrPortStr, options)
+    if (response instanceof http.ServerResponse) {
+      this.proxy.web(request, response, options)
     } else {
-      this.proxy.web(request, responseOrSocket, options)
+      this.proxy.ws(request, response.socket, response.head, options)
     }
 
     return { handled: true }

@@ -596,7 +596,7 @@ export class HttpServer {
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
                 domain ? `Domain=${(this.proxy && this.proxy.getCookieDomain(domain)) || domain}` : undefined,
                 // "HttpOnly",
-                "SameSite=strict",
+                "SameSite=lax",
               ]
                 .filter((l) => !!l)
                 .join(";"),
@@ -633,9 +633,11 @@ export class HttpServer {
       if (error.code === "ENOENT" || error.code === "EISDIR") {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
-      logger.debug("Request error", field("url", request.url))
-      logger.debug(error.stack)
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
+      logger.debug("Request error", field("url", request.url), field("code", code))
+      if (code >= HttpCode.ServerError) {
+        logger.error(error.stack)
+      }
       const payload = await route.provider.getErrorRoot(route, code, code, e.message)
       write({
         code,
