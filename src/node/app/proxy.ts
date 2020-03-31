@@ -30,15 +30,24 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     request: http.IncomingMessage,
     response: http.ServerResponse,
   ): Promise<HttpResponse> {
+    const isRoot = !route.requestPath || route.requestPath === "/index.html"
     if (!this.authenticated(request)) {
       // Only redirect from the root. Other requests get an unauthorized error.
-      if (route.requestPath && route.requestPath !== "/index.html") {
-        throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+      if (isRoot) {
+        return { redirect: "/login", query: { to: route.fullPath } }
       }
-      return { redirect: "/login", query: { to: route.fullPath } }
+      throw new HttpError("Unauthorized", HttpCode.Unauthorized)
     }
 
-    const payload = this.doProxy(route.requestPath, request, response, route.base.replace(/^\//, ""))
+    // Ensure there is a trailing slash so relative paths work correctly.
+    const base = route.base.replace(/^\//, "")
+    if (isRoot && !route.originalPath.endsWith("/")) {
+      return {
+        redirect: `/proxy/${base}/`,
+      }
+    }
+
+    const payload = this.doProxy(route.requestPath, request, response, base)
     if (payload) {
       return payload
     }

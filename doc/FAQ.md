@@ -83,7 +83,7 @@ Now you can browse to `<port>.coder.com`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
 
 ### Sub-paths
-Just browse to `/proxy/<port>`.
+Just browse to `/proxy/<port>/`.
 
 ## x86 releases?
 
