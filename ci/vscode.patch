@@ -157,7 +157,7 @@ index 2d8b725ff2..a8d93a17ca 100644
  unique-stream@^2.0.2:
    version "2.2.1"
 diff --git a/package.json b/package.json
-index 6e9b9dc0a0..49b14e536a 100644
+index 29d3cb6677..d3788cb1ab 100644
 --- a/package.json
 +++ b/package.json
 @@ -33,6 +33,9 @@
