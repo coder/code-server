@@ -18,8 +18,7 @@ interface LoginPayload {
  */
 export class LoginHttpProvider extends HttpProvider {
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    // Only serve root pages and only if password authentication is enabled.
-    if (this.options.auth !== AuthType.Password || (route.requestPath && route.requestPath !== "/index.html")) {
+    if (this.options.auth !== AuthType.Password || !this.isRoot(route)) {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
     switch (route.base) {

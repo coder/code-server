@@ -359,6 +359,14 @@ export abstract class HttpProvider {
     }
     return cookies as T
   }
+
+  /**
+   * Return true if the route is for the root page. For example /base, /base/,
+   * or /base/index.html but not /base/path or /base/file.js.
+   */
+  protected isRoot(route: Route): boolean {
+    return !route.requestPath || route.requestPath === "/index.html"
+  }
 }
 
 /**
