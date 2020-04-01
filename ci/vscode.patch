@@ -248,7 +248,7 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 45f6f17ce0..79fde0b92c 100644
+index 45f6f17ce0..4d1a590a7c 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -246,12 +246,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
@@ -272,7 +272,26 @@ index 45f6f17ce0..79fde0b92c 100644
  		}
  
  		// Append payload if any
-@@ -302,35 +308,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -290,6 +296,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
+ 
+ 	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
+ 
++	// Strip the protocol from the authority if it exists.
++	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, "");
++	if (config.remoteAuthority) {
++		(config as any).remoteAuthority = normalizeAuthority(config.remoteAuthority);
++	}
++	if (config.workspaceUri) {
++		config.workspaceUri.authority = normalizeAuthority(config.workspaceUri.authority);
++	}
++	if (config.folderUri) {
++		config.folderUri.authority = normalizeAuthority(config.folderUri.authority);
++	}
++
+ 	// Revive static extension locations
+ 	if (Array.isArray(config.staticExtensions)) {
+ 		config.staticExtensions.forEach(extension => {
+@@ -302,35 +320,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
  	let workspace: IWorkspace;
  	let payload = Object.create(null);
  
