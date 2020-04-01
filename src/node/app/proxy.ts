@@ -168,15 +168,15 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     // the event.
     ;(request as Request).base = base
 
-    const hxxp = response instanceof http.ServerResponse
+    const isHttp = response instanceof http.ServerResponse
     const path = base ? route.fullPath.replace(base, "") : route.fullPath
     const options: proxy.ServerOptions = {
       changeOrigin: true,
       ignorePath: true,
-      target: `${hxxp ? "http" : "ws"}://127.0.0.1:${port}${path}${
+      target: `${isHttp ? "http" : "ws"}://127.0.0.1:${port}${path}${
         Object.keys(route.query).length > 0 ? `?${querystring.stringify(route.query)}` : ""
       }`,
-      ws: !hxxp,
+      ws: !isHttp,
     }
 
     if (response instanceof http.ServerResponse) {
