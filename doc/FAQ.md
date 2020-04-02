@@ -65,23 +65,29 @@ only to HTTP requests.
 You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
 
-## How do I access web services?
+## How do I securely access web services?
 
 code-server is capable of proxying to any port using either a subdomain or a
-subpath.
+subpath which means you can securely access these services using code-server's
+built-in authentication.
 
 ### Sub-domains
 
-Set up a wildcard certificate for your domain and a wildcard DNS entry (or you
-can configure each subdomain individually for the ports you expect to use).
+You will need a DNS entry that points to your server for each port you want to
+access. You can either set up a wildcard DNS entry for `*.<domain>` if your domain
+name registrar supports it or you can create one for every port you want to
+access (`3000.<domain>`, `8080.<domain>`, etc).
+
+You should also set up TLS certificates for these subdomains, either using a
+wildcard certificate for `*.<domain>` or individual certificates for each port.
 
 Start code-server with the `--proxy-domain` flag set to your domain.
 
 ```
-code-server --proxy-domain coder.com
+code-server --proxy-domain <domain>
 ```
 
-Now you can browse to `<port>.coder.com`. Note that this uses the host header so
+Now you can browse to `<port>.<domain>`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
 
 ### Sub-paths
