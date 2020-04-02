@@ -49,14 +49,14 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     }
 
     // Ensure there is a trailing slash so relative paths work correctly.
-    const port = route.base.replace(/^\//, "")
-    const base = `${this.options.base}/${port}`
     if (this.isRoot(route) && !route.fullPath.endsWith("/")) {
       return {
-        redirect: `${base}/`,
+        redirect: `${route.fullPath}/`,
       }
     }
 
+    const port = route.base.replace(/^\//, "")
+    const base = `${this.options.base}/${port}`
     const payload = this.doProxy(route, request, response, port, base)
     if (payload) {
       return payload
