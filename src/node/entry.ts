@@ -43,6 +43,7 @@ const main = async (args: Args): Promise<void> => {
     host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
     port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
+    proxyDomains: args["proxy-domain"],
     socket: args.socket,
     ...(args.cert && !args.cert.value
       ? await generateCertificate()
@@ -60,11 +61,10 @@ const main = async (args: Args): Promise<void> => {
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
-  const proxy = httpServer.registerHttpProvider("/proxy", ProxyHttpProvider, args["proxy-domain"])
+  httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)
-  httpServer.registerProxy(proxy)
 
   ipcMain().onDispose(() => httpServer.dispose())
 
@@ -94,9 +94,9 @@ const main = async (args: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (proxy.proxyDomains.size > 0) {
-    logger.info(`  - Proxying the following domain${proxy.proxyDomains.size === 1 ? "" : "s"}:`)
-    proxy.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
+  if (httpServer.proxyDomains.size > 0) {
+    logger.info(`  - Proxying the following domain${httpServer.proxyDomains.size === 1 ? "" : "s"}:`)
+    httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
