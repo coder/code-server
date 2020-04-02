@@ -512,7 +512,7 @@ index eab8591492..26668701f7 100644
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..a27a6f3a45
+index 0000000000..4f8543d975
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
 @@ -0,0 +1,266 @@
@@ -692,7 +692,7 @@ index 0000000000..a27a6f3a45
 +			headers: { "content-type": "application/json" },
 +		});
 +		if (response.status !== 200) {
-+			throw new Error("Unexpected response");
++			throw new Error(response.statusText);
 +		}
 +
 +		const json = await response.json();
