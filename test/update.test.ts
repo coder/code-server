@@ -214,13 +214,18 @@ describe("update", () => {
     await p.downloadAndApplyUpdate(update, destination)
     assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
 
-    // Should still work if there is no existing version somehow.
-    await fs.remove(destination)
-    await p.downloadAndApplyUpdate(update, destination)
-    assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
+    // There should be a backup.
+    const dir = (await fs.readdir(path.join(tmpdir, "tests/updates"))).filter((dir) => {
+      return dir.startsWith("code-server.")
+    })
+    assert.equal(dir.length, 1)
+    assert.equal(
+      `console.log("OLD")`,
+      await fs.readFile(path.join(tmpdir, "tests/updates", dir[0], "code-server"), "utf8"),
+    )
 
     const archiveName = await p.getReleaseName(update)
-    assert.deepEqual(spy, ["/latest", `/download/${version}/${archiveName}`, `/download/${version}/${archiveName}`])
+    assert.deepEqual(spy, ["/latest", `/download/${version}/${archiveName}`])
   })
 
   it("should not reject if unable to fetch", async () => {
