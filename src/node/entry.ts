@@ -94,10 +94,8 @@ const main = async (args: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (proxy.proxyDomains.length === 1) {
-    logger.info(`  - Proxying *.${proxy.proxyDomains[0]}`)
-  } else if (proxy.proxyDomains.length > 1) {
-    logger.info("  - Proxying the following domains:")
+  if (proxy.proxyDomains.size > 0) {
+    logger.info(`  - Proxying the following domain${proxy.proxyDomains.size === 1 ? "" : "s"}:`)
     proxy.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 

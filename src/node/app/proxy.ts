@@ -17,7 +17,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
   /**
    * Proxy domains are stored here without the leading `*.`
    */
-  public readonly proxyDomains: string[]
+  public readonly proxyDomains: Set<string>
   private readonly proxy = proxy.createProxyServer({})
 
   /**
@@ -26,7 +26,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
    */
   public constructor(options: HttpProviderOptions, proxyDomains: string[] = []) {
     super(options)
-    this.proxyDomains = proxyDomains.map((d) => d.replace(/^\*\./, "")).filter((d, i, arr) => arr.indexOf(d) === i)
+    this.proxyDomains = new Set(proxyDomains.map((d) => d.replace(/^\*\./, "")))
     this.proxy.on("error", (error) => logger.warn(error.message))
     // Intercept the response to rewrite absolute redirects against the base path.
     this.proxy.on("proxyRes", (response, request: Request) => {
@@ -124,7 +124,7 @@ export class ProxyHttpProvider extends HttpProvider implements HttpProxyProvider
     // There must be an exact match.
     const port = parts.shift()
     const proxyDomain = parts.join(".")
-    if (!port || !this.proxyDomains.includes(proxyDomain)) {
+    if (!port || !this.proxyDomains.has(proxyDomain)) {
       return undefined
     }
 
