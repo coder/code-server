@@ -19,7 +19,7 @@ As a result, Coder has created its own marketplace for open source extensions. I
 GitHub for VS Code extensions and building them. It's not perfect but getting better by the day with
 more and more extensions.
 
-Issue [https://github.com/cdr/code-server/issues/1299](#1299) is a big one in making the experience here
+Issue [#1299](https://github.com/cdr/code-server/issues/1299) is a big one in making the experience here
 better by allowing the community to submit extensions and repos to avoid waiting until the scraper finds
 an extension.
 
