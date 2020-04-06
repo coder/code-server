@@ -170,6 +170,19 @@ index 29d3cb6677..d3788cb1ab 100644
      "applicationinsights": "1.0.8",
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
+diff --git a/product.json b/product.json
+index 759d765533..e1c33a008a 100644
+--- a/product.json
++++ b/product.json
+@@ -18,7 +18,7 @@
+ 	"darwinBundleIdentifier": "com.visualstudio.code.oss",
+ 	"linuxIconName": "com.visualstudio.code.oss",
+ 	"licenseFileName": "LICENSE.txt",
+-	"reportIssueUrl": "https://github.com/Microsoft/vscode/issues/new",
++	"reportIssueUrl": "https://github.com/cdr/code-server/issues/new",
+ 	"urlProtocol": "code-oss",
+ 	"extensionAllowedProposedApi": [
+ 		"ms-vscode.references-view"
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index a68e020f9f..c31e7befa3 100644
 --- a/src/vs/base/common/network.ts
