@@ -261,16 +261,32 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 45f6f17ce0..4d1a590a7c 100644
+index 45f6f17ce0..102289c147 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -16,6 +16,7 @@ import product from 'vs/platform/product/common/product';
+ import { Schemas } from 'vs/base/common/network';
+ import { posix } from 'vs/base/common/path';
+ import { localize } from 'vs/nls';
++import { encodePath } from 'vs/server/node/util';
+ 
+ interface ICredential {
+ 	service: string;
+@@ -237,7 +238,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
+ 	}
+ 
+ 	private createTargetUrl(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): string | undefined {
+-
+ 		// Empty
+ 		let targetHref: string | undefined = undefined;
+ 		if (!workspace) {
 @@ -246,12 +246,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
  
  		// Folder
  		else if (isFolderToOpen(workspace)) {
 -			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${encodeURIComponent(workspace.folderUri.toString())}`;
 +			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
-+				? encodeURIComponent(workspace.folderUri.path).replace(/%2F/g, "/")
++				? encodePath(workspace.folderUri.path)
 +				: encodeURIComponent(workspace.folderUri.toString());
 +			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
  		}
@@ -279,7 +295,7 @@ index 45f6f17ce0..4d1a590a7c 100644
  		else if (isWorkspaceToOpen(workspace)) {
 -			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${encodeURIComponent(workspace.workspaceUri.toString())}`;
 +			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
-+				? encodeURIComponent(workspace.workspaceUri.path).replace(/%2F/g, "/")
++				? encodePath(workspace.workspaceUri.path)
 +				: encodeURIComponent(workspace.workspaceUri.toString());
 +			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
  		}
@@ -290,7 +306,7 @@ index 45f6f17ce0..4d1a590a7c 100644
  	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
  
 +	// Strip the protocol from the authority if it exists.
-+	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, "");
++	const normalizeAuthority = (authority?: string): string => authority && authority.replace(/^https?:\/\//, "");
 +	if (config.remoteAuthority) {
 +		(config as any).remoteAuthority = normalizeAuthority(config.remoteAuthority);
 +	}
@@ -2346,10 +2362,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..d6dcfe1fe7
+index 0000000000..52311bf756
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,257 @@
+@@ -0,0 +1,269 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import { Emitter } from 'vs/base/common/event';
@@ -2429,10 +2445,22 @@ index 0000000000..d6dcfe1fe7
 +		await this.servicesPromise;
 +		const environment = this.services.get(IEnvironmentService) as IEnvironmentService;
 +		const startPath = options.startPath;
++		const parseUrl = (url: string): URI => {
++			// This might be a fully-specified URL or just a path.
++			try {
++				return URI.parse(url, true);
++			} catch (error) {
++				return URI.from({
++					scheme: Schemas.vscodeRemote,
++					authority: options.remoteAuthority,
++					path: url,
++				});
++			}
++		};
 +		return {
 +			workbenchWebConfiguration: {
-+				workspaceUri: startPath && startPath.workspace ? URI.parse(startPath.url) : undefined,
-+				folderUri: startPath && !startPath.workspace ? URI.parse(startPath.url) : undefined,
++				workspaceUri: startPath && startPath.workspace ? parseUrl(startPath.url) : undefined,
++				folderUri: startPath && !startPath.workspace ? parseUrl(startPath.url) : undefined,
 +				remoteAuthority: options.remoteAuthority,
 +				logLevel: getLogLevel(environment),
 +			},
@@ -2639,10 +2667,10 @@ index 0000000000..fc69441cf0
 +};
 diff --git a/src/vs/server/node/util.ts b/src/vs/server/node/util.ts
 new file mode 100644
-index 0000000000..06b080044c
+index 0000000000..dd7fdf7b58
 --- /dev/null
 +++ b/src/vs/server/node/util.ts
-@@ -0,0 +1,9 @@
+@@ -0,0 +1,17 @@
 +import { getPathFromAmdModule } from 'vs/base/common/amd';
 +import { URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
 +
@@ -2651,6 +2679,14 @@ index 0000000000..06b080044c
 +	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
 +	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
 +	return new URITransformer(rawURITransformer);
++};
++
++/**
++ * Encode a path for opening via the folder or workspace query parameter. This
++ * preserves slashes so it can be edited by hand more easily.
++ */
++export const encodePath = (path: string): string => {
++	return path.split("/").map((p) => encodeURIComponent(p)).join("/");
 +};
 diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
 index e69aa80159..71a899d37b 100644

@@ -1,11 +1,9 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as crypto from "crypto"
-import * as fs from "fs-extra"
 import * as http from "http"
 import * as net from "net"
 import * as path from "path"
-import * as url from "url"
 import {
   CodeServerMessage,
   Options,
@@ -168,15 +166,12 @@ export class VscodeHttpProvider extends HttpProvider {
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     const remoteAuthority = request.headers.host as string
     const { lastVisited } = await settings.read()
-    const startPath = await this.getFirstValidPath(
-      [
-        { url: route.query.workspace, workspace: true },
-        { url: route.query.folder, workspace: false },
-        this.args._ && this.args._.length > 0 ? { url: path.resolve(this.args._[this.args._.length - 1]) } : undefined,
-        lastVisited,
-      ],
-      remoteAuthority,
-    )
+    const startPath = await this.getFirstPath([
+      { url: route.query.workspace, workspace: true },
+      { url: route.query.folder, workspace: false },
+      this.args._ && this.args._.length > 0 ? { url: path.resolve(this.args._[this.args._.length - 1]) } : undefined,
+      lastVisited,
+    ])
     const [response, options] = await Promise.all([
       await this.getUtf8Resource(this.rootPath, "src/browser/pages/vscode.html"),
       this.initialize({
@@ -209,41 +204,19 @@ export class VscodeHttpProvider extends HttpProvider {
   }
 
   /**
-   * Choose the first valid path. If `workspace` is undefined then either a
-   * workspace or a directory are acceptable. Otherwise it must be a file if a
-   * workspace or a directory otherwise.
+   * Choose the first non-empty path.
    */
-  private async getFirstValidPath(
+  private async getFirstPath(
     startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>,
-    remoteAuthority: string,
   ): Promise<StartPath | undefined> {
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]
-      if (!startPath) {
-        continue
-      }
-      const paths = typeof startPath.url === "string" ? [startPath.url] : startPath.url || []
-      for (let j = 0; j < paths.length; ++j) {
-        const uri = url.parse(paths[j])
-        try {
-          if (!uri.pathname) {
-            throw new Error(`${paths[j]} is not a valid URL`)
-          }
-          const stat = await fs.stat(uri.pathname)
-          if (typeof startPath.workspace === "undefined" || startPath.workspace !== stat.isDirectory()) {
-            return {
-              url: url.format({
-                protocol: uri.protocol || "vscode-remote",
-                hostname: remoteAuthority.split(":")[0],
-                port: remoteAuthority.split(":")[1],
-                pathname: uri.pathname,
-                slashes: true,
-              }),
-              workspace: !stat.isDirectory(),
-            }
-          }
-        } catch (error) {
-          logger.warn(error.message)
+      const url =
+        startPath && (typeof startPath.url === "string" ? [startPath.url] : startPath.url || []).find((p) => !!p)
+      if (startPath && url) {
+        return {
+          url,
+          workspace: !!startPath.workspace,
         }
       }
     }
