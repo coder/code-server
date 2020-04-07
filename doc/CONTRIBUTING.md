@@ -13,7 +13,11 @@ yarn watch # Visit http://localhost:8080 once completed.
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev-image/exec.sh bash -c 'yarn && yarn vscode && yarn watch'  # Visit http://localhost:8080 once completed.
+./ci/dev-image/exec.sh
+
+root@12345:/code-server# yarn
+root@12345:/code-server# yarn vscode
+root@12345:/code-server# yarn watch
 ```
 
 Any changes made to the source will be live reloaded.

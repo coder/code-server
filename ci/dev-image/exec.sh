@@ -8,21 +8,14 @@ git submodule update --init
 
 container_name=code-server-dev
 
-# Docker build is very verbose even when everything is cached.
-echo "--- Building $container_name"
-cd ../../ && docker build -t $container_name -f ./ci/dev-image/Dockerfile . > /dev/null
+enter() {
+  echo "--- Entering $container_name"
+  docker exec -it $container_id /bin/bash
+}
 
-set +e
-container_id=$(docker container inspect --format="{{.Id}}" $container_name 2>/dev/null)
-
-if [ $? -eq "0" ]; then
-    echo "--- Killing $container_name"
-    docker rm -f $container_name 2>/dev/null
-fi
-set -e
-
-echo "--- Spawning $container_name"
-container_id=$(docker run \
+run() {
+  echo "--- Spawning $container_name"
+  container_id=$(docker run \
     -it \
     --privileged \
     --name $container_name \
@@ -32,19 +25,26 @@ container_id=$(docker run \
     $([[ -t 0 ]] && echo -it || true) \
     -d \
     $container_name)
+}
+
+build() {
+  echo "--- Building $container_name"
+  cd ../../ && docker build -t $container_name -f ./ci/dev-image/Dockerfile . > /dev/null
+}
 
 set +e
+container_id=$(docker container inspect --format="{{.Id}}" $container_name 2> /dev/null)
 
-echo "--- Executing: $@"
+if [ $? -eq "0" ]; then
+  set -e
+  echo "-- Starting container"
+  docker start $container_id > /dev/null
 
-CMD="$@"
+  enter
+  exit 0
+fi
 
-docker exec \
-    $([[ -t 0 ]] && echo -it || true) \
-    $container_id \
-    bash -c "$CMD"
-
-docker exec \
-    $([[ -t 0 ]] && echo -it || true) \
-    $container_id \
-    bash
+set -e
+build
+run
+enter

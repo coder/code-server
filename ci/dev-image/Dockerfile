@@ -4,7 +4,6 @@ RUN apt-get update && apt-get install -y \
     curl \
     iproute2 \
     vim \
-    libgpgme-dev \
     iptables \
     net-tools \
     libsecret-1-dev \
