@@ -10,7 +10,7 @@ container_name=code-server-dev
 
 # Docker build is very verbose even when everything is cached.
 echo "--- Building $container_name"
-docker build -t $container_name -f ./ci/dev.Dockerfile . > /dev/null
+cd ../../ && docker build -t $container_name -f ./ci/dev-image/Dockerfile . > /dev/null
 
 set +e
 container_id=$(docker container inspect --format="{{.Id}}" $container_name 2>/dev/null)
@@ -42,7 +42,7 @@ CMD="$@"
 docker exec \
     $([[ -t 0 ]] && echo -it || true) \
     $container_id \
-    sh -c "$CMD"
+    bash -c "$CMD"
 
 docker exec \
     $([[ -t 0 ]] && echo -it || true) \
