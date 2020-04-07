@@ -261,7 +261,7 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 45f6f17ce0..102289c147 100644
+index 45f6f17ce0..546b4c24de 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -16,6 +16,7 @@ import product from 'vs/platform/product/common/product';
@@ -306,14 +306,14 @@ index 45f6f17ce0..102289c147 100644
  	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
  
 +	// Strip the protocol from the authority if it exists.
-+	const normalizeAuthority = (authority?: string): string => authority && authority.replace(/^https?:\/\//, "");
++	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, "");
 +	if (config.remoteAuthority) {
 +		(config as any).remoteAuthority = normalizeAuthority(config.remoteAuthority);
 +	}
-+	if (config.workspaceUri) {
++	if (config.workspaceUri && config.workspaceUri.authority) {
 +		config.workspaceUri.authority = normalizeAuthority(config.workspaceUri.authority);
 +	}
-+	if (config.folderUri) {
++	if (config.folderUri && config.folderUri.authority) {
 +		config.folderUri.authority = normalizeAuthority(config.folderUri.authority);
 +	}
 +

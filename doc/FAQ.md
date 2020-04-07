@@ -104,6 +104,15 @@ demand and will work on it when the time is right.
 Use the `--disable-telemetry` flag to completely disable telemetry. We use the
 data collected only to improve code-server.
 
+## How does code-server decide what workspace or folder to open?
+
+code-server tries the following in order:
+
+1. The `workspace` query parameter.
+2. The `folder` query parameter.
+3. The directory passed on the command line.
+4. The last opened workspace or folder.
+
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com) for more information about our
