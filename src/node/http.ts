@@ -490,7 +490,10 @@ export class HttpServer {
     } else {
       this.server = http.createServer(this.onRequest)
     }
-    this.proxy.on("error", (error) => logger.warn(error.message))
+    this.proxy.on("error", (error, _request, response) => {
+      response.writeHead(HttpCode.ServerError)
+      response.end(error.message)
+    })
     // Intercept the response to rewrite absolute redirects against the base path.
     this.proxy.on("proxyRes", (response, request: ProxyRequest) => {
       if (response.headers.location && response.headers.location.startsWith("/") && request.base) {
