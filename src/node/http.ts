@@ -1,6 +1,7 @@
 import { field, logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import * as http from "http"
+import proxy from "http-proxy"
 import * as httpolyglot from "httpolyglot"
 import * as https from "https"
 import * as net from "net"
@@ -18,6 +19,10 @@ import { getMediaMime, xdgLocalDir } from "./util"
 export type Cookies = { [key: string]: string[] | undefined }
 export type PostData = { [key: string]: string | string[] | undefined }
 
+interface ProxyRequest extends http.IncomingMessage {
+  base?: string
+}
+
 interface AuthPayload extends Cookies {
   key?: string[]
 }
@@ -28,6 +33,17 @@ export enum AuthType {
 }
 
 export type Query = { [key: string]: string | string[] | undefined }
+
+export interface ProxyOptions {
+  /**
+   * A base path to strip from from the request before proxying if necessary.
+   */
+  base?: string
+  /**
+   * The port to proxy.
+   */
+  port: string
+}
 
 export interface HttpResponse<T = string | Buffer | object> {
   /*
@@ -77,6 +93,17 @@ export interface HttpResponse<T = string | Buffer | object> {
    * `undefined` to remove a query variable.
    */
   query?: Query
+  /**
+   * Indicates the request should be proxied.
+   */
+  proxy?: ProxyOptions
+}
+
+export interface WsResponse {
+  /**
+   * Indicates the web socket should be proxied.
+   */
+  proxy?: ProxyOptions
 }
 
 /**
@@ -100,14 +127,31 @@ export interface HttpServerOptions {
   readonly host?: string
   readonly password?: string
   readonly port?: number
+  readonly proxyDomains?: string[]
   readonly socket?: string
 }
 
 export interface Route {
+  /**
+   * Base path part (in /test/path it would be "/test").
+   */
   base: string
+  /**
+   * Remaining part of the route (in /test/path it would be "/path"). It can be
+   * blank.
+   */
   requestPath: string
+  /**
+   * Query variables included in the request.
+   */
   query: querystring.ParsedUrlQuery
+  /**
+   * Normalized version of `originalPath`.
+   */
   fullPath: string
+  /**
+   * Original path of the request without any modifications.
+   */
   originalPath: string
 }
 
@@ -136,7 +180,9 @@ export abstract class HttpProvider {
   }
 
   /**
-   * Handle web sockets on the registered endpoint.
+   * Handle web sockets on the registered endpoint. Normally the provider
+   * handles the request itself but it can return a response when necessary. The
+   * default is to throw a 404.
    */
   public handleWebSocket(
     /* eslint-disable @typescript-eslint/no-unused-vars */
@@ -145,7 +191,7 @@ export abstract class HttpProvider {
     _socket: net.Socket,
     _head: Buffer,
     /* eslint-enable @typescript-eslint/no-unused-vars */
-  ): Promise<void> {
+  ): Promise<WsResponse | void> {
     throw new HttpError("Not found", HttpCode.NotFound)
   }
 
@@ -264,7 +310,7 @@ export abstract class HttpProvider {
    * Return the provided password value if the payload contains the right
    * password otherwise return false. If no payload is specified use cookies.
    */
-  protected authenticated(request: http.IncomingMessage, payload?: AuthPayload): string | boolean {
+  public authenticated(request: http.IncomingMessage, payload?: AuthPayload): string | boolean {
     switch (this.options.auth) {
       case AuthType.None:
         return true
@@ -334,6 +380,14 @@ export abstract class HttpProvider {
       })
     }
     return cookies as T
+  }
+
+  /**
+   * Return true if the route is for the root page. For example /base, /base/,
+   * or /base/index.html but not /base/path or /base/file.js.
+   */
+  protected isRoot(route: Route): boolean {
+    return !route.requestPath || route.requestPath === "/index.html"
   }
 }
 
@@ -407,7 +461,18 @@ export class HttpServer {
   private readonly heart: Heart
   private readonly socketProvider = new SocketProxyProvider()
 
+  /**
+   * Proxy domains are stored here without the leading `*.`
+   */
+  public readonly proxyDomains: Set<string>
+
+  /**
+   * Provides the actual proxying functionality.
+   */
+  private readonly proxy = proxy.createProxyServer({})
+
   public constructor(private readonly options: HttpServerOptions) {
+    this.proxyDomains = new Set((options.proxyDomains || []).map((d) => d.replace(/^\*\./, "")))
     this.heart = new Heart(path.join(xdgLocalDir, "heartbeat"), async () => {
       const connections = await this.getConnections()
       logger.trace(`${connections} active connection${plural(connections)}`)
@@ -425,6 +490,16 @@ export class HttpServer {
     } else {
       this.server = http.createServer(this.onRequest)
     }
+    this.proxy.on("error", (error, _request, response) => {
+      response.writeHead(HttpCode.ServerError)
+      response.end(error.message)
+    })
+    // Intercept the response to rewrite absolute redirects against the base path.
+    this.proxy.on("proxyRes", (response, request: ProxyRequest) => {
+      if (response.headers.location && response.headers.location.startsWith("/") && request.base) {
+        response.headers.location = request.base + response.headers.location
+      }
+    })
   }
 
   public dispose(): void {
@@ -515,6 +590,9 @@ export class HttpServer {
     this.heart.beat()
     const route = this.parseUrl(request)
     const write = (payload: HttpResponse): void => {
+      const host = request.headers.host || ""
+      const idx = host.indexOf(":")
+      const domain = idx !== -1 ? host.substring(0, idx) : host
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
         ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
@@ -525,9 +603,12 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
+                domain ? `Domain=${this.getCookieDomain(domain)}` : undefined,
                 // "HttpOnly",
-                "SameSite=strict",
-              ].join(";"),
+                "SameSite=lax",
+              ]
+                .filter((l) => !!l)
+                .join(";"),
             }
           : {}),
         ...payload.headers,
@@ -547,20 +628,27 @@ export class HttpServer {
         response.end()
       }
     }
+
     try {
-      const payload = this.maybeRedirect(request, route) || (await route.provider.handleRequest(route, request))
-      if (!payload) {
-        throw new HttpError("Not found", HttpCode.NotFound)
+      const payload =
+        this.maybeRedirect(request, route) ||
+        (route.provider.authenticated(request) && this.maybeProxy(request)) ||
+        (await route.provider.handleRequest(route, request))
+      if (payload.proxy) {
+        this.doProxy(route, request, response, payload.proxy)
+      } else {
+        write(payload)
       }
-      write(payload)
     } catch (error) {
       let e = error
       if (error.code === "ENOENT" || error.code === "EISDIR") {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
-      logger.debug("Request error", field("url", request.url))
-      logger.debug(error.stack)
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
+      logger.debug("Request error", field("url", request.url), field("code", code))
+      if (code >= HttpCode.ServerError) {
+        logger.error(error.stack)
+      }
       const payload = await route.provider.getErrorRoot(route, code, code, e.message)
       write({
         code,
@@ -625,7 +713,14 @@ export class HttpServer {
         throw new HttpError("Not found", HttpCode.NotFound)
       }
 
-      await route.provider.handleWebSocket(route, request, await this.socketProvider.createProxy(socket), head)
+      // The socket proxy is so we can pass them to child processes (TLS sockets
+      // can't be transferred so we need an in-between).
+      const socketProxy = await this.socketProvider.createProxy(socket)
+      const payload =
+        this.maybeProxy(request) || (await route.provider.handleWebSocket(route, request, socketProxy, head))
+      if (payload && payload.proxy) {
+        this.doProxy(route, request, { socket: socketProxy, head }, payload.proxy)
+      }
     } catch (error) {
       socket.destroy(error)
       logger.warn(`discarding socket connection: ${error.message}`)
@@ -647,7 +742,6 @@ export class HttpServer {
         // Happens if it's a plain `domain.com`.
         base = "/"
       }
-      requestPath = requestPath || "/index.html"
       return { base, requestPath }
     }
 
@@ -669,5 +763,107 @@ export class HttpServer {
       throw new Error(`No provider for ${base}`)
     }
     return { base, fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
+  }
+
+  /**
+   * Proxy a request to the target.
+   */
+  private doProxy(
+    route: Route,
+    request: http.IncomingMessage,
+    response: http.ServerResponse,
+    options: ProxyOptions,
+  ): void
+  /**
+   * Proxy a web socket to the target.
+   */
+  private doProxy(
+    route: Route,
+    request: http.IncomingMessage,
+    response: { socket: net.Socket; head: Buffer },
+    options: ProxyOptions,
+  ): void
+  /**
+   * Proxy a request or web socket to the target.
+   */
+  private doProxy(
+    route: Route,
+    request: http.IncomingMessage,
+    response: http.ServerResponse | { socket: net.Socket; head: Buffer },
+    options: ProxyOptions,
+  ): void {
+    const port = parseInt(options.port, 10)
+    if (isNaN(port)) {
+      throw new HttpError(`"${options.port}" is not a valid number`, HttpCode.BadRequest)
+    }
+
+    // REVIEW: Absolute redirects need to be based on the subpath but I'm not
+    // sure how best to get this information to the `proxyRes` event handler.
+    // For now I'm sticking it on the request object which is passed through to
+    // the event.
+    ;(request as ProxyRequest).base = options.base
+
+    const isHttp = response instanceof http.ServerResponse
+    const path = options.base ? route.fullPath.replace(options.base, "") : route.fullPath
+    const proxyOptions: proxy.ServerOptions = {
+      changeOrigin: true,
+      ignorePath: true,
+      target: `${isHttp ? "http" : "ws"}://127.0.0.1:${port}${path}${
+        Object.keys(route.query).length > 0 ? `?${querystring.stringify(route.query)}` : ""
+      }`,
+      ws: !isHttp,
+    }
+
+    if (response instanceof http.ServerResponse) {
+      this.proxy.web(request, response, proxyOptions)
+    } else {
+      this.proxy.ws(request, response.socket, response.head, proxyOptions)
+    }
+  }
+
+  /**
+   * Get the domain that should be used for setting a cookie. This will allow
+   * the user to authenticate only once. This will return the highest level
+   * domain (e.g. `coder.com` over `test.coder.com` if both are specified).
+   */
+  private getCookieDomain(host: string): string {
+    let current: string | undefined
+    this.proxyDomains.forEach((domain) => {
+      if (host.endsWith(domain) && (!current || domain.length < current.length)) {
+        current = domain
+      }
+    })
+    // Setting the domain to localhost doesn't seem to work for subdomains (for
+    // example dev.localhost).
+    return current && current !== "localhost" ? current : host
+  }
+
+  /**
+   * Return a response if the request should be proxied. Anything that ends in a
+   * proxy domain and has a *single* subdomain should be proxied. Anything else
+   * should return `undefined` and will be handled as normal.
+   *
+   * For example if `coder.com` is specified `8080.coder.com` will be proxied
+   * but `8080.test.coder.com` and `test.8080.coder.com` will not.
+   */
+  public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
+    // Split into parts.
+    const host = request.headers.host || ""
+    const idx = host.indexOf(":")
+    const domain = idx !== -1 ? host.substring(0, idx) : host
+    const parts = domain.split(".")
+
+    // There must be an exact match.
+    const port = parts.shift()
+    const proxyDomain = parts.join(".")
+    if (!port || !this.proxyDomains.has(proxyDomain)) {
+      return undefined
+    }
+
+    return {
+      proxy: {
+        port,
+      },
+    }
   }
 }

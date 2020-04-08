@@ -117,6 +117,7 @@ describe("cli", () => {
     assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
+    assert.throws(() => parse(["--ssh-host-key"]), /--ssh-host-key requires a value/)
   })
 
   it("should error if value is invalid", () => {
@@ -158,6 +159,21 @@ describe("cli", () => {
       "extensions-dir": path.join(xdgLocalDir, "extensions"),
       "user-data-dir": xdgLocalDir,
       auth: "none",
+    })
+  })
+
+  it("should support repeatable flags", () => {
+    assert.deepEqual(parse(["--proxy-domain", "*.coder.com"]), {
+      _: [],
+      "extensions-dir": path.join(xdgLocalDir, "extensions"),
+      "user-data-dir": xdgLocalDir,
+      "proxy-domain": ["*.coder.com"],
+    })
+    assert.deepEqual(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
+      _: [],
+      "extensions-dir": path.join(xdgLocalDir, "extensions"),
+      "user-data-dir": xdgLocalDir,
+      "proxy-domain": ["*.coder.com", "test.com"],
     })
   })
 })

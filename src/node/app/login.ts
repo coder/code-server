@@ -18,7 +18,7 @@ interface LoginPayload {
  */
 export class LoginHttpProvider extends HttpProvider {
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    if (this.options.auth !== AuthType.Password || route.requestPath !== "/index.html") {
+    if (this.options.auth !== AuthType.Password || !this.isRoot(route)) {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
     switch (route.base) {

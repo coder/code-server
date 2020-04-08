@@ -43,7 +43,7 @@ export class ApiHttpProvider extends HttpProvider {
 
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     this.ensureAuthenticated(request)
-    if (route.requestPath !== "/index.html") {
+    if (!this.isRoot(route)) {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
 

@@ -17,6 +17,7 @@
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",
     "@types/fs-extra": "^8.0.1",
+    "@types/http-proxy": "^1.17.4",
     "@types/mocha": "^5.2.7",
     "@types/node": "^12.12.7",
     "@types/parcel-bundler": "^1.12.1",
@@ -52,13 +53,14 @@
     "@coder/logger": "1.1.11",
     "adm-zip": "^0.4.14",
     "fs-extra": "^8.1.0",
+    "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "node-pty": "^0.9.0",
     "pem": "^1.14.2",
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",
-    "tar": "^6.0.1",
     "ssh2": "^0.8.7",
+    "tar": "^6.0.1",
     "tar-fs": "^2.0.0",
     "ws": "^7.2.0"
   }
