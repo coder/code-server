@@ -590,9 +590,6 @@ export class HttpServer {
     this.heart.beat()
     const route = this.parseUrl(request)
     const write = (payload: HttpResponse): void => {
-      const host = request.headers.host || ""
-      const idx = host.indexOf(":")
-      const domain = idx !== -1 ? host.substring(0, idx) : host
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
         ...(payload.redirect ? { Location: this.constructRedirect(request, route, payload as RedirectResponse) } : {}),
@@ -603,7 +600,7 @@ export class HttpServer {
               "Set-Cookie": [
                 `${payload.cookie.key}=${payload.cookie.value}`,
                 `Path=${normalize(payload.cookie.path || "/", true)}`,
-                domain ? `Domain=${this.getCookieDomain(domain)}` : undefined,
+                this.getCookieDomain(request.headers.host || ""),
                 // "HttpOnly",
                 "SameSite=lax",
               ]
@@ -822,20 +819,39 @@ export class HttpServer {
   }
 
   /**
-   * Get the domain that should be used for setting a cookie. This will allow
-   * the user to authenticate only once. This will return the highest level
+   * Get the value that should be used for setting a cookie domain. This will
+   * allow the user to authenticate only once. This will use the highest level
    * domain (e.g. `coder.com` over `test.coder.com` if both are specified).
    */
-  private getCookieDomain(host: string): string {
-    let current: string | undefined
+  private getCookieDomain(host: string): string | undefined {
+    const idx = host.lastIndexOf(":")
+    host = idx !== -1 ? host.substring(0, idx) : host
+    if (
+      // Might be blank/missing, so there's nothing more to do.
+      !host ||
+      // IP addresses can't have subdomains so there's no value in setting the
+      // domain for them. Assume anything with a : is ipv6 (valid domain name
+      // characters are alphanumeric or dashes).
+      host.includes(":") ||
+      // Assume anything entirely numbers and dots is ipv4 (currently tlds
+      // cannot be entirely numbers).
+      !/[^0-9.]/.test(host) ||
+      // localhost subdomains don't seem to work at all (browser bug?).
+      host.endsWith(".localhost") ||
+      // It might be localhost (or an IP, see above) if it's a proxy and it
+      // isn't setting the host header to match the access domain.
+      host === "localhost"
+    ) {
+      return undefined
+    }
+
     this.proxyDomains.forEach((domain) => {
-      if (host.endsWith(domain) && (!current || domain.length < current.length)) {
-        current = domain
+      if (host.endsWith(domain) && domain.length < host.length) {
+        host = domain
       }
     })
-    // Setting the domain to localhost doesn't seem to work for subdomains (for
-    // example dev.localhost).
-    return current && current !== "localhost" ? current : host
+
+    return host ? `Domain=${host}` : undefined
   }
 
   /**
