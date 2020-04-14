@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 get_releases() {
   curl --silent "https://api.github.com/repos/cdr/code-server/releases/latest" |
     grep '"browser_download_url":\|"tag_name":'
@@ -32,9 +35,10 @@ linux_install() {
   rm code-server*.tar.gz
 
   if [ -d $lib_path ]; then
-    backup=$(dirname $lib_path)/BACKUP_$(date +%s)/
-    mv -f $lib_path/ $backup
-    echo "-- INFO: old code-server directory moved to $backup"
+    echo -e "${RED}-- ERROR: v$version already found in $lib_path${NC}"
+    echo -e "${RED}-- ERROR: To reinstall, first delete this directory${NC}"
+    rm -rf -f $temp_path
+    exit 1
   fi
 
   mkdir -p $lib_path
@@ -47,8 +51,6 @@ linux_install() {
   rm -rf -f $temp_path
 
   if [ $bin_dir != *"$PATH"* ]; then
-    RED='\033[0;31m'
-    NC='\033[0m' # No Color
     echo -e "${RED}-- WARNING: $bin_dir is not in your \$PATH${NC}"
   fi
 
