@@ -22,16 +22,8 @@ docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" -u "$(id -u)
 
 ### Installation
 
-#### Mac
-
 ```bash
-curl -s https://raw.githubusercontent.com/cdr/code-server/issue-1396/install_mac.sh | bash -s
-```
-
-#### Linux
-
-```bash
-curl -s https://raw.githubusercontent.com/cdr/code-server/issue-1396/install_linux.sh | bash -s
+curl -s https://raw.githubusercontent.com/cdr/code-server/issue-1396/install_helper.sh | bash -s
 ```
 
 ### Requirements
