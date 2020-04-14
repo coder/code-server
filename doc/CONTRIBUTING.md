@@ -17,7 +17,7 @@ To develop inside of an isolated docker container:
 
 root@12345:/code-server# yarn
 root@12345:/code-server# yarn vscode
-root@12345:/code-server# yarn watch
+root@12345:/code-server# yarn watch --host=0.0.0.0
 ```
 
 Any changes made to the source will be live reloaded.
