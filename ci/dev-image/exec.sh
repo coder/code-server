@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# exec.sh opens an interactive bash session inside of a docker container 
+# exec.sh opens an interactive bash session inside of a docker container
 # for improved isolation during development
 
 set -euo pipefail
