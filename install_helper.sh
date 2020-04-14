@@ -7,12 +7,13 @@ get_releases() {
 }
 
 linux_install() {
-  bin_path=$HOME/.local/share/code-server/bin
-  lib_path=$HOME/.local/share/code-server/lib
-
   releases=$(get_releases)
   package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
   version=$(echo $releases | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
+
+  bin_dir=$HOME/.local/share/code-server/bin
+  bin_path=$bin_dir/code-server
+  lib_path=$HOME/.local/share/code-server/$version
 
   temp_path=/tmp/code-server-$version
 
@@ -30,32 +31,28 @@ linux_install() {
   tar -xzf code-server*.tar.gz > /dev/null
   rm code-server*.tar.gz
 
-  if [ -d $lib_path/code-server ]; then
-    backup=$lib_path/BACKUP_$(date +%s)_code-server/
-    mv -f $lib_path/code-server/ $backup
+  if [ -d $lib_path ]; then
+    backup=$(dirname $lib_path)/BACKUP_$(date +%s)/
+    mv -f $lib_path/ $backup
     echo "-- INFO: old code-server directory moved to $backup"
   fi
 
-  mkdir -p $lib_path/code-server
+  mkdir -p $lib_path
 
-  mv -f code-server*/* $lib_path/code-server/
+  mv -f code-server*/* $lib_path/
 
-  if [ -d $bin_path/code-server ]; then
-    rm $bin_path/code-server
-  fi
-
-  mkdir -p $bin_path
-  ln -f -s $lib_path/code-server/code-server $bin_path/code-server
+  mkdir -p $bin_dir
+  ln -f -s $lib_path/code-server $bin_path
 
   rm -rf -f $temp_path
 
-  if [ $bin_path != *"$PATH"* ]; then
+  if [ $bin_dir != *"$PATH"* ]; then
     RED='\033[0;31m'
     NC='\033[0m' # No Color
-    echo -e "${RED}-- WARNING: $bin_path is not in your \$PATH${NC}"
+    echo -e "${RED}-- WARNING: $bin_dir is not in your \$PATH${NC}"
   fi
 
-  echo "-- Successfully installed code-server at $bin_path/code-server"
+  echo "-- Successfully installed code-server at $bin_path"
 }
 
 mac_install() {
