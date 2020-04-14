@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # exec.sh opens an interactive bash session inside of a docker container
 # for improved isolation during development
+# if the container exists it is restarted if necessary, then reused
 
 set -euo pipefail
 cd "$(dirname "$0")"
