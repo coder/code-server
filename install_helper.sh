@@ -7,8 +7,8 @@ get_releases() {
 }
 
 linux_install() {
-  bin_path=$HOME/.local/bin
-  lib_path=$HOME/.local/lib
+  bin_path=$HOME/.local/share/code-server/bin
+  lib_path=$HOME/.local/share/code-server/lib
 
   releases=$(get_releases)
   package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -50,7 +50,9 @@ linux_install() {
   rm -rf -f $temp_path
 
   if [ $bin_path != *"$PATH"* ]; then
-    echo "-- WARNING: ~/.local/bin is not in your \$PATH"
+    RED='\033[0;31m'
+    NC='\033[0m' # No Color
+    echo -e "${RED}-- WARNING: $bin_path is not in your \$PATH${NC}"
   fi
 
   echo "-- Successfully installed code-server at $bin_path/code-server"
