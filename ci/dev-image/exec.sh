@@ -17,26 +17,23 @@ run() {
   echo "--- Spawning $container_name"
   container_id=$(docker run \
     -it \
-    --privileged \
     --name $container_name \
     "-v=$PWD:/code-server" \
     "-w=/code-server" \
-    "-p=8080:8080" \
+    "-p=127.0.0.1:8080:8080" \
     $([[ -t 0 ]] && echo -it || true) \
-    -d \
     $container_name)
 }
 
 build() {
   echo "--- Building $container_name"
-  cd ../../ && docker build -t $container_name -f ./ci/dev-image/Dockerfile . > /dev/null
+  cd ../../
+  docker build -t $container_name -f ./ci/dev-image/Dockerfile . > /dev/null
 }
 
-set +e
-container_id=$(docker container inspect --format="{{.Id}}" $container_name 2> /dev/null)
+container_id=$(docker container inspect --format="{{.Id}}" $container_name 2> /dev/null) || true
 
-if [ $? -eq "0" ]; then
-  set -e
+if [ "$container_id" != "" ]; then
   echo "-- Starting container"
   docker start $container_id > /dev/null
 
@@ -44,7 +41,6 @@ if [ $? -eq "0" ]; then
   exit 0
 fi
 
-set -e
 build
 run
 enter
