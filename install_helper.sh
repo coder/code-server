@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 
 get_releases() {
   curl --silent "https://api.github.com/repos/cdr/code-server/releases/latest" |
@@ -7,8 +7,8 @@ get_releases() {
 }
 
 linux_install() {
-  bin_path=$HOME/bin
-  lib_path=$HOME/lib
+  bin_path=$HOME/.local/bin
+  lib_path=$HOME/.local/lib
 
   releases=$(get_releases)
   package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
@@ -49,8 +49,11 @@ linux_install() {
 
   rm -rf -f $temp_path
 
+  if [ $bin_path != *"$PATH"* ]; then
+    echo "-- WARNING: ~/.local/bin is not in your \$PATH"
+  fi
+
   echo "-- Successfully installed code-server at $bin_path/code-server"
-  echo "-- Ensure that $bin_path is present in your \$PATH"
 }
 
 mac_install() {
@@ -92,7 +95,6 @@ mac_install() {
   rm -rf -f $temp_path
 
   echo "-- Successfully installed code-server at $bin_path/code-server"
-
 }
 
 if [[ $OSTYPE == "linux-gnu" ]]; then
@@ -101,4 +103,5 @@ elif [[ $OSTYPE == "darwin"* ]]; then
   mac_install
 else
   echo "Unknown operating system. Not installing."
+  exit 1
 fi
