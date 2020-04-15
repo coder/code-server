@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
+# install_helper allows for easy installation of code-server on Linux systems
+# the latest official release is pulled from the Github API, where the proper asset
+# is then unpackaged and installed into ~/.local/share/code-server/<version>
+
+# The code-server binary is linked to ~/.local/share/code-server/bin/code-server
+
 set -euo pipefail
 
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+RED=1
 
 get_releases() {
   curl --silent "https://api.github.com/repos/cdr/code-server/releases/latest" |
@@ -35,8 +40,10 @@ linux_install() {
   rm code-server*.tar.gz
 
   if [ -d $lib_path ]; then
-    echo -e "${RED}-- ERROR: v$version already found in $lib_path${NC}"
-    echo -e "${RED}-- ERROR: To reinstall, first delete this directory${NC}"
+    tput setaf $RED
+    echo "-- ERROR: v$version already found in $lib_path"
+    echo "-- ERROR: To reinstall, first delete this directory"
+    tput sgr 0
     rm -rf -f $temp_path
     exit 1
   fi
@@ -48,60 +55,19 @@ linux_install() {
   mkdir -p $bin_dir
   ln -f -s $lib_path/code-server $bin_path
 
-  rm -rf -f $temp_path
-
-  if [ $bin_dir != *"$PATH"* ]; then
-    echo -e "${RED}-- WARNING: $bin_dir is not in your \$PATH${NC}"
+  code_server_bin=$(which code-server || true)
+  if [ "$code_server_bin" == "" ]; then
+    tput setaf $RED
+    echo "-- WARNING: $bin_dir is not in your \$PATH"
+    tput sgr 0
   fi
 
+  rm -rf -f $temp_path
   echo "-- Successfully installed code-server at $bin_path"
-}
-
-mac_install() {
-  bin_path=/usr/local/bin
-  lib_path=/usr/local/lib
-
-  releases=$(get_releases)
-  package=$(echo "$releases" | grep 'darwin' | sed -E 's/.*"([^"]+)".*/\1/')
-  version=$(echo $releases | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-
-  temp_path=/tmp/code-server-$version
-
-  if [ -d $temp_path ]; then
-    rm -rf $temp_path
-  fi
-
-  mkdir $temp_path
-  cd $temp_path
-
-  echo "-- Downloading code-server v$version"
-  wget $package > /dev/null
-
-  echo "-- Unpacking release"
-  unzip code-server-* > /dev/null
-  rm code-server-*.zip
-
-  echo "-- Installing binary"
-  if [ -d $lib_path/code-server ]; then
-    backup=$lib_path/BACKUP_$(date +%s)_code-server/
-    mv $lib_path/code-server/ $backup
-    echo "-- INFO: moved old code-server lib directory to $backup"
-  fi
-  mkdir -p $lib_path/code-server
-  mv ./code-server-*/* $lib_path/code-server/
-
-  rm -f $bin_path/code-server
-  ln -s $lib_path/code-server/code-server $bin_path/code-server
-
-  rm -rf -f $temp_path
-
-  echo "-- Successfully installed code-server at $bin_path/code-server"
 }
 
 if [[ $OSTYPE == "linux-gnu" ]]; then
   linux_install
-elif [[ $OSTYPE == "darwin"* ]]; then
-  mac_install
 else
   echo "Unknown operating system. Not installing."
   exit 1

@@ -22,8 +22,10 @@ docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" -u "$(id -u)
 
 ### Installation
 
+#### Linux
+
 ```bash
-curl -s https://raw.githubusercontent.com/cdr/code-server/issue-1396/install_helper.sh | bash -s
+curl --silent https://raw.githubusercontent.com/cdr/code-server/issue-1396/install_helper.sh | bash
 ```
 
 ### Requirements
