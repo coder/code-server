@@ -5,23 +5,31 @@
 
 # The code-server binary is linked to ~/.local/share/code-server/bin/code-server
 
-set -euo pipefail
+set -eo pipefail
 
-RED=1
+red_color() {
+  tput setaf 1
+}
+cyan_color() {
+  tput setaf 6
+}
+no_color() {
+  tput sgr 0
+}
 
 get_releases() {
   curl --silent "https://api.github.com/repos/cdr/code-server/releases/latest" |
     grep '"browser_download_url":\|"tag_name":'
 }
 
+bin_dir=$HOME/.code-server/bin
+bin_path=$bin_dir/code-server
+lib_path=$HOME/.code-server/$version
+
 linux_install() {
   releases=$(get_releases)
   package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
   version=$(echo $releases | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-
-  bin_dir=$HOME/.local/share/code-server/bin
-  bin_path=$bin_dir/code-server
-  lib_path=$HOME/.local/share/code-server/$version
 
   temp_path=/tmp/code-server-$version
 
@@ -40,10 +48,10 @@ linux_install() {
   rm code-server*.tar.gz
 
   if [ -d $lib_path ]; then
-    tput setaf $RED
+    red_color
     echo "-- ERROR: v$version already found in $lib_path"
     echo "-- ERROR: To reinstall, first delete this directory"
-    tput sgr 0
+    no_color
     rm -rf -f $temp_path
     exit 1
   fi
@@ -55,19 +63,101 @@ linux_install() {
   mkdir -p $bin_dir
   ln -f -s $lib_path/code-server $bin_path
 
-  code_server_bin=$(which code-server || true)
-  if [ "$code_server_bin" == "" ]; then
-    tput setaf $RED
-    echo "-- WARNING: $bin_dir is not in your \$PATH"
-    tput sgr 0
-  fi
-
   rm -rf -f $temp_path
   echo "-- Successfully installed code-server at $bin_path"
 }
 
+# @see https://yarnpkg.com/install.sh
+detect_profile() {
+  if [ -n "${PROFILE}" ] && [ -f "${PROFILE}" ]; then
+    echo "${PROFILE}"
+    return
+  fi
+
+  local DETECTED_PROFILE
+  DETECTED_PROFILE=''
+  local SHELLTYPE
+  SHELLTYPE="$(basename "/$SHELL")"
+
+  if [ "$SHELLTYPE" = "bash" ]; then
+    if [ -f "$HOME/.bashrc" ]; then
+      DETECTED_PROFILE="$HOME/.bashrc"
+    elif [ -f "$HOME/.bash_profile" ]; then
+      DETECTED_PROFILE="$HOME/.bash_profile"
+    fi
+  elif [ "$SHELLTYPE" = "zsh" ]; then
+    DETECTED_PROFILE="$HOME/.zshrc"
+  elif [ "$SHELLTYPE" = "fish" ]; then
+    DETECTED_PROFILE="$HOME/.config/fish/config.fish"
+  fi
+
+  if [ -z "$DETECTED_PROFILE" ]; then
+    if [ -f "$HOME/.profile" ]; then
+      DETECTED_PROFILE="$HOME/.profile"
+    elif [ -f "$HOME/.bashrc" ]; then
+      DETECTED_PROFILE="$HOME/.bashrc"
+    elif [ -f "$HOME/.bash_profile" ]; then
+      DETECTED_PROFILE="$HOME/.bash_profile"
+    elif [ -f "$HOME/.zshrc" ]; then
+      DETECTED_PROFILE="$HOME/.zshrc"
+    elif [ -f "$HOME/.config/fish/config.fish" ]; then
+      DETECTED_PROFILE="$HOME/.config/fish/config.fish"
+    fi
+  fi
+
+  if [ ! -z "$DETECTED_PROFILE" ]; then
+    echo "$DETECTED_PROFILE"
+  fi
+}
+
+add_to_path() {
+  echo '-- Adding to $PATH...'
+  DETECTED_PROFILE="$(detect_profile)"
+  SOURCE_STR="\nexport PATH=\"\$HOME/.code-server/bin:\$PATH\"\n"
+
+  if [ -z "${DETECTED_PROFIL}" ]; then
+    red_color
+    echo "-- Profile not found. Tried ${DETECTED_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
+    echo "-- Create one of them and run this script again"
+    echo "-- Create it (touch ${DETECTED_PROFILE}) and run this script again"
+    echo "   OR"
+    echo "-- Append the following line to the correct file yourself"
+    no_color
+
+    cyan_color
+    echo -e "${SOURCE_STR}"
+    no_color
+  else
+    if ! grep -q 'code-server/bin' "$DETECTED_PROFILE"; then
+      if [[ $DETECTED_PROFILE == *"fish"* ]]; then
+        command fish -c 'set -U fish_user_paths $fish_user_paths ~/.code-server/bin'
+        echo "-- We've added ~/.code-server/bin to your fish_user_paths universal variable\n"
+      else
+        echo -e "$SOURCE_STR" >> "$DETECTED_PROFILE"
+        echo "-- We've added the following to your $DETECTED_PROFILE\n"
+      fi
+
+      echo "-- If this isn't the profile of your current shell then please add the following to your correct profile:"
+
+      cyan_color
+      echo -e "$SOURCE_STR"
+      no_color
+    fi
+
+    version=$($bin_path --version) || (
+      red_color
+      echo "-- code-server was installed, but doesn't seem to be working :("
+      no_color
+      exit 1
+    )
+
+    echo "-- Successfully installed code-server $version! Please open another terminal where the \`code-server\` command will now be available."
+  fi
+}
+
 if [[ $OSTYPE == "linux-gnu" ]]; then
   linux_install
+  add_to_path
 else
   echo "Unknown operating system. Not installing."
   exit 1
