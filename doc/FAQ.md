@@ -139,8 +139,8 @@ code-server tries the following in order:
 
 1. The `workspace` query parameter.
 2. The `folder` query parameter.
-3. The directory passed on the command line.
-4. The last opened workspace or folder.
+3. The workspace or directory passed on the command line.
+4. The last opened workspace or directory.
 
 ## Enterprise
 

@@ -1,6 +1,7 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as crypto from "crypto"
+import * as fs from "fs-extra"
 import * as http from "http"
 import * as net from "net"
 import * as path from "path"
@@ -209,6 +210,15 @@ export class VscodeHttpProvider extends HttpProvider {
   private async getFirstPath(
     startPaths: Array<{ url?: string | string[]; workspace?: boolean } | undefined>,
   ): Promise<StartPath | undefined> {
+    const isFile = async (path: string): Promise<boolean> => {
+      try {
+        const stat = await fs.stat(path)
+        return stat.isFile()
+      } catch (error) {
+        logger.warn(error.message)
+        return false
+      }
+    }
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]
       const url =
@@ -216,7 +226,10 @@ export class VscodeHttpProvider extends HttpProvider {
       if (startPath && url) {
         return {
           url,
-          workspace: !!startPath.workspace,
+          // The only time `workspace` is undefined is for the command-line
+          // argument, in which case it's a path (not a URL) so we can stat it
+          // without having to parse it.
+          workspace: typeof startPath.workspace !== "undefined" ? startPath.workspace : await isFile(url),
         }
       }
     }
