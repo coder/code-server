@@ -646,11 +646,19 @@ export class HttpServer {
       if (code >= HttpCode.ServerError) {
         logger.error(error.stack)
       }
-      const payload = await route.provider.getErrorRoot(route, code, code, e.message)
-      write({
-        code,
-        ...payload,
-      })
+      if (request.headers["content-type"] === "application/json") {
+        write({
+          code,
+          content: {
+            error: e.message,
+          },
+        })
+      } else {
+        write({
+          code,
+          ...(await route.provider.getErrorRoot(route, code, code, e.message)),
+        })
+      }
     }
   }
 

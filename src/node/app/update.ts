@@ -87,8 +87,7 @@ export class UpdateHttpProvider extends HttpProvider {
   public async getRoot(
     route: Route,
     request: http.IncomingMessage,
-    appliedUpdate?: string,
-    error?: Error,
+    errorOrUpdate?: Update | Error,
   ): Promise<HttpResponse> {
     if (request.headers["content-type"] === "application/json") {
       if (!this.enabled) {
@@ -108,8 +107,13 @@ export class UpdateHttpProvider extends HttpProvider {
     }
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/update.html")
     response.content = response.content
-      .replace(/{{UPDATE_STATUS}}/, appliedUpdate ? `Updated to ${appliedUpdate}` : await this.getUpdateHtml())
-      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
+      .replace(
+        /{{UPDATE_STATUS}}/,
+        errorOrUpdate && !(errorOrUpdate instanceof Error)
+          ? `Updated to ${errorOrUpdate.version}`
+          : await this.getUpdateHtml(),
+      )
+      .replace(/{{ERROR}}/, errorOrUpdate instanceof Error ? `<div class="error">${errorOrUpdate.message}</div>` : "")
     return this.replaceTemplates(route, response)
   }
 
@@ -186,11 +190,16 @@ export class UpdateHttpProvider extends HttpProvider {
       const update = await this.getUpdate()
       if (!this.isLatestVersion(update)) {
         await this.downloadAndApplyUpdate(update)
-        return this.getRoot(route, request, update.version)
+        return this.getRoot(route, request, update)
       }
       return this.getRoot(route, request)
     } catch (error) {
-      return this.getRoot(route, request, undefined, error)
+      // For JSON requests propagate the error. Otherwise catch it so we can
+      // show the error inline with the update button instead of an error page.
+      if (request.headers["content-type"] === "application/json") {
+        throw error
+      }
+      return this.getRoot(route, error)
     }
   }
 
@@ -362,7 +371,7 @@ export class UpdateHttpProvider extends HttpProvider {
           }
 
           if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
-            return reject(new Error(`${response.statusCode || "500"}`))
+            return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
           }
 
           resolve(response)
