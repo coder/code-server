@@ -115,7 +115,7 @@ add_to_path() {
   DETECTED_PROFILE="$(detect_profile)"
   SOURCE_STR="\nexport PATH=\"\$HOME/.code-server/bin:\$PATH\"\n"
 
-  if [ -z "${DETECTED_PROFIL}" ]; then
+  if [ -z "${DETECTED_PROFILE}" ]; then
     red_color
     echo "-- Profile not found. Tried ${DETECTED_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
     echo "-- Create one of them and run this script again"
