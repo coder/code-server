@@ -7,20 +7,14 @@
 
 set -eo pipefail
 
-red_color() {
-  tput setaf 1
-}
-cyan_color() {
-  tput setaf 6
-}
-no_color() {
-  tput sgr 0
-}
-
 get_releases() {
   curl --silent "https://api.github.com/repos/cdr/code-server/releases/latest" |
     grep '"browser_download_url":\|"tag_name":'
 }
+
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+CYAN='\033[0;36m'
 
 bin_dir=$HOME/.code-server/bin
 bin_path=$bin_dir/code-server
@@ -48,11 +42,9 @@ linux_install() {
   rm code-server*.tar.gz
 
   if [ -d $lib_path ]; then
-    red_color
-    echo "-- ERROR: v$version already found in $lib_path"
-    echo "-- ERROR: To reinstall, first delete this directory"
-    no_color
-    rm -rf -f $temp_path
+    echo -e "$RED-- ERROR: v$version already found in $lib_path"
+    echo -e "-- ERROR: To reinstall, first delete this directory$NC"
+    rm -rf -f $temp_path1
     exit 1
   fi
 
@@ -111,43 +103,34 @@ detect_profile() {
 }
 
 add_to_path() {
+  cd "$HOME"
   echo '-- Adding to $PATH...'
   DETECTED_PROFILE="$(detect_profile)"
   SOURCE_STR="\nexport PATH=\"\$HOME/.code-server/bin:\$PATH\"\n"
 
   if [ -z "${DETECTED_PROFILE}" ]; then
-    red_color
-    echo "-- Profile not found. Tried ${DETECTED_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
+    echo -e "$RED-- Profile not found. Tried ${DETECTED_PROFILE} (as defined in \$PROFILE), ~/.bashrc, ~/.bash_profile, ~/.zshrc, and ~/.profile."
     echo "-- Create one of them and run this script again"
     echo "-- Create it (touch ${DETECTED_PROFILE}) and run this script again"
     echo "   OR"
-    echo "-- Append the following line to the correct file yourself"
-    no_color
+    echo -e "-- Append the following line to the correct file yourself$NC"
 
-    cyan_color
-    echo -e "${SOURCE_STR}"
-    no_color
+    echo -e "$CYAN${SOURCE_STR}$NC"
   else
-    if ! grep -q 'code-server/bin' "$DETECTED_PROFILE"; then
-      if [[ $DETECTED_PROFILE == *"fish"* ]]; then
-        command fish -c 'set -U fish_user_paths $fish_user_paths ~/.code-server/bin'
-        echo "-- We've added ~/.code-server/bin to your fish_user_paths universal variable\n"
-      else
-        echo -e "$SOURCE_STR" >> "$DETECTED_PROFILE"
-        echo "-- We've added the following to your $DETECTED_PROFILE\n"
-      fi
-
-      echo "-- If this isn't the profile of your current shell then please add the following to your correct profile:"
-
-      cyan_color
-      echo -e "$SOURCE_STR"
-      no_color
+    if [[ $DETECTED_PROFILE == *"fish"* ]]; then
+      command fish -c 'set -U fish_user_paths $fish_user_paths ~/.code-server/bin'
+      echo "-- We've added ~/.code-server/bin to your fish_user_paths universal variable"
+    else
+      echo -e "$SOURCE_STR" >> "$DETECTED_PROFILE"
+      echo "-- We've added the following to your $DETECTED_PROFILE"
     fi
 
+    echo "-- If this isn't the profile of your current shell then please add the following to your correct profile:"
+
+    echo -e "$CYAN $SOURCE_STR $NC"
+
     version=$($bin_path --version) || (
-      red_color
-      echo "-- code-server was installed, but doesn't seem to be working :("
-      no_color
+      echo -e "$RED-- code-server was installed, but doesn't seem to be working :($NC"
       exit 1
     )
 
