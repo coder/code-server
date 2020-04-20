@@ -142,6 +142,35 @@ code-server tries the following in order:
 3. The workspace or directory passed on the command line.
 4. The last opened workspace or directory.
 
+## How do I debug issues with code-server?
+
+First run code-server with at least `debug` logging (or `trace` to be really
+thorough) by setting the `--log` flag or the `LOG_LEVEL` environment variable.
+`-vvv` and `--verbose` are aliases for `--log trace`.
+
+```
+code-server --log debug
+```
+
+Once this is done, replicate the issue you're having then collect logging
+information from the following places:
+
+1. stdout.
+2. The most recently created directory in the `logs` directory (found in the
+   data directory; see below for how to find that).
+3. The browser console and network tabs.
+
+Additionally, collecting core dumps (you may need to enable them first) if
+code-server crashes can be helpful.
+
+### Where is the data directory?
+
+If the `XDG_DATA_HOME` environment variable is set the data directory will be
+`$XDG_DATA_HOME/code-server`. Otherwise the default is:
+
+1. Linux: `~/.local/share/code-server`.
+2. Mac: `~/Library/Application\ Support/code-server`.
+
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com) for more information about our
