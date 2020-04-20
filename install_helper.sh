@@ -16,15 +16,15 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 CYAN='\033[0;36m'
 
+releases=$(get_releases)
+package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
+version=$(echo $releases | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
+
 bin_dir=$HOME/.code-server/bin
 bin_path=$bin_dir/code-server
 lib_path=$HOME/.code-server/$version
 
 linux_install() {
-  releases=$(get_releases)
-  package=$(echo "$releases" | grep 'linux' | grep 'x86' | sed -E 's/.*"([^"]+)".*/\1/')
-  version=$(echo $releases | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-
   temp_path=/tmp/code-server-$version
 
   if [ -d $temp_path ]; then
