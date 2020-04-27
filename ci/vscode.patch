@@ -229,7 +229,7 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index ef926bf4fa..db460bf2b6 100644
+index ef926bf4fa..64efcc463c 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -12,6 +12,8 @@ import { request } from 'vs/base/parts/request/browser/request';
@@ -281,10 +281,12 @@ index ef926bf4fa..db460bf2b6 100644
  	// Revive static extension locations
  	if (Array.isArray(config.staticExtensions)) {
  		config.staticExtensions.forEach(extension => {
-@@ -298,35 +318,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -296,36 +316,7 @@ class WorkspaceProvider implements IWorkspaceProvider {
+ 	// Find workspace to open and payload
+ 	let foundWorkspace = false;
  	let workspace: IWorkspace;
- 	let payload = Object.create(null);
- 
+-	let payload = Object.create(null);
+-
 -	const query = new URL(document.location.href).searchParams;
 -	query.forEach((value, key) => {
 -		switch (key) {
@@ -313,10 +315,10 @@ index ef926bf4fa..db460bf2b6 100644
 -				break;
 -		}
 -	});
--
++	let payload = config.workspaceProvider?.payload || Object.create(null);
+ 
  	// If no workspace is provided through the URL, check for config attribute from server
  	if (!foundWorkspace) {
- 		if (config.folderUri) {
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index aa44ee75d7..884887a6a3 100644
 --- a/src/vs/platform/environment/common/environment.ts
@@ -1131,10 +1133,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..cb4d3a6afe
+index 0000000000..d4771351de
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,113 @@
+@@ -0,0 +1,116 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1231,6 +1233,9 @@ index 0000000000..cb4d3a6afe
 +		readonly folderUri?: UriComponents;
 +		readonly workspaceUri?: UriComponents;
 +		readonly logLevel?: number;
++		readonly workspaceProvider?: {
++			payload: [["userDataPath", string]];
++		};
 +	};
 +	readonly remoteUserDataUri: UriComponents;
 +	readonly productConfiguration: {
@@ -2321,10 +2326,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..52311bf756
+index 0000000000..d1f14654cf
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,269 @@
+@@ -0,0 +1,272 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import { Emitter } from 'vs/base/common/event';
@@ -2422,6 +2427,9 @@ index 0000000000..52311bf756
 +				folderUri: startPath && !startPath.workspace ? parseUrl(startPath.url) : undefined,
 +				remoteAuthority: options.remoteAuthority,
 +				logLevel: getLogLevel(environment),
++				workspaceProvider: {
++					payload: [["userDataPath", environment.userDataPath]],
++				},
 +			},
 +			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
 +			productConfiguration: product,
@@ -3000,10 +3008,18 @@ index b378daa5a0..8d7b1b16df 100644
  						console.error('Could not rewrite csp');
  					}
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index f878c3de3d..8d8f0dc3c3 100644
+index f878c3de3d..ad6fb4606a 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -166,8 +166,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+@@ -13,6 +13,7 @@ import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/
+ import { IWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
+ import product from 'vs/platform/product/common/product';
+ import { memoize } from 'vs/base/common/decorators';
++import * as paths from 'vs/base/common/path';
+ 
+ export class BrowserWindowConfiguration implements IWindowConfiguration {
+ 
+@@ -166,8 +167,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -3014,8 +3030,45 @@ index f878c3de3d..8d8f0dc3c3 100644
  	}
  
  	@memoize
-@@ -263,5 +263,8 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
- 	appSettingsHome!: URI;
+@@ -246,22 +247,38 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 	driverHandle?: string;
+ 	driverVerbose!: boolean;
+ 
+-	installSourcePath!: string;
++	@memoize
++	get installSourcePath(): string { return paths.join(this.userDataPath, 'installSource'); }
+ 
+ 	builtinExtensionsPath!: string;
+ 
+-	globalStorageHome!: string;
+-	workspaceStorageHome!: string;
++	@memoize
++	get globalStorageHome(): string { return paths.join(this.appSettingsHome.fsPath, 'globalStorage'); }
++	@memoize
++	get workspaceStorageHome(): string { return paths.join(this.appSettingsHome.fsPath, 'workspaceStorage'); }
+ 
+-	backupWorkspacesPath!: string;
++	@memoize
++	get backupWorkspacesPath(): string { return paths.join(this.backupHome.fsPath, 'workspaces.json'); }
+ 
+-	machineSettingsResource!: URI;
++	@memoize
++	get machineSettingsResource(): URI { return joinPath(URI.file(paths.join(this.userDataPath, 'Machine')), 'settings.json'); }
+ 
+ 	userHome!: string;
+-	userDataPath!: string;
++	@memoize
++	get userDataPath(): string {
++		const dataPath = this.payload?.get("userDataPath");
++		if (!dataPath) {
++			throw new Error("userDataPath was not provided to environment service");
++		}
++		return dataPath;
++	}
+ 	appRoot!: string;
+-	appSettingsHome!: URI;
++	@memoize
++	get appSettingsHome(): URI { return URI.file(paths.join(this.userDataPath, 'User')); }
  	execPath!: string;
  
 +	extraExtensionPaths!: string[];
@@ -3047,6 +3100,19 @@ index 5b6a15e820..0f93c896e2 100644
  			remoteEnv.extensions = remoteEnv.extensions.filter(extension => this._isEnabled(extension) && !canExecuteOnWeb(extension, this._productService, this._configService));
  			this._checkEnableProposedApi(remoteEnv.extensions);
  
+diff --git a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHostStarter.ts b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHostStarter.ts
+index 5e09934624..d70f8b5364 100644
+--- a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHostStarter.ts
++++ b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHostStarter.ts
+@@ -142,7 +142,7 @@ export class WebWorkerExtensionHostStarter implements IExtensionHostStarter {
+ 				appLanguage: platform.language,
+ 				extensionDevelopmentLocationURI: this._environmentService.extensionDevelopmentLocationURI,
+ 				extensionTestsLocationURI: this._environmentService.extensionTestsLocationURI,
+-				globalStorageHome: URI.parse('fake:globalStorageHome'), //todo@joh URI.file(this._environmentService.globalStorageHome),
++				globalStorageHome: URI.file(this._environmentService.globalStorageHome),
+ 				userHome: URI.parse('fake:userHome'), //todo@joh URI.file(this._environmentService.userHome),
+ 				webviewResourceRoot: this._environmentService.webviewResourceRoot,
+ 				webviewCspSource: this._environmentService.webviewCspSource,
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 index 9e8352ac88..22a2d296f9 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
