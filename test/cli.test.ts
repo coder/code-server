@@ -117,7 +117,6 @@ describe("cli", () => {
     assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
-    assert.throws(() => parse(["--ssh-host-key"]), /--ssh-host-key requires a value/)
   })
 
   it("should error if value is invalid", () => {

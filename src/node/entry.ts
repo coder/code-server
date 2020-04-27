@@ -11,8 +11,7 @@ import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, optionDescriptions, parse } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { SshProvider } from "./ssh/server"
-import { generateCertificate, generatePassword, generateSshHostKey, hash, open } from "./util"
+import { generateCertificate, generatePassword, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 process.on("uncaughtException", (error) => {
@@ -100,32 +99,6 @@ const main = async (args: Args): Promise<void> => {
   }
 
   logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
-
-  let sshHostKey = args["ssh-host-key"]
-  if (!args["disable-ssh"] && !sshHostKey) {
-    try {
-      sshHostKey = await generateSshHostKey()
-    } catch (error) {
-      logger.error("Unable to start SSH server", field("error", error.message))
-    }
-  }
-
-  let sshPort: number | undefined
-  if (!args["disable-ssh"] && sshHostKey) {
-    const sshProvider = httpServer.registerHttpProvider("/ssh", SshProvider, sshHostKey)
-    try {
-      sshPort = await sshProvider.listen()
-    } catch (error) {
-      logger.warn(`SSH server: ${error.message}`)
-    }
-  }
-
-  if (typeof sshPort !== "undefined") {
-    logger.info(`SSH server listening on localhost:${sshPort}`)
-    logger.info("  - To disable use `--disable-ssh`")
-  } else {
-    logger.info("SSH server disabled")
-  }
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
