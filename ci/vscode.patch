@@ -3088,6 +3088,36 @@ index 4728f3e510..2e38804ac2 100644
 +	readonly extraExtensionPaths: string[]
 +	readonly extraBuiltinExtensionPaths: string[]
  }
+diff --git a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
+index cfac383e8a..c535d38296 100644
+--- a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
++++ b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
+@@ -153,7 +153,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
+ 					}
+ 				}
+ 			}
+-			return true;
++			return false; // NOTE@coder: Don't disable anything by extensionKind.
+ 		}
+ 		return false;
+ 	}
+diff --git a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
+index 9f8c6ac6f5..34cbaf087c 100644
+--- a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
++++ b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
+@@ -208,11 +208,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 			if (!manifest) {
+ 				return Promise.reject(localize('Manifest is not found', "Installing Extension {0} failed: Manifest is not found.", gallery.displayName || gallery.name));
+ 			}
+-			if (!isLanguagePackExtension(manifest) && !canExecuteOnWorkspace(manifest, this.productService, this.configurationService)) {
+-				const error = new Error(localize('cannot be installed', "Cannot install '{0}' because this extension has defined that it cannot run on the remote server.", gallery.displayName || gallery.name));
+-				error.name = INSTALL_ERROR_NOT_SUPPORTED;
+-				return Promise.reject(error);
+-			}
++			// NOTE@coder: Allow extensions of any kind.
+ 			return this.extensionManagementServerService.remoteExtensionManagementServer.extensionManagementService.installFromGallery(gallery);
+ 		}
+ 		return Promise.reject('No Servers to Install');
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
 index 5b6a15e820..0f93c896e2 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
