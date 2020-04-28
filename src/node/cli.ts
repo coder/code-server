@@ -99,7 +99,7 @@ const options: Options<Required<Args>> = {
   host: { type: "string", description: "" },
   port: { type: "number", description: "" },
 
-  socket: { type: "string", path: true, description: "Path to a socket (host and port will be ignored)." },
+  socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
 
