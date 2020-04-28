@@ -213,7 +213,7 @@ export const parse = (argv: string[]): Args => {
           ;(args[key] as OptionalString) = new OptionalString(value)
           break
         default: {
-          if (!Object.values(option.type).find((v) => v === value)) {
+          if (!Object.values(option.type).includes(value)) {
             throw new Error(`--${key} valid values: [${Object.values(option.type).join(", ")}]`)
           }
           ;(args[key] as string) = value
@@ -230,20 +230,26 @@ export const parse = (argv: string[]): Args => {
 
   logger.debug("parsed command line", field("args", args))
 
-  // Ensure the environment variable and the flag are synced up. The flag takes
-  // priority over the environment variable.
-  if (args.log === LogLevel.Trace || process.env.LOG_LEVEL === LogLevel.Trace || args.verbose) {
-    args.log = process.env.LOG_LEVEL = LogLevel.Trace
-    args.verbose = true
-  } else if (!args.log && process.env.LOG_LEVEL) {
+  // --verbose takes priority over --log and --log takes priority over the
+  // environment variable.
+  if (args.verbose) {
+    args.log = LogLevel.Trace
+  } else if (
+    !args.log &&
+    process.env.LOG_LEVEL &&
+    Object.values(LogLevel).includes(process.env.LOG_LEVEL as LogLevel)
+  ) {
     args.log = process.env.LOG_LEVEL as LogLevel
-  } else if (args.log) {
-    process.env.LOG_LEVEL = args.log
   }
 
+  // Sync --log, --verbose, the environment variable, and logger level.
+  if (args.log) {
+    process.env.LOG_LEVEL = args.log
+  }
   switch (args.log) {
     case LogLevel.Trace:
       logger.level = Level.Trace
+      args.verbose = true
       break
     case LogLevel.Debug:
       logger.level = Level.Debug

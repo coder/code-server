@@ -1,3 +1,4 @@
+import { logger, Level } from "@coder/logger"
 import * as assert from "assert"
 import * as path from "path"
 import { parse } from "../src/node/cli"
@@ -8,12 +9,15 @@ describe("cli", () => {
     delete process.env.LOG_LEVEL
   })
 
+  // The parser will always fill these out.
+  const defaults = {
+    _: [],
+    "extensions-dir": path.join(xdgLocalDir, "extensions"),
+    "user-data-dir": xdgLocalDir,
+  }
+
   it("should set defaults", () => {
-    assert.deepEqual(parse([]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
-    })
+    assert.deepEqual(parse([]), defaults)
   })
 
   it("should parse all available options", () => {
@@ -82,36 +86,64 @@ describe("cli", () => {
 
   it("should work with short options", () => {
     assert.deepEqual(parse(["-vvv", "-v"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       log: "trace",
       verbose: true,
       version: true,
     })
     assert.equal(process.env.LOG_LEVEL, "trace")
+    assert.equal(logger.level, Level.Trace)
   })
 
   it("should use log level env var", () => {
     process.env.LOG_LEVEL = "debug"
     assert.deepEqual(parse([]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       log: "debug",
     })
     assert.equal(process.env.LOG_LEVEL, "debug")
+    assert.equal(logger.level, Level.Debug)
+
+    process.env.LOG_LEVEL = "trace"
+    assert.deepEqual(parse([]), {
+      ...defaults,
+      log: "trace",
+      verbose: true,
+    })
+    assert.equal(process.env.LOG_LEVEL, "trace")
+    assert.equal(logger.level, Level.Trace)
   })
 
-  it("should prefer --log to env var", () => {
+  it("should prefer --log to env var and --verbose to --log", () => {
     process.env.LOG_LEVEL = "debug"
     assert.deepEqual(parse(["--log", "info"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       log: "info",
     })
     assert.equal(process.env.LOG_LEVEL, "info")
+    assert.equal(logger.level, Level.Info)
+
+    process.env.LOG_LEVEL = "trace"
+    assert.deepEqual(parse(["--log", "info"]), {
+      ...defaults,
+      log: "info",
+    })
+    assert.equal(process.env.LOG_LEVEL, "info")
+    assert.equal(logger.level, Level.Info)
+
+    process.env.LOG_LEVEL = "warn"
+    assert.deepEqual(parse(["--log", "info", "--verbose"]), {
+      ...defaults,
+      log: "trace",
+      verbose: true,
+    })
+    assert.equal(process.env.LOG_LEVEL, "trace")
+    assert.equal(logger.level, Level.Trace)
+  })
+
+  it("should ignore invalid log level env var", () => {
+    process.env.LOG_LEVEL = "bogus"
+    assert.deepEqual(parse([]), defaults)
   })
 
   it("should error if value isn't provided", () => {
@@ -134,9 +166,7 @@ describe("cli", () => {
 
   it("should not error if the value is optional", () => {
     assert.deepEqual(parse(["--cert"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       cert: {
         value: undefined,
       },
@@ -147,9 +177,7 @@ describe("cli", () => {
     assert.throws(() => parse(["--socket", "--socket-path-value"]), /--socket requires a value/)
     // If you actually had a path like this you would do this instead:
     assert.deepEqual(parse(["--socket", "./--socket-path-value"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       socket: path.resolve("--socket-path-value"),
     })
     assert.throws(() => parse(["--cert", "--socket-path-value"]), /Unknown option --socket-path-value/)
@@ -157,24 +185,19 @@ describe("cli", () => {
 
   it("should allow positional arguments before options", () => {
     assert.deepEqual(parse(["foo", "test", "--auth", "none"]), {
+      ...defaults,
       _: ["foo", "test"],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
       auth: "none",
     })
   })
 
   it("should support repeatable flags", () => {
     assert.deepEqual(parse(["--proxy-domain", "*.coder.com"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       "proxy-domain": ["*.coder.com"],
     })
     assert.deepEqual(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
-      _: [],
-      "extensions-dir": path.join(xdgLocalDir, "extensions"),
-      "user-data-dir": xdgLocalDir,
+      ...defaults,
       "proxy-domain": ["*.coder.com", "test.com"],
     })
   })
