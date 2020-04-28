@@ -1,4 +1,5 @@
 import * as http from "http"
+import * as limiter from "limiter"
 import * as querystring from "querystring"
 import { HttpCode, HttpError } from "../../common/http"
 import { AuthType, HttpProvider, HttpResponse, Route } from "../http"
@@ -48,6 +49,8 @@ export class LoginHttpProvider extends HttpProvider {
     return this.replaceTemplates(route, response)
   }
 
+  private readonly limiter = new RateLimiter()
+
   /**
    * Try logging in. On failure, show the login page with an error.
    */
@@ -59,6 +62,10 @@ export class LoginHttpProvider extends HttpProvider {
     }
 
     try {
+      if (!this.limiter.try()) {
+        throw new Error("Login rate limited!")
+      }
+
       const data = await this.getData(request)
       const payload = data ? querystring.parse(data) : {}
       return await this.login(payload, route, request)
@@ -106,5 +113,19 @@ export class LoginHttpProvider extends HttpProvider {
     }
 
     throw new Error("Missing password")
+  }
+}
+
+// RateLimiter wraps around the limiter library for logins.
+// It allows 2 logins every minute and 12 logins every hour.
+class RateLimiter {
+  private readonly minuteLimiter = new limiter.RateLimiter(2, "minute")
+  private readonly hourLimiter = new limiter.RateLimiter(12, "hour")
+
+  public try(): boolean {
+    if (this.minuteLimiter.tryRemoveTokens(1)) {
+      return true
+    }
+    return this.hourLimiter.tryRemoveTokens(1)
   }
 }

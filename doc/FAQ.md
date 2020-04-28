@@ -52,6 +52,8 @@ randomly generated password so you can use that. You can set the `PASSWORD` envi
 to use your own instead. If you want to handle authentication yourself, use `--auth none`
 to disable password authentication.
 
+**note**: code-server will rate limit password authentication attempts at 2 a minute and 12 an hour.
+
 If you want to use external authentication you should handle this with a reverse
 proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy).
 
