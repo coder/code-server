@@ -40,4 +40,4 @@ RUN cd /tmp && tar -xzf code-server*.tar.gz && rm code-server*.tar.gz && \
 EXPOSE 8080
 USER coder
 WORKDIR /home/coder
-ENTRYPOINT ["dumb-init", "fixuid", "-q", "/usr/local/bin/code-server", "--host", "0.0.0.0", "."]
+ENTRYPOINT ["dumb-init", "fixuid", "-q", "/usr/local/bin/code-server", "--bind-addr", "0.0.0.0:8080", "."]

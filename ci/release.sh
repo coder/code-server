@@ -43,6 +43,7 @@ function package() {
 
   echo "done (release/$archive_name)"
 
+  # release-upload is for uploading to the GCP bucket whereas release is used for GitHub.
   mkdir -p "./release-upload/$VERSION"
   cp "./release/$archive_name$ext" "./release-upload/$VERSION/$target-$arch$ext"
   mkdir -p "./release-upload/latest"

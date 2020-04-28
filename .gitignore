@@ -3,6 +3,7 @@
 build
 dist*
 out*
-release*
+release/
+release-upload/
 node_modules
 binaries

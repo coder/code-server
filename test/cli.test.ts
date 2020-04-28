@@ -19,6 +19,7 @@ describe("cli", () => {
   it("should parse all available options", () => {
     assert.deepEqual(
       parse([
+        "--bind-addr=192.169.0.1:8080",
         "--auth",
         "none",
         "--extensions-dir",
@@ -74,6 +75,7 @@ describe("cli", () => {
         "user-data-dir": path.resolve("bar"),
         verbose: true,
         version: true,
+        "bind-addr": "192.169.0.1:8080",
       },
     )
   })
@@ -117,6 +119,7 @@ describe("cli", () => {
     assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
     assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
+    assert.throws(() => parse(["--bind-addr"]), /--bind-addr requires a value/)
   })
 
   it("should error if value is invalid", () => {

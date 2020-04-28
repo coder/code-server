@@ -30,6 +30,7 @@ export interface Args extends VsArgs {
   log?: LogLevel
   readonly open?: boolean
   readonly port?: number
+  readonly "bind-addr"?: string
   readonly socket?: string
   readonly version?: boolean
   readonly force?: boolean
@@ -88,11 +89,16 @@ const options: Options<Required<Args>> = {
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-updates": { type: "boolean", description: "Disable automatic updates." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
-  host: { type: "string", description: "Host for the HTTP server." },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
-  port: { type: "number", description: "Port for the HTTP server." },
+
+  "bind-addr": { type: "string", description: "Address to bind to in host:port." },
+
+  // These two have been deprecated by bindAddr.
+  host: { type: "string", description: "" },
+  port: { type: "number", description: "" },
+
   socket: { type: "string", path: true, description: "Path to a socket (host and port will be ignored)." },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },

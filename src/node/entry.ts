@@ -35,13 +35,21 @@ const main = async (args: Args): Promise<void> => {
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
+  let host = args.host
+  let port = args.port
+  if (args["bind-addr"] !== undefined) {
+    const u = new URL(`http://${args["bind-addr"]}`)
+    host = u.hostname
+    port = parseInt(u.port, 10)
+  }
+
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
     auth,
     commit,
-    host: args.host || (args.auth === AuthType.Password && typeof args.cert !== "undefined" ? "0.0.0.0" : "localhost"),
+    host: host || (args.auth === AuthType.Password && args.cert !== undefined ? "0.0.0.0" : "localhost"),
     password: originalPassword ? hash(originalPassword) : undefined,
-    port: typeof args.port !== "undefined" ? args.port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
+    port: port !== undefined ? port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
     ...(args.cert && !args.cert.value
