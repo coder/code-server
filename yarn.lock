@@ -944,21 +944,6 @@
   dependencies:
     "@types/node" "*"
 
-"@types/ssh2-streams@*", "@types/ssh2-streams@^0.1.6":
-  version "0.1.6"
-  resolved "https://registry.yarnpkg.com/@types/ssh2-streams/-/ssh2-streams-0.1.6.tgz#1ff5b1fe50c15f282efe9fd092c68494f8702bc2"
-  integrity sha512-NB+SYftagfHTDPdgVyvSZCeg5MURyHECd/PycGIW9hwhnEbTFxIdDbFtf3jxUO3rRnfr0lfdtkZFiv28T1cAsg==
-  dependencies:
-    "@types/node" "*"
-
-"@types/ssh2@0.5.39":
-  version "0.5.39"
-  resolved "https://registry.yarnpkg.com/@types/ssh2/-/ssh2-0.5.39.tgz#e39ab7e38fc01337f66237ed6c42237ef3e58e3b"
-  integrity sha512-MtX4tr6Jtdn/JPVsQytjB/NBeOd7JfCyf/l79KOdkUYL+r4GXUXcySX1n8W4O61fnQdljTBXEPJJ2dhnGhi2xg==
-  dependencies:
-    "@types/node" "*"
-    "@types/ssh2-streams" "*"
-
 "@types/tar-fs@^1.16.2":
   version "1.16.3"
   resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-1.16.3.tgz#425b2b817c405d13d051f36ec6ec6ebd25e31069"
@@ -1243,7 +1228,7 @@ asn1.js@^4.0.0:
     inherits "^2.0.1"
     minimalistic-assert "^1.0.0"
 
-asn1@~0.2.0, asn1@~0.2.3:
+asn1@~0.2.3:
   version "0.2.4"
   resolved "https://registry.yarnpkg.com/asn1/-/asn1-0.2.4.tgz#8d2475dfab553bb33e77b54e59e880bb8ce23136"
   integrity sha512-jxwzQpLQjSmWXgwaCZE9Nz+glAG01yF1QnWgbhGwHI5A6FRIEY6IVqtHhIepHqI7/kyEyQEagBC5mBEFlIYvdg==
@@ -1378,7 +1363,7 @@ base@^0.11.1:
     mixin-deep "^1.2.0"
     pascalcase "^0.1.1"
 
-bcrypt-pbkdf@^1.0.0, bcrypt-pbkdf@^1.0.2:
+bcrypt-pbkdf@^1.0.0:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/bcrypt-pbkdf/-/bcrypt-pbkdf-1.0.2.tgz#a4301d389b6a43f9b67ff3ca11a3f6637e360e9e"
   integrity sha1-pDAdOJtqQ/m2f/PKEaP2Y342Dp4=
@@ -6304,22 +6289,6 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
   integrity sha1-BOaSb2YolTVPPdAVIDYzuFcpfiw=
 
-ssh2-streams@~0.4.9:
-  version "0.4.9"
-  resolved "https://registry.yarnpkg.com/ssh2-streams/-/ssh2-streams-0.4.9.tgz#d3d92155410001437d27119d9c023b303cbe2309"
-  integrity sha512-glMQKeYKuA+rLaH16fJC3nZMV1BWklbxuYCR4C5/LlBSf2yaoNRpPU7Ul702xsi5nvYjIx9XDkKBJwrBjkDynw==
-  dependencies:
-    asn1 "~0.2.0"
-    bcrypt-pbkdf "^1.0.2"
-    streamsearch "~0.1.2"
-
-ssh2@^0.8.7:
-  version "0.8.8"
-  resolved "https://registry.yarnpkg.com/ssh2/-/ssh2-0.8.8.tgz#1d9815e287faef623ae2b7db32e674dadbef4664"
-  integrity sha512-egJVQkf3sbjECTY6rCeg8rgV/fab6S/7E5kpYqHT3Fe/YpfJbLYeA1qTcB2d+LRUUAjqKi7rlbfWkaP66YdpAQ==
-  dependencies:
-    ssh2-streams "~0.4.9"
-
 sshpk@^1.7.0:
   version "1.16.1"
   resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.16.1.tgz#fb661c0bef29b39db40769ee39fa70093d6f6877"
@@ -6408,11 +6377,6 @@ stream-http@^2.7.2:
     readable-stream "^2.3.6"
     to-arraybuffer "^1.0.0"
     xtend "^4.0.0"
-
-streamsearch@~0.1.2:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/streamsearch/-/streamsearch-0.1.2.tgz#808b9d0e56fc273d809ba57338e929919a1a9f1a"
-  integrity sha1-gIudDlb8Jz2Am6VzOOkpkZoanxo=
 
 "string-width@^1.0.2 || 2":
   version "2.1.1"
