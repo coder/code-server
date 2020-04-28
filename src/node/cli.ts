@@ -31,8 +31,6 @@ export interface Args extends VsArgs {
   readonly open?: boolean
   readonly port?: number
   readonly socket?: string
-  readonly "ssh-host-key"?: string
-  readonly "disable-ssh"?: boolean
   readonly version?: boolean
   readonly force?: boolean
   readonly "list-extensions"?: boolean
@@ -98,9 +96,6 @@ const options: Options<Required<Args>> = {
   socket: { type: "string", path: true, description: "Path to a socket (host and port will be ignored)." },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
-
-  "disable-ssh": { type: "boolean", description: "Disable the SSH server." },
-  "ssh-host-key": { type: "string", path: true, description: "SSH server host key." },
 
   "user-data-dir": { type: "string", path: true, description: "Path to the user data directory." },
   "extensions-dir": { type: "string", path: true, description: "Path to the extensions directory." },
