@@ -6,4 +6,6 @@ Please see https://github.com/cdr/code-server/blob/master/doc/FAQ.md#how-do-i-de
 and include any logging information relevant to the issue.
 
 Please search for existing issues before filing.
+
+Please ensure you cannot reproduce on VS Code before filing.
 -->
