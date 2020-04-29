@@ -42,8 +42,9 @@ To generate a new patch, **stage all the changes** you want to be included in
 the patch in the VS Code source, then run `yarn patch:generate` in this
 directory.
 
-Our changes include:
+Notable changes include:
 
+- Add our own build file which includes our code and VS Code's web code.
 - Allow multiple extension directories (both user and built-in).
 - Modify the loader, websocket, webview, service worker, and asset requests to
   use the URL of the page as a base (and TLS if necessary for the websocket).
@@ -51,8 +52,8 @@ Our changes include:
 - Make changing the display language work.
 - Make it possible for us to load code on the client.
 - Make extensions work in the browser.
+- Make it possible to install extensions of any kind.
 - Fix getting permanently disconnected when you sleep or hibernate for a while.
-- Make it possible to automatically update the binary.
 - Add connection type to web socket query parameters.
 
 ## Future
