@@ -50,10 +50,10 @@ index 7a2320d828..5768890636 100644
  yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000..6aee0e46bc
+index 0000000000..d0a8f37714
 --- /dev/null
 +++ b/coder.js
-@@ -0,0 +1,70 @@
+@@ -0,0 +1,69 @@
 +// This must be ran from VS Code's root.
 +const gulp = require("gulp");
 +const path = require("path");
@@ -77,7 +77,6 @@ index 0000000000..6aee0e46bc
 +
 +const vscodeResources = [
 +	"out-build/vs/server/fork.js",
-+	"out-build/vs/server/node/uriTransformer.js",
 +	"!out-build/vs/server/doc/**",
 +	"out-build/vs/workbench/services/extensions/worker/extensionHostWorkerMain.js",
 +	"out-build/bootstrap.js",
@@ -212,6 +211,72 @@ index c52f7b3774..08a87fa970 100644
  	];
  	const envKeys = Object.keys(env);
  	envKeys
+diff --git a/src/vs/base/common/uriIpc.ts b/src/vs/base/common/uriIpc.ts
+index ef2291d49b..29b2f9dfc2 100644
+--- a/src/vs/base/common/uriIpc.ts
++++ b/src/vs/base/common/uriIpc.ts
+@@ -5,6 +5,7 @@
+ 
+ import { URI, UriComponents } from 'vs/base/common/uri';
+ import { MarshalledObject } from 'vs/base/common/marshalling';
++import { Schemas } from './network';
+ 
+ export interface IURITransformer {
+ 	transformIncoming(uri: UriComponents): UriComponents;
+@@ -31,29 +32,35 @@ function toJSON(uri: URI): UriComponents {
+ 
+ export class URITransformer implements IURITransformer {
+ 
+-	private readonly _uriTransformer: IRawURITransformer;
+-
+-	constructor(uriTransformer: IRawURITransformer) {
+-		this._uriTransformer = uriTransformer;
++	constructor(private readonly remoteAuthority: string) {
+ 	}
+ 
++	// NOTE@coder: Coming in from the browser it'll be vscode-remote so it needs
++	// to be transformed into file.
+ 	public transformIncoming(uri: UriComponents): UriComponents {
+-		const result = this._uriTransformer.transformIncoming(uri);
+-		return (result === uri ? uri : toJSON(URI.from(result)));
++		return uri.scheme === Schemas.vscodeRemote
++			? toJSON(URI.file(uri.path))
++			: uri;
+ 	}
+ 
++	// NOTE@coder: Going out to the browser it'll be file so it needs to be
++	// transformed into vscode-remote.
+ 	public transformOutgoing(uri: UriComponents): UriComponents {
+-		const result = this._uriTransformer.transformOutgoing(uri);
+-		return (result === uri ? uri : toJSON(URI.from(result)));
++		return uri.scheme === Schemas.file
++			? toJSON(URI.from({ authority: this.remoteAuthority, scheme: Schemas.vscodeRemote, path: uri.path }))
++			: uri;
+ 	}
+ 
+ 	public transformOutgoingURI(uri: URI): URI {
+-		const result = this._uriTransformer.transformOutgoing(uri);
+-		return (result === uri ? uri : URI.from(result));
++		return uri.scheme === Schemas.file
++			? URI.from({ authority: this.remoteAuthority, scheme: Schemas.vscodeRemote, path:uri.path })
++			: uri;
+ 	}
+ 
+ 	public transformOutgoingScheme(scheme: string): string {
+-		return this._uriTransformer.transformOutgoingScheme(scheme);
++		return scheme === Schemas.file
++			? Schemas.vscodeRemote
++			: scheme;
+ 	}
+ }
+ 
+@@ -152,4 +159,4 @@ export function transformAndReviveIncomingURIs<T>(obj: T, transformer: IURITrans
+ 		return obj;
+ 	}
+ 	return result;
+-}
+\ No newline at end of file
++}
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
 index 2c64061da7..c0ef8faedd 100644
 --- a/src/vs/base/node/languagePacks.js
@@ -1604,10 +1669,10 @@ index 0000000000..1729ec2fa8
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
-index 0000000000..e37ffb747a
+index 0000000000..8f52462797
 --- /dev/null
 +++ b/src/vs/server/node/connection.ts
-@@ -0,0 +1,158 @@
+@@ -0,0 +1,157 @@
 +import * as cp from 'child_process';
 +import { getPathFromAmdModule } from 'vs/base/common/amd';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -1618,7 +1683,6 @@ index 0000000000..e37ffb747a
 +import { ILogService } from 'vs/platform/log/common/log';
 +import { getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
-+import { uriTransformerPath } from 'vs/server/node/util';
 +import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 +
 +export abstract class Connection {
@@ -1723,7 +1787,7 @@ index 0000000000..e37ffb747a
 +		const config = await getNlsConfiguration(locale, this.environment.userDataPath);
 +		const proc = cp.fork(
 +			getPathFromAmdModule(require, 'bootstrap-fork'),
-+			[ '--type=extensionHost', `--uriTransformerPath=${uriTransformerPath}` ],
++			[ '--type=extensionHost' ],
 +			{
 +				env: {
 +					...process.env,
@@ -2602,50 +2666,16 @@ index 0000000000..d1f14654cf
 +		return undefined;
 +	}
 +}
-diff --git a/src/vs/server/node/uriTransformer.js b/src/vs/server/node/uriTransformer.js
-new file mode 100644
-index 0000000000..fc69441cf0
---- /dev/null
-+++ b/src/vs/server/node/uriTransformer.js
-@@ -0,0 +1,24 @@
-+// This file is included via a regular Node require. I'm not sure how (or if)
-+// we can write this in Typescript and have it compile to non-AMD syntax.
-+module.exports = (remoteAuthority) => {
-+	return {
-+		transformIncoming: (uri) => {
-+			switch (uri.scheme) {
-+				case "vscode-remote": return { scheme: "file", path: uri.path };
-+				default: return uri;
-+			}
-+		},
-+		transformOutgoing: (uri) => {
-+			switch (uri.scheme) {
-+				case "file": return { scheme: "vscode-remote", authority: remoteAuthority, path: uri.path };
-+				default: return uri;
-+			}
-+		},
-+		transformOutgoingScheme: (scheme) => {
-+			switch (scheme) {
-+				case "file": return "vscode-remote";
-+				default: return scheme;
-+			}
-+		},
-+	};
-+};
 diff --git a/src/vs/server/node/util.ts b/src/vs/server/node/util.ts
 new file mode 100644
-index 0000000000..dd7fdf7b58
+index 0000000000..fa47e993b4
 --- /dev/null
 +++ b/src/vs/server/node/util.ts
-@@ -0,0 +1,17 @@
-+import { getPathFromAmdModule } from 'vs/base/common/amd';
-+import { URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
+@@ -0,0 +1,13 @@
++import { URITransformer } from 'vs/base/common/uriIpc';
 +
-+export const uriTransformerPath = getPathFromAmdModule(require, 'vs/server/node/uriTransformer');
 +export const getUriTransformer = (remoteAuthority: string): URITransformer => {
-+	const rawURITransformerFactory = <any>require.__$__nodeRequire(uriTransformerPath);
-+	const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(remoteAuthority);
-+	return new URITransformer(rawURITransformer);
++	return new URITransformer(remoteAuthority);
 +};
 +
 +/**
@@ -3102,9 +3132,27 @@ index cfac383e8a..c535d38296 100644
  		return false;
  	}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-index 9f8c6ac6f5..34cbaf087c 100644
+index 9f8c6ac6f5..69b5f36203 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
 +++ b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
+@@ -5,7 +5,7 @@
+ 
+ import { Event, EventMultiplexer } from 'vs/base/common/event';
+ import {
+-	IExtensionManagementService, ILocalExtension, IGalleryExtension, InstallExtensionEvent, DidInstallExtensionEvent, IExtensionIdentifier, DidUninstallExtensionEvent, IReportedExtension, IGalleryMetadata, IExtensionGalleryService, INSTALL_ERROR_NOT_SUPPORTED
++	IExtensionManagementService, ILocalExtension, IGalleryExtension, InstallExtensionEvent, DidInstallExtensionEvent, IExtensionIdentifier, DidUninstallExtensionEvent, IReportedExtension, IGalleryMetadata, IExtensionGalleryService
+ } from 'vs/platform/extensionManagement/common/extensionManagement';
+ import { IExtensionManagementServer, IExtensionManagementServerService } from 'vs/workbench/services/extensionManagement/common/extensionManagement';
+ import { ExtensionType, isLanguagePackExtension, IExtensionManifest } from 'vs/platform/extensions/common/extensions';
+@@ -15,7 +15,7 @@ import { IConfigurationService } from 'vs/platform/configuration/common/configur
+ import { CancellationToken } from 'vs/base/common/cancellation';
+ import { areSameExtensions } from 'vs/platform/extensionManagement/common/extensionManagementUtil';
+ import { localize } from 'vs/nls';
+-import { prefersExecuteOnUI, canExecuteOnWorkspace } from 'vs/workbench/services/extensions/common/extensionsUtil';
++import { prefersExecuteOnUI } from 'vs/workbench/services/extensions/common/extensionsUtil';
+ import { IProductService } from 'vs/platform/product/common/productService';
+ import { Schemas } from 'vs/base/common/network';
+ import { IDownloadService } from 'vs/platform/download/common/download';
 @@ -208,11 +208,7 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			if (!manifest) {
  				return Promise.reject(localize('Manifest is not found', "Installing Extension {0} failed: Manifest is not found.", gallery.displayName || gallery.name));
@@ -3158,9 +3206,18 @@ index 9e8352ac88..22a2d296f9 100644
  
  export function getExtensionKind(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): ExtensionKind[] {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-index 79dd77aeb2..f8b58b034a 100644
+index 79dd77aeb2..1d93c0f922 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
+@@ -16,7 +16,7 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
+ import { MessageType, createMessageOfType, isMessageOfType, IExtHostSocketMessage, IExtHostReadyMessage, IExtHostReduceGraceTimeMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
+ import { ExtensionHostMain, IExitFn } from 'vs/workbench/services/extensions/common/extensionHostMain';
+ import { VSBuffer } from 'vs/base/common/buffer';
+-import { IURITransformer, URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
++import { IURITransformer, URITransformer } from 'vs/base/common/uriIpc';
+ import { exists } from 'vs/base/node/pfs';
+ import { realpath } from 'vs/base/node/extpath';
+ import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
 @@ -55,12 +55,13 @@ const args = minimist(process.argv.slice(2), {
  	const Module = require.__$__nodeRequire('module') as any;
  	const originalLoad = Module._load;
@@ -3191,6 +3248,20 @@ index 79dd77aeb2..f8b58b034a 100644
  						});
  					}
  				}
+@@ -307,11 +311,9 @@ export async function startExtensionHostProcess(): Promise<void> {
+ 
+ 	// Attempt to load uri transformer
+ 	let uriTransformer: IURITransformer | null = null;
+-	if (initData.remote.authority && args.uriTransformerPath) {
++	if (initData.remote.authority) {
+ 		try {
+-			const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
+-			const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
+-			uriTransformer = new URITransformer(rawURITransformer);
++			uriTransformer = new URITransformer(initData.remote.authority);
+ 		} catch (e) {
+ 			console.error(e);
+ 		}
 diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
 index 9056862945..0785d3391d 100644
 --- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
