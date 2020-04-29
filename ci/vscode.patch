@@ -11,7 +11,7 @@ index e73dd4d9e8..e3192b3a0d 100644
  build/node_modules
  coverage/
 diff --git a/.yarnrc b/.yarnrc
-index 7808166004..c877697068 100644
+index 7808166004..a7300dbfb9 100644
 --- a/.yarnrc
 +++ b/.yarnrc
 @@ -1,3 +1,3 @@
@@ -19,7 +19,7 @@ index 7808166004..c877697068 100644
 -target "7.1.11"
 -runtime "electron"
 +disturl "http://nodejs.org/dist"
-+target "12.14.0"
++target "12.16.3"
 +runtime "node"
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
 index 7a2320d828..5768890636 100644

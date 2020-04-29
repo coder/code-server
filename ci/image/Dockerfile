@@ -13,7 +13,7 @@ RUN yum update -y && yum install -y \
   libx11-devel
 
 RUN mkdir /usr/share/node && cd /usr/share/node \
-  && curl "https://nodejs.org/dist/v12.14.0/node-v12.14.0-linux-$(uname -m | sed 's/86_//; s/aarch/arm/').tar.xz" | tar xJ --strip-components=1 --
+  && curl "https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-$(uname -m | sed 's/86_//; s/aarch/arm/').tar.xz" | tar xJ --strip-components=1 --
 ENV PATH "$PATH:/usr/share/node/bin"
 RUN npm install -g yarn@1.22.4
 
