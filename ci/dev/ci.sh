@@ -2,7 +2,7 @@
 set -euo pipefail
 
 main() {
-  cd "$(dirname "$0")/.."
+  cd "$(dirname "$0")/../.."
 
   yarn fmt
   yarn lint

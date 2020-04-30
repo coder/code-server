@@ -1,3 +1,5 @@
+# app
+
 Implementation of [VS Code](https://code.visualstudio.com/) remote/web for use
 in `code-server`.
 

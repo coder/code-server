@@ -5,7 +5,7 @@ set -euo pipefail
 # 2. Patches it.
 # 3. Installs it.
 main() {
-  cd "$(dirname "$0")/.."
+  cd "$(dirname "$0")/../.."
 
   git submodule update --init
 

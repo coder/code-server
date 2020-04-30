@@ -1,9 +1,9 @@
-*.tsbuildinfo
+.tsbuildinfo
 .cache
-build
 dist*
 out*
 release/
-release-upload/
+release-static/
+release-github/
+release-gcp/
 node_modules
-binaries
