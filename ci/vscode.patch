@@ -3023,6 +3023,25 @@ index 2a7844da48..2812092983 100644
  			this._filenameKey.set(value ? basename(value) : null);
  			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
  			this._extensionKey.set(value ? extname(value) : null);
+diff --git a/src/vs/workbench/contrib/scm/browser/media/scmViewlet.css b/src/vs/workbench/contrib/scm/browser/media/scmViewlet.css
+index 5ea3fd924b..feeddd32d5 100644
+--- a/src/vs/workbench/contrib/scm/browser/media/scmViewlet.css
++++ b/src/vs/workbench/contrib/scm/browser/media/scmViewlet.css
+@@ -120,9 +120,11 @@
+ 	margin-right: 8px;
+ }
+ 
+-.scm-viewlet .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
+-	flex-grow: 100;
+-}
++/* NOTE:@coder: Causes the label to shrink to zero width in Firefox due to
++ * overflow:hidden. This isn't right anyway, as far as I can tell. */
++/* .scm-viewlet .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions { */
++/* 	flex-grow: 100; */
++/* } */
+ 
+ .scm-viewlet .monaco-list .monaco-list-row .resource-group > .actions,
+ .scm-viewlet .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
 index b378daa5a0..8d7b1b16df 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
