@@ -54,7 +54,6 @@
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "limiter": "^1.1.5",
-    "node-pty": "^0.9.0",
     "pem": "^1.14.2",
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",
