@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "scripts": {
     "clean": "ci/clean.sh",
     "vscode": "ci/vscode.sh",
