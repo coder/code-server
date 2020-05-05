@@ -39,7 +39,7 @@ If functionality doesn't depend on code from VS Code then it should be moved
 into code-server otherwise it should be in the patch.
 
 To generate a new patch, **stage all the changes** you want to be included in
-the patch in the VS Code source, then run `yarn patch:generate` in this
+the patch in the VS Code source, then run `yarn vscode:diff` in this
 directory.
 
 Notable changes include:
