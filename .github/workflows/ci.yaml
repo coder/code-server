@@ -1,0 +1,15 @@
+name: ci
+
+on: [push, pull_request]
+
+jobs:
+  arm64-release:
+    name: linux-arm64-release
+    runs-on: [Linux, ARM64]
+    steps:
+      - uses: actions/checkout@v1
+      - run: ./ci/steps/linux-release.sh
+      - uses: actions/upload-artifact@v2
+        with:
+          name: release-github
+          path: ./release-github/*
