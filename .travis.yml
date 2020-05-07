@@ -5,7 +5,7 @@ jobs:
   include:
     - name: Test
       if: tag IS blank
-      script: ./ci/container/exec.sh ./ci/steps/test.sh
+      script: ./ci/steps/test.sh
       deploy: null
       install: null
     - name: Linux Release
