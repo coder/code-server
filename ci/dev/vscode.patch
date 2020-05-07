@@ -50,7 +50,7 @@ index 7a2320d828..5768890636 100644
  yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000..d0a8f37714
+index 0000000000..0170b47241
 --- /dev/null
 +++ b/coder.js
 @@ -0,0 +1,69 @@
@@ -83,7 +83,7 @@ index 0000000000..d0a8f37714
 +	"out-build/bootstrap-fork.js",
 +	"out-build/bootstrap-amd.js",
 +	"out-build/paths.js",
-+	'out-build/vs/**/*.{svg,png,html}',
++	'out-build/vs/**/*.{svg,png,html,ttf}',
 +	"!out-build/vs/code/browser/workbench/*.html",
 +	'!out-build/vs/code/electron-browser/**',
 +	"out-build/vs/base/common/performance.js",

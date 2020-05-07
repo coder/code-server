@@ -1,19 +1,30 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.3.0",
-  "scripts": {
-    "clean": "ci/clean.sh",
-    "vscode": "ci/vscode.sh",
-    "vscode:patch": "cd ./lib/vscode && git apply ../../ci/vscode.patch",
-    "vscode:diff": "cd ./lib/vscode && git diff HEAD > ../../ci/vscode.patch",
-    "test": "mocha -r ts-node/register ./test/*.test.ts",
-    "lint": "ci/lint.sh",
-    "fmt": "ci/fmt.sh",
-    "runner": "cd ./ci && NODE_OPTIONS=--max_old_space_size=32384 ts-node ./build.ts",
-    "build": "yarn runner build",
-    "watch": "yarn runner watch"
+  "version": "3.3.0-rc.7",
+  "description": "Run VS Code on a remote server.",
+  "homepage": "https://github.com/cdr/code-server",
+  "bugs": {
+    "url": "https://github.com/cdr/code-server/issues"
   },
+  "repository": "https://github.com/cdr/code-server",
+  "scripts": {
+    "clean": "./ci/build/clean.sh",
+    "vscode": "./ci/dev/vscode.sh",
+    "vscode:patch": "cd ./lib/vscode && git apply ../../ci/dev/vscode.patch",
+    "vscode:diff": "cd ./lib/vscode && git diff HEAD > ../../ci/dev/vscode.patch",
+    "build": "./ci/build/build-code-server.sh",
+    "build:vscode": "./ci/build/build-vscode.sh",
+    "release": "./ci/build/build-release.sh",
+    "pkg": "./ci/build/build-static-pkgs.sh",
+    "_____": "",
+    "fmt": "./ci/dev/fmt.sh",
+    "lint": "./ci/dev/lint.sh",
+    "test": "./ci/dev/test.sh",
+    "ci": "./ci/dev/ci.sh",
+    "watch": "NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts"
+  },
+  "main": "out/node/entry.js",
   "devDependencies": {
     "@types/adm-zip": "^0.4.32",
     "@types/fs-extra": "^8.0.1",
@@ -40,7 +51,8 @@
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^8.4.1",
-    "typescript": "3.7.2"
+    "typescript": "3.7.2",
+    "yarn": "^1.22.4"
   },
   "resolutions": {
     "@types/node": "^12.12.7",
@@ -48,7 +60,7 @@
     "vfile-message": "^2.0.2"
   },
   "dependencies": {
-    "@coder/logger": "1.1.11",
+    "@coder/logger": "1.1.14",
     "adm-zip": "^0.4.14",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",
@@ -60,5 +72,16 @@
     "tar": "^6.0.1",
     "tar-fs": "^2.0.0",
     "ws": "^7.2.0"
-  }
+  },
+  "bin": {
+    "code-server": "out/node/entry.js"
+  },
+  "keywords": [
+    "vscode",
+    "development",
+    "ide",
+    "coder",
+    "vscode-remote",
+    "browser-ide"
+  ]
 }

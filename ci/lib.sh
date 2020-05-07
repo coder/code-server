@@ -1,10 +1,43 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-set_version() {
-  local code_server_version=${VERSION:-${TRAVIS_TAG:-}}
-  if [[ -z $code_server_version ]]; then
-    code_server_version=$(grep version ./package.json | head -1 | awk -F: '{ print $2 }' | sed 's/[",]//g' | tr -d '[:space:]')
+pushd() {
+  builtin pushd "$@" > /dev/null
+}
+
+popd() {
+  builtin popd > /dev/null
+}
+
+pkg_json_version() {
+  jq -r .version package.json
+}
+
+os() {
+  local os
+  os=$(uname | tr '[:upper:]' '[:lower:]')
+  if [[ $os == "linux" ]]; then
+    # Alpine's ldd doesn't have a version flag but if you use an invalid flag
+    # (like --version) it outputs the version to stderr and exits with 1.
+    local ldd_output
+    ldd_output=$(ldd --version 2>&1 || true)
+    if echo "$ldd_output" | grep -iq musl; then
+      os="alpine"
+    fi
   fi
-  export VERSION=$code_server_version
+  echo "$os"
+}
+
+arch() {
+  case "$(uname -m)" in
+  aarch64)
+    echo arm64
+    ;;
+  x86_64)
+    echo amd64
+    ;;
+  *)
+    echo "unknown architecture $(uname -a)"
+    exit 1
+    ;;
+  esac
 }

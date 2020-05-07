@@ -1,5 +1,8 @@
 # Contributing
 
+- [Detailed CI and build process docs](../ci)
+- [Our VS Code Web docs](../src/node/app)
+
 ## Development Workflow
 
 - [VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
@@ -13,7 +16,7 @@ yarn watch # Visit http://localhost:8080 once completed.
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev-image/exec.sh
+./ci/dev/container/exec.sh
 
 root@12345:/code-server# yarn
 root@12345:/code-server# yarn vscode
@@ -36,5 +39,7 @@ works internally.
 yarn
 yarn vscode
 yarn build
-node ./build/out/node/entry.js # Run the built JavaScript with Node.
+yarn build:vscode
+yarn release
+node ./release # Run the built JavaScript with Node.
 ```

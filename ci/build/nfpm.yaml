@@ -1,0 +1,16 @@
+name: "code-server"
+arch: "${ARCH}"
+platform: "linux"
+version: "v${VERSION}"
+section: "devel"
+priority: "optional"
+maintainer: "Anmol Sethi <hi@nhooyr.io>"
+description: |
+  Run VS Code in the browser.
+vendor: "Coder"
+homepage: "https://github.com/cdr/code-server"
+license: "MIT"
+bindir: "/usr/bin"
+files:
+  ./ci/build/code-server-nfpm.sh: /usr/bin/code-server
+  ./release-static/**/*: "/usr/lib/code-server/"
