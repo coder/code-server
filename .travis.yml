@@ -12,13 +12,17 @@ jobs:
       if: tag IS present
       script: ./ci/steps/linux-release.sh
       install: null
-    - name: Linux Release
-      if: tag IS present
-      arch: arm64
-      script: |
-        sudo apt-get update && sudo apt-get install -y jq || exit 1
-        ./ci/steps/linux-release.sh
-      install: null
+    # Unfortunately ARM on travis is very unreliable.
+    # We see random build failures, logging output being truncated, build being killed
+    # due to no output even though we use travis_wait etc.
+    # So we've disabled it for now.
+    #    - name: Linux Release
+    #      if: tag IS present
+    #      arch: arm64
+    #      script: |
+    #        sudo apt-get update && sudo apt-get install -y jq || exit 1
+    #        travis_wait 60 ./ci/steps/linux-release.sh
+    #      install: null
     - name: MacOS Release
       if: tag IS present
       os: osx
