@@ -6,11 +6,11 @@ RUN apt-get update
 RUN apt-get install -y curl gnupg
 
 # Installs node.
-RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+RUN curl -sSL https://deb.nodesource.com/setup_14.x | bash - && \
     apt-get install -y nodejs
 
 # Installs yarn.
-RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+RUN curl -sSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
     apt-get update && apt-get install -y yarn
 
@@ -27,14 +27,14 @@ RUN apt-get install -y gettext-base
 RUN apt-get install -y jq git rsync
 
 # Installs shellcheck.
-RUN curl -L https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.$(uname -m).tar.xz | \
+RUN curl -sSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.$(uname -m).tar.xz | \
     tar -xJ && \
     mv shellcheck*/shellcheck /usr/local/bin && \
     rm -R shellcheck*
 
 # Install Go dependencies
 RUN ARCH="$(dpkg --print-architecture)" && \
-    curl "https://dl.google.com/go/go1.14.2.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
+    curl -sSL "https://dl.google.com/go/go1.14.2.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 ENV GO111MODULE=on
 RUN go get mvdan.cc/sh/v3/cmd/shfmt

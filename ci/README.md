@@ -8,17 +8,15 @@ Any file and directory added into this tree should be documented here.
 
 ## Publishing a release
 
-1. Change the version of code-server in `package.json` and push this commit.
-1. CI will run and generate an NPM package and release packages that you can download
-   as artifacts on Github Actions.
-1. Create a new draft release with the built release packages.
-1. Run some basic sanity tests on one of the released packages.
-1. Publish.
-1. Download the built npm package and publish it.
-1. Place the debian releases into `./release-packages` and then push the docker
-   image with `./ci/release-container/push.sh`.
-   1. This will need to be ran on an ARM64 instance as well.
-   1. At some point we need to automate this.
+1. Update the version of code-server in `package.json` and push a commit
+1. CI will run and generate the `npm-package` and `release-packages` artifacts on the GH actions workflow
+1. Create a new draft release and attach all the files in `release-packages`
+1. Run some basic sanity tests on one of the released packages
+1. Publish the release
+1. CI will automatically grab the artifacts and then
+   1. Publish the NPM package.
+   1. Publish the AMD64 docker image.
+   1. Publish the ARM64 docker image.
 
 ## dev
 
@@ -95,3 +93,10 @@ Just helps avoid clobbering .travis.yml.
   - Generates the npm package at `./release`
 - [./steps/static-release.sh](./steps/static-release.sh)
   - Takes the output of the previous script and generates a static release and packages
+- [./steps/lib.sh](./steps/lib.sh)
+  - Contains helpers to download artifacts from github actions workflow runs
+- [./steps/publish-npm.sh](./steps/publish-npm.sh)
+  - Grabs the `npm-package` release artifact for the current commit and publishes it on NPM
+- [./steps/publish-docker.sh](./steps/publish-docker.sh)
+  - Grabs the `release-packages` release artifact for the current commit and builds a docker
+    image with it and publishes that onto docker hub

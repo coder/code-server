@@ -28,14 +28,14 @@ RUN adduser --gecos '' --disabled-password coder && \
   echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
 RUN ARCH="$(dpkg --print-architecture)" && \
-    curl -L "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
+    curl -sSL "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
     mkdir -p /etc/fixuid && \
     printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 COPY release-packages/code-server*.deb /tmp/
-RUN dpkg -i /tmp/code-server*.deb && rm /tmp/code-server*.deb
+RUN dpkg -i /tmp/code-server*-$(dpkg --print-architecture).deb && rm /tmp/code-server*.deb
 
 EXPOSE 8080
 USER coder
