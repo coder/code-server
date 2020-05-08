@@ -33,14 +33,17 @@ This directory contains scripts used for the development of code-server.
 
 This directory contains the scripts used to build code-server.
 
+- [./lib.sh](./lib.sh)
+  - Contains code duplicated across these scripts.
 - [./build/build-code-server.sh](./build/build-code-server.sh) (`yarn build`)
   - Builds code-server into ./out and bundles the frontend into ./dist.
 - [./build/build-vscode.sh](./build/build-vscode.sh) (`yarn build:vscode`)
   - Builds vscode into ./lib/vscode/out-vscode.
 - [./build/build-release.sh](./build/build-release.sh) (`yarn release`)
-  - Bundles the output of the above two scripts into a single node module at ./release.
-  - Will build a static release with node/node_modules into `./release-static`
-    if `STATIC=1` is set.
+  - Bundles the output of the above two scripts into a single node module at `./release`.
+- [./build/build-static-release.sh](./build/build-static-release.sh) (`yarn release:static`)
+  - Requires a release already built in `./release`.
+  - Will build a static release with node and node_modules into `./release-static`
 - [./build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all git ignored files like build artifacts.
   - Will also `git reset --hard lib/vscode`
@@ -74,5 +77,8 @@ Just helps avoid clobbering .travis.yml.
 - [./steps/test.sh](./steps/test.sh)
   - Runs `yarn ci` after ensuring VS Code is patched
 - [./steps/release.sh](./steps/release.sh)
-  - Runs the full static build process for CI
-  - Packages the release into a .deb and .rpm for linux
+  - Runs the full release process
+  - Generates the npm package at `./release`
+- [./steps/static-release.sh](./steps/static-release.sh)
+  - Takes the output of the previous script and bundles it into a self-contained archive into `./github-release`
+  - Also outputs .deb/.rpm if on linux.

@@ -12,7 +12,7 @@ jobs:
         with:
           args: ./ci/steps/test.sh
 
-  linux-amd64:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
@@ -20,25 +20,44 @@ jobs:
         uses: ./ci/container
         with:
           args: ./ci/steps/release.sh
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-github
-          path: ./release-github/*
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v2
         with:
           name: npm-package
           path: ./release
 
+  linux-amd64:
+    needs: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download npm package
+        uses: actions/download-artifact@v1
+        with:
+          name: npm-package
+      - name: Run ./ci/steps/static-release.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/static-release.sh
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-github
+          path: ./release-github/*
+
   linux-arm64:
+    needs: release
     runs-on: ubuntu-arm64-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run ./ci/steps/release.sh
+      - name: Download npm package
+        uses: actions/download-artifact@v1
+        with:
+          name: npm-package
+      - name: Run ./ci/steps/static-release.sh
         uses: ./ci/container
         with:
-          args: ./ci/steps/release.sh
+          args: ./ci/steps/static-release.sh
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -46,14 +65,19 @@ jobs:
           path: ./release-github/*
 
   macos:
+    needs: release
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
+      - name: Download npm package
+        uses: actions/download-artifact@v1
+        with:
+          name: npm-package
       - run: brew unlink node@12
       - run: brew install node
-      - run: ./ci/steps/release.sh
+      - run: ./ci/steps/static-release.sh
         env:
-          # Otherwise we get a rate limited when fetching the ripgrep binary.
+          # Otherwise we get rate limited when fetching the ripgrep binary.
           GITHUB_TOKEN: ${{ secrets.github_token }}
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2

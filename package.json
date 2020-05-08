@@ -16,6 +16,7 @@
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
+    "release:static": "./ci/build/build-static-release.sh",
     "pkg": "./ci/build/build-static-pkgs.sh",
     "_____": "",
     "fmt": "./ci/dev/fmt.sh",
