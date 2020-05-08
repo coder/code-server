@@ -10,6 +10,7 @@ main() {
   fi
 
   download_artifact release-packages ./release-packages
+  ./ci/release-container/build.sh
   ./ci/release-container/push.sh
 }
 

@@ -41,5 +41,7 @@ yarn vscode
 yarn build
 yarn build:vscode
 yarn release
-node ./release # Run the built JavaScript with Node.
+cd release
+yarn --production
+node . # Run the built JavaScript with Node.
 ```

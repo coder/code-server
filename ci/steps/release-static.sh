@@ -5,7 +5,7 @@ main() {
   cd "$(dirname "$0")/../.."
 
   yarn release:static
-  ./ci/build/test-static-release.sh
+  yarn test:static-release
   yarn package
 }
 

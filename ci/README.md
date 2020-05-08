@@ -10,13 +10,15 @@ Any file and directory added into this tree should be documented here.
 
 1. Update the version of code-server in `package.json` and push a commit
 1. CI will run and generate the `npm-package` and `release-packages` artifacts on the GH actions workflow
-1. Create a new draft release and attach all the files in `release-packages`
-1. Run some basic sanity tests on one of the released packages
+1. Create a new draft release and attach all files in `release-packages`
+   1. Run some basic sanity tests on one of the released packages
+1. Summarize the major changes in the release notes and link to the relevant issues.
+   1. Make sure to mention the VS Code version in the release notes
 1. Publish the release
-1. CI will automatically grab the artifacts and then
-   1. Publish the NPM package.
-   1. Publish the AMD64 docker image.
-   1. Publish the ARM64 docker image.
+   1. CI will automatically grab the artifacts and then
+      1. Publish the NPM package
+      1. Publish the AMD64 docker image
+      1. Publish the ARM64 docker image
 
 ## dev
 
@@ -63,9 +65,9 @@ You can disable minification by setting `MINIFY=`.
   - Useful to do a clean build.
 - [./build/code-server.sh](./build/code-server.sh)
   - Copied into static releases to run code-server with the bundled node binary.
-- [./build/test-release.sh](./build/test-static-release.sh)
+- [./build/test-static-release.sh](./build/test-static-release.sh) (`yarn test:static-release`)
   - Ensures code-server in the `./release-static` directory runs
-- [./build/build-packages.sh](./build/build-static-pkgs.sh) (`yarn package`)
+- [./build/build-packages.sh](./build/build-packages.sh) (`yarn package`)
   - Packages `./release-static` into an archive in `./release-packages`
   - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate .deb and .rpm
 - [./build/nfpm.yaml](./build/nfpm.yaml)
@@ -77,6 +79,12 @@ You can disable minification by setting `MINIFY=`.
 
 This directory contains the release docker container.
 
+- [./release-container/build.sh](./release-container/build.sh)
+  - Builds the release container
+  - Assumes debian releases are ready in `./release-packages`
+- [./release-container/push.sh](./release-container/push.sh)
+  - Pushes the built release container to docker hub and updates the latest tag
+
 ## container
 
 This directory contains the container for CI.
@@ -84,7 +92,7 @@ This directory contains the container for CI.
 ## steps
 
 This directory contains a few scripts used in CI.
-Just helps avoid clobbering .travis.yml.
+Just helps avoid clobbering the CI configuration.
 
 - [./steps/test.sh](./steps/test.sh)
   - Runs `yarn ci` after ensuring VS Code is patched
@@ -98,5 +106,6 @@ Just helps avoid clobbering .travis.yml.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on NPM
 - [./steps/publish-docker.sh](./steps/publish-docker.sh)
-  - Grabs the `release-packages` release artifact for the current commit and builds a docker
-    image with it and publishes that onto docker hub
+  - Grabs the `release-packages` release artifact for the current commit and
+    builds a docker image with it and publishes that onto docker hub with the
+    correct tag and updates latest
