@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This script requires code-server and vscode to be built with matching MINIFY.
+# This script requires vscode to be built with matching MINIFY.
 
-# MINIFY controls whether minified vscode is bundled and whether
-# any included node_modules are pruned for production.
+# MINIFY controls whether minified vscode is bundled.
 MINIFY="${MINIFY-true}"
 
 main() {

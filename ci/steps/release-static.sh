@@ -6,11 +6,7 @@ main() {
 
   yarn release:static
   ./ci/build/test-static-release.sh
-  ./ci/build/archive-static-release.sh
-
-  if [[ $OSTYPE == linux* ]]; then
-    yarn pkg
-  fi
+  yarn package
 }
 
 main "$@"

@@ -17,7 +17,7 @@
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
     "release:static": "./ci/build/build-static-release.sh",
-    "pkg": "./ci/build/build-static-pkgs.sh",
+    "package": "./ci/build/build-packages.sh",
     "_____": "",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",

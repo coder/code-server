@@ -32,6 +32,7 @@ This directory contains scripts used for the development of code-server.
 ## build
 
 This directory contains the scripts used to build code-server.
+You can disable minification by setting `MINIFY=`.
 
 - [./lib.sh](./lib.sh)
   - Contains code duplicated across these scripts.
@@ -50,12 +51,11 @@ This directory contains the scripts used to build code-server.
   - Useful to do a clean build.
 - [./build/code-server.sh](./build/code-server.sh)
   - Copied into static releases to run code-server with the bundled node binary.
-- [./build/archive-static-release.sh](./build/archive-static-release.sh)
-  - Archives `./release-static` into a tar/zip for CI with the proper directory name scheme
 - [./build/test-release.sh](./build/test-static-release.sh)
   - Ensures code-server in the `./release-static` directory runs
-- [./build/build-static-pkgs.sh](./build/build-static-pkgs.sh) (`yarn pkg`)
-  - Uses [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm from a static release
+- [./build/build-packages.sh](./build/build-static-pkgs.sh) (`yarn package`)
+  - Packages `./release-static` into an archive in `./release-packages`
+  - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate .deb and .rpm
 - [./build/nfpm.yaml](./build/nfpm.yaml)
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm
 - [./build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
@@ -80,5 +80,4 @@ Just helps avoid clobbering .travis.yml.
   - Runs the full release process
   - Generates the npm package at `./release`
 - [./steps/static-release.sh](./steps/static-release.sh)
-  - Takes the output of the previous script and bundles it into a self-contained archive into `./github-release`
-  - Also outputs .deb/.rpm if on linux.
+  - Takes the output of the previous script and generates a static release and packages

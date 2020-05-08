@@ -4,6 +4,6 @@ dist*
 out*
 release/
 release-static/
-release-github/
+release-packages/
 release-gcp/
 node_modules

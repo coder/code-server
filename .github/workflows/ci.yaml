@@ -32,18 +32,19 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Download npm package
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: npm-package
-      - name: Run ./ci/steps/static-release.sh
+          path: ./release
+      - name: Run ./ci/steps/release-static.sh
         uses: ./ci/container
         with:
-          args: ./ci/steps/static-release.sh
+          args: ./ci/steps/release-static.sh
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: release-github
-          path: ./release-github/*
+          name: release-packages
+          path: ./release-packages
 
   linux-arm64:
     needs: release
@@ -51,18 +52,19 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Download npm package
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: npm-package
-      - name: Run ./ci/steps/static-release.sh
+          path: ./release
+      - name: Run ./ci/steps/release-static.sh
         uses: ./ci/container
         with:
-          args: ./ci/steps/static-release.sh
+          args: ./ci/steps/release-static.sh
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: release-github
-          path: ./release-github/*
+          name: release-packages
+          path: ./release-packages
 
   macos:
     needs: release
@@ -70,17 +72,18 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Download npm package
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: npm-package
+          path: ./release
       - run: brew unlink node@12
       - run: brew install node
-      - run: ./ci/steps/static-release.sh
+      - run: ./ci/steps/release-static.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.
           GITHUB_TOKEN: ${{ secrets.github_token }}
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
-          name: release-github
-          path: ./release-github/*
+          name: release-packages
+          path: ./release-packages
