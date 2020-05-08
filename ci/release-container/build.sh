@@ -8,9 +8,7 @@ main() {
 
   imageTag="codercom/code-server:$VERSION"
 
-  docker push "$imageTag"
-  docker tag "$imageTag" codercom/code-server:latest
-  docker push codercom/code-server:latest
+  docker build -t "$imageTag" -f ./ci/release-container/Dockerfile .
 }
 
 main "$@"

@@ -1,0 +1,41 @@
+name: publish
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run ./ci/steps/publish-npm.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/publish-npm.sh
+          env:
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  docker-amd64:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run ./ci/steps/publish-docker.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/publish-docker.sh
+          env:
+            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  docker-arm64:
+    runs-on: ubuntu-arm64-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run ./ci/steps/publish-docker.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/publish-docker.sh
+          env:
+            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

@@ -81,7 +81,8 @@ jobs:
       - run: ./ci/steps/release-static.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.
-          GITHUB_TOKEN: ${{ secrets.github_token }}
+          # For whatever reason only MacOS needs it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
