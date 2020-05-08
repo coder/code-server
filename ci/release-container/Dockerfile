@@ -27,11 +27,8 @@ ENV SHELL=/bin/bash
 RUN adduser --gecos '' --disabled-password coder && \
   echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
 
-SHELL ["/bin/bash", "-c"]
-
-COPY ci/lib.sh /tmp/lib.sh
-RUN source /tmp/lib.sh && rm /tmp/lib.sh && \
-    curl -L "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$(arch).tar.gz" | tar -C /usr/local/bin -xzf - && \
+RUN ARCH="$(dpkg --print-architecture)" && \
+    curl -L "https://github.com/boxboat/fixuid/releases/download/v0.4.1/fixuid-0.4.1-linux-$ARCH.tar.gz" | tar -C /usr/local/bin -xzf - && \
     chown root:root /usr/local/bin/fixuid && \
     chmod 4755 /usr/local/bin/fixuid && \
     mkdir -p /etc/fixuid && \

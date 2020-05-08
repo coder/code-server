@@ -1,30 +1,41 @@
-FROM centos:7
+FROM debian
 
-RUN yum update -y && yum install -y \
-    devtoolset-6 \
-    gcc-c++ \
-    xz \
-    ccache \
-    git \
-    wget \
-    openssl \
-    libxkbfile-devel \
-    libsecret-devel \
-    libx11-devel \
-    gettext
+RUN apt-get update
 
-RUN yum install -y epel-release && \
-    yum install -y ShellCheck jq golang
+# Needed for debian repositories added below.
+RUN apt-get install -y curl gnupg
 
+# Installs node.
+RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - && \
+    apt-get install -y nodejs
+
+# Installs yarn.
+RUN curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | tee /etc/apt/sources.list.d/yarn.list && \
+    apt-get update && apt-get install -y yarn
+
+# Installs VS Code build deps.
+RUN apt-get install -y build-essential \
+                   libsecret-1-dev \
+                   libx11-dev \
+                   libxkbfile-dev
+
+# Installs envsubst.
+RUN apt-get install -y gettext-base
+
+# Misc build dependencies.
+RUN apt-get install -y jq git rsync
+
+# Installs shellcheck.
+RUN curl -L https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.$(uname -m).tar.xz | \
+    tar -xJ && \
+    mv shellcheck*/shellcheck /usr/local/bin && \
+    rm -R shellcheck*
+
+# Install Go dependencies
+RUN ARCH="$(dpkg --print-architecture)" && \
+    curl "https://dl.google.com/go/go1.14.2.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
+ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
+ENV GO111MODULE=on
+RUN go get mvdan.cc/sh/v3/cmd/shfmt
 RUN go get github.com/goreleaser/nfpm/cmd/nfpm
-ENV PATH=$PATH:/root/go/bin
-
-RUN mkdir /usr/share/node && cd /usr/share/node \
-    && curl "https://nodejs.org/dist/v12.16.3/node-v12.16.3-linux-$(uname -m | sed 's/86_//; s/aarch/arm/').tar.xz" | tar xJ --strip-components=1 --
-ENV PATH "$PATH:/usr/share/node/bin"
-RUN npm install -g yarn@1.22.4
-
-RUN curl -L "https://github.com/mvdan/sh/releases/download/v3.0.1/shfmt_v3.0.1_linux_$(uname -m | sed 's/x86_/amd/; s/aarch64/arm/')" > /usr/local/bin/shfmt \
-    && chmod +x /usr/local/bin/shfmt
-
-ENTRYPOINT ["/bin/bash", "-c"]

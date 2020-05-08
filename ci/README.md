@@ -68,15 +68,11 @@ This directory contains the container for CI.
 
 ## steps
 
-This directory contains a few scripts used in CI. Just helps avoid clobbering .travis.yml.
+This directory contains a few scripts used in CI.
+Just helps avoid clobbering .travis.yml.
 
 - [./steps/test.sh](./steps/test.sh)
   - Runs `yarn ci` after ensuring VS Code is patched
-- [./steps/static-release.sh](./steps/static-release.sh)
+- [./steps/release.sh](./steps/release.sh)
   - Runs the full static build process for CI
-- [./steps/linux-release.sh](./steps/linux-release.sh)
-  - Runs the full static build process for CI
-  - Packages the release into a .deb and .rpm
-  - Builds and pushes a docker release
-- [./steps/publish-npm.sh](./steps/publish-npm.sh)
-  - Authenticates yarn and publishes the built package from `./release`
+  - Packages the release into a .deb and .rpm for linux
