@@ -7,14 +7,21 @@ set -euo pipefail
 main() {
   cd "$(dirname "${0}")/../.."
 
-  local output
-  output=$(./release-static/bin/code-server --list-extensions 2>&1)
-  if echo "$output" | grep 'was compiled against a different Node.js version'; then
-    echo "$output"
+  local EXTENSIONS_DIR
+  EXTENSIONS_DIR="$(mktemp -d)"
+
+  echo "Testing static release"
+
+  ./release-static/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension ms-python.python
+  local installed_extensions
+  installed_extensions="$(./release-static/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --list-extensions 2>&1)"
+  if [[ $installed_extensions != "ms-python.python" ]]; then
+    echo "Unexpected output from listing extensions:"
+    echo "$installed_extensions"
     exit 1
   fi
 
-  echo "Build ran successfully"
+  echo "Static release works correctly"
 }
 
 main "$@"

@@ -6,6 +6,20 @@ Many of these scripts contain more detailed documentation and options in comment
 
 Any file and directory added into this tree should be documented here.
 
+## Publishing a release
+
+1. Change the version of code-server in `package.json` and push this commit.
+1. CI will run and generate an NPM package and release packages that you can download
+   as artifacts on Github Actions.
+1. Create a new draft release with the built release packages.
+1. Run some basic sanity tests on one of the released packages.
+1. Publish.
+1. Download the built npm package and publish it.
+1. Place the debian releases into `./release-packages` and then push the docker
+   image with `./ci/release-container/push.sh`.
+   1. This will need to be ran on an ARM64 instance as well.
+   1. At some point we need to automate this.
+
 ## dev
 
 This directory contains scripts used for the development of code-server.
@@ -32,27 +46,30 @@ This directory contains scripts used for the development of code-server.
 ## build
 
 This directory contains the scripts used to build code-server.
+You can disable minification by setting `MINIFY=`.
 
+- [./lib.sh](./lib.sh)
+  - Contains code duplicated across these scripts.
 - [./build/build-code-server.sh](./build/build-code-server.sh) (`yarn build`)
   - Builds code-server into ./out and bundles the frontend into ./dist.
 - [./build/build-vscode.sh](./build/build-vscode.sh) (`yarn build:vscode`)
   - Builds vscode into ./lib/vscode/out-vscode.
 - [./build/build-release.sh](./build/build-release.sh) (`yarn release`)
-  - Bundles the output of the above two scripts into a single node module at ./release.
-  - Will build a static release with node/node_modules into `./release-static`
-    if `STATIC=1` is set.
+  - Bundles the output of the above two scripts into a single node module at `./release`.
+- [./build/build-static-release.sh](./build/build-static-release.sh) (`yarn release:static`)
+  - Requires a release already built in `./release`.
+  - Will build a static release with node and node_modules into `./release-static`
 - [./build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all git ignored files like build artifacts.
   - Will also `git reset --hard lib/vscode`
   - Useful to do a clean build.
 - [./build/code-server.sh](./build/code-server.sh)
   - Copied into static releases to run code-server with the bundled node binary.
-- [./build/archive-static-release.sh](./build/archive-static-release.sh)
-  - Archives `./release-static` into a tar/zip for CI with the proper directory name scheme
 - [./build/test-release.sh](./build/test-static-release.sh)
   - Ensures code-server in the `./release-static` directory runs
-- [./build/build-static-pkgs.sh](./build/build-static-pkgs.sh) (`yarn pkg`)
-  - Uses [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm from a static release
+- [./build/build-packages.sh](./build/build-static-pkgs.sh) (`yarn package`)
+  - Packages `./release-static` into an archive in `./release-packages`
+  - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate .deb and .rpm
 - [./build/nfpm.yaml](./build/nfpm.yaml)
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm
 - [./build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
@@ -68,15 +85,13 @@ This directory contains the container for CI.
 
 ## steps
 
-This directory contains a few scripts used in CI. Just helps avoid clobbering .travis.yml.
+This directory contains a few scripts used in CI.
+Just helps avoid clobbering .travis.yml.
 
 - [./steps/test.sh](./steps/test.sh)
   - Runs `yarn ci` after ensuring VS Code is patched
+- [./steps/release.sh](./steps/release.sh)
+  - Runs the full release process
+  - Generates the npm package at `./release`
 - [./steps/static-release.sh](./steps/static-release.sh)
-  - Runs the full static build process for CI
-- [./steps/linux-release.sh](./steps/linux-release.sh)
-  - Runs the full static build process for CI
-  - Packages the release into a .deb and .rpm
-  - Builds and pushes a docker release
-- [./steps/publish-npm.sh](./steps/publish-npm.sh)
-  - Authenticates yarn and publishes the built package from `./release`
+  - Takes the output of the previous script and generates a static release and packages

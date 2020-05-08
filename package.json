@@ -16,7 +16,8 @@
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
-    "pkg": "./ci/build/build-static-pkgs.sh",
+    "release:static": "./ci/build/build-static-release.sh",
+    "package": "./ci/build/build-packages.sh",
     "_____": "",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",
@@ -60,7 +61,7 @@
     "vfile-message": "^2.0.2"
   },
   "dependencies": {
-    "@coder/logger": "1.1.14",
+    "@coder/logger": "1.1.11",
     "adm-zip": "^0.4.14",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",

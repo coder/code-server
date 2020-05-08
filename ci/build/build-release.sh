@@ -1,28 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# This script requires code-server and vscode to be built with
-# matching MINIFY.
+# This script requires vscode to be built with matching MINIFY.
 
-# RELEASE_PATH is the destination directory for the release from the root.
-# Defaults to release
-RELEASE_PATH="${RELEASE_PATH-release}"
-
-# STATIC controls whether node and node_modules are packaged into the release.
-# Disabled by default.
-STATIC="${STATIC-}"
-
-# MINIFY controls whether minified vscode is bundled and whether
-# any included node_modules are pruned for production.
+# MINIFY controls whether minified vscode is bundled.
 MINIFY="${MINIFY-true}"
-
-VSCODE_SRC_PATH="lib/vscode"
-
-VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"
 
 main() {
   cd "$(dirname "${0}")/../.."
-  source ./ci/lib.sh
+  source ./ci/build/lib.sh
+
+  VSCODE_SRC_PATH="lib/vscode"
+  VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"
 
   mkdir -p "$RELEASE_PATH"
 
@@ -32,20 +21,6 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
-
-  if [[ $STATIC ]]; then
-    rsync "$RELEASE_PATH/" "$RELEASE_PATH-static"
-    RELEASE_PATH+=-static
-    VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"
-
-    bundle_node
-  else
-    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
-  fi
-}
-
-rsync() {
-  command rsync -a --del "$@"
 }
 
 bundle_code_server() {
@@ -76,6 +51,7 @@ bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
   rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY+-min}/" "$VSCODE_OUT_PATH/out"
   rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
+  rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
@@ -101,27 +77,6 @@ EOF
   # We cannot use --no-scripts because we still want dependant package scripts to run
   # for native modules to be rebuilt.
   jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
-}
-
-bundle_node() {
-  # We cannot find the path to node from $PATH because yarn shims a script to ensure
-  # we use the same version it's using so we instead run a script with yarn that
-  # will print the path to node.
-  local node_path
-  node_path="$(yarn -s node <<< 'console.info(process.execPath)')"
-
-  mkdir -p "$RELEASE_PATH/bin"
-  rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
-  rsync "$node_path" "$RELEASE_PATH/lib/node"
-
-  rsync node_modules "$RELEASE_PATH"
-  rsync "$VSCODE_SRC_PATH/node_modules" "$VSCODE_OUT_PATH"
-
-  if [[ $MINIFY ]]; then
-    pushd "$RELEASE_PATH"
-    yarn --production
-    popd
-  fi
 }
 
 main "$@"

@@ -48,6 +48,22 @@ index 7a2320d828..5768890636 100644
 +// yarnInstall('test/smoke'); // node modules required for smoketest
 +// yarnInstall('test/integration/browser'); // node modules required for integration
  yarnInstallBuildDependencies(); // node modules for watching, specific to host node version, not electron
+diff --git a/build/npm/preinstall.js b/build/npm/preinstall.js
+index cb88d37ade..6b3253af0a 100644
+--- a/build/npm/preinstall.js
++++ b/build/npm/preinstall.js
+@@ -8,8 +8,9 @@ let err = false;
+ const majorNodeVersion = parseInt(/^(\d+)\./.exec(process.versions.node)[1]);
+ 
+ if (majorNodeVersion < 10 || majorNodeVersion >= 13) {
+-	console.error('\033[1;31m*** Please use node >=10 and <=12.\033[0;0m');
+-	err = true;
++	// We are ok building above Node 12.
++	// console.error('\033[1;31m*** Please use node >=10 and <=12.\033[0;0m');
++	// err = true;
+ }
+ 
+ const cp = require('child_process');
 diff --git a/coder.js b/coder.js
 new file mode 100644
 index 0000000000..0170b47241

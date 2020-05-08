@@ -8,9 +8,7 @@ main() {
   yarn vscode
   yarn build
   yarn build:vscode
-  STATIC=1 yarn release
-  ./ci/build/test-static-release.sh
-  ./ci/build/archive-static-release.sh
+  yarn release
 }
 
 main "$@"
