@@ -792,10 +792,10 @@
     lodash "^4.17.13"
     to-fast-properties "^2.0.0"
 
-"@coder/logger@1.1.14":
-  version "1.1.14"
-  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.14.tgz#0242da33e0245834361dd078e31280fc1c976b7e"
-  integrity sha512-NuTvsOH3dqrXn/8Pbs5zy7l0gLqOSC/TPRl3nexdP/897lgG/vtHNQHrUwTBTzTzihH1ON4lklDxJjY0hD4UPg==
+"@coder/logger@1.1.11":
+  version "1.1.11"
+  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.11.tgz#e6f36dba9436ae61e66e3f66787d75c768617605"
+  integrity sha512-EEh1dqSU0AaqjjjMsVqumgZGbrZimKFKIb4t5E6o3FLfVUxJCReSME78Yj2N1xWUVAHMnqafDCxLostpuIotzw==
 
 "@iarna/toml@^2.2.0":
   version "2.2.5"

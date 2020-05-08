@@ -61,7 +61,7 @@
     "vfile-message": "^2.0.2"
   },
   "dependencies": {
-    "@coder/logger": "1.1.14",
+    "@coder/logger": "1.1.11",
     "adm-zip": "^0.4.14",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",
