@@ -23,6 +23,7 @@ export class OptionalString extends Optional<string> {}
 export interface Args extends VsArgs {
   readonly config?: string
   readonly auth?: AuthType
+  readonly password?: string
   readonly cert?: OptionalString
   readonly "cert-key"?: string
   readonly "disable-telemetry"?: boolean
@@ -83,6 +84,7 @@ type Options<T> = {
 
 const options: Options<Required<Args>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
+  password: { type: "string", description: "The password for password authentication." },
   cert: {
     type: OptionalString,
     path: true,
@@ -96,7 +98,10 @@ const options: Options<Required<Args>> = {
 
   "bind-addr": { type: "string", description: "Address to bind to in host:port." },
 
-  config: { type: "string", description: "Path to yaml config file." },
+  config: {
+    type: "string",
+    description: "Path to yaml config file. Every flag maps directory to a key in the config file.",
+  },
 
   // These two have been deprecated by bindAddr.
   host: { type: "string", description: "" },

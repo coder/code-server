@@ -40,7 +40,8 @@ const main = async (args: Args): Promise<void> => {
   }
 
   const auth = args.auth || AuthType.Password
-  const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
+  const generatedPassword = (args.password || process.env.PASSWORD) !== ""
+  const password = auth === AuthType.Password && (args.password || process.env.PASSWORD || (await generatePassword()))
 
   let host = args.host
   let port = args.port
@@ -55,7 +56,7 @@ const main = async (args: Args): Promise<void> => {
     auth,
     commit,
     host: host || (args.auth === AuthType.Password && args.cert !== undefined ? "0.0.0.0" : "localhost"),
-    password: originalPassword ? hash(originalPassword) : undefined,
+    password: password ? hash(password) : undefined,
     port: port !== undefined ? port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
@@ -86,9 +87,9 @@ const main = async (args: Args): Promise<void> => {
   const serverAddress = await httpServer.listen()
   logger.info(`HTTP server listening on ${serverAddress}`)
 
-  if (auth === AuthType.Password && !process.env.PASSWORD) {
-    logger.info(`  - Password is ${originalPassword}`)
-    logger.info("    - To use your own password set the PASSWORD environment variable")
+  if (auth === AuthType.Password && generatedPassword) {
+    logger.info(`  - Password is ${password}`)
+    logger.info("    - To use your own password set it in the config file with the password key or use $PASSWORD")
     if (!args.auth) {
       logger.info("    - To disable use `--auth none`")
     }
