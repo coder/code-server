@@ -9,7 +9,7 @@ import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
-import { Args, optionDescriptions, parse } from "./cli"
+import { Args, optionDescriptions, parse, readConfigFile } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { generateCertificate, generatePassword, hash, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
@@ -32,6 +32,8 @@ const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
 const main = async (args: Args): Promise<void> => {
+  args = await readConfigFile(args)
+
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))
 
