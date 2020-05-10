@@ -22,3 +22,9 @@ rules:
   # For overloads.
   no-dupe-class-members: off
   "@typescript-eslint/no-use-before-define": off
+
+settings:
+  # Does not work with CommonJS unfortunately.
+  import/ignore:
+    - env-paths
+    - xdg-basedir

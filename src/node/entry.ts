@@ -35,7 +35,9 @@ const main = async (args: Args): Promise<void> => {
   args = await readConfigFile(args)
 
   if (args.verbose === true) {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     logger.info(`Using extensions-dir at ${uxPath(args["extensions-dir"]!)}`)
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     logger.info(`Using user-data-dir at ${uxPath(args["user-data-dir"]!)}`)
   }
 
