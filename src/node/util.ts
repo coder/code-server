@@ -16,10 +16,11 @@ interface Paths {
 
 export const paths = getEnvPaths()
 
-// getEnvPaths gets the config and data paths for the current platform/configuration.
-//
-// On MacOS this function gets the standard XDG directories instead of using the native macOS
-// ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
+/**
+ * Gets the config and data paths for the current platform/configuration.
+ * On MacOS this function gets the standard XDG directories instead of using the native macOS
+ * ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
+ */
 function getEnvPaths(): Paths {
   let paths: Paths
   if (process.platform === "win32") {
@@ -27,11 +28,8 @@ function getEnvPaths(): Paths {
       suffix: "",
     })
   } else {
-    if (xdgBasedir.data === undefined) {
-      throw new Error("Missing data directory?")
-    }
-    if (xdgBasedir.config === undefined) {
-      throw new Error("Missing config directory?")
+    if (xdgBasedir.data === undefined || xdgBasedir.config === undefined) {
+      throw new Error("No home folder?")
     }
     paths = {
       data: path.join(xdgBasedir.data, "code-server"),
@@ -42,8 +40,16 @@ function getEnvPaths(): Paths {
   return paths
 }
 
-// uxPath replaces the home directory in p with ~.
-export function uxPath(p: string): string {
+/**
+ * humanPath replaces the home directory in p with ~.
+ * Makes it more readable.
+ *
+ * @param p
+ */
+export function humanPath(p?: string): string {
+  if (!p) {
+    return ""
+  }
   return p.replace(os.homedir(), "~")
 }
 

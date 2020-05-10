@@ -9,9 +9,9 @@ import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
-import { Args, optionDescriptions, parse, readConfigFile } from "./cli"
+import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { generateCertificate, generatePassword, hash, open, uxPath } from "./util"
+import { generateCertificate, hash, open, humanPath } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 process.on("uncaughtException", (error) => {
@@ -31,35 +31,24 @@ try {
 const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
-const main = async (args: Args): Promise<void> => {
-  args = await readConfigFile(args)
+const main = async (cliArgs: Args): Promise<void> => {
+  const configArgs = await readConfigFile(cliArgs.config)
+  // This prioritizes the flags set in args over the ones in the config file.
+  let args = Object.assign(configArgs, cliArgs)
 
-  if (args.verbose === true) {
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    logger.info(`Using extensions-dir at ${uxPath(args["extensions-dir"]!)}`)
-    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-    logger.info(`Using user-data-dir at ${uxPath(args["user-data-dir"]!)}`)
-  }
+  logger.trace(`Using extensions-dir at ${humanPath(args["extensions-dir"])}`)
+  logger.trace(`Using user-data-dir at ${humanPath(args["user-data-dir"])}`)
 
-  const auth = args.auth || AuthType.Password
-  const generatedPassword = (args.password || process.env.PASSWORD) !== ""
-  const password = auth === AuthType.Password && (args.password || process.env.PASSWORD || (await generatePassword()))
-
-  let host = args.host
-  let port = args.port
-  if (args["bind-addr"] !== undefined) {
-    const u = new URL(`http://${args["bind-addr"]}`)
-    host = u.hostname
-    port = parseInt(u.port, 10)
-  }
+  const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)
+  const [host, port] = bindAddrFromAllSources(cliArgs, configArgs)
 
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
-    auth,
+    auth: args.auth,
     commit,
-    host: host || (args.auth === AuthType.Password && args.cert !== undefined ? "0.0.0.0" : "localhost"),
+    host: host,
     password: password ? hash(password) : undefined,
-    port: port !== undefined ? port : process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
+    port: port,
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
     ...(args.cert && !args.cert.value
@@ -77,7 +66,7 @@ const main = async (args: Args): Promise<void> => {
   const httpServer = new HttpServer(options)
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
-  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, true)
+  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
@@ -89,14 +78,20 @@ const main = async (args: Args): Promise<void> => {
   const serverAddress = await httpServer.listen()
   logger.info(`HTTP server listening on ${serverAddress}`)
 
-  if (auth === AuthType.Password && generatedPassword) {
-    logger.info(`  - Password is ${password}`)
-    logger.info("    - To use your own password set it in the config file with the password key or use $PASSWORD")
-    if (!args.auth) {
-      logger.info("    - To disable use `--auth none`")
+  if (!args.auth) {
+    args = {
+      ...args,
+      auth: AuthType.Password,
     }
-  } else if (auth === AuthType.Password) {
-    logger.info("  - Using custom password for authentication")
+  }
+
+  if (args.auth === AuthType.Password) {
+    if (process.env.PASSWORD) {
+      logger.info("    - Using password from $PASSWORD")
+    } else {
+      logger.info(`    - Using password from ${humanPath(args.config)}`)
+    }
+    logger.info("    - To disable use `--auth none`")
   } else {
     logger.info("  - No authentication")
   }
@@ -116,8 +111,6 @@ const main = async (args: Args): Promise<void> => {
     logger.info(`  - Proxying the following domain${httpServer.proxyDomains.size === 1 ? "" : "s"}:`)
     httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
-
-  // logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.

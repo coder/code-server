@@ -168,8 +168,10 @@ code-server crashes can be helpful.
 ### Where is the data directory?
 
 If the `XDG_DATA_HOME` environment variable is set the data directory will be
-`$XDG_DATA_HOME/code-server`. Otherwise the default is `~/.local/share/code-server`.
-On Windows, it will be `%APPDATA%\Local\code-server\Data`.
+`$XDG_DATA_HOME/code-server`. Otherwise:
+
+1. Unix: `~/.local/share/code-server`
+1. Windows: `%APPDATA%\Local\code-server\Data`
 
 ## Enterprise
 
