@@ -74,7 +74,7 @@ const main = async (args: Args): Promise<void> => {
   const httpServer = new HttpServer(options)
   const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
-  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, !args["disable-updates"])
+  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, true)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
@@ -114,7 +114,7 @@ const main = async (args: Args): Promise<void> => {
     httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
-  logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
+  // logger.info(`Automatic updates are ${update.enabled ? "enabled" : "disabled"}`)
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
