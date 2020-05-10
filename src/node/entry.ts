@@ -11,7 +11,7 @@ import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, optionDescriptions, parse, readConfigFile } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { generateCertificate, generatePassword, hash, open } from "./util"
+import { generateCertificate, generatePassword, hash, open, uxPath } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 process.on("uncaughtException", (error) => {
@@ -33,6 +33,11 @@ const commit = pkg.commit || "development"
 
 const main = async (args: Args): Promise<void> => {
   args = await readConfigFile(args)
+
+  if (args.verbose === true) {
+    logger.info(`Using extensions-dir at ${uxPath(args["extensions-dir"]!)}`)
+    logger.info(`Using user-data-dir at ${uxPath(args["user-data-dir"]!)}`)
+  }
 
   const auth = args.auth || AuthType.Password
   const originalPassword = auth === AuthType.Password && (process.env.PASSWORD || (await generatePassword()))

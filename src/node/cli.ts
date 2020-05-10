@@ -4,8 +4,7 @@ import * as path from "path"
 import { field, logger, Level } from "@coder/logger"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { AuthType } from "./http"
-import { xdgLocalDir } from "./util"
-import xdgBasedir from "xdg-basedir"
+import { paths, uxPath } from "./util"
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
@@ -272,7 +271,7 @@ export const parse = (argv: string[]): Args => {
   }
 
   if (!args["user-data-dir"]) {
-    args["user-data-dir"] = xdgLocalDir
+    args["user-data-dir"] = paths.data
   }
 
   if (!args["extensions-dir"]) {
@@ -281,6 +280,11 @@ export const parse = (argv: string[]): Args => {
 
   return args
 }
+
+const defaultConfigFile = `
+auth: password
+bind-addr: 127.0.0.1:8080
+`.trimLeft()
 
 // readConfigFile reads the config file specified in the config flag
 // and loads it's configuration.
@@ -291,13 +295,13 @@ export const parse = (argv: string[]): Args => {
 // to ~/.config/code-server/config.yaml.
 export async function readConfigFile(args: Args): Promise<Args> {
   const configPath = getConfigPath(args)
-  if (configPath === undefined) {
-    return args
-  }
 
   if (!(await fs.pathExists(configPath))) {
-    await fs.outputFile(configPath, `default: hello`)
+    await fs.outputFile(configPath, defaultConfigFile)
+    logger.info(`Wrote default config file to ${uxPath(configPath)}`)
   }
+
+  logger.info(`Using config file from ${uxPath(configPath)}`)
 
   const configFile = await fs.readFile(configPath)
   const config = yaml.safeLoad(configFile.toString(), {
@@ -306,22 +310,24 @@ export async function readConfigFile(args: Args): Promise<Args> {
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.
-  const configFileArgv = Object.entries(config).map(([optName, opt]) => `--${optName}=${opt}`)
+  const configFileArgv = Object.entries(config).map(([optName, opt]) => {
+    if (opt === null) {
+      return `--${optName}`
+    }
+    return `--${optName}=${opt}`
+  })
   const configFileArgs = parse(configFileArgv)
 
   // This prioritizes the flags set in args over the ones in the config file.
   return Object.assign(configFileArgs, args)
 }
 
-function getConfigPath(args: Args): string | undefined {
+function getConfigPath(args: Args): string {
   if (args.config !== undefined) {
     return args.config
   }
   if (process.env.CODE_SERVER_CONFIG !== undefined) {
     return process.env.CODE_SERVER_CONFIG
   }
-  if (xdgBasedir.config !== undefined) {
-    return `${xdgBasedir.config}/code-server/config.yaml`
-  }
-  return undefined
+  return path.join(paths.config, "config.yaml")
 }

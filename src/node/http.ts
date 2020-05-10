@@ -14,7 +14,7 @@ import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options, plural, split } from "../common/util"
 import { SocketProxyProvider } from "./socket"
-import { getMediaMime, xdgLocalDir } from "./util"
+import { getMediaMime, paths } from "./util"
 
 export type Cookies = { [key: string]: string[] | undefined }
 export type PostData = { [key: string]: string | string[] | undefined }
@@ -473,7 +473,7 @@ export class HttpServer {
 
   public constructor(private readonly options: HttpServerOptions) {
     this.proxyDomains = new Set((options.proxyDomains || []).map((d) => d.replace(/^\*\./, "")))
-    this.heart = new Heart(path.join(xdgLocalDir, "heartbeat"), async () => {
+    this.heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
       const connections = await this.getConnections()
       logger.trace(`${connections} active connection${plural(connections)}`)
       return connections !== 0

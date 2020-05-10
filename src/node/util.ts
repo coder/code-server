@@ -4,24 +4,48 @@ import * as fs from "fs-extra"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
+import envPaths from "env-paths"
+import xdgBasedir from "xdg-basedir"
 
 export const tmpdir = path.join(os.tmpdir(), "code-server")
 
-const getXdgDataDir = (): string => {
-  switch (process.platform) {
-    case "win32":
-      return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), "AppData/Local"), "code-server/Data")
-    case "darwin":
-      return path.join(
-        process.env.XDG_DATA_HOME || path.join(os.homedir(), "Library/Application Support"),
-        "code-server",
-      )
-    default:
-      return path.join(process.env.XDG_DATA_HOME || path.join(os.homedir(), ".local/share"), "code-server")
-  }
+interface Paths {
+  data: string
+  config: string
 }
 
-export const xdgLocalDir = getXdgDataDir()
+export const paths = getEnvPaths()
+
+// getEnvPaths gets the config and data paths for the current platform/configuration.
+//
+// On MacOS this function gets the standard XDG directories instead of using the native macOS
+// ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
+function getEnvPaths(): Paths {
+  let paths: Paths
+  if (process.platform === "win32") {
+    paths = envPaths("code-server", {
+      suffix: "",
+    })
+  } else {
+    if (xdgBasedir.data === undefined) {
+      throw new Error("Missing data directory?")
+    }
+    if (xdgBasedir.config === undefined) {
+      throw new Error("Missing config directory?")
+    }
+    paths = {
+      data: path.join(xdgBasedir.data, "code-server"),
+      config: path.join(xdgBasedir.config, "code-server"),
+    }
+  }
+
+  return paths
+}
+
+// uxPath replaces the home directory in p with ~.
+export function uxPath(p: string): string {
+  return p.replace(os.homedir(), "~")
+}
 
 export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
   const paths = {
