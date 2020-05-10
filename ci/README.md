@@ -78,6 +78,8 @@ You can disable minification by setting `MINIFY=`.
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm
 - [./build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
   - Entrypoint script for code-server for .deb and .rpm
+- [./build/code-server.service](./build/code-server.service)
+  - systemd user service packaged into the debs and rpms
 - [./build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
   - Uses [hub](https://github.com/github/hub) to create a draft release with a template description
 - [./build/release-github-assets.sh](./build/release-github-assets.sh) (`yarn release:github-assets`)
