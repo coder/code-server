@@ -8,12 +8,16 @@ Any file and directory added into this tree should be documented here.
 
 ## Publishing a release
 
+Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
+
 1. Update the version of code-server in `package.json` and push a commit
-1. CI will run and generate the `npm-package` and `release-packages` artifacts on the GH actions workflow
-1. Create a new draft release and attach all files in `release-packages`
-   1. Run some basic sanity tests on one of the released packages
-1. Summarize the major changes in the release notes and link to the relevant issues.
-   1. Make sure to mention the VS Code version in the release notes
+1. GitHub actions will generate the `npm-package` and `release-packages` artifacts
+1. Run `yarn release:github-draft` to create a GitHub draft release from the template with
+   the updated version.
+   1. Summarize the major changes in the release notes and link to the relevant issues.
+1. Wait for the artifacts in step 2 to build
+1. Run `yarn release:github-assets` to download the artifacts and then upload them to the draft release
+1. Run some basic sanity tests on one of the released packages
 1. Publish the release
    1. CI will automatically grab the artifacts and then
       1. Publish the NPM package
@@ -45,7 +49,7 @@ This directory contains scripts used for the development of code-server.
 
 ## build
 
-This directory contains the scripts used to build code-server.
+This directory contains the scripts used to build and release code-server.
 You can disable minification by setting `MINIFY=`.
 
 - [./lib.sh](./lib.sh)
@@ -74,6 +78,12 @@ You can disable minification by setting `MINIFY=`.
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate .deb and .rpm
 - [./build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
   - Entrypoint script for code-server for .deb and .rpm
+- [./build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
+  - Uses [hub](https://github.com/github/hub) to create a draft release with a template description
+- [./build/release-github-assets.sh](./build/release-github-assets.sh) (`yarn release:github-assets`)
+  - Downloads the release-package artifacts for the current commit from CI
+  - Uses [hub](https://github.com/github/hub) to upload the artifacts to the release
+    specified in `package.json`
 
 ## release-container
 

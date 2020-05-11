@@ -7,7 +7,7 @@ main() {
   eslint --max-warnings=0 --fix $(git ls-files "*.ts" "*.tsx" "*.js")
   stylelint $(git ls-files "*.css")
   tsc --noEmit
-  shellcheck -e SC2046,SC2164 $(git ls-files "*.sh")
+  shellcheck -e SC2046,SC2164,SC2154 $(git ls-files "*.sh")
 }
 
 main "$@"
