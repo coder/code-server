@@ -10,7 +10,7 @@ Any file and directory added into this tree should be documented here.
 
 Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
 
-1. Update the version of code-server in `package.json` and push a commit
+1. Update the version of code-server in `package.json` and README.md install examples and push a commit
 1. GitHub actions will generate the `npm-package` and `release-packages` artifacts
 1. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
