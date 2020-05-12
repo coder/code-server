@@ -38,6 +38,7 @@ sudo systemctl enable --now code-server
 ```bash
 npm install -g code-server
 code-server
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### macOS
@@ -47,19 +48,6 @@ brew install code-server
 brew service start code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
-
-### SSH
-
-You can use [sshcode](https://github.com/codercom/sshcode) to start and use code-server on any Linux machine over SSH.
-
-```bash
-sshcode user@dev.coder.com
-# Downloads and installs code-server on dev.coder.com and opens it in a new browser window.
-```
-
-### Digital Ocean
-
-[![Create a Droplet](./doc/assets/droplet.svg)](https://marketplace.digitalocean.com/apps/code-server)
 
 ### Docker
 

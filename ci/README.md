@@ -31,7 +31,7 @@ This directory contains scripts used for the development of code-server.
 - [./dev/container](./dev/container)
   - See [CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container
 - [./dev/ci.sh](./dev/ci.sh) (`yarn ci`)
-  - Runs formatters, linters and tests
+  - Runs `yarn fmt`, `yarn lint` and `yarn test`
 - [./dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters
 - [./dev/lint.sh](./dev/lint.sh) (`yarn lint`)
@@ -106,8 +106,12 @@ This directory contains the container for CI.
 This directory contains a few scripts used in CI.
 Just helps avoid clobbering the CI configuration.
 
+- [./steps/fmt.sh](./steps/fmt.sh)
+  - Runs `yarn fmt` after ensuring VS Code is patched
+- [./steps/lint.sh](./steps/lint.sh)
+  - Runs `yarn lint` after ensuring VS Code is patched
 - [./steps/test.sh](./steps/test.sh)
-  - Runs `yarn ci` after ensuring VS Code is patched
+  - Runs `yarn test` after ensuring VS Code is patched
 - [./steps/release.sh](./steps/release.sh)
   - Runs the full release process
   - Generates the npm package at `./release`

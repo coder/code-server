@@ -53,8 +53,8 @@ release_nfpm() {
   nfpm_config=$(envsubst < ./ci/build/nfpm.yaml)
 
   # The underscores are convention for .deb.
-  nfpm pkg -f <(echo "$nfpm_config") --target release-packages/code-server_"$VERSION_$ARCH.deb"
-  nfpm pkg -f <(echo "$nfpm_config") --target release-packages/code-server-"$VERSION-$ARCH.rpm"
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_${ARCH}.deb"
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$ARCH.rpm"
 }
 
 main "$@"

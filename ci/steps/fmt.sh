@@ -11,7 +11,7 @@ main() {
   # If the patch fails to apply, then it's likely already applied
   yarn vscode:patch &> /dev/null || true
 
-  yarn test
+  yarn fmt
 }
 
 main "$@"

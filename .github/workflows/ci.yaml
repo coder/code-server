@@ -3,6 +3,24 @@ name: ci
 on: [push, pull_request]
 
 jobs:
+  fmt:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run ./ci/steps/fmt.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/fmt.sh
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run ./ci/steps/lint.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/lint.sh
+
   test:
     runs-on: ubuntu-latest
     steps:
