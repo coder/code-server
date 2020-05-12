@@ -47,6 +47,7 @@ const main = async (cliArgs: Args): Promise<void> => {
     auth: args.auth,
     commit,
     host: host,
+    // The hash does not add any actual security but we do it for obfuscation purposes.
     password: password ? hash(password) : undefined,
     port: port,
     proxyDomains: args["proxy-domain"],
