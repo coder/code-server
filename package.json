@@ -17,6 +17,8 @@
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
     "release:static": "./ci/build/build-static-release.sh",
+    "release:github-draft": "./ci/build/release-github-draft.sh",
+    "release:github-assets": "./ci/build/release-github-assets.sh",
     "test:static-release": "./ci/build/test-static-release.sh",
     "package": "./ci/build/build-packages.sh",
     "_____": "",
