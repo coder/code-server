@@ -56,8 +56,7 @@
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^8.4.1",
-    "typescript": "3.7.2",
-    "yarn": "^1.22.4"
+    "typescript": "3.7.2"
   },
   "resolutions": {
     "@types/node": "^12.12.7",
@@ -79,7 +78,8 @@
     "tar": "^6.0.1",
     "tar-fs": "^2.0.0",
     "ws": "^7.2.0",
-    "xdg-basedir": "^4.0.0"
+    "xdg-basedir": "^4.0.0",
+    "yarn": "^1.22.4"
   },
   "bin": {
     "code-server": "out/node/entry.js"

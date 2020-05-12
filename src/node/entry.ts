@@ -36,10 +36,21 @@ const main = async (cliArgs: Args): Promise<void> => {
   // This prioritizes the flags set in args over the ones in the config file.
   let args = Object.assign(configArgs, cliArgs)
 
+  if (!args.auth) {
+    args = {
+      ...args,
+      auth: AuthType.Password,
+    }
+  }
+
   logger.trace(`Using extensions-dir at ${humanPath(args["extensions-dir"])}`)
   logger.trace(`Using user-data-dir at ${humanPath(args["user-data-dir"])}`)
 
+  const envPassword = !!process.env.PASSWORD
   const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)
+  if (args.auth === AuthType.Password && !password) {
+    throw new Error("Please pass in a password via the config file or $PASSWORD")
+  }
   const [host, port] = bindAddrFromAllSources(cliArgs, configArgs)
 
   // Spawn the main HTTP server.
@@ -69,7 +80,7 @@ const main = async (cliArgs: Args): Promise<void> => {
   const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
   const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
-  httpServer.registerHttpProvider("/login", LoginHttpProvider)
+  httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)
 
@@ -79,15 +90,8 @@ const main = async (cliArgs: Args): Promise<void> => {
   const serverAddress = await httpServer.listen()
   logger.info(`HTTP server listening on ${serverAddress}`)
 
-  if (!args.auth) {
-    args = {
-      ...args,
-      auth: AuthType.Password,
-    }
-  }
-
   if (args.auth === AuthType.Password) {
-    if (process.env.PASSWORD) {
+    if (envPassword) {
       logger.info("    - Using password from $PASSWORD")
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
