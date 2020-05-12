@@ -167,17 +167,19 @@ index 91b3b92678..f76f2c1548 100644
  	"extensionAllowedProposedApi": [
  		"ms-vscode.vscode-js-profile-table",
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index e4546b2cf6..ad2c544e89 100644
+index e4546b2cf6..9df12239fb 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -94,16 +94,17 @@ class RemoteAuthoritiesImpl {
+@@ -94,16 +94,18 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
 -		const port = this._ports[authority];
 +		// const port = this._ports[authority];
  		const connectionToken = this._connectionTokens[authority];
- 		let query = `path=${encodeURIComponent(uri.path)}`;
+-		let query = `path=${encodeURIComponent(uri.path)}`;
++		// NOTE@coder: Use fsPath for Windows support.
++		let query = `path=${encodeURIComponent(uri.fsPath)}`;
  		if (typeof connectionToken === 'string') {
  			query += `&tkn=${encodeURIComponent(connectionToken)}`;
  		}
@@ -310,7 +312,7 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 556c03a03a..3b2a34e60d 100644
+index 556c03a03a..ac5d23ed8e 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -12,6 +12,8 @@ import { request } from 'vs/base/parts/request/browser/request';
@@ -349,7 +351,7 @@ index 556c03a03a..3b2a34e60d 100644
  
 -	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = {
-+		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview/`,
++		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview`,
 +		...JSON.parse(configElementAttribute),
 +	};
 +
@@ -971,7 +973,7 @@ index 0000000000..0d2e93edae
 +}
 diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
 new file mode 100644
-index 0000000000..a93381631a
+index 0000000000..8db1e17c38
 --- /dev/null
 +++ b/src/vs/server/browser/worker.ts
 @@ -0,0 +1,57 @@
@@ -994,7 +996,7 @@ index 0000000000..a93381631a
 +		scheme: self.location.protocol.replace(':', ''),
 +		authority: self.location.host,
 +		path: self.location.pathname.replace(/\/static\/([^\/]+)\/.*$/, '/static/$1\/'),
-+		query: `tar=${encodeURIComponent(module.extensionLocation.path)}`,
++		query: `tar=${encodeURIComponent(module.extensionLocation.fsPath)}`,
 +	});
 +	const response = await fetch(fetchUri.toString(true));
 +	if (response.status !== 200) {
