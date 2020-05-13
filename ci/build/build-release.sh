@@ -32,19 +32,20 @@ bundle_code_server() {
   mkdir -p "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
 
-  rsync yarn.lock "$RELEASE_PATH"
-
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
     cat << EOF
   {
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
-      "postinstall": "cd lib/vscode && npm rebuild # Builds native modules"
+      "postinstall": "./postinstall.sh"
     }
   }
 EOF
   ) > "$RELEASE_PATH/package.json"
+  rsync yarn.lock "$RELEASE_PATH"
+  rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
+
 }
 
 bundle_vscode() {
@@ -72,12 +73,21 @@ EOF
   yarn --production --ignore-scripts
   popd
 
-  # Now we clear any native module builds.
-  local nativeModules
-  mapfile -t nativeModules < <(find "$VSCODE_OUT_PATH/node_modules" -name "binding.gyp" -exec dirname {} \;)
+  # We clear any native module builds.
+  local native_modules
+  mapfile -t native_modules < <(find "$VSCODE_OUT_PATH/node_modules" -name "binding.gyp" -exec dirname {} \;)
   local nm
-  for nm in "${nativeModules[@]}"; do
+  for nm in "${native_modules[@]}"; do
     rm -R "$nm/build"
+  done
+
+  # We have to rename node_modules to node_modules.bundled to avoid them being ignored by yarn.
+  local node_modules
+  mapfile -t node_modules < <(find "$VSCODE_OUT_PATH" -depth -name "node_modules")
+  local nm
+  for nm in "${node_modules[@]}"; do
+    rm -Rf "$nm.bundled"
+    mv "$nm" "$nm.bundled"
   done
 }
 

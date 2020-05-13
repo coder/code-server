@@ -20,7 +20,7 @@ For a proper setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 ```bash
 curl -sSOL https://github.com/cdr/code-server/releases/download/3.3.0/code-server_3.3.0_amd64.deb
 sudo dpkg -i code-server_3.3.0_amd64.deb
-sudo systemctl enable --now code-server
+systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
@@ -29,7 +29,7 @@ sudo systemctl enable --now code-server
 ```bash
 curl -sSOL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-amd64.rpm
 sudo yum install -y code-server-3.3.0-amd64.rpm
-sudo systemctl enable --now code-server
+systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 

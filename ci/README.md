@@ -90,6 +90,9 @@ You can disable minification by setting `MINIFY=`.
   - Downloads the release-package artifacts for the current commit from CI
   - Uses [hub](https://github.com/github/hub) to upload the artifacts to the release
     specified in `package.json`
+- [./build/npm-postinstall.sh](./build/npm-postinstall.sh)
+  - Post install script for the npm package
+  - Bundled by`yarn release`
 
 ## release-container
 
