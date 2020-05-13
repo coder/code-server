@@ -11,8 +11,8 @@
   "scripts": {
     "clean": "./ci/build/clean.sh",
     "vscode": "./ci/dev/vscode.sh",
-    "vscode:patch": "cd ./lib/vscode && git apply ../../ci/dev/vscode.patch",
-    "vscode:diff": "cd ./lib/vscode && git diff HEAD > ../../ci/dev/vscode.patch",
+    "vscode:patch": "./ci/dev/patch-vscode.sh",
+    "vscode:diff": "./ci/dev/diff-vscode.sh",
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",

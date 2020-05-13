@@ -39,7 +39,11 @@ This directory contains scripts used for the development of code-server.
 - [./dev/test.sh](./dev/test.sh) (`yarn test`)
   - Runs tests
 - [./dev/vscode.sh](./dev/vscode.sh) (`yarn vscode`)
-  - Ensures `lib/vscode` is cloned, patched and dependencies are installed
+  - Ensures [../lib/vscode](../lib/vscode) is cloned, patched and dependencies are installed
+- [./dev/patch-vscode.sh](./dev/patch-vscode.sh) (`yarn vscode:patch`)
+  - Applies [./dev/vscode.patch](./dev/vscode.patch) to [../lib/vscode](../lib/vscode)
+- [./dev/diff-vscode.sh](./dev/diff-vscode.sh) (`yarn vscode:diff`)
+  - Diffs [../lib/vscode](../lib/vscode) into [./dev/vscode.patch](./dev/vscode.patch)
 - [./dev/vscode.patch](./dev/vscode.patch)
   - Our patch of VS Code to enable remote browser access
   - Generate it with `yarn vscode:diff` and apply with `yarn vscode:patch`
@@ -62,11 +66,11 @@ You can disable minification by setting `MINIFY=`.
   - Bundles the output of the above two scripts into a single node module at `./release`.
 - [./build/build-static-release.sh](./build/build-static-release.sh) (`yarn release:static`)
   - Requires a release already built in `./release`.
-  - Will build a static release with node and node_modules into `./release-static`
+  - Will build a static release with node bundled into `./release-static`
 - [./build/clean.sh](./build/clean.sh) (`yarn clean`)
-  - Removes all git ignored files like build artifacts.
+  - Removes all build artifacts
   - Will also `git reset --hard lib/vscode`
-  - Useful to do a clean build.
+  - Useful to do a clean build
 - [./build/code-server.sh](./build/code-server.sh)
   - Copied into static releases to run code-server with the bundled node binary.
 - [./build/test-static-release.sh](./build/test-static-release.sh) (`yarn test:static-release`)

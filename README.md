@@ -65,7 +65,7 @@ all file system operations occur as your user outside the container.
 ### Self contained releases
 
 We publish self contained archives for every release on [github](https://github.com/cdr/code-server/releases).
-They bundle the node binary and node_modules.
+They bundle the node binary and compiled native modules.
 
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases)
 2. Unpack the release
