@@ -28,12 +28,15 @@ sudo systemctl enable --now code-server
 
 ```bash
 curl -sSOL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-amd64.rpm
-sudo dnf install code-server-3.3.0-amd64.rpm
+sudo yum install -y code-server-3.3.0-amd64.rpm
 sudo systemctl enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### npm
+
+**note:** Installing via `npm` requires building native module dependencies. See [./doc/npm.md](./doc/npm.md)
+for the dependency install process depending on your OS.
 
 ```bash
 npm install -g code-server

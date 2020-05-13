@@ -3,9 +3,16 @@
 - [Detailed CI and build process docs](../ci)
 - [Our VS Code Web docs](../src/node/app)
 
-## Development Workflow
+## Requirements
 
-- [VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
+Please refer to [VS Code's prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+
+Differences:
+
+- We are not constrained by node version
+- We use [fnpm](https://github.com/goreleaser/nfpm) to build .deb and .rpm packages
+
+## Development Workflow
 
 ```shell
 yarn
@@ -33,8 +40,6 @@ works internally.
 
 ## Build
 
-- [VS Code prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites)
-
 ```shell
 yarn
 yarn vscode
@@ -45,3 +50,14 @@ cd release
 yarn --production
 node . # Run the built JavaScript with Node.
 ```
+
+Now you can make it static and build packages with:
+
+```
+yarn release:static
+yarn test:static-release
+yarn package
+```
+
+The static release will be in `./release-static` and the release packages
+(.deb, .rpm, self contained release) in `./release-packages`.
