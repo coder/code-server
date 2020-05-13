@@ -11,16 +11,88 @@ index e73dd4d9e8..e3192b3a0d 100644
  build/node_modules
  coverage/
 diff --git a/.yarnrc b/.yarnrc
-index d86b284e83..a7300dbfb9 100644
+deleted file mode 100644
+index d86b284e83..0000000000
 --- a/.yarnrc
-+++ b/.yarnrc
-@@ -1,3 +1,3 @@
++++ /dev/null
+@@ -1,3 +0,0 @@
 -disturl "https://atom.io/download/electron"
 -target "7.2.4"
 -runtime "electron"
-+disturl "http://nodejs.org/dist"
-+target "12.16.3"
-+runtime "node"
+diff --git a/build/gulpfile.reh.js b/build/gulpfile.reh.js
+index f2ea1bd370..2dc6da34fb 100644
+--- a/build/gulpfile.reh.js
++++ b/build/gulpfile.reh.js
+@@ -52,6 +52,7 @@ gulp.task('vscode-reh-web-linux-x64-min', noop);
+ gulp.task('vscode-reh-web-linux-alpine-min', noop);
+ 
+ function getNodeVersion() {
++	return process.versions.node
+ 	const yarnrc = fs.readFileSync(path.join(REPO_ROOT, 'remote', '.yarnrc'), 'utf8');
+ 	const target = /^target "(.*)"$/m.exec(yarnrc)[1];
+ 	return target;
+diff --git a/build/lib/electron.js b/build/lib/electron.js
+index abf6baab41..8a1d1bad13 100644
+--- a/build/lib/electron.js
++++ b/build/lib/electron.js
+@@ -17,6 +17,7 @@ const root = path.dirname(path.dirname(__dirname));
+ const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf8'));
+ const commit = util.getVersion(root);
+ function getElectronVersion() {
++    return process.versions.node;
+     const yarnrc = fs.readFileSync(path.join(root, '.yarnrc'), 'utf8');
+     const target = /^target "(.*)"$/m.exec(yarnrc)[1];
+     return target;
+diff --git a/build/lib/electron.ts b/build/lib/electron.ts
+index 86c7afcf31..0663b4c28d 100644
+--- a/build/lib/electron.ts
++++ b/build/lib/electron.ts
+@@ -20,6 +20,7 @@ const product = JSON.parse(fs.readFileSync(path.join(root, 'product.json'), 'utf
+ const commit = util.getVersion(root);
+ 
+ export function getElectronVersion(): string {
++	return process.versions.node
+ 	const yarnrc = fs.readFileSync(path.join(root, '.yarnrc'), 'utf8');
+ 	const target = /^target "(.*)"$/m.exec(yarnrc)![1];
+ 	return target;
+diff --git a/build/lib/node.js b/build/lib/node.js
+index 403ae3d965..738ee8cee0 100644
+--- a/build/lib/node.js
++++ b/build/lib/node.js
+@@ -5,11 +5,8 @@
+  *--------------------------------------------------------------------------------------------*/
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const path = require("path");
+-const fs = require("fs");
+ const root = path.dirname(path.dirname(__dirname));
+-const yarnrcPath = path.join(root, 'remote', '.yarnrc');
+-const yarnrc = fs.readFileSync(yarnrcPath, 'utf8');
+-const version = /^target\s+"([^"]+)"$/m.exec(yarnrc)[1];
++const version = process.versions.node;
+ const node = process.platform === 'win32' ? 'node.exe' : 'node';
+ const nodePath = path.join(root, '.build', 'node', `v${version}`, `${process.platform}-${process.arch}`, node);
+ console.log(nodePath);
+diff --git a/build/lib/node.ts b/build/lib/node.ts
+index 6439703446..c53dccf4dc 100644
+--- a/build/lib/node.ts
++++ b/build/lib/node.ts
+@@ -4,13 +4,10 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import * as path from 'path';
+-import * as fs from 'fs';
+ 
+ const root = path.dirname(path.dirname(__dirname));
+-const yarnrcPath = path.join(root, 'remote', '.yarnrc');
+-const yarnrc = fs.readFileSync(yarnrcPath, 'utf8');
+-const version = /^target\s+"([^"]+)"$/m.exec(yarnrc)![1];
++const version = process.versions.node;
+ const node = process.platform === 'win32' ? 'node.exe' : 'node';
+ const nodePath = path.join(root, '.build', 'node', `v${version}`, `${process.platform}-${process.arch}`, node);
+ 
+-console.log(nodePath);
+\ No newline at end of file
++console.log(nodePath);
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
 index 7a2320d828..5768890636 100644
 --- a/build/npm/postinstall.js
@@ -166,6 +238,15 @@ index 91b3b92678..f76f2c1548 100644
  	"urlProtocol": "code-oss",
  	"extensionAllowedProposedApi": [
  		"ms-vscode.vscode-js-profile-table",
+diff --git a/remote/.yarnrc b/remote/.yarnrc
+deleted file mode 100644
+index 1e16cde724..0000000000
+--- a/remote/.yarnrc
++++ /dev/null
+@@ -1,3 +0,0 @@
+-disturl "http://nodejs.org/dist"
+-target "12.4.0"
+-runtime "node"
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index e4546b2cf6..9df12239fb 100644
 --- a/src/vs/base/common/network.ts

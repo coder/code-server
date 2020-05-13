@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
 import * as path from "path"
-import { extend, xdgLocalDir } from "./util"
+import { extend, paths } from "./util"
 import { logger } from "@coder/logger"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
@@ -60,4 +60,4 @@ export interface CoderSettings extends UpdateSettings {
 /**
  * Global code-server settings file.
  */
-export const settings = new SettingsProvider<CoderSettings>(path.join(xdgLocalDir, "coder.json"))
+export const settings = new SettingsProvider<CoderSettings>(path.join(paths.data, "coder.json"))

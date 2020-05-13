@@ -2,8 +2,8 @@ import * as http from "http"
 import * as limiter from "limiter"
 import * as querystring from "querystring"
 import { HttpCode, HttpError } from "../../common/http"
-import { AuthType, HttpProvider, HttpResponse, Route } from "../http"
-import { hash } from "../util"
+import { AuthType, HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
+import { hash, humanPath } from "../util"
 
 interface LoginPayload {
   password?: string
@@ -18,6 +18,14 @@ interface LoginPayload {
  * Login HTTP provider.
  */
 export class LoginHttpProvider extends HttpProvider {
+  public constructor(
+    options: HttpProviderOptions,
+    private readonly configFile: string,
+    private readonly envPassword: boolean,
+  ) {
+    super(options)
+  }
+
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
     if (this.options.auth !== AuthType.Password || !this.isRoot(route)) {
       throw new HttpError("Not found", HttpCode.NotFound)
@@ -46,6 +54,11 @@ export class LoginHttpProvider extends HttpProvider {
   public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
     const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/login.html")
     response.content = response.content.replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
+    let passwordMsg = `Check the config file at ${humanPath(this.configFile)} for the password.`
+    if (this.envPassword) {
+      passwordMsg = "Password was set from $PASSWORD."
+    }
+    response.content = response.content.replace(/{{PASSWORD_MSG}}/g, passwordMsg)
     return this.replaceTemplates(route, response)
   }
 

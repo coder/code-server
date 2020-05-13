@@ -2,7 +2,7 @@ import { logger, Level } from "@coder/logger"
 import * as assert from "assert"
 import * as path from "path"
 import { parse } from "../src/node/cli"
-import { xdgLocalDir } from "../src/node/util"
+import { paths } from "../src/node/util"
 
 describe("cli", () => {
   beforeEach(() => {
@@ -12,8 +12,8 @@ describe("cli", () => {
   // The parser will always fill these out.
   const defaults = {
     _: [],
-    "extensions-dir": path.join(xdgLocalDir, "extensions"),
-    "user-data-dir": xdgLocalDir,
+    "extensions-dir": path.join(paths.data, "extensions"),
+    "user-data-dir": paths.data,
   }
 
   it("should set defaults", () => {

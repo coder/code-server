@@ -1,8 +1,10 @@
+import { field, Level, logger } from "@coder/logger"
+import * as fs from "fs-extra"
+import yaml from "js-yaml"
 import * as path from "path"
-import { field, logger, Level } from "@coder/logger"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { AuthType } from "./http"
-import { xdgLocalDir } from "./util"
+import { generatePassword, humanPath, paths } from "./util"
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
@@ -19,10 +21,11 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 export interface Args extends VsArgs {
+  readonly config?: string
   readonly auth?: AuthType
+  readonly password?: string
   readonly cert?: OptionalString
   readonly "cert-key"?: string
-  readonly "disable-updates"?: boolean
   readonly "disable-telemetry"?: boolean
   readonly help?: boolean
   readonly host?: string
@@ -81,19 +84,30 @@ type Options<T> = {
 
 const options: Options<Required<Args>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
+  password: {
+    type: "string",
+    description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
+  },
   cert: {
     type: OptionalString,
     path: true,
     description: "Path to certificate. Generated if no path is provided.",
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
-  "disable-updates": { type: "boolean", description: "Disable automatic updates." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
 
-  "bind-addr": { type: "string", description: "Address to bind to in host:port." },
+  "bind-addr": {
+    type: "string",
+    description: "Address to bind to in host:port. You can also use $PORT to override the port.",
+  },
+
+  config: {
+    type: "string",
+    description: "Path to yaml config file. Every flag maps directly to a key in the config file.",
+  },
 
   // These two have been deprecated by bindAddr.
   host: { type: "string", description: "" },
@@ -137,7 +151,19 @@ export const optionDescriptions = (): string[] => {
   )
 }
 
-export const parse = (argv: string[]): Args => {
+export const parse = (
+  argv: string[],
+  opts?: {
+    configFile: string
+  },
+): Args => {
+  const error = (msg: string): Error => {
+    if (opts?.configFile) {
+      msg = `error reading ${opts.configFile}: ${msg}`
+    }
+    return new Error(msg)
+  }
+
   const args: Args = { _: [] }
   let ended = false
 
@@ -167,7 +193,11 @@ export const parse = (argv: string[]): Args => {
       }
 
       if (!key || !options[key]) {
-        throw new Error(`Unknown option ${arg}`)
+        throw error(`Unknown option ${arg}`)
+      }
+
+      if (key === "password" && !opts?.configFile) {
+        throw new Error("--password can only be set in the config file or passed in via $PASSWORD")
       }
 
       const option = options[key]
@@ -186,7 +216,11 @@ export const parse = (argv: string[]): Args => {
         ;(args[key] as OptionalString) = new OptionalString(value)
         continue
       } else if (!value) {
-        throw new Error(`--${key} requires a value`)
+        throw error(`--${key} requires a value`)
+      }
+
+      if (option.type == OptionalString && value == "false") {
+        continue
       }
 
       if (option.path) {
@@ -206,7 +240,7 @@ export const parse = (argv: string[]): Args => {
         case "number":
           ;(args[key] as number) = parseInt(value, 10)
           if (isNaN(args[key] as number)) {
-            throw new Error(`--${key} must be a number`)
+            throw error(`--${key} must be a number`)
           }
           break
         case OptionalString:
@@ -214,7 +248,7 @@ export const parse = (argv: string[]): Args => {
           break
         default: {
           if (!Object.values(option.type).includes(value)) {
-            throw new Error(`--${key} valid values: [${Object.values(option.type).join(", ")}]`)
+            throw error(`--${key} valid values: [${Object.values(option.type).join(", ")}]`)
           }
           ;(args[key] as string) = value
           break
@@ -266,7 +300,7 @@ export const parse = (argv: string[]): Args => {
   }
 
   if (!args["user-data-dir"]) {
-    args["user-data-dir"] = xdgLocalDir
+    args["user-data-dir"] = paths.data
   }
 
   if (!args["extensions-dir"]) {
@@ -274,4 +308,95 @@ export const parse = (argv: string[]): Args => {
   }
 
   return args
+}
+
+async function defaultConfigFile(): Promise<string> {
+  return `bind-addr: 127.0.0.1:8080
+auth: password
+password: ${await generatePassword()}
+cert: false
+`
+}
+
+/**
+ * Reads the code-server yaml config file and returns it as Args.
+ *
+ * @param configPath Read the config from configPath instead of $CODE_SERVER_CONFIG or the default.
+ */
+export async function readConfigFile(configPath?: string): Promise<Args> {
+  if (!configPath) {
+    configPath = process.env.CODE_SERVER_CONFIG
+    if (!configPath) {
+      configPath = path.join(paths.config, "config.yaml")
+    }
+  }
+
+  if (!(await fs.pathExists(configPath))) {
+    await fs.outputFile(configPath, await defaultConfigFile())
+    logger.info(`Wrote default config file to ${humanPath(configPath)}`)
+  }
+
+  logger.info(`Using config file from ${humanPath(configPath)}`)
+
+  const configFile = await fs.readFile(configPath)
+  const config = yaml.safeLoad(configFile.toString(), {
+    filename: configPath,
+  })
+
+  // We convert the config file into a set of flags.
+  // This is a temporary measure until we add a proper CLI library.
+  const configFileArgv = Object.entries(config).map(([optName, opt]) => {
+    if (opt === true) {
+      return `--${optName}`
+    }
+    return `--${optName}=${opt}`
+  })
+  const args = parse(configFileArgv, {
+    configFile: configPath,
+  })
+  return {
+    ...args,
+    config: configPath,
+  }
+}
+
+function parseBindAddr(bindAddr: string): [string, number] {
+  const u = new URL(`http://${bindAddr}`)
+  return [u.hostname, parseInt(u.port, 10)]
+}
+
+interface Addr {
+  host: string
+  port: number
+}
+
+function bindAddrFromArgs(addr: Addr, args: Args): Addr {
+  addr = { ...addr }
+  if (args["bind-addr"]) {
+    ;[addr.host, addr.port] = parseBindAddr(args["bind-addr"])
+  }
+  if (args.host) {
+    addr.host = args.host
+  }
+  if (args.port !== undefined) {
+    addr.port = args.port
+  }
+  return addr
+}
+
+export function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string, number] {
+  let addr: Addr = {
+    host: "localhost",
+    port: 8080,
+  }
+
+  addr = bindAddrFromArgs(addr, configArgs)
+
+  if (process.env.PORT) {
+    addr.port = parseInt(process.env.PORT, 10)
+  }
+
+  addr = bindAddrFromArgs(addr, cliArgs)
+
+  return [addr.host, addr.port]
 }
