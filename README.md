@@ -35,8 +35,8 @@ systemctl --user enable --now code-server
 
 ### npm
 
-**note:** Installing via `npm` requires building native module dependencies. See [./doc/npm.md](./doc/npm.md)
-for the dependency install process depending on your OS.
+**note:** Installing via `npm` requires certain dependencies for the native module builds.
+See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
 
 ```bash
 npm install -g code-server
