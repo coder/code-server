@@ -47,7 +47,10 @@ better by allowing the community to submit extensions and repos to avoid waiting
 an extension.
 
 If an extension is not available or does not work, you can grab its VSIX from its Github releases or
-build it yourself and [Install from VSIX](https://code.visualstudio.com/docs/editor/extension-gallery#_install-from-a-vsix).
+build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
+point to the .vsix file.
+
+See below for installing an extension from the cli.
 
 Feel free to file an issue to add a missing extension to the marketplace.
 
@@ -81,7 +84,7 @@ your instance.
 
 ## How should I expose code-server to the internet?
 
-Please follow [./guide.md]](./guide.md) for our recommendations on setting up and using code-server.
+Please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
 code-server only supports password authentication natively.
 
@@ -101,7 +104,7 @@ only to HTTP requests.
 You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
 
-Again, Please follow [./guide.md]](./guide.md) for our recommendations on setting up and using code-server.
+Again, Please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
 ## How do I securely access web services?
 

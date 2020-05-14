@@ -179,7 +179,7 @@ reverse_proxy 127.0.0.1:8080
 sudo systemctl reload caddy
 ```
 
-Visit `https://<your-instance-ip>` to access code-server. Congratulations!
+Visit `https://<your-domain-name>` to access code-server. Congratulations!
 
 In a future release we plan to integrate Let's Encrypt directly with code-server to avoid
 the dependency on caddy.

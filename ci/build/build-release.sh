@@ -45,7 +45,6 @@ EOF
   ) > "$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
-
 }
 
 bundle_vscode() {
