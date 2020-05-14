@@ -10,19 +10,19 @@ Any file and directory added into this tree should be documented here.
 
 Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
 
-1. Update the version of code-server in `package.json` and README.md install examples and push a commit
-1. GitHub actions will generate the `npm-package` and `release-packages` artifacts
-1. Run `yarn release:github-draft` to create a GitHub draft release from the template with
+1. Update the version of code-server in `package.json` and README.md/guide.md install examples and push a commit
+2. GitHub actions will generate the `npm-package` and `release-packages` artifacts
+3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
-1. Wait for the artifacts in step 2 to build
-1. Run `yarn release:github-assets` to download the artifacts and then upload them to the draft release
-1. Run some basic sanity tests on one of the released packages
-1. Publish the release
+4. Wait for the artifacts in step 2 to build
+5. Run `yarn release:github-assets` to download the artifacts and then upload them to the draft release
+6. Run some basic sanity tests on one of the released packages
+7. Publish the release
    1. CI will automatically grab the artifacts and then
       1. Publish the NPM package
-      1. Publish the AMD64 docker image
-      1. Publish the ARM64 docker image
+      2. Publish the AMD64 docker image
+      3. Publish the ARM64 docker image
 
 ## dev
 

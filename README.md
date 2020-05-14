@@ -35,6 +35,9 @@ systemctl --user enable --now code-server
 
 ### npm
 
+We recommend installing from `npm` if we don't have a precompiled release for your machine's
+platform or architecture.
+
 **note:** Installing via `npm` requires certain dependencies for the native module builds.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
 

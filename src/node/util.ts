@@ -81,10 +81,7 @@ export const generatePassword = async (length = 24): Promise<string> => {
 }
 
 export const hash = (str: string): string => {
-  return crypto
-    .createHash("sha256")
-    .update(str)
-    .digest("hex")
+  return crypto.createHash("sha256").update(str).digest("hex")
 }
 
 const mimeTypes: { [key: string]: string } = {
@@ -150,11 +147,7 @@ export const getMediaMime = (filePath?: string): string => {
 
 export const isWsl = async (): Promise<boolean> => {
   return (
-    (process.platform === "linux" &&
-      os
-        .release()
-        .toLowerCase()
-        .indexOf("microsoft") !== -1) ||
+    (process.platform === "linux" && os.release().toLowerCase().indexOf("microsoft") !== -1) ||
     (await fs.readFile("/proc/version", "utf8")).toLowerCase().indexOf("microsoft") !== -1
   )
 }

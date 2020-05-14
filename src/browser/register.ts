@@ -8,7 +8,7 @@ if ("serviceWorker" in navigator) {
     .register(path, {
       scope: options.base || "/",
     })
-    .then(function() {
+    .then(function () {
       console.log("[Service Worker] registered")
     })
 }
