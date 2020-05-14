@@ -23,6 +23,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
       1. Publish the NPM package
       2. Publish the AMD64 docker image
       3. Publish the ARM64 docker image
+8. Update the homebrew and AUR packages
 
 ## dev
 
