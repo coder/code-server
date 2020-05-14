@@ -43,8 +43,9 @@ const main = async (cliArgs: Args): Promise<void> => {
     }
   }
 
-  logger.trace(`Using extensions-dir at ${humanPath(args["extensions-dir"])}`)
-  logger.trace(`Using user-data-dir at ${humanPath(args["user-data-dir"])}`)
+  logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
+
+  logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
   const envPassword = !!process.env.PASSWORD
   const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)

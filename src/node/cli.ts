@@ -338,7 +338,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
   }
 
-  logger.info(`Using config file from ${humanPath(configPath)}`)
+  logger.info(`Using config file ${humanPath(configPath)}`)
 
   const configFile = await fs.readFile(configPath)
   const config = yaml.safeLoad(configFile.toString(), {

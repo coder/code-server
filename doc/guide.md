@@ -218,7 +218,8 @@ Visit `https://<your-instance-ip>` to access code-server.
 You'll get a warning when accessing but if you click through you should be good.
 
 You can also use [mkcert](https://mkcert.dev) to create a self signed certificate trusted by your
-OS to avoid the warnings.
+OS to avoid the warnings and then pass it to code-server via the `cert` and `cert-key` config
+fields.
 
 ### Change the password?
 
