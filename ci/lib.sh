@@ -27,6 +27,8 @@ os() {
     if echo "$ldd_output" | grep -iq musl; then
       os="alpine"
     fi
+  elif [[ $os == "darwin" ]]; then
+    os="macos"
   fi
   echo "$os"
 }
