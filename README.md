@@ -41,6 +41,8 @@ platform or architecture.
 **note:** Installing via `npm` requires certain dependencies for the native module builds.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
 
+You also need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
+
 ```bash
 npm install -g code-server
 code-server

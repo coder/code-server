@@ -11,7 +11,7 @@ main() {
 
   download_artifact npm-package ./release
   # https://github.com/actions/upload-artifact/issues/38
-  chmod +x $(grep -rl '^#!/.\+' release)
+  chmod +x $(grep -rl '^#!/.*' release)
   yarn publish --non-interactive release
 }
 

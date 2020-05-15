@@ -2,6 +2,16 @@
 set -eu
 
 main() {
+  # Grabs the major version of node from $npm_config_user_agent which looks like
+  # yarn/1.21.1 npm/? node/v14.2.0 darwin x64
+  major_node_version=$(echo "$npm_config_user_agent" | sed -n 's/.*node\/v\([^.]*\).*/\1/p')
+  if [ "$major_node_version" -lt 12 ]; then
+    echo "code-server currently requires at least node v12"
+    echo "We have detected that you are on node v$major_node_version"
+    echo "See https://github.com/cdr/code-server/issues/1633"
+    exit 1
+  fi
+
   case "${npm_config_user_agent-}" in npm*)
     # We are running under npm.
     if [ "${npm_config_unsafe_perm-}" != "true" ]; then

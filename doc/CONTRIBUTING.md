@@ -9,7 +9,7 @@ Please refer to [VS Code's prerequisites](https://github.com/Microsoft/vscode/wi
 
 Differences:
 
-- We are not constrained by node version
+- We require at least node v12 but later versions should work
 - We use [fnpm](https://github.com/goreleaser/nfpm) to build .deb and .rpm packages
 
 ## Development Workflow

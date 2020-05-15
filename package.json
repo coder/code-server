@@ -92,5 +92,8 @@
     "coder",
     "vscode-remote",
     "browser-ide"
-  ]
+  ],
+  "engines": {
+    "node": ">= 12"
+  }
 }

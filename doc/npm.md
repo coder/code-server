@@ -3,6 +3,8 @@
 If you're installing the npm module you'll need certain dependencies to build
 the native modules used by VS Code.
 
+You also need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
+
 ## Ubuntu, Debian
 
 ```bash
