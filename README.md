@@ -53,14 +53,17 @@ code-server
 
 ```bash
 brew install code-server
-brew service start code-server
+brew services start code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Docker
 
 ```bash
-docker run -it -p 127.0.0.1:8080:8080 -v "$PWD:/home/coder/project" -u "$(id -u):$(id -g)" codercom/code-server:latest
+docker run -it -p 127.0.0.1:8080:8080 \
+  -v "$PWD:/home/coder/project" \
+  -u "$(id -u):$(id -g)" \
+  codercom/code-server:latest
 ```
 
 This will start a code-server container and expose it at http://127.0.0.1:8080. It will also mount

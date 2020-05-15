@@ -380,6 +380,10 @@ function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   if (args.host) {
     addr.host = args.host
   }
+
+  if (process.env.PORT) {
+    addr.port = parseInt(process.env.PORT, 10)
+  }
   if (args.port !== undefined) {
     addr.port = args.port
   }
@@ -393,11 +397,6 @@ export function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string
   }
 
   addr = bindAddrFromArgs(addr, configArgs)
-
-  if (process.env.PORT) {
-    addr.port = parseInt(process.env.PORT, 10)
-  }
-
   addr = bindAddrFromArgs(addr, cliArgs)
 
   return [addr.host, addr.port]
