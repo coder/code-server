@@ -10,7 +10,7 @@
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-domains](#sub-domains)
   - [Sub-paths](#sub-paths)
-- [Multi Tenancy](#multi-tenancy)
+- [Multi-tenancy](#multi-tenancy)
 - [Docker in code-server docker container?](#docker-in-code-server-docker-container)
 - [Collaboration](#collaboration)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
@@ -135,7 +135,7 @@ ensure your reverse proxy forwards that information if you are using one.
 
 Just browse to `/proxy/<port>/`.
 
-## Multi Tenancy
+## Multi-tenancy
 
 If you want to run multiple code-server's on shared infrastructure, we recommend using virtual
 machines with a VM per user. This will easily allow users to run a docker daemon. If you want
