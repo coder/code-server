@@ -79,8 +79,9 @@ Add the code-server `bin` directory to your `$PATH` to easily execute it without
 Here is an example script for installing and using a self-contained code-server release on Linux:
 
 ```bash
-curl -sSL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /opt -xz
-PATH="$PATH:/opt/code-server-3.3.0-linux-amd64/bin"
+curl -sSL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /usr/local -xz
+sudo mv /usr/local/code-server-3.3.0-linux-amd64 /usr/local/code-server
+PATH="$PATH:/usr/local/code-server/bin"
 code-server
 ```
 
