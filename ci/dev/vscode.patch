@@ -653,6 +653,19 @@ index 87a3b99c70..09e2c93172 100644
  }
  
  // Node: AMD loader
+diff --git a/src/vs/platform/product/common/productService.ts b/src/vs/platform/product/common/productService.ts
+index 266aa69fc6..e9b51f5fde 100644
+--- a/src/vs/platform/product/common/productService.ts
++++ b/src/vs/platform/product/common/productService.ts
+@@ -25,6 +25,8 @@ export interface IBuiltInExtension {
+ export type ConfigurationSyncStore = { url: string, authenticationProviders: IStringDictionary<{ scopes: string[] }> };
+ 
+ export interface IProductConfiguration {
++	readonly codeServerVersion?: string;
++
+ 	readonly version: string;
+ 	readonly date?: string;
+ 	readonly quality?: string;
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
 index d0f6e6b18a..1966fd297d 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
@@ -1328,10 +1341,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..d4771351de
+index 0000000000..0a9c95d50e
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,117 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1434,6 +1447,7 @@ index 0000000000..d4771351de
 +	};
 +	readonly remoteUserDataUri: UriComponents;
 +	readonly productConfiguration: {
++		codeServerVersion?: string;
 +		readonly extensionsGallery?: {
 +			readonly serviceUrl: string;
 +			readonly itemUrl: string;
@@ -3185,6 +3199,25 @@ index f2ca5011dd..4683e80a68 100644
  					} catch (e) {
  						console.error('Could not rewrite csp');
  					}
+diff --git a/src/vs/workbench/services/dialogs/browser/dialogService.ts b/src/vs/workbench/services/dialogs/browser/dialogService.ts
+index 6b42535bff..88b7e3c3ea 100644
+--- a/src/vs/workbench/services/dialogs/browser/dialogService.ts
++++ b/src/vs/workbench/services/dialogs/browser/dialogService.ts
+@@ -124,11 +124,12 @@ export class DialogService implements IDialogService {
+ 	async about(): Promise<void> {
+ 		const detailString = (useAgo: boolean): string => {
+ 			return nls.localize('aboutDetail',
+-				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++				"code-server: v{4}\n VS Code: v{0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
+ 				this.productService.version || 'Unknown',
+ 				this.productService.commit || 'Unknown',
+ 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
+-				navigator.userAgent
++				navigator.userAgent,
++				this.productService.codeServerVersion || 'Unknown',
+ 			);
+ 		};
+ 
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
 index 7ed6e9e21a..223fa72662 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts

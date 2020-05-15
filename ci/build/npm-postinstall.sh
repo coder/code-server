@@ -2,8 +2,6 @@
 set -eu
 
 main() {
-  cd lib/vscode
-
   case "${npm_config_user_agent-}" in npm*)
     # We are running under npm.
     if [ "${npm_config_unsafe_perm-}" != "true" ]; then
@@ -15,6 +13,8 @@ main() {
     fi
     ;;
   esac
+
+  cd lib/vscode
 
   # We have to rename node_modules.bundled to node_modules.
   # The bundled modules were renamed originally to avoid being ignored by yarn.
