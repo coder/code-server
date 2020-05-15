@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  yarn
+  yarn --frozen-lockfile
   yarn vscode
   yarn build
   yarn build:vscode

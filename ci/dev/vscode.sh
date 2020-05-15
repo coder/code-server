@@ -15,7 +15,7 @@ main() {
   (
     cd lib/vscode
     # Install VS Code dependencies.
-    yarn
+    yarn ${CI+--frozen-lockfile}
   )
 }
 

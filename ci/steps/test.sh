@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  yarn
+  yarn --frozen-lockfile
 
   git submodule update --init
   # We do not `yarn vscode` to make test.sh faster.

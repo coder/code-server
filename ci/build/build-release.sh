@@ -69,7 +69,7 @@ EOF
   ) > "$VSCODE_OUT_PATH/product.json"
 
   pushd "$VSCODE_OUT_PATH"
-  yarn --production --ignore-scripts
+  yarn --production --frozen-lockfile --ignore-scripts
   popd
 
   # We clear any native module builds.
