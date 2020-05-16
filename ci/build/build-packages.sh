@@ -8,25 +8,16 @@ main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
 
-  export VERSION
-  VERSION="$(pkg_json_version)"
-
-  local OS
-  OS="$(os)"
-
-  export ARCH
-  ARCH="$(arch)"
-
-  local archive_name="code-server-$VERSION-$OS-$ARCH"
+  local release_name="code-server-$VERSION-$OS-$ARCH"
   mkdir -p release-packages
 
   if [[ $OS == "linux" ]]; then
-    tar -czf "release-packages/$archive_name.tar.gz" --transform "s/^\.\/release-static/$archive_name/" ./release-static
+    tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-static/$release_name/" ./release-static
   else
-    tar -czf "release-packages/$archive_name.tar.gz" -s "/^release-static/$archive_name/" release-static
+    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-static/$release_name/" release-static
   fi
 
-  echo "done (release-packages/$archive_name)"
+  echo "done (release-packages/$release_name)"
 
   release_gcp
 
@@ -37,9 +28,9 @@ main() {
 
 release_gcp() {
   mkdir -p "release-gcp/$VERSION"
-  cp "release-packages/$archive_name.tar.gz" "./release-gcp/$VERSION/$OS-$ARCH.tar.gz"
+  cp "release-packages/$release_name.tar.gz" "./release-gcp/$VERSION/$OS-$ARCH.tar.gz"
   mkdir -p "release-gcp/latest"
-  cp "./release-packages/$archive_name.tar.gz" "./release-gcp/latest/$OS-$ARCH.tar.gz"
+  cp "./release-packages/$release_name.tar.gz" "./release-gcp/latest/$OS-$ARCH.tar.gz"
 }
 
 # Generates deb and rpm packages.

@@ -75,6 +75,21 @@ download_artifact() {
   tmp_file="$(mktemp)"
 
   curl -sSL "$(get_artifact_url "$artifact_name")" > "$tmp_file"
-  unzip -o "$tmp_file" -d "$dst"
+  unzip -q -o "$tmp_file" -d "$dst"
   rm "$tmp_file"
 }
+
+rsync() {
+  command rsync -a --del "$@"
+}
+
+VERSION="$(pkg_json_version)"
+export VERSION
+ARCH="$(arch)"
+export ARCH
+OS=$(os)
+export OS
+
+# RELEASE_PATH is the destination directory for the release from the root.
+# Defaults to release
+RELEASE_PATH="${RELEASE_PATH-release}"

@@ -34,8 +34,10 @@ RUN curl -sSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/sh
 
 # Install Go dependencies
 RUN ARCH="$(dpkg --print-architecture)" && \
-    curl -sSL "https://dl.google.com/go/go1.14.2.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
+    curl -sSL "https://dl.google.com/go/go1.14.3.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 ENV GO111MODULE=on
 RUN go get mvdan.cc/sh/v3/cmd/shfmt
 RUN go get github.com/goreleaser/nfpm/cmd/nfpm
+
+RUN curl -fsSL https://get.docker.com | sh

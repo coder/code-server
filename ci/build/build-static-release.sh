@@ -3,7 +3,7 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "${0}")/../.."
-  source ./ci/build/lib.sh
+  source ./ci/lib.sh
 
   rsync "$RELEASE_PATH/" "$RELEASE_PATH-static"
   RELEASE_PATH+=-static

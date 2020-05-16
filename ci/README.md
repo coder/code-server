@@ -21,8 +21,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 7. Publish the release
    1. CI will automatically grab the artifacts and then
       1. Publish the NPM package
-      2. Publish the AMD64 docker image
-      3. Publish the ARM64 docker image
+      2. Publish the Docker Hub image
 8. Update the homebrew and AUR packages
 
 ## dev
@@ -100,10 +99,8 @@ You can disable minification by setting `MINIFY=`.
 This directory contains the release docker container.
 
 - [./release-container/build.sh](./release-container/build.sh)
-  - Builds the release container
+  - Builds the release container with the tag `codercom/code-server:$VERSION-$ARCH`
   - Assumes debian releases are ready in `./release-packages`
-- [./release-container/push.sh](./release-container/push.sh)
-  - Pushes the built release container to docker hub and updates the latest tag
 
 ## container
 
@@ -129,7 +126,9 @@ Just helps avoid clobbering the CI configuration.
   - Contains helpers to download artifacts from github actions workflow runs
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on NPM
-- [./steps/publish-docker.sh](./steps/publish-docker.sh)
-  - Grabs the `release-packages` release artifact for the current commit and
-    builds a docker image with it and publishes that onto docker hub with the
-    correct tag and updates latest
+- [./steps/build-docker-image.sh](./steps/build-docker-image.sh)
+  - Builds the docker image and then saves it into `./release-images/$ARCH.tar`
+- [./steps/push-docker-manifest.sh](./steps/push-docker-manifest.sh)
+  - Loads all images in `./release-images` and then builds and pushes a multi architecture
+    docker manifest for the amd64 and arm64 images to `codercom/code-server:$VERSION` and
+    `codercom/code-server:latest`

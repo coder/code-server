@@ -13,29 +13,19 @@ jobs:
         uses: ./ci/container
         with:
           args: ./ci/steps/publish-npm.sh
-          env:
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  docker-amd64:
+  docker:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run ./ci/steps/publish-docker.sh
+      - name: Run ./ci/steps/push-docker-manifest.sh
         uses: ./ci/container
         with:
-          args: ./ci/steps/publish-docker.sh
-          env:
-            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  docker-arm64:
-    runs-on: ubuntu-arm64-latest
-    steps:
-      - uses: actions/checkout@v1
-      - name: Run ./ci/steps/publish-docker.sh
-        uses: ./ci/container
-        with:
-          args: ./ci/steps/publish-docker.sh
-          env:
-            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-            DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+          args: ./ci/steps/push-docker-manifest.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

@@ -8,7 +8,7 @@ MINIFY="${MINIFY-true}"
 
 main() {
   cd "$(dirname "${0}")/../.."
-  source ./ci/build/lib.sh
+  source ./ci/lib.sh
 
   VSCODE_SRC_PATH="lib/vscode"
   VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"

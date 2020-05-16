@@ -106,3 +106,43 @@ jobs:
         with:
           name: release-packages
           path: ./release-packages
+
+  docker-amd64:
+    runs-on: ubuntu-latest
+    needs: linux-amd64
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download release package
+        uses: actions/download-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+      - name: Run ./ci/steps/build-docker-image.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/build-docker-image.sh
+      - name: Upload release image
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-images
+          path: ./release-images
+
+  docker-arm64:
+    runs-on: ubuntu-arm64-latest
+    needs: linux-arm64
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download release package
+        uses: actions/download-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+      - name: Run ./ci/steps/build-docker-image.sh
+        uses: ./ci/container
+        with:
+          args: ./ci/steps/build-docker-image.sh
+      - name: Upload release image
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-images
+          path: ./release-images

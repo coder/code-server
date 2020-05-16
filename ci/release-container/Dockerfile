@@ -35,7 +35,7 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 COPY release-packages/code-server*.deb /tmp/
-RUN dpkg -i /tmp/code-server*-$(dpkg --print-architecture).deb && rm /tmp/code-server*.deb
+RUN dpkg -i /tmp/code-server*$(dpkg --print-architecture).deb && rm /tmp/code-server*.deb
 
 EXPOSE 8080
 USER coder
