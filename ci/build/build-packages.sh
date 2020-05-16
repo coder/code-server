@@ -20,15 +20,10 @@ main() {
   local archive_name="code-server-$VERSION-$OS-$ARCH"
   mkdir -p release-packages
 
-  local ext
   if [[ $OS == "linux" ]]; then
-    ext=".tar.gz"
-    tar -czf "release-packages/$archive_name$ext" --transform "s/^\.\/release-static/$archive_name/" ./release-static
+    tar -czf "release-packages/$archive_name.tar.gz" --transform "s/^\.\/release-static/$archive_name/" ./release-static
   else
-    mv ./release-static "./$archive_name"
-    ext=".zip"
-    zip -r "release-packages/$archive_name$ext" "./$archive_name"
-    mv "./$archive_name" ./release-static
+    tar -czf "release-packages/$archive_name.tar.gz" -s "/^release-static/$archive_name/" release-static
   fi
 
   echo "done (release-packages/$archive_name)"
@@ -42,9 +37,9 @@ main() {
 
 release_gcp() {
   mkdir -p "release-gcp/$VERSION"
-  cp "release-packages/$archive_name$ext" "./release-gcp/$VERSION/$OS-$ARCH$ext"
+  cp "release-packages/$archive_name.tar.gz" "./release-gcp/$VERSION/$OS-$ARCH.tar.gz"
   mkdir -p "release-gcp/latest"
-  cp "./release-packages/$archive_name$ext" "./release-gcp/latest/$OS-$ARCH$ext"
+  cp "./release-packages/$archive_name.tar.gz" "./release-gcp/latest/$OS-$ARCH.tar.gz"
 }
 
 # Generates deb and rpm packages.

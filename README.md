@@ -72,7 +72,7 @@ docker run -it -p 127.0.0.1:8080:8080 \
 
 ### Self contained releases
 
-We publish self contained archives for every release on [github](https://github.com/cdr/code-server/releases).
+We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and compiled native modules.
 
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases)
