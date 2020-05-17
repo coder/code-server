@@ -20,7 +20,8 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
 4. Wait for the artifacts in step 2 to build.
-5. Run `yarn release:github-assets` to download the `release-packages` artifact and then upload them to the draft release.
+5. Run `yarn release:github-assets` to download the `release-packages` artifact and then
+   upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
 7. Publish the release.
    1. CI will automatically grab the artifacts and then:
@@ -123,7 +124,7 @@ Helps avoid clobbering the CI configuration.
   - Runs the release process.
   - Generates the npm package at `./release`.
 - [./steps/release-static.sh](./steps/release-static.sh)
-  - Takes the output of the previous script and generates a self-contained release and
+  - Takes the output of the previous script and generates a static release and
     release packages into `release-packages`.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on npm.

@@ -70,7 +70,7 @@ docker run -it -p 127.0.0.1:8080:8080 \
   codercom/code-server:latest
 ```
 
-### Self contained releases
+### Static releases
 
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and compiled native modules.
@@ -81,7 +81,7 @@ They bundle the node binary and compiled native modules.
 
 Add the code-server `bin` directory to your `$PATH` to easily execute `code-server` without the full path every time.
 
-Here is an example script for installing and using a self-contained `code-server` release on Linux:
+Here is an example script for installing and using a static `code-server` release on Linux:
 
 ```bash
 curl -sSL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /usr/local -xz

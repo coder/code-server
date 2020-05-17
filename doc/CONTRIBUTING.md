@@ -57,7 +57,7 @@ yarn release:static
 yarn test:static-release
 yarn package
 # The static release is in ./release-static
-# .deb, .rpm and the self-contained archive are in ./release-packages
+# .deb, .rpm and the static archive are in ./release-packages
 ```
 
 ## Structure
