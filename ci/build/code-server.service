@@ -8,4 +8,4 @@ ExecStart=/usr/bin/code-server
 Restart=always
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=default.target
