@@ -47,6 +47,9 @@
   <body aria-label=""></body>
 
   <!-- Startup (do not modify order of script tags!) -->
+  <script>window.TextEncoder = null;</script>
+  <script src="{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/text-encoding/lib/encoding-indexes.js"></script>
+  <script src="{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/text-encoding/lib/encoding.js"></script>
   <script>
     const parts = window.location.pathname.replace(/^\//g, "").split("/")
     parts[parts.length - 1] = "{{BASE}}"

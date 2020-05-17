@@ -212,7 +212,7 @@ index 0000000000..0170b47241
 +	common.minifyTask("out-vscode")
 +));
 diff --git a/package.json b/package.json
-index 4c7342cbd8..4c287f6c1a 100644
+index 4c7342cbd8..1091c6babf 100644
 --- a/package.json
 +++ b/package.json
 @@ -37,6 +37,9 @@
@@ -225,6 +225,14 @@ index 4c7342cbd8..4c287f6c1a 100644
      "applicationinsights": "1.0.8",
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
+@@ -53,6 +56,7 @@
+     "semver-umd": "^5.5.6",
+     "spdlog": "^0.11.1",
+     "sudo-prompt": "9.1.1",
++    "text-encoding": "^0.7.0",
+     "v8-inspect-profiler": "^0.0.20",
+     "vscode-nsfw": "1.2.8",
+     "vscode-oniguruma": "1.3.0",
 diff --git a/product.json b/product.json
 index 91b3b92678..f76f2c1548 100644
 --- a/product.json
@@ -247,6 +255,46 @@ index 1e16cde724..0000000000
 -disturl "http://nodejs.org/dist"
 -target "12.4.0"
 -runtime "node"
+diff --git a/src/vs/base/common/buffer.ts b/src/vs/base/common/buffer.ts
+index f5408cded9..9c4608b90a 100644
+--- a/src/vs/base/common/buffer.ts
++++ b/src/vs/base/common/buffer.ts
+@@ -34,14 +34,15 @@ export class VSBuffer {
+ 		return new VSBuffer(actual);
+ 	}
+ 
+-	static fromString(source: string): VSBuffer {
++	static fromString(source: string, encoding = 'utf8'): VSBuffer {
+ 		if (hasBuffer) {
+ 			return new VSBuffer(Buffer.from(source));
+ 		} else if (hasTextEncoder) {
+-			if (!textEncoder) {
+-				textEncoder = new TextEncoder();
++			if (!textEncoder || textEncoder.encoding !== encoding) {
++				// @ts-ignore
++				textEncoder = new TextEncoder(encoding, { NONSTANDARD_allowLegacyEncoding: true });
+ 			}
+-			return new VSBuffer(textEncoder.encode(source));
++			return new VSBuffer((textEncoder as TextEncoder).encode(source));
+ 		} else {
+ 			return new VSBuffer(strings.encodeUTF8(source));
+ 		}
+@@ -74,12 +75,12 @@ export class VSBuffer {
+ 		this.byteLength = this.buffer.byteLength;
+ 	}
+ 
+-	toString(): string {
++	toString(encoding: string = 'utf8'): string {
+ 		if (hasBuffer) {
+ 			return this.buffer.toString();
+ 		} else if (hasTextDecoder) {
+-			if (!textDecoder) {
+-				textDecoder = new TextDecoder();
++			if (!textDecoder || textDecoder.encoding !== encoding) {
++				textDecoder = new TextDecoder(encoding);
+ 			}
+ 			return textDecoder.decode(this.buffer);
+ 		} else {
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
 index e4546b2cf6..9df12239fb 100644
 --- a/src/vs/base/common/network.ts
@@ -492,6 +540,19 @@ index 556c03a03a..ac5d23ed8e 100644
  
  	// If no workspace is provided through the URL, check for config attribute from server
  	if (!foundWorkspace) {
+diff --git a/src/vs/editor/common/model/textModel.ts b/src/vs/editor/common/model/textModel.ts
+index 9774fc60ea..53d2d90873 100644
+--- a/src/vs/editor/common/model/textModel.ts
++++ b/src/vs/editor/common/model/textModel.ts
+@@ -56,7 +56,7 @@ interface ITextStream {
+ }
+ 
+ export function createTextBufferFactoryFromStream(stream: ITextStream, filter?: (chunk: string) => string, validator?: (chunk: string) => Error | undefined): Promise<model.ITextBufferFactory>;
+-export function createTextBufferFactoryFromStream(stream: VSBufferReadableStream, filter?: (chunk: VSBuffer) => VSBuffer, validator?: (chunk: VSBuffer) => Error | undefined): Promise<model.ITextBufferFactory>;
++export function createTextBufferFactoryFromStream(stream: VSBufferReadableStream, filter?: (chunk: VSBuffer) => VSBuffer | string, validator?: (chunk: VSBuffer) => Error | undefined): Promise<model.ITextBufferFactory>;
+ export function createTextBufferFactoryFromStream(stream: ITextStream | VSBufferReadableStream, filter?: (chunk: any) => string | VSBuffer, validator?: (chunk: any) => Error | undefined): Promise<model.ITextBufferFactory> {
+ 	return new Promise<model.ITextBufferFactory>((resolve, reject) => {
+ 		const builder = createTextBufferBuilder();
 diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
 index 3627ab2855..fa4f63472d 100644
 --- a/src/vs/platform/environment/common/environment.ts
@@ -3465,6 +3526,138 @@ index 99394090da..4891e0fece 100644
  	}
  }
  
+diff --git a/src/vs/workbench/services/textfile/browser/textFileService.ts b/src/vs/workbench/services/textfile/browser/textFileService.ts
+index f9ac0ff168..a35ecc84a0 100644
+--- a/src/vs/workbench/services/textfile/browser/textFileService.ts
++++ b/src/vs/workbench/services/textfile/browser/textFileService.ts
+@@ -86,7 +86,9 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
+ 
+ 	async read(resource: URI, options?: IReadTextFileOptions): Promise<ITextFileContent> {
+ 		const content = await this.fileService.readFile(resource, options);
+-
++		const encoding = (options && options.encoding)
++			|| this.textResourceConfigurationService.getValue(resource, 'files.encoding')
++			|| 'utf8';
+ 		// in case of acceptTextOnly: true, we check the first
+ 		// chunk for possibly being binary by looking for 0-bytes
+ 		// we limit this check to the first 512 bytes
+@@ -94,8 +96,8 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
+ 
+ 		return {
+ 			...content,
+-			encoding: 'utf8',
+-			value: content.value.toString()
++			encoding,
++			value: content.value.toString(encoding)
+ 		};
+ 	}
+ 
+@@ -115,11 +117,19 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
+ 
+ 			return undefined;
+ 		};
++		const encoding = (options && options.encoding)
++			|| this.textResourceConfigurationService.getValue(resource, 'files.encoding')
++			|| 'utf8';
++		const createStreamDecoder = (encoding: string) => (chunk: VSBuffer) => chunk.toString(encoding);
+ 
+ 		return {
+ 			...stream,
+-			encoding: 'utf8',
+-			value: await createTextBufferFactoryFromStream(stream.value, undefined, options?.acceptTextOnly ? throwOnBinary : undefined)
++			encoding,
++			value: await createTextBufferFactoryFromStream(
++				stream.value,
++				createStreamDecoder(encoding),
++				options?.acceptTextOnly ? throwOnBinary : undefined
++			)
+ 		};
+ 	}
+ 
+@@ -166,7 +176,7 @@ export abstract class AbstractTextFileService extends Disposable implements ITex
+ 	}
+ 
+ 	async write(resource: URI, value: string | ITextSnapshot, options?: IWriteTextFileOptions): Promise<IFileStatWithMetadata> {
+-		return this.fileService.writeFile(resource, toBufferOrReadable(value), options);
++		return this.fileService.writeFile(resource, toBufferOrReadable(value, options), options);
+ 	}
+ 
+ 	//#endregion
+diff --git a/src/vs/workbench/services/textfile/common/textfiles.ts b/src/vs/workbench/services/textfile/common/textfiles.ts
+index 99154e4353..7b9aab48e9 100644
+--- a/src/vs/workbench/services/textfile/common/textfiles.ts
++++ b/src/vs/workbench/services/textfile/common/textfiles.ts
+@@ -13,7 +13,6 @@ import { ITextEditorModel } from 'vs/editor/common/services/resolverService';
+ import { ITextBufferFactory, ITextModel, ITextSnapshot } from 'vs/editor/common/model';
+ import { VSBuffer, VSBufferReadable } from 'vs/base/common/buffer';
+ import { isUndefinedOrNull } from 'vs/base/common/types';
+-import { isNative } from 'vs/base/common/platform';
+ import { IWorkingCopy } from 'vs/workbench/services/workingCopy/common/workingCopyService';
+ import { IUntitledTextEditorModelManager } from 'vs/workbench/services/untitled/common/untitledTextEditorService';
+ import { CancellationToken } from 'vs/base/common/cancellation';
+@@ -462,8 +461,17 @@ export function stringToSnapshot(value: string): ITextSnapshot {
+ 
+ export class TextSnapshotReadable implements VSBufferReadable {
+ 	private preambleHandled = false;
++	private encoding: string = 'utf8';
+ 
+-	constructor(private snapshot: ITextSnapshot, private preamble?: string) { }
++	constructor(
++		private snapshot: ITextSnapshot,
++		private preamble?: string,
++		encoding?: string,
++	) {
++		if (encoding) {
++			this.encoding = encoding;
++		}
++	}
+ 
+ 	read(): VSBuffer | null {
+ 		let value = this.snapshot.read();
+@@ -482,33 +490,34 @@ export class TextSnapshotReadable implements VSBufferReadable {
+ 		}
+ 
+ 		if (typeof value === 'string') {
+-			return VSBuffer.fromString(value);
++			return VSBuffer.fromString(value, this.encoding);
+ 		}
+ 
+ 		return null;
+ 	}
+ }
+ 
+-export function toBufferOrReadable(value: string): VSBuffer;
+-export function toBufferOrReadable(value: ITextSnapshot): VSBufferReadable;
+-export function toBufferOrReadable(value: string | ITextSnapshot): VSBuffer | VSBufferReadable;
+-export function toBufferOrReadable(value: string | ITextSnapshot | undefined): VSBuffer | VSBufferReadable | undefined;
+-export function toBufferOrReadable(value: string | ITextSnapshot | undefined): VSBuffer | VSBufferReadable | undefined {
++export function toBufferOrReadable(value: string, options?: IWriteTextFileOptions): VSBuffer;
++export function toBufferOrReadable(value: ITextSnapshot, options?: IWriteTextFileOptions): VSBufferReadable;
++export function toBufferOrReadable(value: string | ITextSnapshot, options?: IWriteTextFileOptions): VSBuffer | VSBufferReadable;
++export function toBufferOrReadable(value: string | ITextSnapshot | undefined, options?: IWriteTextFileOptions): VSBuffer | VSBufferReadable | undefined;
++export function toBufferOrReadable(value: string | ITextSnapshot | undefined, options?: IWriteTextFileOptions): VSBuffer | VSBufferReadable | undefined {
++	const encoding = options ? options.encoding : 'utf8';
+ 	if (typeof value === 'undefined') {
+ 		return undefined;
+ 	}
+ 
+ 	if (typeof value === 'string') {
+-		return VSBuffer.fromString(value);
++		return VSBuffer.fromString(value, encoding);
+ 	}
+ 
+-	return new TextSnapshotReadable(value);
++	return new TextSnapshotReadable(value, undefined, encoding);
+ }
+ 
+ export const SUPPORTED_ENCODINGS: { [encoding: string]: { labelLong: string; labelShort: string; order: number; encodeOnly?: boolean; alias?: string } } =
+ 
+ 	// Desktop
+-	isNative ?
++	true ?
+ 		{
+ 			utf8: {
+ 				labelLong: 'UTF-8',
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
 index 2fda5eddd8..721cfdfd3e 100644
 --- a/src/vs/workbench/workbench.web.main.ts
@@ -3480,7 +3673,7 @@ index 2fda5eddd8..721cfdfd3e 100644
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
 diff --git a/yarn.lock b/yarn.lock
-index 458909e2b2..68f1a7e609 100644
+index 458909e2b2..6a8b097038 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
@@ -3533,3 +3726,15 @@ index 458909e2b2..68f1a7e609 100644
  pako@~1.0.5:
    version "1.0.6"
    resolved "https://registry.yarnpkg.com/pako/-/pako-1.0.6.tgz#0101211baa70c4bca4a0f63f2206e97b7dfaf258"
+@@ -8976,6 +9005,11 @@ temp@^0.8.3:
+     os-tmpdir "^1.0.0"
+     rimraf "~2.2.6"
+ 
++text-encoding@^0.7.0:
++  version "0.7.0"
++  resolved "https://registry.yarnpkg.com/text-encoding/-/text-encoding-0.7.0.tgz#f895e836e45990624086601798ea98e8f36ee643"
++  integrity sha512-oJQ3f1hrOnbRLOcwKz0Liq2IcrvDeZRHXhd9RgLrsT+DjWY/nty1Hi7v3dtkaEYbPYe0mUoOfzRrMwfXXwgPUA==
++
+ text-table@^0.2.0:
+   version "0.2.0"
+   resolved "https://registry.yarnpkg.com/text-table/-/text-table-0.2.0.tgz#7f5ee823ae805207c00af2df4a84ec3fcfa570b4"
