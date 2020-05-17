@@ -1,8 +1,8 @@
 # code-server
 
-Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it through the browser.
+Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
 
-- **Code anywhere:** Code on your Chromebook, tablet, and laptop with a
+- **Code everywhere:** Code on your Chromebook, tablet, and laptop with a
   consistent dev environment. Develop on a Linux machine and pick up from any
   device with a web browser.
 - **Server-powered:** Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
@@ -13,7 +13,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 ## Getting started
 
-For a proper setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
+For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
 ### Debian, Ubuntu
 
@@ -38,10 +38,10 @@ systemctl --user enable --now code-server
 We recommend installing from `npm` if we don't have a precompiled release for your machine's
 platform or architecture.
 
-**note:** Installing via `npm` requires certain dependencies for the native module builds.
+**note:** Installing via `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
 
-You also need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
+You will need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
 
 ```bash
 npm install -g code-server
@@ -75,13 +75,13 @@ docker run -it -p 127.0.0.1:8080:8080 \
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and compiled native modules.
 
-1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases)
-2. Unpack the release
-3. You can run code-server by executing `bin/code-server`
+1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
+2. Unpack the release.
+3. You can run code-server by executing `./bin/code-server`.
 
-Add the code-server `bin` directory to your `$PATH` to easily execute it without the full path every time.
+Add the code-server `bin` directory to your `$PATH` to easily execute `code-server` without the full path every time.
 
-Here is an example script for installing and using a self-contained code-server release on Linux:
+Here is an example script for installing and using a self-contained `code-server` release on Linux:
 
 ```bash
 curl -sSL https://github.com/cdr/code-server/releases/download/3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /usr/local -xz
