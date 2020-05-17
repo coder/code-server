@@ -21,6 +21,9 @@ main() {
   )
   prettier --write --loglevel=warn $(git ls-files "${prettierExts[@]}")
 
+  doctoc --title '# FAQ' doc/FAQ.md > /dev/null
+  doctoc --title '# Setup Guide' doc/guide.md > /dev/null
+
   if [[ ${CI-} && $(git ls-files --other --modified --exclude-standard) ]]; then
     echo "Files need generation or are formatted incorrectly:"
     git -c color.ui=always status | grep --color=no '\[31m'

@@ -15,7 +15,7 @@ main() {
   for i in "${!assets[@]}"; do
     assets[$i]="--attach=${assets[$i]}"
   done
-  EDITOR=true hub release edit --draft "${assets[@]}" "v$(pkg_json_version)"
+  EDITOR=true hub release edit --draft "${assets[@]}" "v$VERSION"
 }
 
 main "$@"

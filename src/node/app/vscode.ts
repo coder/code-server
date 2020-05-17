@@ -192,6 +192,8 @@ export class VscodeHttpProvider extends HttpProvider {
       response.content = response.content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "")
     }
 
+    options.productConfiguration.codeServerVersion = require("../../../package.json").version
+
     response.content = response.content
       .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
       .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)

@@ -43,8 +43,9 @@ const main = async (cliArgs: Args): Promise<void> => {
     }
   }
 
-  logger.trace(`Using extensions-dir at ${humanPath(args["extensions-dir"])}`)
-  logger.trace(`Using user-data-dir at ${humanPath(args["user-data-dir"])}`)
+  logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
+
+  logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
   const envPassword = !!process.env.PASSWORD
   const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)
@@ -125,58 +126,62 @@ const main = async (cliArgs: Args): Promise<void> => {
   }
 }
 
-const tryParse = (): Args => {
-  try {
-    return parse(process.argv.slice(2))
-  } catch (error) {
-    console.error(error.message)
-    process.exit(1)
+async function entry(): Promise<void> {
+  const tryParse = async (): Promise<Args> => {
+    try {
+      return await parse(process.argv.slice(2))
+    } catch (error) {
+      console.error(error.message)
+      process.exit(1)
+    }
+  }
+
+  const args = await tryParse()
+  if (args.help) {
+    console.log("code-server", version, commit)
+    console.log("")
+    console.log(`Usage: code-server [options] [path]`)
+    console.log("")
+    console.log("Options")
+    optionDescriptions().forEach((description) => {
+      console.log("", description)
+    })
+  } else if (args.version) {
+    if (args.json) {
+      console.log({
+        codeServer: version,
+        commit,
+        vscode: require("../../lib/vscode/package.json").version,
+      })
+    } else {
+      console.log(version, commit)
+    }
+    process.exit(0)
+  } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
+    logger.debug("forking vs code cli...")
+    const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
+      env: {
+        ...process.env,
+        CODE_SERVER_PARENT_PID: process.pid.toString(),
+      },
+    })
+    vscode.once("message", (message) => {
+      logger.debug("Got message from VS Code", field("message", message))
+      if (message.type !== "ready") {
+        logger.error("Unexpected response waiting for ready response")
+        process.exit(1)
+      }
+      const send: CliMessage = { type: "cli", args }
+      vscode.send(send)
+    })
+    vscode.once("error", (error) => {
+      logger.error(error.message)
+      process.exit(1)
+    })
+    vscode.on("exit", (code) => process.exit(code || 0))
+  } else {
+    wrap(() => main(args))
   }
 }
 
-const args = tryParse()
-if (args.help) {
-  console.log("code-server", version, commit)
-  console.log("")
-  console.log(`Usage: code-server [options] [path]`)
-  console.log("")
-  console.log("Options")
-  optionDescriptions().forEach((description) => {
-    console.log("", description)
-  })
-} else if (args.version) {
-  if (args.json) {
-    console.log({
-      codeServer: version,
-      commit,
-      vscode: require("../../lib/vscode/package.json").version,
-    })
-  } else {
-    console.log(version, commit)
-  }
-  process.exit(0)
-} else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
-  logger.debug("forking vs code cli...")
-  const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
-    env: {
-      ...process.env,
-      CODE_SERVER_PARENT_PID: process.pid.toString(),
-    },
-  })
-  vscode.once("message", (message) => {
-    logger.debug("Got message from VS Code", field("message", message))
-    if (message.type !== "ready") {
-      logger.error("Unexpected response waiting for ready response")
-      process.exit(1)
-    }
-    const send: CliMessage = { type: "cli", args }
-    vscode.send(send)
-  })
-  vscode.once("error", (error) => {
-    logger.error(error.message)
-    process.exit(1)
-  })
-  vscode.on("exit", (code) => process.exit(code || 0))
-} else {
-  wrap(() => main(args))
-}
+entry()

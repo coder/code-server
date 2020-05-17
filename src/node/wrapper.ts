@@ -38,7 +38,7 @@ export class IpcMain {
 
     // Ensure we control when the process exits.
     this.exit = process.exit
-    process.exit = function(code?: number) {
+    process.exit = function (code?: number) {
       logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
     } as (code?: number) => never
 

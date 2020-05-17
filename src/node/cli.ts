@@ -1,6 +1,7 @@
 import { field, Level, logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import yaml from "js-yaml"
+import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { AuthType } from "./http"
@@ -151,12 +152,12 @@ export const optionDescriptions = (): string[] => {
   )
 }
 
-export const parse = (
+export const parse = async (
   argv: string[],
   opts?: {
     configFile: string
   },
-): Args => {
+): Promise<Args> => {
   const error = (msg: string): Error => {
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
@@ -300,6 +301,7 @@ export const parse = (
   }
 
   if (!args["user-data-dir"]) {
+    await copyOldMacOSDataDir()
     args["user-data-dir"] = paths.data
   }
 
@@ -336,7 +338,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
   }
 
-  logger.info(`Using config file from ${humanPath(configPath)}`)
+  logger.info(`Using config file ${humanPath(configPath)}`)
 
   const configFile = await fs.readFile(configPath)
   const config = yaml.safeLoad(configFile.toString(), {
@@ -351,7 +353,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     }
     return `--${optName}=${opt}`
   })
-  const args = parse(configFileArgv, {
+  const args = await parse(configFileArgv, {
     configFile: configPath,
   })
   return {
@@ -378,6 +380,10 @@ function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   if (args.host) {
     addr.host = args.host
   }
+
+  if (process.env.PORT) {
+    addr.port = parseInt(process.env.PORT, 10)
+  }
   if (args.port !== undefined) {
     addr.port = args.port
   }
@@ -391,12 +397,22 @@ export function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string
   }
 
   addr = bindAddrFromArgs(addr, configArgs)
-
-  if (process.env.PORT) {
-    addr.port = parseInt(process.env.PORT, 10)
-  }
-
   addr = bindAddrFromArgs(addr, cliArgs)
 
   return [addr.host, addr.port]
+}
+
+async function copyOldMacOSDataDir(): Promise<void> {
+  if (os.platform() !== "darwin") {
+    return
+  }
+  if (await fs.pathExists(paths.data)) {
+    return
+  }
+
+  // If the old data directory exists, we copy it in.
+  const oldDataDir = path.join(os.homedir(), "Library/Application Support", "code-server")
+  if (await fs.pathExists(oldDataDir)) {
+    await fs.copy(oldDataDir, paths.data)
+  }
 }

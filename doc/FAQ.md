@@ -1,9 +1,32 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # FAQ
+
+- [Questions?](#questions)
+- [What's the deal with extensions?](#whats-the-deal-with-extensions)
+- [Where are extensions stored?](#where-are-extensions-stored)
+- [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
+- [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+- [How do I securely access web services?](#how-do-i-securely-access-web-services)
+  - [Sub-domains](#sub-domains)
+  - [Sub-paths](#sub-paths)
+- [Multi-tenancy](#multi-tenancy)
+- [Docker in code-server docker container?](#docker-in-code-server-docker-container)
+- [Collaboration](#collaboration)
+- [How can I disable telemetry?](#how-can-i-disable-telemetry)
+- [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
+- [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
+- [Heartbeat file](#heartbeat-file)
+- [How does the config file work?](#how-does-the-config-file-work)
+- [Enterprise](#enterprise)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Questions?
 
-Please file all questions and support requests at https://www.reddit.com/r/codeserver/
-The issue tracker is only for bugs.
+Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
+
+The issue tracker is **only** for bugs.
 
 ## What's the deal with extensions?
 
@@ -23,42 +46,59 @@ Issue [#1299](https://github.com/cdr/code-server/issues/1299) is a big one in ma
 better by allowing the community to submit extensions and repos to avoid waiting until the scraper finds
 an extension.
 
-If an extension does not work, try to grab its VSIX from its Github releases or build it yourself and
-copy it to the extensions folder.
+If an extension is not available or does not work, you can grab its VSIX from its Github releases or
+build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
+point to the .vsix file.
 
-## How is this different from VS Code Online?
+See below for installing an extension from the cli.
 
-VS Code Online is a closed source managed service by Microsoft and only runs on Azure.
+Feel free to file an issue to add a missing extension to the marketplace.
 
-code-server is open source and can be freely run on any machine.
+If you have your own custom marketplace, it is possible to point code-server to it by setting
+`$SERVICE_URL` and `$ITEM_URL` to point to it.
+
+## Where are extensions stored?
+
+Defaults to `~/.local/share/code-server/extensions`.
+
+If the `XDG_DATA_HOME` environment variable is set the data directory will be
+`$XDG_DATA_HOME/code-server/extensions`. In general we try to follow the XDG directory spec.
+
+You can install an extension on the CLI with:
+
+```bash
+# From the Coder extension marketplace
+code-server --install-extension ms-python.python
+
+# From a downloaded VSIX on the file system
+code-server --install-extension downloaded-ms-python.python.vsix
+```
+
+## How is this different from VS Code Codespaces?
+
+VS Code Codespaces is a closed source and paid service by Microsoft. It also allows you to access
+VS Code via the browser.
+
+However, code-server is free, open source and can be ran on any machine without any limitations.
+
+While you can self host environments with VS Code Codespaces, you still need to an Azure billing
+account and you access VS Code via the Codespaces web dashboard instead of directly connecting to
+your instance.
 
 ## How should I expose code-server to the internet?
 
-By far the most secure method of using code-server is via
-[sshcode](https://github.com/codercom/sshcode) as it runs code-server and then forwards
-its port over SSH and requires no setup on your part other than having a working SSH server.
+Please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
-You can also forward your SSH key and GPG agent to the remote machine to securely access GitHub
-and securely sign commits without duplicating your keys onto the the remote machine.
-
-1. https://developer.github.com/v3/guides/using-ssh-agent-forwarding/
-1. https://wiki.gnupg.org/AgentForwarding
-
-If you cannot use sshcode, then you will need to ensure there is some sort of authorization in
-front of code-server and that you are using HTTPS to secure all connections.
-
-By default when listening externally, code-server enables password authentication using a
-randomly generated password so you can use that. You can set the `PASSWORD` environment variable
-to use your own instead. If you want to handle authentication yourself, use `--auth none`
-to disable password authentication.
+code-server only supports password authentication natively.
 
 **note**: code-server will rate limit password authentication attempts at 2 a minute and 12 an hour.
 
-If you want to use external authentication you should handle this with a reverse
-proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy).
+If you want to use external authentication (i.e sign in with Google) you should handle this
+with a reverse proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy).
 
-For HTTPS, you can use a self signed certificate by passing in just `--cert` or pass in an existing
-certificate by providing the path to `--cert` and the path to its key with `--cert-key`.
+For HTTPS, you can use a self signed certificate by passing in just `--cert` or
+pass in an existing certificate by providing the path to `--cert` and the path to
+its key with `--cert-key`.
 
 If `code-server` has been passed a certificate it will also respond to HTTPS
 requests and will redirect all HTTP requests to HTTPS. Otherwise it will respond
@@ -66,6 +106,8 @@ only to HTTP requests.
 
 You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
+
+Again, Please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
 ## How do I securely access web services?
 
@@ -96,16 +138,7 @@ ensure your reverse proxy forwards that information if you are using one.
 
 Just browse to `/proxy/<port>/`.
 
-## x86 releases?
-
-node has dropped support for x86 and so we decided to as well. See
-[nodejs/build/issues/885](https://github.com/nodejs/build/issues/885).
-
-## Alpine builds?
-
-Just install `libc-dev` and code-server should work.
-
-## Multi Tenancy
+## Multi-tenancy
 
 If you want to run multiple code-server's on shared infrastructure, we recommend using virtual
 machines with a VM per user. This will easily allow users to run a docker daemon. If you want
@@ -127,8 +160,9 @@ to make volume mounts in any other directory work.
 
 ## Collaboration
 
-At the moment we have no plans for multi user collaboration on code-server but we understand there is strong
-demand and will work on it when the time is right.
+We understand the high demand but the team is swamped right now.
+
+You can follow progress at [#33](https://github.com/cdr/code-server/issues/33).
 
 ## How can I disable telemetry?
 
@@ -157,21 +191,43 @@ code-server --log debug
 Once this is done, replicate the issue you're having then collect logging
 information from the following places:
 
-1. stdout.
-2. The most recently created directory in the `logs` directory (found in the
-   data directory; see below for how to find that).
+1. stdout
+2. The most recently created directory in the `~/.local/share/code-server/logs` directory
 3. The browser console and network tabs.
 
 Additionally, collecting core dumps (you may need to enable them first) if
 code-server crashes can be helpful.
 
-### Where is the data directory?
+## Heartbeat file
 
-If the `XDG_DATA_HOME` environment variable is set the data directory will be
-`$XDG_DATA_HOME/code-server`. Otherwise:
+`code-server` touches `~/.local/share/code-server/heartbeat` once a minute as long
+as there is an active browser connection.
 
-1. Unix: `~/.local/share/code-server`
-1. Windows: `%APPDATA%\Local\code-server\Data`
+If you want to shutdown `code-server` if there hasn't been an active connection in X minutes
+you can do so by continuously checking the last modified time on the heartbeat file and if it is
+older than X minutes, you should kill `code-server`.
+
+[#1636](https://github.com/cdr/code-server/issues/1636) will make the experience here better.
+
+## How does the config file work?
+
+When `code-server` starts up, it creates a default config file in `~/.config/code-server/config.yaml` that looks
+like this:
+
+```yaml
+bind-addr: 127.0.0.1:8080
+auth: password
+password: mewkmdasosafuio3422 # This is randomly generated for each config.yaml
+cert: false
+```
+
+Each key in the file maps directly to a `code-server` flag. Run `code-server --help` to see
+a listing of all the flags.
+
+The default config here says to listen on the loopback IP port 8080, enable password authorization
+and no TLS. Any flags passed to `code-server` will take priority over the config file.
+
+The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config file's location.
 
 ## Enterprise
 

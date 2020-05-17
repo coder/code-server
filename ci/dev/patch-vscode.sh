@@ -4,11 +4,8 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  yarn --frozen-lockfile
-  yarn vscode
-  yarn build
-  yarn build:vscode
-  yarn release
+  cd ./lib/vscode
+  git apply ../../ci/dev/vscode.patch
 }
 
 main "$@"

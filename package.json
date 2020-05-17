@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.3.0-rc.7",
+  "version": "3.3.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -11,8 +11,8 @@
   "scripts": {
     "clean": "./ci/build/clean.sh",
     "vscode": "./ci/dev/vscode.sh",
-    "vscode:patch": "cd ./lib/vscode && git apply ../../ci/dev/vscode.patch",
-    "vscode:diff": "cd ./lib/vscode && git diff HEAD > ../../ci/dev/vscode.patch",
+    "vscode:patch": "./ci/dev/patch-vscode.sh",
+    "vscode:diff": "./ci/dev/diff-vscode.sh",
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
@@ -45,6 +45,7 @@
     "@types/ws": "^6.0.4",
     "@typescript-eslint/eslint-plugin": "^2.0.0",
     "@typescript-eslint/parser": "^2.0.0",
+    "doctoc": "^1.4.0",
     "eslint": "^6.2.0",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.2",
@@ -52,7 +53,7 @@
     "leaked-handles": "^5.2.0",
     "mocha": "^6.2.0",
     "parcel-bundler": "^1.12.4",
-    "prettier": "^1.18.2",
+    "prettier": "^2.0.5",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^8.4.1",
@@ -91,5 +92,8 @@
     "coder",
     "vscode-remote",
     "browser-ide"
-  ]
+  ],
+  "engines": {
+    "node": ">= 12"
+  }
 }

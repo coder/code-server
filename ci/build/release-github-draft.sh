@@ -9,8 +9,8 @@ main() {
 
   hub release create \
     --file - \
-    --draft "${assets[@]}" "v$(pkg_json_version)" << EOF
-v$(pkg_json_version)
+    --draft "${assets[@]}" "v$VERSION" << EOF
+v$VERSION
 
 VS Code v$(vscode_version)
 

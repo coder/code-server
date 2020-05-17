@@ -3,7 +3,7 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "${0}")/../.."
-  source ./ci/build/lib.sh
+  source ./ci/lib.sh
 
   rsync "$RELEASE_PATH/" "$RELEASE_PATH-static"
   RELEASE_PATH+=-static
@@ -19,7 +19,7 @@ main() {
   rsync "$node_path" "$RELEASE_PATH/lib/node"
 
   cd "$RELEASE_PATH"
-  yarn --production
+  yarn --production --frozen-lockfile
 }
 
 main "$@"
