@@ -88,6 +88,7 @@ curl -sSL https://github.com/cdr/code-server/releases/download/3.3.0/code-server
 sudo mv /usr/local/code-server-3.3.0-linux-amd64 /usr/local/code-server
 PATH="$PATH:/usr/local/code-server/bin"
 code-server
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ## FAQ
@@ -100,5 +101,5 @@ See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 
 ## Enterprise
 
-Visit [our enterprise page](https://coder.com) for more information about our
+Visit [our website](https://coder.com) for more information about our
 enterprise offerings.
