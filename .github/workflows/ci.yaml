@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: npm-package
-          path: ./release
+          path: ./release-npm-package
 
   linux-amd64:
     needs: release
@@ -53,7 +53,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: npm-package
-          path: ./release
+          path: ./release-npm-package
       - name: Run ./ci/steps/release-static.sh
         uses: ./ci/container
         with:
@@ -73,7 +73,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: npm-package
-          path: ./release
+          path: ./release-npm-package
       - name: Run ./ci/steps/release-static.sh
         uses: ./ci/container/arm64
         with:
@@ -93,7 +93,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: npm-package
-          path: ./release
+          path: ./release-npm-package
       - run: brew unlink node@12
       - run: brew install node
       - run: ./ci/steps/release-static.sh

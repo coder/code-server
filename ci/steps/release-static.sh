@@ -5,7 +5,7 @@ main() {
   cd "$(dirname "$0")/../.."
 
   # https://github.com/actions/upload-artifact/issues/38
-  chmod +x $(grep -rl '^#!/.*' release)
+  tar -xzf release-npm-package/package.tar.gz
 
   yarn release:static
   yarn test:static-release

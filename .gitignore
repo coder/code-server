@@ -3,6 +3,7 @@
 dist*
 out*
 release/
+release-npm-package/
 release-static/
 release-packages/
 release-gcp/
