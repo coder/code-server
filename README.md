@@ -11,7 +11,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 ![Example gif](./doc/assets/code-server.gif)
 
-## Getting started
+## Getting Started
 
 For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
