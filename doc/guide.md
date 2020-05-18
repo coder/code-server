@@ -18,7 +18,11 @@
 This guide demonstrates how to setup and use code-server.
 To reiterate, code-server lets you run VS Code on a remote server and then access it via a browser.
 
-See [README.md](../README.md) for a general overview and [FAQ.md](./FAQ.md) for further user docs.
+Further docs are at:
+
+- [README.md](../README.md) for a general overview
+- [FAQ.md](./FAQ.md) for common questions.
+- [CONTRIBUTING.md](../doc/CONTRIBUTING.md) for development docs
 
 We'll walk you through acquiring a remote machine to run code-server on and then exposing `code-server` so you can
 securely access it.
