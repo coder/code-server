@@ -11,7 +11,7 @@ main() {
     release-static \
     release-packages \
     release-gcp \
-    release-images/
+    release-images/ \
     dist \
     .tsbuildinfo \
     .cache/out.tsbuildinfo

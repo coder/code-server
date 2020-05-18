@@ -16,7 +16,7 @@
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
-- [Heartbeat file](#heartbeat-file)
+- [Heartbeat File](#heartbeat-file)
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Enterprise](#enterprise)
 
@@ -198,7 +198,7 @@ information from the following places:
 Additionally, collecting core dumps (you may need to enable them first) if
 code-server crashes can be helpful.
 
-## Heartbeat file
+## Heartbeat File
 
 `code-server` touches `~/.local/share/code-server/heartbeat` once a minute as long
 as there is an active browser connection.
