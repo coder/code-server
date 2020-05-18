@@ -9,6 +9,10 @@ main() {
   yarn build
   yarn build:vscode
   yarn release
+
+  # https://github.com/actions/upload-artifact/issues/38
+  mkdir -p release-npm-package
+  tar -czf release-npm-package/package.tar.gz release
 }
 
 main "$@"
