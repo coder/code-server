@@ -85,8 +85,8 @@ Here is an example script for installing and using a static `code-server` releas
 
 ```bash
 curl -sSL https://github.com/cdr/code-server/releases/download/v3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /usr/local -xz
-sudo mv /usr/local/code-server-3.3.0-linux-amd64 /usr/local/code-server
-PATH="$PATH:/usr/local/code-server/bin"
+sudo mv /usr/local/code-server-3.3.0-linux-amd64 /usr/local/code-server-3.3.0
+PATH="/usr/local/code-server-3.3.0/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
