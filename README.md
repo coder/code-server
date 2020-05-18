@@ -70,7 +70,7 @@ docker run -it -p 127.0.0.1:8080:8080 \
   codercom/code-server:latest
 ```
 
-### Static releases
+### Static Releases
 
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and compiled native modules.
