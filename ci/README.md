@@ -23,11 +23,12 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 5. Run `yarn release:github-assets` to download the `release-packages` artifact and then
    upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
-7. Publish the release.
+7. Make sure the github release tag is the commit with the artifacts.
+8. Publish the release.
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.
       2. Publish the Docker Hub image from `release-images`.
-8. Update the homebrew and AUR packages.
+9. Update the homebrew and AUR packages.
 
 ## dev
 

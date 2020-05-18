@@ -75,7 +75,7 @@ jobs:
           name: npm-package
           path: ./release
       - name: Run ./ci/steps/release-static.sh
-        uses: ./ci/container
+        uses: ./ci/container/arm64
         with:
           args: ./ci/steps/release-static.sh
       - name: Upload release artifacts
@@ -138,7 +138,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/container
+        uses: ./ci/container/arm64
         with:
           args: ./ci/steps/build-docker-image.sh
       - name: Upload release image
