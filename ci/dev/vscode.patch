@@ -248,19 +248,17 @@ index 1e16cde724..0000000000
 -target "12.4.0"
 -runtime "node"
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index e4546b2cf6..9df12239fb 100644
+index e4546b2cf6..ad2c544e89 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -94,16 +94,18 @@ class RemoteAuthoritiesImpl {
+@@ -94,16 +94,17 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
 -		const port = this._ports[authority];
 +		// const port = this._ports[authority];
  		const connectionToken = this._connectionTokens[authority];
--		let query = `path=${encodeURIComponent(uri.path)}`;
-+		// NOTE@coder: Use fsPath for Windows support.
-+		let query = `path=${encodeURIComponent(uri.fsPath)}`;
+ 		let query = `path=${encodeURIComponent(uri.path)}`;
  		if (typeof connectionToken === 'string') {
  			query += `&tkn=${encodeURIComponent(connectionToken)}`;
  		}
@@ -1067,7 +1065,7 @@ index 0000000000..0d2e93edae
 +}
 diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
 new file mode 100644
-index 0000000000..8db1e17c38
+index 0000000000..a93381631a
 --- /dev/null
 +++ b/src/vs/server/browser/worker.ts
 @@ -0,0 +1,57 @@
@@ -1090,7 +1088,7 @@ index 0000000000..8db1e17c38
 +		scheme: self.location.protocol.replace(':', ''),
 +		authority: self.location.host,
 +		path: self.location.pathname.replace(/\/static\/([^\/]+)\/.*$/, '/static/$1\/'),
-+		query: `tar=${encodeURIComponent(module.extensionLocation.fsPath)}`,
++		query: `tar=${encodeURIComponent(module.extensionLocation.path)}`,
 +	});
 +	const response = await fetch(fetchUri.toString(true));
 +	if (response.status !== 200) {

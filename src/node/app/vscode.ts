@@ -18,6 +18,7 @@ import { generateUuid } from "../../common/util"
 import { Args } from "../cli"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { settings } from "../settings"
+import { pathToFsPath } from "../util"
 
 export class VscodeHttpProvider extends HttpProvider {
   private readonly serverRootPath: string
@@ -151,7 +152,7 @@ export class VscodeHttpProvider extends HttpProvider {
       case "/resource":
       case "/vscode-remote-resource":
         if (typeof route.query.path === "string") {
-          return this.getResource(route.query.path)
+          return this.getResource(pathToFsPath(route.query.path))
         }
         break
       case "/webview":

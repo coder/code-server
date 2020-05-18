@@ -5,6 +5,7 @@ import { Readable } from "stream"
 import * as tarFs from "tar-fs"
 import * as zlib from "zlib"
 import { HttpProvider, HttpResponse, Route } from "../http"
+import { pathToFsPath } from "../util"
 
 /**
  * Static file HTTP provider. Regular static requests (the path is the request
@@ -18,7 +19,7 @@ export class StaticHttpProvider extends HttpProvider {
 
     if (typeof route.query.tar === "string") {
       this.ensureAuthenticated(request)
-      return this.getTarredResource(request, route.query.tar)
+      return this.getTarredResource(request, pathToFsPath(route.query.tar))
     }
 
     const response = await this.getReplacedResource(route)

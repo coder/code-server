@@ -217,3 +217,51 @@ export function extend(...args: any[]): any {
   }
   return c
 }
+
+/**
+ * Taken from vs/base/common/charCode.ts. Copied for now instead of importing so
+ * we don't have to set up a `vs` alias to be able to import with types (since
+ * the alternative is to directly import from `out`).
+ */
+const enum CharCode {
+  Slash = 47,
+  A = 65,
+  Z = 90,
+  a = 97,
+  z = 122,
+  Colon = 58,
+}
+
+/**
+ * Compute `fsPath` for the given uri.
+ * Taken from vs/base/common/uri.ts. It's not imported to avoid also importing
+ * everything that file imports.
+ */
+export function pathToFsPath(path: string, keepDriveLetterCasing = false): string {
+  const isWindows = process.platform === "win32"
+  const uri = { authority: undefined, path, scheme: "file" }
+  let value: string
+  if (uri.authority && uri.path.length > 1 && uri.scheme === "file") {
+    // unc path: file://shares/c$/far/boo
+    value = `//${uri.authority}${uri.path}`
+  } else if (
+    uri.path.charCodeAt(0) === CharCode.Slash &&
+    ((uri.path.charCodeAt(1) >= CharCode.A && uri.path.charCodeAt(1) <= CharCode.Z) ||
+      (uri.path.charCodeAt(1) >= CharCode.a && uri.path.charCodeAt(1) <= CharCode.z)) &&
+    uri.path.charCodeAt(2) === CharCode.Colon
+  ) {
+    if (!keepDriveLetterCasing) {
+      // windows drive letter: file:///c:/far/boo
+      value = uri.path[1].toLowerCase() + uri.path.substr(2)
+    } else {
+      value = uri.path.substr(1)
+    }
+  } else {
+    // other path
+    value = uri.path
+  }
+  if (isWindows) {
+    value = value.replace(/\//g, "\\")
+  }
+  return value
+}
