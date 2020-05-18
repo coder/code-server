@@ -36,7 +36,7 @@ systemctl --user enable --now code-server
 ### npm
 
 We recommend installing from `npm` if we don't have a precompiled release for your machine's
-platform or architecture.
+platform or architecture or your glibc < v2.19.
 
 **note:** Installing via `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
