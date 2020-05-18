@@ -229,6 +229,8 @@ and no TLS. Any flags passed to `code-server` will take priority over the config
 
 The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config file's location.
 
+The default location also respects `$XDG_CONFIG_HOME`.
+
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com) for more information about our
