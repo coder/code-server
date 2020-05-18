@@ -84,7 +84,8 @@ Add the code-server `bin` directory to your `$PATH` to easily execute `code-serv
 Here is an example script for installing and using a static `code-server` release on Linux:
 
 ```bash
-curl -sSL https://github.com/cdr/code-server/releases/download/v3.3.0/code-server-3.3.0-linux-amd64.tar.gz | sudo tar -C /usr/local -xz
+curl -sSL https://github.com/cdr/code-server/releases/download/v3.3.0/code-server-3.3.0-linux-amd64.tar.gz \
+  | sudo tar -C /usr/local -xz
 sudo mv /usr/local/code-server-3.3.0-linux-amd64 /usr/local/code-server-3.3.0
 PATH="/usr/local/code-server-3.3.0/bin:$PATH"
 code-server
