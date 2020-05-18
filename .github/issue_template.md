@@ -15,4 +15,4 @@ Please fill in the issue template or we will close your issue!
 - Web Browser: 
 - Local OS:
 - Remote OS:
-- code-server version: 
+- `code-server --version`: 
