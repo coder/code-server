@@ -3083,23 +3083,23 @@ index afdd6bf398..1633daf93d 100644
  			return storagePath;
  
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index 10a21537a4..5dcbba0913 100644
+index 4781f22676..86c9246f51 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
-@@ -8,6 +8,9 @@ import { ExtensionActivationTimesBuilder } from 'vs/workbench/api/common/extHost
- import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
+@@ -9,6 +9,9 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
+ import { endsWith } from 'vs/base/common/strings';
  import { URI } from 'vs/base/common/uri';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
 +import { joinPath } from 'vs/base/common/resources';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 +import { loadCommonJSModule } from 'vs/server/browser/worker';
- 
+
  class WorkerRequireInterceptor extends RequireInterceptor {
- 
-@@ -40,7 +43,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+
+@@ -41,7 +44,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		await this._fakeModules.install();
  	}
- 
+
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +		if (!URI.isUri(module) && module.extensionKind !== 'web') {
@@ -3109,10 +3109,10 @@ index 10a21537a4..5dcbba0913 100644
 +		if (!URI.isUri(module)) {
 +			module = joinPath(module.extensionLocation, module.main!);
 +		}
- 
+
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
-@@ -56,7 +66,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -57,7 +67,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		const _exports = {};
  		const _module = { exports: _exports };
  		const _require = (request: string) => {
