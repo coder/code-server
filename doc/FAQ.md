@@ -108,7 +108,7 @@ only to HTTP requests.
 You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
 for free.
 
-Again, Please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
+Again, please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
 ## How do I securely access web services?
 
