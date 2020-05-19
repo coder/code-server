@@ -33,18 +33,19 @@ systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
-### npm
+### yarn, npm
 
-We recommend installing from `npm` if we don't have a precompiled release for your machine's
+We recommend installing with `yarn` or `npm` if we don't have a precompiled release for your machine's
 platform or architecture or your glibc < v2.19.
 
-**note:** Installing via `npm` builds native modules on install and so requires C dependencies.
+**note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
 
 You will need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
 
 ```bash
-npm install -g code-server
+yarn global add code-server
+# Or: npm install -g code-server
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
