@@ -18,6 +18,7 @@
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
 - [Heartbeat File](#heartbeat-file)
 - [How does the config file work?](#how-does-the-config-file-work)
+- [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -230,6 +231,15 @@ and no TLS. Any flags passed to `code-server` will take priority over the config
 The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config file's location.
 
 The default location also respects `$XDG_CONFIG_HOME`.
+
+## Blank screen on iPad?
+
+Unfortunately at the moment self signed certificates cause a blank screen on iPadOS
+
+There does seem to a way to get it to work if you create your own CA and create a
+certificate using the CA and then import the CA onto your iPad.
+
+See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
 
 ## Enterprise
 

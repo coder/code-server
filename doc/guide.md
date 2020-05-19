@@ -195,7 +195,7 @@ the dependency on caddy.
 ### Self Signed Certificate
 
 **note:** Self signed certificates do not work with iPad and will cause a blank page. You'll
-have to use [Let's Encrypt](#lets-encrypt) instead.
+have to use [Let's Encrypt](#lets-encrypt) instead. See the [FAQ](https://github.com/cdr/code-server/blob/master/doc/FAQ.md#blank-screen-on-ipad).
 
 Recommended reading: https://security.stackexchange.com/a/8112.
 
