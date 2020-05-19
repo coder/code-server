@@ -14,7 +14,7 @@ Any file or directory in this subdirectory should be documented here.
 
 Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
 
-1. Update the version of code-server in `package.json` and README.md/guide.md install examples and push a commit.
+1. Update the version of code-server in `package.json` and README.md/guide.md install examples and make a PR.
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
@@ -24,7 +24,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
 7. Make sure the github release tag is the commit with the artifacts.
-8. Publish the release.
+8. Publish the release and merge the PR.
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.
       2. Publish the Docker Hub image from `release-images`.
@@ -70,7 +70,7 @@ You can disable minification by setting `MINIFY=`.
   - Bundles the output of the above two scripts into a single node module at `./release`.
 - [./ci/build/build-static-release.sh](./build/build-static-release.sh) (`yarn release:static`)
   - Requires a node module already built into `./release` with the above script.
-  - Will build a static release with node and native modules bundled into `./release-static`.
+  - Will build a static release with node and node_modules bundled into `./release-static`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
   - Will also `git reset --hard lib/vscode`.
