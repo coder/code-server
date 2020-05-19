@@ -136,7 +136,7 @@ If you want to make the SSH port forwarding persistent we recommend using
 [mutagen](https://mutagen.io/documentation/introduction/installation).
 
 ```
-# Same as the above SSH command but runs in the background continously.
+# Same as the above SSH command but runs in the background continuously.
 # Add `mutagen daemon start` to your ~/.bashrc to start the mutagen daemon when you open a shell.
 mutagen forward create --name=code-server tcp:127.0.0.1:8080 <instance-ip>:tcp:127.0.0.1:8080
 ```
