@@ -24,24 +24,18 @@ main() {
     ;;
   esac
 
-  cd lib/vscode
-
-  # We have to rename node_modules.bundled to node_modules.
-  # The bundled modules were renamed originally to avoid being ignored by yarn.
-  node_modules="$(find . -depth -name "node_modules.bundled")"
-  for nm in $node_modules; do
-    rm -Rf "${nm%.bundled}"
-    mv "$nm" "${nm%.bundled}"
-  done
-
-  # $npm_config_global makes npm rebuild return without rebuilding.
-  unset npm_config_global
-  # Rebuilds native modules.
-  if ! npm rebuild; then
+  if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/doc/npm.md"
     exit 1
   fi
+}
+
+vscode_yarn() {
+  cd lib/vscode
+  yarn --production --frozen-lockfile
+  cd extensions
+  yarn --production --frozen-lockfile
 }
 
 main "$@"

@@ -73,7 +73,7 @@ docker run -it -p 127.0.0.1:8080:8080 \
 ### Static Releases
 
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
-They bundle the node binary and compiled native modules.
+They bundle the node binary and node_modules.
 
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
 2. Unpack the release.

@@ -9,6 +9,7 @@ main() {
 
   hub release create \
     --file - \
+    -t "$(git rev-parse HEAD)" \
     --draft "${assets[@]}" "v$VERSION" << EOF
 v$VERSION
 
