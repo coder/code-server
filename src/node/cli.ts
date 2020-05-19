@@ -152,12 +152,12 @@ export const optionDescriptions = (): string[] => {
   )
 }
 
-export const parse = async (
+export const parse = (
   argv: string[],
   opts?: {
     configFile: string
   },
-): Promise<Args> => {
+): Args => {
   const error = (msg: string): Error => {
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
@@ -288,17 +288,27 @@ export const parse = async (
       break
     case LogLevel.Debug:
       logger.level = Level.Debug
+      args.verbose = false
       break
     case LogLevel.Info:
       logger.level = Level.Info
+      args.verbose = false
       break
     case LogLevel.Warn:
       logger.level = Level.Warning
+      args.verbose = false
       break
     case LogLevel.Error:
       logger.level = Level.Error
+      args.verbose = false
       break
   }
+
+  return args
+}
+
+export async function setDefaults(args: Args): Promise<Args> {
+  args = { ...args }
 
   if (!args["user-data-dir"]) {
     await copyOldMacOSDataDir()
@@ -353,7 +363,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     }
     return `--${optName}=${opt}`
   })
-  const args = await parse(configFileArgv, {
+  const args = parse(configFileArgv, {
     configFile: configPath,
   })
   return {
