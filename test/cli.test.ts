@@ -2,7 +2,6 @@ import { logger, Level } from "@coder/logger"
 import * as assert from "assert"
 import * as path from "path"
 import { parse } from "../src/node/cli"
-import { paths } from "../src/node/util"
 
 describe("cli", () => {
   beforeEach(() => {
@@ -12,17 +11,15 @@ describe("cli", () => {
   // The parser will always fill these out.
   const defaults = {
     _: [],
-    "extensions-dir": path.join(paths.data, "extensions"),
-    "user-data-dir": paths.data,
   }
 
-  it("should set defaults", async () => {
-    assert.deepEqual(await await parse([]), defaults)
+  it("should set defaults", () => {
+    assert.deepEqual(parse([]), defaults)
   })
 
-  it("should parse all available options", async () => {
+  it("should parse all available options", () => {
     assert.deepEqual(
-      await await parse([
+      parse([
         "--bind-addr=192.169.0.1:8080",
         "--auth",
         "none",
@@ -84,8 +81,8 @@ describe("cli", () => {
     )
   })
 
-  it("should work with short options", async () => {
-    assert.deepEqual(await parse(["-vvv", "-v"]), {
+  it("should work with short options", () => {
+    assert.deepEqual(parse(["-vvv", "-v"]), {
       ...defaults,
       log: "trace",
       verbose: true,
@@ -95,17 +92,18 @@ describe("cli", () => {
     assert.equal(logger.level, Level.Trace)
   })
 
-  it("should use log level env var", async () => {
+  it("should use log level env var", () => {
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(await parse([]), {
+    assert.deepEqual(parse([]), {
       ...defaults,
       log: "debug",
+      verbose: false,
     })
     assert.equal(process.env.LOG_LEVEL, "debug")
     assert.equal(logger.level, Level.Debug)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(await parse([]), {
+    assert.deepEqual(parse([]), {
       ...defaults,
       log: "trace",
       verbose: true,
@@ -116,23 +114,25 @@ describe("cli", () => {
 
   it("should prefer --log to env var and --verbose to --log", async () => {
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(await parse(["--log", "info"]), {
+    assert.deepEqual(parse(["--log", "info"]), {
       ...defaults,
       log: "info",
+      verbose: false,
     })
     assert.equal(process.env.LOG_LEVEL, "info")
     assert.equal(logger.level, Level.Info)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(await parse(["--log", "info"]), {
+    assert.deepEqual(parse(["--log", "info"]), {
       ...defaults,
       log: "info",
+      verbose: false,
     })
     assert.equal(process.env.LOG_LEVEL, "info")
     assert.equal(logger.level, Level.Info)
 
     process.env.LOG_LEVEL = "warn"
-    assert.deepEqual(await parse(["--log", "info", "--verbose"]), {
+    assert.deepEqual(parse(["--log", "info", "--verbose"]), {
       ...defaults,
       log: "trace",
       verbose: true,
@@ -141,34 +141,31 @@ describe("cli", () => {
     assert.equal(logger.level, Level.Trace)
   })
 
-  it("should ignore invalid log level env var", async () => {
+  it("should ignore invalid log level env var", () => {
     process.env.LOG_LEVEL = "bogus"
-    assert.deepEqual(await parse([]), defaults)
+    assert.deepEqual(parse([]), defaults)
   })
 
-  it("should error if value isn't provided", async () => {
-    await assert.rejects(async () => await parse(["--auth"]), /--auth requires a value/)
-    await assert.rejects(async () => await parse(["--auth=", "--log=debug"]), /--auth requires a value/)
-    await assert.rejects(async () => await parse(["--auth", "--log"]), /--auth requires a value/)
-    await assert.rejects(async () => await parse(["--auth", "--invalid"]), /--auth requires a value/)
-    await assert.rejects(async () => await parse(["--bind-addr"]), /--bind-addr requires a value/)
+  it("should error if value isn't provided", () => {
+    assert.throws(() => parse(["--auth"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
+    assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
+    assert.throws(() => parse(["--bind-addr"]), /--bind-addr requires a value/)
   })
 
-  it("should error if value is invalid", async () => {
-    await assert.rejects(async () => await parse(["--port", "foo"]), /--port must be a number/)
-    await assert.rejects(async () => await parse(["--auth", "invalid"]), /--auth valid values: \[password, none\]/)
-    await assert.rejects(
-      async () => await parse(["--log", "invalid"]),
-      /--log valid values: \[trace, debug, info, warn, error\]/,
-    )
+  it("should error if value is invalid", () => {
+    assert.throws(() => parse(["--port", "foo"]), /--port must be a number/)
+    assert.throws(() => parse(["--auth", "invalid"]), /--auth valid values: \[password, none\]/)
+    assert.throws(() => parse(["--log", "invalid"]), /--log valid values: \[trace, debug, info, warn, error\]/)
   })
 
-  it("should error if the option doesn't exist", async () => {
-    await assert.rejects(async () => await parse(["--foo"]), /Unknown option --foo/)
+  it("should error if the option doesn't exist", () => {
+    assert.throws(() => parse(["--foo"]), /Unknown option --foo/)
   })
 
-  it("should not error if the value is optional", async () => {
-    assert.deepEqual(await parse(["--cert"]), {
+  it("should not error if the value is optional", () => {
+    assert.deepEqual(parse(["--cert"]), {
       ...defaults,
       cert: {
         value: undefined,
@@ -176,33 +173,30 @@ describe("cli", () => {
     })
   })
 
-  it("should not allow option-like values", async () => {
-    await assert.rejects(async () => await parse(["--socket", "--socket-path-value"]), /--socket requires a value/)
+  it("should not allow option-like values", () => {
+    assert.throws(() => parse(["--socket", "--socket-path-value"]), /--socket requires a value/)
     // If you actually had a path like this you would do this instead:
-    assert.deepEqual(await parse(["--socket", "./--socket-path-value"]), {
+    assert.deepEqual(parse(["--socket", "./--socket-path-value"]), {
       ...defaults,
       socket: path.resolve("--socket-path-value"),
     })
-    await assert.rejects(
-      async () => await parse(["--cert", "--socket-path-value"]),
-      /Unknown option --socket-path-value/,
-    )
+    assert.throws(() => parse(["--cert", "--socket-path-value"]), /Unknown option --socket-path-value/)
   })
 
-  it("should allow positional arguments before options", async () => {
-    assert.deepEqual(await parse(["foo", "test", "--auth", "none"]), {
+  it("should allow positional arguments before options", () => {
+    assert.deepEqual(parse(["foo", "test", "--auth", "none"]), {
       ...defaults,
       _: ["foo", "test"],
       auth: "none",
     })
   })
 
-  it("should support repeatable flags", async () => {
-    assert.deepEqual(await parse(["--proxy-domain", "*.coder.com"]), {
+  it("should support repeatable flags", () => {
+    assert.deepEqual(parse(["--proxy-domain", "*.coder.com"]), {
       ...defaults,
       "proxy-domain": ["*.coder.com"],
     })
-    assert.deepEqual(await parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
+    assert.deepEqual(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
       ...defaults,
       "proxy-domain": ["*.coder.com", "test.com"],
     })

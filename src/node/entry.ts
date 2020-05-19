@@ -9,7 +9,7 @@ import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
-import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile } from "./cli"
+import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { generateCertificate, hash, open, humanPath } from "./util"
 import { ipcMain, wrap } from "./wrapper"
@@ -42,6 +42,8 @@ const main = async (cliArgs: Args): Promise<void> => {
       auth: AuthType.Password,
     }
   }
+
+  args = await setDefaults(args)
 
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
 
@@ -127,9 +129,9 @@ const main = async (cliArgs: Args): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
-  const tryParse = async (): Promise<Args> => {
+  const tryParse = (): Args => {
     try {
-      return await parse(process.argv.slice(2))
+      return parse(process.argv.slice(2))
     } catch (error) {
       console.error(error.message)
       process.exit(1)
