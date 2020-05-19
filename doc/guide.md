@@ -94,11 +94,13 @@ systemctl --user enable --now code-server
 **Never**, **ever** expose `code-server` directly to the internet without some form of authentication
 and encryption as someone can completely takeover your machine with the terminal.
 
-There are several approaches to securely operating and exposing code-server.
-
 By default, code-server will enable password authentication which will
-require you to copy the password from the code-server config file to login. You
-can also set a custom password with `$PASSWORD`.
+require you to copy the password from the code-server config file to login. Since it
+cannot use TLS by default, it will listen on `localhost` to avoid exposing itself
+to the world. This is fine for testing but will not work if you want to access `code-server`
+from a different machine.
+
+There are several approaches to securely operating and exposing code-server.
 
 **tip**: You can list the full set of code-server options with `code-server --help`
 
