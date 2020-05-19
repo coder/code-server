@@ -73,7 +73,7 @@ EOF
 
   # We remove the scripts field so that later on we can run
   # yarn to fetch node_modules if necessary without build scripts running.
-  # We cannot use --no-scripts because we still want dependant package scripts to run.
+  # We cannot use --no-scripts because we still want dependent package scripts to run.
   jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
 }
 
