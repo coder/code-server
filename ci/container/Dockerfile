@@ -24,7 +24,7 @@ RUN apt-get install -y build-essential \
 RUN apt-get install -y gettext-base
 
 # Misc build dependencies.
-RUN apt-get install -y git rsync
+RUN apt-get install -y git rsync unzip
 
 # We need latest jq from debian buster for date support.
 RUN ARCH="$(dpkg --print-architecture)" && \
