@@ -16,7 +16,7 @@ sudo apt-get install -y \
   libsecret-1-dev
 ```
 
-## Fedora, Red Hat, SUSE
+## Fedora, CentOS, Red Hat
 
 ```bash
 sudo yum groupinstall -y 'Development Tools'
