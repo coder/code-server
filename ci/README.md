@@ -14,7 +14,10 @@ Any file or directory in this subdirectory should be documented here.
 
 Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
 
-1. Update the version of code-server in `package.json` and README.md/guide.md install examples and make a PR.
+1. Update the version of code-server and make a PR.
+   1. Update in `package.json`
+   2. [README.md](../README.md) and [guide.md](../doc/guide.md) install examples
+   3. [install.sh](../install.sh)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.

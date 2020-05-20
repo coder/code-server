@@ -82,7 +82,7 @@ SSH into your instance and run the appropriate commands documented in [README.md
 Assuming Debian:
 
 ```bash
-curl -OL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
 sudo dpkg -i code-server_3.3.1_amd64.deb
 systemctl --user enable --now code-server
 # Now code-server is running at http://127.0.0.1:8080

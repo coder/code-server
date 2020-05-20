@@ -9,7 +9,7 @@ main() {
   tsc --noEmit
   # See comment in ./ci/container/Dockerfile
   if [[ ! ${CI-} ]]; then
-    shellcheck -e SC2046,SC2164,SC2154 $(git ls-files "*.sh")
+    shellcheck -e SC2046,SC2164,SC2154,SC1091 $(git ls-files "*.sh")
   fi
 }
 

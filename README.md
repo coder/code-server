@@ -18,7 +18,7 @@ For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 ### Debian, Ubuntu
 
 ```bash
-curl -OL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
 sudo dpkg -i code-server_3.3.1_amd64.deb
 systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -27,7 +27,7 @@ systemctl --user enable --now code-server
 ### Fedora, CentOS, Red Hat, SUSE
 
 ```bash
-curl -OL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-amd64.rpm
 sudo rpm -i code-server-3.3.1-amd64.rpm
 systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -103,10 +103,10 @@ Add the code-server `bin` directory to your `$PATH` to easily execute `code-serv
 Here is an example script for installing and using a static `code-server` release on Linux:
 
 ```bash
-curl -L https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-linux-amd64.tar.gz \
-  | sudo tar -C /usr/local -xz
-sudo mv /usr/local/code-server-3.3.1-linux-amd64 /usr/local/code-server-3.3.1
-PATH="/usr/local/code-server-3.3.1/bin:$PATH"
+curl -fL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-linux-amd64.tar.gz \
+  | sudo tar -C /usr/local/lib -xz
+sudo mv /usr/local/lib/code-server-3.3.1-linux-amd64 /usr/local/lib/code-server-3.3.1
+PATH="/usr/local/lib/code-server-3.3.1/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
