@@ -15,66 +15,30 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
-### Debian, Ubuntu
+## Install
+
+You can easily and securely install code-server with our install script.
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
-sudo dpkg -i code-server_3.3.1_amd64.deb
-systemctl --user enable --now code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# First run to print out the install process.
+curl -sSL https://get.docker.com/ | sh  -s -- --dry-run
+# Now it will actually install.
+curl -sSL https://get.docker.com/ | sh  -s --
 ```
 
-### Fedora, CentOS, Red Hat, SUSE
+- For Debian, Ubuntu, Raspbian it will install the latest deb package.
+- For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
+- For Arch Linux it will install the AUR package.
+- For any unrecognized Linux operating system it will install the latest static release into `/usr/local/lib/code-server-X.X.X`.
+- For macOS it will install the Homebrew package.
+  - If Homebrew is not installed it will install the latest static release into `/usr/local/lib/code-server-X.X.X`.
 
-```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-amd64.rpm
-sudo rpm -i code-server-3.3.1-amd64.rpm
-systemctl --user enable --now code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
+If ran on an architecture with no binary releases, it will install the npm package with `yarn` or `npm`.
+We only have binary releases for `amd64` and `arm64` presently.
 
-### Arch Linux
-
-```bash
-# Installs code-server from the AUR using yay.
-yay -S code-server
-systemctl --user enable --now code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
-
-```bash
-# Installs code-server from the AUR with plain makepkg.
-git clone https://aur.archlinux.org/code-server.git
-cd code-server
-makepkg -si
-systemctl --user enable --now code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
-
-### yarn, npm
-
-We recommend installing with `yarn` or `npm` if we don't have a precompiled release for your machine's
-platform or architecture or your glibc < v2.19.
-
-**note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
-See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
-
-You will need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
-
-```bash
-yarn global add code-server
-# Or: npm install -g code-server
-code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
-
-### macOS
-
-```bash
-brew install code-server
-brew services start code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
+If you still don't trust our install script, even with the above explaination and the dry run, we have
+docs in [./doc/install.md](./doc/install.md) that explain how to install `code-server` each of the above
+operating systems. The script runs the exact same commands.
 
 ### Docker
 
@@ -87,28 +51,6 @@ docker run -it -p 127.0.0.1:8080:8080 \
   -v "$PWD:/home/coder/project" \
   -u "$(id -u):$(id -g)" \
   codercom/code-server:latest
-```
-
-### Static Releases
-
-We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
-They bundle the node binary and node_modules.
-
-1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
-2. Unpack the release.
-3. You can run code-server by executing `./bin/code-server`.
-
-Add the code-server `bin` directory to your `$PATH` to easily execute `code-server` without the full path every time.
-
-Here is an example script for installing and using a static `code-server` release on Linux:
-
-```bash
-curl -fL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-linux-amd64.tar.gz \
-  | sudo tar -C /usr/local/lib -xz
-sudo mv /usr/local/lib/code-server-3.3.1-linux-amd64 /usr/local/lib/code-server-3.3.1
-PATH="/usr/local/lib/code-server-3.3.1/bin:$PATH"
-code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ## FAQ
