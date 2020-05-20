@@ -28,7 +28,11 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.
       2. Publish the Docker Hub image from `release-images`.
-9. Update the homebrew and AUR packages.
+9. Update the AUR package.
+   - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
+10. Wait for the npm package to be published.
+11. Update the homebrew package.
+    - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
 
 ## dev
 
