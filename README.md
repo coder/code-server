@@ -33,21 +33,22 @@ systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
-### Arch
-
-We publish code-server releases to the our [AUR package](https://aur.archlinux.org/packages/code-server/).
-Use your favorite AUR helper to install. Ours is [yay](https://github.com/Jguer/yay).
+### Arch Linux
 
 ```bash
+# Installs code-server from the AUR using yay.
 yay -S code-server
+systemctl --user enable --now code-server
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
-Alternatively, build the package yourself from the [Github repo](https://github.com/cdr/code-server-aur).
-
 ```bash
-git clone https://github.com/cdr/code-server-aur
-cd code-server-aur
+# Installs code-server from the AUR with plain makepkg.
+git clone https://aur.archlinux.org/code-server.git
+cd code-server
 makepkg -si
+systemctl --user enable --now code-server
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### yarn, npm
