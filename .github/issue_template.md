@@ -7,9 +7,11 @@ and include any logging information relevant to the issue.
 
 Please search for existing issues before filing.
 
-Please ensure you cannot reproduce on VS Code before filing.
+If you can reproduce the issue on vanilla VS Code,
+please file the issue at the VS Code repository instead.
 
-Please fill in the issue template or we will close your issue!
+Please fill in the issue template and try to be as detailed
+and clear as possible!
 -->
 
 - Web Browser:
