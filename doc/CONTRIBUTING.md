@@ -10,6 +10,7 @@ Differences:
 
 - We require a minimum of node v12 but later versions should work.
 - We use [fnpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
+- We use [jq](https://stedolan.github.io/jq/) to bundle code-server releases
 - The [CI container](../ci/container/Dockerfile) is a useful reference for all our dependencies.
 
 ## Development Workflow
