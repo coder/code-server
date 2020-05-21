@@ -1,4 +1,16 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
+
+- [Debian, Ubuntu](#debian-ubuntu)
+- [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
+- [Arch Linux](#arch-linux)
+- [yarn, npm](#yarn-npm)
+- [macOS](#macos)
+- [Static Releases](#static-releases)
+- [Docker](#docker)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 This document demonstrates how to install `code-server` on
 various distros and operating systems.
@@ -20,7 +32,7 @@ systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
-## Fedora, CentOS, Red Hat, SUSE
+## Fedora, CentOS, RHEL, SUSE
 
 ```bash
 curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-amd64.rpm
@@ -49,8 +61,11 @@ systemctl --user enable --now code-server
 
 ## yarn, npm
 
-We recommend installing with `yarn` or `npm` if we don't have a precompiled release for your machine's
-platform or architecture or your glibc < v2.19.
+We recommend installing with `yarn` or `npm` if:
+
+1. We don't have a precompiled release for your machine's platform or architecture.
+2. libc < v2.19
+3. libcxx < 3.4.20
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
@@ -81,15 +96,22 @@ They bundle the node binary and node_modules.
 2. Unpack the release.
 3. You can run code-server by executing `./bin/code-server`.
 
-Add the code-server `bin` directory to your `$PATH` to easily execute `code-server` without the full path every time.
+You can add the code-server `bin` directory to your `$PATH` or link to it from a
+directory in your `$PATH` to easily execute `code-server` without the full path every time.
 
 Here is an example script for installing and using a static `code-server` release on Linux:
 
 ```bash
+mkdir -p ~/.local/lib ~/.local/bin
 curl -fL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server-3.3.1-linux-amd64.tar.gz \
-  | sudo tar -C /usr/local/lib -xz
-sudo mv /usr/local/lib/code-server-3.3.1-linux-amd64 /usr/local/lib/code-server-3.3.1
-PATH="/usr/local/lib/code-server-3.3.1/bin:$PATH"
+  | tar -C ~/.local/lib -xz
+mv ~/.local/lib/code-server-3.3.1-linux-amd64 ~/.local/lib/code-server-3.3.1
+ln -s ~/.local/lib/code-server-3.3.1/bin/code-server ~/.local/bin/code-server
+PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
+
+## Docker
+
+Documented in [README.md](../README.md#docker).

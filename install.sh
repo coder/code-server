@@ -1,47 +1,54 @@
 #!/bin/sh
 set -eu
 
-VERSION=3.3.1
-
 usage() {
-  cat << EOF
-$0 [-d] [-s] [-p <static-install-prefix>]
+  cat <<EOF
+$0 [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
 
-Installs code-server on any macOS or Linux system.
+Installs latest code-server on any macOS or Linux system preferring to use the OS package manager.
 
-If ran on Ubuntu, Debian or Raspbian then the GitHub releases v$VERSION
-deb package will be fetched and installed.
+  curl -fsSL https://code-server.dev/install.sh | sh -s --
 
-If ran on Fedora, CentOS, RHEL or openSUSE then the GitHub releases v$VERSION
-rpm package will be fetched and installed.
+- For Debian, Ubuntu, Raspbian it will install the latest deb package.
+- For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
+- For Arch Linux it will install the AUR package.
+- For any unrecognized Linux operating system it will install the latest static release into ~/.local
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
-If ran on macOS and Homebrew is installed then the Homebrew code-server
-package will be installed. However, if Homebrew is not installed then
-v$VERSION of the macOS static release will be installed
-into /usr/local/lib/code-server-$VERSION.
+- For macOS it will install the Homebrew package.
+  - If Homebrew is not installed it will install the latest static release into ~/.local
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
-If ran on Arch Linux, then the code-server AUR package will be installed.
+- If ran on an architecture with no binary releases or outdated libc/libcxx, it will install the
+  npm package with yarn or npm.
+  - We only have binary releases for amd64 and arm64 presently.
 
-If ran on an unsupported architecture the npm package will be installed
-with yarn or npm. Only amd64 and arm64 are currently supported.
+    --dry-run Enables a dry run where where the steps that would have taken place
+              are printed but do not actually execute.
 
-If ran on any other Linux distro, v$VERSION of the linux static release
-will be installed into /usr/local/lib/code-server-$VERSION.
+    --version Pass to install a specific version instead of the latest release.
 
-  -d Enables a dry run where where the steps that would have taken place
-     are printed but do not actually execute.
+    --static  Forces the installation of a static release into ~/.local
 
-  -s Forces the installation of a static release into /usr/local/lib/code-server-$VERSION
-     Set the -p flag to change the installation prefix from /usr/local/lib
+              This flag takes an optional argument for the installation prefix which defaults to "~/.local".
+              code-server will be unarchived into ~/.local/lib/code-server.X.X.X and the binary will be symlinked
+              into "~/.local/bin/code-server". You will need to add ~/.local/bin to your \$PATH to use it without
+              the full path.
 
-  -p Sets the installation prefix for a static release install.
+              To install system wide set the prefix to /usr/local.
 EOF
-  exit 1
+}
+
+echo_latest_version() {
+  version="$(curl -fsSL https://api.github.com/repos/cdr/code-server/releases/latest | jq -r .tag_name)"
+  # Strip leading v.
+  version="${version:1}"
+  echo "$version"
 }
 
 echo_static_postinstall() {
   echo
-  cat << EOF
+  cat <<EOF
 Static release has been installed into $STATIC_INSTALL_PREFIX/code-server-$VERSION
 Please extend your path to use code-server:
   PATH="$STATIC_INSTALL_PREFIX/code-server-$VERSION/bin:\$PATH"
@@ -52,7 +59,7 @@ EOF
 
 echo_systemd_postinstall() {
   echo
-  cat << EOF
+  cat <<EOF
 To have systemd start code-server now and restart on boot:
   systemctl --user enable --now code-server
 Or, if you don't want/need a background service you can run:
@@ -61,20 +68,66 @@ EOF
 }
 
 main() {
-  unset DRY_RUN STATIC STATIC_INSTALL_PREFIX SKIP_LOG
-  while getopts ":dsp:h" opt; do
-    case "$opt" in
-    d) DRY_RUN=1 ;;
-    s) STATIC=1 ;;
-    p) STATIC_INSTALL_PREFIX="$OPTARG" ;;
-    h | ?) usage ;;
+  if [ "${TRACE-}" ]; then
+    set -x
+  fi
+
+  unset \
+    DRY_RUN \
+    STATIC \
+    STATIC_INSTALL_PREFIX \
+    SKIP_LOG \
+    VERSION \
+    OPTIONAL
+
+  while [ "$#" -gt 0 ]; do
+    case "$1" in
+    --dry-run)
+      DRY_RUN=1
+      ;;
+    --static)
+      STATIC=1
+      if [ "${2-}" ]; then
+        STATIC_INSTALL_PREFIX="$(OPTIONAL=1 parse_arg "$@")"
+        shift
+      fi
+      ;;
+    --static=*)
+      STATIC=1
+      STATIC_INSTALL_PREFIX="$(OPTIONAL=1 parse_arg "$@")"
+      ;;
+    --version)
+      VERSION="$(parse_arg "$@")"
+      shift
+      ;;
+    --version=*)
+      VERSION="$(parse_arg "$@")"
+      ;;
+    -h | --h | --help)
+      usage
+      exit 0
+      ;;
+    *)
+      echoerr "Unknown flag $1"
+      echoerr "Run with --help to see usage."
+      exit 1
+      ;;
     esac
+
+    shift
   done
-  shift $((OPTIND - 1))
+
+  VERSION="${VERSION-$(echo_latest_version)}"
+  STATIC_INSTALL_PREFIX="${STATIC_INSATLL_PREFIX-$HOME/.local}"
+
+  echo "${DRY_RUN-}"
+  echo "${STATIC_INSTALL_PREFIX-}"
+  echo "${VERSION-}"
+  exit 1
 
   OS="$(os)"
   if [ ! "$OS" ]; then
-    echo "Unsupported OS $(uname)."
+    echoerr "Unsupported OS $(uname)."
     exit 1
   fi
 
@@ -83,8 +136,8 @@ main() {
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
     if [ "${STATIC-}" ]; then
-      echo "No static releases available for the architecture $(uname -m)."
-      echo "Please rerun without the -s flag to install from npm."
+      echoerr "No static releases available for the architecture $(uname -m)."
+      echoerr "Please rerun without the -s flag to install from npm."
       exit 1
     fi
     install_npm
@@ -119,18 +172,34 @@ main() {
   esac
 }
 
-install_macos() {
-  if command_exists brew; then
-    echo "Installing from Homebrew."
-
-    sh_c brew install code-server
-
+parse_arg() {
+  case "$1" in
+  *=*)
+    opt="${1#=*}"
+    optarg="${1#*=}"
+    if [ ! "$optarg" -a ! "${OPTIONAL-}" ]; then
+      echoerr "$opt requires an argument"
+      echoerr "Run with --help to see usage."
+      exit 1
+    fi
+    echo "$optarg"
     return
-  fi
+    ;;
+  esac
 
-  echo "Homebrew is not installed so installing static release."
-
-  install_static
+  case "${2-}" in
+  "" | -* | --*)
+    if [ ! "${OPTIONAL-}" ]; then
+      echoerr "$1 requires an argument"
+      echoerr "Run with --help to see usage."
+      exit 1
+    fi
+    ;;
+  *)
+    echo "$2"
+    return
+    ;;
+  esac
 }
 
 fetch() {
@@ -151,6 +220,20 @@ fetch() {
   mv "$FILE.incomplete" "$FILE"
 }
 
+install_macos() {
+  if command_exists brew; then
+    echo "Installing from Homebrew."
+
+    sh_c brew install code-server
+
+    return
+  fi
+
+  echo "Homebrew is not installed so installing static release."
+
+  install_static
+}
+
 install_deb() {
   echo "Installing v$VERSION deb package from GitHub releases."
 
@@ -169,7 +252,7 @@ install_rpm() {
   echo_systemd_postinstall
 }
 
-install_arch() {
+install_aur() {
   echo "Installing from the AUR."
 
   fetch "https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz" "$CACHE_DIR/code-server-aur.tar.gz"
@@ -194,7 +277,7 @@ install_static() {
 
   if [ ! -d "$STATIC_INSTALL_PREFIX" ]; then
     echo
-    echo "Static release install prefix $STATIC_INSTALL_PREFIX does not exist"
+    echoerr "Static release install prefix $STATIC_INSTALL_PREFIX does not exist"
     exit 1
   fi
 
@@ -212,7 +295,7 @@ install_static() {
 }
 
 install_npm() {
-  echo "No precompiled releases for $(uname -m)."
+  echoerr "No precompiled releases for $(uname -m)."
   if command_exists yarn; then
     echo "Installing with yarn."
     sh_c yarn global add code-server --unsafe-perm
@@ -222,10 +305,10 @@ install_npm() {
     sh_c npm install -g code-server --unsafe-perm
     return
   fi
-  echo
-  echo "Please install npm or yarn to install code-server!"
-  echo "You will need at least node v12 and a few C build dependencies."
-  echo "See the docs https://github.com/cdr/code-server#yarn-npm"
+  echoerr
+  echoerr "Please install npm or yarn to install code-server!"
+  echoerr "You will need at least node v12 and a few C build dependencies."
+  echoerr "See the docs https://github.com/cdr/code-server#yarn-npm"
   exit 1
 }
 
@@ -303,7 +386,7 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  command -v "$@" >/dev/null 2>&1
 }
 
 sh_c() {
@@ -325,14 +408,14 @@ sudo_sh_c() {
     sh_c "su -c '$*'"
   else
     echo
-    echo "This script needs to run the following command as root."
-    echo "  $*"
-    echo "Please run this script as root or install sudo or su."
+    echoerr "This script needs to run the following command as root."
+    echoerr "  $*"
+    echoerr "Please run this script as root or install sudo or su."
     exit 1
   fi
 }
 
-cache_dir() {
+echo_cache_dir() {
   if [ "${XDG_CACHE_HOME-}" ]; then
     echo "$XDG_CACHE_HOME/code-server"
   elif [ "${HOME-}" ]; then
@@ -340,6 +423,10 @@ cache_dir() {
   else
     echo "/tmp/code-server-cache"
   fi
+}
+
+echoerr() {
+  echo "$@" >&2
 }
 
 main "$@"

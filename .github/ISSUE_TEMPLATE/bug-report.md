@@ -1,10 +1,9 @@
 ---
 name: Bug report
 about: Report a bug and help us improve
-title: ''
-labels: ''
-assignees: ''
-
+title: ""
+labels: ""
+assignees: ""
 ---
 
 <!--
