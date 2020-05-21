@@ -53,7 +53,8 @@ point to the .vsix file.
 
 See below for installing an extension from the cli.
 
-Feel free to file an issue to add a missing extension to the marketplace.
+To request an extension for the code-server marketplace, please open a new issue
+and select the `Extension request` template.
 
 If you have your own custom marketplace, it is possible to point code-server to it by setting
 `$SERVICE_URL` and `$ITEM_URL` to point to it.
