@@ -2,7 +2,7 @@
 set -eu
 
 usage() {
-  cat <<EOF
+  cat << EOF
 $0 [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
 
 Installs latest code-server on any macOS or Linux system preferring to use the OS package manager.
@@ -48,10 +48,10 @@ echo_latest_version() {
 
 echo_static_postinstall() {
   echo
-  cat <<EOF
-Static release has been installed into $STATIC_INSTALL_PREFIX/code-server-$VERSION
+  cat << EOF
+Static release has been installed into $STATIC_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
-  PATH="$STATIC_INSTALL_PREFIX/code-server-$VERSION/bin:\$PATH"
+  PATH="$STATIC_INSTALL_PREFIX/bin:\$PATH"
 Then you can run:
   code-server
 EOF
@@ -59,7 +59,7 @@ EOF
 
 echo_systemd_postinstall() {
   echo
-  cat <<EOF
+  cat << EOF
 To have systemd start code-server now and restart on boot:
   systemctl --user enable --now code-server
 Or, if you don't want/need a background service you can run:
@@ -76,7 +76,7 @@ main() {
     DRY_RUN \
     STATIC \
     STATIC_INSTALL_PREFIX \
-    SKIP_LOG \
+    SKIP_ECHO \
     VERSION \
     OPTIONAL
 
@@ -118,12 +118,7 @@ main() {
   done
 
   VERSION="${VERSION-$(echo_latest_version)}"
-  STATIC_INSTALL_PREFIX="${STATIC_INSATLL_PREFIX-$HOME/.local}"
-
-  echo "${DRY_RUN-}"
-  echo "${STATIC_INSTALL_PREFIX-}"
-  echo "${VERSION-}"
-  exit 1
+  STATIC_INSTALL_PREFIX="${STATIC_INSTALL_PREFIX-$HOME/.local}"
 
   OS="$(os)"
   if [ ! "$OS" ]; then
@@ -144,7 +139,7 @@ main() {
     exit 0
   fi
 
-  CACHE_DIR="$(cache_dir)"
+  CACHE_DIR="$(echo_cache_dir)"
   mkdir -p "$CACHE_DIR"
 
   if [ "${STATIC-}" ]; then
@@ -217,7 +212,7 @@ fetch() {
     -Ro "$FILE.incomplete" \
     -C - \
     "$URL"
-  mv "$FILE.incomplete" "$FILE"
+  SKIP_ECHO=1 sh_c mv "$FILE.incomplete" "$FILE"
 }
 
 install_macos() {
@@ -260,7 +255,7 @@ install_aur() {
   tmp_dir="$(mktemp -d)"
   (
     cd "$tmp_dir"
-    tar -xzf "$CACHE_DIR/code-server-aur.tar.gz" --strip-components 1
+    SKIP_ECHO=1 sh_c tar -xzf "$CACHE_DIR/code-server-aur.tar.gz" --strip-components 1
     sh_c makepkg -si
   )
   rm -Rf "$tmp_dir"
@@ -285,11 +280,16 @@ install_static() {
   if [ ! -w "$STATIC_INSTALL_PREFIX" ]; then
     sh_c="sudo_sh_c"
   fi
+  SKIP_ECHO=1 sh_c mkdir -p "$STATIC_INSTALL_PREFIX/lib" "$STATIC_INSTALL_PREFIX/bin"
 
-  "$sh_c" tar -C "$STATIC_INSTALL_PREFIX" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
-  # In case previously installed.
-  SKIP_LOG=1 "$sh_c" rm -Rf "$STATIC_INSTALL_PREFIX/code-server-$VERSION"
-  "$sh_c" mv -f "$STATIC_INSTALL_PREFIX/code-server-$VERSION-$OS-$ARCH" "$STATIC_INSTALL_PREFIX/code-server-$VERSION"
+  if [[ -e "$STATIC_INSTALL_PREFIX/lib/code-server-$VERSION" ]]; then
+    echo
+    echoerr "code-server-$VERSION is already installed at $STATIC_INSTALL_PREFIX/lib/code-server-$VERSION"
+    echoerr "Please remove it to reinstall."
+    exit 1
+  fi
+  "$sh_c" tar -C "$STATIC_INSTALL_PREFIX/lib" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
+  "$sh_c" mv -f "$STATIC_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$STATIC_INSTALL_PREFIX/lib/code-server-$VERSION"
 
   echo_static_postinstall
 }
@@ -386,11 +386,11 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" >/dev/null 2>&1
+  command -v "$@" > /dev/null 2>&1
 }
 
 sh_c() {
-  if [ ! "${SKIP_LOG-}" ]; then
+  if [ ! "${SKIP_ECHO-}" ]; then
     echo
     echo "+ $*"
   fi
