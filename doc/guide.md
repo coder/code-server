@@ -93,7 +93,6 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 Docs on the install script, manual installation and docker instructions are at [./doc/install.md](./doc/install.md).
 
-
 ## 3. Expose code-server
 
 **Never**, **ever** expose `code-server` directly to the internet without some form of authentication

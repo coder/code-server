@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
 
+- [install.sh](#installsh)
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
@@ -43,11 +44,13 @@ curl -fsSL https://code-server.dev/install.sh | sh
 - For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
 - For any unrecognized Linux operating system it will install the latest static release into ~/.local
-  - Add ~/.local/bin to your $PATH to run code-server.
+
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
 - For macOS it will install the Homebrew package.
+
   - If Homebrew is not installed it will install the latest static release into ~/.local
-  - Add ~/.local/bin to your $PATH to run code-server.
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
 - If ran on an architecture with no binary releases, it will install the npm package with yarn or npm.
   - We only have binary releases for amd64 and arm64 presently.
@@ -100,8 +103,8 @@ systemctl --user enable --now code-server
 
 We recommend installing with `yarn` or `npm` if:
 
-1. We don't have a precompiled release for your machine's platform or architecture.
-2. glibc < v2.17.
+1. You aren't using `amd64` or `arm64`.
+2. glibc < v2.17
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
@@ -161,4 +164,8 @@ docker run -it -p 127.0.0.1:8080:8080 \
   codercom/code-server:latest
 ```
 
-You should also check out
+Our official image supports `amd64` and `arm64`.
+
+For `arm32` support there is a highly popular community maintained alternative:
+
+https://hub.docker.com/r/linuxserver/code-server
