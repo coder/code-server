@@ -16,14 +16,24 @@ main() {
 
   mkdir -p "$RELEASE_PATH/bin"
   rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
-
-  g++ -Wl,--allow-multiple-definition "$node_path" -static-libstdc++ -static-libgcc -o "$RELEASE_PATH/lib/node"
+  rsync "$node_path" "$RELEASE_PATH/lib/node"
+  if [[ $OS == "linux" ]]; then
+    bundle_dynamic_lib libstdc++
+    bundle_dynamic_lib libgcc_s
+  fi
 
   ln -s "./bin/code-server" "$RELEASE_PATH/code-server"
   ln -s "./lib/node" "$RELEASE_PATH/node"
 
   cd "$RELEASE_PATH"
   yarn --production --frozen-lockfile
+}
+
+bundle_dynamic_lib() {
+  lib_name="$1"
+  lib_path="$(ldd "$RELEASE_PATH/lib/node" | grep "$lib_name" | awk '{print $3 }')"
+
+  cp "$lib_path" "$RELEASE_PATH/lib/"
 }
 
 main "$@"

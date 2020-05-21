@@ -17,4 +17,5 @@ bin_dir() {
 }
 
 BIN_DIR=$(bin_dir)
+export LD_LIBRARY_PATH="$BIN_DIR/../lib${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
 exec "$BIN_DIR/../lib/node" "$BIN_DIR/.." "$@"
