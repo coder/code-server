@@ -77,17 +77,22 @@ to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-SSH into your instance and run the appropriate commands documented in [README.md](../README.md).
+We have a script to install code-server on Linux or macOS preferring to use the system package manager.
 
-Assuming Debian:
+First run to print out the install process:
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.3.1/code-server_3.3.1_amd64.deb
-sudo dpkg -i code-server_3.3.1_amd64.deb
-systemctl --user enable --now code-server
-# Now code-server is running at http://127.0.0.1:8080
-# Your password is in ~/.config/code-server/config.yaml
+curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run
 ```
+
+Now to actually install:
+
+```bash
+curl -fsSL https://code-server.dev/install.sh | sh
+```
+
+Docs on the install script, manual installation and docker instructions are at [./doc/install.md](./doc/install.md).
+
 
 ## 3. Expose code-server
 

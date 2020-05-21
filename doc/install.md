@@ -23,6 +23,43 @@ print out the commands it will run to install `code-server` but
 not run anything. That way you can verify the script is functioning
 as intended before installing.
 
+## install.sh
+
+We have a script to install code-server on Linux or macOS preferring to use the system package manager.
+
+First run to print out the install process:
+
+```bash
+curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run
+```
+
+Now to actually install:
+
+```bash
+curl -fsSL https://code-server.dev/install.sh | sh
+```
+
+- For Debian, Ubuntu, Raspbian it will install the latest deb package.
+- For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
+- For Arch Linux it will install the AUR package.
+- For any unrecognized Linux operating system it will install the latest static release into ~/.local
+  - Add ~/.local/bin to your $PATH to run code-server.
+
+- For macOS it will install the Homebrew package.
+  - If Homebrew is not installed it will install the latest static release into ~/.local
+  - Add ~/.local/bin to your $PATH to run code-server.
+
+- If ran on an architecture with no binary releases, it will install the npm package with yarn or npm.
+  - We only have binary releases for amd64 and arm64 presently.
+
+Pass `--static` to install a static release into `~/.local`.
+Pass `--static=/usr/local` to install a static release system wide.
+Pass `--version=X.X.X` to install version `X.X.X` instead of latest.
+
+If you still don't trust our install script, even with the above explaination and the dry run,
+continue for docs on manual installation. The script runs the exact same commands depicted
+in the rest of this document.
+
 ## Debian, Ubuntu
 
 ```bash
@@ -113,4 +150,15 @@ code-server
 
 ## Docker
 
-Documented in [README.md](../README.md#docker).
+```bash
+# This will start a code-server container and expose it at http://127.0.0.1:8080.
+# It will also mount your current directory into the container as `/home/coder/project`
+# and forward your UID/GID so that all file system operations occur as your user outside
+# the container.
+docker run -it -p 127.0.0.1:8080:8080 \
+  -v "$PWD:/home/coder/project" \
+  -u "$(id -u):$(id -g)" \
+  codercom/code-server:latest
+```
+
+You should also check out

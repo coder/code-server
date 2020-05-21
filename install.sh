@@ -16,7 +16,7 @@ EOF
     )"$"\n"
   fi
   cat << EOF
-Installs latest code-server on Linux or macOS preferring to use the system package manager.
+Installs the latest code-server on Linux or macOS preferring to use the system package manager.
 
 Lives at https://code-server.dev/install.sh
 
