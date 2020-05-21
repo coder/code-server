@@ -2,13 +2,28 @@
 set -eu
 
 usage() {
+  cli="$0"
+  if [ "$0" = sh ]; then
+    cli="curl -fsSL https://code-server.dev/install.sh | sh -s --"
+  else
+    curl_usage="$(
+      cat << EOF
+
+To use latest:
+
+  curl -fsSL https://code-server.dev/install.sh | sh -s -- <args>
+EOF
+    )"$"\n"
+  fi
   cat << EOF
-$0 [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
+Installs latest code-server on Linux or macOS preferring to use the system package manager.
 
-Installs latest code-server on any macOS or Linux system preferring to use the OS package manager.
+Lives at https://code-server.dev/install.sh
 
-  curl -fsSL https://code-server.dev/install.sh | sh -s --
+Usage:
 
+  $cli [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
+${curl_usage-}
 - For Debian, Ubuntu, Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
@@ -19,8 +34,7 @@ Installs latest code-server on any macOS or Linux system preferring to use the O
   - If Homebrew is not installed it will install the latest static release into ~/.local
   - Add ~/.local/bin to your \$PATH to run code-server.
 
-- If ran on an architecture with no binary releases or outdated libc/libcxx, it will install the
-  npm package with yarn or npm.
+- If ran on an architecture with no binary releases, it will install the npm package with yarn or npm.
   - We only have binary releases for amd64 and arm64 presently.
 
     --dry-run Enables a dry run where where the steps that would have taken place
@@ -40,9 +54,9 @@ EOF
 }
 
 echo_latest_version() {
-  version="$(curl -fsSL https://api.github.com/repos/cdr/code-server/releases/latest | jq -r .tag_name)"
-  # Strip leading v.
-  version="${version:1}"
+  # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
+  version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/cdr/code-server/releases/latest)"
+  version="${version#https://github.com/cdr/code-server/releases/tag/v}"
   echo "$version"
 }
 
@@ -172,7 +186,7 @@ parse_arg() {
   *=*)
     opt="${1#=*}"
     optarg="${1#*=}"
-    if [ ! "$optarg" -a ! "${OPTIONAL-}" ]; then
+    if [ ! "$optarg" ] && [ ! "${OPTIONAL-}" ]; then
       echoerr "$opt requires an argument"
       echoerr "Run with --help to see usage."
       exit 1
@@ -183,7 +197,7 @@ parse_arg() {
   esac
 
   case "${2-}" in
-  "" | -* | --*)
+  "" | -*)
     if [ ! "${OPTIONAL-}" ]; then
       echoerr "$1 requires an argument"
       echoerr "Run with --help to see usage."
@@ -282,7 +296,7 @@ install_static() {
   fi
   SKIP_ECHO=1 sh_c mkdir -p "$STATIC_INSTALL_PREFIX/lib" "$STATIC_INSTALL_PREFIX/bin"
 
-  if [[ -e "$STATIC_INSTALL_PREFIX/lib/code-server-$VERSION" ]]; then
+  if [ -e "$STATIC_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
     echo
     echoerr "code-server-$VERSION is already installed at $STATIC_INSTALL_PREFIX/lib/code-server-$VERSION"
     echoerr "Please remove it to reinstall."
@@ -339,21 +353,20 @@ distro() {
     return
   fi
 
-  if [ ! -f /etc/os-release ]; then
+  if [ -f /etc/os-release ]; then
+    (
+      . /etc/os-release
+      case "$ID" in opensuse-*)
+        # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
+        echo "opensuse"
+        return
+        ;;
+      esac
+
+      echo "$ID"
+    )
     return
   fi
-
-  (
-    . /etc/os-release
-    case "$ID" in opensuse-*)
-      # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
-      echo "opensuse"
-      return
-      ;;
-    esac
-
-    echo "$ID"
-  )
 }
 
 # os_name prints a pretty human readable name for the OS/Distro.
@@ -363,11 +376,12 @@ distro_name() {
     return
   fi
 
-  if [ ! -f /etc/os-release ]; then
+  if [ -f /etc/os-release ]; then
     (
       . /etc/os-release
       echo "$PRETTY_NAME"
     )
+    return
   fi
 
   # Prints something like: Linux 4.19.0-9-amd64

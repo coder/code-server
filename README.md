@@ -29,6 +29,8 @@ curl -fsSL https://code-server.dev/install.sh | sh
 ```
 $ curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run --help
 
+$0 [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
+
 Installs latest code-server on any macOS or Linux system preferring to use the OS package manager.
 
   curl -fsSL https://code-server.dev/install.sh | sh -s --
@@ -37,29 +39,29 @@ Installs latest code-server on any macOS or Linux system preferring to use the O
 - For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
 - For any unrecognized Linux operating system it will install the latest static release into ~/.local
-  - Add ~/.local/bin to your $PATH to run code-server.
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
 - For macOS it will install the Homebrew package.
   - If Homebrew is not installed it will install the latest static release into ~/.local
-  - Add ~/.local/bin to your $PATH to run code-server.
+  - Add ~/.local/bin to your \$PATH to run code-server.
 
-- If ran on an architecture with no binary releases or outdated libc/libcxx, it will install the
+- If ran on an architecture with no binary releases or glibc < v2.17, it will install the
   npm package with yarn or npm.
   - We only have binary releases for amd64 and arm64 presently.
 
     --dry-run Enables a dry run where where the steps that would have taken place
               are printed but do not actually execute.
 
+    --version Pass to install a specific version instead of the latest release.
+
     --static  Forces the installation of a static release into ~/.local
 
               This flag takes an optional argument for the installation prefix which defaults to "~/.local".
               code-server will be unarchived into ~/.local/lib/code-server.X.X.X and the binary will be symlinked
-              into "~/.local/bin/code-server". You will need to add ~/.local/bin to your $PATH to use it without
+              into "~/.local/bin/code-server". You will need to add ~/.local/bin to your \$PATH to use it without
               the full path.
 
               To install system wide set the prefix to /usr/local.
-
-    --version Pass to install a specific version instead of the latest release.
 ```
 
 If you still don't trust our install script, even with the above explaination and the dry run, we have

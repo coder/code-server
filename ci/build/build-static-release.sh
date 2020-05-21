@@ -16,7 +16,8 @@ main() {
 
   mkdir -p "$RELEASE_PATH/bin"
   rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
-  rsync "$node_path" "$RELEASE_PATH/lib/node"
+
+  g++ -Wl,--allow-multiple-definition "$node_path" -static-libstdc++ -static-libgcc -o "$RELEASE_PATH/lib/node"
 
   ln -s "./bin/code-server" "$RELEASE_PATH/code-server"
   ln -s "./lib/node" "$RELEASE_PATH/node"

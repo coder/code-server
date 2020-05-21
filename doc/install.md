@@ -64,8 +64,7 @@ systemctl --user enable --now code-server
 We recommend installing with `yarn` or `npm` if:
 
 1. We don't have a precompiled release for your machine's platform or architecture.
-2. libc < v2.19
-3. libcxx < 3.4.20
+2. glibc < v2.17.
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
