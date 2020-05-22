@@ -34,7 +34,8 @@ main() {
 }
 
 bundle_dynamic_lib() {
-  lib_name="$1"
+  local lib_name="$1"
+  local lib_path
 
   if [[ $OS == "linux" ]]; then
     lib_path="$(ldd "$RELEASE_PATH/lib/node" | grep "$lib_name" | awk '{print $3 }')"

@@ -4,7 +4,7 @@
 
 - [install.sh](#installsh)
   - [Flags](#flags)
-  - [Installation reference](#installation-reference)
+  - [Detect Reference](#detect-reference)
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
@@ -20,7 +20,7 @@ various distros and operating systems.
 
 ## install.sh
 
-[We have a script](./install.sh) to install code-server for Linux and macOS.
+We have a [script](./install.sh) to install code-server for Linux and macOS.
 
 It tries to use the system package manager if possible.
 
@@ -42,19 +42,21 @@ If you believe an install script used with `curl | sh` is insecure, please give
 [this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
 [sandstorm.io](https://sandstorm.io) a read.
 
-If you'd still prefer manual installation despite the below [reference](#reference) and `--dry-run`
+If you'd still prefer manual installation despite the below [detect reference](#detect-reference) and `--dry-run`
 then continue on for docs on manual installation. The [`install.sh`](./install.sh) script runs the _exact_ same
 commands presented in the rest of this document.
 
 ### Flags
 
 - `--dry-run` to echo the commands for the install process without running them.
-- `--static` to install a static release into `~/.local`.
-- `--static=/usr/local` to install a static release system wide.
+- `--method` to choose the installation method.
+  - `--method=detect` to detect the package manager but fallback to `--method=archive`.
+  - `--method=archive` to install a static release archive into `~/.local`.
+- `--prefix=/usr/local` to install a static release archive system wide.
 - `--version=X.X.X` to install version `X.X.X` instead of latest.
 - `--help` to see full usage docs.
 
-### Reference
+### Detect Reference
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -66,7 +68,7 @@ commands presented in the rest of this document.
 - For macOS it will install the Homebrew package.
 
   - If Homebrew is not installed it will install the latest static release into `~/.local`.
-  - Add ~/.local/bin to your \$PATH to run code-server.
+  - Add `~/.local/bin` to your `$PATH` to run code-server.
 
 - If ran on an architecture with no binary releases, it will install the npm package with `yarn` or `npm`.
   - We only have binary releases for amd64 and arm64 presently.
@@ -137,14 +139,14 @@ brew services start code-server
 ## Static Releases
 
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
-They bundle the node binary and node_modules.
+They bundle the node binary and `node_modules`.
 
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
 2. Unpack the release.
 3. You can run code-server by executing `./bin/code-server`.
 
-You can add the code-server `bin` directory to your `$PATH` or link to it from a
-directory in your `$PATH` to easily execute `code-server` without the full path every time.
+You can add the code-server `bin` directory to your `$PATH` to easily execute `code-server`
+without the full path every time.
 
 Here is an example script for installing and using a static `code-server` release on Linux:
 
@@ -174,6 +176,6 @@ docker run -it -p 127.0.0.1:8080:8080 \
 
 Our official image supports `amd64` and `arm64`.
 
-For `arm32` support there is a highly popular community maintained alternative:
+For `arm32` support there is a popular community maintained alternative:
 
 https://hub.docker.com/r/linuxserver/code-server

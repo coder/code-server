@@ -9,7 +9,7 @@ MINIFY=${MINIFY-true}
 main() {
   cd "$(dirname "${0}")/../.."
 
-  npx tsc --outDir out --tsBuildInfoFile .cache/out.tsbuildinfo
+  tsc --outDir out --tsBuildInfoFile .cache/out.tsbuildinfo
   # If out/node/entry.js does not already have the shebang,
   # we make sure to add it and make it executable.
   if ! grep -q -m1 "^#!/usr/bin/env node" out/node/entry.js; then
@@ -17,7 +17,7 @@ main() {
     chmod +x out/node/entry.js
   fi
 
-  npx parcel build \
+  parcel build \
     --public-url "/static/$(git rev-parse HEAD)/dist" \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \

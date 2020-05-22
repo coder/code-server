@@ -40,7 +40,7 @@ See https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-
 > Marketplace Offerings are intended for use only with Visual Studio Products and Services
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
 
-As a result, [Coder](https://coder.com) has created its own marketplace for open source extensions.
+As a result, we have created our own marketplace for open source extensions.
 It works by scraping GitHub for VS Code extensions and building them. It's not perfect but getting
 better by the day with more and more extensions.
 
