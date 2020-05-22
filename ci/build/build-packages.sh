@@ -11,10 +11,14 @@ main() {
   mkdir -p release-packages
 
   release_archive
-  if [[ $OS == linux && $ARCH == "amd64" ]]; then
-    # Will stop most of the auto update issues.
-    # For the other releases it's more important to not pollute the release listing.
-    ARCH=x86_64 release_archive
+  # Will stop the auto update issues and allow people to upgrade their scripts
+  # for the new release structure.
+  if [[ $ARCH == "amd64" ]]; then
+    if [[ $OS == "linux" ]]; then
+      ARCH=x86_64 release_archive
+    elif [[ $OS == "macos" ]]; then
+      OS=darwin ARCH=x86_64 release_archive
+    fi
   fi
 
   if [[ $OSTYPE == linux* ]]; then

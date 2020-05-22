@@ -77,7 +77,8 @@ to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-We have a script to install code-server on Linux or macOS preferring to use the system package manager.
+[We have a script](./install.sh) to install code-server for Linux or macOS.
+It tries to use the system package manager if possible.
 
 First run to print out the install process:
 
@@ -91,7 +92,9 @@ Now to actually install:
 curl -fsSL https://code-server.dev/install.sh | sh
 ```
 
-Docs on the install script, manual installation and docker instructions are at [./doc/install.md](./doc/install.md).
+The install script will print out how to run and start using code-server.
+
+Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
 
 ## 3. Expose code-server
 

@@ -17,38 +17,44 @@ EOF
 "
   fi
   cat << EOF
-Installs the latest code-server on Linux or macOS preferring to use the system package manager.
+Installs code-server for Linux or macOS.
+It tries to use the system package manager if possible.
+After successful installation it explains how to start using code-server.
 
 Usage:
 
   $cli [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
 ${curl_usage-}
-- For Debian, Ubuntu, Raspbian it will install the latest deb package.
-- For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
+- For Debian, Ubuntu and Raspbian it will install the latest deb package.
+- For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest static release into ~/.local
+- For any unrecognized Linux operating system it will install the latest static
+  release into ~/.local
   - Add ~/.local/bin to your \$PATH to run code-server.
 
 - For macOS it will install the Homebrew package.
-  - If Homebrew is not installed it will install the latest static release into ~/.local
+  - If Homebrew is not installed it will install the latest static release
+    into ~/.local
   - Add ~/.local/bin to your \$PATH to run code-server.
 
-- If ran on an architecture with no binary releases, it will install the npm package with yarn or npm.
+- If ran on an architecture with no binary releases, it will install the
+  npm package with yarn or npm.
   - We only have binary releases for amd64 and arm64 presently.
 
-    --dry-run Enables a dry run where where the steps that would have taken place
-              are printed but do not actually execute.
+    --dry-run Echo the commands for the install process without running them.
 
-    --version Pass to install a specific version instead of the latest release.
+    --version Install a specific version instead of the latest release.
 
-    --static  Forces the installation of a static release into ~/.local
+    --static  Install a static release into ~/.local
 
-              This flag takes an optional argument for the installation prefix which defaults to "~/.local".
-              code-server will be unarchived into ~/.local/lib/code-server.X.X.X and the binary will be symlinked
-              into "~/.local/bin/code-server". You will need to add ~/.local/bin to your \$PATH to use it without
+              code-server will be unarchived into ~/.local/lib/code-server.X.X.X
+              and the binary will be symlinked into ~/.local/bin/code-server.
+              You will need to add ~/.local/bin to your \$PATH to use it without
               the full path.
 
               To install system wide set the prefix to /usr/local.
+
+https://github.com/cdr/code-server/blob/master/doc/install.md
 EOF
 }
 
@@ -63,6 +69,7 @@ echo_static_postinstall() {
   echo
   cat << EOF
 Static release has been installed into $STATIC_INSTALL_PREFIX/lib/code-server-$VERSION
+
 Please extend your path to use code-server:
   PATH="$STATIC_INSTALL_PREFIX/bin:\$PATH"
 Then you can run:
@@ -176,7 +183,6 @@ main() {
   *)
     install_static
     ;;
-
   esac
 }
 

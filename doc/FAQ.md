@@ -19,6 +19,7 @@
 - [Heartbeat File](#heartbeat-file)
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Blank screen on iPad?](#blank-screen-on-ipad)
+- [Isn't an install script insecure?](#isnt-an-install-script-insecure)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -241,6 +242,12 @@ There does seem to a way to get it to work if you create your own CA and create 
 certificate using the CA and then import the CA onto your iPad.
 
 See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
+
+## Isn't an install script insecure?
+
+Please give
+[this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
+[sandstorm.io](https://sandstorm.io) a read.
 
 ## Enterprise
 

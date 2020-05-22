@@ -16,17 +16,10 @@
 This document demonstrates how to install `code-server` on
 various distros and operating systems.
 
-The steps in this document are exactly what the install script does.
-
-We recommend using the install script if possible. You can run
-the install script with the `--dry-run` flag for a dry run which will
-print out the commands it will run to install `code-server` but
-not run anything. That way you can verify the script is functioning
-as intended before installing.
-
 ## install.sh
 
-We have a script to install code-server on Linux or macOS preferring to use the system package manager.
+[We have a script](./install.sh) to install code-server for Linux or macOS.
+It tries to use the system package manager if possible.
 
 First run to print out the install process:
 
@@ -40,28 +33,40 @@ Now to actually install:
 curl -fsSL https://code-server.dev/install.sh | sh
 ```
 
-- For Debian, Ubuntu, Raspbian it will install the latest deb package.
-- For Fedora, CentOS, RHEL, openSUSE it will install the latest rpm package.
-- For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest static release into ~/.local
+The script will print out how to run and start using code-server.
 
-  - Add ~/.local/bin to your \$PATH to run code-server.
+- For Debian, Ubuntu and Raspbian it will install the latest deb package.
+- For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
+- For Arch Linux it will install the AUR package.
+- For any unrecognized Linux operating system it will install the latest static release into `~/.local`
+
+  - Add `~/.local/bin` to your `$PATH` to run code-server.
 
 - For macOS it will install the Homebrew package.
 
-  - If Homebrew is not installed it will install the latest static release into ~/.local
+  - If Homebrew is not installed it will install the latest static release into `~/.local`
   - Add ~/.local/bin to your \$PATH to run code-server.
 
-- If ran on an architecture with no binary releases, it will install the npm package with yarn or npm.
+- If ran on an architecture with no binary releases, it will install the npm package with `yarn` or `npm`.
   - We only have binary releases for amd64 and arm64 presently.
 
+Pass `--dry-run` to echo the commands for the install process without running them.
+
 Pass `--static` to install a static release into `~/.local`.
+
 Pass `--static=/usr/local` to install a static release system wide.
+
 Pass `--version=X.X.X` to install version `X.X.X` instead of latest.
 
-If you still don't trust our install script, even with the above explaination and the dry run,
-continue for docs on manual installation. The script runs the exact same commands depicted
-in the rest of this document.
+Pass `--help` to see full usage docs.
+
+If you believe an install script used via curl is insecure, please give
+[this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
+[sandstorm.io](https://sandstorm.io) a read.
+
+If you'd still prefer manual installation despite the above explanations and `--dry-run`
+then continue for docs on manual installation. The [`install.sh`](./install.sh) script runs the *exact* same
+commands depicted in the rest of this document.
 
 ## Debian, Ubuntu
 
