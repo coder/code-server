@@ -9,7 +9,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
   Preserve battery life when you're on the go since all intensive tasks runs on your server.
   Make use of a spare computer you have lying around and turn it into a full development environment.
 
-![Example gif](./doc/assets/code-server.gif)
+![Example gif](./doc/assets/screenshot.png)
 
 ## Getting Started
 
