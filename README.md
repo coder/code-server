@@ -17,7 +17,8 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
-[We have a script](./install.sh) to install code-server for Linux or macOS.
+[We have a script](./install.sh) to install code-server for Linux and macOS.
+
 It tries to use the system package manager if possible.
 
 First run to print out the install process:

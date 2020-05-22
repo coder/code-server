@@ -3,6 +3,8 @@
 # Install
 
 - [install.sh](#installsh)
+  - [Flags](#flags)
+  - [Installation reference](#installation-reference)
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
@@ -18,7 +20,8 @@ various distros and operating systems.
 
 ## install.sh
 
-[We have a script](./install.sh) to install code-server for Linux or macOS.
+[We have a script](./install.sh) to install code-server for Linux and macOS.
+
 It tries to use the system package manager if possible.
 
 First run to print out the install process:
@@ -35,38 +38,38 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 The script will print out how to run and start using code-server.
 
+If you believe an install script used with `curl | sh` is insecure, please give
+[this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
+[sandstorm.io](https://sandstorm.io) a read.
+
+If you'd still prefer manual installation despite the below [reference](#reference) and `--dry-run`
+then continue on for docs on manual installation. The [`install.sh`](./install.sh) script runs the _exact_ same
+commands presented in the rest of this document.
+
+### Flags
+
+- `--dry-run` to echo the commands for the install process without running them.
+- `--static` to install a static release into `~/.local`.
+- `--static=/usr/local` to install a static release system wide.
+- `--version=X.X.X` to install version `X.X.X` instead of latest.
+- `--help` to see full usage docs.
+
+### Reference
+
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest static release into `~/.local`
+- For any unrecognized Linux operating system it will install the latest static release into `~/.local`.
 
   - Add `~/.local/bin` to your `$PATH` to run code-server.
 
 - For macOS it will install the Homebrew package.
 
-  - If Homebrew is not installed it will install the latest static release into `~/.local`
+  - If Homebrew is not installed it will install the latest static release into `~/.local`.
   - Add ~/.local/bin to your \$PATH to run code-server.
 
 - If ran on an architecture with no binary releases, it will install the npm package with `yarn` or `npm`.
   - We only have binary releases for amd64 and arm64 presently.
-
-Pass `--dry-run` to echo the commands for the install process without running them.
-
-Pass `--static` to install a static release into `~/.local`.
-
-Pass `--static=/usr/local` to install a static release system wide.
-
-Pass `--version=X.X.X` to install version `X.X.X` instead of latest.
-
-Pass `--help` to see full usage docs.
-
-If you believe an install script used via curl is insecure, please give
-[this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
-[sandstorm.io](https://sandstorm.io) a read.
-
-If you'd still prefer manual installation despite the above explanations and `--dry-run`
-then continue for docs on manual installation. The [`install.sh`](./install.sh) script runs the *exact* same
-commands depicted in the rest of this document.
 
 ## Debian, Ubuntu
 
@@ -106,10 +109,10 @@ systemctl --user enable --now code-server
 
 ## yarn, npm
 
-We recommend installing with `yarn` or `npm` if:
+We recommend installing with `yarn` or `npm` when:
 
-1. You aren't using `amd64` or `arm64`.
-2. glibc < v2.17
+1. You aren't on `amd64` or `arm64`.
+2. If you're on Linux with glibc < v2.17
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./doc/npm.md](./doc/npm.md) for installing these dependencies.

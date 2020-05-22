@@ -24,8 +24,8 @@ Further docs are at:
 - [FAQ.md](./FAQ.md) for common questions.
 - [CONTRIBUTING.md](../doc/CONTRIBUTING.md) for development docs
 
-We'll walk you through acquiring a remote machine to run code-server on and then exposing `code-server` so you can
-securely access it.
+We'll walk you through acquiring a remote machine to run code-server on
+and then exposing `code-server` so you can securely access it.
 
 ## 1. Acquire a remote machine
 
@@ -60,7 +60,7 @@ Once you've signed up and created a GCP project, create a new Compute Engine VM 
    - Change the type to custom and set at least 2 cores and 2 GB of ram.
    - Add more vCPUs and memory as you prefer, you can edit after creating the instance as well.
    - https://cloud.google.com/compute/docs/machine-types#general_purpose
-7. We highly recommend switching the persistent disk to a SSD of at least 32 GB.
+7. We highly recommend switching the persistent disk to an SSD of at least 32 GB.
    - Click `Change` under `Boot Disk` and change the type to `SSD Persistent Disk` and the size
      to `32`.
    - You can always grow your disk later.
@@ -68,16 +68,18 @@ Once you've signed up and created a GCP project, create a new Compute Engine VM 
 8. Navigate to `Networking -> Network interfaces` and edit the existing interface
    to use a static external IP.
    - Click done to save network interface changes.
-9. If you do not have a [project wide SSH key](https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#project-wide), navigate to `Security - > SSH Keys` and add your public key there.
+9. If you do not have a [project wide SSH key](https://cloud.google.com/compute/docs/instances/adding-removing-ssh-keys#project-wide), navigate to `Security -> SSH Keys` and add your public key there.
 10. Click create!
 
 Remember, you can shutdown your server when not in use to lower costs.
+
 We highly recommend learning to use the [`gcloud`](https://cloud.google.com/sdk/gcloud) cli
 to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-[We have a script](./install.sh) to install code-server for Linux or macOS.
+[We have a script](./install.sh) to install code-server for Linux and macOS.
+
 It tries to use the system package manager if possible.
 
 First run to print out the install process:
@@ -158,8 +160,8 @@ ServerAliveInterval 5
 ExitOnForwardFailure yes
 ```
 
-You can also forward your SSH key and GPG agent to the instance to securely access GitHub
-and sign commits without copying your keys onto the instance.
+You can also forward your SSH and GPG agent to the instance to securely access GitHub
+and sign commits without copying your keys.
 
 1. https://developer.github.com/v3/guides/using-ssh-agent-forwarding/
 2. https://wiki.gnupg.org/AgentForwarding
@@ -244,8 +246,8 @@ fields.
 
 ### Change the password?
 
-Edit the code-server config file at `~/.config/code-server/config.yaml` and then restart
-code-server with:
+Edit the `password` field in the code-server config file at `~/.config/code-server/config.yaml`
+and then restart code-server with:
 
 ```bash
 systemctl --user restart code-server

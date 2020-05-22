@@ -8,10 +8,10 @@
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
-  - [Sub-domains](#sub-domains)
   - [Sub-paths](#sub-paths)
+  - [Sub-domains](#sub-domains)
 - [Multi-tenancy](#multi-tenancy)
-- [Docker in code-server docker container?](#docker-in-code-server-docker-container)
+- [Docker in code-server container?](#docker-in-code-server-container)
 - [Collaboration](#collaboration)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
@@ -19,7 +19,7 @@
 - [Heartbeat File](#heartbeat-file)
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Blank screen on iPad?](#blank-screen-on-ipad)
-- [Isn't an install script insecure?](#isnt-an-install-script-insecure)
+- [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -40,22 +40,22 @@ See https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-
 > Marketplace Offerings are intended for use only with Visual Studio Products and Services
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
 
-As a result, Coder has created its own marketplace for open source extensions. It works by scraping
-GitHub for VS Code extensions and building them. It's not perfect but getting better by the day with
-more and more extensions.
+As a result, [Coder](https://coder.com) has created its own marketplace for open source extensions.
+It works by scraping GitHub for VS Code extensions and building them. It's not perfect but getting
+better by the day with more and more extensions.
 
 Issue [#1299](https://github.com/cdr/code-server/issues/1299) is a big one in making the experience here
 better by allowing the community to submit extensions and repos to avoid waiting until the scraper finds
 an extension.
+
+To request an extension for the code-server marketplace, please open a new issue
+and select the `Extension request` template.
 
 If an extension is not available or does not work, you can grab its VSIX from its Github releases or
 build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
 point to the .vsix file.
 
 See below for installing an extension from the cli.
-
-To request an extension for the code-server marketplace, please open a new issue
-and select the `Extension request` template.
 
 If you have your own custom marketplace, it is possible to point code-server to it by setting
 `$SERVICE_URL` and `$ITEM_URL` to point to it.
@@ -97,17 +97,17 @@ code-server only supports password authentication natively.
 **note**: code-server will rate limit password authentication attempts at 2 a minute and 12 an hour.
 
 If you want to use external authentication (i.e sign in with Google) you should handle this
-with a reverse proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy).
+with a reverse proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
+or [Cloudflare Access](https://teams.cloudflare.com/access).
 
 For HTTPS, you can use a self signed certificate by passing in just `--cert` or
 pass in an existing certificate by providing the path to `--cert` and the path to
-its key with `--cert-key`.
+the key with `--cert-key`.
 
 If `code-server` has been passed a certificate it will also respond to HTTPS
-requests and will redirect all HTTP requests to HTTPS. Otherwise it will respond
-only to HTTP requests.
+requests and will redirect all HTTP requests to HTTPS.
 
-You can use [Let's Encrypt](https://letsencrypt.org/) to get an SSL certificate
+You can use [Let's Encrypt](https://letsencrypt.org/) to get a TLS certificate
 for free.
 
 Again, please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
@@ -117,6 +117,10 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 code-server is capable of proxying to any port using either a subdomain or a
 subpath which means you can securely access these services using code-server's
 built-in authentication.
+
+### Sub-paths
+
+Just browse to `/proxy/<port>/`.
 
 ### Sub-domains
 
@@ -137,24 +141,19 @@ code-server --proxy-domain <domain>
 Now you can browse to `<port>.<domain>`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
 
-### Sub-paths
-
-Just browse to `/proxy/<port>/`.
-
 ## Multi-tenancy
 
 If you want to run multiple code-servers on shared infrastructure, we recommend using virtual
 machines with a VM per user. This will easily allow users to run a docker daemon. If you want
 to use kubernetes, you'll definitely want to use [kubevirt](https://kubevirt.io) to give each
-user a virtual machine instead of just a container. Docker in docker while supported requires
-privileged containers which are a security risk in a multi tenant infrastructure.
+user a virtual machine instead of just a container.
 
-## Docker in code-server docker container?
+## Docker in code-server container?
 
-If you'd like to access docker inside of code-server, we'd recommend running a docker:dind container
-and mounting in a directory to share between dind and the code-server container at /var/run. After, install
-the docker CLI in the code-server container and you should be able to access the daemon as the socket
-will be shared at /var/run/docker.sock.
+If you'd like to access docker inside of code-server, we'd recommend running a `docker:dind` container
+and mounting in a directory to share between `dind` and the `code-server` container at `/var/run`.
+After, install the docker CLI in the code-server container and you should be able to access the
+daemon as the socket will be shared at `/var/run/docker.sock`.
 
 In order to make volume mounts work, mount the home directory in the code-server container and the
 dind container at the same path. i.e you'd volume mount a directory from the host to `/home/coder`
@@ -165,7 +164,7 @@ to make volume mounts in any other directory work.
 
 We understand the high demand but the team is swamped right now.
 
-You can follow progress at [#33](https://github.com/cdr/code-server/issues/33).
+You can subscribe to [#33](https://github.com/cdr/code-server/issues/33) for updates.
 
 ## How can I disable telemetry?
 
@@ -208,7 +207,7 @@ as there is an active browser connection.
 
 If you want to shutdown `code-server` if there hasn't been an active connection in X minutes
 you can do so by continuously checking the last modified time on the heartbeat file and if it is
-older than X minutes, you should kill `code-server`.
+older than X minutes, kill `code-server`.
 
 [#1636](https://github.com/cdr/code-server/issues/1636) will make the experience here better.
 
@@ -243,7 +242,7 @@ certificate using the CA and then import the CA onto your iPad.
 
 See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
 
-## Isn't an install script insecure?
+## Isn't an install script piped into sh insecure?
 
 Please give
 [this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by

@@ -6,25 +6,30 @@ usage() {
   if [ "$0" = sh ]; then
     cli="curl -fsSL https://code-server.dev/install.sh | sh -s --"
   else
-    curl_usage="$(
-      cat << EOF
-
-To use latest:
-
-  curl -fsSL https://code-server.dev/install.sh | sh -s -- <args>
-EOF
-    )""
-"
+    curl_usage="The latest script is available at https://code-server.dev/install.sh"
   fi
   cat << EOF
 Installs code-server for Linux or macOS.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
+${curl_usage-}
 
 Usage:
 
   $cli [--dry-run] [--version X.X.X] [--static <install-prefix>=~/.local]
-${curl_usage-}
+
+    --dry-run Echo the commands for the install process without running them.
+
+    --version Install a specific version instead of the latest release.
+
+    --static  Install a static release into ~/.local
+
+              The release will be unarchived into ~/.local/lib/code-server.X.X.X
+              and the binary symlinked into ~/.local/bin/code-server.
+              Add ~/.local/bin to your \$PATH to use it.
+
+              To install system wide pass ---static=/usr/local
+
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
@@ -41,20 +46,7 @@ ${curl_usage-}
   npm package with yarn or npm.
   - We only have binary releases for amd64 and arm64 presently.
 
-    --dry-run Echo the commands for the install process without running them.
-
-    --version Install a specific version instead of the latest release.
-
-    --static  Install a static release into ~/.local
-
-              code-server will be unarchived into ~/.local/lib/code-server.X.X.X
-              and the binary will be symlinked into ~/.local/bin/code-server.
-              You will need to add ~/.local/bin to your \$PATH to use it without
-              the full path.
-
-              To install system wide set the prefix to /usr/local.
-
-https://github.com/cdr/code-server/blob/master/doc/install.md
+More installation docs are at https://github.com/cdr/code-server/blob/master/doc/install.md
 EOF
 }
 
@@ -123,7 +115,7 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
-    -h | --h | --help)
+    -h | --help)
       usage
       exit 0
       ;;
@@ -152,11 +144,11 @@ main() {
   if [ ! "$ARCH" ]; then
     if [ "${STATIC-}" ]; then
       echoerr "No static releases available for the architecture $(uname -m)."
-      echoerr "Please rerun without the -s flag to install from npm."
+      echoerr "Please rerun without the --static flag to install from npm."
       exit 1
     fi
     install_npm
-    exit 0
+    return
   fi
 
   CACHE_DIR="$(echo_cache_dir)"
