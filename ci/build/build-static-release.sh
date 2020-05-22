@@ -20,6 +20,10 @@ main() {
   if [[ $OS == "linux" ]]; then
     bundle_dynamic_lib libstdc++
     bundle_dynamic_lib libgcc_s
+  elif [[ $OS == "macos" ]]; then
+    bundle_dynamic_lib libicui18n
+    bundle_dynamic_lib libicuuc
+    bundle_dynamic_lib libicudata
   fi
 
   ln -s "./bin/code-server" "$RELEASE_PATH/code-server"
@@ -31,9 +35,14 @@ main() {
 
 bundle_dynamic_lib() {
   lib_name="$1"
-  lib_path="$(ldd "$RELEASE_PATH/lib/node" | grep "$lib_name" | awk '{print $3 }')"
 
-  cp "$lib_path" "$RELEASE_PATH/lib/"
+  if [[ $OS == "linux" ]]; then
+    lib_path="$(ldd "$RELEASE_PATH/lib/node" | grep "$lib_name" | awk '{print $3 }')"
+  elif [[ $OS == "macos" ]]; then
+    lib_path="$(otool -L "$RELEASE_PATH/lib/node" | grep "$lib_name" | awk '{print $1 }')"
+  fi
+
+  cp "$lib_path" "$RELEASE_PATH/lib"
 }
 
 main "$@"
