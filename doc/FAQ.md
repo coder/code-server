@@ -142,7 +142,7 @@ Just browse to `/proxy/<port>/`.
 
 ## Multi-tenancy
 
-If you want to run multiple code-server's on shared infrastructure, we recommend using virtual
+If you want to run multiple code-servers on shared infrastructure, we recommend using virtual
 machines with a VM per user. This will easily allow users to run a docker daemon. If you want
 to use kubernetes, you'll definitely want to use [kubevirt](https://kubevirt.io) to give each
 user a virtual machine instead of just a container. Docker in docker while supported requires
