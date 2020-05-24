@@ -1,6 +1,6 @@
 # code-server
 
-Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
+Run [VS Code OSS](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
 
 - **Code everywhere:** Code on your Chromebook, tablet, and laptop with a
   consistent dev environment. Develop on a Linux machine and pick up from any
