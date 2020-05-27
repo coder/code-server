@@ -20,6 +20,8 @@
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
+- [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+- [Why can't I use VS Code's Remote extensions?](#why-cant-i-use-vs-codes-remote-extensions)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -258,6 +260,16 @@ Once you've entered the editor, click the "plus" icon present in the URL toolbar
 This will install a Chrome PWA and now all keybindings will work!
 
 For other browsers you'll have to remap keybindings unfortunately.
+
+## Why can't I use VS Code's Remote extensions?
+
+Unfortunately, Microsoft has opted to make [VS Code's Remote SSH and Container
+extensions closed source](https://github.com/microsoft/vscode-remote-release) and
+it is against their TOS to use the published extensions so we are unable to
+add them to our marketplace.
+
+We may reimplement them at some point.
+You can follow [#1315](https://github.com/cdr/code-server/issues/1315) for updates.
 
 ## Enterprise
 
