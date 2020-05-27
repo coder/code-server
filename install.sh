@@ -9,7 +9,7 @@ usage() {
   if [ "$0" = sh ]; then
     arg0="curl -fsSL https://code-server.dev/install.sh | sh -s --"
   else
-    curl_usage="The latest script is available at https://code-server.dev/install.sh
+    not_curl_usage="The latest script is available at https://code-server.dev/install.sh
 "
   fi
 
@@ -17,7 +17,7 @@ usage() {
 Installs code-server for Linux and macOS.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
-${curl_usage-}
+${not_curl_usage-}
 Usage:
 
   $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local]
@@ -286,18 +286,13 @@ install_aur() {
   echoh "Installing from the AUR."
   echoh
 
-  tmp_dir="$(mktemp -d)"
-
-  echoh "+ Downloading PKGBUILD into $tmp_dir from https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz"
-  curl -fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xzC "$tmp_dir"
-  VERSION="$(. "$tmp_dir/code-server/PKGBUILD" && echo "$pkgver")"
-
-  sh_c mkdir -p "$CACHE_DIR/code-server-$VERSION-aur"
-  sh_c cp -a "$tmp_dir/code-server/*" "$CACHE_DIR/code-server-$VERSION-aur"
-  sh_c cd "$CACHE_DIR/code-server-$VERSION-aur"
+  sh_c mkdir -p "$CACHE_DIR/code-server-aur"
+  sh_c "curl -#fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xzC $CACHE_DIR/code-server-aur --strip-components 1"
+  echo "+ cd $CACHE_DIR/code-server-aur"
+  if [ ! "${DRY_RUN-}" ]; then
+    cd "$CACHE_DIR/code-server-aur"
+  fi
   sh_c makepkg -si
-
-  rm -R "$tmp_dir"
 
   echo_systemd_postinstall
 }
@@ -478,9 +473,10 @@ echoerr() {
   echoh "$@" >&2
 }
 
-# humanpath replaces all occurances of $HOME with ~
+# humanpath replaces all occurances of " $HOME" with " ~"
+# and all occurances of '"$HOME' with the literal '"$HOME'.
 humanpath() {
-  sed "s#$HOME#~#g"
+  sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
 }
 
 main "$@"
