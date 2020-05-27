@@ -268,7 +268,8 @@ install_deb() {
   echo "Installing v$VERSION deb package from GitHub releases."
   echo
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
+  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
+    "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
   sudo_sh_c dpkg -i "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
 
   echo_systemd_postinstall
@@ -278,7 +279,8 @@ install_rpm() {
   echo "Installing v$VERSION rpm package from GitHub releases."
   echo
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
+  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
+    "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
   sudo_sh_c rpm -i "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
 
   echo_systemd_postinstall
