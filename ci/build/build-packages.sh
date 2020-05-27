@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # Packages code-server for the current OS and architecture into ./release-packages.
-# This script assumes that a binary release is built already into ./release-binary
+# This script assumes that a standalone release is built already into ./release-standalone
 
 main() {
   cd "$(dirname "${0}")/../.."
@@ -29,9 +29,9 @@ main() {
 release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
-    tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-binary/$release_name/" ./release-binary
+    tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
   else
-    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-binary/$release_name/" release-binary
+    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" ./release-standalone
   fi
   echo "done (release-packages/$release_name)"
 

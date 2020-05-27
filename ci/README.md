@@ -75,19 +75,19 @@ You can disable minification by setting `MINIFY=`.
   - Builds vscode into `./lib/vscode/out-vscode`.
 - [./ci/build/build-release.sh](./build/build-release.sh) (`yarn release`)
   - Bundles the output of the above two scripts into a single node module at `./release`.
-- [./ci/build/build-binary-release.sh](./build/build-binary-release.sh) (`yarn release:binary`)
+- [./ci/build/build-standalone-release.sh](./build/build-standalone-release.sh) (`yarn release:standalone`)
   - Requires a node module already built into `./release` with the above script.
-  - Will build a binary release with node and node_modules bundled into `./release-binary`.
+  - Will build a standalone release with node and node_modules bundled into `./release-standalone`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
   - Will also `git reset --hard lib/vscode`.
   - Useful to do a clean build.
 - [./ci/build/code-server.sh](./build/code-server.sh)
-  - Copied into binary releases to run code-server with the bundled node binary.
-- [./ci/build/test-binary-release.sh](./build/test-binary-release.sh) (`yarn test:binary-release`)
-  - Ensures code-server in the `./release-binary` directory works by installing an extension.
+  - Copied into standalone releases to run code-server with the bundled node binary.
+- [./ci/build/test-standalone-release.sh](./build/test-standalone-release.sh) (`yarn test:standalone-release`)
+  - Ensures code-server in the `./release-standalone` directory works by installing an extension.
 - [./ci/build/build-packages.sh](./build/build-packages.sh) (`yarn package`)
-  - Packages `./release-binary` into a `.tar.gz` archive in `./release-packages`.
+  - Packages `./release-standalone` into a `.tar.gz` archive in `./release-packages`.
   - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate `.deb` and `.rpm`.
 - [./ci/build/nfpm.yaml](./build/nfpm.yaml)
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate `.deb` and `.rpm`.
@@ -131,9 +131,9 @@ Helps avoid clobbering the CI configuration.
 - [./steps/release.sh](./steps/release.sh)
   - Runs the release process.
   - Generates the npm package at `./release`.
-- [./steps/release-binary.sh](./steps/release-binary.sh)
-  - Takes the output of the previous script and generates a binary release and
-    release packages into `release-packages`.
+- [./steps/release-packages.sh](./steps/release-packages.sh)
+  - Takes the output of the previous script and generates a standalone release and
+    release packages into `./release-packages`.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on npm.
 - [./steps/build-docker-image.sh](./steps/build-docker-image.sh)

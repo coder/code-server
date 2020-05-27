@@ -10,18 +10,18 @@ main() {
   local EXTENSIONS_DIR
   EXTENSIONS_DIR="$(mktemp -d)"
 
-  echo "Testing binary release"
+  echo "Testing standalone release."
 
-  ./release-binary/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension ms-python.python
+  ./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension ms-python.python
   local installed_extensions
-  installed_extensions="$(./release-binary/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --list-extensions 2>&1)"
+  installed_extensions="$(./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --list-extensions 2>&1)"
   if [[ $installed_extensions != "ms-python.python" ]]; then
     echo "Unexpected output from listing extensions:"
     echo "$installed_extensions"
     exit 1
   fi
 
-  echo "Binary release works correctly"
+  echo "Standalone release works correctly."
 }
 
 main "$@"

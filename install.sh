@@ -26,14 +26,14 @@ Usage:
       Echo the commands for the install process without running them.
   --version X.X.X
       Install a specific version instead of the latest.
-  --method [detect | archive]
+  --method [detect | standalone]
       Choose the installation method. Defaults to detect.
       - detect detects the system package manager and tries to use it.
         Full reference on the process is further below.
-      - archive installs a binary release archive into ~/.local
+      - standalone installs a standalone release archive into ~/.local
         Add ~/.local/bin to your \$PATH to use it.
   --prefix <dir>
-      Sets the prefix used by binary release archives. Defaults to ~/.local
+      Sets the prefix used by standalone release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
@@ -41,16 +41,16 @@ Usage:
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest binary
+- For any unrecognized Linux operating system it will install the latest standalone
   release into ~/.local
 
 - For macOS it will install the Homebrew package.
-  - If Homebrew is not installed it will install the latest binary release
+  - If Homebrew is not installed it will install the latest standalone release
     into ~/.local
 
-- If ran on an architecture with no binary releases, it will install the
+- If ran on an architecture with no releases, it will install the
   npm package with yarn or npm.
-  - We only have binary releases for amd64 and arm64 presently.
+  - We only have releases for amd64 and arm64 presently.
 
 It will cache all downloaded assets into ~/.cache/code-server
 
@@ -65,12 +65,12 @@ echo_latest_version() {
   echo "$version"
 }
 
-echo_archive_postinstall() {
+echo_standalone_postinstall() {
   echo
   cat << EOF
-Binary release has been installed into $ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION
+Standalone release has been installed into $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
-  PATH="$ARCHIVE_INSTALL_PREFIX/bin:\$PATH"
+  PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
 Then you can run:
   code-server
 EOF
@@ -94,7 +94,7 @@ main() {
   unset \
     DRY_RUN \
     METHOD \
-    ARCHIVE_INSTALL_PREFIX \
+    STANDALONE_INSTALL_PREFIX \
     VERSION \
     OPTIONAL
 
@@ -111,11 +111,11 @@ main() {
       METHOD="$(parse_arg "$@")"
       ;;
     --prefix)
-      ARCHIVE_INSTALL_PREFIX="$(parse_arg "$@")"
+      STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
       shift
       ;;
     --prefix=*)
-      ARCHIVE_INSTALL_PREFIX="$(parse_arg "$@")"
+      STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
       ;;
     --version)
       VERSION="$(parse_arg "$@")"
@@ -140,12 +140,12 @@ main() {
 
   VERSION="${VERSION-$(echo_latest_version)}"
   METHOD="${METHOD-detect}"
-  if [ "$METHOD" != detect ] && [ "$METHOD" != archive ]; then
+  if [ "$METHOD" != detect ] && [ "$METHOD" != standalone ]; then
     echoerr "Unknown install method \"$METHOD\""
     echoerr "Run with --help to see usage."
     exit 1
   fi
-  ARCHIVE_INSTALL_PREFIX="${ARCHIVE_INSTALL_PREFIX-$HOME/.local}"
+  STANDALONE_INSTALL_PREFIX="${STANDALONE_INSTALL_PREFIX-$HOME/.local}"
 
   OS="$(os)"
   if [ ! "$OS" ]; then
@@ -157,9 +157,9 @@ main() {
 
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
-    if [ "$METHOD" = archive ]; then
-      echoerr "No binary releases available for the architecture $(uname -m)."
-      echoerr 'Please rerun without the "--method archive" flag to install from npm.'
+    if [ "$METHOD" = standalone ]; then
+      echoerr "No releases available for the architecture $(uname -m)."
+      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
       exit 1
     fi
     echo "No precompiled releases for $(uname -m)."
@@ -170,8 +170,8 @@ main() {
   CACHE_DIR="$(echo_cache_dir)"
   mkdir -p "$CACHE_DIR"
 
-  if [ "$METHOD" = archive ]; then
-    install_archive
+  if [ "$METHOD" = standalone ]; then
+    install_standalone
     return
   fi
 
@@ -190,7 +190,7 @@ main() {
     ;;
   *)
     echo "Unsupported package manager."
-    install_archive
+    install_standalone
     ;;
   esac
 }
@@ -256,7 +256,7 @@ install_macos() {
 
   echo "Homebrew not installed."
 
-  install_archive
+  install_standalone
 }
 
 install_deb() {
@@ -300,31 +300,31 @@ install_aur() {
   echo_systemd_postinstall
 }
 
-install_archive() {
-  echo "Installing binary release archive v$VERSION"
+install_standalone() {
+  echo "Installing standalone release archive v$VERSION"
   echo
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
 
   sh_c="sh_c"
-  if [ ! -w "$ARCHIVE_INSTALL_PREFIX" ]; then
+  if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
     sh_c="sudo_sh_c"
   fi
 
-  if [ -e "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
+  if [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
     echo
-    echo "code-server-$VERSION is already installed at $ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION"
+    echo "code-server-$VERSION is already installed at $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
     echo "Remove it to reinstall."
     exit 0
   fi
 
-  "$sh_c" mkdir -p "$ARCHIVE_INSTALL_PREFIX/lib" "$ARCHIVE_INSTALL_PREFIX/bin"
-  "$sh_c" tar -C "$ARCHIVE_INSTALL_PREFIX/lib" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
-  "$sh_c" mv -f "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION"
-  "$sh_c" ln -fs "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION/bin/code-server" "$ARCHIVE_INSTALL_PREFIX/bin/code-server"
+  "$sh_c" mkdir -p "$STANDALONE_INSTALL_PREFIX/lib" "$STANDALONE_INSTALL_PREFIX/bin"
+  "$sh_c" tar -C "$STANDALONE_INSTALL_PREFIX/lib" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
+  "$sh_c" mv -f "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
+  "$sh_c" ln -fs "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION/bin/code-server" "$STANDALONE_INSTALL_PREFIX/bin/code-server"
 
-  echo_archive_postinstall
+  echo_standalone_postinstall
 }
 
 install_npm() {

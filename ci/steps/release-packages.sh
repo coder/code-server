@@ -7,8 +7,8 @@ main() {
   # https://github.com/actions/upload-artifact/issues/38
   tar -xzf release-npm-package/package.tar.gz
 
-  yarn release:binary
-  yarn test:binary-release
+  yarn release:standalone
+  yarn test:standalone-release
   yarn package
 }
 

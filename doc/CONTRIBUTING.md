@@ -51,14 +51,14 @@ yarn --production
 node .
 ```
 
-Now you can build binary packages with:
+Now you can build the packages with:
 
 ```
-yarn release:binary
-yarn test:binary-release
+yarn release:standalone
+yarn test:standalone-release
 yarn package
-# The binary release is in ./release-binary
-# .deb, .rpm and the binary archive are in ./release-packages
+# The standalone release is in ./release-standalone
+# .deb, .rpm and the standalone archive are in ./release-packages
 ```
 
 ## Structure

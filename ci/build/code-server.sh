@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# This script is intended to be bundled into the binary releases.
-# Runs code-server with the bundled Node binary.
+# This script is intended to be bundled into the standalone releases.
+# Runs code-server with the bundled node binary.
 
 # More complicated than readlink -f or realpath to support macOS.
 # See https://github.com/cdr/code-server/issues/1537

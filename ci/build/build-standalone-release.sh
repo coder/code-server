@@ -5,8 +5,8 @@ main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
 
-  rsync "$RELEASE_PATH/" "$RELEASE_PATH-binary"
-  RELEASE_PATH+=-binary
+  rsync "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
+  RELEASE_PATH+=-standalone
 
   # We cannot find the path to node from $PATH because yarn shims a script to ensure
   # we use the same version it's using so we instead run a script with yarn that
