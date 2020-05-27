@@ -13,4 +13,4 @@ license: "MIT"
 files:
   ./ci/build/code-server-nfpm.sh: /usr/bin/code-server
   ./ci/build/code-server.service: /usr/lib/systemd/user/code-server.service
-  ./release-static/**/*: "/usr/lib/code-server/"
+  ./release-binary/**/*: "/usr/lib/code-server/"

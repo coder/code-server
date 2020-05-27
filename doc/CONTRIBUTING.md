@@ -51,14 +51,14 @@ yarn --production
 node .
 ```
 
-Now you can make it static and build packages with:
+Now you can build binary packages with:
 
 ```
-yarn release:static
-yarn test:static-release
+yarn release:binary
+yarn test:binary-release
 yarn package
-# The static release is in ./release-static
-# .deb, .rpm and the static archive are in ./release-packages
+# The binary release is in ./release-binary
+# .deb, .rpm and the binary archive are in ./release-packages
 ```
 
 ## Structure

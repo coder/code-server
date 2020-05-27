@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# This script is intended to be bundled into the static releases.
+# This script is intended to be bundled into the binary releases.
 # Runs code-server with the bundled Node binary.
 
 # More complicated than readlink -f or realpath to support macOS.

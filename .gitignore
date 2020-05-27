@@ -4,7 +4,7 @@ dist*
 out*
 release/
 release-npm-package/
-release-static/
+release-binary/
 release-packages/
 release-gcp/
 release-images/

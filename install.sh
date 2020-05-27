@@ -30,10 +30,10 @@ Usage:
       Choose the installation method. Defaults to detect.
       - detect detects the system package manager and tries to use it.
         Full reference on the process is further below.
-      - archive installs a static release archive into ~/.local
+      - archive installs a binary release archive into ~/.local
         Add ~/.local/bin to your \$PATH to use it.
   --prefix <dir>
-      Sets the prefix used by static release archives. Defaults to ~/.local
+      Sets the prefix used by binary release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
@@ -41,11 +41,11 @@ Usage:
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest static
+- For any unrecognized Linux operating system it will install the latest binary
   release into ~/.local
 
 - For macOS it will install the Homebrew package.
-  - If Homebrew is not installed it will install the latest static release
+  - If Homebrew is not installed it will install the latest binary release
     into ~/.local
 
 - If ran on an architecture with no binary releases, it will install the
@@ -65,10 +65,10 @@ echo_latest_version() {
   echo "$version"
 }
 
-echo_static_postinstall() {
+echo_archive_postinstall() {
   echo
   cat << EOF
-Static release has been installed into $ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION
+Binary release has been installed into $ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
   PATH="$ARCHIVE_INSTALL_PREFIX/bin:\$PATH"
 Then you can run:
@@ -158,7 +158,7 @@ main() {
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
     if [ "$METHOD" = archive ]; then
-      echoerr "No static releases available for the architecture $(uname -m)."
+      echoerr "No binary releases available for the architecture $(uname -m)."
       echoerr 'Please rerun without the "--method archive" flag to install from npm.'
       exit 1
     fi
@@ -304,7 +304,7 @@ install_aur() {
 }
 
 install_archive() {
-  echo "Installing static release v$VERSION"
+  echo "Installing binary release archive v$VERSION"
   echo
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
@@ -327,7 +327,7 @@ install_archive() {
   "$sh_c" mv -f "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION"
   "$sh_c" ln -fs "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION/bin/code-server" "$ARCHIVE_INSTALL_PREFIX/bin/code-server"
 
-  echo_static_postinstall
+  echo_archive_postinstall
 }
 
 install_npm() {

@@ -10,7 +10,7 @@
 - [Arch Linux](#arch-linux)
 - [yarn, npm](#yarn-npm)
 - [macOS](#macos)
-- [Static Releases](#static-releases)
+- [Binary Releases](#binary-releases)
 - [Docker](#docker)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -51,8 +51,8 @@ commands presented in the rest of this document.
 - `--dry-run` to echo the commands for the install process without running them.
 - `--method` to choose the installation method.
   - `--method=detect` to detect the package manager but fallback to `--method=archive`.
-  - `--method=archive` to install a static release archive into `~/.local`.
-- `--prefix=/usr/local` to install a static release archive system wide.
+  - `--method=archive` to install a binary release archive into `~/.local`.
+- `--prefix=/usr/local` to install a binary release archive system wide.
 - `--version=X.X.X` to install version `X.X.X` instead of latest.
 - `--help` to see full usage docs.
 
@@ -61,13 +61,13 @@ commands presented in the rest of this document.
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest static release into `~/.local`.
+- For any unrecognized Linux operating system it will install the latest binary release into `~/.local`.
 
   - Add `~/.local/bin` to your `$PATH` to run code-server.
 
 - For macOS it will install the Homebrew package.
 
-  - If Homebrew is not installed it will install the latest static release into `~/.local`.
+  - If Homebrew is not installed it will install the latest binary release into `~/.local`.
   - Add `~/.local/bin` to your `$PATH` to run code-server.
 
 - If ran on an architecture with no binary releases, it will install the npm package with `yarn` or `npm`.
@@ -136,7 +136,7 @@ brew services start code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
-## Static Releases
+## Binary Releases
 
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and `node_modules`.
@@ -148,7 +148,7 @@ They bundle the node binary and `node_modules`.
 You can add the code-server `bin` directory to your `$PATH` to easily execute `code-server`
 without the full path every time.
 
-Here is an example script for installing and using a static `code-server` release on Linux:
+Here is an example script for installing and using a binary `code-server` release on Linux:
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
