@@ -152,15 +152,13 @@ user a virtual machine instead of just a container.
 
 ## Docker in code-server container?
 
-If you'd like to access docker inside of code-server, we'd recommend running a `docker:dind` container
-and mounting in a directory to share between `dind` and the `code-server` container at `/var/run`.
-After, install the docker CLI in the code-server container and you should be able to access the
-daemon as the socket will be shared at `/var/run/docker.sock`.
+If you'd like to access docker inside of code-server, mount the docker socket in from `/var/run/docker.sock`.
+Install the docker CLI in the code-server container and you should be able to access the daemon!
 
-In order to make volume mounts work, mount the home directory in the code-server container and the
-dind container at the same path. i.e you'd volume mount a directory from the host to `/home/coder`
-on both. This will allow any volume mounts in the home directory to work. Similar process
-to make volume mounts in any other directory work.
+You can even make volume mounts work. Lets say you want to run a container and mount in
+`/home/coder/myproject` into it from inside the `code-server` container. You need to make sure
+the docker daemon's `/home/coder/myproject` is the same as the one mounted inside the `code-server`
+container and the mount will just work.
 
 ## Collaboration
 
@@ -269,7 +267,7 @@ it is against their TOS to use the published extensions so we are unable to
 add them to our marketplace.
 
 We may reimplement them at some point.
-You can follow [#1315](https://github.com/cdr/code-server/issues/1315) for updates.
+You can subscribe to [#1315](https://github.com/cdr/code-server/issues/1315) for updates.
 
 ## Enterprise
 

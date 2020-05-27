@@ -95,7 +95,6 @@ main() {
     DRY_RUN \
     METHOD \
     ARCHIVE_INSTALL_PREFIX \
-    SKIP_ECHO \
     VERSION \
     OPTIONAL
 
@@ -199,7 +198,9 @@ main() {
 parse_arg() {
   case "$1" in
   *=*)
-    opt="${1#=*}"
+    # Remove everything after first equal sign.
+    opt="${1%%=*}"
+    # Remove everything before first equal sign.
     optarg="${1#*=}"
     if [ ! "$optarg" ] && [ ! "${OPTIONAL-}" ]; then
       echoerr "$opt requires an argument"
@@ -230,23 +231,17 @@ fetch() {
   URL="$1"
   FILE="$2"
 
-  echo "+ Downloading $URL"
-
   if [ -e "$FILE" ]; then
-    echo "+ Using cached $FILE"
+    echo "+ Reusing $CACHE_DIR/${URL##*/}"
     return
   fi
 
-  SKIP_ECHO=1
   sh_c curl \
     -#fL \
     -o "$FILE.incomplete" \
     -C - \
     "$URL"
   sh_c mv "$FILE.incomplete" "$FILE"
-  unset SKIP_ECHO
-
-  echo "+ Downloaded into $FILE"
 }
 
 install_macos() {
@@ -290,18 +285,20 @@ install_aur() {
   echo "Installing from the AUR."
   echo
 
-  prev_dir="$PWD"
   tmp_dir="$(mktemp -d)"
-  cd "$tmp_dir"
 
-  echo "+ Downloading PKGBUILD from https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz"
-  SKIP_ECHO=1 sh_c 'curl -fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xz --strip-components 1'
-  unset SKIP_ECHO
-  echo "+ Downloaded into $tmp_dir"
+  echo "+ Downloading PKGBUILD into $tmp_dir from https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz"
+  curl -fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xzC "$tmp_dir"
+  VERSION="$(. "$tmp_dir/code-server/PKGBUILD" && echo "$pkgver")"
+  rm -R "$tmp_dir"
+
+  mkdir -p "$CACHE_DIR/code-server-$VERSION-aur"
+  sh_c cp -a "$tmp_dir/code-server/*" "$CACHE_DIR/code-server-$VERSION-aur"
+
+  echo "+ Installing $CACHE_DIR/code-server-$VERSION-aur"
+
+  cd "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c makepkg -si
-
-  cd "$prev_dir"
-  rm -Rf "$tmp_dir"
 
   echo_systemd_postinstall
 }
@@ -318,15 +315,14 @@ install_archive() {
     sh_c="sudo_sh_c"
   fi
 
-  SKIP_ECHO=1 sh_c mkdir -p "$ARCHIVE_INSTALL_PREFIX/lib" "$ARCHIVE_INSTALL_PREFIX/bin"
-  unset SKIP_ECHO
-
   if [ -e "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
     echo
     echo "code-server-$VERSION is already installed at $ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION"
     echo "Remove it to reinstall."
     exit 0
   fi
+
+  "$sh_c" mkdir -p "$ARCHIVE_INSTALL_PREFIX/lib" "$ARCHIVE_INSTALL_PREFIX/bin"
   "$sh_c" tar -C "$ARCHIVE_INSTALL_PREFIX/lib" -xzf "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
   "$sh_c" mv -f "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION-$OS-$ARCH" "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION"
   "$sh_c" ln -fs "$ARCHIVE_INSTALL_PREFIX/lib/code-server-$VERSION/bin/code-server" "$ARCHIVE_INSTALL_PREFIX/bin/code-server"
@@ -336,14 +332,22 @@ install_archive() {
 
 install_npm() {
   if command_exists yarn; then
+    sh_c="sh_c"
+    if [ ! -w "$(yarn global bin)" ]; then
+      sh_c="sudo_sh_c"
+    fi
     echo "Installing with yarn."
     echo
-    sh_c yarn global add code-server --unsafe-perm
+    "$sh_c" yarn global add code-server --unsafe-perm
     return
   elif command_exists npm; then
+    sh_c="sh_c"
+    if [ ! -w "$(npm config get prefix)" ]; then
+      sh_c="sudo_sh_c"
+    fi
     echo "Installing with npm."
     echo
-    sh_c npm install -g code-server --unsafe-perm
+    "$sh_c" npm install -g code-server --unsafe-perm
     return
   fi
   echo
@@ -431,9 +435,7 @@ command_exists() {
 }
 
 sh_c() {
-  if [ ! "${SKIP_ECHO-}" ]; then
-    echo "+ $*"
-  fi
+  echo "+ $*"
   if [ ! "${DRY_RUN-}" ]; then
     sh -c "$*"
   fi
@@ -465,8 +467,21 @@ echo_cache_dir() {
   fi
 }
 
+echo() {
+  builtin echo "$@" | humanpath
+}
+
+cat() {
+  humanpath
+}
+
 echoerr() {
   echo "$@" >&2
+}
+
+# humanpath replaces all occurances of $HOME with ~
+humanpath() {
+  sed "s#$HOME#~#g"
 }
 
 main "$@"

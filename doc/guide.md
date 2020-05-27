@@ -78,14 +78,14 @@ to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-We have a [script](./install.sh) to install `code-server` for Linux and macOS.
+We have a [script](../install.sh) to install `code-server` for Linux and macOS.
 
 It tries to use the system package manager if possible.
 
 First run to print out the install process:
 
 ```bash
-curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run
+curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
 Now to actually install:
@@ -96,7 +96,7 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 The install script will print out how to run and start using `code-server`.
 
-Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
+Docs on the install script, manual installation and docker image are at [./install.md](./install.md).
 
 ## 3. Expose code-server
 
@@ -205,7 +205,7 @@ the dependency on caddy.
 ### Self Signed Certificate
 
 **note:** Self signed certificates do not work with iPad and will cause a blank page. You'll
-have to use [Let's Encrypt](#lets-encrypt) instead. See the [FAQ](https://github.com/cdr/code-server/blob/master/doc/FAQ.md#blank-screen-on-ipad).
+have to use [Let's Encrypt](#lets-encrypt) instead. See the [FAQ](./FAQ.md#blank-screen-on-ipad).
 
 Recommended reading: https://security.stackexchange.com/a/8112.
 
@@ -255,4 +255,4 @@ systemctl --user restart code-server
 
 If you're working on a web service and want to access it locally, `code-server` can proxy it for you.
 
-See the [FAQ](https://github.com/cdr/code-server/blob/master/doc/FAQ.md#how-do-i-securely-access-web-services).
+See the [FAQ](./FAQ.md#how-do-i-securely-access-web-services).

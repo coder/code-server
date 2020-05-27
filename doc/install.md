@@ -20,14 +20,14 @@ various distros and operating systems.
 
 ## install.sh
 
-We have a [script](./install.sh) to install code-server for Linux and macOS.
+We have a [script](../install.sh) to install code-server for Linux and macOS.
 
 It tries to use the system package manager if possible.
 
 First run to print out the install process:
 
 ```bash
-curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run
+curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
 Now to actually install:
@@ -43,7 +43,7 @@ If you believe an install script used with `curl | sh` is insecure, please give
 [sandstorm.io](https://sandstorm.io) a read.
 
 If you'd still prefer manual installation despite the below [detect reference](#detect-reference) and `--dry-run`
-then continue on for docs on manual installation. The [`install.sh`](./install.sh) script runs the _exact_ same
+then continue on for docs on manual installation. The [`install.sh`](../install.sh) script runs the _exact_ same
 commands presented in the rest of this document.
 
 ### Flags
@@ -117,7 +117,7 @@ We recommend installing with `yarn` or `npm` when:
 2. If you're on Linux with glibc < v2.17
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
-See [./doc/npm.md](./doc/npm.md) for installing these dependencies.
+See [./npm.md](./npm.md) for installing these dependencies.
 
 You will need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
 

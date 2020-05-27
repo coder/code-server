@@ -25,7 +25,7 @@ It tries to use the system package manager if possible.
 First run to print out the install process:
 
 ```bash
-curl -fsSL https://code-server.dev/install.sh | sh  -s -- --dry-run
+curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
 Now to actually install:
