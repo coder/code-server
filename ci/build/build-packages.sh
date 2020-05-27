@@ -31,7 +31,7 @@ release_archive() {
   if [[ $OS == "linux" ]]; then
     tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
   else
-    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" ./release-standalone
+    tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" release-standalone
   fi
   echo "done (release-packages/$release_name)"
 

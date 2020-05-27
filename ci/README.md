@@ -16,8 +16,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 1. Update the version of code-server and make a PR.
    1. Update in `package.json`
-   2. [README.md](../README.md) and [guide.md](../doc/guide.md) install examples
-   3. [install.sh](../install.sh)
+   2. Update in [install.sh](../install.sh)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
@@ -92,7 +91,7 @@ You can disable minification by setting `MINIFY=`.
 - [./ci/build/nfpm.yaml](./build/nfpm.yaml)
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate `.deb` and `.rpm`.
 - [./ci/build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
-  - Entrypoint script for code-server for `.deb` and .rpm`.
+  - Entrypoint script for code-server for `.deb` and `.rpm`.
 - [./ci/build/code-server.service](./build/code-server.service)
   - systemd user service packaged into the `.deb` and `.rpm`.
 - [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
