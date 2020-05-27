@@ -13,7 +13,7 @@ usage() {
 "
   fi
 
-  cat << EOF
+  cath << EOF
 Installs code-server for Linux and macOS.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
@@ -67,8 +67,8 @@ echo_latest_version() {
 }
 
 echo_standalone_postinstall() {
-  echo
-  cat << EOF
+  echoh
+  cath << EOF
 Standalone release has been installed into $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
   PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
@@ -78,8 +78,8 @@ EOF
 }
 
 echo_systemd_postinstall() {
-  echo
-  cat << EOF
+  echoh
+  cath << EOF
 To have systemd start code-server now and restart on boot:
   systemctl --user enable --now code-server
 Or, if you don't want/need a background service you can run:
@@ -163,7 +163,7 @@ main() {
       echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
       exit 1
     fi
-    echo "No precompiled releases for $(uname -m)."
+    echoh "No precompiled releases for $(uname -m)."
     install_npm
     return
   fi
@@ -190,7 +190,7 @@ main() {
     install_aur
     ;;
   *)
-    echo "Unsupported package manager."
+    echoh "Unsupported package manager."
     install_standalone
     ;;
   esac
@@ -233,7 +233,7 @@ fetch() {
   FILE="$2"
 
   if [ -e "$FILE" ]; then
-    echo "+ Reusing $CACHE_DIR/${URL##*/}"
+    echoh "+ Reusing $CACHE_DIR/${URL##*/}"
     return
   fi
 
@@ -247,22 +247,22 @@ fetch() {
 
 install_macos() {
   if command_exists brew; then
-    echo "Installing from Homebrew."
-    echo
+    echoh "Installing from Homebrew."
+    echoh
 
     sh_c brew install code-server
 
     return
   fi
 
-  echo "Homebrew not installed."
+  echoh "Homebrew not installed."
 
   install_standalone
 }
 
 install_deb() {
-  echo "Installing v$VERSION deb package from GitHub releases."
-  echo
+  echoh "Installing v$VERSION deb package from GitHub releases."
+  echoh
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
     "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
@@ -272,8 +272,8 @@ install_deb() {
 }
 
 install_rpm() {
-  echo "Installing v$VERSION rpm package from GitHub releases."
-  echo
+  echoh "Installing v$VERSION rpm package from GitHub releases."
+  echoh
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
     "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
@@ -283,27 +283,28 @@ install_rpm() {
 }
 
 install_aur() {
-  echo "Installing from the AUR."
-  echo
+  echoh "Installing from the AUR."
+  echoh
 
   tmp_dir="$(mktemp -d)"
 
-  echo "+ Downloading PKGBUILD into $tmp_dir from https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz"
+  echoh "+ Downloading PKGBUILD into $tmp_dir from https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz"
   curl -fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xzC "$tmp_dir"
   VERSION="$(. "$tmp_dir/code-server/PKGBUILD" && echo "$pkgver")"
-  rm -R "$tmp_dir"
 
   sh_c mkdir -p "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c cp -a "$tmp_dir/code-server/*" "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c cd "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c makepkg -si
 
+  rm -R "$tmp_dir"
+
   echo_systemd_postinstall
 }
 
 install_standalone() {
-  echo "Installing standalone release archive v$VERSION"
-  echo
+  echoh "Installing standalone release archive v$VERSION"
+  echoh
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
@@ -314,9 +315,9 @@ install_standalone() {
   fi
 
   if [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
-    echo
-    echo "code-server-$VERSION is already installed at $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
-    echo "Remove it to reinstall."
+    echoh
+    echoh "code-server-$VERSION is already installed at $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
+    echoh "Remove it to reinstall."
     exit 0
   fi
 
@@ -334,8 +335,8 @@ install_npm() {
     if [ ! -w "$(yarn global bin)" ]; then
       sh_c="sudo_sh_c"
     fi
-    echo "Installing with yarn."
-    echo
+    echoh "Installing with yarn."
+    echoh
     "$sh_c" yarn global add code-server --unsafe-perm
     return
   elif command_exists npm; then
@@ -343,12 +344,12 @@ install_npm() {
     if [ ! -w "$(npm config get prefix)" ]; then
       sh_c="sudo_sh_c"
     fi
-    echo "Installing with npm."
-    echo
+    echoh "Installing with npm."
+    echoh
     "$sh_c" npm install -g code-server --unsafe-perm
     return
   fi
-  echo
+  echoh
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
   echoerr "See the docs https://github.com/cdr/code-server#yarn-npm"
@@ -433,7 +434,7 @@ command_exists() {
 }
 
 sh_c() {
-  echo "+ $*"
+  echoh "+ $*"
   if [ ! "${DRY_RUN-}" ]; then
     sh -c "$*"
   fi
@@ -447,7 +448,7 @@ sudo_sh_c() {
   elif command_exists su; then
     sh_c "su -c '$*'"
   else
-    echo
+    echoh
     echoerr "This script needs to run the following command as root."
     echoerr "  $*"
     echoerr "Please install sudo or su."
@@ -465,16 +466,16 @@ echo_cache_dir() {
   fi
 }
 
-echo() {
-  builtin echo "$@" | humanpath
+echoh() {
+  echo "$@" | humanpath
 }
 
-cat() {
+cath() {
   humanpath
 }
 
 echoerr() {
-  echo "$@" >&2
+  echoh "$@" >&2
 }
 
 # humanpath replaces all occurances of $HOME with ~
