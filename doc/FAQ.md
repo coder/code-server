@@ -248,6 +248,17 @@ Please give
 [this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
 [sandstorm.io](https://sandstorm.io) a read.
 
+## How do I make my keyboard shortcuts work?
+
+Many shortcuts will not work by default as they'll be caught by the browser.
+
+If you use Chrome you can get around this by installing the PWA.
+
+Once you've entered the editor, click the "plus" icon present in the URL toolbar area.
+This will install a Chrome PWA and now all keybindings will work!
+
+For other browsers you'll have to remap keybindings unfortunately.
+
 ## Enterprise
 
 Visit [our enterprise page](https://coder.com) for more information about our
