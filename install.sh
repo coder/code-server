@@ -292,12 +292,9 @@ install_aur() {
   VERSION="$(. "$tmp_dir/code-server/PKGBUILD" && echo "$pkgver")"
   rm -R "$tmp_dir"
 
-  mkdir -p "$CACHE_DIR/code-server-$VERSION-aur"
+  sh_c mkdir -p "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c cp -a "$tmp_dir/code-server/*" "$CACHE_DIR/code-server-$VERSION-aur"
-
-  echo "+ Installing $CACHE_DIR/code-server-$VERSION-aur"
-
-  cd "$CACHE_DIR/code-server-$VERSION-aur"
+  sh_c cd "$CACHE_DIR/code-server-$VERSION-aur"
   sh_c makepkg -si
 
   echo_systemd_postinstall
