@@ -51,6 +51,7 @@ Usage:
 - If ran on an architecture with no releases, it will install the
   npm package with yarn or npm.
   - We only have releases for amd64 and arm64 presently.
+  - The npm package builds the native modules on postinstall.
 
 It will cache all downloaded assets into ~/.cache/code-server
 

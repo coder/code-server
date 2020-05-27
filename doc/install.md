@@ -70,8 +70,9 @@ commands presented in the rest of this document.
   - If Homebrew is not installed it will install the latest standalone release into `~/.local`.
   - Add `~/.local/bin` to your `$PATH` to run code-server.
 
-- If ran on an architecture with no releases, it will install the npm package with `yarn` or `npm`.
+- If ran on an architecture with no releases, it will install the [npm package](#yarn-npm) with `yarn` or `npm`.
   - We only have releases for amd64 and arm64 presently.
+  - The [npm package](#yarn-npm) builds the native modules on postinstall.
 
 ## Debian, Ubuntu
 

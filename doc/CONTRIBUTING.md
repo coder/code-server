@@ -51,13 +51,13 @@ yarn --production
 node .
 ```
 
-Now you can build the packages with:
+Now you can build release packages with:
 
 ```
 yarn release:standalone
+# The standalone release is in ./release-standalone
 yarn test:standalone-release
 yarn package
-# The standalone release is in ./release-standalone
 # .deb, .rpm and the standalone archive are in ./release-packages
 ```
 
