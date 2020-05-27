@@ -43,8 +43,6 @@ const main = async (cliArgs: Args): Promise<void> => {
     }
   }
 
-  args = await setDefaults(args)
-
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
 
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
@@ -129,9 +127,11 @@ const main = async (cliArgs: Args): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
-  const tryParse = (): Args => {
+  const tryParse = async (): Promise<Args> => {
     try {
-      return parse(process.argv.slice(2))
+      let args = parse(process.argv.slice(2))
+      args = await setDefaults(args)
+      return args
     } catch (error) {
       console.error(error.message)
       process.exit(1)
