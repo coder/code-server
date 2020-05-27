@@ -54,10 +54,10 @@ jobs:
         with:
           name: npm-package
           path: ./release-npm-package
-      - name: Run ./ci/steps/release-static.sh
+      - name: Run ./ci/steps/release-standalone.sh
         uses: ./ci/container
         with:
-          args: ./ci/steps/release-static.sh
+          args: ./ci/steps/release-standalone.sh
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -74,10 +74,10 @@ jobs:
         with:
           name: npm-package
           path: ./release-npm-package
-      - name: Run ./ci/steps/release-static.sh
+      - name: Run ./ci/steps/release-standalone.sh
         uses: ./ci/container/arm64
         with:
-          args: ./ci/steps/release-static.sh
+          args: ./ci/steps/release-standalone.sh
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2
         with:
@@ -96,7 +96,7 @@ jobs:
           path: ./release-npm-package
       - run: brew unlink node@12
       - run: brew install node
-      - run: ./ci/steps/release-static.sh
+      - run: ./ci/steps/release-standalone.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.
           # For whatever reason only MacOS needs it.

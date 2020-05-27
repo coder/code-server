@@ -142,6 +142,9 @@ brew services start code-server
 We publish self contained `.tar.gz` archives for every release on [github](https://github.com/cdr/code-server/releases).
 They bundle the node binary and `node_modules`.
 
+These are created from the [npm package](#yarn-npm) and the rest of the releases are created from these.
+Only requirement is glibc >= 2.17 on Linux and for macOS there is no minimum system requirement.
+
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
 2. Unpack the release.
 3. You can run code-server by executing `./bin/code-server`.
