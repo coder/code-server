@@ -42,6 +42,8 @@ If you believe an install script used with `curl | sh` is insecure, please give
 
 Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
 
+We also highly recommend reading the [FAQ](./doc/FAQ.md) on the [Differences compared to VS Code](./doc/FAQ.md#differences-compared-to-vs-code).
+
 ## FAQ
 
 See [./doc/FAQ.md](./doc/FAQ.md).

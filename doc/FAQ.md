@@ -3,7 +3,9 @@
 # FAQ
 
 - [Questions?](#questions)
-- [What's the deal with extensions?](#whats-the-deal-with-extensions)
+- [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
+- [Differences compared to VS Code?](#differences-compared-to-vs-code)
+- [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
@@ -12,7 +14,6 @@
   - [Sub-domains](#sub-domains)
 - [Multi-tenancy](#multi-tenancy)
 - [Docker in code-server container?](#docker-in-code-server-container)
-- [Collaboration](#collaboration)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
@@ -21,7 +22,6 @@
 - [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
-- [Why can't I use VS Code's Remote extensions?](#why-cant-i-use-vs-codes-remote-extensions)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -30,14 +30,26 @@
 
 Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
 
-The issue tracker is **only** for bugs.
+The issue tracker is **only** for bugs and features.
 
-## What's the deal with extensions?
+## How can I reuse my VS Code configuration?
 
-Unfortunately, the Microsoft VS Code Marketplace license prohibits use with any non Microsoft
-product.
+The very popular [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync) extension works.
 
-See https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-Marketplace-Terms-of-Use.pdf
+You can also pass `--data-dir ~/.vscode` to reuse your existing VS Code extensions and configuration.
+
+Or copy `~/.vscode` into `~/.local/share/code-server`.
+
+## Differences compared to VS Code?
+
+`code-server` takes the open source core of VS Code and allows you to run it in the browser.
+However, it is not entirely equivalent to Microsoft's VS Code.
+
+While the core of VS Code is open source, the marketplace and many published Microsoft extensions are not.
+
+Not only are they closed source, Microsoft prohibits the use of any non-Microsoft VS Code from accessing their marketplace.
+
+See the [TOS](https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-Marketplace-Terms-of-Use.pdf).
 
 > Marketplace Offerings are intended for use only with Visual Studio Products and Services
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
@@ -46,12 +58,18 @@ As a result, we have created our own marketplace for open source extensions.
 It works by scraping GitHub for VS Code extensions and building them. It's not perfect but getting
 better by the day with more and more extensions.
 
-Issue [#1299](https://github.com/cdr/code-server/issues/1299) is a big one in making the experience here
-better by allowing the community to submit extensions and repos to avoid waiting until the scraper finds
-an extension.
+These are the closed source extensions presently unavailable:
 
-To request an extension for the code-server marketplace, please open a new issue
-and select the `Extension request` template.
+1. [Live Share](https://visualstudio.microsoft.com/services/live-share)
+   - We may implement something similar, see [#33](https://github.com/cdr/code-server/issues/33)
+1. [Remote Extensions (SSH, Containers, WSL)](https://github.com/microsoft/vscode-remote-release)
+   - We may reimplement these at some point, see [#1315](https://github.com/cdr/code-server/issues/1315)
+
+For more about the closed source parts of VS Code, see [vscodium/vscodium](https://github.com/VSCodium/vscodium#why-does-this-exist).
+
+## How can I request a missing extension?
+
+Please open a new issue and select the `Extension request` template.
 
 If an extension is not available or does not work, you can grab its VSIX from its Github releases or
 build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
@@ -160,12 +178,6 @@ You can even make volume mounts work. Lets say you want to run a container and m
 the docker daemon's `/home/coder/myproject` is the same as the one mounted inside the `code-server`
 container and the mount will just work.
 
-## Collaboration
-
-We understand the high demand but the team is swamped right now.
-
-You can subscribe to [#33](https://github.com/cdr/code-server/issues/33) for updates.
-
 ## How can I disable telemetry?
 
 Use the `--disable-telemetry` flag to completely disable telemetry. We use the
@@ -258,16 +270,6 @@ Once you've entered the editor, click the "plus" icon present in the URL toolbar
 This will install a Chrome PWA and now all keybindings will work!
 
 For other browsers you'll have to remap keybindings unfortunately.
-
-## Why can't I use VS Code's Remote extensions?
-
-Unfortunately, Microsoft has opted to make [VS Code's Remote SSH and Container
-extensions closed source](https://github.com/microsoft/vscode-remote-release) and
-it is against their TOS to use the published extensions so we are unable to
-add them to our marketplace.
-
-We may reimplement them at some point.
-You can subscribe to [#1315](https://github.com/cdr/code-server/issues/1315) for updates.
 
 ## Enterprise
 
