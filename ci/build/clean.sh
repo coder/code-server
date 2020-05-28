@@ -8,7 +8,7 @@ main() {
   rm -Rf \
     out \
     release \
-    release-static \
+    release-standalone \
     release-packages \
     release-gcp \
     release-images/ \

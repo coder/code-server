@@ -51,14 +51,14 @@ yarn --production
 node .
 ```
 
-Now you can make it static and build packages with:
+Now you can build release packages with:
 
 ```
-yarn release:static
-yarn test:static-release
+yarn release:standalone
+# The standalone release is in ./release-standalone
+yarn test:standalone-release
 yarn package
-# The static release is in ./release-static
-# .deb, .rpm and the static archive are in ./release-packages
+# .deb, .rpm and the standalone archive are in ./release-packages
 ```
 
 ## Structure

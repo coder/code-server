@@ -14,7 +14,9 @@ Any file or directory in this subdirectory should be documented here.
 
 Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
 
-1. Update the version of code-server in `package.json` and README.md/guide.md install examples and make a PR.
+1. Update the version of code-server and make a PR.
+   1. Update in `package.json`
+   2. Update in [install.sh](../install.sh)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
@@ -72,24 +74,24 @@ You can disable minification by setting `MINIFY=`.
   - Builds vscode into `./lib/vscode/out-vscode`.
 - [./ci/build/build-release.sh](./build/build-release.sh) (`yarn release`)
   - Bundles the output of the above two scripts into a single node module at `./release`.
-- [./ci/build/build-static-release.sh](./build/build-static-release.sh) (`yarn release:static`)
+- [./ci/build/build-standalone-release.sh](./build/build-standalone-release.sh) (`yarn release:standalone`)
   - Requires a node module already built into `./release` with the above script.
-  - Will build a static release with node and node_modules bundled into `./release-static`.
+  - Will build a standalone release with node and node_modules bundled into `./release-standalone`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
   - Will also `git reset --hard lib/vscode`.
   - Useful to do a clean build.
 - [./ci/build/code-server.sh](./build/code-server.sh)
-  - Copied into static releases to run code-server with the bundled node binary.
-- [./ci/build/test-static-release.sh](./build/test-static-release.sh) (`yarn test:static-release`)
-  - Ensures code-server in the `./release-static` directory works by installing an extension.
+  - Copied into standalone releases to run code-server with the bundled node binary.
+- [./ci/build/test-standalone-release.sh](./build/test-standalone-release.sh) (`yarn test:standalone-release`)
+  - Ensures code-server in the `./release-standalone` directory works by installing an extension.
 - [./ci/build/build-packages.sh](./build/build-packages.sh) (`yarn package`)
-  - Packages `./release-static` into a `.tar.gz` archive in `./release-packages`.
+  - Packages `./release-standalone` into a `.tar.gz` archive in `./release-packages`.
   - If on linux, [nfpm](https://github.com/goreleaser/nfpm) is used to generate `.deb` and `.rpm`.
 - [./ci/build/nfpm.yaml](./build/nfpm.yaml)
   - Used to configure [nfpm](https://github.com/goreleaser/nfpm) to generate `.deb` and `.rpm`.
 - [./ci/build/code-server-nfpm.sh](./build/code-server-nfpm.sh)
-  - Entrypoint script for code-server for `.deb` and .rpm`.
+  - Entrypoint script for code-server for `.deb` and `.rpm`.
 - [./ci/build/code-server.service](./build/code-server.service)
   - systemd user service packaged into the `.deb` and `.rpm`.
 - [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
@@ -128,9 +130,9 @@ Helps avoid clobbering the CI configuration.
 - [./steps/release.sh](./steps/release.sh)
   - Runs the release process.
   - Generates the npm package at `./release`.
-- [./steps/release-static.sh](./steps/release-static.sh)
-  - Takes the output of the previous script and generates a static release and
-    release packages into `release-packages`.
+- [./steps/release-packages.sh](./steps/release-packages.sh)
+  - Takes the output of the previous script and generates a standalone release and
+    release packages into `./release-packages`.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on npm.
 - [./steps/build-docker-image.sh](./steps/build-docker-image.sh)

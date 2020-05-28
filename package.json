@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.3.1",
+  "version": "3.4.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -16,10 +16,10 @@
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
-    "release:static": "./ci/build/build-static-release.sh",
+    "release:standalone": "./ci/build/build-standalone-release.sh",
     "release:github-draft": "./ci/build/release-github-draft.sh",
     "release:github-assets": "./ci/build/release-github-assets.sh",
-    "test:static-release": "./ci/build/test-static-release.sh",
+    "test:standalone-release": "./ci/build/test-standalone-release.sh",
     "package": "./ci/build/build-packages.sh",
     "_____": "",
     "fmt": "./ci/dev/fmt.sh",

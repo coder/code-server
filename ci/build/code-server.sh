@@ -1,7 +1,7 @@
-#!/usr/bin/env sh
+#!/bin/sh
 
-# This script is intended to be bundled into the static releases.
-# Runs code-server with the bundled Node binary.
+# This script is intended to be bundled into the standalone releases.
+# Runs code-server with the bundled node binary.
 
 # More complicated than readlink -f or realpath to support macOS.
 # See https://github.com/cdr/code-server/issues/1537
@@ -17,4 +17,9 @@ bin_dir() {
 }
 
 BIN_DIR=$(bin_dir)
+if [ "$(uname)" = "Linux" ]; then
+  export LD_LIBRARY_PATH="$BIN_DIR/../lib${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH}"
+elif [ "$(uname)" = "Darwin" ]; then
+  export DYLD_LIBRARY_PATH="$BIN_DIR/../lib${DYLD_LIBRARY_PATH+:$DYLD_LIBRARY_PATH}"
+fi
 exec "$BIN_DIR/../lib/node" "$BIN_DIR/.." "$@"

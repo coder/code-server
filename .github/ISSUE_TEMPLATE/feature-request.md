@@ -1,10 +1,9 @@
 ---
 name: Feature request
 about: Suggest an idea
-title: ''
+title: ""
 labels: feature
-assignees: ''
-
+assignees: ""
 ---
 
 <!--

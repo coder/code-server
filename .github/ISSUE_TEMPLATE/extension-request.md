@@ -1,10 +1,9 @@
 ---
 name: Extension request
 about: Request an extension missing from the code-server marketplace
-title: ''
+title: ""
 labels: extension-request
 assignees: cmoog
-
 ---
 
 <!--
