@@ -298,7 +298,7 @@ install_aur() {
 }
 
 install_standalone() {
-  echoh "Installing standalone release archive v$VERSION"
+  echoh "Installing standalone release archive v$VERSION from GitHub releases."
   echoh
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
