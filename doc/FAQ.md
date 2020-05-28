@@ -3,6 +3,7 @@
 # FAQ
 
 - [Questions?](#questions)
+- [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [What's the deal with extensions?](#whats-the-deal-with-extensions)
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
@@ -22,6 +23,7 @@
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Why can't I use VS Code's Remote extensions?](#why-cant-i-use-vs-codes-remote-extensions)
+- [Why can't I use VS Code Live Share?](#why-cant-i-use-vs-code-live-share)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -31,6 +33,13 @@
 Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
 
 The issue tracker is **only** for bugs.
+
+## How can I reuse my VS Code configuration?
+
+The very popular [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync) extension should just work.
+
+To manually reuse, you can just copy `~/.vscode` into `~/.config/code-server`
+and `code-server` will reuse your existing extensions and configuration.
 
 ## What's the deal with extensions?
 
@@ -263,11 +272,20 @@ For other browsers you'll have to remap keybindings unfortunately.
 
 Unfortunately, Microsoft has opted to make [VS Code's Remote SSH and Container
 extensions closed source](https://github.com/microsoft/vscode-remote-release) and
-it is against their TOS to use the published extensions so we are unable to
-add them to our marketplace.
+it is against their TOS to use the published extensions against anything other
+than Microsoft VS Code builds so we are unable to add them to our marketplace.
 
 We may reimplement them at some point.
 You can subscribe to [#1315](https://github.com/cdr/code-server/issues/1315) for updates.
+
+## Why can't I use VS Code Live Share?
+
+Unfortunately, Microsoft has opted to make
+[VS Code's Live Share extension closed source](https://github.com/microsoft/vscode/issues/38733#issuecomment-388213016) and
+it is against their TOS to use the published extension against anything other
+than Microsoft VS Code builds so we are unable to add them to our marketplace.
+
+We may implement our own at some point. See [Collaboration](#collaboration).
 
 ## Enterprise
 
