@@ -126,7 +126,25 @@ const main = async (cliArgs: Args): Promise<void> => {
   }
 }
 
+function trimLDLibraryPath(): void {
+  let ldVar: string
+  if (process.platform === "linux") {
+    ldVar = "LD_LIBRARY_PATH"
+  } else if (process.platform === "darwin") {
+    ldVar = "DYLD_LIBRARY_PATH"
+  } else {
+    return
+  }
+
+  // Removes the leading path added by ./ci/build/code-server.sh to use our bundled
+  // dynamic libraries. See ci/build/build-standalone-release.sh
+  // This is required to avoid child processes using our bundled libraries.
+  process.env[ldVar] = process.env[ldVar]?.replace(path.dirname(process.execPath) + ":", "")
+}
+
 async function entry(): Promise<void> {
+  trimLDLibraryPath()
+
   const tryParse = async (): Promise<Args> => {
     try {
       let args = parse(process.argv.slice(2))
