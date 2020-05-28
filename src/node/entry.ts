@@ -31,11 +31,7 @@ try {
 const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
-const main = async (cliArgs: Args): Promise<void> => {
-  const configArgs = await readConfigFile(cliArgs.config)
-  // This prioritizes the flags set in args over the ones in the config file.
-  let args = Object.assign(configArgs, cliArgs)
-
+const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
   if (!args.auth) {
     args = {
       ...args,
@@ -145,18 +141,21 @@ function trimLDLibraryPath(): void {
 async function entry(): Promise<void> {
   trimLDLibraryPath()
 
-  const tryParse = async (): Promise<Args> => {
+  const tryParse = async (): Promise<[Args, Args, Args]> => {
     try {
-      let args = parse(process.argv.slice(2))
+      const cliArgs = parse(process.argv.slice(2))
+      const configArgs = await readConfigFile(cliArgs.config)
+      // This prioritizes the flags set in args over the ones in the config file.
+      let args = Object.assign(configArgs, cliArgs)
       args = await setDefaults(args)
-      return args
+      return [args, cliArgs, configArgs]
     } catch (error) {
       console.error(error.message)
       process.exit(1)
     }
   }
 
-  const args = await tryParse()
+  const [args, cliArgs, configArgs] = await tryParse()
   if (args.help) {
     console.log("code-server", version, commit)
     console.log("")
@@ -200,7 +199,7 @@ async function entry(): Promise<void> {
     })
     vscode.on("exit", (code) => process.exit(code || 0))
   } else {
-    wrap(() => main(args))
+    wrap(() => main(args, cliArgs, configArgs))
   }
 }
 
