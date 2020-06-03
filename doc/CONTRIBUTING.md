@@ -21,7 +21,7 @@ Differences:
 - We require a minimum of node v12 but later versions should work.
 - We use [fnpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
 - We use [jq](https://stedolan.github.io/jq/) to build code-server releases.
-- The [CI container](../ci/images/debian:8/Dockerfile) is a useful reference for all our dependencies.
+- The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all our dependencies.
 
 ## Development Workflow
 

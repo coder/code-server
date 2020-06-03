@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/publish-npm.sh
-        uses: ./ci/images/debian:8
+        uses: ./ci/images/debian8
         with:
           args: ./ci/steps/publish-npm.sh
         env:
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/push-docker-manifest.sh
-        uses: ./ci/images/debian:8
+        uses: ./ci/images/debian8
         with:
           args: ./ci/steps/push-docker-manifest.sh
         env:
