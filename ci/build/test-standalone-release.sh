@@ -15,7 +15,8 @@ main() {
   ./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension ms-python.python
   local installed_extensions
   installed_extensions="$(./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --list-extensions 2>&1)"
-  if [[ $installed_extensions != "ms-python.python" ]]; then
+  if [[ "$installed_extensions" != "info  Using config file ~/.config/code-server/config.yaml
+ms-python.python" ]]; then
     echo "Unexpected output from listing extensions:"
     echo "$installed_extensions"
     exit 1

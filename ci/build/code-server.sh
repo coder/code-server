@@ -12,10 +12,10 @@ _realpath() {
 
   # See https://github.com/cdr/code-server/issues/1537
   if [ "$(uname)" = "Darwin" ]; then
-    # We read the symlink, which may be relative from $1.
     script="$1"
     if [ -L "$script" ]; then
       while [ -L "$script" ]; do
+        # We recursively read the symlink, which may be relative from $script.
         script="$(readlink "$script")"
         cd "$(dirname "$script")"
       done
@@ -32,9 +32,4 @@ _realpath() {
 }
 
 ROOT="$(dirname "$(dirname "$(_realpath "$0")")")"
-if [ "$(uname)" = "Linux" ]; then
-  export LD_LIBRARY_PATH="$ROOT/lib:${LD_LIBRARY_PATH-}"
-elif [ "$(uname)" = "Darwin" ]; then
-  export DYLD_LIBRARY_PATH="$ROOT/lib:${DYLD_LIBRARY_PATH-}"
-fi
 exec "$ROOT/lib/node" "$ROOT" "$@"

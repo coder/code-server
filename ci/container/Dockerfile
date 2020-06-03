@@ -43,7 +43,7 @@ RUN ARCH="$(dpkg --print-architecture)" && \
 #    rm -R shellcheck*
 
 # Install Go dependencies
-RUN ARCH="$(dpkg --print-architecture)" && \
+RUN ARCH="$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')" && \
     curl -fsSL "https://dl.google.com/go/go1.14.3.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
 ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
 ENV GO111MODULE=on

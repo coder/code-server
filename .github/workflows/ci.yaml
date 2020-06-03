@@ -55,7 +55,7 @@ jobs:
           name: npm-package
           path: ./release-npm-package
       - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/container
+        uses: ./ci/container/centos
         with:
           args: ./ci/steps/release-packages.sh
       - name: Upload release artifacts
@@ -75,7 +75,7 @@ jobs:
           name: npm-package
           path: ./release-npm-package
       - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/container/arm64
+        uses: ./ci/container/centos
         with:
           args: ./ci/steps/release-packages.sh
       - name: Upload release artifacts
@@ -94,8 +94,6 @@ jobs:
         with:
           name: npm-package
           path: ./release-npm-package
-      - run: brew unlink node@12
-      - run: brew install node
       - run: ./ci/steps/release-packages.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.
