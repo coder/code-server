@@ -47,14 +47,15 @@ However, it is not entirely equivalent to Microsoft's VS Code.
 
 While the core of VS Code is open source, the marketplace and many published Microsoft extensions are not.
 
-Not only are they closed source, Microsoft prohibits the use of any non-Microsoft VS Code from accessing their marketplace.
+Furthermore, Microsoft prohibits the use of any non-Microsoft VS Code from accessing their marketplace.
 
 See the [TOS](https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visual-Studio-Marketplace-Terms-of-Use.pdf).
 
 > Marketplace Offerings are intended for use only with Visual Studio Products and Services
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
 
-As a result, we have created our own marketplace for open source extensions.
+As a result, we cannot offer any extensions on the Microsoft marketplace. Instead,
+we have created our own marketplace for open source extensions.
 It works by scraping GitHub for VS Code extensions and building them. It's not perfect but getting
 better by the day with more and more extensions.
 
