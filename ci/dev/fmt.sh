@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  shfmt -i 2 -w -s -sr $(git ls-files "*.sh")
+  shfmt -i 2 -w -sr $(git ls-files "*.sh")
 
   local prettierExts
   prettierExts=(

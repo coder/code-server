@@ -1,5 +1,4 @@
 import { field, logger } from "@coder/logger"
-import zip from "adm-zip"
 import * as cp from "child_process"
 import * as fs from "fs-extra"
 import * as http from "http"
@@ -213,11 +212,7 @@ export class UpdateHttpProvider extends HttpProvider {
     const response = await this.requestResponse(url)
 
     try {
-      if (downloadPath.endsWith(".tar.gz")) {
-        downloadPath = await this.extractTar(response, downloadPath)
-      } else {
-        downloadPath = await this.extractZip(response, downloadPath)
-      }
+      downloadPath = await this.extractTar(response, downloadPath)
       logger.debug("Downloaded update", field("path", downloadPath))
 
       // The archive should have a directory inside at the top level with the
@@ -275,40 +270,6 @@ export class UpdateHttpProvider extends HttpProvider {
     return downloadPath
   }
 
-  private async extractZip(response: Readable, downloadPath: string): Promise<string> {
-    logger.debug("Downloading zip", field("path", downloadPath))
-
-    response.pause()
-    await fs.remove(downloadPath)
-
-    const write = fs.createWriteStream(downloadPath)
-    response.pipe(write)
-    response.on("error", (error) => write.destroy(error))
-    response.on("close", () => write.end())
-
-    await new Promise((resolve, reject) => {
-      write.on("error", reject)
-      write.on("close", resolve)
-      response.resume
-    })
-
-    const zipPath = downloadPath
-    downloadPath = downloadPath.replace(/\.zip$/, "")
-    await fs.remove(downloadPath)
-
-    logger.debug("Extracting zip", field("path", zipPath))
-
-    await new Promise((resolve, reject) => {
-      new zip(zipPath).extractAllToAsync(downloadPath, true, (error) => {
-        return error ? reject(error) : resolve()
-      })
-    })
-
-    await fs.remove(zipPath)
-
-    return downloadPath
-  }
-
   /**
    * Given an update return the name for the packaged archived.
    */
@@ -329,7 +290,7 @@ export class UpdateHttpProvider extends HttpProvider {
     if (arch === "x64") {
       arch = "x86_64"
     }
-    return `code-server-${update.version}-${target}-${arch}.${target === "darwin" ? "zip" : "tar.gz"}`
+    return `code-server-${update.version}-${target}-${arch}.tar.gz`
   }
 
   private async request(uri: string): Promise<Buffer> {

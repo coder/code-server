@@ -30,7 +30,7 @@ release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
     tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
-  elif [[ "$OS" == "darwin" && "$ARCH" == "x86_64" ]]; then
+  elif [[ $OS == "darwin" && $ARCH == "x86_64" ]]; then
     # Just exists to make autoupdating from 3.2.0 work again.
     mv ./release-standalone "./$release_name"
     zip -r "release-packages/$release_name.zip" "./$release_name"

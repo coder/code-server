@@ -29,7 +29,7 @@ _realpath() {
 root() {
   script="$(_realpath "$0")"
   bin_dir="$(dirname "$script")"
-  echo "$(dirname "$bin_dir")"
+  dirname "$bin_dir"
 }
 
 ROOT="$(root)"

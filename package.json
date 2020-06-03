@@ -30,7 +30,6 @@
   },
   "main": "out/node/entry.js",
   "devDependencies": {
-    "@types/adm-zip": "^0.4.32",
     "@types/fs-extra": "^8.0.1",
     "@types/http-proxy": "^1.17.4",
     "@types/js-yaml": "^3.12.3",
@@ -66,7 +65,6 @@
   },
   "dependencies": {
     "@coder/logger": "1.1.11",
-    "adm-zip": "^0.4.14",
     "env-paths": "^2.2.0",
     "fs-extra": "^8.1.0",
     "http-proxy": "^1.18.0",
