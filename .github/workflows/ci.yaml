@@ -94,8 +94,6 @@ jobs:
         with:
           name: npm-package
           path: ./release-npm-package
-      - run: brew unlink node@12
-      - run: brew install node
       - run: ./ci/steps/release-packages.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.

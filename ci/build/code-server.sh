@@ -32,9 +32,4 @@ _realpath() {
 }
 
 ROOT="$(dirname "$(dirname "$(_realpath "$0")")")"
-if [ "$(uname)" = "Linux" ]; then
-  export LD_LIBRARY_PATH="$ROOT/lib:${LD_LIBRARY_PATH-}"
-elif [ "$(uname)" = "Darwin" ]; then
-  export DYLD_LIBRARY_PATH="$ROOT/lib:${DYLD_LIBRARY_PATH-}"
-fi
 exec "$ROOT/lib/node" "$ROOT" "$@"
