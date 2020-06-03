@@ -1,8 +1,10 @@
 FROM centos:7
 
-RUN curl -sL https://rpm.nodesource.com/setup_14.x | bash - && \
-      yum install -y nodejs && \
-      npm install -g yarn
+RUN ARCH="$(uname -m | sed 's/86_64/64/; s/aarch64/arm64/')" && \
+    curl -fsSL "https://nodejs.org/dist/v14.4.0/node-v14.4.0-linux-$ARCH.tar.xz" | tar -C /usr/local -xJ && \
+    mv /usr/local/node-v14.4.0-linux-$ARCH /usr/local/node-v14.4.0
+ENV PATH=/usr/local/node-v14.4.0/bin:$PATH
+RUN npm install -g yarn
 
 RUN yum groupinstall -y 'Development Tools'
 RUN yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel

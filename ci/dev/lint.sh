@@ -9,7 +9,7 @@ main() {
   tsc --noEmit
   # See comment in ./ci/image/debian8
   if [[ ! ${CI-} ]]; then
-    shellcheck -e SC2046,SC2164,SC2154,SC1091,SC1090 $(git ls-files "*.sh")
+    shellcheck -e SC2046,SC2164,SC2154,SC1091,SC1090,SC2002 $(git ls-files "*.sh")
   fi
 }
 

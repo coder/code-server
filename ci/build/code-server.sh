@@ -5,31 +5,32 @@ set -eu
 # Runs code-server with the bundled node binary.
 
 _realpath() {
-  if [ "$(uname)" = "Linux" ]; then
-    readlink -f "$1"
-    return
-  fi
+  # See https://github.com/cdr/code-server/issues/1537 on why no realpath or readlink -f.
 
-  # See https://github.com/cdr/code-server/issues/1537
-  if [ "$(uname)" = "Darwin" ]; then
-    script="$1"
-    if [ -L "$script" ]; then
-      while [ -L "$script" ]; do
-        # We recursively read the symlink, which may be relative from $script.
-        script="$(readlink "$script")"
-        cd "$(dirname "$script")"
-      done
-    else
-      cd "$(dirname "$script")"
+  script="$1"
+  cd "$(dirname "$script")"
+
+  while [ -L "$(basename "$script")" ]; do
+    if [ -L "./node" ] && [ -L "./code-server" ] &&
+      [ -f "package.json" ] &&
+      cat package.json | grep -q '^  "name": "code-server",$'; then
+      echo "***** Please use the script in bin/code-server instead!" >&2
+      echo "***** This script will soon be removed!" >&2
+      echo "***** See the release notes at https://github.com/cdr/code-server/releases/tag/v3.4.0" >&2
     fi
 
-    echo "$PWD/$(basename "$script")"
-    return
-  fi
+    script="$(readlink "$(basename "$script")")"
+    cd "$(dirname "$script")"
+  done
 
-  echo "Unsupported OS $(uname)" >&2
-  exit 1
+  echo "$PWD/$(basename "$script")"
 }
 
-ROOT="$(dirname "$(dirname "$(_realpath "$0")")")"
+root() {
+  script="$(_realpath "$0")"
+  bin_dir="$(dirname "$script")"
+  echo "$(dirname "$bin_dir")"
+}
+
+ROOT="$(root)"
 exec "$ROOT/lib/node" "$ROOT" "$@"
