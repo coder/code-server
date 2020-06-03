@@ -35,6 +35,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 10. Wait for the npm package to be published.
 11. Update the homebrew package.
     - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
+12. Make sure to add a release without the `v` prefix for autoupdate from `3.2.0`.
 
 ## dev
 
