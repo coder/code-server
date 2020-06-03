@@ -40,7 +40,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 This directory contains scripts used for the development of code-server.
 
-- [./ci/dev/container](./dev/container)
+- [./ci/dev/image](./dev/image)
   - See [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
 - [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters.

@@ -35,7 +35,7 @@ yarn watch
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev/container/exec.sh
+./ci/dev/image/exec.sh
 
 root@12345:/code-server# yarn
 root@12345:/code-server# yarn vscode
