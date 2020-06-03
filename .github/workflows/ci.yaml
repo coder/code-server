@@ -136,7 +136,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/centos7
         with:
           args: ./ci/steps/build-docker-image.sh
       - name: Upload release image
