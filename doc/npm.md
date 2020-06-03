@@ -1,4 +1,12 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # npm Install Requirements
+
+- [Ubuntu, Debian](#ubuntu-debian)
+- [Fedora, CentOS, RHEL](#fedora-centos-rhel)
+- [macOS](#macos)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 If you're installing the npm module you'll need certain dependencies to build
 the native modules used by VS Code.

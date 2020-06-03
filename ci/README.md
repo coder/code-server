@@ -104,17 +104,17 @@ You can disable minification by setting `MINIFY=`.
   - Post install script for the npm package.
   - Bundled by`yarn release`.
 
-## release-container
+## release-image
 
-This directory contains the release docker container.
+This directory contains the release docker container image.
 
-- [./release-container/build.sh](./release-container/build.sh)
+- [./release-image/build.sh](./release-image/build.sh)
   - Builds the release container with the tag `codercom/code-server-$ARCH:$VERSION`.
   - Assumes debian releases are ready in `./release-packages`.
 
-## container
+## images
 
-This directory contains the container for CI.
+This directory contains the images for CI.
 
 ## steps
 

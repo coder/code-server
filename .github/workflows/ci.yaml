@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/fmt.sh
-        uses: ./ci/container
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/fmt.sh
 
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/lint.sh
-        uses: ./ci/container
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/lint.sh
 
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/test.sh
-        uses: ./ci/container
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/test.sh
 
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/release.sh
-        uses: ./ci/container
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/release.sh
       - name: Upload npm package artifact
@@ -55,7 +55,7 @@ jobs:
           name: npm-package
           path: ./release-npm-package
       - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/container/centos
+        uses: ./ci/images/centos:7
         with:
           args: ./ci/steps/release-packages.sh
       - name: Upload release artifacts
@@ -75,7 +75,7 @@ jobs:
           name: npm-package
           path: ./release-npm-package
       - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/container/centos
+        uses: ./ci/images/centos:7
         with:
           args: ./ci/steps/release-packages.sh
       - name: Upload release artifacts
@@ -116,7 +116,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/container
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/build-docker-image.sh
       - name: Upload release image
@@ -136,7 +136,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/container/arm64
+        uses: ./ci/images/debian:8
         with:
           args: ./ci/steps/build-docker-image.sh
       - name: Upload release image

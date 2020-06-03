@@ -24,6 +24,8 @@ main() {
   doctoc --title '# FAQ' doc/FAQ.md > /dev/null
   doctoc --title '# Setup Guide' doc/guide.md > /dev/null
   doctoc --title '# Install' doc/install.md > /dev/null
+  doctoc --title '# npm Install Requirements' doc/npm.md > /dev/null
+  doctoc --title '# Contributing' doc/CONTRIBUTING.md > /dev/null
 
   if [[ ${CI-} && $(git ls-files --other --modified --exclude-standard) ]]; then
     echo "Files need generation or are formatted incorrectly:"
