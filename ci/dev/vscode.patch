@@ -212,7 +212,7 @@ index 0000000000..0170b47241
 +	common.minifyTask("out-vscode")
 +));
 diff --git a/package.json b/package.json
-index 4c7342cbd8..4c287f6c1a 100644
+index d150d539ae..33078416d9 100644
 --- a/package.json
 +++ b/package.json
 @@ -37,6 +37,9 @@
@@ -226,7 +226,7 @@ index 4c7342cbd8..4c287f6c1a 100644
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
 diff --git a/product.json b/product.json
-index 91b3b92678..f76f2c1548 100644
+index 335caa71f6..47607a3eb8 100644
 --- a/product.json
 +++ b/product.json
 @@ -18,7 +18,7 @@
@@ -2532,12 +2532,13 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..8abb9a8e31
+index 0000000000..8b82854426
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,273 @@
+@@ -0,0 +1,277 @@
 +import * as net from 'net';
 +import * as path from 'path';
++import * as fs from 'fs';
 +import { Emitter } from 'vs/base/common/event';
 +import { Schemas } from 'vs/base/common/network';
 +import { URI } from 'vs/base/common/uri';
@@ -2737,6 +2738,9 @@ index 0000000000..8abb9a8e31
 +
 +	private async initializeServices(args: ParsedArgs): Promise<void> {
 +		const environmentService = new EnvironmentService(args, process.execPath);
++    // https://github.com/cdr/code-server/issues/1693
++    fs.mkdirSync(environmentService.globalStorageHome, { recursive: true });
++
 +		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
 +		const fileService = new FileService(logService);
 +		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
@@ -2841,7 +2845,7 @@ index 3f2de2c738..a967d8df69 100644
  import './mainThreadAuthentication';
  import './mainThreadTimeline';
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index db72957372..4514a56754 100644
+index 260b6468e9..882d3e442f 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
 @@ -68,6 +68,7 @@ import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransf
@@ -2869,7 +2873,7 @@ index db72957372..4514a56754 100644
  
  	// automatically create and register addressable instances
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index c6b3c31999..08e413e7d1 100644
+index 7e1233484e..0f36de9496 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
 @@ -748,6 +748,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
@@ -3093,13 +3097,13 @@ index 4781f22676..86c9246f51 100644
 +import { joinPath } from 'vs/base/common/resources';
 +import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 +import { loadCommonJSModule } from 'vs/server/browser/worker';
-
+ 
  class WorkerRequireInterceptor extends RequireInterceptor {
-
+ 
 @@ -41,7 +44,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  		await this._fakeModules.install();
  	}
-
+ 
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
 +		if (!URI.isUri(module) && module.extensionKind !== 'web') {
@@ -3109,7 +3113,7 @@ index 4781f22676..86c9246f51 100644
 +		if (!URI.isUri(module)) {
 +			module = joinPath(module.extensionLocation, module.main!);
 +		}
-
+ 
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
 @@ -57,7 +67,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
@@ -3184,10 +3188,10 @@ index 5ea3fd924b..de61b7fd17 100644
  .scm-viewlet .monaco-list .monaco-list-row .resource-group > .actions,
  .scm-viewlet .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
 diff --git a/src/vs/workbench/contrib/webview/browser/pre/main.js b/src/vs/workbench/contrib/webview/browser/pre/main.js
-index f2ca5011dd..4683e80a68 100644
+index e21d86575c..22aa99c0f8 100644
 --- a/src/vs/workbench/contrib/webview/browser/pre/main.js
 +++ b/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -364,7 +364,8 @@
+@@ -351,7 +351,8 @@
  				if (data.endpoint) {
  					try {
  						const endpointUrl = new URL(data.endpoint);
@@ -3478,7 +3482,7 @@ index 2fda5eddd8..721cfdfd3e 100644
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
 diff --git a/yarn.lock b/yarn.lock
-index 458909e2b2..68f1a7e609 100644
+index 1bc94693ea..afd34e6b80 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
