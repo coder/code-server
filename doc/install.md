@@ -77,8 +77,8 @@ commands presented in the rest of this document.
 ## Debian, Ubuntu
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.0/code-server_3.4.0_amd64.deb
-sudo dpkg -i code-server_3.4.0_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server_3.4.1_amd64.deb
+sudo dpkg -i code-server_3.4.1_amd64.deb
 systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -86,8 +86,8 @@ systemctl --user enable --now code-server
 ## Fedora, CentOS, RHEL, SUSE
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.0/code-server-3.4.0-amd64.rpm
-sudo rpm -i code-server-3.4.0-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server-3.4.1-amd64.rpm
+sudo rpm -i code-server-3.4.1-amd64.rpm
 systemctl --user enable --now code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -115,7 +115,7 @@ systemctl --user enable --now code-server
 We recommend installing with `yarn` or `npm` when:
 
 1. You aren't on `amd64` or `arm64`.
-2. If you're on Linux with glibc < v2.17
+2. If you're on Linux with glibc < v2.17 or glibcxx < v3.4.18
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./npm.md](./npm.md) for installing these dependencies.
@@ -143,7 +143,7 @@ We publish self contained `.tar.gz` archives for every release on [github](https
 They bundle the node binary and `node_modules`.
 
 These are created from the [npm package](#yarn-npm) and the rest of the releases are created from these.
-Only requirement is glibc >= 2.17 on Linux and for macOS there is no minimum system requirement.
+Only requirement is glibc >= 2.17 && glibcxx >= v3.4.18 on Linux and for macOS there is no minimum system requirement.
 
 1. Download the latest release archive for your system from [github](https://github.com/cdr/code-server/releases).
 2. Unpack the release.
@@ -156,10 +156,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.4.0/code-server-3.4.0-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server-3.4.1-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.4.0-linux-amd64 ~/.local/lib/code-server-3.4.0
-ln -s ~/.local/lib/code-server-3.4.0/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-3.4.1-linux-amd64 ~/.local/lib/code-server-3.4.1
+ln -s ~/.local/lib/code-server-3.4.1/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
