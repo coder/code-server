@@ -78,8 +78,15 @@ point to the .vsix file.
 
 See below for installing an extension from the cli.
 
-If you have your own custom marketplace, it is possible to point code-server to it by setting
-`$SERVICE_URL` and `$ITEM_URL` to point to it.
+## How do I configure the marketplace URL?
+
+If you have your own marketplace that implements the VS Code Extension Gallery API, it is possible to
+point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
+to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
+
+While you can technically use Microsoft's marketplace with these, please do not do so as it
+is against their terms of use. These variables are most valuable to our enterprise customers
+for whom we have a self hosted enterprise marketplace product.
 
 ## Where are extensions stored?
 
