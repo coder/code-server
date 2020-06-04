@@ -25,6 +25,8 @@ Further docs are at:
 - [FAQ](./FAQ.md) for common questions.
 - [CONTRIBUTING](../doc/CONTRIBUTING.md) for development docs
 
+We highly recommend reading the [FAQ](./doc/FAQ.md) on the [Differences compared to VS Code](./doc/FAQ.md#differences-compared-to-vs-code) before beginning.
+
 We'll walk you through acquiring a remote machine to run `code-server` on
 and then exposing `code-server` so you can securely access it.
 
