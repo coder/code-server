@@ -22,10 +22,11 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
 4. Wait for the artifacts in step 2 to build.
-5. Run `yarn release:github-assets` to download the `release-packages` artifact and then
+5. Run `yarn release:github-assets` to download the `release-packages` artifact and
    upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
-7. Make sure the github release tag is the commit with the artifacts.
+7. Make sure the github release tag is the commit with the artifacts. This is a bug in
+   `hub` where uploading assets in step 5 will break the tag.
 8. Publish the release and merge the PR.
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.

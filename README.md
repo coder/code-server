@@ -18,6 +18,8 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
+### Quick Install
+
 We have a [script](./install.sh) to install code-server for Linux and macOS.
 
 It tries to use the system package manager if possible.
@@ -36,13 +38,9 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 The install script will print out how to run and start using code-server.
 
-If you believe an install script used with `curl | sh` is insecure, please give
-[this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
-[sandstorm.io](https://sandstorm.io) a read.
+### Manual Install
 
 Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
-
-We also highly recommend reading the [FAQ](./doc/FAQ.md) on the [Differences compared to VS Code](./doc/FAQ.md#differences-compared-to-vs-code).
 
 ## FAQ
 
