@@ -1,4 +1,14 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
+
+- [Requirements](#requirements)
+- [Development Workflow](#development-workflow)
+- [Build](#build)
+- [Structure](#structure)
+  - [VS Code Patch](#vs-code-patch)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 - [Detailed CI and build process docs](../ci)
 
@@ -11,7 +21,7 @@ Differences:
 - We require a minimum of node v12 but later versions should work.
 - We use [fnpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
 - We use [jq](https://stedolan.github.io/jq/) to build code-server releases.
-- The [CI container](../ci/container/Dockerfile) is a useful reference for all our dependencies.
+- The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all our dependencies.
 
 ## Development Workflow
 
@@ -25,7 +35,7 @@ yarn watch
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev/container/exec.sh
+./ci/dev/image/exec.sh
 
 root@12345:/code-server# yarn
 root@12345:/code-server# yarn vscode

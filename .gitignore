@@ -9,3 +9,4 @@ release-packages/
 release-gcp/
 release-images/
 node_modules
+node-*

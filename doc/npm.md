@@ -1,4 +1,12 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # npm Install Requirements
+
+- [Ubuntu, Debian](#ubuntu-debian)
+- [Fedora, CentOS, RHEL](#fedora-centos-rhel)
+- [macOS](#macos)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 If you're installing the npm module you'll need certain dependencies to build
 the native modules used by VS Code.
@@ -20,7 +28,7 @@ sudo apt-get install -y \
 
 ```bash
 sudo yum groupinstall -y 'Development Tools'
-sudo yum config-manager --set-enabled PowerTools
+sudo yum config-manager --set-enabled PowerTools # unnecessary on CentOS 7
 sudo yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
 npm config set python python2
 ```

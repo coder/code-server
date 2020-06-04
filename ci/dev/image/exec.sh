@@ -42,7 +42,7 @@ run() {
 
 build() {
   echo "--- Building $container_name"
-  docker build -t $container_name ./ci/dev/container > /dev/null
+  docker build -t $container_name ./ci/dev/image > /dev/null
 }
 
 main "$@"

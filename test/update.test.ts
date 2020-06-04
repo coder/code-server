@@ -1,8 +1,6 @@
-import zip from "adm-zip"
 import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
-import * as os from "os"
 import * as path from "path"
 import * as tar from "tar-fs"
 import * as zlib from "zlib"
@@ -88,28 +86,18 @@ describe("update", () => {
       fs.writeFile(path.join(archivePath, archiveName, "node"), `NODE BINARY`),
     ])
 
-    if (os.platform() === "darwin") {
-      await new Promise((resolve, reject) => {
-        const zipFile = new zip()
-        zipFile.addLocalFolder(archivePath)
-        zipFile.writeZip(archivePath + ".zip", (error) => {
-          return error ? reject(error) : resolve(error)
-        })
+    await new Promise((resolve, reject) => {
+      const write = fs.createWriteStream(archivePath + ".tar.gz")
+      const compress = zlib.createGzip()
+      compress.pipe(write)
+      compress.on("error", (error) => compress.destroy(error))
+      compress.on("close", () => write.end())
+      tar.pack(archivePath).pipe(compress)
+      write.on("close", reject)
+      write.on("finish", () => {
+        resolve()
       })
-    } else {
-      await new Promise((resolve, reject) => {
-        const write = fs.createWriteStream(archivePath + ".tar.gz")
-        const compress = zlib.createGzip()
-        compress.pipe(write)
-        compress.on("error", (error) => compress.destroy(error))
-        compress.on("close", () => write.end())
-        tar.pack(archivePath).pipe(compress)
-        write.on("close", reject)
-        write.on("finish", () => {
-          resolve()
-        })
-      })
-    }
+    })
   })
 
   after(() => {

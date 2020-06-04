@@ -35,12 +35,13 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 10. Wait for the npm package to be published.
 11. Update the homebrew package.
     - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
+12. Make sure to add a release without the `v` prefix for autoupdate from `3.2.0`.
 
 ## dev
 
 This directory contains scripts used for the development of code-server.
 
-- [./ci/dev/container](./dev/container)
+- [./ci/dev/image](./dev/image)
   - See [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
 - [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters.
@@ -104,17 +105,17 @@ You can disable minification by setting `MINIFY=`.
   - Post install script for the npm package.
   - Bundled by`yarn release`.
 
-## release-container
+## release-image
 
-This directory contains the release docker container.
+This directory contains the release docker container image.
 
-- [./release-container/build.sh](./release-container/build.sh)
+- [./release-image/build.sh](./release-image/build.sh)
   - Builds the release container with the tag `codercom/code-server-$ARCH:$VERSION`.
   - Assumes debian releases are ready in `./release-packages`.
 
-## container
+## images
 
-This directory contains the container for CI.
+This directory contains the images for CI.
 
 ## steps
 
