@@ -170,7 +170,6 @@ main() {
   fi
 
   CACHE_DIR="$(echo_cache_dir)"
-  mkdir -p "$CACHE_DIR"
 
   if [ "$METHOD" = standalone ]; then
     install_standalone
@@ -234,10 +233,11 @@ fetch() {
   FILE="$2"
 
   if [ -e "$FILE" ]; then
-    echoh "+ Reusing $CACHE_DIR/${URL##*/}"
+    echoh "+ Reusing $FILE"
     return
   fi
 
+  sh_c mkdir -p "$CACHE_DIR"
   sh_c curl \
     -#fL \
     -o "$FILE.incomplete" \
