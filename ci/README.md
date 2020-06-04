@@ -16,7 +16,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 1. Update the version of code-server and make a PR.
    1. Update in `package.json`
-   2. Update in [install.sh](../install.sh)
+   2. Update in [./doc/install.md](../doc/install.md)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
