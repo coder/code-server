@@ -6,6 +6,7 @@
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
+- [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
@@ -22,6 +23,7 @@
 - [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+- [Differences compared to Theia?](#differences-compared-to-theia)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -85,8 +87,8 @@ point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These corresp
 to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
 
 While you can technically use Microsoft's marketplace with these, please do not do so as it
-is against their terms of use. These variables are most valuable to our enterprise customers
-for whom we have a self hosted enterprise marketplace product.
+is against their terms of use. See [above](#differences-compared-to-vs-code). These variables
+are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
 
@@ -278,6 +280,19 @@ Once you've entered the editor, click the "plus" icon present in the URL toolbar
 This will install a Chrome PWA and now all keybindings will work!
 
 For other browsers you'll have to remap keybindings unfortunately.
+
+## Differences compared to Theia?
+
+[Theia](https://github.com/eclipse-theia/theia) is a browser IDE loosely based on VS Code. It uses the same
+text editor library named [Monaco](https://github.com/Microsoft/monaco-editor) and the same
+extension API but everything else is very different. It also uses [open-vsx.org](https://open-vsx.org)
+for extensions which has an order of magnitude less extensions than our marketplace.
+See [#1473](https://github.com/cdr/code-server/issues/1473).
+
+You can't just use your VS Code config in Theia like you can with code-server.
+
+To summarize, code-server is a patched fork of VS Code to run in the browser whereas
+Theia takes some parts of VS Code but is an entirely different editor.
 
 ## Enterprise
 
