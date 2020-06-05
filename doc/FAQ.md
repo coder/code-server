@@ -38,7 +38,7 @@ The issue tracker is **only** for bugs and features.
 
 The very popular [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync) extension works.
 
-You can also pass `--data-dir ~/.vscode` to reuse your existing VS Code extensions and configuration.
+You can also pass `--user-data-dir ~/.vscode` to reuse your existing VS Code extensions and configuration.
 
 Or copy `~/.vscode` into `~/.local/share/code-server`.
 
