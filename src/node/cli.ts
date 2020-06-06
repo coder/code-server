@@ -40,6 +40,7 @@ export interface Args extends VsArgs {
   readonly force?: boolean
   readonly "list-extensions"?: boolean
   readonly "install-extension"?: string[]
+  readonly "enable-proposed-api"?: string[]
   readonly "show-versions"?: boolean
   readonly "uninstall-extension"?: string[]
   readonly "proxy-domain"?: string[]
@@ -126,6 +127,7 @@ const options: Options<Required<Args>> = {
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
   "install-extension": { type: "string[]", description: "Install or update a VS Code extension by id or vsix." },
+  "enable-proposed-api": { type: "string[]", description: "Enable Proposed (beta) API for VS Code extensions by id." },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
