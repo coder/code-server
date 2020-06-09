@@ -50,6 +50,16 @@ See [./doc/FAQ.md](./doc/FAQ.md).
 
 See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 
+## Hiring
+
+We're looking for an engineer to help maintain code-server and
+help innvoate on open source.
+
+Our main office is in Austin, Texas. Remote is ok as long as
+you're in Canada, the US, Australia or the UK.
+
+Please get in [touch](mailto:anmol@coder.com) if interested.
+
 ## Enterprise
 
 Visit [our website](https://coder.com) for more information about our
