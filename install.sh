@@ -360,6 +360,9 @@ os() {
   Darwin)
     echo macos
     ;;
+  FreeBSD)
+    echo freebsd
+    ;;
   esac
 }
 
