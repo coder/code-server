@@ -20,7 +20,7 @@ For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
 
 ### Quick Install
 
-We have a [script](./install.sh) to install code-server for Linux and macOS.
+We have a [script](./install.sh) to install code-server for Linux, macOS and FreeBSD.
 
 It tries to use the system package manager if possible.
 

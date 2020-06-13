@@ -80,7 +80,7 @@ to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-We have a [script](../install.sh) to install `code-server` for Linux and macOS.
+We have a [script](../install.sh) to install `code-server` for Linux, macOS and FreeBSD.
 
 It tries to use the system package manager if possible.
 
