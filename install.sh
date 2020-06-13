@@ -14,7 +14,7 @@ usage() {
   fi
 
   cath << EOF
-Installs code-server for Linux and macOS.
+Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
 ${not_curl_usage-}
@@ -47,6 +47,8 @@ Usage:
 - For macOS it will install the Homebrew package.
   - If Homebrew is not installed it will install the latest standalone release
     into ~/.local
+
+- For FreeBSD, it will install the npm package with yarn or npm.
 
 - If ran on an architecture with no releases, it will install the
   npm package with yarn or npm.
@@ -160,11 +162,22 @@ main() {
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
     if [ "$METHOD" = standalone ]; then
-      echoerr "No releases available for the architecture $(uname -m)."
+      echoerr "No precompiled releases for $(uname -m)."
       echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
       exit 1
     fi
     echoh "No precompiled releases for $(uname -m)."
+    install_npm
+    return
+  fi
+
+  if [ "$OS" = "freebsd" ]; then
+    if [ "$METHOD" = standalone ]; then
+      echoerr "No precompiled releases available for $OS."
+      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
+      exit 1
+    fi
+    echoh "No precompiled releases available for $OS."
     install_npm
     return
   fi
@@ -360,6 +373,9 @@ os() {
   Darwin)
     echo macos
     ;;
+  FreeBSD)
+    echo freebsd
+    ;;
   esac
 }
 
@@ -371,11 +387,12 @@ os() {
 # - centos, fedora, rhel, opensuse
 # - alpine
 # - arch
+# - freebsd
 #
 # Inspired by https://github.com/docker/docker-install/blob/26ff363bcf3b3f5a00498ac43694bf1c7d9ce16c/install.sh#L111-L120.
 distro() {
-  if [ "$(uname)" = "Darwin" ]; then
-    echo "macos"
+  if [ "$OS" = "macos" ] || [ "$OS" = "freebsd" ]; then
+    echo "$OS"
     return
   fi
 
@@ -420,6 +437,9 @@ arch() {
     echo arm64
     ;;
   x86_64)
+    echo amd64
+    ;;
+  amd64) # FreeBSD.
     echo amd64
     ;;
   esac
