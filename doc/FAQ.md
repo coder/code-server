@@ -112,10 +112,10 @@ code-server --install-extension downloaded-ms-python.python.vsix
 VS Code Codespaces is a closed source and paid service by Microsoft. It also allows you to access
 VS Code via the browser.
 
-However, code-server is free, open source and can be ran on any machine without any limitations.
+However, code-server is free, open source and can be run on any machine without any limitations.
 
-While you can self host environments with VS Code Codespaces, you still need to an Azure billing
-account and you access VS Code via the Codespaces web dashboard instead of directly connecting to
+While you can self host environments with VS Code Codespaces, you still need an Azure billing
+account and you can access VS Code via the Codespaces web dashboard instead of directly connecting to
 your instance.
 
 ## How should I expose code-server to the internet?
@@ -259,7 +259,7 @@ The default location also respects `$XDG_CONFIG_HOME`.
 
 Unfortunately at the moment self signed certificates cause a blank screen on iPadOS
 
-There does seem to a way to get it to work if you create your own CA and create a
+There does seem to be a way to get it to work if you create your own CA and create a
 certificate using the CA and then import the CA onto your iPad.
 
 See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
