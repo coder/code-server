@@ -115,8 +115,8 @@ VS Code via the browser.
 However, code-server is free, open source and can be run on any machine without any limitations.
 
 While you can self host environments with VS Code Codespaces, you still need an Azure billing
-account and you can access VS Code via the Codespaces web dashboard instead of directly connecting to
-your instance.
+account and you have to access VS Code via the Codespaces web dashboard instead of directly
+connecting to your instance.
 
 ## How should I expose code-server to the internet?
 
