@@ -55,7 +55,7 @@ See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 We ([@cdr](https://github.com/cdr)) are looking for a engineers to help maintain
 code-server, innovate on open source and streamline dev workflows.
 
-We're well funded. We've raised a total of $46 million!
+We're well funded. We've raised a total of \$46 million!
 
 Our main office is in Austin, Texas. Remote is ok as long as
 you're in Canada, the US, Australia or the UK.
