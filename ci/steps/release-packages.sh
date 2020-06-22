@@ -6,7 +6,7 @@ main() {
 
   if [[ $OSTYPE == darwin* ]]; then
     curl -L https://nodejs.org/dist/v14.4.0/node-v14.4.0-darwin-x64.tar.gz | tar -xz
-    PATH="$PATH:node-v14.4.0-darwin-x64/bin"
+    PATH="$PWD/node-v14.4.0-darwin-x64/bin:$PATH"
   fi
 
   # https://github.com/actions/upload-artifact/issues/38
