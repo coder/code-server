@@ -60,7 +60,7 @@ We're well funded. We've raised a total of \$46 million!
 Our main office is in Austin, Texas. Remote is ok as long as
 you're in Canada, the US, Australia or the UK.
 
-Please get in [touch](mailto:anmol@coder.com) if interested.
+Please get in [touch](mailto:anmol@coder.com) with your resume/github if interested.
 
 ## Enterprise
 
