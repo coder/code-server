@@ -1462,7 +1462,7 @@ index 0000000000..0a9c95d50e
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000..23058670f3
+index 0000000000..1166835371
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
 @@ -0,0 +1,343 @@
@@ -1709,7 +1709,7 @@ index 0000000000..23058670f3
 +			connectionToken: this.connectionToken,
 +			appRoot: URI.file(this.environment.appRoot),
 +			appSettingsHome: this.environment.appSettingsHome,
-+			settingsPath: this.environment.machineSettingsResource,
++			settingsPath: this.environment.settingsResource,
 +			logsPath: URI.file(this.environment.logsPath),
 +			extensionsPath: URI.file(this.environment.extensionsPath!),
 +			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, 'extension-host')),
@@ -2532,10 +2532,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..8b82854426
+index 0000000000..80616dd11c
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,277 @@
+@@ -0,0 +1,281 @@
 +import * as net from 'net';
 +import * as path from 'path';
 +import * as fs from 'fs';
@@ -2738,8 +2738,8 @@ index 0000000000..8b82854426
 +
 +	private async initializeServices(args: ParsedArgs): Promise<void> {
 +		const environmentService = new EnvironmentService(args, process.execPath);
-+    // https://github.com/cdr/code-server/issues/1693
-+    fs.mkdirSync(environmentService.globalStorageHome, { recursive: true });
++		// https://github.com/cdr/code-server/issues/1693
++		fs.mkdirSync(environmentService.globalStorageHome, { recursive: true });
 +
 +		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
 +		const fileService = new FileService(logService);
@@ -2758,7 +2758,11 @@ index 0000000000..8b82854426
 +
 +		this.services.set(ILogService, logService);
 +		this.services.set(IEnvironmentService, environmentService);
-+		this.services.set(IConfigurationService, new SyncDescriptor(ConfigurationService, [environmentService.machineSettingsResource, fileService]));
++
++		const configurationService = new ConfigurationService(environmentService.settingsResource, fileService);
++		await configurationService.initialize();
++		this.services.set(IConfigurationService, configurationService);
++
 +		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 +		this.services.set(IFileService, fileService);
 +		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
