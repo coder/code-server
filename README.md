@@ -55,12 +55,10 @@ See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 We ([@cdr](https://github.com/cdr)) are looking for a engineers to help maintain
 code-server, innovate on open source and streamline dev workflows.
 
-We're well funded.
-
 Our main office is in Austin, Texas. Remote is ok as long as
 you're in Canada, the US, Australia or the UK.
 
-Please get in [touch](mailto:anmol@coder.com) with your resume/github if interested.
+Please get in [touch](mailto:jobs@coder.com) with your resume/github if interested.
 
 ## Enterprise
 
