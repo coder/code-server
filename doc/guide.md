@@ -244,6 +244,25 @@ To avoid the warnings, you can use [mkcert](https://mkcert.dev) to create a self
 trusted by your OS and then pass it into `code-server` via the `cert` and `cert-key` config
 fields.
 
+### Nginx reverse proxy
+
+If you prefer to use Nginx instead of Caddy, here is a sample config (put e.g. in `/etc/nginx/sites-enabled/code-server`):
+```nginx
+server {
+    listen 80 [::]:80;
+    server_name your-domain-name-here.com;
+
+    location / {
+      proxy_pass http://127.0.0.1:8080;
+      proxy_set_header Host $host;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection upgrade;
+      proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
+It's highly recommended set up a LetsEncrypt certificate and HTTP->HTTPS redirect as well. In order to do this, run `certbot --nginx -d your-domain-name-here.com`.
+
 ### Change the password?
 
 Edit the `password` field in the `code-server` config file at `~/.config/code-server/config.yaml`
