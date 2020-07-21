@@ -144,10 +144,10 @@ index cb88d37ade..6b3253af0a 100644
  const cp = require('child_process');
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000..ce7d4f175f
+index 0000000000..88b720ceee
 --- /dev/null
 +++ b/coder.js
-@@ -0,0 +1,68 @@
+@@ -0,0 +1,69 @@
 +// This must be ran from VS Code's root.
 +const gulp = require("gulp");
 +const path = require("path");
@@ -176,6 +176,7 @@ index 0000000000..ce7d4f175f
 +	"out-build/bootstrap.js",
 +	"out-build/bootstrap-fork.js",
 +	"out-build/bootstrap-amd.js",
++	'out-build/bootstrap-node.js',
 +	"out-build/paths.js",
 +	'out-build/vs/**/*.{svg,png,html,ttf}',
 +	"!out-build/vs/code/browser/workbench/*.html",
