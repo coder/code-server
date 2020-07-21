@@ -246,7 +246,9 @@ fields.
 
 ### Nginx reverse proxy
 
-If you prefer to use Nginx instead of Caddy, here is a sample config (put e.g. in `/etc/nginx/sites-enabled/code-server`):
+If you prefer to use Nginx instead of Caddy here is a sample config (put e.g. in 
+`/etc/nginx/sites-enabled/code-server`):
+
 ```nginx
 server {
     listen 80 [::]:80;
@@ -261,7 +263,9 @@ server {
     }
 }
 ```
-It's highly recommended set up a LetsEncrypt certificate and HTTP->HTTPS redirect as well. In order to do this, run `certbot --nginx -d your-domain-name-here.com`.
+
+It's highly recommended to set up a LetsEncrypt certificate and HTTP->HTTPS redirect as well. 
+In order to do this run `certbot --nginx -d your-domain-name-here.com`.
 
 ### Change the password?
 
