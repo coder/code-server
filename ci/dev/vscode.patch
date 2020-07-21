@@ -218,7 +218,7 @@ index 0000000000..88b720ceee
 +	common.minifyTask("out-vscode")
 +));
 diff --git a/package.json b/package.json
-index 3729a85589..88742d99fc 100644
+index 86e3d5140d..2e52256e49 100644
 --- a/package.json
 +++ b/package.json
 @@ -42,6 +42,9 @@
@@ -232,7 +232,7 @@ index 3729a85589..88742d99fc 100644
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
 diff --git a/product.json b/product.json
-index e20b354974..92f72662c5 100644
+index 5378b017c8..afdadda974 100644
 --- a/product.json
 +++ b/product.json
 @@ -20,7 +20,7 @@
