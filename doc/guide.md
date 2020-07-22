@@ -245,7 +245,7 @@ sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
 sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
 ```
 
-Make sure to substiute `me@example.com` with your actual email.
+Make sure to substitute `me@example.com` with your actual email.
 
 Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
