@@ -10,6 +10,7 @@
   - [SSH forwarding](#ssh-forwarding)
   - [Let's Encrypt](#lets-encrypt)
   - [Self Signed Certificate](#self-signed-certificate)
+  - [NGINX](#nginx)
   - [Change the password?](#change-the-password)
   - [How do I securely access development web services?](#how-do-i-securely-access-development-web-services)
 
@@ -193,6 +194,8 @@ mydomain.com
 reverse_proxy 127.0.0.1:8080
 ```
 
+Remember to replace `mydomain.com` with your domain name!
+
 5. Reload caddy with:
 
 ```bash
@@ -203,6 +206,48 @@ Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 In a future release we plan to integrate Let's Encrypt directly with `code-server` to avoid
 the dependency on caddy.
+
+#### NGINX
+
+If you prefer to use NGINX instead of Caddy then please follow steps 1-2 above and then:
+
+3. Install `nginx`:
+
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python-certbot-nginx
+```
+
+4. Put the following config into `/etc/nginx/sites-available/code-server` with sudo:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mydomain.com;
+
+    location / {
+      proxy_pass http://localhost:8080/;
+      proxy_set_header Host $host;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection upgrade;
+      proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
+
+Remember to replace `mydomain.com` with your domain name!
+
+5. Enable the config:
+
+```bash
+sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
+sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
+```
+
+Make sure to substiute `me@example.com` with your actual email.
+
+Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 ### Self Signed Certificate
 
@@ -243,29 +288,6 @@ You'll get a warning when accessing but if you click through you should be good.
 To avoid the warnings, you can use [mkcert](https://mkcert.dev) to create a self signed certificate
 trusted by your OS and then pass it into `code-server` via the `cert` and `cert-key` config
 fields.
-
-### Nginx reverse proxy
-
-If you prefer to use Nginx instead of Caddy here is a sample config (put e.g. in 
-`/etc/nginx/sites-enabled/code-server`):
-
-```nginx
-server {
-    listen 80 [::]:80;
-    server_name your-domain-name-here.com;
-
-    location / {
-      proxy_pass http://127.0.0.1:8080/;
-      proxy_set_header Host $host;
-      proxy_set_header Upgrade $http_upgrade;
-      proxy_set_header Connection upgrade;
-      proxy_set_header Accept-Encoding gzip;
-    }
-}
-```
-
-It's highly recommended to set up a LetsEncrypt certificate and HTTP->HTTPS redirect as well. 
-In order to do this run `certbot --nginx -d your-domain-name-here.com`.
 
 ### Change the password?
 
