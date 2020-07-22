@@ -35,7 +35,8 @@ vscode_yarn() {
   cd lib/vscode
   yarn --production --frozen-lockfile
   cd extensions
-  yarn --production --frozen-lockfile
+  # Cannot use --production here. The postinstall here uses a dev dependency.
+  yarn --frozen-lockfile
 }
 
 main "$@"
