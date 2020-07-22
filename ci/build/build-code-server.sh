@@ -21,7 +21,6 @@ main() {
     --public-url "/static/$(git rev-parse HEAD)/dist" \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \
-    src/browser/pages/app.ts \
     src/browser/register.ts \
     src/browser/serviceWorker.ts
 }
