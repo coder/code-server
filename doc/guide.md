@@ -9,8 +9,8 @@
 - [3. Expose code-server](#3-expose-code-server)
   - [SSH forwarding](#ssh-forwarding)
   - [Let's Encrypt](#lets-encrypt)
+    - [NGINX](#nginx)
   - [Self Signed Certificate](#self-signed-certificate)
-  - [NGINX](#nginx)
   - [Change the password?](#change-the-password)
   - [How do I securely access development web services?](#how-do-i-securely-access-development-web-services)
 
