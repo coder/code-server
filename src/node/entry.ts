@@ -71,7 +71,7 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   }
 
   const httpServer = new HttpServer(options)
-  httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
+  httpServer.registerHttpProvider(["/", "/vscode"], VscodeHttpProvider, args)
   httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)

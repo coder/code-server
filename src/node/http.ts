@@ -79,9 +79,8 @@ export interface HttpResponse<T = string | Buffer | object> {
    */
   mime?: string
   /**
-   * Redirect to this path. Will rewrite against the base path but NOT the
-   * provider endpoint so you must include it. This allows redirecting outside
-   * of your endpoint.
+   * Redirect to this path. This is constructed against the site base (not the
+   * provider's base).
    */
   redirect?: string
   /**
@@ -133,12 +132,16 @@ export interface HttpServerOptions {
 
 export interface Route {
   /**
-   * Base path part (in /test/path it would be "/test").
+   * Provider base path part (for /provider/base/path it would be /provider).
+   */
+  providerBase: string
+  /**
+   * Base path part (for /provider/base/path it would be /base).
    */
   base: string
   /**
-   * Remaining part of the route (in /test/path it would be "/path"). It can be
-   * blank.
+   * Remaining part of the route after factoring out the base and provider base
+   * (for /provider/base/path it would be /path). It can be blank.
    */
   requestPath: string
   /**
@@ -161,7 +164,6 @@ interface ProviderRoute extends Route {
 
 export interface HttpProviderOptions {
   readonly auth: AuthType
-  readonly base: string
   readonly commit: string
   readonly password?: string
 }
@@ -518,41 +520,51 @@ export class HttpServer {
   /**
    * Register a provider for a top-level endpoint.
    */
-  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): T
-  public registerHttpProvider<A1, T extends HttpProvider>(endpoint: string, provider: HttpProvider1<A1, T>, a1: A1): T
+  public registerHttpProvider<T extends HttpProvider>(endpoint: string | string[], provider: HttpProvider0<T>): T
+  public registerHttpProvider<A1, T extends HttpProvider>(
+    endpoint: string | string[],
+    provider: HttpProvider1<A1, T>,
+    a1: A1,
+  ): T
   public registerHttpProvider<A1, A2, T extends HttpProvider>(
-    endpoint: string,
+    endpoint: string | string[],
     provider: HttpProvider2<A1, A2, T>,
     a1: A1,
     a2: A2,
   ): T
   public registerHttpProvider<A1, A2, A3, T extends HttpProvider>(
-    endpoint: string,
+    endpoint: string | string[],
     provider: HttpProvider3<A1, A2, A3, T>,
     a1: A1,
     a2: A2,
     a3: A3,
   ): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public registerHttpProvider(endpoint: string, provider: any, ...args: any[]): any {
-    endpoint = endpoint.replace(/^\/+|\/+$/g, "")
-    if (this.providers.has(`/${endpoint}`)) {
-      throw new Error(`${endpoint} is already registered`)
-    }
-    if (/\//.test(endpoint)) {
-      throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
-    }
+  public registerHttpProvider(endpoint: string | string[], provider: any, ...args: any[]): void {
     const p = new provider(
       {
         auth: this.options.auth || AuthType.None,
-        base: `/${endpoint}`,
         commit: this.options.commit,
         password: this.options.password,
       },
       ...args,
     )
-    this.providers.set(`/${endpoint}`, p)
-    return p
+    const endpoints = (typeof endpoint === "string" ? [endpoint] : endpoint).map((e) => e.replace(/^\/+|\/+$/g, ""))
+    endpoints.forEach((endpoint) => {
+      if (/\//.test(endpoint)) {
+        throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
+      }
+      const existingProvider = this.providers.get(`/${endpoint}`)
+      this.providers.set(`/${endpoint}`, p)
+      if (existingProvider) {
+        logger.debug(`Overridding existing /${endpoint} provider`)
+        // If the existing provider isn't registered elsewhere we can dispose.
+        if (!Array.from(this.providers.values()).find((p) => p === existingProvider)) {
+          logger.debug(`Disposing existing /${endpoint} provider`)
+          existingProvider.dispose()
+        }
+      }
+    })
   }
 
   /**
@@ -759,7 +771,7 @@ export class HttpServer {
     // that by shifting the next base out of the request path.
     let provider = this.providers.get(base)
     if (base !== "/" && provider) {
-      return { ...parse(requestPath), fullPath, query: parsedUrl.query, provider, originalPath }
+      return { ...parse(requestPath), providerBase: base, fullPath, query: parsedUrl.query, provider, originalPath }
     }
 
     // Fall back to the top-level provider.
@@ -767,7 +779,7 @@ export class HttpServer {
     if (!provider) {
       throw new Error(`No provider for ${base}`)
     }
-    return { base, fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
+    return { base, providerBase: "/", fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
   }
 
   /**

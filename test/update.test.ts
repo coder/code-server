@@ -51,7 +51,6 @@ describe("update", () => {
       _provider = new UpdateHttpProvider(
         {
           auth: AuthType.None,
-          base: "/update",
           commit: "test",
         },
         true,

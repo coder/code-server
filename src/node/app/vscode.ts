@@ -131,7 +131,7 @@ export class VscodeHttpProvider extends HttpProvider {
         if (!this.isRoot(route)) {
           throw new HttpError("Not found", HttpCode.NotFound)
         } else if (!this.authenticated(request)) {
-          return { redirect: "/login", query: { to: this.options.base } }
+          return { redirect: "/login", query: { to: route.providerBase } }
         }
         try {
           return await this.getRoot(request, route)
