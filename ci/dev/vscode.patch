@@ -679,10 +679,10 @@ index eab8591492..26668701f7 100644
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..649cf32f0a
+index 0000000000..8fb2a87303
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,264 @@
+@@ -0,0 +1,208 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -690,7 +690,6 @@ index 0000000000..649cf32f0a
 +import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 +import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 +import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
-+import { ILogService } from 'vs/platform/log/common/log';
 +import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 +import { Registry } from 'vs/platform/registry/common/platform';
 +import { PersistentConnectionEventType } from 'vs/platform/remote/common/remoteAgentConnection';
@@ -851,61 +850,6 @@ index 0000000000..649cf32f0a
 +			}
 +		});
 +	}
-+
-+	const applyUpdate = async (): Promise<void> => {
-+		(services.get(ILogService) as ILogService).debug("Applying update...");
-+
-+		const response = await fetch(normalize(`${options.base}/update/apply`), {
-+			headers: { "content-type": "application/json" },
-+		});
-+		const json = await response.json();
-+		if (response.status !== 200 || json.error) {
-+			throw new Error(json.error || response.statusText);
-+		}
-+		(services.get(INotificationService) as INotificationService).info(`Updated to ${json.version}`);
-+	};
-+
-+	const getUpdate = async (): Promise<void> => {
-+		(services.get(ILogService) as ILogService).debug("Checking for update...");
-+
-+		const response = await fetch(normalize(`${options.base}/update`), {
-+			headers: { "content-type": "application/json" },
-+		});
-+		const json = await response.json();
-+		if (response.status !== 200 || json.error) {
-+			throw new Error(json.error || response.statusText);
-+		}
-+		if (json.isLatest) {
-+			return;
-+		}
-+
-+		(services.get(INotificationService) as INotificationService).notify({
-+			severity: Severity.Info,
-+			message: `code-server has an update: ${json.version}`,
-+			actions: {
-+				primary: [{
-+					id: 'update',
-+					label: 'Apply Update',
-+					tooltip: '',
-+					class: undefined,
-+					enabled: true,
-+					checked: true,
-+					dispose: () => undefined,
-+					run: applyUpdate,
-+				}],
-+			}
-+		});
-+	};
-+
-+	const updateLoop = (): void => {
-+		getUpdate().catch((error) => {
-+			(services.get(ILogService) as ILogService).warn(error);
-+		}).finally(() => {
-+			setTimeout(updateLoop, 300000);
-+		});
-+	};
-+
-+	updateLoop();
 +
 +	// This will be used to set the background color while VS Code loads.
 +	const theme = (services.get(IStorageService) as IStorageService).get("colorThemeData", StorageScope.GLOBAL);
