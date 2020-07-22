@@ -12,5 +12,6 @@ homepage: "https://github.com/cdr/code-server"
 license: "MIT"
 files:
   ./ci/build/code-server-nfpm.sh: /usr/bin/code-server
-  ./ci/build/code-server.service: /usr/lib/systemd/user/code-server.service
+  ./ci/build/code-server.service: /usr/lib/systemd/system/code-server.service
+  ./ci/build/code-server-user.service: /usr/lib/systemd/user/code-server.service
   ./release-standalone/**/*: "/usr/lib/code-server/"
