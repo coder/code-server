@@ -1,6 +1,9 @@
-import { logger, field } from "@coder/logger"
+import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
+import * as path from "path"
+import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
+import { paths } from "./util"
 
 interface HandshakeMessage {
   type: "handshake"
@@ -140,8 +143,17 @@ export interface WrapperOptions {
 export class WrapperProcess {
   private process?: cp.ChildProcess
   private started?: Promise<void>
+  private readonly logStdoutStream: rfs.RotatingFileStream
+  private readonly logStderrStream: rfs.RotatingFileStream
 
   public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
+    const opts = {
+      size: "10M",
+      maxFiles: 10,
+    }
+    this.logStdoutStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stdout.log"), opts)
+    this.logStderrStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stderr.log"), opts)
+
     ipcMain().onDispose(() => {
       if (this.process) {
         this.process.removeAllListeners()
@@ -176,6 +188,15 @@ export class WrapperProcess {
   public start(): Promise<void> {
     if (!this.started) {
       this.started = this.spawn().then((child) => {
+        // Log both to stdout and to the log directory.
+        if (child.stdout) {
+          child.stdout.pipe(this.logStdoutStream)
+          child.stdout.pipe(process.stdout)
+        }
+        if (child.stderr) {
+          child.stderr.pipe(this.logStderrStream)
+          child.stderr.pipe(process.stderr)
+        }
         logger.debug(`spawned inner process ${child.pid}`)
         ipcMain()
           .handshake(child)
@@ -205,7 +226,7 @@ export class WrapperProcess {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: nodeOptions,
       },
-      stdio: ["inherit", "inherit", "inherit", "ipc"],
+      stdio: ["ipc"],
     })
   }
 }

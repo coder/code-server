@@ -72,6 +72,7 @@
     "js-yaml": "^3.13.1",
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
+    "rotating-file-stream": "^2.1.1",
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",
     "tar": "^6.0.1",
