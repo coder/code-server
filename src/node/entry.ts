@@ -77,7 +77,11 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
 
-  ipcMain().onDispose(() => httpServer.dispose())
+  ipcMain().onDispose(() => {
+    httpServer.dispose().then((errors) => {
+      errors.forEach((error) => logger.error(error.message))
+    })
+  })
 
   logger.info(`code-server ${version} ${commit}`)
   const serverAddress = await httpServer.listen()

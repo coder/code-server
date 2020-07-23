@@ -177,7 +177,7 @@ export abstract class HttpProvider {
 
   public constructor(protected readonly options: HttpProviderOptions) {}
 
-  public dispose(): void {
+  public async dispose(): Promise<void> {
     // No default behavior.
   }
 
@@ -504,9 +504,15 @@ export class HttpServer {
     })
   }
 
-  public dispose(): void {
+  /**
+   * Stop and dispose everything. Return an array of disposal errors.
+   */
+  public async dispose(): Promise<Error[]> {
     this.socketProvider.stop()
-    this.providers.forEach((p) => p.dispose())
+    const providers = Array.from(this.providers.values())
+    // Catch so all the errors can be seen rather than just the first one.
+    const responses = await Promise.all<Error | undefined>(providers.map((p) => p.dispose().catch((e) => e)))
+    return responses.filter<Error>((r): r is Error => typeof r !== "undefined")
   }
 
   public async getConnections(): Promise<number> {
