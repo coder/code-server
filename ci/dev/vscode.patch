@@ -1306,17 +1306,16 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..0a9c95d50e
+index 0000000000..5cc3e1f0f4
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,116 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
 + */
 +export interface Options {
 +	base: string
-+	commit: string
 +	disableTelemetry: boolean
 +}
 +

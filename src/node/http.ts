@@ -235,30 +235,22 @@ export abstract class HttpProvider {
   /**
    * Replace common templates strings.
    */
-  protected replaceTemplates(route: Route, response: HttpStringFileResponse, sessionId?: string): HttpStringFileResponse
   protected replaceTemplates<T extends object>(
     route: Route,
     response: HttpStringFileResponse,
-    options: T,
-  ): HttpStringFileResponse
-  protected replaceTemplates(
-    route: Route,
-    response: HttpStringFileResponse,
-    sessionIdOrOptions?: string | object,
+    extraOptions?: Omit<T, "base" | "csStaticBase" | "logLevel">,
   ): HttpStringFileResponse {
-    if (typeof sessionIdOrOptions === "undefined" || typeof sessionIdOrOptions === "string") {
-      sessionIdOrOptions = {
-        base: this.base(route),
-        commit: this.options.commit,
-        logLevel: logger.level,
-        sessionID: sessionIdOrOptions,
-      } as Options
+    const options: Options = {
+      base: this.base(route),
+      commit: this.options.commit,
+      logLevel: logger.level,
+      ...extraOptions,
     }
     response.content = response.content
       .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
       .replace(/{{BASE}}/g, this.base(route))
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(sessionIdOrOptions)}'`)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -664,7 +656,7 @@ export class HttpServer {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
-      logger.debug("Request error", field("url", request.url), field("code", code))
+      logger.debug("Request error", field("url", request.url), field("code", code), field("error", error))
       if (code >= HttpCode.ServerError) {
         logger.error(error.stack)
       }
