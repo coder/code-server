@@ -21,6 +21,10 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  # Keep these types since code-server's exported types use them.
+  mkdir -p "$RELEASE_PATH/lib/vscode/src/vs/server"
+  rsync ./lib/vscode/src/vs/server/ipc.d.ts "$RELEASE_PATH/lib/vscode/src/vs/server"
 }
 
 bundle_code_server() {
