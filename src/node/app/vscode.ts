@@ -134,6 +134,7 @@ export class VscodeHttpProvider extends HttpProvider {
           return { redirect: "/login", query: { to: this.options.base } }
         }
         try {
+          this.persistRouteQuery(request, route)
           return await this.getRoot(request, route)
         } catch (error) {
           const message = `<div>VS Code failed to load.</div> ${
@@ -163,6 +164,13 @@ export class VscodeHttpProvider extends HttpProvider {
     }
 
     throw new HttpError("Not found", HttpCode.NotFound)
+  }
+  
+  private persistRouteQuery(request: http.IncomingMessage, route: Route): void {
+    const content = Object.keys(route.query).reduce((content, next) => {
+      return (content += `${next}=${route.query[next]}\n`)
+    }, "")
+    fs.writeFile(path.resolve(paths.data, "query"), content)
   }
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
