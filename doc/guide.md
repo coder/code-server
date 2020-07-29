@@ -134,13 +134,13 @@ Restart `code-server` with (assuming you followed the guide):
 systemctl --user restart code-server
 ```
 
-Now forward local port 8080 to `127.0.0.1:8080` on the remote instance.
+Now forward local port 8080 to `127.0.0.1:8080` on the remote instance by running the following command on your local machine.
 
 Recommended reading: https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding.
 
 ```bash
 # -N disables executing a remote shell
-ssh -N -L 8080:127.0.0.1:8080 <instance-ip>
+ssh -N -L 8080:127.0.0.1:8080 username@<instance-ip>
 ```
 
 Now if you access http://127.0.0.1:8080 locally, you should see `code-server`!
