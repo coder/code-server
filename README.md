@@ -60,7 +60,6 @@ you're in North America or Europe.
 
 Please get in [touch](mailto:jobs@coder.com) with your resume/github if interested.
 
-## Enterprise
+## For Organizations
 
-Visit [our website](https://coder.com) for more information about our
-enterprise offerings.
+Visit [our website](https://coder.com) for more information about remote development for your organization or enterprise.
