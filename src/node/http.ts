@@ -209,11 +209,11 @@ export abstract class HttpProvider {
   /**
    * Get the base relative to the provided route. For each slash we need to go
    * up a directory. For example:
-   * / => ./
-   * /foo => ./
-   * /foo/ => ./../
-   * /foo/bar => ./../
-   * /foo/bar/ => ./../../
+   * / => .
+   * /foo => .
+   * /foo/ => ./..
+   * /foo/bar => ./..
+   * /foo/bar/ => ./../..
    */
   public base(route: Route): string {
     const depth = (route.originalPath.match(/\//g) || []).length
@@ -240,16 +240,17 @@ export abstract class HttpProvider {
     response: HttpStringFileResponse,
     extraOptions?: Omit<T, "base" | "csStaticBase" | "logLevel">,
   ): HttpStringFileResponse {
+    const base = this.base(route)
     const options: Options = {
-      base: this.base(route),
-      commit: this.options.commit,
+      base,
+      csStaticBase: base + "/static/" + this.options.commit + this.rootPath,
       logLevel: logger.level,
       ...extraOptions,
     }
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
-      .replace(/{{BASE}}/g, this.base(route))
+      .replace(/{{BASE}}/g, options.base)
+      .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
       .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }

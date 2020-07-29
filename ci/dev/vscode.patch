@@ -722,10 +722,10 @@ index eab8591492..26668701f7 100644
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000..8fb2a87303
+index 0000000000..3c0703b717
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,208 @@
+@@ -0,0 +1,189 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -761,31 +761,12 @@ index 0000000000..8fb2a87303
 +};
 +
 +/**
-+ * Get options embedded in the HTML from the server.
++ * Get options embedded in the HTML.
 + */
 +export const getOptions = <T extends Options>(): T => {
-+	if (typeof document === "undefined") {
-+		return {} as T;
-+	}
-+	const el = document.getElementById("coder-options");
 +	try {
-+		if (!el) {
-+			throw new Error("no options element");
-+		}
-+		const value = el.getAttribute("data-settings");
-+		if (!value) {
-+			throw new Error("no options value");
-+		}
-+		const options = JSON.parse(value);
-+		const parts = window.location.pathname.replace(/^\//g, "").split("/");
-+		parts[parts.length - 1] = options.base;
-+		const url = new URL(window.location.origin + "/" + parts.join("/"));
-+		return {
-+			...options,
-+			base: normalize(url.pathname, true),
-+		};
++		return JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!);
 +	} catch (error) {
-+		console.warn(error);
 +		return {} as T;
 +	}
 +};
@@ -1306,16 +1287,15 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..5cc3e1f0f4
+index 0000000000..7e1cd270c8
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,116 @@
+@@ -0,0 +1,115 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
 + */
 +export interface Options {
-+	base: string
 +	disableTelemetry: boolean
 +}
 +

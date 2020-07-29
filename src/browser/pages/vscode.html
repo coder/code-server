@@ -24,21 +24,17 @@
     <meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}" />
 
     <!-- Workbench Icon/Manifest/CSS -->
-    <link rel="icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link
-      rel="manifest"
-      href="{{BASE}}/static/{{COMMIT}}/src/browser/media/manifest.json"
-      crossorigin="use-credentials"
-    />
+    <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
     <!-- PROD_ONLY
-    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.css">
+    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.css">
     END_PROD_ONLY -->
-    <link rel="apple-touch-icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/pwa-icon-384.png" />
+    <link rel="apple-touch-icon" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-384.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
 
     <!-- Prefetch to avoid waterfall -->
     <!-- PROD_ONLY
-    <link rel="prefetch" href="{{BASE}}/static/{{COMMIT}}/lib/vscode/node_modules/semver-umd/lib/semver-umd.js">
+    <link rel="prefetch" href="{{CS_STATIC_BASE}}/lib/vscode/node_modules/semver-umd/lib/semver-umd.js">
     END_PROD_ONLY -->
 
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
@@ -48,10 +44,6 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script>
-    const parts = window.location.pathname.replace(/^\//g, "").split("/")
-    parts[parts.length - 1] = "{{BASE}}"
-    const url = new URL(window.location.origin + "/" + parts.join("/"))
-    const staticBase = url.href.replace(/\/+$/, "") + "/static/{{COMMIT}}/lib/vscode"
     let nlsConfig
     try {
       nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
@@ -64,7 +56,7 @@
           }
           // FIXME: Only works if path separators are /.
           const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
-          fetch(`${url.href}/resource/?path=${encodeURIComponent(path)}`)
+          fetch(`{{BASE}}/resource/?path=${encodeURIComponent(path)}`)
             .then((response) => response.json())
             .then((json) => {
               bundles[bundle] = json
@@ -77,26 +69,26 @@
       /* Probably fine. */
     }
     self.require = {
-      baseUrl: `${staticBase}/out`,
+      baseUrl: "{{CS_STATIC_BASE}}/lib/vscode/out",
       paths: {
-        "vscode-textmate": `${staticBase}/node_modules/vscode-textmate/release/main`,
-        "vscode-oniguruma": `${staticBase}/node_modules/vscode-oniguruma/release/main`,
-        xterm: `${staticBase}/node_modules/xterm/lib/xterm.js`,
-        "xterm-addon-search": `${staticBase}/node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
-        "xterm-addon-unicode11": `${staticBase}/node_modules/xterm-addon-unicode11/lib/xterm-addon-unicode11.js`,
-        "xterm-addon-webgl": `${staticBase}/node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js`,
-        "semver-umd": `${staticBase}/node_modules/semver-umd/lib/semver-umd.js`,
-        "iconv-lite-umd": `${staticBase}/node_modules/iconv-lite-umd/lib/iconv-lite-umd.js`,
-        jschardet: `${staticBase}/node_modules/jschardet/dist/jschardet.min.js`,
+        "vscode-textmate": `../node_modules/vscode-textmate/release/main`,
+        "vscode-oniguruma": `../node_modules/vscode-oniguruma/release/main`,
+        xterm: `../node_modules/xterm/lib/xterm.js`,
+        "xterm-addon-search": `../node_modules/xterm-addon-search/lib/xterm-addon-search.js`,
+        "xterm-addon-unicode11": `../node_modules/xterm-addon-unicode11/lib/xterm-addon-unicode11.js`,
+        "xterm-addon-webgl": `../node_modules/xterm-addon-webgl/lib/xterm-addon-webgl.js`,
+        "semver-umd": `../node_modules/semver-umd/lib/semver-umd.js`,
+        "iconv-lite-umd": `../node_modules/iconv-lite-umd/lib/iconv-lite-umd.js`,
+        jschardet: `../node_modules/jschardet/dist/jschardet.min.js`,
       },
       "vs/nls": nlsConfig,
     }
   </script>
-  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
-  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/loader.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/register.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/loader.js"></script>
   <!-- PROD_ONLY
-  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>
-  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/lib/vscode/out/vs/workbench/workbench.web.api.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.js"></script>
   END_PROD_ONLY -->
   <script>
     require(["vs/code/browser/workbench/workbench"], function () {})

@@ -8,10 +8,9 @@ import { HttpProvider, HttpResponse, Route } from "../http"
 import { pathToFsPath } from "../util"
 
 /**
- * Static file HTTP provider. Regular static requests (the path is the request
- * itself) do not require authentication and they only allow access to resources
- * within the application. Requests for tars (the path is in a query parameter)
- * do require permissions and can access any directory.
+ * Static file HTTP provider. Static requests do not require authentication if
+ * the resource is in the application's directory except requests to serve a
+ * directory as a tar which always requires authentication.
  */
 export class StaticHttpProvider extends HttpProvider {
   public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
@@ -22,7 +21,7 @@ export class StaticHttpProvider extends HttpProvider {
       return this.getTarredResource(request, pathToFsPath(route.query.tar))
     }
 
-    const response = await this.getReplacedResource(route)
+    const response = await this.getReplacedResource(request, route)
     if (!this.isDev) {
       response.cache = true
     }
@@ -32,17 +31,25 @@ export class StaticHttpProvider extends HttpProvider {
   /**
    * Return a resource with variables replaced where necessary.
    */
-  protected async getReplacedResource(route: Route): Promise<HttpResponse> {
+  protected async getReplacedResource(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     // The first part is always the commit (for caching purposes).
     const split = route.requestPath.split("/").slice(1)
 
+    const resourcePath = path.resolve("/", ...split)
+
+    // Make sure it's in code-server or a plugin.
+    const validPaths = [this.rootPath, process.env.PLUGIN_DIR]
+    if (!validPaths.find((p) => typeof p !== "undefined" && p.length > 0 && resourcePath.startsWith(p))) {
+      this.ensureAuthenticated(request)
+    }
+
     switch (split[split.length - 1]) {
       case "manifest.json": {
-        const response = await this.getUtf8Resource(this.rootPath, ...split)
+        const response = await this.getUtf8Resource(resourcePath)
         return this.replaceTemplates(route, response)
       }
     }
-    return this.getResource(this.rootPath, ...split)
+    return this.getResource(resourcePath)
   }
 
   /**

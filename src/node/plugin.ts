@@ -49,4 +49,8 @@ export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<v
       logger.warn(error.message)
     }
   }
+
+  if (process.env.PLUGIN_DIR) {
+    await loadPlugin(process.env.PLUGIN_DIR, httpServer, args)
+  }
 }

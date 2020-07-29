@@ -150,7 +150,7 @@ class Watcher {
         cacheDir: path.join(this.rootPath, ".cache"),
         minify: !!process.env.MINIFY,
         logLevel: 1,
-        publicUrl: "/static/development/dist",
+        publicUrl: ".",
       },
     )
   }

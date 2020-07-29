@@ -2,9 +2,8 @@ import { logger, field } from "@coder/logger"
 
 export interface Options {
   base: string
-  commit: string
+  csStaticBase: string
   logLevel: number
-  pid?: number
 }
 
 /**
@@ -41,20 +40,27 @@ export const trimSlashes = (url: string): string => {
 }
 
 /**
+ * Resolve a relative base against the window location. This is used for
+ * anything that doesn't work with a relative path.
+ */
+export const resolveBase = (base?: string): string => {
+  // After resolving the base will either start with / or be an empty string.
+  if (!base || base.startsWith("/")) {
+    return base || ""
+  }
+  const parts = location.pathname.replace(/^\//g, "").split("/")
+  parts[parts.length - 1] = base
+  const url = new URL(location.origin + "/" + parts.join("/"))
+  return normalize(url.pathname)
+}
+
+/**
  * Get options embedded in the HTML or query params.
  */
 export const getOptions = <T extends Options>(): T => {
   let options: T
   try {
-    const el = document.getElementById("coder-options")
-    if (!el) {
-      throw new Error("no options element")
-    }
-    const value = el.getAttribute("data-settings")
-    if (!value) {
-      throw new Error("no options value")
-    }
-    options = JSON.parse(value)
+    options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
   } catch (error) {
     options = {} as T
   }
@@ -68,15 +74,10 @@ export const getOptions = <T extends Options>(): T => {
     }
   }
 
-  if (typeof options.logLevel !== "undefined") {
-    logger.level = options.logLevel
-  }
-  if (options.base) {
-    const parts = location.pathname.replace(/^\//g, "").split("/")
-    parts[parts.length - 1] = options.base
-    const url = new URL(location.origin + "/" + parts.join("/"))
-    options.base = normalize(url.pathname, true)
-  }
+  logger.level = options.logLevel
+
+  options.base = resolveBase(options.base)
+  options.csStaticBase = resolveBase(options.csStaticBase)
 
   logger.debug("got options", field("options", options))
 

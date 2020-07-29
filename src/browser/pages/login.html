@@ -11,14 +11,10 @@
       content="style-src 'self'; script-src 'self' 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:; font-src 'self' data:;"
     />
     <title>code-server login</title>
-    <link rel="icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link
-      rel="manifest"
-      href="{{BASE}}/static/{{COMMIT}}/src/browser/media/manifest.json"
-      crossorigin="use-credentials"
-    />
-    <link rel="apple-touch-icon" href="{{BASE}}/static/{{COMMIT}}/src/browser/media/pwa-icon-384.png" />
-    <link href="{{BASE}}/static/{{COMMIT}}/dist/register.css" rel="stylesheet" />
+    <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" type="image/x-icon" />
+    <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
+    <link rel="apple-touch-icon" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-384.png" />
+    <link href="{{CS_STATIC_BASE}}/dist/register.css" rel="stylesheet" />
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
   </head>
   <body>
@@ -50,7 +46,7 @@
       </div>
     </div>
   </body>
-  <script data-cfasync="false" src="{{BASE}}/static/{{COMMIT}}/dist/register.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/register.js"></script>
   <script>
     const parts = window.location.pathname.replace(/^\//g, "").split("/")
     parts[parts.length - 1] = "{{BASE}}"
