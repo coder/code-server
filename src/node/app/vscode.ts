@@ -134,7 +134,6 @@ export class VscodeHttpProvider extends HttpProvider {
           return { redirect: "/login", query: { to: this.options.base } }
         }
         try {
-          this.persistRouteQuery(request, route)
           return await this.getRoot(request, route)
         } catch (error) {
           const message = `<div>VS Code failed to load.</div> ${
@@ -165,13 +164,6 @@ export class VscodeHttpProvider extends HttpProvider {
 
     throw new HttpError("Not found", HttpCode.NotFound)
   }
-  
-  private persistRouteQuery(request: http.IncomingMessage, route: Route): void {
-    const content = Object.keys(route.query).reduce((content, next) => {
-      return (content += `${next}=${route.query[next]}\n`)
-    }, "")
-    fs.writeFile(path.resolve(paths.data, "query"), content)
-  }
 
   private async getRoot(request: http.IncomingMessage, route: Route): Promise<HttpResponse> {
     const remoteAuthority = request.headers.host as string
@@ -191,11 +183,15 @@ export class VscodeHttpProvider extends HttpProvider {
       }),
     ])
 
+    let promise = Promise.resolve()
     if (startPath) {
-      settings.write({
-        lastVisited: startPath,
-      })
+      promise = settings.write({ lastVisited: startPath })
     }
+    // `settings.write` depends on `settings.read` internally. To avoid race conditions, a promise is added here to synchronize.
+    promise.then(() => {
+      // the query should not be extends, but should be replaced directly.
+      settings.write({ query: route.query }, true)
+    })
 
     if (!this.isDev) {
       response.content = response.content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "")
