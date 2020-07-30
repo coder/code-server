@@ -14,7 +14,7 @@ import {
   WorkbenchOptions,
 } from "../../../lib/vscode/src/vs/server/ipc"
 import { HttpCode, HttpError } from "../../common/http"
-import { generateUuid } from "../../common/util"
+import { arrayify, generateUuid } from "../../common/util"
 import { Args } from "../cli"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { settings } from "../settings"
@@ -224,8 +224,7 @@ export class VscodeHttpProvider extends HttpProvider {
     }
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]
-      const url =
-        startPath && (typeof startPath.url === "string" ? [startPath.url] : startPath.url || []).find((p) => !!p)
+      const url = arrayify(startPath && startPath.url).find((p) => !!p)
       if (startPath && url) {
         return {
           url,

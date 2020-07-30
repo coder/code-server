@@ -12,7 +12,7 @@ import { Readable } from "stream"
 import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, Options, plural, split } from "../common/util"
+import { arrayify, normalize, Options, plural, split, trimSlashes } from "../common/util"
 import { SocketProxyProvider } from "./socket"
 import { getMediaMime, paths } from "./util"
 
@@ -287,7 +287,7 @@ export abstract class HttpProvider {
    * Helper to error on invalid methods (default GET).
    */
   protected ensureMethod(request: http.IncomingMessage, method?: string | string[]): void {
-    const check = Array.isArray(method) ? method : [method || "GET"]
+    const check = arrayify(method || "GET")
     if (!request.method || !check.includes(request.method)) {
       throw new HttpError(`Unsupported method ${request.method}`, HttpCode.BadRequest)
     }
@@ -559,7 +559,7 @@ export class HttpServer {
       },
       ...args,
     )
-    const endpoints = (typeof endpoint === "string" ? [endpoint] : endpoint).map((e) => e.replace(/^\/+|\/+$/g, ""))
+    const endpoints = arrayify(endpoint).map(trimSlashes)
     endpoints.forEach((endpoint) => {
       if (/\//.test(endpoint)) {
         throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)

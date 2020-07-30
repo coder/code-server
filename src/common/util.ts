@@ -34,6 +34,13 @@ export const normalize = (url: string, keepTrailing = false): string => {
 }
 
 /**
+ * Remove leading and trailing slashes.
+ */
+export const trimSlashes = (url: string): string => {
+  return url.replace(/^\/+|\/+$/g, "")
+}
+
+/**
  * Get options embedded in the HTML or query params.
  */
 export const getOptions = <T extends Options>(): T => {
@@ -74,4 +81,18 @@ export const getOptions = <T extends Options>(): T => {
   logger.debug("got options", field("options", options))
 
   return options
+}
+
+/**
+ * Wrap the value in an array if it's not already an array. If the value is
+ * undefined return an empty array.
+ */
+export const arrayify = <T>(value?: T | T[]): T[] => {
+  if (Array.isArray(value)) {
+    return value
+  }
+  if (typeof value === "undefined") {
+    return []
+  }
+  return [value]
 }
