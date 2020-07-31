@@ -2,40 +2,33 @@ import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
 import * as path from "path"
-import * as tar from "tar-fs"
-import * as zlib from "zlib"
 import { LatestResponse, UpdateHttpProvider } from "../src/node/app/update"
 import { AuthType } from "../src/node/http"
 import { SettingsProvider, UpdateSettings } from "../src/node/settings"
 import { tmpdir } from "../src/node/util"
 
 describe("update", () => {
-  const archivePath = path.join(tmpdir, "tests/updates/code-server-loose-source")
   let version = "1.0.0"
   let spy: string[] = []
   const server = http.createServer((request: http.IncomingMessage, response: http.ServerResponse) => {
     if (!request.url) {
       throw new Error("no url")
     }
+
     spy.push(request.url)
-    response.writeHead(200)
+
+    // Return the latest version.
     if (request.url === "/latest") {
       const latest: LatestResponse = {
         name: version,
       }
+      response.writeHead(200)
       return response.end(JSON.stringify(latest))
     }
 
-    const path = archivePath + (request.url.endsWith(".tar.gz") ? ".tar.gz" : ".zip")
-
-    const stream = fs.createReadStream(path)
-    stream.on("error", (error: NodeJS.ErrnoException) => {
-      response.writeHead(500)
-      response.end(error.message)
-    })
-    response.writeHead(200)
-    stream.on("close", () => response.end())
-    stream.pipe(response)
+    // Anything else is a 404.
+    response.writeHead(404)
+    response.end("not found")
   })
 
   const jsonPath = path.join(tmpdir, "tests/updates/update.json")
@@ -51,12 +44,10 @@ describe("update", () => {
       _provider = new UpdateHttpProvider(
         {
           auth: AuthType.None,
-          base: "/update",
           commit: "test",
         },
         true,
         `http://${address.address}:${address.port}/latest`,
-        `http://${address.address}:${address.port}/download/{{VERSION}}/{{RELEASE_NAME}}`,
         settings,
       )
     }
@@ -72,32 +63,8 @@ describe("update", () => {
         host: "localhost",
       })
     })
-
-    const p = provider()
-    const archiveName = (await p.getReleaseName({ version: "9999999.99999.9999", checked: 0 })).replace(
-      /.tar.gz$|.zip$/,
-      "",
-    )
     await fs.remove(path.join(tmpdir, "tests/updates"))
-    await fs.mkdirp(path.join(archivePath, archiveName))
-
-    await Promise.all([
-      fs.writeFile(path.join(archivePath, archiveName, "code-server"), `console.log("UPDATED")`),
-      fs.writeFile(path.join(archivePath, archiveName, "node"), `NODE BINARY`),
-    ])
-
-    await new Promise((resolve, reject) => {
-      const write = fs.createWriteStream(archivePath + ".tar.gz")
-      const compress = zlib.createGzip()
-      compress.pipe(write)
-      compress.on("error", (error) => compress.destroy(error))
-      compress.on("close", () => write.end())
-      tar.pack(archivePath).pipe(compress)
-      write.on("close", reject)
-      write.on("finish", () => {
-        resolve()
-      })
-    })
+    await fs.mkdirp(path.join(tmpdir, "tests/updates"))
   })
 
   after(() => {
@@ -185,53 +152,15 @@ describe("update", () => {
     assert.equal(p.isLatestVersion(update), true)
   })
 
-  it("should download and apply an update", async () => {
-    version = "9999999.99999.9999"
-
-    const p = provider()
-    const update = await p.getUpdate(true)
-
-    // Create an existing version.
-    const destination = path.join(tmpdir, "tests/updates/code-server")
-    await fs.mkdirp(destination)
-    const entry = path.join(destination, "code-server")
-    await fs.writeFile(entry, `console.log("OLD")`)
-    assert.equal(`console.log("OLD")`, await fs.readFile(entry, "utf8"))
-
-    // Updating should replace the existing version.
-    await p.downloadAndApplyUpdate(update, destination)
-    assert.equal(`console.log("UPDATED")`, await fs.readFile(entry, "utf8"))
-
-    // There should be a backup.
-    const dir = (await fs.readdir(path.join(tmpdir, "tests/updates"))).filter((dir) => {
-      return dir.startsWith("code-server.")
-    })
-    assert.equal(dir.length, 1)
-    assert.equal(
-      `console.log("OLD")`,
-      await fs.readFile(path.join(tmpdir, "tests/updates", dir[0], "code-server"), "utf8"),
-    )
-
-    const archiveName = await p.getReleaseName(update)
-    assert.deepEqual(spy, ["/latest", `/download/${version}/${archiveName}`])
-  })
-
   it("should not reject if unable to fetch", async () => {
     const options = {
       auth: AuthType.None,
-      base: "/update",
       commit: "test",
     }
-    let provider = new UpdateHttpProvider(options, true, "invalid", "invalid", settings)
+    let provider = new UpdateHttpProvider(options, true, "invalid", settings)
     await assert.doesNotReject(() => provider.getUpdate(true))
 
-    provider = new UpdateHttpProvider(
-      options,
-      true,
-      "http://probably.invalid.dev.localhost/latest",
-      "http://probably.invalid.dev.localhost/download",
-      settings,
-    )
+    provider = new UpdateHttpProvider(options, true, "http://probably.invalid.dev.localhost/latest", settings)
     await assert.doesNotReject(() => provider.getUpdate(true))
   })
 })

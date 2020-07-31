@@ -9,16 +9,8 @@ export enum HttpCode {
 }
 
 export class HttpError extends Error {
-  public constructor(message: string, public readonly code: number) {
+  public constructor(message: string, public readonly code: number, public readonly details?: object) {
     super(message)
     this.name = this.constructor.name
   }
-}
-
-export enum ApiEndpoint {
-  applications = "/applications",
-  process = "/process",
-  recent = "/recent",
-  run = "/run",
-  status = "/status",
 }
