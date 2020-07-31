@@ -37,6 +37,7 @@ class Watcher {
 
     const vscode = cp.spawn("yarn", ["watch"], { cwd: this.vscodeSourcePath })
     const tsc = cp.spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath })
+    const plugin = cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
     const bundler = this.createBundler()
 
     const cleanup = (code?: number | null): void => {
@@ -47,6 +48,10 @@ class Watcher {
       Watcher.log("killing tsc")
       tsc.removeAllListeners()
       tsc.kill()
+
+      Watcher.log("killing plugin")
+      plugin.removeAllListeners()
+      plugin.kill()
 
       if (server) {
         Watcher.log("killing server")
@@ -69,6 +74,10 @@ class Watcher {
       Watcher.log("tsc terminated unexpectedly")
       cleanup(code)
     })
+    plugin.on("exit", (code) => {
+      Watcher.log("plugin terminated unexpectedly")
+      cleanup(code)
+    })
     const bundle = bundler.bundle().catch(() => {
       Watcher.log("parcel watcher terminated unexpectedly")
       cleanup(1)
@@ -82,6 +91,7 @@ class Watcher {
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
+    plugin.stderr.on("data", (d) => process.stderr.write(d))
 
     // From https://github.com/chalk/ansi-regex
     const pattern = [
@@ -135,6 +145,16 @@ class Watcher {
       // tsc outputs blank lines; skip them.
       if (line !== "") {
         console.log("[tsc]", original)
+      }
+      if (line.includes("Watching for file changes")) {
+        bundle.then(restartServer)
+      }
+    })
+
+    onLine(plugin, (line, original) => {
+      // tsc outputs blank lines; skip them.
+      if (line !== "") {
+        console.log("[plugin]", original)
       }
       if (line.includes("Watching for file changes")) {
         bundle.then(restartServer)
