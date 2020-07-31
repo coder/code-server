@@ -183,11 +183,10 @@ export class VscodeHttpProvider extends HttpProvider {
       }),
     ])
 
-    if (startPath) {
-      settings.write({
-        lastVisited: startPath,
-      })
-    }
+    settings.write({
+      lastVisited: startPath || lastVisited, // If startpath is undefined, then fallback to lastVisited
+      query: route.query,
+    })
 
     if (!this.isDev) {
       response.content = response.content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "")
