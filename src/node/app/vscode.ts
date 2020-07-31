@@ -183,14 +183,9 @@ export class VscodeHttpProvider extends HttpProvider {
       }),
     ])
 
-    let promise = Promise.resolve()
-    if (startPath) {
-      promise = settings.write({ lastVisited: startPath })
-    }
-    // `settings.write` depends on `settings.read` internally. To avoid race conditions, a promise is added here to synchronize.
-    promise.then(() => {
-      // the query should not be extends, but should be replaced directly.
-      settings.write({ query: route.query }, true)
+    settings.write({
+      lastVisited: startPath || lastVisited, // If startpath is undefined, then fallback to lastVisited
+      query: route.query,
     })
 
     if (!this.isDev) {

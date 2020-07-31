@@ -30,9 +30,9 @@ export class SettingsProvider<T> {
 
   /**
    * Write settings combined with current settings. On failure log a warning.
-   * Objects will be merged and everything else will be replaced.
+   * Settings can be shallow or deep merged.
    */
-  public async write(settings: Partial<T>, shallow?: boolean): Promise<void> {
+  public async write(settings: Partial<T>, shallow = true): Promise<void> {
     try {
       const oldSettings = await this.read()
       const nextSettings = shallow ? Object.assign({}, oldSettings, settings) : extend(oldSettings, settings)
