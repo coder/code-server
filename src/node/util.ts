@@ -200,25 +200,6 @@ export const isObject = <T extends object>(obj: T): obj is T => {
 }
 
 /**
- * Extend a with b and return a new object. Properties with objects will be
- * recursively merged while all other properties are just overwritten.
- */
-export function extend<A, B>(a: A, b: B): A & B
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function extend(...args: any[]): any {
-  const c = {} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-  for (const obj of args) {
-    if (!isObject(obj)) {
-      continue
-    }
-    for (const key in obj) {
-      c[key] = isObject(obj[key]) ? extend(c[key], obj[key]) : obj[key]
-    }
-  }
-  return c
-}
-
-/**
  * Taken from vs/base/common/charCode.ts. Copied for now instead of importing so
  * we don't have to set up a `vs` alias to be able to import with types (since
  * the alternative is to directly import from `out`).

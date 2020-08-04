@@ -1,6 +1,6 @@
 import * as fs from "fs-extra"
 import * as path from "path"
-import { extend, paths } from "./util"
+import { paths } from "./util"
 import { logger } from "@coder/logger"
 import { Route } from "./http"
 
@@ -30,12 +30,12 @@ export class SettingsProvider<T> {
 
   /**
    * Write settings combined with current settings. On failure log a warning.
-   * Settings can be shallow or deep merged.
+   * Settings will be merged shallowly.
    */
-  public async write(settings: Partial<T>, shallow = true): Promise<void> {
+  public async write(settings: Partial<T>): Promise<void> {
     try {
       const oldSettings = await this.read()
-      const nextSettings = shallow ? Object.assign({}, oldSettings, settings) : extend(oldSettings, settings)
+      const nextSettings = { ...oldSettings, ...settings }
       await fs.writeFile(this.settingsPath, JSON.stringify(nextSettings, null, 2))
     } catch (error) {
       logger.warn(error.message)
