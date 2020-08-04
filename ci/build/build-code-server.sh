@@ -21,9 +21,10 @@ main() {
     --public-url "." \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \
-    src/browser/login.ts \
     src/browser/register.ts \
-    src/browser/serviceWorker.ts
+    src/browser/serviceWorker.ts \
+    src/browser/pages/login.ts \
+    src/browser/pages/vscode.ts
 }
 
 main "$@"
