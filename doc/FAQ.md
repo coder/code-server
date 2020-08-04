@@ -86,9 +86,20 @@ If you have your own marketplace that implements the VS Code Extension Gallery A
 point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
 to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
 
+e.g. to use [open-vsx.org](https://open-vsx.org):
+
+```bash
+export SERVICE_URL=https://open-vsx.org/vscode/gallery
+export ITEM_URL=https://open-vsx.org/vscode/item
+```
+
 While you can technically use Microsoft's marketplace with these, please do not do so as it
-is against their terms of use. See [above](#differences-compared-to-vs-code). These variables
-are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
+is against their terms of use. See [above](#differences-compared-to-vs-code) and this
+discussion regarding the use of the Microsoft URLs in forks:
+
+https://github.com/microsoft/vscode/issues/31168#issue-244533026
+
+These variables are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
 
