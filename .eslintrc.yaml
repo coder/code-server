@@ -24,6 +24,8 @@ rules:
   "@typescript-eslint/no-use-before-define": off
   "@typescript-eslint/no-non-null-assertion": off
   eqeqeq: error
+  import/order:
+    [error, { alphabetize: { order: "asc" }, groups: [["builtin", "external", "internal"], "parent", "sibling"] }]
 
 settings:
   # Does not work with CommonJS unfortunately.

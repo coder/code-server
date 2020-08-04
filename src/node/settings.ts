@@ -1,8 +1,8 @@
+import { logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import * as path from "path"
-import { paths } from "./util"
-import { logger } from "@coder/logger"
 import { Route } from "./http"
+import { paths } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
 

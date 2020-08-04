@@ -1,10 +1,10 @@
 import * as cp from "child_process"
 import * as crypto from "crypto"
+import envPaths from "env-paths"
 import * as fs from "fs-extra"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
-import envPaths from "env-paths"
 import xdgBasedir from "xdg-basedir"
 
 export const tmpdir = path.join(os.tmpdir(), "code-server")
