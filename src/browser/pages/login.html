@@ -47,10 +47,5 @@
     </div>
   </body>
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/register.js"></script>
-  <script>
-    const parts = window.location.pathname.replace(/^\//g, "").split("/")
-    parts[parts.length - 1] = "{{BASE}}"
-    const url = new URL(window.location.origin + "/" + parts.join("/"))
-    document.getElementById("base").value = url.pathname
-  </script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/login.js"></script>
 </html>

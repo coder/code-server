@@ -21,6 +21,7 @@ main() {
     --public-url "." \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \
+    src/browser/login.ts \
     src/browser/register.ts \
     src/browser/serviceWorker.ts
 }

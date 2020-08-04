@@ -164,7 +164,11 @@ class Watcher {
 
   private createBundler(out = "dist"): Bundler {
     return new Bundler(
-      [path.join(this.rootPath, "src/browser/register.ts"), path.join(this.rootPath, "src/browser/serviceWorker.ts")],
+      [
+        path.join(this.rootPath, "src/browser/login.ts"),
+        path.join(this.rootPath, "src/browser/register.ts"),
+        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
+      ],
       {
         outDir: path.join(this.rootPath, out),
         cacheDir: path.join(this.rootPath, ".cache"),
