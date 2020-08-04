@@ -172,7 +172,7 @@ export const parse = (
     const arg = argv[i]
 
     // -- signals the end of option parsing.
-    if (!ended && arg == "--") {
+    if (!ended && arg === "--") {
       ended = true
       continue
     }
@@ -220,7 +220,7 @@ export const parse = (
         throw error(`--${key} requires a value`)
       }
 
-      if (option.type == OptionalString && value == "false") {
+      if (option.type === OptionalString && value === "false") {
         continue
       }
 
