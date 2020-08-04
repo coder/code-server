@@ -868,6 +868,7 @@ export class HttpServer {
       // isn't setting the host header to match the access domain.
       host === "localhost"
     ) {
+      logger.debug("no valid cookie doman", field("host", host))
       return undefined
     }
 
@@ -877,6 +878,7 @@ export class HttpServer {
       }
     })
 
+    logger.debug("got cookie doman", field("host", host))
     return host ? `Domain=${host}` : undefined
   }
 
