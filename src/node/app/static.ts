@@ -39,7 +39,7 @@ export class StaticHttpProvider extends HttpProvider {
 
     // Make sure it's in code-server or a plugin.
     const validPaths = [this.rootPath, process.env.PLUGIN_DIR]
-    if (!validPaths.find((p) => typeof p !== "undefined" && p.length > 0 && resourcePath.startsWith(p))) {
+    if (!validPaths.find((p) => p && resourcePath.startsWith(p))) {
       this.ensureAuthenticated(request)
     }
 
