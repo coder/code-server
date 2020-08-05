@@ -46,7 +46,7 @@ export const trimSlashes = (url: string): string => {
 export const resolveBase = (base?: string): string => {
   // After resolving the base will either start with / or be an empty string.
   if (!base || base.startsWith("/")) {
-    return base || ""
+    return base ?? ""
   }
   const parts = location.pathname.split("/")
   parts[parts.length - 1] = base
