@@ -48,7 +48,7 @@ export const resolveBase = (base?: string): string => {
   if (!base || base.startsWith("/")) {
     return base || ""
   }
-  const parts = location.pathname.replace(/^\//g, "").split("/")
+  const parts = location.pathname.split("/")
   parts[parts.length - 1] = base
   const url = new URL(location.origin + "/" + parts.join("/"))
   return normalize(url.pathname)
