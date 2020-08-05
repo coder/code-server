@@ -13,6 +13,10 @@ export interface Plugin {
   activate: Activate
 }
 
+/**
+ * Intercept imports so we can inject code-server when the plugin tries to
+ * import it.
+ */
 const originalLoad = require("module")._load
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 require("module")._load = function (request: string, parent: object, isMain: boolean): any {
