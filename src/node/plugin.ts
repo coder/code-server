@@ -28,7 +28,7 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
     if (error.code !== "MODULE_NOT_FOUND") {
       logger.warn(error.message)
     } else {
-      logger.debug(error.message)
+      logger.error(error.message)
     }
   }
 }
