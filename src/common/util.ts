@@ -16,7 +16,11 @@ export const split = (str: string, delimiter: string): [string, string] => {
   return index !== -1 ? [str.substring(0, index).trim(), str.substring(index + 1)] : [str, ""]
 }
 
-export const plural = (count: number): string => (count === 1 ? "" : "s")
+/**
+ * Appends an 's' to the provided string if count is greater than one;
+ * otherwise the string is returned
+ */
+export const plural = (count: number, str: string): string => (count === 1 ? str : `${str}s`)
 
 export const generateUuid = (length = 24): string => {
   const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
