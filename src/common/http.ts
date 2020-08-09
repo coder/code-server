@@ -9,7 +9,7 @@ export enum HttpCode {
 }
 
 export class HttpError extends Error {
-  public constructor(message: string, public readonly code: number, public readonly details?: object) {
+  constructor(message: string, public readonly code: number) {
     super(message)
     this.name = this.constructor.name
   }
