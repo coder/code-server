@@ -481,7 +481,7 @@ export class HttpServer {
     this.proxyDomains = new Set((options.proxyDomains || []).map((d) => d.replace(/^\*\./, "")))
     this.heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
       const connections = await this.getConnections()
-      logger.trace(`${connections} active connection${plural(connections)}`)
+      logger.trace(plural(connections, `${connections} active connection`))
       return connections !== 0
     })
     this.protocol = this.options.cert ? "https" : "http"
