@@ -1,19 +1,21 @@
+import { Callback } from "./types"
+
 export interface Disposable {
   dispose(): void
 }
 
 export interface Event<T> {
-  (listener: (value: T) => void): Disposable
+  (listener: Callback<T>): Disposable
 }
 
 /**
  * Emitter typecasts for a single event type.
  */
 export class Emitter<T> {
-  private listeners: Array<(value: T) => void> = []
+  private listeners: Array<Callback<T>> = []
 
   public get event(): Event<T> {
-    return (cb: (value: T) => void): Disposable => {
+    return (cb: Callback<T>): Disposable => {
       this.listeners.push(cb)
 
       return {
