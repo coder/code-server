@@ -125,7 +125,11 @@ const options: Options<Required<Args>> = {
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
-  "install-extension": { type: "string[]", description: "Install or update a VS Code extension by id or vsix." },
+  "install-extension": {
+    type: "string[]",
+    description:
+      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`. To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+  },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
