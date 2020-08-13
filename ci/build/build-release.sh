@@ -21,6 +21,12 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  # code-server exports types which can be imported and used by plugins. Those
+  # types import ipc.d.ts but it isn't included in the final vscode build so
+  # we'll copy it ourselves here.
+  mkdir -p "$RELEASE_PATH/lib/vscode/src/vs/server"
+  rsync ./lib/vscode/src/vs/server/ipc.d.ts "$RELEASE_PATH/lib/vscode/src/vs/server"
 }
 
 bundle_code_server() {

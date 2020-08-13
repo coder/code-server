@@ -209,11 +209,11 @@ export abstract class HttpProvider {
   /**
    * Get the base relative to the provided route. For each slash we need to go
    * up a directory. For example:
-   * / => ./
-   * /foo => ./
-   * /foo/ => ./../
-   * /foo/bar => ./../
-   * /foo/bar/ => ./../../
+   * / => .
+   * /foo => .
+   * /foo/ => ./..
+   * /foo/bar => ./..
+   * /foo/bar/ => ./../..
    */
   public base(route: Route): string {
     const depth = (route.originalPath.match(/\//g) || []).length
@@ -235,30 +235,23 @@ export abstract class HttpProvider {
   /**
    * Replace common templates strings.
    */
-  protected replaceTemplates(route: Route, response: HttpStringFileResponse, sessionId?: string): HttpStringFileResponse
   protected replaceTemplates<T extends object>(
     route: Route,
     response: HttpStringFileResponse,
-    options: T,
-  ): HttpStringFileResponse
-  protected replaceTemplates(
-    route: Route,
-    response: HttpStringFileResponse,
-    sessionIdOrOptions?: string | object,
+    extraOptions?: Omit<T, "base" | "csStaticBase" | "logLevel">,
   ): HttpStringFileResponse {
-    if (typeof sessionIdOrOptions === "undefined" || typeof sessionIdOrOptions === "string") {
-      sessionIdOrOptions = {
-        base: this.base(route),
-        commit: this.options.commit,
-        logLevel: logger.level,
-        sessionID: sessionIdOrOptions,
-      } as Options
+    const base = this.base(route)
+    const options: Options = {
+      base,
+      csStaticBase: base + "/static/" + this.options.commit + this.rootPath,
+      logLevel: logger.level,
+      ...extraOptions,
     }
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
-      .replace(/{{BASE}}/g, this.base(route))
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(sessionIdOrOptions)}'`)
+      .replace(/{{BASE}}/g, options.base)
+      .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -664,7 +657,7 @@ export class HttpServer {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
-      logger.debug("Request error", field("url", request.url), field("code", code))
+      logger.debug("Request error", field("url", request.url), field("code", code), field("error", error))
       if (code >= HttpCode.ServerError) {
         logger.error(error.stack)
       }

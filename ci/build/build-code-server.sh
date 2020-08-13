@@ -18,7 +18,7 @@ main() {
   fi
 
   parcel build \
-    --public-url "/static/$(git rev-parse HEAD)/dist" \
+    --public-url "." \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \
     src/browser/register.ts \
