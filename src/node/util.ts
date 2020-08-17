@@ -1,10 +1,10 @@
 import * as cp from "child_process"
 import * as crypto from "crypto"
+import envPaths from "env-paths"
 import * as fs from "fs-extra"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
-import envPaths from "env-paths"
 import xdgBasedir from "xdg-basedir"
 
 export const tmpdir = path.join(os.tmpdir(), "code-server")
@@ -197,25 +197,6 @@ export const buildAllowedMessage = (t: any): string => {
 
 export const isObject = <T extends object>(obj: T): obj is T => {
   return !Array.isArray(obj) && typeof obj === "object" && obj !== null
-}
-
-/**
- * Extend a with b and return a new object. Properties with objects will be
- * recursively merged while all other properties are just overwritten.
- */
-export function extend<A, B>(a: A, b: B): A & B
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function extend(...args: any[]): any {
-  const c = {} as any // eslint-disable-line @typescript-eslint/no-explicit-any
-  for (const obj of args) {
-    if (!isObject(obj)) {
-      continue
-    }
-    for (const key in obj) {
-      c[key] = isObject(obj[key]) ? extend(c[key], obj[key]) : obj[key]
-    }
-  }
-  return c
 }
 
 /**
