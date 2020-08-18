@@ -2,6 +2,7 @@ import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as path from "path"
 import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
+import { plural } from "../common/util"
 import { LoginHttpProvider } from "./app/login"
 import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
@@ -12,7 +13,6 @@ import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
-import { plural } from "../common/util"
 
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught exception: ${error.message}`)
