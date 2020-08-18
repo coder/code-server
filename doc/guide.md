@@ -140,7 +140,7 @@ Recommended reading: https://help.ubuntu.com/community/SSH/OpenSSH/PortForwardin
 
 ```bash
 # -N disables executing a remote shell
-ssh -N -L 8080:127.0.0.1:8080 username@<instance-ip>
+ssh -N -L 8080:127.0.0.1:8080 [user]@<instance-ip>
 ```
 
 Now if you access http://127.0.0.1:8080 locally, you should see `code-server`!
