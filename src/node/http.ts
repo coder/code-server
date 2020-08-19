@@ -395,8 +395,8 @@ export abstract class HttpProvider {
  */
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
-  private heartbeatInterval = 60000
-  private lastHeartbeat = 0
+  public heartbeatInterval = 60000
+  public lastHeartbeat = 0
 
   public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}
 
@@ -457,7 +457,7 @@ export class HttpServer {
   private listenPromise: Promise<string | null> | undefined
   public readonly protocol: "http" | "https"
   private readonly providers = new Map<string, HttpProvider>()
-  private readonly heart: Heart
+  public readonly heart: Heart
   private readonly socketProvider = new SocketProxyProvider()
 
   /**
@@ -602,8 +602,9 @@ export class HttpServer {
   }
 
   private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
-    this.heart.beat()
     const route = this.parseUrl(request)
+    if (route.providerBase !== '/healthz')
+      this.heart.beat()      
     const write = (payload: HttpResponse): void => {
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),

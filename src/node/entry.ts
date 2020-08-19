@@ -7,6 +7,7 @@ import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
+import { HealthHttpProvider } from "./app/health"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
@@ -78,6 +79,7 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
+  httpServer.registerHttpProvider("/healthz", HealthHttpProvider, httpServer.heart)
 
   await loadPlugins(httpServer, args)
 
