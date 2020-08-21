@@ -17,26 +17,44 @@ usage() {
 Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
+
+Pass --start to startup code-server immediately, print the URL it can be
+accessed at and the initial password. Then the script will tail code-server's logs.
+
+Pass in user@host to install code-server on user@host over ssh.
+Pass --start to forward the code-server port and start it so that
+you can immediately access it.
+
+If you rerun the script, code-server will be updated only if necessary.
 ${not_curl_usage-}
 Usage:
 
-  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local]
+  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local] [--start] [user@host]
 
   --dry-run
       Echo the commands for the install process without running them.
+
   --version X.X.X
       Install a specific version instead of the latest.
+
   --method [detect | standalone]
       Choose the installation method. Defaults to detect.
       - detect detects the system package manager and tries to use it.
         Full reference on the process is further below.
       - standalone installs a standalone release archive into ~/.local
         Add ~/.local/bin to your \$PATH to use it.
+
   --prefix <dir>
       Sets the prefix used by standalone release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
+
+  --start
+      Ensures code-server is running and prints the URL at which it can be accessed.
+      Also will print code-server's password and when installing over ssh, will forward
+      the code-server port so that it can be easily accessed locally.
+      Will block on tailing code-server's logs.
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -56,6 +74,8 @@ Usage:
   - The npm package builds the native modules on postinstall.
 
 It will cache all downloaded assets into ~/.cache/code-server
+With ssh installation, assets will be transferred over via ssh
+as needed instead of being downloaded directly on the ssh host.
 
 More installation docs are at https://github.com/cdr/code-server/blob/master/doc/install.md
 EOF
@@ -128,14 +148,27 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --)
+      shift
+      break
+      ;;
     -h | --h | -help | --help)
       usage
       exit 0
       ;;
-    *)
+    -*)
       echoerr "Unknown flag $1"
       echoerr "Run with --help to see usage."
       exit 1
+      ;;
+    *)
+      SSH_ARGS="$1"
+      if ! sshs true; then
+        echoerr "could not ssh into remote host"
+        echoerr "failed: ssh $SSH_ARGS true"
+        exit 1
+      fi
+      echoh "Installing remotely with ssh $SSH_ARGS"
       ;;
     esac
 
@@ -153,7 +186,7 @@ main() {
 
   OS="$(os)"
   if [ ! "$OS" ]; then
-    echoerr "Unsupported OS $(uname)."
+    echoerr "Unsupported OS $(sh_f uname)."
     exit 1
   fi
 
@@ -162,11 +195,11 @@ main() {
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
     if [ "$METHOD" = standalone ]; then
-      echoerr "No precompiled releases for $(uname -m)."
+      echoerr "No precompiled releases for $(sh_f uname -m)."
       echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
       exit 1
     fi
-    echoh "No precompiled releases for $(uname -m)."
+    echoh "No precompiled releases for $(sh_f uname -m)."
     install_npm
     return
   fi
@@ -242,20 +275,25 @@ parse_arg() {
 }
 
 fetch() {
-  URL="$1"
-  FILE="$2"
+  RHOME="$(sh_f printenv HOME)"
 
-  if [ -e "$FILE" ]; then
+  URL="$(echo "$1" | sed "s#$HOME#$RHOME#g")"
+  FILE="$(echo "$2" | sed "s#$HOME#$RHOME#g")"
+
+  if sh_f [ -e "$FILE" ]; then
     echoh "+ Reusing $FILE"
     return
   fi
 
   sh_c mkdir -p "$CACHE_DIR"
-  sh_c curl \
+  SSH_ARGS= sh_c curl \
     -#fL \
     -o "$FILE.incomplete" \
     -C - \
     "$URL"
+  if [ "${SSH_ARGS}" ]; then
+    sh_c cat '>' "$FILE.incomplete"
+  fi
   sh_c mv "$FILE.incomplete" "$FILE"
 }
 
@@ -319,11 +357,11 @@ install_standalone() {
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
 
   sh_c="sh_c"
-  if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
+  if sh_f [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
     sh_c="sudo_sh_c"
   fi
 
-  if [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
+  if sh_f [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
     echoh
     echoh "code-server-$VERSION is already installed at $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
     echoh "Remove it to reinstall."
@@ -341,7 +379,7 @@ install_standalone() {
 install_npm() {
   if command_exists yarn; then
     sh_c="sh_c"
-    if [ ! -w "$(yarn global bin)" ]; then
+    if sh_f [ ! -w "$(sh_f yarn global bin)" ]; then
       sh_c="sudo_sh_c"
     fi
     echoh "Installing with yarn."
@@ -350,7 +388,7 @@ install_npm() {
     return
   elif command_exists npm; then
     sh_c="sh_c"
-    if [ ! -w "$(npm config get prefix)" ]; then
+    if sh_f [ ! -w "$(sh_f npm config get prefix)" ]; then
       sh_c="sudo_sh_c"
     fi
     echoh "Installing with npm."
@@ -366,7 +404,7 @@ install_npm() {
 }
 
 os() {
-  case "$(uname)" in
+  case "$(sh_f uname)" in
   Linux)
     echo linux
     ;;
@@ -396,9 +434,9 @@ distro() {
     return
   fi
 
-  if [ -f /etc/os-release ]; then
+  if sh_f [ -f /etc/os-release ]; then
     (
-      . /etc/os-release
+      ID="$(sh_f '. /etc/os-release && echo "$ID"')"
       case "$ID" in opensuse-*)
         # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
         echo "opensuse"
@@ -414,25 +452,22 @@ distro() {
 
 # os_name prints a pretty human readable name for the OS/Distro.
 distro_name() {
-  if [ "$(uname)" = "Darwin" ]; then
-    echo "macOS v$(sw_vers -productVersion)"
+  if [ "$(sh_f uname)" = "Darwin" ]; then
+    echo "macOS v$(sh_f sw_vers -productVersion)"
     return
   fi
 
-  if [ -f /etc/os-release ]; then
-    (
-      . /etc/os-release
-      echo "$PRETTY_NAME"
-    )
+  if sh_f [ -f /etc/os-release ]; then
+    sh_f '. /etc/os-release && echo "$PRETTY_NAME"'
     return
   fi
 
   # Prints something like: Linux 4.19.0-9-amd64
-  uname -sr
+  sh_f uname -sr
 }
 
 arch() {
-  case "$(uname -m)" in
+  case "$(sh_f uname -m)" in
   aarch64)
     echo arm64
     ;;
@@ -446,18 +481,53 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  sh_f command -v "$@" > /dev/null
 }
 
 sh_c() {
   echoh "+ $*"
   if [ ! "${DRY_RUN-}" ]; then
+    sh_f "$@"
+  fi
+}
+
+sshs() {
+  mkdir -p ~/.ssh/sockets
+  chmod 700 ~/.ssh
+
+  set -- \
+    -oControlPath=~/.ssh/sockets/%r@%n.sock \
+    -oControlMaster=auto \
+    -oControlPersist=yes \
+    -oConnectTimeout=5 \
+    $SSH_ARGS \
+    "$@"
+
+  if ssh "$@"; then
+    return
+  fi
+
+  if ssh -O exit "$@"; then
+    # Control master has been deleted so we ought to try once more.
+    if ssh "$@"; then
+      return
+    fi
+  fi
+
+  return 1
+}
+
+# Always runs.
+sh_f() {
+  if [ "${SSH_ARGS-}" ]; then
+    sshs "$*"
+  else
     sh -c "$*"
   fi
 }
 
 sudo_sh_c() {
-  if [ "$(id -u)" = 0 ]; then
+  if [ "$(sh_f id -u)" = 0 ]; then
     sh_c "$@"
   elif command_exists sudo; then
     sh_c "sudo $*"
@@ -473,8 +543,8 @@ sudo_sh_c() {
 }
 
 echo_cache_dir() {
-  if [ "${XDG_CACHE_HOME-}" ]; then
-    echo "$XDG_CACHE_HOME/code-server"
+  if [ "$(sh_f printenv XDG_CACHE_HOME)" ]; then
+    echo "$(sh_f printenv XDG_CACHE_HOME)/code-server"
   elif [ "${HOME-}" ]; then
     echo "$HOME/.cache/code-server"
   else
