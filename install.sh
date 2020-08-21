@@ -7,7 +7,7 @@ set -eu
 usage() {
   arg0="$0"
   if [ "$0" = sh ]; then
-    arg0="curl -fsSL https://code-server.dev/install.sh | sh -s --"
+    arg0="curl -fsSL https://code-server.dev/install.sh | sh -s -- [user@host]"
   else
     not_curl_usage="The latest script is available at https://code-server.dev/install.sh
 "
@@ -20,7 +20,7 @@ After successful installation it explains how to start using code-server.
 ${not_curl_usage-}
 Usage:
 
-  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local]
+  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local] [user@host]
 
   --dry-run
       Echo the commands for the install process without running them.
@@ -128,11 +128,18 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --)
+      shift
+      break
+      ;;
     -h | --h | -help | --help)
       usage
       exit 0
       ;;
     *)
+      SSH_ARGS="$1"
+      ;;
+    -*)
       echoerr "Unknown flag $1"
       echoerr "Run with --help to see usage."
       exit 1
@@ -149,11 +156,12 @@ main() {
     echoerr "Run with --help to see usage."
     exit 1
   fi
-  STANDALONE_INSTALL_PREFIX="${STANDALONE_INSTALL_PREFIX-$HOME/.local}"
+  RHOME="$(sh_f printenv HOME)"
+  STANDALONE_INSTALL_PREFIX="${STANDALONE_INSTALL_PREFIX-$RHOME/.local}"
 
   OS="$(os)"
   if [ ! "$OS" ]; then
-    echoerr "Unsupported OS $(uname)."
+    echoerr "Unsupported OS $(sh_f uname)."
     exit 1
   fi
 
@@ -162,11 +170,11 @@ main() {
   ARCH="$(arch)"
   if [ ! "$ARCH" ]; then
     if [ "$METHOD" = standalone ]; then
-      echoerr "No precompiled releases for $(uname -m)."
+      echoerr "No precompiled releases for $(sh_f uname -m)."
       echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
       exit 1
     fi
-    echoh "No precompiled releases for $(uname -m)."
+    echoh "No precompiled releases for $(sh_f uname -m)."
     install_npm
     return
   fi
@@ -245,7 +253,7 @@ fetch() {
   URL="$1"
   FILE="$2"
 
-  if [ -e "$FILE" ]; then
+  if sh_f [ -e "$FILE" ]; then
     echoh "+ Reusing $FILE"
     return
   fi
@@ -303,7 +311,7 @@ install_aur() {
   sh_c mkdir -p "$CACHE_DIR/code-server-aur"
   sh_c "curl -#fsSL https://aur.archlinux.org/cgit/aur.git/snapshot/code-server.tar.gz | tar -xzC $CACHE_DIR/code-server-aur --strip-components 1"
   echo "+ cd $CACHE_DIR/code-server-aur"
-  if [ ! "${DRY_RUN-}" ]; then
+  if sh_f [ ! "${DRY_RUN-}" ]; then
     cd "$CACHE_DIR/code-server-aur"
   fi
   sh_c makepkg -si
@@ -319,11 +327,11 @@ install_standalone() {
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
 
   sh_c="sh_c"
-  if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
+  if sh-f [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
     sh_c="sudo_sh_c"
   fi
 
-  if [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
+  if sh_f [ -e "$STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION" ]; then
     echoh
     echoh "code-server-$VERSION is already installed at $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION"
     echoh "Remove it to reinstall."
@@ -341,7 +349,7 @@ install_standalone() {
 install_npm() {
   if command_exists yarn; then
     sh_c="sh_c"
-    if [ ! -w "$(yarn global bin)" ]; then
+    if sh_f [ ! -w "$(sh_f yarn global bin)" ]; then
       sh_c="sudo_sh_c"
     fi
     echoh "Installing with yarn."
@@ -350,7 +358,7 @@ install_npm() {
     return
   elif command_exists npm; then
     sh_c="sh_c"
-    if [ ! -w "$(npm config get prefix)" ]; then
+    if sh_f [ ! -w "$(sh_f npm config get prefix)" ]; then
       sh_c="sudo_sh_c"
     fi
     echoh "Installing with npm."
@@ -366,7 +374,7 @@ install_npm() {
 }
 
 os() {
-  case "$(uname)" in
+  case "$(sh_f uname)" in
   Linux)
     echo linux
     ;;
@@ -396,9 +404,9 @@ distro() {
     return
   fi
 
-  if [ -f /etc/os-release ]; then
+  if sh_f [ -f /etc/os-release ]; then
     (
-      . /etc/os-release
+      ID="$(sh_f '. /etc/os-release && echo "$ID"')"
       case "$ID" in opensuse-*)
         # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
         echo "opensuse"
@@ -414,25 +422,22 @@ distro() {
 
 # os_name prints a pretty human readable name for the OS/Distro.
 distro_name() {
-  if [ "$(uname)" = "Darwin" ]; then
-    echo "macOS v$(sw_vers -productVersion)"
+  if [ "$(sh_f uname)" = "Darwin" ]; then
+    echo "macOS v$(sh_f sw_vers -productVersion)"
     return
   fi
 
-  if [ -f /etc/os-release ]; then
-    (
-      . /etc/os-release
-      echo "$PRETTY_NAME"
-    )
+  if sh_f [ -f /etc/os-release ]; then
+    sh_f '. /etc/os-release && echo "$PRETTY_NAME"'
     return
   fi
 
   # Prints something like: Linux 4.19.0-9-amd64
-  uname -sr
+  sh_f uname -sr
 }
 
 arch() {
-  case "$(uname -m)" in
+  case "$(sh_f uname -m)" in
   aarch64)
     echo arm64
     ;;
@@ -446,18 +451,32 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  sh_f command -v "$@" > /dev/null
 }
 
 sh_c() {
   echoh "+ $*"
   if [ ! "${DRY_RUN-}" ]; then
+    sh_f "$@"
+  fi
+}
+
+# Always runs.
+sh_f() {
+  if [ "$SSH_ARGS" ]; then
+    mkdir -p ~/.ssh/sockets
+    ssh \
+      -oControlPath=~/.ssh/sockets/%r@%n.sock \
+      -oControlMaster=auto \
+      -oControlPersist=yes \
+      $SSH_ARGS "$*"
+  else
     sh -c "$*"
   fi
 }
 
 sudo_sh_c() {
-  if [ "$(id -u)" = 0 ]; then
+  if [ "$(sh_f id -u)" = 0 ]; then
     sh_c "$@"
   elif command_exists sudo; then
     sh_c "sudo $*"
@@ -473,10 +492,10 @@ sudo_sh_c() {
 }
 
 echo_cache_dir() {
-  if [ "${XDG_CACHE_HOME-}" ]; then
-    echo "$XDG_CACHE_HOME/code-server"
-  elif [ "${HOME-}" ]; then
-    echo "$HOME/.cache/code-server"
+  if [ "$(sh_f printenv XDG_CACHE_HOME)" ]; then
+    echo "$(sh_f printenv XDG_CACHE_HOME)/code-server"
+  elif [ "${RHOME-}" ]; then
+    echo "$RHOME/.cache/code-server"
   else
     echo "/tmp/code-server-cache"
   fi
@@ -494,10 +513,10 @@ echoerr() {
   echoh "$@" >&2
 }
 
-# humanpath replaces all occurances of " $HOME" with " ~"
-# and all occurances of '"$HOME' with the literal '"$HOME'.
+# humanpath replaces all occurances of " $RHOME" with " ~"
+# and all occurances of '"$RHOME' with the literal '"$RHOME'.
 humanpath() {
-  sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
+  sed "s# $RHOME# ~#g; s#\"$RHOME#\"\$RHOME#g"
 }
 
 main "$@"
