@@ -226,7 +226,7 @@ index da4fa3e9d0..50f3e1144f 100644
  
  function processLib() {
 diff --git a/package.json b/package.json
-index e52e3ff548..2f3b55398b 100644
+index 226f51a1ec..5c4e5af5f6 100644
 --- a/package.json
 +++ b/package.json
 @@ -45,7 +45,11 @@
@@ -265,9 +265,7 @@ index e52e3ff548..2f3b55398b 100644
 +  "resolutions": {
 +    "minimist": "^1.2.5"
    }
--}
-\ No newline at end of file
-+}
+ }
 diff --git a/product.json b/product.json
 index 2b884d18f3..518b935b83 100644
 --- a/product.json
