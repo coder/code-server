@@ -1,11 +1,11 @@
 diff --git a/.gitignore b/.gitignore
-index e73dd4d9e8..e3192b3a0d 100644
+index 0fe46b6ead..e545e004ce 100644
 --- a/.gitignore
 +++ b/.gitignore
-@@ -24,7 +24,6 @@ out-vscode-reh-web-min/
- out-vscode-reh-web-pkg/
+@@ -25,7 +25,6 @@ out-vscode-reh-web-pkg/
  out-vscode-web/
  out-vscode-web-min/
+ out-vscode-web-pkg/
 -src/vs/server
  resources/server
  build/node_modules
@@ -94,19 +94,19 @@ index 035c7e95ea..4ff8dcfe6b 100644
  	const target = /^target "(.*)"$/m.exec(yarnrc)![1];
  	return target;
 diff --git a/build/npm/postinstall.js b/build/npm/postinstall.js
-index ef8fa4a47f..0866d0dbce 100644
+index 8f8b0019a7..ea054c725b 100644
 --- a/build/npm/postinstall.js
 +++ b/build/npm/postinstall.js
 @@ -33,10 +33,11 @@ function yarnInstall(location, opts) {
  
  yarnInstall('extensions'); // node modules shared by all extensions
  
--if (!(process.platform === 'win32' && process.env['npm_config_arch'] === 'arm64')) {
+-if (!(process.platform === 'win32' && (process.arch === 'arm64' || process.env['npm_config_arch'] === 'arm64'))) {
 -	yarnInstall('remote'); // node modules used by vscode server
 -	yarnInstall('remote/web'); // node modules used by vscode web
 -}
 +// NOTE@coder: Skip these dependencies since we don't use them.
-+// if (!(process.platform === 'win32' && process.env['npm_config_arch'] === 'arm64')) {
++// if (!(process.platform === 'win32' && (process.arch === 'arm64' || process.env['npm_config_arch'] === 'arm64'))) {
 +// 	yarnInstall('remote'); // node modules used by vscode server
 +// 	yarnInstall('remote/web'); // node modules used by vscode web
 +// }
@@ -144,10 +144,10 @@ index cb88d37ade..6b3253af0a 100644
  const cp = require('child_process');
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000..88b720ceee
+index 0000000000..9cb693af63
 --- /dev/null
 +++ b/coder.js
-@@ -0,0 +1,69 @@
+@@ -0,0 +1,63 @@
 +// This must be ran from VS Code's root.
 +const gulp = require("gulp");
 +const path = require("path");
@@ -194,19 +194,13 @@ index 0000000000..88b720ceee
 +	"!**/test/**"
 +];
 +
-+const rootPath = __dirname;
-+const nodeModules = ["electron", "original-fs"]
-+	.concat(_.uniq(deps.getProductionDependencies(rootPath).map((d) => d.name)))
-+	.concat(_.uniq(deps.getProductionDependencies(path.join(rootPath, "src/vs/server")).map((d) => d.name)))
-+	.concat(Object.keys(process.binding("natives")).filter((n) => !/^_|\//.test(n)));
-+
 +gulp.task("optimize", gulp.series(
 +	util.rimraf("out-vscode"),
 +	common.optimizeTask({
 +		src: "out-build",
 +		entryPoints: vscodeEntryPoints,
 +		resources: vscodeResources,
-+		loaderConfig: common.loaderConfig(nodeModules),
++		loaderConfig: common.loaderConfig(),
 +		out: "out-vscode",
 +		inlineAmdImages: true,
 +		bundleInfo: undefined
@@ -217,26 +211,6 @@ index 0000000000..88b720ceee
 +	util.rimraf("out-vscode-min"),
 +	common.minifyTask("out-vscode")
 +));
-diff --git a/extensions/package.json b/extensions/package.json
-index 7c668c9744..0778f4f7db 100644
---- a/extensions/package.json
-+++ b/extensions/package.json
-@@ -2,13 +2,14 @@
-   "name": "vscode-extensions",
-   "version": "0.0.1",
-   "description": "Dependencies shared by all extensions",
-+  "dependencies_comment": "Move rimraf to dependencies because it is used in the postinstall script.",
-   "dependencies": {
-+    "rimraf": "^3.0.2",
-     "typescript": "3.9.6"
-   },
-   "scripts": {
-     "postinstall": "node ./postinstall"
-   },
-   "devDependencies": {
--    "rimraf": "^3.0.2"
-   }
- }
 diff --git a/extensions/postinstall.js b/extensions/postinstall.js
 index da4fa3e9d0..50f3e1144f 100644
 --- a/extensions/postinstall.js
@@ -252,12 +226,14 @@ index da4fa3e9d0..50f3e1144f 100644
  
  function processLib() {
 diff --git a/package.json b/package.json
-index 86e3d5140d..962050280c 100644
+index e52e3ff548..2f3b55398b 100644
 --- a/package.json
 +++ b/package.json
-@@ -42,6 +42,9 @@
+@@ -45,7 +45,11 @@
+     "watch-web": "gulp watch-web --max_old_space_size=4095",
      "eslint": "eslint -c .eslintrc.json --rulesdir ./build/lib/eslint --ext .ts --ext .js ./src/vs ./extensions"
    },
++  "dependencies_comment": "Move rimraf to dependencies because it is used in the postinstall script.",
    "dependencies": {
 +    "@coder/logger": "^1.1.12",
 +    "@coder/node-browser": "^1.0.8",
@@ -265,7 +241,23 @@ index 86e3d5140d..962050280c 100644
      "applicationinsights": "1.0.8",
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
-@@ -185,5 +188,8 @@
+@@ -59,6 +63,7 @@
+     "native-keymap": "2.1.2",
+     "native-watchdog": "1.3.0",
+     "node-pty": "0.10.0-beta8",
++    "rimraf": "^2.2.8",
+     "semver-umd": "^5.5.7",
+     "spdlog": "^0.11.1",
+     "sudo-prompt": "9.1.1",
+@@ -159,7 +164,6 @@
+     "pump": "^1.0.1",
+     "queue": "3.0.6",
+     "rcedit": "^1.1.0",
+-    "rimraf": "^2.2.8",
+     "sinon": "^1.17.2",
+     "source-map": "^0.4.4",
+     "style-loader": "^1.0.0",
+@@ -190,5 +194,8 @@
      "windows-foreground-love": "0.2.0",
      "windows-mutex": "0.3.0",
      "windows-process-tree": "0.2.4"
@@ -273,9 +265,11 @@ index 86e3d5140d..962050280c 100644
 +  "resolutions": {
 +    "minimist": "^1.2.5"
    }
- }
+-}
+\ No newline at end of file
++}
 diff --git a/product.json b/product.json
-index 5378b017c8..afdadda974 100644
+index 2b884d18f3..518b935b83 100644
 --- a/product.json
 +++ b/product.json
 @@ -20,7 +20,7 @@
@@ -440,19 +434,19 @@ index 2c64061da7..c0ef8faedd 100644
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 4bd7368805..da2204af0a 100644
+index c629f7fffa..c266e1fb06 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -12,6 +12,8 @@ import { request } from 'vs/base/parts/request/browser/request';
- import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/windows/common/windows';
+@@ -13,6 +13,8 @@ import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/windows/common/wi
  import { isEqual } from 'vs/base/common/resources';
  import { isStandalone } from 'vs/base/browser/browser';
+ import { localize } from 'vs/nls';
 +import { Schemas } from 'vs/base/common/network';
 +import { encodePath } from 'vs/server/node/util';
  
  interface ICredential {
  	service: string;
-@@ -242,12 +244,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -243,12 +245,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
  
  		// Folder
  		else if (isFolderToOpen(workspace)) {
@@ -473,7 +467,7 @@ index 4bd7368805..da2204af0a 100644
  		}
  
  		// Append payload if any
-@@ -287,7 +295,22 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -285,7 +293,22 @@ class WorkspaceProvider implements IWorkspaceProvider {
  		throw new Error('Missing web configuration element');
  	}
  
@@ -497,7 +491,7 @@ index 4bd7368805..da2204af0a 100644
  
  	// Revive static extension locations
  	if (Array.isArray(config.staticExtensions)) {
-@@ -299,40 +322,7 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -297,40 +320,7 @@ class WorkspaceProvider implements IWorkspaceProvider {
  	// Find workspace to open and payload
  	let foundWorkspace = false;
  	let workspace: IWorkspace;
@@ -539,22 +533,8 @@ index 4bd7368805..da2204af0a 100644
  
  	// If no workspace is provided through the URL, check for config attribute from server
  	if (!foundWorkspace) {
-diff --git a/src/vs/platform/environment/common/environment.ts b/src/vs/platform/environment/common/environment.ts
-index c63cc171cc..125e8a48e3 100644
---- a/src/vs/platform/environment/common/environment.ts
-+++ b/src/vs/platform/environment/common/environment.ts
-@@ -65,6 +65,9 @@ export interface IEnvironmentService {
- 	disableTelemetry: boolean;
- 	serviceMachineIdResource: URI;
- 
-+	// NOTE@coder: vscodevim makes use of this.
-+	globalStorageHome: string;
-+
- 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- 	// NOTE: DO NOT ADD ANY OTHER PROPERTY INTO THE COLLECTION HERE
- 	// UNLESS THIS PROPERTY IS SUPPORTED BOTH IN WEB AND DESKTOP!!!!
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 38e7ca5ad3..f0e59e8e63 100644
+index 2379b626c8..28f8971cf3 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -8,6 +8,8 @@ import { localize } from 'vs/nls';
@@ -566,7 +546,7 @@ index 38e7ca5ad3..f0e59e8e63 100644
  	_: string[];
  	'folder-uri'?: string[]; // undefined or array of 1 or more
  	'file-uri'?: string[]; // undefined or array of 1 or more
-@@ -139,6 +141,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
+@@ -141,6 +143,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
  	'extensions-dir': { type: 'string', deprecates: 'extensionHomePath', cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
  	'extensions-download-dir': { type: 'string' },
  	'builtin-extensions-dir': { type: 'string' },
@@ -575,27 +555,25 @@ index 38e7ca5ad3..f0e59e8e63 100644
  	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
  	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
  	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
-@@ -399,4 +403,3 @@ export function buildHelpMessage(productName: string, executableName: string, ve
+@@ -403,4 +407,3 @@ export function buildHelpMessage(productName: string, executableName: string, ve
  export function buildVersionMessage(version: string | undefined, commit: string | undefined): string {
  	return `${version || localize('unknownVersion', "Unknown version")}\n${commit || localize('unknownCommit', "Unknown commit")}\n${process.arch}`;
  }
 -
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index 0d154c16f3..96584ceeaf 100644
+index 5c0dc4ad4a..38b8c7573a 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
-@@ -38,8 +38,9 @@ export interface INativeEnvironmentService extends IEnvironmentService {
+@@ -38,6 +38,8 @@ export interface INativeEnvironmentService extends IEnvironmentService {
  	extensionsPath?: string;
  	extensionsDownloadPath: string;
  	builtinExtensionsPath: string;
 +	extraExtensionPaths: string[];
 +	extraBuiltinExtensionPaths: string[];
  
--	globalStorageHome: string;
- 	workspaceStorageHome: string;
- 
  	driverHandle?: string;
-@@ -181,6 +182,13 @@ export class EnvironmentService implements INativeEnvironmentService {
+ 	driverVerbose: boolean;
+@@ -180,6 +182,13 @@ export class EnvironmentService implements INativeEnvironmentService {
  		return resources.joinPath(this.userHome, product.dataFolderName, 'extensions').fsPath;
  	}
  
@@ -610,10 +588,10 @@ index 0d154c16f3..96584ceeaf 100644
  	get extensionDevelopmentLocationURI(): URI[] | undefined {
  		const s = this._args.extensionDevelopmentPath;
 diff --git a/src/vs/platform/extensionManagement/node/extensionsScanner.ts b/src/vs/platform/extensionManagement/node/extensionsScanner.ts
-index 8a02d58477..929650ece3 100644
+index 575b2aafc3..873181f967 100644
 --- a/src/vs/platform/extensionManagement/node/extensionsScanner.ts
 +++ b/src/vs/platform/extensionManagement/node/extensionsScanner.ts
-@@ -88,7 +88,7 @@ export class ExtensionsScanner extends Disposable {
+@@ -85,7 +85,7 @@ export class ExtensionsScanner extends Disposable {
  	}
  
  	async scanAllUserExtensions(): Promise<ILocalExtension[]> {
@@ -622,7 +600,7 @@ index 8a02d58477..929650ece3 100644
  	}
  
  	async extractUserExtension(identifierWithVersion: ExtensionIdentifierWithVersion, zipPath: string, token: CancellationToken): Promise<ILocalExtension> {
-@@ -214,7 +214,13 @@ export class ExtensionsScanner extends Disposable {
+@@ -211,7 +211,13 @@ export class ExtensionsScanner extends Disposable {
  
  	private async scanExtensionsInDir(dir: string, type: ExtensionType): Promise<ILocalExtension[]> {
  		const limiter = new Limiter<any>(10);
@@ -637,7 +615,7 @@ index 8a02d58477..929650ece3 100644
  		const extensions = await Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, dir, type))));
  		return extensions.filter(e => e && e.identifier);
  	}
-@@ -244,7 +250,7 @@ export class ExtensionsScanner extends Disposable {
+@@ -241,7 +247,7 @@ export class ExtensionsScanner extends Disposable {
  	}
  
  	private async scanDefaultSystemExtensions(): Promise<ILocalExtension[]> {
@@ -646,7 +624,7 @@ index 8a02d58477..929650ece3 100644
  		this.logService.trace('Scanned system extensions:', result.length);
  		return result;
  	}
-@@ -348,4 +354,9 @@ export class ExtensionsScanner extends Disposable {
+@@ -345,4 +351,9 @@ export class ExtensionsScanner extends Disposable {
  			}
  		});
  	}
@@ -657,11 +635,11 @@ index 8a02d58477..929650ece3 100644
 +	}
  }
 diff --git a/src/vs/platform/product/common/product.ts b/src/vs/platform/product/common/product.ts
-index 057c83ab36..e586f401c2 100644
+index 3370a608b4..37b3592d39 100644
 --- a/src/vs/platform/product/common/product.ts
 +++ b/src/vs/platform/product/common/product.ts
-@@ -26,6 +26,12 @@ if (isWeb) {
- 			urlProtocol: 'code-oss'
+@@ -30,6 +30,12 @@ if (isWeb) {
+ 			],
  		});
  	}
 +	// NOTE@coder: Add the ability to inject settings from the server.
@@ -674,11 +652,11 @@ index 057c83ab36..e586f401c2 100644
  
  // Node: AMD loader
 diff --git a/src/vs/platform/product/common/productService.ts b/src/vs/platform/product/common/productService.ts
-index 7cfc7f1fc3..f8980ea40a 100644
+index 040c869d94..bf16defcf7 100644
 --- a/src/vs/platform/product/common/productService.ts
 +++ b/src/vs/platform/product/common/productService.ts
-@@ -25,6 +25,8 @@ export interface IBuiltInExtension {
- export type ConfigurationSyncStore = { url: string, authenticationProviders: IStringDictionary<{ scopes: string[] }> };
+@@ -30,6 +30,8 @@ export type ConfigurationSyncStore = {
+ };
  
  export interface IProductConfiguration {
 +	readonly codeServerVersion?: string;
@@ -687,10 +665,10 @@ index 7cfc7f1fc3..f8980ea40a 100644
  	readonly date?: string;
  	readonly quality?: string;
 diff --git a/src/vs/platform/remote/browser/browserSocketFactory.ts b/src/vs/platform/remote/browser/browserSocketFactory.ts
-index d0f6e6b18a..1966fd297d 100644
+index 3715cbb8e6..c65de8ad37 100644
 --- a/src/vs/platform/remote/browser/browserSocketFactory.ts
 +++ b/src/vs/platform/remote/browser/browserSocketFactory.ts
-@@ -205,7 +205,8 @@ export class BrowserSocketFactory implements ISocketFactory {
+@@ -208,7 +208,8 @@ export class BrowserSocketFactory implements ISocketFactory {
  	}
  
  	connect(host: string, port: number, query: string, callback: IConnectCallback): void {
@@ -700,7 +678,7 @@ index d0f6e6b18a..1966fd297d 100644
  		const errorListener = socket.onError((err) => callback(err, undefined));
  		socket.onOpen(() => {
  			errorListener.dispose();
-@@ -213,6 +214,3 @@ export class BrowserSocketFactory implements ISocketFactory {
+@@ -216,6 +217,3 @@ export class BrowserSocketFactory implements ISocketFactory {
  		});
  	}
  }
@@ -708,10 +686,10 @@ index d0f6e6b18a..1966fd297d 100644
 -
 -
 diff --git a/src/vs/platform/remote/common/remoteAgentConnection.ts b/src/vs/platform/remote/common/remoteAgentConnection.ts
-index eab8591492..26668701f7 100644
+index 2185bb5228..35463ca652 100644
 --- a/src/vs/platform/remote/common/remoteAgentConnection.ts
 +++ b/src/vs/platform/remote/common/remoteAgentConnection.ts
-@@ -88,7 +88,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
+@@ -89,7 +89,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
  		options.socketFactory.connect(
  			options.host,
  			options.port,
@@ -1012,20 +990,19 @@ index 0000000000..0d2e93edae
 +}
 diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
 new file mode 100644
-index 0000000000..a93381631a
+index 0000000000..5ae44cdc85
 --- /dev/null
 +++ b/src/vs/server/browser/worker.ts
-@@ -0,0 +1,57 @@
+@@ -0,0 +1,56 @@
 +import { Client } from '@coder/node-browser';
 +import { fromTar } from '@coder/requirefs';
 +import { URI } from 'vs/base/common/uri';
-+import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 +import { ILogService } from 'vs/platform/log/common/log';
 +import { ExtensionActivationTimesBuilder } from 'vs/workbench/api/common/extHostExtensionActivator';
 +import { IExtHostNodeProxy } from './extHostNodeProxy';
 +
 +export const loadCommonJSModule = async <T>(
-+	module: IExtensionDescription,
++	module: URI,
 +	activationTimesBuilder: ExtensionActivationTimesBuilder,
 +	nodeProxy: IExtHostNodeProxy,
 +	logService: ILogService,
@@ -1035,11 +1012,11 @@ index 0000000000..a93381631a
 +		scheme: self.location.protocol.replace(':', ''),
 +		authority: self.location.host,
 +		path: self.location.pathname.replace(/\/static\/([^\/]+)\/.*$/, '/static/$1\/'),
-+		query: `tar=${encodeURIComponent(module.extensionLocation.path)}`,
++		query: `tar=${encodeURIComponent(module.path)}`,
 +	});
 +	const response = await fetch(fetchUri.toString(true));
 +	if (response.status !== 200) {
-+		throw new Error(`Failed to download extension "${module.extensionLocation.path}"`);
++		throw new Error(`Failed to download extension "${module}"`);
 +	}
 +	const client = new Client(nodeProxy, { logger: logService });
 +	const init = await client.handshake();
@@ -1128,10 +1105,10 @@ index 0000000000..14b9de879c
 +}
 diff --git a/src/vs/server/common/telemetry.ts b/src/vs/server/common/telemetry.ts
 new file mode 100644
-index 0000000000..4cd0d91657
+index 0000000000..4ea6d95d36
 --- /dev/null
 +++ b/src/vs/server/common/telemetry.ts
-@@ -0,0 +1,60 @@
+@@ -0,0 +1,65 @@
 +import { ITelemetryData } from 'vs/base/common/actions';
 +import { Event } from 'vs/base/common/event';
 +import { IChannel, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
@@ -1153,6 +1130,7 @@ index 0000000000..4cd0d91657
 +			case 'publicLogError2': return this.service.publicLogError2(args[0], args[1]);
 +			case 'setEnabled': return Promise.resolve(this.service.setEnabled(args[0]));
 +			case 'getTelemetryInfo': return this.service.getTelemetryInfo();
++			case 'setExperimentProperty': return Promise.resolve(this.service.setExperimentProperty(args[0], args[1]));
 +		}
 +		throw new Error(`Invalid call ${command}`);
 +	}
@@ -1190,6 +1168,10 @@ index 0000000000..4cd0d91657
 +
 +	public getTelemetryInfo(): Promise<ITelemetryInfo> {
 +		return this.channel.call('getTelemetryInfo');
++	}
++
++	public setExperimentProperty(name: string, value: string): void {
++		this.channel.call('setExperimentProperty', [name, value]);
 +	}
 +}
 diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
@@ -1408,10 +1390,10 @@ index 0000000000..7e1cd270c8
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000..6590636abd
+index 0000000000..e10cc9c218
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
-@@ -0,0 +1,338 @@
+@@ -0,0 +1,360 @@
 +import { Server } from '@coder/node-browser';
 +import * as path from 'path';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -1431,7 +1413,7 @@ index 0000000000..6590636abd
 +import { ILogService } from 'vs/platform/log/common/log';
 +import product from 'vs/platform/product/common/product';
 +import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
-+import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 +import { INodeProxyService } from 'vs/server/common/nodeProxy';
 +import { getTranslations } from 'vs/server/node/nls';
 +import { getUriTransformer } from 'vs/server/node/util';
@@ -1619,6 +1601,7 @@ index 0000000000..6590636abd
 +	}
 +}
 +
++// See ../../workbench/services/remote/common/remoteAgentEnvironmentChannel.ts
 +export class ExtensionEnvironmentChannel implements IServerChannel {
 +	public constructor(
 +		private readonly environment: INativeEnvironmentService,
@@ -1631,45 +1614,51 @@ index 0000000000..6590636abd
 +		throw new Error(`Invalid listen '${event}'`);
 +	}
 +
-+	public async call(context: any, command: string, args?: any): Promise<any> {
++	public async call(context: any, command: string, args: any): Promise<any> {
 +		switch (command) {
 +			case 'getEnvironmentData':
 +				return transformOutgoingURIs(
-+					await this.getEnvironmentData(args.language),
++					await this.getEnvironmentData(),
++					getUriTransformer(context.remoteAuthority),
++				);
++			case 'scanExtensions':
++				return transformOutgoingURIs(
++					await this.scanExtensions(args.language),
 +					getUriTransformer(context.remoteAuthority),
 +				);
 +			case 'getDiagnosticInfo': return this.getDiagnosticInfo();
 +			case 'disableTelemetry': return this.disableTelemetry();
++			case 'logTelemetry': return this.logTelemetry(args[0], args[1]);
++			case 'flushTelemetry': return this.flushTelemetry();
 +		}
 +		throw new Error(`Invalid call '${command}'`);
 +	}
 +
-+	private async getEnvironmentData(locale: string): Promise<IRemoteAgentEnvironment> {
++	private async getEnvironmentData(): Promise<IRemoteAgentEnvironment> {
 +		return {
 +			pid: process.pid,
 +			connectionToken: this.connectionToken,
 +			appRoot: URI.file(this.environment.appRoot),
-+			appSettingsHome: this.environment.appSettingsHome,
 +			settingsPath: this.environment.settingsResource,
 +			logsPath: URI.file(this.environment.logsPath),
 +			extensionsPath: URI.file(this.environment.extensionsPath!),
 +			extensionHostLogsPath: URI.file(path.join(this.environment.logsPath, 'extension-host')),
-+			globalStorageHome: URI.file(this.environment.globalStorageHome),
++			globalStorageHome: this.environment.globalStorageHome,
++			workspaceStorageHome: this.environment.workspaceStorageHome,
 +			userHome: this.environment.userHome,
-+			extensions: await this.scanExtensions(locale),
 +			os: OS,
 +		};
 +	}
 +
-+	private async scanExtensions(locale: string): Promise<IExtensionDescription[]> {
-+		const translations = await getTranslations(locale, this.environment.userDataPath);
++	private async scanExtensions(language: string): Promise<IExtensionDescription[]> {
++		const translations = await getTranslations(language, this.environment.userDataPath);
 +
 +		const scanMultiple = (isBuiltin: boolean, isUnderDevelopment: boolean, paths: string[]): Promise<IExtensionDescription[][]> => {
 +			return Promise.all(paths.map((path) => {
 +				return ExtensionScanner.scanExtensions(new ExtensionScannerInput(
 +					product.version,
 +					product.commit,
-+					locale,
++					language,
 +					!!process.env.VSCODE_DEV,
 +					path,
 +					isBuiltin,
@@ -1698,7 +1687,14 @@ index 0000000000..6590636abd
 +							const newPath = extension.extensionLocation.fsPath;
 +							this.log.warn(`${oldPath} has been overridden ${newPath}`);
 +						}
-+						uniqueExtensions.set(id, extension);
++						uniqueExtensions.set(id, {
++							...extension,
++							// Force extensions that should run on the client due to latency
++							// issues.
++							extensionKind: extension.identifier.value === 'vscodevim.vim'
++								? [ 'web' ]
++								: extension.extensionKind,
++						});
 +					});
 +				});
 +			});
@@ -1712,6 +1708,14 @@ index 0000000000..6590636abd
 +
 +	private async disableTelemetry(): Promise<void> {
 +		this.telemetry.setEnabled(false);
++	}
++
++	private async logTelemetry(eventName: string, data: ITelemetryData): Promise<void> {
++		this.telemetry.publicLog(eventName, data);
++	}
++
++	private async flushTelemetry(): Promise<void> {
++		// We always send immediately at the moment.
 +	}
 +}
 +
@@ -2473,7 +2477,7 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..433646424e
+index 0000000000..f2c16b9f81
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
 @@ -0,0 +1,282 @@
@@ -2679,7 +2683,7 @@ index 0000000000..433646424e
 +	private async initializeServices(args: ParsedArgs): Promise<void> {
 +		const environmentService = new EnvironmentService(args, process.execPath);
 +		// https://github.com/cdr/code-server/issues/1693
-+		fs.mkdirSync(environmentService.globalStorageHome, { recursive: true });
++		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
 +
 +		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
 +		const fileService = new FileService(logService);
@@ -2791,7 +2795,7 @@ index 3d77009b90..11deb1b99a 100644
  import './mainThreadAuthentication';
  import './mainThreadTimeline';
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index 967b210d0a..2443935f5e 100644
+index 97793666ad..13cd137db1 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
 @@ -68,6 +68,7 @@ import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransf
@@ -2802,7 +2806,7 @@ index 967b210d0a..2443935f5e 100644
  import { ExtHostTheming } from 'vs/workbench/api/common/extHostTheming';
  import { IExtHostTunnelService } from 'vs/workbench/api/common/extHostTunnelService';
  import { IExtHostApiDeprecationService } from 'vs/workbench/api/common/extHostApiDeprecationService';
-@@ -95,6 +96,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -97,6 +98,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	const extHostStorage = accessor.get(IExtHostStorage);
  	const extensionStoragePaths = accessor.get(IExtensionStoragePaths);
  	const extHostLogService = accessor.get(ILogService);
@@ -2810,7 +2814,7 @@ index 967b210d0a..2443935f5e 100644
  	const extHostTunnelService = accessor.get(IExtHostTunnelService);
  	const extHostApiDeprecation = accessor.get(IExtHostApiDeprecationService);
  	const extHostWindow = accessor.get(IExtHostWindow);
-@@ -105,6 +107,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -107,6 +109,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	rpcProtocol.set(ExtHostContext.ExtHostConfiguration, extHostConfiguration);
  	rpcProtocol.set(ExtHostContext.ExtHostExtensionService, extensionService);
  	rpcProtocol.set(ExtHostContext.ExtHostStorage, extHostStorage);
@@ -2819,10 +2823,10 @@ index 967b210d0a..2443935f5e 100644
  	rpcProtocol.set(ExtHostContext.ExtHostWindow, extHostWindow);
  
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index 1b76a15a6c..358728fc2f 100644
+index eb5d8ea845..da9eb521ca 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
-@@ -765,6 +765,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+@@ -769,6 +769,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
  	$unregisterResourceLabelFormatter(handle: number): void;
  }
  
@@ -2839,7 +2843,7 @@ index 1b76a15a6c..358728fc2f 100644
  export interface MainThreadSearchShape extends IDisposable {
  	$registerFileSearchProvider(handle: number, scheme: string): void;
  	$registerTextSearchProvider(handle: number, scheme: string): void;
-@@ -1692,6 +1702,7 @@ export const MainContext = {
+@@ -1707,6 +1717,7 @@ export const MainContext = {
  	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
  	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService'),
  	MainThreadNotebook: createMainId<MainThreadNotebookShape>('MainThreadNotebook'),
@@ -2847,7 +2851,7 @@ index 1b76a15a6c..358728fc2f 100644
  	MainThreadTheming: createMainId<MainThreadThemingShape>('MainThreadTheming'),
  	MainThreadTunnelService: createMainId<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
  	MainThreadTimeline: createMainId<MainThreadTimelineShape>('MainThreadTimeline')
-@@ -1730,6 +1741,7 @@ export const ExtHostContext = {
+@@ -1745,6 +1756,7 @@ export const ExtHostContext = {
  	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
  	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService'),
  	ExtHostNotebook: createMainId<ExtHostNotebookShape>('ExtHostNotebook'),
@@ -2856,18 +2860,9 @@ index 1b76a15a6c..358728fc2f 100644
  	ExtHostTunnelService: createMainId<ExtHostTunnelServiceShape>('ExtHostTunnelService'),
  	ExtHostAuthentication: createMainId<ExtHostAuthenticationShape>('ExtHostAuthentication'),
 diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
-index c11e3036ad..f9dd91ca3d 100644
+index 34639e18b6..9c22fe6f09 100644
 --- a/src/vs/workbench/api/common/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/common/extHostExtensionService.ts
-@@ -5,7 +5,7 @@
- 
- import * as nls from 'vs/nls';
- import * as path from 'vs/base/common/path';
--import { originalFSPath, joinPath } from 'vs/base/common/resources';
-+import { originalFSPath } from 'vs/base/common/resources';
- import { Barrier, timeout } from 'vs/base/common/async';
- import { dispose, toDisposable, DisposableStore, Disposable } from 'vs/base/common/lifecycle';
- import { TernarySearchTree } from 'vs/base/common/map';
 @@ -32,6 +32,7 @@ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitData
  import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
  import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
@@ -2900,180 +2895,106 @@ index c11e3036ad..f9dd91ca3d 100644
  		this._extHostTunnelService = extHostTunnelService;
  		this._extHostTerminalService = extHostTerminalService;
  		this._disposables = new DisposableStore();
-@@ -356,14 +360,14 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
+@@ -355,7 +359,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
  
  		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
  		return Promise.all([
--			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, extensionDescription.main), activationTimesBuilder),
-+			this._loadCommonJSModule<IExtensionModule>(extensionDescription, activationTimesBuilder),
+-			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder),
++			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder, !extensionDescription.browser),
  			this._loadExtensionContext(extensionDescription)
  		]).then(values => {
  			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, values[0], values[1], activationTimesBuilder);
- 		});
- 	}
+@@ -754,7 +758,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
  
+ 	protected abstract _beforeAlmostReadyToRunExtensions(): Promise<void>;
+ 	protected abstract _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined;
 -	protected abstract _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
-+	protected abstract _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
++	protected abstract _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, isRemote?: boolean): Promise<T>;
+ 	public abstract async $setRemoteEnvironment(env: { [key: string]: string | null }): Promise<void>;
+ }
  
- 	private _loadExtensionContext(extensionDescription: IExtensionDescription): Promise<vscode.ExtensionContext> {
+diff --git a/src/vs/workbench/api/node/extHost.node.services.ts b/src/vs/workbench/api/node/extHost.node.services.ts
+index b3c89e51cf..e21abe4e13 100644
+--- a/src/vs/workbench/api/node/extHost.node.services.ts
++++ b/src/vs/workbench/api/node/extHost.node.services.ts
+@@ -3,6 +3,8 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
  
-diff --git a/src/vs/workbench/api/node/extHost.services.ts b/src/vs/workbench/api/node/extHost.services.ts
-index a6c0079600..ee31d4b8e7 100644
---- a/src/vs/workbench/api/node/extHost.services.ts
-+++ b/src/vs/workbench/api/node/extHost.services.ts
-@@ -24,12 +24,14 @@ import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePa
- import { IExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
- import { ExtHostExtensionService } from 'vs/workbench/api/node/extHostExtensionService';
- import { IExtHostStorage, ExtHostStorage } from 'vs/workbench/api/common/extHostStorage';
 +import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
- import { ILogService } from 'vs/platform/log/common/log';
- import { ExtHostLogService } from 'vs/workbench/api/node/extHostLogService';
- import { IExtHostTunnelService } from 'vs/workbench/api/common/extHostTunnelService';
- import { ExtHostTunnelService } from 'vs/workbench/api/node/extHostTunnelService';
- import { IExtHostApiDeprecationService, ExtHostApiDeprecationService } from 'vs/workbench/api/common/extHostApiDeprecationService';
- import { IExtHostWindow, ExtHostWindow } from 'vs/workbench/api/common/extHostWindow';
 +import { NotImplementedProxy } from 'vs/base/common/types';
- 
- // register singleton services
- registerSingleton(ILogService, ExtHostLogService);
-@@ -49,3 +51,4 @@ registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
- registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
- registerSingleton(IExtHostStorage, ExtHostStorage);
+ import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
+ import { ExtHostOutputService2 } from 'vs/workbench/api/node/extHostOutputService';
+ import { ExtHostTerminalService } from 'vs/workbench/api/node/extHostTerminalService';
+@@ -36,3 +38,4 @@ registerSingleton(IExtHostSearch, NativeExtHostSearch);
+ registerSingleton(IExtHostTask, ExtHostTask);
+ registerSingleton(IExtHostTerminalService, ExtHostTerminalService);
  registerSingleton(IExtHostTunnelService, ExtHostTunnelService);
 +registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy<IExtHostNodeProxy>(String(IExtHostNodeProxy)) { whenReady = Promise.resolve(); });
-diff --git a/src/vs/workbench/api/node/extHostExtensionService.ts b/src/vs/workbench/api/node/extHostExtensionService.ts
-index 3a02c5ce0b..3e1594129c 100644
---- a/src/vs/workbench/api/node/extHostExtensionService.ts
-+++ b/src/vs/workbench/api/node/extHostExtensionService.ts
-@@ -13,6 +13,8 @@ import { ExtHostDownloadService } from 'vs/workbench/api/node/extHostDownloadSer
- import { CLIServer } from 'vs/workbench/api/node/extHostCLIServer';
- import { URI } from 'vs/base/common/uri';
- import { Schemas } from 'vs/base/common/network';
-+import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
-+import { joinPath } from 'vs/base/common/resources';
+diff --git a/src/vs/workbench/api/worker/extHost.worker.services.ts b/src/vs/workbench/api/worker/extHost.worker.services.ts
+index 3843fdec38..8aac4df527 100644
+--- a/src/vs/workbench/api/worker/extHost.worker.services.ts
++++ b/src/vs/workbench/api/worker/extHost.worker.services.ts
+@@ -8,6 +8,7 @@ import { ILogService } from 'vs/platform/log/common/log';
+ import { IExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
+ import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensionService';
+ import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
++import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
  
- class NodeModuleRequireInterceptor extends RequireInterceptor {
+ // #########################################################################
+ // ###                                                                   ###
+@@ -17,3 +18,4 @@ import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
  
-@@ -76,7 +78,10 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
- 		};
- 	}
- 
--	protected _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
-+	protected _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
-+		if (!URI.isUri(module)) {
-+			module = joinPath(module.extensionLocation, module.main!);
-+		}
- 		if (module.scheme !== Schemas.file) {
- 			throw new Error(`Cannot load URI: '${module}', must be of file-scheme`);
- 		}
-diff --git a/src/vs/workbench/api/node/extHostStoragePaths.ts b/src/vs/workbench/api/node/extHostStoragePaths.ts
-index afdd6bf398..1633daf93d 100644
---- a/src/vs/workbench/api/node/extHostStoragePaths.ts
-+++ b/src/vs/workbench/api/node/extHostStoragePaths.ts
-@@ -5,13 +5,14 @@
- 
- import * as path from 'vs/base/common/path';
- import { URI } from 'vs/base/common/uri';
--import * as pfs from 'vs/base/node/pfs';
--import { IEnvironment, IStaticWorkspaceData } from 'vs/workbench/api/common/extHost.protocol';
-+import { IEnvironment, IStaticWorkspaceData, MainContext } from 'vs/workbench/api/common/extHost.protocol';
- import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
- import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
- import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitDataService';
- import { withNullAsUndefined } from 'vs/base/common/types';
- import { ILogService } from 'vs/platform/log/common/log';
-+import { IExtHostRpcService } from '../common/extHostRpcService';
-+import { VSBuffer } from 'vs/base/common/buffer';
- 
- export class ExtensionStoragePaths implements IExtensionStoragePaths {
- 
-@@ -26,6 +27,7 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
- 	constructor(
- 		@IExtHostInitDataService initData: IExtHostInitDataService,
- 		@ILogService private readonly _logService: ILogService,
-+		@IExtHostRpcService private readonly _extHostRpc: IExtHostRpcService,
- 	) {
- 		this._workspace = withNullAsUndefined(initData.workspace);
- 		this._environment = initData.environment;
-@@ -54,21 +56,26 @@ export class ExtensionStoragePaths implements IExtensionStoragePaths {
- 		const storageName = this._workspace.id;
- 		const storagePath = path.join(this._environment.appSettingsHome.fsPath, 'workspaceStorage', storageName);
- 
--		const exists = await pfs.dirExists(storagePath);
--
--		if (exists) {
-+		// NOTE@coder: Use the file system proxy so this will work in the browser.
-+		const fileSystem = this._extHostRpc.getProxy(MainContext.MainThreadFileSystem);
-+		try {
-+			await fileSystem.$stat(URI.file(storagePath));
- 			return storagePath;
-+		} catch (error) {
-+			// Doesn't exist.
- 		}
- 
- 		try {
--			await pfs.mkdirp(storagePath);
--			await pfs.writeFile(
--				path.join(storagePath, 'meta.json'),
--				JSON.stringify({
--					id: this._workspace.id,
--					configuration: this._workspace.configuration && URI.revive(this._workspace.configuration).toString(),
--					name: this._workspace.name
--				}, undefined, 2)
-+			// NOTE@coder: $writeFile performs a mkdirp.
-+			await fileSystem.$writeFile(
-+				URI.file(path.join(storagePath, 'meta.json')),
-+				VSBuffer.fromString(
-+					JSON.stringify({
-+						id: this._workspace.id,
-+						configuration: this._workspace.configuration && URI.revive(this._workspace.configuration).toString(),
-+						name: this._workspace.name
-+					}, undefined, 2)
-+				)
- 			);
- 			return storagePath;
- 
+ registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
+ registerSingleton(ILogService, ExtHostLogService);
++registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index dd8f4e1fe7..0f4a6ad216 100644
+index c71ab1c7da..572b07ff25 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
-@@ -8,6 +8,9 @@ import { ExtensionActivationTimesBuilder } from 'vs/workbench/api/common/extHost
- import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
+@@ -9,6 +9,7 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
  import { URI } from 'vs/base/common/uri';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
-+import { joinPath } from 'vs/base/common/resources';
-+import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
+ import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 +import { loadCommonJSModule } from 'vs/server/browser/worker';
  
  class WorkerRequireInterceptor extends RequireInterceptor {
  
-@@ -40,7 +43,14 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
- 		await this._fakeModules.install();
+@@ -42,10 +43,15 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+ 	}
+ 
+ 	protected _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined {
+-		return extensionDescription.browser;
++		// NOTE@coder: We can support regular Node modules as well. These will just
++		// require the root of the extension.
++		return extensionDescription.browser || ".";
  	}
  
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
-+	protected async _loadCommonJSModule<T>(module: URI | IExtensionDescription, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
-+		if (!URI.isUri(module) && module.extensionKind !== 'web') {
-+			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules!.getModule('vscode', module.extensionLocation));
-+		}
-+
-+		if (!URI.isUri(module)) {
-+			module = joinPath(module.extensionLocation, module.main!);
++	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, isRemote?: boolean): Promise<T> {
++		if (isRemote) {
++			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules!.getModule('vscode', module));
 +		}
  
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
-@@ -57,7 +67,7 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
- 		const _exports = {};
- 		const _module = { exports: _exports };
- 		const _require = (request: string) => {
--			const result = this._fakeModules!.getModule(request, module);
-+			const result = this._fakeModules!.getModule(request, <URI>module);
- 			if (result === undefined) {
- 				throw new Error(`Cannot load module '${request}'`);
- 			}
+diff --git a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css b/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
+index ced2d81583..dfcae73e8a 100644
+--- a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
++++ b/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
+@@ -55,6 +55,10 @@
+ 	align-items: center;
+ 	justify-content: center;
+ 	order: -1;
++
++	/* NOTE@coder: Hide since it doesn't seem to do anything when used with
++	code-server except open the VS Code repository. */
++	display: none !important;
+ }
+ 
+ .monaco-workbench .activitybar > .content > .home-bar > .home-bar-icon-badge {
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 7eba37aa9f..1824a7c8fc 100644
+index 0462617196..11434d27af 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
@@ -3094,7 +3015,7 @@ index 7eba37aa9f..1824a7c8fc 100644
  		return instantiationService.invokeFunction(accessor => {
  			const commandService = accessor.get(ICommandService);
 diff --git a/src/vs/workbench/common/resources.ts b/src/vs/workbench/common/resources.ts
-index 2a7844da48..2812092983 100644
+index 18ea0bfedb..d59a17c17f 100644
 --- a/src/vs/workbench/common/resources.ts
 +++ b/src/vs/workbench/common/resources.ts
 @@ -15,6 +15,7 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
@@ -3105,21 +3026,21 @@ index 2a7844da48..2812092983 100644
  
  export class ResourceContextKey extends Disposable implements IContextKey<URI> {
  
-@@ -67,7 +68,8 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
- 	set(value: URI | null) {
+@@ -68,7 +69,8 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
  		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
- 			this._resourceKey.set(value);
--			this._schemeKey.set(value ? value.scheme : null);
-+			// NOTE@coder: Fixes extensions matching against file schemas.
-+			this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
- 			this._filenameKey.set(value ? basename(value) : null);
- 			this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
- 			this._extensionKey.set(value ? extname(value) : null);
+ 			this._contextKeyService.bufferChangeEvents(() => {
+ 				this._resourceKey.set(value);
+-				this._schemeKey.set(value ? value.scheme : null);
++				// NOTE@coder: Fixes source control context menus (#1104).
++				this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
+ 				this._filenameKey.set(value ? basename(value) : null);
+ 				this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
+ 				this._extensionKey.set(value ? extname(value) : null);
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
-index 867f31d6f1..ecd510216f 100644
+index 9947f240bf..bdba0a2fc6 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
 +++ b/src/vs/workbench/contrib/scm/browser/media/scm.css
-@@ -135,9 +135,11 @@
+@@ -138,9 +138,11 @@
  	margin-right: 8px;
  }
  
@@ -3135,7 +3056,7 @@ index 867f31d6f1..ecd510216f 100644
  .scm-view .monaco-list .monaco-list-row .resource-group > .actions,
  .scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
 diff --git a/src/vs/workbench/services/dialogs/browser/dialogService.ts b/src/vs/workbench/services/dialogs/browser/dialogService.ts
-index bf9a892d41..5f0d720dca 100644
+index 6e3182a696..7df85da165 100644
 --- a/src/vs/workbench/services/dialogs/browser/dialogService.ts
 +++ b/src/vs/workbench/services/dialogs/browser/dialogService.ts
 @@ -124,11 +124,12 @@ export class DialogService implements IDialogService {
@@ -3154,22 +3075,18 @@ index bf9a892d41..5f0d720dca 100644
  		};
  
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index 9369ad3a7d..b32102c84f 100644
+index ba2701ec54..efea3bd5bc 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -16,6 +16,7 @@ import { memoize } from 'vs/base/common/decorators';
- import { onUnexpectedError } from 'vs/base/common/errors';
- import { LIGHT } from 'vs/platform/theme/common/themeService';
- import { parseLineAndColumnAware } from 'vs/base/common/extpath';
-+import * as paths from 'vs/base/common/path';
+@@ -121,8 +121,18 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 	@memoize
+ 	get logFile(): URI { return joinPath(this.options.logsPath, 'window.log'); }
  
- export class BrowserEnvironmentConfiguration implements IEnvironmentConfiguration {
- 
-@@ -224,6 +225,20 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
- 		return this.webviewExternalEndpoint.replace('{{uuid}}', '*');
- 	}
- 
-+	// NOTE@coder: vscodevim uses the global storage home.
++	// NOTE@coder: Use the regular path for extensions that write directly to disk
++	// instead of using the VS Code API.
+ 	@memoize
+-	get userRoamingDataHome(): URI { return URI.file('/User').with({ scheme: Schemas.userData }); }
++	get userRoamingDataHome(): URI { return URI.file(this.userDataPath).with({ scheme: Schemas.userData }); }
 +	@memoize
 +	get userDataPath(): string {
 +		const dataPath = this.payload?.get("userDataPath");
@@ -3178,14 +3095,9 @@ index 9369ad3a7d..b32102c84f 100644
 +		}
 +		return dataPath;
 +	}
-+	@memoize
-+	get appSettingsHome(): URI { return URI.file(paths.join(this.userDataPath, 'User')); }
-+	@memoize
-+	get globalStorageHome(): string { return paths.join(this.appSettingsHome.fsPath, 'globalStorage'); }
-+
- 	get disableTelemetry(): boolean { return false; }
  
- 	get verbose(): boolean { return this.payload?.get('verbose') === 'true'; }
+ 	@memoize
+ 	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
 index c28b147740..6090200d9c 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
@@ -3200,10 +3112,10 @@ index c28b147740..6090200d9c 100644
  		return false;
  	}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-index 5a79d9e39a..ad5bd9674b 100644
+index 33eb56db3c..e5167794c3 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
 +++ b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-@@ -237,6 +237,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -236,6 +236,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			return this.extensionManagementServerService.webExtensionManagementServer.extensionManagementService.installFromGallery(gallery);
  		}
  
@@ -3216,32 +3128,23 @@ index 5a79d9e39a..ad5bd9674b 100644
  			const error = new Error(localize('cannot be installed', "Cannot install '{0}' because this extension has defined that it cannot run on the remote server.", gallery.displayName || gallery.name));
  			error.name = INSTALL_ERROR_NOT_SUPPORTED;
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index afcf8322e3..ca0d7ed9a8 100644
+index d0710e77fa..ceb27174ae 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
-@@ -127,6 +127,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+@@ -116,8 +116,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+ 			this._remoteAgentService.getEnvironment(),
+ 			this._remoteAgentService.scanExtensions()
+ 		]);
+-		localExtensions = this._checkEnabledAndProposedAPI(localExtensions);
+ 		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
++		// NOTE@coder: Include remotely hosted extensions that should run locally.
++		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
++			.concat(remoteExtensions.filter(ext => ext.extensionKind && (ext.extensionKind === "web" || ext.extensionKind.includes("web"))));
  
- 		} else {
- 			// remote: only enabled and none-web'ish extension
-+			localExtensions.push(...remoteEnv.extensions.filter(extension => this._isEnabled(extension) && canExecuteOnWeb(extension, this._productService, this._configService)));
- 			remoteEnv.extensions = remoteEnv.extensions.filter(extension => this._isEnabled(extension) && !canExecuteOnWeb(extension, this._productService, this._configService));
- 			this._checkEnableProposedApi(remoteEnv.extensions);
- 
-diff --git a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
-index ad19603078..90df69f4cb 100644
---- a/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
-+++ b/src/vs/workbench/services/extensions/browser/webWorkerExtensionHost.ts
-@@ -152,7 +152,7 @@ export class WebWorkerExtensionHost implements IExtensionHost {
- 				appLanguage: platform.language,
- 				extensionDevelopmentLocationURI: this._environmentService.extensionDevelopmentLocationURI,
- 				extensionTestsLocationURI: this._environmentService.extensionTestsLocationURI,
--				globalStorageHome: URI.parse('fake:globalStorageHome'), //todo@joh URI.file(this._environmentService.globalStorageHome),
-+				globalStorageHome: URI.file(this._environmentService.globalStorageHome),
- 				userHome: URI.parse('fake:userHome'), //todo@joh URI.file(this._environmentService.userHome),
- 				webviewResourceRoot: this._environmentService.webviewResourceRoot,
- 				webviewCspSource: this._environmentService.webviewCspSource,
+ 		const remoteAgentConnection = this._remoteAgentService.getConnection();
+ 		this._runningLocation = _determineRunningLocation(this._productService, this._configService, localExtensions, remoteExtensions, Boolean(remoteEnv && remoteAgentConnection));
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
-index 93e7069d65..aa9d973b69 100644
+index 65e532ee58..0b6282fde7 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 +++ b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 @@ -37,7 +37,8 @@ export function canExecuteOnWorkspace(manifest: IExtensionManifest, productServi
@@ -3255,7 +3158,7 @@ index 93e7069d65..aa9d973b69 100644
  
  export function getExtensionKind(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): ExtensionKind[] {
 diff --git a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
-index ae4b2d3122..13d26e73f6 100644
+index 49542eda74..de0e2da0a4 100644
 --- a/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 +++ b/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts
 @@ -16,7 +16,7 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
@@ -3267,7 +3170,7 @@ index ae4b2d3122..13d26e73f6 100644
  import { exists } from 'vs/base/node/pfs';
  import { realpath } from 'vs/base/node/extpath';
  import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
-@@ -55,12 +55,13 @@ const args = minimist(process.argv.slice(2), {
+@@ -57,12 +57,13 @@ const args = minimist(process.argv.slice(2), {
  	const Module = require.__$__nodeRequire('module') as any;
  	const originalLoad = Module._load;
  
@@ -3283,7 +3186,7 @@ index ae4b2d3122..13d26e73f6 100644
  	};
  })();
  
-@@ -133,8 +134,11 @@ function _createExtHostProtocol(): Promise<IMessagePassingProtocol> {
+@@ -135,8 +136,11 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
  
  						// Wait for rich client to reconnect
  						protocol.onSocketClose(() => {
@@ -3297,7 +3200,7 @@ index ae4b2d3122..13d26e73f6 100644
  						});
  					}
  				}
-@@ -307,11 +311,9 @@ export async function startExtensionHostProcess(): Promise<void> {
+@@ -313,11 +317,9 @@ export async function startExtensionHostProcess(): Promise<void> {
  
  	// Attempt to load uri transformer
  	let uriTransformer: IURITransformer | null = null;
@@ -3311,35 +3214,6 @@ index ae4b2d3122..13d26e73f6 100644
  		} catch (e) {
  			console.error(e);
  		}
-diff --git a/src/vs/workbench/services/extensions/worker/extHost.services.ts b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-index 564c71149e..900d92afc1 100644
---- a/src/vs/workbench/services/extensions/worker/extHost.services.ts
-+++ b/src/vs/workbench/services/extensions/worker/extHost.services.ts
-@@ -20,10 +20,11 @@ import { IExtHostStorage, ExtHostStorage } from 'vs/workbench/api/common/extHost
- import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensionService';
- import { ILogService } from 'vs/platform/log/common/log';
- import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
-+import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
-+import { ExtensionStoragePaths } from 'vs/workbench/api/node/extHostStoragePaths';
- import { IExtHostTunnelService, ExtHostTunnelService } from 'vs/workbench/api/common/extHostTunnelService';
- import { IExtHostApiDeprecationService, ExtHostApiDeprecationService, } from 'vs/workbench/api/common/extHostApiDeprecationService';
- import { IExtHostWindow, ExtHostWindow } from 'vs/workbench/api/common/extHostWindow';
--import { NotImplementedProxy } from 'vs/base/common/types';
- 
- // register singleton services
- registerSingleton(ILogService, ExtHostLogService);
-@@ -38,9 +39,10 @@ registerSingleton(IExtHostDocumentsAndEditors, ExtHostDocumentsAndEditors);
- registerSingleton(IExtHostStorage, ExtHostStorage);
- registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
- registerSingleton(IExtHostSearch, ExtHostSearch);
-+registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
- registerSingleton(IExtHostTunnelService, ExtHostTunnelService);
- 
- registerSingleton(IExtHostTerminalService, WorkerExtHostTerminalService);
- registerSingleton(IExtHostTask, WorkerExtHostTask);
- registerSingleton(IExtHostDebugService, WorkerExtHostDebugService);
--registerSingleton(IExtensionStoragePaths, class extends NotImplementedProxy<IExtensionStoragePaths>(String(IExtensionStoragePaths)) { whenReady = Promise.resolve(); });
-+registerSingleton(IExtensionStoragePaths, ExtensionStoragePaths);
 diff --git a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts b/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
 index 79455414c0..a407593b4d 100644
 --- a/src/vs/workbench/services/extensions/worker/extensionHostWorkerMain.ts
@@ -3383,7 +3257,7 @@ index 44999bd842..601b1c5408 100644
  }
  
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index 153ac595d0..a6eb49c5dd 100644
+index 0669178db4..28fafeb2de 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
 @@ -35,7 +35,8 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
@@ -3397,7 +3271,7 @@ index 153ac595d0..a6eb49c5dd 100644
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
 diff --git a/yarn.lock b/yarn.lock
-index 6bc96e8377..a2baf909d6 100644
+index b2fbf543af..f10dddd659 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
@@ -3424,7 +3298,7 @@ index 6bc96e8377..a2baf909d6 100644
  "@electron/get@^1.0.1":
    version "1.7.2"
    resolved "https://registry.yarnpkg.com/@electron/get/-/get-1.7.2.tgz#286436a9fb56ff1a1fcdf0e80131fd65f4d1e0fd"
-@@ -5407,6 +5424,13 @@ jsprim@^1.2.2:
+@@ -5421,6 +5438,13 @@ jsprim@^1.2.2:
      json-schema "0.2.3"
      verror "1.10.0"
  
@@ -3438,7 +3312,7 @@ index 6bc96e8377..a2baf909d6 100644
  just-debounce@^1.0.0:
    version "1.0.0"
    resolved "https://registry.yarnpkg.com/just-debounce/-/just-debounce-1.0.0.tgz#87fccfaeffc0b68cd19d55f6722943f929ea35ea"
-@@ -6009,26 +6033,11 @@ minimatch@0.3:
+@@ -6008,26 +6032,11 @@ minimatch@0.3:
    dependencies:
      brace-expansion "^1.1.7"
  
@@ -3466,7 +3340,7 @@ index 6bc96e8377..a2baf909d6 100644
  minipass@^2.2.1, minipass@^2.3.3:
    version "2.3.3"
    resolved "https://registry.yarnpkg.com/minipass/-/minipass-2.3.3.tgz#a7dcc8b7b833f5d368759cce544dccb55f50f233"
-@@ -6798,6 +6807,11 @@ p-try@^2.0.0:
+@@ -6797,6 +6806,11 @@ p-try@^2.0.0:
    resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.0.0.tgz#85080bb87c64688fa47996fe8f7dfbe8211760b1"
    integrity sha512-hMp0onDKIajHfIkdRk3P4CdCmErkYAxxDtP3Wx/4nZ3aGlau2VKh3mZpcuFkH27WQkL/3WBCPOktzA9ZOAnMQQ==
  

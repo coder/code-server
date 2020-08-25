@@ -32,6 +32,7 @@ try {
 
 ;(self.require as any) = {
   baseUrl: `${options.csStaticBase}/lib/vscode/out`,
+  recordStats: true,
   paths: {
     "vscode-textmate": `../node_modules/vscode-textmate/release/main`,
     "vscode-oniguruma": `../node_modules/vscode-oniguruma/release/main`,
