@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
+- [Pull Requests](#pull-requests)
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
 - [Build](#build)
@@ -11,6 +12,16 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 - [Detailed CI and build process docs](../ci)
+
+## Pull Requests
+
+Please link to the issue each PR solves.
+If there is no existing issue, please first create one unless the fix is minor.
+
+Please make sure the base of your PR is the master branch. We keep the github
+default branch the latest release branch to avoid confusion as the
+documentation is on GitHub and we don't want users to see docs on unreleased
+features.
 
 ## Requirements
 
