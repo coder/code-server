@@ -1296,6 +1296,17 @@ index 0000000000..16ed214d94
 +	type: 'cli';
 +	args: Args;
 +}
++ export interface OpenCommandPipeArgs {
++	type: 'open';
++	fileURIs?: string[];
++	folderURIs: string[];
++	forceNewWindow?: boolean;
++	diffMode?: boolean;
++	addMode?: boolean;
++	gotoLineMode?: boolean;
++	forceReuseWindow?: boolean;
++	waitMarkerFilePath?: string;
++ }
 +
 +export type CodeServerMessage = InitMessage | SocketMessage | CliMessage;
 +
