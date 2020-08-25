@@ -64,9 +64,9 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     ...(args.cert && !args.cert.value
       ? await generateCertificate()
       : {
-        cert: args.cert && args.cert.value,
-        certKey: args["cert-key"],
-      }),
+          cert: args.cert && args.cert.value,
+          certKey: args["cert-key"],
+        }),
   }
 
   if (options.cert && !options.certKey) {
