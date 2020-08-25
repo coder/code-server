@@ -40,7 +40,6 @@ export interface Args extends VsArgs {
   readonly force?: boolean
   readonly "list-extensions"?: boolean
   readonly "install-extension"?: string[]
-  readonly "enable-proposed-api"?: string[]
   readonly "show-versions"?: boolean
   readonly "uninstall-extension"?: string[]
   readonly "proxy-domain"?: string[]
@@ -131,7 +130,11 @@ const options: Options<Required<Args>> = {
     description:
       "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`. To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
   },
-  "enable-proposed-api": { type: "string[]", description: "Enable Proposed (beta) API for VS Code extensions by id." },
+  "enable-proposed-api": {
+    type: "string[]",
+    description:
+      "Enable proposed API features for extensions. Can receive one or more extension IDs to enable individually.",
+  },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
