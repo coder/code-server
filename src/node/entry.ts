@@ -1,8 +1,9 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
+import { promises as fs } from "fs"
+import http from "http"
 import * as path from "path"
-import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
-import { plural } from "../common/util"
+import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { LoginHttpProvider } from "./app/login"
 import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
@@ -63,9 +64,9 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     ...(args.cert && !args.cert.value
       ? await generateCertificate()
       : {
-          cert: args.cert && args.cert.value,
-          certKey: args["cert-key"],
-        }),
+        cert: args.cert && args.cert.value,
+        certKey: args["cert-key"],
+      }),
   }
 
   if (options.cert && !options.certKey) {
@@ -162,6 +163,49 @@ async function entry(): Promise<void> {
       console.log(version, commit)
     }
     process.exit(0)
+  } else if (args["open-in"]) {
+    if (!process.env["VSCODE_IPC_HOOK_CLI"]) {
+      logger.error("VSCODE_IPC_HOOK_CLI missing from environment, unable to run")
+      process.exit(1)
+    }
+    const pipeArgs: OpenCommandPipeArgs = { type: "open", folderURIs: [] }
+    pipeArgs.forceReuseWindow = args["reuse-window"]
+    pipeArgs.forceNewWindow = args["new-window"]
+    for (const a in args._) {
+      if (Object.prototype.hasOwnProperty.call(args._, a)) {
+        try {
+          const fp = await fs.realpath(args._[a])
+          const st = await fs.stat(fp)
+          if (st.isDirectory()) {
+            pipeArgs.folderURIs = [...pipeArgs.folderURIs, fp]
+          } else {
+            pipeArgs.fileURIs = [...(pipeArgs.fileURIs || []), fp]
+          }
+        } catch (error) {
+          pipeArgs.fileURIs = [...(pipeArgs.fileURIs || []), args._[a]]
+        }
+      }
+    }
+    if (pipeArgs.forceNewWindow && pipeArgs.fileURIs && pipeArgs.fileURIs.length > 0) {
+      logger.error("new-window can only be used with folder paths")
+      process.exit(1)
+    }
+    const vscode = http.request({
+        path: "/",
+        method: "POST",
+        socketPath: process.env["VSCODE_IPC_HOOK_CLI"],
+      },
+      (res) => {
+        res.on("data", (message) => {
+          logger.debug("Got message from VS Code", field("message", message.toString()))
+        })
+      },
+    )
+    vscode.on("error", (err) => {
+      logger.debug("Got error from VS Code", field("error", err))
+    })
+    vscode.write(JSON.stringify(pipeArgs))
+    vscode.end()
   } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
     logger.debug("forking vs code cli...")
     const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
