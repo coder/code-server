@@ -1,0 +1,82 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: vscode
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: vscode
+  namespace: vscode
+  # annotations:
+  #   service.beta.kubernetes.io/aws-load-balancer-ssl-cert: arn:aws:acm:us-west-2:123992344789:certificate/77b2a158-4ae5-4fe2-8eb5-617c03d555ed
+  #   service.beta.kubernetes.io/aws-load-balancer-type: "nlb" 
+  labels:
+    app: vscode
+spec:
+  ports:
+  - port: 80 # port 443 if using ssl
+    name: https
+    targetPort: 8080
+  type: LoadBalancer
+  selector:
+    app: vscode
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vscode
+  labels:
+    app: vscode
+data:
+  config.yaml: |
+    bind-addr: 127.0.0.1:8080
+    auth: password
+    password: complexpassword123
+    cert: false
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vscode
+  namespace: vscode
+spec:
+  serviceName: "vscode"
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vscode
+  template:
+    metadata:
+      labels:
+        app: vscode
+    spec:
+      containers:
+      - name: code-server
+        image: codercom/code-server:latest
+        ports:
+        - containerPort: 8080
+          name: http
+        volumeMounts:
+        - name: home
+          mountPath: /home/coder/projects
+        - name: config
+          mountPath: /home/coder/.config/code-server
+      volumes:
+      - name: config
+        configMap:
+          name: vscode
+  volumeClaimTemplates:
+  - metadata:
+      name: home
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
+
+
+

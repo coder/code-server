@@ -12,6 +12,7 @@
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
+- [Kubernetes - Amazon EKS](#kubernetes-amazon-eks)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -183,3 +184,7 @@ Our official image supports `amd64` and `arm64`.
 For `arm32` support there is a popular community maintained alternative:
 
 https://hub.docker.com/r/linuxserver/code-server
+
+## Kubernetes Amazon EKS
+
+> kubectl apply -f https://raw.githubusercontent.com/prabhatsharma/code-server/master/doc/kubernetes.yaml
