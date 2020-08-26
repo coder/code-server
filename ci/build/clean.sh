@@ -13,7 +13,8 @@ main() {
     release-gcp \
     release-images \
     dist \
-    .cache
+    .cache \
+    node-*
 
   pushd lib/vscode
   git clean -xffd
