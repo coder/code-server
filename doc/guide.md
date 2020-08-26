@@ -9,6 +9,7 @@
 - [3. Expose code-server](#3-expose-code-server)
   - [SSH forwarding](#ssh-forwarding)
   - [Let's Encrypt](#lets-encrypt)
+    - [NGINX](#nginx)
   - [Self Signed Certificate](#self-signed-certificate)
   - [Change the password?](#change-the-password)
   - [How do I securely access development web services?](#how-do-i-securely-access-development-web-services)
@@ -24,6 +25,8 @@ Further docs are at:
 - [INSTALL](../doc/install.md) for installation
 - [FAQ](./FAQ.md) for common questions.
 - [CONTRIBUTING](../doc/CONTRIBUTING.md) for development docs
+
+We highly recommend reading the [FAQ](./FAQ.md) on the [Differences compared to VS Code](./FAQ.md#differences-compared-to-vs-code) before beginning.
 
 We'll walk you through acquiring a remote machine to run `code-server` on
 and then exposing `code-server` so you can securely access it.
@@ -78,7 +81,7 @@ to avoid the slow dashboard.
 
 ## 2. Install code-server
 
-We have a [script](../install.sh) to install `code-server` for Linux and macOS.
+We have a [script](../install.sh) to install `code-server` for Linux, macOS and FreeBSD.
 
 It tries to use the system package manager if possible.
 
@@ -131,13 +134,13 @@ Restart `code-server` with (assuming you followed the guide):
 systemctl --user restart code-server
 ```
 
-Now forward local port 8080 to `127.0.0.1:8080` on the remote instance.
+Now forward local port 8080 to `127.0.0.1:8080` on the remote instance by running the following command on your local machine.
 
 Recommended reading: https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding.
 
 ```bash
 # -N disables executing a remote shell
-ssh -N -L 8080:127.0.0.1:8080 <instance-ip>
+ssh -N -L 8080:127.0.0.1:8080 [user]@<instance-ip>
 ```
 
 Now if you access http://127.0.0.1:8080 locally, you should see `code-server`!
@@ -191,6 +194,8 @@ mydomain.com
 reverse_proxy 127.0.0.1:8080
 ```
 
+Remember to replace `mydomain.com` with your domain name!
+
 5. Reload caddy with:
 
 ```bash
@@ -201,6 +206,48 @@ Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 In a future release we plan to integrate Let's Encrypt directly with `code-server` to avoid
 the dependency on caddy.
+
+#### NGINX
+
+If you prefer to use NGINX instead of Caddy then please follow steps 1-2 above and then:
+
+3. Install `nginx`:
+
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python-certbot-nginx
+```
+
+4. Put the following config into `/etc/nginx/sites-available/code-server` with sudo:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mydomain.com;
+
+    location / {
+      proxy_pass http://localhost:8080/;
+      proxy_set_header Host $host;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection upgrade;
+      proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
+
+Remember to replace `mydomain.com` with your domain name!
+
+5. Enable the config:
+
+```bash
+sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
+sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
+```
+
+Make sure to substitute `me@example.com` with your actual email.
+
+Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 ### Self Signed Certificate
 

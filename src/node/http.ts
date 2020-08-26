@@ -12,7 +12,7 @@ import { Readable } from "stream"
 import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, Options, plural, split } from "../common/util"
+import { arrayify, normalize, Options, plural, split, trimSlashes } from "../common/util"
 import { SocketProxyProvider } from "./socket"
 import { getMediaMime, paths } from "./util"
 
@@ -36,9 +36,13 @@ export type Query = { [key: string]: string | string[] | undefined }
 
 export interface ProxyOptions {
   /**
-   * A base path to strip from from the request before proxying if necessary.
+   * A path to strip from from the beginning of the request before proxying
    */
-  base?: string
+  strip?: string
+  /**
+   * A path to add to the beginning of the request before proxying.
+   */
+  prepend?: string
   /**
    * The port to proxy.
    */
@@ -79,9 +83,8 @@ export interface HttpResponse<T = string | Buffer | object> {
    */
   mime?: string
   /**
-   * Redirect to this path. Will rewrite against the base path but NOT the
-   * provider endpoint so you must include it. This allows redirecting outside
-   * of your endpoint.
+   * Redirect to this path. This is constructed against the site base (not the
+   * provider's base).
    */
   redirect?: string
   /**
@@ -133,12 +136,16 @@ export interface HttpServerOptions {
 
 export interface Route {
   /**
-   * Base path part (in /test/path it would be "/test").
+   * Provider base path part (for /provider/base/path it would be /provider).
+   */
+  providerBase: string
+  /**
+   * Base path part (for /provider/base/path it would be /base).
    */
   base: string
   /**
-   * Remaining part of the route (in /test/path it would be "/path"). It can be
-   * blank.
+   * Remaining part of the route after factoring out the base and provider base
+   * (for /provider/base/path it would be /path). It can be blank.
    */
   requestPath: string
   /**
@@ -161,7 +168,6 @@ interface ProviderRoute extends Route {
 
 export interface HttpProviderOptions {
   readonly auth: AuthType
-  readonly base: string
   readonly commit: string
   readonly password?: string
 }
@@ -175,7 +181,7 @@ export abstract class HttpProvider {
 
   public constructor(protected readonly options: HttpProviderOptions) {}
 
-  public dispose(): void {
+  public async dispose(): Promise<void> {
     // No default behavior.
   }
 
@@ -203,11 +209,11 @@ export abstract class HttpProvider {
   /**
    * Get the base relative to the provided route. For each slash we need to go
    * up a directory. For example:
-   * / => ./
-   * /foo => ./
-   * /foo/ => ./../
-   * /foo/bar => ./../
-   * /foo/bar/ => ./../../
+   * / => .
+   * /foo => .
+   * /foo/ => ./..
+   * /foo/bar => ./..
+   * /foo/bar/ => ./../..
    */
   public base(route: Route): string {
     const depth = (route.originalPath.match(/\//g) || []).length
@@ -229,30 +235,23 @@ export abstract class HttpProvider {
   /**
    * Replace common templates strings.
    */
-  protected replaceTemplates(route: Route, response: HttpStringFileResponse, sessionId?: string): HttpStringFileResponse
   protected replaceTemplates<T extends object>(
     route: Route,
     response: HttpStringFileResponse,
-    options: T,
-  ): HttpStringFileResponse
-  protected replaceTemplates(
-    route: Route,
-    response: HttpStringFileResponse,
-    sessionIdOrOptions?: string | object,
+    extraOptions?: Omit<T, "base" | "csStaticBase" | "logLevel">,
   ): HttpStringFileResponse {
-    if (typeof sessionIdOrOptions === "undefined" || typeof sessionIdOrOptions === "string") {
-      sessionIdOrOptions = {
-        base: this.base(route),
-        commit: this.options.commit,
-        logLevel: logger.level,
-        sessionID: sessionIdOrOptions,
-      } as Options
+    const base = this.base(route)
+    const options: Options = {
+      base,
+      csStaticBase: base + "/static/" + this.options.commit + this.rootPath,
+      logLevel: logger.level,
+      ...extraOptions,
     }
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
-      .replace(/{{BASE}}/g, this.base(route))
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(sessionIdOrOptions)}'`)
+      .replace(/{{BASE}}/g, options.base)
+      .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -281,7 +280,7 @@ export abstract class HttpProvider {
    * Helper to error on invalid methods (default GET).
    */
   protected ensureMethod(request: http.IncomingMessage, method?: string | string[]): void {
-    const check = Array.isArray(method) ? method : [method || "GET"]
+    const check = arrayify(method || "GET")
     if (!request.method || !check.includes(request.method)) {
       throw new HttpError(`Unsupported method ${request.method}`, HttpCode.BadRequest)
     }
@@ -475,7 +474,7 @@ export class HttpServer {
     this.proxyDomains = new Set((options.proxyDomains || []).map((d) => d.replace(/^\*\./, "")))
     this.heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
       const connections = await this.getConnections()
-      logger.trace(`${connections} active connection${plural(connections)}`)
+      logger.trace(plural(connections, `${connections} active connection`))
       return connections !== 0
     })
     this.protocol = this.options.cert ? "https" : "http"
@@ -502,9 +501,15 @@ export class HttpServer {
     })
   }
 
-  public dispose(): void {
+  /**
+   * Stop and dispose everything. Return an array of disposal errors.
+   */
+  public async dispose(): Promise<Error[]> {
     this.socketProvider.stop()
-    this.providers.forEach((p) => p.dispose())
+    const providers = Array.from(this.providers.values())
+    // Catch so all the errors can be seen rather than just the first one.
+    const responses = await Promise.all<Error | undefined>(providers.map((p) => p.dispose().catch((e) => e)))
+    return responses.filter<Error>((r): r is Error => typeof r !== "undefined")
   }
 
   public async getConnections(): Promise<number> {
@@ -518,41 +523,51 @@ export class HttpServer {
   /**
    * Register a provider for a top-level endpoint.
    */
-  public registerHttpProvider<T extends HttpProvider>(endpoint: string, provider: HttpProvider0<T>): T
-  public registerHttpProvider<A1, T extends HttpProvider>(endpoint: string, provider: HttpProvider1<A1, T>, a1: A1): T
+  public registerHttpProvider<T extends HttpProvider>(endpoint: string | string[], provider: HttpProvider0<T>): T
+  public registerHttpProvider<A1, T extends HttpProvider>(
+    endpoint: string | string[],
+    provider: HttpProvider1<A1, T>,
+    a1: A1,
+  ): T
   public registerHttpProvider<A1, A2, T extends HttpProvider>(
-    endpoint: string,
+    endpoint: string | string[],
     provider: HttpProvider2<A1, A2, T>,
     a1: A1,
     a2: A2,
   ): T
   public registerHttpProvider<A1, A2, A3, T extends HttpProvider>(
-    endpoint: string,
+    endpoint: string | string[],
     provider: HttpProvider3<A1, A2, A3, T>,
     a1: A1,
     a2: A2,
     a3: A3,
   ): T
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  public registerHttpProvider(endpoint: string, provider: any, ...args: any[]): any {
-    endpoint = endpoint.replace(/^\/+|\/+$/g, "")
-    if (this.providers.has(`/${endpoint}`)) {
-      throw new Error(`${endpoint} is already registered`)
-    }
-    if (/\//.test(endpoint)) {
-      throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
-    }
+  public registerHttpProvider(endpoint: string | string[], provider: any, ...args: any[]): void {
     const p = new provider(
       {
         auth: this.options.auth || AuthType.None,
-        base: `/${endpoint}`,
         commit: this.options.commit,
         password: this.options.password,
       },
       ...args,
     )
-    this.providers.set(`/${endpoint}`, p)
-    return p
+    const endpoints = arrayify(endpoint).map(trimSlashes)
+    endpoints.forEach((endpoint) => {
+      if (/\//.test(endpoint)) {
+        throw new Error(`Only top-level endpoints are supported (got ${endpoint})`)
+      }
+      const existingProvider = this.providers.get(`/${endpoint}`)
+      this.providers.set(`/${endpoint}`, p)
+      if (existingProvider) {
+        logger.debug(`Overridding existing /${endpoint} provider`)
+        // If the existing provider isn't registered elsewhere we can dispose.
+        if (!Array.from(this.providers.values()).find((p) => p === existingProvider)) {
+          logger.debug(`Disposing existing /${endpoint} provider`)
+          existingProvider.dispose()
+        }
+      }
+    })
   }
 
   /**
@@ -642,15 +657,17 @@ export class HttpServer {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
-      logger.debug("Request error", field("url", request.url), field("code", code))
+      logger.debug("Request error", field("url", request.url), field("code", code), field("error", error))
       if (code >= HttpCode.ServerError) {
         logger.error(error.stack)
       }
       if (request.headers["content-type"] === "application/json") {
         write({
           code,
+          mime: "application/json",
           content: {
             error: e.message,
+            ...(e.details || {}),
           },
         })
       } else {
@@ -759,7 +776,7 @@ export class HttpServer {
     // that by shifting the next base out of the request path.
     let provider = this.providers.get(base)
     if (base !== "/" && provider) {
-      return { ...parse(requestPath), fullPath, query: parsedUrl.query, provider, originalPath }
+      return { ...parse(requestPath), providerBase: base, fullPath, query: parsedUrl.query, provider, originalPath }
     }
 
     // Fall back to the top-level provider.
@@ -767,7 +784,7 @@ export class HttpServer {
     if (!provider) {
       throw new Error(`No provider for ${base}`)
     }
-    return { base, fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
+    return { base, providerBase: "/", fullPath, requestPath, query: parsedUrl.query, provider, originalPath }
   }
 
   /**
@@ -806,10 +823,11 @@ export class HttpServer {
     // sure how best to get this information to the `proxyRes` event handler.
     // For now I'm sticking it on the request object which is passed through to
     // the event.
-    ;(request as ProxyRequest).base = options.base
+    ;(request as ProxyRequest).base = options.strip
 
     const isHttp = response instanceof http.ServerResponse
-    const path = options.base ? route.fullPath.replace(options.base, "") : route.fullPath
+    const base = options.strip ? route.fullPath.replace(options.strip, "") : route.fullPath
+    const path = normalize("/" + (options.prepend || "") + "/" + base, true)
     const proxyOptions: proxy.ServerOptions = {
       changeOrigin: true,
       ignorePath: true,
@@ -850,6 +868,7 @@ export class HttpServer {
       // isn't setting the host header to match the access domain.
       host === "localhost"
     ) {
+      logger.debug("no valid cookie doman", field("host", host))
       return undefined
     }
 
@@ -859,6 +878,7 @@ export class HttpServer {
       }
     })
 
+    logger.debug("got cookie doman", field("host", host))
     return host ? `Domain=${host}` : undefined
   }
 

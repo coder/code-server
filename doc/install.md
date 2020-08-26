@@ -4,7 +4,7 @@
 
 - [install.sh](#installsh)
   - [Flags](#flags)
-  - [Detect Reference](#detect-reference)
+  - [Detection Reference](#detection-reference)
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
@@ -21,7 +21,7 @@ various distros and operating systems.
 
 ## install.sh
 
-We have a [script](../install.sh) to install code-server for Linux and macOS.
+We have a [script](../install.sh) to install code-server for Linux, macOS and FreeBSD.
 
 It tries to use the system package manager if possible.
 
@@ -43,7 +43,7 @@ If you believe an install script used with `curl | sh` is insecure, please give
 [this wonderful blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
 [sandstorm.io](https://sandstorm.io) a read.
 
-If you'd still prefer manual installation despite the below [detect reference](#detect-reference) and `--dry-run`
+If you'd still prefer manual installation despite the below [detection reference](#detection-reference) and `--dry-run`
 then continue on for docs on manual installation. The [`install.sh`](../install.sh) script runs the _exact_ same
 commands presented in the rest of this document.
 
@@ -57,7 +57,7 @@ commands presented in the rest of this document.
 - `--version=X.X.X` to install version `X.X.X` instead of latest.
 - `--help` to see full usage docs.
 
-### Detect Reference
+### Detection Reference
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -70,6 +70,8 @@ commands presented in the rest of this document.
 
   - If Homebrew is not installed it will install the latest standalone release into `~/.local`.
   - Add `~/.local/bin` to your `$PATH` to run code-server.
+
+- For FreeBSD, it will install the [npm package](#yarn-npm) with `yarn` or `npm`.
 
 - If ran on an architecture with no releases, it will install the [npm package](#yarn-npm) with `yarn` or `npm`.
   - We only have releases for amd64 and arm64 presently.

@@ -2,9 +2,8 @@ import { logger, field } from "@coder/logger"
 
 export interface Options {
   base: string
-  commit: string
+  csStaticBase: string
   logLevel: number
-  pid?: number
 }
 
 /**
@@ -16,7 +15,11 @@ export const split = (str: string, delimiter: string): [string, string] => {
   return index !== -1 ? [str.substring(0, index).trim(), str.substring(index + 1)] : [str, ""]
 }
 
-export const plural = (count: number): string => (count === 1 ? "" : "s")
+/**
+ * Appends an 's' to the provided string if count is greater than one;
+ * otherwise the string is returned
+ */
+export const plural = (count: number, str: string): string => (count === 1 ? str : `${str}s`)
 
 export const generateUuid = (length = 24): string => {
   const possible = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
@@ -34,20 +37,34 @@ export const normalize = (url: string, keepTrailing = false): string => {
 }
 
 /**
+ * Remove leading and trailing slashes.
+ */
+export const trimSlashes = (url: string): string => {
+  return url.replace(/^\/+|\/+$/g, "")
+}
+
+/**
+ * Resolve a relative base against the window location. This is used for
+ * anything that doesn't work with a relative path.
+ */
+export const resolveBase = (base?: string): string => {
+  // After resolving the base will either start with / or be an empty string.
+  if (!base || base.startsWith("/")) {
+    return base ?? ""
+  }
+  const parts = location.pathname.split("/")
+  parts[parts.length - 1] = base
+  const url = new URL(location.origin + "/" + parts.join("/"))
+  return normalize(url.pathname)
+}
+
+/**
  * Get options embedded in the HTML or query params.
  */
 export const getOptions = <T extends Options>(): T => {
   let options: T
   try {
-    const el = document.getElementById("coder-options")
-    if (!el) {
-      throw new Error("no options element")
-    }
-    const value = el.getAttribute("data-settings")
-    if (!value) {
-      throw new Error("no options value")
-    }
-    options = JSON.parse(value)
+    options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
   } catch (error) {
     options = {} as T
   }
@@ -61,17 +78,26 @@ export const getOptions = <T extends Options>(): T => {
     }
   }
 
-  if (typeof options.logLevel !== "undefined") {
-    logger.level = options.logLevel
-  }
-  if (options.base) {
-    const parts = location.pathname.replace(/^\//g, "").split("/")
-    parts[parts.length - 1] = options.base
-    const url = new URL(location.origin + "/" + parts.join("/"))
-    options.base = normalize(url.pathname, true)
-  }
+  logger.level = options.logLevel
+
+  options.base = resolveBase(options.base)
+  options.csStaticBase = resolveBase(options.csStaticBase)
 
   logger.debug("got options", field("options", options))
 
   return options
+}
+
+/**
+ * Wrap the value in an array if it's not already an array. If the value is
+ * undefined return an empty array.
+ */
+export const arrayify = <T>(value?: T | T[]): T[] => {
+  if (Array.isArray(value)) {
+    return value
+  }
+  if (typeof value === "undefined") {
+    return []
+  }
+  return [value]
 }

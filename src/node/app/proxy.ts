@@ -24,7 +24,7 @@ export class ProxyHttpProvider extends HttpProvider {
     const port = route.base.replace(/^\//, "")
     return {
       proxy: {
-        base: `${this.options.base}/${port}`,
+        strip: `${route.providerBase}/${port}`,
         port,
       },
     }
@@ -35,7 +35,7 @@ export class ProxyHttpProvider extends HttpProvider {
     const port = route.base.replace(/^\//, "")
     return {
       proxy: {
-        base: `${this.options.base}/${port}`,
+        strip: `${route.providerBase}/${port}`,
         port,
       },
     }

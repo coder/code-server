@@ -9,7 +9,8 @@ MINIFY=${MINIFY-true}
 main() {
   cd "$(dirname "${0}")/../.."
 
-  tsc --outDir out --tsBuildInfoFile .cache/out.tsbuildinfo
+  tsc
+
   # If out/node/entry.js does not already have the shebang,
   # we make sure to add it and make it executable.
   if ! grep -q -m1 "^#!/usr/bin/env node" out/node/entry.js; then
@@ -18,12 +19,13 @@ main() {
   fi
 
   parcel build \
-    --public-url "/static/$(git rev-parse HEAD)/dist" \
+    --public-url "." \
     --out-dir dist \
     $([[ $MINIFY ]] || echo --no-minify) \
-    src/browser/pages/app.ts \
     src/browser/register.ts \
-    src/browser/serviceWorker.ts
+    src/browser/serviceWorker.ts \
+    src/browser/pages/login.ts \
+    src/browser/pages/vscode.ts
 }
 
 main "$@"

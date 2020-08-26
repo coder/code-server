@@ -2,8 +2,7 @@ import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as path from "path"
 import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
-import { ApiHttpProvider } from "./app/api"
-import { DashboardHttpProvider } from "./app/dashboard"
+import { plural } from "../common/util"
 import { LoginHttpProvider } from "./app/login"
 import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
@@ -11,7 +10,8 @@ import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { generateCertificate, hash, open, humanPath } from "./util"
+import { loadPlugins } from "./plugin"
+import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
 process.on("uncaughtException", (error) => {
@@ -73,15 +73,19 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   }
 
   const httpServer = new HttpServer(options)
-  const vscode = httpServer.registerHttpProvider("/", VscodeHttpProvider, args)
-  const api = httpServer.registerHttpProvider("/api", ApiHttpProvider, httpServer, vscode, args["user-data-dir"])
-  const update = httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
+  httpServer.registerHttpProvider(["/", "/vscode"], VscodeHttpProvider, args)
+  httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
-  httpServer.registerHttpProvider("/dashboard", DashboardHttpProvider, api, update)
 
-  ipcMain().onDispose(() => httpServer.dispose())
+  await loadPlugins(httpServer, args)
+
+  ipcMain().onDispose(() => {
+    httpServer.dispose().then((errors) => {
+      errors.forEach((error) => logger.error(error.message))
+    })
+  })
 
   logger.info(`code-server ${version} ${commit}`)
   const serverAddress = await httpServer.listen()
@@ -110,7 +114,7 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   }
 
   if (httpServer.proxyDomains.size > 0) {
-    logger.info(`  - Proxying the following domain${httpServer.proxyDomains.size === 1 ? "" : "s"}:`)
+    logger.info(`  - ${plural(httpServer.proxyDomains.size, "Proxying the following domain")}:`)
     httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 

@@ -1,6 +1,9 @@
-import { logger, field } from "@coder/logger"
+import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
+import * as path from "path"
+import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
+import { paths } from "./util"
 
 interface HandshakeMessage {
   type: "handshake"
@@ -29,7 +32,7 @@ export class IpcMain {
   public readonly onMessage = this._onMessage.event
   private readonly _onDispose = new Emitter<NodeJS.Signals | undefined>()
   public readonly onDispose = this._onDispose.event
-  public readonly exit: (code?: number) => never
+  public readonly processExit: (code?: number) => never
 
   public constructor(public readonly parentPid?: number) {
     process.on("SIGINT", () => this._onDispose.emit("SIGINT"))
@@ -37,7 +40,7 @@ export class IpcMain {
     process.on("exit", () => this._onDispose.emit(undefined))
 
     // Ensure we control when the process exits.
-    this.exit = process.exit
+    this.processExit = process.exit
     process.exit = function (code?: number) {
       logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
     } as (code?: number) => never
@@ -65,6 +68,14 @@ export class IpcMain {
           this._onDispose.emit(undefined)
         }
       }, 5000)
+    }
+  }
+
+  public exit(error?: number | ProcessError): never {
+    if (error && typeof error !== "number") {
+      this.processExit(typeof error.code === "number" ? error.code : 1)
+    } else {
+      this.processExit(error)
     }
   }
 
@@ -140,8 +151,17 @@ export interface WrapperOptions {
 export class WrapperProcess {
   private process?: cp.ChildProcess
   private started?: Promise<void>
+  private readonly logStdoutStream: rfs.RotatingFileStream
+  private readonly logStderrStream: rfs.RotatingFileStream
 
   public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
+    const opts = {
+      size: "10M",
+      maxFiles: 10,
+    }
+    this.logStdoutStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stdout.log"), opts)
+    this.logStderrStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stderr.log"), opts)
+
     ipcMain().onDispose(() => {
       if (this.process) {
         this.process.removeAllListeners()
@@ -149,33 +169,51 @@ export class WrapperProcess {
       }
     })
 
-    ipcMain().onMessage(async (message) => {
+    ipcMain().onMessage((message) => {
       switch (message.type) {
         case "relaunch":
           logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`)
           this.currentVersion = message.version
-          this.started = undefined
-          if (this.process) {
-            this.process.removeAllListeners()
-            this.process.kill()
-          }
-          try {
-            await this.start()
-          } catch (error) {
-            logger.error(error.message)
-            ipcMain().exit(typeof error.code === "number" ? error.code : 1)
-          }
+          this.relaunch()
           break
         default:
           logger.error(`Unrecognized message ${message}`)
           break
       }
     })
+
+    process.on("SIGUSR1", async () => {
+      logger.info("Received SIGUSR1; hotswapping")
+      this.relaunch()
+    })
+  }
+
+  private async relaunch(): Promise<void> {
+    this.started = undefined
+    if (this.process) {
+      this.process.removeAllListeners()
+      this.process.kill()
+    }
+    try {
+      await this.start()
+    } catch (error) {
+      logger.error(error.message)
+      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+    }
   }
 
   public start(): Promise<void> {
     if (!this.started) {
       this.started = this.spawn().then((child) => {
+        // Log both to stdout and to the log directory.
+        if (child.stdout) {
+          child.stdout.pipe(this.logStdoutStream)
+          child.stdout.pipe(process.stdout)
+        }
+        if (child.stderr) {
+          child.stderr.pipe(this.logStderrStream)
+          child.stderr.pipe(process.stderr)
+        }
         logger.debug(`spawned inner process ${child.pid}`)
         ipcMain()
           .handshake(child)
@@ -205,7 +243,7 @@ export class WrapperProcess {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: nodeOptions,
       },
-      stdio: ["inherit", "inherit", "inherit", "ipc"],
+      stdio: ["ipc"],
     })
   }
 }
@@ -223,13 +261,13 @@ export const wrap = (fn: () => Promise<void>): void => {
       .then(() => fn())
       .catch((error: ProcessError): void => {
         logger.error(error.message)
-        ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+        ipcMain().exit(error)
       })
   } else {
     const wrapper = new WrapperProcess(require("../../package.json").version)
     wrapper.start().catch((error) => {
       logger.error(error.message)
-      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+      ipcMain().exit(error)
     })
   }
 }

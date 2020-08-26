@@ -6,6 +6,7 @@
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
+- [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
@@ -22,21 +23,20 @@
 - [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+- [Differences compared to Theia?](#differences-compared-to-theia)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Questions?
 
-Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
-
-The issue tracker is **only** for bugs and features.
+Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
 
 ## How can I reuse my VS Code configuration?
 
 The very popular [Settings Sync](https://marketplace.visualstudio.com/items?itemName=Shan.code-settings-sync) extension works.
 
-You can also pass `--data-dir ~/.vscode` to reuse your existing VS Code extensions and configuration.
+You can also pass `--user-data-dir ~/.vscode` to reuse your existing VS Code extensions and configuration.
 
 Or copy `~/.vscode` into `~/.local/share/code-server`.
 
@@ -78,8 +78,26 @@ point to the .vsix file.
 
 See below for installing an extension from the cli.
 
-If you have your own custom marketplace, it is possible to point code-server to it by setting
-`$SERVICE_URL` and `$ITEM_URL` to point to it.
+## How do I configure the marketplace URL?
+
+If you have your own marketplace that implements the VS Code Extension Gallery API, it is possible to
+point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
+to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
+
+e.g. to use [open-vsx.org](https://open-vsx.org):
+
+```bash
+export SERVICE_URL=https://open-vsx.org/vscode/gallery
+export ITEM_URL=https://open-vsx.org/vscode/item
+```
+
+While you can technically use Microsoft's marketplace with these, please do not do so as it
+is against their terms of use. See [above](#differences-compared-to-vs-code) and this
+discussion regarding the use of the Microsoft URLs in forks:
+
+https://github.com/microsoft/vscode/issues/31168#issue-244533026
+
+These variables are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
 
@@ -103,11 +121,11 @@ code-server --install-extension downloaded-ms-python.python.vsix
 VS Code Codespaces is a closed source and paid service by Microsoft. It also allows you to access
 VS Code via the browser.
 
-However, code-server is free, open source and can be ran on any machine without any limitations.
+However, code-server is free, open source and can be run on any machine without any limitations.
 
-While you can self host environments with VS Code Codespaces, you still need to an Azure billing
-account and you access VS Code via the Codespaces web dashboard instead of directly connecting to
-your instance.
+While you can self host environments with VS Code Codespaces, you still need an Azure billing
+account and you have to access VS Code via the Codespaces web dashboard instead of directly
+connecting to your instance.
 
 ## How should I expose code-server to the internet?
 
@@ -250,7 +268,7 @@ The default location also respects `$XDG_CONFIG_HOME`.
 
 Unfortunately at the moment self signed certificates cause a blank screen on iPadOS
 
-There does seem to a way to get it to work if you create your own CA and create a
+There does seem to be a way to get it to work if you create your own CA and create a
 certificate using the CA and then import the CA onto your iPad.
 
 See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
@@ -271,6 +289,19 @@ Once you've entered the editor, click the "plus" icon present in the URL toolbar
 This will install a Chrome PWA and now all keybindings will work!
 
 For other browsers you'll have to remap keybindings unfortunately.
+
+## Differences compared to Theia?
+
+[Theia](https://github.com/eclipse-theia/theia) is a browser IDE loosely based on VS Code. It uses the same
+text editor library named [Monaco](https://github.com/Microsoft/monaco-editor) and the same
+extension API but everything else is very different. It also uses [open-vsx.org](https://open-vsx.org)
+for extensions which has an order of magnitude less extensions than our marketplace.
+See [#1473](https://github.com/cdr/code-server/issues/1473).
+
+You can't just use your VS Code config in Theia like you can with code-server.
+
+To summarize, code-server is a patched fork of VS Code to run in the browser whereas
+Theia takes some parts of VS Code but is an entirely different editor.
 
 ## Enterprise
 

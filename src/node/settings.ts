@@ -1,7 +1,8 @@
+import { logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import * as path from "path"
-import { extend, paths } from "./util"
-import { logger } from "@coder/logger"
+import { Route } from "./http"
+import { paths } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
 
@@ -29,11 +30,13 @@ export class SettingsProvider<T> {
 
   /**
    * Write settings combined with current settings. On failure log a warning.
-   * Objects will be merged and everything else will be replaced.
+   * Settings will be merged shallowly.
    */
   public async write(settings: Partial<T>): Promise<void> {
     try {
-      await fs.writeFile(this.settingsPath, JSON.stringify(extend(await this.read(), settings), null, 2))
+      const oldSettings = await this.read()
+      const nextSettings = { ...oldSettings, ...settings }
+      await fs.writeFile(this.settingsPath, JSON.stringify(nextSettings, null, 2))
     } catch (error) {
       logger.warn(error.message)
     }
@@ -55,6 +58,7 @@ export interface CoderSettings extends UpdateSettings {
     url: string
     workspace: boolean
   }
+  query: Route["query"]
 }
 
 /**

@@ -1,21 +1,12 @@
 import { field, logger } from "@coder/logger"
-import * as cp from "child_process"
-import * as fs from "fs-extra"
 import * as http from "http"
 import * as https from "https"
-import * as os from "os"
 import * as path from "path"
 import * as semver from "semver"
-import { Readable, Writable } from "stream"
-import * as tar from "tar-fs"
 import * as url from "url"
-import * as util from "util"
-import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
 import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { settings as globalSettings, SettingsProvider, UpdateSettings } from "../settings"
-import { tmpdir } from "../util"
-import { ipcMain } from "../wrapper"
 
 export interface Update {
   checked: number
@@ -27,7 +18,7 @@ export interface LatestResponse {
 }
 
 /**
- * Update HTTP provider.
+ * HTTP provider for checking updates (does not download/install them).
  */
 export class UpdateHttpProvider extends HttpProvider {
   private update?: Promise<Update>
@@ -41,12 +32,6 @@ export class UpdateHttpProvider extends HttpProvider {
      * that fulfills `LatestResponse`.
      */
     private readonly latestUrl = "https://api.github.com/repos/cdr/code-server/releases/latest",
-    /**
-     * The URL for downloading a version of code-server. {{VERSION}} and
-     * {{RELEASE_NAME}} will be replaced (for example 2.1.0 and
-     * code-server-2.1.0-linux-x86_64.tar.gz).
-     */
-    private readonly downloadUrl = "https://github.com/cdr/code-server/releases/download/{{VERSION}}/{{RELEASE_NAME}}",
     /**
      * Update information will be stored here. If not provided, the global
      * settings will be used.
@@ -64,66 +49,30 @@ export class UpdateHttpProvider extends HttpProvider {
       throw new HttpError("Not found", HttpCode.NotFound)
     }
 
-    switch (route.base) {
-      case "/check":
-        this.getUpdate(true)
-        if (route.query && route.query.to) {
-          return {
-            redirect: Array.isArray(route.query.to) ? route.query.to[0] : route.query.to,
-            query: { to: undefined },
-          }
-        }
-        return this.getRoot(route, request)
-      case "/apply":
-        return this.tryUpdate(route, request)
-      case "/":
-        return this.getRoot(route, request)
+    if (!this.enabled) {
+      throw new Error("update checks are disabled")
     }
 
-    throw new HttpError("Not found", HttpCode.NotFound)
-  }
-
-  public async getRoot(
-    route: Route,
-    request: http.IncomingMessage,
-    errorOrUpdate?: Update | Error,
-  ): Promise<HttpResponse> {
-    if (request.headers["content-type"] === "application/json") {
-      if (!this.enabled) {
+    switch (route.base) {
+      case "/check":
+      case "/": {
+        const update = await this.getUpdate(route.base === "/check")
         return {
           content: {
-            isLatest: true,
+            ...update,
+            isLatest: this.isLatestVersion(update),
           },
         }
       }
-      const update = await this.getUpdate()
-      return {
-        content: {
-          ...update,
-          isLatest: this.isLatestVersion(update),
-        },
-      }
     }
-    const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/update.html")
-    response.content = response.content
-      .replace(
-        /{{UPDATE_STATUS}}/,
-        errorOrUpdate && !(errorOrUpdate instanceof Error)
-          ? `Updated to ${errorOrUpdate.version}`
-          : await this.getUpdateHtml(),
-      )
-      .replace(/{{ERROR}}/, errorOrUpdate instanceof Error ? `<div class="error">${errorOrUpdate.message}</div>` : "")
-    return this.replaceTemplates(route, response)
+
+    throw new HttpError("Not found", HttpCode.NotFound)
   }
 
   /**
    * Query for and return the latest update.
    */
   public async getUpdate(force?: boolean): Promise<Update> {
-    if (!this.enabled) {
-      throw new Error("updates are not enabled")
-    }
-
     // Don't run multiple requests at a time.
     if (!this.update) {
       this.update = this._getUpdate(force)
@@ -169,128 +118,6 @@ export class UpdateHttpProvider extends HttpProvider {
     } catch (error) {
       return true
     }
-  }
-
-  private async getUpdateHtml(): Promise<string> {
-    if (!this.enabled) {
-      return "Updates are disabled"
-    }
-
-    const update = await this.getUpdate()
-    if (this.isLatestVersion(update)) {
-      return "No update available"
-    }
-
-    return `<button type="submit" class="apply -button">Update to ${update.version}</button>`
-  }
-
-  public async tryUpdate(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    try {
-      const update = await this.getUpdate()
-      if (!this.isLatestVersion(update)) {
-        await this.downloadAndApplyUpdate(update)
-        return this.getRoot(route, request, update)
-      }
-      return this.getRoot(route, request)
-    } catch (error) {
-      // For JSON requests propagate the error. Otherwise catch it so we can
-      // show the error inline with the update button instead of an error page.
-      if (request.headers["content-type"] === "application/json") {
-        throw error
-      }
-      return this.getRoot(route, error)
-    }
-  }
-
-  public async downloadAndApplyUpdate(update: Update, targetPath?: string): Promise<void> {
-    const releaseName = await this.getReleaseName(update)
-    const url = this.downloadUrl.replace("{{VERSION}}", update.version).replace("{{RELEASE_NAME}}", releaseName)
-
-    let downloadPath = path.join(tmpdir, "updates", releaseName)
-    fs.mkdirp(path.dirname(downloadPath))
-
-    const response = await this.requestResponse(url)
-
-    try {
-      downloadPath = await this.extractTar(response, downloadPath)
-      logger.debug("Downloaded update", field("path", downloadPath))
-
-      // The archive should have a directory inside at the top level with the
-      // same name as the archive.
-      const directoryPath = path.join(downloadPath, path.basename(downloadPath))
-      await fs.stat(directoryPath)
-
-      if (!targetPath) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        targetPath = path.resolve(__dirname, "../../../")
-      }
-
-      // Move the old directory to prevent potential data loss.
-      const backupPath = path.resolve(targetPath, `../${path.basename(targetPath)}.${Date.now().toString()}`)
-      logger.debug("Replacing files", field("target", targetPath), field("backup", backupPath))
-      await fs.move(targetPath, backupPath)
-
-      // Move the new directory.
-      await fs.move(directoryPath, targetPath)
-
-      await fs.remove(downloadPath)
-
-      if (process.send) {
-        ipcMain().relaunch(update.version)
-      }
-    } catch (error) {
-      response.destroy(error)
-      throw error
-    }
-  }
-
-  private async extractTar(response: Readable, downloadPath: string): Promise<string> {
-    downloadPath = downloadPath.replace(/\.tar\.gz$/, "")
-    logger.debug("Extracting tar", field("path", downloadPath))
-
-    response.pause()
-    await fs.remove(downloadPath)
-
-    const decompress = zlib.createGunzip()
-    response.pipe(decompress as Writable)
-    response.on("error", (error) => decompress.destroy(error))
-    response.on("close", () => decompress.end())
-
-    const destination = tar.extract(downloadPath)
-    decompress.pipe(destination)
-    decompress.on("error", (error) => destination.destroy(error))
-    decompress.on("close", () => destination.end())
-
-    await new Promise((resolve, reject) => {
-      destination.on("finish", resolve)
-      destination.on("error", reject)
-      response.resume()
-    })
-
-    return downloadPath
-  }
-
-  /**
-   * Given an update return the name for the packaged archived.
-   */
-  public async getReleaseName(update: Update): Promise<string> {
-    let target: string = os.platform()
-    if (target === "linux") {
-      const result = await util
-        .promisify(cp.exec)("ldd --version")
-        .catch((error) => ({
-          stderr: error.message,
-          stdout: "",
-        }))
-      if (/musl/.test(result.stderr) || /musl/.test(result.stdout)) {
-        target = "alpine"
-      }
-    }
-    let arch = os.arch()
-    if (arch === "x64") {
-      arch = "x86_64"
-    }
-    return `code-server-${update.version}-${target}-${arch}.tar.gz`
   }
 
   private async request(uri: string): Promise<Buffer> {

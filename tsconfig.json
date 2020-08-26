@@ -8,17 +8,15 @@
     "noUnusedLocals": true,
     "forceConsistentCasingInFileNames": true,
     "outDir": "./out",
-    "allowJs": false,
-    "jsx": "react",
     "declaration": true,
     "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "sourceMap": true,
-    "tsBuildInfoFile": "./.tsbuildinfo",
+    "tsBuildInfoFile": "./.cache/tsbuildinfo",
     "incremental": true,
     "rootDir": "./src",
     "typeRoots": ["./node_modules/@types", "./typings"]
   },
-  "include": ["./src/**/*.ts", "./src/**/*.tsx"]
+  "include": ["./src/**/*.ts"]
 }
