@@ -18,7 +18,7 @@
 Please link to the issue each PR solves.
 If there is no existing issue, please first create one unless the fix is minor.
 
-Please make sure the base of your PR is the master branch. We keep the github
+Please make sure the base of your PR is the master branch. We keep the GitHub
 default branch the latest release branch to avoid confusion as the
 documentation is on GitHub and we don't want users to see docs on unreleased
 features.
