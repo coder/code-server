@@ -49,12 +49,10 @@ reset VS Code then run `yarn vscode:patch`.
 
 ## Build
 
+The script we run in CI that does all the above
+
 ```shell
-yarn
-yarn vscode
-yarn build
-yarn build:vscode
-yarn release
+./ci/steps/release.sh
 cd release
 yarn --production
 # Runs the built JavaScript with Node.
@@ -64,11 +62,27 @@ node .
 Now you can build release packages with:
 
 ```
-yarn release:standalone
+./ci/steps/release-packages.sh
 # The standalone release is in ./release-standalone
+# .deb, .rpm and the standalone archive are in ./release-packages
+```
+
+The `release.sh` script is the equivalent of:
+
+```shell
+yarn
+yarn vscode
+yarn build
+yarn build:vscode
+yarn release
+```
+
+And `release-packages.sh` is:
+
+```
+yarn release:standalone
 yarn test:standalone-release
 yarn package
-# .deb, .rpm and the standalone archive are in ./release-packages
 ```
 
 ## Structure
