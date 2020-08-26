@@ -4,6 +4,7 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
+import { plural } from "../common/util"
 import { LoginHttpProvider } from "./app/login"
 import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
@@ -171,26 +172,35 @@ async function entry(): Promise<void> {
     const pipeArgs: OpenCommandPipeArgs = { type: "open", folderURIs: [] }
     pipeArgs.forceReuseWindow = args["reuse-window"]
     pipeArgs.forceNewWindow = args["new-window"]
-    for (const a in args._) {
-      if (Object.prototype.hasOwnProperty.call(args._, a)) {
-        try {
-          const fp = await fs.realpath(args._[a])
-          const st = await fs.stat(fp)
-          if (st.isDirectory()) {
-            pipeArgs.folderURIs = [...pipeArgs.folderURIs, fp]
-          } else {
-            pipeArgs.fileURIs = [...(pipeArgs.fileURIs || []), fp]
-          }
-        } catch (error) {
-          pipeArgs.fileURIs = [...(pipeArgs.fileURIs || []), args._[a]]
+    const isDir = async (path: string): Promise<boolean> => {
+      try {
+        const st = await fs.stat(path)
+        return st.isDirectory()
+      } catch (error) {
+        return false
+      }
+    }
+    for (let i = 0; i < args._.length; i++) {
+      const fp = path.resolve(args._[i])
+      if (await isDir(fp)) {
+        pipeArgs.folderURIs.push(fp)
+      } else {
+        if (!pipeArgs.fileURIs) {
+          pipeArgs.fileURIs = []
         }
+        pipeArgs.fileURIs.push(fp)
       }
     }
     if (pipeArgs.forceNewWindow && pipeArgs.fileURIs && pipeArgs.fileURIs.length > 0) {
       logger.error("new-window can only be used with folder paths")
       process.exit(1)
     }
-    const vscode = http.request({
+    if (pipeArgs.folderURIs.length === 0 && (!pipeArgs.fileURIs || pipeArgs.fileURIs.length === 0)) {
+      logger.error("open-in expects at least one file or folder argument")
+      process.exit(1)
+    }
+    const vscode = http.request(
+      {
         path: "/",
         method: "POST",
         socketPath: process.env["VSCODE_IPC_HOOK_CLI"],
