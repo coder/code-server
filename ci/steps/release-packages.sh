@@ -5,8 +5,9 @@ main() {
   cd "$(dirname "$0")/../.."
 
   if [[ $OSTYPE == darwin* ]]; then
-    curl -L https://nodejs.org/dist/v14.4.0/node-v14.4.0-darwin-x64.tar.gz | tar -xz
-    PATH="$PWD/node-v14.4.0-darwin-x64/bin:$PATH"
+    NODE_VERSION=v12.18.3
+    curl -L "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-darwin-x64.tar.gz" | tar -xz
+    PATH="$PWD/node-$NODE_VERSION-darwin-x64/bin:$PATH"
   fi
 
   # https://github.com/actions/upload-artifact/issues/38
