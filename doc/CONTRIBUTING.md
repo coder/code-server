@@ -49,17 +49,22 @@ reset VS Code then run `yarn vscode:patch`.
 
 ## Build
 
-The script we run in CI that does all the above
+You can build with:
 
 ```shell
 ./ci/steps/release.sh
+```
+
+Run your build with:
+
+```
 cd release
 yarn --production
 # Runs the built JavaScript with Node.
 node .
 ```
 
-Now you can build release packages with:
+Build release packages (make sure you run `./ci/steps/release.sh` first):
 
 ```
 ./ci/steps/release-packages.sh
