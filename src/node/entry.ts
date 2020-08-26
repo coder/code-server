@@ -170,7 +170,7 @@ async function entry(): Promise<void> {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
       },
     })
-    vscode.once("message", (message) => {
+    vscode.once("message", (message: any) => {
       logger.debug("Got message from VS Code", field("message", message))
       if (message.type !== "ready") {
         logger.error("Unexpected response waiting for ready response")
