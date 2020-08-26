@@ -360,6 +360,9 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
   const config = yaml.safeLoad(configFile.toString(), {
     filename: configPath,
   })
+  if (!config || typeof config === "string") {
+    throw new Error(`invalid config: ${config}`)
+  }
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.
