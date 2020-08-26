@@ -1267,10 +1267,10 @@ index 0000000000..56331ff1fc
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000..7e1cd270c8
+index 0000000000..16ed214d94
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,115 @@
+@@ -0,0 +1,119 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1319,6 +1319,7 @@ index 0000000000..7e1cd270c8
 +export interface Args {
 +	'user-data-dir'?: string;
 +
++	'enable-proposed-api'?: string[];
 +	'extensions-dir'?: string;
 +	'builtin-extensions-dir'?: string;
 +	'extra-extensions-dir'?: string[];
@@ -1366,7 +1367,10 @@ index 0000000000..7e1cd270c8
 +		readonly workspaceUri?: UriComponents;
 +		readonly logLevel?: number;
 +		readonly workspaceProvider?: {
-+			payload: [["userDataPath", string]];
++			payload: [
++				["userDataPath", string],
++				["enableProposedApi", string],
++			];
 +		};
 +	};
 +	readonly remoteUserDataUri: UriComponents;
@@ -2475,10 +2479,10 @@ index 0000000000..3c74512192
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000..f2c16b9f81
+index 0000000000..4b88fedb2f
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,282 @@
+@@ -0,0 +1,285 @@
 +import * as fs from 'fs';
 +import * as net from 'net';
 +import * as path from 'path';
@@ -2578,7 +2582,10 @@ index 0000000000..f2c16b9f81
 +				remoteAuthority: options.remoteAuthority,
 +				logLevel: getLogLevel(environment),
 +				workspaceProvider: {
-+					payload: [["userDataPath", environment.userDataPath]],
++					payload: [
++						["userDataPath", environment.userDataPath],
++						["enableProposedApi", JSON.stringify(options.args["enable-proposed-api"] || [])]
++					],
 +				},
 +			},
 +			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
@@ -3073,7 +3080,7 @@ index 6e3182a696..7df85da165 100644
  		};
  
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index ba2701ec54..efea3bd5bc 100644
+index ba2701ec54..4d4aaa6958 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
 @@ -121,8 +121,18 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
@@ -3096,6 +3103,20 @@ index ba2701ec54..efea3bd5bc 100644
  
  	@memoize
  	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
+@@ -284,7 +294,12 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+ 						extensionHostDebugEnvironment.params.port = parseInt(value);
+ 						break;
+ 					case 'enableProposedApi':
+-						extensionHostDebugEnvironment.extensionEnabledProposedApi = [];
++						try {
++							extensionHostDebugEnvironment.extensionEnabledProposedApi = JSON.parse(value);
++						} catch (error) {
++							console.error(error);
++							extensionHostDebugEnvironment.extensionEnabledProposedApi = [];
++						}
+ 						break;
+ 				}
+ 			}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
 index c28b147740..6090200d9c 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
