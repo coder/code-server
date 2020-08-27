@@ -45,6 +45,9 @@ export interface Args extends VsArgs {
   readonly "proxy-domain"?: string[]
   readonly locale?: string
   readonly _: string[]
+  readonly "open-in"?: boolean
+  readonly "reuse-window"?: boolean
+  readonly "new-window"?: boolean
 }
 
 interface Option<T> {
@@ -138,6 +141,18 @@ const options: Options<Required<Args>> = {
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
+
+  "open-in": { type: "boolean", short: "oi", description: "Open file(s) or folder(s) in running instance" },
+  "new-window": {
+    type: "boolean",
+    short: "n",
+    description: "Force to open a new window. (use with open-in)",
+  },
+  "reuse-window": {
+    type: "boolean",
+    short: "r",
+    description: "Force to open a file or folder in an already opened window. (use with open-in)",
+  },
 
   locale: { type: "string" },
   log: { type: LogLevel },
