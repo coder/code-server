@@ -45,7 +45,6 @@ export interface Args extends VsArgs {
   readonly "proxy-domain"?: string[]
   readonly locale?: string
   readonly _: string[]
-  readonly "open-in"?: boolean
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
 }
@@ -142,7 +141,6 @@ const options: Options<Required<Args>> = {
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
 
-  "open-in": { type: "boolean", short: "oi", description: "Open file(s) or folder(s) in running instance" },
   "new-window": {
     type: "boolean",
     short: "n",
@@ -372,7 +370,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
   }
 
-  if (!process.env.CODE_SERVER_PARENT_PID) {
+  if (!process.env.CODE_SERVER_PARENT_PID && !process.env.VSCODE_IPC_HOOK_CLI) {
     logger.info(`Using config file ${humanPath(configPath)}`)
   }
 

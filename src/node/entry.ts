@@ -164,14 +164,13 @@ async function entry(): Promise<void> {
       console.log(version, commit)
     }
     process.exit(0)
-  } else if (args["open-in"]) {
-    if (!process.env["VSCODE_IPC_HOOK_CLI"]) {
-      logger.error("VSCODE_IPC_HOOK_CLI missing from environment, unable to run")
-      process.exit(1)
+  } else if (process.env.VSCODE_IPC_HOOK_CLI) {
+    const pipeArgs: OpenCommandPipeArgs = {
+      type: "open",
+      folderURIs: [],
+      forceReuseWindow: args["reuse-window"],
+      forceNewWindow: args["new-window"],
     }
-    const pipeArgs: OpenCommandPipeArgs = { type: "open", folderURIs: [] }
-    pipeArgs.forceReuseWindow = args["reuse-window"]
-    pipeArgs.forceNewWindow = args["new-window"]
     const isDir = async (path: string): Promise<boolean> => {
       try {
         const st = await fs.stat(path)
@@ -196,7 +195,7 @@ async function entry(): Promise<void> {
       process.exit(1)
     }
     if (pipeArgs.folderURIs.length === 0 && (!pipeArgs.fileURIs || pipeArgs.fileURIs.length === 0)) {
-      logger.error("open-in expects at least one file or folder argument")
+      logger.error("Please specify at least one file or folder argument")
       process.exit(1)
     }
     const vscode = http.request(
