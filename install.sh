@@ -84,7 +84,7 @@ echo_systemd_postinstall() {
   echoh
   cath << EOF
 To have systemd start code-server now and restart on boot:
-  sudo systemctl enable --now code-server@$USER
+  sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
   code-server
 EOF
