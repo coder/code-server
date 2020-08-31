@@ -12,7 +12,7 @@ homepage: "https://github.com/cdr/code-server"
 license: "MIT"
 files:
   ./ci/build/code-server-nfpm.sh: /usr/bin/code-server
-  ./ci/build/code-server.service: /usr/lib/systemd/system/code-server.service
+  ./ci/build/code-server@.service: /usr/lib/systemd/system/code-server@.service
   # Only included for backwards compat with previous releases that shipped
   # the user service. See #1997
   ./ci/build/code-server-user.service: /usr/lib/systemd/user/code-server.service
