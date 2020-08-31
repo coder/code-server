@@ -396,23 +396,26 @@ export abstract class HttpProvider {
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
-  private lastHeartbeat = 0
+  public lastHeartbeat = 0
 
   public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}
 
+  public alive(): boolean {
+    const now = Date.now()
+    return now - this.lastHeartbeat < this.heartbeatInterval
+  }
   /**
    * Write to the heartbeat file if we haven't already done so within the
    * timeout and start or reset a timer that keeps running as long as there is
    * activity. Failures are logged as warnings.
    */
   public beat(): void {
-    const now = Date.now()
-    if (now - this.lastHeartbeat >= this.heartbeatInterval) {
+    if (!this.alive()) {
       logger.trace("heartbeat")
       fs.outputFile(this.heartbeatPath, "").catch((error) => {
         logger.warn(error.message)
       })
-      this.lastHeartbeat = now
+      this.lastHeartbeat = Date.now()
       if (typeof this.heartbeatTimer !== "undefined") {
         clearTimeout(this.heartbeatTimer)
       }
@@ -457,7 +460,7 @@ export class HttpServer {
   private listenPromise: Promise<string | null> | undefined
   public readonly protocol: "http" | "https"
   private readonly providers = new Map<string, HttpProvider>()
-  private readonly heart: Heart
+  public readonly heart: Heart
   private readonly socketProvider = new SocketProxyProvider()
 
   /**
@@ -602,8 +605,10 @@ export class HttpServer {
   }
 
   private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
-    this.heart.beat()
     const route = this.parseUrl(request)
+    if (route.providerBase !== "/healthz") {
+      this.heart.beat()
+    }
     const write = (payload: HttpResponse): void => {
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
