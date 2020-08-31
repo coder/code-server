@@ -4,10 +4,11 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  if [[ $OSTYPE == darwin* ]]; then
-    curl -L https://nodejs.org/dist/v14.4.0/node-v14.4.0-darwin-x64.tar.gz | tar -xz
-    PATH="$PWD/node-v14.4.0-darwin-x64/bin:$PATH"
-  fi
+  NODE_VERSION=v12.18.3
+  NODE_OS="$(uname | tr '[:upper:]' '[:lower:]')"
+  NODE_ARCH="$(uname -m | sed 's/86_64/64/; s/aarch64/arm64/')"
+  curl -L "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz" | tar -xz
+  PATH="$PWD/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH/bin:$PATH"
 
   # https://github.com/actions/upload-artifact/issues/38
   tar -xzf release-npm-package/package.tar.gz

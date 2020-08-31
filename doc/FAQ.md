@@ -30,9 +30,7 @@
 
 ## Questions?
 
-Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
-
-The issue tracker is **only** for bugs and features.
+Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
 
 ## How can I reuse my VS Code configuration?
 

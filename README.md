@@ -60,6 +60,9 @@ you're in North America or Europe.
 
 Please get in [touch](mailto:jobs@coder.com) with your resume/github if interested.
 
+We're also hiring someone specifically to help maintain code-server.
+See the listing [here](https://jobs.lever.co/coder/e40becde-2cbd-4885-9029-e5c7b0a734b8).
+
 ## For Organizations
 
 Visit [our website](https://coder.com) for more information about remote development for your organization or enterprise.
