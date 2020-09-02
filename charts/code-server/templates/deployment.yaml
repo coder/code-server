@@ -98,7 +98,7 @@ spec:
           {{- end }}
           ports:
             - name: http
-              containerPort: 8443
+              containerPort: 8080
               protocol: TCP
           livenessProbe:
             httpGet:
