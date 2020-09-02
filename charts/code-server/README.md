@@ -1,5 +1,7 @@
 # code-server
 
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.5.0](https://img.shields.io/badge/AppVersion-3.5.0-informational?style=flat-square)
+
 [code-server](https://github.com/cdr/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
 
@@ -54,43 +56,44 @@ and their default values.
 The following table lists the configurable parameters of the code-server chart
 and their default values.
 
-| Parameter                         | Description                                | Default                                                   |
-| --------------------------------- | ------------------------------------------ | --------------------------------------------------------- |
-| `image.registry`                  | Code-server image registry                 | `docker.io`                                               |
-| `image.repository`                | Code-server Image name                     | `codercom/code-server`                                    |
-| `image.tag`                       | Code-server Image tag                      | `{TAG_NAME}`                                              |
-| `image.pullPolicy`                | Code-server image pull policy              | `IfNotPresent`                                            |
-| `nameOverride`                    | String to partially override code-server.fullname template with a string (will prepend the release name) | `nil` |
-| `fullnameOverride`                | String to fully override code-server.fullname template with a string                                   |
-| `hostnameOverride`                | String to fully override code-server container hostname                                                |
-| `service.type`                    | Kubernetes Service type                    | `NodePort`                                                |
-| `service.port`                    | Service HTTP port                          | `8443`                                                    |
-| `ingress.enabled`                 | Enable ingress controller resource         | `false`                                                   |
-| `ingress.hosts[0].name`           | Hostname to your code-server installation  | `code-server.local`                                       |
-| `ingress.hosts[0].path`           | Path within the url structure              | `/`                                                       |
-| `ingress.hosts[0].tls`            | Utilize TLS backend in ingress             | `false`                                                   |
-| `ingress.hosts[0].certManager`    | Add annotations for cert-manager           | `false`                                                   |
-| `ingress.hosts[0].tlsSecret`      | TLS Secret (certificates)                  | `code-server.local-tls-secret`                            |
-| `ingress.hosts[0].annotations`    | Annotations for this host's ingress record | `[]`                                                      |
-| `ingress.secrets[0].name`         | TLS Secret Name                            | `nil`                                                     |
-| `ingress.secrets[0].certificate`  | TLS Secret Certificate                     | `nil`                                                     |
-| `ingress.secrets[0].key`          | TLS Secret Key                             | `nil`                                                     |
-| `extraArgs`                       | Additional code-server container arguments | `{}`                                                      |
-| `extraVars`                       | Optional environment variables for code-server | `{}`                                                  |
-| `volumePermissions.enabled`       | Enable volume permissions init container       | `true`                                                |
-| `volumePermissions.securityContext.runAsUser` | User ID for the init container | `0`                                                       |
-| `securityContext.enabled`         | Enable security context     | `true`                                                                   |
-| `securityContext.fsGroup`         | Group ID for the container  | `1000`                                                                   |
-| `securityContext.runAsUser`       | User ID for the container	  | `1000`                                                                   |
-| `resources`                       | CPU/Memory resource requests/limits        | `{}`                                                      |
-| `persistence.enabled`             | Enable persistence using PVC               | `true`                                                    |
-| `persistence.storageClass`        | PVC Storage Class for code-server volume        | `nil`                                                |
-| `persistence.accessMode`          | PVC Access Mode for code-server volume          | `ReadWriteOnce`                                      |
-| `persistence.size`                | PVC Storage Request for code-server volume      | `8Gi`                                                |
-| `extraContainers`                 | Sidecar containers to add to the code-server pod  | `{}` |
-| `extraSecretMounts`               | Additional code-server server secret mounts       | `[]`                                                    |
-| `extraVolumeMounts`               | Additional code-server server volume mounts       | `[]`                                                    |
-| `extraConfigmapMounts`            | Additional code-server server configMap volume mounts  | `[]`                                               |
+## Values
+
+| Key | Type | Default | Description |
+|-----|------|---------|-------------|
+| affinity | object | `{}` |  |
+| extraArgs | list | `[]` |  |
+| extraConfigmapMounts | list | `[]` |  |
+| extraContainers | string | `""` |  |
+| extraSecretMounts | list | `[]` |  |
+| extraVars | list | `[]` |  |
+| extraVolumeMounts | list | `[]` |  |
+| fullnameOverride | string | `""` |  |
+| hostnameOverride | string | `""` |  |
+| image.pullPolicy | string | `"Always"` |  |
+| image.repository | string | `"codercom/code-server"` |  |
+| image.tag | string | `"3.5.0"` |  |
+| imagePullSecrets | list | `[]` |  |
+| ingress.enabled | bool | `false` |  |
+| nameOverride | string | `""` |  |
+| nodeSelector | object | `{}` |  |
+| persistence.accessMode | string | `"ReadWriteOnce"` |  |
+| persistence.annotations | object | `{}` |  |
+| persistence.enabled | bool | `true` |  |
+| persistence.size | string | `"1Gi"` |  |
+| podAnnotations | object | `{}` |  |
+| podSecurityContext | object | `{}` |  |
+| replicaCount | int | `1` |  |
+| resources | object | `{}` |  |
+| securityContext.enabled | bool | `true` |  |
+| securityContext.fsGroup | int | `1000` |  |
+| securityContext.runAsUser | int | `1000` |  |
+| service.port | int | `8443` |  |
+| service.type | string | `"ClusterIP"` |  |
+| serviceAccount.create | bool | `true` |  |
+| serviceAccount.name | string | `nil` |  |
+| tolerations | list | `[]` |  |
+| volumePermissions.enabled | bool | `true` |  |
+| volumePermissions.securityContext.runAsUser | int | `0` |  |
 
 Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 install`. For example,

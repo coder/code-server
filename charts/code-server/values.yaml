@@ -38,7 +38,7 @@ securityContext: {}
 
 service:
   type: ClusterIP
-  port: 8443
+  port: 8080
 
 ingress:
   enabled: false
