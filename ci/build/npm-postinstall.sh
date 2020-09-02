@@ -36,6 +36,13 @@ vscode_yarn() {
   yarn --production --frozen-lockfile
   cd extensions
   yarn --production --frozen-lockfile
+  for ext_dir in */; do
+    cd "$ext_dir"
+    if [ -f package.json ]; then
+      yarn --production --frozen-lockfile
+    fi
+    cd -
+  done
 }
 
 main "$@"
