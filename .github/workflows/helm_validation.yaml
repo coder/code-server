@@ -6,6 +6,8 @@ jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v2
       - name: Kubeval Helm Chart
         uses: junior/kubeval-helm-chart-action@0.2.0-alpha.0
         env:
