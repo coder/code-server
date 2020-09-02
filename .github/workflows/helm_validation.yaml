@@ -8,3 +8,5 @@ jobs:
     steps:
       - name: Kubeval Helm Chart
         uses: junior/kubeval-helm-chart-action@0.2.0-alpha.0
+        env:
+          INPUT_KUBERNETES_VERSION: 1.19
