@@ -46,9 +46,9 @@ yarn watch
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev/image/exec.sh yarn
-./ci/dev/image/exec.sh yarn vscode
-./ci/dev/image/exec.sh yarn watch
+./ci/dev/image/run.sh yarn
+./ci/dev/image/run.sh yarn vscode
+./ci/dev/image/run.sh yarn watch
 ```
 
 `yarn watch` will live reload changes to the source.
@@ -61,7 +61,7 @@ reset VS Code then run `yarn vscode:patch`.
 You can build with:
 
 ```shell
-./ci/steps/release.sh
+./ci/dev/image/run.sh ./ci/steps/release.sh
 ```
 
 Run your build with:
@@ -76,7 +76,7 @@ node .
 Build release packages (make sure you run `./ci/steps/release.sh` first):
 
 ```
-./ci/dev/image/exec.sh ./ci/steps/release-packages.sh
+./ci/dev/image/run.sh ./ci/steps/release-packages.sh
 # The standalone release is in ./release-standalone
 # .deb, .rpm and the standalone archive are in ./release-packages
 ```
