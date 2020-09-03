@@ -696,6 +696,49 @@ index 2185bb5228c..35463ca6520 100644
  			(err: any, socket: ISocket | undefined) => {
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
+diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
+index 59b1baf912..cf9805554b 100644
+--- a/src/vs/platform/storage/browser/storageService.ts
++++ b/src/vs/platform/storage/browser/storageService.ts
+@@ -116,8 +116,8 @@ export class BrowserStorageService extends Disposable implements IStorageService
+ 		return this.getStorage(scope).getNumber(key, fallbackValue);
+ 	}
+ 
+-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void {
+-		this.getStorage(scope).set(key, value);
++	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
++		return this.getStorage(scope).set(key, value);
+ 	}
+ 
+ 	remove(key: string, scope: StorageScope): void {
+diff --git a/src/vs/platform/storage/common/storage.ts b/src/vs/platform/storage/common/storage.ts
+index 1623957cb1..d366438d54 100644
+--- a/src/vs/platform/storage/common/storage.ts
++++ b/src/vs/platform/storage/common/storage.ts
+@@ -83,7 +83,7 @@ export interface IStorageService {
+ 	 * The scope argument allows to define the scope of the storage
+ 	 * operation to either the current workspace only or all workspaces.
+ 	 */
+-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void;
++	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> | void;
+ 
+ 	/**
+ 	 * Delete an element stored under the provided key from storage.
+diff --git a/src/vs/platform/storage/node/storageService.ts b/src/vs/platform/storage/node/storageService.ts
+index 75514fe5a4..62d97c6048 100644
+--- a/src/vs/platform/storage/node/storageService.ts
++++ b/src/vs/platform/storage/node/storageService.ts
+@@ -204,8 +204,8 @@ export class NativeStorageService extends Disposable implements IStorageService
+ 		return this.getStorage(scope).getNumber(key, fallbackValue);
+ 	}
+ 
+-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void {
+-		this.getStorage(scope).set(key, value);
++	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
++		return this.getStorage(scope).set(key, value);
+ 	}
+ 
+ 	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
 index 00000000000..3c0703b7174
@@ -2811,6 +2854,24 @@ index 3d77009b908..11deb1b99ac 100644
  import './mainThreadTunnelService';
  import './mainThreadAuthentication';
  import './mainThreadTimeline';
+diff --git a/src/vs/workbench/api/browser/mainThreadStorage.ts b/src/vs/workbench/api/browser/mainThreadStorage.ts
+index 7bc3904963..c6db2368ae 100644
+--- a/src/vs/workbench/api/browser/mainThreadStorage.ts
++++ b/src/vs/workbench/api/browser/mainThreadStorage.ts
+@@ -58,11 +58,11 @@ export class MainThreadStorage implements MainThreadStorageShape {
+ 		return JSON.parse(jsonValue);
+ 	}
+ 
+-	$setValue(shared: boolean, key: string, value: object): Promise<void> {
++	async $setValue(shared: boolean, key: string, value: object): Promise<void> {
+ 		let jsonValue: string;
+ 		try {
+ 			jsonValue = JSON.stringify(value);
+-			this._storageService.store(key, jsonValue, shared ? StorageScope.GLOBAL : StorageScope.WORKSPACE);
++			await this._storageService.store(key, jsonValue, shared ? StorageScope.GLOBAL : StorageScope.WORKSPACE);
+ 		} catch (err) {
+ 			return Promise.reject(err);
+ 		}
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
 index 97793666ad8..13cd137db1e 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
