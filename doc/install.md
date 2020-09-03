@@ -179,10 +179,11 @@ code-server
 # easily access/modify your code-server config in $HOME/.config/code-server/config.json
 # outside the container.
 mkdir -p ~/.config
-docker run -it -p 127.0.0.1:8080:8080 \
+docker run -it --name code-server -p 127.0.0.1:8080:8080 \
   -v "$HOME/.config:/home/coder/.config" \
   -v "$PWD:/home/coder/project" \
   -u "$(id -u):$(id -g)" \
+  -e "DOCKER_USER=$USER" \
   codercom/code-server:latest
 ```
 
