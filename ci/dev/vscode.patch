@@ -3204,10 +3204,23 @@ index c28b14774005509f58dddd2dec25547bac85e09f..6090200d9c3671fc1239880dbd060a01
  		return false;
  	}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-index 33eb56db3c25a0dc028b0d54dfa102e5584441cf..e5167794c3f761b06c9745e12d49b4a5257b48ef 100644
+index 33eb56db3c25a0dc028b0d54dfa102e5584441cf..de70af33529e40a56969d8f241c82906cda72e1e 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
 +++ b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-@@ -236,6 +236,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -202,8 +202,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
+ 		}
+ 
+ 		// Install Language pack on all servers
++		// NOTE@coder: It does not appear language packs can be installed on the web
++		// extension management server at this time. Filter out the web to fix this.
+ 		if (isLanguagePackExtension(manifest)) {
+-			return Promise.all(this.servers.map(server => server.extensionManagementService.installFromGallery(gallery))).then(([local]) => local);
++			const servers = this.servers.filter(s => s !== this.extensionManagementServerService.webExtensionManagementServer);
++			return Promise.all(servers.map(server => server.extensionManagementService.installFromGallery(gallery))).then(([local]) => local);
+ 		}
+ 
+ 		// 1. Install on preferred location
+@@ -236,6 +239,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			return this.extensionManagementServerService.webExtensionManagementServer.extensionManagementService.installFromGallery(gallery);
  		}
  
