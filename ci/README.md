@@ -18,13 +18,15 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    1. Update in `package.json`
    2. Update in [./doc/install.md](../doc/install.md)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
+   1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
 4. Wait for the artifacts in step 2 to build.
-5. Run `yarn release:github-assets` to download the `release-packages` artifact and
-   upload them to the draft release.
+5. Run `yarn release:github-assets` to download the `release-packages` artifact.
+   - It will upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
+   - Especially make sure the terminal works fine.
 7. Make sure the github release tag is the commit with the artifacts. This is a bug in
    `hub` where uploading assets in step 5 will break the tag.
 8. Publish the release and merge the PR.
@@ -36,7 +38,6 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 10. Wait for the npm package to be published.
 11. Update the homebrew package.
     - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
-12. Make sure to add a release without the `v` prefix for autoupdate from `3.2.0`.
 
 ## dev
 
