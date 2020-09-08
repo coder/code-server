@@ -166,6 +166,28 @@ async function entry(): Promise<void> {
       console.log(version, commit)
     }
     process.exit(0)
+  } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
+    logger.debug("forking vs code cli...")
+    const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
+      env: {
+        ...process.env,
+        CODE_SERVER_PARENT_PID: process.pid.toString(),
+      },
+    })
+    vscode.once("message", (message: any) => {
+      logger.debug("Got message from VS Code", field("message", message))
+      if (message.type !== "ready") {
+        logger.error("Unexpected response waiting for ready response")
+        process.exit(1)
+      }
+      const send: CliMessage = { type: "cli", args }
+      vscode.send(send)
+    })
+    vscode.once("error", (error) => {
+      logger.error(error.message)
+      process.exit(1)
+    })
+    vscode.on("exit", (code) => process.exit(code || 0))
   } else if (process.env.VSCODE_IPC_HOOK_CLI) {
     const pipeArgs: OpenCommandPipeArgs = {
       type: "open",
@@ -217,28 +239,6 @@ async function entry(): Promise<void> {
     })
     vscode.write(JSON.stringify(pipeArgs))
     vscode.end()
-  } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
-    logger.debug("forking vs code cli...")
-    const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
-      env: {
-        ...process.env,
-        CODE_SERVER_PARENT_PID: process.pid.toString(),
-      },
-    })
-    vscode.once("message", (message: any) => {
-      logger.debug("Got message from VS Code", field("message", message))
-      if (message.type !== "ready") {
-        logger.error("Unexpected response waiting for ready response")
-        process.exit(1)
-      }
-      const send: CliMessage = { type: "cli", args }
-      vscode.send(send)
-    })
-    vscode.once("error", (error) => {
-      logger.error(error.message)
-      process.exit(1)
-    })
-    vscode.on("exit", (code) => process.exit(code || 0))
   } else {
     wrap(() => main(args, cliArgs, configArgs))
   }
