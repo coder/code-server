@@ -47,6 +47,8 @@ export interface Args extends VsArgs {
   readonly _: string[]
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
+
+  readonly "expose"?: OptionalString
 }
 
 interface Option<T> {
@@ -155,6 +157,9 @@ const options: Options<Required<Args>> = {
   locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
+
+  "expose": { type: OptionalString, description: "Expose via Coder Cloud with the passed name. You'll get a URL" +
+    "like https://myname.coder-cloud.com at which you can easily access your code-server instance. Authorization is done via GitHub." },
 }
 
 export const optionDescriptions = (): string[] => {

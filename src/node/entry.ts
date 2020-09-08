@@ -16,6 +16,7 @@ import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
+import { coderCloudExpose } from "./coder-cloud"
 
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught exception: ${error.message}`)
@@ -188,6 +189,20 @@ async function entry(): Promise<void> {
       process.exit(1)
     })
     vscode.on("exit", (code) => process.exit(code || 0))
+  } else if (args["expose"]) {
+    logger.debug("exposing code-server via the coder-cloud agent")
+
+    if (!args["expose"].value) {
+      logger.error("You must pass a name to expose with coder cloud. See --help")
+      process.exit(1)
+    }
+
+    try {
+      await coderCloudExpose(args["expose"].value)
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
   } else if (process.env.VSCODE_IPC_HOOK_CLI) {
     const pipeArgs: OpenCommandPipeArgs = {
       type: "open",
