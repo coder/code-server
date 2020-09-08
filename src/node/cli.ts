@@ -175,7 +175,7 @@ export const optionDescriptions = (): string[] => {
     ([k, v]) =>
       `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k}${" ".repeat(
         widths.long - k.length,
-      )} ${v.description}${typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : ""}`,
+      )} ${v.description}`,
   )
 }
 
