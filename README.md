@@ -11,7 +11,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
   - Develop on a Linux machine and pick up from any device with a web browser.
 - **Server-powered**
   - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
-  - Preserve battery life when you're on the go as all intensive tasks runs on your server.
+  - Preserve battery life when you're on the go as all intensive tasks run on your server.
   - Make use of a spare computer you have lying around and turn it into a full development environment.
 
 ## Getting Started
@@ -52,7 +52,7 @@ See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 
 ## Hiring
 
-We ([@cdr](https://github.com/cdr)) are looking for a engineers to help maintain
+We ([@cdr](https://github.com/cdr)) are looking for engineers to help maintain
 code-server, innovate on open source and streamline dev workflows.
 
 Our main office is in Austin, Texas. Remote is ok as long as
