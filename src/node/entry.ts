@@ -12,11 +12,11 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
+import { coderCloudExpose, coderCloudProxy } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
-import { coderCloudExpose } from "./coder-cloud"
 
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught exception: ${error.message}`)
@@ -122,6 +122,8 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     logger.info(`  - ${plural(httpServer.proxyDomains.size, "Proxying the following domain")}:`)
     httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
+
+  coderCloudProxy(serverAddress!)
 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
