@@ -48,7 +48,7 @@ export interface Args extends VsArgs {
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
 
-  readonly "expose"?: OptionalString
+  readonly expose?: OptionalString
 }
 
 interface Option<T> {
@@ -131,8 +131,9 @@ const options: Options<Required<Args>> = {
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
   "install-extension": {
     type: "string[]",
-    description: "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
-    "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+    description:
+      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
+      "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
   },
   "enable-proposed-api": {
     type: "string[]",
@@ -158,13 +159,13 @@ const options: Options<Required<Args>> = {
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 
-  "expose": {
+  expose: {
     type: OptionalString,
     description: `
       Securely expose code-server via Coder Cloud with the passed name. You'll get a URL like
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
       Authorization is done via GitHub. Only the first code-server spawned with the current
-      configuration will be accessible.`
+      configuration will be accessible.`,
   },
 }
 
@@ -177,18 +178,23 @@ export const optionDescriptions = (): string[] => {
     }),
     { short: 0, long: 0 },
   )
-  return entries.map(
-    ([k, v]) => {
-      let help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k} `
-      return help + v.description?.trim().split(/\n/).map((line, i) => {
-        line = line.trim()
-        if (i == 0) {
-          return " ".repeat(widths.long - k.length) + line
-        }
-        return " ".repeat(widths.long + widths.short + 6) + line
-      }).join("\n")
-    },
-  )
+  return entries.map(([k, v]) => {
+    const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k} `
+    return (
+      help +
+      v.description
+        ?.trim()
+        .split(/\n/)
+        .map((line, i) => {
+          line = line.trim()
+          if (i === 0) {
+            return " ".repeat(widths.long - k.length) + line
+          }
+          return " ".repeat(widths.long + widths.short + 6) + line
+        })
+        .join("\n")
+    )
+  })
 }
 
 export const parse = (

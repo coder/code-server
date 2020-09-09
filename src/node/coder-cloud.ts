@@ -1,9 +1,9 @@
-import { spawn } from "child_process"
-import path from "path"
 import { logger } from "@coder/logger"
-import split2 from "split2"
+import { spawn } from "child_process"
 import delay from "delay"
 import fs from "fs"
+import path from "path"
+import split2 from "split2"
 import { promisify } from "util"
 import xdgBasedir from "xdg-basedir"
 
@@ -14,7 +14,7 @@ export async function coderCloudExpose(serverName: string): Promise<void> {
     stdio: ["inherit", "inherit", "pipe"],
   })
 
-  agent.stderr.pipe(split2()).on("data", line => {
+  agent.stderr.pipe(split2()).on("data", (line) => {
     line = line.replace(/^[0-9-]+ [0-9:]+ [^ ]+\t/, "")
     logger.info(line)
   })
@@ -22,7 +22,7 @@ export async function coderCloudExpose(serverName: string): Promise<void> {
   return new Promise((res, rej) => {
     agent.on("error", rej)
 
-    agent.on("close", code => {
+    agent.on("close", (code) => {
       if (code !== 0) {
         rej({
           message: `coder cloud agent exited with ${code}`,
@@ -54,7 +54,7 @@ export function coderCloudProxy(addr: string) {
       stdio: ["inherit", "inherit", "pipe"],
     })
 
-    agent.stderr.pipe(split2()).on("data", line => {
+    agent.stderr.pipe(split2()).on("data", (line) => {
       line = line.replace(/^[0-9-]+ [0-9:]+ [^ ]+\t/, "")
       logger.info(line)
     })
@@ -62,7 +62,7 @@ export function coderCloudProxy(addr: string) {
     return new Promise((res, rej) => {
       agent.on("error", rej)
 
-      agent.on("close", code => {
+      agent.on("close", (code) => {
         if (code !== 0) {
           rej({
             message: `coder cloud agent exited with ${code}`,
@@ -77,7 +77,7 @@ export function coderCloudProxy(addr: string) {
   const proxy = async () => {
     try {
       await _proxy()
-    } catch(err) {
+    } catch (err) {
       logger.error(err.message)
     }
     setTimeout(proxy, 3000)
