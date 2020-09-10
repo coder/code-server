@@ -12,12 +12,12 @@ index 0fe46b6eadc4ccc819fbf342ee1071bb657792b3..e545e004cef31fa5f40ba8df6a2317ea
  coverage/
 diff --git a/.yarnrc b/.yarnrc
 deleted file mode 100644
-index 135e10442a7e5184cf8c47615322bb7d622855d9..0000000000000000000000000000000000000000
+index 3c6eccfb102f2084d16395d70d65f05a91b6d47b..0000000000000000000000000000000000000000
 --- a/.yarnrc
 +++ /dev/null
 @@ -1,3 +0,0 @@
 -disturl "https://atom.io/download/electron"
--target "7.3.2"
+-target "9.2.1"
 -runtime "electron"
 diff --git a/build/gulpfile.reh.js b/build/gulpfile.reh.js
 index f2ea1bd37010b1eb8a43ce9beaae4a88810f6e2d..3f660f9981921ec465d2b8809a1a5ea5663f4c1f 100644
@@ -144,10 +144,10 @@ index cb88d37adefd4882f61a2711fdd7f72b89e1a6e3..6b3253af0a3a0aa4d75456379ef1c00f
  const cp = require('child_process');
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..9cb693af63b86b4a6b35c442e6ea501a1076d18a
+index 0000000000000000000000000000000000000000..df5b42cba463b6c0043aebbc835f852f1284aa36
 --- /dev/null
 +++ b/coder.js
-@@ -0,0 +1,63 @@
+@@ -0,0 +1,64 @@
 +// This must be ran from VS Code's root.
 +const gulp = require("gulp");
 +const path = require("path");
@@ -163,6 +163,7 @@ index 0000000000000000000000000000000000000000..9cb693af63b86b4a6b35c442e6ea501a
 +	buildfile.base,
 +	buildfile.workbenchWeb,
 +	buildfile.workerExtensionHost,
++	buildfile.workerNotebook,
 +	buildfile.keyboardMaps,
 +	buildfile.entrypoint("vs/platform/files/node/watcher/unix/watcherApp", ["vs/css", "vs/nls"]),
 +	buildfile.entrypoint("vs/platform/files/node/watcher/nsfw/watcherApp", ["vs/css", "vs/nls"]),
@@ -226,10 +227,10 @@ index da4fa3e9d0443d679dfbab1000b434af2ae01afd..50f3e1144f8057883dea8b91ec2f7073
  
  function processLib() {
 diff --git a/package.json b/package.json
-index 226f51a1ec55fc31ae90e175bc1ab62d74eb6294..5c4e5af5f69c0fd994f4b54cb7a9dfb20f868bfa 100644
+index 55804673c93eed7b058405a217f3f20d52159296..2c4f95e80d43e66e60f1ff4b904c72e12a74ccc0 100644
 --- a/package.json
 +++ b/package.json
-@@ -45,7 +45,11 @@
+@@ -46,7 +46,11 @@
      "watch-web": "gulp watch-web --max_old_space_size=4095",
      "eslint": "eslint -c .eslintrc.json --rulesdir ./build/lib/eslint --ext .ts --ext .js ./src/vs ./extensions"
    },
@@ -241,15 +242,15 @@ index 226f51a1ec55fc31ae90e175bc1ab62d74eb6294..5c4e5af5f69c0fd994f4b54cb7a9dfb2
      "applicationinsights": "1.0.8",
      "chokidar": "3.2.3",
      "graceful-fs": "4.2.3",
-@@ -59,6 +63,7 @@
-     "native-keymap": "2.1.2",
+@@ -60,6 +64,7 @@
+     "native-keymap": "2.2.0",
      "native-watchdog": "1.3.0",
      "node-pty": "0.10.0-beta8",
 +    "rimraf": "^2.2.8",
      "semver-umd": "^5.5.7",
      "spdlog": "^0.11.1",
      "sudo-prompt": "9.1.1",
-@@ -159,7 +164,6 @@
+@@ -160,7 +165,6 @@
      "pump": "^1.0.1",
      "queue": "3.0.6",
      "rcedit": "^1.1.0",
@@ -257,7 +258,7 @@ index 226f51a1ec55fc31ae90e175bc1ab62d74eb6294..5c4e5af5f69c0fd994f4b54cb7a9dfb2
      "sinon": "^1.17.2",
      "source-map": "^0.4.4",
      "style-loader": "^1.0.0",
-@@ -190,5 +194,8 @@
+@@ -192,5 +196,8 @@
      "windows-foreground-love": "0.2.0",
      "windows-mutex": "0.3.0",
      "windows-process-tree": "0.2.4"
@@ -266,8 +267,9 @@ index 226f51a1ec55fc31ae90e175bc1ab62d74eb6294..5c4e5af5f69c0fd994f4b54cb7a9dfb2
 +    "minimist": "^1.2.5"
    }
  }
+\ No newline at end of file
 diff --git a/product.json b/product.json
-index 2b884d18f301b86bf29e3a8f1343cfb651f8727c..518b935b837dd21251089bdd317d6c3c03756d7b 100644
+index 30a7f0708ea14cbfdae916acc0ca1f0aecb2180f..8142fd3e038c35fb8e7cf46a5145925750b56ffc 100644
 --- a/product.json
 +++ b/product.json
 @@ -20,7 +20,7 @@
@@ -281,18 +283,18 @@ index 2b884d18f301b86bf29e3a8f1343cfb651f8727c..518b935b837dd21251089bdd317d6c3c
  		"ms-vscode.vscode-js-profile-flame",
 diff --git a/remote/.yarnrc b/remote/.yarnrc
 deleted file mode 100644
-index 1e16cde724c7703d2836b3641de48c99f7f47e68..0000000000000000000000000000000000000000
+index c1a32ce532afa501fb19bdbcf6bcb0ec151ecd99..0000000000000000000000000000000000000000
 --- a/remote/.yarnrc
 +++ /dev/null
 @@ -1,3 +0,0 @@
 -disturl "http://nodejs.org/dist"
--target "12.4.0"
+-target "12.14.1"
 -runtime "node"
 diff --git a/src/vs/base/common/network.ts b/src/vs/base/common/network.ts
-index 1286c5117a4cae9d6075ed36f32f6414897d705b..e60dd11d03992800853e76d4d68b8ff211da7627 100644
+index 4b6aebc16466dff58a9dfab4a680d230fa1f71a5..dd72e179ec0fa9a0b3e16e497225cb6da6218af3 100644
 --- a/src/vs/base/common/network.ts
 +++ b/src/vs/base/common/network.ts
-@@ -111,16 +111,17 @@ class RemoteAuthoritiesImpl {
+@@ -113,16 +113,17 @@ class RemoteAuthoritiesImpl {
  		if (host && host.indexOf(':') !== -1) {
  			host = `[${host}]`;
  		}
@@ -432,19 +434,18 @@ index 2c64061da7b01aef0bfe3cec851da232ca9461c8..c0ef8faedd406c38bf9c55bbbdbbb060
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index c629f7fffa1faad78e5d9907fd38aec289db0428..c266e1fb06ffc44f1ec4230ac59fd094a53b257b 100644
+index ad5272b22320a361cec0eed40d57629b06147c01..c9280b14472507ebb9a277f554485f08b090cb69 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
-@@ -13,6 +13,8 @@ import { isFolderToOpen, isWorkspaceToOpen } from 'vs/platform/windows/common/wi
- import { isEqual } from 'vs/base/common/resources';
+@@ -16,6 +16,7 @@ import { isEqual } from 'vs/base/common/resources';
  import { isStandalone } from 'vs/base/browser/browser';
  import { localize } from 'vs/nls';
-+import { Schemas } from 'vs/base/common/network';
+ import { Schemas } from 'vs/base/common/network';
 +import { encodePath } from 'vs/server/node/util';
  
  interface ICredential {
  	service: string;
-@@ -243,12 +245,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -253,12 +254,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
  
  		// Folder
  		else if (isFolderToOpen(workspace)) {
@@ -465,7 +466,7 @@ index c629f7fffa1faad78e5d9907fd38aec289db0428..c266e1fb06ffc44f1ec4230ac59fd094
  		}
  
  		// Append payload if any
-@@ -285,7 +293,22 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -348,7 +355,22 @@ class WindowIndicator implements IWindowIndicator {
  		throw new Error('Missing web configuration element');
  	}
  
@@ -489,7 +490,7 @@ index c629f7fffa1faad78e5d9907fd38aec289db0428..c266e1fb06ffc44f1ec4230ac59fd094
  
  	// Revive static extension locations
  	if (Array.isArray(config.staticExtensions)) {
-@@ -297,40 +320,7 @@ class WorkspaceProvider implements IWorkspaceProvider {
+@@ -360,40 +382,7 @@ class WindowIndicator implements IWindowIndicator {
  	// Find workspace to open and payload
  	let foundWorkspace = false;
  	let workspace: IWorkspace;
@@ -532,7 +533,7 @@ index c629f7fffa1faad78e5d9907fd38aec289db0428..c266e1fb06ffc44f1ec4230ac59fd094
  	// If no workspace is provided through the URL, check for config attribute from server
  	if (!foundWorkspace) {
 diff --git a/src/vs/platform/environment/node/argv.ts b/src/vs/platform/environment/node/argv.ts
-index 2379b626c81321afe18267c69c6903efbfa354f4..28f8971cf398b048c7d8f56df2e9dc4e32aadb6d 100644
+index 92dd2bcf87dba5e5f07f2707a91b1a364ab1b05f..047522bd1a2c1edfda05c3739838fecbd70db6c5 100644
 --- a/src/vs/platform/environment/node/argv.ts
 +++ b/src/vs/platform/environment/node/argv.ts
 @@ -8,6 +8,8 @@ import { localize } from 'vs/nls';
@@ -544,7 +545,7 @@ index 2379b626c81321afe18267c69c6903efbfa354f4..28f8971cf398b048c7d8f56df2e9dc4e
  	_: string[];
  	'folder-uri'?: string[]; // undefined or array of 1 or more
  	'file-uri'?: string[]; // undefined or array of 1 or more
-@@ -141,6 +143,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
+@@ -142,6 +144,8 @@ export const OPTIONS: OptionDescriptions<Required<ParsedArgs>> = {
  	'extensions-dir': { type: 'string', deprecates: 'extensionHomePath', cat: 'e', args: 'dir', description: localize('extensionHomePath', "Set the root path for extensions.") },
  	'extensions-download-dir': { type: 'string' },
  	'builtin-extensions-dir': { type: 'string' },
@@ -553,13 +554,13 @@ index 2379b626c81321afe18267c69c6903efbfa354f4..28f8971cf398b048c7d8f56df2e9dc4e
  	'list-extensions': { type: 'boolean', cat: 'e', description: localize('listExtensions', "List the installed extensions.") },
  	'show-versions': { type: 'boolean', cat: 'e', description: localize('showVersions', "Show versions of installed extensions, when using --list-extension.") },
  	'category': { type: 'string', cat: 'e', description: localize('category', "Filters installed extensions by provided category, when using --list-extension.") },
-@@ -403,4 +407,3 @@ export function buildHelpMessage(productName: string, executableName: string, ve
+@@ -405,4 +409,3 @@ export function buildHelpMessage(productName: string, executableName: string, ve
  export function buildVersionMessage(version: string | undefined, commit: string | undefined): string {
  	return `${version || localize('unknownVersion', "Unknown version")}\n${commit || localize('unknownCommit', "Unknown commit")}\n${process.arch}`;
  }
 -
 diff --git a/src/vs/platform/environment/node/environmentService.ts b/src/vs/platform/environment/node/environmentService.ts
-index 5c0dc4ad4ae79a172bed4bc3d6440cdf6dd22386..38b8c7573a872d587c5f3f6c5e0521d2bd918daa 100644
+index 45d5ec2cc02707d91f19a66d408ae46a1201a9e8..4ed498c63ceb55d15bd104a92b701ead3dfa81f2 100644
 --- a/src/vs/platform/environment/node/environmentService.ts
 +++ b/src/vs/platform/environment/node/environmentService.ts
 @@ -38,6 +38,8 @@ export interface INativeEnvironmentService extends IEnvironmentService {
@@ -633,7 +634,7 @@ index 575b2aafc3802cd6f5f943930e30de9f2c2690de..873181f967856759e3dc001e5bbe06e2
 +	}
  }
 diff --git a/src/vs/platform/product/common/product.ts b/src/vs/platform/product/common/product.ts
-index 3370a608b4b54c238a6ea69a92cdfcd4817cab57..37b3592d39d8ee3aed5455d599612485ea621323 100644
+index bb33203d1727b1c076efac9113afc3b2580cdbd9..c53cea338cdaa0f0ac15542c129e1572b3f13b80 100644
 --- a/src/vs/platform/product/common/product.ts
 +++ b/src/vs/platform/product/common/product.ts
 @@ -30,6 +30,12 @@ if (isWeb) {
@@ -650,7 +651,7 @@ index 3370a608b4b54c238a6ea69a92cdfcd4817cab57..37b3592d39d8ee3aed5455d599612485
  
  // Node: AMD loader
 diff --git a/src/vs/platform/product/common/productService.ts b/src/vs/platform/product/common/productService.ts
-index 040c869d94ceb278350c1d752f55712feedda379..bf16defcf7bc4229dedbbe9eae8a965e996c69d9 100644
+index d1cb00a6d63621a4873a6a5e815220d084ceac2a..1a69d6f63a7406d364aa3e2b32fb75309f212e98 100644
 --- a/src/vs/platform/product/common/productService.ts
 +++ b/src/vs/platform/product/common/productService.ts
 @@ -30,6 +30,8 @@ export type ConfigurationSyncStore = {
@@ -684,10 +685,10 @@ index 3715cbb8e6ee41c3d9b5090918d243b723ae2d00..c65de8ad37e727d66da97a8f8b170cbc
 -
 -
 diff --git a/src/vs/platform/remote/common/remoteAgentConnection.ts b/src/vs/platform/remote/common/remoteAgentConnection.ts
-index 2185bb5228c3f9603f307237e7f146fe386708d8..35463ca6520a7da2308d01a51ef2d3e544f10a10 100644
+index 18d3d04fd20335975293e37b3b641120dd92da20..4e49f9d63623da6c84624144765f76ec127ea526 100644
 --- a/src/vs/platform/remote/common/remoteAgentConnection.ts
 +++ b/src/vs/platform/remote/common/remoteAgentConnection.ts
-@@ -89,7 +89,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
+@@ -92,7 +92,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
  		options.socketFactory.connect(
  			options.host,
  			options.port,
@@ -697,10 +698,10 @@ index 2185bb5228c3f9603f307237e7f146fe386708d8..35463ca6520a7da2308d01a51ef2d3e5
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
 diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
-index 59b1baf9120cb0ccf1ebc425ed708224b5513d41..cf9805554b91176ac2521963a7775711e287e4cc 100644
+index ab3fd347b69f8a3d9b96e706cd87c911b8ffed6b..9d351037b577f9f1edfd18ae9b3c48a211f4467f 100644
 --- a/src/vs/platform/storage/browser/storageService.ts
 +++ b/src/vs/platform/storage/browser/storageService.ts
-@@ -116,8 +116,8 @@ export class BrowserStorageService extends Disposable implements IStorageService
+@@ -122,8 +122,8 @@ export class BrowserStorageService extends Disposable implements IStorageService
  		return this.getStorage(scope).getNumber(key, fallbackValue);
  	}
  
@@ -712,10 +713,10 @@ index 59b1baf9120cb0ccf1ebc425ed708224b5513d41..cf9805554b91176ac2521963a7775711
  
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/platform/storage/common/storage.ts b/src/vs/platform/storage/common/storage.ts
-index 1623957cb18eedbf968cca6231d226b587f51935..d366438d54d36a86bd416aeb9f802ad9015f601c 100644
+index 6611f1dae42055f69a55c1c154d9475f11cd4d0a..d598d4909d5ff6d1614e4a038b1865e1f9a4e963 100644
 --- a/src/vs/platform/storage/common/storage.ts
 +++ b/src/vs/platform/storage/common/storage.ts
-@@ -83,7 +83,7 @@ export interface IStorageService {
+@@ -85,7 +85,7 @@ export interface IStorageService {
  	 * The scope argument allows to define the scope of the storage
  	 * operation to either the current workspace only or all workspaces.
  	 */
@@ -725,10 +726,10 @@ index 1623957cb18eedbf968cca6231d226b587f51935..d366438d54d36a86bd416aeb9f802ad9
  	/**
  	 * Delete an element stored under the provided key from storage.
 diff --git a/src/vs/platform/storage/node/storageService.ts b/src/vs/platform/storage/node/storageService.ts
-index 75514fe5a4fabdc885556311954ab016c593bac3..62d97c60488856dfde0bb64fea85032b2e49bb94 100644
+index ac657056aa68549f0053cfb1ec68835ba4ce20f9..143f9b5681eb867c5e5c5437946ab785eb34e4b4 100644
 --- a/src/vs/platform/storage/node/storageService.ts
 +++ b/src/vs/platform/storage/node/storageService.ts
-@@ -204,8 +204,8 @@ export class NativeStorageService extends Disposable implements IStorageService
+@@ -202,8 +202,8 @@ export class NativeStorageService extends Disposable implements IStorageService
  		return this.getStorage(scope).getNumber(key, fallbackValue);
  	}
  
@@ -2843,7 +2844,7 @@ index 0000000000000000000000000000000000000000..fa47e993b46802f1a26457649e9e8bc4
 +	return path.split("/").map((p) => encodeURIComponent(p)).join("/");
 +};
 diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
-index 3d77009b908f61690a56dc589360627f6f5a3924..11deb1b99ac9d3baa4aa583d711a5e020b4379ec 100644
+index bfabf0008910c87146df53a2e10fe63bae517a86..32b3b1cf84c8d280fd7f03d541b867691d51c2fb 100644
 --- a/src/vs/workbench/api/browser/extensionHost.contribution.ts
 +++ b/src/vs/workbench/api/browser/extensionHost.contribution.ts
 @@ -60,6 +60,7 @@ import './mainThreadComments';
@@ -2873,7 +2874,7 @@ index 7bc3904963bed2925f3640b6bd929347159dd3cf..c6db2368ae9eaca61889efcf3c49763c
  			return Promise.reject(err);
  		}
 diff --git a/src/vs/workbench/api/common/extHost.api.impl.ts b/src/vs/workbench/api/common/extHost.api.impl.ts
-index 97793666ad8abf7d052ba96a88565042b21ebcec..13cd137db1e9435ef66ade3220774b1ddb608d91 100644
+index 3595cd3e38136222044a13050b15105bbe539068..989caefff7c4b8203c03cec8fa451f5e70ea8964 100644
 --- a/src/vs/workbench/api/common/extHost.api.impl.ts
 +++ b/src/vs/workbench/api/common/extHost.api.impl.ts
 @@ -68,6 +68,7 @@ import { IURITransformerService } from 'vs/workbench/api/common/extHostUriTransf
@@ -2884,7 +2885,7 @@ index 97793666ad8abf7d052ba96a88565042b21ebcec..13cd137db1e9435ef66ade3220774b1d
  import { ExtHostTheming } from 'vs/workbench/api/common/extHostTheming';
  import { IExtHostTunnelService } from 'vs/workbench/api/common/extHostTunnelService';
  import { IExtHostApiDeprecationService } from 'vs/workbench/api/common/extHostApiDeprecationService';
-@@ -97,6 +98,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -100,6 +101,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	const extHostStorage = accessor.get(IExtHostStorage);
  	const extensionStoragePaths = accessor.get(IExtensionStoragePaths);
  	const extHostLogService = accessor.get(ILogService);
@@ -2892,7 +2893,7 @@ index 97793666ad8abf7d052ba96a88565042b21ebcec..13cd137db1e9435ef66ade3220774b1d
  	const extHostTunnelService = accessor.get(IExtHostTunnelService);
  	const extHostApiDeprecation = accessor.get(IExtHostApiDeprecationService);
  	const extHostWindow = accessor.get(IExtHostWindow);
-@@ -107,6 +109,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
+@@ -110,6 +112,7 @@ export function createApiFactoryAndRegisterActors(accessor: ServicesAccessor): I
  	rpcProtocol.set(ExtHostContext.ExtHostConfiguration, extHostConfiguration);
  	rpcProtocol.set(ExtHostContext.ExtHostExtensionService, extensionService);
  	rpcProtocol.set(ExtHostContext.ExtHostStorage, extHostStorage);
@@ -2901,10 +2902,10 @@ index 97793666ad8abf7d052ba96a88565042b21ebcec..13cd137db1e9435ef66ade3220774b1d
  	rpcProtocol.set(ExtHostContext.ExtHostWindow, extHostWindow);
  
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index eb5d8ea84551030a9d72918813fca7adb49a5cd8..da9eb521ca4c660de1bb23df52c18c0efe6f5979 100644
+index 4b7946662950f18179a5b6e3552abd39e68ca80e..ca1352d311a94b42e18d0d9e4859b18ec2bb271d 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
-@@ -769,6 +769,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+@@ -795,6 +795,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
  	$unregisterResourceLabelFormatter(handle: number): void;
  }
  
@@ -2921,7 +2922,7 @@ index eb5d8ea84551030a9d72918813fca7adb49a5cd8..da9eb521ca4c660de1bb23df52c18c0e
  export interface MainThreadSearchShape extends IDisposable {
  	$registerFileSearchProvider(handle: number, scheme: string): void;
  	$registerTextSearchProvider(handle: number, scheme: string): void;
-@@ -1707,6 +1717,7 @@ export const MainContext = {
+@@ -1765,6 +1775,7 @@ export const MainContext = {
  	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
  	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService'),
  	MainThreadNotebook: createMainId<MainThreadNotebookShape>('MainThreadNotebook'),
@@ -2929,7 +2930,7 @@ index eb5d8ea84551030a9d72918813fca7adb49a5cd8..da9eb521ca4c660de1bb23df52c18c0e
  	MainThreadTheming: createMainId<MainThreadThemingShape>('MainThreadTheming'),
  	MainThreadTunnelService: createMainId<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
  	MainThreadTimeline: createMainId<MainThreadTimelineShape>('MainThreadTimeline')
-@@ -1745,6 +1756,7 @@ export const ExtHostContext = {
+@@ -1806,6 +1817,7 @@ export const ExtHostContext = {
  	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
  	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService'),
  	ExtHostNotebook: createMainId<ExtHostNotebookShape>('ExtHostNotebook'),
@@ -2938,10 +2939,10 @@ index eb5d8ea84551030a9d72918813fca7adb49a5cd8..da9eb521ca4c660de1bb23df52c18c0e
  	ExtHostTunnelService: createMainId<ExtHostTunnelServiceShape>('ExtHostTunnelService'),
  	ExtHostAuthentication: createMainId<ExtHostAuthenticationShape>('ExtHostAuthentication'),
 diff --git a/src/vs/workbench/api/common/extHostExtensionService.ts b/src/vs/workbench/api/common/extHostExtensionService.ts
-index 34639e18b6fb567feaf19cf20bd312b6b578723f..9c22fe6f090f3cfceea5c3f41695a1ab1d797a19 100644
+index 0bb5188614bcbf98b85c9208edc2b173f70b1670..38ff3e2e05645be8df619ed2b47fa2984b918741 100644
 --- a/src/vs/workbench/api/common/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/common/extHostExtensionService.ts
-@@ -32,6 +32,7 @@ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitData
+@@ -31,6 +31,7 @@ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitData
  import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
  import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
  import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
@@ -2982,7 +2983,7 @@ index 34639e18b6fb567feaf19cf20bd312b6b578723f..9c22fe6f090f3cfceea5c3f41695a1ab
  			this._loadExtensionContext(extensionDescription)
  		]).then(values => {
  			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, values[0], values[1], activationTimesBuilder);
-@@ -754,7 +758,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
+@@ -746,7 +750,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
  
  	protected abstract _beforeAlmostReadyToRunExtensions(): Promise<void>;
  	protected abstract _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined;
@@ -3027,18 +3028,18 @@ index 3843fdec386edc09a1d361b63de892a04e0070ed..8aac4df527857e964798362a69f5591b
  registerSingleton(ILogService, ExtHostLogService);
 +registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index c71ab1c7da462da8f4a12146d45e6cde7f06ad81..572b07ff2516154f49ab9e02bfcab2b4d8b3009f 100644
+index a6a149083719d7479268e24eb5339f6cbf93e655..360888dc7dff9437f6c85f7a2043ad9e7c4daf21 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
-@@ -9,6 +9,7 @@ import { AbstractExtHostExtensionService } from 'vs/workbench/api/common/extHost
- import { URI } from 'vs/base/common/uri';
+@@ -10,6 +10,7 @@ import { URI } from 'vs/base/common/uri';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
  import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
+ import { ExtensionRuntime } from 'vs/workbench/api/common/extHostTypes';
 +import { loadCommonJSModule } from 'vs/server/browser/worker';
  
  class WorkerRequireInterceptor extends RequireInterceptor {
  
-@@ -42,10 +43,15 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
+@@ -44,10 +45,15 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
  	}
  
  	protected _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined {
@@ -3072,7 +3073,7 @@ index ced2d815834e40a1543e80516472799075980733..dfcae73e8a042307600c67f163aa00ba
  
  .monaco-workbench .activitybar > .content > .home-bar > .home-bar-icon-badge {
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 0462617196b39111cb22e5abbf4b096406496bf8..11434d27af9ce3262c57918e0f5a44d4eebcf8ac 100644
+index 0ed16cec59b64a31ad798ef29703f2f33527a737..c1fb3c0db54e8df5335c1e79deccd4d4168bb7b1 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
@@ -3083,7 +3084,7 @@ index 0462617196b39111cb22e5abbf4b096406496bf8..11434d27af9ce3262c57918e0f5a44d4
  import { coalesce } from 'vs/base/common/arrays';
  import { InMemoryFileSystemProvider } from 'vs/platform/files/common/inMemoryFilesystemProvider';
  import { WebResourceIdentityService, IResourceIdentityService } from 'vs/platform/resource/common/resourceIdentityService';
-@@ -84,6 +85,8 @@ class BrowserMain extends Disposable {
+@@ -87,6 +88,8 @@ class BrowserMain extends Disposable {
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -3115,7 +3116,7 @@ index 18ea0bfedb4492327429a38237b05915b29f6dd0..d59a17c17f4fffa23d786ce36b4ff624
  				this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
  				this._extensionKey.set(value ? extname(value) : null);
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
-index 9947f240bf20b42069bd3d50a96d7a783615f54b..bdba0a2fc64a2e6c2cd2644bcc6afc0d131501a7 100644
+index b1838de8f21c60141d01cc424a5e000a32f1c828..0a480032e0cc8d5219cd240f8807aa317718659d 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
 +++ b/src/vs/workbench/contrib/scm/browser/media/scm.css
 @@ -138,9 +138,11 @@
@@ -3134,7 +3135,7 @@ index 9947f240bf20b42069bd3d50a96d7a783615f54b..bdba0a2fc64a2e6c2cd2644bcc6afc0d
  .scm-view .monaco-list .monaco-list-row .resource-group > .actions,
  .scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
 diff --git a/src/vs/workbench/services/dialogs/browser/dialogService.ts b/src/vs/workbench/services/dialogs/browser/dialogService.ts
-index 6e3182a696dd3443e68ad9e92d029b6ec2d01677..7df85da165a3ba157629c6b9e92f08dd18c7511a 100644
+index 1360c248eb7ff937c92d08bbf30d2b76ea606dc0..adccf8b88d62381c3ec484df40c6d63142ec9ef5 100644
 --- a/src/vs/workbench/services/dialogs/browser/dialogService.ts
 +++ b/src/vs/workbench/services/dialogs/browser/dialogService.ts
 @@ -124,11 +124,12 @@ export class DialogService implements IDialogService {
@@ -3153,10 +3154,10 @@ index 6e3182a696dd3443e68ad9e92d029b6ec2d01677..7df85da165a3ba157629c6b9e92f08dd
  		};
  
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index ba2701ec54d1a70eaf66afacce585fe906644319..4d4aaa6958b636480178470570e856e62ab922ee 100644
+index 819607be0c13fed28eb7fbe6d4a62c0b860b1aa9..b046943311b713a579cc3a94983ea1b7fca7b9b1 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -121,8 +121,18 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+@@ -116,8 +116,18 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  	@memoize
  	get logFile(): URI { return joinPath(this.options.logsPath, 'window.log'); }
  
@@ -3176,7 +3177,7 @@ index ba2701ec54d1a70eaf66afacce585fe906644319..4d4aaa6958b636480178470570e856e6
  
  	@memoize
  	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
-@@ -284,7 +294,12 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
+@@ -279,7 +289,12 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
  						extensionHostDebugEnvironment.params.port = parseInt(value);
  						break;
  					case 'enableProposedApi':
@@ -3191,10 +3192,10 @@ index ba2701ec54d1a70eaf66afacce585fe906644319..4d4aaa6958b636480178470570e856e6
  				}
  			}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
-index c28b14774005509f58dddd2dec25547bac85e09f..6090200d9c3671fc1239880dbd060a01a84db1fb 100644
+index 32f3dc52c1ff645df6471a03542d6ec3eb73a277..c2f4497d2eba13a771b2665ad58f12ecdfa7606a 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
 +++ b/src/vs/workbench/services/extensionManagement/common/extensionEnablementService.ts
-@@ -163,7 +163,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
+@@ -205,7 +205,7 @@ export class ExtensionEnablementService extends Disposable implements IWorkbench
  					}
  				}
  			}
@@ -3204,10 +3205,10 @@ index c28b14774005509f58dddd2dec25547bac85e09f..6090200d9c3671fc1239880dbd060a01
  		return false;
  	}
 diff --git a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-index 33eb56db3c25a0dc028b0d54dfa102e5584441cf..de70af33529e40a56969d8f241c82906cda72e1e 100644
+index a982b3ecc58c5a2f3a92be7b8cca3a1cacbb7d47..97f9bfcf0e679be683b1b09cd569149e7962f5ad 100644
 --- a/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
 +++ b/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts
-@@ -202,8 +202,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -211,8 +211,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
  		}
  
  		// Install Language pack on all servers
@@ -3220,7 +3221,7 @@ index 33eb56db3c25a0dc028b0d54dfa102e5584441cf..de70af33529e40a56969d8f241c82906
  		}
  
  		// 1. Install on preferred location
-@@ -236,6 +239,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
+@@ -245,6 +248,11 @@ export class ExtensionManagementService extends Disposable implements IExtension
  			return this.extensionManagementServerService.webExtensionManagementServer.extensionManagementService.installFromGallery(gallery);
  		}
  
@@ -3233,10 +3234,10 @@ index 33eb56db3c25a0dc028b0d54dfa102e5584441cf..de70af33529e40a56969d8f241c82906
  			const error = new Error(localize('cannot be installed', "Cannot install '{0}' because this extension has defined that it cannot run on the remote server.", gallery.displayName || gallery.name));
  			error.name = INSTALL_ERROR_NOT_SUPPORTED;
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index d0710e77fa28aacf5b4dfe85efbf67a6a9ae78ab..ceb27174aee3c78ca5a086f05a6b1d3188888034 100644
+index 9e979d28691d0b0b26fde5e46b606731e31f3da5..dd31879c7dd899c73c4a1371996912f4513bfd0d 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
-@@ -116,8 +116,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+@@ -125,8 +125,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
  			this._remoteAgentService.getEnvironment(),
  			this._remoteAgentService.scanExtensions()
  		]);
@@ -3362,7 +3363,7 @@ index 44999bd842eae12b752b2e7e8c4904272b111dc1..601b1c5408835c743fe07e34da4d4534
  }
  
 diff --git a/src/vs/workbench/workbench.web.main.ts b/src/vs/workbench/workbench.web.main.ts
-index 0669178db4cf5efe28ffd2a8fe3301de47bcc545..28fafeb2de2efea5c6412853044ce84775f1e038 100644
+index f02bbbf874b5b18ac8d077ad56a8a4a57e77a4a6..86271940724aaf28e4eda93e59920820a7d93987 100644
 --- a/src/vs/workbench/workbench.web.main.ts
 +++ b/src/vs/workbench/workbench.web.main.ts
 @@ -35,7 +35,8 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
@@ -3376,7 +3377,7 @@ index 0669178db4cf5efe28ffd2a8fe3301de47bcc545..28fafeb2de2efea5c6412853044ce847
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
 diff --git a/yarn.lock b/yarn.lock
-index b2fbf543af319fcc3973248b4ed4981db1ca213a..f10dddd6594bed959e2caa69911f70a6ae8e0554 100644
+index 140ed883c1a92ebcd7a284b98ca71261fa9cb631..b363d7de5000fd370bb4221f48e193382648a185 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
@@ -3403,7 +3404,7 @@ index b2fbf543af319fcc3973248b4ed4981db1ca213a..f10dddd6594bed959e2caa69911f70a6
  "@electron/get@^1.0.1":
    version "1.7.2"
    resolved "https://registry.yarnpkg.com/@electron/get/-/get-1.7.2.tgz#286436a9fb56ff1a1fcdf0e80131fd65f4d1e0fd"
-@@ -5421,6 +5438,13 @@ jsprim@^1.2.2:
+@@ -5375,6 +5392,13 @@ jsprim@^1.2.2:
      json-schema "0.2.3"
      verror "1.10.0"
  
@@ -3417,7 +3418,7 @@ index b2fbf543af319fcc3973248b4ed4981db1ca213a..f10dddd6594bed959e2caa69911f70a6
  just-debounce@^1.0.0:
    version "1.0.0"
    resolved "https://registry.yarnpkg.com/just-debounce/-/just-debounce-1.0.0.tgz#87fccfaeffc0b68cd19d55f6722943f929ea35ea"
-@@ -6008,26 +6032,11 @@ minimatch@0.3:
+@@ -5955,26 +5979,11 @@ minimatch@0.3:
    dependencies:
      brace-expansion "^1.1.7"
  
@@ -3445,7 +3446,7 @@ index b2fbf543af319fcc3973248b4ed4981db1ca213a..f10dddd6594bed959e2caa69911f70a6
  minipass@^2.2.1, minipass@^2.3.3:
    version "2.3.3"
    resolved "https://registry.yarnpkg.com/minipass/-/minipass-2.3.3.tgz#a7dcc8b7b833f5d368759cce544dccb55f50f233"
-@@ -6797,6 +6806,11 @@ p-try@^2.0.0:
+@@ -6716,6 +6725,11 @@ p-try@^2.0.0:
    resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.0.0.tgz#85080bb87c64688fa47996fe8f7dfbe8211760b1"
    integrity sha512-hMp0onDKIajHfIkdRk3P4CdCmErkYAxxDtP3Wx/4nZ3aGlau2VKh3mZpcuFkH27WQkL/3WBCPOktzA9ZOAnMQQ==
  
