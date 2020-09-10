@@ -289,7 +289,7 @@ export abstract class HttpProvider {
   /**
    * Helper to error if not authorized.
    */
-  protected ensureAuthenticated(request: http.IncomingMessage): void {
+  public ensureAuthenticated(request: http.IncomingMessage): void {
     if (!this.authenticated(request)) {
       throw new HttpError("Unauthorized", HttpCode.Unauthorized)
     }
@@ -647,10 +647,7 @@ export class HttpServer {
     }
 
     try {
-      const payload =
-        this.maybeRedirect(request, route) ||
-        (route.provider.authenticated(request) && this.maybeProxy(request)) ||
-        (await route.provider.handleRequest(route, request))
+      const payload = (await this.handleRequest(route, request)) || (await route.provider.handleRequest(route, request))
       if (payload.proxy) {
         this.doProxy(route, request, response, payload.proxy)
       } else {
@@ -685,15 +682,23 @@ export class HttpServer {
   }
 
   /**
-   * Return any necessary redirection before delegating to a provider.
+   * Handle requests that are always in effect no matter what provider is
+   * registered at the route.
    */
-  private maybeRedirect(request: http.IncomingMessage, route: ProviderRoute): RedirectResponse | undefined {
+  private async handleRequest(route: ProviderRoute, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
     // If we're handling TLS ensure all requests are redirected to HTTPS.
     if (this.options.cert && !(request.connection as tls.TLSSocket).encrypted) {
       return { redirect: route.fullPath }
     }
 
-    return undefined
+    // Return robots.txt.
+    if (route.fullPath === "/robots.txt") {
+      const filePath = path.resolve(__dirname, "../../src/browser/robots.txt")
+      return { content: await fs.readFile(filePath), filePath }
+    }
+
+    // Handle proxy domains.
+    return this.maybeProxy(route, request)
   }
 
   /**
@@ -744,7 +749,7 @@ export class HttpServer {
       // can't be transferred so we need an in-between).
       const socketProxy = await this.socketProvider.createProxy(socket)
       const payload =
-        this.maybeProxy(request) || (await route.provider.handleWebSocket(route, request, socketProxy, head))
+        this.maybeProxy(route, request) || (await route.provider.handleWebSocket(route, request, socketProxy, head))
       if (payload && payload.proxy) {
         this.doProxy(route, request, { socket: socketProxy, head }, payload.proxy)
       }
@@ -894,8 +899,10 @@ export class HttpServer {
    *
    * For example if `coder.com` is specified `8080.coder.com` will be proxied
    * but `8080.test.coder.com` and `test.8080.coder.com` will not.
+   *
+   * Throw an error if proxying but the user isn't authenticated.
    */
-  public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
+  public maybeProxy(route: ProviderRoute, request: http.IncomingMessage): HttpResponse | undefined {
     // Split into parts.
     const host = request.headers.host || ""
     const idx = host.indexOf(":")
@@ -908,6 +915,9 @@ export class HttpServer {
     if (!port || !this.proxyDomains.has(proxyDomain)) {
       return undefined
     }
+
+    // Must be authenticated to use the proxy.
+    route.provider.ensureAuthenticated(request)
 
     return {
       proxy: {
