@@ -208,32 +208,37 @@ export class WrapperProcess {
         this.relaunch()
       })
     }
-
     if (!this.started) {
-      this.started = this.spawn().then((child) => {
-        // Log both to stdout and to the log directory.
-        if (child.stdout) {
-          child.stdout.pipe(this.logStdoutStream)
-          child.stdout.pipe(process.stdout)
-        }
-        if (child.stderr) {
-          child.stderr.pipe(this.logStderrStream)
-          child.stderr.pipe(process.stderr)
-        }
-        logger.debug(`spawned inner process ${child.pid}`)
-        ipcMain.handshake(child).then(() => {
-          child.once("exit", (code) => {
-            logger.debug(`inner process ${child.pid} exited unexpectedly`)
-            ipcMain.exit(code || 0)
-          })
-        })
-        this.process = child
-      })
+      this.started = this._start()
     }
     return this.started
   }
 
-  private async spawn(): Promise<cp.ChildProcess> {
+  private async _start(): Promise<void> {
+    const child = this.spawn()
+    this.process = child
+
+    // Log both to stdout and to the log directory.
+    if (child.stdout) {
+      child.stdout.pipe(this.logStdoutStream)
+      child.stdout.pipe(process.stdout)
+    }
+    if (child.stderr) {
+      child.stderr.pipe(this.logStderrStream)
+      child.stderr.pipe(process.stderr)
+    }
+
+    logger.debug(`spawned inner process ${child.pid}`)
+
+    await ipcMain.handshake(child)
+
+    child.once("exit", (code) => {
+      logger.debug(`inner process ${child.pid} exited unexpectedly`)
+      ipcMain.exit(code || 0)
+    })
+  }
+
+  private spawn(): cp.ChildProcess {
     // Flags to pass along to the Node binary.
     let nodeOptions = `${process.env.NODE_OPTIONS || ""} ${(this.options && this.options.nodeOptions) || ""}`
     if (!/max_old_space_size=(\d+)/g.exec(nodeOptions)) {
