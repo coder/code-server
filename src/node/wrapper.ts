@@ -254,6 +254,14 @@ if (!process.stdout.isTTY) {
   process.stdout.on("error", () => ipcMain().exit())
 }
 
+// Don't let uncaught exceptions crash the process.
+process.on("uncaughtException", (error) => {
+  logger.error(`Uncaught exception: ${error.message}`)
+  if (typeof error.stack !== "undefined") {
+    logger.error(error.stack)
+  }
+})
+
 export const wrap = (fn: () => Promise<void>): void => {
   if (ipcMain().parentPid) {
     ipcMain()

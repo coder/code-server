@@ -18,13 +18,6 @@ import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
 
-process.on("uncaughtException", (error) => {
-  logger.error(`Uncaught exception: ${error.message}`)
-  if (typeof error.stack !== "undefined") {
-    logger.error(error.stack)
-  }
-})
-
 let pkg: { version?: string; commit?: string } = {}
 try {
   pkg = require("../../package.json")
