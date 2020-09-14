@@ -496,3 +496,23 @@ async function copyOldMacOSDataDir(): Promise<void> {
     await fs.copy(oldDataDir, paths.data)
   }
 }
+
+export const shouldRunVsCodeCli = (args: Args): boolean => {
+  return !!args["list-extensions"] || !!args["install-extension"] || !!args["uninstall-extension"]
+}
+
+/**
+ * Determine if it looks like the user is trying to open a file or folder in an
+ * existing instance. The arguments here should be the arguments the user
+ * explicitly passed on the command line, not defaults or the configuration.
+ */
+export const shouldOpenInExistingInstance = async (args: Args): Promise<string | undefined> => {
+  // Always use the existing instance if we're running from VS Code's terminal.
+  if (process.env.VSCODE_IPC_HOOK_CLI) {
+    return process.env.VSCODE_IPC_HOOK_CLI
+  }
+
+  // TODO: implement
+
+  return undefined
+}
