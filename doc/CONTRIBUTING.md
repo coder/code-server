@@ -32,7 +32,7 @@ Differences:
 - We require a minimum of node v12 but later versions should work.
 - We use [nfpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
 - We use [jq](https://stedolan.github.io/jq/) to build code-server releases.
-- The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all our dependencies.
+- The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all our dependencies.
 
 ## Development Workflow
 
@@ -76,7 +76,7 @@ node .
 Build release packages (make sure you run `./ci/steps/release.sh` first):
 
 ```
-./ci/dev/image/run.sh ./ci/steps/release-packages.sh
+IMAGE=centos7 ./ci/dev/image/run.sh ./ci/steps/release-packages.sh
 # The standalone release is in ./release-standalone
 # .deb, .rpm and the standalone archive are in ./release-packages
 ```

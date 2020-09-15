@@ -1,4 +1,4 @@
-FROM debian:8
+FROM debian:10
 
 RUN apt-get update
 
@@ -24,23 +24,13 @@ RUN apt-get install -y build-essential \
 RUN apt-get install -y gettext-base
 
 # Misc build dependencies.
-RUN apt-get install -y git rsync unzip
-
-# We need latest jq from debian buster for date support.
-RUN ARCH="$(dpkg --print-architecture)" && \
-    curl -fsSOL http://http.us.debian.org/debian/pool/main/libo/libonig/libonig5_6.9.1-1_$ARCH.deb && \
-    dpkg -i libonig*.deb && \
-    curl -fsSOL http://http.us.debian.org/debian/pool/main/j/jq/libjq1_1.5+dfsg-2+b1_$ARCH.deb && \
-    dpkg -i libjq*.deb && \
-    curl -fsSOL http://http.us.debian.org/debian/pool/main/j/jq/jq_1.5+dfsg-2+b1_$ARCH.deb && \
-    dpkg -i jq*.deb && rm *.deb
+RUN apt-get install -y git rsync unzip jq
 
 # Installs shellcheck.
-# Unfortunately coredumps on debian:8 so disabled for now.
-#RUN curl -fsSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.$(uname -m).tar.xz | \
-#    tar -xJ && \
-#    mv shellcheck*/shellcheck /usr/local/bin && \
-#    rm -R shellcheck*
+RUN curl -fsSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/shellcheck-v0.7.1.linux.$(uname -m).tar.xz | \
+    tar -xJ && \
+    mv shellcheck*/shellcheck /usr/local/bin && \
+    rm -R shellcheck*
 
 # Install Go dependencies
 RUN ARCH="$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')" && \
