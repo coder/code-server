@@ -5,7 +5,7 @@ import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { AuthType } from "./http"
-import { generatePassword, humanPath, paths } from "./util"
+import { canConnect, generatePassword, humanPath, paths } from "./util"
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
@@ -512,7 +512,35 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
     return process.env.VSCODE_IPC_HOOK_CLI
   }
 
-  // TODO: implement
+  const readSocketPath = async (): Promise<string | undefined> => {
+    try {
+      return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error
+      }
+    }
+    return undefined
+  }
+
+  // If these flags are set then assume the user is trying to open in an
+  // existing instance since these flags have no effect otherwise.
+  const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
+    return args[cur as keyof Args] ? prev + 1 : prev
+  }, 0)
+  if (openInFlagCount > 0) {
+    return readSocketPath()
+  }
+
+  // It's possible the user is trying to spawn another instance of code-server.
+  // Check if any unrelated flags are set (add one for `_` which always exists),
+  // that a file or directory was passed, and that the socket is active.
+  if (Object.keys(args).length === openInFlagCount + 1 && args._.length > 0) {
+    const socketPath = await readSocketPath()
+    if (socketPath && (await canConnect(socketPath))) {
+      return socketPath
+    }
+  }
 
   return undefined
 }

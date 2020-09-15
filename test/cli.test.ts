@@ -1,16 +1,24 @@
 import { Level, logger } from "@coder/logger"
 import * as assert from "assert"
+import * as fs from "fs-extra"
+import * as net from "net"
+import * as os from "os"
 import * as path from "path"
-import { parse, setDefaults } from "../src/node/cli"
-import { paths } from "../src/node/util"
+import { Args, parse, setDefaults, shouldOpenInExistingInstance } from "../src/node/cli"
+import { paths, tmpdir } from "../src/node/util"
 
-describe("cli", () => {
+type Mutable<T> = {
+  -readonly [P in keyof T]: T[P]
+}
+
+describe("parser", () => {
   beforeEach(() => {
     delete process.env.LOG_LEVEL
   })
 
   // The parser should not set any defaults so the caller can determine what
-  // values the user actually set. These are set after calling `setDefaults`.
+  // values the user actually set. These are only set after explicitly calling
+  // `setDefaults`.
   const defaults = {
     "extensions-dir": path.join(paths.data, "extensions"),
     "user-data-dir": paths.data,
@@ -223,5 +231,78 @@ describe("cli", () => {
       _: [],
       "proxy-domain": ["*.coder.com", "test.com"],
     })
+  })
+})
+
+describe("cli", () => {
+  let args: Mutable<Args> = { _: [] }
+  const testDir = path.join(tmpdir, "tests/cli")
+  const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+
+  before(async () => {
+    await fs.remove(testDir)
+    await fs.mkdirp(testDir)
+  })
+
+  beforeEach(async () => {
+    delete process.env.VSCODE_IPC_HOOK_CLI
+    args = { _: [] }
+    await fs.remove(vscodeIpcPath)
+  })
+
+  it("should use existing if inside code-server", async () => {
+    process.env.VSCODE_IPC_HOOK_CLI = "test"
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+
+    args.port = 8081
+    args._.push("./file")
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+  })
+
+  it("should use existing if --reuse-window is set", async () => {
+    args["reuse-window"] = true
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+
+    await fs.writeFile(vscodeIpcPath, "test")
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+
+    args.port = 8081
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+  })
+
+  it("should use existing if --new-window is set", async () => {
+    args["new-window"] = true
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+
+    await fs.writeFile(vscodeIpcPath, "test")
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+
+    args.port = 8081
+    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+  })
+
+  it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+
+    args._.push("./file")
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+
+    const socketPath = path.join(testDir, "socket")
+    await fs.writeFile(vscodeIpcPath, socketPath)
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+
+    await new Promise((resolve) => {
+      const server = net.createServer(() => {
+        // Close after getting the first connection.
+        server.close()
+      })
+      server.once("listening", () => resolve(server))
+      server.listen(socketPath)
+    })
+
+    assert.strictEqual(await shouldOpenInExistingInstance(args), socketPath)
+
+    args.port = 8081
+    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
   })
 })

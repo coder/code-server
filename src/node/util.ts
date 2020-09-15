@@ -2,6 +2,7 @@ import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
 import * as fs from "fs-extra"
+import * as net from "net"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
@@ -245,4 +246,18 @@ export function pathToFsPath(path: string, keepDriveLetterCasing = false): strin
     value = value.replace(/\//g, "\\")
   }
   return value
+}
+
+/**
+ * Return a promise that resolves with whether the socket path is active.
+ */
+export function canConnect(path: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect(path)
+    socket.once("error", () => resolve(false))
+    socket.once("connect", () => {
+      socket.destroy()
+      resolve(true)
+    })
+  })
 }
