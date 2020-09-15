@@ -14,7 +14,8 @@ main() {
     release-images \
     dist \
     .cache \
-    node-*
+    node-* \
+    .home
 
   pushd lib/vscode
   git clean -xffd

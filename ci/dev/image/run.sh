@@ -4,11 +4,13 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../../.."
   source ./ci/lib.sh
+  mkdir -p .home
 
   docker run \
     -it \
     --rm \
     -v "$PWD:/src" \
+    -e HOME="/src/.home" \
     -w /src \
     -p 127.0.0.1:8080:8080 \
     -u "$(id -u):$(id -g)" \
