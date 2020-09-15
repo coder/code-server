@@ -1,20 +1,23 @@
-import { logger, Level } from "@coder/logger"
+import { Level, logger } from "@coder/logger"
 import * as assert from "assert"
 import * as path from "path"
-import { parse } from "../src/node/cli"
+import { parse, setDefaults } from "../src/node/cli"
+import { paths } from "../src/node/util"
 
 describe("cli", () => {
   beforeEach(() => {
     delete process.env.LOG_LEVEL
   })
 
-  // The parser will always fill these out.
+  // The parser should not set any defaults so the caller can determine what
+  // values the user actually set. These are set after calling `setDefaults`.
   const defaults = {
-    _: [],
+    "extensions-dir": path.join(paths.data, "extensions"),
+    "user-data-dir": paths.data,
   }
 
   it("should set defaults", () => {
-    assert.deepEqual(parse([]), defaults)
+    assert.deepEqual(parse([]), { _: [] })
   })
 
   it("should parse all available options", () => {
@@ -69,7 +72,7 @@ describe("cli", () => {
         help: true,
         host: "0.0.0.0",
         json: true,
-        log: "trace",
+        log: "error",
         open: true,
         port: 8081,
         socket: path.resolve("mumble"),
@@ -83,19 +86,20 @@ describe("cli", () => {
 
   it("should work with short options", () => {
     assert.deepEqual(parse(["-vvv", "-v"]), {
-      ...defaults,
-      log: "trace",
+      _: [],
       verbose: true,
       version: true,
     })
-    assert.equal(process.env.LOG_LEVEL, "trace")
-    assert.equal(logger.level, Level.Trace)
   })
 
-  it("should use log level env var", () => {
+  it("should use log level env var", async () => {
+    const args = parse([])
+    assert.deepEqual(args, { _: [] })
+
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(parse([]), {
+    assert.deepEqual(await setDefaults(args), {
       ...defaults,
+      _: [],
       log: "debug",
       verbose: false,
     })
@@ -103,8 +107,9 @@ describe("cli", () => {
     assert.equal(logger.level, Level.Debug)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(parse([]), {
+    assert.deepEqual(await setDefaults(args), {
       ...defaults,
+      _: [],
       log: "trace",
       verbose: true,
     })
@@ -113,9 +118,16 @@ describe("cli", () => {
   })
 
   it("should prefer --log to env var and --verbose to --log", async () => {
+    let args = parse(["--log", "info"])
+    assert.deepEqual(args, {
+      _: [],
+      log: "info",
+    })
+
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(parse(["--log", "info"]), {
+    assert.deepEqual(await setDefaults(args), {
       ...defaults,
+      _: [],
       log: "info",
       verbose: false,
     })
@@ -123,17 +135,26 @@ describe("cli", () => {
     assert.equal(logger.level, Level.Info)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(parse(["--log", "info"]), {
+    assert.deepEqual(await setDefaults(args), {
       ...defaults,
+      _: [],
       log: "info",
       verbose: false,
     })
     assert.equal(process.env.LOG_LEVEL, "info")
     assert.equal(logger.level, Level.Info)
 
+    args = parse(["--log", "info", "--verbose"])
+    assert.deepEqual(args, {
+      _: [],
+      log: "info",
+      verbose: true,
+    })
+
     process.env.LOG_LEVEL = "warn"
-    assert.deepEqual(parse(["--log", "info", "--verbose"]), {
+    assert.deepEqual(await setDefaults(args), {
       ...defaults,
+      _: [],
       log: "trace",
       verbose: true,
     })
@@ -141,9 +162,12 @@ describe("cli", () => {
     assert.equal(logger.level, Level.Trace)
   })
 
-  it("should ignore invalid log level env var", () => {
+  it("should ignore invalid log level env var", async () => {
     process.env.LOG_LEVEL = "bogus"
-    assert.deepEqual(parse([]), defaults)
+    assert.deepEqual(await setDefaults(parse([])), {
+      _: [],
+      ...defaults,
+    })
   })
 
   it("should error if value isn't provided", () => {
@@ -166,7 +190,7 @@ describe("cli", () => {
 
   it("should not error if the value is optional", () => {
     assert.deepEqual(parse(["--cert"]), {
-      ...defaults,
+      _: [],
       cert: {
         value: undefined,
       },
@@ -177,7 +201,7 @@ describe("cli", () => {
     assert.throws(() => parse(["--socket", "--socket-path-value"]), /--socket requires a value/)
     // If you actually had a path like this you would do this instead:
     assert.deepEqual(parse(["--socket", "./--socket-path-value"]), {
-      ...defaults,
+      _: [],
       socket: path.resolve("--socket-path-value"),
     })
     assert.throws(() => parse(["--cert", "--socket-path-value"]), /Unknown option --socket-path-value/)
@@ -185,7 +209,6 @@ describe("cli", () => {
 
   it("should allow positional arguments before options", () => {
     assert.deepEqual(parse(["foo", "test", "--auth", "none"]), {
-      ...defaults,
       _: ["foo", "test"],
       auth: "none",
     })
@@ -193,11 +216,11 @@ describe("cli", () => {
 
   it("should support repeatable flags", () => {
     assert.deepEqual(parse(["--proxy-domain", "*.coder.com"]), {
-      ...defaults,
+      _: [],
       "proxy-domain": ["*.coder.com"],
     })
     assert.deepEqual(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
-      ...defaults,
+      _: [],
       "proxy-domain": ["*.coder.com", "test.com"],
     })
   })

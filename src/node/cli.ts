@@ -327,6 +327,21 @@ export const parse = (
 
   logger.debug("parsed command line", field("args", args))
 
+  return args
+}
+
+export async function setDefaults(args: Args): Promise<Args> {
+  args = { ...args }
+
+  if (!args["user-data-dir"]) {
+    await copyOldMacOSDataDir()
+    args["user-data-dir"] = paths.data
+  }
+
+  if (!args["extensions-dir"]) {
+    args["extensions-dir"] = path.join(args["user-data-dir"], "extensions")
+  }
+
   // --verbose takes priority over --log and --log takes priority over the
   // environment variable.
   if (args.verbose) {
@@ -364,21 +379,6 @@ export const parse = (
       logger.level = Level.Error
       args.verbose = false
       break
-  }
-
-  return args
-}
-
-export async function setDefaults(args: Args): Promise<Args> {
-  args = { ...args }
-
-  if (!args["user-data-dir"]) {
-    await copyOldMacOSDataDir()
-    args["user-data-dir"] = paths.data
-  }
-
-  if (!args["extensions-dir"]) {
-    args["extensions-dir"] = path.join(args["user-data-dir"], "extensions")
   }
 
   return args
