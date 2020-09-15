@@ -410,10 +410,6 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
   }
 
-  if (!process.env.CODE_SERVER_PARENT_PID && !process.env.VSCODE_IPC_HOOK_CLI) {
-    logger.info(`Using config file ${humanPath(configPath)}`)
-  }
-
   const configFile = await fs.readFile(configPath)
   const config = yaml.safeLoad(configFile.toString(), {
     filename: configPath,
