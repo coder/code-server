@@ -152,12 +152,12 @@ const options: Options<Required<Args>> = {
   "new-window": {
     type: "boolean",
     short: "n",
-    description: "Force to open a new window. (use with open-in)",
+    description: "Force to open a new window.",
   },
   "reuse-window": {
     type: "boolean",
     short: "r",
-    description: "Force to open a file or folder in an already opened window. (use with open-in)",
+    description: "Force to open a file or folder in an already opened window.",
   },
 
   locale: { type: "string" },
