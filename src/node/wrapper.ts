@@ -32,7 +32,7 @@ export class IpcMain {
   public readonly onMessage = this._onMessage.event
   private readonly _onDispose = new Emitter<NodeJS.Signals | undefined>()
   public readonly onDispose = this._onDispose.event
-  public readonly exit: (code?: number) => never
+  public readonly processExit: (code?: number) => never
 
   public constructor(public readonly parentPid?: number) {
     process.on("SIGINT", () => this._onDispose.emit("SIGINT"))
@@ -40,7 +40,7 @@ export class IpcMain {
     process.on("exit", () => this._onDispose.emit(undefined))
 
     // Ensure we control when the process exits.
-    this.exit = process.exit
+    this.processExit = process.exit
     process.exit = function (code?: number) {
       logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
     } as (code?: number) => never
@@ -68,6 +68,14 @@ export class IpcMain {
           this._onDispose.emit(undefined)
         }
       }, 5000)
+    }
+  }
+
+  public exit(error?: number | ProcessError): never {
+    if (error && typeof error !== "number") {
+      this.processExit(typeof error.code === "number" ? error.code : 1)
+    } else {
+      this.processExit(error)
     }
   }
 
@@ -161,28 +169,37 @@ export class WrapperProcess {
       }
     })
 
-    ipcMain().onMessage(async (message) => {
+    ipcMain().onMessage((message) => {
       switch (message.type) {
         case "relaunch":
           logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`)
           this.currentVersion = message.version
-          this.started = undefined
-          if (this.process) {
-            this.process.removeAllListeners()
-            this.process.kill()
-          }
-          try {
-            await this.start()
-          } catch (error) {
-            logger.error(error.message)
-            ipcMain().exit(typeof error.code === "number" ? error.code : 1)
-          }
+          this.relaunch()
           break
         default:
           logger.error(`Unrecognized message ${message}`)
           break
       }
     })
+
+    process.on("SIGUSR1", async () => {
+      logger.info("Received SIGUSR1; hotswapping")
+      this.relaunch()
+    })
+  }
+
+  private async relaunch(): Promise<void> {
+    this.started = undefined
+    if (this.process) {
+      this.process.removeAllListeners()
+      this.process.kill()
+    }
+    try {
+      await this.start()
+    } catch (error) {
+      logger.error(error.message)
+      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+    }
   }
 
   public start(): Promise<void> {
@@ -244,13 +261,13 @@ export const wrap = (fn: () => Promise<void>): void => {
       .then(() => fn())
       .catch((error: ProcessError): void => {
         logger.error(error.message)
-        ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+        ipcMain().exit(error)
       })
   } else {
     const wrapper = new WrapperProcess(require("../../package.json").version)
     wrapper.start().catch((error) => {
       logger.error(error.message)
-      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+      ipcMain().exit(error)
     })
   }
 }

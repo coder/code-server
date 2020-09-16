@@ -79,18 +79,18 @@ commands presented in the rest of this document.
 ## Debian, Ubuntu
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server_3.4.1_amd64.deb
-sudo dpkg -i code-server_3.4.1_amd64.deb
-systemctl --user enable --now code-server
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server_3.5.0_amd64.deb
+sudo dpkg -i code-server_3.5.0_amd64.deb
+sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ## Fedora, CentOS, RHEL, SUSE
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server-3.4.1-amd64.rpm
-sudo rpm -i code-server-3.4.1-amd64.rpm
-systemctl --user enable --now code-server
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-amd64.rpm
+sudo rpm -i code-server-3.5.0-amd64.rpm
+sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
@@ -99,7 +99,7 @@ systemctl --user enable --now code-server
 ```bash
 # Installs code-server from the AUR using yay.
 yay -S code-server
-systemctl --user enable --now code-server
+sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
@@ -108,7 +108,7 @@ systemctl --user enable --now code-server
 git clone https://aur.archlinux.org/code-server.git
 cd code-server
 makepkg -si
-systemctl --user enable --now code-server
+sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
@@ -158,10 +158,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.4.1/code-server-3.4.1-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.4.1-linux-amd64 ~/.local/lib/code-server-3.4.1
-ln -s ~/.local/lib/code-server-3.4.1/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-3.5.0-linux-amd64 ~/.local/lib/code-server-3.5.0
+ln -s ~/.local/lib/code-server-3.5.0/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -174,9 +174,16 @@ code-server
 # It will also mount your current directory into the container as `/home/coder/project`
 # and forward your UID/GID so that all file system operations occur as your user outside
 # the container.
-docker run -it -p 127.0.0.1:8080:8080 \
+#
+# Your $HOME/.config is mounted at $HOME/.config within the container to ensure you can
+# easily access/modify your code-server config in $HOME/.config/code-server/config.json
+# outside the container.
+mkdir -p ~/.config
+docker run -it --name code-server -p 127.0.0.1:8080:8080 \
+  -v "$HOME/.config:/home/coder/.config" \
   -v "$PWD:/home/coder/project" \
   -u "$(id -u):$(id -g)" \
+  -e "DOCKER_USER=$USER" \
   codercom/code-server:latest
 ```
 

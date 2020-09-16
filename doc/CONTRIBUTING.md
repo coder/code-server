@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
+- [Pull Requests](#pull-requests)
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
 - [Build](#build)
@@ -11,6 +12,16 @@
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 - [Detailed CI and build process docs](../ci)
+
+## Pull Requests
+
+Please link to the issue each PR solves.
+If there is no existing issue, please first create one unless the fix is minor.
+
+Please make sure the base of your PR is the master branch. We keep the GitHub
+default branch the latest release branch to avoid confusion as the
+documentation is on GitHub and we don't want users to see docs on unreleased
+features.
 
 ## Requirements
 
@@ -35,19 +46,42 @@ yarn watch
 To develop inside of an isolated docker container:
 
 ```shell
-./ci/dev/image/exec.sh
-
-root@12345:/code-server# yarn
-root@12345:/code-server# yarn vscode
-root@12345:/code-server# yarn watch
+./ci/dev/image/run.sh yarn
+./ci/dev/image/run.sh yarn vscode
+./ci/dev/image/run.sh yarn watch
 ```
 
-Any changes made to the source will be live reloaded.
+`yarn watch` will live reload changes to the source.
 
 If changes are made to the patch and you've built previously you must manually
 reset VS Code then run `yarn vscode:patch`.
 
 ## Build
+
+You can build with:
+
+```shell
+./ci/dev/image/run.sh ./ci/steps/release.sh
+```
+
+Run your build with:
+
+```
+cd release
+yarn --production
+# Runs the built JavaScript with Node.
+node .
+```
+
+Build release packages (make sure you run `./ci/steps/release.sh` first):
+
+```
+./ci/dev/image/run.sh ./ci/steps/release-packages.sh
+# The standalone release is in ./release-standalone
+# .deb, .rpm and the standalone archive are in ./release-packages
+```
+
+The `release.sh` script is the equivalent of:
 
 ```shell
 yarn
@@ -55,20 +89,14 @@ yarn vscode
 yarn build
 yarn build:vscode
 yarn release
-cd release
-yarn --production
-# Runs the built JavaScript with Node.
-node .
 ```
 
-Now you can build release packages with:
+And `release-packages.sh` is:
 
 ```
 yarn release:standalone
-# The standalone release is in ./release-standalone
 yarn test:standalone-release
 yarn package
-# .deb, .rpm and the standalone archive are in ./release-packages
 ```
 
 ## Structure

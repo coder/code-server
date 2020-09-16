@@ -21,7 +21,9 @@ sudo apt-get install -y \
   pkg-config \
   libx11-dev \
   libxkbfile-dev \
-  libsecret-1-dev
+  libsecret-1-dev \
+  python3
+npm config set python python3
 ```
 
 ## Fedora, CentOS, RHEL

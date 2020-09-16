@@ -19,6 +19,7 @@
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
 - [Heartbeat File](#heartbeat-file)
+- [Healthz endpoint](#healthz-endpoint)
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
@@ -30,9 +31,7 @@
 
 ## Questions?
 
-Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
-
-The issue tracker is **only** for bugs and features.
+Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
 
 ## How can I reuse my VS Code configuration?
 
@@ -243,6 +242,20 @@ you can do so by continuously checking the last modified time on the heartbeat f
 older than X minutes, kill `code-server`.
 
 [#1636](https://github.com/cdr/code-server/issues/1636) will make the experience here better.
+
+## Healthz endpoint
+
+`code-server` exposes an endpoint at `/healthz` which can be used to check
+whether `code-server` is up without triggering a heartbeat. The response will
+include a status (`alive` or `expired`) and a timestamp for the last heartbeat
+(defaults to `0`). This endpoint does not require authentication.
+
+```json
+{
+  "status": "alive",
+  "lastHeartbeat": 1599166210566
+}
+```
 
 ## How does the config file work?
 

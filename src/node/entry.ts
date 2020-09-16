@@ -1,7 +1,11 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
+import { promises as fs } from "fs"
+import http from "http"
 import * as path from "path"
-import { CliMessage } from "../../lib/vscode/src/vs/server/ipc"
+import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
+import { plural } from "../common/util"
+import { HealthHttpProvider } from "./app/health"
 import { LoginHttpProvider } from "./app/login"
 import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
@@ -9,9 +13,9 @@ import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { generateCertificate, hash, open, humanPath } from "./util"
+import { loadPlugins } from "./plugin"
+import { generateCertificate, hash, humanPath, open } from "./util"
 import { ipcMain, wrap } from "./wrapper"
-import { plural } from "../common/util"
 
 process.on("uncaughtException", (error) => {
   logger.error(`Uncaught exception: ${error.message}`)
@@ -77,6 +81,9 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
   httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
+  httpServer.registerHttpProvider("/healthz", HealthHttpProvider, httpServer.heart)
+
+  await loadPlugins(httpServer, args)
 
   ipcMain().onDispose(() => {
     httpServer.dispose().then((errors) => {
@@ -167,7 +174,7 @@ async function entry(): Promise<void> {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
       },
     })
-    vscode.once("message", (message) => {
+    vscode.once("message", (message: any) => {
       logger.debug("Got message from VS Code", field("message", message))
       if (message.type !== "ready") {
         logger.error("Unexpected response waiting for ready response")
@@ -181,6 +188,57 @@ async function entry(): Promise<void> {
       process.exit(1)
     })
     vscode.on("exit", (code) => process.exit(code || 0))
+  } else if (process.env.VSCODE_IPC_HOOK_CLI) {
+    const pipeArgs: OpenCommandPipeArgs = {
+      type: "open",
+      folderURIs: [],
+      forceReuseWindow: args["reuse-window"],
+      forceNewWindow: args["new-window"],
+    }
+    const isDir = async (path: string): Promise<boolean> => {
+      try {
+        const st = await fs.stat(path)
+        return st.isDirectory()
+      } catch (error) {
+        return false
+      }
+    }
+    for (let i = 0; i < args._.length; i++) {
+      const fp = path.resolve(args._[i])
+      if (await isDir(fp)) {
+        pipeArgs.folderURIs.push(fp)
+      } else {
+        if (!pipeArgs.fileURIs) {
+          pipeArgs.fileURIs = []
+        }
+        pipeArgs.fileURIs.push(fp)
+      }
+    }
+    if (pipeArgs.forceNewWindow && pipeArgs.fileURIs && pipeArgs.fileURIs.length > 0) {
+      logger.error("new-window can only be used with folder paths")
+      process.exit(1)
+    }
+    if (pipeArgs.folderURIs.length === 0 && (!pipeArgs.fileURIs || pipeArgs.fileURIs.length === 0)) {
+      logger.error("Please specify at least one file or folder argument")
+      process.exit(1)
+    }
+    const vscode = http.request(
+      {
+        path: "/",
+        method: "POST",
+        socketPath: process.env["VSCODE_IPC_HOOK_CLI"],
+      },
+      (res) => {
+        res.on("data", (message) => {
+          logger.debug("Got message from VS Code", field("message", message.toString()))
+        })
+      },
+    )
+    vscode.on("error", (err) => {
+      logger.debug("Got error from VS Code", field("error", err))
+    })
+    vscode.write(JSON.stringify(pipeArgs))
+    vscode.end()
   } else {
     wrap(() => main(args, cliArgs, configArgs))
   }

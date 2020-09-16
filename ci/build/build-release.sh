@@ -21,6 +21,12 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  # code-server exports types which can be imported and used by plugins. Those
+  # types import ipc.d.ts but it isn't included in the final vscode build so
+  # we'll copy it ourselves here.
+  mkdir -p "$RELEASE_PATH/lib/vscode/src/vs/server"
+  rsync ./lib/vscode/src/vs/server/ipc.d.ts "$RELEASE_PATH/lib/vscode/src/vs/server"
 }
 
 bundle_code_server() {
@@ -31,6 +37,7 @@ bundle_code_server() {
   rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
   mkdir -p "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
+  rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(

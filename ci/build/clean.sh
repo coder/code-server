@@ -5,16 +5,16 @@ main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
 
-  rm -Rf \
+  rm -rf \
     out \
     release \
     release-standalone \
     release-packages \
     release-gcp \
-    release-images/ \
+    release-images \
     dist \
-    .tsbuildinfo \
-    .cache/out.tsbuildinfo
+    .cache \
+    node-*
 
   pushd lib/vscode
   git clean -xffd

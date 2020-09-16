@@ -45,6 +45,8 @@ export interface Args extends VsArgs {
   readonly "proxy-domain"?: string[]
   readonly locale?: string
   readonly _: string[]
+  readonly "reuse-window"?: boolean
+  readonly "new-window"?: boolean
 }
 
 interface Option<T> {
@@ -125,10 +127,30 @@ const options: Options<Required<Args>> = {
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
-  "install-extension": { type: "string[]", description: "Install or update a VS Code extension by id or vsix." },
+  "install-extension": {
+    type: "string[]",
+    description:
+      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`. To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+  },
+  "enable-proposed-api": {
+    type: "string[]",
+    description:
+      "Enable proposed API features for extensions. Can receive one or more extension IDs to enable individually.",
+  },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
+
+  "new-window": {
+    type: "boolean",
+    short: "n",
+    description: "Force to open a new window. (use with open-in)",
+  },
+  "reuse-window": {
+    type: "boolean",
+    short: "r",
+    description: "Force to open a file or folder in an already opened window. (use with open-in)",
+  },
 
   locale: { type: "string" },
   log: { type: LogLevel },
@@ -172,7 +194,7 @@ export const parse = (
     const arg = argv[i]
 
     // -- signals the end of option parsing.
-    if (!ended && arg == "--") {
+    if (!ended && arg === "--") {
       ended = true
       continue
     }
@@ -220,7 +242,7 @@ export const parse = (
         throw error(`--${key} requires a value`)
       }
 
-      if (option.type == OptionalString && value == "false") {
+      if (option.type === OptionalString && value === "false") {
         continue
       }
 
@@ -348,7 +370,7 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
   }
 
-  if (!process.env.CODE_SERVER_PARENT_PID) {
+  if (!process.env.CODE_SERVER_PARENT_PID && !process.env.VSCODE_IPC_HOOK_CLI) {
     logger.info(`Using config file ${humanPath(configPath)}`)
   }
 
@@ -356,6 +378,9 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
   const config = yaml.safeLoad(configFile.toString(), {
     filename: configPath,
   })
+  if (!config || typeof config === "string") {
+    throw new Error(`invalid config: ${config}`)
+  }
 
   // We convert the config file into a set of flags.
   // This is a temporary measure until we add a proper CLI library.

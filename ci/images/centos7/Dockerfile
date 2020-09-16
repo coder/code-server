@@ -1,9 +1,10 @@
 FROM centos:7
 
+ARG NODE_VERSION=v12.18.3
 RUN ARCH="$(uname -m | sed 's/86_64/64/; s/aarch64/arm64/')" && \
-    curl -fsSL "https://nodejs.org/dist/v14.4.0/node-v14.4.0-linux-$ARCH.tar.xz" | tar -C /usr/local -xJ && \
-    mv /usr/local/node-v14.4.0-linux-$ARCH /usr/local/node-v14.4.0
-ENV PATH=/usr/local/node-v14.4.0/bin:$PATH
+    curl -fsSL "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-$ARCH.tar.xz" | tar -C /usr/local -xJ && \
+    mv "/usr/local/node-$NODE_VERSION-linux-$ARCH" "/usr/local/node-$NODE_VERSION"
+ENV PATH=/usr/local/node-$NODE_VERSION/bin:$PATH
 RUN npm install -g yarn
 
 RUN yum groupinstall -y 'Development Tools'

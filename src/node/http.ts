@@ -209,11 +209,11 @@ export abstract class HttpProvider {
   /**
    * Get the base relative to the provided route. For each slash we need to go
    * up a directory. For example:
-   * / => ./
-   * /foo => ./
-   * /foo/ => ./../
-   * /foo/bar => ./../
-   * /foo/bar/ => ./../../
+   * / => .
+   * /foo => .
+   * /foo/ => ./..
+   * /foo/bar => ./..
+   * /foo/bar/ => ./../..
    */
   public base(route: Route): string {
     const depth = (route.originalPath.match(/\//g) || []).length
@@ -235,30 +235,23 @@ export abstract class HttpProvider {
   /**
    * Replace common templates strings.
    */
-  protected replaceTemplates(route: Route, response: HttpStringFileResponse, sessionId?: string): HttpStringFileResponse
   protected replaceTemplates<T extends object>(
     route: Route,
     response: HttpStringFileResponse,
-    options: T,
-  ): HttpStringFileResponse
-  protected replaceTemplates(
-    route: Route,
-    response: HttpStringFileResponse,
-    sessionIdOrOptions?: string | object,
+    extraOptions?: Omit<T, "base" | "csStaticBase" | "logLevel">,
   ): HttpStringFileResponse {
-    if (typeof sessionIdOrOptions === "undefined" || typeof sessionIdOrOptions === "string") {
-      sessionIdOrOptions = {
-        base: this.base(route),
-        commit: this.options.commit,
-        logLevel: logger.level,
-        sessionID: sessionIdOrOptions,
-      } as Options
+    const base = this.base(route)
+    const options: Options = {
+      base,
+      csStaticBase: base + "/static/" + this.options.commit + this.rootPath,
+      logLevel: logger.level,
+      ...extraOptions,
     }
     response.content = response.content
-      .replace(/{{COMMIT}}/g, this.options.commit)
       .replace(/{{TO}}/g, Array.isArray(route.query.to) ? route.query.to[0] : route.query.to || "/dashboard")
-      .replace(/{{BASE}}/g, this.base(route))
-      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(sessionIdOrOptions)}'`)
+      .replace(/{{BASE}}/g, options.base)
+      .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
+      .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
     return response
   }
 
@@ -296,7 +289,7 @@ export abstract class HttpProvider {
   /**
    * Helper to error if not authorized.
    */
-  protected ensureAuthenticated(request: http.IncomingMessage): void {
+  public ensureAuthenticated(request: http.IncomingMessage): void {
     if (!this.authenticated(request)) {
       throw new HttpError("Unauthorized", HttpCode.Unauthorized)
     }
@@ -403,23 +396,26 @@ export abstract class HttpProvider {
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
   private heartbeatInterval = 60000
-  private lastHeartbeat = 0
+  public lastHeartbeat = 0
 
   public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}
 
+  public alive(): boolean {
+    const now = Date.now()
+    return now - this.lastHeartbeat < this.heartbeatInterval
+  }
   /**
    * Write to the heartbeat file if we haven't already done so within the
    * timeout and start or reset a timer that keeps running as long as there is
    * activity. Failures are logged as warnings.
    */
   public beat(): void {
-    const now = Date.now()
-    if (now - this.lastHeartbeat >= this.heartbeatInterval) {
+    if (!this.alive()) {
       logger.trace("heartbeat")
       fs.outputFile(this.heartbeatPath, "").catch((error) => {
         logger.warn(error.message)
       })
-      this.lastHeartbeat = now
+      this.lastHeartbeat = Date.now()
       if (typeof this.heartbeatTimer !== "undefined") {
         clearTimeout(this.heartbeatTimer)
       }
@@ -464,7 +460,7 @@ export class HttpServer {
   private listenPromise: Promise<string | null> | undefined
   public readonly protocol: "http" | "https"
   private readonly providers = new Map<string, HttpProvider>()
-  private readonly heart: Heart
+  public readonly heart: Heart
   private readonly socketProvider = new SocketProxyProvider()
 
   /**
@@ -609,8 +605,10 @@ export class HttpServer {
   }
 
   private onRequest = async (request: http.IncomingMessage, response: http.ServerResponse): Promise<void> => {
-    this.heart.beat()
     const route = this.parseUrl(request)
+    if (route.providerBase !== "/healthz") {
+      this.heart.beat()
+    }
     const write = (payload: HttpResponse): void => {
       response.writeHead(payload.redirect ? HttpCode.Redirect : payload.code || HttpCode.Ok, {
         "Content-Type": payload.mime || getMediaMime(payload.filePath),
@@ -649,10 +647,7 @@ export class HttpServer {
     }
 
     try {
-      const payload =
-        this.maybeRedirect(request, route) ||
-        (route.provider.authenticated(request) && this.maybeProxy(request)) ||
-        (await route.provider.handleRequest(route, request))
+      const payload = (await this.handleRequest(route, request)) || (await route.provider.handleRequest(route, request))
       if (payload.proxy) {
         this.doProxy(route, request, response, payload.proxy)
       } else {
@@ -664,7 +659,7 @@ export class HttpServer {
         e = new HttpError("Not found", HttpCode.NotFound)
       }
       const code = typeof e.code === "number" ? e.code : HttpCode.ServerError
-      logger.debug("Request error", field("url", request.url), field("code", code))
+      logger.debug("Request error", field("url", request.url), field("code", code), field("error", error))
       if (code >= HttpCode.ServerError) {
         logger.error(error.stack)
       }
@@ -687,15 +682,23 @@ export class HttpServer {
   }
 
   /**
-   * Return any necessary redirection before delegating to a provider.
+   * Handle requests that are always in effect no matter what provider is
+   * registered at the route.
    */
-  private maybeRedirect(request: http.IncomingMessage, route: ProviderRoute): RedirectResponse | undefined {
+  private async handleRequest(route: ProviderRoute, request: http.IncomingMessage): Promise<HttpResponse | undefined> {
     // If we're handling TLS ensure all requests are redirected to HTTPS.
     if (this.options.cert && !(request.connection as tls.TLSSocket).encrypted) {
       return { redirect: route.fullPath }
     }
 
-    return undefined
+    // Return robots.txt.
+    if (route.fullPath === "/robots.txt") {
+      const filePath = path.resolve(__dirname, "../../src/browser/robots.txt")
+      return { content: await fs.readFile(filePath), filePath }
+    }
+
+    // Handle proxy domains.
+    return this.maybeProxy(route, request)
   }
 
   /**
@@ -746,7 +749,7 @@ export class HttpServer {
       // can't be transferred so we need an in-between).
       const socketProxy = await this.socketProvider.createProxy(socket)
       const payload =
-        this.maybeProxy(request) || (await route.provider.handleWebSocket(route, request, socketProxy, head))
+        this.maybeProxy(route, request) || (await route.provider.handleWebSocket(route, request, socketProxy, head))
       if (payload && payload.proxy) {
         this.doProxy(route, request, { socket: socketProxy, head }, payload.proxy)
       }
@@ -875,6 +878,7 @@ export class HttpServer {
       // isn't setting the host header to match the access domain.
       host === "localhost"
     ) {
+      logger.debug("no valid cookie doman", field("host", host))
       return undefined
     }
 
@@ -884,6 +888,7 @@ export class HttpServer {
       }
     })
 
+    logger.debug("got cookie doman", field("host", host))
     return host ? `Domain=${host}` : undefined
   }
 
@@ -894,8 +899,10 @@ export class HttpServer {
    *
    * For example if `coder.com` is specified `8080.coder.com` will be proxied
    * but `8080.test.coder.com` and `test.8080.coder.com` will not.
+   *
+   * Throw an error if proxying but the user isn't authenticated.
    */
-  public maybeProxy(request: http.IncomingMessage): HttpResponse | undefined {
+  public maybeProxy(route: ProviderRoute, request: http.IncomingMessage): HttpResponse | undefined {
     // Split into parts.
     const host = request.headers.host || ""
     const idx = host.indexOf(":")
@@ -908,6 +915,9 @@ export class HttpServer {
     if (!port || !this.proxyDomains.has(proxyDomain)) {
       return undefined
     }
+
+    // Must be authenticated to use the proxy.
+    route.provider.ensureAuthenticated(request)
 
     return {
       proxy: {
