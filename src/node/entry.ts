@@ -12,7 +12,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
-import { coderCloudExpose, coderCloudProxy } from "./coder-cloud"
+import { coderCloudLink, coderCloudProxy } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
@@ -36,6 +36,15 @@ const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
 const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
+  if (args["coder-link"]) {
+    // If we're being exposed to the cloud, we listen on a random address.
+    args = {
+      ...args,
+      host: "localhost",
+      port: 0,
+    }
+  }
+
   if (!args.auth) {
     args = {
       ...args,
@@ -131,6 +140,22 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     await open(openAddress).catch(console.error)
     logger.info(`Opened ${openAddress}`)
   }
+
+  if (args["coder-link"]) {
+    if (!args["coder-link"].value) {
+      logger.error("You must pass a name to link with coder cloud. See --help")
+      process.exit(1)
+    }
+
+    logger.info(`linking code-server to the cloud with name ${args["coder-link"].value}`)
+
+    try {
+      await coderCloudLink(args["coder-link"].value)
+    } catch (err) {
+      logger.error(err.message)
+      process.exit(1)
+    }
+  }
 }
 
 async function entry(): Promise<void> {
@@ -191,20 +216,6 @@ async function entry(): Promise<void> {
       process.exit(1)
     })
     vscode.on("exit", (code) => process.exit(code || 0))
-  } else if (args["expose"]) {
-    logger.debug("exposing code-server via the coder-cloud agent")
-
-    if (!args["expose"].value) {
-      logger.error("You must pass a name to expose with coder cloud. See --help")
-      process.exit(1)
-    }
-
-    try {
-      await coderCloudExpose(args["expose"].value)
-    } catch (err) {
-      logger.error(err.message)
-      process.exit(1)
-    }
   } else if (process.env.VSCODE_IPC_HOOK_CLI) {
     const pipeArgs: OpenCommandPipeArgs = {
       type: "open",
