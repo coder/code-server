@@ -16,7 +16,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 ## Getting Started
 
-For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
+For a full setup and walkthrough, please see [./docs/guide.md](./doc/guide.md).
 
 ### Quick Install
 
@@ -40,15 +40,15 @@ The install script will print out how to run and start using code-server.
 
 ### Manual Install
 
-Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
+Docs on the install script, manual installation and docker image are at [./docs/install.md](./doc/install.md).
 
 ## FAQ
 
-See [./doc/FAQ.md](./doc/FAQ.md).
+See [./docs/FAQ.md](./doc/FAQ.md).
 
 ## Contributing
 
-See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
+See [./docs/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
 
 ## Hiring
 
