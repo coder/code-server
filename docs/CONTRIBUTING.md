@@ -2,12 +2,13 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Pull Requests](#pull-requests)
-- [Requirements](#requirements)
-- [Development Workflow](#development-workflow)
-- [Build](#build)
-- [Structure](#structure)
-  - [VS Code Patch](#vs-code-patch)
+- [Contributing](#contributing)
+  - [Pull Requests](#pull-requests)
+  - [Requirements](#requirements)
+  - [Development Workflow](#development-workflow)
+  - [Build](#build)
+  - [Structure](#structure)
+    - [VS Code Patch](#vs-code-patch)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -15,24 +16,22 @@
 
 ## Pull Requests
 
-Please link to the issue each PR solves.
-If there is no existing issue, please first create one unless the fix is minor.
+Please create a [GitHub Issue](https://github.com/cdr/code-server/issues) for each issue you'd like to address, unless the proposed fix is minor.
 
-Please make sure the base of your PR is the master branch. We keep the GitHub
-default branch the latest release branch to avoid confusion as the
-documentation is on GitHub and we don't want users to see docs on unreleased
-features.
+In your Pull Requests (PR), link to the Issue that the PR solves.
+
+Please ensure that the base of your PR is the master branch. The default GitHub branch is also the latest release branch to avoid confusion.
 
 ## Requirements
 
-Please refer to [VS Code's prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+The prerequisites for contributing to code-server are almost the same as those for [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 
-Differences:
+There are several differences, however. You must:
 
-- We require a minimum of node v12 but later versions should work.
-- We use [nfpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
-- We use [jq](https://stedolan.github.io/jq/) to build code-server releases.
-- The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all our dependencies.
+- Use Node.js version 12.x (or greater)
+- Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
+
+The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all of the dependencies code-server uses.
 
 ## Development Workflow
 

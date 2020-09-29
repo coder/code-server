@@ -16,7 +16,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 1. Update the version of code-server and make a PR.
    1. Update in `package.json`
-   2. Update in [./doc/install.md](../doc/install.md)
+   2. Update in [./docs/install.md](../doc/install.md)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
@@ -44,7 +44,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 This directory contains scripts used for the development of code-server.
 
 - [./ci/dev/image](./dev/image)
-  - See [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
+  - See [./docs/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
 - [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters.
 - [./ci/dev/lint.sh](./dev/lint.sh) (`yarn lint`)
@@ -60,11 +60,11 @@ This directory contains scripts used for the development of code-server.
 - [./ci/dev/diff-vscode.sh](./dev/diff-vscode.sh) (`yarn vscode:diff`)
   - Diffs [./lib/vscode](../lib/vscode) into [./ci/dev/vscode.patch](./dev/vscode.patch).
 - [./ci/dev/vscode.patch](./dev/vscode.patch)
-  - Our patch of VS Code, see [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md#vs-code-patch).
+  - Our patch of VS Code, see [./docs/CONTRIBUTING.md](../doc/CONTRIBUTING.md#vs-code-patch).
   - Generate it with `yarn vscode:diff` and apply with `yarn vscode:patch`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
-  - Example usage in [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
+  - Example usage in [./docs/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
 
 ## build
 
