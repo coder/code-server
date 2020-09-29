@@ -4,6 +4,9 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 ![Screenshot](./doc/assets/screenshot.png)
 
+ [!["GitHub Discussions"](https://img.shields.io/badge/questions%3F-%20GitHub%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community)
+[![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?style=social)](https://twitter.com/coderhq)
+
 ## Highlights
 
 - **Code everywhere**
