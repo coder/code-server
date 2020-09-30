@@ -34,7 +34,12 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
   try {
     const plugin: Plugin = require(pluginPath)
     plugin.activate(httpServer, args)
-    logger.debug("Loaded plugin", field("name", path.basename(pluginPath)))
+
+    logger.debug(
+      "Loaded plugin",
+      field("name", path.basename(pluginPath)),
+      field("version", require(path.join(pluginPath, "package.json")).version || "n/a"),
+    )
   } catch (error) {
     if (error.code !== "MODULE_NOT_FOUND") {
       logger.warn(error.message)
