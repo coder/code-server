@@ -401,7 +401,10 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
 
 function parseBindAddr(bindAddr: string): [string, number] {
   const u = new URL(`http://${bindAddr}`)
-  return [u.hostname, parseInt(u.port, 10)]
+  // With the http scheme 80 will be dropped so assume it's 80 if missing. This
+  // means --bind-addr <addr> without a port will default to 80 as well and not
+  // the code-server default.
+  return [u.hostname, u.port ? parseInt(u.port, 10) : 80]
 }
 
 interface Addr {
