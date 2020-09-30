@@ -4,11 +4,15 @@ import * as path from "path"
 import * as util from "util"
 import { Args } from "./cli"
 import { HttpServer } from "./http"
+import { paths } from "./util"
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
 export type Activate = (httpServer: HttpServer, args: Args) => void
 
+/**
+ * Plugins must implement this interface.
+ */
 export interface Plugin {
   activate: Activate
 }
@@ -23,6 +27,9 @@ require("module")._load = function (request: string, parent: object, isMain: boo
   return originalLoad.apply(this, [request.replace(/^code-server/, path.resolve(__dirname, "../..")), parent, isMain])
 }
 
+/**
+ * Load a plugin and run its activation function.
+ */
 const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args): Promise<void> => {
   try {
     const plugin: Plugin = require(pluginPath)
@@ -37,24 +44,42 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
   }
 }
 
-const _loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
-  const pluginPath = path.resolve(__dirname, "../../plugins")
-  const files = await util.promisify(fs.readdir)(pluginPath, {
-    withFileTypes: true,
-  })
-  await Promise.all(files.map((file) => loadPlugin(path.join(pluginPath, file.name), httpServer, args)))
-}
-
-export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
+/**
+ * Load all plugins in the specified directory.
+ */
+const _loadPlugins = async (pluginDir: string, httpServer: HttpServer, args: Args): Promise<void> => {
   try {
-    await _loadPlugins(httpServer, args)
+    const files = await util.promisify(fs.readdir)(pluginDir, {
+      withFileTypes: true,
+    })
+    await Promise.all(files.map((file) => loadPlugin(path.join(pluginDir, file.name), httpServer, args)))
   } catch (error) {
     if (error.code !== "ENOENT") {
       logger.warn(error.message)
     }
   }
+}
 
-  if (process.env.PLUGIN_DIR) {
-    await loadPlugin(process.env.PLUGIN_DIR, httpServer, args)
-  }
+/**
+ * Load all plugins from the `plugins` directory and the directory specified by
+ * `PLUGIN_DIR`.
+
+ * Also load any individual plugins found in `PLUGIN_DIRS` (colon-separated).
+ * This allows you to test and develop plugins without having to move or symlink
+ * them into one directory.
+ */
+export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
+  await Promise.all([
+    // Built-in plugins.
+    _loadPlugins(path.resolve(__dirname, "../../plugins"), httpServer, args),
+    // User-added plugins.
+    _loadPlugins(
+      path.resolve(process.env.PLUGIN_DIR || path.join(paths.data, "code-server-extensions")),
+      httpServer,
+      args,
+    ),
+    // For development so you don't have to use symlinks.
+    process.env.PLUGIN_DIRS &&
+      (await Promise.all(process.env.PLUGIN_DIRS.split(":").map((dir) => loadPlugin(dir, httpServer, args)))),
+  ])
 }
