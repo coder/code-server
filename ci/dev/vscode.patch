@@ -227,7 +227,7 @@ index da4fa3e9d0443d679dfbab1000b434af2ae01afd..50f3e1144f8057883dea8b91ec2f7073
  
  function processLib() {
 diff --git a/package.json b/package.json
-index 55804673c93eed7b058405a217f3f20d52159296..2c4f95e80d43e66e60f1ff4b904c72e12a74ccc0 100644
+index 9b5ee0f876303283eb766fd2bb3ed818c50b1d3e..30ef9fa81b1cd844138388d794d4d6d9db5c7fba 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,11 @@
@@ -267,9 +267,8 @@ index 55804673c93eed7b058405a217f3f20d52159296..2c4f95e80d43e66e60f1ff4b904c72e1
 +    "minimist": "^1.2.5"
    }
  }
-\ No newline at end of file
 diff --git a/product.json b/product.json
-index 30a7f0708ea14cbfdae916acc0ca1f0aecb2180f..8142fd3e038c35fb8e7cf46a5145925750b56ffc 100644
+index b9349015e3475bff07104ca2fa859954a37f962a..4c32260abc42efe17ee7d717e4dcebf182044e8c 100644
 --- a/product.json
 +++ b/product.json
 @@ -20,7 +20,7 @@
@@ -3073,7 +3072,7 @@ index ced2d815834e40a1543e80516472799075980733..dfcae73e8a042307600c67f163aa00ba
  
  .monaco-workbench .activitybar > .content > .home-bar > .home-bar-icon-badge {
 diff --git a/src/vs/workbench/browser/web.main.ts b/src/vs/workbench/browser/web.main.ts
-index 0ed16cec59b64a31ad798ef29703f2f33527a737..c1fb3c0db54e8df5335c1e79deccd4d4168bb7b1 100644
+index 511d7376a2bfebde59b4c67fed54c39e9dd534c9..c7c45f8e4e4ffe56a8782f58af75c6a7835142cf 100644
 --- a/src/vs/workbench/browser/web.main.ts
 +++ b/src/vs/workbench/browser/web.main.ts
 @@ -45,6 +45,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
