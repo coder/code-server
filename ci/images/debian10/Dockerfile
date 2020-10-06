@@ -32,10 +32,15 @@ RUN curl -fsSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/s
     mv shellcheck*/shellcheck /usr/local/bin && \
     rm -R shellcheck*
 
-# Install Go dependencies
+# Install Go.
 RUN ARCH="$(uname -m | sed 's/x86_64/amd64/; s/aarch64/arm64/')" && \
     curl -fsSL "https://dl.google.com/go/go1.14.3.linux-$ARCH.tar.gz" | tar -C /usr/local -xz
-ENV PATH=/usr/local/go/bin:/root/go/bin:$PATH
+ENV GOPATH=/gopath
+# Ensures running this image as another user works.
+RUN mkdir -p $GOPATH && chmod -R 777 $GOPATH
+ENV PATH=/usr/local/go/bin:$GOPATH/bin:$PATH
+
+# Install Go dependencies
 ENV GO111MODULE=on
 RUN go get mvdan.cc/sh/v3/cmd/shfmt
 RUN go get github.com/goreleaser/nfpm/cmd/nfpm
