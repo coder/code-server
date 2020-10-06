@@ -33,7 +33,7 @@ release_archive() {
   elif [[ $OS == "darwin" && $ARCH == "x86_64" ]]; then
     # Just exists to make autoupdating from 3.2.0 work again.
     mv ./release-standalone "./$release_name"
-    zip -r "release-packages/$release_name.zip" "./$release_name"
+    zip -yr "release-packages/$release_name.zip" "./$release_name"
     mv "./$release_name" ./release-standalone
     return
   else
