@@ -12,6 +12,7 @@ main() {
     -v "$PWD:/src" \
     -e HOME="/src/.home" \
     -e USER="coder" \
+    -e GITHUB_TOKEN \
     -w /src \
     -p 127.0.0.1:8080:8080 \
     -u "$(id -u):$(id -g)" \

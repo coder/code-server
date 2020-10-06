@@ -15,7 +15,8 @@ main() {
     dist \
     .cache \
     node-* \
-    .home
+    .home \
+    lib/coder-cloud-agent
 
   pushd lib/vscode
   git clean -xffd
