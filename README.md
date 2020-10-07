@@ -18,7 +18,7 @@ Code-server allows you to run [VS Code](https://github.com/Microsoft/vscode) on 
 
 *To see full installation instructions, including the install script, instructions for manual installation, and the Docker image, see [Installation](./docs/install.md).*
 
-We offer [install scripts](./install.sh) for Linux, macOS, and FreeBSD; the script uses the system package manager (if possible).
+We offer an [install script](./install.sh) for Linux, macOS, and FreeBSD; the script uses the system package manager (if possible).
 
 You can see what occurs during the install process by running the following (there are no file changes at this point):
 
