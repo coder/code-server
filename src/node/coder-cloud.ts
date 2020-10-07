@@ -9,7 +9,7 @@ import xdgBasedir from "xdg-basedir"
 
 const coderCloudAgent = path.resolve(__dirname, "../../lib/coder-cloud-agent")
 
-export async function coderCloudLink(serverName: string): Promise<void> {
+export async function coderCloudBind(serverName: string): Promise<void> {
   const agent = spawn(coderCloudAgent, ["link", serverName], {
     stdio: ["inherit", "inherit", "pipe"],
   })

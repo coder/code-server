@@ -12,7 +12,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
-import { coderCloudLink, coderCloudProxy } from "./coder-cloud"
+import { coderCloudBind, coderCloudProxy } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
@@ -36,13 +36,15 @@ const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
 const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
-  if (args["coder-link"]) {
-    // If we're being exposed to the cloud, we listen on a random address.
+  if (args["coder-bind"]) {
+    // If we're being exposed to the cloud, we listen on a random address and disable auth.
     args = {
       ...args,
       host: "localhost",
       port: 0,
+      auth: AuthType.None,
     }
+    logger.info("coder-bind: disabling auth and listening on random localhost port")
   }
 
   if (!args.auth) {
@@ -132,8 +134,6 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
-  coderCloudProxy(serverAddress!)
-
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
     const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost")
@@ -141,16 +141,12 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     logger.info(`Opened ${openAddress}`)
   }
 
-  if (args["coder-link"]) {
-    if (!args["coder-link"].value) {
-      logger.error("You must pass a name to link with coder cloud. See --help")
-      process.exit(1)
-    }
-
-    logger.info(`linking code-server to the cloud with name ${args["coder-link"].value}`)
+  if (args["coder-bind"]) {
+    logger.info(`linking code-server to the cloud with name ${args["coder-bind"]}`)
 
     try {
-      await coderCloudLink(args["coder-link"].value)
+      await coderCloudBind(args["coder-bind"])
+      coderCloudProxy(serverAddress!)
     } catch (err) {
       logger.error(err.message)
       process.exit(1)

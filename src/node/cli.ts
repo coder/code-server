@@ -48,7 +48,7 @@ export interface Args extends VsArgs {
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
 
-  readonly "coder-link"?: OptionalString
+  readonly "coder-bind"?: string
 }
 
 interface Option<T> {
@@ -159,10 +159,10 @@ const options: Options<Required<Args>> = {
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 
-  "coder-link": {
-    type: OptionalString,
+  "coder-bind": {
+    type: "string",
     description: `
-      Securely link code-server via Coder Cloud with the passed name. You'll get a URL like
+      Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
       Authorization is done via GitHub. Only the first code-server spawned with the current
       configuration will be accessible.`,
