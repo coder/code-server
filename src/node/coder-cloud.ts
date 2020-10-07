@@ -6,6 +6,8 @@ import split2 from "split2"
 const coderCloudAgent = path.resolve(__dirname, "../../lib/coder-cloud-agent")
 
 function runAgent(...args: string[]): Promise<void> {
+  logger.debug(`running agent with ${args}`)
+
   const agent = spawn(coderCloudAgent, args, {
     stdio: ["inherit", "inherit", "pipe"],
   })
