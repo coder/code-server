@@ -142,14 +142,14 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   }
 
   if (args["coder-bind"]) {
-    logger.info(`linking code-server to the cloud with name ${args["coder-bind"]}`)
 
     try {
+      logger.info(`binding code-server to the cloud with name ${args["coder-bind"]}`)
       await coderCloudBind(args["coder-bind"])
       coderCloudProxy(serverAddress!)
     } catch (err) {
       logger.error(err.message)
-      process.exit(1)
+      ipcMain().exit(1)
     }
   }
 }
