@@ -97,6 +97,7 @@ Please extend your path to use code-server:
   PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
 Then you can run:
   code-server
+Or pass the --start flag to the install script to have it start code-server for you.
 EOF
 }
 
@@ -107,6 +108,7 @@ To have systemd start code-server now and restart on boot:
   sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
   code-server
+Or pass the --start flag to the install script to have it start code-server for you.
 EOF
 }
 
@@ -148,6 +150,9 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --start)
+      START=1
+      ;;
     --)
       shift
       break
@@ -160,15 +165,6 @@ main() {
       echoerr "Unknown flag $1"
       echoerr "Run with --help to see usage."
       exit 1
-      ;;
-    *)
-      SSH_ARGS="$1"
-      if ! sshs true; then
-        echoerr "could not ssh into remote host"
-        echoerr "failed: ssh $SSH_ARGS true"
-        exit 1
-      fi
-      echoh "Installing remotely with ssh $SSH_ARGS"
       ;;
     esac
 
@@ -492,29 +488,34 @@ sh_c() {
 }
 
 sshs() {
+  cmdline="$*"
+
+  # We want connection sharing between invocations, a connection timeout,
+  # heartbeat and ssh to exit if port forwarding fails.
   mkdir -p ~/.ssh/sockets
   chmod 700 ~/.ssh
-
   set -- \
-    -oControlPath=~/.ssh/sockets/%r@%n.sock \
-    -oControlMaster=auto \
-    -oControlPersist=yes \
-    -oConnectTimeout=5 \
+    -o ControlPath=~/.ssh/sockets/%r@%n.sock \
+    -o ControlMaster=auto \
+    -o ControlPersist=yes \
+    -o ConnectTimeout=10 \
+    -o ServerAliveInterval=5 \
+    -o ExitOnForwardFailure=yes \
     $SSH_ARGS \
     "$@"
 
-  if ssh "$@"; then
-    return
+  set +e
+  ssh "$@"; code="$?"
+  set -e
+  # Exit code of 255 means ssh itself failed.
+  if [ "$code" -ne 255 ]; then
+    return "$code"
   fi
 
-  if ssh -O exit "$@"; then
-    # Control master has been deleted so we ought to try once more.
-    if ssh "$@"; then
-      return
-    fi
-  fi
-
-  return 1
+  echoerr "Failed to SSH into remote machine:"
+  echoerr "+ ssh $SSH_ARGS $cmdline"
+  echoerr "+ \$? = $code"
+  exit 1
 }
 
 # Always runs.
