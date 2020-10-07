@@ -12,7 +12,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
-import { coderCloudBind, coderCloudProxy } from "./coder-cloud"
+import { coderCloudBind } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
@@ -143,11 +143,8 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   }
 
   if (args["coder-bind"]) {
-
     try {
-      logger.info(`binding code-server to the cloud with name ${args["coder-bind"]}`)
-      await coderCloudBind(args["coder-bind"])
-      coderCloudProxy(serverAddress!)
+      await coderCloudBind(serverAddress!, args["coder-bind"].value)
     } catch (err) {
       logger.error(err.message)
       ipcMain().exit(1)
