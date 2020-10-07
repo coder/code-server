@@ -38,11 +38,12 @@ const commit = pkg.commit || "development"
 const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
   if (args["coder-bind"]) {
     // If we're being exposed to the cloud, we listen on a random address and disable auth.
-    args = {
-      ...args,
+    cliArgs = {
+      ...cliArgs,
       host: "localhost",
       port: 0,
       auth: AuthType.None,
+      socket: undefined,
     }
     logger.info("coder-bind: disabling auth and listening on random localhost port")
   }
