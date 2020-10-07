@@ -584,8 +584,11 @@ export class HttpServer {
         const onListen = (): void => resolve(this.address())
         if (this.options.socket) {
           this.server.listen(this.options.socket, onListen)
+        } else if (this.options.host) {
+          // [] is the correct format when using :: but Node errors with them.
+          this.server.listen(this.options.port, this.options.host.replace(/^\[|\]$/g, ""), onListen)
         } else {
-          this.server.listen(this.options.port, this.options.host, onListen)
+          this.server.listen(this.options.port, onListen)
         }
       })
     }
