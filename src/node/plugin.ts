@@ -35,10 +35,12 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
     const plugin: Plugin = require(pluginPath)
     plugin.activate(httpServer, args)
 
+    const packageJson = require(path.join(pluginPath, "package.json"))
     logger.debug(
       "Loaded plugin",
-      field("name", path.basename(pluginPath)),
-      field("version", require(path.join(pluginPath, "package.json")).version || "n/a"),
+      field("name", packageJson.name || path.basename(pluginPath)),
+      field("path", pluginPath),
+      field("version", packageJson.version || "n/a"),
     )
   } catch (error) {
     logger.error(error.message)
