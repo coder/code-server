@@ -66,25 +66,23 @@ const _loadPlugins = async (pluginDir: string, httpServer: HttpServer, args: Arg
 }
 
 /**
- * Load all plugins from the `plugins` directory and the directory specified by
- * `PLUGIN_DIR`.
-
- * Also load any individual plugins found in `PLUGIN_DIRS` (colon-separated).
- * This allows you to test and develop plugins without having to move or symlink
- * them into one directory.
+ * Load all plugins from the `plugins` directory, directories specified by
+ * `CS_PLUGIN_PATH` (colon-separated), and individual plugins specified by
+ * `CS_PLUGIN` (also colon-separated).
  */
 export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
+  const pluginPath = process.env.CS_PLUGIN_PATH || `${path.join(paths.data, "plugins")}:/etc/code-server/plugins`
+  const plugin = process.env.CS_PLUGIN || ""
   await Promise.all([
     // Built-in plugins.
     _loadPlugins(path.resolve(__dirname, "../../plugins"), httpServer, args),
     // User-added plugins.
-    _loadPlugins(
-      path.resolve(process.env.PLUGIN_DIR || path.join(paths.data, "code-server-extensions")),
-      httpServer,
-      args,
-    ),
-    // For development so you don't have to use symlinks.
-    process.env.PLUGIN_DIRS &&
-      (await Promise.all(process.env.PLUGIN_DIRS.split(":").map((dir) => loadPlugin(dir, httpServer, args)))),
+    ...pluginPath.split(":").map((dir) => _loadPlugins(path.resolve(dir), httpServer, args)),
+    // Individual plugins so you don't have to symlink or move them into a
+    // directory specifically for plugins. This lets you load plugins that are
+    // on the same level as other directories that are not plugins (if you tried
+    // to use CS_PLUGIN_PATH code-server would try to load those other
+    // directories as plugins). Intended for development.
+    ...plugin.split(":").map((dir) => loadPlugin(path.resolve(dir), httpServer, args)),
   ])
 }
