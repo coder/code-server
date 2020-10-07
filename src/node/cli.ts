@@ -164,8 +164,8 @@ const options: Options<Required<Args>> = {
     description: `
       Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
-      Authorization is done via GitHub. Only the first code-server spawned with the current
-      configuration will be accessible.`,
+      Authorization is done via GitHub.
+    `,
   },
 }
 
