@@ -41,11 +41,7 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
       field("version", require(path.join(pluginPath, "package.json")).version || "n/a"),
     )
   } catch (error) {
-    if (error.code !== "MODULE_NOT_FOUND") {
-      logger.warn(error.message)
-    } else {
-      logger.error(error.message)
-    }
+    logger.error(error.message)
   }
 }
 
