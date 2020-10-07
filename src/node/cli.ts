@@ -192,7 +192,8 @@ export const optionDescriptions = (): string[] => {
           }
           return " ".repeat(widths.long + widths.short + 6) + line
         })
-        .join("\n")
+        .join("\n") +
+      (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
     )
   })
 }
