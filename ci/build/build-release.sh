@@ -58,7 +58,6 @@ EOF
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 
-
   if [ "$KEEP_MODULES" = 1 ]; then
     rsync node_modules/ "$RELEASE_PATH/node_modules"
   fi
