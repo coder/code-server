@@ -72,7 +72,7 @@ During the code-server installation process, the following packages will be inst
 - For any unrecognized Linux operating system, code-server installs the latest standalone release into `~/.local`. Make sure that you add `~/.local/bin` to your `$PATH` to run code-server.
 - For macOS code-server installs Homebrew to `~/.local`. Make sure that you add `~/.local/bin` to your `$PATH` to run code-server.
 - For FreeBSD, code-server installs the [npm package](#yarn-npm) with `yarn` or `npm`
-- If you run code-server on an architecture with no releases, it installs the [npm package](#yarn-npm) with `yarn` or `npm`. The [npm package](#yarn-npm) builds the native modules on postinstall. Please note that we currently have releases only for amd64 and arm64.
+- If you run code-server on an architecture with no releases, it installs the [npm package](#yarn-npm) with `yarn` or `npm`. The [npm package](#yarn-npm) builds the native modules on postinstall. Please note that we currently have releases only for **amd64** and **arm64**.
 
 ### Debian, Ubuntu
 
@@ -90,8 +90,7 @@ sudo systemctl enable --now code-server@$USER
 curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-amd64.rpm
 sudo rpm -i code-server-3.5.0-amd64.rpm
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Arch Linux
@@ -102,8 +101,7 @@ To install code-server onto a workstation running Arch Linux using [yay](https:/
 # Installs code-server from the AUR using yay.
 yay -S code-server
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 Alternatively, you can use [makepkg](https://wiki.archlinux.org/index.php/Makepkg):
@@ -114,8 +112,7 @@ git clone https://aur.archlinux.org/code-server.git
 cd code-server
 makepkg -si
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### macOS
@@ -123,8 +120,7 @@ sudo systemctl enable --now code-server@$USER
 ```bash
 brew install code-server
 brew services start code-server
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### yarn, npm
@@ -136,8 +132,9 @@ You can install code-server using Yarn or npm. We recommend doing so if:
 
 Notes:
 
-- Installing code-server using Yarn or npm builds native modules on install, which requires [C dependencies](./npm.md) for installing these dependencies
+- Installing code-server using Yarn or npm builds native modules on install, which requires [C dependencies](./npm.md) for install
 - You must have Node.js version 12.x (or greater) installed
+- If you're running macOS, install [Xcode](https://developer.apple.com/xcode/downloads/) and run `xcode-select --install` befor proceeding with the installation.
 
 To install code-server using Yarn/npm:
 
@@ -145,15 +142,14 @@ To install code-server using Yarn/npm:
 yarn global add code-server
 # Or: npm install -g code-server
 code-server
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ## Standalone Releases
 
 For every release, we publish [self-contained .tar.gz archives](https://github.com/cdr/code-server/releases) that bundle the Node binary and modules.
 
-The base for these were created from the [npm package](#yarn-npm) with all subsequent releases created from the base.
+The base for these were created from the [npm package](#yarn-npm); we've created all subsequent releases using this base.
 
 ### Requirements
 
@@ -169,7 +165,7 @@ There are no minimum system requirements for macOS.
 
 To use code-server, point your browser to **http://127.0.0.1:8080**. You can find your password in **~/.config/code-server/config.yaml**.
 
-To run code-server without providing the full path, add the code-server `bin` directory to your `$PATH`.
+If you'd like to run code-server without providing the full path, add the code-server `bin` directory to your `$PATH`.
 
 ### Sample Installation Script
 
@@ -183,8 +179,7 @@ mv ~/.local/lib/code-server-3.5.0-linux-amd64 ~/.local/lib/code-server-3.5.0
 ln -s ~/.local/lib/code-server-3.5.0/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
-# Now visit http://127.0.0.1:8080.
-# Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Docker

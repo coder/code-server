@@ -1,19 +1,20 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-# npm Install Requirements
+# npm Package Installation Requirements
 
-- [Ubuntu, Debian](#ubuntu-debian)
-- [Fedora, CentOS, RHEL](#fedora-centos-rhel)
-- [macOS](#macos)
+- [npm Package Installation Requirements](#npm-package-installation-requirements)
+  - [Debian, Ubuntu](#debian-ubuntu)
+  - [CentOS, Fedora, RHEL](#centos-fedora-rhel)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-If you're installing the npm module you'll need certain dependencies to build
-the native modules used by VS Code.
+This article shows you how to install the npm package required when [installing code-server](./install.md#yarn-npm) onto a machine with architecture for which we don't offer a designated release. The npm package builds the native modules used by VS Code.
 
-You also need at least node v12 installed. See [#1633](https://github.com/cdr/code-server/issues/1633).
+Before proceeding, please make sure that you have Node.js version 12.x (or later) installed.
 
-## Ubuntu, Debian
+## Debian, Ubuntu
+
+To install the npm package on a machine running Debian or Ubuntu:
 
 ```bash
 sudo apt-get install -y \
@@ -26,19 +27,13 @@ sudo apt-get install -y \
 npm config set python python3
 ```
 
-## Fedora, CentOS, RHEL
+## CentOS, Fedora, RHEL
+
+To install the npm package on a machine running CentOS, Fedora, or RHEL:
 
 ```bash
 sudo yum groupinstall -y 'Development Tools'
 sudo yum config-manager --set-enabled PowerTools # unnecessary on CentOS 7
 sudo yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
 npm config set python python2
-```
-
-## macOS
-
-Install [Xcode](https://developer.apple.com/xcode/downloads/) and run:
-
-```bash
-xcode-select --install
 ```
