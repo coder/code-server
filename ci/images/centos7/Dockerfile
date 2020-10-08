@@ -1,6 +1,6 @@
 FROM centos:7
 
-ARG NODE_VERSION=v12.18.3
+ARG NODE_VERSION=v12.18.4
 RUN ARCH="$(uname -m | sed 's/86_64/64/; s/aarch64/arm64/')" && \
     curl -fsSL "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-linux-$ARCH.tar.xz" | tar -C /usr/local -xJ && \
     mv "/usr/local/node-$NODE_VERSION-linux-$ARCH" "/usr/local/node-$NODE_VERSION"
