@@ -41,6 +41,8 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 When done, the install script prints out instructions for running and starting code-server.
 
+See also our guide for [setup and configuration instructions](./docs/guide.md).
+
 **Note:** We recommend that those who object to the use of `curl | sh` by the install script read [this blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
 [Sandstorm](https://sandstorm.io). If you'd still prefer a manual installation process, please proceed with the remainder of this document.
 
