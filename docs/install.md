@@ -4,9 +4,9 @@
 
 - [Install](#install)
   - [Quick Install](#quick-install)
-  - [Flags](#flags)
-  - [Detection Reference](#detection-reference)
   - [Manual Installation](#manual-installation)
+    - [Flags](#flags)
+    - [Detection Reference](#detection-reference)
     - [Debian, Ubuntu](#debian-ubuntu)
     - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
     - [Arch Linux](#arch-linux)
@@ -46,7 +46,11 @@ See also our guide for [setup and configuration instructions](./docs/guide.md).
 **Note:** We recommend that those who object to the use of `curl | sh` by the install script read [this blogpost](https://sandstorm.io/news/2015-09-24-is-curl-bash-insecure-pgp-verified-install) by
 [Sandstorm](https://sandstorm.io). If you'd still prefer a manual installation process, please proceed with the remainder of this document.
 
-## Flags
+## Manual Installation
+
+The following are distro/operating system-specific guides to installing code-server.
+
+### Flags
 
 You may see one or more of the following flags used during the installation process:
 
@@ -58,7 +62,7 @@ You may see one or more of the following flags used during the installation proc
 - `--version=X.X.X`: install version `X.X.X` instead of the latest version
 - `--help`: see usage docs
 
-## Detection Reference
+### Detection Reference
 
 During the code-server installation process, the following packages will be installed if they're not already.
 
@@ -70,30 +74,24 @@ During the code-server installation process, the following packages will be inst
 - For FreeBSD, code-server installs the [npm package](#yarn-npm) with `yarn` or `npm`
 - If you run code-server on an architecture with no releases, it installs the [npm package](#yarn-npm) with `yarn` or `npm`. The [npm package](#yarn-npm) builds the native modules on postinstall. Please note that we currently have releases only for amd64 and arm64.
 
-## Manual Installation
-
-The following are distro/operating system-specific guides to installing code-server.
-
 ### Debian, Ubuntu
-
-To install code-server onto a workstation running Debian or Ubuntu:
 
 ```bash
 curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server_3.5.0_amd64.deb
 sudo dpkg -i code-server_3.5.0_amd64.deb
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Fedora, CentOS, RHEL, SUSE
-
-To install code-server onto a workstation running Fedora, CentOS, RHEL, or SUSE:
 
 ```bash
 curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-amd64.rpm
 sudo rpm -i code-server-3.5.0-amd64.rpm
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Arch Linux
@@ -104,7 +102,8 @@ To install code-server onto a workstation running Arch Linux using [yay](https:/
 # Installs code-server from the AUR using yay.
 yay -S code-server
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
 
 Alternatively, you can use [makepkg](https://wiki.archlinux.org/index.php/Makepkg):
@@ -115,19 +114,18 @@ git clone https://aur.archlinux.org/code-server.git
 cd code-server
 makepkg -si
 sudo systemctl enable --now code-server@$USER
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### macOS
 
-To install code-server using Homebrew:
-
 ```bash
 brew install code-server
 brew services start code-server
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
-
-When done, open a web browser and navigate to http://127.0.0.1:8080. You can find your password in **~/.config/code-server/config.yaml**.
 
 ### yarn, npm
 
@@ -147,9 +145,9 @@ To install code-server using Yarn/npm:
 yarn global add code-server
 # Or: npm install -g code-server
 code-server
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
-
-When done, open a web browser and navigate to http://127.0.0.1:8080. You can find your password in **~/.config/code-server/config.yaml**.
 
 ## Standalone Releases
 
@@ -185,7 +183,8 @@ mv ~/.local/lib/code-server-3.5.0-linux-amd64 ~/.local/lib/code-server-3.5.0
 ln -s ~/.local/lib/code-server-3.5.0/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
+# Now visit http://127.0.0.1:8080.
+# Your password is in ~/.config/code-server/config.yaml
 ```
 
 ### Docker

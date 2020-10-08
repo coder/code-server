@@ -1,6 +1,6 @@
 # code-server
 
-Code-server allows you to run [VS Code](https://github.com/Microsoft/vscode)
+code-server allows you to run [VS Code](https://github.com/Microsoft/vscode)
 on any machine anywhere and access it using a web browser.
 
 ![Screenshot](./docs/assets/screenshot.png)
