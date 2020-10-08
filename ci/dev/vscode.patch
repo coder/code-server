@@ -31,6 +31,32 @@ index f2ea1bd37010b1eb8a43ce9beaae4a88810f6e2d..3f660f9981921ec465d2b8809a1a5ea5
  	const yarnrc = fs.readFileSync(path.join(REPO_ROOT, 'remote', '.yarnrc'), 'utf8');
  	const target = /^target "(.*)"$/m.exec(yarnrc)[1];
  	return target;
+diff --git a/build/lib/extensions.js b/build/lib/extensions.js
+index 9cc40c4e1befd38886dc5880581d6f462a38dd3a..34e1fc89a8ac1c273a5cb41f19a088a8ec759d24 100644
+--- a/build/lib/extensions.js
++++ b/build/lib/extensions.js
+@@ -66,7 +66,7 @@ function fromLocal(extensionPath, forWeb) {
+     if (isWebPacked) {
+         input = updateExtensionPackageJSON(input, (data) => {
+             delete data.scripts;
+-            delete data.dependencies;
++            // https://github.com/cdr/code-server/pull/2041#issuecomment-685910322
+             delete data.devDependencies;
+             if (data.main) {
+                 data.main = data.main.replace('/out/', /dist/);
+diff --git a/build/lib/extensions.ts b/build/lib/extensions.ts
+index 7e529f17cb84d28d84de4ff64fa9fb8fc48135a9..462d699dc485369c74a4d9fdfefa48ba6124ac3a 100644
+--- a/build/lib/extensions.ts
++++ b/build/lib/extensions.ts
+@@ -70,7 +70,7 @@ function fromLocal(extensionPath: string, forWeb: boolean): Stream {
+ 	if (isWebPacked) {
+ 		input = updateExtensionPackageJSON(input, (data: any) => {
+ 			delete data.scripts;
+-			delete data.dependencies;
++			// https://github.com/cdr/code-server/pull/2041#issuecomment-685910322
+ 			delete data.devDependencies;
+ 			if (data.main) {
+ 				data.main = data.main.replace('/out/', /dist/);
 diff --git a/build/lib/node.js b/build/lib/node.js
 index 403ae3d9657f823019542e739fc39292db20e4fe..738ee8cee0e79aa239af10e1abefc9e836b8ce33 100644
 --- a/build/lib/node.js
