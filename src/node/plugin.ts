@@ -69,7 +69,7 @@ const _loadPlugins = async (pluginDir: string, httpServer: HttpServer, args: Arg
  * `CS_PLUGIN` (also colon-separated).
  */
 export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
-  const pluginPath = process.env.CS_PLUGIN_PATH || `${path.join(paths.data, "plugins")}:/etc/code-server/plugins`
+  const pluginPath = process.env.CS_PLUGIN_PATH || `${path.join(paths.data, "plugins")}:/usr/share/code-server/plugins`
   const plugin = process.env.CS_PLUGIN || ""
   await Promise.all([
     // Built-in plugins.
