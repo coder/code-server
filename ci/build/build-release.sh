@@ -25,6 +25,7 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+  rsync ./lib/coder-cloud-agent "$RELEASE_PATH/lib"
 
   # code-server exports types which can be imported and used by plugins. Those
   # types import ipc.d.ts but it isn't included in the final vscode build so
@@ -56,7 +57,6 @@ EOF
   ) > "$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
-
 
   if [ "$KEEP_MODULES" = 1 ]; then
     rsync node_modules/ "$RELEASE_PATH/node_modules"

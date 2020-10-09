@@ -8,7 +8,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/fmt.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/debian10
         with:
           args: ./ci/steps/fmt.sh
 
@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/lint.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/debian10
         with:
           args: ./ci/steps/lint.sh
 
@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/test.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/debian10
         with:
           args: ./ci/steps/test.sh
 
@@ -35,7 +35,7 @@ jobs:
     steps:
       - uses: actions/checkout@v1
       - name: Run ./ci/steps/release.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/debian10
         with:
           args: ./ci/steps/release.sh
       - name: Upload npm package artifact
@@ -116,7 +116,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/images/debian8
+        uses: ./ci/images/debian10
         with:
           args: ./ci/steps/build-docker-image.sh
       - name: Upload release image

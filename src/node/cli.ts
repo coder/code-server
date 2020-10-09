@@ -47,6 +47,8 @@ export interface Args extends VsArgs {
   readonly _: string[]
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
+
+  readonly "coder-bind"?: OptionalString
 }
 
 interface Option<T> {
@@ -63,6 +65,11 @@ interface Option<T> {
    * Description of the option. Leave blank to hide the option.
    */
   description?: string
+
+  /**
+   * If marked as beta, the option is not printed unless $CS_BETA is set.
+   */
+  beta?: boolean
 }
 
 type OptionType<T> = T extends boolean
@@ -130,7 +137,8 @@ const options: Options<Required<Args>> = {
   "install-extension": {
     type: "string[]",
     description:
-      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`. To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
+      "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
   },
   "enable-proposed-api": {
     type: "string[]",
@@ -155,6 +163,18 @@ const options: Options<Required<Args>> = {
   locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
+
+  "coder-bind": {
+    type: OptionalString,
+    description: `
+      Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
+      https://myname.coder-cloud.com at which you can easily access your code-server instance.
+      Authorization is done via GitHub.
+      This is presently beta and requires being accepted for testing.
+      See https://github.com/cdr/code-server/discussions/2137
+    `,
+    beta: true,
+  },
 }
 
 export const optionDescriptions = (): string[] => {
@@ -166,12 +186,32 @@ export const optionDescriptions = (): string[] => {
     }),
     { short: 0, long: 0 },
   )
-  return entries.map(
-    ([k, v]) =>
-      `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k}${" ".repeat(
-        widths.long - k.length,
-      )} ${v.description}${typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : ""}`,
-  )
+  return entries
+    .filter(([, v]) => {
+      // If CS_BETA is set, we show beta options but if not, then we do not want
+      // to show beta options.
+      return process.env.CS_BETA || !v.beta
+    })
+    .map(([k, v]) => {
+      const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${
+        v.short ? `-${v.short}` : " "
+      } --${k} `
+      return (
+        help +
+        v.description
+          ?.trim()
+          .split(/\n/)
+          .map((line, i) => {
+            line = line.trim()
+            if (i === 0) {
+              return " ".repeat(widths.long - k.length) + line
+            }
+            return " ".repeat(widths.long + widths.short + 6) + line
+          })
+          .join("\n") +
+        (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
+      )
+    })
 }
 
 export const parse = (

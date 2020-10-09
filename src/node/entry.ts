@@ -12,6 +12,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
+import { coderCloudBind } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
@@ -34,7 +35,20 @@ try {
 const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
-const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
+const main = async (args: Args, configArgs: Args): Promise<void> => {
+  if (args["coder-bind"]) {
+    // If we're being exposed to the cloud, we listen on a random address and disable auth.
+    args = {
+      ...args,
+      host: "localhost",
+      port: 0,
+      auth: AuthType.None,
+      socket: undefined,
+      cert: undefined,
+    }
+    logger.info("coder-bind: disabling auth and listening on random localhost port")
+  }
+
   if (!args.auth) {
     args = {
       ...args,
@@ -51,7 +65,7 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   if (args.auth === AuthType.Password && !password) {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
-  const [host, port] = bindAddrFromAllSources(cliArgs, configArgs)
+  const [host, port] = bindAddrFromAllSources(args, configArgs)
 
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
@@ -128,24 +142,33 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
     await open(openAddress).catch(console.error)
     logger.info(`Opened ${openAddress}`)
   }
+
+  if (args["coder-bind"]) {
+    try {
+      await coderCloudBind(serverAddress!, args["coder-bind"].value)
+    } catch (err) {
+      logger.error(err.message)
+      ipcMain().exit(1)
+    }
+  }
 }
 
 async function entry(): Promise<void> {
-  const tryParse = async (): Promise<[Args, Args, Args]> => {
+  const tryParse = async (): Promise<[Args, Args]> => {
     try {
       const cliArgs = parse(process.argv.slice(2))
       const configArgs = await readConfigFile(cliArgs.config)
       // This prioritizes the flags set in args over the ones in the config file.
       let args = Object.assign(configArgs, cliArgs)
       args = await setDefaults(args)
-      return [args, cliArgs, configArgs]
+      return [args, configArgs]
     } catch (error) {
       console.error(error.message)
       process.exit(1)
     }
   }
 
-  const [args, cliArgs, configArgs] = await tryParse()
+  const [args, configArgs] = await tryParse()
   if (args.help) {
     console.log("code-server", version, commit)
     console.log("")
@@ -240,7 +263,7 @@ async function entry(): Promise<void> {
     vscode.write(JSON.stringify(pipeArgs))
     vscode.end()
   } else {
-    wrap(() => main(args, cliArgs, configArgs))
+    wrap(() => main(args, configArgs))
   }
 }
 

@@ -2,7 +2,8 @@
 set -eu
 
 # This isn't set by default.
-export USER="$(whoami)"
+USER="$(whoami)"
+export USER
 
 if [ "${DOCKER_USER-}" != "$USER" ]; then
   echo "$DOCKER_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/nopasswd > /dev/null
@@ -11,7 +12,7 @@ if [ "${DOCKER_USER-}" != "$USER" ]; then
   sudo usermod --login "$DOCKER_USER" coder
   sudo groupmod -n "$DOCKER_USER" coder
 
-  export USER="$(whoami)"
+  USER="$DOCKER_USER"
 
   sudo sed -i "/coder/d" /etc/sudoers.d/nopasswd
   sudo sed -i "s/coder/$DOCKER_USER/g" /etc/fixuid/config.yml

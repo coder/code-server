@@ -11,15 +11,6 @@ main() {
   mkdir -p release-packages
 
   release_archive
-  # Will stop the auto update issues and allow people to upgrade their scripts
-  # for the new release structure.
-  if [[ $ARCH == "amd64" ]]; then
-    if [[ $OS == "linux" ]]; then
-      ARCH=x86_64 release_archive
-    elif [[ $OS == "macos" ]]; then
-      OS=darwin ARCH=x86_64 release_archive
-    fi
-  fi
 
   if [[ $OS == "linux" ]]; then
     release_nfpm
@@ -30,12 +21,6 @@ release_archive() {
   local release_name="code-server-$VERSION-$OS-$ARCH"
   if [[ $OS == "linux" ]]; then
     tar -czf "release-packages/$release_name.tar.gz" --transform "s/^\.\/release-standalone/$release_name/" ./release-standalone
-  elif [[ $OS == "darwin" && $ARCH == "x86_64" ]]; then
-    # Just exists to make autoupdating from 3.2.0 work again.
-    mv ./release-standalone "./$release_name"
-    zip -r "release-packages/$release_name.zip" "./$release_name"
-    mv "./$release_name" ./release-standalone
-    return
   else
     tar -czf "release-packages/$release_name.tar.gz" -s "/^release-standalone/$release_name/" release-standalone
   fi
