@@ -44,6 +44,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
       port: 0,
       auth: AuthType.None,
       socket: undefined,
+      cert: undefined,
     }
     logger.info("coder-bind: disabling auth and listening on random localhost port")
   }
