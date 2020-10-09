@@ -927,7 +927,29 @@ export class HttpServer {
     }
 
     // Must be authenticated to use the proxy.
-    route.provider.ensureAuthenticated(request)
+    if (!route.provider.authenticated(request)) {
+      // Attempt to determine if it's the user browsing the root and if so fall
+      // through to allow the login flow.
+      if (request.headers["content-type"] !== "application/json") {
+        switch (route.providerBase) {
+          case "/":
+          case "/static":
+            if (request.method === "GET") {
+              return undefined
+            }
+            break
+          case "/login":
+            if (request.method === "GET" || request.method === "POST") {
+              return undefined
+            }
+            break
+        }
+      }
+
+      // Assume anything else is some kind of request from the proxied
+      // application and return an unauthorized message.
+      throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+    }
 
     return {
       proxy: {
