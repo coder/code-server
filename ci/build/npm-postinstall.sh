@@ -36,6 +36,13 @@ vscode_yarn() {
   yarn --production --frozen-lockfile
   cd extensions
   yarn --production --frozen-lockfile
+  for ext in */; do
+    ext="${ext%/}"
+    echo "extensions/$ext: installing dependencies"
+    cd "$ext"
+    yarn --production --frozen-lockfile
+    cd "$OLDPWD"
+  done
 }
 
 main "$@"
