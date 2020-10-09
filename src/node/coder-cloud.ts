@@ -33,6 +33,8 @@ function runAgent(...args: string[]): Promise<void> {
 }
 
 export function coderCloudBind(csAddr: string, serverName = ""): Promise<void> {
+  logger.info("Remember --coder-bind is a beta feature and requires being accepted for testing")
+  logger.info("See https://github.com/cdr/code-server/discussions/2137")
   // addr needs to be in host:port format.
   // So we trim the protocol.
   csAddr = csAddr.replace(/^https?:\/\//, "")
