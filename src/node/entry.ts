@@ -240,16 +240,11 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
-  const tryParse = async (): Promise<[Args, Args, Args]> => {
-    const cliArgs = parse(process.argv.slice(2))
-    const configArgs = await readConfigFile(cliArgs.config)
-    // This prioritizes the flags set in args over the ones in the config file.
-    let args = Object.assign(configArgs, cliArgs)
-    args = await setDefaults(args)
-    return [args, cliArgs, configArgs]
-  }
-
-  const [args, cliArgs, configArgs] = await tryParse()
+  const cliArgs = parse(process.argv.slice(2))
+  const configArgs = await readConfigFile(cliArgs.config)
+  // This prioritizes the flags set in args over the ones in the config file.
+  let args = Object.assign(configArgs, cliArgs)
+  args = await setDefaults(args)
 
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
