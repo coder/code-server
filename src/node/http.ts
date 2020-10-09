@@ -578,11 +578,18 @@ export class HttpServer {
    */
   public listen(): Promise<string | null> {
     if (!this.listenPromise) {
-      this.listenPromise = new Promise((resolve, reject) => {
+      this.listenPromise = new Promise(async (resolve, reject) => {
         this.server.on("error", reject)
         this.server.on("upgrade", this.onUpgrade)
         const onListen = (): void => resolve(this.address())
         if (this.options.socket) {
+          try {
+            await fs.unlink(this.options.socket)
+          } catch (err) {
+            if (err.code !== "ENOENT") {
+              logger.warn(err.message)
+            }
+          }
           this.server.listen(this.options.socket, onListen)
         } else if (this.options.host) {
           // [] is the correct format when using :: but Node errors with them.
