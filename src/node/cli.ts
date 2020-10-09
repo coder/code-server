@@ -65,6 +65,11 @@ interface Option<T> {
    * Description of the option. Leave blank to hide the option.
    */
   description?: string
+
+  /**
+   * Whether to print this option in --help output
+   */
+  hidden?: boolean
 }
 
 type OptionType<T> = T extends boolean
@@ -166,6 +171,7 @@ const options: Options<Required<Args>> = {
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
       Authorization is done via GitHub.
     `,
+    hidden: true,
   },
 }
 
@@ -178,7 +184,7 @@ export const optionDescriptions = (): string[] => {
     }),
     { short: 0, long: 0 },
   )
-  return entries.map(([k, v]) => {
+  return entries.filter(([_, v]) => !v.hidden).map(([k, v]) => {
     const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k} `
     return (
       help +
