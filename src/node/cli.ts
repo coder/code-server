@@ -48,7 +48,7 @@ export interface Args extends VsArgs {
   readonly "reuse-window"?: boolean
   readonly "new-window"?: boolean
 
-  readonly "coder-bind"?: OptionalString
+  readonly link?: OptionalString
 }
 
 interface Option<T> {
@@ -164,7 +164,7 @@ const options: Options<Required<Args>> = {
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 
-  "coder-bind": {
+  link: {
     type: OptionalString,
     description: `
       Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like

@@ -3,6 +3,7 @@ import { spawn } from "child_process"
 import path from "path"
 import split2 from "split2"
 
+// https://github.com/cdr/coder-cloud
 const coderCloudAgent = path.resolve(__dirname, "../../lib/coder-cloud-agent")
 
 function runAgent(...args: string[]): Promise<void> {
@@ -33,7 +34,7 @@ function runAgent(...args: string[]): Promise<void> {
 }
 
 export function coderCloudBind(csAddr: string, serverName = ""): Promise<void> {
-  logger.info("Remember --coder-bind is a beta feature and requires being accepted for testing")
+  logger.info("Remember --link is a beta feature and requires being accepted for testing")
   logger.info("See https://github.com/cdr/code-server/discussions/2137")
   // addr needs to be in host:port format.
   // So we trim the protocol.

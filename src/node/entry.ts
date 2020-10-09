@@ -36,7 +36,7 @@ const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
 const main = async (args: Args, configArgs: Args): Promise<void> => {
-  if (args["coder-bind"]) {
+  if (args.link) {
     // If we're being exposed to the cloud, we listen on a random address and disable auth.
     args = {
       ...args,
@@ -46,7 +46,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
       socket: undefined,
       cert: undefined,
     }
-    logger.info("coder-bind: disabling auth and listening on random localhost port")
+    logger.info("link: disabling auth and listening on random localhost port for cloud agent")
   }
 
   if (!args.auth) {
@@ -143,9 +143,9 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     logger.info(`Opened ${openAddress}`)
   }
 
-  if (args["coder-bind"]) {
+  if (args.link) {
     try {
-      await coderCloudBind(serverAddress!, args["coder-bind"].value)
+      await coderCloudBind(serverAddress!, args.link.value)
     } catch (err) {
       logger.error(err.message)
       ipcMain().exit(1)
