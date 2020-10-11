@@ -75,12 +75,18 @@ export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<v
     // Built-in plugins.
     _loadPlugins(path.resolve(__dirname, "../../plugins"), httpServer, args),
     // User-added plugins.
-    ...pluginPath.split(":").map((dir) => _loadPlugins(path.resolve(dir), httpServer, args)),
+    ...pluginPath
+      .split(":")
+      .filter((p) => !!p)
+      .map((dir) => _loadPlugins(path.resolve(dir), httpServer, args)),
     // Individual plugins so you don't have to symlink or move them into a
     // directory specifically for plugins. This lets you load plugins that are
     // on the same level as other directories that are not plugins (if you tried
     // to use CS_PLUGIN_PATH code-server would try to load those other
     // directories as plugins). Intended for development.
-    ...plugin.split(":").map((dir) => loadPlugin(path.resolve(dir), httpServer, args)),
+    ...plugin
+      .split(":")
+      .filter((p) => !!p)
+      .map((dir) => loadPlugin(path.resolve(dir), httpServer, args)),
   ])
 }
