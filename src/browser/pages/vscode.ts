@@ -31,7 +31,8 @@ try {
 }
 
 ;(self.require as any) = {
-  baseUrl: `${options.csStaticBase}/lib/vscode/out`,
+  // Without the full URL VS Code will try to load file://.
+  baseUrl: `${window.location.origin}${options.csStaticBase}/lib/vscode/out`,
   recordStats: true,
   paths: {
     "vscode-textmate": `../node_modules/vscode-textmate/release/main`,
