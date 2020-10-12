@@ -3035,6 +3035,31 @@ index b3c89e51cfc25a53293a352a2a8ad50d5f26d595..e21abe4e13bc25a5b72f556bbfb61085
  registerSingleton(IExtHostTerminalService, ExtHostTerminalService);
  registerSingleton(IExtHostTunnelService, ExtHostTunnelService);
 +registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy<IExtHostNodeProxy>(String(IExtHostNodeProxy)) { whenReady = Promise.resolve(); });
+diff --git a/src/vs/workbench/api/node/extHostCLIServer.ts b/src/vs/workbench/api/node/extHostCLIServer.ts
+index 7cae126cc0f804273850933468690e0f9f10a5b8..08c2aa5cdae3f3d06bb08b7055dc7e7def260132 100644
+--- a/src/vs/workbench/api/node/extHostCLIServer.ts
++++ b/src/vs/workbench/api/node/extHostCLIServer.ts
+@@ -11,6 +11,8 @@ import { IWindowOpenable, IOpenWindowOptions } from 'vs/platform/windows/common/
+ import { URI } from 'vs/base/common/uri';
+ import { hasWorkspaceFileExtension } from 'vs/platform/workspaces/common/workspaces';
+ import { ILogService } from 'vs/platform/log/common/log';
++import { join } from 'vs/base/common/path';
++import { tmpdir } from 'os';
+ 
+ export interface OpenCommandPipeArgs {
+ 	type: 'open';
+@@ -54,6 +56,11 @@ export class CLIServer {
+ 	private async setup(): Promise<string> {
+ 		this._ipcHandlePath = generateRandomPipeName();
+ 
++		// NOTE@coder: Write this out so we can get the most recent path.
++		fs.promises.writeFile(join(tmpdir(), "vscode-ipc"), this._ipcHandlePath).catch((error) => {
++			this.logService.error(error);
++		});
++
+ 		try {
+ 			this._server.listen(this.ipcHandlePath);
+ 			this._server.on('error', err => this.logService.error(err));
 diff --git a/src/vs/workbench/api/worker/extHost.worker.services.ts b/src/vs/workbench/api/worker/extHost.worker.services.ts
 index 3843fdec386edc09a1d361b63de892a04e0070ed..8aac4df527857e964798362a69f5591bef07c165 100644
 --- a/src/vs/workbench/api/worker/extHost.worker.services.ts
