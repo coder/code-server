@@ -22,4 +22,4 @@
 
 Administrator credentials:
 
-  Password : $(kubectl get secret --namespace {{ .Release.Namespace }} {{ template "code-server.fullname" . }} -o jsonpath="{.data.password}" | base64 --decode)
+  Password: echo $(kubectl get secret --namespace {{ .Release.Namespace }} {{ template "code-server.fullname" . }} -o jsonpath="{.data.password}" | base64 --decode)
