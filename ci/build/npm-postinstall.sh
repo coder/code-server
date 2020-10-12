@@ -24,6 +24,10 @@ main() {
     ;;
   esac
 
+  OS="$(uname | tr '[:upper:]' '[:lower:]')"
+  curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent
+  chmod +x ./lib/coder-cloud-agent
+
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/doc/npm.md"
