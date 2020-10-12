@@ -114,6 +114,7 @@ persistence:
   accessMode: ReadWriteOnce
   size: 1Gi
   annotations: {}
+  # existingClaim: ""
 
 serviceAccount:
   create: true
