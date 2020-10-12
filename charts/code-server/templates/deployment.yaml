@@ -74,11 +74,7 @@ spec:
         {{- end }}
           volumeMounts:
           - name: data
-            mountPath: /home/coder/project
-            subPath: project
-          - name: data
-            mountPath: /home/coder/.local/share/code-server
-            subPath: code-server
+            mountPath: /home/coder
           {{- range .Values.extraConfigmapMounts }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
