@@ -1,6 +1,4 @@
-import * as http from "http"
-import { HttpCode, HttpError } from "../../common/http"
-import { HttpProvider, HttpResponse, Route, Heart, HttpProviderOptions } from "../http"
+import { HttpProvider, HttpResponse, Heart, HttpProviderOptions } from "../http"
 
 /**
  * Check the heartbeat.
@@ -10,15 +8,8 @@ export class HealthHttpProvider extends HttpProvider {
     super(options)
   }
 
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    if (!this.authenticated(request)) {
-      if (this.isRoot(route)) {
-        return { redirect: "/login", query: { to: route.fullPath } }
-      }
-      throw new HttpError("Unauthorized", HttpCode.Unauthorized)
-    }
-
-    const result = {
+  public async handleRequest(): Promise<HttpResponse> {
+    return {
       cache: false,
       mime: "application/json",
       content: {
@@ -26,7 +17,5 @@ export class HealthHttpProvider extends HttpProvider {
         lastHeartbeat: this.heart.lastHeartbeat,
       },
     }
-
-    return result
   }
 }

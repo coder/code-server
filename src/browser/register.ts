@@ -10,7 +10,7 @@ if ("serviceWorker" in navigator) {
   const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
   navigator.serviceWorker
     .register(path, {
-      scope: options.base || "/",
+      scope: (options.base ?? "") + "/",
     })
     .then(() => {
       console.log("[Service Worker] registered")

@@ -4,7 +4,7 @@ import * as path from "path"
 import * as tls from "tls"
 import { Emitter } from "../common/emitter"
 import { generateUuid } from "../common/util"
-import { tmpdir } from "./util"
+import { canConnect, tmpdir } from "./util"
 
 /**
  * Provides a way to proxy a TLS socket. Can be used when you need to pass a
@@ -89,17 +89,6 @@ export class SocketProxyProvider {
   }
 
   public async findFreeSocketPath(basePath: string, maxTries = 100): Promise<string> {
-    const canConnect = (path: string): Promise<boolean> => {
-      return new Promise((resolve) => {
-        const socket = net.connect(path)
-        socket.once("error", () => resolve(false))
-        socket.once("connect", () => {
-          socket.destroy()
-          resolve(true)
-        })
-      })
-    }
-
     let i = 0
     let path = basePath
     while ((await canConnect(path)) && i < maxTries) {

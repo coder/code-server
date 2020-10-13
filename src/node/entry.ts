@@ -11,18 +11,21 @@ import { ProxyHttpProvider } from "./app/proxy"
 import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
-import { Args, bindAddrFromAllSources, optionDescriptions, parse, readConfigFile, setDefaults } from "./cli"
+import {
+  Args,
+  bindAddrFromAllSources,
+  optionDescriptions,
+  parse,
+  readConfigFile,
+  setDefaults,
+  shouldOpenInExistingInstance,
+  shouldRunVsCodeCli,
+} from "./cli"
+import { coderCloudBind } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
 import { generateCertificate, hash, humanPath, open } from "./util"
-import { ipcMain, wrap } from "./wrapper"
-
-process.on("uncaughtException", (error) => {
-  logger.error(`Uncaught exception: ${error.message}`)
-  if (typeof error.stack !== "undefined") {
-    logger.error(error.stack)
-  }
-})
+import { ipcMain, WrapperProcess } from "./wrapper"
 
 let pkg: { version?: string; commit?: string } = {}
 try {
@@ -34,7 +37,100 @@ try {
 const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
-const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> => {
+export const runVsCodeCli = (args: Args): void => {
+  logger.debug("forking vs code cli...")
+  const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
+    env: {
+      ...process.env,
+      CODE_SERVER_PARENT_PID: process.pid.toString(),
+    },
+  })
+  vscode.once("message", (message: any) => {
+    logger.debug("got message from VS Code", field("message", message))
+    if (message.type !== "ready") {
+      logger.error("Unexpected response waiting for ready response", field("type", message.type))
+      process.exit(1)
+    }
+    const send: CliMessage = { type: "cli", args }
+    vscode.send(send)
+  })
+  vscode.once("error", (error) => {
+    logger.error("Got error from VS Code", field("error", error))
+    process.exit(1)
+  })
+  vscode.on("exit", (code) => process.exit(code || 0))
+}
+
+export const openInExistingInstance = async (args: Args, socketPath: string): Promise<void> => {
+  const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
+    type: "open",
+    folderURIs: [],
+    fileURIs: [],
+    forceReuseWindow: args["reuse-window"],
+    forceNewWindow: args["new-window"],
+  }
+
+  const isDir = async (path: string): Promise<boolean> => {
+    try {
+      const st = await fs.stat(path)
+      return st.isDirectory()
+    } catch (error) {
+      return false
+    }
+  }
+
+  for (let i = 0; i < args._.length; i++) {
+    const fp = path.resolve(args._[i])
+    if (await isDir(fp)) {
+      pipeArgs.folderURIs.push(fp)
+    } else {
+      pipeArgs.fileURIs.push(fp)
+    }
+  }
+
+  if (pipeArgs.forceNewWindow && pipeArgs.fileURIs.length > 0) {
+    logger.error("--new-window can only be used with folder paths")
+    process.exit(1)
+  }
+
+  if (pipeArgs.folderURIs.length === 0 && pipeArgs.fileURIs.length === 0) {
+    logger.error("Please specify at least one file or folder")
+    process.exit(1)
+  }
+
+  const vscode = http.request(
+    {
+      path: "/",
+      method: "POST",
+      socketPath,
+    },
+    (response) => {
+      response.on("data", (message) => {
+        logger.debug("got message from VS Code", field("message", message.toString()))
+      })
+    },
+  )
+  vscode.on("error", (error: unknown) => {
+    logger.error("got error from VS Code", field("error", error))
+  })
+  vscode.write(JSON.stringify(pipeArgs))
+  vscode.end()
+}
+
+const main = async (args: Args, configArgs: Args): Promise<void> => {
+  if (args.link) {
+    // If we're being exposed to the cloud, we listen on a random address and disable auth.
+    args = {
+      ...args,
+      host: "localhost",
+      port: 0,
+      auth: AuthType.None,
+      socket: undefined,
+      cert: undefined,
+    }
+    logger.info("link: disabling auth and listening on random localhost port for cloud agent")
+  }
+
   if (!args.auth) {
     args = {
       ...args,
@@ -51,7 +147,7 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   if (args.auth === AuthType.Password && !password) {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
-  const [host, port] = bindAddrFromAllSources(cliArgs, configArgs)
+  const [host, port] = bindAddrFromAllSources(args, configArgs)
 
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
@@ -85,13 +181,15 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
 
   await loadPlugins(httpServer, args)
 
-  ipcMain().onDispose(() => {
+  ipcMain.onDispose(() => {
     httpServer.dispose().then((errors) => {
       errors.forEach((error) => logger.error(error.message))
     })
   })
 
   logger.info(`code-server ${version} ${commit}`)
+  logger.info(`Using config file ${humanPath(args.config)}`)
+
   const serverAddress = await httpServer.listen()
   logger.info(`HTTP server listening on ${serverAddress}`)
 
@@ -125,27 +223,38 @@ const main = async (args: Args, cliArgs: Args, configArgs: Args): Promise<void> 
   if (serverAddress && !options.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
     const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost")
-    await open(openAddress).catch(console.error)
+    await open(openAddress).catch((error: Error) => {
+      logger.error("Failed to open", field("address", openAddress), field("error", error))
+    })
     logger.info(`Opened ${openAddress}`)
+  }
+
+  if (args.link) {
+    try {
+      await coderCloudBind(serverAddress!, args.link.value)
+    } catch (err) {
+      logger.error(err.message)
+      ipcMain.exit(1)
+    }
   }
 }
 
 async function entry(): Promise<void> {
-  const tryParse = async (): Promise<[Args, Args, Args]> => {
-    try {
-      const cliArgs = parse(process.argv.slice(2))
-      const configArgs = await readConfigFile(cliArgs.config)
-      // This prioritizes the flags set in args over the ones in the config file.
-      let args = Object.assign(configArgs, cliArgs)
-      args = await setDefaults(args)
-      return [args, cliArgs, configArgs]
-    } catch (error) {
-      console.error(error.message)
-      process.exit(1)
-    }
+  const cliArgs = parse(process.argv.slice(2))
+  const configArgs = await readConfigFile(cliArgs.config)
+  // This prioritizes the flags set in args over the ones in the config file.
+  let args = Object.assign(configArgs, cliArgs)
+  args = await setDefaults(args)
+
+  // There's no need to check flags like --help or to spawn in an existing
+  // instance for the child process because these would have already happened in
+  // the parent and the child wouldn't have been spawned.
+  if (ipcMain.isChild) {
+    await ipcMain.handshake()
+    ipcMain.preventExit()
+    return main(args, configArgs)
   }
 
-  const [args, cliArgs, configArgs] = await tryParse()
   if (args.help) {
     console.log("code-server", version, commit)
     console.log("")
@@ -155,7 +264,10 @@ async function entry(): Promise<void> {
     optionDescriptions().forEach((description) => {
       console.log("", description)
     })
-  } else if (args.version) {
+    return
+  }
+
+  if (args.version) {
     if (args.json) {
       console.log({
         codeServer: version,
@@ -165,83 +277,23 @@ async function entry(): Promise<void> {
     } else {
       console.log(version, commit)
     }
-    process.exit(0)
-  } else if (process.env.VSCODE_IPC_HOOK_CLI) {
-    const pipeArgs: OpenCommandPipeArgs = {
-      type: "open",
-      folderURIs: [],
-      forceReuseWindow: args["reuse-window"],
-      forceNewWindow: args["new-window"],
-    }
-    const isDir = async (path: string): Promise<boolean> => {
-      try {
-        const st = await fs.stat(path)
-        return st.isDirectory()
-      } catch (error) {
-        return false
-      }
-    }
-    for (let i = 0; i < args._.length; i++) {
-      const fp = path.resolve(args._[i])
-      if (await isDir(fp)) {
-        pipeArgs.folderURIs.push(fp)
-      } else {
-        if (!pipeArgs.fileURIs) {
-          pipeArgs.fileURIs = []
-        }
-        pipeArgs.fileURIs.push(fp)
-      }
-    }
-    if (pipeArgs.forceNewWindow && pipeArgs.fileURIs && pipeArgs.fileURIs.length > 0) {
-      logger.error("new-window can only be used with folder paths")
-      process.exit(1)
-    }
-    if (pipeArgs.folderURIs.length === 0 && (!pipeArgs.fileURIs || pipeArgs.fileURIs.length === 0)) {
-      logger.error("Please specify at least one file or folder argument")
-      process.exit(1)
-    }
-    const vscode = http.request(
-      {
-        path: "/",
-        method: "POST",
-        socketPath: process.env["VSCODE_IPC_HOOK_CLI"],
-      },
-      (res) => {
-        res.on("data", (message) => {
-          logger.debug("Got message from VS Code", field("message", message.toString()))
-        })
-      },
-    )
-    vscode.on("error", (err) => {
-      logger.debug("Got error from VS Code", field("error", err))
-    })
-    vscode.write(JSON.stringify(pipeArgs))
-    vscode.end()
-  } else if (args["list-extensions"] || args["install-extension"] || args["uninstall-extension"]) {
-    logger.debug("forking vs code cli...")
-    const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
-      env: {
-        ...process.env,
-        CODE_SERVER_PARENT_PID: process.pid.toString(),
-      },
-    })
-    vscode.once("message", (message: any) => {
-      logger.debug("Got message from VS Code", field("message", message))
-      if (message.type !== "ready") {
-        logger.error("Unexpected response waiting for ready response")
-        process.exit(1)
-      }
-      const send: CliMessage = { type: "cli", args }
-      vscode.send(send)
-    })
-    vscode.once("error", (error) => {
-      logger.error(error.message)
-      process.exit(1)
-    })
-    vscode.on("exit", (code) => process.exit(code || 0))
-  } else {
-    wrap(() => main(args, cliArgs, configArgs))
+    return
   }
+
+  if (shouldRunVsCodeCli(args)) {
+    return runVsCodeCli(args)
+  }
+
+  const socketPath = await shouldOpenInExistingInstance(cliArgs)
+  if (socketPath) {
+    return openInExistingInstance(args, socketPath)
+  }
+
+  const wrapper = new WrapperProcess(require("../../package.json").version)
+  return wrapper.start()
 }
 
-entry()
+entry().catch((error) => {
+  logger.error(error.message)
+  ipcMain.exit(error)
+})

@@ -6,7 +6,7 @@ main() {
 
   cd ./lib/vscode
   git add -A
-  git diff HEAD > ../../ci/dev/vscode.patch
+  git diff HEAD --full-index > ../../ci/dev/vscode.patch
 }
 
 main "$@"

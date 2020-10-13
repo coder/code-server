@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -39,6 +39,7 @@
     "@types/pem": "^1.9.5",
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
+    "@types/split2": "^2.1.6",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
@@ -76,6 +77,7 @@
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",
+    "split2": "^3.2.2",
     "tar": "^6.0.1",
     "tar-fs": "^2.0.0",
     "ws": "^7.2.0",

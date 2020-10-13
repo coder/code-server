@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  NODE_VERSION=v12.18.3
+  NODE_VERSION=v12.18.4
   NODE_OS="$(uname | tr '[:upper:]' '[:lower:]')"
   NODE_ARCH="$(uname -m | sed 's/86_64/64/; s/aarch64/arm64/')"
   curl -L "https://nodejs.org/dist/$NODE_VERSION/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH.tar.gz" | tar -xz

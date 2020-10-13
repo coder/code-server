@@ -17,7 +17,7 @@ try {
       }
       // FIXME: Only works if path separators are /.
       const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
-      fetch(`{{BASE}}/resource/?path=${encodeURIComponent(path)}`)
+      fetch(`${options.base}/vscode/resource/?path=${encodeURIComponent(path)}`)
         .then((response) => response.json())
         .then((json) => {
           bundles[bundle] = json
