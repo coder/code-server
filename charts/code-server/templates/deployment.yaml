@@ -74,11 +74,7 @@ spec:
         {{- end }}
           volumeMounts:
           - name: data
-            mountPath: /home/coder/project
-            subPath: project
-          - name: data
-            mountPath: /home/coder/.local/share/code-server
-            subPath: code-server
+            mountPath: /home/coder
           {{- range .Values.extraConfigmapMounts }}
           - name: {{ .name }}
             mountPath: {{ .mountPath }}
@@ -126,19 +122,31 @@ spec:
       volumes:
       - name: data
       {{- if .Values.persistence.enabled }}
+        {{- if not .Values.persistence.hostPath }}
         persistentVolumeClaim:
           claimName: {{ .Values.persistence.existingClaim | default (include "code-server.fullname" .) }}
+        {{- else }}
+        hostPath:
+          path: {{ .Values.persistence.hostPath }}
+          type: Directory
+        {{- end -}}
       {{- else }}
         emptyDir: {}
       {{- end -}}
       {{- range .Values.extraSecretMounts }}
-        - name: {{ .name }}
-          secret:
-            secretName: {{ .secretName }}
-            defaultMode: {{ .defaultMode }}
+      - name: {{ .name }}
+        secret:
+          secretName: {{ .secretName }}
+          defaultMode: {{ .defaultMode }}
       {{- end }}
       {{- range .Values.extraVolumeMounts }}
-        - name: {{ .name }}
-          persistentVolumeClaim:
-            claimName: {{ .existingClaim }}
+      - name: {{ .name }}
+        {{- if .existingClaim }}
+        persistentVolumeClaim:
+          claimName: {{ .existingClaim }}
+        {{- else }}
+        hostPath:
+          path: {{ .hostPath }}
+          type: Directory
+        {{- end }}
       {{- end }}

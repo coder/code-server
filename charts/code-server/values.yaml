@@ -115,6 +115,7 @@ persistence:
   size: 1Gi
   annotations: {}
   # existingClaim: ""
+  # hostPath: /data
 
 serviceAccount:
   create: true
@@ -152,6 +153,7 @@ extraVolumeMounts: []
   #   mountPath: /mnt/volume
   #   readOnly: true
   #   existingClaim: volume-claim
+  #   hostPath: ""
 
 extraConfigmapMounts: []
   # - name: certs-configmap
