@@ -3165,6 +3165,51 @@ index 18ea0bfedb4492327429a38237b05915b29f6dd0..d59a17c17f4fffa23d786ce36b4ff624
  				this._filenameKey.set(value ? basename(value) : null);
  				this._langIdKey.set(value ? this._modeService.getModeIdByFilepathOrFirstLine(value) : null);
  				this._extensionKey.set(value ? extname(value) : null);
+diff --git a/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts b/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts
+index 33ab9f5a25e4124706ef38d6bf39f77e0ccafb32..8e479f579ee70ba5781b68f6b460ce223ec32e07 100644
+--- a/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts
++++ b/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts
+@@ -408,6 +408,40 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
+ 		addClass(parent, 'extensions-viewlet');
+ 		this.root = parent;
+ 
++		// NOTE@coder this UI element helps users understand the extension marketplace divergence
++		const extensionHelperLocalStorageKey = 'coder.extension-help-message';
++		if (localStorage.getItem(extensionHelperLocalStorageKey) === null) {
++			const helperHeader = append(this.root, $('.header'));
++			helperHeader.id = 'codeServerMarketplaceHelper';
++			helperHeader.style.height = 'auto';
++			helperHeader.style.border = '3px solid red';
++			helperHeader.style.borderRadius = '10px';
++			helperHeader.style.fontWeight = '600';
++			helperHeader.style.padding = 'padding: 5px 16px';
++			helperHeader.style.position = 'relative';
++			helperHeader.innerHTML = `
++			<div>
++			<p>
++			NOTE: code-server has its own marketplace of open-source extensions due to
++			<a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md#differences-compared-to-vs-code" target="_blank">legal distribution restrictions</a>.
++			VSIX assets from the <a href="https://marketplace.visualstudio.com/vscode" target="_blank">official marketplace</a> can be
++			downloaded and installed by uploading through the dropdown above.
++			</p>
++			</div>
++					`;
++			const dismiss = append(helperHeader, $('span'));
++			dismiss.innerHTML = 'Dismiss';
++			dismiss.style.position = 'absolute';
++			dismiss.style.bottom = '5px';
++			dismiss.style.right = '15px';
++			dismiss.style.cursor = 'pointer';
++
++			dismiss.onclick = () => {
++				helperHeader.style.display = 'none';
++				localStorage.setItem(extensionHelperLocalStorageKey, 'viewed');
++			};
++		}
++
+ 		const overlay = append(this.root, $('.overlay'));
+ 		const overlayBackgroundColor = this.getColor(SIDE_BAR_DRAG_AND_DROP_BACKGROUND) ?? '';
+ 		overlay.style.backgroundColor = overlayBackgroundColor;
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
 index b1838de8f21c60141d01cc424a5e000a32f1c828..0a480032e0cc8d5219cd240f8807aa317718659d 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
