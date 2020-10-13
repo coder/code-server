@@ -38,6 +38,8 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 The install script will print out how to run and start using code-server.
 
+**We're making it easier to access your code-server instance securely from any device. To gain pre-release access, [join our alpha program](https://codercom.typeform.com/to/U4IKyv0W).**
+
 ### Manual Install
 
 Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
