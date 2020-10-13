@@ -42,6 +42,15 @@ The install script will print out how to run and start using code-server.
 
 Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
 
+### Alpha Program 🐣
+We're working on a cloud platform to make deploying and managing code-server easier. If you don't want to worry about
+
+* TLS
+* Authentication
+* Port Forwarding
+
+consider [joining our alpha program](https://codercom.typeform.com/to/U4IKyv0W).
+
 ## FAQ
 
 See [./doc/FAQ.md](./doc/FAQ.md).
