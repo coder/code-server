@@ -929,11 +929,10 @@ index 0000000000000000000000000000000000000000..3c0703b7174ad792a4b42841e96ee937
 +};
 diff --git a/src/vs/server/browser/extHostNodeProxy.ts b/src/vs/server/browser/extHostNodeProxy.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..6c6b87a05610417d73635c5a151845000f216d28
+index 0000000000000000000000000000000000000000..5dd5406befcb593ad6366d9e98f46485ed14fbc0
 --- /dev/null
 +++ b/src/vs/server/browser/extHostNodeProxy.ts
-@@ -0,0 +1,52 @@
-+import { VSBuffer } from 'vs/base/common/buffer';
+@@ -0,0 +1,51 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { UriComponents } from 'vs/base/common/uri';
 +import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
@@ -3282,7 +3281,7 @@ index a982b3ecc58c5a2f3a92be7b8cca3a1cacbb7d47..97f9bfcf0e679be683b1b09cd569149e
  			const error = new Error(localize('cannot be installed', "Cannot install '{0}' because this extension has defined that it cannot run on the remote server.", gallery.displayName || gallery.name));
  			error.name = INSTALL_ERROR_NOT_SUPPORTED;
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index 5eaec3499a3bd87ee4026c26a4b0e8c706978859..ee6801e5ddab91910930685c326aa6e344dd8d5d 100644
+index 5eaec3499a3bd87ee4026c26a4b0e8c706978859..829514442fe60e2999378af14fd38c71ee92d2b9 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
 @@ -161,8 +161,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
@@ -3293,7 +3292,7 @@ index 5eaec3499a3bd87ee4026c26a4b0e8c706978859..ee6801e5ddab91910930685c326aa6e3
  		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
 +		// NOTE@coder: Include remotely hosted extensions that should run locally.
 +		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
-+			.concat(remoteExtensions.filter(ext => ext.extensionKind && (ext.extensionKind === "web" || ext.extensionKind.includes("web"))));
++			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === "web" || ext.extensionKind.includes("web"))));
  
  		const remoteAgentConnection = this._remoteAgentService.getConnection();
  		this._runningLocation = this._runningLocationClassifier.determineRunningLocation(localExtensions, remoteExtensions);
