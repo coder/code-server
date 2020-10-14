@@ -929,11 +929,13 @@ index 0000000000000000000000000000000000000000..3c0703b7174ad792a4b42841e96ee937
 +};
 diff --git a/src/vs/server/browser/extHostNodeProxy.ts b/src/vs/server/browser/extHostNodeProxy.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..ed7c078077b0c375758529959b280e091436113a
+index 0000000000000000000000000000000000000000..6c6b87a05610417d73635c5a151845000f216d28
 --- /dev/null
 +++ b/src/vs/server/browser/extHostNodeProxy.ts
-@@ -0,0 +1,46 @@
+@@ -0,0 +1,52 @@
++import { VSBuffer } from 'vs/base/common/buffer';
 +import { Emitter } from 'vs/base/common/event';
++import { UriComponents } from 'vs/base/common/uri';
 +import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
 +import { ExtHostNodeProxyShape, MainContext, MainThreadNodeProxyShape } from 'vs/workbench/api/common/extHost.protocol';
 +import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
@@ -975,17 +977,24 @@ index 0000000000000000000000000000000000000000..ed7c078077b0c375758529959b280e09
 +	public send(message: string): void {
 +		this.proxy.$send(message);
 +	}
++
++	public async fetchExtension(extensionUri: UriComponents): Promise<Uint8Array> {
++		return this.proxy.$fetchExtension(extensionUri).then(b => b.buffer);
++	}
 +}
 +
 +export interface IExtHostNodeProxy extends ExtHostNodeProxy { }
 +export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>('IExtHostNodeProxy');
 diff --git a/src/vs/server/browser/mainThreadNodeProxy.ts b/src/vs/server/browser/mainThreadNodeProxy.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..0d2e93edae2baf34d27b7b52be0bf4960f244531
+index 0000000000000000000000000000000000000000..21a139288e5b8f56016491879d69d01da929decb
 --- /dev/null
 +++ b/src/vs/server/browser/mainThreadNodeProxy.ts
-@@ -0,0 +1,37 @@
+@@ -0,0 +1,55 @@
++import { VSBuffer } from 'vs/base/common/buffer';
 +import { IDisposable } from 'vs/base/common/lifecycle';
++import { FileAccess } from 'vs/base/common/network';
++import { URI, UriComponents } from 'vs/base/common/uri';
 +import { INodeProxyService } from 'vs/server/common/nodeProxy';
 +import { ExtHostContext, IExtHostContext, MainContext, MainThreadNodeProxyShape } from 'vs/workbench/api/common/extHost.protocol';
 +import { extHostNamedCustomer } from 'vs/workbench/api/common/extHostCustomers';
@@ -1016,6 +1025,21 @@ index 0000000000000000000000000000000000000000..0d2e93edae2baf34d27b7b52be0bf496
 +		}
 +	}
 +
++	async $fetchExtension(extensionUri: UriComponents): Promise<VSBuffer> {
++		const fetchUri = URI.from({
++			scheme: window.location.protocol.replace(':', ''),
++			authority: window.location.host,
++			// Use FileAccess to get the static base path.
++			path: FileAccess.asBrowserUri("", require).path,
++			query: `tar=${encodeURIComponent(extensionUri.path)}`,
++		});
++		const response = await fetch(fetchUri.toString(true));
++		if (response.status !== 200) {
++			throw new Error(`Failed to download extension "${module}"`);
++		}
++		return VSBuffer.wrap(new Uint8Array(await response.arrayBuffer()));
++	}
++
 +	dispose(): void {
 +		this.disposables.forEach((d) => d.dispose());
 +		this.disposables = [];
@@ -1024,10 +1048,10 @@ index 0000000000000000000000000000000000000000..0d2e93edae2baf34d27b7b52be0bf496
 +}
 diff --git a/src/vs/server/browser/worker.ts b/src/vs/server/browser/worker.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..5ae44cdc856bf81326a4c516b8be9afb2c746a67
+index 0000000000000000000000000000000000000000..1d47ede49b76b1774329269ab5c86fedb5712c19
 --- /dev/null
 +++ b/src/vs/server/browser/worker.ts
-@@ -0,0 +1,56 @@
+@@ -0,0 +1,48 @@
 +import { Client } from '@coder/node-browser';
 +import { fromTar } from '@coder/requirefs';
 +import { URI } from 'vs/base/common/uri';
@@ -1042,19 +1066,11 @@ index 0000000000000000000000000000000000000000..5ae44cdc856bf81326a4c516b8be9afb
 +	logService: ILogService,
 +	vscode: any,
 +): Promise<T> => {
-+	const fetchUri = URI.from({
-+		scheme: self.location.protocol.replace(':', ''),
-+		authority: self.location.host,
-+		path: self.location.pathname.replace(/\/static\/([^\/]+)\/.*$/, '/static/$1\/'),
-+		query: `tar=${encodeURIComponent(module.path)}`,
-+	});
-+	const response = await fetch(fetchUri.toString(true));
-+	if (response.status !== 200) {
-+		throw new Error(`Failed to download extension "${module}"`);
-+	}
 +	const client = new Client(nodeProxy, { logger: logService });
-+	const init = await client.handshake();
-+	const buffer = new Uint8Array(await response.arrayBuffer());
++	const [buffer, init] = await Promise.all([
++		nodeProxy.fetchExtension(module),
++		client.handshake(),
++	]);
 +	const rfs = fromTar(buffer);
 +	(<any>self).global = self;
 +	rfs.provide('vscode', vscode);
@@ -2895,15 +2911,16 @@ index 2a0576b68f943f63c010dd496e094311bdc149f0..357c63f0fec08ddfb06b3579460fe156
  	rpcProtocol.set(ExtHostContext.ExtHostWindow, extHostWindow);
  
 diff --git a/src/vs/workbench/api/common/extHost.protocol.ts b/src/vs/workbench/api/common/extHost.protocol.ts
-index 3728f5602dffd0fd4b0cf326c5fa7d6d7c49c53e..233fbbce328094d014a375b1e9c11231ac9fafd9 100644
+index 3728f5602dffd0fd4b0cf326c5fa7d6d7c49c53e..2521acff0e692e97b72deef758ce41b4cd54a724 100644
 --- a/src/vs/workbench/api/common/extHost.protocol.ts
 +++ b/src/vs/workbench/api/common/extHost.protocol.ts
-@@ -807,6 +807,16 @@ export interface MainThreadLabelServiceShape extends IDisposable {
+@@ -807,6 +807,17 @@ export interface MainThreadLabelServiceShape extends IDisposable {
  	$unregisterResourceLabelFormatter(handle: number): void;
  }
  
 +export interface MainThreadNodeProxyShape extends IDisposable {
 +	$send(message: string): void;
++	$fetchExtension(extensionUri: UriComponents): Promise<VSBuffer>;
 +}
 +export interface ExtHostNodeProxyShape {
 +	$onMessage(message: string): void;
@@ -2915,7 +2932,7 @@ index 3728f5602dffd0fd4b0cf326c5fa7d6d7c49c53e..233fbbce328094d014a375b1e9c11231
  export interface MainThreadSearchShape extends IDisposable {
  	$registerFileSearchProvider(handle: number, scheme: string): void;
  	$registerTextSearchProvider(handle: number, scheme: string): void;
-@@ -1784,6 +1794,7 @@ export const MainContext = {
+@@ -1784,6 +1795,7 @@ export const MainContext = {
  	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
  	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService'),
  	MainThreadNotebook: createMainId<MainThreadNotebookShape>('MainThreadNotebook'),
@@ -2923,7 +2940,7 @@ index 3728f5602dffd0fd4b0cf326c5fa7d6d7c49c53e..233fbbce328094d014a375b1e9c11231
  	MainThreadTheming: createMainId<MainThreadThemingShape>('MainThreadTheming'),
  	MainThreadTunnelService: createMainId<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
  	MainThreadTimeline: createMainId<MainThreadTimelineShape>('MainThreadTimeline')
-@@ -1826,6 +1837,7 @@ export const ExtHostContext = {
+@@ -1826,6 +1838,7 @@ export const ExtHostContext = {
  	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
  	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService'),
  	ExtHostNotebook: createMainId<ExtHostNotebookShape>('ExtHostNotebook'),
