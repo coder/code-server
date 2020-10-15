@@ -2,7 +2,8 @@ import * as http from "http"
 import * as limiter from "limiter"
 import * as querystring from "querystring"
 import { HttpCode, HttpError } from "../../common/http"
-import { AuthType, HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
+import { AuthType } from "../cli"
+import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
 import { hash, humanPath } from "../util"
 
 interface LoginPayload {

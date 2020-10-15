@@ -1,4 +1,5 @@
-import { HttpProvider, HttpResponse, Heart, HttpProviderOptions } from "../http"
+import { Heart } from "../heart"
+import { HttpProvider, HttpProviderOptions, HttpResponse } from "../http"
 
 /**
  * Check the heartbeat.

@@ -13,6 +13,8 @@ import * as tls from "tls"
 import * as url from "url"
 import { HttpCode, HttpError } from "../common/http"
 import { arrayify, normalize, Options, plural, split, trimSlashes } from "../common/util"
+import { AuthType } from "./cli"
+import { Heart } from "./heart"
 import { SocketProxyProvider } from "./socket"
 import { getMediaMime, paths } from "./util"
 
@@ -25,11 +27,6 @@ interface ProxyRequest extends http.IncomingMessage {
 
 interface AuthPayload extends Cookies {
   key?: string[]
-}
-
-export enum AuthType {
-  Password = "password",
-  None = "none",
 }
 
 export type Query = { [key: string]: string | string[] | undefined }
@@ -387,50 +384,6 @@ export abstract class HttpProvider {
    */
   protected isRoot(route: Route): boolean {
     return !route.requestPath || route.requestPath === "/index.html"
-  }
-}
-
-/**
- * Provides a heartbeat using a local file to indicate activity.
- */
-export class Heart {
-  private heartbeatTimer?: NodeJS.Timeout
-  private heartbeatInterval = 60000
-  public lastHeartbeat = 0
-
-  public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}
-
-  public alive(): boolean {
-    const now = Date.now()
-    return now - this.lastHeartbeat < this.heartbeatInterval
-  }
-  /**
-   * Write to the heartbeat file if we haven't already done so within the
-   * timeout and start or reset a timer that keeps running as long as there is
-   * activity. Failures are logged as warnings.
-   */
-  public beat(): void {
-    if (!this.alive()) {
-      logger.trace("heartbeat")
-      fs.outputFile(this.heartbeatPath, "").catch((error) => {
-        logger.warn(error.message)
-      })
-      this.lastHeartbeat = Date.now()
-      if (typeof this.heartbeatTimer !== "undefined") {
-        clearTimeout(this.heartbeatTimer)
-      }
-      this.heartbeatTimer = setTimeout(() => {
-        this.isActive()
-          .then((active) => {
-            if (active) {
-              this.beat()
-            }
-          })
-          .catch((error) => {
-            logger.warn(error.message)
-          })
-      }, this.heartbeatInterval)
-    }
   }
 }
 

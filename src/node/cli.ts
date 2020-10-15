@@ -4,8 +4,12 @@ import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
-import { AuthType } from "./http"
 import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
+
+export enum AuthType {
+  Password = "password",
+  None = "none",
+}
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
