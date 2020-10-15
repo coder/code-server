@@ -5,12 +5,12 @@ import http from "http"
 import * as path from "path"
 import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { plural } from "../common/util"
-import { HealthHttpProvider } from "./app/health"
-import { LoginHttpProvider } from "./app/login"
-import { ProxyHttpProvider } from "./app/proxy"
-import { StaticHttpProvider } from "./app/static"
-import { UpdateHttpProvider } from "./app/update"
-import { VscodeHttpProvider } from "./app/vscode"
+import { HealthHttpProvider } from "./routes/health"
+import { LoginHttpProvider } from "./routes/login"
+import { ProxyHttpProvider } from "./routes/proxy"
+import { StaticHttpProvider } from "./routes/static"
+import { UpdateHttpProvider } from "./routes/update"
+import { VscodeHttpProvider } from "./routes/vscode"
 import {
   DefaultedArgs,
   optionDescriptions,
