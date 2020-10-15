@@ -30,6 +30,7 @@
   },
   "main": "out/node/entry.js",
   "devDependencies": {
+    "@types/express": "^4.17.8",
     "@types/fs-extra": "^8.0.1",
     "@types/http-proxy": "^1.17.4",
     "@types/js-yaml": "^3.12.3",
@@ -67,6 +68,7 @@
   "dependencies": {
     "@coder/logger": "1.1.16",
     "env-paths": "^2.2.0",
+    "express": "^4.17.1",
     "fs-extra": "^9.0.1",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
