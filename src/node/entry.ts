@@ -12,8 +12,7 @@ import { StaticHttpProvider } from "./app/static"
 import { UpdateHttpProvider } from "./app/update"
 import { VscodeHttpProvider } from "./app/vscode"
 import {
-  Args,
-  bindAddrFromAllSources,
+  DefaultedArgs,
   optionDescriptions,
   parse,
   readConfigFile,
@@ -24,7 +23,7 @@ import {
 import { coderCloudBind } from "./coder-cloud"
 import { AuthType, HttpServer, HttpServerOptions } from "./http"
 import { loadPlugins } from "./plugin"
-import { generateCertificate, hash, humanPath, open } from "./util"
+import { hash, humanPath, open } from "./util"
 import { ipcMain, WrapperProcess } from "./wrapper"
 
 let pkg: { version?: string; commit?: string } = {}
@@ -37,7 +36,7 @@ try {
 const version = pkg.version || "development"
 const commit = pkg.commit || "development"
 
-export const runVsCodeCli = (args: Args): void => {
+export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
   const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
     env: {
@@ -61,7 +60,7 @@ export const runVsCodeCli = (args: Args): void => {
   vscode.on("exit", (code) => process.exit(code || 0))
 }
 
-export const openInExistingInstance = async (args: Args, socketPath: string): Promise<void> => {
+export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
   const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
     type: "open",
     folderURIs: [],
@@ -117,54 +116,26 @@ export const openInExistingInstance = async (args: Args, socketPath: string): Pr
   vscode.end()
 }
 
-const main = async (args: Args, configArgs: Args): Promise<void> => {
-  if (args.link) {
-    // If we're being exposed to the cloud, we listen on a random address and disable auth.
-    args = {
-      ...args,
-      host: "localhost",
-      port: 0,
-      auth: AuthType.None,
-      socket: undefined,
-      cert: undefined,
-    }
-    logger.info("link: disabling auth and listening on random localhost port for cloud agent")
-  }
-
-  if (!args.auth) {
-    args = {
-      ...args,
-      auth: AuthType.Password,
-    }
-  }
-
+const main = async (args: DefaultedArgs): Promise<void> => {
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
-
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
-  const envPassword = !!process.env.PASSWORD
-  const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)
-  if (args.auth === AuthType.Password && !password) {
+  if (args.auth === AuthType.Password && !args.password) {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
-  const [host, port] = bindAddrFromAllSources(args, configArgs)
 
   // Spawn the main HTTP server.
   const options: HttpServerOptions = {
     auth: args.auth,
     commit,
-    host: host,
+    host: args.host,
     // The hash does not add any actual security but we do it for obfuscation purposes.
-    password: password ? hash(password) : undefined,
-    port: port,
+    password: args.password ? hash(args.password) : undefined,
+    port: args.port,
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
-    ...(args.cert && !args.cert.value
-      ? await generateCertificate()
-      : {
-          cert: args.cert && args.cert.value,
-          certKey: args["cert-key"],
-        }),
+    cert: args.cert && args.cert.value,
+    certKey: args["cert-key"],
   }
 
   if (options.cert && !options.certKey) {
@@ -175,7 +146,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
   httpServer.registerHttpProvider(["/", "/vscode"], VscodeHttpProvider, args)
   httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
   httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
-  httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
+  httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, args.usingEnvPassword)
   httpServer.registerHttpProvider("/static", StaticHttpProvider)
   httpServer.registerHttpProvider("/healthz", HealthHttpProvider, httpServer.heart)
 
@@ -191,19 +162,18 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
   logger.info(`Using config file ${humanPath(args.config)}`)
 
   const serverAddress = await httpServer.listen()
-  logger.info(`HTTP server listening on ${serverAddress}`)
+  logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)
 
   if (args.auth === AuthType.Password) {
-    if (envPassword) {
+    if (args.usingEnvPassword) {
       logger.info("    - Using password from $PASSWORD")
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
     }
     logger.info("    - To disable use `--auth none`")
   } else {
-    logger.info("  - No authentication")
+    logger.info(`  - No authentication ${args.link ? "(disabled by --link)" : ""}`)
   }
-  delete process.env.PASSWORD
 
   if (httpServer.protocol === "https") {
     logger.info(
@@ -215,9 +185,19 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (httpServer.proxyDomains.size > 0) {
-    logger.info(`  - ${plural(httpServer.proxyDomains.size, "Proxying the following domain")}:`)
-    httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
+  if (args["proxy-domain"].length > 0) {
+    logger.info(`  - ${plural(args["proxy-domain"].length, "Proxying the following domain")}:`)
+    args["proxy-domain"].forEach((domain) => logger.info(`    - *.${domain}`))
+  }
+
+  if (args.link) {
+    try {
+      await coderCloudBind(serverAddress!, args.link.value)
+      logger.info("  - Connected to cloud agent")
+    } catch (err) {
+      logger.error(err.message)
+      ipcMain.exit(1)
+    }
   }
 
   if (serverAddress && !options.socket && args.open) {
@@ -228,23 +208,12 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     })
     logger.info(`Opened ${openAddress}`)
   }
-
-  if (args.link) {
-    try {
-      await coderCloudBind(serverAddress!, args.link.value)
-    } catch (err) {
-      logger.error(err.message)
-      ipcMain.exit(1)
-    }
-  }
 }
 
 async function entry(): Promise<void> {
   const cliArgs = parse(process.argv.slice(2))
   const configArgs = await readConfigFile(cliArgs.config)
-  // This prioritizes the flags set in args over the ones in the config file.
-  let args = Object.assign(configArgs, cliArgs)
-  args = await setDefaults(args)
+  const args = await setDefaults(cliArgs, configArgs)
 
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
@@ -252,7 +221,7 @@ async function entry(): Promise<void> {
   if (ipcMain.isChild) {
     await ipcMain.handshake()
     ipcMain.preventExit()
-    return main(args, configArgs)
+    return main(args)
   }
 
   if (args.help) {

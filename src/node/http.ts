@@ -130,7 +130,7 @@ export interface HttpServerOptions {
   readonly host?: string
   readonly password?: string
   readonly port?: number
-  readonly proxyDomains?: string[]
+  readonly proxyDomains: string[]
   readonly socket?: string
 }
 
@@ -464,17 +464,11 @@ export class HttpServer {
   private readonly socketProvider = new SocketProxyProvider()
 
   /**
-   * Proxy domains are stored here without the leading `*.`
-   */
-  public readonly proxyDomains: Set<string>
-
-  /**
    * Provides the actual proxying functionality.
    */
   private readonly proxy = proxy.createProxyServer({})
 
   public constructor(private readonly options: HttpServerOptions) {
-    this.proxyDomains = new Set((options.proxyDomains || []).map((d) => d.replace(/^\*\./, "")))
     this.heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
       const connections = await this.getConnections()
       logger.trace(plural(connections, `${connections} active connection`))
@@ -892,7 +886,7 @@ export class HttpServer {
       return undefined
     }
 
-    this.proxyDomains.forEach((domain) => {
+    this.options.proxyDomains.forEach((domain) => {
       if (host.endsWith(domain) && domain.length < host.length) {
         host = domain
       }
@@ -922,7 +916,7 @@ export class HttpServer {
     // There must be an exact match.
     const port = parts.shift()
     const proxyDomain = parts.join(".")
-    if (!port || !this.proxyDomains.has(proxyDomain)) {
+    if (!port || !this.options.proxyDomains.includes(proxyDomain)) {
       return undefined
     }
 
