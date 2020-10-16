@@ -1,14 +1,14 @@
 import { field, logger } from "@coder/logger"
+import { Express } from "express"
 import * as fs from "fs"
 import * as path from "path"
 import * as util from "util"
 import { Args } from "./cli"
-import { HttpServer } from "./http"
 import { paths } from "./util"
 
 /* eslint-disable @typescript-eslint/no-var-requires */
 
-export type Activate = (httpServer: HttpServer, args: Args) => void
+export type Activate = (app: Express, args: Args) => void
 
 /**
  * Plugins must implement this interface.
@@ -30,10 +30,10 @@ require("module")._load = function (request: string, parent: object, isMain: boo
 /**
  * Load a plugin and run its activation function.
  */
-const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args): Promise<void> => {
+const loadPlugin = async (pluginPath: string, app: Express, args: Args): Promise<void> => {
   try {
     const plugin: Plugin = require(pluginPath)
-    plugin.activate(httpServer, args)
+    plugin.activate(app, args)
 
     const packageJson = require(path.join(pluginPath, "package.json"))
     logger.debug(
@@ -50,12 +50,12 @@ const loadPlugin = async (pluginPath: string, httpServer: HttpServer, args: Args
 /**
  * Load all plugins in the specified directory.
  */
-const _loadPlugins = async (pluginDir: string, httpServer: HttpServer, args: Args): Promise<void> => {
+const _loadPlugins = async (pluginDir: string, app: Express, args: Args): Promise<void> => {
   try {
     const files = await util.promisify(fs.readdir)(pluginDir, {
       withFileTypes: true,
     })
-    await Promise.all(files.map((file) => loadPlugin(path.join(pluginDir, file.name), httpServer, args)))
+    await Promise.all(files.map((file) => loadPlugin(path.join(pluginDir, file.name), app, args)))
   } catch (error) {
     if (error.code !== "ENOENT") {
       logger.warn(error.message)
@@ -68,17 +68,17 @@ const _loadPlugins = async (pluginDir: string, httpServer: HttpServer, args: Arg
  * `CS_PLUGIN_PATH` (colon-separated), and individual plugins specified by
  * `CS_PLUGIN` (also colon-separated).
  */
-export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<void> => {
+export const loadPlugins = async (app: Express, args: Args): Promise<void> => {
   const pluginPath = process.env.CS_PLUGIN_PATH || `${path.join(paths.data, "plugins")}:/usr/share/code-server/plugins`
   const plugin = process.env.CS_PLUGIN || ""
   await Promise.all([
     // Built-in plugins.
-    _loadPlugins(path.resolve(__dirname, "../../plugins"), httpServer, args),
+    _loadPlugins(path.resolve(__dirname, "../../plugins"), app, args),
     // User-added plugins.
     ...pluginPath
       .split(":")
       .filter((p) => !!p)
-      .map((dir) => _loadPlugins(path.resolve(dir), httpServer, args)),
+      .map((dir) => _loadPlugins(path.resolve(dir), app, args)),
     // Individual plugins so you don't have to symlink or move them into a
     // directory specifically for plugins. This lets you load plugins that are
     // on the same level as other directories that are not plugins (if you tried
@@ -87,6 +87,6 @@ export const loadPlugins = async (httpServer: HttpServer, args: Args): Promise<v
     ...plugin
       .split(":")
       .filter((p) => !!p)
-      .map((dir) => loadPlugin(path.resolve(dir), httpServer, args)),
+      .map((dir) => loadPlugin(path.resolve(dir), app, args)),
   ])
 }
