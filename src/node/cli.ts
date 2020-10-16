@@ -334,7 +334,7 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-  logger.debug("parsed command line", field("args", args))
+  logger.debug(() => ["parsed command line", field("args", { ...args, password: undefined })])
 
   return args
 }
