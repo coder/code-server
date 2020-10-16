@@ -17,19 +17,10 @@ import {
   shouldRunVsCodeCli,
 } from "./cli"
 import { coderCloudBind } from "./coder-cloud"
+import { commit, version } from "./constants"
 import { loadPlugins } from "./plugin"
 import { humanPath, open } from "./util"
 import { ipcMain, WrapperProcess } from "./wrapper"
-
-let pkg: { version?: string; commit?: string } = {}
-try {
-  pkg = require("../../package.json")
-} catch (error) {
-  logger.warn(error.message)
-}
-
-const version = pkg.version || "development"
-const commit = pkg.commit || "development"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
