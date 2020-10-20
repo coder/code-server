@@ -4,6 +4,7 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
 import { DefaultedArgs } from "./cli"
+import { handleUpgrade } from "./http"
 
 /**
  * Create an Express app and an HTTP/S server to serve it.
@@ -37,6 +38,8 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Ser
       server.listen(args.port, args.host.replace(/^\[|\]$/g, ""), resolve)
     }
   })
+
+  handleUpgrade(app, server)
 
   return [app, server]
 }

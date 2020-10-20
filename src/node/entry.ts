@@ -18,7 +18,7 @@ import {
 } from "./cli"
 import { coderCloudBind } from "./coder-cloud"
 import { commit, version } from "./constants"
-import { loadPlugins } from "./plugin"
+import { register } from "./routes"
 import { humanPath, open } from "./util"
 import { ipcMain, WrapperProcess } from "./wrapper"
 
@@ -111,15 +111,14 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   if (args.auth === AuthType.Password && !args.password) {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
+
   ipcMain.onDispose(() => {
     //  TODO: register disposables
   })
 
   const [app, server] = await createApp(args)
   const serverAddress = ensureAddress(server)
-
-  // TODO: register routes
-  await loadPlugins(app, args)
+  await register(app, server, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
   logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)

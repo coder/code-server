@@ -30,6 +30,8 @@
   },
   "main": "out/node/entry.js",
   "devDependencies": {
+    "@types/body-parser": "^1.19.0",
+    "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.8",
     "@types/fs-extra": "^8.0.1",
     "@types/http-proxy": "^1.17.4",
@@ -67,6 +69,8 @@
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
     "express": "^4.17.1",
     "fs-extra": "^9.0.1",
@@ -75,6 +79,7 @@
     "js-yaml": "^3.13.1",
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
+    "qs": "6.7.0",
     "rotating-file-stream": "^2.1.1",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",

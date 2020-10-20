@@ -1318,7 +1318,7 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..33b28cf2d53746ee9c50c056ac2e087dcee0a4e2
+index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78fc72a5c6
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
 @@ -0,0 +1,131 @@
@@ -1336,7 +1336,7 @@ index 0000000000000000000000000000000000000000..33b28cf2d53746ee9c50c056ac2e087d
 +	options: VscodeOptions;
 +}
 +
-+export type Query = { [key: string]: string | string[] | undefined };
++export type Query = { [key: string]: string | string[] | undefined | Query | Query[] };
 +
 +export interface SocketMessage {
 +	type: 'socket';

@@ -31,6 +31,8 @@ rules:
   import/order:
     [error, { alphabetize: { order: "asc" }, groups: [["builtin", "external", "internal"], "parent", "sibling"] }]
   no-async-promise-executor: off
+  # This isn't a real module, just types, which apparently doesn't resolve.
+  import/no-unresolved: [error, { ignore: ["express-serve-static-core"] }]
 
 settings:
   # Does not work with CommonJS unfortunately.

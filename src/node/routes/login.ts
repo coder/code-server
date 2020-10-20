@@ -1,140 +1,21 @@
-import * as http from "http"
-import * as limiter from "limiter"
-import * as querystring from "querystring"
-import { HttpCode, HttpError } from "../../common/http"
-import { AuthType } from "../cli"
-import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
+import { Router, Request } from "express"
+import { promises as fs } from "fs"
+import { RateLimiter as Limiter } from "limiter"
+import * as path from "path"
+import safeCompare from "safe-compare"
+import { rootPath } from "../constants"
+import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
 import { hash, humanPath } from "../util"
 
-interface LoginPayload {
-  password?: string
-  /**
-   * Since we must set a cookie with an absolute path, we need to know the full
-   * base path.
-   */
-  base?: string
-}
-
-/**
- * Login HTTP provider.
- */
-export class LoginHttpProvider extends HttpProvider {
-  public constructor(
-    options: HttpProviderOptions,
-    private readonly configFile: string,
-    private readonly envPassword: boolean,
-  ) {
-    super(options)
-  }
-
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    if (this.options.auth !== AuthType.Password || !this.isRoot(route)) {
-      throw new HttpError("Not found", HttpCode.NotFound)
-    }
-    switch (route.base) {
-      case "/":
-        switch (request.method) {
-          case "POST":
-            this.ensureMethod(request, ["GET", "POST"])
-            return this.tryLogin(route, request)
-          default:
-            this.ensureMethod(request)
-            if (this.authenticated(request)) {
-              return {
-                redirect: (Array.isArray(route.query.to) ? route.query.to[0] : route.query.to) || "/",
-                query: { to: undefined },
-              }
-            }
-            return this.getRoot(route)
-        }
-    }
-
-    throw new HttpError("Not found", HttpCode.NotFound)
-  }
-
-  public async getRoot(route: Route, error?: Error): Promise<HttpResponse> {
-    const response = await this.getUtf8Resource(this.rootPath, "src/browser/pages/login.html")
-    response.content = response.content.replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : "")
-    let passwordMsg = `Check the config file at ${humanPath(this.configFile)} for the password.`
-    if (this.envPassword) {
-      passwordMsg = "Password was set from $PASSWORD."
-    }
-    response.content = response.content.replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-    return this.replaceTemplates(route, response)
-  }
-
-  private readonly limiter = new RateLimiter()
-
-  /**
-   * Try logging in. On failure, show the login page with an error.
-   */
-  private async tryLogin(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    // Already authenticated via cookies?
-    const providedPassword = this.authenticated(request)
-    if (providedPassword) {
-      return { code: HttpCode.Ok }
-    }
-
-    try {
-      if (!this.limiter.try()) {
-        throw new Error("Login rate limited!")
-      }
-
-      const data = await this.getData(request)
-      const payload = data ? querystring.parse(data) : {}
-      return await this.login(payload, route, request)
-    } catch (error) {
-      return this.getRoot(route, error)
-    }
-  }
-
-  /**
-   * Return a cookie if the user is authenticated otherwise throw an error.
-   */
-  private async login(payload: LoginPayload, route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    const password = this.authenticated(request, {
-      key: typeof payload.password === "string" ? [hash(payload.password)] : undefined,
-    })
-
-    if (password) {
-      return {
-        redirect: (Array.isArray(route.query.to) ? route.query.to[0] : route.query.to) || "/",
-        query: { to: undefined },
-        cookie:
-          typeof password === "string"
-            ? {
-                key: "key",
-                value: password,
-                path: payload.base,
-              }
-            : undefined,
-      }
-    }
-
-    // Only log if it was an actual login attempt.
-    if (payload && payload.password) {
-      console.error(
-        "Failed login attempt",
-        JSON.stringify({
-          xForwardedFor: request.headers["x-forwarded-for"],
-          remoteAddress: request.connection.remoteAddress,
-          userAgent: request.headers["user-agent"],
-          timestamp: Math.floor(new Date().getTime() / 1000),
-        }),
-      )
-
-      throw new Error("Incorrect password")
-    }
-
-    throw new Error("Missing password")
-  }
+enum Cookie {
+  Key = "key",
 }
 
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute and 12 logins every hour.
 class RateLimiter {
-  private readonly minuteLimiter = new limiter.RateLimiter(2, "minute")
-  private readonly hourLimiter = new limiter.RateLimiter(12, "hour")
+  private readonly minuteLimiter = new Limiter(2, "minute")
+  private readonly hourLimiter = new Limiter(12, "hour")
 
   public try(): boolean {
     if (this.minuteLimiter.tryRemoveTokens(1)) {
@@ -143,3 +24,72 @@ class RateLimiter {
     return this.hourLimiter.tryRemoveTokens(1)
   }
 }
+
+const getRoot = async (req: Request, error?: Error): Promise<string> => {
+  const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
+  let passwordMsg = `Check the config file at ${humanPath(req.args.config)} for the password.`
+  if (req.args.usingEnvPassword) {
+    passwordMsg = "Password was set from $PASSWORD."
+  }
+  return replaceTemplates(
+    req,
+    content
+      .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
+      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : ""),
+  )
+}
+
+const limiter = new RateLimiter()
+
+export const router = Router()
+
+router.use((req, res, next) => {
+  const to = (typeof req.query.to === "string" && req.query.to) || "/"
+  if (authenticated(req)) {
+    return redirect(req, res, to, { to: undefined })
+  }
+  next()
+})
+
+router.get("/", async (req, res) => {
+  res.send(await getRoot(req))
+})
+
+router.post("/", async (req, res) => {
+  try {
+    if (!limiter.try()) {
+      throw new Error("Login rate limited!")
+    }
+
+    if (!req.body.password) {
+      throw new Error("Missing password")
+    }
+
+    if (req.args.password && safeCompare(req.body.password, req.args.password)) {
+      // The hash does not add any actual security but we do it for
+      // obfuscation purposes (and as a side effect it handles escaping).
+      res.cookie(Cookie.Key, hash(req.body.password), {
+        domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
+        path: req.body.base || "/",
+        sameSite: "lax",
+      })
+
+      const to = (typeof req.query.to === "string" && req.query.to) || "/"
+      return redirect(req, res, to, { to: undefined })
+    }
+
+    console.error(
+      "Failed login attempt",
+      JSON.stringify({
+        xForwardedFor: req.headers["x-forwarded-for"],
+        remoteAddress: req.connection.remoteAddress,
+        userAgent: req.headers["user-agent"],
+        timestamp: Math.floor(new Date().getTime() / 1000),
+      }),
+    )
+
+    throw new Error("Incorrect password")
+  } catch (error) {
+    res.send(await getRoot(req, error))
+  }
+})
