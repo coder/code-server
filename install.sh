@@ -109,7 +109,7 @@ main() {
     VERSION \
     OPTIONAL \
     ALL_FLAGS \
-    SSH_ARGS
+    RSH_ARGS
 
   ALL_FLAGS=""
   while [ "$#" -gt 0 ]; do
@@ -152,7 +152,7 @@ main() {
       shift
       # We remove the -- added above.
       ALL_FLAGS="${ALL_FLAGS% --}"
-      SSH_ARGS="$*"
+      RSH_ARGS="$*"
       break
       ;;
     -*)
@@ -161,7 +161,7 @@ main() {
       exit 1
       ;;
     *)
-      SSH_ARGS="$*"
+      RSH_ARGS="$*"
       break
       ;;
     esac
@@ -169,9 +169,9 @@ main() {
     shift
   done
 
-  if [ "${SSH_ARGS-}" ]; then
-    echoh "Installing remotely with ssh $SSH_ARGS"
-    curl -fsSL https://code-server.dev/install.sh | prefix "$SSH_ARGS" ssh "$SSH_ARGS" sh -s -- "$ALL_FLAGS"
+  if [ "${RSH_ARGS-}" ]; then
+    echoh "Installing remotely with ssh $RSH_ARGS"
+    curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" ssh "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
     return
   fi
 
