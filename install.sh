@@ -24,7 +24,7 @@ ${not_curl_usage-}
 Usage:
 
   $arg0 [--dry-run] [--version X.X.X] [--method detect] \
-        [--prefix ~/.local] [user@host]
+        [--prefix ~/.local] [--rsh ssh] [user@host]
 
   --dry-run
       Echo the commands for the install process without running them.
@@ -44,6 +44,9 @@ Usage:
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
+
+  --rsh <bin>
+      Specifies the remote shell for remote installation. Defaults to ssh.
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -109,7 +112,8 @@ main() {
     VERSION \
     OPTIONAL \
     ALL_FLAGS \
-    RSH_ARGS
+    RSH_ARGS \
+    RSH
 
   ALL_FLAGS=""
   while [ "$#" -gt 0 ]; do
@@ -144,6 +148,13 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --rsh)
+      RSH="$(parse_arg "$@")"
+      shift
+      ;;
+    --rsh=*)
+      RSH="$(parse_arg "$@")"
+      ;;
     -h | --h | -help | --help)
       usage
       exit 0
@@ -170,8 +181,8 @@ main() {
   done
 
   if [ "${RSH_ARGS-}" ]; then
-    echoh "Installing remotely with ssh $RSH_ARGS"
-    curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" ssh "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
+    echoh "Installing remotely with $RSH $RSH_ARGS"
+    curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" "$RSH" "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
     return
   fi
 
