@@ -1,10 +1,6 @@
 #!/bin/sh
 set -eu
 
-# This isn't set by default.
-USER="$(whoami)"
-export USER
-
 if [ "${DOCKER_USER-}" ] && [ "$DOCKER_USER" != "$USER" ]; then
   echo "$DOCKER_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/nopasswd > /dev/null
   # Unfortunately we cannot change $HOME as we cannot move any bind mounts
