@@ -181,6 +181,7 @@ main() {
   done
 
   if [ "${RSH_ARGS-}" ]; then
+    RSH="${RSH-ssh}"
     echoh "Installing remotely with $RSH $RSH_ARGS"
     curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" "$RSH" "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
     return
