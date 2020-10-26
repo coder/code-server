@@ -1,7 +1,7 @@
 import { Request, Router } from "express"
 import proxyServer from "http-proxy"
-import { HttpCode } from "../common/http"
-import { ensureAuthenticated } from "./http"
+import { HttpCode, HttpError } from "../common/http"
+import { authenticated, ensureAuthenticated } from "./http"
 
 export const proxy = proxyServer.createProxyServer({})
 proxy.on("error", (error, _, res) => {
@@ -42,16 +42,37 @@ const maybeProxy = (req: Request): string | undefined => {
     return undefined
   }
 
-  // Must be authenticated to use the proxy.
-  ensureAuthenticated(req)
-
   return port
+}
+
+/**
+ * Determine if the user is browsing /, /login, or static assets and if so fall
+ * through to allow the redirect and login flow.
+ */
+const shouldFallThrough = (req: Request): boolean => {
+  // The ideal would be to have a reliable way to detect if this is a request
+  // for (or originating from) our root or login HTML. But requests for HTML
+  // don't seem to set any content type.
+  return (
+    req.headers["content-type"] !== "application/json" &&
+    ((req.originalUrl.startsWith("/") && req.method === "GET") ||
+      (req.originalUrl.startsWith("/static") && req.method === "GET") ||
+      (req.originalUrl.startsWith("/login") && (req.method === "GET" || req.method === "POST")))
+  )
 }
 
 router.all("*", (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
+  }
+
+  // Must be authenticated to use the proxy.
+  if (!authenticated(req)) {
+    if (shouldFallThrough(req)) {
+      return next()
+    }
+    throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
   proxy.web(req, res, {
@@ -65,6 +86,9 @@ router.ws("*", (socket, head, req, next) => {
   if (!port) {
     return next()
   }
+
+  // Must be authenticated to use the proxy.
+  ensureAuthenticated(req)
 
   proxy.ws(req, socket, head, {
     ignorePath: true,
