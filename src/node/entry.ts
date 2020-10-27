@@ -159,7 +159,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     }
   }
 
-  if (serverAddress && !args.socket && args.open) {
+  if (!args.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
     const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost")
     await open(openAddress).catch((error: Error) => {
