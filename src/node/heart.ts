@@ -21,26 +21,28 @@ export class Heart {
    * activity. Failures are logged as warnings.
    */
   public beat(): void {
-    if (!this.alive()) {
-      logger.trace("heartbeat")
-      fs.writeFile(this.heartbeatPath, "").catch((error) => {
-        logger.warn(error.message)
-      })
-      this.lastHeartbeat = Date.now()
-      if (typeof this.heartbeatTimer !== "undefined") {
-        clearTimeout(this.heartbeatTimer)
-      }
-      this.heartbeatTimer = setTimeout(() => {
-        this.isActive()
-          .then((active) => {
-            if (active) {
-              this.beat()
-            }
-          })
-          .catch((error) => {
-            logger.warn(error.message)
-          })
-      }, this.heartbeatInterval)
+    if (this.alive()) {
+      return
     }
+
+    logger.trace("heartbeat")
+    fs.writeFile(this.heartbeatPath, "").catch((error) => {
+      logger.warn(error.message)
+    })
+    this.lastHeartbeat = Date.now()
+    if (typeof this.heartbeatTimer !== "undefined") {
+      clearTimeout(this.heartbeatTimer)
+    }
+    this.heartbeatTimer = setTimeout(() => {
+      this.isActive()
+        .then((active) => {
+          if (active) {
+            this.beat()
+          }
+        })
+        .catch((error) => {
+          logger.warn(error.message)
+        })
+    }, this.heartbeatInterval)
   }
 }
