@@ -50,15 +50,18 @@ const maybeProxy = (req: Request): string | undefined => {
  * through to allow the redirect and login flow.
  */
 const shouldFallThrough = (req: Request): boolean => {
-  // The ideal would be to have a reliable way to detect if this is a request
-  // for (or originating from) our root or login HTML. But requests for HTML
-  // don't seem to set any content type.
-  return (
-    req.headers["content-type"] !== "application/json" &&
-    ((req.originalUrl.startsWith("/") && req.method === "GET") ||
-      (req.originalUrl.startsWith("/static") && req.method === "GET") ||
-      (req.originalUrl.startsWith("/login") && (req.method === "GET" || req.method === "POST")))
-  )
+  // See if it looks like a request for the root or login HTML.
+  if (req.accepts("text/html")) {
+    if (
+      (req.path === "/" && req.method === "GET") ||
+      (/\/login\/?/.test(req.path) && (req.method === "GET" || req.method === "POST"))
+    ) {
+      return true
+    }
+  }
+
+  // See if it looks like a request for a static asset.
+  return req.path.startsWith("/static/") && req.method === "GET"
 }
 
 router.all("*", (req, res, next) => {
