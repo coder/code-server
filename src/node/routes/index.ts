@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
-import { Express } from "express"
+import { ErrorRequestHandler, Express } from "express"
 import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
@@ -100,9 +100,7 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  // Handle errors.
-  // TODO: The types are broken; says they're all implicitly `any`.
-  app.use(async (err: any, req: any, res: any, next: any) => {
+  const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
     const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
     res.set("Content-Type", getMediaMime(resourcePath))
     try {
@@ -110,14 +108,17 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
       if (err.code === "ENOENT" || err.code === "EISDIR") {
         err.status = HttpCode.NotFound
       }
-      res.status(err.status || 500).send(
+      const status = err.status ?? err.statusCode ?? 500
+      res.status(status).send(
         replaceTemplates(req, content)
-          .replace(/{{ERROR_TITLE}}/g, err.status || "Error")
-          .replace(/{{ERROR_HEADER}}/g, err.status || "Error")
+          .replace(/{{ERROR_TITLE}}/g, status)
+          .replace(/{{ERROR_HEADER}}/g, status)
           .replace(/{{ERROR_BODY}}/g, err.message),
       )
     } catch (error) {
       next(error)
     }
-  })
+  }
+
+  app.use(errorHandler)
 }
