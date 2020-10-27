@@ -90,8 +90,8 @@ router.get("/vscode-remote-resource(/*)?", async (req, res) => {
 router.get("/webview/*", async (req, res) => {
   ensureAuthenticated(req)
   res.set("Content-Type", getMediaMime(req.path))
-  if (/^\/vscode-resource/.test(req.path)) {
-    return res.send(await fs.readFile(req.path.replace(/^\/vscode-resource(\/file)?/, "")))
+  if (/^vscode-resource/.test(req.params[0])) {
+    return res.send(await fs.readFile(req.params[0].replace(/^vscode-resource(\/file)?/, "")))
   }
   return res.send(
     await fs.readFile(path.join(vscode.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", req.params[0])),
