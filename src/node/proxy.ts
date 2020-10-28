@@ -80,7 +80,7 @@ router.all("*", (req, res, next) => {
 
   proxy.web(req, res, {
     ignorePath: true,
-    target: `http://127.0.0.1:${port}${req.originalUrl}`,
+    target: `http://0.0.0.0:${port}${req.originalUrl}`,
   })
 })
 
@@ -95,6 +95,6 @@ router.ws("*", (socket, head, req, next) => {
 
   proxy.ws(req, socket, head, {
     ignorePath: true,
-    target: `http://127.0.0.1:${port}${req.originalUrl}`,
+    target: `http://0.0.0.0:${port}${req.originalUrl}`,
   })
 })
