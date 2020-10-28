@@ -1,10 +1,7 @@
-import { Router, Request } from "express"
-import { promises as fs } from "fs"
+import { Router, ErrorRequestHandler } from "express"
 import { RateLimiter as Limiter } from "limiter"
-import * as path from "path"
 import safeCompare from "safe-compare"
-import { rootPath } from "../constants"
-import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
+import { authenticated, getCookieDomain, redirect, commonTemplateVars } from "../http"
 import { hash, humanPath } from "../util"
 
 enum Cookie {
@@ -25,18 +22,16 @@ class RateLimiter {
   }
 }
 
-const getRoot = async (req: Request, error?: Error): Promise<string> => {
-  const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
-  let passwordMsg = `Check the config file at ${humanPath(req.args.config)} for the password.`
-  if (req.args.usingEnvPassword) {
-    passwordMsg = "Password was set from $PASSWORD."
-  }
-  return replaceTemplates(
-    req,
-    content
-      .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : ""),
-  )
+const rootHandler: ErrorRequestHandler = async (error: Error | undefined, req, res) => {
+  const passwordMsg = req.args.usingEnvPassword
+    ? "Password was set from $PASSWORD."
+    : `Check the config file at ${humanPath(req.args.config)} for the password.`
+
+  res.render("login", {
+    ...commonTemplateVars(req),
+    PASSWORD_MSG: passwordMsg,
+    ERROR: error?.message || "",
+  })
 }
 
 const limiter = new RateLimiter()
@@ -51,11 +46,9 @@ router.use((req, res, next) => {
   next()
 })
 
-router.get("/", async (req, res) => {
-  res.send(await getRoot(req))
-})
+router.get("/", rootHandler.bind(null, null))
 
-router.post("/", async (req, res) => {
+router.post("/", async (req, res, next) => {
   try {
     if (!limiter.try()) {
       throw new Error("Login rate limited!")
@@ -90,6 +83,6 @@ router.post("/", async (req, res) => {
 
     throw new Error("Incorrect password")
   } catch (error) {
-    res.send(await getRoot(req, error))
+    rootHandler(error, req, res, next)
   }
 })

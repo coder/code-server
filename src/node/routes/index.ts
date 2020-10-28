@@ -11,12 +11,13 @@ import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { replaceTemplates } from "../http"
+import { commonTemplateVars } from "../http"
 import { loadPlugins } from "../plugin"
 import * as domainProxy from "../proxy"
 import { getMediaMime, paths } from "../util"
 import * as health from "./health"
 import * as login from "./login"
+import * as manifest from "./manifest"
 import * as proxy from "./proxy"
 // static is a reserved keyword.
 import * as _static from "./static"
@@ -85,6 +86,7 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
 
   app.use("/", domainProxy.router)
   app.use("/", vscode.router)
+  app.use("/", manifest.router)
   app.use("/healthz", health.router)
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
@@ -101,20 +103,19 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
   })
 
   const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
-    const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
-    res.set("Content-Type", getMediaMime(resourcePath))
+    if (err.code === "ENOENT" || err.code === "EISDIR") {
+      err.status = HttpCode.NotFound
+    }
+
+    const status = err.status ?? err.statusCode ?? 500
+
     try {
-      const content = await fs.readFile(resourcePath, "utf8")
-      if (err.code === "ENOENT" || err.code === "EISDIR") {
-        err.status = HttpCode.NotFound
-      }
-      const status = err.status ?? err.statusCode ?? 500
-      res.status(status).send(
-        replaceTemplates(req, content)
-          .replace(/{{ERROR_TITLE}}/g, status)
-          .replace(/{{ERROR_HEADER}}/g, status)
-          .replace(/{{ERROR_BODY}}/g, err.message),
-      )
+      res.status(status).render("error", {
+        ...commonTemplateVars(req),
+        ERROR_TITLE: status,
+        ERROR_HEADER: status,
+        ERROR_BODY: err.message,
+      })
     } catch (error) {
       next(error)
     }

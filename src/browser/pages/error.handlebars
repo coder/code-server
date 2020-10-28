@@ -10,12 +10,12 @@
       http-equiv="Content-Security-Policy"
       content="style-src 'self'; manifest-src 'self'; img-src 'self' data:; font-src 'self' data:;"
     />
-    <title>{{ERROR_TITLE}} - code-server</title>
+    <title>{{ERROR_TITLE}} — Code Server</title>
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" type="image/x-icon" />
-    <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
+    <link rel="manifest" href="/code-server.webmanifest" crossorigin="use-credentials" />
     <link rel="apple-touch-icon" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-384.png" />
     <link href="{{CS_STATIC_BASE}}/dist/register.css" rel="stylesheet" />
-    <meta id="coder-options" data-settings="{{OPTIONS}}" />
+    <meta id="coder-options" data-settings="{{{json coderOptions}}}" />
   </head>
   <body>
     <div class="center-container">
@@ -23,7 +23,7 @@
         <h2 class="header">{{ERROR_HEADER}}</h2>
         <div class="body">{{ERROR_BODY}}</div>
         <div class="links">
-          <a class="link" href="{{BASE}}{{TO}}">go home</a>
+          <a class="link" href="{{BASE}}{{TO}}">Go home</a>
         </div>
       </div>
     </div>

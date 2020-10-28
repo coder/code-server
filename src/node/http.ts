@@ -16,26 +16,33 @@ export interface Locals {
   heart: Heart
 }
 
-/**
- * Replace common variable strings in HTML templates.
- */
-export const replaceTemplates = <T extends object>(
+export interface CommonTemplateVars {
+  layout: boolean
+  TO: string
+  BASE: string
+  CS_STATIC_BASE: string
+  coderOptions: Options
+}
+
+export const commonTemplateVars = <T extends Options>(
   req: express.Request,
-  content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
-): string => {
+): CommonTemplateVars => {
   const base = relativeRoot(req)
-  const options: Options = {
+  const coderOptions: Options = {
     base,
     csStaticBase: base + "/static/" + commit + rootPath,
     logLevel: logger.level,
     ...extraOpts,
   }
-  return content
-    .replace(/{{TO}}/g, (typeof req.query.to === "string" && req.query.to) || "/")
-    .replace(/{{BASE}}/g, options.base)
-    .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
-    .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+
+  return {
+    TO: (typeof req.query.to === "string" && req.query.to) || "/",
+    BASE: coderOptions.base,
+    CS_STATIC_BASE: coderOptions.csStaticBase,
+    coderOptions,
+    layout: false,
+  }
 }
 
 /**

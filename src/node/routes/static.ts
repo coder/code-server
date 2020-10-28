@@ -7,7 +7,7 @@ import * as tarFs from "tar-fs"
 import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
 import { rootPath } from "../constants"
-import { authenticated, replaceTemplates } from "../http"
+import { authenticated } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 
 export const router = Router()
@@ -50,11 +50,6 @@ router.get("/(:commit)(/*)?", async (req, res) => {
   }
 
   res.set("Content-Type", getMediaMime(resourcePath))
-
-  if (resourcePath.endsWith("manifest.json")) {
-    const content = await fs.readFile(resourcePath, "utf8")
-    return res.send(replaceTemplates(req, content))
-  }
 
   const content = await fs.readFile(resourcePath)
   return res.send(content)

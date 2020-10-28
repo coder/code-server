@@ -2,8 +2,9 @@ import * as crypto from "crypto"
 import { Router } from "express"
 import { promises as fs } from "fs"
 import * as path from "path"
-import { commit, rootPath, version } from "../constants"
-import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
+import { WorkbenchOptions } from "../../../lib/vscode/src/vs/server/ipc"
+import { commit, version } from "../constants"
+import { authenticated, ensureAuthenticated, redirect, commonTemplateVars } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 import { VscodeProvider } from "../vscode"
 
@@ -18,39 +19,29 @@ router.get("/", async (req, res) => {
     })
   }
 
-  const [content, options] = await Promise.all([
-    await fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
-    vscode
-      .initialize(
-        {
-          args: req.args,
-          remoteAuthority: req.headers.host || "",
-        },
-        req.query,
-      )
-      .catch((error) => {
-        const devMessage = commit === "development" ? "It might not have finished compiling." : ""
-        throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
-      }),
-  ])
+  let workbenchOptions: WorkbenchOptions
 
-  options.productConfiguration.codeServerVersion = version
-
-  res.send(
-    replaceTemplates(
-      req,
-      // Uncomment prod blocks if not in development. TODO: Would this be
-      // better as a build step? Or maintain two HTML files again?
-      commit !== "development" ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
+  try {
+    workbenchOptions = await vscode.initialize(
       {
-        disableTelemetry: !!req.args["disable-telemetry"],
+        args: req.args,
+        remoteAuthority: req.headers.host || "",
       },
+      req.query,
     )
-      .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
-      .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
-      .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
-      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
-  )
+  } catch (error) {
+    const devMessage = commit === "development" ? "It might not have finished compiling." : ""
+    throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
+  }
+
+  workbenchOptions.productConfiguration.codeServerVersion = version
+
+  res.render("vscode", {
+    ...commonTemplateVars(req, {
+      disableTelemetry: !!req.args["disable-telemetry"],
+    }),
+    workbenchOptions,
+  })
 })
 
 router.ws("/", async (socket, _, req) => {
