@@ -1,16 +1,43 @@
 import { logger } from "@coder/logger"
+import { encodeXML } from "entities"
 import express, { Express } from "express"
+import exphbs from "express-handlebars"
 import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
+import { resolve } from "path"
+import { normalize } from "../common/util"
 import { DefaultedArgs } from "./cli"
+import { commit, rootPath } from "./constants"
 import { handleUpgrade } from "./wsRouter"
 
 /**
  * Create an Express app and an HTTP/S server to serve it.
  */
 export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
+  const prod = process.env.NODE_ENV === "production"
   const app = express()
+  app.set("json spaces", prod ? 0 : 2)
+
+  app.engine(
+    "handlebars",
+    exphbs({
+      defaultLayout: "",
+      helpers: {
+        prod: () => commit !== "development",
+        assetPath: (base: string, path: string) => normalize(base + path),
+        /**
+         * Converts to JSON string and encodes entities for use in HTML.
+         * @TODO we can likely move JSON attributes to <script type="text/json">
+         *  and reduce the escaped output.
+         */
+        json: (content: any): string => encodeXML(JSON.stringify(content)),
+      },
+    }),
+  )
+
+  app.set("views", resolve(rootPath, "src/browser/views"))
+  app.set("view engine", "handlebars")
 
   const server = args.cert
     ? httpolyglot.createServer(

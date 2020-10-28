@@ -38,10 +38,9 @@ bundle_code_server() {
 
   # For source maps and images.
   mkdir -p "$RELEASE_PATH/src/browser"
-  rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
-  mkdir -p "$RELEASE_PATH/src/browser/pages"
-  rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
-  rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
+  rsync -r src/browser/public "$RELEASE_PATH/src/browser"
+  mkdir -p "$RELEASE_PATH/src/browser/views"
+  rsync -r src/browser/views "$RELEASE_PATH/src/browser"
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(

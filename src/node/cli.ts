@@ -53,6 +53,7 @@ export interface Args extends VsArgs {
   "new-window"?: boolean
 
   link?: OptionalString
+  "local-directory"?: OptionalString
 }
 
 interface Option<T> {
@@ -178,6 +179,10 @@ const options: Options<Required<Args>> = {
       See https://github.com/cdr/code-server/discussions/2137
     `,
     beta: true,
+  },
+  "local-directory": {
+    type: OptionalString,
+    description: "Serve files from a given directory",
   },
 }
 

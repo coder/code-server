@@ -11,7 +11,7 @@ import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { replaceTemplates } from "../http"
+import { commonTemplateVars, ensureAuthenticated } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { WebsocketRequest } from "../wsRouter"
@@ -19,6 +19,7 @@ import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
 import * as login from "./login"
+import * as manifest from "./manifest"
 import * as proxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
@@ -104,6 +105,8 @@ export const register = async (
   app.use("/vscode", vscode.router)
   wsApp.use("/vscode", vscode.wsRouter.router)
 
+  app.use("/", manifest.router)
+
   app.use("/healthz", health.router)
 
   if (args.auth === AuthType.Password) {
@@ -113,7 +116,18 @@ export const register = async (
   app.use("/proxy", proxy.router)
   wsApp.use("/proxy", proxy.wsRouter.router)
 
-  app.use("/static", _static.router)
+  app.use("/", _static.router)
+
+  if (args["local-directory"]?.value) {
+    const directoryPath = path.resolve(args["local-directory"].value)
+    logger.info(`Serving files from local directory “${directoryPath}” at “/local”`)
+
+    const localDirectoryRouter = express.Router()
+    _static.createServeDirectoryHandler(localDirectoryRouter, "/local", directoryPath)
+
+    app.use(ensureAuthenticated, localDirectoryRouter)
+  }
+
   app.use("/update", update.router)
 
   const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
@@ -130,25 +144,26 @@ export const register = async (
       err.status = HttpCode.NotFound
     }
 
+    const message = err.message || "An unknown server error occured"
     const status = err.status ?? err.statusCode ?? 500
     res.status(status)
 
     if (req.accepts("application/json")) {
       res.json({
-        error: err.message,
+        error: message,
         ...(err.details || {}),
       })
-    } else {
-      const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
-      res.set("Content-Type", getMediaMime(resourcePath))
-      const content = await fs.readFile(resourcePath, "utf8")
-      res.send(
-        replaceTemplates(req, content)
-          .replace(/{{ERROR_TITLE}}/g, status)
-          .replace(/{{ERROR_HEADER}}/g, status)
-          .replace(/{{ERROR_BODY}}/g, err.message),
-      )
+
+      return
     }
+
+    res.render("error/index", {
+      ...commonTemplateVars(req),
+      HOME_PATH: (typeof req.query.to === "string" && req.query.to) || "/",
+      ERROR_TITLE: status,
+      ERROR_HEADER: status,
+      ERROR_BODY: message,
+    })
   }
 
   app.use(errorHandler)

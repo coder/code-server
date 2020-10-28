@@ -2,7 +2,6 @@ import { logger, field } from "@coder/logger"
 
 export interface Options {
   base: string
-  csStaticBase: string
   logLevel: number
 }
 
@@ -31,6 +30,7 @@ export const generateUuid = (length = 24): string => {
 
 /**
  * Remove extra slashes in a URL.
+ * @TODO replace with node `path` module.
  */
 export const normalize = (url: string, keepTrailing = false): string => {
   return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
@@ -81,7 +81,6 @@ export const getOptions = <T extends Options>(): T => {
   logger.level = options.logLevel
 
   options.base = resolveBase(options.base)
-  options.csStaticBase = resolveBase(options.csStaticBase)
 
   logger.debug("got options", field("options", options))
 

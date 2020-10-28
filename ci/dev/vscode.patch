@@ -986,17 +986,17 @@ index 0000000000000000000000000000000000000000..5dd5406befcb593ad6366d9e98f46485
 +export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>('IExtHostNodeProxy');
 diff --git a/src/vs/server/browser/mainThreadNodeProxy.ts b/src/vs/server/browser/mainThreadNodeProxy.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..21a139288e5b8f56016491879d69d01da929decb
+index 0000000000000000000000000000000000000000..e11988d1b3263c4a2ede064c653653b038c8238c
 --- /dev/null
 +++ b/src/vs/server/browser/mainThreadNodeProxy.ts
-@@ -0,0 +1,55 @@
+@@ -0,0 +1,63 @@
 +import { VSBuffer } from 'vs/base/common/buffer';
 +import { IDisposable } from 'vs/base/common/lifecycle';
 +import { FileAccess } from 'vs/base/common/network';
 +import { URI, UriComponents } from 'vs/base/common/uri';
 +import { INodeProxyService } from 'vs/server/common/nodeProxy';
 +import { ExtHostContext, IExtHostContext, MainContext, MainThreadNodeProxyShape } from 'vs/workbench/api/common/extHost.protocol';
-+import { extHostNamedCustomer } from 'vs/workbench/api/common/extHostCustomers';
++import {extHostNamedCustomer } from 'vs/workbench/api/common/extHostCustomers';
 +
 +@extHostNamedCustomer(MainContext.MainThreadNodeProxy)
 +export class MainThreadNodeProxy implements MainThreadNodeProxyShape {
@@ -1025,14 +1025,22 @@ index 0000000000000000000000000000000000000000..21a139288e5b8f56016491879d69d01d
 +	}
 +
 +	async $fetchExtension(extensionUri: UriComponents): Promise<VSBuffer> {
++		// Use FileAccess to get the static base path.
++		const basePath = FileAccess.asBrowserUri("", require).path;
++
 +		const fetchUri = URI.from({
 +			scheme: window.location.protocol.replace(':', ''),
 +			authority: window.location.host,
-+			// Use FileAccess to get the static base path.
-+			path: FileAccess.asBrowserUri("", require).path,
-+			query: `tar=${encodeURIComponent(extensionUri.path)}`,
++			path: `${basePath}../../../extension/tar`,
++			query: `filePath=${encodeURIComponent(extensionUri.path)}`,
 +		});
-+		const response = await fetch(fetchUri.toString(true));
++
++		const response = await fetch(fetchUri.toString(true), {
++			headers: {
++				Accept: "application/x-tar, application/json;q=0.9"
++			}
++		});
++
 +		if (response.status !== 200) {
 +			throw new Error(`Failed to download extension "${module}"`);
 +		}

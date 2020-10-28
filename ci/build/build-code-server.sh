@@ -25,13 +25,10 @@ main() {
   fi
 
   parcel build \
-    --public-url "." \
+    --public-url "/static/" \
     --out-dir dist \
-    $([[ $MINIFY ]] || echo --no-minify) \
-    src/browser/register.ts \
-    src/browser/serviceWorker.ts \
-    src/browser/pages/login.ts \
-    src/browser/pages/vscode.ts
+    "$([[ $MINIFY ]] || echo --no-minify)" \
+    src/browser/**/*.ts
 }
 
 main "$@"

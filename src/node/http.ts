@@ -6,29 +6,27 @@ import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType } from "./cli"
-import { commit, rootPath } from "./constants"
 import { hash } from "./util"
 
-/**
- * Replace common variable strings in HTML templates.
- */
-export const replaceTemplates = <T extends object>(
+export interface CommonTemplateVars extends Options {
+  coderOptions: Options
+}
+
+export const commonTemplateVars = <T extends Options>(
   req: express.Request,
-  content: string,
-  extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
-): string => {
+  extraOpts?: Omit<T, "base" | "logLevel">,
+): CommonTemplateVars => {
   const base = relativeRoot(req)
-  const options: Options = {
+  const coderOptions: Options = {
     base,
-    csStaticBase: base + "/static/" + commit + rootPath,
     logLevel: logger.level,
     ...extraOpts,
   }
-  return content
-    .replace(/{{TO}}/g, (typeof req.query.to === "string" && req.query.to) || "/")
-    .replace(/{{BASE}}/g, options.base)
-    .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
-    .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+
+  return {
+    ...coderOptions,
+    coderOptions,
+  }
 }
 
 /**
