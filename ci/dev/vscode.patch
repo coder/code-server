@@ -2478,10 +2478,10 @@ index 0000000000000000000000000000000000000000..3d428a57d31f29c40f9c3ce45f715b44
 +};
 diff --git a/src/vs/server/node/protocol.ts b/src/vs/server/node/protocol.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..523fcd3186d92799bc50e33a72832bd443b2945b
+index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84924213db
 --- /dev/null
 +++ b/src/vs/server/node/protocol.ts
-@@ -0,0 +1,80 @@
+@@ -0,0 +1,91 @@
 +import { field } from '@coder/logger';
 +import * as net from 'net';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -2518,6 +2518,11 @@ index 0000000000000000000000000000000000000000..523fcd3186d92799bc50e33a72832bd4
 +	public handshake(): Promise<ConnectionTypeRequest> {
 +		logger.trace('Protocol handshake', field('token', this.options.reconnectionToken));
 +		return new Promise((resolve, reject) => {
++			const timeout = setTimeout(() => {
++				logger.error('Handshake timed out', field('token', this.options.reconnectionToken));
++				reject(new Error("timed out"));
++			}, 10000); // Matches the client timeout.
++
 +			const handler = this.onControlMessage((rawMessage) => {
 +				try {
 +					const raw = rawMessage.toString();
@@ -2528,15 +2533,21 @@ index 0000000000000000000000000000000000000000..523fcd3186d92799bc50e33a72832bd4
 +							return this.authenticate(message);
 +						case 'connectionType':
 +							handler.dispose();
++							clearTimeout(timeout);
 +							return resolve(message);
 +						default:
 +							throw new Error('Unrecognized message type');
 +					}
 +				} catch (error) {
 +					handler.dispose();
++					clearTimeout(timeout);
 +					reject(error);
 +				}
 +			});
++
++			// Kick off the handshake in case we missed the client's opening shot.
++			// TODO: Investigate why that message seems to get lost.
++			this.authenticate();
 +		});
 +	}
 +
