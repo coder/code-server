@@ -15,7 +15,7 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 There are two ways to get started:
 
 1. Using the [install script](./install.sh), which automates most of the process. The script uses the system package manager (if possible)
-2. Manually installing code-server; see [Installation](./doc/install.md#quick-install) for instructions applicable to most use cases
+2. Manually installing code-server; see [Installation](./doc/install.md) for instructions applicable to most use cases
 
 If you choose to use the install script, you can preview what occurs during the install process:
 
@@ -47,7 +47,7 @@ See [./doc/FAQ.md](./doc/FAQ.md).
 
 ## Want to help?
 
-See [CONTRIBUTING](./doc/CONTRIBUTING.md) for additional details.
+See [CONTRIBUTING](./doc/CONTRIBUTING.md) for details.
 
 ## Hiring
 

@@ -2,13 +2,14 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Pull Requests](#pull-requests)
-- [Requirements](#requirements)
-- [Development Workflow](#development-workflow)
-- [Build](#build)
-- [Structure](#structure)
-  - [VS Code Patch](#vs-code-patch)
-  - [Currently Known Issues](#currently-known-issues)
+- [Contributing](#contributing)
+  - [Pull Requests](#pull-requests)
+  - [Requirements](#requirements)
+  - [Development Workflow](#development-workflow)
+  - [Build](#build)
+  - [Structure](#structure)
+    - [VS Code Patch](#vs-code-patch)
+    - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -126,7 +127,7 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and fills in with the server. You can find this in
+the VS Code front-end and implements the server. You can find this in
 [./ci/dev/vscode.patch](../ci/dev/vscode.patch) under the path `src/vs/server`.
 
 Other notable changes in our patch include:
@@ -144,8 +145,10 @@ Other notable changes in our patch include:
 - Adding connection type to web socket query parameters
 
 As the web portion of VS Code matures, we'll be able to shrink and possibly
-eliminate our patch. In the meantime, upgrading the VS Code version requires us to ensure that the patch is applied and works as intended. In the future, we'd like to run VS
-Code unit tests against our builds to ensure that features work as expected.
+eliminate our patch. In the meantime, upgrading the VS Code version requires
+us to ensure that the patch is applied and works as intended. In the future,
+we'd like to run VS Code unit tests against our builds to ensure that features
+work as expected.
 
 To generate a new patch, run `yarn vscode:diff`
 
