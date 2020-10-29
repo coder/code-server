@@ -26,7 +26,7 @@ body {
   border: 1px solid #ddd;
   box-sizing: border-box;
   color: black;
-  flex: 1;
+  width: 100%;
   padding: 16px;
 }
 
@@ -34,6 +34,16 @@ body {
   display: none;
 }
 
-.login-form > .field > .submit {
+.login-form > .field > input[type="submit"] {
+  position: absolute;
+  left: -9999px;
+}
+
+.login-form > .field > input[type="submit"]:focus + label {
+  border: 2px solid #000;
+}
+
+.login-form > .field > .submit{
   margin-left: 20px;
+  flex-shrink: 0;
 }
