@@ -1,92 +1,177 @@
-import { field, logger } from "@coder/logger"
-import { Express } from "express"
-import * as fs from "fs"
 import * as path from "path"
-import * as util from "util"
-import { Args } from "./cli"
-import { paths } from "./util"
+import * as util from "./util"
+import * as pluginapi from "../../typings/plugin"
+import * as fs from "fs"
+import * as semver from "semver"
+import { version } from "./constants"
+const fsp = fs.promises
+import { Logger, field } from "@coder/logger"
+import * as express from "express"
 
-/* eslint-disable @typescript-eslint/no-var-requires */
+// These fields are populated from the plugin's package.json.
+interface Plugin extends pluginapi.Plugin {
+  name: string
+  version: string
+  description: string
+}
 
-export type Activate = (app: Express, args: Args) => void
-
-/**
- * Plugins must implement this interface.
- */
-export interface Plugin {
-  activate: Activate
+interface Application extends pluginapi.Application {
+  plugin: Plugin
 }
 
 /**
- * Intercept imports so we can inject code-server when the plugin tries to
- * import it.
+ * PluginAPI implements the plugin API described in typings/plugin.d.ts
+ * Please see that file for details.
  */
-const originalLoad = require("module")._load
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-require("module")._load = function (request: string, parent: object, isMain: boolean): any {
-  return originalLoad.apply(this, [request.replace(/^code-server/, path.resolve(__dirname, "../..")), parent, isMain])
-}
+export class PluginAPI {
+  private readonly plugins = new Array<Plugin>()
+  private readonly logger: Logger
 
-/**
- * Load a plugin and run its activation function.
- */
-const loadPlugin = async (pluginPath: string, app: Express, args: Args): Promise<void> => {
-  try {
-    const plugin: Plugin = require(pluginPath)
-    plugin.activate(app, args)
-
-    const packageJson = require(path.join(pluginPath, "package.json"))
-    logger.debug(
-      "Loaded plugin",
-      field("name", packageJson.name || path.basename(pluginPath)),
-      field("path", pluginPath),
-      field("version", packageJson.version || "n/a"),
-    )
-  } catch (error) {
-    logger.error(error.message)
+  public constructor(
+    logger: Logger,
+    /**
+     * These correspond to $CS_PLUGIN_PATH and $CS_PLUGIN respectively.
+     */
+    private readonly csPlugin = "",
+    private readonly csPluginPath = `${path.join(util.paths.data, "plugins")}:/usr/share/code-server/plugins`,
+  ){
+    this.logger = logger.named("pluginapi")
   }
-}
 
-/**
- * Load all plugins in the specified directory.
- */
-const _loadPlugins = async (pluginDir: string, app: Express, args: Args): Promise<void> => {
-  try {
-    const files = await util.promisify(fs.readdir)(pluginDir, {
-      withFileTypes: true,
-    })
-    await Promise.all(files.map((file) => loadPlugin(path.join(pluginDir, file.name), app, args)))
-  } catch (error) {
-    if (error.code !== "ENOENT") {
-      logger.warn(error.message)
+  /**
+   * applications grabs the full list of applications from
+   * all loaded plugins.
+   */
+  public async applications(): Promise<Application[]> {
+    const apps = new Array<Application>()
+    for (let p of this.plugins) {
+      const pluginApps = await p.applications()
+
+      // TODO prevent duplicates
+      // Add plugin key to each app.
+      apps.push(
+        ...pluginApps.map((app) => {
+          return { ...app, plugin: p }
+        }),
+      )
+    }
+    return apps
+  }
+
+  /**
+   * mount mounts all plugin routers onto r.
+   */
+  public mount(r: express.Router): void {
+    for (let p of this.plugins) {
+      r.use(`/${p.name}`, p.router())
     }
   }
+
+  /**
+   * loadPlugins loads all plugins based on this.csPluginPath
+   * and this.csPlugin.
+   */
+  public async loadPlugins(): Promise<void> {
+    // Built-in plugins.
+    await this._loadPlugins(path.join(__dirname, "../../plugins"))
+
+    for (let dir of this.csPluginPath.split(":")) {
+      if (!dir) {
+        continue
+      }
+      await this._loadPlugins(dir)
+    }
+
+    for (let dir of this.csPlugin.split(":")) {
+      if (!dir) {
+        continue
+      }
+      await this.loadPlugin(dir)
+    }
+  }
+
+  private async _loadPlugins(dir: string): Promise<void> {
+    try {
+      const entries = await fsp.readdir(dir, { withFileTypes: true })
+      for (let ent of entries) {
+        if (!ent.isDirectory()) {
+          continue
+        }
+        await this.loadPlugin(path.join(dir, ent.name))
+      }
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        this.logger.warn(`failed to load plugins from ${q(dir)}: ${err.message}`)
+      }
+    }
+  }
+
+  private async loadPlugin(dir: string): Promise<void> {
+    try {
+      const str = await fsp.readFile(path.join(dir, "package.json"), {
+        encoding: "utf8",
+      })
+      const packageJSON: PackageJSON = JSON.parse(str)
+      const p = this._loadPlugin(dir, packageJSON)
+      // TODO prevent duplicates
+      this.plugins.push(p)
+    } catch (err) {
+      if (err.code !== "ENOENT") {
+        this.logger.warn(`failed to load plugin: ${err.message}`)
+      }
+    }
+  }
+
+  private _loadPlugin(dir: string, packageJSON: PackageJSON): Plugin {
+    const logger = this.logger.named(packageJSON.name)
+    logger.debug("loading plugin",
+      field("plugin_dir", dir),
+      field("package_json", packageJSON),
+    )
+
+    if (!semver.satisfies(version, packageJSON.engines["code-server"])) {
+      throw new Error(`plugin range ${q(packageJSON.engines["code-server"])} incompatible` +
+        ` with code-server version ${version}`)
+    }
+    if (!packageJSON.name) {
+      throw new Error("plugin missing name")
+    }
+    if (!packageJSON.version) {
+      throw new Error("plugin missing version")
+    }
+    if (!packageJSON.description) {
+      throw new Error("plugin missing description")
+    }
+
+    const p = {
+      name: packageJSON.name,
+      version: packageJSON.version,
+      description: packageJSON.description,
+      ...require(dir),
+    } as Plugin
+
+    p.init({
+      logger: logger,
+    })
+
+    logger.debug("loaded")
+
+    return p
+  }
 }
 
-/**
- * Load all plugins from the `plugins` directory, directories specified by
- * `CS_PLUGIN_PATH` (colon-separated), and individual plugins specified by
- * `CS_PLUGIN` (also colon-separated).
- */
-export const loadPlugins = async (app: Express, args: Args): Promise<void> => {
-  const pluginPath = process.env.CS_PLUGIN_PATH || `${path.join(paths.data, "plugins")}:/usr/share/code-server/plugins`
-  const plugin = process.env.CS_PLUGIN || ""
-  await Promise.all([
-    // Built-in plugins.
-    _loadPlugins(path.resolve(__dirname, "../../plugins"), app, args),
-    // User-added plugins.
-    ...pluginPath
-      .split(":")
-      .filter((p) => !!p)
-      .map((dir) => _loadPlugins(path.resolve(dir), app, args)),
-    // Individual plugins so you don't have to symlink or move them into a
-    // directory specifically for plugins. This lets you load plugins that are
-    // on the same level as other directories that are not plugins (if you tried
-    // to use CS_PLUGIN_PATH code-server would try to load those other
-    // directories as plugins). Intended for development.
-    ...plugin
-      .split(":")
-      .filter((p) => !!p)
-      .map((dir) => loadPlugin(path.resolve(dir), app, args)),
-  ])
+interface PackageJSON {
+  name: string
+  version: string
+  description: string
+  engines: {
+    "code-server": string
+  }
+}
+
+function q(s: string): string {
+  if (s === undefined) {
+    s = "undefined"
+  }
+  return JSON.stringify(s)
 }

@@ -12,7 +12,7 @@ import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
 import { replaceTemplates } from "../http"
-import { loadPlugins } from "../plugin"
+import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { WebsocketRequest } from "../wsRouter"
 import * as domainProxy from "./domainProxy"
@@ -115,7 +115,9 @@ export const register = async (
   app.use("/static", _static.router)
   app.use("/update", update.router)
 
-  await loadPlugins(app, args)
+  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
+  await papi.loadPlugins()
+  papi.mount(app)
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
