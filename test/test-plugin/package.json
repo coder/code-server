@@ -1,0 +1,20 @@
+{
+  "private": true,
+  "name": "test-plugin",
+  "version": "1.0.0",
+  "description": "Fake plugin for testing code-server's plugin API",
+  "engines": {
+    "code-server": "^3.6.0"
+  },
+  "main": "out/index.js",
+  "devDependencies": {
+    "@types/express": "^4.17.8",
+    "typescript": "^4.0.5"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
