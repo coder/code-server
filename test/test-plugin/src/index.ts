@@ -19,7 +19,7 @@ export function applications(): pluginapi.Application[] {
     {
       name: "goland",
       version: "4.0.0",
-      iconPath: "icon.svg",
+      iconPath: "/icon.svg",
     },
   ]
 }
