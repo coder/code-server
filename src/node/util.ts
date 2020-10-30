@@ -54,9 +54,9 @@ export function humanPath(p?: string): string {
   return p.replace(os.homedir(), "~")
 }
 
-export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
-  const certPath = path.join(paths.data, "self-signed.crt")
-  const certKeyPath = path.join(paths.data, "self-signed.key")
+export const generateCertificate = async (hostname: string): Promise<{ cert: string; certKey: string }> => {
+  const certPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.crt`)
+  const certKeyPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.key`)
 
   const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
   if (!checks[0] || !checks[1]) {
@@ -67,6 +67,7 @@ export const generateCertificate = async (): Promise<{ cert: string; certKey: st
       pem.createCertificate(
         {
           selfSigned: true,
+          commonName: hostname,
           config: `
 [req]
 req_extensions = v3_req
@@ -76,7 +77,7 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [alt_names]
-DNS.1 = localhost
+DNS.1 = ${hostname}
 `,
         },
         (error, result) => {

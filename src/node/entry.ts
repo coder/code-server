@@ -160,7 +160,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
     ...(args.cert && !args.cert.value
-      ? await generateCertificate()
+      ? await generateCertificate(args["cert-host"] || "localhost")
       : {
           cert: args.cert && args.cert.value,
           certKey: args["cert-key"],
