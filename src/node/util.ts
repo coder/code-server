@@ -55,11 +55,10 @@ export function humanPath(p?: string): string {
 }
 
 export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
-  const paths = {
-    cert: path.join(tmpdir, "self-signed.cert"),
-    certKey: path.join(tmpdir, "self-signed.key"),
-  }
-  const checks = await Promise.all([fs.pathExists(paths.cert), fs.pathExists(paths.certKey)])
+  const certPath = path.join(paths.data, "self-signed.cert")
+  const certKeyPath = path.join(paths.data, "self-signed.key")
+
+  const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
   if (!checks[0] || !checks[1]) {
     // Require on demand so openssl isn't required if you aren't going to
     // generate certificates.
@@ -69,10 +68,13 @@ export const generateCertificate = async (): Promise<{ cert: string; certKey: st
         return error ? reject(error) : resolve(result)
       })
     })
-    await fs.mkdirp(tmpdir)
-    await Promise.all([fs.writeFile(paths.cert, certs.certificate), fs.writeFile(paths.certKey, certs.serviceKey)])
+    await fs.mkdirp(paths.data)
+    await Promise.all([fs.writeFile(certPath, certs.certificate), fs.writeFile(certKeyPath, certs.serviceKey)])
   }
-  return paths
+  return {
+    cert: certPath,
+    certKey: certKeyPath,
+  }
 }
 
 export const generatePassword = async (length = 24): Promise<string> => {

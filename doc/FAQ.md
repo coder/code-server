@@ -144,6 +144,9 @@ For HTTPS, you can use a self signed certificate by passing in just `--cert` or
 pass in an existing certificate by providing the path to `--cert` and the path to
 the key with `--cert-key`.
 
+The self signed certificate will be generated into
+`~/.local/share/code-server/self-signed.cert`.
+
 If `code-server` has been passed a certificate it will also respond to HTTPS
 requests and will redirect all HTTP requests to HTTPS.
 
