@@ -73,6 +73,7 @@ export const generateCertificate = async (hostname: string): Promise<{ cert: str
 req_extensions = v3_req
 
 [ v3_req ]
+basicConstraints = CA:true
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
