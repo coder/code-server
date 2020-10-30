@@ -173,21 +173,13 @@ class Watcher {
   }
 
   private createBundler(out = "dist"): Bundler {
-    return new Bundler(
-      [
-        path.join(this.rootPath, "src/browser/register.ts"),
-        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
-        path.join(this.rootPath, "src/browser/pages/login.ts"),
-        path.join(this.rootPath, "src/browser/pages/vscode.ts"),
-      ],
-      {
-        outDir: path.join(this.rootPath, out),
-        cacheDir: path.join(this.rootPath, ".cache"),
-        minify: !!process.env.MINIFY,
-        logLevel: 1,
-        publicUrl: ".",
-      },
-    )
+    return new Bundler([path.join(this.rootPath, "src/browser/**/*.ts")], {
+      outDir: path.join(this.rootPath, out),
+      cacheDir: path.join(this.rootPath, ".cache"),
+      minify: !!process.env.MINIFY,
+      logLevel: 1,
+      publicUrl: "/",
+    })
   }
 }
 

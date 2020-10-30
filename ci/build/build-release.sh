@@ -40,7 +40,7 @@ bundle_code_server() {
   mkdir -p "$RELEASE_PATH/src/browser"
   rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
   mkdir -p "$RELEASE_PATH/src/browser/pages"
-  rsync src/browser/pages/*.handlebars "$RELEASE_PATH/src/browser/pages"
+  rsync src/browser/views/*.handlebars "$RELEASE_PATH/src/browser/views"
   rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
   # Adds the commit to package.json

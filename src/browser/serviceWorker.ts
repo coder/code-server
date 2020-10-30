@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 self.addEventListener("install", () => {
-  console.log("[Service Worker] install")
+  console.log("[Code Server Service Worker] install")
 })
 
 self.addEventListener("activate", (event: any) => {

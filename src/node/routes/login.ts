@@ -1,7 +1,7 @@
 import { Router, ErrorRequestHandler } from "express"
 import { RateLimiter as Limiter } from "limiter"
 import safeCompare from "safe-compare"
-import { authenticated, getCookieDomain, redirect, commonTemplateVars } from "../http"
+import { authenticated, getCookieDomain, redirect } from "../http"
 import { hash, humanPath } from "../util"
 
 enum Cookie {
@@ -28,7 +28,6 @@ const rootHandler: ErrorRequestHandler = async (error: Error | undefined, req, r
     : `Check the config file at ${humanPath(req.args.config)} for the password.`
 
   res.render("login", {
-    ...commonTemplateVars(req),
     PASSWORD_MSG: passwordMsg,
     ERROR: error?.message || "",
   })

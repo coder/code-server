@@ -31,6 +31,7 @@ export const generateUuid = (length = 24): string => {
 
 /**
  * Remove extra slashes in a URL.
+ * @TODO replace with node `path` module.
  */
 export const normalize = (url: string, keepTrailing = false): string => {
   return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")

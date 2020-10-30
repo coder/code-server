@@ -8,7 +8,6 @@ import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType } from "./cli"
-import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
 import { hash } from "./util"
 
@@ -16,11 +15,7 @@ export interface Locals {
   heart: Heart
 }
 
-export interface CommonTemplateVars {
-  layout: boolean
-  TO: string
-  BASE: string
-  CS_STATIC_BASE: string
+export interface CommonTemplateVars extends Options {
   coderOptions: Options
 }
 
@@ -29,19 +24,27 @@ export const commonTemplateVars = <T extends Options>(
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): CommonTemplateVars => {
   const base = relativeRoot(req)
+  const csStaticBase = base + "/static/"
   const coderOptions: Options = {
     base,
-    csStaticBase: base + "/static/" + commit + rootPath,
+    csStaticBase,
     logLevel: logger.level,
     ...extraOpts,
   }
 
   return {
-    TO: (typeof req.query.to === "string" && req.query.to) || "/",
-    BASE: coderOptions.base,
-    CS_STATIC_BASE: coderOptions.csStaticBase,
+    ...coderOptions,
     coderOptions,
-    layout: false,
+  }
+}
+
+/**
+ * Injects variables into template scope.
+ */
+export const templateMiddleware = (locals: express.Application["locals"]): express.RequestHandler => {
+  return (req, _, next) => {
+    Object.assign(locals, commonTemplateVars(req))
+    next()
   }
 }
 

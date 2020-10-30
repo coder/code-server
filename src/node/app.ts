@@ -6,6 +6,7 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
 import { resolve } from "path"
+import { normalize } from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { rootPath } from "./constants"
 import { handleUpgrade } from "./http"
@@ -21,8 +22,10 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Ser
   app.engine(
     "handlebars",
     exphbs({
+      defaultLayout: "",
       helpers: {
         prod: () => prod,
+        assetPath: (base: string, path: string) => normalize(base + path),
         /**
          * Converts to JSON string and encodes entities for use in HTML.
          * @TODO we can likely move JSON attributes to <script type="text/json">
@@ -33,7 +36,7 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Ser
     }),
   )
 
-  app.set("views", resolve(rootPath, "src/browser/pages"))
+  app.set("views", resolve(rootPath, "src/browser/views"))
   app.set("view engine", "handlebars")
 
   const server = args.cert

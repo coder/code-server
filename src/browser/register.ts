@@ -2,12 +2,12 @@ import { getOptions, normalize } from "../common/util"
 
 const options = getOptions()
 
-import "./pages/error.css"
-import "./pages/global.css"
-import "./pages/login.css"
+import "./static/assets/error.css"
+import "./static/assets/global.css"
+import "./static/assets/login.css"
 
 if ("serviceWorker" in navigator) {
-  const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
+  const path = normalize(`${options.base}/serviceWorker.js`)
   navigator.serviceWorker
     .register(path, {
       scope: (options.base ?? "") + "/",

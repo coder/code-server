@@ -1,13 +1,14 @@
 import { Router } from "express"
+import { normalize } from "../../common/util"
 import { CommonTemplateVars, commonTemplateVars } from "../http"
 
 export const router = Router()
 
 const iconSizes = [96, 128, 192, 256, 384, 512]
 
-export const createWebManifest = ({ BASE, CS_STATIC_BASE }: CommonTemplateVars) => {
+export const createWebManifest = ({ base, csStaticBase }: CommonTemplateVars) => {
   const icons = iconSizes.map((iconSize) => ({
-    src: `${CS_STATIC_BASE}/src/browser/media/pwa-icon-${iconSize}.png`,
+    src: normalize(`${csStaticBase}/media/pwa-icon-${iconSize}.png`),
     type: "image/png",
     sizes: `${iconSize}x${iconSize}`,
   }))
@@ -15,7 +16,7 @@ export const createWebManifest = ({ BASE, CS_STATIC_BASE }: CommonTemplateVars) 
   return {
     name: "code-server",
     short_name: "code-server",
-    start_url: BASE,
+    start_url: base,
     display: "fullscreen",
     "background-color": "#fff",
     description: "Run editors on a remote server.",
