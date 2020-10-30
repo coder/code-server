@@ -25,6 +25,7 @@ describe("plugin", () => {
             name: "test-plugin",
             version: "1.0.0",
             description: "Fake plugin for testing code-server's plugin API",
+            modulePath: path.join(__dirname, "test-plugin"),
           },
         },
       ],

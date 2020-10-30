@@ -8,11 +8,18 @@ import { version } from "./constants"
 import * as util from "./util"
 const fsp = fs.promises
 
-// These fields are populated from the plugin's package.json.
 interface Plugin extends pluginapi.Plugin {
+  /**
+   * These fields are populated from the plugin's package.json.
+   */
   name: string
   version: string
   description: string
+
+  /**
+   * path to the node module on the disk.
+   */
+  modulePath: string
 }
 
 interface Application extends pluginapi.Application {
@@ -47,7 +54,6 @@ export class PluginAPI {
     for (const p of this.plugins) {
       const pluginApps = await p.applications()
 
-      // TODO prevent duplicates
       // Add plugin key to each app.
       apps.push(
         ...pluginApps.map((app) => {
@@ -112,8 +118,15 @@ export class PluginAPI {
         encoding: "utf8",
       })
       const packageJSON: PackageJSON = JSON.parse(str)
+      for (const p of this.plugins) {
+        if (p.name === packageJSON.name) {
+          this.logger.warn(
+            `ignoring duplicate plugin ${q(p.name)} at ${q(dir)}, using previously loaded ${q(p.modulePath)}`,
+          )
+          return
+        }
+      }
       const p = this._loadPlugin(dir, packageJSON)
-      // TODO prevent duplicates
       this.plugins.push(p)
     } catch (err) {
       if (err.code !== "ENOENT") {
@@ -145,6 +158,7 @@ export class PluginAPI {
       name: packageJSON.name,
       version: packageJSON.version,
       description: packageJSON.description,
+      modulePath: dir,
       ...require(dir),
     } as Plugin
 
