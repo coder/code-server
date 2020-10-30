@@ -1,6 +1,6 @@
-import * as pluginapi from "../../../typings/plugin"
 import * as express from "express"
-import * as path from "path";
+import * as path from "path"
+import * as pluginapi from "../../../typings/plugin"
 
 export function init(config: pluginapi.PluginConfig) {
   config.logger.debug("test-plugin loaded!")
@@ -15,9 +15,11 @@ export function router(): express.Router {
 }
 
 export function applications(): pluginapi.Application[] {
-  return [{
-    name: "goland",
-    version: "4.0.0",
-    iconPath: "icon.svg",
-  }]
+  return [
+    {
+      name: "goland",
+      version: "4.0.0",
+      iconPath: "icon.svg",
+    },
+  ]
 }

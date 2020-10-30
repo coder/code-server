@@ -1,12 +1,12 @@
-import * as path from "path"
-import * as util from "./util"
-import * as pluginapi from "../../typings/plugin"
-import * as fs from "fs"
-import * as semver from "semver"
-import { version } from "./constants"
-const fsp = fs.promises
 import { Logger, field } from "@coder/logger"
 import * as express from "express"
+import * as fs from "fs"
+import * as path from "path"
+import * as semver from "semver"
+import * as pluginapi from "../../typings/plugin"
+import { version } from "./constants"
+import * as util from "./util"
+const fsp = fs.promises
 
 // These fields are populated from the plugin's package.json.
 interface Plugin extends pluginapi.Plugin {
@@ -34,7 +34,7 @@ export class PluginAPI {
      */
     private readonly csPlugin = "",
     private readonly csPluginPath = `${path.join(util.paths.data, "plugins")}:/usr/share/code-server/plugins`,
-  ){
+  ) {
     this.logger = logger.named("pluginapi")
   }
 
@@ -44,7 +44,7 @@ export class PluginAPI {
    */
   public async applications(): Promise<Application[]> {
     const apps = new Array<Application>()
-    for (let p of this.plugins) {
+    for (const p of this.plugins) {
       const pluginApps = await p.applications()
 
       // TODO prevent duplicates
@@ -62,7 +62,7 @@ export class PluginAPI {
    * mount mounts all plugin routers onto r.
    */
   public mount(r: express.Router): void {
-    for (let p of this.plugins) {
+    for (const p of this.plugins) {
       r.use(`/${p.name}`, p.router())
     }
   }
@@ -75,14 +75,14 @@ export class PluginAPI {
     // Built-in plugins.
     await this._loadPlugins(path.join(__dirname, "../../plugins"))
 
-    for (let dir of this.csPluginPath.split(":")) {
+    for (const dir of this.csPluginPath.split(":")) {
       if (!dir) {
         continue
       }
       await this._loadPlugins(dir)
     }
 
-    for (let dir of this.csPlugin.split(":")) {
+    for (const dir of this.csPlugin.split(":")) {
       if (!dir) {
         continue
       }
@@ -93,7 +93,7 @@ export class PluginAPI {
   private async _loadPlugins(dir: string): Promise<void> {
     try {
       const entries = await fsp.readdir(dir, { withFileTypes: true })
-      for (let ent of entries) {
+      for (const ent of entries) {
         if (!ent.isDirectory()) {
           continue
         }
@@ -124,14 +124,12 @@ export class PluginAPI {
 
   private _loadPlugin(dir: string, packageJSON: PackageJSON): Plugin {
     const logger = this.logger.named(packageJSON.name)
-    logger.debug("loading plugin",
-      field("plugin_dir", dir),
-      field("package_json", packageJSON),
-    )
+    logger.debug("loading plugin", field("plugin_dir", dir), field("package_json", packageJSON))
 
     if (!semver.satisfies(version, packageJSON.engines["code-server"])) {
-      throw new Error(`plugin range ${q(packageJSON.engines["code-server"])} incompatible` +
-        ` with code-server version ${version}`)
+      throw new Error(
+        `plugin range ${q(packageJSON.engines["code-server"])} incompatible` + ` with code-server version ${version}`,
+      )
     }
     if (!packageJSON.name) {
       throw new Error("plugin missing name")
