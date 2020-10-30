@@ -55,7 +55,7 @@ export function humanPath(p?: string): string {
 }
 
 export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
-  const certPath = path.join(paths.data, "self-signed.cert")
+  const certPath = path.join(paths.data, "self-signed.crt")
   const certKeyPath = path.join(paths.data, "self-signed.key")
 
   const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
@@ -64,9 +64,25 @@ export const generateCertificate = async (): Promise<{ cert: string; certKey: st
     // generate certificates.
     const pem = require("pem") as typeof import("pem")
     const certs = await new Promise<import("pem").CertificateCreationResult>((resolve, reject): void => {
-      pem.createCertificate({ selfSigned: true }, (error, result) => {
-        return error ? reject(error) : resolve(result)
-      })
+      pem.createCertificate(
+        {
+          selfSigned: true,
+          config: `
+[req]
+req_extensions = v3_req
+
+[ v3_req ]
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = localhost
+`,
+        },
+        (error, result) => {
+          return error ? reject(error) : resolve(result)
+        },
+      )
     })
     await fs.mkdirp(paths.data)
     await Promise.all([fs.writeFile(certPath, certs.certificate), fs.writeFile(certKeyPath, certs.serviceKey)])

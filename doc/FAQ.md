@@ -145,7 +145,7 @@ pass in an existing certificate by providing the path to `--cert` and the path t
 the key with `--cert-key`.
 
 The self signed certificate will be generated into
-`~/.local/share/code-server/self-signed.cert`.
+`~/.local/share/code-server/self-signed.crt`.
 
 If `code-server` has been passed a certificate it will also respond to HTTPS
 requests and will redirect all HTTP requests to HTTPS.
