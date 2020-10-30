@@ -3,6 +3,7 @@
 # FAQ
 
 - [Questions?](#questions)
+- [iPad Status?](#ipad-status)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
@@ -32,6 +33,10 @@
 ## Questions?
 
 Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
+
+## iPad Status?
+
+Please see [./ipad.md](./ipad.md).
 
 ## How can I reuse my VS Code configuration?
 
