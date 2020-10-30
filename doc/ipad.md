@@ -3,13 +3,21 @@
 # iPad
 
 - [iPad](#ipad)
-  - [How to access code-server with a self signed certificate on iPad](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
+  - [Known Issues](#known-issues)
+  - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # iPad
 
-## How to access code-server with a self signed certificate on iPad
+## Known Issues
+
+- Getting self signed certificates certificates to work is involved, see below.
+- Keyboard may disappear sometimes [#1313](https://github.com/cdr/code-server/issues/1313), [#979](https://github.com/cdr/code-server/issues/979)
+- Trackpad scrolling does not work [#1455](https://github.com/cdr/code-server/issues/1455)
+- See [issues tagged with the iPad label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3AiPad) for more.
+
+## How to access code-server with a self signed certificate on iPad?
 
 Accessing a self signed certificate on iPad isn't as easy as accepting through all
 the security warnings. Safari will prevent WebSocket connections unless the certificate
