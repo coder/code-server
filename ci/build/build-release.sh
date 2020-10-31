@@ -38,7 +38,7 @@ bundle_code_server() {
 
   # For source maps and images.
   mkdir -p "$RELEASE_PATH/src/browser"
-  rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
+  rsync src/browser/static/media "$RELEASE_PATH/src/browser/static/media"
   mkdir -p "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/views/*.handlebars "$RELEASE_PATH/src/browser/views"
   rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
