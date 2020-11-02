@@ -25,8 +25,11 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
-  curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent
-  chmod +x ./lib/coder-cloud-agent
+  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent ; then
+    chmod +x ./lib/coder-cloud-agent
+  else
+    echo "Failed to download cloud agent; --link will not work"
+  fi
 
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
