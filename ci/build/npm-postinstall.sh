@@ -25,7 +25,7 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
-  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent ; then
+  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
     echo "Failed to download cloud agent; --link will not work"
