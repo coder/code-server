@@ -50,12 +50,15 @@ export class VscodeHttpProvider extends HttpProvider {
 
     logger.debug("setting up vs code...")
     return new Promise<WorkbenchOptions>((resolve, reject) => {
-      vscode.once("message", (message: VscodeMessage) => {
-        logger.debug("got message from vs code", field("message", message))
-        return message.type === "options" && message.id === id
-          ? resolve(message.options)
-          : reject(new Error("Unexpected response during initialization"))
-      })
+      const onMessage = (message: VscodeMessage) => {
+        // There can be parallel initializations so wait for the right ID.
+        if (message.type === "options" && message.id === id) {
+          logger.trace("got message from vs code", field("message", message))
+          vscode.off("message", onMessage)
+          resolve(message.options)
+        }
+      }
+      vscode.on("message", onMessage)
       vscode.once("error", reject)
       vscode.once("exit", (code) => reject(new Error(`VS Code exited unexpectedly with code ${code}`)))
       this.send({ type: "init", id, options }, vscode)
@@ -77,7 +80,7 @@ export class VscodeHttpProvider extends HttpProvider {
 
       this._vscode = new Promise((resolve, reject) => {
         vscode.once("message", (message: VscodeMessage) => {
-          logger.debug("got message from vs code", field("message", message))
+          logger.trace("got message from vs code", field("message", message))
           return message.type === "ready"
             ? resolve(vscode)
             : reject(new Error("Unexpected response waiting for ready response"))

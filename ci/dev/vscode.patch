@@ -1225,10 +1225,10 @@ index 0000000000000000000000000000000000000000..4ea6d95d36aaac07dbd4d0e16ab3c1bb
 +}
 diff --git a/src/vs/server/entry.ts b/src/vs/server/entry.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..ab020fbb4e4ab3748cc807765ff9c362389faafa
+index 0000000000000000000000000000000000000000..8482c48bae007ed6b39183001ae2cc6d140fcd50
 --- /dev/null
 +++ b/src/vs/server/entry.ts
-@@ -0,0 +1,78 @@
+@@ -0,0 +1,79 @@
 +import { field } from '@coder/logger';
 +import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
 +import { CodeServerMessage, VscodeMessage } from 'vs/server/ipc';
@@ -1273,7 +1273,8 @@ index 0000000000000000000000000000000000000000..ab020fbb4e4ab3748cc807765ff9c362
 +// Wait for the init message then start up VS Code. Subsequent messages will
 +// return new workbench options without starting a new instance.
 +process.on('message', async (message: CodeServerMessage, socket) => {
-+	logger.debug('got message from code-server', field('message', message));
++	logger.debug('got message from code-server', field('type', message.type));
++	logger.trace('code-server message content', field('message', message));
 +	switch (message.type) {
 +		case 'init':
 +			try {
@@ -1821,10 +1822,11 @@ index 0000000000000000000000000000000000000000..609c4d1cb43f52f92906b901c14c790f
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759f396be18
+index 0000000000000000000000000000000000000000..93062cadc627c61e0829c27a72894b81e6a0e039
 --- /dev/null
 +++ b/src/vs/server/node/connection.ts
-@@ -0,0 +1,157 @@
+@@ -0,0 +1,171 @@
++import { field, Logger, logger } from '@coder/logger';
 +import * as cp from 'child_process';
 +import { VSBuffer } from 'vs/base/common/buffer';
 +import { Emitter } from 'vs/base/common/event';
@@ -1832,10 +1834,8 @@ index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759
 +import { ISocket } from 'vs/base/parts/ipc/common/ipc.net';
 +import { NodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
 +import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
-+import { ILogService } from 'vs/platform/log/common/log';
 +import { getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
-+import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 +
 +export abstract class Connection {
 +	private readonly _onClose = new Emitter<void>();
@@ -1899,13 +1899,14 @@ index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759
 +
 +export class ExtensionHostConnection extends Connection {
 +	private process?: cp.ChildProcess;
++	private readonly logger: Logger;
 +
 +	public constructor(
 +		locale:string, protocol: Protocol, buffer: VSBuffer, token: string,
-+		private readonly log: ILogService,
 +		private readonly environment: INativeEnvironmentService,
 +	) {
 +		super(protocol, token);
++		this.logger = logger.named("exthost", field("token", token));
 +		this.protocol.dispose();
 +		this.spawn(locale, buffer).then((p) => this.process = p);
 +		this.protocol.getUnderlyingSocket().pause();
@@ -1928,6 +1929,7 @@ index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759
 +	private sendInitMessage(buffer: VSBuffer): void {
 +		const socket = this.protocol.getUnderlyingSocket();
 +		socket.pause();
++		this.logger.trace('Sending socket');
 +		this.process!.send({ // Process must be set at this point.
 +			type: 'VSCODE_EXTHOST_IPC_SOCKET',
 +			initialDataChunk: (buffer.buffer as Buffer).toString('base64'),
@@ -1936,7 +1938,9 @@ index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759
 +	}
 +
 +	private async spawn(locale: string, buffer: VSBuffer): Promise<cp.ChildProcess> {
++		this.logger.trace('Getting NLS configuration...');
 +		const config = await getNlsConfiguration(locale, this.environment.userDataPath);
++		this.logger.trace('Spawning extension host...');
 +		const proc = cp.fork(
 +			FileAccess.asFileUri('bootstrap-fork', require).fsPath,
 +			[ '--type=extensionHost' ],
@@ -1956,30 +1960,41 @@ index 0000000000000000000000000000000000000000..eec198c948d48b1539ff46510016f759
 +			},
 +		);
 +
-+		proc.on('error', () => this.dispose());
-+		proc.on('exit', () => this.dispose());
++		proc.on('error', (error) => {
++			this.logger.error('Exited unexpectedly', field('error', error));
++			this.dispose();
++		});
++		proc.on('exit', (code) => {
++			this.logger.trace('Exited', field('code', code));
++			this.dispose();
++		});
 +		if (proc.stdout && proc.stderr) {
-+			proc.stdout.setEncoding('utf8').on('data', (d) => this.log.info('Extension host stdout', d));
-+			proc.stderr.setEncoding('utf8').on('data', (d) => this.log.error('Extension host stderr', d));
++			proc.stdout.setEncoding('utf8').on('data', (d) => this.logger.info(d));
++			proc.stderr.setEncoding('utf8').on('data', (d) => this.logger.error(d));
 +		}
++
 +		proc.on('message', (event) => {
-+			if (event && event.type === '__$console') {
-+				const severity = (<any>this.log)[event.severity] ? event.severity : 'info';
-+				(<any>this.log)[severity]('Extension host', event.arguments);
-+			}
-+			if (event && event.type === 'VSCODE_EXTHOST_DISCONNECTED') {
-+				this.setOffline();
++			switch (event && event.type) {
++				case '__$console':
++					const severity = (<any>this.logger)[event.severity] || 'info';
++					(<any>this.logger)[severity]('console', field('arguments', event.arguments));
++					break;
++				case 'VSCODE_EXTHOST_DISCONNECTED':
++					this.logger.trace('Going offline');
++					this.setOffline();
++					break;
++				case 'VSCODE_EXTHOST_IPC_READY':
++					this.logger.trace('Got ready message');
++					this.sendInitMessage(buffer);
++					break;
++				default:
++					this.logger.error('Unexpected message', field("event", event));
++					break;
 +			}
 +		});
 +
-+		const listen = (message: IExtHostReadyMessage) => {
-+			if (message.type === 'VSCODE_EXTHOST_IPC_READY') {
-+				proc.removeListener('message', listen);
-+				this.sendInitMessage(buffer);
-+			}
-+		};
-+
-+		return proc.on('message', listen);
++		this.logger.trace('Waiting for handshake...');
++		return proc;
 +	}
 +}
 diff --git a/src/vs/server/node/insights.ts b/src/vs/server/node/insights.ts
@@ -2463,15 +2478,17 @@ index 0000000000000000000000000000000000000000..3d428a57d31f29c40f9c3ce45f715b44
 +};
 diff --git a/src/vs/server/node/protocol.ts b/src/vs/server/node/protocol.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..3c74512192aec6220216bc8563b3127b9cfd5fbf
+index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84924213db
 --- /dev/null
 +++ b/src/vs/server/node/protocol.ts
-@@ -0,0 +1,73 @@
+@@ -0,0 +1,91 @@
++import { field } from '@coder/logger';
 +import * as net from 'net';
 +import { VSBuffer } from 'vs/base/common/buffer';
 +import { PersistentProtocol } from 'vs/base/parts/ipc/common/ipc.net';
 +import { NodeSocket, WebSocketNodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
 +import { AuthRequest, ConnectionTypeRequest, HandshakeMessage } from 'vs/platform/remote/common/remoteAgentConnection';
++import { logger } from 'vs/server/node/logger';
 +
 +export interface SocketOptions {
 +	readonly reconnectionToken: string;
@@ -2499,29 +2516,45 @@ index 0000000000000000000000000000000000000000..3c74512192aec6220216bc8563b3127b
 +	 * Perform a handshake to get a connection request.
 +	 */
 +	public handshake(): Promise<ConnectionTypeRequest> {
++		logger.trace('Protocol handshake', field('token', this.options.reconnectionToken));
 +		return new Promise((resolve, reject) => {
++			const timeout = setTimeout(() => {
++				logger.error('Handshake timed out', field('token', this.options.reconnectionToken));
++				reject(new Error("timed out"));
++			}, 10000); // Matches the client timeout.
++
 +			const handler = this.onControlMessage((rawMessage) => {
 +				try {
-+					const message = JSON.parse(rawMessage.toString());
++					const raw = rawMessage.toString();
++					logger.trace('Protocol message', field('token', this.options.reconnectionToken), field('message', raw));
++					const message = JSON.parse(raw);
 +					switch (message.type) {
-+						case 'auth': return this.authenticate(message);
++						case 'auth':
++							return this.authenticate(message);
 +						case 'connectionType':
 +							handler.dispose();
++							clearTimeout(timeout);
 +							return resolve(message);
-+						default: throw new Error('Unrecognized message type');
++						default:
++							throw new Error('Unrecognized message type');
 +					}
 +				} catch (error) {
 +					handler.dispose();
++					clearTimeout(timeout);
 +					reject(error);
 +				}
 +			});
++
++			// Kick off the handshake in case we missed the client's opening shot.
++			// TODO: Investigate why that message seems to get lost.
++			this.authenticate();
 +		});
 +	}
 +
 +	/**
 +	 * TODO: This ignores the authentication process entirely for now.
 +	 */
-+	private authenticate(_message: AuthRequest): void {
++	private authenticate(_?: AuthRequest): void {
 +		this.sendMessage({ type: 'sign', data: '' });
 +	}
 +
@@ -2542,10 +2575,11 @@ index 0000000000000000000000000000000000000000..3c74512192aec6220216bc8563b3127b
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..a1289865858f405f93d3d396f41c6a0aadffd5e5
+index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae095109eb1
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,286 @@
+@@ -0,0 +1,291 @@
++import { field } from '@coder/logger';
 +import * as fs from 'fs';
 +import * as net from 'net';
 +import * as path from 'path';
@@ -2709,6 +2743,7 @@ index 0000000000000000000000000000000000000000..a1289865858f405f93d3d396f41c6a0a
 +					);
 +				}
 +
++				logger.debug('New connection', field('token', token));
 +				protocol.sendMessage(await ok());
 +
 +				let connection: Connection;
@@ -2727,12 +2762,14 @@ index 0000000000000000000000000000000000000000..a1289865858f405f93d3d396f41c6a0a
 +					connection = new ExtensionHostConnection(
 +						message.args ? message.args.language : 'en',
 +						protocol, buffer, token,
-+						this.services.get(ILogService) as ILogService,
 +						this.services.get(IEnvironmentService) as INativeEnvironmentService,
 +					);
 +				}
 +				connections.set(token, connection);
-+				connection.onClose(() => connections.delete(token));
++				connection.onClose(() => {
++					logger.debug('Connection closed', field('token', token));
++					connections.delete(token);
++				});
 +				this.disposeOldOfflineConnections(connections);
 +				break;
 +			case ConnectionType.Tunnel: return protocol.tunnel();
@@ -2744,6 +2781,7 @@ index 0000000000000000000000000000000000000000..a1289865858f405f93d3d396f41c6a0a
 +		const offline = Array.from(connections.values())
 +			.filter((connection) => typeof connection.offline !== 'undefined');
 +		for (let i = 0, max = offline.length - this.maxExtraOfflineConnections; i < max; ++i) {
++			logger.debug('Disposing offline connection', field("token", offline[i].token));
 +			offline[i].dispose();
 +		}
 +	}

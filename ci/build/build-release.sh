@@ -67,7 +67,7 @@ EOF
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
   rsync "$VSCODE_SRC_PATH/yarn.lock" "$VSCODE_OUT_PATH"
-  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY+-min}/" "$VSCODE_OUT_PATH/out"
+  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY:+-min}/" "$VSCODE_OUT_PATH/out"
 
   rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
   if [ "$KEEP_MODULES" = 0 ]; then
