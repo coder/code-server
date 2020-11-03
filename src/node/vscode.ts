@@ -7,6 +7,7 @@ import { arrayify, generateUuid } from "../common/util"
 import { rootPath } from "./constants"
 import { settings } from "./settings"
 import { isFile } from "./util"
+import { ipcMain } from "./wrapper"
 
 export class VscodeProvider {
   public readonly serverRootPath: string
@@ -16,6 +17,7 @@ export class VscodeProvider {
   public constructor() {
     this.vsRootPath = path.resolve(rootPath, "lib/vscode")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
+    ipcMain.onDispose(() => this.dispose())
   }
 
   public async dispose(): Promise<void> {

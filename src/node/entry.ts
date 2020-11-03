@@ -102,10 +102,6 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
 
-  ipcMain.onDispose(() => {
-    //  TODO: register disposables
-  })
-
   const [app, server] = await createApp(args)
   const serverAddress = ensureAddress(server)
   await register(app, server, args)
