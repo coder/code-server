@@ -1,12 +1,12 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
-import * as fs from "fs-extra"
 import * as net from "net"
 import * as path from "path"
 import * as ipc from "../../lib/vscode/src/vs/server/ipc"
 import { arrayify, generateUuid } from "../common/util"
 import { rootPath } from "./constants"
 import { settings } from "./settings"
+import { isFile } from "./util"
 
 export class VscodeProvider {
   public readonly serverRootPath: string
@@ -123,15 +123,6 @@ export class VscodeProvider {
   private async getFirstPath(
     startPaths: Array<{ url?: string | string[] | ipc.Query | ipc.Query[]; workspace?: boolean } | undefined>,
   ): Promise<ipc.StartPath | undefined> {
-    const isFile = async (path: string): Promise<boolean> => {
-      try {
-        const stat = await fs.stat(path)
-        return stat.isFile()
-      } catch (error) {
-        logger.warn(error.message)
-        return false
-      }
-    }
     for (let i = 0; i < startPaths.length; ++i) {
       const startPath = startPaths[i]
       const url = arrayify(startPath && startPath.url).find((p) => !!p)

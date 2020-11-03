@@ -1,6 +1,5 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
-import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
@@ -19,7 +18,7 @@ import {
 import { coderCloudBind } from "./coder-cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
-import { humanPath, open } from "./util"
+import { humanPath, isFile, open } from "./util"
 import { ipcMain, WrapperProcess } from "./wrapper"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
@@ -55,21 +54,12 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     forceNewWindow: args["new-window"],
   }
 
-  const isDir = async (path: string): Promise<boolean> => {
-    try {
-      const st = await fs.stat(path)
-      return st.isDirectory()
-    } catch (error) {
-      return false
-    }
-  }
-
   for (let i = 0; i < args._.length; i++) {
     const fp = path.resolve(args._[i])
-    if (await isDir(fp)) {
-      pipeArgs.folderURIs.push(fp)
-    } else {
+    if (await isFile(fp)) {
       pipeArgs.fileURIs.push(fp)
+    } else {
+      pipeArgs.folderURIs.push(fp)
     }
   }
 

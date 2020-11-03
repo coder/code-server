@@ -261,3 +261,12 @@ export function canConnect(path: string): Promise<boolean> {
     })
   })
 }
+
+export const isFile = async (path: string): Promise<boolean> => {
+  try {
+    const stat = await fs.stat(path)
+    return stat.isFile()
+  } catch (error) {
+    return false
+  }
+}
