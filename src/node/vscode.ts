@@ -22,8 +22,8 @@ export class VscodeProvider {
     if (this._vscode) {
       const vscode = await this._vscode
       vscode.removeAllListeners()
-      this._vscode = undefined
       vscode.kill()
+      this._vscode = undefined
     }
   }
 
