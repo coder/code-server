@@ -71,6 +71,9 @@ router.ws("/", async (socket, _, req) => {
   await vscode.sendWebsocket(socket, req.query)
 })
 
+/**
+ * TODO: Might currently be unused.
+ */
 router.get("/resource(/*)?", async (req, res) => {
   ensureAuthenticated(req)
   if (typeof req.query.path === "string") {
@@ -79,6 +82,9 @@ router.get("/resource(/*)?", async (req, res) => {
   }
 })
 
+/**
+ * Used by VS Code to load files.
+ */
 router.get("/vscode-remote-resource(/*)?", async (req, res) => {
   ensureAuthenticated(req)
   if (typeof req.query.path === "string") {
@@ -87,6 +93,10 @@ router.get("/vscode-remote-resource(/*)?", async (req, res) => {
   }
 })
 
+/**
+ * VS Code webviews use these paths to load files and to load webview assets
+ * like HTML and JavaScript.
+ */
 router.get("/webview/*", async (req, res) => {
   ensureAuthenticated(req)
   res.set("Content-Type", getMediaMime(req.path))

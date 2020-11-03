@@ -32,6 +32,9 @@ router.get("/(:commit)(/*)?", async (req, res) => {
     res.header("Cache-Control", "public, max-age=31536000")
   }
 
+  /**
+   * Used by VS Code to load extensions into the web worker.
+   */
   const tar = Array.isArray(req.query.tar) ? req.query.tar[0] : req.query.tar
   if (typeof tar === "string") {
     let stream: Readable = tarFs.pack(pathToFsPath(tar))
