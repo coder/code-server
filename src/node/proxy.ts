@@ -25,8 +25,6 @@ export const router = Router()
  *
  * For example if `coder.com` is specified `8080.coder.com` will be proxied
  * but `8080.test.coder.com` and `test.8080.coder.com` will not.
- *
- * Throw an error if proxying but the user isn't authenticated.
  */
 const maybeProxy = (req: Request): string | undefined => {
   // Split into parts.
