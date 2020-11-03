@@ -18,7 +18,12 @@ import * as express from "express"
  *
  * Plugins are just node modules.
  *
- * code-server uses $CS_PLUGIN_PATH to find plugins. Each subdirectory in
+ * 1. code-server uses $CS_PLUGIN to find plugins.
+ *
+ * e.g. CS_PLUGIN=/tmp/will:/tmp/teffen will cause code-server to load
+ * /tmp/will and /tmp/teffen as plugins.
+ *
+ * 2. code-server uses $CS_PLUGIN_PATH to find plugins. Each subdirectory in
  * $CS_PLUGIN_PATH with a package.json where the engine is code-server is
  * a valid plugin.
  *
@@ -29,16 +34,14 @@ import * as express from "express"
  * ~/.local/share/code-server/plugins:/usr/share/code-server/plugins
  * if unset.
  *
- * code-server also uses $CS_PLUGIN to find plugins.
  *
- * e.g. CS_PLUGIN=/tmp/will:/tmp/teffen will cause code-server to load
- * /tmp/will and /tmp/teffen as plugins.
+ * 3. Built in plugins are loaded from __dirname/../plugins
  *
- * Built in plugins are also loaded from __dirname/../plugins
+ * Plugins are required as soon as they are found and then initialized.
+ * See the Plugin interface for details.
  *
- * Priority is $CS_PLUGIN, $CS_PLUGIN_PATH and then the builtin plugins.
- * After the search is complete, plugins will be required in first found order and
- * initialized. See the Plugin interface for details.
+ * If two plugins are found with the exact same name, then code-server will
+ * use the first one and emit a warning.
  *
  * There is also a /api/applications endpoint to allow programmatic access to all
  * available applications. It could be used to create a custom application dashboard
@@ -51,9 +54,6 @@ import * as express from "express"
  * The plugin's name, description and version are fetched from its module's package.json
  *
  * The plugin's router will be mounted at <code-sever-root>/<plugin-name>
- *
- * If two plugins are found with the exact same name, then code-server will
- * use the last one and emit a warning.
  */
 export interface Plugin {
   /**

@@ -89,8 +89,12 @@ export class PluginAPI {
    * this.csPluginPath and the built in plugins.
    */
   public async loadPlugins(): Promise<void> {
-    // Built-in plugins.
-    await this._loadPlugins(path.join(__dirname, "../../plugins"))
+    for (const dir of this.csPlugin.split(":")) {
+      if (!dir) {
+        continue
+      }
+      await this.loadPlugin(dir)
+    }
 
     for (const dir of this.csPluginPath.split(":")) {
       if (!dir) {
@@ -99,12 +103,8 @@ export class PluginAPI {
       await this._loadPlugins(dir)
     }
 
-    for (const dir of this.csPlugin.split(":")) {
-      if (!dir) {
-        continue
-      }
-      await this.loadPlugin(dir)
-    }
+    // Built-in plugins.
+    await this._loadPlugins(path.join(__dirname, "../../plugins"))
   }
 
   private async _loadPlugins(dir: string): Promise<void> {
