@@ -51,14 +51,20 @@ export class VscodeProvider {
 
     logger.debug("setting up vs code...")
     return new Promise<ipc.WorkbenchOptions>((resolve, reject) => {
+      const onExit = (code: number | null) => reject(new Error(`VS Code exited unexpectedly with code ${code}`))
+
       vscode.once("message", (message: ipc.VscodeMessage) => {
         logger.debug("got message from vs code", field("message", message))
+        vscode.off("error", reject)
+        vscode.off("exit", onExit)
         return message.type === "options" && message.id === id
           ? resolve(message.options)
           : reject(new Error("Unexpected response during initialization"))
       })
+
       vscode.once("error", reject)
-      vscode.once("exit", (code) => reject(new Error(`VS Code exited unexpectedly with code ${code}`)))
+      vscode.once("exit", onExit)
+
       this.send(
         {
           type: "init",
@@ -90,14 +96,19 @@ export class VscodeProvider {
     })
 
     this._vscode = new Promise((resolve, reject) => {
+      const onExit = (code: number | null) => reject(new Error(`VS Code exited unexpectedly with code ${code}`))
+
       vscode.once("message", (message: ipc.VscodeMessage) => {
         logger.debug("got message from vs code", field("message", message))
+        vscode.off("error", reject)
+        vscode.off("exit", onExit)
         return message.type === "ready"
           ? resolve(vscode)
           : reject(new Error("Unexpected response waiting for ready response"))
       })
+
       vscode.once("error", reject)
-      vscode.once("exit", (code) => reject(new Error(`VS Code exited unexpectedly with code ${code}`)))
+      vscode.once("exit", onExit)
     })
 
     return this._vscode
