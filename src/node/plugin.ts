@@ -150,9 +150,6 @@ export class PluginAPI {
     if (!packageJSON.version) {
       throw new Error("plugin missing version")
     }
-    if (!packageJSON.description) {
-      throw new Error("plugin missing description")
-    }
 
     const p = {
       name: packageJSON.name,
@@ -181,7 +178,7 @@ interface PackageJSON {
   }
 }
 
-function q(s: string): string {
+function q(s: string | undefined): string {
   if (s === undefined) {
     s = "undefined"
   }
