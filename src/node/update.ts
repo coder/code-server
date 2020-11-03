@@ -105,22 +105,21 @@ export class UpdateProvider {
         logger.debug("Making request", field("uri", uri))
         const httpx = uri.startsWith("https") ? https : http
         const client = httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
-          if (
-            response.statusCode &&
-            response.statusCode >= 300 &&
-            response.statusCode < 400 &&
-            response.headers.location
-          ) {
+          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
+            return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
+          }
+
+          if (response.statusCode >= 300) {
             ++redirects
             if (redirects > maxRedirects) {
+              response.destroy()
               return reject(new Error("reached max redirects"))
+            }
+            if (!response.headers.location) {
+              return reject(new Error("received redirect with no location header"))
             }
             response.destroy()
             return request(url.resolve(uri, response.headers.location))
-          }
-
-          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
-            return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
           }
 
           resolve(response)
