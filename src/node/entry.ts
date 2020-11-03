@@ -160,7 +160,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     proxyDomains: args["proxy-domain"],
     socket: args.socket,
     ...(args.cert && !args.cert.value
-      ? await generateCertificate()
+      ? await generateCertificate(args["cert-host"] || "localhost")
       : {
           cert: args.cert && args.cert.value,
           certKey: args["cert-key"],
@@ -209,7 +209,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
     logger.info(
       args.cert && args.cert.value
         ? `  - Using provided certificate and key for HTTPS`
-        : `  - Using generated certificate and key for HTTPS`,
+        : `  - Using generated certificate and key for HTTPS: ${humanPath(options.cert)}`,
     )
   } else {
     logger.info("  - Not serving HTTPS")

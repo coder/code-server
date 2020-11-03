@@ -251,8 +251,7 @@ Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 ### Self Signed Certificate
 
-**note:** Self signed certificates do not work with iPad and will cause a blank page. You'll
-have to use [Let's Encrypt](#lets-encrypt) instead. See the [FAQ](./FAQ.md#blank-screen-on-ipad).
+**note:** Self signed certificates do not work with iPad normally. See [./ipad.md](./ipad.md) for details.
 
 Recommended reading: https://security.stackexchange.com/a/8112.
 

@@ -26,6 +26,7 @@ export interface Args extends VsArgs {
   readonly auth?: AuthType
   readonly password?: string
   readonly cert?: OptionalString
+  readonly "cert-host"?: string
   readonly "cert-key"?: string
   readonly "disable-telemetry"?: boolean
   readonly help?: boolean
@@ -101,7 +102,11 @@ const options: Options<Required<Args>> = {
   cert: {
     type: OptionalString,
     path: true,
-    description: "Path to certificate. Generated if no path is provided.",
+    description: "Path to certificate. A self signed certificate is generated if none is provided.",
+  },
+  "cert-host": {
+    type: "string",
+    description: "Hostname to use when generating a self signed certificate.",
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
