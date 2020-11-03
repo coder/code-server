@@ -23,7 +23,10 @@ interface Plugin extends pluginapi.Plugin {
 }
 
 interface Application extends pluginapi.Application {
-  plugin: Plugin
+  /*
+   * Clone of the above without functions.
+   */
+  plugin: Omit<Plugin, "init" | "router" | "applications">
 }
 
 /**
@@ -57,7 +60,15 @@ export class PluginAPI {
       // Add plugin key to each app.
       apps.push(
         ...pluginApps.map((app) => {
-          return { ...app, plugin: p }
+          return {
+            ...app,
+            plugin: {
+              name: p.name,
+              version: p.version,
+              description: p.description,
+              modulePath: p.modulePath,
+            },
+          }
         }),
       )
     }
@@ -74,8 +85,8 @@ export class PluginAPI {
   }
 
   /**
-   * loadPlugins loads all plugins based on this.csPluginPath
-   * and this.csPlugin.
+   * loadPlugins loads all plugins based on this.csPlugin,
+   * this.csPluginPath and the built in plugins.
    */
   public async loadPlugins(): Promise<void> {
     // Built-in plugins.

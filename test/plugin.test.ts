@@ -12,8 +12,7 @@ describe("plugin", () => {
     const papi = new PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
     await papi.loadPlugins()
 
-    // We remove the function fields from the application's plugins.
-    const apps = JSON.parse(JSON.stringify(await papi.applications()))
+    const apps = await papi.applications()
 
     assert.deepEqual(
       [
