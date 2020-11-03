@@ -425,10 +425,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.port = 0
     args.socket = undefined
     args.cert = undefined
-
-    if (args.auth !== AuthType.None) {
-      args.auth = AuthType.None
-    }
+    args.auth = AuthType.None
   }
 
   if (args.cert && !args.cert.value) {
