@@ -738,6 +738,8 @@ export class HttpServer {
   }
 
   private onUpgrade = async (request: http.IncomingMessage, socket: net.Socket, head: Buffer): Promise<void> => {
+    socket.pause()
+
     try {
       this.heart.beat()
       socket.on("error", () => socket.destroy())
