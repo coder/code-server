@@ -130,7 +130,7 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
   })
 
   logger.debug("got cookie doman", field("host", host))
-  return host ? `Domain=${host}` : undefined
+  return host || undefined
 }
 
 declare module "express" {
