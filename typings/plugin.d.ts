@@ -10,7 +10,7 @@ import * as express from "express"
  * The homepage of code-server will launch into VS Code. However, there will be an overlay
  * button that when clicked, will show all available applications with their names,
  * icons and provider plugins. When one clicks on an app's icon, they will be directed
- * to <code-server-root>/<plugin-name>/<app-name> to access the application.
+ * to <code-server-root>/<plugin-path>/<app-path> to access the application.
  */
 
 /**
@@ -51,11 +51,35 @@ import * as express from "express"
 /**
  * Your plugin module must implement this interface.
  *
- * The plugin's name, description and version are fetched from its module's package.json
- *
- * The plugin's router will be mounted at <code-sever-root>/<plugin-name>
+ * The plugin's router will be mounted at <code-sever-root>/<plugin-path>
  */
 export interface Plugin {
+  /**
+   * name is used as the plugin's unique identifier.
+   * No two plugins may share the same name.
+   *
+   * Fetched from package.json.
+   */
+  name?: string
+
+  /**
+   * The version for the plugin in the overlay.
+   *
+   * Fetched from package.json.
+   */
+  version?: string
+
+  /**
+   * These two are used in the overlay.
+   */
+  displayName: string
+  description: string
+
+  /**
+   * The path at which the plugin router is to be registered.
+   */
+  path: string
+
   /**
    * init is called so that the plugin may initialize itself with the config.
    */
@@ -63,6 +87,8 @@ export interface Plugin {
 
   /**
    * Returns the plugin's router.
+   *
+   * Mounted at <code-sever-root>/<plugin-path>
    */
   router(): express.Router
 
@@ -90,21 +116,25 @@ export interface PluginConfig {
 
 /**
  * Application represents a user accessible application.
- *
- * When the user clicks on the icon in the overlay, they will be
- * redirected to <code-server-root>/<plugin-name>/<app-name>
- * where the application should be accessible.
- *
- * If the app's name is the same as the plugin's name then
- * <code-server-root>/<plugin-name> will be used instead.
  */
 export interface Application {
   readonly name: string
   readonly version: string
 
   /**
+   * When the user clicks on the icon in the overlay, they will be
+   * redirected to <code-server-root>/<plugin-path>/<app-path>
+   * where the application should be accessible.
+   *
+   * If undefined, then <code-server-root>/<plugin-path> is used.
+   */
+  readonly path?: string
+
+  readonly description?: string
+
+  /**
    * The path at which the icon for this application can be accessed.
-   * <code-server-root>/<plugin-name>/<app-name>/<icon-path>
+   * <code-server-root>/<plugin-path>/<app-path>/<icon-path>
    */
   readonly iconPath: string
 }
