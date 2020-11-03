@@ -35,8 +35,8 @@ router.all("/(:port)(/*)?", (req, res) => {
   })
 })
 
-router.ws("/(:port)(/*)?", (socket, head, req) => {
-  proxy.ws(req, socket, head, {
+router.ws("/(:port)(/*)?", (req) => {
+  proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, true),
   })

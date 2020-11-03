@@ -34,11 +34,14 @@ export const replaceTemplates = <T extends object>(
 }
 
 /**
- * Throw an error if not authorized.
+ * Throw an error if not authorized. Call `next` if provided.
  */
-export const ensureAuthenticated = (req: express.Request): void => {
+export const ensureAuthenticated = (req: express.Request, _?: express.Response, next?: express.NextFunction): void => {
   if (!authenticated(req)) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+  }
+  if (next) {
+    next()
   }
 }
 
@@ -136,18 +139,30 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
 declare module "express" {
   function Router(options?: express.RouterOptions): express.Router & WithWebsocketMethod
 
-  type WebsocketRequestHandler = (
-    socket: net.Socket,
-    head: Buffer,
-    req: express.Request,
+  type WebSocketRequestHandler = (
+    req: express.Request & WithWebSocket,
+    res: express.Response,
     next: express.NextFunction,
   ) => void | Promise<void>
 
-  type WebsocketMethod<T> = (route: expressCore.PathParams, ...handlers: WebsocketRequestHandler[]) => T
+  type WebSocketMethod<T> = (route: expressCore.PathParams, ...handlers: WebSocketRequestHandler[]) => T
+
+  interface WithWebSocket {
+    ws: net.Socket
+    head: Buffer
+  }
 
   interface WithWebsocketMethod {
-    ws: WebsocketMethod<this>
+    ws: WebSocketMethod<this>
   }
+}
+
+interface WebsocketRequest extends express.Request, express.WithWebSocket {
+  _ws_handled: boolean
+}
+
+function isWebSocketRequest(req: express.Request): req is WebsocketRequest {
+  return !!(req as WebsocketRequest).ws
 }
 
 export const handleUpgrade = (app: express.Express, server: http.Server): void => {
@@ -193,15 +208,15 @@ function patchRouter(): void {
   // Inject the `ws` method.
   ;(express.Router as any).ws = function ws(
     route: expressCore.PathParams,
-    ...handlers: express.WebsocketRequestHandler[]
+    ...handlers: express.WebSocketRequestHandler[]
   ) {
     originalGet.apply(this, [
       route,
       ...handlers.map((handler) => {
-        const wrapped: express.Handler = (req, _, next) => {
-          if ((req as any).ws) {
-            ;(req as any)._ws_handled = true
-            Promise.resolve(handler((req as any).ws, (req as any).head, req, next)).catch(next)
+        const wrapped: express.Handler = (req, res, next) => {
+          if (isWebSocketRequest(req)) {
+            req._ws_handled = true
+            Promise.resolve(handler(req, res, next)).catch(next)
           } else {
             next()
           }
@@ -218,7 +233,7 @@ function patchRouter(): void {
       route,
       ...handlers.map((handler) => {
         const wrapped: express.Handler = (req, res, next) => {
-          if (!(req as any).ws) {
+          if (!isWebSocketRequest(req)) {
             Promise.resolve(handler(req, res, next)).catch(next)
           } else {
             next()

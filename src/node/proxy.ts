@@ -82,7 +82,7 @@ router.all("*", (req, res, next) => {
   })
 })
 
-router.ws("*", (socket, head, req, next) => {
+router.ws("*", (req, _, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
@@ -91,7 +91,7 @@ router.ws("*", (socket, head, req, next) => {
   // Must be authenticated to use the proxy.
   ensureAuthenticated(req)
 
-  proxy.ws(req, socket, head, {
+  proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: `http://0.0.0.0:${port}${req.originalUrl}`,
   })

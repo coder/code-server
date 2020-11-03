@@ -53,14 +53,13 @@ router.get("/", async (req, res) => {
   )
 })
 
-router.ws("/", async (socket, _, req) => {
-  ensureAuthenticated(req)
+router.ws("/", ensureAuthenticated, async (req) => {
   const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
   const reply = crypto
     .createHash("sha1")
     .update(req.headers["sec-websocket-key"] + magic)
     .digest("base64")
-  socket.write(
+  req.ws.write(
     [
       "HTTP/1.1 101 Switching Protocols",
       "Upgrade: websocket",
@@ -68,14 +67,13 @@ router.ws("/", async (socket, _, req) => {
       `Sec-WebSocket-Accept: ${reply}`,
     ].join("\r\n") + "\r\n\r\n",
   )
-  await vscode.sendWebsocket(socket, req.query)
+  await vscode.sendWebsocket(req.ws, req.query)
 })
 
 /**
  * TODO: Might currently be unused.
  */
-router.get("/resource(/*)?", async (req, res) => {
-  ensureAuthenticated(req)
+router.get("/resource(/*)?", ensureAuthenticated, async (req, res) => {
   if (typeof req.query.path === "string") {
     res.set("Content-Type", getMediaMime(req.query.path))
     res.send(await fs.readFile(pathToFsPath(req.query.path)))
@@ -85,8 +83,7 @@ router.get("/resource(/*)?", async (req, res) => {
 /**
  * Used by VS Code to load files.
  */
-router.get("/vscode-remote-resource(/*)?", async (req, res) => {
-  ensureAuthenticated(req)
+router.get("/vscode-remote-resource(/*)?", ensureAuthenticated, async (req, res) => {
   if (typeof req.query.path === "string") {
     res.set("Content-Type", getMediaMime(req.query.path))
     res.send(await fs.readFile(pathToFsPath(req.query.path)))
@@ -97,8 +94,7 @@ router.get("/vscode-remote-resource(/*)?", async (req, res) => {
  * VS Code webviews use these paths to load files and to load webview assets
  * like HTML and JavaScript.
  */
-router.get("/webview/*", async (req, res) => {
-  ensureAuthenticated(req)
+router.get("/webview/*", ensureAuthenticated, async (req, res) => {
   res.set("Content-Type", getMediaMime(req.path))
   if (/^vscode-resource/.test(req.params[0])) {
     return res.send(await fs.readFile(req.params[0].replace(/^vscode-resource(\/file)?/, "")))
