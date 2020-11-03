@@ -414,9 +414,9 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.auth = AuthType.Password
   }
 
-  const [host, port] = bindAddrFromAllSources(args, configArgs || { _: [] })
-  args.host = host
-  args.port = port
+  const addr = bindAddrFromAllSources(args, configArgs || { _: [] })
+  args.host = addr.host
+  args.port = addr.port
 
   // If we're being exposed to the cloud, we listen on a random address and
   // disable auth.
@@ -512,12 +512,15 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   }
 }
 
-function parseBindAddr(bindAddr: string): [string, number] {
+function parseBindAddr(bindAddr: string): Addr {
   const u = new URL(`http://${bindAddr}`)
-  // With the http scheme 80 will be dropped so assume it's 80 if missing. This
-  // means --bind-addr <addr> without a port will default to 80 as well and not
-  // the code-server default.
-  return [u.hostname, u.port ? parseInt(u.port, 10) : 80]
+  return {
+    host: u.hostname,
+    // With the http scheme 80 will be dropped so assume it's 80 if missing.
+    // This means --bind-addr <addr> without a port will default to 80 as well
+    // and not the code-server default.
+    port: u.port ? parseInt(u.port, 10) : 80,
+  }
 }
 
 interface Addr {
@@ -528,7 +531,7 @@ interface Addr {
 function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   addr = { ...addr }
   if (args["bind-addr"]) {
-    ;[addr.host, addr.port] = parseBindAddr(args["bind-addr"])
+    addr = parseBindAddr(args["bind-addr"])
   }
   if (args.host) {
     addr.host = args.host
@@ -543,16 +546,17 @@ function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   return addr
 }
 
-function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string, number] {
+function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
   let addr: Addr = {
     host: "localhost",
     port: 8080,
   }
 
-  addr = bindAddrFromArgs(addr, configArgs)
-  addr = bindAddrFromArgs(addr, cliArgs)
+  for (const args of argsConfig) {
+    addr = bindAddrFromArgs(addr, args)
+  }
 
-  return [addr.host, addr.port]
+  return addr
 }
 
 async function copyOldMacOSDataDir(): Promise<void> {
