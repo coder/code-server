@@ -3,7 +3,7 @@ import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
 import * as semver from "semver"
-import * as pluginapi from "../../typings/plugin"
+import * as pluginapi from "../../typings/pluginapi"
 import { version } from "./constants"
 import * as util from "./util"
 const fsp = fs.promises
@@ -30,7 +30,7 @@ interface Application extends pluginapi.Application {
 }
 
 /**
- * PluginAPI implements the plugin API described in typings/plugin.d.ts
+ * PluginAPI implements the plugin API described in typings/pluginapi.d.ts
  * Please see that file for details.
  */
 export class PluginAPI {

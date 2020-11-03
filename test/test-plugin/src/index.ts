@@ -1,6 +1,6 @@
 import * as express from "express"
 import * as path from "path"
-import * as pluginapi from "../../../typings/plugin"
+import * as pluginapi from "../../../typings/pluginapi"
 
 export function init(config: pluginapi.PluginConfig) {
   config.logger.debug("test-plugin loaded!")
