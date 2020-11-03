@@ -74,29 +74,31 @@ export class VscodeProvider {
   }
 
   private fork(): Promise<cp.ChildProcess> {
-    if (!this._vscode) {
-      logger.debug("forking vs code...")
-      const vscode = cp.fork(path.join(this.serverRootPath, "fork"))
-      vscode.on("error", (error) => {
-        logger.error(error.message)
-        this._vscode = undefined
-      })
-      vscode.on("exit", (code) => {
-        logger.error(`VS Code exited unexpectedly with code ${code}`)
-        this._vscode = undefined
-      })
-
-      this._vscode = new Promise((resolve, reject) => {
-        vscode.once("message", (message: ipc.VscodeMessage) => {
-          logger.debug("got message from vs code", field("message", message))
-          return message.type === "ready"
-            ? resolve(vscode)
-            : reject(new Error("Unexpected response waiting for ready response"))
-        })
-        vscode.once("error", reject)
-        vscode.once("exit", (code) => reject(new Error(`VS Code exited unexpectedly with code ${code}`)))
-      })
+    if (this._vscode) {
+      return this._vscode
     }
+
+    logger.debug("forking vs code...")
+    const vscode = cp.fork(path.join(this.serverRootPath, "fork"))
+    vscode.on("error", (error) => {
+      logger.error(error.message)
+      this._vscode = undefined
+    })
+    vscode.on("exit", (code) => {
+      logger.error(`VS Code exited unexpectedly with code ${code}`)
+      this._vscode = undefined
+    })
+
+    this._vscode = new Promise((resolve, reject) => {
+      vscode.once("message", (message: ipc.VscodeMessage) => {
+        logger.debug("got message from vs code", field("message", message))
+        return message.type === "ready"
+          ? resolve(vscode)
+          : reject(new Error("Unexpected response waiting for ready response"))
+      })
+      vscode.once("error", reject)
+      vscode.once("exit", (code) => reject(new Error(`VS Code exited unexpectedly with code ${code}`)))
+    })
 
     return this._vscode
   }
