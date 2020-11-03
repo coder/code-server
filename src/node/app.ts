@@ -45,7 +45,7 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Ser
 }
 
 /**
- * Get the address of a server as a string (protocol not included) while
+ * Get the address of a server as a string (protocol *is* included) while
  * ensuring there is one (will throw if there isn't).
  */
 export const ensureAddress = (server: http.Server): string => {
@@ -54,7 +54,7 @@ export const ensureAddress = (server: http.Server): string => {
     throw new Error("server has no address")
   }
   if (typeof addr !== "string") {
-    return `${addr.address}:${addr.port}`
+    return `http://${addr.address}:${addr.port}`
   }
   return addr
 }

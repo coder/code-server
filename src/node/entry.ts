@@ -141,7 +141,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
 
   if (args.link) {
     try {
-      await coderCloudBind(serverAddress, args.link.value)
+      await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
       logger.info("  - Connected to cloud agent")
     } catch (err) {
       logger.error(err.message)
