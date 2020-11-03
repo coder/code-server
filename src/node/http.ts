@@ -9,12 +9,7 @@ import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType } from "./cli"
 import { commit, rootPath } from "./constants"
-import { Heart } from "./heart"
 import { hash } from "./util"
-
-export interface Locals {
-  heart: Heart
-}
 
 /**
  * Replace common variable strings in HTML templates.
