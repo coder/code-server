@@ -16,6 +16,7 @@ import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { WebsocketRequest } from "../wsRouter"
 import * as domainProxy from "./domainProxy"
+import * as apps from "./apps"
 import * as health from "./health"
 import * as login from "./login"
 import * as proxy from "./pathProxy"
@@ -23,7 +24,6 @@ import * as proxy from "./pathProxy"
 import * as _static from "./static"
 import * as update from "./update"
 import * as vscode from "./vscode"
-import * as apps from "./apps"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

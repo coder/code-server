@@ -12,6 +12,6 @@ export function router(papi: PluginAPI): express.Router {
   router.get("/", async (req, res) => {
     res.json(await papi.applications())
   })
-  
+
   return router
 }

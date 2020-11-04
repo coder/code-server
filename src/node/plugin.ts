@@ -54,14 +54,14 @@ export class PluginAPI {
    */
   public async applications(): Promise<Application[]> {
     const apps = new Array<Application>()
-    for (const [_, p] of this.plugins) {
+    for (const [, p] of this.plugins) {
       const pluginApps = await p.applications()
 
       // Add plugin key to each app.
       apps.push(
         ...pluginApps.map((app) => {
-          app = {...app, path: path.join(p.routerPath, app.path || "")}
-          app = {...app, iconPath: path.join(app.path || "", app.iconPath)}
+          app = { ...app, path: path.join(p.routerPath, app.path || "") }
+          app = { ...app, iconPath: path.join(app.path || "", app.iconPath) }
           return {
             ...app,
             plugin: {
@@ -85,7 +85,7 @@ export class PluginAPI {
    * mount mounts all plugin routers onto r.
    */
   public mount(r: express.Router): void {
-    for (const [_, p] of this.plugins) {
+    for (const [, p] of this.plugins) {
       r.use(`/${p.name}`, p.router())
     }
   }
@@ -142,7 +142,7 @@ export class PluginAPI {
         encoding: "utf8",
       })
       const packageJSON: PackageJSON = JSON.parse(str)
-      for (const [_, p] of this.plugins) {
+      for (const [, p] of this.plugins) {
         if (p.name === packageJSON.name) {
           this.logger.warn(
             `ignoring duplicate plugin ${q(p.name)} at ${q(dir)}, using previously loaded ${q(p.modulePath)}`,

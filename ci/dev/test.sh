@@ -6,7 +6,7 @@ main() {
 
   cd test/test-plugin
   make -s out/index.js
-  cd $OLDPWD
+  cd "$OLDPWD"
   mocha -r ts-node/register ./test/*.test.ts "$@"
 }
 
