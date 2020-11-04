@@ -60,6 +60,8 @@ export class PluginAPI {
       // Add plugin key to each app.
       apps.push(
         ...pluginApps.map((app) => {
+          app = {...app, path: path.join(p.routerPath, app.path || "")}
+          app = {...app, iconPath: path.join(app.path || "", app.iconPath)}
           return {
             ...app,
             plugin: {
@@ -69,7 +71,7 @@ export class PluginAPI {
 
               displayName: p.displayName,
               description: p.description,
-              path: p.path,
+              routerPath: p.routerPath,
             },
           }
         }),
@@ -192,8 +194,8 @@ export class PluginAPI {
     if (!p.description) {
       throw new Error("plugin missing description")
     }
-    if (!p.path) {
-      throw new Error("plugin missing path")
+    if (!p.routerPath) {
+      throw new Error("plugin missing router path")
     }
 
     p.init({

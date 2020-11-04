@@ -21,7 +21,8 @@ describe("plugin", () => {
           version: "4.0.0",
 
           description: "This app does XYZ.",
-          iconPath: "/icon.svg",
+          iconPath: "/test-plugin/test-app/icon.svg",
+          path: "/test-plugin/test-app",
 
           plugin: {
             name: "test-plugin",
@@ -30,7 +31,7 @@ describe("plugin", () => {
 
             displayName: "Test Plugin",
             description: "Plugin used in code-server tests.",
-            path: "/test-plugin",
+            routerPath: "/test-plugin",
           },
         },
       ],

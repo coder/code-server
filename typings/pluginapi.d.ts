@@ -45,7 +45,9 @@ import * as express from "express"
  *
  * There is also a /api/applications endpoint to allow programmatic access to all
  * available applications. It could be used to create a custom application dashboard
- * for example.
+ * for example. An important difference with the API is that all application paths
+ * will be absolute (i.e have the plugin path prepended) so that they may be used
+ * directly.
  */
 
 /**
@@ -60,30 +62,30 @@ export interface Plugin {
    *
    * Fetched from package.json.
    */
-  name?: string
+  readonly name?: string
 
   /**
    * The version for the plugin in the overlay.
    *
    * Fetched from package.json.
    */
-  version?: string
+  readonly version?: string
 
   /**
    * Name used in the overlay.
    */
-  displayName: string
+  readonly displayName: string
 
   /**
    * Used in overlay.
    * Should be a full sentence describing the plugin.
    */
-  description: string
+  readonly description: string
 
   /**
    * The path at which the plugin router is to be registered.
    */
-  path: string
+  readonly routerPath: string
 
   /**
    * init is called so that the plugin may initialize itself with the config.

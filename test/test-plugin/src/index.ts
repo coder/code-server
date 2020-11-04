@@ -3,7 +3,7 @@ import * as fspath from "path"
 import * as pluginapi from "../../../typings/pluginapi"
 
 export const displayName = "Test Plugin"
-export const path = "/test-plugin"
+export const routerPath = "/test-plugin"
 export const description = "Plugin used in code-server tests."
 
 export function init(config: pluginapi.PluginConfig) {
@@ -24,6 +24,7 @@ export function applications(): pluginapi.Application[] {
       name: "Test App",
       version: "4.0.0",
       iconPath: "/icon.svg",
+      path: "/test-app",
 
       description: "This app does XYZ.",
     },
