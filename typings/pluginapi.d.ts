@@ -43,11 +43,37 @@ import * as express from "express"
  * If two plugins are found with the exact same name, then code-server will
  * use the first one and emit a warning.
  *
+ */
+
+/* Programmability
+ *
  * There is also a /api/applications endpoint to allow programmatic access to all
  * available applications. It could be used to create a custom application dashboard
  * for example. An important difference with the API is that all application paths
  * will be absolute (i.e have the plugin path prepended) so that they may be used
  * directly.
+ *
+ * Example output:
+ *
+ * [
+ *   {
+ *     "name": "Test App",
+ *     "version": "4.0.0",
+ *     "iconPath": "/test-plugin/test-app/icon.svg",
+ *     "path": "/test-plugin/test-app",
+ *     "description": "This app does XYZ.",
+ *     "homepageURL": "https://example.com",
+ *     "plugin": {
+ *       "name": "test-plugin",
+ *       "version": "1.0.0",
+ *       "modulePath": "/Users/nhooyr/src/cdr/code-server/test/test-plugin",
+ *       "displayName": "Test Plugin",
+ *       "description": "Plugin used in code-server tests.",
+ *       "routerPath": "/test-plugin",
+ *       "homepageURL": "https://example.com"
+ *     }
+ *   }
+ * ]
  */
 
 /**
