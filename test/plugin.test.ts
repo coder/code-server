@@ -17,14 +17,20 @@ describe("plugin", () => {
     assert.deepEqual(
       [
         {
-          name: "goland",
+          name: "test app",
           version: "4.0.0",
+
+          description: "my description",
           iconPath: "/icon.svg",
+
           plugin: {
             name: "test-plugin",
             version: "1.0.0",
-            description: "Fake plugin for testing code-server's plugin API",
             modulePath: path.join(__dirname, "test-plugin"),
+
+            description: "Plugin used in code-server tests.",
+            displayName: "Test Plugin",
+            path: "/test-plugin",
           },
         },
       ],

@@ -10,11 +10,11 @@ const fsp = fs.promises
 
 interface Plugin extends pluginapi.Plugin {
   /**
-   * These fields are populated from the plugin's package.json.
+   * These fields are populated from the plugin's package.json
+   * and now guaranteed to exist.
    */
   name: string
   version: string
-  description: string
 
   /**
    * path to the node module on the disk.
@@ -34,7 +34,7 @@ interface Application extends pluginapi.Application {
  * Please see that file for details.
  */
 export class PluginAPI {
-  private readonly plugins = new Array<Plugin>()
+  private readonly plugins = new Map<string, Plugin>()
   private readonly logger: Logger
 
   public constructor(
@@ -54,7 +54,7 @@ export class PluginAPI {
    */
   public async applications(): Promise<Application[]> {
     const apps = new Array<Application>()
-    for (const p of this.plugins) {
+    for (const [_, p] of this.plugins) {
       const pluginApps = await p.applications()
 
       // Add plugin key to each app.
@@ -65,8 +65,11 @@ export class PluginAPI {
             plugin: {
               name: p.name,
               version: p.version,
-              description: p.description,
               modulePath: p.modulePath,
+
+              displayName: p.displayName,
+              description: p.description,
+              path: p.path,
             },
           }
         }),
@@ -79,7 +82,7 @@ export class PluginAPI {
    * mount mounts all plugin routers onto r.
    */
   public mount(r: express.Router): void {
-    for (const p of this.plugins) {
+    for (const [_, p] of this.plugins) {
       r.use(`/${p.name}`, p.router())
     }
   }
@@ -129,7 +132,7 @@ export class PluginAPI {
         encoding: "utf8",
       })
       const packageJSON: PackageJSON = JSON.parse(str)
-      for (const p of this.plugins) {
+      for (const [_, p] of this.plugins) {
         if (p.name === packageJSON.name) {
           this.logger.warn(
             `ignoring duplicate plugin ${q(p.name)} at ${q(dir)}, using previously loaded ${q(p.modulePath)}`,
@@ -138,7 +141,7 @@ export class PluginAPI {
         }
       }
       const p = this._loadPlugin(dir, packageJSON)
-      this.plugins.push(p)
+      this.plugins.set(p.name, p)
     } catch (err) {
       if (err.code !== "ENOENT") {
         this.logger.warn(`failed to load plugin: ${err.message}`)
@@ -147,6 +150,8 @@ export class PluginAPI {
   }
 
   private _loadPlugin(dir: string, packageJSON: PackageJSON): Plugin {
+    dir = path.resolve(dir)
+
     const logger = this.logger.named(packageJSON.name)
     logger.debug("loading plugin", field("plugin_dir", dir), field("package_json", packageJSON))
 
@@ -165,10 +170,19 @@ export class PluginAPI {
     const p = {
       name: packageJSON.name,
       version: packageJSON.version,
-      description: packageJSON.description,
       modulePath: dir,
       ...require(dir),
     } as Plugin
+
+    if (!p.displayName) {
+      throw new Error("plugin missing displayName")
+    }
+    if (!p.description) {
+      throw new Error("plugin missing description")
+    }
+    if (!p.path) {
+      throw new Error("plugin missing path")
+    }
 
     p.init({
       logger: logger,
@@ -183,7 +197,6 @@ export class PluginAPI {
 interface PackageJSON {
   name: string
   version: string
-  description: string
   engines: {
     "code-server": string
   }

@@ -2,7 +2,6 @@
   "private": true,
   "name": "test-plugin",
   "version": "1.0.0",
-  "description": "Fake plugin for testing code-server's plugin API",
   "engines": {
     "code-server": "^3.6.0"
   },

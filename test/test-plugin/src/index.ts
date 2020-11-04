@@ -1,6 +1,10 @@
 import * as express from "express"
-import * as path from "path"
+import * as fspath from "path"
 import * as pluginapi from "../../../typings/pluginapi"
+
+export const displayName = "Test Plugin"
+export const path = "/test-plugin"
+export const description = "Plugin used in code-server tests."
 
 export function init(config: pluginapi.PluginConfig) {
   config.logger.debug("test-plugin loaded!")
@@ -9,7 +13,7 @@ export function init(config: pluginapi.PluginConfig) {
 export function router(): express.Router {
   const r = express.Router()
   r.get("/goland/icon.svg", (req, res) => {
-    res.sendFile(path.resolve(__dirname, "../public/icon.svg"))
+    res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
   })
   return r
 }
@@ -17,9 +21,11 @@ export function router(): express.Router {
 export function applications(): pluginapi.Application[] {
   return [
     {
-      name: "goland",
+      name: "test app",
       version: "4.0.0",
       iconPath: "/icon.svg",
+
+      description: "my description",
     },
   ]
 }

@@ -70,9 +70,14 @@ export interface Plugin {
   version?: string
 
   /**
-   * These two are used in the overlay.
+   * Name used in the overlay.
    */
   displayName: string
+
+  /**
+   * Used in overlay.
+   * Should be a full sentence describing the plugin.
+   */
   description: string
 
   /**
