@@ -23,6 +23,7 @@ import * as proxy from "./pathProxy"
 import * as _static from "./static"
 import * as update from "./update"
 import * as vscode from "./vscode"
+import * as apps from "./apps"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -118,6 +119,7 @@ export const register = async (
   const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
   await papi.loadPlugins()
   papi.mount(app)
+  app.use("/api/applications", apps.router(papi))
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
