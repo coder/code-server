@@ -4,6 +4,7 @@ import * as pluginapi from "../../../typings/pluginapi"
 
 export const displayName = "Test Plugin"
 export const routerPath = "/test-plugin"
+export const homepageURL = "https://example.com"
 export const description = "Plugin used in code-server tests."
 
 export function init(config: pluginapi.PluginConfig) {
@@ -27,6 +28,7 @@ export function applications(): pluginapi.Application[] {
       path: "/test-app",
 
       description: "This app does XYZ.",
+      homepageURL: "https://example.com",
     },
   ]
 }

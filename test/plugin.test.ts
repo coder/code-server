@@ -22,6 +22,7 @@ describe("plugin", () => {
 
           description: "This app does XYZ.",
           iconPath: "/test-plugin/test-app/icon.svg",
+          homepageURL: "https://example.com",
           path: "/test-plugin/test-app",
 
           plugin: {
@@ -32,6 +33,7 @@ describe("plugin", () => {
             displayName: "Test Plugin",
             description: "Plugin used in code-server tests.",
             routerPath: "/test-plugin",
+            homepageURL: "https://example.com",
           },
         },
       ],

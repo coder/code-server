@@ -88,6 +88,11 @@ export interface Plugin {
   readonly routerPath: string
 
   /**
+   * Link to plugin homepage.
+   */
+  readonly homepageURL: string
+
+  /**
    * init is called so that the plugin may initialize itself with the config.
    */
   init(config: PluginConfig): void
@@ -144,4 +149,9 @@ export interface Application {
    * <code-server-root>/<plugin-path>/<app-path>/<icon-path>
    */
   readonly iconPath: string
+
+  /**
+   * Link to application homepage.
+   */
+  readonly homepageURL: string
 }

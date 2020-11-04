@@ -72,6 +72,7 @@ export class PluginAPI {
               displayName: p.displayName,
               description: p.description,
               routerPath: p.routerPath,
+              homepageURL: p.homepageURL,
             },
           }
         }),
@@ -196,6 +197,9 @@ export class PluginAPI {
     }
     if (!p.routerPath) {
       throw new Error("plugin missing router path")
+    }
+    if (!p.homepageURL) {
+      throw new Error("plugin missing homepage")
     }
 
     p.init({
