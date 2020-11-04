@@ -110,6 +110,13 @@ export class PluginAPI {
     await this._loadPlugins(path.join(__dirname, "../../plugins"))
   }
 
+  /**
+   * _loadPlugins is the counterpart to loadPlugins.
+   *
+   * It differs in that it loads all plugins in a single
+   * directory whereas loadPlugins uses all available directories
+   * as documented.
+   */
   private async _loadPlugins(dir: string): Promise<void> {
     try {
       const entries = await fsp.readdir(dir, { withFileTypes: true })
@@ -149,6 +156,11 @@ export class PluginAPI {
     }
   }
 
+  /**
+   * _loadPlugin is the counterpart to loadPlugin and actually
+   * loads the plugin now that we know there is no duplicate
+   * and that the package.json has been read.
+   */
   private _loadPlugin(dir: string, packageJSON: PackageJSON): Plugin {
     dir = path.resolve(dir)
 

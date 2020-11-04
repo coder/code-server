@@ -21,11 +21,11 @@ export function router(): express.Router {
 export function applications(): pluginapi.Application[] {
   return [
     {
-      name: "test app",
+      name: "Test App",
       version: "4.0.0",
       iconPath: "/icon.svg",
 
-      description: "my description",
+      description: "This app does XYZ.",
     },
   ]
 }

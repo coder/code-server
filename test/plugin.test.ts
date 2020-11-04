@@ -17,10 +17,10 @@ describe("plugin", () => {
     assert.deepEqual(
       [
         {
-          name: "test app",
+          name: "Test App",
           version: "4.0.0",
 
-          description: "my description",
+          description: "This app does XYZ.",
           iconPath: "/icon.svg",
 
           plugin: {
@@ -28,8 +28,8 @@ describe("plugin", () => {
             version: "1.0.0",
             modulePath: path.join(__dirname, "test-plugin"),
 
-            description: "Plugin used in code-server tests.",
             displayName: "Test Plugin",
+            description: "Plugin used in code-server tests.",
             path: "/test-plugin",
           },
         },
