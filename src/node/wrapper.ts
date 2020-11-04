@@ -39,13 +39,14 @@ export class IpcMain {
     process.on("SIGTERM", () => this._onDispose.emit("SIGTERM"))
     process.on("exit", () => this._onDispose.emit(undefined))
 
-    this.onDispose((signal) => {
+    this.onDispose((signal, wait) => {
       // Remove listeners to avoid possibly triggering disposal again.
       process.removeAllListeners()
 
-      // Let any other handlers run first then exit.
+      // Try waiting for other handlers run first then exit.
       logger.debug(`${parentPid ? "inner process" : "wrapper"} ${process.pid} disposing`, field("code", signal))
-      setTimeout(() => this.exit(0), 0)
+      wait.then(() => this.exit(0))
+      setTimeout(() => this.exit(0), 5000)
     })
 
     // Kill the inner process if the parent dies. This is for the case where the

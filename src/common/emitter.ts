@@ -1,4 +1,10 @@
-import { Callback } from "./types"
+import { logger } from "@coder/logger"
+
+/**
+ * Event emitter callback. Called with the emitted value and a promise that
+ * resolves when all emitters have finished.
+ */
+export type Callback<T, R = void | Promise<void>> = (t: T, p: Promise<void>) => R
 
 export interface Disposable {
   dispose(): void
@@ -32,8 +38,21 @@ export class Emitter<T> {
   /**
    * Emit an event with a value.
    */
-  public emit(value: T): void {
-    this.listeners.forEach((cb) => cb(value))
+  public async emit(value: T): Promise<void> {
+    let resolve: () => void
+    const promise = new Promise<void>((r) => (resolve = r))
+
+    await Promise.all(
+      this.listeners.map(async (cb) => {
+        try {
+          await cb(value, promise)
+        } catch (error) {
+          logger.error(error.message)
+        }
+      }),
+    )
+
+    resolve!()
   }
 
   public dispose(): void {
