@@ -414,7 +414,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.auth = AuthType.Password
   }
 
-  const addr = bindAddrFromAllSources(args, configArgs || { _: [] })
+  const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
   args.host = addr.host
   args.port = addr.port
 
