@@ -86,7 +86,7 @@ export class PluginAPI {
    */
   public mount(r: express.Router): void {
     for (const [, p] of this.plugins) {
-      r.use(`/${p.routerPath}`, p.router())
+      r.use(`${p.routerPath}`, p.router())
     }
   }
 
