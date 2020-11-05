@@ -16,7 +16,8 @@ import * as express from "express"
 /**
  * Plugins
  *
- * Plugins are just node modules.
+ * Plugins are just node modules that contain a top level export "plugin" that implements
+ * the Plugin interface.
  *
  * 1. code-server uses $CS_PLUGIN to find plugins.
  *
@@ -78,7 +79,7 @@ import * as express from "express"
  */
 
 /**
- * Your plugin module must implement this interface.
+ * Your plugin module must have a top level export "plugin" that implements this interface.
  *
  * The plugin's router will be mounted at <code-sever-root>/<plugin-path>
  */

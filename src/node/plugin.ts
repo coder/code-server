@@ -189,11 +189,16 @@ export class PluginAPI {
       )
     }
 
+    const pluginModule = require(dir)
+    if (!pluginModule.plugin) {
+      throw new Error("plugin module does not export a plugin")
+    }
+
     const p = {
       name: packageJSON.name,
       version: packageJSON.version,
       modulePath: dir,
-      ...require(dir),
+      ...pluginModule.plugin,
     } as Plugin
 
     if (!p.displayName) {
