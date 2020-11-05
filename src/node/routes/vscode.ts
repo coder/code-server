@@ -6,6 +6,7 @@ import { commit, rootPath, version } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 import { VscodeProvider } from "../vscode"
+import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
 
@@ -53,23 +54,6 @@ router.get("/", async (req, res) => {
   )
 })
 
-router.ws("/", ensureAuthenticated, async (req) => {
-  const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-  const reply = crypto
-    .createHash("sha1")
-    .update(req.headers["sec-websocket-key"] + magic)
-    .digest("base64")
-  req.ws.write(
-    [
-      "HTTP/1.1 101 Switching Protocols",
-      "Upgrade: websocket",
-      "Connection: Upgrade",
-      `Sec-WebSocket-Accept: ${reply}`,
-    ].join("\r\n") + "\r\n\r\n",
-  )
-  await vscode.sendWebsocket(req.ws, req.query)
-})
-
 /**
  * TODO: Might currently be unused.
  */
@@ -102,4 +86,23 @@ router.get("/webview/*", ensureAuthenticated, async (req, res) => {
   return res.send(
     await fs.readFile(path.join(vscode.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", req.params[0])),
   )
+})
+
+export const wsRouter = WsRouter()
+
+wsRouter.ws("/", ensureAuthenticated, async (req) => {
+  const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+  const reply = crypto
+    .createHash("sha1")
+    .update(req.headers["sec-websocket-key"] + magic)
+    .digest("base64")
+  req.ws.write(
+    [
+      "HTTP/1.1 101 Switching Protocols",
+      "Upgrade: websocket",
+      "Connection: Upgrade",
+      `Sec-WebSocket-Accept: ${reply}`,
+    ].join("\r\n") + "\r\n\r\n",
+  )
+  await vscode.sendWebsocket(req.ws, req.query)
 })

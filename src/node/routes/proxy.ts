@@ -3,6 +3,7 @@ import qs from "qs"
 import { HttpCode, HttpError } from "../../common/http"
 import { authenticated, redirect } from "../http"
 import { proxy } from "../proxy"
+import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
 
@@ -35,7 +36,9 @@ router.all("/(:port)(/*)?", (req, res) => {
   })
 })
 
-router.ws("/(:port)(/*)?", (req) => {
+export const wsRouter = WsRouter()
+
+wsRouter.ws("/(:port)(/*)?", (req) => {
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, true),

@@ -2,6 +2,7 @@ import { Request, Router } from "express"
 import proxyServer from "http-proxy"
 import { HttpCode, HttpError } from "../common/http"
 import { authenticated, ensureAuthenticated } from "./http"
+import { Router as WsRouter } from "./wsRouter"
 
 export const proxy = proxyServer.createProxyServer({})
 proxy.on("error", (error, _, res) => {
@@ -82,7 +83,9 @@ router.all("*", (req, res, next) => {
   })
 })
 
-router.ws("*", (req, _, next) => {
+export const wsRouter = WsRouter()
+
+wsRouter.ws("*", (req, _, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()

@@ -4,12 +4,12 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
 import { DefaultedArgs } from "./cli"
-import { handleUpgrade } from "./http"
+import { handleUpgrade } from "./wsRouter"
 
 /**
  * Create an Express app and an HTTP/S server to serve it.
  */
-export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Server]> => {
+export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
   const app = express()
 
   const server = args.cert
@@ -39,9 +39,10 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, http.Ser
     }
   })
 
-  handleUpgrade(app, server)
+  const wsApp = express()
+  handleUpgrade(wsApp, server)
 
-  return [app, server]
+  return [app, wsApp, server]
 }
 
 /**

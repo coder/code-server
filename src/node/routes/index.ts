@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger"
 import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
-import { ErrorRequestHandler, Express } from "express"
+import * as express from "express"
 import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
@@ -15,6 +15,7 @@ import { replaceTemplates } from "../http"
 import { loadPlugins } from "../plugin"
 import * as domainProxy from "../proxy"
 import { getMediaMime, paths } from "../util"
+import { WebsocketRequest } from "../wsRouter"
 import * as health from "./health"
 import * as login from "./login"
 import * as proxy from "./proxy"
@@ -36,7 +37,12 @@ declare global {
 /**
  * Register all routes and middleware.
  */
-export const register = async (app: Express, server: http.Server, args: DefaultedArgs): Promise<void> => {
+export const register = async (
+  app: express.Express,
+  wsApp: express.Express,
+  server: http.Server,
+  args: DefaultedArgs,
+): Promise<void> => {
   const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
       server.getConnections((error, count) => {
@@ -50,14 +56,28 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
   })
 
   app.disable("x-powered-by")
+  wsApp.disable("x-powered-by")
 
   app.use(cookieParser())
+  wsApp.use(cookieParser())
+
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
 
-  app.use(async (req, res, next) => {
+  const common: express.RequestHandler = (req, _, next) => {
     heart.beat()
 
+    // Add common variables routes can use.
+    req.args = args
+    req.heart = heart
+
+    next()
+  }
+
+  app.use(common)
+  wsApp.use(common)
+
+  app.use(async (req, res, next) => {
     // If we're handling TLS ensure all requests are redirected to HTTPS.
     // TODO: This does *NOT* work if you have a base path since to specify the
     // protocol we need to specify the whole path.
@@ -72,23 +92,28 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
       return res.send(await fs.readFile(resourcePath))
     }
 
-    // Add common variables routes can use.
-    req.args = args
-    req.heart = heart
-
-    return next()
+    next()
   })
 
   app.use("/", domainProxy.router)
+  wsApp.use("/", domainProxy.wsRouter.router)
+
   app.use("/", vscode.router)
+  wsApp.use("/", vscode.wsRouter.router)
+  app.use("/vscode", vscode.router)
+  wsApp.use("/vscode", vscode.wsRouter.router)
+
   app.use("/healthz", health.router)
+
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
   }
+
   app.use("/proxy", proxy.router)
+  wsApp.use("/proxy", proxy.wsRouter.router)
+
   app.use("/static", _static.router)
   app.use("/update", update.router)
-  app.use("/vscode", vscode.router)
 
   await loadPlugins(app, args)
 
@@ -96,7 +121,7 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  const errorHandler: ErrorRequestHandler = async (err, req, res, next) => {
+  const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
     res.set("Content-Type", getMediaMime(resourcePath))
     try {
@@ -117,4 +142,11 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
   }
 
   app.use(errorHandler)
+
+  const wsErrorHandler: express.ErrorRequestHandler = async (err, req) => {
+    logger.error(`${err.message} ${err.stack}`)
+    ;(req as WebsocketRequest).ws.destroy(err)
+  }
+
+  wsApp.use(wsErrorHandler)
 }

@@ -102,9 +102,9 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
 
-  const [app, server] = await createApp(args)
+  const [app, wsApp, server] = await createApp(args)
   const serverAddress = ensureAddress(server)
-  await register(app, server, args)
+  await register(app, wsApp, server, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
   logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)
