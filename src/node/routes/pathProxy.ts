@@ -1,7 +1,7 @@
 import { Request, Router } from "express"
 import qs from "qs"
 import { HttpCode, HttpError } from "../../common/http"
-import { authenticated, redirect } from "../http"
+import { authenticated, ensureAuthenticated, redirect } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
@@ -38,7 +38,7 @@ router.all("/(:port)(/*)?", (req, res) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("/(:port)(/*)?", (req) => {
+wsRouter.ws("/(:port)(/*)?", ensureAuthenticated, (req) => {
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, true),
