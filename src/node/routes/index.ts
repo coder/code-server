@@ -121,23 +121,29 @@ export const register = async (
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
-    const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
-    res.set("Content-Type", getMediaMime(resourcePath))
-    try {
+  const errorHandler: express.ErrorRequestHandler = async (err, req, res) => {
+    if (err.code === "ENOENT" || err.code === "EISDIR") {
+      err.status = HttpCode.NotFound
+    }
+
+    const status = err.status ?? err.statusCode ?? 500
+    res.status(status)
+
+    if (req.accepts("application/json")) {
+      res.json({
+        error: err.message,
+        ...(err.details || {}),
+      })
+    } else {
+      const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
+      res.set("Content-Type", getMediaMime(resourcePath))
       const content = await fs.readFile(resourcePath, "utf8")
-      if (err.code === "ENOENT" || err.code === "EISDIR") {
-        err.status = HttpCode.NotFound
-      }
-      const status = err.status ?? err.statusCode ?? 500
-      res.status(status).send(
+      res.send(
         replaceTemplates(req, content)
           .replace(/{{ERROR_TITLE}}/g, status)
           .replace(/{{ERROR_HEADER}}/g, status)
           .replace(/{{ERROR_BODY}}/g, err.message),
       )
-    } catch (error) {
-      next(error)
     }
   }
 
