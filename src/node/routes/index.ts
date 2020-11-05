@@ -55,10 +55,6 @@ export const register = async (app: Express, server: http.Server, args: Defaulte
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
 
-  server.on("upgrade", () => {
-    heart.beat()
-  })
-
   app.use(async (req, res, next) => {
     heart.beat()
 

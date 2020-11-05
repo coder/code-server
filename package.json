@@ -72,7 +72,7 @@
     "body-parser": "^1.19.0",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
-    "express": "^4.17.1",
+    "express": "^5.0.0-alpha.8",
     "fs-extra": "^9.0.1",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",

@@ -191,22 +191,19 @@ export const handleUpgrade = (app: express.Express, server: http.Server): void =
 }
 
 /**
- * Patch Express routers to handle web sockets and async routes (since we have
- * to patch `get` anyway).
+ * Patch Express routers to handle web sockets.
  *
- * Not using express-ws since the ws-wrapped sockets don't work with the proxy
- * and wildcards don't work correctly.
+ * Not using express-ws since the ws-wrapped sockets don't work with the proxy.
  */
 function patchRouter(): void {
-  // Apparently this all works because Router is also the prototype assigned to
-  // the routers it returns.
+  // This works because Router is also the prototype assigned to the routers it
+  // returns.
 
-  // Store these since the original methods will be overridden.
-  const originalGet = (express.Router as any).get
-  const originalPost = (express.Router as any).post
+  // Store this since the original method will be overridden.
+  const originalGet = (express.Router as any).prototype.get
 
   // Inject the `ws` method.
-  ;(express.Router as any).ws = function ws(
+  ;(express.Router as any).prototype.ws = function ws(
     route: expressCore.PathParams,
     ...handlers: express.WebSocketRequestHandler[]
   ) {
@@ -216,10 +213,9 @@ function patchRouter(): void {
         const wrapped: express.Handler = (req, res, next) => {
           if (isWebSocketRequest(req)) {
             req._ws_handled = true
-            Promise.resolve(handler(req, res, next)).catch(next)
-          } else {
-            next()
+            return handler(req, res, next)
           }
+          next()
         }
         return wrapped
       }),
@@ -227,30 +223,16 @@ function patchRouter(): void {
     return this
   }
   // Overwrite `get` so we can distinguish between websocket and non-websocket
-  // routes. While we're at it handle async responses.
-  ;(express.Router as any).get = function get(route: expressCore.PathParams, ...handlers: express.Handler[]) {
+  // routes.
+  ;(express.Router as any).prototype.get = function get(route: expressCore.PathParams, ...handlers: express.Handler[]) {
     originalGet.apply(this, [
       route,
       ...handlers.map((handler) => {
         const wrapped: express.Handler = (req, res, next) => {
           if (!isWebSocketRequest(req)) {
-            Promise.resolve(handler(req, res, next)).catch(next)
-          } else {
-            next()
+            return handler(req, res, next)
           }
-        }
-        return wrapped
-      }),
-    ])
-    return this
-  }
-  // Handle async responses for `post` as well since we're in here anyway.
-  ;(express.Router as any).post = function post(route: expressCore.PathParams, ...handlers: express.Handler[]) {
-    originalPost.apply(this, [
-      route,
-      ...handlers.map((handler) => {
-        const wrapped: express.Handler = (req, res, next) => {
-          Promise.resolve(handler(req, res, next)).catch(next)
+          next()
         }
         return wrapped
       }),
@@ -259,5 +241,5 @@ function patchRouter(): void {
   }
 }
 
-// This needs to happen before anything uses the router.
+// This needs to happen before anything creates a router.
 patchRouter()
