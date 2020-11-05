@@ -1,7 +1,7 @@
 import { Request, Router } from "express"
 import proxyServer from "http-proxy"
 import { HttpCode, HttpError } from "../common/http"
-import { authenticated, ensureAuthenticated } from "./http"
+import { authenticated, ensureAuthenticated, redirect } from "./http"
 import { Router as WsRouter } from "./wsRouter"
 
 export const proxy = proxyServer.createProxyServer({})
@@ -44,25 +44,6 @@ const maybeProxy = (req: Request): string | undefined => {
   return port
 }
 
-/**
- * Determine if the user is browsing /, /login, or static assets and if so fall
- * through to allow the redirect and login flow.
- */
-const shouldFallThrough = (req: Request): boolean => {
-  // See if it looks like a request for the root or login HTML.
-  if (req.accepts("text/html")) {
-    if (
-      (req.path === "/" && req.method === "GET") ||
-      (/\/login\/?/.test(req.path) && (req.method === "GET" || req.method === "POST"))
-    ) {
-      return true
-    }
-  }
-
-  // See if it looks like a request for a static asset.
-  return req.path.startsWith("/static/") && req.method === "GET"
-}
-
 router.all("*", (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
@@ -71,9 +52,27 @@ router.all("*", (req, res, next) => {
 
   // Must be authenticated to use the proxy.
   if (!authenticated(req)) {
-    if (shouldFallThrough(req)) {
+    // Let the assets through since they're used on the login page.
+    if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
     }
+
+    // Assume anything that explicitly accepts text/html is a user browsing a
+    // page (as opposed to an xhr request). Don't use `req.accepts()` since
+    // *every* request that I've seen (in Firefox and Chromium at least)
+    // includes `*/*` making it always truthy.
+    if (typeof req.headers.accepts === "string" && req.headers.accepts.split(",").includes("text/html")) {
+      // Let the login through.
+      if (/\/login\/?/.test(req.path)) {
+        return next()
+      }
+      // Redirect all other pages to the login.
+      return redirect(req, res, "login", {
+        to: req.path,
+      })
+    }
+
+    // Everything else gets an unauthorized message.
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
