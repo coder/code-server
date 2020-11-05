@@ -111,14 +111,13 @@ export class UpdateProvider {
 
           if (response.statusCode >= 300) {
             ++redirects
+            response.destroy()
             if (redirects > maxRedirects) {
-              response.destroy()
               return reject(new Error("reached max redirects"))
             }
             if (!response.headers.location) {
               return reject(new Error("received redirect with no location header"))
             }
-            response.destroy()
             return request(url.resolve(uri, response.headers.location))
           }
 
