@@ -86,7 +86,7 @@ export class PluginAPI {
    */
   public mount(r: express.Router): void {
     for (const [, p] of this.plugins) {
-      r.use(`/${p.name}`, p.router())
+      r.use(`/${p.routerPath}`, p.router())
     }
   }
 
@@ -154,7 +154,7 @@ export class PluginAPI {
       this.plugins.set(p.name, p)
     } catch (err) {
       if (err.code !== "ENOENT") {
-        this.logger.warn(`failed to load plugin: ${err.message}`)
+        this.logger.warn(`failed to load plugin: ${err.stack}`)
       }
     }
   }
@@ -170,16 +170,23 @@ export class PluginAPI {
     const logger = this.logger.named(packageJSON.name)
     logger.debug("loading plugin", field("plugin_dir", dir), field("package_json", packageJSON))
 
+    if (!packageJSON.name) {
+      throw new Error("plugin package.json missing name")
+    }
+    if (!packageJSON.version) {
+      throw new Error("plugin package.json missing version")
+    }
+    if (!packageJSON.engines || !packageJSON.engines["code-server"]) {
+      throw new Error(`plugin package.json missing code-server range like:
+  "engines": {
+    "code-server": "^3.6.0"
+   }
+`)
+    }
     if (!semver.satisfies(version, packageJSON.engines["code-server"])) {
       throw new Error(
         `plugin range ${q(packageJSON.engines["code-server"])} incompatible` + ` with code-server version ${version}`,
       )
-    }
-    if (!packageJSON.name) {
-      throw new Error("plugin missing name")
-    }
-    if (!packageJSON.version) {
-      throw new Error("plugin missing version")
     }
 
     const p = {
@@ -197,6 +204,9 @@ export class PluginAPI {
     }
     if (!p.routerPath) {
       throw new Error("plugin missing router path")
+    }
+    if (!p.routerPath.startsWith("/") || p.routerPath.length < 2) {
+      throw new Error(`plugin router path ${q(p.routerPath)}: invalid`)
     }
     if (!p.homepageURL) {
       throw new Error("plugin missing homepage")

@@ -45,7 +45,8 @@ import * as express from "express"
  *
  */
 
-/* Programmability
+/**
+ * Programmability
  *
  * There is also a /api/applications endpoint to allow programmatic access to all
  * available applications. It could be used to create a custom application dashboard
