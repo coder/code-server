@@ -1,43 +1,57 @@
 import { logger } from "@coder/logger"
-import * as assert from "assert"
 import { describe } from "mocha"
 import * as path from "path"
 import { PluginAPI } from "../src/node/plugin"
+import * as supertest from "supertest"
+import * as express from "express"
+import * as apps from "../src/node/routes/apps"
 
 /**
  * Use $LOG_LEVEL=debug to see debug logs.
  */
 describe("plugin", () => {
-  it("loads", async () => {
-    const papi = new PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
+  let papi: PluginAPI
+  let app: express.Application
+  let agent: supertest.SuperAgentTest
+
+  before(async () => {
+    papi = new PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
     await papi.loadPlugins()
 
-    const apps = await papi.applications()
+    app = express.default()
+    papi.mount(app)
 
-    assert.deepEqual(
-      [
-        {
-          name: "Test App",
-          version: "4.0.0",
+    app.use("/api/applications", apps.router(papi))
 
-          description: "This app does XYZ.",
-          iconPath: "/test-plugin/test-app/icon.svg",
+    agent = supertest.agent(app)
+  })
+
+  it("/api/applications", async () => {
+    await agent.get("/api/applications").expect(200, [
+      {
+        name: "Test App",
+        version: "4.0.0",
+
+        description: "This app does XYZ.",
+        iconPath: "/test-plugin/test-app/icon.svg",
+        homepageURL: "https://example.com",
+        path: "/test-plugin/test-app",
+
+        plugin: {
+          name: "test-plugin",
+          version: "1.0.0",
+          modulePath: path.join(__dirname, "test-plugin"),
+
+          displayName: "Test Plugin",
+          description: "Plugin used in code-server tests.",
+          routerPath: "/test-plugin",
           homepageURL: "https://example.com",
-          path: "/test-plugin/test-app",
-
-          plugin: {
-            name: "test-plugin",
-            version: "1.0.0",
-            modulePath: path.join(__dirname, "test-plugin"),
-
-            displayName: "Test Plugin",
-            description: "Plugin used in code-server tests.",
-            routerPath: "/test-plugin",
-            homepageURL: "https://example.com",
-          },
         },
-      ],
-      apps,
-    )
+      },
+    ])
+  })
+
+  it("/test-plugin/test-app", async () => {
+    await agent.get("/test-plugin/test-app").expect(200, { date: "2000-02-05T05:00:00.000Z" })
   })
 })

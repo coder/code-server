@@ -8,19 +8,24 @@ export const plugin: pluginapi.Plugin = {
   homepageURL: "https://example.com",
   description: "Plugin used in code-server tests.",
 
-  init: (config) => {
+  init(config) {
     config.logger.debug("test-plugin loaded!")
   },
 
-  router: () => {
+  router() {
     const r = express.Router()
+    r.get("/test-app", (req, res) => {
+      res.json({
+        date: new Date("2000/02/05"),
+      })
+    })
     r.get("/goland/icon.svg", (req, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
     return r
   },
 
-  applications: () => {
+  applications() {
     return [
       {
         name: "Test App",
