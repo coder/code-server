@@ -43,6 +43,7 @@
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
     "@types/split2": "^2.1.6",
+    "@types/supertest": "^2.0.10",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
@@ -59,6 +60,7 @@
     "prettier": "^2.0.5",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
+    "supertest": "^6.0.1",
     "ts-node": "^9.0.0",
     "typescript": "4.0.2"
   },
