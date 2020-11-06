@@ -1,11 +1,11 @@
 import { logger } from "@coder/logger"
+import * as express from "express"
+import * as fs from "fs"
 import { describe } from "mocha"
 import * as path from "path"
-import { PluginAPI } from "../src/node/plugin"
 import * as supertest from "supertest"
-import * as express from "express"
+import { PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
-import * as fs from "fs"
 const fsp = fs.promises
 
 /**
