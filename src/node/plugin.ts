@@ -55,6 +55,9 @@ export class PluginAPI {
   public async applications(): Promise<Application[]> {
     const apps = new Array<Application>()
     for (const [, p] of this.plugins) {
+      if (!p.applications) {
+        continue
+      }
       const pluginApps = await p.applications()
 
       // Add plugin key to each app.
@@ -86,6 +89,9 @@ export class PluginAPI {
    */
   public mount(r: express.Router): void {
     for (const [, p] of this.plugins) {
+      if (!p.router) {
+        continue
+      }
       r.use(`${p.routerPath}`, p.router())
     }
   }

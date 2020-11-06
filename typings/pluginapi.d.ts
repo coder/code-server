@@ -129,8 +129,10 @@ export interface Plugin {
    * Returns the plugin's router.
    *
    * Mounted at <code-sever-root>/<plugin-path>
+   *
+   * If not present, the plugin provides no routes.
    */
-  router(): express.Router
+  router?(): express.Router
 
   /**
    * code-server uses this to collect the list of applications that
@@ -139,8 +141,10 @@ export interface Plugin {
    * refresh the list of applications
    *
    * Ensure this is as fast as possible.
+   *
+   * If not present, the plugin provides no applications.
    */
-  applications(): Application[] | Promise<Application[]>
+  applications?(): Application[] | Promise<Application[]>
 }
 
 /**
