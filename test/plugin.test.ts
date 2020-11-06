@@ -4,7 +4,7 @@ import * as fs from "fs"
 import { describe } from "mocha"
 import * as path from "path"
 import * as supertest from "supertest"
-import { PluginAPI } from "../src/node/plugin"
+import * as plugin from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
 const fsp = fs.promises
 
@@ -12,12 +12,12 @@ const fsp = fs.promises
  * Use $LOG_LEVEL=debug to see debug logs.
  */
 describe("plugin", () => {
-  let papi: PluginAPI
+  let papi: plugin.PluginAPI
   let app: express.Application
   let agent: supertest.SuperAgentTest
 
   before(async () => {
-    papi = new PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
+    papi = new plugin.PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
     await papi.loadPlugins()
 
     app = express.default()
@@ -54,9 +54,10 @@ describe("plugin", () => {
   })
 
   it("/test-plugin/test-app", async () => {
-    const indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
+    let indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
       encoding: "utf8",
     })
+    indexHTML = plugin.injectOverlayHTML(indexHTML)
     await agent.get("/test-plugin/test-app").expect(200, indexHTML)
   })
 })

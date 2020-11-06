@@ -76,6 +76,7 @@
     "env-paths": "^2.2.0",
     "express": "^5.0.0-alpha.8",
     "fs-extra": "^9.0.1",
+    "hijackresponse": "^5.0.0",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "js-yaml": "^3.13.1",

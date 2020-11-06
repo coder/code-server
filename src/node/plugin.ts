@@ -1,6 +1,7 @@
 import { Logger, field } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
+import * as hijackresponse from "hijackresponse"
 import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
@@ -92,7 +93,12 @@ export class PluginAPI {
       if (!p.router) {
         continue
       }
-      r.use(`${p.routerPath}`, p.router())
+      const pr = p.router()
+      r.use(`${p.routerPath}`, (req, res, next) => {
+        // All HTML responses need the overlay javascript injected.
+        tryInjectOverlay(res)
+        pr(req, res, next)
+      })
     }
   }
 
@@ -246,4 +252,59 @@ function q(s: string | undefined): string {
     s = "undefined"
   }
   return JSON.stringify(s)
+}
+
+function tryInjectOverlay(res: express.Response) {
+  hijackresponse.default(res).then((hj) => {
+    if (!res.get("Content-Type").includes("text/html")) {
+      hj.readable.pipe(hj.writable)
+      return
+    }
+    injectOverlay(res, hj)
+  })
+}
+
+// injectOverlay injects the script tag for the overlay into the HTML response
+// in res.
+// A point of improvement is to make it stream instead of buffer the entire response.
+// See for example https://www.npmjs.com/package/stream-buffer-replace
+async function injectOverlay(res: express.Response, hj: hijackresponse.HJ): Promise<void> {
+  res.removeHeader("Content-Length")
+
+  try {
+    const bodyPromise = new Promise<string>((res, rej) => {
+      hj.readable.on("close", rej)
+      hj.writable.on("close", rej)
+      hj.readable.on("error", rej)
+      hj.writable.on("error", rej)
+
+      const chunks: Buffer[] = []
+      hj.readable.on("data", (chunk: Buffer) => {
+        chunks.push(chunk)
+      })
+      hj.readable.on("end", () => {
+        res(String(Buffer.concat(chunks)))
+      })
+    })
+    let body = await bodyPromise
+    body = injectOverlayHTML(body)
+    hj.writable.write(body)
+    hj.writable.end()
+  } catch (err) {
+    hj.destroyAndRestore()
+    res.status(500)
+    res.json({ error: "overlay script injection failed" })
+  }
+}
+
+/**
+ * injectOverlayString injects the app-overlay.js script tag
+ * into the html.
+ */
+export function injectOverlayHTML(html: string): string {
+  return html.replace(
+    "</head>",
+    `  <script defer data-cfasync="false" src="./dist/app-overlay.js"></script>
+  </head>`,
+  )
 }
