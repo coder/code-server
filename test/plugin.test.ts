@@ -5,6 +5,8 @@ import { PluginAPI } from "../src/node/plugin"
 import * as supertest from "supertest"
 import * as express from "express"
 import * as apps from "../src/node/routes/apps"
+import * as fs from "fs"
+const fsp = fs.promises
 
 /**
  * Use $LOG_LEVEL=debug to see debug logs.
@@ -52,6 +54,9 @@ describe("plugin", () => {
   })
 
   it("/test-plugin/test-app", async () => {
-    await agent.get("/test-plugin/test-app").expect(200, { date: "2000-02-05T05:00:00.000Z" })
+    const indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
+      encoding: "utf8",
+    })
+    await agent.get("/test-plugin/test-app").expect(200, indexHTML)
   })
 })

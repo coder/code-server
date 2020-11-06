@@ -15,9 +15,7 @@ export const plugin: pluginapi.Plugin = {
   router() {
     const r = express.Router()
     r.get("/test-app", (req, res) => {
-      res.json({
-        date: new Date("2000/02/05"),
-      })
+      res.sendFile(fspath.resolve(__dirname, "../public/index.html"))
     })
     r.get("/goland/icon.svg", (req, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
