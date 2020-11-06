@@ -746,6 +746,53 @@ index fdd5890c69f72025b94913380f0d226226e8c8fb..e084236526b38c1144d47b8b3000b367
  			(err: any, socket: ISocket | undefined) => {
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
+@@ -411,16 +411,23 @@ abstract class PersistentConnection extends Disposable {
+ 		}
+ 		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
+ 		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
+-		this._onDidStateChange.fire(new ConnectionLostEvent());
+ 		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
++		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
++		
+ 		const disconnectStartTime = Date.now();
+ 		let attempt = -1;
+ 		do {
+ 			attempt++;
++			if (attempt == SHOW_POPUP_ON_ATTEMPT){
++				this._onDidStateChange.fire(new ConnectionLostEvent());
++			}
++
+ 			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
+ 			try {
+ 				const sleepPromise = sleep(waitTime);
+-				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
++				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
++					this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
++				}
+ 
+ 				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
+ 				try {
+@@ -433,14 +440,17 @@ abstract class PersistentConnection extends Disposable {
+ 				}
+ 
+ 				// connection was lost, let's try to re-establish it
+-				this._onDidStateChange.fire(new ReconnectionRunningEvent());
++				if (attempt >= SHOW_POPUP_ON_ATTEMPT){
++					this._onDidStateChange.fire(new ReconnectionRunningEvent());
++				}
+ 				this._options.logService.info(`${logPrefix} resolving connection...`);
+ 				const simpleOptions = await resolveConnectionOptions(this._options, this.reconnectionToken, this.protocol);
+ 				this._options.logService.info(`${logPrefix} connecting to ${simpleOptions.host}:${simpleOptions.port}...`);
+ 				await connectWithTimeLimit(simpleOptions.logService, this._reconnect(simpleOptions), RECONNECT_TIMEOUT);
+ 				this._options.logService.info(`${logPrefix} reconnected!`);
+-				this._onDidStateChange.fire(new ConnectionGainEvent());
+-
++				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
++					this._onDidStateChange.fire(new ConnectionGainEvent());
++				}
+ 				break;
+ 			} catch (err) {
+ 				if (err.code === 'VSCODE_CONNECTION_ERROR') {
 diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
 index ab3fd347b69f8a3d9b96e706cd87c911b8ffed6b..9d351037b577f9f1edfd18ae9b3c48a211f4467f 100644
 --- a/src/vs/platform/storage/browser/storageService.ts
