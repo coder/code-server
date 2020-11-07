@@ -2585,10 +2585,10 @@ index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae095109eb1
+index 0000000000000000000000000000000000000000..8424965d9c79d34e5513e4cfe543718521ad82c7
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,291 @@
+@@ -0,0 +1,300 @@
 +import { field } from '@coder/logger';
 +import * as fs from 'fs';
 +import * as net from 'net';
@@ -2618,8 +2618,9 @@ index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae0
 +import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 +import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 +import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
-+import { getLogLevel, ILogService } from 'vs/platform/log/common/log';
++import { getLogLevel, ILoggerService, ILogService } from 'vs/platform/log/common/log';
 +import { LoggerChannel } from 'vs/platform/log/common/logIpc';
++import { LoggerService } from 'vs/platform/log/node/loggerService';
 +import { SpdLogService } from 'vs/platform/log/node/spdlogService';
 +import product from 'vs/platform/product/common/product';
 +import { IProductService } from 'vs/platform/product/common/productService';
@@ -2630,8 +2631,9 @@ index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae0
 +import { RequestService } from 'vs/platform/request/node/requestService';
 +import ErrorTelemetry from 'vs/platform/telemetry/browser/errorTelemetry';
 +import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
++import { TelemetryLogAppender } from 'vs/platform/telemetry/common/telemetryLogAppender';
 +import { TelemetryService } from 'vs/platform/telemetry/common/telemetryService';
-+import { combinedAppender, LogAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
++import { combinedAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
 +import { AppInsightsAppender } from 'vs/platform/telemetry/node/appInsightsAppender';
 +import { resolveCommonProperties } from 'vs/platform/telemetry/node/commonProperties';
 +import { INodeProxyService, NodeProxyChannel } from 'vs/server/common/nodeProxy';
@@ -2820,6 +2822,7 @@ index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae0
 +		this.services.set(ILogService, logService);
 +		this.services.set(IEnvironmentService, environmentService);
 +		this.services.set(INativeEnvironmentService, environmentService);
++		this.services.set(ILoggerService, new SyncDescriptor(LoggerService));
 +
 +		const configurationService = new ConfigurationService(environmentService.settingsResource, fileService);
 +		await configurationService.initialize();
@@ -2828,45 +2831,51 @@ index 0000000000000000000000000000000000000000..45a7bf62a6c07d8771b0257e7c98fae0
 +		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 +		this.services.set(IFileService, fileService);
 +		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
-+		this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
-+		this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 +
-+		if (!environmentService.disableTelemetry) {
-+			this.services.set(ITelemetryService, new TelemetryService({
-+				appender: combinedAppender(
-+					new AppInsightsAppender('code-server', null, () => new TelemetryClient() as any, logService),
-+					new LogAppender(logService),
-+				),
-+				sendErrorTelemetry: true,
-+				commonProperties: resolveCommonProperties(
-+					product.commit, product.version, await getMachineId(),
-+					[], environmentService.installSourcePath, 'code-server',
-+				),
-+				piiPaths,
-+			}, configurationService));
-+		} else {
-+			this.services.set(ITelemetryService, NullTelemetryService);
-+		}
++		const machineId = await getMachineId();
 +
 +		await new Promise((resolve) => {
 +			const instantiationService = new InstantiationService(this.services);
-+			this.services.set(ILocalizationsService, instantiationService.createInstance(LocalizationsService));
-+			this.services.set(INodeProxyService, instantiationService.createInstance(NodeProxyService));
 +
-+			instantiationService.invokeFunction(() => {
++			instantiationService.invokeFunction((accessor) => {
 +				instantiationService.createInstance(LogsDataCleaner);
-+				const telemetryService = this.services.get(ITelemetryService) as ITelemetryService;
++
++				let telemetryService: ITelemetryService;
++				if (!environmentService.disableTelemetry) {
++					telemetryService = new TelemetryService({
++						appender: combinedAppender(
++							new AppInsightsAppender('code-server', null, () => new TelemetryClient() as any),
++							new TelemetryLogAppender(accessor.get(ILoggerService), environmentService)
++						),
++						sendErrorTelemetry: true,
++						commonProperties: resolveCommonProperties(
++							product.commit, product.version, machineId,
++							[], environmentService.installSourcePath, 'code-server',
++						),
++						piiPaths,
++					}, configurationService);
++				} else {
++					telemetryService = NullTelemetryService;
++				}
++
++				this.services.set(ITelemetryService, telemetryService);
++
++				this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
++				this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
++				this.services.set(ILocalizationsService, new SyncDescriptor(LocalizationsService));
++				this.services.set(INodeProxyService, new SyncDescriptor(NodeProxyService));
++
 +				this.ipc.registerChannel('extensions', new ExtensionManagementChannel(
-+					this.services.get(IExtensionManagementService) as IExtensionManagementService,
++					accessor.get(IExtensionManagementService),
 +					(context) => getUriTransformer(context.remoteAuthority),
 +				));
 +				this.ipc.registerChannel('remoteextensionsenvironment', new ExtensionEnvironmentChannel(
 +					environmentService, logService, telemetryService, '',
 +				));
-+				this.ipc.registerChannel('request', new RequestChannel(this.services.get(IRequestService) as IRequestService));
++				this.ipc.registerChannel('request', new RequestChannel(accessor.get(IRequestService)));
 +				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
-+				this.ipc.registerChannel('nodeProxy', new NodeProxyChannel(this.services.get(INodeProxyService) as INodeProxyService));
-+				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(this.services.get(ILocalizationsService) as ILocalizationsService));
++				this.ipc.registerChannel('nodeProxy', new NodeProxyChannel(accessor.get(INodeProxyService)));
++				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(accessor.get(ILocalizationsService)));
 +				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 +				resolve(new ErrorTelemetry(telemetryService));
 +			});
