@@ -112,5 +112,3 @@ $ helm install --name my-release -f values.yaml deployment/chart
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
-
-
