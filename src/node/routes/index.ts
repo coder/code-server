@@ -155,7 +155,7 @@ export const register = async (
 
   const wsErrorHandler: express.ErrorRequestHandler = async (err, req) => {
     logger.error(`${err.message} ${err.stack}`)
-    ;(req as WebsocketRequest).ws.destroy(err)
+    ;(req as WebsocketRequest).ws.end()
   }
 
   wsApp.use(wsErrorHandler)

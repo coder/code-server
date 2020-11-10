@@ -5,8 +5,6 @@ import * as net from "net"
 
 export const handleUpgrade = (app: express.Express, server: http.Server): void => {
   server.on("upgrade", (req, socket, head) => {
-    socket.on("error", () => socket.destroy())
-
     req.ws = socket
     req.head = head
     req._ws_handled = false
@@ -14,7 +12,7 @@ export const handleUpgrade = (app: express.Express, server: http.Server): void =
     // Send the request off to be handled by Express.
     ;(app as any).handle(req, new http.ServerResponse(req), () => {
       if (!req._ws_handled) {
-        socket.destroy(new Error("Not found"))
+        socket.end("HTTP/1.1 404 Not Found\r\n\r\n")
       }
     })
   })
