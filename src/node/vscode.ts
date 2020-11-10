@@ -6,6 +6,7 @@ import * as ipc from "../../lib/vscode/src/vs/server/ipc"
 import { arrayify, generateUuid } from "../common/util"
 import { rootPath } from "./constants"
 import { settings } from "./settings"
+import { SocketProxyProvider } from "./socket"
 import { isFile } from "./util"
 import { ipcMain } from "./wrapper"
 
@@ -14,6 +15,7 @@ export class VscodeProvider {
   public readonly vsRootPath: string
   private _vscode?: Promise<cp.ChildProcess>
   private timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
+  private readonly socketProvider = new SocketProxyProvider()
 
   public constructor() {
     this.vsRootPath = path.resolve(rootPath, "lib/vscode")
@@ -22,6 +24,7 @@ export class VscodeProvider {
   }
 
   public async dispose(): Promise<void> {
+    this.socketProvider.stop()
     if (this._vscode) {
       const vscode = await this._vscode
       vscode.removeAllListeners()
@@ -152,9 +155,11 @@ export class VscodeProvider {
    * VS Code expects a raw socket. It will handle all the web socket frames.
    */
   public async sendWebsocket(socket: net.Socket, query: ipc.Query): Promise<void> {
-    // TODO: TLS socket proxy.
     const vscode = await this._vscode
-    this.send({ type: "socket", query }, vscode, socket)
+    // TLS sockets cannot be transferred to child processes so we need an
+    // in-between. Non-TLS sockets will be returned as-is.
+    const socketProxy = await this.socketProvider.createProxy(socket)
+    this.send({ type: "socket", query }, vscode, socketProxy)
   }
 
   private send(message: ipc.CodeServerMessage, vscode?: cp.ChildProcess, socket?: net.Socket): void {
