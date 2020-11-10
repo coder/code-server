@@ -5,6 +5,8 @@
 [code-server](https://github.com/cdr/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
 
+This chart is community maintained by [@Matthew-Beckett](https://github.com/Matthew-Beckett) and [@alexgorbatchev](https://github.com/alexgorbatchev)
+
 ## TL;DR;
 
 ```console
