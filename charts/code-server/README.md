@@ -1,6 +1,6 @@
 # code-server
 
-![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.5.0](https://img.shields.io/badge/AppVersion-3.5.0-informational?style=flat-square)
+![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![AppVersion: 3.6.2](https://img.shields.io/badge/AppVersion-3.6.2-informational?style=flat-square)
 
 [code-server](https://github.com/cdr/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
@@ -9,7 +9,7 @@ on a remote server, accessible through the browser.
 
 ```console
 $ git clone https://github.com/cdr/code-server.git
-$ helm install deployment/chart
+$ helm install code-server/charts/code-server
 ```
 
 ## Introduction
@@ -27,7 +27,7 @@ package manager.
 To install the chart with the release name `my-release`:
 
 ```console
-$ helm install --name my-release deployment/chart
+$ helm install --name my-release charts/code-server
 ```
 
 The command deploys code-server on the Kubernetes cluster in the default
@@ -48,10 +48,6 @@ The command removes all the Kubernetes components associated with the chart and
 deletes the release.
 
 ## Configuration
-
-The following table lists the configurable parameters of the nginx-ingress chart
-and their default values.
-
 
 The following table lists the configurable parameters of the code-server chart
 and their default values.
