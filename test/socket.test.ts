@@ -45,7 +45,7 @@ describe("SocketProxyProvider", () => {
   }
 
   before(async () => {
-    const cert = await generateCertificate()
+    const cert = await generateCertificate("localhost")
     const options = {
       cert: fs.readFileSync(cert.cert),
       key: fs.readFileSync(cert.certKey),
