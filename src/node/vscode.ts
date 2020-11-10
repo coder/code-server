@@ -13,6 +13,7 @@ export class VscodeProvider {
   public readonly serverRootPath: string
   public readonly vsRootPath: string
   private _vscode?: Promise<cp.ChildProcess>
+  private timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
 
   public constructor() {
     this.vsRootPath = path.resolve(rootPath, "lib/vscode")
@@ -52,33 +53,25 @@ export class VscodeProvider {
     const vscode = await this.fork()
 
     logger.debug("setting up vs code...")
-    return new Promise<ipc.WorkbenchOptions>((resolve, reject) => {
-      const onExit = (code: number | null) => reject(new Error(`VS Code exited unexpectedly with code ${code}`))
 
-      vscode.once("message", (message: ipc.VscodeMessage) => {
-        logger.debug("got message from vs code", field("message", message))
-        vscode.off("error", reject)
-        vscode.off("exit", onExit)
-        return message.type === "options" && message.id === id
-          ? resolve(message.options)
-          : reject(new Error("Unexpected response during initialization"))
-      })
-
-      vscode.once("error", reject)
-      vscode.once("exit", onExit)
-
-      this.send(
-        {
-          type: "init",
-          id,
-          options: {
-            ...options,
-            startPath,
-          },
+    this.send(
+      {
+        type: "init",
+        id,
+        options: {
+          ...options,
+          startPath,
         },
-        vscode,
-      )
+      },
+      vscode,
+    )
+
+    const message = await this.onMessage<ipc.OptionsMessage>(vscode, (message): message is ipc.OptionsMessage => {
+      // There can be parallel initializations so wait for the right ID.
+      return message.type === "options" && message.id === id
     })
+
+    return message.options
   }
 
   private fork(): Promise<cp.ChildProcess> {
@@ -88,32 +81,71 @@ export class VscodeProvider {
 
     logger.debug("forking vs code...")
     const vscode = cp.fork(path.join(this.serverRootPath, "fork"))
-    vscode.on("error", (error) => {
-      logger.error(error.message)
+
+    const dispose = () => {
+      vscode.removeAllListeners()
+      vscode.kill()
       this._vscode = undefined
+    }
+
+    vscode.on("error", (error: Error) => {
+      logger.error(error.message)
+      if (error.stack) {
+        logger.debug(error.stack)
+      }
+      dispose()
     })
+
     vscode.on("exit", (code) => {
       logger.error(`VS Code exited unexpectedly with code ${code}`)
-      this._vscode = undefined
+      dispose()
     })
 
-    this._vscode = new Promise((resolve, reject) => {
-      const onExit = (code: number | null) => reject(new Error(`VS Code exited unexpectedly with code ${code}`))
-
-      vscode.once("message", (message: ipc.VscodeMessage) => {
-        logger.debug("got message from vs code", field("message", message))
-        vscode.off("error", reject)
-        vscode.off("exit", onExit)
-        return message.type === "ready"
-          ? resolve(vscode)
-          : reject(new Error("Unexpected response waiting for ready response"))
-      })
-
-      vscode.once("error", reject)
-      vscode.once("exit", onExit)
-    })
+    this._vscode = this.onMessage<ipc.ReadyMessage>(vscode, (message): message is ipc.ReadyMessage => {
+      return message.type === "ready"
+    }).then(() => vscode)
 
     return this._vscode
+  }
+
+  /**
+   * Listen to a single message from a process. Reject if the process errors,
+   * exits, or times out.
+   *
+   * `fn` is a function that determines whether the message is the one we're
+   * waiting for.
+   */
+  private onMessage<T extends ipc.VscodeMessage>(
+    proc: cp.ChildProcess,
+    fn: (message: ipc.VscodeMessage) => message is T,
+  ): Promise<T> {
+    return new Promise((resolve, _reject) => {
+      const reject = (error: Error) => {
+        clearTimeout(timeout)
+        _reject(error)
+      }
+
+      const onExit = (code: number | null) => {
+        reject(new Error(`VS Code exited unexpectedly with code ${code}`))
+      }
+
+      const timeout = setTimeout(() => {
+        reject(new Error("timed out"))
+      }, this.timeoutInterval)
+
+      proc.on("message", (message: ipc.VscodeMessage) => {
+        logger.debug("got message from vscode", field("message", message))
+        proc.off("error", reject)
+        proc.off("exit", onExit)
+        if (fn(message)) {
+          clearTimeout(timeout)
+          resolve(message)
+        }
+      })
+
+      proc.once("error", reject)
+      proc.once("exit", onExit)
+    })
   }
 
   /**
