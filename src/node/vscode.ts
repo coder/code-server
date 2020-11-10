@@ -165,7 +165,16 @@ export class VscodeProvider {
   }
 
   /**
-   * Choose the first non-empty path.
+   * Choose the first non-empty path from the provided array.
+   *
+   * Each array item consists of `url` and an optional `workspace` boolean that
+   * indicates whether that url is for a workspace.
+   *
+   * `url` can be a fully qualified URL or just the path portion.
+   *
+   * `url` can also be a query object to make it easier to pass in query
+   * variables directly but anything that isn't a string or string array is not
+   * valid and will be ignored.
    */
   private async getFirstPath(
     startPaths: Array<{ url?: string | string[] | ipc.Query | ipc.Query[]; workspace?: boolean } | undefined>,
