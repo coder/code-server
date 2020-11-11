@@ -1,6 +1,7 @@
 import { Request, Router } from "express"
 import qs from "qs"
 import { HttpCode, HttpError } from "../../common/http"
+import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
@@ -17,11 +18,11 @@ const getProxyTarget = (req: Request, rewrite: boolean): string => {
 
 router.all("/(:port)(/*)?", (req, res) => {
   if (!authenticated(req)) {
-    // If visiting the root (/proxy/:port and nothing else) redirect to the
-    // login page.
+    // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
+      const to = normalize(`${req.baseUrl}${req.path}`)
       return redirect(req, res, "login", {
-        to: `${req.baseUrl}${req.path}` || "/",
+        to: to !== "/" ? to : undefined,
       })
     }
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)

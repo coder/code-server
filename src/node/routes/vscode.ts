@@ -15,7 +15,8 @@ const vscode = new VscodeProvider()
 router.get("/", async (req, res) => {
   if (!authenticated(req)) {
     return redirect(req, res, "login", {
-      to: req.baseUrl,
+      // req.baseUrl can be blank if already at the root.
+      to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
     })
   }
 

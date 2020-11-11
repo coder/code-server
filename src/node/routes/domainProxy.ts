@@ -55,7 +55,7 @@ router.all("*", (req, res, next) => {
       }
       // Redirect all other pages to the login.
       return redirect(req, res, "login", {
-        to: req.path,
+        to: req.path !== "/" ? req.path : undefined,
       })
     }
 
