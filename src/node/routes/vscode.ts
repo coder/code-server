@@ -22,18 +22,14 @@ router.get("/", async (req, res) => {
 
   const [content, options] = await Promise.all([
     await fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
-    vscode
-      .initialize(
-        {
-          args: req.args,
-          remoteAuthority: req.headers.host || "",
-        },
-        req.query,
-      )
-      .catch((error) => {
+    (async () => {
+      try {
+        return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "" }, req.query)
+      } catch (error) {
         const devMessage = commit === "development" ? "It might not have finished compiling." : ""
         throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
-      }),
+      }
+    })(),
   ])
 
   options.productConfiguration.codeServerVersion = version
