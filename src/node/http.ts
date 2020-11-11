@@ -98,27 +98,36 @@ export const redirect = (
 
 /**
  * Get the value that should be used for setting a cookie domain. This will
- * allow the user to authenticate only once. This will use the highest level
- * domain (e.g. `coder.com` over `test.coder.com` if both are specified).
+ * allow the user to authenticate once no matter what sub-domain they use to log
+ * in. This will use the highest level proxy domain (e.g. `coder.com` over
+ * `test.coder.com` if both are specified).
  */
 export const getCookieDomain = (host: string, proxyDomains: string[]): string | undefined => {
   const idx = host.lastIndexOf(":")
   host = idx !== -1 ? host.substring(0, idx) : host
+  // If any of these are true we will still set cookies but without an explicit
+  // `Domain` attribute on the cookie.
   if (
-    // Might be blank/missing, so there's nothing more to do.
+    // The host can be be blank or missing so there's nothing we can set.
     !host ||
     // IP addresses can't have subdomains so there's no value in setting the
-    // domain for them. Assume anything with a : is ipv6 (valid domain name
-    // characters are alphanumeric or dashes).
+    // domain for them. Assume that anything with a : is ipv6 (valid domain name
+    // characters are alphanumeric or dashes)...
     host.includes(":") ||
-    // Assume anything entirely numbers and dots is ipv4 (currently tlds
+    // ...and that anything entirely numbers and dots is ipv4 (currently tlds
     // cannot be entirely numbers).
     !/[^0-9.]/.test(host) ||
-    // localhost subdomains don't seem to work at all (browser bug?).
+    // localhost subdomains don't seem to work at all (browser bug?). A cookie
+    // set at dev.localhost cannot be read by 8080.dev.localhost.
     host.endsWith(".localhost") ||
-    // It might be localhost (or an IP, see above) if it's a proxy and it
-    // isn't setting the host header to match the access domain.
-    host === "localhost"
+    // Domains without at least one dot (technically two since domain.tld will
+    // become .domain.tld) are considered invalid according to the spec so don't
+    // set the domain for them. In my testing though localhost is the only
+    // problem (the browser just doesn't store the cookie at all). localhost has
+    // an additional problem which is that a reverse proxy might give
+    // code-server localhost even though the domain is really domain.tld (by
+    // default NGINX does this).
+    !host.includes(".")
   ) {
     logger.debug("no valid cookie doman", field("host", host))
     return undefined
