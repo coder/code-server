@@ -144,7 +144,7 @@ export class VscodeProvider {
       }
 
       proc.on("message", (message: ipc.VscodeMessage) => {
-        logger.debug("got message from vscode", field("message", message))
+        logger.trace("got message from vscode", field("message", message))
         if (fn(message)) {
           cleanup()
           resolve(message)

@@ -54,25 +54,45 @@ export function humanPath(p?: string): string {
   return p.replace(os.homedir(), "~")
 }
 
-export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
-  const paths = {
-    cert: path.join(tmpdir, "self-signed.cert"),
-    certKey: path.join(tmpdir, "self-signed.key"),
-  }
-  const checks = await Promise.all([fs.pathExists(paths.cert), fs.pathExists(paths.certKey)])
+export const generateCertificate = async (hostname: string): Promise<{ cert: string; certKey: string }> => {
+  const certPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.crt`)
+  const certKeyPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.key`)
+
+  const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
   if (!checks[0] || !checks[1]) {
     // Require on demand so openssl isn't required if you aren't going to
     // generate certificates.
     const pem = require("pem") as typeof import("pem")
     const certs = await new Promise<import("pem").CertificateCreationResult>((resolve, reject): void => {
-      pem.createCertificate({ selfSigned: true }, (error, result) => {
-        return error ? reject(error) : resolve(result)
-      })
+      pem.createCertificate(
+        {
+          selfSigned: true,
+          commonName: hostname,
+          config: `
+[req]
+req_extensions = v3_req
+
+[ v3_req ]
+basicConstraints = CA:true
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = ${hostname}
+`,
+        },
+        (error, result) => {
+          return error ? reject(error) : resolve(result)
+        },
+      )
     })
-    await fs.mkdirp(tmpdir)
-    await Promise.all([fs.writeFile(paths.cert, certs.certificate), fs.writeFile(paths.certKey, certs.serviceKey)])
+    await fs.mkdirp(paths.data)
+    await Promise.all([fs.writeFile(certPath, certs.certificate), fs.writeFile(certKeyPath, certs.serviceKey)])
   }
-  return paths
+  return {
+    cert: certPath,
+    certKey: certKeyPath,
+  }
 }
 
 export const generatePassword = async (length = 24): Promise<string> => {

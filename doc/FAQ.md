@@ -3,6 +3,7 @@
 # FAQ
 
 - [Questions?](#questions)
+- [iPad Status?](#ipad-status)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
@@ -21,7 +22,6 @@
 - [Heartbeat File](#heartbeat-file)
 - [Healthz endpoint](#healthz-endpoint)
 - [How does the config file work?](#how-does-the-config-file-work)
-- [Blank screen on iPad?](#blank-screen-on-ipad)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Differences compared to Theia?](#differences-compared-to-theia)
@@ -32,6 +32,10 @@
 ## Questions?
 
 Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
+
+## iPad Status?
+
+Please see [./ipad.md](./ipad.md).
 
 ## How can I reuse my VS Code configuration?
 
@@ -143,6 +147,9 @@ or [Cloudflare Access](https://teams.cloudflare.com/access).
 For HTTPS, you can use a self signed certificate by passing in just `--cert` or
 pass in an existing certificate by providing the path to `--cert` and the path to
 the key with `--cert-key`.
+
+The self signed certificate will be generated into
+`~/.local/share/code-server/self-signed.crt`.
 
 If `code-server` has been passed a certificate it will also respond to HTTPS
 requests and will redirect all HTTP requests to HTTPS.
@@ -278,15 +285,6 @@ and no TLS. Any flags passed to `code-server` will take priority over the config
 The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config file's location.
 
 The default location also respects `$XDG_CONFIG_HOME`.
-
-## Blank screen on iPad?
-
-Unfortunately at the moment self signed certificates cause a blank screen on iPadOS
-
-There does seem to be a way to get it to work if you create your own CA and create a
-certificate using the CA and then import the CA onto your iPad.
-
-See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
 
 ## Isn't an install script piped into sh insecure?
 

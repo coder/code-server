@@ -30,6 +30,7 @@ export interface Args extends VsArgs {
   auth?: AuthType
   password?: string
   cert?: OptionalString
+  "cert-host"?: string
   "cert-key"?: string
   "disable-telemetry"?: boolean
   help?: boolean
@@ -105,7 +106,11 @@ const options: Options<Required<Args>> = {
   cert: {
     type: OptionalString,
     path: true,
-    description: "Path to certificate. Generated if no path is provided.",
+    description: "Path to certificate. A self signed certificate is generated if none is provided.",
+  },
+  "cert-host": {
+    type: "string",
+    description: "Hostname to use when generating a self signed certificate.",
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
@@ -429,7 +434,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   }
 
   if (args.cert && !args.cert.value) {
-    const { cert, certKey } = await generateCertificate()
+    const { cert, certKey } = await generateCertificate(args["cert-host"] || "localhost")
     args.cert = {
       value: cert,
     }

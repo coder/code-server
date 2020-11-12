@@ -5,6 +5,8 @@ import * as net from "net"
 
 export const handleUpgrade = (app: express.Express, server: http.Server): void => {
   server.on("upgrade", (req, socket, head) => {
+    socket.pause()
+
     req.ws = socket
     req.head = head
     req._ws_handled = false

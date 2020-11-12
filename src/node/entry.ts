@@ -121,11 +121,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   }
 
   if (args.cert) {
-    logger.info(
-      args.cert && args.cert.value
-        ? `  - Using provided certificate and key for HTTPS`
-        : `  - Using generated certificate and key for HTTPS`,
-    )
+    logger.info("  - Using certificate for HTTPS: ${humanPath(args.cert.value)}")
   } else {
     logger.info("  - Not serving HTTPS")
   }
