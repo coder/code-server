@@ -1,19 +1,13 @@
 import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
-import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
 import { plural } from "../common/util"
-import { HealthHttpProvider } from "./app/health"
-import { LoginHttpProvider } from "./app/login"
-import { ProxyHttpProvider } from "./app/proxy"
-import { StaticHttpProvider } from "./app/static"
-import { UpdateHttpProvider } from "./app/update"
-import { VscodeHttpProvider } from "./app/vscode"
+import { createApp, ensureAddress } from "./app"
 import {
-  Args,
-  bindAddrFromAllSources,
+  AuthType,
+  DefaultedArgs,
   optionDescriptions,
   parse,
   readConfigFile,
@@ -22,22 +16,12 @@ import {
   shouldRunVsCodeCli,
 } from "./cli"
 import { coderCloudBind } from "./coder-cloud"
-import { AuthType, HttpServer, HttpServerOptions } from "./http"
-import { loadPlugins } from "./plugin"
-import { generateCertificate, hash, humanPath, open } from "./util"
+import { commit, version } from "./constants"
+import { register } from "./routes"
+import { humanPath, isFile, open } from "./util"
 import { ipcMain, WrapperProcess } from "./wrapper"
 
-let pkg: { version?: string; commit?: string } = {}
-try {
-  pkg = require("../../package.json")
-} catch (error) {
-  logger.warn(error.message)
-}
-
-const version = pkg.version || "development"
-const commit = pkg.commit || "development"
-
-export const runVsCodeCli = (args: Args): void => {
+export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
   const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
     env: {
@@ -61,7 +45,7 @@ export const runVsCodeCli = (args: Args): void => {
   vscode.on("exit", (code) => process.exit(code || 0))
 }
 
-export const openInExistingInstance = async (args: Args, socketPath: string): Promise<void> => {
+export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
   const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
     type: "open",
     folderURIs: [],
@@ -70,21 +54,12 @@ export const openInExistingInstance = async (args: Args, socketPath: string): Pr
     forceNewWindow: args["new-window"],
   }
 
-  const isDir = async (path: string): Promise<boolean> => {
-    try {
-      const st = await fs.stat(path)
-      return st.isDirectory()
-    } catch (error) {
-      return false
-    }
-  }
-
   for (let i = 0; i < args._.length; i++) {
     const fp = path.resolve(args._[i])
-    if (await isDir(fp)) {
-      pipeArgs.folderURIs.push(fp)
-    } else {
+    if (await isFile(fp)) {
       pipeArgs.fileURIs.push(fp)
+    } else {
+      pipeArgs.folderURIs.push(fp)
     }
   }
 
@@ -117,124 +92,63 @@ export const openInExistingInstance = async (args: Args, socketPath: string): Pr
   vscode.end()
 }
 
-const main = async (args: Args, configArgs: Args): Promise<void> => {
-  if (args.link) {
-    // If we're being exposed to the cloud, we listen on a random address and disable auth.
-    args = {
-      ...args,
-      host: "localhost",
-      port: 0,
-      auth: AuthType.None,
-      socket: undefined,
-      cert: undefined,
-    }
-    logger.info("link: disabling auth and listening on random localhost port for cloud agent")
-  }
-
-  if (!args.auth) {
-    args = {
-      ...args,
-      auth: AuthType.Password,
-    }
-  }
+const main = async (args: DefaultedArgs): Promise<void> => {
+  logger.info(`code-server ${version} ${commit}`)
 
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
-
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
-  const envPassword = !!process.env.PASSWORD
-  const password = args.auth === AuthType.Password && (process.env.PASSWORD || args.password)
-  if (args.auth === AuthType.Password && !password) {
+  if (args.auth === AuthType.Password && !args.password) {
     throw new Error("Please pass in a password via the config file or $PASSWORD")
   }
-  const [host, port] = bindAddrFromAllSources(args, configArgs)
 
-  // Spawn the main HTTP server.
-  const options: HttpServerOptions = {
-    auth: args.auth,
-    commit,
-    host: host,
-    // The hash does not add any actual security but we do it for obfuscation purposes.
-    password: password ? hash(password) : undefined,
-    port: port,
-    proxyDomains: args["proxy-domain"],
-    socket: args.socket,
-    ...(args.cert && !args.cert.value
-      ? await generateCertificate(args["cert-host"] || "localhost")
-      : {
-          cert: args.cert && args.cert.value,
-          certKey: args["cert-key"],
-        }),
-  }
+  const [app, wsApp, server] = await createApp(args)
+  const serverAddress = ensureAddress(server)
+  await register(app, wsApp, server, args)
 
-  if (options.cert && !options.certKey) {
-    throw new Error("--cert-key is missing")
-  }
-
-  const httpServer = new HttpServer(options)
-  httpServer.registerHttpProvider(["/", "/vscode"], VscodeHttpProvider, args)
-  httpServer.registerHttpProvider("/update", UpdateHttpProvider, false)
-  httpServer.registerHttpProvider("/proxy", ProxyHttpProvider)
-  httpServer.registerHttpProvider("/login", LoginHttpProvider, args.config!, envPassword)
-  httpServer.registerHttpProvider("/static", StaticHttpProvider)
-  httpServer.registerHttpProvider("/healthz", HealthHttpProvider, httpServer.heart)
-
-  await loadPlugins(httpServer, args)
-
-  ipcMain.onDispose(() => {
-    httpServer.dispose().then((errors) => {
-      errors.forEach((error) => logger.error(error.message))
-    })
-  })
-
-  logger.info(`code-server ${version} ${commit}`)
   logger.info(`Using config file ${humanPath(args.config)}`)
-
-  const serverAddress = await httpServer.listen()
-  logger.info(`HTTP server listening on ${serverAddress}`)
+  logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)
 
   if (args.auth === AuthType.Password) {
-    if (envPassword) {
+    logger.info("  - Authentication is enabled")
+    if (args.usingEnvPassword) {
       logger.info("    - Using password from $PASSWORD")
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
     }
-    logger.info("    - To disable use `--auth none`")
   } else {
-    logger.info("  - No authentication")
+    logger.info(`  - Authentication is disabled ${args.link ? "(disabled by --link)" : ""}`)
   }
-  delete process.env.PASSWORD
 
-  if (httpServer.protocol === "https") {
-    logger.info(
-      args.cert && args.cert.value
-        ? `  - Using provided certificate and key for HTTPS`
-        : `  - Using generated certificate and key for HTTPS: ${humanPath(options.cert)}`,
-    )
+  if (args.cert) {
+    logger.info("  - Using certificate for HTTPS: ${humanPath(args.cert.value)}")
   } else {
     logger.info("  - Not serving HTTPS")
   }
 
-  if (httpServer.proxyDomains.size > 0) {
-    logger.info(`  - ${plural(httpServer.proxyDomains.size, "Proxying the following domain")}:`)
-    httpServer.proxyDomains.forEach((domain) => logger.info(`    - *.${domain}`))
-  }
-
-  if (serverAddress && !options.socket && args.open) {
-    // The web socket doesn't seem to work if browsing with 0.0.0.0.
-    const openAddress = serverAddress.replace(/:\/\/0.0.0.0/, "://localhost")
-    await open(openAddress).catch((error: Error) => {
-      logger.error("Failed to open", field("address", openAddress), field("error", error))
-    })
-    logger.info(`Opened ${openAddress}`)
+  if (args["proxy-domain"].length > 0) {
+    logger.info(`  - ${plural(args["proxy-domain"].length, "Proxying the following domain")}:`)
+    args["proxy-domain"].forEach((domain) => logger.info(`    - *.${domain}`))
   }
 
   if (args.link) {
     try {
-      await coderCloudBind(serverAddress!, args.link.value)
+      await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
+      logger.info("  - Connected to cloud agent")
     } catch (err) {
       logger.error(err.message)
       ipcMain.exit(1)
+    }
+  }
+
+  if (!args.socket && args.open) {
+    // The web socket doesn't seem to work if browsing with 0.0.0.0.
+    const openAddress = serverAddress.replace("://0.0.0.0", "://localhost")
+    try {
+      await open(openAddress)
+      logger.info(`Opened ${openAddress}`)
+    } catch (error) {
+      logger.error("Failed to open", field("address", openAddress), field("error", error))
     }
   }
 }
@@ -242,9 +156,7 @@ const main = async (args: Args, configArgs: Args): Promise<void> => {
 async function entry(): Promise<void> {
   const cliArgs = parse(process.argv.slice(2))
   const configArgs = await readConfigFile(cliArgs.config)
-  // This prioritizes the flags set in args over the ones in the config file.
-  let args = Object.assign(configArgs, cliArgs)
-  args = await setDefaults(args)
+  const args = await setDefaults(cliArgs, configArgs)
 
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
@@ -252,7 +164,7 @@ async function entry(): Promise<void> {
   if (ipcMain.isChild) {
     await ipcMain.handshake()
     ipcMain.preventExit()
-    return main(args, configArgs)
+    return main(args)
   }
 
   if (args.help) {

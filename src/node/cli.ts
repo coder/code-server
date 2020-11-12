@@ -4,8 +4,12 @@ import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
-import { AuthType } from "./http"
-import { canConnect, generatePassword, humanPath, paths } from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
+
+export enum AuthType {
+  Password = "password",
+  None = "none",
+}
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
@@ -22,34 +26,34 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 export interface Args extends VsArgs {
-  readonly config?: string
-  readonly auth?: AuthType
-  readonly password?: string
-  readonly cert?: OptionalString
-  readonly "cert-host"?: string
-  readonly "cert-key"?: string
-  readonly "disable-telemetry"?: boolean
-  readonly help?: boolean
-  readonly host?: string
-  readonly json?: boolean
+  config?: string
+  auth?: AuthType
+  password?: string
+  cert?: OptionalString
+  "cert-host"?: string
+  "cert-key"?: string
+  "disable-telemetry"?: boolean
+  help?: boolean
+  host?: string
+  json?: boolean
   log?: LogLevel
-  readonly open?: boolean
-  readonly port?: number
-  readonly "bind-addr"?: string
-  readonly socket?: string
-  readonly version?: boolean
-  readonly force?: boolean
-  readonly "list-extensions"?: boolean
-  readonly "install-extension"?: string[]
-  readonly "show-versions"?: boolean
-  readonly "uninstall-extension"?: string[]
-  readonly "proxy-domain"?: string[]
-  readonly locale?: string
-  readonly _: string[]
-  readonly "reuse-window"?: boolean
-  readonly "new-window"?: boolean
+  open?: boolean
+  port?: number
+  "bind-addr"?: string
+  socket?: string
+  version?: boolean
+  force?: boolean
+  "list-extensions"?: boolean
+  "install-extension"?: string[]
+  "show-versions"?: boolean
+  "uninstall-extension"?: string[]
+  "proxy-domain"?: string[]
+  locale?: string
+  _: string[]
+  "reuse-window"?: boolean
+  "new-window"?: boolean
 
-  readonly link?: OptionalString
+  link?: OptionalString
 }
 
 interface Option<T> {
@@ -330,13 +334,37 @@ export const parse = (
     args._.push(arg)
   }
 
-  logger.debug("parsed command line", field("args", args))
+  // If a cert was provided a key must also be provided.
+  if (args.cert && args.cert.value && !args["cert-key"]) {
+    throw new Error("--cert-key is missing")
+  }
+
+  logger.debug(() => ["parsed command line", field("args", { ...args, password: undefined })])
 
   return args
 }
 
-export async function setDefaults(args: Args): Promise<Args> {
-  args = { ...args }
+export interface DefaultedArgs extends ConfigArgs {
+  auth: AuthType
+  cert?: {
+    value: string
+  }
+  host: string
+  port: number
+  "proxy-domain": string[]
+  verbose: boolean
+  usingEnvPassword: boolean
+  "extensions-dir": string
+  "user-data-dir": string
+}
+
+/**
+ * Take CLI and config arguments (optional) and return a single set of arguments
+ * with the defaults set. Arguments from the CLI are prioritized over config
+ * arguments.
+ */
+export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promise<DefaultedArgs> {
+  const args = Object.assign({}, configArgs || {}, cliArgs)
 
   if (!args["user-data-dir"]) {
     await copyOldMacOSDataDir()
@@ -386,7 +414,49 @@ export async function setDefaults(args: Args): Promise<Args> {
       break
   }
 
-  return args
+  // Default to using a password.
+  if (!args.auth) {
+    args.auth = AuthType.Password
+  }
+
+  const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
+  args.host = addr.host
+  args.port = addr.port
+
+  // If we're being exposed to the cloud, we listen on a random address and
+  // disable auth.
+  if (args.link) {
+    args.host = "localhost"
+    args.port = 0
+    args.socket = undefined
+    args.cert = undefined
+    args.auth = AuthType.None
+  }
+
+  if (args.cert && !args.cert.value) {
+    const { cert, certKey } = await generateCertificate(args["cert-host"] || "localhost")
+    args.cert = {
+      value: cert,
+    }
+    args["cert-key"] = certKey
+  }
+
+  const usingEnvPassword = !!process.env.PASSWORD
+  if (process.env.PASSWORD) {
+    args.password = process.env.PASSWORD
+  }
+
+  // Ensure it's not readable by child processes.
+  delete process.env.PASSWORD
+
+  // Filter duplicate proxy domains and remove any leading `*.`.
+  const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
+  args["proxy-domain"] = Array.from(proxyDomains)
+
+  return {
+    ...args,
+    usingEnvPassword,
+  } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }
 
 async function defaultConfigFile(): Promise<string> {
@@ -397,12 +467,16 @@ cert: false
 `
 }
 
+interface ConfigArgs extends Args {
+  config: string
+}
+
 /**
  * Reads the code-server yaml config file and returns it as Args.
  *
  * @param configPath Read the config from configPath instead of $CODE_SERVER_CONFIG or the default.
  */
-export async function readConfigFile(configPath?: string): Promise<Args> {
+export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   if (!configPath) {
     configPath = process.env.CODE_SERVER_CONFIG
     if (!configPath) {
@@ -440,12 +514,15 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
   }
 }
 
-function parseBindAddr(bindAddr: string): [string, number] {
+function parseBindAddr(bindAddr: string): Addr {
   const u = new URL(`http://${bindAddr}`)
-  // With the http scheme 80 will be dropped so assume it's 80 if missing. This
-  // means --bind-addr <addr> without a port will default to 80 as well and not
-  // the code-server default.
-  return [u.hostname, u.port ? parseInt(u.port, 10) : 80]
+  return {
+    host: u.hostname,
+    // With the http scheme 80 will be dropped so assume it's 80 if missing.
+    // This means --bind-addr <addr> without a port will default to 80 as well
+    // and not the code-server default.
+    port: u.port ? parseInt(u.port, 10) : 80,
+  }
 }
 
 interface Addr {
@@ -456,7 +533,7 @@ interface Addr {
 function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   addr = { ...addr }
   if (args["bind-addr"]) {
-    ;[addr.host, addr.port] = parseBindAddr(args["bind-addr"])
+    addr = parseBindAddr(args["bind-addr"])
   }
   if (args.host) {
     addr.host = args.host
@@ -471,16 +548,17 @@ function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   return addr
 }
 
-export function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string, number] {
+function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
   let addr: Addr = {
     host: "localhost",
     port: 8080,
   }
 
-  addr = bindAddrFromArgs(addr, configArgs)
-  addr = bindAddrFromArgs(addr, cliArgs)
+  for (const args of argsConfig) {
+    addr = bindAddrFromArgs(addr, args)
+  }
 
-  return [addr.host, addr.port]
+  return addr
 }
 
 async function copyOldMacOSDataDir(): Promise<void> {

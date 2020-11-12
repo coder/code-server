@@ -1,7 +1,7 @@
 import { logger } from "@coder/logger"
+import { Query } from "express-serve-static-core"
 import * as fs from "fs-extra"
 import * as path from "path"
-import { Route } from "./http"
 import { paths } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
@@ -58,7 +58,7 @@ export interface CoderSettings extends UpdateSettings {
     url: string
     workspace: boolean
   }
-  query: Route["query"]
+  query: Query
 }
 
 /**
