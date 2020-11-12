@@ -210,6 +210,18 @@ index da4fa3e9d0443d679dfbab1000b434af2ae01afd..50f3e1144f8057883dea8b91ec2f7073
  }
  
  function processLib() {
+diff --git a/extensions/typescript-language-features/src/utils/platform.ts b/extensions/typescript-language-features/src/utils/platform.ts
+index 2d754bf4054713f53beed030f9211b33532c1b4b..708b7e40a662e4ca93420992bf7a5af0c62ea5b2 100644
+--- a/extensions/typescript-language-features/src/utils/platform.ts
++++ b/extensions/typescript-language-features/src/utils/platform.ts
+@@ -6,6 +6,6 @@
+ import * as vscode from 'vscode';
+ 
+ export function isWeb(): boolean {
+-	// @ts-expect-error
++	// NOTE@coder: Remove unused ts-expect-error directive which causes tsc to error.
+ 	return typeof navigator !== 'undefined' && vscode.env.uiKind === vscode.UIKind.Web;
+ }
 diff --git a/package.json b/package.json
 index 770b44b0c1ff53d903b7680ede27715376df00f2..b27ab71647a3e7c4b6076ba4fdb8fde20fa73bb0 100644
 --- a/package.json
