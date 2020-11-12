@@ -1,5 +1,6 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
+import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
@@ -54,8 +55,9 @@ router.all("*", (req, res, next) => {
         return next()
       }
       // Redirect all other pages to the login.
+      const to = normalize(`${req.baseUrl}${req.path}`)
       return redirect(req, res, "login", {
-        to: req.path !== "/" ? req.path : undefined,
+        to: to !== "/" ? to : undefined,
       })
     }
 
