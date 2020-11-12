@@ -122,9 +122,9 @@ export class VscodeProvider {
     proc: cp.ChildProcess,
     fn: (message: ipc.VscodeMessage) => message is T,
   ): Promise<T> {
-    return new Promise((resolve, _reject) => {
+    return new Promise((resolve, reject) => {
       const cleanup = () => {
-        proc.off("error", reject)
+        proc.off("error", onError)
         proc.off("exit", onExit)
         proc.off("message", onMessage)
         clearTimeout(timeout)
@@ -132,15 +132,16 @@ export class VscodeProvider {
 
       const timeout = setTimeout(() => {
         cleanup()
-        _reject(new Error("timed out"))
+        reject(new Error("timed out"))
       }, this.timeoutInterval)
 
-      const reject = (error: Error) => {
+      const onError = (error: Error) => {
         cleanup()
-        _reject(error)
+        reject(error)
       }
 
       const onExit = (code: number | null) => {
+        cleanup()
         reject(new Error(`VS Code exited unexpectedly with code ${code}`))
       }
 
@@ -153,7 +154,7 @@ export class VscodeProvider {
       }
 
       proc.on("message", onMessage)
-      proc.on("error", reject)
+      proc.on("error", onError)
       proc.on("exit", onExit)
     })
   }
