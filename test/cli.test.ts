@@ -252,9 +252,9 @@ describe("parser", () => {
       _: [],
       ...defaults,
       cert: {
-        value: path.join(tmpdir, "self-signed.cert"),
+        value: path.join(paths.data, "localhost.crt"),
       },
-      "cert-key": path.join(tmpdir, "self-signed.key"),
+      "cert-key": path.join(paths.data, "localhost.key"),
     })
   })
 
