@@ -126,6 +126,7 @@ export class VscodeProvider {
       const cleanup = () => {
         proc.off("error", reject)
         proc.off("exit", onExit)
+        proc.off("message", onMessage)
         clearTimeout(timeout)
       }
 
@@ -143,16 +144,17 @@ export class VscodeProvider {
         reject(new Error(`VS Code exited unexpectedly with code ${code}`))
       }
 
-      proc.on("message", (message: ipc.VscodeMessage) => {
+      const onMessage = (message: ipc.VscodeMessage) => {
         logger.trace("got message from vscode", field("message", message))
         if (fn(message)) {
           cleanup()
           resolve(message)
         }
-      })
+      }
 
-      proc.once("error", reject)
-      proc.once("exit", onExit)
+      proc.on("message", onMessage)
+      proc.on("error", reject)
+      proc.on("exit", onExit)
     })
   }
 
