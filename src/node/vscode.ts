@@ -69,7 +69,7 @@ export class VscodeProvider {
       vscode,
     )
 
-    const message = await this.onMessage<ipc.OptionsMessage>(vscode, (message): message is ipc.OptionsMessage => {
+    const message = await this.onMessage(vscode, (message): message is ipc.OptionsMessage => {
       // There can be parallel initializations so wait for the right ID.
       return message.type === "options" && message.id === id
     })
@@ -104,7 +104,7 @@ export class VscodeProvider {
       dispose()
     })
 
-    this._vscode = this.onMessage<ipc.ReadyMessage>(vscode, (message): message is ipc.ReadyMessage => {
+    this._vscode = this.onMessage(vscode, (message): message is ipc.ReadyMessage => {
       return message.type === "ready"
     }).then(() => vscode)
 
