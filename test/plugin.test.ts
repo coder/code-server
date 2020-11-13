@@ -5,6 +5,7 @@ import { describe } from "mocha"
 import * as path from "path"
 import * as supertest from "supertest"
 import * as plugin from "../src/node/plugin"
+import * as overlay from "../src/node/overlay"
 import * as apps from "../src/node/routes/apps"
 const fsp = fs.promises
 
@@ -57,7 +58,10 @@ describe("plugin", () => {
     let indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
       encoding: "utf8",
     })
-    indexHTML = plugin.injectOverlayHTML(indexHTML)
+    indexHTML = overlay.injectOverlayHTML({
+      originalUrl: "/",
+      query: {},
+    } as express.Request, indexHTML)
     await agent.get("/test-plugin/test-app").expect(200, indexHTML)
   })
 })
