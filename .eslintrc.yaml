@@ -19,6 +19,9 @@ extends:
   - prettier/@typescript-eslint # Remove conflicts again.
 
 rules:
+  # Sometimes you need to add args to implement a function signature even
+  # if they are unused.
+  "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }]
   # For overloads.
   no-dupe-class-members: off
   "@typescript-eslint/no-use-before-define": off
