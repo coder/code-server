@@ -4,8 +4,10 @@ import * as fs from "fs"
 import { describe } from "mocha"
 import * as path from "path"
 import * as supertest from "supertest"
-import * as plugin from "../src/node/plugin"
 import * as overlay from "../src/node/overlay"
+import * as plugin from "../src/node/plugin"
+// Required for correct express.Request types.
+import "../src/node/routes"
 import * as apps from "../src/node/routes/apps"
 const fsp = fs.promises
 
@@ -58,10 +60,14 @@ describe("plugin", () => {
     let indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
       encoding: "utf8",
     })
-    indexHTML = overlay.injectOverlayHTML({
-      originalUrl: "/",
-      query: {},
-    } as express.Request, indexHTML)
-    await agent.get("/test-plugin/test-app").expect(200, indexHTML)
+    const req = agent.get("/test-plugin/test-app")
+    indexHTML = overlay.injectString(
+      {
+        originalUrl: "/test-plugin/test-app",
+        query: {},
+      } as express.Request,
+      indexHTML,
+    )
+    await req.expect(200, indexHTML)
   })
 })

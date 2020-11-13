@@ -5,8 +5,8 @@ import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
 import { version } from "./constants"
-import * as util from "./util"
 import * as overlay from "./overlay"
+import * as util from "./util"
 const fsp = fs.promises
 
 interface Plugin extends pluginapi.Plugin {
@@ -96,7 +96,7 @@ export class PluginAPI {
       const pr = p.router()
       r.use(`${p.routerPath}`, (req, res, next) => {
         // All HTML responses need the overlay javascript injected.
-        overlay.tryInjectOverlay(req, res)
+        overlay.inject(req, res)
         pr(req, res, next)
       })
     }
