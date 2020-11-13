@@ -19,5 +19,6 @@
     "typeRoots": ["./node_modules/@types", "./typings"],
     "downlevelIteration": true
   },
-  "include": ["./src/**/*.ts"]
+  "include": ["./src/**/*.ts"],
+  "exclude": ["./src/browser"]
 }
