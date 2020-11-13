@@ -17,7 +17,7 @@ export const plugin: pluginapi.Plugin = {
     r.get("/test-app", (req, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/index.html"))
     })
-    r.get("/goland/icon.svg", (req, res) => {
+    r.get("/test-app/icon.svg", (req, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
     return r

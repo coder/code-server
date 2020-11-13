@@ -175,6 +175,7 @@ class Watcher {
   private createBundler(out = "dist"): Bundler {
     return new Bundler(
       [
+        path.join(this.rootPath, "src/browser/overlay.ts"),
         path.join(this.rootPath, "src/browser/register.ts"),
         path.join(this.rootPath, "src/browser/serviceWorker.ts"),
         path.join(this.rootPath, "src/browser/pages/login.ts"),

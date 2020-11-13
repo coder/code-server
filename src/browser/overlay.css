@@ -1,0 +1,12 @@
+#cs-overlay {
+  min-height: 50px;
+  background-color: red;
+}
+
+#cs-overlay.-inactive {
+  background-color: black;
+}
+
+#cs-overlay > button {
+
+}

@@ -5345,6 +5345,11 @@ os-tmpdir@^1.0.1:
   resolved "https://registry.yarnpkg.com/os-tmpdir/-/os-tmpdir-1.0.2.tgz#bbe67406c79aa85c5cfec766fe5734555dfa1274"
   integrity sha1-u+Z0BseaqFxc/sdm/lc0VV36EnQ=
 
+overlay.css@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/overlay.css/-/overlay.css-0.0.2.tgz#8759ad6b9d7622f38844a32c5a2bb2c3bc848f24"
+  integrity sha512-gfblSCv//Oi2Pu8Kx3Xp33rOb8AkqdU+j7vM8zW7gtKtxLlwiRwq9rKw41yWCP0RITx+M/SOr4DI8ERCz17zPg==
+
 p-limit@^1.1.0:
   version "1.3.0"
   resolved "https://registry.yarnpkg.com/p-limit/-/p-limit-1.3.0.tgz#b86bd5f0c25690911c7590fcbfc2010d54b3ccb8"

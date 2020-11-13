@@ -61,6 +61,7 @@ export function injectString(req: express.Request, html: string): string {
     html.replace(
       "</head>",
       `  <script defer data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/overlay.js"></script>
+    <link href="{{CS_STATIC_BASE}}/dist/overlay.css" rel="stylesheet" />
   </head>`,
     ),
   )

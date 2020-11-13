@@ -81,6 +81,7 @@
     "httpolyglot": "^0.1.2",
     "js-yaml": "^3.13.1",
     "limiter": "^1.1.5",
+    "overlay.css": "^0.0.2",
     "pem": "^1.14.2",
     "qs": "6.7.0",
     "rotating-file-stream": "^2.1.1",
