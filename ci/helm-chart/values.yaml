@@ -112,7 +112,7 @@ persistence:
   ##
   # storageClass: "-"
   accessMode: ReadWriteOnce
-  size: 1Gi
+  size: 10Gi
   annotations: {}
   # existingClaim: ""
   # hostPath: /data

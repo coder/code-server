@@ -10,8 +10,9 @@ This chart is community maintained by [@Matthew-Beckett](https://github.com/Matt
 ## TL;DR;
 
 ```console
-$ git clone https://github.com/cdr/code-server.git
-$ helm install code-server/charts/code-server
+$ git clone https://github.com/cdr/code-server
+$ cd code-server
+$ helm upgrade --install code-server ci/helm-chart
 ```
 
 ## Introduction
@@ -26,10 +27,12 @@ package manager.
 
 ## Installing the Chart
 
-To install the chart with the release name `my-release`:
+To install the chart with the release name `code-server`:
 
 ```console
-$ helm install --name my-release charts/code-server
+$ git clone https://github.com/cdr/code-server
+$ cd code-server
+$ helm upgrade --install code-server ci/helm-chart
 ```
 
 The command deploys code-server on the Kubernetes cluster in the default
@@ -40,10 +43,10 @@ that can be configured during installation.
 
 ## Uninstalling the Chart
 
-To uninstall/delete the `my-release` deployment:
+To uninstall/delete the `code-server` deployment:
 
 ```console
-$ helm delete my-release
+$ helm delete code-server
 ```
 
 The command removes all the Kubernetes components associated with the chart and
@@ -97,9 +100,9 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 install`. For example,
 
 ```console
-$ helm install --name my-release \
-  --set persistence.enabled=false \
-    deployment/chart
+$ helm install code-server \
+    ci/helm-chart \
+    --set persistence.enabled=false
 ```
 
 The above command sets the the persistence storage to false.
@@ -108,7 +111,7 @@ Alternatively, a YAML file that specifies the values for the above parameters
 can be provided while installing the chart. For example,
 
 ```console
-$ helm install --name my-release -f values.yaml deployment/chart
+$ helm install code-server ci/helm-chart -f values.yaml
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
