@@ -137,7 +137,7 @@ export const register = async (
     // page (as opposed to an xhr request). Don't use `req.accepts()` since
     // *every* request that I've seen (in Firefox and Chromium at least)
     // includes `*/*` making it always truthy. Even for css/javascript.
-   if (req.headers.accept && req.headers.accept.includes("text/html")) {
+    if (req.headers.accept && req.headers.accept.includes("text/html")) {
       const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
       res.set("Content-Type", getMediaMime(resourcePath))
       const content = await fs.readFile(resourcePath, "utf8")
