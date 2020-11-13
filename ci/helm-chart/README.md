@@ -11,7 +11,7 @@ This chart is community maintained by [@Matthew-Beckett](https://github.com/Matt
 
 ```console
 $ git clone https://github.com/cdr/code-server.git
-$ helm install code-server/charts/code-server
+$ helm install code-server charts/code-server
 ```
 
 ## Introduction
