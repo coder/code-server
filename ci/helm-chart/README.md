@@ -100,7 +100,7 @@ Specify each parameter using the `--set key=value[,key=value]` argument to `helm
 install`. For example,
 
 ```console
-$ helm install code-server \
+$ helm upgrade --install code-server \
     ci/helm-chart \
     --set persistence.enabled=false
 ```
@@ -111,7 +111,7 @@ Alternatively, a YAML file that specifies the values for the above parameters
 can be provided while installing the chart. For example,
 
 ```console
-$ helm install code-server ci/helm-chart -f values.yaml
+$ helm upgrade --install code-server ci/helm-chart -f values.yaml
 ```
 
 > **Tip**: You can use the default [values.yaml](values.yaml)
