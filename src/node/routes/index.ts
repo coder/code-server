@@ -125,7 +125,7 @@ export const register = async (
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  const errorHandler: express.ErrorRequestHandler = async (err, req, res) => {
+  const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     if (err.code === "ENOENT" || err.code === "EISDIR") {
       err.status = HttpCode.NotFound
     }
@@ -133,12 +133,11 @@ export const register = async (
     const status = err.status ?? err.statusCode ?? 500
     res.status(status)
 
-    if (req.accepts("application/json")) {
-      res.json({
-        error: err.message,
-        ...(err.details || {}),
-      })
-    } else {
+    // Assume anything that explicitly accepts text/html is a user browsing a
+    // page (as opposed to an xhr request). Don't use `req.accepts()` since
+    // *every* request that I've seen (in Firefox and Chromium at least)
+    // includes `*/*` making it always truthy. Even for css/javascript.
+    if (req.headers.accept && req.headers.accept.includes("text/html")) {
       const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
       res.set("Content-Type", getMediaMime(resourcePath))
       const content = await fs.readFile(resourcePath, "utf8")
@@ -148,6 +147,11 @@ export const register = async (
           .replace(/{{ERROR_HEADER}}/g, status)
           .replace(/{{ERROR_BODY}}/g, err.message),
       )
+    } else {
+      res.json({
+        error: err.message,
+        ...(err.details || {}),
+      })
     }
   }
 

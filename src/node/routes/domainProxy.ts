@@ -48,8 +48,8 @@ router.all("*", (req, res, next) => {
     // Assume anything that explicitly accepts text/html is a user browsing a
     // page (as opposed to an xhr request). Don't use `req.accepts()` since
     // *every* request that I've seen (in Firefox and Chromium at least)
-    // includes `*/*` making it always truthy.
-    if (typeof req.headers.accepts === "string" && req.headers.accepts.split(",").includes("text/html")) {
+    // includes `*/*` making it always truthy. Even for css/javascript.
+    if (req.headers.accept && req.headers.accept.includes("text/html")) {
       // Let the login through.
       if (/\/login\/?/.test(req.path)) {
         return next()
