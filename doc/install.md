@@ -12,6 +12,7 @@
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
+- [helm](#helm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -192,3 +193,7 @@ Our official image supports `amd64` and `arm64`.
 For `arm32` support there is a popular community maintained alternative:
 
 https://hub.docker.com/r/linuxserver/code-server
+
+## helm
+
+See [the chart](../ci/helm-chart).

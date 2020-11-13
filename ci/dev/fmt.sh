@@ -19,7 +19,9 @@ main() {
     "*.yaml"
     "*.yml"
   )
-  prettier --write --loglevel=warn $(git ls-files "${prettierExts[@]}")
+  prettier --write --loglevel=warn $(
+    git ls-files "${prettierExts[@]}" | grep -v 'helm-chart'
+  )
 
   doctoc --title '# FAQ' doc/FAQ.md > /dev/null
   doctoc --title '# Setup Guide' doc/guide.md > /dev/null
