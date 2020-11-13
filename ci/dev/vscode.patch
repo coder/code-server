@@ -1466,10 +1466,10 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..609c4d1cb43f52f92906b901c14c790f4536468f
+index 0000000000000000000000000000000000000000..6fb1ada50628d3826a493c6e1b58f27a8be428bb
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
-@@ -0,0 +1,360 @@
+@@ -0,0 +1,437 @@
 +import { Server } from '@coder/node-browser';
 +import * as path from 'path';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -1494,6 +1494,8 @@ index 0000000000000000000000000000000000000000..609c4d1cb43f52f92906b901c14c790f
 +import { getTranslations } from 'vs/server/node/nls';
 +import { getUriTransformer } from 'vs/server/node/util';
 +import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
++import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
++import { ITerminalLaunchError } from 'vs/workbench/contrib/terminal/common/terminal';
 +import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 +
 +/**
@@ -1828,6 +1830,81 @@ index 0000000000000000000000000000000000000000..609c4d1cb43f52f92906b901c14c790f
 +
 +	public send(message: string): void {
 +		this._$onMessage.fire(message);
++	}
++}
++
++export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
++	public listen(_: RemoteAgentConnectionContext, event: string, args?: any): Event<any> {
++		switch (event) {
++			case '$onTerminalProcessEvent': return this.onTerminalProcessEvent(args);
++		}
++
++		throw new Error(`Invalid listen '${event}'`);
++	}
++
++	private onTerminalProcessEvent(args: terminal.IOnTerminalProcessEventArguments): Event<terminal.IRemoteTerminalProcessEvent> {
++		throw new Error('not implemented');
++	}
++
++	public call(_: unknown, command: string, args?: any): Promise<any> {
++		switch (command) {
++			case '$createTerminalProcess': return this.createTerminalProcess(args);
++			case '$startTerminalProcess': return this.startTerminalProcess(args);
++			case '$sendInputToTerminalProcess': return this.sendInputToTerminalProcess(args);
++			case '$shutdownTerminalProcess': return this.shutdownTerminalProcess(args);
++			case '$resizeTerminalProcess': return this.resizeTerminalProcess(args);
++			case '$getTerminalInitialCwd': return this.getTerminalInitialCwd(args);
++			case '$getTerminalCwd': return this.getTerminalCwd(args);
++			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(args);
++			case '$orphanQuestionReply': return this.orphanQuestionReply(args[0]);
++			case '$listTerminals': return this.listTerminals(args[0]);
++		}
++
++		throw new Error(`Invalid call '${command}'`);
++	}
++
++	public dispose(): void {
++		// Nothing yet.
++	}
++
++	private async createTerminalProcess(args: terminal.ICreateTerminalProcessArguments): Promise<terminal.ICreateTerminalProcessResult> {
++		throw new Error(`not implemented`);
++	}
++
++	private async startTerminalProcess(args: terminal.IStartTerminalProcessArguments): Promise<ITerminalLaunchError | void> {
++		throw new Error('not implemented');
++	}
++
++	private async sendInputToTerminalProcess(args: terminal.ISendInputToTerminalProcessArguments): Promise<void> {
++		throw new Error('not implemented');
++	}
++
++	private async shutdownTerminalProcess(args: terminal.IShutdownTerminalProcessArguments): Promise<void> {
++		throw new Error('not implemented');
++	}
++
++	private async resizeTerminalProcess(args: terminal.IResizeTerminalProcessArguments): Promise<void> {
++		throw new Error('not implemented');
++	}
++
++	private async getTerminalInitialCwd(args: terminal.IGetTerminalInitialCwdArguments): Promise<string> {
++		throw new Error('not implemented');
++	}
++
++	private async getTerminalCwd(args: terminal.IGetTerminalCwdArguments): Promise<string> {
++		throw new Error('not implemented');
++	}
++
++	private async sendCommandResultToTerminalProcess(args: terminal.ISendCommandResultToTerminalProcessArguments): Promise<void> {
++		throw new Error('not implemented');
++	}
++
++	private async orphanQuestionReply(args: terminal.IOrphanQuestionReplyArgs): Promise<void> {
++		throw new Error('not implemented');
++	}
++
++	private async listTerminals(args: terminal.IListTerminalsArgs): Promise<terminal.IRemoteTerminalDescriptionDto[]> {
++		throw new Error('not implemented');
 +	}
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
@@ -2585,10 +2662,10 @@ index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..8424965d9c79d34e5513e4cfe543718521ad82c7
+index 0000000000000000000000000000000000000000..ebd3fbdf7554c63d23ad6bd0e51e0a35a94509dd
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,300 @@
+@@ -0,0 +1,302 @@
 +import { field } from '@coder/logger';
 +import * as fs from 'fs';
 +import * as net from 'net';
@@ -2639,13 +2716,14 @@ index 0000000000000000000000000000000000000000..8424965d9c79d34e5513e4cfe5437185
 +import { INodeProxyService, NodeProxyChannel } from 'vs/server/common/nodeProxy';
 +import { TelemetryChannel } from 'vs/server/common/telemetry';
 +import { Query, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
-+import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService } from 'vs/server/node/channel';
++import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService, TerminalProviderChannel } from 'vs/server/node/channel';
 +import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/node/connection';
 +import { TelemetryClient } from 'vs/server/node/insights';
 +import { logger } from 'vs/server/node/logger';
 +import { getLocaleFromConfig, getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
 +import { getUriTransformer } from 'vs/server/node/util';
++import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
 +import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/workbench/services/remote/common/remoteAgentFileSystemChannel";
 +import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
 +
@@ -2877,6 +2955,7 @@ index 0000000000000000000000000000000000000000..8424965d9c79d34e5513e4cfe5437185
 +				this.ipc.registerChannel('nodeProxy', new NodeProxyChannel(accessor.get(INodeProxyService)));
 +				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(accessor.get(ILocalizationsService)));
 +				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
++				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel());
 +				resolve(new ErrorTelemetry(telemetryService));
 +			});
 +		});
