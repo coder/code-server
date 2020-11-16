@@ -43,7 +43,7 @@ ENV PATH=/usr/local/go/bin:$GOPATH/bin:$PATH
 # Install Go dependencies
 ENV GO111MODULE=on
 RUN go get mvdan.cc/sh/v3/cmd/shfmt
-RUN go get github.com/goreleaser/nfpm/cmd/nfpm
+RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v1.9.0
 
 RUN VERSION="$(curl -fsSL https://storage.googleapis.com/kubernetes-release/release/stable.txt)" && \
     curl -fsSL "https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl" > /usr/local/bin/kubectl \
