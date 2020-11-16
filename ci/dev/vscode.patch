@@ -746,53 +746,15 @@ index fdd5890c69f72025b94913380f0d226226e8c8fb..e084236526b38c1144d47b8b3000b367
  			(err: any, socket: ISocket | undefined) => {
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
-@@ -411,16 +411,23 @@ abstract class PersistentConnection extends Disposable {
- 		}
- 		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
+@@ -413,6 +413,8 @@ abstract class PersistentConnection extends Disposable {
  		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
--		this._onDidStateChange.fire(new ConnectionLostEvent());
+ 		this._onDidStateChange.fire(new ConnectionLostEvent());
  		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
-+		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
++		// const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
 +		
  		const disconnectStartTime = Date.now();
  		let attempt = -1;
  		do {
- 			attempt++;
-+			if (attempt == SHOW_POPUP_ON_ATTEMPT){
-+				this._onDidStateChange.fire(new ConnectionLostEvent());
-+			}
-+
- 			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
- 			try {
- 				const sleepPromise = sleep(waitTime);
--				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
-+					this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
-+				}
- 
- 				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
- 				try {
-@@ -433,14 +440,17 @@ abstract class PersistentConnection extends Disposable {
- 				}
- 
- 				// connection was lost, let's try to re-establish it
--				this._onDidStateChange.fire(new ReconnectionRunningEvent());
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT){
-+					this._onDidStateChange.fire(new ReconnectionRunningEvent());
-+				}
- 				this._options.logService.info(`${logPrefix} resolving connection...`);
- 				const simpleOptions = await resolveConnectionOptions(this._options, this.reconnectionToken, this.protocol);
- 				this._options.logService.info(`${logPrefix} connecting to ${simpleOptions.host}:${simpleOptions.port}...`);
- 				await connectWithTimeLimit(simpleOptions.logService, this._reconnect(simpleOptions), RECONNECT_TIMEOUT);
- 				this._options.logService.info(`${logPrefix} reconnected!`);
--				this._onDidStateChange.fire(new ConnectionGainEvent());
--
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
-+					this._onDidStateChange.fire(new ConnectionGainEvent());
-+				}
- 				break;
- 			} catch (err) {
- 				if (err.code === 'VSCODE_CONNECTION_ERROR') {
 diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
 index ab3fd347b69f8a3d9b96e706cd87c911b8ffed6b..9d351037b577f9f1edfd18ae9b3c48a211f4467f 100644
 --- a/src/vs/platform/storage/browser/storageService.ts
@@ -3922,6 +3884,25 @@ index 94e7e7a4bac154c45078a1b5034e50634a7a43af..8164200dcef1efbc65b50eef9c270af3
  				this._filenameKey.set(value ? basename(value) : null);
  				this._dirnameKey.set(value ? dirname(value).fsPath : null);
  				this._pathKey.set(value ? value.fsPath : null);
+diff --git a/src/vs/workbench/contrib/remote/browser/remote.ts b/src/vs/workbench/contrib/remote/browser/remote.ts
+index 98573a206f14928fc3fdf18fe927cb75034e4ad1..2f6a2fd6733e286024d20530773e3fbc26ffe16c 100644
+--- a/src/vs/workbench/contrib/remote/browser/remote.ts
++++ b/src/vs/workbench/contrib/remote/browser/remote.ts
+@@ -795,10 +795,10 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 				}
+ 				switch (e.type) {
+ 					case PersistentConnectionEventType.ConnectionLost:
+-						if (!visibleProgress) {
+-							visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
+-						}
+-						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
++						// if (!visibleProgress) {
++						// 	visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
++						// }
++						// visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
+ 						break;
+ 					case PersistentConnectionEventType.ReconnectionWait:
+ 						reconnectWaitEvent = e;
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
 index 74f6922e98b4bb6a7fb100f5aac015afe9fc171b..3243a97c2d378013d96ffbe87e9df6dd4a66776d 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
