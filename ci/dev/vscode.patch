@@ -746,15 +746,78 @@ index fdd5890c69f72025b94913380f0d226226e8c8fb..e084236526b38c1144d47b8b3000b367
  			(err: any, socket: ISocket | undefined) => {
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
-@@ -413,6 +413,8 @@ abstract class PersistentConnection extends Disposable {
+@@ -331,12 +331,16 @@ export const enum PersistentConnectionEventType {
+ }
+ export class ConnectionLostEvent {
+ 	public readonly type = PersistentConnectionEventType.ConnectionLost;
++	constructor(
++		public readonly suppressPopup?: boolean
++	) { }
+ }
+ export class ReconnectionWaitEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionWait;
+ 	constructor(
+ 		public readonly durationSeconds: number,
+-		private readonly cancellableTimer: CancelablePromise<void>
++		private readonly cancellableTimer: CancelablePromise<void>,
++		public readonly suppressPopup?: boolean
+ 	) { }
+ 
+ 	public skipWait(): void {
+@@ -345,12 +349,21 @@ export class ReconnectionWaitEvent {
+ }
+ export class ReconnectionRunningEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionRunning;
++	constructor(
++		public readonly suppressPopup?: boolean
++	) { }
+ }
+ export class ConnectionGainEvent {
+ 	public readonly type = PersistentConnectionEventType.ConnectionGain;
++	constructor(
++		public readonly suppressPopup?: boolean
++	) { }
+ }
+ export class ReconnectionPermanentFailureEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionPermanentFailure;
++	constructor(
++		public readonly suppressPopup?: boolean | undefined
++	) { }
+ }
+ export type PersistenConnectionEvent = ConnectionGainEvent | ConnectionLostEvent | ReconnectionWaitEvent | ReconnectionRunningEvent | ReconnectionPermanentFailureEvent;
+ 
+@@ -411,16 +424,20 @@ abstract class PersistentConnection extends Disposable {
+ 		}
+ 		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
  		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
- 		this._onDidStateChange.fire(new ConnectionLostEvent());
+-		this._onDidStateChange.fire(new ConnectionLostEvent());
++		let suppressPopup = true;
++		this._onDidStateChange.fire(new ConnectionLostEvent(suppressPopup));
  		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
-+		// const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
++		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
 +		
  		const disconnectStartTime = Date.now();
  		let attempt = -1;
  		do {
+ 			attempt++;
++			suppressPopup = (attempt < SHOW_POPUP_ON_ATTEMPT) ? true : false
+ 			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
+ 			try {
+ 				const sleepPromise = sleep(waitTime);
+-				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
++				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise, suppressPopup));
+ 
+ 				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
+ 				try {
+@@ -433,7 +450,7 @@ abstract class PersistentConnection extends Disposable {
+ 				}
+ 
+ 				// connection was lost, let's try to re-establish it
+-				this._onDidStateChange.fire(new ReconnectionRunningEvent());
++				this._onDidStateChange.fire(new ReconnectionRunningEvent(suppressPopup));
+ 				this._options.logService.info(`${logPrefix} resolving connection...`);
+ 				const simpleOptions = await resolveConnectionOptions(this._options, this.reconnectionToken, this.protocol);
+ 				this._options.logService.info(`${logPrefix} connecting to ${simpleOptions.host}:${simpleOptions.port}...`);
 diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
 index ab3fd347b69f8a3d9b96e706cd87c911b8ffed6b..9d351037b577f9f1edfd18ae9b3c48a211f4467f 100644
 --- a/src/vs/platform/storage/browser/storageService.ts
@@ -3885,24 +3948,84 @@ index 94e7e7a4bac154c45078a1b5034e50634a7a43af..8164200dcef1efbc65b50eef9c270af3
  				this._dirnameKey.set(value ? dirname(value).fsPath : null);
  				this._pathKey.set(value ? value.fsPath : null);
 diff --git a/src/vs/workbench/contrib/remote/browser/remote.ts b/src/vs/workbench/contrib/remote/browser/remote.ts
-index 98573a206f14928fc3fdf18fe927cb75034e4ad1..2f6a2fd6733e286024d20530773e3fbc26ffe16c 100644
+index 98573a206f14928fc3fdf18fe927cb75034e4ad1..3ffe27b816e2d0a630985a24dd1af910877c2295 100644
 --- a/src/vs/workbench/contrib/remote/browser/remote.ts
 +++ b/src/vs/workbench/contrib/remote/browser/remote.ts
-@@ -795,10 +795,10 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
- 				}
+@@ -635,7 +635,7 @@ class VisibleProgress {
+ 		return this._lastReport;
+ 	}
+ 
+-	constructor(progressService: IProgressService, location: ProgressLocation, initialReport: string | null, buttons: string[], onDidCancel: (choice: number | undefined, lastReport: string | null) => void) {
++	constructor(progressService: IProgressService, location: ProgressLocation, initialReport: string | null, buttons: string[], onDidCancel: (choice: number | undefined, lastReport: string | null) => void, suppressPopup: Boolean | undefined) {
+ 		this._isDisposed = false;
+ 		this._lastReport = initialReport;
+ 		this._currentProgressPromiseResolve = null;
+@@ -644,8 +644,10 @@ class VisibleProgress {
+ 
+ 		const promise = new Promise<void>((resolve) => this._currentProgressPromiseResolve = resolve);
+ 
++		const options = suppressPopup ? { location: location, buttons: buttons, silent: suppressPopup } : { location: location, buttons: buttons }
++
+ 		progressService.withProgress(
+-			{ location: location, buttons: buttons },
++			options,
+ 			(progress) => { if (!this._isDisposed) { this._currentProgress = progress; } return promise; },
+ 			(choice) => onDidCancel(choice, this._lastReport)
+ 		);
+@@ -736,7 +738,7 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 			let reconnectWaitEvent: ReconnectionWaitEvent | null = null;
+ 			let disposableListener: IDisposable | null = null;
+ 
+-			function showProgress(location: ProgressLocation.Dialog | ProgressLocation.Notification, buttons: { label: string, callback: () => void }[], initialReport: string | null = null): VisibleProgress {
++			function showProgress(location: ProgressLocation.Dialog | ProgressLocation.Notification, buttons: { label: string, callback: () => void }[], initialReport: string | null = null, suppressPopup: Boolean | undefined): VisibleProgress {
+ 				if (visibleProgress) {
+ 					visibleProgress.dispose();
+ 					visibleProgress = null;
+@@ -752,12 +754,12 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 							buttons[choice].callback();
+ 						} else {
+ 							if (location === ProgressLocation.Dialog) {
+-								visibleProgress = showProgress(ProgressLocation.Notification, buttons, lastReport);
++								visibleProgress = showProgress(ProgressLocation.Notification, buttons, lastReport, suppressPopup);
+ 							} else {
+ 								hideProgress();
+ 							}
+ 						}
+-					}
++					}, suppressPopup
+ 				);
+ 			}
+ 
+@@ -796,17 +798,17 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
  				switch (e.type) {
  					case PersistentConnectionEventType.ConnectionLost:
--						if (!visibleProgress) {
+ 						if (!visibleProgress) {
 -							visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
--						}
--						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
-+						// if (!visibleProgress) {
-+						// 	visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
-+						// }
-+						// visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
++							visibleProgress = showProgress(ProgressLocation.Notification, [reconnectButton, reloadButton], null, e.suppressPopup);
+ 						}
+ 						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
  						break;
  					case PersistentConnectionEventType.ReconnectionWait:
  						reconnectWaitEvent = e;
+-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reconnectButton, reloadButton]);
++						visibleProgress = showProgress(lastLocation || ProgressLocation.Dialog, [reconnectButton, reloadButton], null, e.suppressPopup);
+ 						visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
+ 						break;
+ 					case PersistentConnectionEventType.ReconnectionRunning:
+-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton]);
++						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton], null, e.suppressPopup);
+ 						visibleProgress.report(nls.localize('reconnectionRunning', "Attempting to reconnect..."));
+ 
+ 						// Register to listen for quick input is opened
+@@ -815,7 +817,7 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 							if (contextKeyChangeEvent.affectsSome(reconnectInteraction)) {
+ 								// Need to move from dialog if being shown and user needs to type in a prompt
+ 								if (lastLocation === ProgressLocation.Dialog && visibleProgress !== null) {
+-									visibleProgress = showProgress(ProgressLocation.Notification, [reloadButton], visibleProgress.lastReport);
++									visibleProgress = showProgress(ProgressLocation.Notification, [reloadButton], visibleProgress.lastReport, e.suppressPopup);
+ 								}
+ 							}
+ 						});
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
 index 74f6922e98b4bb6a7fb100f5aac015afe9fc171b..3243a97c2d378013d96ffbe87e9df6dd4a66776d 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
