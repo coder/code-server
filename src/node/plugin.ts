@@ -185,7 +185,7 @@ export class PluginAPI {
     if (!packageJSON.engines || !packageJSON.engines["code-server"]) {
       throw new Error(`plugin package.json missing code-server range like:
   "engines": {
-    "code-server": "^3.6.0"
+    "code-server": "^3.7.0"
    }
 `)
     }
