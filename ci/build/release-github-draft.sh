@@ -15,7 +15,13 @@ v$VERSION
 
 VS Code v$(vscode_version)
 
-- Summarize changes here with references to issues
+# New Features
+  - ⭐ Summarize new features here with references to issues
+
+## Bug Fixes
+  - ⭐ Summarize bug fixes here with references to issues
+
+Cheers! 🍻
 EOF
 }
 
