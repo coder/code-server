@@ -35,7 +35,8 @@ We also have an in-depth [setup and configuration](./doc/guide.md) guide.
 
 ### Alpha Program 🐣
 
-We're working on a cloud platform that makes deploying and managing code-server easier. Consider [updating to 3.7.0](https://github.com/cdr/code-server/releases/tag/v3.7.0) and running code-server with our experimental flag `--link` if you don't want to worry about
+We're working on a cloud platform that makes deploying and managing code-server easier.
+Consider updating to the latest version and running code-server with our experimental flag `--link` if you don't want to worry about
 
 - TLS
 - Authentication
