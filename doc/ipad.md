@@ -2,13 +2,10 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # iPad
 
-- [iPad](#ipad)
-  - [Known Issues](#known-issues)
-  - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
+- [Known Issues](#known-issues)
+- [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
-# iPad
 
 ## Known Issues
 
