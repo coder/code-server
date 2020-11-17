@@ -1466,10 +1466,10 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aeebf4bb84c
+index 0000000000000000000000000000000000000000..cb3a45fda10a6bcbff73275b5734641b3319cc9b
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
-@@ -0,0 +1,780 @@
+@@ -0,0 +1,828 @@
 +import { field, logger } from '@coder/logger';
 +import { Server } from '@coder/node-browser';
 +import * as os from 'os';
@@ -1884,6 +1884,14 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +	private readonly _onDispose = new Emitter<void>();
 +	public get onDispose(): Event<void> { return this._onDispose.event; }
 +
++	// These are replayed when a client reconnects.
++	private cols: number;
++	private rows: number;
++	private replayData: string[] = [];
++	// This is based on string length and is pretty arbitrary.
++	private readonly maxReplayData = 10000;
++	private totalReplayData = 0;
++
 +	private buffering = false;
 +	private readonly _onEvent = new Emitter<terminal.IRemoteTerminalProcessEvent>({
 +		// Don't bind to data until something is listening.
@@ -1894,6 +1902,23 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +				this.bufferer.startBuffering(this.id, this.process.onProcessData);
 +			}
 +		},
++
++		// Replay stored events.
++		onFirstListenerDidAdd: () => {
++			if (this.replayData.length === 0) {
++				return;
++			}
++
++			logger.debug('Terminal replaying', field('id', this.id));
++			this._onEvent.fire({
++				type: 'replay',
++				events: [{
++					cols: this.cols,
++					rows: this.rows,
++					data: this.replayData.join(""),
++				}]
++			});
++		}
 +	});
 +
 +	public get onEvent(): Event<terminal.IRemoteTerminalProcessEvent> { return this._onEvent.event; }
@@ -1904,6 +1929,33 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +			type: 'data',
 +			data,
 +		});
++
++		this.replayData.push(data);
++		this.totalReplayData += data.length;
++
++		let overflow = this.totalReplayData - this.maxReplayData;
++		if (overflow <= 0) {
++			return;
++		}
++
++		// Drop events until doing so would put us under budget.
++		let deleteCount = 0;
++		for (; deleteCount < this.replayData.length
++			&& this.replayData[deleteCount].length <= overflow; ++deleteCount) {
++			overflow -= this.replayData[deleteCount].length;
++		}
++
++		if (deleteCount > 0) {
++			this.replayData.splice(0, deleteCount);
++		}
++
++		// Dropping any more events would put us under budget; trim the first event
++		// instead if still over budget.
++		if (overflow > 0 && this.replayData.length > 0) {
++			this.replayData[0] = this.replayData[0].substring(overflow);
++		}
++
++		this.totalReplayData = this.replayData.reduce((p, c) => p + c.length, 0);
 +	});
 +
 +	public get pid(): number {
@@ -1924,11 +1976,14 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +		this.workspaceId = args.workspaceId;
 +		this.workspaceName = args.workspaceName;
 +
++		this.cols = args.cols;
++		this.rows = args.rows;
++
 +		this.process = new TerminalProcess(
 +			config,
 +			config.cwd,
-+			args.cols,
-+			args.rows,
++			this.cols,
++			this.rows,
 +			env,
 +			process.env as platform.IProcessEnvironment, // Environment used for `findExecutable`.
 +			false, // windowsEnableConpty: boolean,
@@ -1962,10 +2017,6 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +			this.dispose();
 +		});
 +
-+		// TODO: replay event
-+		// type: 'replay';
-+		// events: ReplayEntry[];
-+
 +		// TODO: exec command event
 +		// type: 'execCommand';
 +		// reqId: number;
@@ -1977,9 +2028,11 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +	}
 +
 +	public dispose() {
++		logger.debug('Terminal disposing', field('id', this.id));
 +		this._onEvent.dispose();
 +		this.bufferer.dispose();
 +		this.process.dispose();
++		this.process.shutdown(true);
 +		this._onDispose.fire();
 +		this._onDispose.dispose();
 +	}
@@ -2005,6 +2058,8 @@ index 0000000000000000000000000000000000000000..91a932b613c473cd13dfddbde2942aee
 +	}
 +
 +	public resize(cols: number, rows: number): void {
++		this.cols = cols;
++		this.rows = rows;
 +		return this.process.resize(cols, rows);
 +	}
 +}
