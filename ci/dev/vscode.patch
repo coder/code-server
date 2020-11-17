@@ -689,7 +689,7 @@ index 3715cbb8e6ee41c3d9b5090918d243b723ae2d00..c65de8ad37e727d66da97a8f8b170cbc
 -
 -
 diff --git a/src/vs/platform/remote/common/remoteAgentConnection.ts b/src/vs/platform/remote/common/remoteAgentConnection.ts
-index 18d3d04fd20335975293e37b3b641120dd92da20..4ec77056f8b707cb9cfc6af28f995d644b127506 100644
+index 18d3d04fd20335975293e37b3b641120dd92da20..b9819d50683f40c41c8a3b1f71423a20916e8394 100644
 --- a/src/vs/platform/remote/common/remoteAgentConnection.ts
 +++ b/src/vs/platform/remote/common/remoteAgentConnection.ts
 @@ -92,7 +92,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
@@ -747,11 +747,10 @@ index 18d3d04fd20335975293e37b3b641120dd92da20..4ec77056f8b707cb9cfc6af28f995d64
  		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
  		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
 -		this._onDidStateChange.fire(new ConnectionLostEvent());
--		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
 +		let suppressPopup = true;
 +		let forceDialog = false;
 +		this._onDidStateChange.fire(new ConnectionLostEvent(suppressPopup));
-+		const TIMES = [1, 2, 3, 10, 10, 10, 10, 30];
+ 		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
 +		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
 +		
  		const disconnectStartTime = Date.now();
