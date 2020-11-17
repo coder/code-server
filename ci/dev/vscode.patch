@@ -1880,6 +1880,7 @@ index 0000000000000000000000000000000000000000..cb3a45fda10a6bcbff73275b5734641b
 +	private _title: string = "";
 +	public readonly workspaceId: string;
 +	public readonly workspaceName: string;
++	private readonly persist: boolean;
 +
 +	private readonly _onDispose = new Emitter<void>();
 +	public get onDispose(): Event<void> { return this._onDispose.event; }
@@ -1918,6 +1919,13 @@ index 0000000000000000000000000000000000000000..cb3a45fda10a6bcbff73275b5734641b
 +					data: this.replayData.join(""),
 +				}]
 +			});
++		},
++
++		onLastListenerRemove: () => {
++			logger.debug('Terminal unbound', field('id', this.id));
++			if (!this.persist) { // Used by debug consoles.
++				this.dispose();
++			}
 +		}
 +	});
 +
@@ -1978,6 +1986,8 @@ index 0000000000000000000000000000000000000000..cb3a45fda10a6bcbff73275b5734641b
 +
 +		this.cols = args.cols;
 +		this.rows = args.rows;
++
++		this.persist = args.shouldPersistTerminal;
 +
 +		this.process = new TerminalProcess(
 +			config,
