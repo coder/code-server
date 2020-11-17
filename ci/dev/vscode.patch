@@ -792,11 +792,10 @@ index fdd5890c69f72025b94913380f0d226226e8c8fb..e084236526b38c1144d47b8b3000b367
  		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
  		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
 -		this._onDidStateChange.fire(new ConnectionLostEvent());
--		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
 +		let suppressPopup = true;
 +		let forceDialog = false;
 +		this._onDidStateChange.fire(new ConnectionLostEvent(suppressPopup));
-+		const TIMES = [1, 2, 3, 10, 10, 10, 10, 30];
+ 		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
 +		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
 +		
  		const disconnectStartTime = Date.now();
