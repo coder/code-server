@@ -7,13 +7,33 @@ import * as tarFs from "tar-fs"
 import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
 import { rootPath } from "../constants"
-import { authenticated, replaceTemplates } from "../http"
+import { authenticated, ensureAuthenticated, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 
 export const router = Router()
 
 // The commit is for caching.
 router.get("/(:commit)(/*)?", async (req, res) => {
+  // Used by VS Code to load extensions into the web worker.
+  const tar = Array.isArray(req.query.tar) ? req.query.tar[0] : req.query.tar
+  if (typeof tar === "string") {
+    ensureAuthenticated(req)
+    let stream: Readable = tarFs.pack(pathToFsPath(tar))
+    if (req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip")) {
+      logger.debug("gzipping tar", field("path", tar))
+      const compress = zlib.createGzip()
+      stream.pipe(compress)
+      stream.on("error", (error) => compress.destroy(error))
+      stream.on("close", () => compress.end())
+      stream = compress
+      res.header("content-encoding", "gzip")
+    }
+    res.set("Content-Type", "application/x-tar")
+    stream.on("close", () => res.end())
+    return stream.pipe(res)
+  }
+
+  // If not a tar use the remainder of the path to load the resource.
   if (!req.params[0]) {
     throw new HttpError("Not Found", HttpCode.NotFound)
   }
@@ -30,26 +50,6 @@ router.get("/(:commit)(/*)?", async (req, res) => {
   // static request without caching.
   if (req.params.commit !== "development" && req.params.commit !== "-") {
     res.header("Cache-Control", "public, max-age=31536000")
-  }
-
-  /**
-   * Used by VS Code to load extensions into the web worker.
-   */
-  const tar = Array.isArray(req.query.tar) ? req.query.tar[0] : req.query.tar
-  if (typeof tar === "string") {
-    let stream: Readable = tarFs.pack(pathToFsPath(tar))
-    if (req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip")) {
-      logger.debug("gzipping tar", field("path", resourcePath))
-      const compress = zlib.createGzip()
-      stream.pipe(compress)
-      stream.on("error", (error) => compress.destroy(error))
-      stream.on("close", () => compress.end())
-      stream = compress
-      res.header("content-encoding", "gzip")
-    }
-    res.set("Content-Type", "application/x-tar")
-    stream.on("close", () => res.end())
-    return stream.pipe(res)
   }
 
   res.set("Content-Type", getMediaMime(resourcePath))
