@@ -1,8 +1,9 @@
-import { Logger, field, logger } from "@coder/logger"
+import { field, Logger, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as path from "path"
 import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
+import { DefaultedArgs } from "./cli"
 import { paths } from "./util"
 
 const timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
@@ -58,7 +59,12 @@ export function onMessage<M, T extends M>(
   })
 }
 
-interface HandshakeMessage {
+interface ParentHandshakeMessage {
+  type: "handshake"
+  args: DefaultedArgs
+}
+
+interface ChildHandshakeMessage {
   type: "handshake"
 }
 
@@ -67,7 +73,8 @@ interface RelaunchMessage {
   version: string
 }
 
-type Message = RelaunchMessage | HandshakeMessage
+type ChildMessage = RelaunchMessage | ChildHandshakeMessage
+type ParentMessage = ParentHandshakeMessage
 
 class ProcessError extends Error {
   public constructor(message: string, public readonly code: number | undefined) {
@@ -164,15 +171,16 @@ class ChildProcess extends Process {
   /**
    * Initiate the handshake and wait for a response from the parent.
    */
-  public async handshake(): Promise<void> {
+  public async handshake(): Promise<DefaultedArgs> {
     this.send({ type: "handshake" })
-    await onMessage<Message, HandshakeMessage>(
+    const message = await onMessage<ParentMessage, ParentHandshakeMessage>(
       process,
-      (message): message is HandshakeMessage => {
+      (message): message is ParentHandshakeMessage => {
         return message.type === "handshake"
       },
       this.logger,
     )
+    return message.args
   }
 
   /**
@@ -185,7 +193,7 @@ class ChildProcess extends Process {
   /**
    * Send a message to the parent.
    */
-  private send(message: Message): void {
+  private send(message: ChildMessage): void {
     if (!process.send) {
       throw new Error("not spawned with IPC")
     }
@@ -211,11 +219,18 @@ export class ParentProcess extends Process {
   private readonly logStdoutStream: rfs.RotatingFileStream
   private readonly logStderrStream: rfs.RotatingFileStream
 
-  protected readonly _onChildMessage = new Emitter<Message>()
+  protected readonly _onChildMessage = new Emitter<ChildMessage>()
   protected readonly onChildMessage = this._onChildMessage.event
+
+  private args?: DefaultedArgs
 
   public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
     super()
+
+    process.on("SIGUSR1", async () => {
+      this.logger.info("Received SIGUSR1; hotswapping")
+      this.relaunch()
+    })
 
     const opts = {
       size: "10M",
@@ -253,21 +268,17 @@ export class ParentProcess extends Process {
   private async relaunch(): Promise<void> {
     this.disposeChild()
     try {
-      await this.start()
+      this.started = this._start()
+      await this.started
     } catch (error) {
       this.logger.error(error.message)
       this.exit(typeof error.code === "number" ? error.code : 1)
     }
   }
 
-  public start(): Promise<void> {
-    // If we have a process then we've already bound this.
-    if (!this.child) {
-      process.on("SIGUSR1", async () => {
-        this.logger.info("Received SIGUSR1; hotswapping")
-        this.relaunch()
-      })
-    }
+  public start(args: DefaultedArgs): Promise<void> {
+    // Store for relaunches.
+    this.args = args
     if (!this.started) {
       this.started = this._start()
     }
@@ -320,14 +331,24 @@ export class ParentProcess extends Process {
    * Wait for a handshake from the child then reply.
    */
   private async handshake(child: cp.ChildProcess): Promise<void> {
-    await onMessage<Message, HandshakeMessage>(
+    if (!this.args) {
+      throw new Error("started without args")
+    }
+    await onMessage<ChildMessage, ChildHandshakeMessage>(
       child,
-      (message): message is HandshakeMessage => {
+      (message): message is ChildHandshakeMessage => {
         return message.type === "handshake"
       },
       this.logger,
     )
-    child.send({ type: "handshake" })
+    this.send(child, { type: "handshake", args: this.args })
+  }
+
+  /**
+   * Send a message to the child.
+   */
+  private send(child: cp.ChildProcess, message: ParentMessage): void {
+    child.send(message)
   }
 }
 

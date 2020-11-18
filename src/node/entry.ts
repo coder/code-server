@@ -154,18 +154,21 @@ const main = async (args: DefaultedArgs): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
-  const cliArgs = parse(process.argv.slice(2))
-  const configArgs = await readConfigFile(cliArgs.config)
-  const args = await setDefaults(cliArgs, configArgs)
-
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
-  // the parent and the child wouldn't have been spawned.
+  // the parent and the child wouldn't have been spawned. We also get the
+  // arguments from the parent so we don't have to parse twice and to account
+  // for environment manipulation (like how PASSWORD gets removed to avoid
+  // leaking to child processes).
   if (isChild(wrapper)) {
-    await wrapper.handshake()
+    const args = await wrapper.handshake()
     wrapper.preventExit()
     return main(args)
   }
+
+  const cliArgs = parse(process.argv.slice(2))
+  const configArgs = await readConfigFile(cliArgs.config)
+  const args = await setDefaults(cliArgs, configArgs)
 
   if (args.help) {
     console.log("code-server", version, commit)
@@ -201,7 +204,7 @@ async function entry(): Promise<void> {
     return openInExistingInstance(args, socketPath)
   }
 
-  return wrapper.start()
+  return wrapper.start(args)
 }
 
 entry().catch((error) => {
