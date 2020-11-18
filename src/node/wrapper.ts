@@ -201,11 +201,6 @@ class ChildProcess extends Process {
   }
 }
 
-export interface WrapperOptions {
-  maxMemory?: number
-  nodeOptions?: string
-}
-
 /**
  * Parent process wrapper that spawns the child process and performs a handshake
  * with it. Will relaunch the child if it receives a SIGUSR1 or is asked to by
@@ -224,7 +219,7 @@ export class ParentProcess extends Process {
 
   private args?: DefaultedArgs
 
-  public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
+  public constructor(private currentVersion: string) {
     super()
 
     process.on("SIGUSR1", async () => {
@@ -310,18 +305,12 @@ export class ParentProcess extends Process {
   }
 
   private spawn(): cp.ChildProcess {
-    // Flags to pass along to the Node binary.
-    let nodeOptions = `${process.env.NODE_OPTIONS || ""} ${(this.options && this.options.nodeOptions) || ""}`
-    if (!/max_old_space_size=(\d+)/g.exec(nodeOptions)) {
-      nodeOptions += ` --max_old_space_size=${(this.options && this.options.maxMemory) || 2048}`
-    }
-
     // Use spawn (instead of fork) to use the new binary in case it was updated.
     return cp.spawn(process.argv[0], process.argv.slice(1), {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
-        NODE_OPTIONS: nodeOptions,
+        NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
       stdio: ["ipc"],
     })
