@@ -5,6 +5,59 @@ import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
 import { paths } from "./util"
 
+const timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
+
+/**
+ * Listen to a single message from a process. Reject if the process errors,
+ * exits, or times out.
+ *
+ * `fn` is a function that determines whether the message is the one we're
+ * waiting for.
+ */
+export function onMessage<M, T extends M>(
+  proc: cp.ChildProcess | NodeJS.Process,
+  fn: (message: M) => message is T,
+  customLogger?: Logger,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      proc.off("error", onError)
+      proc.off("exit", onExit)
+      proc.off("message", onMessage)
+      clearTimeout(timeout)
+    }
+
+    const timeout = setTimeout(() => {
+      cleanup()
+      reject(new Error("timed out"))
+    }, timeoutInterval)
+
+    const onError = (error: Error) => {
+      cleanup()
+      reject(error)
+    }
+
+    const onExit = (code: number) => {
+      cleanup()
+      reject(new Error(`exited unexpectedly with code ${code}`))
+    }
+
+    const onMessage = (message: M) => {
+      ;(customLogger || logger).trace("got message", field("message", message))
+      if (fn(message)) {
+        cleanup()
+        resolve(message)
+      }
+    }
+
+    proc.on("message", onMessage)
+    // NodeJS.Process doesn't have `error` but binding anyway shouldn't break
+    // anything. It does have `exit` but the types aren't working.
+    ;(proc as cp.ChildProcess).on("error", onError)
+    ;(proc as cp.ChildProcess).on("exit", onExit)
+  })
+}
+
 interface HandshakeMessage {
   type: "handshake"
 }
@@ -111,19 +164,15 @@ class ChildProcess extends Process {
   /**
    * Initiate the handshake and wait for a response from the parent.
    */
-  public handshake(): Promise<void> {
-    return new Promise((resolve) => {
-      const onMessage = (message: Message): void => {
-        logger.debug(`received message from ${this.parentPid}`, field("message", message))
-        if (message.type === "handshake") {
-          process.removeListener("message", onMessage)
-          resolve()
-        }
-      }
-      // Initiate the handshake and wait for the reply.
-      process.on("message", onMessage)
-      this.send({ type: "handshake" })
-    })
+  public async handshake(): Promise<void> {
+    this.send({ type: "handshake" })
+    await onMessage<Message, HandshakeMessage>(
+      process,
+      (message): message is HandshakeMessage => {
+        return message.type === "handshake"
+      },
+      this.logger,
+    )
   }
 
   /**
@@ -270,23 +319,15 @@ export class ParentProcess extends Process {
   /**
    * Wait for a handshake from the child then reply.
    */
-  private handshake(child: cp.ChildProcess): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const onMessage = (message: Message): void => {
-        logger.debug(`received message from ${child.pid}`, field("message", message))
-        if (message.type === "handshake") {
-          child.removeListener("message", onMessage)
-          child.on("message", (msg) => this._onChildMessage.emit(msg))
-          child.send({ type: "handshake" })
-          resolve()
-        }
-      }
-      child.on("message", onMessage)
-      child.once("error", reject)
-      child.once("exit", (code) => {
-        reject(new ProcessError(`Unexpected exit with code ${code}`, code !== null ? code : undefined))
-      })
-    })
+  private async handshake(child: cp.ChildProcess): Promise<void> {
+    await onMessage<Message, HandshakeMessage>(
+      child,
+      (message): message is HandshakeMessage => {
+        return message.type === "handshake"
+      },
+      this.logger,
+    )
+    child.send({ type: "handshake" })
   }
 }
 
