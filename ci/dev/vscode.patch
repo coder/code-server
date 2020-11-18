@@ -689,7 +689,7 @@ index 3715cbb8e6ee41c3d9b5090918d243b723ae2d00..c65de8ad37e727d66da97a8f8b170cbc
 -
 -
 diff --git a/src/vs/platform/remote/common/remoteAgentConnection.ts b/src/vs/platform/remote/common/remoteAgentConnection.ts
-index 18d3d04fd20335975293e37b3b641120dd92da20..e072fc38ccd950462f42fdf112c8e7e673f351f5 100644
+index 18d3d04fd20335975293e37b3b641120dd92da20..a06f20ece490dba5d88b41268cddaaf6b2f6b64a 100644
 --- a/src/vs/platform/remote/common/remoteAgentConnection.ts
 +++ b/src/vs/platform/remote/common/remoteAgentConnection.ts
 @@ -92,7 +92,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
@@ -701,53 +701,82 @@ index 18d3d04fd20335975293e37b3b641120dd92da20..e072fc38ccd950462f42fdf112c8e7e6
  			(err: any, socket: ISocket | undefined) => {
  				if (err || !socket) {
  					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
-@@ -411,16 +411,23 @@ abstract class PersistentConnection extends Disposable {
+@@ -331,12 +331,16 @@ export const enum PersistentConnectionEventType {
+ }
+ export class ConnectionLostEvent {
+ 	public readonly type = PersistentConnectionEventType.ConnectionLost;
++	constructor(
++		public readonly connectionAttempt?: number
++	) { }
+ }
+ export class ReconnectionWaitEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionWait;
+ 	constructor(
+ 		public readonly durationSeconds: number,
+-		private readonly cancellableTimer: CancelablePromise<void>
++		private readonly cancellableTimer: CancelablePromise<void>,
++		public readonly connectionAttempt?: number,
+ 	) { }
+ 
+ 	public skipWait(): void {
+@@ -345,12 +349,21 @@ export class ReconnectionWaitEvent {
+ }
+ export class ReconnectionRunningEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionRunning;
++	constructor(
++		public readonly connectionAttempt?: number
++	) { }
+ }
+ export class ConnectionGainEvent {
+ 	public readonly type = PersistentConnectionEventType.ConnectionGain;
++	constructor(
++		public readonly connectionAttempt?: number
++	) { }
+ }
+ export class ReconnectionPermanentFailureEvent {
+ 	public readonly type = PersistentConnectionEventType.ReconnectionPermanentFailure;
++	constructor(
++		public readonly connectionAttempt?: number
++	) { }
+ }
+ export type PersistenConnectionEvent = ConnectionGainEvent | ConnectionLostEvent | ReconnectionWaitEvent | ReconnectionRunningEvent | ReconnectionPermanentFailureEvent;
+ 
+@@ -411,8 +424,9 @@ abstract class PersistentConnection extends Disposable {
  		}
  		const logPrefix = commonLogPrefix(this._connectionType, this.reconnectionToken, true);
  		this._options.logService.info(`${logPrefix} starting reconnecting loop. You can get more information with the trace log level.`);
 -		this._onDidStateChange.fire(new ConnectionLostEvent());
++		this._onDidStateChange.fire(new ConnectionLostEvent(0));
  		const TIMES = [5, 5, 10, 10, 10, 10, 10, 30];
-+		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
 +		
  		const disconnectStartTime = Date.now();
  		let attempt = -1;
  		do {
- 			attempt++;
-+			if (attempt == SHOW_POPUP_ON_ATTEMPT){
-+				this._onDidStateChange.fire(new ConnectionLostEvent());
-+			}
-+
+@@ -420,7 +434,7 @@ abstract class PersistentConnection extends Disposable {
  			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
  			try {
  				const sleepPromise = sleep(waitTime);
 -				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
-+					this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
-+				}
++				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise, attempt));
  
  				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
  				try {
-@@ -433,14 +440,17 @@ abstract class PersistentConnection extends Disposable {
+@@ -433,13 +447,13 @@ abstract class PersistentConnection extends Disposable {
  				}
  
  				// connection was lost, let's try to re-establish it
 -				this._onDidStateChange.fire(new ReconnectionRunningEvent());
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT){
-+					this._onDidStateChange.fire(new ReconnectionRunningEvent());
-+				}
++				this._onDidStateChange.fire(new ReconnectionRunningEvent(attempt));
  				this._options.logService.info(`${logPrefix} resolving connection...`);
  				const simpleOptions = await resolveConnectionOptions(this._options, this.reconnectionToken, this.protocol);
  				this._options.logService.info(`${logPrefix} connecting to ${simpleOptions.host}:${simpleOptions.port}...`);
  				await connectWithTimeLimit(simpleOptions.logService, this._reconnect(simpleOptions), RECONNECT_TIMEOUT);
  				this._options.logService.info(`${logPrefix} reconnected!`);
 -				this._onDidStateChange.fire(new ConnectionGainEvent());
--
-+				if (attempt >= SHOW_POPUP_ON_ATTEMPT) {
-+					this._onDidStateChange.fire(new ConnectionGainEvent());
-+				}
++				this._onDidStateChange.fire(new ConnectionGainEvent(attempt));
+ 
  				break;
  			} catch (err) {
- 				if (err.code === 'VSCODE_CONNECTION_ERROR') {
 diff --git a/src/vs/platform/storage/browser/storageService.ts b/src/vs/platform/storage/browser/storageService.ts
 index ab3fd347b69f8a3d9b96e706cd87c911b8ffed6b..9d351037b577f9f1edfd18ae9b3c48a211f4467f 100644
 --- a/src/vs/platform/storage/browser/storageService.ts
@@ -3246,6 +3275,84 @@ index 94e7e7a4bac154c45078a1b5034e50634a7a43af..8164200dcef1efbc65b50eef9c270af3
  				this._filenameKey.set(value ? basename(value) : null);
  				this._dirnameKey.set(value ? dirname(value).fsPath : null);
  				this._pathKey.set(value ? value.fsPath : null);
+diff --git a/src/vs/workbench/contrib/remote/browser/remote.ts b/src/vs/workbench/contrib/remote/browser/remote.ts
+index 98573a206f14928fc3fdf18fe927cb75034e4ad1..1430666aa94f941bda086df503fec8b35aa2b25f 100644
+--- a/src/vs/workbench/contrib/remote/browser/remote.ts
++++ b/src/vs/workbench/contrib/remote/browser/remote.ts
+@@ -730,6 +730,7 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 		@IContextKeyService contextKeyService: IContextKeyService
+ 	) {
+ 		const connection = remoteAgentService.getConnection();
++		const SHOW_POPUP_ON_ATTEMPT = 2 // aka third attempt
+ 		if (connection) {
+ 			let visibleProgress: VisibleProgress | null = null;
+ 			let lastLocation: ProgressLocation.Dialog | ProgressLocation.Notification | null = null;
+@@ -793,33 +794,47 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
+ 					disposableListener.dispose();
+ 					disposableListener = null;
+ 				}
++				let suppressPopup = (typeof e.connectionAttempt == 'number' && e.connectionAttempt < SHOW_POPUP_ON_ATTEMPT)
++				let forceDialog = (typeof e.connectionAttempt == 'number' && e.connectionAttempt == SHOW_POPUP_ON_ATTEMPT)
+ 				switch (e.type) {
+ 					case PersistentConnectionEventType.ConnectionLost:
+-						if (!visibleProgress) {
+-							visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
++						if (suppressPopup) {
++							hideProgress()
++						} else {
++							if (!visibleProgress) {
++								visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
++							}
++							visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));	
+ 						}
+-						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
+ 						break;
+ 					case PersistentConnectionEventType.ReconnectionWait:
+ 						reconnectWaitEvent = e;
+-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reconnectButton, reloadButton]);
+-						visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
++						if (suppressPopup) {
++							hideProgress()
++						} else {
++							const location = forceDialog ? ProgressLocation.Dialog : (lastLocation || ProgressLocation.Notification)
++							visibleProgress = showProgress(location, [reconnectButton, reloadButton]);
++							visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);	
++						}
+ 						break;
+ 					case PersistentConnectionEventType.ReconnectionRunning:
+-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton]);
+-						visibleProgress.report(nls.localize('reconnectionRunning', "Attempting to reconnect..."));
+-
+-						// Register to listen for quick input is opened
+-						disposableListener = contextKeyService.onDidChangeContext((contextKeyChangeEvent) => {
+-							const reconnectInteraction = new Set<string>([inQuickPickContextKeyValue]);
+-							if (contextKeyChangeEvent.affectsSome(reconnectInteraction)) {
+-								// Need to move from dialog if being shown and user needs to type in a prompt
+-								if (lastLocation === ProgressLocation.Dialog && visibleProgress !== null) {
+-									visibleProgress = showProgress(ProgressLocation.Notification, [reloadButton], visibleProgress.lastReport);
++						if (suppressPopup) {
++							hideProgress()
++						} else {
++							visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton]);
++							visibleProgress.report(nls.localize('reconnectionRunning', "Attempting to reconnect..."));
++	
++							// Register to listen for quick input is opened
++							disposableListener = contextKeyService.onDidChangeContext((contextKeyChangeEvent) => {
++								const reconnectInteraction = new Set<string>([inQuickPickContextKeyValue]);
++								if (contextKeyChangeEvent.affectsSome(reconnectInteraction)) {
++									// Need to move from dialog if being shown and user needs to type in a prompt
++									if (lastLocation === ProgressLocation.Dialog && visibleProgress !== null) {
++										visibleProgress = showProgress(ProgressLocation.Notification, [reloadButton], visibleProgress.lastReport);
++									}
+ 								}
+-							}
+-						});
+-
++							});
++						}
+ 						break;
+ 					case PersistentConnectionEventType.ReconnectionPermanentFailure:
+ 						hideProgress();
 diff --git a/src/vs/workbench/contrib/scm/browser/media/scm.css b/src/vs/workbench/contrib/scm/browser/media/scm.css
 index ac44ad3bae428def66e22fe9cc1c54648d429f6b..faa63023c4c586b51fa3c2a48ff3641b9cb0e145 100644
 --- a/src/vs/workbench/contrib/scm/browser/media/scm.css
