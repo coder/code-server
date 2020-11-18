@@ -8,7 +8,7 @@ import { rootPath } from "./constants"
 import { settings } from "./settings"
 import { SocketProxyProvider } from "./socket"
 import { isFile } from "./util"
-import { ipcMain } from "./wrapper"
+import { wrapper } from "./wrapper"
 
 export class VscodeProvider {
   public readonly serverRootPath: string
@@ -20,7 +20,7 @@ export class VscodeProvider {
   public constructor() {
     this.vsRootPath = path.resolve(rootPath, "lib/vscode")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
-    ipcMain.onDispose(() => this.dispose())
+    wrapper.onDispose(() => this.dispose())
   }
 
   public async dispose(): Promise<void> {
