@@ -66,7 +66,11 @@ export const register = async (
   app.use(bodyParser.urlencoded({ extended: true }))
 
   const common: express.RequestHandler = (req, _, next) => {
-    heart.beat()
+    // /healthz|/healthz/ needs to be excluded otherwise health checks will make
+    // it look like code-server is always in use.
+    if (!/^\/healthz\/?$/.test(req.url)) {
+      heart.beat()
+    }
 
     // Add common variables routes can use.
     req.args = args
