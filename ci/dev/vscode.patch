@@ -430,7 +430,7 @@ index 2c64061da7b01aef0bfe3cec851da232ca9461c8..c0ef8faedd406c38bf9c55bbbdbbb060
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..75d2ab3276049115829a38b8b7afee44bb748c2a 100644
+index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..62a79602a831bca0dc62ad57dc10a9375f8b9cdb 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -17,6 +17,7 @@ import { isStandalone } from 'vs/base/browser/browser';
@@ -468,7 +468,7 @@ index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..75d2ab3276049115829a38b8b7afee44
  
 -	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = {
-+		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview/`,
++		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview`,
 +		...JSON.parse(configElementAttribute),
 +	};
 +
