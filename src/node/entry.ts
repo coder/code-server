@@ -19,7 +19,7 @@ import { coderCloudBind } from "./coder-cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
-import { ipcMain, WrapperProcess } from "./wrapper"
+import { isChild, wrapper } from "./wrapper"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
@@ -137,7 +137,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
       logger.info("  - Connected to cloud agent")
     } catch (err) {
       logger.error(err.message)
-      ipcMain.exit(1)
+      wrapper.exit(1)
     }
   }
 
@@ -154,18 +154,21 @@ const main = async (args: DefaultedArgs): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
+  // There's no need to check flags like --help or to spawn in an existing
+  // instance for the child process because these would have already happened in
+  // the parent and the child wouldn't have been spawned. We also get the
+  // arguments from the parent so we don't have to parse twice and to account
+  // for environment manipulation (like how PASSWORD gets removed to avoid
+  // leaking to child processes).
+  if (isChild(wrapper)) {
+    const args = await wrapper.handshake()
+    wrapper.preventExit()
+    return main(args)
+  }
+
   const cliArgs = parse(process.argv.slice(2))
   const configArgs = await readConfigFile(cliArgs.config)
   const args = await setDefaults(cliArgs, configArgs)
-
-  // There's no need to check flags like --help or to spawn in an existing
-  // instance for the child process because these would have already happened in
-  // the parent and the child wouldn't have been spawned.
-  if (ipcMain.isChild) {
-    await ipcMain.handshake()
-    ipcMain.preventExit()
-    return main(args)
-  }
 
   if (args.help) {
     console.log("code-server", version, commit)
@@ -201,11 +204,10 @@ async function entry(): Promise<void> {
     return openInExistingInstance(args, socketPath)
   }
 
-  const wrapper = new WrapperProcess(require("../../package.json").version)
-  return wrapper.start()
+  return wrapper.start(args)
 }
 
 entry().catch((error) => {
   logger.error(error.message)
-  ipcMain.exit(error)
+  wrapper.exit(error)
 })
