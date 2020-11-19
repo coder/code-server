@@ -15,7 +15,7 @@ v$VERSION
 
 VS Code v$(vscode_version)
 
-# New Features
+## New Features
   - ⭐ Summarize new features here with references to issues
 
 ## Bug Fixes
