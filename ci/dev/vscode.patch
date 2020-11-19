@@ -1466,10 +1466,10 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..7081bbf178c660803830675a4d8d596c5d0b7821
+index 0000000000000000000000000000000000000000..7619b02f04b6e61e86e741b09b542d86fab97e3d
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
-@@ -0,0 +1,869 @@
+@@ -0,0 +1,887 @@
 +import { field, logger } from '@coder/logger';
 +import { Server } from '@coder/node-browser';
 +import * as os from 'os';
@@ -1846,30 +1846,51 @@ index 0000000000000000000000000000000000000000..7081bbf178c660803830675a4d8d596c
 +}
 +
 +class VariableResolverService extends AbstractVariableResolverService {
-+	constructor(folders: terminal.IWorkspaceFolderData[], env: platform.IProcessEnvironment) {
++	constructor(
++		remoteAuthority: string,
++		args: terminal.ICreateTerminalProcessArguments,
++		env: platform.IProcessEnvironment,
++	) {
 +		super({
 +			getFolderUri: (name: string): URI | undefined => {
-+				const folder = folders.find((f) => f.name === name);
++				const folder = args.workspaceFolders.find((f) => f.name === name);
 +				return folder && URI.revive(folder.uri);
 +			},
 +			getWorkspaceFolderCount: (): number => {
-+				return folders.length;
++				return args.workspaceFolders.length;
 +			},
-+			getConfigurationValue: (uri: URI, section: string): string | undefined => {
-+				throw new Error("not implemented");
++			// In ../../workbench/contrib/terminal/common/remoteTerminalChannel.ts it
++			// looks like there are `config:` entries which must be for this? Not sure
++			// how/if the URI comes into play though.
++			getConfigurationValue: (_: URI, section: string): string | undefined => {
++				return args.resolvedVariables[`config:${section}`];
 +			},
 +			getExecPath: (): string | undefined => {
 +				return env['VSCODE_EXEC_PATH'];
 +			},
++			// This is just a guess; this is the only file-related thing we're sent
++			// and none of these resolver methods seem to get called so I don't know
++			// how to test.
 +			getFilePath: (): string | undefined => {
-+				throw new Error("not implemented");
++				const resource = transformIncoming(remoteAuthority, args.activeFileResource);
++				if (!resource) {
++					return undefined;
++				}
++				// See ../../editor/standalone/browser/simpleServices.ts;
++				// `BaseConfigurationResolverService` calls `getUriLabel` from there.
++				if (resource.scheme === 'file') {
++					return resource.fsPath;
++				}
++				return resource.path;
 +			},
++			// It looks like these are set here although they aren't on the types:
++			// ../../workbench/contrib/terminal/common/remoteTerminalChannel.ts
 +			getSelectedText: (): string | undefined => {
-+				throw new Error("not implemented");
++				return args.resolvedVariables.selectedText;
 +			},
 +			getLineNumber: (): string | undefined => {
-+				throw new Error("not implemented");
-+			}
++				return args.resolvedVariables.selectedText;
++			},
 +		}, undefined, env);
 +	}
 +}
@@ -2144,20 +2165,22 @@ index 0000000000000000000000000000000000000000..7081bbf178c660803830675a4d8d596c
 +			name: args.shellLaunchConfig.name,
 +			executable: args.shellLaunchConfig.executable,
 +			args: args.shellLaunchConfig.args,
-+			cwd: this.transform(remoteAuthority, args.shellLaunchConfig.cwd),
++			// TODO: Should we transform if it's a string as well? The incoming
++			// transform only takes `UriComponents` so I suspect it's not necessary.
++			cwd: typeof args.shellLaunchConfig.cwd !== "string"
++				? transformIncoming(remoteAuthority, args.shellLaunchConfig.cwd)
++				: args.shellLaunchConfig.cwd,
 +			env: args.shellLaunchConfig.env,
 +		};
 +
-+		// TODO: is this supposed to be the *last* workspace?
-+
-+		const activeWorkspaceUri = this.transform(remoteAuthority, args.activeWorkspaceFolder?.uri);
++		const activeWorkspaceUri = transformIncoming(remoteAuthority, args.activeWorkspaceFolder?.uri);
 +		const activeWorkspace = activeWorkspaceUri && args.activeWorkspaceFolder ? {
 +			...args.activeWorkspaceFolder,
 +			uri: activeWorkspaceUri,
 +			toResource: (relativePath: string) => resources.joinPath(activeWorkspaceUri, relativePath),
 +		} : undefined;
 +
-+		const resolverService = new VariableResolverService(args.workspaceFolders, process.env as platform.IProcessEnvironment);
++		const resolverService = new VariableResolverService(remoteAuthority, args, process.env as platform.IProcessEnvironment);
 +		const resolver = terminalEnvironment.createVariableResolver(activeWorkspace, resolverService);
 +
 +		const getDefaultShellAndArgs = (): { executable: string; args: string[] | string } => {
@@ -2269,16 +2292,6 @@ index 0000000000000000000000000000000000000000..7081bbf178c660803830675a4d8d596c
 +		};
 +	}
 +
-+	private transform(remoteAuthority: string, uri: UriComponents | undefined): URI | undefined
-+	private transform(remoteAuthority: string, uri: string | UriComponents | undefined): string | URI | undefined
-+	private transform(remoteAuthority: string, uri: string | UriComponents | undefined): string | URI | undefined {
-+		if (typeof uri === 'string') {
-+			return uri;
-+		}
-+		const transformer = getUriTransformer(remoteAuthority);
-+		return uri ? URI.revive(transformer.transformIncoming(uri)) : uri;
-+	}
-+
 +	private getTerminal(id: number): Terminal {
 +		const terminal = this.terminals.get(id);
 +		if (!terminal) {
@@ -2338,6 +2351,11 @@ index 0000000000000000000000000000000000000000..7081bbf178c660803830675a4d8d596c
 +			};
 +		}));
 +	}
++}
++
++function transformIncoming(remoteAuthority: string, uri: UriComponents | undefined): URI | undefined {
++	const transformer = getUriTransformer(remoteAuthority);
++	return uri ? URI.revive(transformer.transformIncoming(uri)) : uri;
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
