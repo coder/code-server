@@ -1466,7 +1466,7 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..b65bf283739a2b05c82fe38a038d2a10957c0d40
+index 0000000000000000000000000000000000000000..40779e80aa56d6b802d39f7170c9c94a997393ef
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
 @@ -0,0 +1,848 @@
@@ -2312,8 +2312,8 @@ index 0000000000000000000000000000000000000000..b65bf283739a2b05c82fe38a038d2a10
 +				pid: terminal.pid,
 +				title: terminal.title,
 +				cwd,
-+				workspaceId: "0",
-+				workspaceName: "test",
++				workspaceId: terminal.workspaceId,
++				workspaceName: terminal.workspaceName,
 +			};
 +		}));
 +	}
