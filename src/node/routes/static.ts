@@ -52,6 +52,11 @@ router.get("/(:commit)(/*)?", async (req, res) => {
     res.header("Cache-Control", "public, max-age=31536000")
   }
 
+  // Without this the default is to use the directory the script loaded from.
+  if (req.headers["service-worker"]) {
+    res.header("service-worker-allowed", "/")
+  }
+
   res.set("Content-Type", getMediaMime(resourcePath))
 
   if (resourcePath.endsWith("manifest.json")) {
