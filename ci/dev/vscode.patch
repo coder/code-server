@@ -769,7 +769,7 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..667ca961830feaf6fc5e5bb7ef2df3b8be97b176
+index 0000000000000000000000000000000000000000..c6eef331346ebc244a26e8b1e5919d192225b971
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
 @@ -0,0 +1,237 @@
@@ -924,7 +924,7 @@ index 0000000000000000000000000000000000000000..667ca961830feaf6fc5e5bb7ef2df3b8
 +	}
 +
 +	const logService = (services.get(ILogService) as ILogService);
-+	const storageService = (services.get(IStorageService) as IStorageService)
++	const storageService = (services.get(IStorageService) as IStorageService);
 +	const getUpdate = async (): Promise<void> => {
 +		logService.debug("Checking for update...");
 +
@@ -945,7 +945,7 @@ index 0000000000000000000000000000000000000000..667ca961830feaf6fc5e5bb7ef2df3b8
 +		const lastNoti = storageService.getNumber("csLastUpdateNotification", StorageScope.GLOBAL);
 +		if (lastNoti) {
 +			// Only remind them again after two days.
-+			const timeout = 1000*60*24*2
++			const timeout = 1000*60*24*2;
 +			const threshold = lastNoti + timeout;
 +			if (Date.now() < threshold) {
 +				return;
@@ -3906,7 +3906,7 @@ index 738ce140c1af76ee0017c59cc883578e966f5348..80833b7023ed5795bb3de303b54ec08d
  
  .monaco-workbench .part.editor > .content .welcomePage .splash ul {
 diff --git a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
-index 4a61a79fe447e2aa238af568791bff1e0cec4d29..791b63342f476f1baba9d31b040d3ef589e3f70a 100644
+index 4a61a79fe447e2aa238af568791bff1e0cec4d29..69cc2e4331a3b04d05d79632920f5c5bbfa924e8 100644
 --- a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
 +++ b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
 @@ -328,7 +328,7 @@ class WelcomePage extends Disposable {
@@ -3914,7 +3914,7 @@ index 4a61a79fe447e2aa238af568791bff1e0cec4d29..791b63342f476f1baba9d31b040d3ef5
  		const prodName = container.querySelector('.welcomePage .title .caption') as HTMLElement;
  		if (prodName) {
 -			prodName.textContent = this.productService.nameLong;
-+			prodName.textContent = `code-server v${this.productService.codeServerVersion}`
++			prodName.textContent = `code-server v${this.productService.codeServerVersion}`;
  		}
  
  		recentlyOpened.then(({ workspaces }) => {
