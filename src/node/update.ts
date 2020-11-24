@@ -75,7 +75,7 @@ export class UpdateProvider {
   public isLatestVersion(latest: Update): boolean {
     logger.debug("comparing versions", field("current", version), field("latest", latest.version))
     try {
-      return latest.version === version || semver.lt(latest.version, version)
+      return semver.lte(latest.version, version)
     } catch (error) {
       return true
     }
