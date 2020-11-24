@@ -15,6 +15,10 @@ v$VERSION
 
 VS Code v$(vscode_version)
 
+Upgrading is as easy as installing the new version over the old one. code-server
+maintains all user data in \`~/.local/share/code-server\` so that it is preserved in between
+installations.
+
 ## New Features
   - ⭐ Summarize new features here with references to issues
 

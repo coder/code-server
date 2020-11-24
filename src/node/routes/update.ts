@@ -7,7 +7,7 @@ export const router = Router()
 
 const provider = new UpdateProvider()
 
-router.get("/", ensureAuthenticated, async (req, res) => {
+router.get("/check", ensureAuthenticated, async (req, res) => {
   const update = await provider.getUpdate(req.query.force === "true")
   res.json({
     checked: update.checked,

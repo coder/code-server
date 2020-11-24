@@ -769,10 +769,10 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..3c0703b7174ad792a4b42841e96ee93765d71601
+index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84a892f49d
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,240 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -791,6 +791,8 @@ index 0000000000000000000000000000000000000000..3c0703b7174ad792a4b42841e96ee937
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 +import { Options } from 'vs/server/ipc.d';
 +import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
++import { ILogService } from 'vs/platform/log/common/log';
++import * as path from 'vs/base/common/path';
 +
 +class TelemetryService extends TelemetryChannelClient {
 +	public constructor(
@@ -922,8 +924,57 @@ index 0000000000000000000000000000000000000000..3c0703b7174ad792a4b42841e96ee937
 +		});
 +	}
 +
++	const logService = (services.get(ILogService) as ILogService);
++	const storageService = (services.get(IStorageService) as IStorageService);
++	// We set this here first in case the path changes.
++	const updateCheckEndpoint = path.join(window.location.pathname, "/update/check")
++	const getUpdate = async (): Promise<void> => {
++		logService.debug("Checking for update...");
++
++		const response = await fetch(updateCheckEndpoint, {
++			headers: { "Accept": "application/json" },
++		});
++		if (!response.ok) {
++			throw new Error(response.statusText);
++		}
++		const json = await response.json();
++		if (json.error) {
++			throw new Error(json.error);
++		}
++		if (json.isLatest) {
++			return;
++		}
++
++		const lastNoti = storageService.getNumber("csLastUpdateNotification", StorageScope.GLOBAL);
++		if (lastNoti) {
++			// Only remind them again after two days.
++			const timeout = 1000*60*24*2;
++			const threshold = lastNoti + timeout;
++			if (Date.now() < threshold) {
++				return;
++			}
++		}
++
++		storageService.store("csLastUpdateNotification", Date.now(), StorageScope.GLOBAL);
++		(services.get(INotificationService) as INotificationService).notify({
++			severity: Severity.Info,
++			message: `[code-server v${json.latest}](https://github.com/cdr/code-server/releases/tag/v${json.latest}) has been released!`,
++		});
++	};
++
++	const updateLoop = (): void => {
++		getUpdate().catch((error) => {
++			logService.debug(`failed to check for update: ${error}`);
++		}).finally(() => {
++			// Check again every 6 hours.
++			setTimeout(updateLoop, 1000*60*6);
++		});
++	};
++
++	updateLoop();
++
 +	// This will be used to set the background color while VS Code loads.
-+	const theme = (services.get(IStorageService) as IStorageService).get("colorThemeData", StorageScope.GLOBAL);
++	const theme = storageService.get("colorThemeData", StorageScope.GLOBAL);
 +	if (theme) {
 +		localStorage.setItem("colorThemeData", theme);
 +	}
@@ -3858,7 +3909,7 @@ index 738ce140c1af76ee0017c59cc883578e966f5348..80833b7023ed5795bb3de303b54ec08d
  
  .monaco-workbench .part.editor > .content .welcomePage .splash ul {
 diff --git a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
-index 4a61a79fe447e2aa238af568791bff1e0cec4d29..791b63342f476f1baba9d31b040d3ef589e3f70a 100644
+index 4a61a79fe447e2aa238af568791bff1e0cec4d29..69cc2e4331a3b04d05d79632920f5c5bbfa924e8 100644
 --- a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
 +++ b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
 @@ -328,7 +328,7 @@ class WelcomePage extends Disposable {
@@ -3866,7 +3917,7 @@ index 4a61a79fe447e2aa238af568791bff1e0cec4d29..791b63342f476f1baba9d31b040d3ef5
  		const prodName = container.querySelector('.welcomePage .title .caption') as HTMLElement;
  		if (prodName) {
 -			prodName.textContent = this.productService.nameLong;
-+			prodName.textContent = `code-server v${this.productService.codeServerVersion}`
++			prodName.textContent = `code-server v${this.productService.codeServerVersion}`;
  		}
  
  		recentlyOpened.then(({ workspaces }) => {
