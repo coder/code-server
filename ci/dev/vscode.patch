@@ -3712,6 +3712,20 @@ index 021af6e0f8983c492f9cdd048ba2dcae7640bc1d..814dd0ff2fa7737e07833d8092c8f489
  
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
+diff --git a/src/vs/workbench/browser/actions/navigationActions.ts b/src/vs/workbench/browser/actions/navigationActions.ts
+index 7344a3a29b32f7b370b99bf0cfdc79a322195ff8..dc21396e83e2f53914447d3460c2ee1103ecb28e 100644
+--- a/src/vs/workbench/browser/actions/navigationActions.ts
++++ b/src/vs/workbench/browser/actions/navigationActions.ts
+@@ -310,4 +310,8 @@ actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusNextPart,
+ actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusPreviousPart, { primary: KeyMod.Shift | KeyCode.F6 }), 'View: Focus Previous Part', CATEGORIES.View.value);
+ 
+ const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
+-workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
++// See https://github.com/cdr/code-server/issues/2328
++// workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
++export const _1 = workbenchRegistry;
++export const _2 = GoHomeContributor;
++export const _3 = LifecyclePhase.Ready;
 diff --git a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css b/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
 index ced2d815834e40a1543e80516472799075980733..dfcae73e8a042307600c67f163aa00ba9e0762f4 100644
 --- a/src/vs/workbench/browser/parts/activitybar/media/activitybarpart.css
