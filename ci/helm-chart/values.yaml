@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '3.7.2'
+  tag: '3.7.3'
   pullPolicy: Always
 
 imagePullSecrets: []
