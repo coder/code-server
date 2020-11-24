@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
 
+- [Upgrading](#upgrading)
 - [install.sh](#installsh)
   - [Flags](#flags)
   - [Detection Reference](#detection-reference)
@@ -18,6 +19,12 @@
 
 This document demonstrates how to install `code-server` on
 various distros and operating systems.
+
+## Upgrading
+
+When upgrading you can just install the new version over the old one. code-server
+maintains all user data in `~/.local/share/code-server` so that it is preserved in between
+installations.
 
 ## install.sh
 
