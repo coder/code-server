@@ -769,10 +769,10 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..c6eef331346ebc244a26e8b1e5919d192225b971
+index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84a892f49d
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,237 @@
+@@ -0,0 +1,240 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -792,6 +792,7 @@ index 0000000000000000000000000000000000000000..c6eef331346ebc244a26e8b1e5919d19
 +import { Options } from 'vs/server/ipc.d';
 +import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
 +import { ILogService } from 'vs/platform/log/common/log';
++import * as path from 'vs/base/common/path';
 +
 +class TelemetryService extends TelemetryChannelClient {
 +	public constructor(
@@ -925,10 +926,12 @@ index 0000000000000000000000000000000000000000..c6eef331346ebc244a26e8b1e5919d19
 +
 +	const logService = (services.get(ILogService) as ILogService);
 +	const storageService = (services.get(IStorageService) as IStorageService);
++	// We set this here first in case the path changes.
++	const updateCheckEndpoint = path.join(window.location.pathname, "/update/check")
 +	const getUpdate = async (): Promise<void> => {
 +		logService.debug("Checking for update...");
 +
-+		const response = await fetch("update/check", {
++		const response = await fetch(updateCheckEndpoint, {
 +			headers: { "Accept": "application/json" },
 +		});
 +		if (!response.ok) {
