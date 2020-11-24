@@ -3803,6 +3803,73 @@ index 74f6922e98b4bb6a7fb100f5aac015afe9fc171b..3243a97c2d378013d96ffbe87e9df6dd
  
  .scm-view .monaco-list .monaco-list-row .resource-group > .actions,
  .scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
+diff --git a/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts b/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts
+index 6af6a4b7f42654ec6cc60e0ba5efd376919f3e04..3a8176951628e0b2528aae8796ba684c3ab53d9a 100644
+--- a/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts
++++ b/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts
+@@ -4,6 +4,7 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import { escape } from 'vs/base/common/strings';
++import product from 'vs/platform/product/common/product';
+ import { localize } from 'vs/nls';
+ 
+ export default () => `
+@@ -11,7 +12,7 @@ export default () => `
+ 	<div class="welcomePage" role="document">
+ 		<div class="title">
+ 			<h1 class="caption">${escape(localize('welcomePage.vscode', "Visual Studio Code"))}</h1>
+-			<p class="subtitle detail">${escape(localize({ key: 'welcomePage.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))}</p>
++			<p class="subtitle detail">VS Code v${product.version}</p>
+ 		</div>
+ 		<div class="row">
+ 			<div class="splash">
+@@ -32,6 +33,19 @@ export default () => `
+ 					</ul>
+ 					<p class="none detail">${escape(localize('welcomePage.noRecentFolders', "No recent folders"))}</p>
+ 				</div>
++				<div class="section help">
++					<h2 class="caption">code-server ${escape(localize('welcomePage.help', "Help"))}</h2>
++					<ul>
++						<li><a href="https://github.com/cdr/code-server">GitHub Repository</a></li>
++						<li><a href="https://github.com/cdr/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>
++						<li><a href="https://github.com/cdr/code-server/issues">Issue Tracker</a></li>
++						<li><a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md">FAQ</a></li>
++						<li><a href="https://github.com/cdr/code-server/blob/master/doc/guide.md">Setup Guide</a></li>
++						<li><a href="https://github.com/cdr/code-server/tree/master/doc">Docs</a></li>
++						<li><a href="https://github.com/cdr/code-server/discussions">Discussions</a></li>
++						<li><a href="https://cdr.co/join-community">Slack</a></li>
++					</ul>
++				</div>
+ 				<div class="section help">
+ 					<h2 class="caption">${escape(localize('welcomePage.help', "Help"))}</h2>
+ 					<ul>
+diff --git a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.css b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.css
+index 738ce140c1af76ee0017c59cc883578e966f5348..80833b7023ed5795bb3de303b54ec08d9dab9b94 100644
+--- a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.css
++++ b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.css
+@@ -94,7 +94,7 @@
+ }
+ 
+ .monaco-workbench .part.editor > .content .welcomePage .splash .section {
+-	margin-bottom: 5em;
++	margin-bottom: 3em;
+ }
+ 
+ .monaco-workbench .part.editor > .content .welcomePage .splash ul {
+diff --git a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
+index 4a61a79fe447e2aa238af568791bff1e0cec4d29..791b63342f476f1baba9d31b040d3ef589e3f70a 100644
+--- a/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
++++ b/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts
+@@ -328,7 +328,7 @@ class WelcomePage extends Disposable {
+ 
+ 		const prodName = container.querySelector('.welcomePage .title .caption') as HTMLElement;
+ 		if (prodName) {
+-			prodName.textContent = this.productService.nameLong;
++			prodName.textContent = `code-server v${this.productService.codeServerVersion}`
+ 		}
+ 
+ 		recentlyOpened.then(({ workspaces }) => {
 diff --git a/src/vs/workbench/electron-sandbox/sandbox.simpleservices.ts b/src/vs/workbench/electron-sandbox/sandbox.simpleservices.ts
 index ed4f26407391bd62219a9f8245a5cd63a7cb7488..92f26d1b082f80475cf76409a4569e948e9e0bd9 100644
 --- a/src/vs/workbench/electron-sandbox/sandbox.simpleservices.ts
