@@ -264,9 +264,18 @@ index 28f8a69a2a91f9cb9f4dbd73ed3e689b2b3afe84..b5f5b10004d3e36092a30f685938a606
    }
  }
 diff --git a/product.json b/product.json
-index 7cab6d1b9f3b84bfc703856e93773a293fd198cf..31d3d5a943192eee791e1121415b436dc1ed3822 100644
+index 7cab6d1b9f3b84bfc703856e93773a293fd198cf..6924d94f65b390f52885b1036f7e96bce0e34680 100644
 --- a/product.json
 +++ b/product.json
+@@ -1,6 +1,6 @@
+ {
+-	"nameShort": "Code - OSS",
+-	"nameLong": "Code - OSS",
++	"nameShort": "code-server",
++	"nameLong": "code-server",
+ 	"applicationName": "code-oss",
+ 	"dataFolderName": ".vscode-oss",
+ 	"win32MutexName": "vscodeoss",
 @@ -20,7 +20,7 @@
  	"darwinBundleIdentifier": "com.visualstudio.code.oss",
  	"linuxIconName": "com.visualstudio.code.oss",
@@ -276,6 +285,22 @@ index 7cab6d1b9f3b84bfc703856e93773a293fd198cf..31d3d5a943192eee791e1121415b436d
  	"urlProtocol": "code-oss",
  	"extensionAllowedProposedApi": [
  		"ms-vscode.vscode-js-profile-flame",
+@@ -136,5 +136,14 @@
+ 				"publisherDisplayName": "Microsoft"
+ 			}
+ 		}
+-	]
++	],
++
++	"//": "https://github.com/VSCodium/vscodium/pull/155/files",
++	"documentationUrl": "https://go.microsoft.com/fwlink/?LinkID=533484#vscode",
++	"keyboardShortcutsUrlMac": "https://go.microsoft.com/fwlink/?linkid=832143",
++	"keyboardShortcutsUrlLinux": "https://go.microsoft.com/fwlink/?linkid=832144",
++	"keyboardShortcutsUrlWin": "https://go.microsoft.com/fwlink/?linkid=832145",
++	"introductoryVideosUrl": "https://go.microsoft.com/fwlink/?linkid=832146",
++	"tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
++	"newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter"
+ }
 diff --git a/remote/.yarnrc b/remote/.yarnrc
 deleted file mode 100644
 index c1a32ce532afa501fb19bdbcf6bcb0ec151ecd99..0000000000000000000000000000000000000000
