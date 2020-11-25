@@ -988,7 +988,7 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +		const lastNoti = storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
 +		if (lastNoti) {
 +			// Only remind them again after 1 week.
-+			const timeout = 1000*60*24*7;
++			const timeout = 1000*60*60*24*7;
 +			const threshold = lastNoti + timeout;
 +			if (Date.now() < threshold) {
 +				return;
@@ -1007,7 +1007,7 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +			logService.debug(`failed to check for update: ${error}`);
 +		}).finally(() => {
 +			// Check again every 6 hours.
-+			setTimeout(updateLoop, 1000*60*6);
++			setTimeout(updateLoop, 1000*60*60*6);
 +		});
 +	};
 +
