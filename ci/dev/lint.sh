@@ -11,6 +11,10 @@ main() {
   if command -v helm && helm kubeval --help > /dev/null; then
     helm kubeval ci/helm-chart
   fi
+
+  cd lib/vscode
+  yarn eslint --max-warnings=0
+  cd "$OLDPWD"
 }
 
 main "$@"
