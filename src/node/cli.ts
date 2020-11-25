@@ -33,6 +33,7 @@ export interface Args extends VsArgs {
   "cert-host"?: string
   "cert-key"?: string
   "disable-telemetry"?: boolean
+  "disable-update-check"?: boolean
   help?: boolean
   host?: string
   json?: boolean
@@ -114,6 +115,12 @@ const options: Options<Required<Args>> = {
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
+  "disable-update-check": {
+    type: "boolean",
+    description:
+      "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
+      "then notifies you once every week that a new release is available.",
+  },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
