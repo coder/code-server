@@ -2445,10 +2445,10 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..93062cadc627c61e0829c27a72894b81e6a0e039
+index 0000000000000000000000000000000000000000..5c3caf4d12cbf9b7228699ec4fa40cb406aa6307
 --- /dev/null
 +++ b/src/vs/server/node/connection.ts
-@@ -0,0 +1,171 @@
+@@ -0,0 +1,189 @@
 +import { field, Logger, logger } from '@coder/logger';
 +import * as cp from 'child_process';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -2459,6 +2459,7 @@ index 0000000000000000000000000000000000000000..93062cadc627c61e0829c27a72894b81
 +import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 +import { getNlsConfiguration } from 'vs/server/node/nls';
 +import { Protocol } from 'vs/server/node/protocol';
++import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 +
 +export abstract class Connection {
 +	private readonly _onClose = new Emitter<void>();
@@ -2519,6 +2520,19 @@ index 0000000000000000000000000000000000000000..93062cadc627c61e0829c27a72894b81
 +		this.protocol.endAcceptReconnection();
 +	}
 +}
++
++interface DisconnectedMessage {
++	type: 'VSCODE_EXTHOST_DISCONNECTED';
++}
++
++interface ConsoleMessage {
++	type: '__$console';
++	// See bootstrap-fork.js#L135.
++	severity: 'log' | 'warn' | 'error';
++	arguments: any[];
++}
++
++type ExtHostMessage = DisconnectedMessage | ConsoleMessage | IExtHostReadyMessage;
 +
 +export class ExtensionHostConnection extends Connection {
 +	private process?: cp.ChildProcess;
@@ -2596,11 +2610,15 @@ index 0000000000000000000000000000000000000000..93062cadc627c61e0829c27a72894b81
 +			proc.stderr.setEncoding('utf8').on('data', (d) => this.logger.error(d));
 +		}
 +
-+		proc.on('message', (event) => {
-+			switch (event && event.type) {
++		proc.on('message', (event: ExtHostMessage) => {
++			switch (event.type) {
 +				case '__$console':
-+					const severity = (<any>this.logger)[event.severity] || 'info';
-+					(<any>this.logger)[severity]('console', field('arguments', event.arguments));
++					const fn = this.logger[event.severity === 'log' ? 'info' : event.severity];
++					if (fn) {
++						fn('console', field('arguments', event.arguments));
++					} else {
++						this.logger.error('Unexpected severity', field('event', event));
++					}
 +					break;
 +				case 'VSCODE_EXTHOST_DISCONNECTED':
 +					this.logger.trace('Going offline');
