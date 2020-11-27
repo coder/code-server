@@ -1,3 +1,25 @@
+diff --git a/.eslintrc.json b/.eslintrc.json
+index 055bc22f8e48e7dee559b83ac56c12a54c6ad544..14c026c04a7df5ac94bea2856e3a7a513c213775 100644
+--- a/.eslintrc.json
++++ b/.eslintrc.json
+@@ -64,7 +64,7 @@
+         "code-no-standalone-editor": "warn",
+         "code-no-unexternalized-strings": "warn",
+         "code-layering": [
+-            "warn",
++            "off",
+             {
+                 "common": [],
+                 "node": [
+@@ -90,7 +90,7 @@
+             }
+         ],
+         "code-import-patterns": [
+-            "warn",
++            "off",
+             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+             // !!! Do not relax these rules !!!
+             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 diff --git a/.gitignore b/.gitignore
 index b7f5b58c8ede171be547c56b61ce76f79a3accc3..856fbd8c67460fe099d7fbee1475e906b500f053 100644
 --- a/.gitignore
@@ -437,7 +459,7 @@ index ef2291d49b13c9c995afc90eab9c92afabc2b3b4..29b2f9dfc2b7fa998ac1188db06dee95
 \ No newline at end of file
 +}
 diff --git a/src/vs/base/node/languagePacks.js b/src/vs/base/node/languagePacks.js
-index 2c64061da7b01aef0bfe3cec851da232ca9461c8..c0ef8faedd406c38bf9c55bbbdbbb060046492d9 100644
+index 2c64061da7b01aef0bfe3cec851da232ca9461c8..db47fe2eb1cded1e9c33b42fe700421c36a1d481 100644
 --- a/src/vs/base/node/languagePacks.js
 +++ b/src/vs/base/node/languagePacks.js
 @@ -128,7 +128,10 @@ function factory(nodeRequire, path, fs, perf) {
@@ -448,12 +470,12 @@ index 2c64061da7b01aef0bfe3cec851da232ca9461c8..c0ef8faedd406c38bf9c55bbbdbbb060
 +			// NOTE@coder: Swapped require with readFile since require is cached and
 +			// we don't restart the server-side portion of code-server when the
 +			// language changes.
-+			return JSON.parse(fs.readFileSync(configFile, "utf8"));
++			return JSON.parse(fs.readFileSync(configFile, 'utf8'));
  		} catch (err) {
  			// Do nothing. If we can't read the file we have no
  			// language pack config.
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..62a79602a831bca0dc62ad57dc10a9375f8b9cdb 100644
+index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..e490cf7449623f96c780a65d538fad72cf9306e4 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -17,6 +17,7 @@ import { isStandalone } from 'vs/base/browser/browser';
@@ -496,7 +518,7 @@ index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..62a79602a831bca0dc62ad57dc10a937
 +	};
 +
 +	// Strip the protocol from the authority if it exists.
-+	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, "");
++	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, '');
 +	if (config.remoteAuthority) {
 +		(config as any).remoteAuthority = normalizeAuthority(config.remoteAuthority);
 +	}
@@ -769,7 +791,7 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84a892f49d
+index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152ed407146
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
 @@ -0,0 +1,240 @@
@@ -806,7 +828,7 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 + * Remove extra slashes in a URL.
 + */
 +export const normalize = (url: string, keepTrailing = false): string => {
-+	return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "");
++	return url.replace(/\/\/+/g, '/').replace(/\/+$/, keepTrailing ? '/' : '');
 +};
 +
 +/**
@@ -814,7 +836,7 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 + */
 +export const getOptions = <T extends Options>(): T => {
 +	try {
-+		return JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!);
++		return JSON.parse(document.getElementById('coder-options')!.getAttribute('data-settings')!);
 +	} catch (error) {
 +		return {} as T;
 +	}
@@ -927,12 +949,12 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 +	const logService = (services.get(ILogService) as ILogService);
 +	const storageService = (services.get(IStorageService) as IStorageService);
 +	// We set this here first in case the path changes.
-+	const updateCheckEndpoint = path.join(window.location.pathname, "/update/check")
++	const updateCheckEndpoint = path.join(window.location.pathname, '/update/check');
 +	const getUpdate = async (): Promise<void> => {
-+		logService.debug("Checking for update...");
++		logService.debug('Checking for update...');
 +
 +		const response = await fetch(updateCheckEndpoint, {
-+			headers: { "Accept": "application/json" },
++			headers: { 'Accept': 'application/json' },
 +		});
 +		if (!response.ok) {
 +			throw new Error(response.statusText);
@@ -945,7 +967,7 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 +			return;
 +		}
 +
-+		const lastNoti = storageService.getNumber("csLastUpdateNotification", StorageScope.GLOBAL);
++		const lastNoti = storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
 +		if (lastNoti) {
 +			// Only remind them again after two days.
 +			const timeout = 1000*60*24*2;
@@ -955,7 +977,7 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 +			}
 +		}
 +
-+		storageService.store("csLastUpdateNotification", Date.now(), StorageScope.GLOBAL);
++		storageService.store('csLastUpdateNotification', Date.now(), StorageScope.GLOBAL);
 +		(services.get(INotificationService) as INotificationService).notify({
 +			severity: Severity.Info,
 +			message: `[code-server v${json.latest}](https://github.com/cdr/code-server/releases/tag/v${json.latest}) has been released!`,
@@ -974,9 +996,9 @@ index 0000000000000000000000000000000000000000..385b9da491d38a9f5d10fab6e4666c84
 +	updateLoop();
 +
 +	// This will be used to set the background color while VS Code loads.
-+	const theme = storageService.get("colorThemeData", StorageScope.GLOBAL);
++	const theme = storageService.get('colorThemeData', StorageScope.GLOBAL);
 +	if (theme) {
-+		localStorage.setItem("colorThemeData", theme);
++		localStorage.setItem('colorThemeData', theme);
 +	}
 +};
 +
@@ -1072,7 +1094,7 @@ index 0000000000000000000000000000000000000000..5dd5406befcb593ad6366d9e98f46485
 +export const IExtHostNodeProxy = createDecorator<IExtHostNodeProxy>('IExtHostNodeProxy');
 diff --git a/src/vs/server/browser/mainThreadNodeProxy.ts b/src/vs/server/browser/mainThreadNodeProxy.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..21a139288e5b8f56016491879d69d01da929decb
+index 0000000000000000000000000000000000000000..acabf8c167cabc954b8611a77f57641f3ca0b444
 --- /dev/null
 +++ b/src/vs/server/browser/mainThreadNodeProxy.ts
 @@ -0,0 +1,55 @@
@@ -1115,7 +1137,7 @@ index 0000000000000000000000000000000000000000..21a139288e5b8f56016491879d69d01d
 +			scheme: window.location.protocol.replace(':', ''),
 +			authority: window.location.host,
 +			// Use FileAccess to get the static base path.
-+			path: FileAccess.asBrowserUri("", require).path,
++			path: FileAccess.asBrowserUri('', require).path,
 +			query: `tar=${encodeURIComponent(extensionUri.path)}`,
 +		});
 +		const response = await fetch(fetchUri.toString(true));
@@ -1405,7 +1427,7 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78fc72a5c6
+index 0000000000000000000000000000000000000000..0a4a91e5e36bda7f888feedda348aaff5fe32d27
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
 @@ -0,0 +1,131 @@
@@ -1518,8 +1540,8 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +		readonly logLevel?: number;
 +		readonly workspaceProvider?: {
 +			payload: [
-+				["userDataPath", string],
-+				["enableProposedApi", string],
++				['userDataPath', string],
++				['enableProposedApi', string],
 +			];
 +		};
 +	};
@@ -1542,7 +1564,7 @@ index 0000000000000000000000000000000000000000..6ce56bec114a6d8daf5dd3ded945ea78
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1e95c3b9d
+index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938cb23f6c26
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
 @@ -0,0 +1,897 @@
@@ -1976,7 +1998,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +class Terminal {
 +	private readonly process: TerminalProcess;
 +	private _pid: number = -1;
-+	private _title: string = "";
++	private _title: string = '';
 +	public readonly workspaceId: string;
 +	public readonly workspaceName: string;
 +	private readonly persist: boolean;
@@ -2013,7 +2035,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +		onFirstListenerDidAdd: () => {
 +			// We only need to replay if the terminal is being reconnected which is
 +			// true if there is a dispose timeout.
-+			if (typeof this.disposeTimeout !== "undefined") {
++			if (typeof this.disposeTimeout !== 'undefined') {
 +				return;
 +			}
 +
@@ -2026,7 +2048,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +				events: [{
 +					cols: this.cols,
 +					rows: this.rows,
-+					data: this.replayData.join(""),
++					data: this.replayData.join(''),
 +				}]
 +			});
 +		},
@@ -2245,7 +2267,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +
 +	private async createTerminalProcess(remoteAuthority: string, args: terminal.ICreateTerminalProcessArguments): Promise<terminal.ICreateTerminalProcessResult> {
 +		const terminalId = this.id++;
-+		logger.debug('Creating terminal', field('id', terminalId), field("terminals", this.terminals.size));
++		logger.debug('Creating terminal', field('id', terminalId), field('terminals', this.terminals.size));
 +
 +		const shellLaunchConfig: IShellLaunchConfig = {
 +			name: args.shellLaunchConfig.name,
@@ -2253,7 +2275,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +			args: args.shellLaunchConfig.args,
 +			// TODO: Should we transform if it's a string as well? The incoming
 +			// transform only takes `UriComponents` so I suspect it's not necessary.
-+			cwd: typeof args.shellLaunchConfig.cwd !== "string"
++			cwd: typeof args.shellLaunchConfig.cwd !== 'string'
 +				? transformIncoming(remoteAuthority, args.shellLaunchConfig.cwd)
 +				: args.shellLaunchConfig.cwd,
 +			env: args.shellLaunchConfig.env,
@@ -2445,7 +2467,7 @@ index 0000000000000000000000000000000000000000..693174ee0d21353c3a08a42fd30eaad1
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..5c3caf4d12cbf9b7228699ec4fa40cb406aa6307
+index 0000000000000000000000000000000000000000..fb7999ee343ddfd5f225a5ef727c9e559059fb58
 --- /dev/null
 +++ b/src/vs/server/node/connection.ts
 @@ -0,0 +1,189 @@
@@ -2543,7 +2565,7 @@ index 0000000000000000000000000000000000000000..5c3caf4d12cbf9b7228699ec4fa40cb4
 +		private readonly environment: INativeEnvironmentService,
 +	) {
 +		super(protocol, token);
-+		this.logger = logger.named("exthost", field("token", token));
++		this.logger = logger.named('exthost', field('token', token));
 +		this.protocol.dispose();
 +		this.spawn(locale, buffer).then((p) => this.process = p);
 +		this.protocol.getUnderlyingSocket().pause();
@@ -2629,7 +2651,7 @@ index 0000000000000000000000000000000000000000..5c3caf4d12cbf9b7228699ec4fa40cb4
 +					this.sendInitMessage(buffer);
 +					break;
 +				default:
-+					this.logger.error('Unexpected message', field("event", event));
++					this.logger.error('Unexpected message', field('event', event));
 +					break;
 +			}
 +		});
@@ -3119,7 +3141,7 @@ index 0000000000000000000000000000000000000000..3d428a57d31f29c40f9c3ce45f715b44
 +};
 diff --git a/src/vs/server/node/protocol.ts b/src/vs/server/node/protocol.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84924213db
+index 0000000000000000000000000000000000000000..57213f92828fafefcab0e3c401a1e8ede472c9cc
 --- /dev/null
 +++ b/src/vs/server/node/protocol.ts
 @@ -0,0 +1,91 @@
@@ -3161,7 +3183,7 @@ index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84
 +		return new Promise((resolve, reject) => {
 +			const timeout = setTimeout(() => {
 +				logger.error('Handshake timed out', field('token', this.options.reconnectionToken));
-+				reject(new Error("timed out"));
++				reject(new Error('timed out'));
 +			}, 10000); // Matches the client timeout.
 +
 +			const handler = this.onControlMessage((rawMessage) => {
@@ -3216,7 +3238,7 @@ index 0000000000000000000000000000000000000000..0d9310038c0ca378579652d89bc8ac84
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb1261051c71e08b
+index 0000000000000000000000000000000000000000..5521d51a92d1b1e3469e890bae41277b560d08a2
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
 @@ -0,0 +1,302 @@
@@ -3230,7 +3252,7 @@ index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb126105
 +import { getMachineId } from 'vs/base/node/id';
 +import { ClientConnectionEvent, createChannelReceiver, IPCServer, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
 +import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
-+import { main } from "vs/code/node/cliProcessMain";
++import { main } from 'vs/code/node/cliProcessMain';
 +import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 +import { ConfigurationService } from 'vs/platform/configuration/common/configurationService';
 +import { ExtensionHostDebugBroadcastChannel } from 'vs/platform/debug/common/extensionHostDebugIpc';
@@ -3278,7 +3300,7 @@ index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb126105
 +import { Protocol } from 'vs/server/node/protocol';
 +import { getUriTransformer } from 'vs/server/node/util';
 +import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-+import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from "vs/workbench/services/remote/common/remoteAgentFileSystemChannel";
++import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 +import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
 +
 +export class Vscode {
@@ -3324,8 +3346,8 @@ index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb126105
 +				logLevel: getLogLevel(environment),
 +				workspaceProvider: {
 +					payload: [
-+						["userDataPath", environment.userDataPath],
-+						["enableProposedApi", JSON.stringify(options.args["enable-proposed-api"] || [])]
++						['userDataPath', environment.userDataPath],
++						['enableProposedApi', JSON.stringify(options.args['enable-proposed-api'] || [])]
 +					],
 +				},
 +			},
@@ -3425,7 +3447,7 @@ index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb126105
 +		const offline = Array.from(connections.values())
 +			.filter((connection) => typeof connection.offline !== 'undefined');
 +		for (let i = 0, max = offline.length - this.maxExtraOfflineConnections; i < max; ++i) {
-+			logger.debug('Disposing offline connection', field("token", offline[i].token));
++			logger.debug('Disposing offline connection', field('token', offline[i].token));
 +			offline[i].dispose();
 +		}
 +	}
@@ -3524,7 +3546,7 @@ index 0000000000000000000000000000000000000000..c10a5a3a6771a94b2cbcb699bb126105
 +}
 diff --git a/src/vs/server/node/util.ts b/src/vs/server/node/util.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..fa47e993b46802f1a26457649e9e8bc467a73bf2
+index 0000000000000000000000000000000000000000..d76f655e36647b1c9d38d2f7986f2b78a4bcfb50
 --- /dev/null
 +++ b/src/vs/server/node/util.ts
 @@ -0,0 +1,13 @@
@@ -3539,7 +3561,7 @@ index 0000000000000000000000000000000000000000..fa47e993b46802f1a26457649e9e8bc4
 + * preserves slashes so it can be edited by hand more easily.
 + */
 +export const encodePath = (path: string): string => {
-+	return path.split("/").map((p) => encodeURIComponent(p)).join("/");
++	return path.split('/').map((p) => encodeURIComponent(p)).join('/');
 +};
 diff --git a/src/vs/workbench/api/browser/extensionHost.contribution.ts b/src/vs/workbench/api/browser/extensionHost.contribution.ts
 index a4df8523631563a498c9ab6e51105074616a481a..f03da094e9080544102bbd3f037a71b348e5bd83 100644
@@ -3710,7 +3732,7 @@ index b3c89e51cfc25a53293a352a2a8ad50d5f26d595..e21abe4e13bc25a5b72f556bbfb61085
  registerSingleton(IExtHostTunnelService, ExtHostTunnelService);
 +registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy<IExtHostNodeProxy>(String(IExtHostNodeProxy)) { whenReady = Promise.resolve(); });
 diff --git a/src/vs/workbench/api/node/extHostCLIServer.ts b/src/vs/workbench/api/node/extHostCLIServer.ts
-index b3857616f7006127c423dcef7020ae4653da5ff6..1c1b80a2767bf77f30ca5bfee715c337120d3625 100644
+index b3857616f7006127c423dcef7020ae4653da5ff6..594cd75b546a4b845e56122c846f63e29dc5f948 100644
 --- a/src/vs/workbench/api/node/extHostCLIServer.ts
 +++ b/src/vs/workbench/api/node/extHostCLIServer.ts
 @@ -11,6 +11,8 @@ import { IWindowOpenable, IOpenWindowOptions } from 'vs/platform/windows/common/
@@ -3727,7 +3749,7 @@ index b3857616f7006127c423dcef7020ae4653da5ff6..1c1b80a2767bf77f30ca5bfee715c337
  
  	private async setup(): Promise<string> {
 +		// NOTE@coder: Write this out so we can get the most recent path.
-+		fs.promises.writeFile(join(tmpdir(), "vscode-ipc"), this._ipcHandlePath).catch((error) => {
++		fs.promises.writeFile(join(tmpdir(), 'vscode-ipc'), this._ipcHandlePath).catch((error) => {
 +			this.logService.error(error);
 +		});
 +
@@ -3752,7 +3774,7 @@ index 3843fdec386edc09a1d361b63de892a04e0070ed..8aac4df527857e964798362a69f5591b
  registerSingleton(ILogService, ExtHostLogService);
 +registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);
 diff --git a/src/vs/workbench/api/worker/extHostExtensionService.ts b/src/vs/workbench/api/worker/extHostExtensionService.ts
-index 021af6e0f8983c492f9cdd048ba2dcae7640bc1d..814dd0ff2fa7737e07833d8092c8f48953c73c47 100644
+index 021af6e0f8983c492f9cdd048ba2dcae7640bc1d..4474a93beba03365709c3cda98b682131ad4745f 100644
 --- a/src/vs/workbench/api/worker/extHostExtensionService.ts
 +++ b/src/vs/workbench/api/worker/extHostExtensionService.ts
 @@ -11,6 +11,7 @@ import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterc
@@ -3770,7 +3792,7 @@ index 021af6e0f8983c492f9cdd048ba2dcae7640bc1d..814dd0ff2fa7737e07833d8092c8f489
 -		return extensionDescription.browser;
 +		// NOTE@coder: We can support regular Node modules as well. These will just
 +		// require the root of the extension.
-+		return extensionDescription.browser || ".";
++		return extensionDescription.browser || '.';
  	}
  
 -	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
@@ -3972,7 +3994,7 @@ index 85d83f37da179a1e39266cf72a02e971f590308e..0659738b36df1747c9afcabf8d9abf26
  		};
  
 diff --git a/src/vs/workbench/services/environment/browser/environmentService.ts b/src/vs/workbench/services/environment/browser/environmentService.ts
-index a8d43045ecc8cbe04b3f8440cff16d42aadbcad0..8e122c761ac7ddfee11f9dda2ac5e845b893cc28 100644
+index a8d43045ecc8cbe04b3f8440cff16d42aadbcad0..d051473515e35b331672b780109bd40229153c8c 100644
 --- a/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ b/src/vs/workbench/services/environment/browser/environmentService.ts
 @@ -119,8 +119,25 @@ export class BrowserWorkbenchEnvironmentService implements IWorkbenchEnvironment
@@ -3993,9 +4015,9 @@ index a8d43045ecc8cbe04b3f8440cff16d42aadbcad0..8e122c761ac7ddfee11f9dda2ac5e845
 +	get userRoamingDataHome(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.vscodeRemote }), 'User'); }
 +	@memoize
 +	get userDataPath(): string {
-+		const dataPath = this.payload?.get("userDataPath");
++		const dataPath = this.payload?.get('userDataPath');
 +		if (!dataPath) {
-+			throw new Error("userDataPath was not provided to environment service");
++			throw new Error('userDataPath was not provided to environment service');
 +		}
 +		return dataPath;
 +	}
@@ -4057,9 +4079,18 @@ index de7e301d3f0c67ce662827f61427a5a7b3616b9f..877ea8e11e6e6d34b9a8fe16287af309
  	}
  
 diff --git a/src/vs/workbench/services/extensions/browser/extensionService.ts b/src/vs/workbench/services/extensions/browser/extensionService.ts
-index 1dff19bf177eff24f722b748b79835a653241c4d..0f59ad290c82cc4c9d09c565c1018cc275ca0249 100644
+index 1dff19bf177eff24f722b748b79835a653241c4d..01ce9bc00cc39c27e75db006425c359f813a4719 100644
 --- a/src/vs/workbench/services/extensions/browser/extensionService.ts
 +++ b/src/vs/workbench/services/extensions/browser/extensionService.ts
+@@ -87,7 +87,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+ 			if (code === ExtensionHostExitCode.StartTimeout10s) {
+ 				this._notificationService.prompt(
+ 					Severity.Error,
+-					nls.localize('extensionService.startTimeout', "The Web Worker Extension Host did not start in 10s."),
++					nls.localize('extensionService.startTimeout', 'The Web Worker Extension Host did not start in 10s.'),
+ 					[]
+ 				);
+ 				return;
 @@ -177,8 +177,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
  			this._remoteAgentService.getEnvironment(),
  			this._remoteAgentService.scanExtensions()
@@ -4068,10 +4099,19 @@ index 1dff19bf177eff24f722b748b79835a653241c4d..0f59ad290c82cc4c9d09c565c1018cc2
  		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
 +		// NOTE@coder: Include remotely hosted extensions that should run locally.
 +		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
-+			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === "web" || ext.extensionKind.includes("web"))));
++			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === 'web' || ext.extensionKind.includes('web'))));
  
  		const remoteAgentConnection = this._remoteAgentService.getConnection();
  		this._runningLocation = this._runningLocationClassifier.determineRunningLocation(localExtensions, remoteExtensions);
+@@ -188,7 +190,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
+ 
+ 		const result = this._registry.deltaExtensions(remoteExtensions.concat(localExtensions), []);
+ 		if (result.removedDueToLooping.length > 0) {
+-			this._logOrShowMessage(Severity.Error, nls.localize('looping', "The following extensions contain dependency loops and have been disabled: {0}", result.removedDueToLooping.map(e => `'${e.identifier.value}'`).join(', ')));
++			this._logOrShowMessage(Severity.Error, nls.localize('looping', 'The following extensions contain dependency loops and have been disabled: {0}', result.removedDueToLooping.map(e => `'${e.identifier.value}'`).join(', ')));
+ 		}
+ 
+ 		if (remoteEnv && remoteAgentConnection) {
 diff --git a/src/vs/workbench/services/extensions/common/extensionsUtil.ts b/src/vs/workbench/services/extensions/common/extensionsUtil.ts
 index 65e532ee58dfc06ed944846d01b885cb8f260ebc..0b6282fde7ad03c7ea9872a777cbf487253abed1 100644
 --- a/src/vs/workbench/services/extensions/common/extensionsUtil.ts
