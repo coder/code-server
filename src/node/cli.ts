@@ -4,8 +4,12 @@ import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
-import { AuthType } from "./http"
-import { generatePassword, humanPath, paths } from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
+
+export enum AuthType {
+  Password = "password",
+  None = "none",
+}
 
 export class Optional<T> {
   public constructor(public readonly value?: T) {}
@@ -22,31 +26,34 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 export interface Args extends VsArgs {
-  readonly config?: string
-  readonly auth?: AuthType
-  readonly password?: string
-  readonly cert?: OptionalString
-  readonly "cert-key"?: string
-  readonly "disable-telemetry"?: boolean
-  readonly help?: boolean
-  readonly host?: string
-  readonly json?: boolean
+  config?: string
+  auth?: AuthType
+  password?: string
+  cert?: OptionalString
+  "cert-host"?: string
+  "cert-key"?: string
+  "disable-telemetry"?: boolean
+  help?: boolean
+  host?: string
+  json?: boolean
   log?: LogLevel
-  readonly open?: boolean
-  readonly port?: number
-  readonly "bind-addr"?: string
-  readonly socket?: string
-  readonly version?: boolean
-  readonly force?: boolean
-  readonly "list-extensions"?: boolean
-  readonly "install-extension"?: string[]
-  readonly "show-versions"?: boolean
-  readonly "uninstall-extension"?: string[]
-  readonly "proxy-domain"?: string[]
-  readonly locale?: string
-  readonly _: string[]
-  readonly "reuse-window"?: boolean
-  readonly "new-window"?: boolean
+  open?: boolean
+  port?: number
+  "bind-addr"?: string
+  socket?: string
+  version?: boolean
+  force?: boolean
+  "list-extensions"?: boolean
+  "install-extension"?: string[]
+  "show-versions"?: boolean
+  "uninstall-extension"?: string[]
+  "proxy-domain"?: string[]
+  locale?: string
+  _: string[]
+  "reuse-window"?: boolean
+  "new-window"?: boolean
+
+  link?: OptionalString
 }
 
 interface Option<T> {
@@ -63,6 +70,11 @@ interface Option<T> {
    * Description of the option. Leave blank to hide the option.
    */
   description?: string
+
+  /**
+   * If marked as beta, the option is not printed unless $CS_BETA is set.
+   */
+  beta?: boolean
 }
 
 type OptionType<T> = T extends boolean
@@ -94,7 +106,11 @@ const options: Options<Required<Args>> = {
   cert: {
     type: OptionalString,
     path: true,
-    description: "Path to certificate. Generated if no path is provided.",
+    description: "Path to certificate. A self signed certificate is generated if none is provided.",
+  },
+  "cert-host": {
+    type: "string",
+    description: "Hostname to use when generating a self signed certificate.",
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
@@ -130,7 +146,8 @@ const options: Options<Required<Args>> = {
   "install-extension": {
     type: "string[]",
     description:
-      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`. To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+      "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
+      "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
   },
   "enable-proposed-api": {
     type: "string[]",
@@ -144,17 +161,29 @@ const options: Options<Required<Args>> = {
   "new-window": {
     type: "boolean",
     short: "n",
-    description: "Force to open a new window. (use with open-in)",
+    description: "Force to open a new window.",
   },
   "reuse-window": {
     type: "boolean",
     short: "r",
-    description: "Force to open a file or folder in an already opened window. (use with open-in)",
+    description: "Force to open a file or folder in an already opened window.",
   },
 
   locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
+
+  link: {
+    type: OptionalString,
+    description: `
+      Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
+      https://myname.coder-cloud.com at which you can easily access your code-server instance.
+      Authorization is done via GitHub.
+      This is presently beta and requires being accepted for testing.
+      See https://github.com/cdr/code-server/discussions/2137
+    `,
+    beta: true,
+  },
 }
 
 export const optionDescriptions = (): string[] => {
@@ -166,12 +195,32 @@ export const optionDescriptions = (): string[] => {
     }),
     { short: 0, long: 0 },
   )
-  return entries.map(
-    ([k, v]) =>
-      `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k}${" ".repeat(
-        widths.long - k.length,
-      )} ${v.description}${typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : ""}`,
-  )
+  return entries
+    .filter(([, v]) => {
+      // If CS_BETA is set, we show beta options but if not, then we do not want
+      // to show beta options.
+      return process.env.CS_BETA || !v.beta
+    })
+    .map(([k, v]) => {
+      const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${
+        v.short ? `-${v.short}` : " "
+      } --${k} `
+      return (
+        help +
+        v.description
+          ?.trim()
+          .split(/\n/)
+          .map((line, i) => {
+            line = line.trim()
+            if (i === 0) {
+              return " ".repeat(widths.long - k.length) + line
+            }
+            return " ".repeat(widths.long + widths.short + 6) + line
+          })
+          .join("\n") +
+        (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
+      )
+    })
 }
 
 export const parse = (
@@ -285,7 +334,46 @@ export const parse = (
     args._.push(arg)
   }
 
-  logger.debug("parsed command line", field("args", args))
+  // If a cert was provided a key must also be provided.
+  if (args.cert && args.cert.value && !args["cert-key"]) {
+    throw new Error("--cert-key is missing")
+  }
+
+  logger.debug(() => ["parsed command line", field("args", { ...args, password: undefined })])
+
+  return args
+}
+
+export interface DefaultedArgs extends ConfigArgs {
+  auth: AuthType
+  cert?: {
+    value: string
+  }
+  host: string
+  port: number
+  "proxy-domain": string[]
+  verbose: boolean
+  usingEnvPassword: boolean
+  "extensions-dir": string
+  "user-data-dir": string
+}
+
+/**
+ * Take CLI and config arguments (optional) and return a single set of arguments
+ * with the defaults set. Arguments from the CLI are prioritized over config
+ * arguments.
+ */
+export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promise<DefaultedArgs> {
+  const args = Object.assign({}, configArgs || {}, cliArgs)
+
+  if (!args["user-data-dir"]) {
+    await copyOldMacOSDataDir()
+    args["user-data-dir"] = paths.data
+  }
+
+  if (!args["extensions-dir"]) {
+    args["extensions-dir"] = path.join(args["user-data-dir"], "extensions")
+  }
 
   // --verbose takes priority over --log and --log takes priority over the
   // environment variable.
@@ -326,22 +414,49 @@ export const parse = (
       break
   }
 
-  return args
-}
-
-export async function setDefaults(args: Args): Promise<Args> {
-  args = { ...args }
-
-  if (!args["user-data-dir"]) {
-    await copyOldMacOSDataDir()
-    args["user-data-dir"] = paths.data
+  // Default to using a password.
+  if (!args.auth) {
+    args.auth = AuthType.Password
   }
 
-  if (!args["extensions-dir"]) {
-    args["extensions-dir"] = path.join(args["user-data-dir"], "extensions")
+  const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
+  args.host = addr.host
+  args.port = addr.port
+
+  // If we're being exposed to the cloud, we listen on a random address and
+  // disable auth.
+  if (args.link) {
+    args.host = "localhost"
+    args.port = 0
+    args.socket = undefined
+    args.cert = undefined
+    args.auth = AuthType.None
   }
 
-  return args
+  if (args.cert && !args.cert.value) {
+    const { cert, certKey } = await generateCertificate(args["cert-host"] || "localhost")
+    args.cert = {
+      value: cert,
+    }
+    args["cert-key"] = certKey
+  }
+
+  const usingEnvPassword = !!process.env.PASSWORD
+  if (process.env.PASSWORD) {
+    args.password = process.env.PASSWORD
+  }
+
+  // Ensure it's not readable by child processes.
+  delete process.env.PASSWORD
+
+  // Filter duplicate proxy domains and remove any leading `*.`.
+  const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
+  args["proxy-domain"] = Array.from(proxyDomains)
+
+  return {
+    ...args,
+    usingEnvPassword,
+  } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }
 
 async function defaultConfigFile(): Promise<string> {
@@ -352,12 +467,16 @@ cert: false
 `
 }
 
+interface ConfigArgs extends Args {
+  config: string
+}
+
 /**
  * Reads the code-server yaml config file and returns it as Args.
  *
  * @param configPath Read the config from configPath instead of $CODE_SERVER_CONFIG or the default.
  */
-export async function readConfigFile(configPath?: string): Promise<Args> {
+export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   if (!configPath) {
     configPath = process.env.CODE_SERVER_CONFIG
     if (!configPath) {
@@ -368,10 +487,6 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
   if (!(await fs.pathExists(configPath))) {
     await fs.outputFile(configPath, await defaultConfigFile())
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
-  }
-
-  if (!process.env.CODE_SERVER_PARENT_PID && !process.env.VSCODE_IPC_HOOK_CLI) {
-    logger.info(`Using config file ${humanPath(configPath)}`)
   }
 
   const configFile = await fs.readFile(configPath)
@@ -399,9 +514,15 @@ export async function readConfigFile(configPath?: string): Promise<Args> {
   }
 }
 
-function parseBindAddr(bindAddr: string): [string, number] {
+function parseBindAddr(bindAddr: string): Addr {
   const u = new URL(`http://${bindAddr}`)
-  return [u.hostname, parseInt(u.port, 10)]
+  return {
+    host: u.hostname,
+    // With the http scheme 80 will be dropped so assume it's 80 if missing.
+    // This means --bind-addr <addr> without a port will default to 80 as well
+    // and not the code-server default.
+    port: u.port ? parseInt(u.port, 10) : 80,
+  }
 }
 
 interface Addr {
@@ -412,7 +533,7 @@ interface Addr {
 function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   addr = { ...addr }
   if (args["bind-addr"]) {
-    ;[addr.host, addr.port] = parseBindAddr(args["bind-addr"])
+    addr = parseBindAddr(args["bind-addr"])
   }
   if (args.host) {
     addr.host = args.host
@@ -427,16 +548,17 @@ function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   return addr
 }
 
-export function bindAddrFromAllSources(cliArgs: Args, configArgs: Args): [string, number] {
+function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
   let addr: Addr = {
     host: "localhost",
     port: 8080,
   }
 
-  addr = bindAddrFromArgs(addr, configArgs)
-  addr = bindAddrFromArgs(addr, cliArgs)
+  for (const args of argsConfig) {
+    addr = bindAddrFromArgs(addr, args)
+  }
 
-  return [addr.host, addr.port]
+  return addr
 }
 
 async function copyOldMacOSDataDir(): Promise<void> {
@@ -452,4 +574,53 @@ async function copyOldMacOSDataDir(): Promise<void> {
   if (await fs.pathExists(oldDataDir)) {
     await fs.copy(oldDataDir, paths.data)
   }
+}
+
+export const shouldRunVsCodeCli = (args: Args): boolean => {
+  return !!args["list-extensions"] || !!args["install-extension"] || !!args["uninstall-extension"]
+}
+
+/**
+ * Determine if it looks like the user is trying to open a file or folder in an
+ * existing instance. The arguments here should be the arguments the user
+ * explicitly passed on the command line, not defaults or the configuration.
+ */
+export const shouldOpenInExistingInstance = async (args: Args): Promise<string | undefined> => {
+  // Always use the existing instance if we're running from VS Code's terminal.
+  if (process.env.VSCODE_IPC_HOOK_CLI) {
+    return process.env.VSCODE_IPC_HOOK_CLI
+  }
+
+  const readSocketPath = async (): Promise<string | undefined> => {
+    try {
+      return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error
+      }
+    }
+    return undefined
+  }
+
+  // If these flags are set then assume the user is trying to open in an
+  // existing instance since these flags have no effect otherwise.
+  const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
+    return args[cur as keyof Args] ? prev + 1 : prev
+  }, 0)
+  if (openInFlagCount > 0) {
+    return readSocketPath()
+  }
+
+  // It's possible the user is trying to spawn another instance of code-server.
+  // Check if any unrelated flags are set (check against one because `_` always
+  // exists), that a file or directory was passed, and that the socket is
+  // active.
+  if (Object.keys(args).length === 1 && args._.length > 0) {
+    const socketPath = await readSocketPath()
+    if (socketPath && (await canConnect(socketPath))) {
+      return socketPath
+    }
+  }
+
+  return undefined
 }

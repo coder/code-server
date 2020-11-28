@@ -17,6 +17,8 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 1. Update the version of code-server and make a PR.
    1. Update in `package.json`
    2. Update in [./doc/install.md](../doc/install.md)
+   3. Update in [./ci/helm-chart/README.md](../ci/helm-chart/README.md)
+      - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with

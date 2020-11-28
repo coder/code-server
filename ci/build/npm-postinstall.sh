@@ -24,6 +24,13 @@ main() {
     ;;
   esac
 
+  OS="$(uname | tr '[:upper:]' '[:lower:]')"
+  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent; then
+    chmod +x ./lib/coder-cloud-agent
+  else
+    echo "Failed to download cloud agent; --link will not work"
+  fi
+
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/doc/npm.md"
@@ -36,6 +43,13 @@ vscode_yarn() {
   yarn --production --frozen-lockfile
   cd extensions
   yarn --production --frozen-lockfile
+  for ext in */; do
+    ext="${ext%/}"
+    echo "extensions/$ext: installing dependencies"
+    cd "$ext"
+    yarn --production --frozen-lockfile
+    cd "$OLDPWD"
+  done
 }
 
 main "$@"

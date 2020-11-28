@@ -17,26 +17,36 @@ usage() {
 Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
+
+Pass in user@host to install code-server on user@host over ssh.
+The remote host must have internet access.
 ${not_curl_usage-}
 Usage:
 
-  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local]
+  $arg0 [--dry-run] [--version X.X.X] [--method detect] \
+        [--prefix ~/.local] [--rsh ssh] [user@host]
 
   --dry-run
       Echo the commands for the install process without running them.
+
   --version X.X.X
       Install a specific version instead of the latest.
+
   --method [detect | standalone]
       Choose the installation method. Defaults to detect.
       - detect detects the system package manager and tries to use it.
         Full reference on the process is further below.
       - standalone installs a standalone release archive into ~/.local
         Add ~/.local/bin to your \$PATH to use it.
+
   --prefix <dir>
       Sets the prefix used by standalone release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
+
+  --rsh <bin>
+      Specifies the remote shell for remote installation. Defaults to ssh.
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -100,9 +110,19 @@ main() {
     METHOD \
     STANDALONE_INSTALL_PREFIX \
     VERSION \
-    OPTIONAL
+    OPTIONAL \
+    ALL_FLAGS \
+    RSH_ARGS \
+    RSH
 
+  ALL_FLAGS=""
   while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -*)
+      ALL_FLAGS="${ALL_FLAGS} $1"
+      ;;
+    esac
+
     case "$1" in
     --dry-run)
       DRY_RUN=1
@@ -128,19 +148,44 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --rsh)
+      RSH="$(parse_arg "$@")"
+      shift
+      ;;
+    --rsh=*)
+      RSH="$(parse_arg "$@")"
+      ;;
     -h | --h | -help | --help)
       usage
       exit 0
       ;;
-    *)
+    --)
+      shift
+      # We remove the -- added above.
+      ALL_FLAGS="${ALL_FLAGS% --}"
+      RSH_ARGS="$*"
+      break
+      ;;
+    -*)
       echoerr "Unknown flag $1"
       echoerr "Run with --help to see usage."
       exit 1
+      ;;
+    *)
+      RSH_ARGS="$*"
+      break
       ;;
     esac
 
     shift
   done
+
+  if [ "${RSH_ARGS-}" ]; then
+    RSH="${RSH-ssh}"
+    echoh "Installing remotely with $RSH $RSH_ARGS"
+    curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" "$RSH" "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
+    return
+  fi
 
   VERSION="${VERSION-$(echo_latest_version)}"
   METHOD="${METHOD-detect}"
@@ -446,7 +491,7 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null
 }
 
 sh_c() {
@@ -498,6 +543,17 @@ echoerr() {
 # and all occurances of '"$HOME' with the literal '"$HOME'.
 humanpath() {
   sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
+}
+
+# We need to make sure we exit with a non zero exit if the command fails.
+# /bin/sh does not support -o pipefail unfortunately.
+prefix() {
+  PREFIX="$1"
+  shift
+  fifo="$(mktemp -d)/fifo"
+  mkfifo "$fifo"
+  sed -e "s#^#$PREFIX: #" "$fifo" &
+  "$@" > "$fifo" 2>&1
 }
 
 main "$@"

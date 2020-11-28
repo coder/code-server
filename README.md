@@ -1,4 +1,4 @@
-# code-server
+# code-server &middot; [!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
 
@@ -6,62 +6,64 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 
 ## Highlights
 
-- **Code everywhere**
-  - Code on your Chromebook, tablet, and laptop with a consistent development environment.
-  - Develop on a Linux machine and pick up from any device with a web browser.
-- **Server-powered**
-  - Take advantage of large cloud servers to speed up tests, compilations, downloads, and more.
-  - Preserve battery life when you're on the go as all intensive tasks run on your server.
-  - Make use of a spare computer you have lying around and turn it into a full development environment.
+- Code on any device with a consistent development environment
+- Use cloud servers to speed up tests, compilations, downloads, and more
+- Preserve battery life when you're on the go; all intensive tasks run on your server
 
 ## Getting Started
 
-For a full setup and walkthrough, please see [./doc/guide.md](./doc/guide.md).
+There are two ways to get started:
 
-### Quick Install
+1. Using the [install script](./install.sh), which automates most of the process. The script uses the system package manager (if possible)
+2. Manually installing code-server; see [Installation](./doc/install.md) for instructions applicable to most use cases
 
-We have a [script](./install.sh) to install code-server for Linux, macOS and FreeBSD.
-
-It tries to use the system package manager if possible.
-
-First run to print out the install process:
+If you choose to use the install script, you can preview what occurs during the install process:
 
 ```bash
 curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
-Now to actually install:
+To install, run:
 
 ```bash
 curl -fsSL https://code-server.dev/install.sh | sh
 ```
 
-The install script will print out how to run and start using code-server.
+When done, the install script prints out instructions for running and starting code-server.
 
-### Manual Install
+We also have an in-depth [setup and configuration](./doc/guide.md) guide.
 
-Docs on the install script, manual installation and docker image are at [./doc/install.md](./doc/install.md).
+### Alpha Program 🐣
+
+We're working on a cloud platform that makes deploying and managing code-server easier.
+Consider updating to the latest version and running code-server with our experimental flag `--link` if you don't want to worry about
+
+- TLS
+- Authentication
+- Port Forwarding
+
+```bash
+$ code-server --link
+Proxying code-server to Coder Cloud, you can access your IDE at https://valmar-jon.cdr.co
+```
 
 ## FAQ
 
 See [./doc/FAQ.md](./doc/FAQ.md).
 
-## Contributing
+## Want to help?
 
-See [./doc/CONTRIBUTING.md](./doc/CONTRIBUTING.md).
+See [CONTRIBUTING](./doc/CONTRIBUTING.md) for details.
 
 ## Hiring
 
-We ([@cdr](https://github.com/cdr)) are looking for engineers to help maintain
-code-server, innovate on open source and streamline dev workflows.
+We ([@cdr](https://github.com/cdr)) are looking for engineers to help [maintain
+code-server](https://jobs.lever.co/coder/e40becde-2cbd-4885-9029-e5c7b0a734b8), innovate on open source, and streamline dev workflows.
 
 Our main office is in Austin, Texas. Remote is ok as long as
 you're in North America or Europe.
 
-Please get in [touch](mailto:jobs@coder.com) with your resume/github if interested.
-
-We're also hiring someone specifically to help maintain code-server.
-See the listing [here](https://jobs.lever.co/coder/e40becde-2cbd-4885-9029-e5c7b0a734b8).
+Please get in [touch](mailto:jobs@coder.com) with your resume/GitHub if interested.
 
 ## For Organizations
 

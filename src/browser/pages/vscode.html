@@ -9,11 +9,6 @@
 
     <meta charset="utf-8" />
 
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="font-src 'self' data:; connect-src ws: wss: 'self' https:; default-src ws: wss: 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; manifest-src 'self'; img-src 'self' data: https:;"
-    />
-
     <!-- Disable pinch zooming -->
     <meta
       name="viewport"
@@ -36,11 +31,6 @@
     END_PROD_ONLY -->
     <link rel="apple-touch-icon" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-384.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-
-    <!-- Prefetch to avoid waterfall -->
-    <!-- PROD_ONLY
-    <link rel="prefetch" href="{{CS_STATIC_BASE}}/lib/vscode/node_modules/semver-umd/lib/semver-umd.js">
-    END_PROD_ONLY -->
 
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
   </head>

@@ -2,6 +2,7 @@ import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
 import * as fs from "fs-extra"
+import * as net from "net"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
@@ -53,25 +54,45 @@ export function humanPath(p?: string): string {
   return p.replace(os.homedir(), "~")
 }
 
-export const generateCertificate = async (): Promise<{ cert: string; certKey: string }> => {
-  const paths = {
-    cert: path.join(tmpdir, "self-signed.cert"),
-    certKey: path.join(tmpdir, "self-signed.key"),
-  }
-  const checks = await Promise.all([fs.pathExists(paths.cert), fs.pathExists(paths.certKey)])
+export const generateCertificate = async (hostname: string): Promise<{ cert: string; certKey: string }> => {
+  const certPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.crt`)
+  const certKeyPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.key`)
+
+  const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
   if (!checks[0] || !checks[1]) {
     // Require on demand so openssl isn't required if you aren't going to
     // generate certificates.
     const pem = require("pem") as typeof import("pem")
     const certs = await new Promise<import("pem").CertificateCreationResult>((resolve, reject): void => {
-      pem.createCertificate({ selfSigned: true }, (error, result) => {
-        return error ? reject(error) : resolve(result)
-      })
+      pem.createCertificate(
+        {
+          selfSigned: true,
+          commonName: hostname,
+          config: `
+[req]
+req_extensions = v3_req
+
+[ v3_req ]
+basicConstraints = CA:true
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = ${hostname}
+`,
+        },
+        (error, result) => {
+          return error ? reject(error) : resolve(result)
+        },
+      )
     })
-    await fs.mkdirp(tmpdir)
-    await Promise.all([fs.writeFile(paths.cert, certs.certificate), fs.writeFile(paths.certKey, certs.serviceKey)])
+    await fs.mkdirp(paths.data)
+    await Promise.all([fs.writeFile(certPath, certs.certificate), fs.writeFile(certKeyPath, certs.serviceKey)])
   }
-  return paths
+  return {
+    cert: certPath,
+    certKey: certKeyPath,
+  }
 }
 
 export const generatePassword = async (length = 24): Promise<string> => {
@@ -245,4 +266,27 @@ export function pathToFsPath(path: string, keepDriveLetterCasing = false): strin
     value = value.replace(/\//g, "\\")
   }
   return value
+}
+
+/**
+ * Return a promise that resolves with whether the socket path is active.
+ */
+export function canConnect(path: string): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = net.connect(path)
+    socket.once("error", () => resolve(false))
+    socket.once("connect", () => {
+      socket.destroy()
+      resolve(true)
+    })
+  })
+}
+
+export const isFile = async (path: string): Promise<boolean> => {
+  try {
+    const stat = await fs.stat(path)
+    return stat.isFile()
+  } catch (error) {
+    return false
+  }
 }

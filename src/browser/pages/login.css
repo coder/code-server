@@ -37,3 +37,7 @@ body {
 .login-form > .field > .submit {
   margin-left: 20px;
 }
+
+input {
+  -webkit-appearance: none;
+}

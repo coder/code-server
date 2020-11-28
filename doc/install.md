@@ -2,6 +2,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
 
+- [Upgrading](#upgrading)
 - [install.sh](#installsh)
   - [Flags](#flags)
   - [Detection Reference](#detection-reference)
@@ -12,11 +13,18 @@
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
+- [helm](#helm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 This document demonstrates how to install `code-server` on
 various distros and operating systems.
+
+## Upgrading
+
+When upgrading you can just install the new version over the old one. code-server
+maintains all user data in `~/.local/share/code-server` so that it is preserved in between
+installations.
 
 ## install.sh
 
@@ -79,8 +87,8 @@ commands presented in the rest of this document.
 ## Debian, Ubuntu
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server_3.5.0_amd64.deb
-sudo dpkg -i code-server_3.5.0_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.7.3/code-server_3.7.3_amd64.deb
+sudo dpkg -i code-server_3.7.3_amd64.deb
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -88,8 +96,8 @@ sudo systemctl enable --now code-server@$USER
 ## Fedora, CentOS, RHEL, SUSE
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-amd64.rpm
-sudo rpm -i code-server-3.5.0-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.7.3/code-server-3.7.3-amd64.rpm
+sudo rpm -i code-server-3.7.3-amd64.rpm
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -158,10 +166,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.5.0/code-server-3.5.0-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v3.7.3/code-server-3.7.3-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.5.0-linux-amd64 ~/.local/lib/code-server-3.5.0
-ln -s ~/.local/lib/code-server-3.5.0/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-3.7.3-linux-amd64 ~/.local/lib/code-server-3.7.3
+ln -s ~/.local/lib/code-server-3.7.3/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -192,3 +200,7 @@ Our official image supports `amd64` and `arm64`.
 For `arm32` support there is a popular community maintained alternative:
 
 https://hub.docker.com/r/linuxserver/code-server
+
+## helm
+
+See [the chart](../ci/helm-chart).

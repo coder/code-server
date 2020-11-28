@@ -1,11 +1,70 @@
-import { field, logger } from "@coder/logger"
+import { field, Logger, logger } from "@coder/logger"
 import * as cp from "child_process"
 import * as path from "path"
 import * as rfs from "rotating-file-stream"
 import { Emitter } from "../common/emitter"
+import { DefaultedArgs } from "./cli"
 import { paths } from "./util"
 
-interface HandshakeMessage {
+const timeoutInterval = 10000 // 10s, matches VS Code's timeouts.
+
+/**
+ * Listen to a single message from a process. Reject if the process errors,
+ * exits, or times out.
+ *
+ * `fn` is a function that determines whether the message is the one we're
+ * waiting for.
+ */
+export function onMessage<M, T extends M>(
+  proc: cp.ChildProcess | NodeJS.Process,
+  fn: (message: M) => message is T,
+  customLogger?: Logger,
+): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const cleanup = () => {
+      proc.off("error", onError)
+      proc.off("exit", onExit)
+      proc.off("message", onMessage)
+      clearTimeout(timeout)
+    }
+
+    const timeout = setTimeout(() => {
+      cleanup()
+      reject(new Error("timed out"))
+    }, timeoutInterval)
+
+    const onError = (error: Error) => {
+      cleanup()
+      reject(error)
+    }
+
+    const onExit = (code: number) => {
+      cleanup()
+      reject(new Error(`exited unexpectedly with code ${code}`))
+    }
+
+    const onMessage = (message: M) => {
+      ;(customLogger || logger).trace("got message", field("message", message))
+      if (fn(message)) {
+        cleanup()
+        resolve(message)
+      }
+    }
+
+    proc.on("message", onMessage)
+    // NodeJS.Process doesn't have `error` but binding anyway shouldn't break
+    // anything. It does have `exit` but the types aren't working.
+    ;(proc as cp.ChildProcess).on("error", onError)
+    ;(proc as cp.ChildProcess).on("exit", onExit)
+  })
+}
+
+interface ParentHandshakeMessage {
+  type: "handshake"
+  args: DefaultedArgs
+}
+
+interface ChildHandshakeMessage {
   type: "handshake"
 }
 
@@ -14,9 +73,10 @@ interface RelaunchMessage {
   version: string
 }
 
-export type Message = RelaunchMessage | HandshakeMessage
+type ChildMessage = RelaunchMessage | ChildHandshakeMessage
+type ParentMessage = ParentHandshakeMessage
 
-export class ProcessError extends Error {
+class ProcessError extends Error {
   public constructor(message: string, public readonly code: number | undefined) {
     super(message)
     this.name = this.constructor.name
@@ -25,52 +85,55 @@ export class ProcessError extends Error {
 }
 
 /**
- * Allows the wrapper and inner processes to communicate.
+ * Wrapper around a process that tries to gracefully exit when a process exits
+ * and provides a way to prevent `process.exit`.
  */
-export class IpcMain {
-  private readonly _onMessage = new Emitter<Message>()
-  public readonly onMessage = this._onMessage.event
-  private readonly _onDispose = new Emitter<NodeJS.Signals | undefined>()
-  public readonly onDispose = this._onDispose.event
-  public readonly processExit: (code?: number) => never
+abstract class Process {
+  /**
+   * Emit this to trigger a graceful exit.
+   */
+  protected readonly _onDispose = new Emitter<NodeJS.Signals | undefined>()
 
-  public constructor(public readonly parentPid?: number) {
+  /**
+   * Emitted when the process is about to be disposed.
+   */
+  public readonly onDispose = this._onDispose.event
+
+  /**
+   * Uniquely named logger for the process.
+   */
+  public abstract logger: Logger
+
+  public constructor() {
     process.on("SIGINT", () => this._onDispose.emit("SIGINT"))
     process.on("SIGTERM", () => this._onDispose.emit("SIGTERM"))
     process.on("exit", () => this._onDispose.emit(undefined))
 
-    // Ensure we control when the process exits.
-    this.processExit = process.exit
-    process.exit = function (code?: number) {
-      logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
-    } as (code?: number) => never
-
-    this.onDispose((signal) => {
+    this.onDispose((signal, wait) => {
       // Remove listeners to avoid possibly triggering disposal again.
       process.removeAllListeners()
 
-      // Let any other handlers run first then exit.
-      logger.debug(`${parentPid ? "inner process" : "wrapper"} ${process.pid} disposing`, field("code", signal))
-      setTimeout(() => this.exit(0), 0)
+      // Try waiting for other handlers to run first then exit.
+      this.logger.debug("disposing", field("code", signal))
+      wait.then(() => this.exit(0))
+      setTimeout(() => this.exit(0), 5000)
     })
+  }
 
-    // Kill the inner process if the parent dies. This is for the case where the
-    // parent process is forcefully terminated and cannot clean up.
-    if (parentPid) {
-      setInterval(() => {
-        try {
-          // process.kill throws an exception if the process doesn't exist.
-          process.kill(parentPid, 0)
-        } catch (_) {
-          // Consider this an error since it should have been able to clean up
-          // the child process unless it was forcefully killed.
-          logger.error(`parent process ${parentPid} died`)
-          this._onDispose.emit(undefined)
-        }
-      }, 5000)
+  /**
+   * Ensure control over when the process exits.
+   */
+  public preventExit(): void {
+    ;(process.exit as any) = (code?: number) => {
+      this.logger.warn(`process.exit() was prevented: ${code || "unknown code"}.`)
     }
   }
 
+  private readonly processExit: (code?: number) => never = process.exit
+
+  /**
+   * Will always exit even if normal exit is being prevented.
+   */
   public exit(error?: number | ProcessError): never {
     if (error && typeof error !== "number") {
       this.processExit(typeof error.code === "number" ? error.code : 1)
@@ -78,48 +141,59 @@ export class IpcMain {
       this.processExit(error)
     }
   }
+}
 
-  public handshake(child?: cp.ChildProcess): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const target = child || process
-      const onMessage = (message: Message): void => {
-        logger.debug(
-          `${child ? "wrapper" : "inner process"} ${process.pid} received message from ${
-            child ? child.pid : this.parentPid
-          }`,
-          field("message", message),
-        )
-        if (message.type === "handshake") {
-          target.removeListener("message", onMessage)
-          target.on("message", (msg) => this._onMessage.emit(msg))
-          // The wrapper responds once the inner process starts the handshake.
-          if (child) {
-            if (!target.send) {
-              throw new Error("child not spawned with IPC")
-            }
-            target.send({ type: "handshake" })
-          }
-          resolve()
-        }
+/**
+ * Child process that will clean up after itself if the parent goes away and can
+ * perform a handshake with the parent and ask it to relaunch.
+ */
+class ChildProcess extends Process {
+  public logger = logger.named(`child:${process.pid}`)
+
+  public constructor(private readonly parentPid: number) {
+    super()
+
+    // Kill the inner process if the parent dies. This is for the case where the
+    // parent process is forcefully terminated and cannot clean up.
+    setInterval(() => {
+      try {
+        // process.kill throws an exception if the process doesn't exist.
+        process.kill(this.parentPid, 0)
+      } catch (_) {
+        // Consider this an error since it should have been able to clean up
+        // the child process unless it was forcefully killed.
+        this.logger.error(`parent process ${parentPid} died`)
+        this._onDispose.emit(undefined)
       }
-      target.on("message", onMessage)
-      if (child) {
-        child.once("error", reject)
-        child.once("exit", (code) => {
-          reject(new ProcessError(`Unexpected exit with code ${code}`, code !== null ? code : undefined))
-        })
-      } else {
-        // The inner process initiates the handshake.
-        this.send({ type: "handshake" })
-      }
-    })
+    }, 5000)
   }
 
+  /**
+   * Initiate the handshake and wait for a response from the parent.
+   */
+  public async handshake(): Promise<DefaultedArgs> {
+    this.send({ type: "handshake" })
+    const message = await onMessage<ParentMessage, ParentHandshakeMessage>(
+      process,
+      (message): message is ParentHandshakeMessage => {
+        return message.type === "handshake"
+      },
+      this.logger,
+    )
+    return message.args
+  }
+
+  /**
+   * Notify the parent process that it should relaunch the child.
+   */
   public relaunch(version: string): void {
     this.send({ type: "relaunch", version })
   }
 
-  private send(message: Message): void {
+  /**
+   * Send a message to the parent.
+   */
+  private send(message: ChildMessage): void {
     if (!process.send) {
       throw new Error("not spawned with IPC")
     }
@@ -127,34 +201,32 @@ export class IpcMain {
   }
 }
 
-let _ipcMain: IpcMain
-export const ipcMain = (): IpcMain => {
-  if (!_ipcMain) {
-    _ipcMain = new IpcMain(
-      typeof process.env.CODE_SERVER_PARENT_PID !== "undefined"
-        ? parseInt(process.env.CODE_SERVER_PARENT_PID)
-        : undefined,
-    )
-  }
-  return _ipcMain
-}
-
-export interface WrapperOptions {
-  maxMemory?: number
-  nodeOptions?: string
-}
-
 /**
- * Provides a way to wrap a process for the purpose of updating the running
- * instance.
+ * Parent process wrapper that spawns the child process and performs a handshake
+ * with it. Will relaunch the child if it receives a SIGUSR1 or is asked to by
+ * the child. If the child otherwise exits the parent will also exit.
  */
-export class WrapperProcess {
-  private process?: cp.ChildProcess
+export class ParentProcess extends Process {
+  public logger = logger.named(`parent:${process.pid}`)
+
+  private child?: cp.ChildProcess
   private started?: Promise<void>
   private readonly logStdoutStream: rfs.RotatingFileStream
   private readonly logStderrStream: rfs.RotatingFileStream
 
-  public constructor(private currentVersion: string, private readonly options?: WrapperOptions) {
+  protected readonly _onChildMessage = new Emitter<ChildMessage>()
+  protected readonly onChildMessage = this._onChildMessage.event
+
+  private args?: DefaultedArgs
+
+  public constructor(private currentVersion: string) {
+    super()
+
+    process.on("SIGUSR1", async () => {
+      this.logger.info("Received SIGUSR1; hotswapping")
+      this.relaunch()
+    })
+
     const opts = {
       size: "10M",
       maxFiles: 10,
@@ -162,112 +234,135 @@ export class WrapperProcess {
     this.logStdoutStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stdout.log"), opts)
     this.logStderrStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stderr.log"), opts)
 
-    ipcMain().onDispose(() => {
-      if (this.process) {
-        this.process.removeAllListeners()
-        this.process.kill()
-      }
+    this.onDispose(() => {
+      this.disposeChild()
     })
 
-    ipcMain().onMessage((message) => {
+    this.onChildMessage((message) => {
       switch (message.type) {
         case "relaunch":
-          logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`)
+          this.logger.info(`Relaunching: ${this.currentVersion} -> ${message.version}`)
           this.currentVersion = message.version
           this.relaunch()
           break
         default:
-          logger.error(`Unrecognized message ${message}`)
+          this.logger.error(`Unrecognized message ${message}`)
           break
       }
     })
+  }
 
-    process.on("SIGUSR1", async () => {
-      logger.info("Received SIGUSR1; hotswapping")
-      this.relaunch()
-    })
+  private disposeChild(): void {
+    this.started = undefined
+    if (this.child) {
+      this.child.removeAllListeners()
+      this.child.kill()
+    }
   }
 
   private async relaunch(): Promise<void> {
-    this.started = undefined
-    if (this.process) {
-      this.process.removeAllListeners()
-      this.process.kill()
-    }
+    this.disposeChild()
     try {
-      await this.start()
+      this.started = this._start()
+      await this.started
     } catch (error) {
-      logger.error(error.message)
-      ipcMain().exit(typeof error.code === "number" ? error.code : 1)
+      this.logger.error(error.message)
+      this.exit(typeof error.code === "number" ? error.code : 1)
     }
   }
 
-  public start(): Promise<void> {
+  public start(args: DefaultedArgs): Promise<void> {
+    // Store for relaunches.
+    this.args = args
     if (!this.started) {
-      this.started = this.spawn().then((child) => {
-        // Log both to stdout and to the log directory.
-        if (child.stdout) {
-          child.stdout.pipe(this.logStdoutStream)
-          child.stdout.pipe(process.stdout)
-        }
-        if (child.stderr) {
-          child.stderr.pipe(this.logStderrStream)
-          child.stderr.pipe(process.stderr)
-        }
-        logger.debug(`spawned inner process ${child.pid}`)
-        ipcMain()
-          .handshake(child)
-          .then(() => {
-            child.once("exit", (code) => {
-              logger.debug(`inner process ${child.pid} exited unexpectedly`)
-              ipcMain().exit(code || 0)
-            })
-          })
-        this.process = child
-      })
+      this.started = this._start()
     }
     return this.started
   }
 
-  private async spawn(): Promise<cp.ChildProcess> {
-    // Flags to pass along to the Node binary.
-    let nodeOptions = `${process.env.NODE_OPTIONS || ""} ${(this.options && this.options.nodeOptions) || ""}`
-    if (!/max_old_space_size=(\d+)/g.exec(nodeOptions)) {
-      nodeOptions += ` --max_old_space_size=${(this.options && this.options.maxMemory) || 2048}`
+  private async _start(): Promise<void> {
+    const child = this.spawn()
+    this.child = child
+
+    // Log both to stdout and to the log directory.
+    if (child.stdout) {
+      child.stdout.pipe(this.logStdoutStream)
+      child.stdout.pipe(process.stdout)
+    }
+    if (child.stderr) {
+      child.stderr.pipe(this.logStderrStream)
+      child.stderr.pipe(process.stderr)
     }
 
+    this.logger.debug(`spawned inner process ${child.pid}`)
+
+    await this.handshake(child)
+
+    child.once("exit", (code) => {
+      this.logger.debug(`inner process ${child.pid} exited unexpectedly`)
+      this.exit(code || 0)
+    })
+  }
+
+  private spawn(): cp.ChildProcess {
     // Use spawn (instead of fork) to use the new binary in case it was updated.
     return cp.spawn(process.argv[0], process.argv.slice(1), {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
-        NODE_OPTIONS: nodeOptions,
+        NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
       stdio: ["ipc"],
     })
   }
+
+  /**
+   * Wait for a handshake from the child then reply.
+   */
+  private async handshake(child: cp.ChildProcess): Promise<void> {
+    if (!this.args) {
+      throw new Error("started without args")
+    }
+    await onMessage<ChildMessage, ChildHandshakeMessage>(
+      child,
+      (message): message is ChildHandshakeMessage => {
+        return message.type === "handshake"
+      },
+      this.logger,
+    )
+    this.send(child, { type: "handshake", args: this.args })
+  }
+
+  /**
+   * Send a message to the child.
+   */
+  private send(child: cp.ChildProcess, message: ParentMessage): void {
+    child.send(message)
+  }
+}
+
+/**
+ * Process wrapper.
+ */
+export const wrapper =
+  typeof process.env.CODE_SERVER_PARENT_PID !== "undefined"
+    ? new ChildProcess(parseInt(process.env.CODE_SERVER_PARENT_PID))
+    : new ParentProcess(require("../../package.json").version)
+
+export function isChild(proc: ChildProcess | ParentProcess): proc is ChildProcess {
+  return proc instanceof ChildProcess
 }
 
 // It's possible that the pipe has closed (for example if you run code-server
 // --version | head -1). Assume that means we're done.
 if (!process.stdout.isTTY) {
-  process.stdout.on("error", () => ipcMain().exit())
+  process.stdout.on("error", () => wrapper.exit())
 }
 
-export const wrap = (fn: () => Promise<void>): void => {
-  if (ipcMain().parentPid) {
-    ipcMain()
-      .handshake()
-      .then(() => fn())
-      .catch((error: ProcessError): void => {
-        logger.error(error.message)
-        ipcMain().exit(error)
-      })
-  } else {
-    const wrapper = new WrapperProcess(require("../../package.json").version)
-    wrapper.start().catch((error) => {
-      logger.error(error.message)
-      ipcMain().exit(error)
-    })
+// Don't let uncaught exceptions crash the process.
+process.on("uncaughtException", (error) => {
+  wrapper.logger.error(`Uncaught exception: ${error.message}`)
+  if (typeof error.stack !== "undefined") {
+    wrapper.logger.error(error.stack)
   }
-}
+})

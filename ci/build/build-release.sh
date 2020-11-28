@@ -6,6 +6,10 @@ set -euo pipefail
 # MINIFY controls whether minified vscode is bundled.
 MINIFY="${MINIFY-true}"
 
+# KEEP_MODULES controls whether the script cleans all node_modules requiring a yarn install
+# to run first.
+KEEP_MODULES="${KEEP_MODULES-0}"
+
 main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
@@ -52,15 +56,25 @@ EOF
   ) > "$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
+
+  if [ "$KEEP_MODULES" = 1 ]; then
+    rsync node_modules/ "$RELEASE_PATH/node_modules"
+    mkdir -p "$RELEASE_PATH/lib"
+    rsync ./lib/coder-cloud-agent "$RELEASE_PATH/lib"
+  fi
 }
 
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
   rsync "$VSCODE_SRC_PATH/yarn.lock" "$VSCODE_OUT_PATH"
-  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY+-min}/" "$VSCODE_OUT_PATH/out"
+  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY:+-min}/" "$VSCODE_OUT_PATH/out"
 
   rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
-  rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
+  if [ "$KEEP_MODULES" = 0 ]; then
+    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
+  else
+    rsync "$VSCODE_SRC_PATH/node_modules/" "$VSCODE_OUT_PATH/node_modules"
+  fi
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"

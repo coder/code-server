@@ -1,12 +1,10 @@
 import { field, logger } from "@coder/logger"
 import * as http from "http"
 import * as https from "https"
-import * as path from "path"
 import * as semver from "semver"
 import * as url from "url"
-import { HttpCode, HttpError } from "../../common/http"
-import { HttpProvider, HttpProviderOptions, HttpResponse, Route } from "../http"
-import { settings as globalSettings, SettingsProvider, UpdateSettings } from "../settings"
+import { version } from "./constants"
+import { settings as globalSettings, SettingsProvider, UpdateSettings } from "./settings"
 
 export interface Update {
   checked: number
@@ -18,15 +16,13 @@ export interface LatestResponse {
 }
 
 /**
- * HTTP provider for checking updates (does not download/install them).
+ * Provide update information.
  */
-export class UpdateHttpProvider extends HttpProvider {
+export class UpdateProvider {
   private update?: Promise<Update>
   private updateInterval = 1000 * 60 * 60 * 24 // Milliseconds between update checks.
 
   public constructor(
-    options: HttpProviderOptions,
-    public readonly enabled: boolean,
     /**
      * The URL for getting the latest version of code-server. Should return JSON
      * that fulfills `LatestResponse`.
@@ -37,37 +33,7 @@ export class UpdateHttpProvider extends HttpProvider {
      * settings will be used.
      */
     private readonly settings: SettingsProvider<UpdateSettings> = globalSettings,
-  ) {
-    super(options)
-  }
-
-  public async handleRequest(route: Route, request: http.IncomingMessage): Promise<HttpResponse> {
-    this.ensureAuthenticated(request)
-    this.ensureMethod(request)
-
-    if (!this.isRoot(route)) {
-      throw new HttpError("Not found", HttpCode.NotFound)
-    }
-
-    if (!this.enabled) {
-      throw new Error("update checks are disabled")
-    }
-
-    switch (route.base) {
-      case "/check":
-      case "/": {
-        const update = await this.getUpdate(route.base === "/check")
-        return {
-          content: {
-            ...update,
-            isLatest: this.isLatestVersion(update),
-          },
-        }
-      }
-    }
-
-    throw new HttpError("Not found", HttpCode.NotFound)
-  }
+  ) {}
 
   /**
    * Query for and return the latest update.
@@ -89,7 +55,7 @@ export class UpdateHttpProvider extends HttpProvider {
       if (!update || update.checked + this.updateInterval < now) {
         const buffer = await this.request(this.latestUrl)
         const data = JSON.parse(buffer.toString()) as LatestResponse
-        update = { checked: now, version: data.name }
+        update = { checked: now, version: data.name.replace(/^v/, "") }
         await this.settings.write({ update })
       }
       logger.debug("got latest version", field("latest", update.version))
@@ -103,18 +69,13 @@ export class UpdateHttpProvider extends HttpProvider {
     }
   }
 
-  public get currentVersion(): string {
-    return require(path.resolve(__dirname, "../../../package.json")).version
-  }
-
   /**
    * Return true if the currently installed version is the latest.
    */
   public isLatestVersion(latest: Update): boolean {
-    const version = this.currentVersion
     logger.debug("comparing versions", field("current", version), field("latest", latest.version))
     try {
-      return latest.version === version || semver.lt(latest.version, version)
+      return semver.lte(latest.version, version)
     } catch (error) {
       return true
     }
@@ -144,22 +105,20 @@ export class UpdateHttpProvider extends HttpProvider {
         logger.debug("Making request", field("uri", uri))
         const httpx = uri.startsWith("https") ? https : http
         const client = httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
-          if (
-            response.statusCode &&
-            response.statusCode >= 300 &&
-            response.statusCode < 400 &&
-            response.headers.location
-          ) {
+          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
+            return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
+          }
+
+          if (response.statusCode >= 300) {
             ++redirects
+            response.destroy()
             if (redirects > maxRedirects) {
               return reject(new Error("reached max redirects"))
             }
-            response.destroy()
+            if (!response.headers.location) {
+              return reject(new Error("received redirect with no location header"))
+            }
             return request(url.resolve(uri, response.headers.location))
-          }
-
-          if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
-            return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
           }
 
           resolve(response)

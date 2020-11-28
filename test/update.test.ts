@@ -2,13 +2,11 @@ import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
 import * as path from "path"
-import { LatestResponse, UpdateHttpProvider } from "../src/node/app/update"
-import { AuthType } from "../src/node/http"
 import { SettingsProvider, UpdateSettings } from "../src/node/settings"
+import { LatestResponse, UpdateProvider } from "../src/node/update"
 import { tmpdir } from "../src/node/util"
 
-describe("update", () => {
-  return
+describe.skip("update", () => {
   let version = "1.0.0"
   let spy: string[] = []
   const server = http.createServer((request: http.IncomingMessage, response: http.ServerResponse) => {
@@ -35,22 +33,14 @@ describe("update", () => {
   const jsonPath = path.join(tmpdir, "tests/updates/update.json")
   const settings = new SettingsProvider<UpdateSettings>(jsonPath)
 
-  let _provider: UpdateHttpProvider | undefined
-  const provider = (): UpdateHttpProvider => {
+  let _provider: UpdateProvider | undefined
+  const provider = (): UpdateProvider => {
     if (!_provider) {
       const address = server.address()
       if (!address || typeof address === "string" || !address.port) {
         throw new Error("unexpected address")
       }
-      _provider = new UpdateHttpProvider(
-        {
-          auth: AuthType.None,
-          commit: "test",
-        },
-        true,
-        `http://${address.address}:${address.port}/latest`,
-        settings,
-      )
+      _provider = new UpdateProvider(`http://${address.address}:${address.port}/latest`, settings)
     }
     return _provider
   }
@@ -154,14 +144,10 @@ describe("update", () => {
   })
 
   it("should not reject if unable to fetch", async () => {
-    const options = {
-      auth: AuthType.None,
-      commit: "test",
-    }
-    let provider = new UpdateHttpProvider(options, true, "invalid", settings)
+    let provider = new UpdateProvider("invalid", settings)
     await assert.doesNotReject(() => provider.getUpdate(true))
 
-    provider = new UpdateHttpProvider(options, true, "http://probably.invalid.dev.localhost/latest", settings)
+    provider = new UpdateProvider("http://probably.invalid.dev.localhost/latest", settings)
     await assert.doesNotReject(() => provider.getUpdate(true))
   })
 })

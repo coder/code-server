@@ -19,6 +19,9 @@ extends:
   - prettier/@typescript-eslint # Remove conflicts again.
 
 rules:
+  # Sometimes you need to add args to implement a function signature even
+  # if they are unused.
+  "@typescript-eslint/no-unused-vars": ["error", { "args": "none" }]
   # For overloads.
   no-dupe-class-members: off
   "@typescript-eslint/no-use-before-define": off
@@ -30,6 +33,9 @@ rules:
   eqeqeq: error
   import/order:
     [error, { alphabetize: { order: "asc" }, groups: [["builtin", "external", "internal"], "parent", "sibling"] }]
+  no-async-promise-executor: off
+  # This isn't a real module, just types, which apparently doesn't resolve.
+  import/no-unresolved: [error, { ignore: ["express-serve-static-core"] }]
 
 settings:
   # Does not work with CommonJS unfortunately.
