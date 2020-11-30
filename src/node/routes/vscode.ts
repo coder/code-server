@@ -42,6 +42,7 @@ router.get("/", async (req, res) => {
       commit !== "development" ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
       {
         disableTelemetry: !!req.args["disable-telemetry"],
+        disableUpdateCheck: !!req.args["disable-update-check"],
       },
     )
       .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)

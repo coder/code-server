@@ -810,10 +810,10 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152ed407146
+index 0000000000000000000000000000000000000000..8a92b722b38f8743403892ea97cfb2a2a8726e3b
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
-@@ -0,0 +1,240 @@
+@@ -0,0 +1,241 @@
 +import { Emitter } from 'vs/base/common/event';
 +import { URI } from 'vs/base/common/uri';
 +import { localize } from 'vs/nls';
@@ -967,8 +967,7 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +
 +	const logService = (services.get(ILogService) as ILogService);
 +	const storageService = (services.get(IStorageService) as IStorageService);
-+	// We set this here first in case the path changes.
-+	const updateCheckEndpoint = path.join(window.location.pathname, '/update/check');
++	const updateCheckEndpoint = path.join(options.base, '/update/check');
 +	const getUpdate = async (): Promise<void> => {
 +		logService.debug('Checking for update...');
 +
@@ -988,8 +987,8 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +
 +		const lastNoti = storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
 +		if (lastNoti) {
-+			// Only remind them again after two days.
-+			const timeout = 1000*60*24*2;
++			// Only remind them again after 1 week.
++			const timeout = 1000*60*60*24*7;
 +			const threshold = lastNoti + timeout;
 +			if (Date.now() < threshold) {
 +				return;
@@ -1008,11 +1007,13 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +			logService.debug(`failed to check for update: ${error}`);
 +		}).finally(() => {
 +			// Check again every 6 hours.
-+			setTimeout(updateLoop, 1000*60*6);
++			setTimeout(updateLoop, 1000*60*60*6);
 +		});
 +	};
 +
-+	updateLoop();
++	if (!options.disableUpdateCheck) {
++		updateLoop();
++	}
 +
 +	// This will be used to set the background color while VS Code loads.
 +	const theme = storageService.get('colorThemeData', StorageScope.GLOBAL);
@@ -1446,16 +1447,18 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..0a4a91e5e36bda7f888feedda348aaff5fe32d27
+index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2af902ec7
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,133 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
 + */
 +export interface Options {
++	base: string
 +	disableTelemetry: boolean
++	disableUpdateCheck: boolean
 +}
 +
 +export interface InitMessage {
