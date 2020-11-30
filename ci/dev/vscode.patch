@@ -1586,10 +1586,10 @@ index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2
 +}
 diff --git a/src/vs/server/node/channel.ts b/src/vs/server/node/channel.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938cb23f6c26
+index 0000000000000000000000000000000000000000..a6c1f9f848f441b761397ba78e2fef60329b56fa
 --- /dev/null
 +++ b/src/vs/server/node/channel.ts
-@@ -0,0 +1,897 @@
+@@ -0,0 +1,906 @@
 +import { field, logger } from '@coder/logger';
 +import { Server } from '@coder/node-browser';
 +import * as os from 'os';
@@ -2028,6 +2028,9 @@ index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938c
 +	private readonly _onDispose = new Emitter<void>();
 +	public get onDispose(): Event<void> { return this._onDispose.event; }
 +
++	private _isOrphan = true;
++	public get isOrphan(): boolean { return this._isOrphan; }
++
 +	// These are replayed when a client reconnects.
 +	private cols: number;
 +	private rows: number;
@@ -2047,6 +2050,7 @@ index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938c
 +		// Don't bind to data until something is listening.
 +		onFirstListenerAdd: () => {
 +			logger.debug('Terminal bound', field('id', this.id));
++			this._isOrphan = false;
 +			if (!this.buffering) {
 +				this.buffering = true;
 +				this.bufferer.startBuffering(this.id, this.process.onProcessData);
@@ -2077,6 +2081,7 @@ index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938c
 +
 +		onLastListenerRemove: () => {
 +			logger.debug('Terminal unbound', field('id', this.id));
++			this._isOrphan = true;
 +			if (!this.persist) { // Used by debug consoles.
 +				this.dispose();
 +			} else {
@@ -2469,7 +2474,7 @@ index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938c
 +		// behavior when first listing terminals but I don't know what you'd want to
 +		// do differently. Maybe it's to reset the terminal dispose timeouts or
 +		// something like that, but why not do it each time you list?
-+		return Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
++		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
 +			const cwd = await terminal.getCwd();
 +			return {
 +				id,
@@ -2478,8 +2483,12 @@ index 0000000000000000000000000000000000000000..4827b2da780b66e6dfd65c2a2f1c938c
 +				cwd,
 +				workspaceId: terminal.workspaceId,
 +				workspaceName: terminal.workspaceName,
++				isOrphan: terminal.isOrphan,
 +			};
 +		}));
++		// Only returned orphaned terminals so we don't end up attaching to
++		// terminals already attached elsewhere.
++		return terminals.filter((t) => t.isOrphan);
 +	}
 +}
 +
