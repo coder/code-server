@@ -26,7 +26,8 @@
     "lint": "./ci/dev/lint.sh",
     "test": "./ci/dev/test.sh",
     "ci": "./ci/dev/ci.sh",
-    "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts"
+    "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts",
+    "icons": "./ci/dev/gen_icons.sh"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
