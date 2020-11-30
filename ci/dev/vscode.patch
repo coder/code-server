@@ -810,7 +810,7 @@ index 096b9e23493539c9937940a56e555d95bbae38d9..ef37e614004f550f7b64eacd362f6894
  	remove(key: string, scope: StorageScope): void {
 diff --git a/src/vs/server/browser/client.ts b/src/vs/server/browser/client.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152ed407146
+index 0000000000000000000000000000000000000000..8a92b722b38f8743403892ea97cfb2a2a8726e3b
 --- /dev/null
 +++ b/src/vs/server/browser/client.ts
 @@ -0,0 +1,241 @@
@@ -967,7 +967,7 @@ index 0000000000000000000000000000000000000000..ead6a3cd5e98fdde074f19ee5043f152
 +
 +	const logService = (services.get(ILogService) as ILogService);
 +	const storageService = (services.get(IStorageService) as IStorageService);
-+	const updateCheckEndpoint = path.join(options.base, "/update/check");
++	const updateCheckEndpoint = path.join(options.base, '/update/check');
 +	const getUpdate = async (): Promise<void> => {
 +		logService.debug('Checking for update...');
 +
@@ -1447,7 +1447,7 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..0a4a91e5e36bda7f888feedda348aaff5fe32d27
+index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2af902ec7
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
 @@ -0,0 +1,133 @@
