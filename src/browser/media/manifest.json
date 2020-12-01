@@ -7,29 +7,9 @@
   "description": "Run editors on a remote server.",
   "icons": [
     {
-      "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-96.png",
-      "type": "image/png",
-      "sizes": "96x96"
-    },
-    {
-      "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-128.png",
-      "type": "image/png",
-      "sizes": "128x128"
-    },
-    {
       "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png",
       "type": "image/png",
       "sizes": "192x192"
-    },
-    {
-      "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-256.png",
-      "type": "image/png",
-      "sizes": "256x256"
-    },
-    {
-      "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-384.png",
-      "type": "image/png",
-      "sizes": "384x384"
     },
     {
       "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-512.png",

@@ -67,6 +67,10 @@ This directory contains scripts used for the development of code-server.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
   - Example usage in [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
+- [./ci/dev/gen_icons.sh](./ci/dev/gen_icons.sh) (`yarn icons`)
+  - Generates the various icons from a single `.svg` favicon in
+    `src/browser/media/favicon.svg`.
+  - Requires [imagemagick](https://imagemagick.org/index.php)
 
 ## build
 
