@@ -15,7 +15,7 @@ import {
   shouldOpenInExistingInstance,
   shouldRunVsCodeCli,
 } from "./cli"
-import { coderCloudBind } from "./coder-cloud"
+import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
