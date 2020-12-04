@@ -38,6 +38,14 @@ export function monkeyPatch(vscode: boolean): void {
     pa = new (proxyagent as any).default(process.env.HTTP_PROXY)
   }
 
+  /**
+   * None of our code ever passes in a explicit agent to the http modules but VS Code's
+   * does sometimes but only when a user sets the http.proxy configuration.
+   * See https://code.visualstudio.com/docs/setup/network#_legacy-proxy-server-support
+   *
+   * Even if they do, it's probably the same proxy so we should be fine! And those are
+   * deprecated anyway.
+   */
   const http = require("http")
   const https = require("https")
   http.globalAgent = pa
