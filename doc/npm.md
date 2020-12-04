@@ -36,6 +36,7 @@ npm config set python python2
 ```
 
 ## macOS
+
 ```bash
 xcode-select --install
 ```
