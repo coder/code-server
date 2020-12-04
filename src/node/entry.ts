@@ -20,6 +20,7 @@ import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 import { isChild, wrapper } from "./wrapper"
+import * as proxyAgent from "./proxy_agent"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
@@ -154,6 +155,8 @@ const main = async (args: DefaultedArgs): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
+  proxyAgent.monkeyPatch(false)
+
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
   // the parent and the child wouldn't have been spawned. We also get the
