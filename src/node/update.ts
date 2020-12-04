@@ -106,12 +106,13 @@ export class UpdateProvider {
         const httpx = uri.startsWith("https") ? https : http
         const client = httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
           if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
+            response.destroy()
             return reject(new Error(`${uri}: ${response.statusCode || "500"}`))
           }
 
           if (response.statusCode >= 300) {
-            ++redirects
             response.destroy()
+            ++redirects
             if (redirects > maxRedirects) {
               return reject(new Error("reached max redirects"))
             }
