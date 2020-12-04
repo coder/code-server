@@ -2509,10 +2509,10 @@ index 0000000000000000000000000000000000000000..a6c1f9f848f441b761397ba78e2fef60
 +}
 diff --git a/src/vs/server/node/connection.ts b/src/vs/server/node/connection.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..fb7999ee343ddfd5f225a5ef727c9e559059fb58
+index 0000000000000000000000000000000000000000..6b7c5ffd2ef2f321e32b6ebf1e6ad93b9a99c80f
 --- /dev/null
 +++ b/src/vs/server/node/connection.ts
-@@ -0,0 +1,189 @@
+@@ -0,0 +1,192 @@
 +import { field, Logger, logger } from '@coder/logger';
 +import * as cp from 'child_process';
 +import { VSBuffer } from 'vs/base/common/buffer';
@@ -2644,6 +2644,9 @@ index 0000000000000000000000000000000000000000..fb7999ee343ddfd5f225a5ef727c9e55
 +		this.logger.trace('Spawning extension host...');
 +		const proc = cp.fork(
 +			FileAccess.asFileUri('bootstrap-fork', require).fsPath,
++			// While not technically necessary, makes it easier to tell which process
++			// bootstrap-fork is executing. Can also do pkill -f extensionHost
++			// Other spawns in the VS Code codebase behave similarly.
 +			[ '--type=extensionHost' ],
 +			{
 +				env: {
