@@ -123,7 +123,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   if (args.cert) {
     logger.info(`  - Using certificate for HTTPS: ${humanPath(args.cert.value)}`)
   } else {
-    logger.info("  - Not serving HTTPS")
+    logger.info(`  - Not serving HTTPS ${args.link ? "(disabled by --link)" : ""}`);
   }
 
   if (args["proxy-domain"].length > 0) {
