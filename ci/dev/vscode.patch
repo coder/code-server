@@ -150,7 +150,7 @@ index cb88d37adefd4882f61a2711fdd7f72b89e1a6e3..6b3253af0a3a0aa4d75456379ef1c00f
  const cp = require('child_process');
 diff --git a/coder.js b/coder.js
 new file mode 100644
-index 0000000000000000000000000000000000000000..df5b42cba463b6c0043aebbc835f852f1284aa36
+index 0000000000000000000000000000000000000000..ac2e6eb2cdf41787194f7681a76ad4a55c5aeb5a
 --- /dev/null
 +++ b/coder.js
 @@ -0,0 +1,64 @@
@@ -171,9 +171,9 @@ index 0000000000000000000000000000000000000000..df5b42cba463b6c0043aebbc835f852f
 +	buildfile.workerExtensionHost,
 +	buildfile.workerNotebook,
 +	buildfile.keyboardMaps,
-+	buildfile.entrypoint("vs/platform/files/node/watcher/unix/watcherApp", ["vs/css", "vs/nls"]),
-+	buildfile.entrypoint("vs/platform/files/node/watcher/nsfw/watcherApp", ["vs/css", "vs/nls"]),
-+	buildfile.entrypoint("vs/workbench/services/extensions/node/extensionHostProcess", ["vs/css", "vs/nls"]),
++	buildfile.entrypoint("vs/platform/files/node/watcher/unix/watcherApp"),
++	buildfile.entrypoint("vs/platform/files/node/watcher/nsfw/watcherApp"),
++	buildfile.entrypoint("vs/workbench/services/extensions/node/extensionHostProcess"),
 +]);
 +
 +const vscodeResources = [
