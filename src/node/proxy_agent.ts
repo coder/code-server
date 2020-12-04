@@ -19,7 +19,16 @@ import * as proxyagent from "proxy-agent"
  * custom agent from the proxyAgent package.
  */
 export function monkeyPatch(vscode: boolean): void {
-  if (!process.env.HTTP_PROXY) {
+  // We do not support HTTPS_PROXY here to avoid confusion. proxy-agent will automatically
+  // use the correct protocol to connect to the proxy depending on the requested URL.
+  //
+  // We could implement support ourselves to allow people to configure the proxy used for
+  // HTTPS vs HTTP but there doesn't seem to be much value in that.
+  //
+  // At least of right now, it'd just be plain confusing to support HTTPS_PROXY when proxy-agent
+  // will still use HTTP to hit it for HTTP requests.
+  const proxyURL = process.env.HTTP_PROXY || process.env.http_proxy
+  if (!proxyURL) {
     return
   }
 
