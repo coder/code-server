@@ -1,6 +1,6 @@
 import { logger } from "@coder/logger"
-import * as proxyagent from "proxy-agent"
 import * as http from "http"
+import * as proxyagent from "proxy-agent"
 
 /**
  * This file does not have anything to do with the code-server proxy.

@@ -14,7 +14,7 @@ main() {
 
   cd lib/vscode
   # Run this periodically in vanilla VS code to make sure we don't add any more warnings.
-  yarn eslint --max-warnings=3
+  yarn -s eslint --max-warnings=3
   cd "$OLDPWD"
 }
 

@@ -17,10 +17,10 @@ import {
 } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
+import * as proxyAgent from "./proxy_agent"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 import { isChild, wrapper } from "./wrapper"
-import * as proxyAgent from "./proxy_agent"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")

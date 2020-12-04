@@ -1,3 +1,13 @@
+diff --git a/.eslintignore b/.eslintignore
+index b2c4a5b6efa856968bbb62c56113004ddb3929e6..035aec8f6a8b0ea8fc6d3d836d160da54aac2fdb 100644
+--- a/.eslintignore
++++ b/.eslintignore
+@@ -14,3 +14,5 @@
+ **/extensions/**/build/**
+ **/extensions/markdown-language-features/media/**
+ **/extensions/typescript-basics/test/colorize-fixtures/**
++# This is a code-server code symlink.
++src/vs/base/node/proxy_agent.ts
 diff --git a/.eslintrc.json b/.eslintrc.json
 index 055bc22f8e48e7dee559b83ac56c12a54c6ad544..14c026c04a7df5ac94bea2856e3a7a513c213775 100644
 --- a/.eslintrc.json
