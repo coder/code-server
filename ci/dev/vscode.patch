@@ -245,7 +245,7 @@ index 2d754bf4054713f53beed030f9211b33532c1b4b..708b7e40a662e4ca93420992bf7a5af0
  	return typeof navigator !== 'undefined' && vscode.env.uiKind === vscode.UIKind.Web;
  }
 diff --git a/package.json b/package.json
-index 28f8a69a2a91f9cb9f4dbd73ed3e689b2b3afe84..d08ec6beb80d64cbf6663905092ebe1bbe31114d 100644
+index 28f8a69a2a91f9cb9f4dbd73ed3e689b2b3afe84..b5b0612dc8a5bea6b71cb0c40f21c8dc80582e69 100644
 --- a/package.json
 +++ b/package.json
 @@ -46,7 +46,11 @@
@@ -254,7 +254,7 @@ index 28f8a69a2a91f9cb9f4dbd73ed3e689b2b3afe84..d08ec6beb80d64cbf6663905092ebe1b
    },
 +  "dependencies_comment": "Move rimraf to dependencies because it is used in the postinstall script.",
    "dependencies": {
-+    "@coder/logger": "^1.1.12",
++    "@coder/logger": "1.1.16",
 +    "@coder/node-browser": "^1.0.8",
 +    "@coder/requirefs": "^1.1.5",
      "applicationinsights": "1.0.8",
@@ -4336,17 +4336,17 @@ index 509f8ac8ce3a689386e439302a53c27e4fdfcef7..2bf9a737bd0dbfa1e604acfc890be458
  import 'vs/workbench/services/credentials/browser/credentialsService';
  import 'vs/workbench/services/url/browser/urlService';
 diff --git a/yarn.lock b/yarn.lock
-index ff358cb6a10984868ed5a5aed5729ac6eb8ebeb7..ddc8ebfb4ad01d5c6b58dd725f13a5fa8870d54d 100644
+index ff358cb6a10984868ed5a5aed5729ac6eb8ebeb7..c73be6d8e9f9b213aeee2b4c22b53fc5d4184c56 100644
 --- a/yarn.lock
 +++ b/yarn.lock
 @@ -140,6 +140,23 @@
      lodash "^4.17.13"
      to-fast-properties "^2.0.0"
  
-+"@coder/logger@^1.1.12":
-+  version "1.1.12"
-+  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.12.tgz#def113b7183abc35a8da2b57f0929f7e9626f4e0"
-+  integrity sha512-oM0j3lTVPqApUm3e0bKKcXpfAiJEys31fgEfQlHmvEA13ujsC4zDuXnt0uzDtph48eMoNRLOF/EE4mNShVJKVw==
++"@coder/logger@1.1.16":
++  version "1.1.16"
++  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.16.tgz#ee5b1b188f680733f35c11b065bbd139d618c1e1"
++  integrity sha512-X6VB1++IkosYY6amRAiMvuvCf12NA4+ooX+gOuu5bJIkdjmh4Lz7QpJcWRdgxesvo1msriDDr9E/sDbIWf6vsQ==
 +
 +"@coder/node-browser@^1.0.8":
 +  version "1.0.8"
