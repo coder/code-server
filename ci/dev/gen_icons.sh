@@ -13,9 +13,11 @@ main() {
 
   # -background defaults to white but we want it transparent.
   # https://imagemagick.org/script/command-line-options.php#background
-  convert -background transparent -resize 256x256 favicon.svg favicon.ico
-  convert -background transparent -resize 192x192 favicon.svg pwa-icon-192.png
-  convert -background transparent -resize 512x512 favicon.svg pwa-icon-512.png
+  convert -quiet -background transparent -resize 256x256 favicon.svg favicon.ico
+  convert -quiet -background transparent -resize 192x192 pwa-icon.png pwa-icon-192.png
+  convert -quiet -background transparent -resize 512x512 pwa-icon.png pwa-icon-512.png
+
+  # We use -quiet above to avoid https://github.com/ImageMagick/ImageMagick/issues/884
 }
 
 main "$@"
