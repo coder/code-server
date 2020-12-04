@@ -7,7 +7,6 @@
   - [Google Cloud](#google-cloud)
 - [2. Install code-server](#2-install-code-server)
 - [3. Expose code-server](#3-expose-code-server)
-  - [iPad Simple Setup](#ipad-simple-setup)
   - [SSH forwarding](#ssh-forwarding)
   - [Let's Encrypt](#lets-encrypt)
     - [NGINX](#nginx)
@@ -115,12 +114,6 @@ from a different machine.
 There are several approaches to securely operating and exposing `code-server`.
 
 **tip**: You can list the full set of `code-server` options with `code-server --help`
-
-### iPad Simple Setup
-
-Now that you have an exposed code-server instance with an IP and port number, you are one simple step away.
-
-Download [Serveediter](https://apps.apple.com/us/app/servediter-for-code-server/id1504491325) from the App Store and then input your server information. If you are running a local server or mabye a usb-c connected Raspberry Pi, you will input your settings into "Self Hosted Server".
 
 ### SSH forwarding
 
