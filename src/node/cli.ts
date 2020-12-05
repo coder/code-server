@@ -186,10 +186,7 @@ const options: Options<Required<Args>> = {
       Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
       Authorization is done via GitHub.
-      This is presently beta and requires being accepted for testing.
-      See https://github.com/cdr/code-server/discussions/2137
     `,
-    beta: true,
   },
 }
 
