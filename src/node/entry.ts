@@ -99,8 +99,10 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
-  if (args.auth === AuthType.Password && !args.password) {
-    throw new Error("Please pass in a password via the config file or $PASSWORD")
+  if (args.auth === AuthType.Password && !args.password && !args.hashedPassword) {
+    throw new Error(
+      "Please pass in a password via the config file or environment variable ($PASSWORD or $HASHED_PASSWORD)",
+    )
   }
 
   const [app, wsApp, server] = await createApp(args)
@@ -114,6 +116,8 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
       logger.info("    - Using password from $PASSWORD")
+    } else if (args.usingEnvHashedPassword) {
+      logger.info("    - Using password from $HASHED_PASSWORD")
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
     }
