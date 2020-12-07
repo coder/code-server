@@ -1,0 +1,42 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Contributing",
+  "steps": [
+    {
+      "file": "src/node/app.ts",
+      "line": 11,
+      "description": "code-server's HTTP server is managed here."
+    },
+    {
+      "file": "src/node/routes/apps.ts",
+      "line": 8,
+      "description": "Apps can be created to extend code-server. Here is the Express route that handles that.",
+      "selection": {
+        "start": {
+          "line": 4,
+          "character": 1
+        },
+        "end": {
+          "line": 8,
+          "character": 4
+        }
+      }
+    },
+    {
+      "file": "src/node/routes/vscode.ts",
+      "line": 21,
+      "description": "This is the Express route for VS Code."
+    },
+    {
+      "file": "src/node/cli.ts",
+      "line": 28,
+      "description": "The `$ code-server` CLI is defined here. "
+    },
+    {
+      "file": "ci/dev/vscode.patch",
+      "line": 1,
+      "description": "In v1 of code-server, we had a patch of VS Code that split the codebase into a front-end and a server. The front-end consisted of all UI code, while the server ran the extensions and exposed an API to the front-end for file access and all UI needs.\n\nOver time, Microsoft added support to VS Code to run it on the web. They have made the front-end open source, but not the server. As such, code-server v2 (and later) uses the VS Code front-end and implements the server. You can find this here."
+    }
+  ],
+  "ref": "master"
+}
