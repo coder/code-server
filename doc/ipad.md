@@ -4,6 +4,7 @@
 
 - [Known Issues](#known-issues)
 - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
+  - [Servediter iPad App](#servediter-ipad-app)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -51,3 +52,14 @@ refuse to allow WebSockets to connect.
 5. Go to `Settings -> About -> Certificate Trust Settings` and enable full trust for
    the certificate.
 6. Now you can access code-server! 🍻
+
+### Servediter iPad App
+
+If you are unable to get the self signed certificate working or you do not have a domain
+name to use, you can use the Servediter iPad App instead!
+
+**note**: This is not an officially supported app by the code-server team!
+
+Download [Serveediter](https://apps.apple.com/us/app/servediter-for-code-server/id1504491325) from the
+App Store and then input your server information. If you are running a local server or mabye a usb-c
+connected Raspberry Pi, you will input your settings into "Self Hosted Server".
