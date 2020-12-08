@@ -32,6 +32,7 @@ The prerequisites for contributing to code-server are almost the same as those f
 There are several differences, however. You must:
 
 - Use Node.js version 12.x (or greater)
+- Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
 - Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
 
 The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all
