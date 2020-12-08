@@ -29,6 +29,7 @@ export interface Args extends VsArgs {
   config?: string
   auth?: AuthType
   password?: string
+  hashedPassword?: string
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
@@ -103,6 +104,12 @@ const options: Options<Required<Args>> = {
   password: {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
+  },
+  hashedPassword: {
+    type: "string",
+    description:
+      "The password hashed with SHA-256 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
+      "Takes precedence over 'password'.",
   },
   cert: {
     type: OptionalString,
@@ -279,6 +286,10 @@ export const parse = (
         throw new Error("--password can only be set in the config file or passed in via $PASSWORD")
       }
 
+      if (key === "hashedPassword" && !opts?.configFile) {
+        throw new Error("--hashedPassword can only be set in the config file or passed in via $HASHED_PASSWORD")
+      }
+
       const option = options[key]
       if (option.type === "boolean") {
         ;(args[key] as boolean) = true
@@ -361,6 +372,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "proxy-domain": string[]
   verbose: boolean
   usingEnvPassword: boolean
+  usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
 }
@@ -448,13 +460,20 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args["cert-key"] = certKey
   }
 
-  const usingEnvPassword = !!process.env.PASSWORD
+  let usingEnvPassword = !!process.env.PASSWORD
   if (process.env.PASSWORD) {
     args.password = process.env.PASSWORD
   }
 
-  // Ensure it's not readable by child processes.
+  const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
+  if (process.env.HASHED_PASSWORD) {
+    args.hashedPassword = process.env.HASHED_PASSWORD
+    usingEnvPassword = false
+  }
+
+  // Ensure they're not readable by child processes.
   delete process.env.PASSWORD
+  delete process.env.HASHED_PASSWORD
 
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
@@ -463,6 +482,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   return {
     ...args,
     usingEnvPassword,
+    usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }
 
