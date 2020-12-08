@@ -3,7 +3,7 @@ name: Extension request
 about: Request an extension missing from the code-server marketplace
 title: ""
 labels: extension-request
-assignees: cmoog
+assignees: ""
 ---
 
 <!--
