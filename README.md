@@ -36,7 +36,7 @@ We also have an in-depth [setup and configuration](./doc/guide.md) guide.
 ### Cloud Program ☁️
 
 We're working on a cloud platform that makes deploying and managing code-server easier.
-Consider running code-server with the flag `--link` if you don't want to worry about
+Consider running code-server with the beta flag `--link` if you don't want to worry about
 
 - TLS
 - Authentication
