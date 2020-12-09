@@ -86,6 +86,7 @@ describe("parser", () => {
         "extra-extensions-dir": [path.resolve("nozzle")],
         help: true,
         host: "0.0.0.0",
+        home: "https://localhost:8080/",
         json: true,
         log: "error",
         open: true,

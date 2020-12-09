@@ -56,6 +56,7 @@ export interface Args extends VsArgs {
   "new-window"?: boolean
 
   link?: OptionalString
+  home?: string
 }
 
 interface Option<T> {
@@ -197,6 +198,10 @@ const options: Options<Required<Args>> = {
       See https://github.com/cdr/code-server/discussions/2137
     `,
     beta: true,
+  },
+  home: {
+    type: "string",
+    description: "Set a custom link for the 'Go Home' button in the Application Menu",
   },
 }
 
