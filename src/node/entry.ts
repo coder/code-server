@@ -125,6 +125,10 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     logger.info(`  - Authentication is disabled ${args.link ? "(disabled by --link)" : ""}`)
   }
 
+  if (args["enable-get-requests"]) {
+    logger.info(`  - Login via GET is enabled ${args.auth === AuthType.None ? "(however auth is disabled)" : ""}`)
+  }
+
   if (args.cert) {
     logger.info(`  - Using certificate for HTTPS: ${humanPath(args.cert.value)}`)
   } else {
