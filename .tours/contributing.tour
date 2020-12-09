@@ -147,6 +147,5 @@
       "line": 1,
       "description": "code-server makes use of VS Code's frontend web/remote support. Most of the patch implements the remote server since that portion of the code is closed source and not released with VS Code.\n\nWe also have a few bug fixes and have added some features (like client-side extensions). See CONTRIBUTING.md for a list.\n\nWe make an effort to keep the patch as small as possible."
     }
-  ],
-  "ref": "master"
+  ]
 }
