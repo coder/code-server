@@ -22,6 +22,7 @@
 - [Heartbeat File](#heartbeat-file)
 - [Healthz endpoint](#healthz-endpoint)
 - [How does the config file work?](#how-does-the-config-file-work)
+- [How do I customize the "Go Home" button?](#how-do-i-customize-the-go-home-button)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Differences compared to Theia?](#differences-compared-to-theia)
@@ -285,6 +286,15 @@ and no TLS. Any flags passed to `code-server` will take priority over the config
 The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config file's location.
 
 The default location also respects `$XDG_CONFIG_HOME`.
+
+## How do I customize the "Go Home" button?
+
+You can pass a URL to the `--home` flag like this:
+```
+code-server --home https://my-website.com
+```
+
+Or you can define it in the config file with `home`.
 
 ## Isn't an install script piped into sh insecure?
 
