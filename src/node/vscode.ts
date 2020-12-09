@@ -43,7 +43,7 @@ export class VscodeProvider {
       options.args._ && options.args._.length > 0
         ? { url: path.resolve(options.args._[options.args._.length - 1]) }
         : undefined,
-      lastVisited,
+      !options.args["no-project"] ? lastVisited : undefined,
     ])
 
     settings.write({

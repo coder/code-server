@@ -52,6 +52,7 @@ export interface Args extends VsArgs {
   "proxy-domain"?: string[]
   locale?: string
   _: string[]
+  "no-project"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
 
@@ -171,7 +172,11 @@ const options: Options<Required<Args>> = {
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
-
+  "no-project": {
+    type: "boolean",
+    short: "empty",
+    description: "Run without a project if a path isn't specified."
+  },
   "new-window": {
     type: "boolean",
     short: "n",
