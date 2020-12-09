@@ -43,45 +43,35 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
 
 const limiter = new RateLimiter()
 
-export const router = Router()
-
-router.use((req, res, next) => {
-  const to = (typeof req.query.to === "string" && req.query.to) || "/"
-  if (authenticated(req)) {
-    return redirect(req, res, to, { to: undefined })
-  }
-  next()
-})
-
-router.get("/", async (req, res) => {
-  res.send(await getRoot(req))
-})
-
-router.post("/", async (req, res) => {
+const login = async (req : Request, res : any, password : string) => {
   try {
     if (!limiter.try()) {
       throw new Error("Login rate limited!")
     }
 
-    if (!req.body.password) {
+    if (!password) {
       throw new Error("Missing password")
     }
 
     if (
       req.args.hashedPassword
-        ? safeCompare(hash(req.body.password), req.args.hashedPassword)
-        : req.args.password && safeCompare(req.body.password, req.args.password)
+        ? safeCompare(hash(password), req.args.hashedPassword)
+        : req.args.password && safeCompare(password, req.args.password)
     ) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.Key, hash(req.body.password), {
+      res.cookie(Cookie.Key, hash(password), {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         path: req.body.base || "/",
         sameSite: "lax",
       })
 
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
-      return redirect(req, res, to, { to: undefined })
+      return redirect(req, res, to, {
+        to: undefined, 
+        password: undefined,
+        pass: undefined,
+      })
     }
 
     console.error(
@@ -98,4 +88,35 @@ router.post("/", async (req, res) => {
   } catch (error) {
     res.send(await getRoot(req, error))
   }
+}
+
+export const router = Router()
+
+router.use((req : any, res : any, next : any) => {
+  const to = (typeof req.query.to === "string" && req.query.to) || "/"
+  if (authenticated(req)) {
+    return redirect(req, res, to, {
+      to: undefined, 
+      password: undefined,
+      pass: undefined,
+    })
+  }
+  next()
+})
+
+router.get("/", async (req : any, res : any) => {
+  if (req.args["enable-get-requests"]) {
+    // `?password` overrides `?pass`
+    if (req.query.password) {
+      return await login(req, res, req.query.password as string)
+    }
+    else if (req.query.pass) {
+      return await login(req, res, req.query.pass as string)
+    }
+  }
+  res.send(await getRoot(req))
+})
+
+router.post("/", async (req : any, res : any) => {
+  await login(req, res, req.body.password)
 })
