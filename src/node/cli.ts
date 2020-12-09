@@ -43,6 +43,7 @@ export interface Args extends VsArgs {
   port?: number
   "bind-addr"?: string
   socket?: string
+  "enable-get-requests"?: boolean
   version?: boolean
   force?: boolean
   "list-extensions"?: boolean
@@ -147,6 +148,10 @@ const options: Options<Required<Args>> = {
   port: { type: "number", description: "" },
 
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
+  "enable-get-requests": {
+    type: "boolean",
+    description: `Enable authentication via the url with queries. (Usage: ?pass=[password] after the rest of the url)`
+  },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
 
