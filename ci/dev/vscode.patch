@@ -494,7 +494,7 @@ index 0000000000000000000000000000000000000000..3fd94e050108d5c52ad8a104cb5e0484
 +../../../../../../src/node/proxy_agent.ts
 \ No newline at end of file
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..e490cf7449623f96c780a65d538fad72cf9306e4 100644
+index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..86ccef66fd689a511786867eafe4b39bd633c1c3 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
 @@ -17,6 +17,7 @@ import { isStandalone } from 'vs/base/browser/browser';
@@ -592,6 +592,28 @@ index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..e490cf7449623f96c780a65d538fad72
  
  	// If no workspace is provided through the URL, check for config attribute from server
  	if (!foundWorkspace) {
+@@ -465,13 +454,6 @@ class WindowIndicator implements IWindowIndicator {
+ 	// Workspace Provider
+ 	const workspaceProvider = new WorkspaceProvider(workspace, payload);
+ 
+-	// Home Indicator
+-	const homeIndicator: IHomeIndicator = {
+-		href: 'https://github.com/microsoft/vscode',
+-		icon: 'code',
+-		title: localize('home', "Home")
+-	};
+-
+ 	// Window indicator (unless connected to a remote)
+ 	let windowIndicator: WindowIndicator | undefined = undefined;
+ 	if (!workspaceProvider.hasRemote()) {
+@@ -515,7 +497,6 @@ class WindowIndicator implements IWindowIndicator {
+ 	create(document.body, {
+ 		...config,
+ 		settingsSyncOptions,
+-		homeIndicator,
+ 		windowIndicator,
+ 		productQualityChangeHandler,
+ 		workspaceProvider,
 diff --git a/src/vs/platform/environment/common/argv.ts b/src/vs/platform/environment/common/argv.ts
 index 409bb7e1960c9c06485a6f6d7f39b2efce451d56..f27b651c49ea3fc92b03e31eb64c1cf27c7e4433 100644
 --- a/src/vs/platform/environment/common/argv.ts
@@ -1468,10 +1490,10 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2af902ec7
+index 0000000000000000000000000000000000000000..bf45e75aaf0dc8953ee6fee97fe02149879d3d72
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,133 @@
+@@ -0,0 +1,139 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1544,6 +1566,7 @@ index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2
 +
 +	log?: string;
 +	verbose?: boolean;
++	home?: string;
 +
 +	_: string[];
 +}
@@ -1587,6 +1610,11 @@ index 0000000000000000000000000000000000000000..c8a613ac2db1ff154a49aa7b6da5f7d2
 +				['enableProposedApi', string],
 +			];
 +		};
++		readonly homeIndicator?: {
++			href: string,
++			icon: string,
++			title: string,
++		},
 +	};
 +	readonly remoteUserDataUri: UriComponents;
 +	readonly productConfiguration: {
@@ -3293,10 +3321,10 @@ index 0000000000000000000000000000000000000000..57213f92828fafefcab0e3c401a1e8ed
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..5521d51a92d1b1e3469e890bae41277b560d08a2
+index 0000000000000000000000000000000000000000..04e56c907774a96453fded9254c70f7844917d76
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
-@@ -0,0 +1,302 @@
+@@ -0,0 +1,308 @@
 +import { field } from '@coder/logger';
 +import * as fs from 'fs';
 +import * as net from 'net';
@@ -3357,6 +3385,7 @@ index 0000000000000000000000000000000000000000..5521d51a92d1b1e3469e890bae41277b
 +import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
 +import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 +import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
++import { localize } from 'vs/nls';
 +
 +export class Vscode {
 +	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
@@ -3404,6 +3433,11 @@ index 0000000000000000000000000000000000000000..5521d51a92d1b1e3469e890bae41277b
 +						['userDataPath', environment.userDataPath],
 +						['enableProposedApi', JSON.stringify(options.args['enable-proposed-api'] || [])]
 +					],
++				},
++				homeIndicator: {
++					href: options.args.home || "https://github.com/cdr/code-server",
++					icon: 'code',
++					title: localize('home', "Home"),
 +				},
 +			},
 +			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
@@ -3859,16 +3893,13 @@ index 021af6e0f8983c492f9cdd048ba2dcae7640bc1d..4474a93beba03365709c3cda98b68213
  		module = module.with({ path: ensureSuffix(module.path, '.js') });
  		const response = await fetch(module.toString(true));
 diff --git a/src/vs/workbench/browser/actions/navigationActions.ts b/src/vs/workbench/browser/actions/navigationActions.ts
-index 7344a3a29b32f7b370b99bf0cfdc79a322195ff8..dc21396e83e2f53914447d3460c2ee1103ecb28e 100644
+index 7344a3a29b32f7b370b99bf0cfdc79a322195ff8..46c900da7610d9ca6ddff4556b5d93b8dd58588c 100644
 --- a/src/vs/workbench/browser/actions/navigationActions.ts
 +++ b/src/vs/workbench/browser/actions/navigationActions.ts
-@@ -310,4 +310,8 @@ actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusNextPart,
- actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusPreviousPart, { primary: KeyMod.Shift | KeyCode.F6 }), 'View: Focus Previous Part', CATEGORIES.View.value);
+@@ -311,3 +311,6 @@ actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusPreviousP
  
  const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
--workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
-+// See https://github.com/cdr/code-server/issues/2328
-+// workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
+ workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
 +export const _1 = workbenchRegistry;
 +export const _2 = GoHomeContributor;
 +export const _3 = LifecyclePhase.Ready;
@@ -4706,44 +4737,48 @@ index ff358cb6a10984868ed5a5aed5729ac6eb8ebeb7..c73be6d8e9f9b213aeee2b4c22b53fc5
  nice-try@^1.0.4:
    version "1.0.4"
    resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.4.tgz#d93962f6c52f2c1558c0fbda6d512819f1efe1c4"
-@@ -6581,6 +6705,18 @@ optimist@^0.6.1:
+@@ -6581,29 +6705,29 @@ optimist@^0.6.1:
      minimist "~0.0.1"
      wordwrap "~0.0.2"
  
+-optionator@^0.8.2:
+-  version "0.8.2"
+-  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
+-  integrity sha1-NkxeQJ0/TWMB1sC0wFu6UBgK62Q=
 +optionator@^0.8.1, optionator@^0.8.3:
 +  version "0.8.3"
 +  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
 +  integrity sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==
-+  dependencies:
-+    deep-is "~0.1.3"
+   dependencies:
+     deep-is "~0.1.3"
+-    fast-levenshtein "~2.0.4"
 +    fast-levenshtein "~2.0.6"
-+    levn "~0.3.0"
-+    prelude-ls "~1.1.2"
-+    type-check "~0.3.2"
-+    word-wrap "~1.2.3"
-+
- optionator@^0.8.2:
-   version "0.8.2"
-   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
-@@ -6593,18 +6729,6 @@ optionator@^0.8.2:
+     levn "~0.3.0"
+     prelude-ls "~1.1.2"
      type-check "~0.3.2"
-     wordwrap "~1.0.0"
+-    wordwrap "~1.0.0"
++    word-wrap "~1.2.3"
  
 -optionator@^0.8.3:
 -  version "0.8.3"
 -  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
 -  integrity sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==
--  dependencies:
--    deep-is "~0.1.3"
++optionator@^0.8.2:
++  version "0.8.2"
++  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
++  integrity sha1-NkxeQJ0/TWMB1sC0wFu6UBgK62Q=
+   dependencies:
+     deep-is "~0.1.3"
 -    fast-levenshtein "~2.0.6"
--    levn "~0.3.0"
--    prelude-ls "~1.1.2"
--    type-check "~0.3.2"
++    fast-levenshtein "~2.0.4"
+     levn "~0.3.0"
+     prelude-ls "~1.1.2"
+     type-check "~0.3.2"
 -    word-wrap "~1.2.3"
--
++    wordwrap "~1.0.0"
+ 
  ordered-read-streams@^0.3.0:
    version "0.3.0"
-   resolved "https://registry.yarnpkg.com/ordered-read-streams/-/ordered-read-streams-0.3.0.tgz#7137e69b3298bb342247a1bbee3881c80e2fd78b"
 @@ -6744,6 +6868,35 @@ p-try@^2.0.0:
    resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.0.0.tgz#85080bb87c64688fa47996fe8f7dfbe8211760b1"
    integrity sha512-hMp0onDKIajHfIkdRk3P4CdCmErkYAxxDtP3Wx/4nZ3aGlau2VKh3mZpcuFkH27WQkL/3WBCPOktzA9ZOAnMQQ==
