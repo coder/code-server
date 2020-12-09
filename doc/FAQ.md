@@ -291,7 +291,7 @@ The default location also respects `$XDG_CONFIG_HOME`.
 
 You can pass a URL to the `--home` flag like this:
 ```
-code-server --home https://my-website.com
+code-server --home=https://my-website.com
 ```
 
 Or you can define it in the config file with `home`.
