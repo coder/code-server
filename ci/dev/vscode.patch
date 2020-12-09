@@ -3321,7 +3321,7 @@ index 0000000000000000000000000000000000000000..57213f92828fafefcab0e3c401a1e8ed
 +}
 diff --git a/src/vs/server/node/server.ts b/src/vs/server/node/server.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..04e56c907774a96453fded9254c70f7844917d76
+index 0000000000000000000000000000000000000000..0f4d31a961be1c055163b0cf29d550d7af5146e6
 --- /dev/null
 +++ b/src/vs/server/node/server.ts
 @@ -0,0 +1,308 @@
@@ -3435,7 +3435,7 @@ index 0000000000000000000000000000000000000000..04e56c907774a96453fded9254c70f78
 +					],
 +				},
 +				homeIndicator: {
-+					href: options.args.home || "https://github.com/cdr/code-server",
++					href: options.args.home || 'https://github.com/cdr/code-server',
 +					icon: 'code',
 +					title: localize('home', "Home"),
 +				},
