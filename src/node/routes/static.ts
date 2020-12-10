@@ -6,6 +6,7 @@ import { Readable } from "stream"
 import * as tarFs from "tar-fs"
 import * as zlib from "zlib"
 import { HttpCode, HttpError } from "../../common/http"
+import { getFirstString } from "../../common/util"
 import { rootPath } from "../constants"
 import { authenticated, ensureAuthenticated, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
@@ -15,8 +16,8 @@ export const router = Router()
 // The commit is for caching.
 router.get("/(:commit)(/*)?", async (req, res) => {
   // Used by VS Code to load extensions into the web worker.
-  const tar = Array.isArray(req.query.tar) ? req.query.tar[0] : req.query.tar
-  if (typeof tar === "string") {
+  const tar = getFirstString(req.query.tar)
+  if (tar) {
     ensureAuthenticated(req)
     let stream: Readable = tarFs.pack(pathToFsPath(tar))
     if (req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip")) {

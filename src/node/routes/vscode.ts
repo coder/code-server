@@ -1,7 +1,11 @@
 import * as crypto from "crypto"
-import { Router } from "express"
+import { Request, Router } from "express"
 import { promises as fs } from "fs"
 import * as path from "path"
+import qs from "qs"
+import { Emitter } from "../../common/emitter"
+import { HttpCode, HttpError } from "../../common/http"
+import { getFirstString } from "../../common/util"
 import { commit, rootPath, version } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
@@ -84,6 +88,107 @@ router.get("/webview/*", ensureAuthenticated, async (req, res) => {
   return res.send(
     await fs.readFile(path.join(vscode.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", req.params[0])),
   )
+})
+
+interface Callback {
+  uri: {
+    scheme: string
+    authority?: string
+    path?: string
+    query?: string
+    fragment?: string
+  }
+  timeout: NodeJS.Timeout
+}
+
+const callbacks = new Map<string, Callback>()
+const callbackEmitter = new Emitter<{ id: string; callback: Callback }>()
+
+/**
+ * Get vscode-requestId from the query and throw if it's missing or invalid.
+ */
+const getRequestId = (req: Request): string => {
+  if (!req.query["vscode-requestId"]) {
+    throw new HttpError("vscode-requestId is missing", HttpCode.BadRequest)
+  }
+
+  if (typeof req.query["vscode-requestId"] !== "string") {
+    throw new HttpError("vscode-requestId is not a string", HttpCode.BadRequest)
+  }
+
+  return req.query["vscode-requestId"]
+}
+
+// Matches VS Code's fetch timeout.
+const fetchTimeout = 5 * 60 * 1000
+
+// The callback endpoints are used during authentication. A URI is stored on
+// /callback and then fetched later on /fetch-callback.
+// See ../../../lib/vscode/resources/web/code-web.js
+router.get("/callback", ensureAuthenticated, async (req, res) => {
+  const uriKeys = [
+    "vscode-requestId",
+    "vscode-scheme",
+    "vscode-authority",
+    "vscode-path",
+    "vscode-query",
+    "vscode-fragment",
+  ]
+
+  const id = getRequestId(req)
+
+  // Move any query variables that aren't URI keys into the URI's query
+  // (importantly, this will include the code for oauth).
+  const query: qs.ParsedQs = {}
+  for (const key in req.query) {
+    if (!uriKeys.includes(key)) {
+      query[key] = req.query[key]
+    }
+  }
+
+  const callback = {
+    uri: {
+      scheme: getFirstString(req.query["vscode-scheme"]) || "code-oss",
+      authority: getFirstString(req.query["vscode-authority"]),
+      path: getFirstString(req.query["vscode-path"]),
+      query: (getFirstString(req.query.query) ? getFirstString(req.query.query) + "&" : "") + qs.stringify(query),
+      fragment: getFirstString(req.query["vscode-fragment"]),
+    },
+    // Make sure the map doesn't leak if nothing fetches this URI.
+    timeout: setTimeout(() => callbacks.delete(id), fetchTimeout),
+  }
+
+  callbacks.set(id, callback)
+  callbackEmitter.emit({ id, callback })
+
+  res.sendFile(path.join(rootPath, "lib/vscode/resources/web/callback.html"))
+})
+
+router.get("/fetch-callback", ensureAuthenticated, async (req, res) => {
+  const id = getRequestId(req)
+
+  const send = (callback: Callback) => {
+    clearTimeout(callback.timeout)
+    callbacks.delete(id)
+    res.json(callback.uri)
+  }
+
+  const callback = callbacks.get(id)
+  if (callback) {
+    return send(callback)
+  }
+
+  // VS Code will try again if the route returns no content but it seems more
+  // efficient to just wait on this request for as long as possible?
+  const handler = callbackEmitter.event(({ id: emitId, callback }) => {
+    if (id === emitId) {
+      handler.dispose()
+      send(callback)
+    }
+  })
+
+  // If the client closes the connection.
+  req.on("close", () => handler.dispose())
 })
 
 export const wsRouter = WsRouter()
