@@ -494,9 +494,18 @@ index 0000000000000000000000000000000000000000..3fd94e050108d5c52ad8a104cb5e0484
 +../../../../../../src/node/proxy_agent.ts
 \ No newline at end of file
 diff --git a/src/vs/code/browser/workbench/workbench.ts b/src/vs/code/browser/workbench/workbench.ts
-index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..86ccef66fd689a511786867eafe4b39bd633c1c3 100644
+index 0ef8b9dc81419b53b27cf111fb206d72ba56bada..779971e2cc6e5394cdd4b079630238e80b352f33 100644
 --- a/src/vs/code/browser/workbench/workbench.ts
 +++ b/src/vs/code/browser/workbench/workbench.ts
+@@ -3,7 +3,7 @@
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+ 
+-import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IHomeIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
++import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
+ import { URI, UriComponents } from 'vs/base/common/uri';
+ import { Event, Emitter } from 'vs/base/common/event';
+ import { generateUuid } from 'vs/base/common/uuid';
 @@ -17,6 +17,7 @@ import { isStandalone } from 'vs/base/browser/browser';
  import { localize } from 'vs/nls';
  import { Schemas } from 'vs/base/common/network';
