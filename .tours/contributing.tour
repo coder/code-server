@@ -5,7 +5,7 @@
     {
       "directory": "src",
       "line": 1,
-      "description": "Hello world! code-server's source code lives here. It's broadly arranged into browser code, Node code, and code shared between both."
+      "description": "Hello world! code-server's source code lives here in `src` (see the explorer). It's broadly arranged into browser code, Node code, and code shared between both."
     },
     {
       "file": "src/node/entry.ts",
@@ -58,9 +58,9 @@
       "description": "We pass sockets to child processes, however we can't pass TLS sockets so when code-server is handling TLS (via --cert) we use this to create a proxy that can be passed to the child."
     },
     {
-      "file": "src/node/routes",
+      "directory": "src/node/routes",
       "line": 1,
-      "description": "code-server's routes live here."
+      "description": "code-server's routes live here in `src/node/routes` (see the explorer)."
     },
     {
       "file": "src/node/routes/index.ts",
@@ -128,9 +128,9 @@
       "description": "The service worker only exists to provide PWA functionality."
     },
     {
-      "file": "src/browser/pages",
+      "directory": "src/browser/pages",
       "line": 1,
-      "description": "HTML, CSS, and JavaScript for each page lives here. Currently our HTML uses a simple search and replace template system with variables that {{LOOK_LIKE_THIS}}."
+      "description": "HTML, CSS, and JavaScript for each page lives in here `src/browser/pages` (see the explorer). Currently our HTML uses a simple search and replace template system with variables that {{LOOK_LIKE_THIS}}."
     },
     {
       "file": "src/browser/pages/vscode.html",
@@ -138,9 +138,9 @@
       "description": "The VS Code HTML is based off VS Code's own `workbench.html`."
     },
     {
-      "file": "src/browser/media",
+      "directory": "src/browser/media",
       "line": 1,
-      "description": "Static images and the manifest live here."
+      "description": "Static images and the manifest live here in `src/browser/media` (see the explorer)."
     },
     {
       "file": "ci/dev/vscode.patch",
