@@ -290,6 +290,7 @@ The default location also respects `$XDG_CONFIG_HOME`.
 ## How do I customize the "Go Home" button?
 
 You can pass a URL to the `--home` flag like this:
+
 ```
 code-server --home=https://my-website.com
 ```
