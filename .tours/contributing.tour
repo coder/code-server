@@ -3,7 +3,7 @@
   "title": "Contributing",
   "steps": [
     {
-      "file": "src",
+      "directory": "src",
       "line": 1,
       "description": "Hello world! code-server's source code lives here. It's broadly arranged into browser code, Node code, and code shared between both."
     },
