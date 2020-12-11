@@ -109,9 +109,8 @@ router.get("/", async (req : Request, res : Response) => {
     // `?password` overrides `?pass`
     if (req.query.password && typeof req.query.password === "string") {
       return await login(req, res, req.query.password)
-    }
-    else if (req.query.pass) {
-      return await login(req, res, req.query.pass as string)
+} else if (req.query.pass && typeof req.query.pass === "string") {
+      return await login(req, res, req.query.pass)
     }
   }
   res.send(await getRoot(req))
