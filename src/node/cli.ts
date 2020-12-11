@@ -47,6 +47,7 @@ export interface Args extends VsArgs {
   tokens?: string[]
   "generate-token"?: boolean
   "list-tokens"?: boolean
+  "revoke-token"?: string
   version?: boolean
   force?: boolean
   "list-extensions"?: boolean
@@ -167,6 +168,10 @@ const options: Options<Required<Args>> = {
   "generate-token": {
     type: "boolean",
     description: "Generate a new token for quick access."
+  },
+  "revoke-token": {
+    type: "string",
+    description: "Remove and disable a specific token from use."
   },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
