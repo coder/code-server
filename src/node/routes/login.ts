@@ -1,4 +1,4 @@
-import { Router, Request } from "express"
+import { Router, Request, Response, NextFunction } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
@@ -43,7 +43,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
 
 const limiter = new RateLimiter()
 
-const login = async (req : Request, res : any, password : string) => {
+const login = async (req : Request, res : Response, password : string) => {
   try {
     if (!limiter.try()) {
       throw new Error("Login rate limited!")
@@ -92,7 +92,7 @@ const login = async (req : Request, res : any, password : string) => {
 
 export const router = Router()
 
-router.use((req : any, res : any, next : any) => {
+router.use((req : Request, res : Response, next : NextFunction) => {
   const to = (typeof req.query.to === "string" && req.query.to) || "/"
   if (authenticated(req)) {
     return redirect(req, res, to, {
@@ -104,7 +104,7 @@ router.use((req : any, res : any, next : any) => {
   next()
 })
 
-router.get("/", async (req : any, res : any) => {
+router.get("/", async (req : Request, res : Response) => {
   if (req.args["enable-get-requests"]) {
     // `?password` overrides `?pass`
     if (req.query.password) {
@@ -117,6 +117,6 @@ router.get("/", async (req : any, res : any) => {
   res.send(await getRoot(req))
 })
 
-router.post("/", async (req : any, res : any) => {
+router.post("/", async (req : Request, res : Response) => {
   await login(req, res, req.body.password)
 })
