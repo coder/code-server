@@ -562,6 +562,31 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   }
 }
 
+export async function writeConfigFile(configPath?: string, data? : object) {
+  if (!configPath) {
+    configPath = process.env.CODE_SERVER_CONFIG
+    if (!configPath) {
+      configPath = path.join(paths.config, "config.yaml")
+    }
+  }
+
+  if (!(await fs.pathExists(configPath))) {
+    await fs.outputFile(configPath, await defaultConfigFile())
+    logger.info(`Wrote default config file to ${humanPath(configPath)}`)
+  }
+
+  const configFile = await fs.readFile(configPath)
+  const config = yaml.safeLoad(configFile.toString(), {
+    filename: configPath,
+  })
+  if (!config || typeof config === "string") {
+    throw new Error(`invalid config: ${config}`)
+  }
+
+  const dumpedData = yaml.safeDump({...config, ...data});
+  await fs.outputFile(configPath, dumpedData)
+}
+
 function parseBindAddr(bindAddr: string): Addr {
   const u = new URL(`http://${bindAddr}`)
   return {
