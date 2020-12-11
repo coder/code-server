@@ -107,8 +107,8 @@ router.use((req : Request, res : Response, next : NextFunction) => {
 router.get("/", async (req : Request, res : Response) => {
   if (req.args["enable-get-requests"]) {
     // `?password` overrides `?pass`
-    if (req.query.password) {
-      return await login(req, res, req.query.password as string)
+    if (req.query.password && typeof req.query.password === "string") {
+      return await login(req, res, req.query.password)
     }
     else if (req.query.pass) {
       return await login(req, res, req.query.pass as string)
