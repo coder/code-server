@@ -44,6 +44,9 @@ export interface Args extends VsArgs {
   "bind-addr"?: string
   socket?: string
   "enable-get-requests"?: boolean
+  tokens?: string[]
+  "generate-token"?: boolean
+  "list-tokens"?: boolean
   version?: boolean
   force?: boolean
   "list-extensions"?: boolean
@@ -151,6 +154,19 @@ const options: Options<Required<Args>> = {
   "enable-get-requests": {
     type: "boolean",
     description: `Enable authentication via the url with a query parameter. (Usage: ?pass=[password] after the rest of the url.)`
+  },
+  "tokens": {
+    type: "string[]",
+    description: ""
+  },
+  "list-tokens": {
+    type: "boolean",
+    short: "t",
+    description: "List currently active tokens."
+  },
+  "generate-token": {
+    type: "boolean",
+    description: "Generate a new token for quick access."
   },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
