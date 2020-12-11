@@ -215,7 +215,7 @@ If you prefer to use NGINX instead of Caddy then please follow steps 1-2 above a
 
 ```bash
 sudo apt update
-sudo apt install -y nginx certbot python-certbot-nginx
+sudo apt install -y nginx certbot python3-certbot-nginx
 ```
 
 4. Put the following config into `/etc/nginx/sites-available/code-server` with sudo:
