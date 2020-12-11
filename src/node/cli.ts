@@ -150,7 +150,7 @@ const options: Options<Required<Args>> = {
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
   "enable-get-requests": {
     type: "boolean",
-    description: `Enable authentication via the url with queries. (Usage: ?pass=[password] after the rest of the url)`
+    description: `Enable authentication via the url with a query parameter. (Usage: ?pass=[password] after the rest of the url.)`
   },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
