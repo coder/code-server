@@ -11,6 +11,7 @@ import {
   optionDescriptions,
   parse,
   readConfigFile,
+  writeConfigFile,
   setDefaults,
   shouldOpenInExistingInstance,
   shouldRunVsCodeCli,
@@ -19,7 +20,7 @@ import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import * as proxyAgent from "./proxy_agent"
 import { register } from "./routes"
-import { humanPath, isFile, open } from "./util"
+import { humanPath, isFile, open, generatePassword } from "./util"
 import { isChild, wrapper } from "./wrapper"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
@@ -202,6 +203,55 @@ async function entry(): Promise<void> {
       })
     } else {
       console.log(version, commit)
+    }
+    return
+  }
+
+  if (args.tokens) {
+    args.tokens = args.tokens[0].split(",")
+  }
+
+  if (args["list-tokens"]) {
+    console.log("code-server", version, commit)
+    console.log("")
+    if (!args.tokens) {
+      return console.log("No tokens currently exist")
+    }
+    console.log("Tokens")
+    args.tokens.forEach(token => {
+      console.log("  -", token)
+    })
+    return
+  }
+
+  if (args["generate-token"]) {
+    console.log("code-server", version, commit)
+    console.log("")
+
+    if (!args.tokens) {
+      args.tokens = []
+    }
+
+    const token = await generatePassword()
+    args.tokens.push(token)
+    writeConfigFile(cliArgs.config, { tokens: args.tokens })
+    console.log("Generated token:", token)
+    return
+  }
+
+  if (args["revoke-token"]) {
+    console.log("code-server", version, commit)
+    console.log("")
+
+    if (args.tokens?.includes(args["revoke-token"])) {
+      args.tokens = args.tokens.filter(token => {
+        return token != args["revoke-token"]
+      })
+      writeConfigFile(cliArgs.config, { tokens: args.tokens })
+      console.log("The token has successfully been revoked")
+    }
+    else {
+      console.log("The token specified does not exist")
     }
     return
   }
