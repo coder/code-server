@@ -10,9 +10,9 @@ RUN apt-get update \
     nano \
     git \
     procps \
-    ssh \
+    openssh-client \
     sudo \
-    vim \
+    vim.tiny \
     lsb-release \
   && rm -rf /var/lib/apt/lists/*
 
