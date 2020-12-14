@@ -38,7 +38,7 @@ arch() {
   aarch64)
     echo arm64
     ;;
-  x86_64)
+  x86_64 | amd64)
     echo amd64
     ;;
   *)
