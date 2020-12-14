@@ -68,8 +68,8 @@ router.post("/", async (req, res) => {
     }
 
     if (
-      req.args.hashedPassword
-        ? safeCompare(hash(req.body.password), req.args.hashedPassword)
+      req.args["hashed-password"]
+        ? safeCompare(hash(req.body.password), req.args["hashed-password"])
         : req.args.password && safeCompare(req.body.password, req.args.password)
     ) {
       // The hash does not add any actual security but we do it for

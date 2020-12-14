@@ -99,7 +99,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
-  if (args.auth === AuthType.Password && !args.password && !args.hashedPassword) {
+  if (args.auth === AuthType.Password && !args.password && !args["hashed-password"]) {
     throw new Error(
       "Please pass in a password via the config file or environment variable ($PASSWORD or $HASHED_PASSWORD)",
     )

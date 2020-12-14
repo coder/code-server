@@ -297,8 +297,8 @@ and then restart `code-server` with:
 sudo systemctl restart code-server@$USER
 ```
 
-Alternatively, you can specify the SHA-256 of your password at the `hashedPassword` field in the config file.
-The `hashedPassword` field takes precedence over `password`.
+Alternatively, you can specify the SHA-256 of your password at the `hashed-password` field in the config file.
+The `hashed-password` field takes precedence over `password`.
 
 ### How do I securely access development web services?
 
