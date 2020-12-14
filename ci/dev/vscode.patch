@@ -4746,48 +4746,44 @@ index ff358cb6a10984868ed5a5aed5729ac6eb8ebeb7..c73be6d8e9f9b213aeee2b4c22b53fc5
  nice-try@^1.0.4:
    version "1.0.4"
    resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.4.tgz#d93962f6c52f2c1558c0fbda6d512819f1efe1c4"
-@@ -6581,29 +6705,29 @@ optimist@^0.6.1:
+@@ -6581,6 +6705,18 @@ optimist@^0.6.1:
      minimist "~0.0.1"
      wordwrap "~0.0.2"
  
--optionator@^0.8.2:
--  version "0.8.2"
--  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
--  integrity sha1-NkxeQJ0/TWMB1sC0wFu6UBgK62Q=
 +optionator@^0.8.1, optionator@^0.8.3:
 +  version "0.8.3"
 +  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
 +  integrity sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==
-   dependencies:
-     deep-is "~0.1.3"
--    fast-levenshtein "~2.0.4"
++  dependencies:
++    deep-is "~0.1.3"
 +    fast-levenshtein "~2.0.6"
-     levn "~0.3.0"
-     prelude-ls "~1.1.2"
-     type-check "~0.3.2"
--    wordwrap "~1.0.0"
++    levn "~0.3.0"
++    prelude-ls "~1.1.2"
++    type-check "~0.3.2"
 +    word-wrap "~1.2.3"
++
+ optionator@^0.8.2:
+   version "0.8.2"
+   resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
+@@ -6593,18 +6729,6 @@ optionator@^0.8.2:
+     type-check "~0.3.2"
+     wordwrap "~1.0.0"
  
 -optionator@^0.8.3:
 -  version "0.8.3"
 -  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.3.tgz#84fa1d036fe9d3c7e21d99884b601167ec8fb495"
 -  integrity sha512-+IW9pACdk3XWmmTXG8m3upGUJst5XRGzxMRjXzAuJ1XnIFNvfhjjIuYkDvysnPQ7qzqVzLt78BCruntqRhWQbA==
-+optionator@^0.8.2:
-+  version "0.8.2"
-+  resolved "https://registry.yarnpkg.com/optionator/-/optionator-0.8.2.tgz#364c5e409d3f4d6301d6c0b4c05bba50180aeb64"
-+  integrity sha1-NkxeQJ0/TWMB1sC0wFu6UBgK62Q=
-   dependencies:
-     deep-is "~0.1.3"
+-  dependencies:
+-    deep-is "~0.1.3"
 -    fast-levenshtein "~2.0.6"
-+    fast-levenshtein "~2.0.4"
-     levn "~0.3.0"
-     prelude-ls "~1.1.2"
-     type-check "~0.3.2"
+-    levn "~0.3.0"
+-    prelude-ls "~1.1.2"
+-    type-check "~0.3.2"
 -    word-wrap "~1.2.3"
-+    wordwrap "~1.0.0"
- 
+-
  ordered-read-streams@^0.3.0:
    version "0.3.0"
+   resolved "https://registry.yarnpkg.com/ordered-read-streams/-/ordered-read-streams-0.3.0.tgz#7137e69b3298bb342247a1bbee3881c80e2fd78b"
 @@ -6744,6 +6868,35 @@ p-try@^2.0.0:
    resolved "https://registry.yarnpkg.com/p-try/-/p-try-2.0.0.tgz#85080bb87c64688fa47996fe8f7dfbe8211760b1"
    integrity sha512-hMp0onDKIajHfIkdRk3P4CdCmErkYAxxDtP3Wx/4nZ3aGlau2VKh3mZpcuFkH27WQkL/3WBCPOktzA9ZOAnMQQ==
