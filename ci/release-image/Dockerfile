@@ -1,7 +1,8 @@
 FROM debian:10
 
 RUN apt-get update \
- && apt-get install -y \
+ && apt-get install --no-install-recommends -y \
+    ca-certificates \
     curl \
     dumb-init \
     htop \
@@ -10,9 +11,9 @@ RUN apt-get update \
     nano \
     git \
     procps \
-    ssh \
+    openssh-client \
     sudo \
-    vim \
+    vim.tiny \
     lsb-release \
   && rm -rf /var/lib/apt/lists/*
 
