@@ -11,6 +11,7 @@
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+- [Can I store my password hashed?](#can-i-store-my-password-hashed)
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
@@ -158,6 +159,16 @@ You can use [Let's Encrypt](https://letsencrypt.org/) to get a TLS certificate
 for free.
 
 Again, please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
+
+## Can I store my password hashed?
+
+Yes you can! Use `hashedPassword` instead of `password`. Generate the hash with:
+
+```
+echo "thisismypassword" | sha256sum | cut -d' ' -f1
+```
+
+Of course replace `"thisismypassword"` with your actual password.
 
 ## How do I securely access web services?
 
