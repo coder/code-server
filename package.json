@@ -11,8 +11,6 @@
   "scripts": {
     "clean": "./ci/build/clean.sh",
     "vscode": "./ci/dev/vscode.sh",
-    "vscode:patch": "./ci/dev/patch-vscode.sh",
-    "vscode:diff": "./ci/dev/diff-vscode.sh",
     "vscode:reset": "./ci/dev/reset-vscode.sh",
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
