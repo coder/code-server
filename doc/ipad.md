@@ -5,6 +5,7 @@
 - [Known Issues](#known-issues)
 - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
   - [Servediter iPad App](#servediter-ipad-app)
+  - [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -50,7 +51,7 @@ refuse to allow WebSockets to connect.
 4. Go to `Settings -> General -> Profile`, select the profile and then hit `Install`.
    - It should say the profile is verified.
 5. Go to `Settings -> About -> Certificate Trust Settings` and enable full trust for
-   the certificate.
+   the certificate. [more apple support here](https://support.apple.com/en-us/HT204477)
 6. Now you can access code-server! 🍻
 
 ### Servediter iPad App
@@ -63,3 +64,11 @@ name to use, you can use the Servediter iPad App instead!
 Download [Serveediter](https://apps.apple.com/us/app/servediter-for-code-server/id1504491325) from the
 App Store and then input your server information. If you are running a local server or mabye a usb-c
 connected Raspberry Pi, you will input your settings into "Self Hosted Server".
+
+### Raspberry Pi USB-C Network
+
+It is a bit out of scope for this project, however, great success is being reported using iPad on the go with just a single USB-C cable connected to a Raspberry Pi both powering and supplying direct network access. Many support articles already exist but the key steps boil down to turning on Network over USB-C on the Raspberry Pi itself and the rest of the steps are just like getting Code Server running any where else.
+
+> Here are my keys to success. I bought a 4" touch screen with fan included that attaches as a case to the Pi. I use the touch screen for anytime I have connection issues, otherwise I turn off the Pi screen. I gave my Pi a network name so I can easily connect at home on wifi or when on go with 1 usb-c cable supplying power and network. LASTLY, not all usb-c cables are equal and not all will work so try different usb-c cables if you are going mad (confirm over wifi first then move to cable).
+>
+> -- <cite>Acker Apple</cite>
