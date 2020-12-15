@@ -52,6 +52,7 @@ export interface Args extends VsArgs {
   "proxy-domain"?: string[]
   locale?: string
   _: string[]
+  "ignore-last-opened"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
 
@@ -171,7 +172,11 @@ const options: Options<Required<Args>> = {
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
-
+  "ignore-last-opened": {
+    type: "boolean",
+    short: "e",
+    description: "Ignore the last opened directory or workspace in favor of an empty window."
+  },
   "new-window": {
     type: "boolean",
     short: "n",
