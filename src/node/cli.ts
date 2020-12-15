@@ -57,6 +57,7 @@ export interface Args extends VsArgs {
   "new-window"?: boolean
 
   link?: OptionalString
+  home?: string
 }
 
 interface Option<T> {
@@ -200,6 +201,10 @@ const options: Options<Required<Args>> = {
       Authorization is done via GitHub.
     `,
     beta: true,
+  },
+  home: {
+    type: "string",
+    description: "Set a custom link for the 'Go Home' button in the Application Menu",
   },
 }
 
