@@ -1499,10 +1499,10 @@ index 0000000000000000000000000000000000000000..56331ff1fc32bbd82e769aaecb551e42
 +require('../../bootstrap-amd').load('vs/server/entry');
 diff --git a/src/vs/server/ipc.d.ts b/src/vs/server/ipc.d.ts
 new file mode 100644
-index 0000000000000000000000000000000000000000..bf45e75aaf0dc8953ee6fee97fe02149879d3d72
+index 0000000000000000000000000000000000000000..bc605f03881109ce560c751b550ecaba4671cc74
 --- /dev/null
 +++ b/src/vs/server/ipc.d.ts
-@@ -0,0 +1,139 @@
+@@ -0,0 +1,140 @@
 +/**
 + * External interfaces for integration into code-server over IPC. No vs imports
 + * should be made in this file.
@@ -1570,6 +1570,7 @@ index 0000000000000000000000000000000000000000..bf45e75aaf0dc8953ee6fee97fe02149
 +	'builtin-extensions-dir'?: string;
 +	'extra-extensions-dir'?: string[];
 +	'extra-builtin-extensions-dir'?: string[];
++	'ignore-last-opened'?: boolean;
 +
 +	locale?: string
 +

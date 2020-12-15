@@ -52,7 +52,6 @@ export interface Args extends VsArgs {
   "proxy-domain"?: string[]
   locale?: string
   _: string[]
-  "ignore-last-opened"?: boolean
   "reuse-window"?: boolean
   "new-window"?: boolean
 
@@ -176,7 +175,7 @@ const options: Options<Required<Args>> = {
   "ignore-last-opened": {
     type: "boolean",
     short: "e",
-    description: "Ignore the last opened directory or workspace in favor of an empty window."
+    description: "Ignore the last opened directory or workspace in favor of an empty window.",
   },
   "new-window": {
     type: "boolean",
