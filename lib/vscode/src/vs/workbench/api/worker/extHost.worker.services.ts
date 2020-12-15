@@ -8,6 +8,7 @@ import { ILogService } from 'vs/platform/log/common/log';
 import { IExtHostExtensionService } from 'vs/workbench/api/common/extHostExtensionService';
 import { ExtHostExtensionService } from 'vs/workbench/api/worker/extHostExtensionService';
 import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
+import { ExtHostNodeProxy, IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
 
 // #########################################################################
 // ###                                                                   ###
@@ -17,3 +18,4 @@ import { ExtHostLogService } from 'vs/workbench/api/worker/extHostLogService';
 
 registerSingleton(IExtHostExtensionService, ExtHostExtensionService);
 registerSingleton(ILogService, ExtHostLogService);
+registerSingleton(IExtHostNodeProxy, ExtHostNodeProxy);

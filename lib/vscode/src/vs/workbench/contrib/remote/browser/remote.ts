@@ -778,17 +778,30 @@ class RemoteAgentConnectionStatusListener implements IWorkbenchContribution {
 				}
 				switch (e.type) {
 					case PersistentConnectionEventType.ConnectionLost:
+						break;
+					case PersistentConnectionEventType.ReconnectionWait:
+						const BACKGROUND_RECONNECT_THRESHOLD = 2;
+						// If the first reconnect fails, we show the popup.
+						// This corresponds to about 5s wait.
+						if (e.connectionAttempt < BACKGROUND_RECONNECT_THRESHOLD) {
+							break;
+						}
+
 						if (!visibleProgress) {
 							visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
 						}
 						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
-						break;
-					case PersistentConnectionEventType.ReconnectionWait:
+
 						reconnectWaitEvent = e;
 						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reconnectButton, reloadButton]);
 						visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
 						break;
 					case PersistentConnectionEventType.ReconnectionRunning:
+						if (!visibleProgress) {
+							// Our background reconnection threshold hasn't been hit yet.
+							break;
+						}
+
 						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton]);
 						visibleProgress.report(nls.localize('reconnectionRunning', "Attempting to reconnect..."));
 

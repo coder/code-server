@@ -11,6 +11,7 @@ import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterc
 import { IExtensionDescription } from 'vs/platform/extensions/common/extensions';
 import { ExtensionRuntime } from 'vs/workbench/api/common/extHostTypes';
 import { timeout } from 'vs/base/common/async';
+import { loadCommonJSModule } from 'vs/server/browser/worker';
 
 class WorkerRequireInterceptor extends RequireInterceptor {
 
@@ -46,10 +47,15 @@ export class ExtHostExtensionService extends AbstractExtHostExtensionService {
 	}
 
 	protected _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined {
-		return extensionDescription.browser;
+		// NOTE@coder: We can support regular Node modules as well. These will just
+		// require the root of the extension.
+		return extensionDescription.browser || '.';
 	}
 
-	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T> {
+	protected async _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, isRemote?: boolean): Promise<T> {
+		if (isRemote) {
+			return loadCommonJSModule(module, activationTimesBuilder, this._nodeProxy, this._logService, this._fakeModules!.getModule('vscode', module));
+		}
 
 		module = module.with({ path: ensureSuffix(module.path, '.js') });
 		const response = await fetch(module.toString(true));

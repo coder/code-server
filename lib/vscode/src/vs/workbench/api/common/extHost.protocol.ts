@@ -816,6 +816,17 @@ export interface MainThreadLabelServiceShape extends IDisposable {
 	$unregisterResourceLabelFormatter(handle: number): void;
 }
 
+export interface MainThreadNodeProxyShape extends IDisposable {
+	$send(message: string): void;
+	$fetchExtension(extensionUri: UriComponents): Promise<VSBuffer>;
+}
+export interface ExtHostNodeProxyShape {
+	$onMessage(message: string): void;
+	$onClose(): void;
+	$onDown(): void;
+	$onUp(): void;
+}
+
 export interface MainThreadSearchShape extends IDisposable {
 	$registerFileSearchProvider(handle: number, scheme: string): void;
 	$registerTextSearchProvider(handle: number, scheme: string): void;
@@ -1796,6 +1807,7 @@ export const MainContext = {
 	MainThreadWindow: createMainId<MainThreadWindowShape>('MainThreadWindow'),
 	MainThreadLabelService: createMainId<MainThreadLabelServiceShape>('MainThreadLabelService'),
 	MainThreadNotebook: createMainId<MainThreadNotebookShape>('MainThreadNotebook'),
+	MainThreadNodeProxy: createMainId<MainThreadNodeProxyShape>('MainThreadNodeProxy'),
 	MainThreadTheming: createMainId<MainThreadThemingShape>('MainThreadTheming'),
 	MainThreadTunnelService: createMainId<MainThreadTunnelServiceShape>('MainThreadTunnelService'),
 	MainThreadTimeline: createMainId<MainThreadTimelineShape>('MainThreadTimeline')
@@ -1838,6 +1850,7 @@ export const ExtHostContext = {
 	ExtHostOutputService: createMainId<ExtHostOutputServiceShape>('ExtHostOutputService'),
 	ExtHosLabelService: createMainId<ExtHostLabelServiceShape>('ExtHostLabelService'),
 	ExtHostNotebook: createMainId<ExtHostNotebookShape>('ExtHostNotebook'),
+	ExtHostNodeProxy: createMainId<ExtHostNodeProxyShape>('ExtHostNodeProxy'),
 	ExtHostTheming: createMainId<ExtHostThemingShape>('ExtHostTheming'),
 	ExtHostTunnelService: createMainId<ExtHostTunnelServiceShape>('ExtHostTunnelService'),
 	ExtHostAuthentication: createMainId<ExtHostAuthenticationShape>('ExtHostAuthentication'),

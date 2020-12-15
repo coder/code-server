@@ -55,6 +55,10 @@
 	align-items: center;
 	justify-content: center;
 	order: -1;
+
+	/* NOTE@coder: Hide since it doesn't seem to do anything when used with
+	code-server except open the VS Code repository. */
+	display: none !important;
 }
 
 .monaco-workbench .activitybar > .content > .home-bar > .home-bar-icon-badge {

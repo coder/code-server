@@ -311,3 +311,6 @@ actionsRegistry.registerWorkbenchAction(SyncActionDescriptor.from(FocusPreviousP
 
 const workbenchRegistry = Registry.as<IWorkbenchContributionsRegistry>(WorkbenchExtensions.Workbench);
 workbenchRegistry.registerWorkbenchContribution(GoHomeContributor, LifecyclePhase.Ready);
+export const _1 = workbenchRegistry;
+export const _2 = GoHomeContributor;
+export const _3 = LifecyclePhase.Ready;

@@ -85,7 +85,7 @@ export interface IStorageService {
 	 * The scope argument allows to define the scope of the storage
 	 * operation to either the current workspace only or all workspaces.
 	 */
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void;
+	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> | void;
 
 	/**
 	 * Delete an element stored under the provided key from storage.

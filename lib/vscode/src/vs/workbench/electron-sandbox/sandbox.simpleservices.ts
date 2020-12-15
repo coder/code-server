@@ -130,6 +130,8 @@ export class SimpleNativeWorkbenchEnvironmentService implements INativeWorkbench
 	extensionsPath?: string | undefined;
 	extensionsDownloadPath: string = undefined!;
 	builtinExtensionsPath: string = undefined!;
+	extraExtensionPaths: string[] = undefined!;
+	extraBuiltinExtensionPaths: string[] = undefined!;
 
 	driverHandle?: string | undefined;
 

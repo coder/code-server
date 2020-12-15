@@ -16,11 +16,12 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
 import { MessageType, createMessageOfType, isMessageOfType, IExtHostSocketMessage, IExtHostReadyMessage, IExtHostReduceGraceTimeMessage, ExtensionHostExitCode } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 import { ExtensionHostMain, IExitFn } from 'vs/workbench/services/extensions/common/extensionHostMain';
 import { VSBuffer } from 'vs/base/common/buffer';
-import { IURITransformer, URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
+import { IURITransformer, URITransformer } from 'vs/base/common/uriIpc';
 import { exists } from 'vs/base/node/pfs';
 import { realpath } from 'vs/base/node/extpath';
 import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
 import { RunOnceScheduler } from 'vs/base/common/async';
+import * as proxyAgent from 'vs/base/node/proxy_agent';
 
 import 'vs/workbench/api/common/extHost.common.services';
 import 'vs/workbench/api/node/extHost.node.services';
@@ -57,12 +58,13 @@ const args = minimist(process.argv.slice(2), {
 	const Module = require.__$__nodeRequire('module') as any;
 	const originalLoad = Module._load;
 
-	Module._load = function (request: string) {
+	Module._load = function (request: string, parent: object, isMain: boolean) {
 		if (request === 'natives') {
 			throw new Error('Either the extension or a NPM dependency is using the "natives" node module which is unsupported as it can cause a crash of the extension host. Click [here](https://go.microsoft.com/fwlink/?linkid=871887) to find out more');
 		}
 
-		return originalLoad.apply(this, arguments);
+		// NOTE@coder: Map node_module.asar requests to regular node_modules.
+		return originalLoad.apply(this, [request.replace(/node_modules\.asar(\.unpacked)?/, 'node_modules'), parent, isMain]);
 	};
 })();
 
@@ -135,8 +137,11 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 
 						// Wait for rich client to reconnect
 						protocol.onSocketClose(() => {
-							// The socket has closed, let's give the renderer a certain amount of time to reconnect
-							disconnectRunner1.schedule();
+							// NOTE@coder: Inform the server so we can manage offline
+							// connections there instead. Our goal is to persist connections
+							// forever (to a reasonable point) to account for things like
+							// hibernating overnight.
+							process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
 						});
 					}
 				}
@@ -295,6 +300,7 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 }
 
 export async function startExtensionHostProcess(): Promise<void> {
+	proxyAgent.monkeyPatch(true);
 
 	const protocol = await createExtHostProtocol();
 	const renderer = await connectToRenderer(protocol);
@@ -313,11 +319,9 @@ export async function startExtensionHostProcess(): Promise<void> {
 
 	// Attempt to load uri transformer
 	let uriTransformer: IURITransformer | null = null;
-	if (initData.remote.authority && args.uriTransformerPath) {
+	if (initData.remote.authority) {
 		try {
-			const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
-			const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
-			uriTransformer = new URITransformer(rawURITransformer);
+			uriTransformer = new URITransformer(initData.remote.authority);
 		} catch (e) {
 			console.error(e);
 		}

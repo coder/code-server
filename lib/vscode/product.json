@@ -1,6 +1,6 @@
 {
-	"nameShort": "Code - OSS",
-	"nameLong": "Code - OSS",
+	"nameShort": "code-server",
+	"nameLong": "code-server",
 	"applicationName": "code-oss",
 	"dataFolderName": ".vscode-oss",
 	"win32MutexName": "vscodeoss",
@@ -20,7 +20,7 @@
 	"darwinBundleIdentifier": "com.visualstudio.code.oss",
 	"linuxIconName": "com.visualstudio.code.oss",
 	"licenseFileName": "LICENSE.txt",
-	"reportIssueUrl": "https://github.com/microsoft/vscode/issues/new",
+	"reportIssueUrl": "https://github.com/cdr/code-server/issues/new",
 	"urlProtocol": "code-oss",
 	"extensionAllowedProposedApi": [
 		"ms-vscode.vscode-js-profile-flame",
@@ -136,5 +136,14 @@
 				"publisherDisplayName": "Microsoft"
 			}
 		}
-	]
+	],
+
+	"//": "https://github.com/VSCodium/vscodium/pull/155/files",
+	"documentationUrl": "https://go.microsoft.com/fwlink/?LinkID=533484#vscode",
+	"keyboardShortcutsUrlMac": "https://go.microsoft.com/fwlink/?linkid=832143",
+	"keyboardShortcutsUrlLinux": "https://go.microsoft.com/fwlink/?linkid=832144",
+	"keyboardShortcutsUrlWin": "https://go.microsoft.com/fwlink/?linkid=832145",
+	"introductoryVideosUrl": "https://go.microsoft.com/fwlink/?linkid=832146",
+	"tipsAndTricksUrl": "https://go.microsoft.com/fwlink/?linkid=852118",
+	"newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter"
 }

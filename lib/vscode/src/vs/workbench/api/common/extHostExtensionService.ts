@@ -31,6 +31,7 @@ import { IExtHostInitDataService } from 'vs/workbench/api/common/extHostInitData
 import { IExtensionStoragePaths } from 'vs/workbench/api/common/extHostStoragePaths';
 import { IExtHostRpcService } from 'vs/workbench/api/common/extHostRpcService';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
+import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
 import { IExtHostTunnelService } from 'vs/workbench/api/common/extHostTunnelService';
 import { IExtHostTerminalService } from 'vs/workbench/api/common/extHostTerminalService';
 import { Emitter, Event } from 'vs/base/common/event';
@@ -82,6 +83,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 	protected readonly _extHostWorkspace: ExtHostWorkspace;
 	protected readonly _extHostConfiguration: ExtHostConfiguration;
 	protected readonly _logService: ILogService;
+	protected readonly _nodeProxy: IExtHostNodeProxy;
 	protected readonly _extHostTunnelService: IExtHostTunnelService;
 	protected readonly _extHostTerminalService: IExtHostTerminalService;
 
@@ -114,6 +116,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 		@ILogService logService: ILogService,
 		@IExtHostInitDataService initData: IExtHostInitDataService,
 		@IExtensionStoragePaths storagePath: IExtensionStoragePaths,
+		@IExtHostNodeProxy nodeProxy: IExtHostNodeProxy,
 		@IExtHostTunnelService extHostTunnelService: IExtHostTunnelService,
 		@IExtHostTerminalService extHostTerminalService: IExtHostTerminalService
 	) {
@@ -125,6 +128,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 		this._extHostWorkspace = extHostWorkspace;
 		this._extHostConfiguration = extHostConfiguration;
 		this._logService = logService;
+		this._nodeProxy = nodeProxy;
 		this._extHostTunnelService = extHostTunnelService;
 		this._extHostTerminalService = extHostTerminalService;
 		this._disposables = new DisposableStore();
@@ -362,7 +366,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 
 		const activationTimesBuilder = new ExtensionActivationTimesBuilder(reason.startup);
 		return Promise.all([
-			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder),
+			this._loadCommonJSModule<IExtensionModule>(joinPath(extensionDescription.extensionLocation, entryPoint), activationTimesBuilder, !extensionDescription.browser),
 			this._loadExtensionContext(extensionDescription)
 		]).then(values => {
 			return AbstractExtHostExtensionService._callActivate(this._logService, extensionDescription.identifier, values[0], values[1], activationTimesBuilder);
@@ -754,7 +758,7 @@ export abstract class AbstractExtHostExtensionService extends Disposable impleme
 
 	protected abstract _beforeAlmostReadyToRunExtensions(): Promise<void>;
 	protected abstract _getEntryPoint(extensionDescription: IExtensionDescription): string | undefined;
-	protected abstract _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder): Promise<T>;
+	protected abstract _loadCommonJSModule<T>(module: URI, activationTimesBuilder: ExtensionActivationTimesBuilder, isRemote?: boolean): Promise<T>;
 	public abstract $setRemoteEnvironment(env: { [key: string]: string | null }): Promise<void>;
 }
 

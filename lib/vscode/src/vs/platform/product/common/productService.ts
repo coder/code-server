@@ -32,6 +32,8 @@ export type ConfigurationSyncStore = {
 };
 
 export interface IProductConfiguration {
+	readonly codeServerVersion?: string;
+
 	readonly version: string;
 	readonly date?: string;
 	readonly quality?: string;

@@ -64,7 +64,7 @@
         "code-no-standalone-editor": "warn",
         "code-no-unexternalized-strings": "warn",
         "code-layering": [
-            "warn",
+            "off",
             {
                 "common": [],
                 "node": [
@@ -90,7 +90,7 @@
             }
         ],
         "code-import-patterns": [
-            "warn",
+            "off",
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             // !!! Do not relax these rules !!!
             // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

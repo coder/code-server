@@ -43,6 +43,7 @@ import { FileLogService } from 'vs/platform/log/common/fileLogService';
 import { toLocalISOString } from 'vs/base/common/date';
 import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
 import { getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
+import { initialize } from 'vs/server/browser/client';
 import { coalesce } from 'vs/base/common/arrays';
 import { InMemoryFileSystemProvider } from 'vs/platform/files/common/inMemoryFilesystemProvider';
 import { ICommandService } from 'vs/platform/commands/common/commands';
@@ -100,6 +101,8 @@ class BrowserMain extends Disposable {
 
 		// Startup
 		const instantiationService = workbench.startup();
+
+		await initialize(services.serviceCollection);
 
 		// Return API Facade
 		return instantiationService.invokeFunction(accessor => {

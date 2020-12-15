@@ -125,11 +125,12 @@ export class DialogService implements IDialogService {
 	async about(): Promise<void> {
 		const detailString = (useAgo: boolean): string => {
 			return nls.localize('aboutDetail',
-				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
+				"code-server: v{4}\n VS Code: v{0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
 				this.productService.version || 'Unknown',
 				this.productService.commit || 'Unknown',
 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
-				navigator.userAgent
+				navigator.userAgent,
+				this.productService.codeServerVersion || 'Unknown',
 			);
 		};
 

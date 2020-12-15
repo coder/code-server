@@ -251,7 +251,9 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 
 		// Install Language pack on all servers
 		if (isLanguagePackExtension(manifest)) {
-			servers.push(...this.servers);
+			// NOTE@coder: It does not appear language packs can be installed on the web
+			// extension management server at this time. Filter out the web to fix this.
+			servers.push(...this.servers.filter(s => s !== this.extensionManagementServerService.webExtensionManagementServer));
 		} else {
 			const server = this.getExtensionManagementServerToInstall(manifest);
 			if (server) {
@@ -318,6 +320,11 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 		// Install Web supported extension on web server
 		if (canExecuteOnWeb(manifest, this.productService, this.configurationService) && this.extensionManagementServerService.webExtensionManagementServer) {
 			return this.extensionManagementServerService.webExtensionManagementServer;
+		}
+
+		// NOTE@coder: Fall back to installing on the remote server.
+		if (this.extensionManagementServerService.remoteExtensionManagementServer) {
+			return this.extensionManagementServerService.remoteExtensionManagementServer;
 		}
 
 		return undefined;

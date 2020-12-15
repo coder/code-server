@@ -7,6 +7,8 @@
  * A list of command line arguments we support natively.
  */
 export interface NativeParsedArgs {
+	'extra-extensions-dir'?: string[];
+	'extra-builtin-extensions-dir'?: string[];
 	_: string[];
 	'folder-uri'?: string[]; // undefined or array of 1 or more
 	'file-uri'?: string[]; // undefined or array of 1 or more

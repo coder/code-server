@@ -87,7 +87,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			if (code === ExtensionHostExitCode.StartTimeout10s) {
 				this._notificationService.prompt(
 					Severity.Error,
-					nls.localize('extensionService.startTimeout', "The Web Worker Extension Host did not start in 10s."),
+					nls.localize('extensionService.startTimeout', 'The Web Worker Extension Host did not start in 10s.'),
 					[]
 				);
 				return;
@@ -177,8 +177,10 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			this._remoteAgentService.getEnvironment(),
 			this._remoteAgentService.scanExtensions()
 		]);
-		localExtensions = this._checkEnabledAndProposedAPI(localExtensions);
 		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
+		// NOTE@coder: Include remotely hosted extensions that should run locally.
+		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
+			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === 'web' || ext.extensionKind.includes('web'))));
 
 		const remoteAgentConnection = this._remoteAgentService.getConnection();
 		this._runningLocation = this._runningLocationClassifier.determineRunningLocation(localExtensions, remoteExtensions);
@@ -188,7 +190,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 
 		const result = this._registry.deltaExtensions(remoteExtensions.concat(localExtensions), []);
 		if (result.removedDueToLooping.length > 0) {
-			this._logOrShowMessage(Severity.Error, nls.localize('looping', "The following extensions contain dependency loops and have been disabled: {0}", result.removedDueToLooping.map(e => `'${e.identifier.value}'`).join(', ')));
+			this._logOrShowMessage(Severity.Error, nls.localize('looping', 'The following extensions contain dependency loops and have been disabled: {0}', result.removedDueToLooping.map(e => `'${e.identifier.value}'`).join(', ')));
 		}
 
 		if (remoteEnv && remoteAgentConnection) {

@@ -201,8 +201,8 @@ export class NativeStorageService extends Disposable implements IStorageService 
 		return this.getStorage(scope).getNumber(key, fallbackValue);
 	}
 
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void {
-		this.getStorage(scope).set(key, value);
+	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
+		return this.getStorage(scope).set(key, value);
 	}
 
 	remove(key: string, scope: StorageScope): void {

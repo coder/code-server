@@ -93,7 +93,7 @@ async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptio
 		options.socketFactory.connect(
 			options.host,
 			options.port,
-			`reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`,
+			`type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`,
 			(err: any, socket: ISocket | undefined) => {
 				if (err || !socket) {
 					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
@@ -338,7 +338,8 @@ export class ReconnectionWaitEvent {
 	public readonly type = PersistentConnectionEventType.ReconnectionWait;
 	constructor(
 		public readonly durationSeconds: number,
-		private readonly cancellableTimer: CancelablePromise<void>
+		private readonly cancellableTimer: CancelablePromise<void>,
+		public readonly connectionAttempt: number
 	) { }
 
 	public skipWait(): void {
@@ -422,7 +423,7 @@ abstract class PersistentConnection extends Disposable {
 			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
 			try {
 				const sleepPromise = sleep(waitTime);
-				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise));
+				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise, attempt+1));
 
 				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
 				try {

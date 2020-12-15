@@ -138,6 +138,13 @@ export class NativeEnvironmentService implements INativeEnvironmentService {
 		return resources.joinPath(this.userHome, product.dataFolderName, 'extensions').fsPath;
 	}
 
+	@memoize get extraExtensionPaths(): string[] {
+		return (this._args['extra-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
+	}
+	@memoize get extraBuiltinExtensionPaths(): string[] {
+		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
+	}
+
 	@memoize
 	get extensionDevelopmentLocationURI(): URI[] | undefined {
 		const s = this._args.extensionDevelopmentPath;

@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { escape } from 'vs/base/common/strings';
+import product from 'vs/platform/product/common/product';
 import { localize } from 'vs/nls';
 
 export default () => `
@@ -11,7 +12,7 @@ export default () => `
 	<div class="welcomePage" role="document">
 		<div class="title">
 			<h1 class="caption">${escape(localize('welcomePage.vscode', "Visual Studio Code"))}</h1>
-			<p class="subtitle detail">${escape(localize({ key: 'welcomePage.editingEvolved', comment: ['Shown as subtitle on the Welcome page.'] }, "Editing evolved"))}</p>
+			<p class="subtitle detail">VS Code v${product.version}</p>
 		</div>
 		<div class="row">
 			<div class="splash">
@@ -31,6 +32,19 @@ export default () => `
 						<li class="moreRecent"><a href="command:workbench.action.openRecent">${escape(localize('welcomePage.moreRecent', "More..."))}</a><span class="path detail if_shortcut" data-command="workbench.action.openRecent">(<span class="shortcut" data-command="workbench.action.openRecent"></span>)</span></li>
 					</ul>
 					<p class="none detail">${escape(localize('welcomePage.noRecentFolders', "No recent folders"))}</p>
+				</div>
+				<div class="section help">
+					<h2 class="caption">code-server ${escape(localize('welcomePage.help', "Help"))}</h2>
+					<ul>
+						<li><a href="https://github.com/cdr/code-server">GitHub Repository</a></li>
+						<li><a href="https://github.com/cdr/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>
+						<li><a href="https://github.com/cdr/code-server/issues">Issue Tracker</a></li>
+						<li><a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md">FAQ</a></li>
+						<li><a href="https://github.com/cdr/code-server/blob/master/doc/guide.md">Setup Guide</a></li>
+						<li><a href="https://github.com/cdr/code-server/tree/master/doc">Docs</a></li>
+						<li><a href="https://github.com/cdr/code-server/discussions">Discussions</a></li>
+						<li><a href="https://cdr.co/join-community">Slack</a></li>
+					</ul>
 				</div>
 				<div class="section help">
 					<h2 class="caption">${escape(localize('welcomePage.help', "Help"))}</h2>

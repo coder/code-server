@@ -91,7 +91,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	async scanAllUserExtensions(): Promise<ILocalExtension[]> {
-		return this.scanExtensionsInDir(this.extensionsPath, ExtensionType.User);
+		return this.scanExtensionsInDirs(this.extensionsPath, this.environmentService.extraExtensionPaths, ExtensionType.User);
 	}
 
 	async extractUserExtension(identifierWithVersion: ExtensionIdentifierWithVersion, zipPath: string, token: CancellationToken): Promise<ILocalExtension> {
@@ -236,7 +236,13 @@ export class ExtensionsScanner extends Disposable {
 
 	private async scanExtensionsInDir(dir: string, type: ExtensionType): Promise<ILocalExtension[]> {
 		const limiter = new Limiter<any>(10);
-		const extensionsFolders = await pfs.readdir(dir);
+		const extensionsFolders = await pfs.readdir(dir)
+			.catch((error) => {
+				if (error.code !== 'ENOENT') {
+					throw error;
+				}
+				return <string[]>[];
+			});
 		const extensions = await Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, dir, type))));
 		return extensions.filter(e => e && e.identifier);
 	}
@@ -266,7 +272,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	private async scanDefaultSystemExtensions(): Promise<ILocalExtension[]> {
-		const result = await this.scanExtensionsInDir(this.systemExtensionsPath, ExtensionType.System);
+		const result = await this.scanExtensionsInDirs(this.systemExtensionsPath, this.environmentService.extraBuiltinExtensionPaths, ExtensionType.System);
 		this.logService.trace('Scanned system extensions:', result.length);
 		return result;
 	}
@@ -369,5 +375,10 @@ export class ExtensionsScanner extends Disposable {
 				e(new Error(localize('invalidManifest', "Extension invalid: package.json is not a JSON file.")));
 			}
 		});
+	}
+
+	private async scanExtensionsInDirs(dir: string, dirs: string[], type: ExtensionType): Promise<ILocalExtension[]>{
+		const results = await Promise.all([dir, ...dirs].map((path) => this.scanExtensionsInDir(path, type)));
+		return results.reduce((flat, current) => flat.concat(current), []);
 	}
 }

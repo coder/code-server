@@ -6,6 +6,6 @@
 import * as vscode from 'vscode';
 
 export function isWeb(): boolean {
-	// @ts-expect-error
+	// NOTE@coder: Remove unused ts-expect-error directive which causes tsc to error.
 	return typeof navigator !== 'undefined' && vscode.env.uiKind === vscode.UIKind.Web;
 }
