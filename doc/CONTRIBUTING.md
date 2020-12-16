@@ -121,9 +121,9 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and implements the server. We use a git subtree to be able to pull in VS Code's front-end. This code lives under [./lib/vscode](./lib/vscode).
+the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [./lib/vscode](./lib/vscode).
 
-Some noteworthy changes in our codebase:
+Some noteworthy changes in our version of VS Code:
 
 - Adding our build file, which includes our code and VS Code's web code
 - Allowing multiple extension directories (both user and built-in)
@@ -138,8 +138,8 @@ Some noteworthy changes in our codebase:
 - Adding connection type to web socket query parameters
 
 As the web portion of VS Code matures, we'll be able to shrink and possibly
-eliminate our patch. In the meantime, upgrading the VS Code version requires
-us to ensure that our changes are applied and work as intended. In the future,
+eliminate our modifications. In the meantime, upgrading the VS Code version requires
+us to ensure that our changes are still applied and work as intended. In the future,
 we'd like to run VS Code unit tests against our builds to ensure that features
 work as expected.
 
