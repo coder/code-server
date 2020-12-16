@@ -2,13 +2,12 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Contributing](#contributing)
   - [Pull Requests](#pull-requests)
   - [Requirements](#requirements)
   - [Development Workflow](#development-workflow)
   - [Build](#build)
   - [Structure](#structure)
-    - [VS Code Patch](#vs-code-patch)
+    - [Modifications to VS Code](#modifications-to-vs-code)
     - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -114,7 +113,7 @@ The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented 
 
 Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
 
-### VS Code Patch
+### Modifications to VS Code
 
 In v1 of code-server, we had a patch of VS Code that split the codebase into a front-end
 and a server. The front-end consisted of all UI code, while the server ran the extensions
