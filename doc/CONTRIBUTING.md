@@ -2,13 +2,14 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Pull Requests](#pull-requests)
-- [Requirements](#requirements)
-- [Development Workflow](#development-workflow)
-- [Build](#build)
-- [Structure](#structure)
-  - [VS Code Patch](#vs-code-patch)
-  - [Currently Known Issues](#currently-known-issues)
+- [Contributing](#contributing)
+  - [Pull Requests](#pull-requests)
+  - [Requirements](#requirements)
+  - [Development Workflow](#development-workflow)
+  - [Build](#build)
+  - [Structure](#structure)
+    - [VS Code Patch](#vs-code-patch)
+    - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -42,7 +43,6 @@ of the dependencies code-server uses.
 
 ```shell
 yarn
-yarn vscode
 yarn watch
 # Visit http://localhost:8080 once the build is completed.
 ```
@@ -51,14 +51,10 @@ To develop inside an isolated Docker container:
 
 ```shell
 ./ci/dev/image/run.sh yarn
-./ci/dev/image/run.sh yarn vscode
 ./ci/dev/image/run.sh yarn watch
 ```
 
 `yarn watch` will live reload changes to the source.
-
-If you introduce changes to the patch and you've previously built, you
-must (1) manually reset VS Code and (2) run `yarn vscode:patch`.
 
 ## Build
 
@@ -89,7 +85,6 @@ The `release.sh` script is equal to running:
 
 ```shell
 yarn
-yarn vscode
 yarn build
 yarn build:vscode
 yarn release
@@ -117,7 +112,7 @@ The `code-server` script serves an HTTP API for login and starting a remote VS C
 The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented in
 [./src/node/app](./src/node/app).
 
-Most of the meaty parts are in the VS Code patch, which we described next.
+Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
 
 ### VS Code Patch
 
@@ -127,10 +122,9 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and implements the server. You can find this in
-[./ci/dev/vscode.patch](../ci/dev/vscode.patch) under the path `src/vs/server`.
+the VS Code front-end and implements the server. We use a git subtree to be able to pull in VS Code's front-end. This code lives under [./lib/vscode](./lib/vscode).
 
-Other notable changes in our patch include:
+Some noteworthy changes in our codebase:
 
 - Adding our build file, which includes our code and VS Code's web code
 - Allowing multiple extension directories (both user and built-in)
@@ -146,11 +140,9 @@ Other notable changes in our patch include:
 
 As the web portion of VS Code matures, we'll be able to shrink and possibly
 eliminate our patch. In the meantime, upgrading the VS Code version requires
-us to ensure that the patch is applied and works as intended. In the future,
+us to ensure that our changes are applied and work as intended. In the future,
 we'd like to run VS Code unit tests against our builds to ensure that features
 work as expected.
-
-To generate a new patch, run `yarn vscode:diff`
 
 **Note**: We have [extension docs](../ci/README.md) on the CI and build system.
 
