@@ -13,7 +13,7 @@ import Logger from './common/logger';
 const localize = nls.loadMessageBundle();
 
 export const NETWORK_ERROR = 'network error';
-const AUTH_RELAY_SERVER = 'vscode-auth.github.com';
+const AUTH_RELAY_SERVER = 'auth.code-server.dev';
 
 class UriEventHandler extends vscode.EventEmitter<vscode.Uri> implements vscode.UriHandler {
 	public handleUri(uri: vscode.Uri) {
