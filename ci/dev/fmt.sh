@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  shfmt -i 2 -w -sr $(git ls-files "*.sh")
+  shfmt -i 2 -w -sr $(git ls-files "*.sh" | grep -v "lib/vscode")
 
   local prettierExts
   prettierExts=(
@@ -20,7 +20,7 @@ main() {
     "*.yml"
   )
   prettier --write --loglevel=warn $(
-    git ls-files "${prettierExts[@]}" | grep -v 'helm-chart'
+    git ls-files "${prettierExts[@]}" | grep -v "lib/vscode" | grep -v 'helm-chart'
   )
 
   doctoc --title '# FAQ' doc/FAQ.md > /dev/null
@@ -30,7 +30,7 @@ main() {
   doctoc --title '# Contributing' doc/CONTRIBUTING.md > /dev/null
   doctoc --title '# iPad' doc/ipad.md > /dev/null
 
-  if [[ ${CI-} && $(git ls-files --other --modified --exclude-standard) ]]; then
+  if [[ ${CI-} && $(git ls-files --other --modified --exclude-standard | grep -v "lib/vscode") ]]; then
     echo "Files need generation or are formatted incorrectly:"
     git -c color.ui=always status | grep --color=no '\[31m'
     echo "Please run the following locally:"
