@@ -2,13 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Pull Requests](#pull-requests)
-- [Requirements](#requirements)
-- [Development Workflow](#development-workflow)
-- [Build](#build)
-- [Structure](#structure)
-  - [Modifications to VS Code](#modifications-to-vs-code)
-  - [Currently Known Issues](#currently-known-issues)
+- [Contributing](#contributing)
+  - [Pull Requests](#pull-requests)
+  - [Requirements](#requirements)
+  - [Development Workflow](#development-workflow)
+    - [Updating VS Code](#updating-vs-code)
+  - [Build](#build)
+  - [Structure](#structure)
+    - [Modifications to VS Code](#modifications-to-vs-code)
+    - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -54,6 +56,15 @@ To develop inside an isolated Docker container:
 ```
 
 `yarn watch` will live reload changes to the source.
+
+### Updating VS Code
+
+If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52.1
+
+```shell
+git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52.1"
+```
+
 
 ## Build
 
