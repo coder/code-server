@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 pushd() {
   builtin pushd "$@" > /dev/null
@@ -93,3 +94,17 @@ export OS
 # RELEASE_PATH is the destination directory for the release from the root.
 # Defaults to release
 RELEASE_PATH="${RELEASE_PATH-release}"
+
+# Symlink node_modules.asar to node_modules. VS Code needs a node_modules.asar
+# but that's just a duplicate of stuff we already have in node_modules.
+symlink_asar() {
+  if [ ! -e node_modules.asar ]; then
+    if [ "${WINDIR-}" ]; then
+      # mklink takes the link name first.
+      mklink /J node_modules.asar node_modules
+    else
+      # ln takes the link name second.
+      ln -s node_modules node_modules.asar
+    fi
+  fi
+}
