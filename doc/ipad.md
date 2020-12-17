@@ -5,7 +5,9 @@
 - [Known Issues](#known-issues)
 - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
   - [Servediter iPad App](#servediter-ipad-app)
-  - [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
+- [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
+- [Recommendations](#recommendations)
+- [By 2022 iPad coding more desirable on Arm Macs](#by-2022-iPad-coding-more-desirable-on-arm-macs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -64,16 +66,6 @@ refuse to allow WebSockets to connect.
    the certificate. [more apple support here](https://support.apple.com/en-us/HT204477)
 6. Now you can access code-server! 🍻
 
-### Recommendations
-
-Once you have code-server accessible to your iPad a few things could help save you time:
-
-- Use multi task mode to make code changes and see browser at the same time
-  - Prevents iOs background dropping an App's state if you are full screen switching between code-server and browser
-- Be sure you are using the debug/terminal that is built into VS Code so that you don’t need another terminal app running
-  - Again, prevents switching between full screen app and losing your view to iOs background app memory management
-- You should be of a mindset willing to deal and adapt with differences in having an imperfect experience, for the perceived joyful benefits of interacting with your computer in more intuitive ways
-
 
 ### Servediter iPad App
 
@@ -86,7 +78,7 @@ Download [Serveediter](https://apps.apple.com/us/app/servediter-for-code-server/
 App Store and then input your server information. If you are running a local server or mabye a usb-c
 connected Raspberry Pi, you will input your settings into "Self Hosted Server".
 
-### Raspberry Pi USB-C Network
+## Raspberry Pi USB-C Network
 
 It is a bit out of scope for this project, however, great success is being reported using iPad on the go with just a single USB-C cable connected to a Raspberry Pi both powering and supplying direct network access. Many support articles already exist but the key steps boil down to turning on Network over USB-C on the Raspberry Pi itself and the rest of the steps are just like getting Code Server running any where else.
 
@@ -101,7 +93,18 @@ Resources worthy of review:
 >
 > -- <cite>[Acker Apple](http://github.com/ackerapple/)</cite>
 
-### By 2022 iPad coding more desirable on Arm Macs
+
+## Recommendations
+
+Once you have code-server accessible to your iPad a few things could help save you time:
+
+- Use multi task mode to make code changes and see browser at the same time
+  - Prevents iOs background dropping an App's state if you are full screen switching between code-server and browser
+- Be sure you are using the debug/terminal that is built into VS Code so that you don’t need another terminal app running
+  - Again, prevents switching between full screen app and losing your view to iOs background app memory management
+- You should be of a mindset willing to deal and adapt with differences in having an imperfect experience, for the perceived joyful benefits of interacting with your computer in more intuitive ways
+
+## By 2022 iPad coding more desirable on Arm Macs
 
 > This section is generalized opinions intended to inform fellow Apple product consumers of perceived over time changes coming down the line
 
