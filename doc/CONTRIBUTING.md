@@ -2,15 +2,14 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Contributing](#contributing)
-  - [Pull Requests](#pull-requests)
-  - [Requirements](#requirements)
-  - [Development Workflow](#development-workflow)
-    - [Updating VS Code](#updating-vs-code)
-  - [Build](#build)
-  - [Structure](#structure)
-    - [Modifications to VS Code](#modifications-to-vs-code)
-    - [Currently Known Issues](#currently-known-issues)
+- [Pull Requests](#pull-requests)
+- [Requirements](#requirements)
+- [Development Workflow](#development-workflow)
+  - [Updating VS Code](#updating-vs-code)
+- [Build](#build)
+- [Structure](#structure)
+  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -64,7 +63,6 @@ If you need to update VS Code, you can update the subtree with one line. Here's 
 ```shell
 git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52.1"
 ```
-
 
 ## Build
 
