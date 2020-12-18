@@ -81,7 +81,6 @@ You can disable minification by setting `MINIFY=`.
   - Will build a standalone release with node and node_modules bundled into `./release-standalone`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
-  - Will also `git reset --hard lib/vscode`.
   - Useful to do a clean build.
 - [./ci/build/code-server.sh](./build/code-server.sh)
   - Copied into standalone releases to run code-server with the bundled node binary.
