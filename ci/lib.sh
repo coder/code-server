@@ -95,8 +95,13 @@ export OS
 # Defaults to release
 RELEASE_PATH="${RELEASE_PATH-release}"
 
-# Symlink node_modules.asar to node_modules. VS Code needs a node_modules.asar
-# but that's just a duplicate of stuff we already have in node_modules.
+# VS Code bundles some modules into an asar which is an archive format that
+# works like tar. It then seems to get unpacked into node_modules.asar.
+#
+# I don't know why they do this but all the dependencies they bundle already
+# exist in node_modules so just symlink it. We have to do this since not only VS
+# Code itself but also extensions will look specifically in this directory for
+# files (like the ripgrep binary or the oniguruma wasm).
 symlink_asar() {
   if [ ! -e node_modules.asar ]; then
     if [ "${WINDIR-}" ]; then

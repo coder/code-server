@@ -42,14 +42,11 @@ vscode_yarn() {
   cd lib/vscode
   yarn --production --frozen-lockfile
 
-  # VS Code needs a node_modules.asar but that's just a duplicate of stuff we
-  # already have in node_modules.
+  # This is a copy of symlink_asar in ../lib.sh. Look there for details.
   if [ ! -e node_modules.asar ]; then
     if [ "${WINDIR-}" ]; then
-      # mklink takes the link name first.
       mklink /J node_modules.asar node_modules
     else
-      # ln takes the link name second.
       ln -s node_modules node_modules.asar
     fi
   fi
