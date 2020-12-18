@@ -7,7 +7,7 @@
   - [Servediter iPad App](#servediter-ipad-app)
 - [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
 - [Recommendations](#recommendations)
-- [By 2022 iPad coding more desirable on Arm Macs](#by-2022-iPad-coding-more-desirable-on-arm-macs)
+- [By 2022 iPad coding more desirable on Arm Macs](#by-2022-ipad-coding-more-desirable-on-arm-macs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -66,7 +66,6 @@ refuse to allow WebSockets to connect.
    the certificate. [more apple support here](https://support.apple.com/en-us/HT204477)
 6. Now you can access code-server! 🍻
 
-
 ### Servediter iPad App
 
 If you are unable to get the self signed certificate working or you do not have a domain
@@ -88,11 +87,9 @@ Resources worthy of review:
 - [iPad with Pi FAQ](https://www.youtube.com/watch?v=SPSlyqo5Q2Q)
 - [Technical guide to perform the steps](https://www.geeky-gadgets.com/connect-a-raspberry-pi-4-to-an-ipad-pro-21-01-2020/)
 
-
 > Here are my keys to success. I bought a 4" touch screen with fan included that attaches as a case to the Pi. I use the touch screen for anytime I have connection issues, otherwise I turn off the Pi screen. I gave my Pi a network name so I can easily connect at home on wifi or when on go with 1 usb-c cable that supplys both power and network connectivity. Lastly, not all usb-c cables are equal and not all will work so try different usb-c cables if you are going mad (confirm over wifi first then move to cable).
 >
 > -- <cite>[Acker Apple](http://github.com/ackerapple/)</cite>
-
 
 ## Recommendations
 
