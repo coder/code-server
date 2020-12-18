@@ -1,10 +1,11 @@
 import { logger } from "@coder/logger"
 import * as http from "http"
+import * as url from "url"
 import * as proxyagent from "proxy-agent"
 
 /**
- * This file does not have anything to do with the code-server proxy.
- * It's for $HTTP_PROXY support!
+ * This file has nothing to do with the code-server proxy.
+ * It is for $HTTP_PROXY and $HTTPS_PROXY support.
  * - https://github.com/cdr/code-server/issues/124
  * - https://www.npmjs.com/package/proxy-agent
  *
@@ -15,57 +16,51 @@ import * as proxyagent from "proxy-agent"
  */
 
 /**
- * monkeyPatch patches the node http and https modules to route all requests through the
- * agent we get from the proxy-agent package.
+ * monkeyPatch patches the node http,https modules to route all requests through the
+ * agents we get from the proxy-agent package.
  *
- * We do not support $HTTPS_PROXY here as it's equivalent in proxy-agent.
- * See the mapping at https://www.npmjs.com/package/proxy-agent
+ * This approach only works if there is no code specifying an explicit agent when making
+ * a request.
  *
- * I guess with most proxies support both HTTP and HTTPS proxying on the same port and
- * so two variables aren't required anymore. And there's plenty of SOCKS proxies too where
- * it wouldn't make sense to have two variables.
+ * None of our code ever passes in a explicit agent to the http,https modules.
+ * VS Code's does sometimes but only when a user sets the http.proxy configuration.
+ * See https://code.visualstudio.com/docs/setup/network#_legacy-proxy-server-support
  *
- * It's the most performant/secure setup as using a HTTP proxy for HTTP requests allows
- * for caching but then using a HTTPS proxy for HTTPS requests gives full end to end
- * security.
+ * Even if they do, it's probably the same proxy so we should be fine! And those knobs
+ * are deprecated anyway.
  *
- * See https://stackoverflow.com/a/10442767/4283659 for HTTP vs HTTPS proxy.
- * To be clear, both support HTTP/HTTPS resources, the difference is in how they fetch
- * them.
+ * We use $HTTP_PROXY for all HTTP resources via a normal HTTP proxy.
+ * We use $HTTPS_PROXY for all HTTPS resources via HTTP connect.
+ * See https://stackoverflow.com/a/10442767/4283659
  */
-export function monkeyPatch(vscode: boolean): void {
-  const proxyURL = process.env.HTTP_PROXY || process.env.http_proxy
-  if (!proxyURL) {
-    return
+export function monkeyPatch(inVSCode: boolean): void {
+  const http = require("http")
+  const https = require("https")
+
+  const httpProxyURL = process.env.HTTP_PROXY || process.env.http_proxy
+  if (httpProxyURL) {
+    logger.debug(`using $HTTP_PROXY ${httpProxyURL}`)
+    http.globalAgent = newProxyAgent(inVSCode, httpProxyURL)
   }
 
-  logger.debug(`using $HTTP_PROXY ${proxyURL}`)
+  const httpsProxyURL = process.env.HTTPS_PROXY || process.env.https_proxy
+  if (httpsProxyURL) {
+    logger.debug(`using $HTTPS_PROXY ${httpsProxyURL}`)
+    https.globalAgent = newProxyAgent(inVSCode, httpsProxyURL)
+  }
+}
 
-  let pa: http.Agent
+function newProxyAgent(inVSCode: boolean, for: "http" | "https", proxyURL: string): http.Agent {
   // The reasoning for this split is that VS Code's build process does not have
   // esModuleInterop enabled but the code-server one does. As a result depending on where
   // we execute, we either have a default attribute or we don't.
   //
   // I can't enable esModuleInterop in VS Code's build process as it breaks and spits out
-  // a huge number of errors.
-  if (vscode) {
-    pa = new (proxyagent as any)(proxyURL)
+  // a huge number of errors. And we can't use require as otherwise the modules won't be
+  // included in the final product.
+  if (inVSCode) {
+    return new (proxyagent as any)(opts)
   } else {
-    pa = new (proxyagent as any).default(proxyURL)
+    return new (proxyagent as any).default(opts)
   }
-
-  // None of our code ever passes in a explicit agent to the http modules but VS Code's
-  // does sometimes but only when a user sets the http.proxy configuration.
-  // See https://code.visualstudio.com/docs/setup/network#_legacy-proxy-server-support
-  //
-  // Even if they do, it's probably the same proxy so we should be fine! And those are
-  // deprecated anyway. In fact, they implemented it incorrectly as they won't retrieve
-  // HTTPS resources over a HTTP proxy which is perfectly valid! Both HTTP and HTTPS proxies
-  // support HTTP/HTTPS resources.
-  //
-  // See https://stackoverflow.com/a/10442767/4283659
-  const http = require("http")
-  const https = require("https")
-  http.globalAgent = pa
-  https.globalAgent = pa
 }
