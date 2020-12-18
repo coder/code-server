@@ -9,7 +9,7 @@ release-packages/
 release-gcp/
 release-images/
 node_modules
-node_modules.asar
+/lib/vscode/node_modules.asar
 node-*
 /plugins
 /lib/coder-cloud-agent
