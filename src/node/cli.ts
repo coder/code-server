@@ -29,7 +29,7 @@ export interface Args extends VsArgs {
   config?: string
   auth?: AuthType
   password?: string
-  hashedPassword?: string
+  "hashed-password"?: string
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
@@ -106,7 +106,7 @@ const options: Options<Required<Args>> = {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
   },
-  hashedPassword: {
+  "hashed-password": {
     type: "string",
     description:
       "The password hashed with SHA-256 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
@@ -285,8 +285,8 @@ export const parse = (
         throw new Error("--password can only be set in the config file or passed in via $PASSWORD")
       }
 
-      if (key === "hashedPassword" && !opts?.configFile) {
-        throw new Error("--hashedPassword can only be set in the config file or passed in via $HASHED_PASSWORD")
+      if (key === "hashed-password" && !opts?.configFile) {
+        throw new Error("--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD")
       }
 
       const option = options[key]
@@ -466,7 +466,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
   if (process.env.HASHED_PASSWORD) {
-    args.hashedPassword = process.env.HASHED_PASSWORD
+    args["hashed-password"] = process.env.HASHED_PASSWORD
     usingEnvPassword = false
   }
 

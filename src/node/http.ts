@@ -54,8 +54,8 @@ export const authenticated = (req: express.Request): boolean => {
       // The password is stored in the cookie after being hashed.
       return !!(
         req.cookies.key &&
-        (req.args.hashedPassword
-          ? safeCompare(req.cookies.key, req.args.hashedPassword)
+        (req.args["hashed-password"]
+          ? safeCompare(req.cookies.key, req.args["hashed-password"])
           : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
       )
     default:
