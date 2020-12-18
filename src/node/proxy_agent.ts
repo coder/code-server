@@ -32,7 +32,7 @@ export function monkeyPatch(vscode: boolean): void {
     return
   }
 
-  logger.debug(`using $HTTP_PROXY ${process.env.HTTP_PROXY}`)
+  logger.debug(`using $HTTP_PROXY ${proxyURL}`)
 
   let pa: http.Agent
   // The reasoning for this split is that VS Code's build process does not have
@@ -42,9 +42,9 @@ export function monkeyPatch(vscode: boolean): void {
   // I can't enable esModuleInterop in VS Code's build process as it breaks and spits out
   // a huge number of errors.
   if (vscode) {
-    pa = new (proxyagent as any)(process.env.HTTP_PROXY)
+    pa = new (proxyagent as any)(proxyURL)
   } else {
-    pa = new (proxyagent as any).default(process.env.HTTP_PROXY)
+    pa = new (proxyagent as any).default(proxyURL)
   }
 
   /**
