@@ -4,6 +4,7 @@
 
 - [Ubuntu, Debian](#ubuntu-debian)
 - [Fedora, CentOS, RHEL](#fedora-centos-rhel)
+- [Alpine](#alpine)
 - [macOS](#macos)
 - [FreeBSD](#freebsd)
 
@@ -34,6 +35,13 @@ sudo yum groupinstall -y 'Development Tools'
 sudo yum config-manager --set-enabled PowerTools # unnecessary on CentOS 7
 sudo yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
 npm config set python python2
+```
+
+## Alpine
+
+```bash
+apk add alpine-sdk bash libstdc++ libc6-compat libx11-dev libxkbfile-dev libsecret-dev
+npm config set python python3
 ```
 
 ## macOS
