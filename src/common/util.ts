@@ -110,5 +110,5 @@ export const getFirstString = (value: string | string[] | object | undefined): s
     return value[0]
   }
 
-  return typeof value !== "object" ? value : undefined
+  return typeof value === "string" ? value : undefined
 }
