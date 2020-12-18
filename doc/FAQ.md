@@ -27,6 +27,7 @@
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Differences compared to Theia?](#differences-compared-to-theia)
+- [HTTP_PROXY](#http_proxy)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -337,6 +338,27 @@ You can't just use your VS Code config in Theia like you can with code-server.
 
 To summarize, code-server is a patched fork of VS Code to run in the browser whereas
 Theia takes some parts of VS Code but is an entirely different editor.
+
+## `$HTTP_PROXY` (http/https/socks5)
+
+code-server supports the `$HTTP_PROXY` environment variable to allow directing all
+server side http/https requests through a http/https/socks5 proxy.
+
+```sh
+export HTTP_PROXY=http://134.8.5.4:8080
+# Now all of code-server's server side requests will go through 
+# http://134.8.5.4:8080 first.
+code-server
+```
+
+Or you can use the lowercase version `$http_proxy`.
+
+See https://www.npmjs.com/package/proxy-agent for details on how requests are proxied.
+
+**note**: Only server side requests will be proxied! This includes fetching extensions,
+requests made from extensions etc. To proxy requests from your browser you need to
+configure your browser separately. Browser requests would cover exploring the extension
+marketplace.
 
 ## Enterprise
 

@@ -4,7 +4,7 @@ import * as proxyagent from "proxy-agent"
 
 /**
  * This file does not have anything to do with the code-server proxy.
- * It's for $HTTP_PROXY support!
+ * It's for $HTTP_PROXY support.
  * - https://github.com/cdr/code-server/issues/124
  * - https://www.npmjs.com/package/proxy-agent
  *
