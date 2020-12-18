@@ -5,6 +5,7 @@
 - [Ubuntu, Debian](#ubuntu-debian)
 - [Fedora, CentOS, RHEL](#fedora-centos-rhel)
 - [macOS](#macos)
+- [FreeBSD](#freebsd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -39,4 +40,11 @@ npm config set python python2
 
 ```bash
 xcode-select --install
+```
+
+## FreeBSD
+
+```sh
+pkg install -y git python npm-node12 yarn-node12 pkgconf
+pkg install -y libsecret libxkbfile libx11 libinotify
 ```

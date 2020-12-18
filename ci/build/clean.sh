@@ -9,7 +9,6 @@ main() {
 
   pushd lib/vscode
   git clean -xffd
-  git reset --hard
   popd
 }
 

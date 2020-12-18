@@ -79,6 +79,17 @@ echo_latest_version() {
   echo "$version"
 }
 
+echo_npm_postinstall() {
+  echoh
+  cath << EOF
+The npm package has been installed successfully!
+Please extend your path to use code-server:
+  PATH="$NPM_BIN_DIR:\$PATH"
+Please run with:
+  code-server
+EOF
+}
+
 echo_standalone_postinstall() {
   echoh
   cath << EOF
@@ -392,6 +403,7 @@ install_npm() {
     echoh "Installing with yarn."
     echoh
     "$sh_c" yarn global add code-server --unsafe-perm
+    NPM_BIN_DIR="$(yarn global bin)" echo_npm_postinstall
     return
   elif command_exists npm; then
     sh_c="sh_c"
@@ -401,6 +413,7 @@ install_npm() {
     echoh "Installing with npm."
     echoh
     "$sh_c" npm install -g code-server --unsafe-perm
+    NPM_BIN_DIR="$(npm bin -g)" echo_npm_postinstall
     return
   fi
   echoh
