@@ -151,7 +151,7 @@ router.get("/callback", ensureAuthenticated, async (req, res) => {
       scheme: getFirstString(req.query["vscode-scheme"]) || "code-oss",
       authority: getFirstString(req.query["vscode-authority"]),
       path: getFirstString(req.query["vscode-path"]),
-      query: (getFirstString(req.query.query) ? getFirstString(req.query.query) + "&" : "") + qs.stringify(query),
+      query: (getFirstString(req.query.query) || "") + "&" + qs.stringify(query),
       fragment: getFirstString(req.query["vscode-fragment"]),
     },
     // Make sure the map doesn't leak if nothing fetches this URI.
