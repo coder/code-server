@@ -58,13 +58,12 @@ const args = minimist(process.argv.slice(2), {
 	const Module = require.__$__nodeRequire('module') as any;
 	const originalLoad = Module._load;
 
-	Module._load = function (request: string, parent: object, isMain: boolean) {
+	Module._load = function (request: string) {
 		if (request === 'natives') {
 			throw new Error('Either the extension or a NPM dependency is using the "natives" node module which is unsupported as it can cause a crash of the extension host. Click [here](https://go.microsoft.com/fwlink/?linkid=871887) to find out more');
 		}
 
-		// NOTE@coder: Map node_module.asar requests to regular node_modules.
-		return originalLoad.apply(this, [request.replace(/node_modules\.asar(\.unpacked)?/, 'node_modules'), parent, isMain]);
+		return originalLoad.apply(this, arguments);
 	};
 })();
 

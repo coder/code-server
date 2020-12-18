@@ -41,6 +41,16 @@ main() {
 vscode_yarn() {
   cd lib/vscode
   yarn --production --frozen-lockfile
+
+  # This is a copy of symlink_asar in ../lib.sh. Look there for details.
+  if [ ! -e node_modules.asar ]; then
+    if [ "${WINDIR-}" ]; then
+      mklink /J node_modules.asar node_modules
+    else
+      ln -s node_modules node_modules.asar
+    fi
+  fi
+
   cd extensions
   yarn --production --frozen-lockfile
   for ext in */; do
