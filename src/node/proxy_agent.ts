@@ -15,18 +15,25 @@ import * as proxyagent from "proxy-agent"
  */
 
 /**
- * monkeyPatch patches the node HTTP/HTTPS library to route all requests through our
- * custom agent from the proxyAgent package.
+ * monkeyPatch patches the node http and https modules to route all requests through the
+ * agent we get from the proxy-agent package.
+ *
+ * We do not support $HTTPS_PROXY here as it's equivalent in proxy-agent.
+ * See the mapping at https://www.npmjs.com/package/proxy-agent
+ *
+ * I guess with most proxies support both HTTP and HTTPS proxying on the same port and
+ * so two variables aren't required anymore. And there's plenty of SOCKS proxies too where
+ * it wouldn't make sense to have two variables.
+ *
+ * It's the most performant/secure setup as using a HTTP proxy for HTTP requests allows
+ * for caching but then using a HTTPS proxy for HTTPS requests gives full end to end
+ * security.
+ *
+ * See https://stackoverflow.com/a/10442767/4283659 for HTTP vs HTTPS proxy.
+ * To be clear, both support HTTP/HTTPS resources, the difference is in how they fetch
+ * them.
  */
 export function monkeyPatch(vscode: boolean): void {
-  // We do not support HTTPS_PROXY here to avoid confusion. proxy-agent will automatically
-  // use the correct protocol to connect to the proxy depending on the requested URL.
-  //
-  // We could implement support ourselves to allow people to configure the proxy used for
-  // HTTPS vs HTTP but there doesn't seem to be much value in that.
-  //
-  // At least of right now, it'd just be plain confusing to support HTTPS_PROXY when proxy-agent
-  // will still use HTTP to hit it for HTTP requests.
   const proxyURL = process.env.HTTP_PROXY || process.env.http_proxy
   if (!proxyURL) {
     return
@@ -47,14 +54,16 @@ export function monkeyPatch(vscode: boolean): void {
     pa = new (proxyagent as any).default(proxyURL)
   }
 
-  /**
-   * None of our code ever passes in a explicit agent to the http modules but VS Code's
-   * does sometimes but only when a user sets the http.proxy configuration.
-   * See https://code.visualstudio.com/docs/setup/network#_legacy-proxy-server-support
-   *
-   * Even if they do, it's probably the same proxy so we should be fine! And those are
-   * deprecated anyway.
-   */
+  // None of our code ever passes in a explicit agent to the http modules but VS Code's
+  // does sometimes but only when a user sets the http.proxy configuration.
+  // See https://code.visualstudio.com/docs/setup/network#_legacy-proxy-server-support
+  //
+  // Even if they do, it's probably the same proxy so we should be fine! And those are
+  // deprecated anyway. In fact, they implemented it incorrectly as they won't retrieve
+  // HTTPS resources over a HTTP proxy which is perfectly valid! Both HTTP and HTTPS proxies
+  // support HTTP/HTTPS resources.
+  //
+  // See https://stackoverflow.com/a/10442767/4283659
   const http = require("http")
   const https = require("https")
   http.globalAgent = pa
