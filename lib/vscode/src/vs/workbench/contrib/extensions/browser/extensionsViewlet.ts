@@ -410,6 +410,38 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 		overlay.style.backgroundColor = overlayBackgroundColor;
 		hide(overlay);
 
+		// NOTE@coder this UI element helps users understand the extension marketplace divergence
+		const extensionHelperLocalStorageKey = 'coder.extension-help-message';
+
+		if (localStorage.getItem(extensionHelperLocalStorageKey) === null) {
+			const helperHeader = append(this.root, $('.header'));
+			helperHeader.id = 'codeServerMarketplaceHelper';
+			helperHeader.style.height = 'auto';
+			helperHeader.style.fontWeight = '600';
+			helperHeader.style.padding = 'padding: 5px 16px';
+			helperHeader.style.position = 'relative';
+			helperHeader.innerHTML = `
+			<div style="margin-bottom: 8px;">
+			<p style="margin-bottom: 0; display: flex; align-items: center"><span class="codicon codicon-warning" style="margin-right: 2px; color: #C4A103"></span>WARNING</p>
+			<p style="margin-top: 0; margin-bottom: 4px">
+			These extensions are not official. Find additional open-source extensions
+			<a href="https://open-vsx.org/" target="_blank">here</a>.
+			See <a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
+			</p>
+			</div>
+					`;
+
+			const dismiss = append(helperHeader, $('span'));
+			dismiss.innerHTML = 'Dismiss';
+			dismiss.style.display = 'block';
+			dismiss.style.textAlign = 'right';
+			dismiss.style.cursor = 'pointer';
+			dismiss.onclick = () => {
+				helperHeader.remove();
+				localStorage.setItem(extensionHelperLocalStorageKey, 'viewed');
+			};
+		}
+
 		const header = append(this.root, $('.header'));
 		const placeholder = localize('searchExtensions', "Search Extensions in Marketplace");
 		const searchValue = this.searchViewletState['query.value'] ? this.searchViewletState['query.value'] : '';
