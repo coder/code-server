@@ -167,7 +167,7 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
 
 ```
-echo "thisismypassword" | sha256sum | cut -d' ' -f1
+echo -n "thisismypassword" | sha256sum | cut -d' ' -f1
 ```
 
 Of course replace `"thisismypassword"` with your actual password.
