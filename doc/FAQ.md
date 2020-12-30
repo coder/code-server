@@ -164,7 +164,7 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 
 ## Can I store my password hashed?
 
-Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
+Yes you can! Set the value of `hashed-password` instead of `password`. Generate the hash with:
 
 ```
 printf "thisismypassword" | sha256sum | cut -d' ' -f1
