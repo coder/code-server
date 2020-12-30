@@ -172,6 +172,13 @@ printf "thisismypassword" | sha256sum | cut -d' ' -f1
 
 Of course replace `"thisismypassword"` with your actual password.
 
+Example:
+
+```yaml
+auth: password
+hashed-password: 1da9133ab9dbd11d2937ec8d312e1e2569857059e73cc72df92e670928983ab5 # You got this from the command above
+```
+
 ## How do I securely access web services?
 
 code-server is capable of proxying to any port using either a subdomain or a
