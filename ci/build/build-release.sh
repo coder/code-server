@@ -6,6 +6,10 @@ set -euo pipefail
 # MINIFY controls whether minified vscode is bundled.
 MINIFY="${MINIFY-true}"
 
+# KEEP_MODULES controls whether the script cleans all node_modules requiring a yarn install
+# to run first.
+KEEP_MODULES="${KEEP_MODULES-0}"
+
 main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
@@ -21,6 +25,12 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
+
+  # code-server exports types which can be imported and used by plugins. Those
+  # types import ipc.d.ts but it isn't included in the final vscode build so
+  # we'll copy it ourselves here.
+  mkdir -p "$RELEASE_PATH/lib/vscode/src/vs/server"
+  rsync ./lib/vscode/src/vs/server/ipc.d.ts "$RELEASE_PATH/lib/vscode/src/vs/server"
 }
 
 bundle_code_server() {
@@ -31,6 +41,7 @@ bundle_code_server() {
   rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
   mkdir -p "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
+  rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
@@ -45,15 +56,25 @@ EOF
   ) > "$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
+
+  if [ "$KEEP_MODULES" = 1 ]; then
+    rsync node_modules/ "$RELEASE_PATH/node_modules"
+    mkdir -p "$RELEASE_PATH/lib"
+    rsync ./lib/coder-cloud-agent "$RELEASE_PATH/lib"
+  fi
 }
 
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
   rsync "$VSCODE_SRC_PATH/yarn.lock" "$VSCODE_OUT_PATH"
-  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY+-min}/" "$VSCODE_OUT_PATH/out"
+  rsync "$VSCODE_SRC_PATH/out-vscode${MINIFY:+-min}/" "$VSCODE_OUT_PATH/out"
 
   rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
-  rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
+  if [ "$KEEP_MODULES" = 0 ]; then
+    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
+  else
+    rsync "$VSCODE_SRC_PATH/node_modules/" "$VSCODE_OUT_PATH/node_modules"
+  fi
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
@@ -75,6 +96,10 @@ EOF
   # yarn to fetch node_modules if necessary without build scripts running.
   # We cannot use --no-scripts because we still want dependent package scripts to run.
   jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
+
+  pushd "$VSCODE_OUT_PATH"
+  symlink_asar
+  popd
 }
 
 main "$@"

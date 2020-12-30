@@ -3,6 +3,7 @@
 # FAQ
 
 - [Questions?](#questions)
+- [iPad Status?](#ipad-status)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
@@ -10,6 +11,7 @@
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+- [Can I store my password hashed?](#can-i-store-my-password-hashed)
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
@@ -19,20 +21,24 @@
 - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
 - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
 - [Heartbeat File](#heartbeat-file)
+- [Healthz endpoint](#healthz-endpoint)
 - [How does the config file work?](#how-does-the-config-file-work)
-- [Blank screen on iPad?](#blank-screen-on-ipad)
+- [How do I customize the "Go Home" button?](#how-do-i-customize-the-go-home-button)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Differences compared to Theia?](#differences-compared-to-theia)
+- [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Questions?
 
-Please file all questions and support requests at https://www.reddit.com/r/codeserver/.
+Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
 
-The issue tracker is **only** for bugs and features.
+## iPad Status?
+
+Please see [./ipad.md](./ipad.md).
 
 ## How can I reuse my VS Code configuration?
 
@@ -86,9 +92,20 @@ If you have your own marketplace that implements the VS Code Extension Gallery A
 point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
 to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
 
+e.g. to use [open-vsx.org](https://open-vsx.org):
+
+```bash
+export SERVICE_URL=https://open-vsx.org/vscode/gallery
+export ITEM_URL=https://open-vsx.org/vscode/item
+```
+
 While you can technically use Microsoft's marketplace with these, please do not do so as it
-is against their terms of use. See [above](#differences-compared-to-vs-code). These variables
-are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
+is against their terms of use. See [above](#differences-compared-to-vs-code) and this
+discussion regarding the use of the Microsoft URLs in forks:
+
+https://github.com/microsoft/vscode/issues/31168#issue-244533026
+
+These variables are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
 
@@ -134,6 +151,9 @@ For HTTPS, you can use a self signed certificate by passing in just `--cert` or
 pass in an existing certificate by providing the path to `--cert` and the path to
 the key with `--cert-key`.
 
+The self signed certificate will be generated into
+`~/.local/share/code-server/self-signed.crt`.
+
 If `code-server` has been passed a certificate it will also respond to HTTPS
 requests and will redirect all HTTP requests to HTTPS.
 
@@ -141,6 +161,16 @@ You can use [Let's Encrypt](https://letsencrypt.org/) to get a TLS certificate
 for free.
 
 Again, please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
+
+## Can I store my password hashed?
+
+Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
+
+```
+echo "thisismypassword" | sha256sum | cut -d' ' -f1
+```
+
+Of course replace `"thisismypassword"` with your actual password.
 
 ## How do I securely access web services?
 
@@ -215,7 +245,7 @@ code-server --log debug
 Once this is done, replicate the issue you're having then collect logging
 information from the following places:
 
-1. stdout
+1. The most recent files from `~/.local/share/code-server/coder-logs`.
 2. The most recently created directory in the `~/.local/share/code-server/logs` directory.
 3. The browser console and network tabs.
 
@@ -232,6 +262,20 @@ you can do so by continuously checking the last modified time on the heartbeat f
 older than X minutes, kill `code-server`.
 
 [#1636](https://github.com/cdr/code-server/issues/1636) will make the experience here better.
+
+## Healthz endpoint
+
+`code-server` exposes an endpoint at `/healthz` which can be used to check
+whether `code-server` is up without triggering a heartbeat. The response will
+include a status (`alive` or `expired`) and a timestamp for the last heartbeat
+(defaults to `0`). This endpoint does not require authentication.
+
+```json
+{
+  "status": "alive",
+  "lastHeartbeat": 1599166210566
+}
+```
 
 ## How does the config file work?
 
@@ -255,14 +299,15 @@ The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config fi
 
 The default location also respects `$XDG_CONFIG_HOME`.
 
-## Blank screen on iPad?
+## How do I customize the "Go Home" button?
 
-Unfortunately at the moment self signed certificates cause a blank screen on iPadOS
+You can pass a URL to the `--home` flag like this:
 
-There does seem to be a way to get it to work if you create your own CA and create a
-certificate using the CA and then import the CA onto your iPad.
+```
+code-server --home=https://my-website.com
+```
 
-See [#1566](https://github.com/cdr/code-server/issues/1566#issuecomment-623159434).
+Or you can define it in the config file with `home`.
 
 ## Isn't an install script piped into sh insecure?
 
@@ -293,6 +338,30 @@ You can't just use your VS Code config in Theia like you can with code-server.
 
 To summarize, code-server is a patched fork of VS Code to run in the browser whereas
 Theia takes some parts of VS Code but is an entirely different editor.
+
+## `$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`
+
+code-server supports the standard environment variables to allow directing
+server side requests through a proxy.
+
+```sh
+export HTTP_PROXY=https://134.8.5.4
+export HTTPS_PROXY=https://134.8.5.4
+# Now all of code-server's server side requests will go through
+# https://134.8.5.4 first.
+code-server
+```
+
+- See [proxy-from-env](https://www.npmjs.com/package/proxy-from-env#environment-variables)
+  for a detailed reference on the various environment variables and their syntax.
+  - code-server only uses the `http` and `https` protocols.
+- See [proxy-agent](https://www.npmjs.com/package/proxy-agent) for the various supported
+  proxy protocols.
+
+**note**: Only server side requests will be proxied! This includes fetching extensions,
+requests made from extensions etc. To proxy requests from your browser you need to
+configure your browser separately. Browser requests would cover exploring the extension
+marketplace.
 
 ## Enterprise
 

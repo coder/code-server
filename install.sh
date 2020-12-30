@@ -17,26 +17,36 @@ usage() {
 Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
+
+Pass in user@host to install code-server on user@host over ssh.
+The remote host must have internet access.
 ${not_curl_usage-}
 Usage:
 
-  $arg0 [--dry-run] [--version X.X.X] [--method detect] [--prefix ~/.local]
+  $arg0 [--dry-run] [--version X.X.X] [--method detect] \
+        [--prefix ~/.local] [--rsh ssh] [user@host]
 
   --dry-run
       Echo the commands for the install process without running them.
+
   --version X.X.X
       Install a specific version instead of the latest.
+
   --method [detect | standalone]
       Choose the installation method. Defaults to detect.
       - detect detects the system package manager and tries to use it.
         Full reference on the process is further below.
       - standalone installs a standalone release archive into ~/.local
         Add ~/.local/bin to your \$PATH to use it.
+
   --prefix <dir>
       Sets the prefix used by standalone release archives. Defaults to ~/.local
       The release is unarchived into ~/.local/lib/code-server-X.X.X
       and the binary symlinked into ~/.local/bin/code-server
       To install system wide pass ---prefix=/usr/local
+
+  --rsh <bin>
+      Specifies the remote shell for remote installation. Defaults to ssh.
 
 - For Debian, Ubuntu and Raspbian it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
@@ -69,6 +79,17 @@ echo_latest_version() {
   echo "$version"
 }
 
+echo_npm_postinstall() {
+  echoh
+  cath << EOF
+The npm package has been installed successfully!
+Please extend your path to use code-server:
+  PATH="$NPM_BIN_DIR:\$PATH"
+Please run with:
+  code-server
+EOF
+}
+
 echo_standalone_postinstall() {
   echoh
   cath << EOF
@@ -84,7 +105,7 @@ echo_systemd_postinstall() {
   echoh
   cath << EOF
 To have systemd start code-server now and restart on boot:
-  systemctl --user enable --now code-server
+  sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
   code-server
 EOF
@@ -100,9 +121,19 @@ main() {
     METHOD \
     STANDALONE_INSTALL_PREFIX \
     VERSION \
-    OPTIONAL
+    OPTIONAL \
+    ALL_FLAGS \
+    RSH_ARGS \
+    RSH
 
+  ALL_FLAGS=""
   while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -*)
+      ALL_FLAGS="${ALL_FLAGS} $1"
+      ;;
+    esac
+
     case "$1" in
     --dry-run)
       DRY_RUN=1
@@ -128,19 +159,44 @@ main() {
     --version=*)
       VERSION="$(parse_arg "$@")"
       ;;
+    --rsh)
+      RSH="$(parse_arg "$@")"
+      shift
+      ;;
+    --rsh=*)
+      RSH="$(parse_arg "$@")"
+      ;;
     -h | --h | -help | --help)
       usage
       exit 0
       ;;
-    *)
+    --)
+      shift
+      # We remove the -- added above.
+      ALL_FLAGS="${ALL_FLAGS% --}"
+      RSH_ARGS="$*"
+      break
+      ;;
+    -*)
       echoerr "Unknown flag $1"
       echoerr "Run with --help to see usage."
       exit 1
+      ;;
+    *)
+      RSH_ARGS="$*"
+      break
       ;;
     esac
 
     shift
   done
+
+  if [ "${RSH_ARGS-}" ]; then
+    RSH="${RSH-ssh}"
+    echoh "Installing remotely with $RSH $RSH_ARGS"
+    curl -fsSL https://code-server.dev/install.sh | prefix "$RSH_ARGS" "$RSH" "$RSH_ARGS" sh -s -- "$ALL_FLAGS"
+    return
+  fi
 
   VERSION="${VERSION-$(echo_latest_version)}"
   METHOD="${METHOD-detect}"
@@ -193,10 +249,10 @@ main() {
   macos)
     install_macos
     ;;
-  ubuntu | debian | raspbian)
+  debian)
     install_deb
     ;;
-  centos | fedora | rhel | opensuse)
+  fedora | opensuse)
     install_rpm
     ;;
   arch)
@@ -347,6 +403,7 @@ install_npm() {
     echoh "Installing with yarn."
     echoh
     "$sh_c" yarn global add code-server --unsafe-perm
+    NPM_BIN_DIR="$(yarn global bin)" echo_npm_postinstall
     return
   elif command_exists npm; then
     sh_c="sh_c"
@@ -356,6 +413,7 @@ install_npm() {
     echoh "Installing with npm."
     echoh
     "$sh_c" npm install -g code-server --unsafe-perm
+    NPM_BIN_DIR="$(npm bin -g)" echo_npm_postinstall
     return
   fi
   echoh
@@ -380,14 +438,16 @@ os() {
 }
 
 # distro prints the detected operating system including linux distros.
+# Also parses ID_LIKE for common distro bases.
 #
 # Example outputs:
-# - macos
-# - debian, ubuntu, raspbian
-# - centos, fedora, rhel, opensuse
-# - alpine
-# - arch
-# - freebsd
+# - macos -> macos
+# - freebsd -> freebsd
+# - ubuntu, raspbian, debian ... -> debian
+# - amzn, centos, rhel, fedora, ... -> fedora
+# - opensuse-{leap,tumbleweed} -> opensuse
+# - alpine -> alpine
+# - arch -> arch
 #
 # Inspired by https://github.com/docker/docker-install/blob/26ff363bcf3b3f5a00498ac43694bf1c7d9ce16c/install.sh#L111-L120.
 distro() {
@@ -399,12 +459,15 @@ distro() {
   if [ -f /etc/os-release ]; then
     (
       . /etc/os-release
-      case "$ID" in opensuse-*)
-        # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
-        echo "opensuse"
-        return
-        ;;
-      esac
+      if [ "${ID_LIKE-}" ]; then
+        for id_like in $ID_LIKE; do
+          case "$id_like" in debian | fedora | opensuse)
+            echo "$id_like"
+            return
+            ;;
+          esac
+        done
+      fi
 
       echo "$ID"
     )
@@ -446,7 +509,7 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null 2>&1
+  command -v "$@" > /dev/null
 }
 
 sh_c() {
@@ -498,6 +561,17 @@ echoerr() {
 # and all occurances of '"$HOME' with the literal '"$HOME'.
 humanpath() {
   sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
+}
+
+# We need to make sure we exit with a non zero exit if the command fails.
+# /bin/sh does not support -o pipefail unfortunately.
+prefix() {
+  PREFIX="$1"
+  shift
+  fifo="$(mktemp -d)/fifo"
+  mkfifo "$fifo"
+  sed -e "s#^#$PREFIX: #" "$fifo" &
+  "$@" > "$fifo" 2>&1
 }
 
 main "$@"

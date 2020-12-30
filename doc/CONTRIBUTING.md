@@ -2,127 +2,162 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
+- [Pull Requests](#pull-requests)
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
+  - [Updating VS Code](#updating-vs-code)
 - [Build](#build)
 - [Structure](#structure)
-  - [VS Code Patch](#vs-code-patch)
+  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 - [Detailed CI and build process docs](../ci)
 
+## Pull Requests
+
+Please create a [GitHub Issue](https://github.com/cdr/code-server/issues) for each issue
+you'd like to address unless the proposed fix is minor.
+
+In your Pull Requests (PR), link to the issue that the PR solves.
+
+Please ensure that the base of your PR is the **master** branch. (Note: The default
+GitHub branch is the latest release branch, though you should point all of your changes to be merged into
+master).
+
 ## Requirements
 
-Please refer to [VS Code's prerequisites](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+The prerequisites for contributing to code-server are almost the same as those for
+[VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
+There are several differences, however. You must:
 
-Differences:
+- Use Node.js version 12.x (or greater)
+- Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
+- Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
 
-- We require a minimum of node v12 but later versions should work.
-- We use [fnpm](https://github.com/goreleaser/nfpm) to build `.deb` and `.rpm` packages.
-- We use [jq](https://stedolan.github.io/jq/) to build code-server releases.
-- The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all our dependencies.
+The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all
+of the dependencies code-server uses.
 
 ## Development Workflow
 
 ```shell
 yarn
-yarn vscode
 yarn watch
-# Visit http://localhost:8080 once the build completed.
+# Visit http://localhost:8080 once the build is completed.
 ```
 
-To develop inside of an isolated docker container:
+To develop inside an isolated Docker container:
 
 ```shell
-./ci/dev/image/exec.sh
-
-root@12345:/code-server# yarn
-root@12345:/code-server# yarn vscode
-root@12345:/code-server# yarn watch
+./ci/dev/image/run.sh yarn
+./ci/dev/image/run.sh yarn watch
 ```
 
-Any changes made to the source will be live reloaded.
+`yarn watch` will live reload changes to the source.
 
-If changes are made to the patch and you've built previously you must manually
-reset VS Code then run `yarn vscode:patch`.
+### Updating VS Code
+
+If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52.1
+
+```shell
+git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52.1"
+```
 
 ## Build
 
+You can build using:
+
 ```shell
-yarn
-yarn vscode
-yarn build
-yarn build:vscode
-yarn release
+./ci/dev/image/run.sh ./ci/steps/release.sh
+```
+
+Run your build with:
+
+```shell
 cd release
 yarn --production
 # Runs the built JavaScript with Node.
 node .
 ```
 
-Now you can build release packages with:
+Build the release packages (make sure that you run `./ci/steps/release.sh` first):
 
-```
-yarn release:standalone
+```shell
+IMAGE=centos7 ./ci/dev/image/run.sh ./ci/steps/release-packages.sh
 # The standalone release is in ./release-standalone
+# .deb, .rpm and the standalone archive are in ./release-packages
+```
+
+The `release.sh` script is equal to running:
+
+```shell
+yarn
+yarn build
+yarn build:vscode
+yarn release
+```
+
+And `release-packages.sh` is equal to:
+
+```shell
+yarn release:standalone
 yarn test:standalone-release
 yarn package
-# .deb, .rpm and the standalone archive are in ./release-packages
+```
+
+For a faster release build, you can run instead:
+
+```shell
+KEEP_MODULES=1 ./ci/steps/release.sh
+node ./release
 ```
 
 ## Structure
 
-The `code-server` script serves an HTTP API to login and start a remote VS Code process.
+The `code-server` script serves an HTTP API for login and starting a remote VS Code process.
 
 The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented in
 [./src/node/app](./src/node/app).
 
-Most of the meaty parts are in our VS Code patch which is described next.
+Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
 
-### VS Code Patch
+### Modifications to VS Code
 
-Back in v1 of code-server, we had an extensive patch of VS Code that split the codebase
-into a frontend and server. The frontend consisted of all UI code and the server ran
-the extensions and exposed an API to the frontend for file access and everything else
-that the UI needed.
+In v1 of code-server, we had a patch of VS Code that split the codebase into a front-end
+and a server. The front-end consisted of all UI code, while the server ran the extensions
+and exposed an API to the front-end for file access and all UI needs.
 
-This worked but eventually Microsoft added support to VS Code to run it in the web.
-They have open sourced the frontend but have kept the server closed source.
+Over time, Microsoft added support to VS Code to run it on the web. They have made
+the front-end open source, but not the server. As such, code-server v2 (and later) uses
+the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [./lib/vscode](./lib/vscode).
 
-So in interest of piggy backing off their work, v2 and beyond use the VS Code
-web frontend and fill in the server. This is contained in our
-[./ci/dev/vscode.patch](../ci/dev/vscode.patch) under the path `src/vs/server`.
+Some noteworthy changes in our version of VS Code:
 
-Other notable changes in our patch include:
+- Adding our build file, which includes our code and VS Code's web code
+- Allowing multiple extension directories (both user and built-in)
+- Modifying the loader, websocket, webview, service worker, and asset requests to
+  use the URL of the page as a base (and TLS, if necessary for the websocket)
+- Sending client-side telemetry through the server
+- Allowing modification of the display language
+- Making it possible for us to load code on the client
+- Making extensions work in the browser
+- Making it possible to install extensions of any kind
+- Fixing issue with getting disconnected when your machine sleeps or hibernates
+- Adding connection type to web socket query parameters
 
-- Add our own build file which includes our code and VS Code's web code.
-- Allow multiple extension directories (both user and built-in).
-- Modify the loader, websocket, webview, service worker, and asset requests to
-  use the URL of the page as a base (and TLS if necessary for the websocket).
-- Send client-side telemetry through the server.
-- Allow modification of the display language.
-- Make it possible for us to load code on the client.
-- Make extensions work in the browser.
-- Make it possible to install extensions of any kind.
-- Fix getting permanently disconnected when you sleep or hibernate for a while.
-- Add connection type to web socket query parameters.
-
-Some known issues presently:
-
-- Creating custom VS Code extensions and debugging them doesn't work.
-- Extension profiling and tips are currently disabled.
-
-As the web portion of VS Code matures, we'll be able to shrink and maybe even entirely
-eliminate our patch. In the meantime, however, upgrading the VS Code version requires
-ensuring that the patch still applies and has the intended effects.
-
-To generate a new patch run `yarn vscode:diff`.
-
-**note**: We have extension docs on the CI and build system at [./ci/README.md](../ci/README.md)
-
-If functionality doesn't depend on code from VS Code then it should be moved
-into code-server otherwise it should be in the patch.
-
-In the future we'd like to run VS Code unit tests against our builds to ensure features
+As the web portion of VS Code matures, we'll be able to shrink and possibly
+eliminate our modifications. In the meantime, upgrading the VS Code version requires
+us to ensure that our changes are still applied and work as intended. In the future,
+we'd like to run VS Code unit tests against our builds to ensure that features
 work as expected.
+
+**Note**: We have [extension docs](../ci/README.md) on the CI and build system.
+
+If the functionality you're working on does NOT depend on code from VS Code, please
+move it out and into code-server.
+
+### Currently Known Issues
+
+- Creating custom VS Code extensions and debugging them doesn't work
+- Extension profiling and tips are currently disabled

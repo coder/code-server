@@ -10,9 +10,9 @@ RUN apt-get update \
     nano \
     git \
     procps \
-    ssh \
+    openssh-client \
     sudo \
-    vim \
+    vim.tiny \
     lsb-release \
   && rm -rf /var/lib/apt/lists/*
 
@@ -20,9 +20,6 @@ RUN apt-get update \
 RUN sed -i "s/# en_US.UTF-8/en_US.UTF-8/" /etc/locale.gen \
   && locale-gen
 ENV LANG=en_US.UTF-8
-
-RUN chsh -s /bin/bash
-ENV SHELL=/bin/bash
 
 RUN adduser --gecos '' --disabled-password coder && \
   echo "coder ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/nopasswd
@@ -35,9 +32,14 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     printf "user: coder\ngroup: coder\n" > /etc/fixuid/config.yml
 
 COPY release-packages/code-server*.deb /tmp/
+COPY ci/release-image/entrypoint.sh /usr/bin/entrypoint.sh
 RUN dpkg -i /tmp/code-server*$(dpkg --print-architecture).deb && rm /tmp/code-server*.deb
 
 EXPOSE 8080
-USER coder
+# This way, if someone sets $DOCKER_USER, docker-exec will still work as
+# the uid will remain the same. note: only relevant if -u isn't passed to
+# docker-run.
+USER 1000
+ENV USER=coder
 WORKDIR /home/coder
-ENTRYPOINT ["dumb-init", "fixuid", "-q", "/usr/bin/code-server", "--bind-addr", "0.0.0.0:8080", "."]
+ENTRYPOINT ["/usr/bin/entrypoint.sh", "--bind-addr", "0.0.0.0:8080", "."]

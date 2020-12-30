@@ -8,17 +8,13 @@ export enum HttpCode {
   ServerError = 500,
 }
 
+/**
+ * Represents an error with a message and an HTTP status code. This code will be
+ * used in the HTTP response.
+ */
 export class HttpError extends Error {
-  public constructor(message: string, public readonly code: number) {
+  public constructor(message: string, public readonly status: HttpCode, public readonly details?: object) {
     super(message)
     this.name = this.constructor.name
   }
-}
-
-export enum ApiEndpoint {
-  applications = "/applications",
-  process = "/process",
-  recent = "/recent",
-  run = "/run",
-  status = "/status",
 }

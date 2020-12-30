@@ -37,6 +37,9 @@ class Watcher {
 
     const vscode = cp.spawn("yarn", ["watch"], { cwd: this.vscodeSourcePath })
     const tsc = cp.spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath })
+    const plugin = process.env.PLUGIN_DIR
+      ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
+      : undefined
     const bundler = this.createBundler()
 
     const cleanup = (code?: number | null): void => {
@@ -47,6 +50,12 @@ class Watcher {
       Watcher.log("killing tsc")
       tsc.removeAllListeners()
       tsc.kill()
+
+      if (plugin) {
+        Watcher.log("killing plugin")
+        plugin.removeAllListeners()
+        plugin.kill()
+      }
 
       if (server) {
         Watcher.log("killing server")
@@ -69,6 +78,12 @@ class Watcher {
       Watcher.log("tsc terminated unexpectedly")
       cleanup(code)
     })
+    if (plugin) {
+      plugin.on("exit", (code) => {
+        Watcher.log("plugin terminated unexpectedly")
+        cleanup(code)
+      })
+    }
     const bundle = bundler.bundle().catch(() => {
       Watcher.log("parcel watcher terminated unexpectedly")
       cleanup(1)
@@ -82,6 +97,9 @@ class Watcher {
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
+    if (plugin) {
+      plugin.stderr.on("data", (d) => process.stderr.write(d))
+    }
 
     // From https://github.com/chalk/ansi-regex
     const pattern = [
@@ -140,21 +158,34 @@ class Watcher {
         bundle.then(restartServer)
       }
     })
+
+    if (plugin) {
+      onLine(plugin, (line, original) => {
+        // tsc outputs blank lines; skip them.
+        if (line !== "") {
+          console.log("[plugin]", original)
+        }
+        if (line.includes("Watching for file changes")) {
+          bundle.then(restartServer)
+        }
+      })
+    }
   }
 
   private createBundler(out = "dist"): Bundler {
     return new Bundler(
       [
-        path.join(this.rootPath, "src/browser/pages/app.ts"),
         path.join(this.rootPath, "src/browser/register.ts"),
         path.join(this.rootPath, "src/browser/serviceWorker.ts"),
+        path.join(this.rootPath, "src/browser/pages/login.ts"),
+        path.join(this.rootPath, "src/browser/pages/vscode.ts"),
       ],
       {
         outDir: path.join(this.rootPath, out),
         cacheDir: path.join(this.rootPath, ".cache"),
         minify: !!process.env.MINIFY,
         logLevel: 1,
-        publicUrl: "/static/development/dist",
+        publicUrl: ".",
       },
     )
   }

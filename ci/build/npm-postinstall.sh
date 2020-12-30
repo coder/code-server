@@ -24,6 +24,13 @@ main() {
     ;;
   esac
 
+  OS="$(uname | tr '[:upper:]' '[:lower:]')"
+  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent; then
+    chmod +x ./lib/coder-cloud-agent
+  else
+    echo "Failed to download cloud agent; --link will not work"
+  fi
+
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/doc/npm.md"
@@ -34,8 +41,25 @@ main() {
 vscode_yarn() {
   cd lib/vscode
   yarn --production --frozen-lockfile
+
+  # This is a copy of symlink_asar in ../lib.sh. Look there for details.
+  if [ ! -e node_modules.asar ]; then
+    if [ "${WINDIR-}" ]; then
+      mklink /J node_modules.asar node_modules
+    else
+      ln -s node_modules node_modules.asar
+    fi
+  fi
+
   cd extensions
   yarn --production --frozen-lockfile
+  for ext in */; do
+    ext="${ext%/}"
+    echo "extensions/$ext: installing dependencies"
+    cd "$ext"
+    yarn --production --frozen-lockfile
+    cd "$OLDPWD"
+  done
 }
 
 main "$@"

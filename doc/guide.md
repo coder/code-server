@@ -9,6 +9,7 @@
 - [3. Expose code-server](#3-expose-code-server)
   - [SSH forwarding](#ssh-forwarding)
   - [Let's Encrypt](#lets-encrypt)
+    - [NGINX](#nginx)
   - [Self Signed Certificate](#self-signed-certificate)
   - [Change the password?](#change-the-password)
   - [How do I securely access development web services?](#how-do-i-securely-access-development-web-services)
@@ -130,16 +131,16 @@ sed -i.bak 's/auth: password/auth: none/' ~/.config/code-server/config.yaml
 Restart `code-server` with (assuming you followed the guide):
 
 ```bash
-systemctl --user restart code-server
+sudo systemctl restart code-server@$USER
 ```
 
-Now forward local port 8080 to `127.0.0.1:8080` on the remote instance.
+Now forward local port 8080 to `127.0.0.1:8080` on the remote instance by running the following command on your local machine.
 
 Recommended reading: https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding.
 
 ```bash
 # -N disables executing a remote shell
-ssh -N -L 8080:127.0.0.1:8080 <instance-ip>
+ssh -N -L 8080:127.0.0.1:8080 [user]@<instance-ip>
 ```
 
 Now if you access http://127.0.0.1:8080 locally, you should see `code-server`!
@@ -193,6 +194,8 @@ mydomain.com
 reverse_proxy 127.0.0.1:8080
 ```
 
+Remember to replace `mydomain.com` with your domain name!
+
 5. Reload caddy with:
 
 ```bash
@@ -204,10 +207,51 @@ Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 In a future release we plan to integrate Let's Encrypt directly with `code-server` to avoid
 the dependency on caddy.
 
+#### NGINX
+
+If you prefer to use NGINX instead of Caddy then please follow steps 1-2 above and then:
+
+3. Install `nginx`:
+
+```bash
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+```
+
+4. Put the following config into `/etc/nginx/sites-available/code-server` with sudo:
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name mydomain.com;
+
+    location / {
+      proxy_pass http://localhost:8080/;
+      proxy_set_header Host $host;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection upgrade;
+      proxy_set_header Accept-Encoding gzip;
+    }
+}
+```
+
+Remember to replace `mydomain.com` with your domain name!
+
+5. Enable the config:
+
+```bash
+sudo ln -s ../sites-available/code-server /etc/nginx/sites-enabled/code-server
+sudo certbot --non-interactive --redirect --agree-tos --nginx -d mydomain.com -m me@example.com
+```
+
+Make sure to substitute `me@example.com` with your actual email.
+
+Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
+
 ### Self Signed Certificate
 
-**note:** Self signed certificates do not work with iPad and will cause a blank page. You'll
-have to use [Let's Encrypt](#lets-encrypt) instead. See the [FAQ](./FAQ.md#blank-screen-on-ipad).
+**note:** Self signed certificates do not work with iPad normally. See [./ipad.md](./ipad.md) for details.
 
 Recommended reading: https://security.stackexchange.com/a/8112.
 
@@ -232,7 +276,7 @@ sudo setcap cap_net_bind_service=+ep /usr/lib/code-server/lib/node
 Assuming you have been following the guide, restart `code-server` with:
 
 ```bash
-systemctl --user restart code-server
+sudo systemctl restart code-server@$USER
 ```
 
 Edit your instance and checkmark the allow HTTPS traffic option.
@@ -250,8 +294,11 @@ Edit the `password` field in the `code-server` config file at `~/.config/code-se
 and then restart `code-server` with:
 
 ```bash
-systemctl --user restart code-server
+sudo systemctl restart code-server@$USER
 ```
+
+Alternatively, you can specify the SHA-256 of your password at the `hashed-password` field in the config file.
+The `hashed-password` field takes precedence over `password`.
 
 ### How do I securely access development web services?
 
