@@ -170,7 +170,7 @@ Yes you can! Set the value of `hashed-password` instead of `password`. Generate 
 printf "thisismypassword" | sha256sum | cut -d' ' -f1
 ```
 
-Of course replace `"thisismypassword"` with your actual password.
+Of course replace `thisismypassword` with your actual password.
 
 Example:
 
