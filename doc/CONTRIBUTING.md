@@ -58,10 +58,13 @@ To develop inside an isolated Docker container:
 
 ### Updating VS Code
 
-If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52.1
+If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52:
 
 ```shell
-git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52.1"
+# Add vscode as a new remote if you haven't already and fetch
+git remote add -f vscode https://github.com/microsoft/vscode.git
+
+git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52"
 ```
 
 ## Build
