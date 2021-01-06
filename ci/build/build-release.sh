@@ -43,6 +43,10 @@ bundle_code_server() {
   rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
+  # Add typings for plugins
+  mkdir -p "$RELEASE_PATH/typings"
+  rsync typings/pluginapi.d.ts"$RELEASE_PATH/typings"
+
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
     cat << EOF
