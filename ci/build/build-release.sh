@@ -45,7 +45,7 @@ bundle_code_server() {
 
   # Add typings for plugins
   mkdir -p "$RELEASE_PATH/typings"
-  rsync typings/pluginapi.d.ts"$RELEASE_PATH/typings"
+  rsync typings/pluginapi.d.ts "$RELEASE_PATH/typings"
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
