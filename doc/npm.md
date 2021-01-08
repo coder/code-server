@@ -4,7 +4,9 @@
 
 - [Ubuntu, Debian](#ubuntu-debian)
 - [Fedora, CentOS, RHEL](#fedora-centos-rhel)
+- [Alpine](#alpine)
 - [macOS](#macos)
+- [FreeBSD](#freebsd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -35,10 +37,22 @@ sudo yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
 npm config set python python2
 ```
 
-## macOS
+## Alpine
 
-Install [Xcode](https://developer.apple.com/xcode/downloads/) and run:
+```bash
+apk add alpine-sdk bash libstdc++ libc6-compat libx11-dev libxkbfile-dev libsecret-dev
+npm config set python python3
+```
+
+## macOS
 
 ```bash
 xcode-select --install
+```
+
+## FreeBSD
+
+```sh
+pkg install -y git python npm-node12 yarn-node12 pkgconf
+pkg install -y libsecret libxkbfile libx11 libinotify
 ```

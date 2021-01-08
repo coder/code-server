@@ -29,10 +29,12 @@ export interface Args extends VsArgs {
   config?: string
   auth?: AuthType
   password?: string
+  "hashed-password"?: string
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
   "disable-telemetry"?: boolean
+  "disable-update-check"?: boolean
   help?: boolean
   host?: string
   json?: boolean
@@ -54,6 +56,7 @@ export interface Args extends VsArgs {
   "new-window"?: boolean
 
   link?: OptionalString
+  home?: string
 }
 
 interface Option<T> {
@@ -72,7 +75,7 @@ interface Option<T> {
   description?: string
 
   /**
-   * If marked as beta, the option is not printed unless $CS_BETA is set.
+   * If marked as beta, the option is marked as beta in help.
    */
   beta?: boolean
 }
@@ -103,6 +106,12 @@ const options: Options<Required<Args>> = {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
   },
+  "hashed-password": {
+    type: "string",
+    description:
+      "The password hashed with SHA-256 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
+      "Takes precedence over 'password'.",
+  },
   cert: {
     type: OptionalString,
     path: true,
@@ -114,6 +123,12 @@ const options: Options<Required<Args>> = {
   },
   "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
   "disable-telemetry": { type: "boolean", description: "Disable telemetry." },
+  "disable-update-check": {
+    type: "boolean",
+    description:
+      "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
+      "then notifies you once every week that a new release is available.",
+  },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
@@ -157,7 +172,11 @@ const options: Options<Required<Args>> = {
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
-
+  "ignore-last-opened": {
+    type: "boolean",
+    short: "e",
+    description: "Ignore the last opened directory or workspace in favor of an empty window.",
+  },
   "new-window": {
     type: "boolean",
     short: "n",
@@ -179,10 +198,12 @@ const options: Options<Required<Args>> = {
       Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
       https://myname.coder-cloud.com at which you can easily access your code-server instance.
       Authorization is done via GitHub.
-      This is presently beta and requires being accepted for testing.
-      See https://github.com/cdr/code-server/discussions/2137
     `,
     beta: true,
+  },
+  home: {
+    type: "string",
+    description: "Set a custom link for the 'Go Home' button in the Application Menu",
   },
 }
 
@@ -195,32 +216,24 @@ export const optionDescriptions = (): string[] => {
     }),
     { short: 0, long: 0 },
   )
-  return entries
-    .filter(([, v]) => {
-      // If CS_BETA is set, we show beta options but if not, then we do not want
-      // to show beta options.
-      return process.env.CS_BETA || !v.beta
-    })
-    .map(([k, v]) => {
-      const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${
-        v.short ? `-${v.short}` : " "
-      } --${k} `
-      return (
-        help +
-        v.description
-          ?.trim()
-          .split(/\n/)
-          .map((line, i) => {
-            line = line.trim()
-            if (i === 0) {
-              return " ".repeat(widths.long - k.length) + line
-            }
-            return " ".repeat(widths.long + widths.short + 6) + line
-          })
-          .join("\n") +
-        (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
-      )
-    })
+  return entries.map(([k, v]) => {
+    const help = `${" ".repeat(widths.short - (v.short ? v.short.length : 0))}${v.short ? `-${v.short}` : " "} --${k} `
+    return (
+      help +
+      v.description
+        ?.trim()
+        .split(/\n/)
+        .map((line, i) => {
+          line = line.trim()
+          if (i === 0) {
+            return " ".repeat(widths.long - k.length) + (v.beta ? "(beta) " : "") + line
+          }
+          return " ".repeat(widths.long + widths.short + 6) + line
+        })
+        .join("\n") +
+      (typeof v.type === "object" ? ` [${Object.values(v.type).join(", ")}]` : "")
+    )
+  })
 }
 
 export const parse = (
@@ -270,6 +283,10 @@ export const parse = (
 
       if (key === "password" && !opts?.configFile) {
         throw new Error("--password can only be set in the config file or passed in via $PASSWORD")
+      }
+
+      if (key === "hashed-password" && !opts?.configFile) {
+        throw new Error("--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD")
       }
 
       const option = options[key]
@@ -354,6 +371,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "proxy-domain": string[]
   verbose: boolean
   usingEnvPassword: boolean
+  usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
 }
@@ -441,13 +459,20 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args["cert-key"] = certKey
   }
 
-  const usingEnvPassword = !!process.env.PASSWORD
+  let usingEnvPassword = !!process.env.PASSWORD
   if (process.env.PASSWORD) {
     args.password = process.env.PASSWORD
   }
 
-  // Ensure it's not readable by child processes.
+  const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
+  if (process.env.HASHED_PASSWORD) {
+    args["hashed-password"] = process.env.HASHED_PASSWORD
+    usingEnvPassword = false
+  }
+
+  // Ensure they're not readable by child processes.
   delete process.env.PASSWORD
+  delete process.env.HASHED_PASSWORD
 
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
@@ -456,6 +481,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   return {
     ...args,
     usingEnvPassword,
+    usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }
 

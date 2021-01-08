@@ -79,6 +79,17 @@ echo_latest_version() {
   echo "$version"
 }
 
+echo_npm_postinstall() {
+  echoh
+  cath << EOF
+The npm package has been installed successfully!
+Please extend your path to use code-server:
+  PATH="$NPM_BIN_DIR:\$PATH"
+Please run with:
+  code-server
+EOF
+}
+
 echo_standalone_postinstall() {
   echoh
   cath << EOF
@@ -238,10 +249,10 @@ main() {
   macos)
     install_macos
     ;;
-  ubuntu | debian | raspbian)
+  debian)
     install_deb
     ;;
-  centos | fedora | rhel | opensuse)
+  fedora | opensuse)
     install_rpm
     ;;
   arch)
@@ -392,6 +403,7 @@ install_npm() {
     echoh "Installing with yarn."
     echoh
     "$sh_c" yarn global add code-server --unsafe-perm
+    NPM_BIN_DIR="$(yarn global bin)" echo_npm_postinstall
     return
   elif command_exists npm; then
     sh_c="sh_c"
@@ -401,6 +413,7 @@ install_npm() {
     echoh "Installing with npm."
     echoh
     "$sh_c" npm install -g code-server --unsafe-perm
+    NPM_BIN_DIR="$(npm bin -g)" echo_npm_postinstall
     return
   fi
   echoh
@@ -425,14 +438,16 @@ os() {
 }
 
 # distro prints the detected operating system including linux distros.
+# Also parses ID_LIKE for common distro bases.
 #
 # Example outputs:
-# - macos
-# - debian, ubuntu, raspbian
-# - centos, fedora, rhel, opensuse
-# - alpine
-# - arch
-# - freebsd
+# - macos -> macos
+# - freebsd -> freebsd
+# - ubuntu, raspbian, debian ... -> debian
+# - amzn, centos, rhel, fedora, ... -> fedora
+# - opensuse-{leap,tumbleweed} -> opensuse
+# - alpine -> alpine
+# - arch -> arch
 #
 # Inspired by https://github.com/docker/docker-install/blob/26ff363bcf3b3f5a00498ac43694bf1c7d9ce16c/install.sh#L111-L120.
 distro() {
@@ -444,12 +459,15 @@ distro() {
   if [ -f /etc/os-release ]; then
     (
       . /etc/os-release
-      case "$ID" in opensuse-*)
-        # opensuse's ID's look like opensuse-leap and opensuse-tumbleweed.
-        echo "opensuse"
-        return
-        ;;
-      esac
+      if [ "${ID_LIKE-}" ]; then
+        for id_like in $ID_LIKE; do
+          case "$id_like" in debian | fedora | opensuse)
+            echo "$id_like"
+            return
+            ;;
+          esac
+        done
+      fi
 
       echo "$ID"
     )

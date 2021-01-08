@@ -11,6 +11,7 @@
 - [Where are extensions stored?](#where-are-extensions-stored)
 - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
 - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+- [Can I store my password hashed?](#can-i-store-my-password-hashed)
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
@@ -22,9 +23,11 @@
 - [Heartbeat File](#heartbeat-file)
 - [Healthz endpoint](#healthz-endpoint)
 - [How does the config file work?](#how-does-the-config-file-work)
+- [How do I customize the "Go Home" button?](#how-do-i-customize-the-go-home-button)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
 - [Differences compared to Theia?](#differences-compared-to-theia)
+- [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -159,6 +162,16 @@ for free.
 
 Again, please follow [./guide.md](./guide.md) for our recommendations on setting up and using code-server.
 
+## Can I store my password hashed?
+
+Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
+
+```
+echo "thisismypassword" | sha256sum | cut -d' ' -f1
+```
+
+Of course replace `"thisismypassword"` with your actual password.
+
 ## How do I securely access web services?
 
 code-server is capable of proxying to any port using either a subdomain or a
@@ -232,7 +245,7 @@ code-server --log debug
 Once this is done, replicate the issue you're having then collect logging
 information from the following places:
 
-1. stdout
+1. The most recent files from `~/.local/share/code-server/coder-logs`.
 2. The most recently created directory in the `~/.local/share/code-server/logs` directory.
 3. The browser console and network tabs.
 
@@ -286,6 +299,16 @@ The `--config` flag or `$CODE_SERVER_CONFIG` can be used to change the config fi
 
 The default location also respects `$XDG_CONFIG_HOME`.
 
+## How do I customize the "Go Home" button?
+
+You can pass a URL to the `--home` flag like this:
+
+```
+code-server --home=https://my-website.com
+```
+
+Or you can define it in the config file with `home`.
+
 ## Isn't an install script piped into sh insecure?
 
 Please give
@@ -315,6 +338,30 @@ You can't just use your VS Code config in Theia like you can with code-server.
 
 To summarize, code-server is a patched fork of VS Code to run in the browser whereas
 Theia takes some parts of VS Code but is an entirely different editor.
+
+## `$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`
+
+code-server supports the standard environment variables to allow directing
+server side requests through a proxy.
+
+```sh
+export HTTP_PROXY=https://134.8.5.4
+export HTTPS_PROXY=https://134.8.5.4
+# Now all of code-server's server side requests will go through
+# https://134.8.5.4 first.
+code-server
+```
+
+- See [proxy-from-env](https://www.npmjs.com/package/proxy-from-env#environment-variables)
+  for a detailed reference on the various environment variables and their syntax.
+  - code-server only uses the `http` and `https` protocols.
+- See [proxy-agent](https://www.npmjs.com/package/proxy-agent) for the various supported
+  proxy protocols.
+
+**note**: Only server side requests will be proxied! This includes fetching extensions,
+requests made from extensions etc. To proxy requests from your browser you need to
+configure your browser separately. Browser requests would cover exploring the extension
+marketplace.
 
 ## Enterprise
 

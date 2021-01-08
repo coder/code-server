@@ -26,6 +26,7 @@ describe("parser", () => {
     port: 8080,
     "proxy-domain": [],
     usingEnvPassword: false,
+    usingEnvHashedPassword: false,
     "extensions-dir": path.join(paths.data, "extensions"),
     "user-data-dir": paths.data,
   }
@@ -54,6 +55,7 @@ describe("parser", () => {
         "--log",
         "error",
         "--help",
+        "--home=http://localhost:8080/",
         "--open",
         "--socket=mumble",
         "3",
@@ -84,6 +86,7 @@ describe("parser", () => {
         "extra-builtin-extensions-dir": [path.resolve("bazzle")],
         "extra-extensions-dir": [path.resolve("nozzle")],
         help: true,
+        home: "http://localhost:8080/",
         host: "0.0.0.0",
         json: true,
         log: "error",
@@ -287,6 +290,21 @@ describe("parser", () => {
       _: [],
       password: "test",
       usingEnvPassword: true,
+    })
+  })
+
+  it("should use env var hashed password", async () => {
+    process.env.HASHED_PASSWORD = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" // test
+    const args = parse([])
+    assert.deepEqual(args, {
+      _: [],
+    })
+
+    assert.deepEqual(await setDefaults(args), {
+      ...defaults,
+      _: [],
+      "hashed-password": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      usingEnvHashedPassword: true,
     })
   })
 

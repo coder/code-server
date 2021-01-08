@@ -215,7 +215,7 @@ If you prefer to use NGINX instead of Caddy then please follow steps 1-2 above a
 
 ```bash
 sudo apt update
-sudo apt install -y nginx certbot python-certbot-nginx
+sudo apt install -y nginx certbot python3-certbot-nginx
 ```
 
 4. Put the following config into `/etc/nginx/sites-available/code-server` with sudo:
@@ -296,6 +296,9 @@ and then restart `code-server` with:
 ```bash
 sudo systemctl restart code-server@$USER
 ```
+
+Alternatively, you can specify the SHA-256 of your password at the `hashed-password` field in the config file.
+The `hashed-password` field takes precedence over `password`.
 
 ### How do I securely access development web services?
 

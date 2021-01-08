@@ -52,7 +52,12 @@ export const authenticated = (req: express.Request): boolean => {
       return true
     case AuthType.Password:
       // The password is stored in the cookie after being hashed.
-      return req.args.password && req.cookies.key && safeCompare(req.cookies.key, hash(req.args.password))
+      return !!(
+        req.cookies.key &&
+        (req.args["hashed-password"]
+          ? safeCompare(req.cookies.key, req.args["hashed-password"])
+          : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
+      )
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)
   }

@@ -11,7 +11,7 @@ import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { replaceTemplates } from "../http"
+import { replaceTemplates, redirect } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { WebsocketRequest } from "../wsRouter"
@@ -112,6 +112,10 @@ export const register = async (
 
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
+  } else {
+    app.all("/login", (req, res) => {
+      redirect(req, res, "/", {})
+    })
   }
 
   app.use("/proxy", proxy.router)

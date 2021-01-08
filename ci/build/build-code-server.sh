@@ -20,8 +20,10 @@ main() {
 
   if ! [ -f ./lib/coder-cloud-agent ]; then
     OS="$(uname | tr '[:upper:]' '[:lower:]')"
+    set +e
     curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent
     chmod +x ./lib/coder-cloud-agent
+    set -e
   fi
 
   parcel build \

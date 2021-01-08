@@ -19,6 +19,8 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
    2. Update in [./doc/install.md](../doc/install.md)
    3. Update in [./ci/helm-chart/README.md](../ci/helm-chart/README.md)
       - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
+      - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
+        changed. Replace the numbers as needed.
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
@@ -55,18 +57,13 @@ This directory contains scripts used for the development of code-server.
   - Runs tests.
 - [./ci/dev/ci.sh](./dev/ci.sh) (`yarn ci`)
   - Runs `yarn fmt`, `yarn lint` and `yarn test`.
-- [./ci/dev/vscode.sh](./dev/vscode.sh) (`yarn vscode`)
-  - Ensures [./lib/vscode](../lib/vscode) is cloned, patched and dependencies are installed.
-- [./ci/dev/patch-vscode.sh](./dev/patch-vscode.sh) (`yarn vscode:patch`)
-  - Applies [./ci/dev/vscode.patch](./dev/vscode.patch) to [./lib/vscode](../lib/vscode).
-- [./ci/dev/diff-vscode.sh](./dev/diff-vscode.sh) (`yarn vscode:diff`)
-  - Diffs [./lib/vscode](../lib/vscode) into [./ci/dev/vscode.patch](./dev/vscode.patch).
-- [./ci/dev/vscode.patch](./dev/vscode.patch)
-  - Our patch of VS Code, see [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md#vs-code-patch).
-  - Generate it with `yarn vscode:diff` and apply with `yarn vscode:patch`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
   - Example usage in [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
+- [./ci/dev/gen_icons.sh](./ci/dev/gen_icons.sh) (`yarn icons`)
+  - Generates the various icons from a single `.svg` favicon in
+    `src/browser/media/favicon.svg`.
+  - Requires [imagemagick](https://imagemagick.org/index.php)
 
 ## build
 
@@ -84,7 +81,6 @@ You can disable minification by setting `MINIFY=`.
   - Will build a standalone release with node and node_modules bundled into `./release-standalone`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
-  - Will also `git reset --hard lib/vscode`.
   - Useful to do a clean build.
 - [./ci/build/code-server.sh](./build/code-server.sh)
   - Copied into standalone releases to run code-server with the bundled node binary.

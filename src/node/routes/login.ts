@@ -30,6 +30,8 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   let passwordMsg = `Check the config file at ${humanPath(req.args.config)} for the password.`
   if (req.args.usingEnvPassword) {
     passwordMsg = "Password was set from $PASSWORD."
+  } else if (req.args.usingEnvHashedPassword) {
+    passwordMsg = "Password was set from $HASHED_PASSWORD."
   }
   return replaceTemplates(
     req,
@@ -65,7 +67,11 @@ router.post("/", async (req, res) => {
       throw new Error("Missing password")
     }
 
-    if (req.args.password && safeCompare(req.body.password, req.args.password)) {
+    if (
+      req.args["hashed-password"]
+        ? safeCompare(hash(req.body.password), req.args["hashed-password"])
+        : req.args.password && safeCompare(req.body.password, req.args.password)
+    ) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
       res.cookie(Cookie.Key, hash(req.body.password), {

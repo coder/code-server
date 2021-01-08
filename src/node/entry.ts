@@ -15,8 +15,9 @@ import {
   shouldOpenInExistingInstance,
   shouldRunVsCodeCli,
 } from "./cli"
-import { coderCloudBind } from "./coder-cloud"
+import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
+import * as proxyAgent from "./proxy_agent"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 import { isChild, wrapper } from "./wrapper"
@@ -98,8 +99,10 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
   logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
 
-  if (args.auth === AuthType.Password && !args.password) {
-    throw new Error("Please pass in a password via the config file or $PASSWORD")
+  if (args.auth === AuthType.Password && !args.password && !args["hashed-password"]) {
+    throw new Error(
+      "Please pass in a password via the config file or environment variable ($PASSWORD or $HASHED_PASSWORD)",
+    )
   }
 
   const [app, wsApp, server] = await createApp(args)
@@ -113,6 +116,8 @@ const main = async (args: DefaultedArgs): Promise<void> => {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
       logger.info("    - Using password from $PASSWORD")
+    } else if (args.usingEnvHashedPassword) {
+      logger.info("    - Using password from $HASHED_PASSWORD")
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
     }
@@ -123,7 +128,7 @@ const main = async (args: DefaultedArgs): Promise<void> => {
   if (args.cert) {
     logger.info(`  - Using certificate for HTTPS: ${humanPath(args.cert.value)}`)
   } else {
-    logger.info("  - Not serving HTTPS")
+    logger.info(`  - Not serving HTTPS ${args.link ? "(disabled by --link)" : ""}`)
   }
 
   if (args["proxy-domain"].length > 0) {
@@ -154,6 +159,8 @@ const main = async (args: DefaultedArgs): Promise<void> => {
 }
 
 async function entry(): Promise<void> {
+  proxyAgent.monkeyPatch(false)
+
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
   // the parent and the child wouldn't have been spawned. We also get the
