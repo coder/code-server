@@ -1,5 +1,4 @@
 import { Level, logger } from "@coder/logger"
-import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as net from "net"
 import * as os from "os"
@@ -32,11 +31,11 @@ describe("parser", () => {
   }
 
   it("should parse nothing", () => {
-    assert.deepEqual(parse([]), { _: [] })
+    expect(parse([])).toBe({ _: [] })
   })
 
   it("should parse all available options", () => {
-    assert.deepEqual(
+    expect(
       parse([
         "--bind-addr=192.169.0.1:8080",
         "--auth",
@@ -73,7 +72,7 @@ describe("parser", () => {
         "--",
         "-5",
         "--6",
-      ]),
+      ])).toEqual(
       {
         _: ["1", "2", "3", "4", "-5", "--6"],
         auth: "none",
@@ -102,7 +101,7 @@ describe("parser", () => {
   })
 
   it("should work with short options", () => {
-    assert.deepEqual(parse(["-vvv", "-v"]), {
+    expect(parse(["-vvv", "-v"])).toEqual({
       _: [],
       verbose: true,
       version: true,
@@ -111,102 +110,108 @@ describe("parser", () => {
 
   it("should use log level env var", async () => {
     const args = parse([])
-    assert.deepEqual(args, { _: [] })
+    expect(args).toEqual({ _: [] })
 
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(await setDefaults(args), {
+    const defaults = await setDefaults(args)
+    expect(defaults).toEqual({
       ...defaults,
       _: [],
       log: "debug",
       verbose: false,
     })
-    assert.equal(process.env.LOG_LEVEL, "debug")
-    assert.equal(logger.level, Level.Debug)
+    expect(process.env.LOG_LEVEL).toEqual("debug")
+    expect(logger.level).toEqual(Level.Debug)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(await setDefaults(args), {
-      ...defaults,
+    const updated = await setDefaults(args)
+    expect(updated).toBe( {
+      ...updated,
       _: [],
       log: "trace",
       verbose: true,
     })
-    assert.equal(process.env.LOG_LEVEL, "trace")
-    assert.equal(logger.level, Level.Trace)
+    expect(process.env.LOG_LEVEL).toEqual("trace")
+    expect(logger.level).toEqual(Level.Trace)
   })
 
   it("should prefer --log to env var and --verbose to --log", async () => {
     let args = parse(["--log", "info"])
-    assert.deepEqual(args, {
+    expect(args).toEqual({
       _: [],
       log: "info",
     })
 
     process.env.LOG_LEVEL = "debug"
-    assert.deepEqual(await setDefaults(args), {
+    const defaults = await setDefaults(args) 
+    expect(defaults).toEqual({
       ...defaults,
       _: [],
       log: "info",
       verbose: false,
     })
-    assert.equal(process.env.LOG_LEVEL, "info")
-    assert.equal(logger.level, Level.Info)
+    expect(process.env.LOG_LEVEL).toEqual("info")
+    expect(logger.level).toEqual(Level.Info)
 
     process.env.LOG_LEVEL = "trace"
-    assert.deepEqual(await setDefaults(args), {
+    const updated = await setDefaults(args)
+    expect(updated).toEqual( {
       ...defaults,
       _: [],
       log: "info",
       verbose: false,
     })
-    assert.equal(process.env.LOG_LEVEL, "info")
-    assert.equal(logger.level, Level.Info)
+    expect(process.env.LOG_LEVEL).toEqual("info")
+    expect(logger.level).toEqual(Level.Info)
 
     args = parse(["--log", "info", "--verbose"])
-    assert.deepEqual(args, {
+    expect(args).toEqual({
       _: [],
       log: "info",
       verbose: true,
     })
 
     process.env.LOG_LEVEL = "warn"
-    assert.deepEqual(await setDefaults(args), {
+    const updatedAgain = await setDefaults(args)
+    expect(updatedAgain).toEqual( {
       ...defaults,
       _: [],
       log: "trace",
       verbose: true,
     })
-    assert.equal(process.env.LOG_LEVEL, "trace")
-    assert.equal(logger.level, Level.Trace)
+    expect(process.env.LOG_LEVEL).toEqual("trace")
+    expect(logger.level).toEqual(Level.Trace)
   })
 
   it("should ignore invalid log level env var", async () => {
     process.env.LOG_LEVEL = "bogus"
-    assert.deepEqual(await setDefaults(parse([])), {
-      _: [],
+    const defaults = await setDefaults(parse([]))
+    expect(defaults).toEqual({
       ...defaults,
+      _: [],
     })
   })
 
   it("should error if value isn't provided", () => {
-    assert.throws(() => parse(["--auth"]), /--auth requires a value/)
-    assert.throws(() => parse(["--auth=", "--log=debug"]), /--auth requires a value/)
-    assert.throws(() => parse(["--auth", "--log"]), /--auth requires a value/)
-    assert.throws(() => parse(["--auth", "--invalid"]), /--auth requires a value/)
-    assert.throws(() => parse(["--bind-addr"]), /--bind-addr requires a value/)
+    expect(() => parse(["--auth"])).toThrowError(/--auth requires a value/)
+    expect(() => parse(["--auth=", "--log=debug"])).toThrowError(/--auth requires a value/)
+    expect(() => parse(["--auth", "--log"])).toThrowError(/--auth requires a value/)
+    expect(() => parse(["--auth", "--invalid"])).toThrowError(/--auth requires a value/)
+    expect(() => parse(["--bind-addr"])).toThrowError(/--bind-addr requires a value/)
   })
 
   it("should error if value is invalid", () => {
-    assert.throws(() => parse(["--port", "foo"]), /--port must be a number/)
-    assert.throws(() => parse(["--auth", "invalid"]), /--auth valid values: \[password, none\]/)
-    assert.throws(() => parse(["--log", "invalid"]), /--log valid values: \[trace, debug, info, warn, error\]/)
+    expect(() => parse(["--port", "foo"])).toThrowError(/--port must be a number/)
+    expect(() => parse(["--auth", "invalid"])).toThrowError(/--auth valid values: \[password, none\]/)
+    expect(() => parse(["--log", "invalid"])).toThrowError(/--log valid values: \[trace, debug, info, warn, error\]/)
   })
 
   it("should error if the option doesn't exist", () => {
-    assert.throws(() => parse(["--foo"]), /Unknown option --foo/)
+    expect(()=> parse(["--foo"])).toThrowError(/Unknown option --foo/)
   })
 
   it("should not error if the value is optional", () => {
-    assert.deepEqual(parse(["--cert"]), {
+    expect(parse(["--cert"])).toEqual({
       _: [],
       cert: {
         value: undefined,
@@ -215,55 +220,60 @@ describe("parser", () => {
   })
 
   it("should not allow option-like values", () => {
-    assert.throws(() => parse(["--socket", "--socket-path-value"]), /--socket requires a value/)
+    expect(() => parse(["--socket", "--socket-path-value"])).toThrowError(/--socket requires a value/)
     // If you actually had a path like this you would do this instead:
-    assert.deepEqual(parse(["--socket", "./--socket-path-value"]), {
+    expect(parse(["--socket", "./--socket-path-value"])).toEqual({
       _: [],
       socket: path.resolve("--socket-path-value"),
     })
-    assert.throws(() => parse(["--cert", "--socket-path-value"]), /Unknown option --socket-path-value/)
+    expect(() => parse(["--cert", "--socket-path-value"])).toThrowError(/Unknown option --socket-path-value/)
   })
 
   it("should allow positional arguments before options", () => {
-    assert.deepEqual(parse(["foo", "test", "--auth", "none"]), {
+    expect(parse(["foo", "test", "--auth", "none"])).toEqual({
       _: ["foo", "test"],
       auth: "none",
     })
   })
 
   it("should support repeatable flags", () => {
-    assert.deepEqual(parse(["--proxy-domain", "*.coder.com"]), {
+    expect(parse(["--proxy-domain", "*.coder.com"])).toEqual({
       _: [],
       "proxy-domain": ["*.coder.com"],
     })
-    assert.deepEqual(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"]), {
+    expect(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
       _: [],
       "proxy-domain": ["*.coder.com", "test.com"],
     })
   })
 
-  it("should enforce cert-key with cert value or otherwise generate one", async () => {
-    const args = parse(["--cert"])
-    assert.deepEqual(args, {
-      _: [],
-      cert: {
-        value: undefined,
-      },
-    })
-    assert.throws(() => parse(["--cert", "test"]), /--cert-key is missing/)
-    assert.deepEqual(await setDefaults(args), {
-      _: [],
-      ...defaults,
-      cert: {
-        value: path.join(paths.data, "localhost.crt"),
-      },
-      "cert-key": path.join(paths.data, "localhost.key"),
-    })
-  })
+  it(
+    "should enforce cert-key with cert value or otherwise generate one",
+    async () => {
+      const args = parse(["--cert"])
+      expect(args).toEqual( {
+        _: [],
+        cert: {
+          value: undefined,
+        },
+      })
+      expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
+      const defaultArgs = await setDefaults(args)
+      expect(defaultArgs).toEqual({
+        _: [],
+        ...defaults,
+        cert: {
+          value: path.join(paths.data, "localhost.crt"),
+        },
+        "cert-key": path.join(paths.data, "localhost.key"),
+      })
+    }
+  )
 
   it("should override with --link", async () => {
     const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
-    assert.deepEqual(await setDefaults(args), {
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
       _: [],
       ...defaults,
       auth: "none",
@@ -281,11 +291,12 @@ describe("parser", () => {
   it("should use env var password", async () => {
     process.env.PASSWORD = "test"
     const args = parse([])
-    assert.deepEqual(args, {
+    expect(args).toEqual({
       _: [],
     })
 
-    assert.deepEqual(await setDefaults(args), {
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
       ...defaults,
       _: [],
       password: "test",
@@ -296,11 +307,12 @@ describe("parser", () => {
   it("should use env var hashed password", async () => {
     process.env.HASHED_PASSWORD = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" // test
     const args = parse([])
-    assert.deepEqual(args, {
+    expect(args).toEqual({
       _: [],
     })
 
-    assert.deepEqual(await setDefaults(args), {
+    const defaultArgs = await setDefaults(args) 
+    expect(defaultArgs).toEqual({
       ...defaults,
       _: [],
       "hashed-password": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
@@ -310,12 +322,13 @@ describe("parser", () => {
 
   it("should filter proxy domains", async () => {
     const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
-    assert.deepEqual(args, {
+    expect(args).toEqual({
       _: [],
       "proxy-domain": ["*.coder.com", "coder.com", "coder.org"],
     })
 
-    assert.deepEqual(await setDefaults(args), {
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
       ...defaults,
       _: [],
       "proxy-domain": ["coder.com", "coder.org"],
@@ -328,7 +341,7 @@ describe("cli", () => {
   const testDir = path.join(tmpdir, "tests/cli")
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
-  before(async () => {
+  beforeAll(async () => {
     await fs.remove(testDir)
     await fs.mkdirp(testDir)
   })
@@ -341,57 +354,66 @@ describe("cli", () => {
 
   it("should use existing if inside code-server", async () => {
     process.env.VSCODE_IPC_HOOK_CLI = "test"
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    const shouldOpen = await shouldOpenInExistingInstance(args)
+    expect(shouldOpen).toStrictEqual("test")
 
     args.port = 8081
     args._.push("./file")
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    const _shouldOpen = await shouldOpenInExistingInstance(args)
+    expect(_shouldOpen).toStrictEqual("test")
   })
 
   it("should use existing if --reuse-window is set", async () => {
     args["reuse-window"] = true
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+    const shouldOpen = await shouldOpenInExistingInstance(args)
+    await expect(shouldOpen).toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
 
     args.port = 8081
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
   })
 
+  // TODO 
+  // fix red squiggles 
+  // and don't use should Open on all these 
   it("should use existing if --new-window is set", async () => {
     args["new-window"] = true
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+    expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    expect(await shouldOpenInExistingInstance(args).toStrictEqual("test")
 
     args.port = 8081
-    assert.strictEqual(await shouldOpenInExistingInstance(args), "test")
+    expect(await shouldOpenInExistingInstance(args).toStrictEqual("test")
   })
 
-  it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+  it(
+    "should use existing if no unrelated flags are set, has positional, and socket is active",
+    async () => {
+      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
 
-    args._.push("./file")
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+      args._.push("./file")
+      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
 
-    const socketPath = path.join(testDir, "socket")
-    await fs.writeFile(vscodeIpcPath, socketPath)
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
+      const socketPath = path.join(testDir, "socket")
+      await fs.writeFile(vscodeIpcPath, socketPath)
+      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
 
-    await new Promise((resolve) => {
-      const server = net.createServer(() => {
-        // Close after getting the first connection.
-        server.close()
+      await new Promise((resolve) => {
+        const server = net.createServer(() => {
+          // Close after getting the first connection.
+          server.close()
+        })
+        server.once("listening", () => resolve(server))
+        server.listen(socketPath)
       })
-      server.once("listening", () => resolve(server))
-      server.listen(socketPath)
-    })
 
-    assert.strictEqual(await shouldOpenInExistingInstance(args), socketPath)
+      expect(await shouldOpenInExistingInstance(args).toStrictEqual(socketPath)
 
-    args.port = 8081
-    assert.strictEqual(await shouldOpenInExistingInstance(args), undefined)
-  })
+      args.port = 8081
+      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+    }
+  )
 })
