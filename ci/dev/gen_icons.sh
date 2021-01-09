@@ -21,6 +21,24 @@ main() {
   convert -quiet -background transparent -resize 512x512 pwa-icon.png pwa-icon-512.png
 
   # We use -quiet above to avoid https://github.com/ImageMagick/ImageMagick/issues/884
+
+  # The following adds dark mode support for the favicon as favicon-dark-support.svg
+  # There is no similar capability for pwas or .ico so we can only add support to the svg.
+  favicon_dark_style="<style>
+@media (prefers-color-scheme: dark) {
+  * {
+    fill: white;
+  }
+}
+</style>"
+  # See https://stackoverflow.com/a/22901380/4283659
+  # This escapes all newlines so that sed will accept them.
+  favicon_dark_style="$(printf "%s\n" "$favicon_dark_style" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')"
+  sed "$(
+    cat -n << EOF
+s%<rect id="favicon"%$favicon_dark_style<rect id="favicon"%
+EOF
+  )" favicon.svg > favicon-dark-support.svg
 }
 
 main "$@"
