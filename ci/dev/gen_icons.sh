@@ -14,6 +14,9 @@ main() {
   # -background defaults to white but we want it transparent.
   # https://imagemagick.org/script/command-line-options.php#background
   convert -quiet -background transparent -resize 256x256 favicon.svg favicon.ico
+  # We do not generate the pwa-icon from the favicon as they are slightly different
+  # designs and sizes.
+  # See favicon.afdesign and #2401 for details on the differences.
   convert -quiet -background transparent -resize 192x192 pwa-icon.png pwa-icon-192.png
   convert -quiet -background transparent -resize 512x512 pwa-icon.png pwa-icon-512.png
 
