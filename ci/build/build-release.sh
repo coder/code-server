@@ -83,8 +83,9 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
 
-  mkdir -p "$VSCODE_OUT_PATH/resources/linux"
+  mkdir -p "$VSCODE_OUT_PATH/resources/"{linux,web}
   rsync "$VSCODE_SRC_PATH/resources/linux/code.png" "$VSCODE_OUT_PATH/resources/linux/code.png"
+  rsync "$VSCODE_SRC_PATH/resources/web/callback.html" "$VSCODE_OUT_PATH/resources/web/callback.html"
 
   # Adds the commit and date to product.json
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
