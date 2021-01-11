@@ -32,7 +32,7 @@ import { IProgressService, ProgressLocation } from 'vs/platform/progress/common/
 import { IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
 import Severity from 'vs/base/common/severity';
 import { IActivityService, NumberBadge } from 'vs/workbench/services/activity/common/activity';
-import { IThemeService } from 'vs/platform/theme/common/themeService';
+import { IThemeService, registerThemingParticipant	 } from 'vs/platform/theme/common/themeService';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IViewsRegistry, IViewDescriptor, Extensions, ViewContainer, IViewDescriptorService, IAddedViewDescriptorRef } from 'vs/workbench/common/views';
 import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
@@ -61,6 +61,7 @@ import { SIDE_BAR_DRAG_AND_DROP_BACKGROUND } from 'vs/workbench/common/theme';
 import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 import { WorkbenchStateContext } from 'vs/workbench/browser/contextkeys';
 import { ICommandService } from 'vs/platform/commands/common/commands';
+import { textLinkForeground } from 'vs/platform/theme/common/colorRegistry';
 
 const DefaultViewsContext = new RawContextKey<boolean>('defaultExtensionViews', true);
 const SearchMarketplaceExtensionsContext = new RawContextKey<boolean>('searchMarketplaceExtensions', false);
@@ -420,17 +421,21 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			helperHeader.style.fontWeight = '600';
 			helperHeader.style.padding = 'padding: 5px 16px';
 			helperHeader.style.position = 'relative';
-			helperHeader.innerHTML = `
-			<div style="margin-bottom: 8px;">
-			<p style="margin-bottom: 0; display: flex; align-items: center"><span class="codicon codicon-warning" style="margin-right: 2px; color: #C4A103"></span>WARNING</p>
-			<p style="margin-top: 0; margin-bottom: 4px">
-			These extensions are not official. Find additional open-source extensions
-			<a href="https://open-vsx.org/" target="_blank">here</a>.
-			See <a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
-			</p>
-			</div>
-					`;
-
+			// We call this function because it gives us access to the current theme
+			// Then we can apply the link color to the links in the helper header
+			registerThemingParticipant((theme) => {
+				const linkColor = theme.getColor(textLinkForeground);
+				helperHeader.innerHTML = `
+				<div style="margin-bottom: 8px;">
+				<p style="margin-bottom: 0; display: flex; align-items: center"><span class="codicon codicon-warning" style="margin-right: 2px; color: #C4A103"></span>WARNING</p>
+				<p style="margin-top: 0; margin-bottom: 4px">
+				These extensions are not official. Find additional open-source extensions
+				<a style="color: ${linkColor}" href="https://open-vsx.org/" target="_blank">here</a>.
+				See <a style="color: ${linkColor}" href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
+				</p>
+				</div>
+						`;
+			});
 			const dismiss = append(helperHeader, $('span'));
 			dismiss.innerHTML = 'Dismiss';
 			dismiss.style.display = 'block';
