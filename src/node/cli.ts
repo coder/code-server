@@ -50,6 +50,7 @@ export interface Args extends VsArgs {
   "show-versions"?: boolean
   "uninstall-extension"?: string[]
   "proxy-domain"?: string[]
+  "proxy-path-passthrough"?: boolean
   locale?: string
   _: string[]
   "reuse-window"?: boolean
@@ -172,6 +173,10 @@ const options: Options<Required<Args>> = {
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
+  "proxy-path-passthrough": {
+    type: "boolean",
+    description: "Whether the path proxy should leave the /proxy/<port> in the request path when proxying.",
+  },
   "ignore-last-opened": {
     type: "boolean",
     short: "e",
