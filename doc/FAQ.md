@@ -239,6 +239,12 @@ create-react-app of the path at which you are serving via `homepage` field in yo
 Then visit `https://my-code-server-address.io/proxy/3000` to see your app exposed through
 code-server!
 
+Unfortunately `webpack-dev-server`'s websocket connections will not go through as it
+always uses `/sockjs-node`. So hot reloading will not work until the `create-react-app`
+team fix this bug.
+
+Highly recommend using the subdomain approach instead to avoid this class of issue.
+
 ## Multi-tenancy
 
 If you want to run multiple code-servers on shared infrastructure, we recommend using virtual
