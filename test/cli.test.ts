@@ -31,8 +31,7 @@ describe("parser", () => {
   }
 
   it("should parse nothing", () => {
-    expect(parse([])).toBe({ _: [] })
-  })
+    expect(parse([])).toStrictEqual({ _: [] }) })
 
   it("should parse all available options", () => {
     expect(
@@ -114,7 +113,7 @@ describe("parser", () => {
 
     process.env.LOG_LEVEL = "debug"
     const defaults = await setDefaults(args)
-    expect(defaults).toEqual({
+    expect(defaults).toStrictEqual({
       ...defaults,
       _: [],
       log: "debug",
@@ -125,7 +124,7 @@ describe("parser", () => {
 
     process.env.LOG_LEVEL = "trace"
     const updated = await setDefaults(args)
-    expect(updated).toBe( {
+    expect(updated).toStrictEqual( {
       ...updated,
       _: [],
       log: "trace",
@@ -353,20 +352,17 @@ describe("cli", () => {
   })
 
   it("should use existing if inside code-server", async () => {
-    process.env.VSCODE_IPC_HOOK_CLI = "test"
-    const shouldOpen = await shouldOpenInExistingInstance(args)
-    expect(shouldOpen).toStrictEqual("test")
+    process.env.VSCODE_IPC_HOOK_CLI = "test" 
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
     args.port = 8081
-    args._.push("./file")
-    const _shouldOpen = await shouldOpenInExistingInstance(args)
-    expect(_shouldOpen).toStrictEqual("test")
+    args._.push("./file") 
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
   it("should use existing if --reuse-window is set", async () => {
     args["reuse-window"] = true
-    const shouldOpen = await shouldOpenInExistingInstance(args)
-    await expect(shouldOpen).toStrictEqual(undefined)
+    await expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
@@ -374,32 +370,29 @@ describe("cli", () => {
     args.port = 8081
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
   })
-
-  // TODO 
-  // fix red squiggles 
-  // and don't use should Open on all these 
+ 
   it("should use existing if --new-window is set", async () => {
     args["new-window"] = true
-    expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
-    expect(await shouldOpenInExistingInstance(args).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
     args.port = 8081
-    expect(await shouldOpenInExistingInstance(args).toStrictEqual("test")
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
   it(
     "should use existing if no unrelated flags are set, has positional, and socket is active",
     async () => {
-      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
       args._.push("./file")
-      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
       const socketPath = path.join(testDir, "socket")
       await fs.writeFile(vscodeIpcPath, socketPath)
-      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
       await new Promise((resolve) => {
         const server = net.createServer(() => {
@@ -410,10 +403,10 @@ describe("cli", () => {
         server.listen(socketPath)
       })
 
-      expect(await shouldOpenInExistingInstance(args).toStrictEqual(socketPath)
+      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
 
       args.port = 8081
-      expect(await shouldOpenInExistingInstance(args).toStrictEqual(undefined)
+      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
     }
   )
 })
