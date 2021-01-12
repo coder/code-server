@@ -1,4 +1,4 @@
-import { field, logger } from "@coder/logger"     
+import { field, logger } from "@coder/logger"
 import * as fs from "fs-extra"
 import "leaked-handles"
 import * as net from "net"
@@ -125,4 +125,3 @@ describe("SocketProxyProvider", () => {
     proxy.end()
   })
 })
-            

@@ -31,7 +31,8 @@ describe("parser", () => {
   }
 
   it("should parse nothing", () => {
-    expect(parse([])).toStrictEqual({ _: [] }) })
+    expect(parse([])).toStrictEqual({ _: [] })
+  })
 
   it("should parse all available options", () => {
     expect(
@@ -71,32 +72,31 @@ describe("parser", () => {
         "--",
         "-5",
         "--6",
-      ])).toEqual(
-      {
-        _: ["1", "2", "3", "4", "-5", "--6"],
-        auth: "none",
-        "builtin-extensions-dir": path.resolve("foobar"),
-        "cert-key": path.resolve("qux"),
-        cert: {
-          value: path.resolve("baz"),
-        },
-        "extensions-dir": path.resolve("foo"),
-        "extra-builtin-extensions-dir": [path.resolve("bazzle")],
-        "extra-extensions-dir": [path.resolve("nozzle")],
-        help: true,
-        home: "http://localhost:8080/",
-        host: "0.0.0.0",
-        json: true,
-        log: "error",
-        open: true,
-        port: 8081,
-        socket: path.resolve("mumble"),
-        "user-data-dir": path.resolve("bar"),
-        verbose: true,
-        version: true,
-        "bind-addr": "192.169.0.1:8080",
+      ]),
+    ).toEqual({
+      _: ["1", "2", "3", "4", "-5", "--6"],
+      auth: "none",
+      "builtin-extensions-dir": path.resolve("foobar"),
+      "cert-key": path.resolve("qux"),
+      cert: {
+        value: path.resolve("baz"),
       },
-    )
+      "extensions-dir": path.resolve("foo"),
+      "extra-builtin-extensions-dir": [path.resolve("bazzle")],
+      "extra-extensions-dir": [path.resolve("nozzle")],
+      help: true,
+      home: "http://localhost:8080/",
+      host: "0.0.0.0",
+      json: true,
+      log: "error",
+      open: true,
+      port: 8081,
+      socket: path.resolve("mumble"),
+      "user-data-dir": path.resolve("bar"),
+      verbose: true,
+      version: true,
+      "bind-addr": "192.169.0.1:8080",
+    })
   })
 
   it("should work with short options", () => {
@@ -124,7 +124,7 @@ describe("parser", () => {
 
     process.env.LOG_LEVEL = "trace"
     const updated = await setDefaults(args)
-    expect(updated).toStrictEqual( {
+    expect(updated).toStrictEqual({
       ...updated,
       _: [],
       log: "trace",
@@ -142,7 +142,7 @@ describe("parser", () => {
     })
 
     process.env.LOG_LEVEL = "debug"
-    const defaults = await setDefaults(args) 
+    const defaults = await setDefaults(args)
     expect(defaults).toEqual({
       ...defaults,
       _: [],
@@ -154,7 +154,7 @@ describe("parser", () => {
 
     process.env.LOG_LEVEL = "trace"
     const updated = await setDefaults(args)
-    expect(updated).toEqual( {
+    expect(updated).toEqual({
       ...defaults,
       _: [],
       log: "info",
@@ -172,7 +172,7 @@ describe("parser", () => {
 
     process.env.LOG_LEVEL = "warn"
     const updatedAgain = await setDefaults(args)
-    expect(updatedAgain).toEqual( {
+    expect(updatedAgain).toEqual({
       ...defaults,
       _: [],
       log: "trace",
@@ -206,7 +206,7 @@ describe("parser", () => {
   })
 
   it("should error if the option doesn't exist", () => {
-    expect(()=> parse(["--foo"])).toThrowError(/Unknown option --foo/)
+    expect(() => parse(["--foo"])).toThrowError(/Unknown option --foo/)
   })
 
   it("should not error if the value is optional", () => {
@@ -246,28 +246,25 @@ describe("parser", () => {
     })
   })
 
-  it(
-    "should enforce cert-key with cert value or otherwise generate one",
-    async () => {
-      const args = parse(["--cert"])
-      expect(args).toEqual( {
-        _: [],
-        cert: {
-          value: undefined,
-        },
-      })
-      expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
-      const defaultArgs = await setDefaults(args)
-      expect(defaultArgs).toEqual({
-        _: [],
-        ...defaults,
-        cert: {
-          value: path.join(paths.data, "localhost.crt"),
-        },
-        "cert-key": path.join(paths.data, "localhost.key"),
-      })
-    }
-  )
+  it("should enforce cert-key with cert value or otherwise generate one", async () => {
+    const args = parse(["--cert"])
+    expect(args).toEqual({
+      _: [],
+      cert: {
+        value: undefined,
+      },
+    })
+    expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      _: [],
+      ...defaults,
+      cert: {
+        value: path.join(paths.data, "localhost.crt"),
+      },
+      "cert-key": path.join(paths.data, "localhost.key"),
+    })
+  })
 
   it("should override with --link", async () => {
     const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
@@ -310,7 +307,7 @@ describe("parser", () => {
       _: [],
     })
 
-    const defaultArgs = await setDefaults(args) 
+    const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
       _: [],
@@ -352,11 +349,11 @@ describe("cli", () => {
   })
 
   it("should use existing if inside code-server", async () => {
-    process.env.VSCODE_IPC_HOOK_CLI = "test" 
+    process.env.VSCODE_IPC_HOOK_CLI = "test"
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
     args.port = 8081
-    args._.push("./file") 
+    args._.push("./file")
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
@@ -370,7 +367,7 @@ describe("cli", () => {
     args.port = 8081
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
   })
- 
+
   it("should use existing if --new-window is set", async () => {
     args["new-window"] = true
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
@@ -382,31 +379,28 @@ describe("cli", () => {
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
-  it(
-    "should use existing if no unrelated flags are set, has positional, and socket is active",
-    async () => {
-      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+  it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
-      args._.push("./file")
-      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    args._.push("./file")
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
-      const socketPath = path.join(testDir, "socket")
-      await fs.writeFile(vscodeIpcPath, socketPath)
-      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    const socketPath = path.join(testDir, "socket")
+    await fs.writeFile(vscodeIpcPath, socketPath)
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
-      await new Promise((resolve) => {
-        const server = net.createServer(() => {
-          // Close after getting the first connection.
-          server.close()
-        })
-        server.once("listening", () => resolve(server))
-        server.listen(socketPath)
+    await new Promise((resolve) => {
+      const server = net.createServer(() => {
+        // Close after getting the first connection.
+        server.close()
       })
+      server.once("listening", () => resolve(server))
+      server.listen(socketPath)
+    })
 
-      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
 
-      args.port = 8081
-      expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
-    }
-  )
+    args.port = 8081
+    expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+  })
 })
