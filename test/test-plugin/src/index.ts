@@ -1,8 +1,8 @@
+import * as cs from "code-server"
 import * as express from "express"
 import * as fspath from "path"
-import * as pluginapi from "../../../typings/pluginapi"
 
-export const plugin: pluginapi.Plugin = {
+export const plugin: cs.Plugin = {
   displayName: "Test Plugin",
   routerPath: "/test-plugin",
   homepageURL: "https://example.com",

@@ -8,6 +8,21 @@ import { version } from "./constants"
 import * as util from "./util"
 const fsp = fs.promises
 
+/**
+ * Inject code-server when `require`d. This is required because the API provides
+ * more than just types so these need to be provided at run-time.
+ */
+const originalLoad = require("module")._load
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+require("module")._load = function (request: string, parent: object, isMain: boolean): any {
+  if (request === "code-server") {
+    return {
+      field,
+    }
+  }
+  return originalLoad.apply(this, [request, parent, isMain])
+}
+
 interface Plugin extends pluginapi.Plugin {
   /**
    * These fields are populated from the plugin's package.json

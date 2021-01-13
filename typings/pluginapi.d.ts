@@ -1,7 +1,7 @@
 /**
  * This file describes the code-server plugin API for adding new applications.
  */
-import { Logger } from "@coder/logger"
+import { field, Logger } from "@coder/logger"
 import * as express from "express"
 
 /**
@@ -77,6 +77,13 @@ import * as express from "express"
  *   }
  * ]
  */
+
+/**
+ * Use to add a field to a log.
+ *
+ * Re-exported so plugins don't have to import duplicate copies of the logger.
+ */
+export { field }
 
 /**
  * Your plugin module must have a top level export "plugin" that implements this interface.
