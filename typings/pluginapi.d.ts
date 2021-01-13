@@ -79,6 +79,15 @@ import * as express from "express"
  */
 
 /**
+ * The Express import used by code-server.
+ *
+ * Re-exported so plugins don't have to import duplicate copies of Express and
+ * to avoid potential version differences or issues caused by running separate
+ * instances.
+ */
+export { express }
+
+/**
  * Use to add a field to a log.
  *
  * Re-exported so plugins don't have to import duplicate copies of the logger.

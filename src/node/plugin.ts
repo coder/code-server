@@ -17,6 +17,7 @@ const originalLoad = require("module")._load
 require("module")._load = function (request: string, parent: object, isMain: boolean): any {
   if (request === "code-server") {
     return {
+      express,
       field,
     }
   }

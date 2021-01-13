@@ -1,5 +1,4 @@
 import * as cs from "code-server"
-import * as express from "express"
 import * as fspath from "path"
 
 export const plugin: cs.Plugin = {
@@ -13,11 +12,11 @@ export const plugin: cs.Plugin = {
   },
 
   router() {
-    const r = express.Router()
-    r.get("/test-app", (req, res) => {
+    const r = cs.express.Router()
+    r.get("/test-app", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/index.html"))
     })
-    r.get("/goland/icon.svg", (req, res) => {
+    r.get("/goland/icon.svg", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
     return r
