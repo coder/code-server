@@ -1,11 +1,12 @@
 import { logger } from "@coder/logger"
+import * as assert from "assert"
 import * as express from "express"
 import * as fs from "fs"
 import { describe } from "mocha"
 import * as path from "path"
-import * as supertest from "supertest"
 import { PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
+import * as testutil from "./testutil"
 const fsp = fs.promises
 
 /**
@@ -13,23 +14,30 @@ const fsp = fs.promises
  */
 describe("plugin", () => {
   let papi: PluginAPI
-  let app: express.Application
-  let agent: supertest.SuperAgentTest
+  let s: testutil.HttpServer
 
   before(async () => {
-    papi = new PluginAPI(logger, path.resolve(__dirname, "test-plugin") + ":meow")
+    papi = new PluginAPI(logger, `${path.resolve(__dirname, "test-plugin")}:meow`)
     await papi.loadPlugins()
 
-    app = express.default()
+    const app = express.default()
     papi.mount(app)
-
     app.use("/api/applications", apps.router(papi))
 
-    agent = supertest.agent(app)
+    s = new testutil.HttpServer()
+    await s.listen(app)
+  })
+
+  after(async () => {
+    await s.close()
   })
 
   it("/api/applications", async () => {
-    await agent.get("/api/applications").expect(200, [
+    const resp = await s.fetch("/api/applications")
+    assert.equal(200, resp.status)
+    const body = await resp.json()
+    logger.debug(`${JSON.stringify(body)}`)
+    assert.deepEqual(body, [
       {
         name: "Test App",
         version: "4.0.0",
@@ -57,6 +65,9 @@ describe("plugin", () => {
     const indexHTML = await fsp.readFile(path.join(__dirname, "test-plugin/public/index.html"), {
       encoding: "utf8",
     })
-    await agent.get("/test-plugin/test-app").expect(200, indexHTML)
+    const resp = await s.fetch("/test-plugin/test-app")
+    assert.equal(200, resp.status)
+    const body = await resp.text()
+    assert.equal(body, indexHTML)
   })
 })
