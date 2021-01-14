@@ -1,7 +1,7 @@
 import * as http from "http"
-import { logger } from "@coder/logger"
-import { ensureAddress } from "../src/node/app"
 import * as nodeFetch from "node-fetch"
+import * as util from "../src/common/util"
+import { ensureAddress } from "../src/node/app"
 
 export class HttpServer {
   private hs = http.createServer()
@@ -25,7 +25,7 @@ export class HttpServer {
           rej(err)
         } else {
           // Promise resolved earlier so this is some other error.
-          logError("server error", err)
+          util.logError("http server error", err)
         }
       })
     })
@@ -52,14 +52,5 @@ export class HttpServer {
    */
   public fetch(requestPath: string, opts?: nodeFetch.RequestInit): Promise<nodeFetch.Response> {
     return nodeFetch.default(`${ensureAddress(this.hs)}${requestPath}`, opts)
-  }
-}
-
-
-export function logError(prefix: string, err: any): void {
-  if (err instanceof Error) {
-    logger.error(`${prefix}: ${err.message} ${err.stack}`)
-  } else {
-    logger.error(`${prefix}: ${err}`)
   }
 }
