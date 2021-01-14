@@ -3,8 +3,16 @@ import * as nodeFetch from "node-fetch"
 import * as util from "../src/common/util"
 import { ensureAddress } from "../src/node/app"
 
+// Perhaps an abstraction similar to this should be used in app.ts as well.
 export class HttpServer {
   private hs = http.createServer()
+
+  public constructor(hs?: http.Server) {
+    // See usage in test/integration.ts
+    if (hs) {
+      this.hs = hs
+    }
+  }
 
   /**
    * listen starts the server on a random localhost port.
@@ -52,5 +60,13 @@ export class HttpServer {
    */
   public fetch(requestPath: string, opts?: nodeFetch.RequestInit): Promise<nodeFetch.Response> {
     return nodeFetch.default(`${ensureAddress(this.hs)}${requestPath}`, opts)
+  }
+
+  public port(): number {
+    const addr = this.hs.address()
+    if (addr && typeof addr == "object") {
+      return addr.port
+    }
+    throw new Error("server not listening or listening on unix socket")
   }
 }

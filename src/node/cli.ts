@@ -244,7 +244,7 @@ export const optionDescriptions = (): string[] => {
 export const parse = (
   argv: string[],
   opts?: {
-    configFile: string
+    configFile?: string
   },
 ): Args => {
   const error = (msg: string): Error => {
@@ -521,7 +521,19 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
   }
 
   const configFile = await fs.readFile(configPath)
-  const config = yaml.safeLoad(configFile.toString(), {
+  return parseConfigFile(configFile.toString(), configPath)
+}
+
+/**
+ * parseConfigFile parses configFile into ConfigArgs.
+ * configPath is used as the filename in error messages
+ */
+export function parseConfigFile(configFile: string, configPath: string): ConfigArgs {
+  if (configFile == "") {
+    return  { _: [], config: configPath }
+  }
+
+  const config = yaml.safeLoad(configFile, {
     filename: configPath,
   })
   if (!config || typeof config === "string") {
