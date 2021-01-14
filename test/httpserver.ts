@@ -64,7 +64,7 @@ export class HttpServer {
 
   public port(): number {
     const addr = this.hs.address()
-    if (addr && typeof addr == "object") {
+    if (addr && typeof addr === "object") {
       return addr.port
     }
     throw new Error("server not listening or listening on unix socket")

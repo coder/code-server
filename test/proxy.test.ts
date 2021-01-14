@@ -1,11 +1,11 @@
-import * as integration from "./integration"
-import * as httpserver from "./httpserver"
-import * as express from "express"
 import * as assert from "assert"
+import * as express from "express"
+import * as httpserver from "./httpserver"
+import * as integration from "./integration"
 
 describe("proxy", () => {
   let codeServer: httpserver.HttpServer | undefined
-  let nhooyrDevServer = new httpserver.HttpServer()
+  const nhooyrDevServer = new httpserver.HttpServer()
   let proxyPath: string
 
   before(async () => {
@@ -32,14 +32,14 @@ describe("proxy", () => {
   })
 
   it("should rewrite the base path", async () => {
-    ;[,, codeServer,] = await integration.setup(["--auth=none"], "")
+    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(proxyPath)
     assert.equal(resp.status, 200)
     assert.equal(await resp.json(), "asher is the best")
   })
 
   it("should not rewrite the base path", async () => {
-    ;[,,codeServer,] = await integration.setup(["--auth=none", "--proxy-path-passthrough=true"], "")
+    ;[, , codeServer] = await integration.setup(["--auth=none", "--proxy-path-passthrough=true"], "")
     const resp = await codeServer.fetch(proxyPath)
     assert.equal(resp.status, 200)
     assert.equal(await resp.json(), "joe is the best")

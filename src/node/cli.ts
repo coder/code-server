@@ -529,8 +529,8 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
  * configPath is used as the filename in error messages
  */
 export function parseConfigFile(configFile: string, configPath: string): ConfigArgs {
-  if (configFile == "") {
-    return  { _: [], config: configPath }
+  if (!configFile) {
+    return { _: [], config: configPath }
   }
 
   const config = yaml.safeLoad(configFile, {
