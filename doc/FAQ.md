@@ -164,13 +164,20 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 
 ## Can I store my password hashed?
 
-Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
+Yes you can! Set the value of `hashed-password` instead of `password`. Generate the hash with:
 
 ```
-echo "thisismypassword" | sha256sum | cut -d' ' -f1
+printf "thisismypassword" | sha256sum | cut -d' ' -f1
 ```
 
-Of course replace `"thisismypassword"` with your actual password.
+Of course replace `thisismypassword` with your actual password.
+
+Example:
+
+```yaml
+auth: password
+hashed-password: 1da9133ab9dbd11d2937ec8d312e1e2569857059e73cc72df92e670928983ab5 # You got this from the command above
+```
 
 ## How do I securely access web services?
 
