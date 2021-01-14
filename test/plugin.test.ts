@@ -6,7 +6,7 @@ import { describe } from "mocha"
 import * as path from "path"
 import { PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
-import * as testutil from "./testutil"
+import * as httpserver from "./httpserver"
 const fsp = fs.promises
 
 /**
@@ -14,7 +14,7 @@ const fsp = fs.promises
  */
 describe("plugin", () => {
   let papi: PluginAPI
-  let s: testutil.HttpServer
+  let s: httpserver.HttpServer
 
   before(async () => {
     papi = new PluginAPI(logger, `${path.resolve(__dirname, "test-plugin")}:meow`)
@@ -24,7 +24,7 @@ describe("plugin", () => {
     papi.mount(app)
     app.use("/api/applications", apps.router(papi))
 
-    s = new testutil.HttpServer()
+    s = new httpserver.HttpServer()
     await s.listen(app)
   })
 
