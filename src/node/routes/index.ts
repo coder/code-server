@@ -55,6 +55,9 @@ export const register = async (
       })
     })
   })
+  server.on("close", () => {
+    heart.dispose()
+  })
 
   app.disable("x-powered-by")
   wsApp.disable("x-powered-by")

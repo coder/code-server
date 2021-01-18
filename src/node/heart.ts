@@ -45,4 +45,13 @@ export class Heart {
         })
     }, this.heartbeatInterval)
   }
+
+  /**
+   * Call to clear any heartbeatTimer for shutdown.
+   */
+  public dispose(): void {
+    if (typeof this.heartbeatTimer !== "undefined") {
+      clearTimeout(this.heartbeatTimer)
+    }
+  }
 }
