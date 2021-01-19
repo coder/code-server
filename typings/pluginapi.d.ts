@@ -94,6 +94,8 @@ export { express }
  */
 export { field }
 
+export const proxy: ProxyServer
+
 /**
  * Your plugin module must have a top level export "plugin" that implements this interface.
  *

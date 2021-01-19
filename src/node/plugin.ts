@@ -1,10 +1,11 @@
-import { Logger, field } from "@coder/logger"
+import { field, Logger } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
 import { version } from "./constants"
+import { proxy } from "./proxy"
 import * as util from "./util"
 const fsp = fs.promises
 
@@ -19,6 +20,7 @@ require("module")._load = function (request: string, parent: object, isMain: boo
     return {
       express,
       field,
+      proxy,
     }
   }
   return originalLoad.apply(this, [request, parent, isMain])
