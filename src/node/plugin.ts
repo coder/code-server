@@ -118,7 +118,7 @@ export class PluginAPI {
    * loadPlugins loads all plugins based on this.csPlugin,
    * this.csPluginPath and the built in plugins.
    */
-  public async loadPlugins(): Promise<void> {
+  public async loadPlugins(loadBuiltin = true): Promise<void> {
     for (const dir of this.csPlugin.split(":")) {
       if (!dir) {
         continue
@@ -133,8 +133,9 @@ export class PluginAPI {
       await this._loadPlugins(dir)
     }
 
-    // Built-in plugins.
-    await this._loadPlugins(path.join(__dirname, "../../plugins"))
+    if (loadBuiltin) {
+      await this._loadPlugins(path.join(__dirname, "../../plugins"))
+    }
   }
 
   /**
