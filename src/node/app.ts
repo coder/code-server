@@ -46,10 +46,10 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
           logger.error(error.message)
         }
       }
-      server.listen(args.socket, resolve)
+      server.listen(args.socket, () => resolve(server))
     } else {
       // [] is the correct format when using :: but Node errors with them.
-      server.listen(args.port, args.host.replace(/^\[|\]$/g, ""), resolve)
+      server.listen(args.port, args.host.replace(/^\[|\]$/g, ""), () => resolve(server))
     }
   })
 
