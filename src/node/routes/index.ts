@@ -55,6 +55,9 @@ export const register = async (
       })
     })
   })
+  server.on("close", () => {
+    heart.dispose()
+  })
 
   app.disable("x-powered-by")
   wsApp.disable("x-powered-by")
@@ -165,7 +168,7 @@ export const register = async (
 
   app.use(errorHandler)
 
-  const wsErrorHandler: express.ErrorRequestHandler = async (err, req) => {
+  const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     logger.error(`${err.message} ${err.stack}`)
     ;(req as WebsocketRequest).ws.end()
   }

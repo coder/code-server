@@ -8,12 +8,12 @@ import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
 
-const getProxyTarget = (req: Request, rewrite: boolean): string => {
-  if (rewrite) {
-    const query = qs.stringify(req.query)
-    return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
+const getProxyTarget = (req: Request, passthroughPath: boolean): string => {
+  if (passthroughPath) {
+    return `http://0.0.0.0:${req.params.port}/${req.originalUrl}`
   }
-  return `http://0.0.0.0:${req.params.port}/${req.originalUrl}`
+  const query = qs.stringify(req.query)
+  return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
 }
 
 router.all("/(:port)(/*)?", (req, res) => {
@@ -33,7 +33,7 @@ router.all("/(:port)(/*)?", (req, res) => {
 
   proxy.web(req, res, {
     ignorePath: true,
-    target: getProxyTarget(req, true),
+    target: getProxyTarget(req, req.args["proxy-path-passthrough"] || false),
   })
 })
 
@@ -42,6 +42,6 @@ export const wsRouter = WsRouter()
 wsRouter.ws("/(:port)(/*)?", ensureAuthenticated, (req) => {
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
-    target: getProxyTarget(req, true),
+    target: getProxyTarget(req, req.args["proxy-path-passthrough"] || false),
   })
 })

@@ -15,6 +15,7 @@
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
+- [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
 - [Multi-tenancy](#multi-tenancy)
 - [Docker in code-server container?](#docker-in-code-server-container)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
@@ -207,6 +208,42 @@ code-server --proxy-domain <domain>
 
 Now you can browse to `<port>.<domain>`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
+
+## Why does the code-server proxy strip `/proxy/<port>` from the request path?
+
+HTTP servers should strive to use relative URLs to avoid needed to be coupled to the
+absolute path at which they are served. This means you must use trailing slashes on all
+paths with subpaths. See https://blog.cdivilly.com/2019/02/28/uri-trailing-slashes
+
+This is really the "correct" way things work and why the striping of the base path is the
+default. If your application uses relative URLs and does not assume the absolute path at
+which it is being served, it will just work no matter what port you decide to serve it off
+or if you put it in behind code-server or any other proxy!
+
+However many people prefer the cleaner aesthetic of no trailing slashes. This couples you
+to the base path as you cannot use relative redirects correctly anymore. See the above
+link.
+
+For users who are ok with this tradeoff, pass `--proxy-path-passthrough` to code-server
+and the path will be passed as is.
+
+This is particularly a problem with the `start` script in create-react-app. See
+[#2222](https://github.com/cdr/code-server/issues/2222). You will need to inform
+create-react-app of the path at which you are serving via `homepage` field in your
+`package.json`. e.g. you'd add the following for the default CRA port:
+
+```json
+  "homepage": "/proxy/3000",
+```
+
+Then visit `https://my-code-server-address.io/proxy/3000` to see your app exposed through
+code-server!
+
+Unfortunately `webpack-dev-server`'s websocket connections will not go through as it
+always uses `/sockjs-node`. So hot reloading will not work until the `create-react-app`
+team fix this bug.
+
+Highly recommend using the subdomain approach instead to avoid this class of issue.
 
 ## Multi-tenancy
 
