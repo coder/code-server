@@ -28,8 +28,10 @@ router.all("/(:port)(/*)?", (req, res) => {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
-  // Absolute redirects need to be based on the subpath when rewriting.
-  ;(req as any).base = `${req.baseUrl}/${req.params.port}`
+  if (!req.args["proxy-path-passthrough"]) {
+    // Absolute redirects need to be based on the subpath when rewriting.
+    ;(req as any).base = `${req.baseUrl}/${req.params.port}`
+  }
 
   proxy.web(req, res, {
     ignorePath: true,
