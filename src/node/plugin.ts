@@ -1,4 +1,4 @@
-import { field, Logger } from "@coder/logger"
+import { field, Level, Logger } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
@@ -21,6 +21,7 @@ require("module")._load = function (request: string, parent: object, isMain: boo
     return {
       express,
       field,
+      Level,
       proxy,
       WsRouter,
     }

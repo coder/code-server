@@ -1,7 +1,7 @@
 /**
  * This file describes the code-server plugin API for adding new applications.
  */
-import { field, Logger } from "@coder/logger"
+import { field, Level, Logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import ProxyServer from "http-proxy"
@@ -116,7 +116,7 @@ export { express }
  *
  * Re-exported so plugins don't have to import duplicate copies of the logger.
  */
-export { field }
+export { field, Level }
 
 export const proxy: ProxyServer
 
