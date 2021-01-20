@@ -37,7 +37,7 @@ export class VscodeProvider {
     query: ipc.Query,
   ): Promise<ipc.WorkbenchOptions> {
     const { lastVisited } = await settings.read()
-    const startPath = await this.getFirstPath([
+    let startPath = await this.getFirstPath([
       { url: query.workspace, workspace: true },
       { url: query.folder, workspace: false },
       options.args._ && options.args._.length > 0
@@ -45,6 +45,10 @@ export class VscodeProvider {
         : undefined,
       !options.args["ignore-last-opened"] ? lastVisited : undefined,
     ])
+
+    if (query.ew) {
+      startPath = undefined
+    }
 
     settings.write({
       lastVisited: startPath,
