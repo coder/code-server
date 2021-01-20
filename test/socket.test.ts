@@ -55,7 +55,7 @@ describe("SocketProxyProvider", () => {
     const socketPath = await provider.findFreeSocketPath(path.join(tmpdir, "tests/tls-socket-proxy"))
     await fs.remove(socketPath)
 
-    return new Promise((_resolve) => {
+    return new Promise<void>((_resolve) => {
       const resolved: { [key: string]: boolean } = { client: false, server: false }
       const resolve = (type: "client" | "server"): void => {
         resolved[type] = true
