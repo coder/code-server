@@ -1,5 +1,4 @@
 import { logger } from "@coder/logger"
-import * as assert from "assert"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
@@ -15,7 +14,7 @@ describe("plugin", () => {
   let papi: PluginAPI
   let s: httpserver.HttpServer
 
-  before(async () => {
+  beforeAll(async () => {
     papi = new PluginAPI(logger, `${path.resolve(__dirname, "test-plugin")}:meow`)
     await papi.loadPlugins()
 
@@ -27,16 +26,16 @@ describe("plugin", () => {
     await s.listen(app)
   })
 
-  after(async () => {
+  afterAll(async () => {
     await s.close()
   })
 
   it("/api/applications", async () => {
     const resp = await s.fetch("/api/applications")
-    assert.equal(200, resp.status)
+    expect(resp.status).toBe(200)
     const body = await resp.json()
     logger.debug(`${JSON.stringify(body)}`)
-    assert.deepEqual(body, [
+    expect(body).toStrictEqual([
       {
         name: "Test App",
         version: "4.0.0",
@@ -65,8 +64,8 @@ describe("plugin", () => {
       encoding: "utf8",
     })
     const resp = await s.fetch("/test-plugin/test-app")
-    assert.equal(200, resp.status)
+    expect(resp.status).toBe(200)
     const body = await resp.text()
-    assert.equal(body, indexHTML)
+    expect(body).toBe(indexHTML)
   })
 })

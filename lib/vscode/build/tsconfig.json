@@ -15,8 +15,7 @@
 		"strict": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
-		"newLine": "lf",
-		"skipLibCheck": true
+		"newLine": "lf"
 	},
 	"include": [
 		"**/*.ts"
