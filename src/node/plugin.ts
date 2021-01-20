@@ -46,7 +46,7 @@ interface Application extends pluginapi.Application {
   /*
    * Clone of the above without functions.
    */
-  plugin: Omit<Plugin, "init" | "router" | "applications">
+  plugin: Omit<Plugin, "init" | "deinit" | "router" | "applications">
 }
 
 /**
@@ -253,6 +253,21 @@ export class PluginAPI {
     logger.debug("loaded")
 
     return p
+  }
+
+  public async dispose(): Promise<void> {
+    await Promise.all(
+      Array.from(this.plugins.values()).map(async (p) => {
+        if (!p.deinit) {
+          return
+        }
+        try {
+          await p.deinit()
+        } catch (error) {
+          this.logger.error("plugin failed to deinit", field("name", p.name), field("error", error.message))
+        }
+      }),
+    )
   }
 }
 

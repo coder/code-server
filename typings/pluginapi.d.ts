@@ -168,6 +168,11 @@ export interface Plugin {
   init(config: PluginConfig): void
 
   /**
+   * Called when the plugin should dispose/shutdown everything.
+   */
+  deinit?(): Promise<void>
+
+  /**
    * Returns the plugin's router.
    *
    * Mounted at <code-sever-root>/<plugin-path>

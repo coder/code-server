@@ -15,6 +15,7 @@ import { Heart } from "../heart"
 import { redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
+import { wrapper } from "../wrapper"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
@@ -148,6 +149,7 @@ export const register = async (
   await papi.loadPlugins()
   papi.mount(app, wsApp)
   app.use("/api/applications", apps.router(papi))
+  wrapper.onDispose(() => papi.dispose())
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
