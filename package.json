@@ -47,6 +47,7 @@
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
+    "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "doctoc": "^1.4.0",
@@ -61,6 +62,7 @@
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^9.0.0",
+    "wtfnode": "^0.8.4",
     "typescript": "^4.1.3"
   },
   "resolutions": {
