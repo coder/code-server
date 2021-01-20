@@ -3,6 +3,9 @@
  */
 import { field, Logger } from "@coder/logger"
 import * as express from "express"
+import * as expressCore from "express-serve-static-core"
+import ProxyServer from "http-proxy"
+import * as net from "net"
 
 /**
  * Overlay
@@ -78,6 +81,27 @@ import * as express from "express"
  * ]
  */
 
+export interface WebsocketRequest extends express.Request {
+  ws: net.Socket
+  head: Buffer
+}
+
+export type WebSocketHandler = (
+  req: WebsocketRequest,
+  res: express.Response,
+  next: express.NextFunction,
+) => void | Promise<void>
+
+export interface WebsocketRouter {
+  readonly router: express.Router
+  ws(route: expressCore.PathParams, ...handlers: WebSocketHandler[]): void
+}
+
+/**
+ * Create a router for websocket routes.
+ */
+export function WsRouter(): WebsocketRouter
+
 /**
  * The Express import used by code-server.
  *
@@ -151,6 +175,15 @@ export interface Plugin {
    * If not present, the plugin provides no routes.
    */
   router?(): express.Router
+
+  /**
+   * Returns the plugin's websocket router.
+   *
+   * Mounted at <code-sever-root>/<plugin-path>
+   *
+   * If not present, the plugin provides no websockets.
+   */
+  wsRouter?(): WebsocketRouter
 
   /**
    * code-server uses this to collect the list of applications that

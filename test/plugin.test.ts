@@ -21,11 +21,13 @@ describe("plugin", () => {
     await papi.loadPlugins(false)
 
     const app = express.default()
-    papi.mount(app)
+    const wsApp = express.default()
+    papi.mount(app, wsApp)
     app.use("/api/applications", apps.router(papi))
 
     s = new httpserver.HttpServer()
     await s.listen(app)
+    s.listenUpgrade(wsApp)
   })
 
   afterAll(async () => {
@@ -69,5 +71,14 @@ describe("plugin", () => {
     expect(resp.status).toBe(200)
     const body = await resp.text()
     expect(body).toBe(indexHTML)
+  })
+
+  it("/test-plugin/test-app (websocket)", async () => {
+    const ws = s.ws("/test-plugin/test-app")
+    const message = await new Promise((resolve) => {
+      ws.once("message", (message) => resolve(message))
+    })
+    ws.terminate()
+    expect(message).toBe("hello")
   })
 })

@@ -6,20 +6,20 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import * as tls from "tls"
+import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { replaceTemplates, redirect } from "../http"
+import { redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
-import { WebsocketRequest } from "../wsRouter"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
 import * as login from "./login"
-import * as proxy from "./pathProxy"
+import * as pathProxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
 import * as update from "./update"
@@ -104,21 +104,21 @@ export const register = async (
   wsApp.use("/", domainProxy.wsRouter.router)
 
   app.all("/proxy/(:port)(/*)?", (req, res) => {
-    proxy.proxy(req, res)
+    pathProxy.proxy(req, res)
   })
-  wsApp.get("/proxy/(:port)(/*)?", (req, res) => {
-    proxy.wsProxy(req as WebsocketRequest)
+  wsApp.get("/proxy/(:port)(/*)?", (req) => {
+    pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
   app.all("/absproxy/(:port)(/*)?", (req, res) => {
-    proxy.proxy(req, res, {
+    pathProxy.proxy(req, res, {
       passthroughPath: true,
     })
   })
-  wsApp.get("/absproxy/(:port)(/*)?", (req, res) => {
-    proxy.wsProxy(req as WebsocketRequest, {
+  wsApp.get("/absproxy/(:port)(/*)?", (req) => {
+    pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
     })
   })
@@ -146,7 +146,7 @@ export const register = async (
 
   const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
   await papi.loadPlugins()
-  papi.mount(app)
+  papi.mount(app, wsApp)
   app.use("/api/applications", apps.router(papi))
 
   app.use(() => {
@@ -187,7 +187,7 @@ export const register = async (
 
   const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     logger.error(`${err.message} ${err.stack}`)
-    ;(req as WebsocketRequest).ws.end()
+    ;(req as pluginapi.WebsocketRequest).ws.end()
   }
 
   wsApp.use(wsErrorHandler)

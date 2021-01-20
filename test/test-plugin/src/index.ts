@@ -1,5 +1,8 @@
 import * as cs from "code-server"
 import * as fspath from "path"
+import Websocket from "ws"
+
+const wss = new Websocket.Server({ noServer: true })
 
 export const plugin: cs.Plugin = {
   displayName: "Test Plugin",
@@ -20,6 +23,16 @@ export const plugin: cs.Plugin = {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
     return r
+  },
+
+  wsRouter() {
+    const wr = cs.WsRouter()
+    wr.ws("/test-app", (req) => {
+      wss.handleUpgrade(req, req.socket, req.head, (ws) => {
+        ws.send("hello")
+      })
+    })
+    return wr
   },
 
   applications() {
