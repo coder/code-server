@@ -65,6 +65,7 @@ export class PluginAPI {
      */
     private readonly csPlugin = "",
     private readonly csPluginPath = `${path.join(util.paths.data, "plugins")}:/usr/share/code-server/plugins`,
+    private readonly workingDirectory: string | undefined = undefined,
   ) {
     this.logger = logger.named("pluginapi")
   }
@@ -249,6 +250,7 @@ export class PluginAPI {
 
     p.init({
       logger: logger,
+      workingDirectory: this.workingDirectory,
     })
 
     logger.debug("loaded")

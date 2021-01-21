@@ -212,6 +212,11 @@ export interface PluginConfig {
    * All plugin logs should be logged via this logger.
    */
   readonly logger: Logger
+
+  /**
+   * Plugins should default to this directory when applicable.
+   */
+  readonly workingDirectory?: string
 }
 
 /**

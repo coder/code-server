@@ -145,7 +145,8 @@ export const register = async (
   app.use("/static", _static.router)
   app.use("/update", update.router)
 
-  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
+  const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
+  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
   await papi.loadPlugins()
   papi.mount(app, wsApp)
   app.use("/api/applications", apps.router(papi))
