@@ -1,10 +1,4 @@
 {
   "extends": "../tsconfig.json",
-  "compilerOptions": {
-    "typeRoots": ["node_modules/@types", "../typings"],
-    "composite": true
-  },
-  "include": ["./**/*.ts"],
-  "exclude": ["node_modules/**"],
-  "types": ["jest"]
+  "include": ["./**/*.ts"]
 }

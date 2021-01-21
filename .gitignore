@@ -14,3 +14,4 @@ node-*
 /plugins
 /lib/coder-cloud-agent
 .home
+coverage

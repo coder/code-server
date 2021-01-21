@@ -3,12 +3,13 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
-
   cd test/test-plugin
   make -s out/index.js
-  cd "$OLDPWD/test"
-  yarn
-  yarn test "$@"
+  # We must keep jest in a sub-directory. See ../../test/package.json for more
+  # information. We must also run it from the root otherwise coverage will not
+  # include our source files.
+  cd "$OLDPWD"
+  ./test/node_modules/.bin/jest "$@"
 }
 
 main "$@"
