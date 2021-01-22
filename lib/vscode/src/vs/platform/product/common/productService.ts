@@ -69,7 +69,7 @@ export interface IProductConfiguration {
 	readonly experimentsUrl?: string;
 
 	readonly extensionsGallery?: {
-		readonly serviceUrl: string;
+		readonly serviceUrl: string[];
 		readonly itemUrl: string;
 		readonly controlUrl: string;
 		readonly recommendationsUrl: string;

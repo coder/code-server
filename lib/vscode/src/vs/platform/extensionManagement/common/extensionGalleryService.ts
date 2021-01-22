@@ -343,7 +343,7 @@ export class ExtensionGalleryService implements IExtensionGalleryService {
 
 	declare readonly _serviceBrand: undefined;
 
-	private extensionsGalleryUrl: string | undefined;
+	private extensionsGalleryUrl: string[] | undefined;
 	private extensionsControlUrl: string | undefined;
 
 	private readonly commonHeadersPromise: Promise<{ [key: string]: string; }>;
@@ -363,8 +363,13 @@ export class ExtensionGalleryService implements IExtensionGalleryService {
 		this.commonHeadersPromise = resolveMarketplaceHeaders(productService.version, this.environmentService, this.fileService, storageService);
 	}
 
-	private api(path = ''): string {
-		return `${this.extensionsGalleryUrl}${path}`;
+	private api(path = ''): string[] {
+		if (!!this.extensionsGalleryUrl) {
+			return this.extensionsGalleryUrl?.map(
+				(galleryUrl) => `${galleryUrl}${path}`
+			);
+		}
+		return [];
 	}
 
 	isEnabled(): boolean {
@@ -543,43 +548,53 @@ export class ExtensionGalleryService implements IExtensionGalleryService {
 			'Content-Length': String(data.length)
 		};
 
-		const context = await this.requestService.request({
-			type: 'POST',
-			url: this.api('/extensionquery'),
-			data,
-			headers
-		}, token);
+		const galleryExtensions: IRawGalleryExtension[] = [];
+		const seenExtensions: Set<String> = new Set();
 
-		if (context.res.statusCode && context.res.statusCode >= 400 && context.res.statusCode < 500) {
-			return { galleryExtensions: [], total: 0 };
+		for (const url of this.api('/extensionquery')) {
+			const context = await this.requestService.request({
+				type: 'POST',
+				url: url,
+				data,
+				headers
+			}, token);
+
+			if (context.res.statusCode && context.res.statusCode >= 400 && context.res.statusCode < 500) {
+				return { galleryExtensions: [], total: 0 };
+			}
+
+			const result = await asJson<IRawGalleryQueryResult>(context);
+			if (result) {
+				const r = result.results[0];
+				for (const extension of r.extensions) {
+					if (!seenExtensions.has(extension.extensionId)) {
+						galleryExtensions.push(extension);
+						seenExtensions.add(extension.extensionId);
+					}
+				}
+			}
 		}
-
-		const result = await asJson<IRawGalleryQueryResult>(context);
-		if (result) {
-			const r = result.results[0];
-			const galleryExtensions = r.extensions;
-			const resultCount = r.resultMetadata && r.resultMetadata.filter(m => m.metadataType === 'ResultCount')[0];
-			const total = resultCount && resultCount.metadataItems.filter(i => i.name === 'TotalCount')[0].count || 0;
-
-			return { galleryExtensions, total };
-		}
-		return { galleryExtensions: [], total: 0 };
+		return { galleryExtensions, total: galleryExtensions.length };
 	}
 
 	async reportStatistic(publisher: string, name: string, version: string, type: StatisticType): Promise<void> {
+		// TODO: investigate further - currently we just send stats everywhere
+		// this is only used in one place - uninstall tracking - but
 		if (!this.isEnabled()) {
 			return undefined;
 		}
 
 		const commonHeaders = await this.commonHeadersPromise;
 		const headers = { ...commonHeaders, Accept: '*/*;api-version=4.0-preview.1' };
-		try {
-			await this.requestService.request({
-				type: 'POST',
-				url: this.api(`/publishers/${publisher}/extensions/${name}/${version}/stats?statType=${type}`),
-				headers
-			}, CancellationToken.None);
-		} catch (error) { /* Ignore */ }
+		for (const url of this.api(`/publishers/${publisher}/extensions/${name}/${version}/stats?statType=${type}`)) {
+			try {
+				await this.requestService.request({
+					type: 'POST',
+					url: url,
+					headers
+				}, CancellationToken.None);
+			} catch (error) { /* Ignore */ }
+		}
 	}
 
 	async download(extension: IGalleryExtension, location: URI, operation: InstallOperation): Promise<void> {
