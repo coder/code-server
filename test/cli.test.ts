@@ -14,6 +14,7 @@ describe("parser", () => {
   beforeEach(() => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
+    console.log = jest.fn()
   })
 
   // The parser should not set any defaults so the caller can determine what
