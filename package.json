@@ -26,7 +26,8 @@
     "test": "./ci/dev/test.sh",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts",
-    "icons": "./ci/dev/gen_icons.sh"
+    "icons": "./ci/dev/gen_icons.sh",
+    "badges": "istanbul-badges-readme"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
@@ -53,6 +54,7 @@
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.0",
+    "istanbul-badges-readme": "^1.2.0",
     "leaked-handles": "^5.2.0",
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.0.5",
@@ -124,10 +126,16 @@
     "coverageDirectory": "<rootDir>/coverage",
     "coverageReporters": [
       "json",
+      "json-summary",
       "text"
     ],
     "coveragePathIgnorePatterns": [
       "out"
-    ]
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 40
+      }
+    }
   }
 }

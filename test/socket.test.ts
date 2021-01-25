@@ -14,8 +14,8 @@ describe("SocketProxyProvider", () => {
   const onServerError = new Emitter<{ event: string; error: Error }>()
   const onClientError = new Emitter<{ event: string; error: Error }>()
   const onProxyError = new Emitter<{ event: string; error: Error }>()
-  const fromServerToClient = new Emitter<string>()
-  const fromClientToServer = new Emitter<string>()
+  const fromServerToClient = new Emitter<Buffer>()
+  const fromClientToServer = new Emitter<Buffer>()
   const fromClientToProxy = new Emitter<Buffer>()
 
   let errors = 0
@@ -92,10 +92,10 @@ describe("SocketProxyProvider", () => {
 
   it("should work without a proxy", async () => {
     server.write("server->client")
-    const dataFromServerToClient = await (await getData(fromServerToClient)).toString()
+    const dataFromServerToClient = (await getData(fromServerToClient)).toString()
     expect(dataFromServerToClient).toBe("server->client")
     client.write("client->server")
-    const dataFromClientToServer = await (await getData(fromClientToServer)).toString()
+    const dataFromClientToServer = (await getData(fromClientToServer)).toString()
     expect(dataFromClientToServer).toBe("client->server")
     expect(errors).toEqual(0)
   })
