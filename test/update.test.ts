@@ -1,4 +1,3 @@
-import * as assert from "assert"
 import * as fs from "fs-extra"
 import * as http from "http"
 import * as path from "path"
@@ -45,7 +44,7 @@ describe.skip("update", () => {
     return _provider
   }
 
-  before(async () => {
+  beforeAll(async () => {
     await new Promise((resolve, reject) => {
       server.on("error", reject)
       server.on("listening", resolve)
@@ -58,7 +57,7 @@ describe.skip("update", () => {
     await fs.mkdirp(path.join(tmpdir, "tests/updates"))
   })
 
-  after(() => {
+  afterAll(() => {
     server.close()
   })
 
@@ -73,11 +72,11 @@ describe.skip("update", () => {
     const now = Date.now()
     const update = await p.getUpdate()
 
-    assert.deepEqual({ update }, await settings.read())
-    assert.equal(isNaN(update.checked), false)
-    assert.equal(update.checked < Date.now() && update.checked >= now, true)
-    assert.equal(update.version, "2.1.0")
-    assert.deepEqual(spy, ["/latest"])
+    await expect(settings.read()).resolves.toEqual({ update })
+    expect(isNaN(update.checked)).toEqual(false)
+    expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
+    expect(update.version).toBe("2.1.0")
+    expect(spy).toEqual(["/latest"])
   })
 
   it("should keep existing information", async () => {
@@ -87,11 +86,11 @@ describe.skip("update", () => {
     const now = Date.now()
     const update = await p.getUpdate()
 
-    assert.deepEqual({ update }, await settings.read())
-    assert.equal(isNaN(update.checked), false)
-    assert.equal(update.checked < now, true)
-    assert.equal(update.version, "2.1.0")
-    assert.deepEqual(spy, [])
+    await expect(settings.read()).resolves.toEqual({ update })
+    expect(isNaN(update.checked)).toBe(false)
+    expect(update.checked < now).toBe(true)
+    expect(update.version).toBe("2.1.0")
+    expect(spy).toEqual([])
   })
 
   it("should force getting the latest", async () => {
@@ -101,29 +100,29 @@ describe.skip("update", () => {
     const now = Date.now()
     const update = await p.getUpdate(true)
 
-    assert.deepEqual({ update }, await settings.read())
-    assert.equal(isNaN(update.checked), false)
-    assert.equal(update.checked < Date.now() && update.checked >= now, true)
-    assert.equal(update.version, "4.1.1")
-    assert.deepEqual(spy, ["/latest"])
+    await expect(settings.read()).resolves.toEqual({ update })
+    expect(isNaN(update.checked)).toBe(false)
+    expect(update.checked < Date.now() && update.checked >= now).toBe(true)
+    expect(update.version).toBe("4.1.1")
+    expect(spy).toBe(["/latest"])
   })
 
   it("should get latest after interval passes", async () => {
     const p = provider()
     await p.getUpdate()
-    assert.deepEqual(spy, [])
+    expect(spy).toEqual([])
 
     let checked = Date.now() - 1000 * 60 * 60 * 23
     await settings.write({ update: { checked, version } })
     await p.getUpdate()
-    assert.deepEqual(spy, [])
+    expect(spy).toEqual([])
 
     checked = Date.now() - 1000 * 60 * 60 * 25
     await settings.write({ update: { checked, version } })
 
     const update = await p.getUpdate()
-    assert.notEqual(update.checked, checked)
-    assert.deepEqual(spy, ["/latest"])
+    expect(update.checked).not.toBe(checked)
+    expect(spy).toBe(["/latest"])
   })
 
   it("should check if it's the current version", async () => {
@@ -131,23 +130,24 @@ describe.skip("update", () => {
 
     const p = provider()
     let update = await p.getUpdate(true)
-    assert.equal(p.isLatestVersion(update), false)
+    expect(p.isLatestVersion(update)).toBe(false)
 
     version = "0.0.0"
     update = await p.getUpdate(true)
-    assert.equal(p.isLatestVersion(update), true)
+    expect(p.isLatestVersion(update)).toBe(true)
 
     // Old version format; make sure it doesn't report as being later.
     version = "999999.9999-invalid999.99.9"
     update = await p.getUpdate(true)
-    assert.equal(p.isLatestVersion(update), true)
+    expect(p.isLatestVersion(update)).toBe(true)
   })
 
   it("should not reject if unable to fetch", async () => {
+    expect.assertions(2)
     let provider = new UpdateProvider("invalid", settings)
-    await assert.doesNotReject(() => provider.getUpdate(true))
+    await expect(() => provider.getUpdate(true)).resolves.toBe(undefined)
 
     provider = new UpdateProvider("http://probably.invalid.dev.localhost/latest", settings)
-    await assert.doesNotReject(() => provider.getUpdate(true))
+    await expect(() => provider.getUpdate(true)).resolves.toBe(undefined)
   })
 })

@@ -21,6 +21,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
       - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
       - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
         changed. Replace the numbers as needed.
+   4. Update the code coverage badge (see [here](#updating-code-coverage-in-readme) for instructions)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
@@ -42,6 +43,19 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 10. Wait for the npm package to be published.
 11. Update the homebrew package.
     - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
+
+## Updating Code Coverage in README
+
+Currently, we run a command to manually generate the code coverage shield. Follow these steps:
+
+1. Run `yarn badges`
+2. Go into the README and change the color from `red` to `green` in this line:
+
+```
+![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
+```
+
+NOTE: we have to manually change the color because the default is red if coverage is less than 80. See code [here](https://github.com/olavoparno/istanbul-badges-readme/blob/develop/src/editor.ts#L24-L33).
 
 ## dev
 

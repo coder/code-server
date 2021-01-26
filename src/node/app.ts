@@ -24,7 +24,7 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
     : http.createServer(app)
 
   let resolved = false
-  await new Promise<http.Server>(async (resolve2, reject) => {
+  await new Promise<void>(async (resolve2, reject) => {
     const resolve = () => {
       resolved = true
       resolve2()

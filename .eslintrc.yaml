@@ -2,7 +2,7 @@ parser: "@typescript-eslint/parser"
 env:
   browser: true
   es6: true # Map, etc.
-  mocha: true
+  jest: true
   node: true
 
 parserOptions:

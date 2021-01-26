@@ -187,7 +187,7 @@ export const open = async (url: string): Promise<void> => {
     url = url.replace(/&/g, "^&")
   }
   const proc = cp.spawn(command, [...args, url], options)
-  await new Promise((resolve, reject) => {
+  await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {
       return code !== 0 ? reject(new Error(`Failed to open with code ${code}`)) : resolve()
