@@ -144,3 +144,22 @@ jobs:
         with:
           name: release-images
           path: ./release-images
+
+  e2e:
+    needs: linux-amd64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Download release packages
+        uses: actions/download-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+      - name: See working directory and files
+        run: |
+          echo "This better print"
+          pwd
+          ls
+      - name: Untar code-server file
+        run: |
+          tar -xzf release-packages/code-server*-linux-amd64.tar.gz
