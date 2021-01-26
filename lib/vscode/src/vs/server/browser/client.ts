@@ -102,7 +102,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 
 	if (parent) {
 		// Tell the parent loading has completed.
-		parent.postMessage({ event: 'loaded' }, window.location.origin);
+		parent.postMessage({ event: 'loaded' }, '*');
 
 		// Proxy or stop proxing events as requested by the parent.
 		const listeners = new Map<string, (event: Event) => void>();
