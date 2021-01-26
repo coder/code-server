@@ -3,6 +3,7 @@
 # iPad
 
 - [Known Issues](#known-issues)
+- [How to install PWA](#how-to-install-pwa)
 - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
   - [Servediter iPad App](#servediter-ipad-app)
 - [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
@@ -27,6 +28,31 @@
   - Alternative: Install line-jump extension and use keyboard to nav by jumping large amount of lines
   - Alternative: Just use touch scrolling
 - See [issues tagged with the iPad label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3AiPad) for more.
+
+## How to install PWA
+
+To install the code-server PWA, follow these steps:
+
+1. Open code-server in Safari
+2. Click the Share icon
+3. Click "Add to Home Screen"
+
+Now when you open code-server from the home screen, you will be using the PWA.
+The advantages of this are more screen real estate and access to top-level keyboard shortcuts because it's running like an app.
+An example shortcut is the `cmd+w` to close an active file in the workbench. You can add this to your `keybindings.json` by doing the following:
+
+1. Open up code-serer
+2. `Command Palette > Open Keyboard Shortcuts (JSON)`
+3. Add the following to your `keybindings.json`
+
+```json
+{
+  "key": "cmd+w",
+  "command": "workbench.action.closeActiveEditor"
+}
+```
+
+Test out command by hitting `cmd+w` to close an active file
 
 ## How to access code-server with a self signed certificate on iPad?
 
