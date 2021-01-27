@@ -58,7 +58,6 @@
     "istanbul-badges-readme": "^1.2.0",
     "leaked-handles": "^5.2.0",
     "parcel-bundler": "^1.12.4",
-    "playwright": "^1.8.0",
     "prettier": "^2.0.5",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
