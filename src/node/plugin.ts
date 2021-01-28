@@ -5,6 +5,7 @@ import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
 import { version } from "./constants"
+import { replaceTemplates } from "./http"
 import { proxy } from "./proxy"
 import * as util from "./util"
 import { Router as WsRouter, WebsocketRouter, wss } from "./wsRouter"
@@ -23,6 +24,7 @@ require("module")._load = function (request: string, parent: object, isMain: boo
       field,
       Level,
       proxy,
+      replaceTemplates,
       WsRouter,
       wss,
     }

@@ -123,7 +123,19 @@ export { express }
  */
 export { field, Level, Logger }
 
+/**
+ * code-server's proxy server.
+ */
 export const proxy: ProxyServer
+
+/**
+ * Replace variables in HTML: TO, BASE, CS_STATIC_BASE, and OPTIONS.
+ */
+export function replaceTemplates<T extends object>(
+  req: express.Request,
+  content: string,
+  extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
+): string
 
 /**
  * Your plugin module must have a top level export "plugin" that implements this interface.
