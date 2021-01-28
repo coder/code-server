@@ -6,6 +6,7 @@ import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import ProxyServer from "http-proxy"
 import * as net from "net"
+import Websocket from "ws"
 
 /**
  * Overlay
@@ -103,6 +104,11 @@ export interface WebsocketRouter {
 export function WsRouter(): WebsocketRouter
 
 /**
+ * The websocket server used by code-server.
+ */
+export const wss: Websocket.Server
+
+/**
  * The Express import used by code-server.
  *
  * Re-exported so plugins don't have to import duplicate copies of Express and
@@ -110,7 +116,6 @@ export function WsRouter(): WebsocketRouter
  * instances.
  */
 export { express }
-
 /**
  * Use to add a field to a log.
  *

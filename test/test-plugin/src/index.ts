@@ -1,8 +1,5 @@
 import * as cs from "code-server"
 import * as fspath from "path"
-import Websocket from "ws"
-
-const wss = new Websocket.Server({ noServer: true })
 
 export const plugin: cs.Plugin = {
   displayName: "Test Plugin",
@@ -28,7 +25,7 @@ export const plugin: cs.Plugin = {
   wsRouter() {
     const wr = cs.WsRouter()
     wr.ws("/test-app", (req) => {
-      wss.handleUpgrade(req, req.socket, req.head, (ws) => {
+      cs.wss.handleUpgrade(req, req.socket, req.head, (ws) => {
         ws.send("hello")
       })
     })
