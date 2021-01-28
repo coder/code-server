@@ -133,6 +133,7 @@ export const register = async (
   wsApp.use("/vscode", vscode.wsRouter.router)
 
   app.use("/healthz", health.router)
+  wsApp.use("/healthz", health.wsRouter.router)
 
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
