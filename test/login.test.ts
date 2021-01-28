@@ -1,9 +1,5 @@
 import { chromium, Page, Browser, BrowserContext } from "playwright"
 
-// NOTE: this is hard-coded and passed as an environment variable
-// See the test job in ci.yml
-const PASSWORD = "e45432jklfdsab"
-
 describe("login", () => {
   let browser: Browser
   let page: Page
@@ -29,9 +25,9 @@ describe("login", () => {
   })
 
   it("should be able to login with the password from config.yml", async () => {
-    await page.goto("http://localhost:8080")
+    await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080")
     // Type in password
-    await page.fill(".password", PASSWORD)
+    await page.fill(".password", process.env.PASSWORD || "password")
     // Click the submit button and login
     await page.click(".submit")
     // See the editor

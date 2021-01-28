@@ -9,7 +9,8 @@ main() {
   # information. We must also run it from the root otherwise coverage will not
   # include our source files.
   cd "$OLDPWD"
-  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@"
+  # We use the same environment variables set in ci.yml in the test job
+  CS_DISABLE_PLUGINS=true PASSWORD=e45432jklfdsab CODE_SERVER_ADDRESS=http://localhost:8080 ./test/node_modules/.bin/jest "$@"
 }
 
 main "$@"
