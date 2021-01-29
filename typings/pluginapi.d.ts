@@ -82,6 +82,20 @@ import Websocket from "ws"
  * ]
  */
 
+export enum HttpCode {
+  Ok = 200,
+  Redirect = 302,
+  NotFound = 404,
+  BadRequest = 400,
+  Unauthorized = 401,
+  LargePayload = 413,
+  ServerError = 500,
+}
+
+export declare class HttpError extends Error {
+  constructor(message: string, status: HttpCode, details?: object)
+}
+
 export interface WebsocketRequest extends express.Request {
   ws: net.Socket
   head: Buffer

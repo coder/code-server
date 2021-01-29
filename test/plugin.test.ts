@@ -2,6 +2,7 @@ import { logger } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
+import { HttpCode } from "../src/common/http"
 import { PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
 import * as httpserver from "./httpserver"
@@ -80,5 +81,10 @@ describe("plugin", () => {
     })
     ws.terminate()
     expect(message).toBe("hello")
+  })
+
+  it("/test-plugin/error", async () => {
+    const resp = await s.fetch("/test-plugin/error")
+    expect(resp.status).toBe(HttpCode.LargePayload)
   })
 })

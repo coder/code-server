@@ -19,6 +19,9 @@ export const plugin: cs.Plugin = {
     r.get("/goland/icon.svg", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
+    r.get("/error", () => {
+      throw new cs.HttpError("error", cs.HttpCode.LargePayload)
+    })
     return r
   },
 

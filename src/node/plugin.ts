@@ -4,6 +4,7 @@ import * as fs from "fs"
 import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
+import { HttpCode, HttpError } from "../common/http"
 import { version } from "./constants"
 import { replaceTemplates } from "./http"
 import { proxy } from "./proxy"
@@ -22,6 +23,8 @@ require("module")._load = function (request: string, parent: object, isMain: boo
     return {
       express,
       field,
+      HttpCode,
+      HttpError,
       Level,
       proxy,
       replaceTemplates,
