@@ -5,9 +5,20 @@ import qs from "qs"
 import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
-import { AuthType } from "./cli"
+import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
+import { Heart } from "./heart"
 import { hash } from "./util"
+
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace Express {
+    export interface Request {
+      args: DefaultedArgs
+      heart: Heart
+    }
+  }
+}
 
 /**
  * Replace common variable strings in HTML templates.

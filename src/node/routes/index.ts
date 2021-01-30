@@ -26,16 +26,6 @@ import * as _static from "./static"
 import * as update from "./update"
 import * as vscode from "./vscode"
 
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    export interface Request {
-      args: DefaultedArgs
-      heart: Heart
-    }
-  }
-}
-
 /**
  * Register all routes and middleware.
  */
