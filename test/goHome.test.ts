@@ -7,22 +7,21 @@ describe("login", () => {
 
   beforeAll(async () => {
     browser = await chromium.launch()
-    context = await browser.newContext()
+    // Create a new context with the saved storage state
+    const storageState = JSON.parse(process.env.STORAGE || "")
+    context = await browser.newContext({ storageState })
   })
 
   afterAll(async () => {
+    // Remove password from local storage
+    await context.clearCookies()
+
     await browser.close()
     await context.close()
   })
 
   beforeEach(async () => {
     page = await context.newPage()
-  })
-
-  afterEach(async () => {
-    await page.close()
-    // Remove password from local storage
-    await context.clearCookies()
   })
 
   it("should see a 'Go Home' button in the Application Menu that goes to coder.com", async () => {
@@ -35,15 +34,13 @@ describe("login", () => {
       // only that it was made
       if (request.url() === GO_HOME_URL) {
         requestedGoHomeUrl = true
+        console.log("woooo =>>>", requestedGoHomeUrl)
       }
     })
-    // waitUntil: "networkidle"
+
+    // waitUntil: "domcontentloaded"
     // In case the page takes a long time to load
-    await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "networkidle" })
-    // Type in password
-    await page.fill(".password", process.env.PASSWORD || "password")
-    // Click the submit button and login
-    await page.click(".submit")
+    await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
     // Click the Application menu
     await page.click(".menubar-menu-button[title='Application Menu']")
     // See the Go Home button
@@ -56,10 +53,17 @@ describe("login", () => {
 
     // If there are unsaved changes it will show a dialog
     // asking if you're sure you want to leave
-    page.on("dialog", (dialog) => dialog.accept())
+    await page.on("dialog", (dialog) => dialog.accept())
 
-    // We make sure to wait on a request to the GO_HOME_URL
-    await page.waitForRequest(GO_HOME_URL)
+    // If it takes longer than 3 seconds to navigate, something is wrong
+    await page.waitForRequest(GO_HOME_URL, { timeout: 10000 })
     expect(requestedGoHomeUrl).toBeTruthy()
+
+    // // Make sure the response for GO_HOME_URL was successful
+    // const response = await page.waitForResponse(
+    //   (response) => response.url() === GO_HOME_URL && response.status() === 200,
+    // )
+    // We make sure a request was made to the GO_HOME_URL
+    // expect(response.ok()).toBeTruthy()
   })
 })
