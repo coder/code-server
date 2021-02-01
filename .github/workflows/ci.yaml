@@ -40,7 +40,7 @@ jobs:
       - uses: microsoft/playwright-github-action@v1
       - name: Install dependencies and run tests
         run: |
-          node ./release-packages/code-server*-linux-amd64 --home $CODE_SERVER_ADDRESS/healthz &
+          ./release-packages/code-server*-linux-amd64/bin/code-server --home $CODE_SERVER_ADDRESS/healthz &
           yarn --frozen-lockfile
           yarn test
 
