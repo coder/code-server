@@ -4,6 +4,8 @@
 import { chromium, Page, Browser, BrowserContext } from "playwright"
 
 module.exports = async () => {
+  console.log("🚨 Running Global Setup for Jest Tests")
+  console.log("  Please hang tight...")
   const browser: Browser = await chromium.launch()
   const context: BrowserContext = await browser.newContext()
   const page: Page = await context.newPage()
@@ -22,4 +24,5 @@ module.exports = async () => {
   await page.close()
   await browser.close()
   await context.close()
+  console.log("✅ Global Setup for Jest Tests is now complete.")
 }
