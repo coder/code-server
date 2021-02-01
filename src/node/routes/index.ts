@@ -65,9 +65,6 @@ export const register = async (
   app.use(cookieParser())
   wsApp.use(cookieParser())
 
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
-
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
     // it look like code-server is always in use.
@@ -106,6 +103,12 @@ export const register = async (
   app.use("/", domainProxy.router)
   wsApp.use("/", domainProxy.wsRouter.router)
 
+  app.use("/proxy", proxy.router)
+  wsApp.use("/proxy", proxy.wsRouter.router)
+
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+
   app.use("/", vscode.router)
   wsApp.use("/", vscode.wsRouter.router)
   app.use("/vscode", vscode.router)
@@ -120,9 +123,6 @@ export const register = async (
       redirect(req, res, "/", {})
     })
   }
-
-  app.use("/proxy", proxy.router)
-  wsApp.use("/proxy", proxy.wsRouter.router)
 
   app.use("/static", _static.router)
   app.use("/update", update.router)

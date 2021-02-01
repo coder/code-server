@@ -9,6 +9,8 @@ proxy.on("error", (error, _, res) => {
 })
 
 // Intercept the response to rewrite absolute redirects against the base path.
+// Is disabled when the request has no base path which means --proxy-path-passthrough has
+// been enabled.
 proxy.on("proxyRes", (res, req) => {
   if (res.headers.location && res.headers.location.startsWith("/") && (req as any).base) {
     res.headers.location = (req as any).base + res.headers.location
