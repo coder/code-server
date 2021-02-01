@@ -106,6 +106,8 @@ discussion regarding the use of the Microsoft URLs in forks:
 
 https://github.com/microsoft/vscode/issues/31168#issue-244533026
 
+See also [VSCodium's docs](https://github.com/VSCodium/vscodium/blob/master/DOCS.md#extensions--marketplace).
+
 These variables are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
