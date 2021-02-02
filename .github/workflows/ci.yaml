@@ -43,6 +43,11 @@ jobs:
           ./release-packages/code-server*-linux-amd64/bin/code-server --home $CODE_SERVER_ADDRESS/healthz &
           yarn --frozen-lockfile
           yarn test
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-videos
+          path: ./test/videos
 
   release:
     runs-on: ubuntu-latest
