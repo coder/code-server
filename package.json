@@ -152,7 +152,10 @@
       "<rootDir>/lib/vscode",
       "<rootDir>/release-packages",
       "<rootDir>/release",
-      "<rootDir>/release-standalone"
+      "<rootDir>/release-standalone",
+      "<rootDir>/release-npm-package",
+      "<rootDir>/release-gcp",
+      "<rootDir>/release-images"
     ]
   }
 }

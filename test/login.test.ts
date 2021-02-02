@@ -24,7 +24,7 @@ describe("login", () => {
     await context.clearCookies()
   })
 
-  it("should be able to login with the password from config.yml", async () => {
+  it("should be able to login", async () => {
     await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080")
     // Type in password
     await page.fill(".password", process.env.PASSWORD || "password")
