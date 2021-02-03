@@ -1,5 +1,16 @@
-import { logger as l } from "@coder/logger"
-import { arrayify, getFirstString, normalize, plural, resolveBase, split, trimSlashes } from "../src/common/util"
+// Note: we need to import logger from the root
+// because this is the logger used in logError in ../src/common/util
+import { logger } from "../node_modules/@coder/logger"
+import {
+  arrayify,
+  getFirstString,
+  logError,
+  normalize,
+  plural,
+  resolveBase,
+  split,
+  trimSlashes,
+} from "../src/common/util"
 
 type LocationLike = Pick<Location, "pathname" | "origin">
 
@@ -96,6 +107,7 @@ describe("util", () => {
     it("should return value it's already an array", () => {
       expect(arrayify(["hello", "world"])).toStrictEqual(["hello", "world"])
     })
+
     it("should wrap the value in an array if not an array", () => {
       expect(
         arrayify({
@@ -104,6 +116,7 @@ describe("util", () => {
         }),
       ).toStrictEqual([{ name: "Coder", version: "3.8" }])
     })
+
     it("should return an empty array if the value is undefined", () => {
       expect(arrayify(undefined)).toStrictEqual([])
     })
@@ -113,11 +126,46 @@ describe("util", () => {
     it("should return the string if passed a string", () => {
       expect(getFirstString("Hello world!")).toBe("Hello world!")
     })
+
     it("should get the first string from an array", () => {
       expect(getFirstString(["Hello", "World"])).toBe("Hello")
     })
+
     it("should return undefined if the value isn't an array or a string", () => {
       expect(getFirstString({ name: "Coder" })).toBe(undefined)
+    })
+  })
+
+  describe("logError", () => {
+    let spy: jest.SpyInstance
+
+    beforeEach(() => {
+      spy = jest.spyOn(logger, "error")
+    })
+
+    afterEach(() => {
+      jest.clearAllMocks()
+    })
+
+    afterAll(() => {
+      jest.restoreAllMocks()
+    })
+
+    it("should log an error with the message and stack trace", () => {
+      const message = "You don't have access to that folder."
+      const error = new Error(message)
+
+      logError("ui", error)
+
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
+    })
+
+    it("should log an error, even if not an instance of error", () => {
+      logError("api", "oh no")
+
+      expect(spy).toHaveBeenCalled()
+      expect(spy).toHaveBeenCalledWith("api: oh no")
     })
   })
 })
