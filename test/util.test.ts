@@ -1,9 +1,12 @@
+import { JSDOM } from "jsdom"
 // Note: we need to import logger from the root
 // because this is the logger used in logError in ../src/common/util
 import { logger } from "../node_modules/@coder/logger"
 import {
   arrayify,
+  generateUuid,
   getFirstString,
+  getOptions,
   logError,
   normalize,
   plural,
@@ -11,6 +14,10 @@ import {
   split,
   trimSlashes,
 } from "../src/common/util"
+
+const dom = new JSDOM()
+global.document = dom.window.document
+// global.window = (dom.window as unknown) as Window & typeof globalThis
 
 type LocationLike = Pick<Location, "pathname" | "origin">
 
@@ -46,6 +53,20 @@ describe("util", () => {
     })
     it("should NOT add an s if the count is 1", () => {
       expect(plural(1, "dog")).toBe("dog")
+    })
+  })
+
+  describe("generateUuid", () => {
+    it("should generate a unique uuid", () => {
+      const uuid = generateUuid()
+      const uuid2 = generateUuid()
+      expect(uuid).toHaveLength(24)
+      expect(typeof uuid).toBe("string")
+      expect(uuid).not.toBe(uuid2)
+    })
+    it("should generate a uuid of a specific length", () => {
+      const uuid = generateUuid(10)
+      expect(uuid).toHaveLength(10)
     })
   })
 
@@ -100,6 +121,76 @@ describe("util", () => {
 
     it("should resolve a base to an empty string when not provided", () => {
       expect(resolveBase()).toBe("")
+    })
+  })
+
+  describe("getOptions", () => {
+    // Things to mock
+    // logger
+    // location
+    // document
+    beforeEach(() => {
+      const location: LocationLike = {
+        pathname: "/healthz",
+        origin: "http://localhost:8080",
+        // search: "?environmentId=600e0187-0909d8a00cb0a394720d4dce",
+      }
+
+      // Because resolveBase is not a pure function
+      // and relies on the global location to be set
+      // we set it before all the tests
+      // and tell TS that our location should be looked at
+      // as Location (even though it's missing some properties)
+      global.location = location as Location
+    })
+
+    afterEach(() => {
+      jest.restoreAllMocks()
+    })
+
+    it("should return options with base and cssStaticBase even if it doesn't exist", () => {
+      expect(getOptions()).toStrictEqual({
+        base: "",
+        csStaticBase: "",
+      })
+    })
+
+    it("should return options when they do exist", () => {
+      // Mock getElementById
+      const spy = jest.spyOn(document, "getElementById")
+      // Create a fake element and set the attribute
+      const mockElement = document.createElement("div")
+      mockElement.setAttribute(
+        "data-settings",
+        '{"base":".","csStaticBase":"./static/development/Users/jp/Dev/code-server","logLevel":2,"disableTelemetry":false,"disableUpdateCheck":false}',
+      )
+      // Return mockElement from the spy
+      // this way, when we call "getElementById"
+      // it returns the element
+      spy.mockImplementation(() => mockElement)
+
+      expect(getOptions()).toStrictEqual({
+        base: "",
+        csStaticBase: "/static/development/Users/jp/Dev/code-server",
+        disableTelemetry: false,
+        disableUpdateCheck: false,
+        logLevel: 2,
+      })
+    })
+
+    it("should include queryOpts", () => {
+      // Trying to understand how the implementation works
+      // 1. It grabs the search params from location.search (i.e. ?)
+      // 2. it then grabs the "options" param if it exists
+      // 3. then it creates a new options object
+      // spreads the original options
+      // then parses the queryOpts
+      location.search = '?options={"logLevel":2}'
+      expect(getOptions()).toStrictEqual({
+        base: "",
+        csStaticBase: "",
+        logLevel: 2,
+      })
     })
   })
 
