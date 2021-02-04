@@ -10,7 +10,18 @@ main() {
   # include our source files.
   cd "$OLDPWD"
   # We use the same environment variables set in ci.yml in the test job
-  CS_DISABLE_PLUGINS=true PASSWORD=e45432jklfdsab CODE_SERVER_ADDRESS=http://localhost:8080 ./test/node_modules/.bin/jest "$@"
+  if [[ -z ${PASSWORD+x} ]] || [[ -z ${CODE_SERVER_ADDRESS+x} ]]; then
+    echo "The end-to-end testing suites rely on your local environment"
+    echo -e "\n"
+    echo "Please set the following environment variables locally:"
+    echo "  \$PASSWORD"
+    echo "  \$CODE_SERVER_ADDRESS"
+    echo -e "\n"
+    echo "Please make sure you have code-server running locally."
+    echo -e "\n"
+    exit 1
+  fi
+  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@"
 }
 
 main "$@"
