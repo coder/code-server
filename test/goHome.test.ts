@@ -12,7 +12,6 @@ describe("login", () => {
     // Create a new context with the saved storage state
     const storageState = JSON.parse(process.env.STORAGE || "")
 
-    //
     const cookieToStore = {
       sameSite: "Lax" as const,
       name: "key",
@@ -61,16 +60,20 @@ describe("login", () => {
 
   // NOTE: this test will fail if you do not run code-server with --home $CODE_SERVER_ADDRESS/healthz
   it("should see a 'Go Home' button in the Application Menu that goes to /healthz", async (done) => {
+    let requestedGoHomeUrl = false
     // Ideally, this test should pass and finish before the timeout set in the Jest config
     // However, if it doesn't, we don't want a memory leak so we set this backup timeout
     // Otherwise Jest may throw this error
     // "Jest did not exit one second after the test run has completed.
     // This usually means that there are asynchronous operations that weren't stopped in your tests.
     // Consider running Jest with `--detectOpenHandles` to troubleshoot this issue."
-    const backupTimeout = setTimeout(() => done(), 20000)
+    const backupTimeout = setTimeout(() => {
+      // If it's not true by this point then the test should fail
+      expect(requestedGoHomeUrl).toBeTruthy()
+      done()
+    }, 20000)
 
     const GO_HOME_URL = `${process.env.CODE_SERVER_ADDRESS}/healthz`
-    let requestedGoHomeUrl = false
     page.on("request", (request) => {
       // This ensures that we did make a request to the GO_HOME_URL
       // Most reliable way to test button

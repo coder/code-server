@@ -140,8 +140,8 @@ export interface Cookie {
  * Checks if a cookie exists in array of cookies
  */
 export function checkForCookie(cookies: Array<Cookie>, key: string): boolean {
-  // Check for at least one cookie where the name is equal to key
-  return cookies.filter((cookie) => cookie.name === key).length > 0
+  // Check for a cookie where the name is equal to key
+  return Boolean(cookies.find((cookie) => cookie.name === key))
 }
 
 /**
