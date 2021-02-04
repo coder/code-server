@@ -103,8 +103,25 @@ export const register = async (
   app.use("/", domainProxy.router)
   wsApp.use("/", domainProxy.wsRouter.router)
 
-  app.use("/proxy", proxy.router)
-  wsApp.use("/proxy", proxy.wsRouter.router)
+  app.all("/proxy/(:port)(/*)?", (req, res) => {
+    proxy.proxy(req, res)
+  })
+  wsApp.get("/proxy/(:port)(/*)?", (req, res) => {
+    proxy.wsProxy(req as WebsocketRequest)
+  })
+  // These two routes pass through the path directly.
+  // So the proxied app must be aware it is running
+  // under /absproxy/<someport>/
+  app.all("/absproxy/(:port)(/*)?", (req, res) => {
+    proxy.proxy(req, res, {
+      passthroughPath: true,
+    })
+  })
+  wsApp.get("/absproxy/(:port)(/*)?", (req, res) => {
+    proxy.wsProxy(req as WebsocketRequest, {
+      passthroughPath: true,
+    })
+  })
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
