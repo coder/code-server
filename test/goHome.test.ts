@@ -1,4 +1,6 @@
-import { chromium, Page, Browser, BrowserContext } from "playwright"
+import { chromium, Page, Browser, BrowserContext, Cookie } from "playwright"
+import { createCookieIfDoesntExist } from "../src/common/util"
+import { hash } from "../src/node/util"
 
 describe("login", () => {
   let browser: Browser
@@ -9,7 +11,37 @@ describe("login", () => {
     browser = await chromium.launch()
     // Create a new context with the saved storage state
     const storageState = JSON.parse(process.env.STORAGE || "")
-    context = await browser.newContext({ storageState, recordVideo: { dir: "./test/videos/" } })
+
+    //
+    const cookieToStore = {
+      sameSite: "Lax" as const,
+      name: "key",
+      value: hash(process.env.PASSWORD || ""),
+      domain: "localhost",
+      path: "/",
+      expires: -1,
+      httpOnly: false,
+      secure: false,
+    }
+
+    // For some odd reason, the login method used in globalSetup.ts doesn't always work
+    // I don't know if it's on playwright clearing our cookies by accident
+    // or if it's our cookies disappearing.
+    // This means we need an additional check to make sure we're logged in.
+    // We do this by manually adding the cookie to the browser environment
+    // if it's not there at the time the test starts
+    const cookies: Cookie[] = storageState.cookies || []
+    // If the cookie exists in cookies then
+    // this will return the cookies with no changes
+    // otherwise if it doesn't exist, it will create it
+    // hence the name maybeUpdatedCookies
+    const maybeUpdatedCookies = createCookieIfDoesntExist(cookies, cookieToStore)
+    console.log("here are the cookies", maybeUpdatedCookies)
+
+    context = await browser.newContext({
+      storageState: { cookies: maybeUpdatedCookies },
+      recordVideo: { dir: "./test/videos/" },
+    })
     done()
   })
 
@@ -27,7 +59,16 @@ describe("login", () => {
     done()
   })
 
+  // NOTE: this test will fail if you do not run code-server with --home $CODE_SERVER_ADDRESS/healthz
   it("should see a 'Go Home' button in the Application Menu that goes to /healthz", async (done) => {
+    // Ideally, this test should pass and finish before the timeout set in the Jest config
+    // However, if it doesn't, we don't want a memory leak so we set this backup timeout
+    // Otherwise Jest may throw this error
+    // "Jest did not exit one second after the test run has completed.
+    // This usually means that there are asynchronous operations that weren't stopped in your tests.
+    // Consider running Jest with `--detectOpenHandles` to troubleshoot this issue."
+    const backupTimeout = setTimeout(() => done(), 20000)
+
     const GO_HOME_URL = `${process.env.CODE_SERVER_ADDRESS}/healthz`
     let requestedGoHomeUrl = false
     page.on("request", (request) => {
@@ -38,6 +79,7 @@ describe("login", () => {
       if (request.url() === GO_HOME_URL) {
         requestedGoHomeUrl = true
         expect(requestedGoHomeUrl).toBeTruthy()
+        clearTimeout(backupTimeout)
 
         // This ensures Jest knows we're done here.
         done()
@@ -51,19 +93,6 @@ describe("login", () => {
     // waitUntil: "domcontentloaded"
     // In case the page takes a long time to load
     await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
-
-    // For some odd reason, the login method used in globalSetup.ts
-    // I don't know if it's on playwright clearing our cookies by accident
-    // or if it's our cookies disappearing.
-    // This means we need an additional check to make sure we're logged in
-    // otherwise this test will hang and fail.
-    const currentPageURL = await page.url()
-    const isLoginPage = currentPageURL.includes("login")
-    if (isLoginPage) {
-      await page.fill(".password", process.env.PASSWORD || "password")
-      // Click the submit button and login
-      await page.click(".submit")
-    }
 
     // Click the Application menu
     await page.click(".menubar-menu-button[title='Application Menu']")
