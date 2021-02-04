@@ -16,7 +16,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 1. Update the version of code-server and make a PR.
    1. Update in `package.json`
-   2. Update in [./doc/install.md](../doc/install.md)
+   2. Update in [./docs/install.md](../docs/install.md)
    3. Update in [./ci/helm-chart/README.md](../ci/helm-chart/README.md)
       - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
       - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
@@ -62,7 +62,7 @@ NOTE: we have to manually change the color because the default is red if coverag
 This directory contains scripts used for the development of code-server.
 
 - [./ci/dev/image](./dev/image)
-  - See [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
+  - See [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md) for docs on the development container.
 - [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters.
 - [./ci/dev/lint.sh](./dev/lint.sh) (`yarn lint`)
@@ -73,7 +73,7 @@ This directory contains scripts used for the development of code-server.
   - Runs `yarn fmt`, `yarn lint` and `yarn test`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
-  - Example usage in [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
+  - Example usage in [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md).
 - [./ci/dev/gen_icons.sh](./ci/dev/gen_icons.sh) (`yarn icons`)
   - Generates the various icons from a single `.svg` favicon in
     `src/browser/media/favicon.svg`.

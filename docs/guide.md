@@ -22,9 +22,9 @@ To reiterate, `code-server` lets you run VS Code on a remote server and then acc
 Further docs are at:
 
 - [README](../README.md) for a general overview
-- [INSTALL](../doc/install.md) for installation
+- [INSTALL](../docs/install.md) for installation
 - [FAQ](./FAQ.md) for common questions.
-- [CONTRIBUTING](../doc/CONTRIBUTING.md) for development docs
+- [CONTRIBUTING](../docs/CONTRIBUTING.md) for development docs
 
 We highly recommend reading the [FAQ](./FAQ.md) on the [Differences compared to VS Code](./FAQ.md#differences-compared-to-vs-code) before beginning.
 

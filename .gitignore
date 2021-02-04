@@ -15,3 +15,4 @@ node-*
 /lib/coder-cloud-agent
 .home
 coverage
+**/.DS_Store

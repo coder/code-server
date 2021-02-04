@@ -20,6 +20,7 @@ maintains all user data in \`~/.local/share/code-server\` so that it is preserve
 installations.
 
 ## New Features
+
   - ⭐ Summarize new features here with references to issues
 
 ## Bug Fixes
