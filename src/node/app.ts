@@ -6,12 +6,15 @@ import * as httpolyglot from "httpolyglot"
 import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { handleUpgrade } from "./wsRouter"
+import compression from "compression";
 
 /**
  * Create an Express app and an HTTP/S server to serve it.
  */
 export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
   const app = express()
+
+  app.use(compression)
 
   const server = args.cert
     ? httpolyglot.createServer(

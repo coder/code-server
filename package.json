@@ -72,7 +72,9 @@
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
+    "@types/compression": "^1.7.0",
     "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
     "express": "^5.0.0-alpha.8",
