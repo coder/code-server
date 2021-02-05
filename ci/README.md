@@ -21,6 +21,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
       - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
       - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
         changed. Replace the numbers as needed.
+        - You can install `rg` or `ripgrep` on macOS [here](https://formulae.brew.sh/formula/ripgrep).
    4. Update the code coverage badge (see [here](#updating-code-coverage-in-readme) for instructions)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
