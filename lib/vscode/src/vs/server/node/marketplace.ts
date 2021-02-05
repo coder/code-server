@@ -160,8 +160,8 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
  */
 export const enableCustomMarketplace = (): void => {
 	(<any>product).extensionsGallery = { // Use `any` to override readonly.
-		serviceUrl: process.env.SERVICE_URL || 'https://extensions.coder.com/api',
-		itemUrl: process.env.ITEM_URL || '',
+		serviceUrl: process.env.SERVICE_URL || 'https://open-vsx.org/vscode/gallery',
+		itemUrl: process.env.ITEM_URL || 'https://open-vsx.org/vscode/item',
 		controlUrl: '',
 		recommendationsUrl: '',
 		...(product.extensionsGallery || {}),
