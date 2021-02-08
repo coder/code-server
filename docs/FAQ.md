@@ -64,7 +64,7 @@ See the [TOS](https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visu
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
 
 As a result, we cannot offer any extensions on the Microsoft marketplace. Instead,
-we use the Open-VSX extension gallery, which is also used by various other forks.
+we use the [Open-VSX extension gallery](https://open-vsx.org), which is also used by various other forks.
 It isn't perfect, but its getting better by the day with more and more extensions.
 
 We also offer our own marketplace for open source extensions, but plan to
@@ -91,11 +91,13 @@ point to the .vsix file.
 You can install an extension on the CLI with:
 
 ```bash
-# From the Coder extension marketplace
+# From the configured extension marketplace
 code-server --install-extension ms-python.python
 
 # From a downloaded VSIX on the file system
-code-server --install-extension downloaded-ms-python.python.vsix
+# For example, downloading an extension from the MS store:
+# https://marketplace.visualstudio.com/items?itemName=ms-python.python -> 'Download Extension' on sidebar
+code-server --install-extension /path/to/downloaded-ms-python.python.vsix
 ```
 
 ## How do I configure the marketplace URL?
