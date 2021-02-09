@@ -51,17 +51,6 @@
 	position: relative;
 	width: 100%;
 	height: 48px;
-<<<<<<< HEAD
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	order: -1;
-
-	/* NOTE@coder: Hide since it doesn't seem to do anything when used with
-	code-server except open the VS Code repository. */
-	display: none !important;
-=======
->>>>>>> e4a830e9b7ca039c7c70697786d29f5b6679d775
 }
 
 .monaco-workbench .activitybar > .content > .home-bar > .home-bar-icon-badge {
