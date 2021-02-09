@@ -53,6 +53,7 @@
     "doctoc": "^1.4.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^6.0.0",
+    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.0",
     "istanbul-badges-readme": "^1.2.0",
@@ -62,8 +63,8 @@
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
     "ts-node": "^9.0.0",
-    "wtfnode": "^0.8.4",
-    "typescript": "^4.1.3"
+    "typescript": "^4.1.3",
+    "wtfnode": "^0.8.4"
   },
   "resolutions": {
     "@types/node": "^12.12.7",
