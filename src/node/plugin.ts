@@ -12,13 +12,15 @@ import * as util from "./util"
 import { Router as WsRouter, WebsocketRouter, wss } from "./wsRouter"
 const fsp = fs.promises
 
+// Represents a required module which could be anything.
+type Module = any
+
 /**
  * Inject code-server when `require`d. This is required because the API provides
  * more than just types so these need to be provided at run-time.
  */
 const originalLoad = require("module")._load
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-require("module")._load = function (request: string, parent: object, isMain: boolean): any {
+require("module")._load = function (request: string, parent: object, isMain: boolean): Module {
   if (request === "code-server") {
     return {
       express,
