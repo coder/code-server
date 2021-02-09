@@ -114,6 +114,11 @@ export const register = async (
     })
   })
 
+  const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
+  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
+  await papi.loadPlugins()
+  papi.mount(app, wsApp)
+
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
 
@@ -136,10 +141,6 @@ export const register = async (
   app.use("/static", _static.router)
   app.use("/update", update.router)
 
-  const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
-  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
-  await papi.loadPlugins()
-  papi.mount(app, wsApp)
   app.use("/api/applications", apps.router(papi))
   wrapper.onDispose(() => papi.dispose())
 
