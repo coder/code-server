@@ -114,10 +114,14 @@ export const register = async (
     })
   })
 
-  const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
-  const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
-  await pluginApi.loadPlugins()
-  pluginApi.mount(app, wsApp)
+  if (!process.env.CS_DISABLE_PLUGINS) {
+    const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
+    const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
+    await pluginApi.loadPlugins()
+    pluginApi.mount(app, wsApp)
+    app.use("/api/applications", apps.router(pluginApi))
+    wrapper.onDispose(() => pluginApi.dispose())
+  }
 
   app.use(bodyParser.json())
   app.use(bodyParser.urlencoded({ extended: true }))
@@ -140,9 +144,6 @@ export const register = async (
 
   app.use("/static", _static.router)
   app.use("/update", update.router)
-
-  app.use("/api/applications", apps.router(pluginApi))
-  wrapper.onDispose(() => pluginApi.dispose())
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
