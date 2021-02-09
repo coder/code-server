@@ -244,7 +244,8 @@ export class BrowserHostService extends Disposable implements IHostService {
 					if (this.shouldReuse(options, true /* file */)) {
 						editorService.openEditor({
 							leftResource: editors[0].resource,
-							rightResource: editors[1].resource
+							rightResource: editors[1].resource,
+							options: { pinned: true }
 						});
 					}
 
@@ -349,7 +350,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 			return true; // always handle --wait in same window
 		}
 
-		const windowConfig = this.configurationService.getValue<IWindowSettings>('window');
+		const windowConfig = this.configurationService.getValue<IWindowSettings | undefined>('window');
 		const openInNewWindowConfig = isFile ? (windowConfig?.openFilesInNewWindow || 'off' /* default */) : (windowConfig?.openFoldersInNewWindow || 'default' /* default */);
 
 		let openInNewWindow = (options.preferNewWindow || !!options.forceNewWindow) && !options.forceReuseWindow;
