@@ -120,11 +120,6 @@
     "css-loader": "^3.2.0",
     "debounce": "^1.0.0",
     "deemon": "^1.4.0",
-<<<<<<< HEAD
-=======
-    "electron": "9.3.5",
-    "electron-rebuild": "2.0.3",
->>>>>>> e4a830e9b7ca039c7c70697786d29f5b6679d775
     "eslint": "6.8.0",
     "eslint-plugin-jsdoc": "^19.1.0",
     "eslint-plugin-mocha": "8.0.0",
