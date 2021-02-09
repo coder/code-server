@@ -3,10 +3,13 @@ import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
 import { HttpCode } from "../src/common/http"
-import { PluginAPI } from "../src/node/plugin"
+import { codeServer, PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
 import * as httpserver from "./httpserver"
 const fsp = fs.promises
+
+// Jest overrides `require` so our usual override doesn't work.
+jest.mock("code-server", () => codeServer)
 
 /**
  * Use $LOG_LEVEL=debug to see debug logs.

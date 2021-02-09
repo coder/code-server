@@ -21,20 +21,22 @@ type Module = any
  */
 const originalLoad = require("module")._load
 require("module")._load = function (request: string, parent: object, isMain: boolean): Module {
-  if (request === "code-server") {
-    return {
-      express,
-      field,
-      HttpCode,
-      HttpError,
-      Level,
-      proxy,
-      replaceTemplates,
-      WsRouter,
-      wss,
-    }
-  }
-  return originalLoad.apply(this, [request, parent, isMain])
+  return request === "code-server" ? codeServer : originalLoad.apply(this, [request, parent, isMain])
+}
+
+/**
+ * The module you get when importing "code-server".
+ */
+export const codeServer = {
+  express,
+  field,
+  HttpCode,
+  HttpError,
+  Level,
+  proxy,
+  replaceTemplates,
+  WsRouter,
+  wss,
 }
 
 interface Plugin extends pluginapi.Plugin {
