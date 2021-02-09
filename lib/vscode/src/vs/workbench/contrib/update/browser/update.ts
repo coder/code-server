@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as nls from 'vs/nls';
-import * as semver from 'vs/base/common/semver/semver';
 import severity from 'vs/base/common/severity';
 import { Action } from 'vs/base/common/actions';
 import { Disposable, MutableDisposable } from 'vs/base/common/lifecycle';
@@ -13,13 +12,13 @@ import { IActivityService, NumberBadge, IBadge, ProgressBadge } from 'vs/workben
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IOpenerService } from 'vs/platform/opener/common/opener';
 import { IWorkbenchContribution } from 'vs/workbench/common/contributions';
-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { IUpdateService, State as UpdateState, StateType, IUpdate } from 'vs/platform/update/common/update';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 import { ReleaseNotesManager } from './releaseNotesEditor';
-import { isWindows } from 'vs/base/common/platform';
+import { isMacintosh, isNative, isWindows } from 'vs/base/common/platform';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { RawContextKey, IContextKey, IContextKeyService, ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
 import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
@@ -28,7 +27,6 @@ import { ShowCurrentReleaseNotesActionId, CheckForVSCodeUpdateActionId } from 'v
 import { IHostService } from 'vs/workbench/services/host/browser/host';
 import { IProductService } from 'vs/platform/product/common/productService';
 import product from 'vs/platform/product/common/product';
-import { IStorageKeysSyncRegistryService } from 'vs/platform/userDataSync/common/storageKeys';
 
 export const CONTEXT_UPDATE_STATE = new RawContextKey<string>('updateState', StateType.Idle);
 
@@ -117,6 +115,30 @@ export class ShowCurrentReleaseNotesAction extends AbstractShowReleaseNotesActio
 	}
 }
 
+interface IVersion {
+	major: number;
+	minor: number;
+	patch: number;
+}
+
+function parseVersion(version: string): IVersion | undefined {
+	const match = /([0-9]+)\.([0-9]+)\.([0-9]+)/.exec(version);
+
+	if (!match) {
+		return undefined;
+	}
+
+	return {
+		major: parseInt(match[1]),
+		minor: parseInt(match[2]),
+		patch: parseInt(match[3])
+	};
+}
+
+function isMajorMinorUpdate(before: IVersion, after: IVersion): boolean {
+	return before.major < after.major || before.minor < after.minor;
+}
+
 export class ProductContribution implements IWorkbenchContribution {
 
 	private static readonly KEY = 'releaseNotes/lastVersion';
@@ -136,12 +158,13 @@ export class ProductContribution implements IWorkbenchContribution {
 				return;
 			}
 
-			const lastVersion = storageService.get(ProductContribution.KEY, StorageScope.GLOBAL, '');
+			const lastVersion = parseVersion(storageService.get(ProductContribution.KEY, StorageScope.GLOBAL, ''));
+			const currentVersion = parseVersion(productService.version);
 			const shouldShowReleaseNotes = configurationService.getValue<boolean>('update.showReleaseNotes');
-
-			// was there an update? if so, open release notes
 			const releaseNotesUrl = productService.releaseNotesUrl;
-			if (shouldShowReleaseNotes && !environmentService.skipReleaseNotes && releaseNotesUrl && lastVersion && productService.version !== lastVersion) {
+
+			// was there a major/minor update? if so, open release notes
+			if (shouldShowReleaseNotes && !environmentService.skipReleaseNotes && releaseNotesUrl && lastVersion && currentVersion && isMajorMinorUpdate(lastVersion, currentVersion)) {
 				showReleaseNotes(instantiationService, productService.version)
 					.then(undefined, () => {
 						notificationService.prompt(
@@ -160,11 +183,11 @@ export class ProductContribution implements IWorkbenchContribution {
 			}
 
 			// should we show the new license?
-			if (productService.licenseUrl && lastVersion && semver.satisfies(lastVersion, '<1.0.0') && semver.satisfies(productService.version, '>=1.0.0')) {
+			if (productService.licenseUrl && lastVersion && lastVersion.major < 1 && currentVersion && currentVersion.major >= 1) {
 				notificationService.info(nls.localize('licenseChanged', "Our license terms have changed, please click [here]({0}) to go through them.", productService.licenseUrl));
 			}
 
-			storageService.store(ProductContribution.KEY, productService.version, StorageScope.GLOBAL);
+			storageService.store(ProductContribution.KEY, productService.version, StorageScope.GLOBAL, StorageTarget.MACHINE);
 		});
 	}
 }
@@ -185,14 +208,11 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IProductService private readonly productService: IProductService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IStorageKeysSyncRegistryService storageKeysSyncRegistryService: IStorageKeysSyncRegistryService
+		@IOpenerService private readonly openerService: IOpenerService
 	) {
 		super();
 		this.state = updateService.state;
 		this.updateStateContextKey = CONTEXT_UPDATE_STATE.bindTo(this.contextKeyService);
-
-		// opt-in to syncing
-		storageKeysSyncRegistryService.registerStorageKey({ key: 'neverShowAgain:update/win32-fast-updates', version: 1 });
 
 		this._register(updateService.onStateChange(this.onUpdateStateChange, this));
 		this.onUpdateStateChange(this.updateService.state);
@@ -268,6 +288,10 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 	}
 
 	private onError(error: string): void {
+		if (/The request timed out|The network connection was lost/i.test(error)) {
+			return;
+		}
+
 		error = error.replace(/See https:\/\/github\.com\/Squirrel\/Squirrel\.Mac\/issues\/182 for more information/, 'See [this link](https://github.com/microsoft/vscode/issues/7426#issuecomment-425093469) for more information');
 
 		this.notificationService.notify({
@@ -398,8 +422,8 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 
 		// if version != stored version, save version and date
 		if (currentVersion !== lastKnownVersion) {
-			this.storageService.store('update/lastKnownVersion', currentVersion!, StorageScope.GLOBAL);
-			this.storageService.store('update/updateNotificationTime', currentMillis, StorageScope.GLOBAL);
+			this.storageService.store('update/lastKnownVersion', currentVersion!, StorageScope.GLOBAL, StorageTarget.MACHINE);
+			this.storageService.store('update/updateNotificationTime', currentMillis, StorageScope.GLOBAL, StorageTarget.MACHINE);
 		}
 
 		const updateNotificationMillis = this.storageService.getNumber('update/updateNotificationTime', StorageScope.GLOBAL, currentMillis);
@@ -472,7 +496,35 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.Updating)
 		});
 
-		CommandsRegistry.registerCommand('update.restart', () => this.updateService.quitAndInstall());
+		CommandsRegistry.registerCommand('update.restart', async () => {
+			if (isNative && isMacintosh && typeof require !== 'undefined' && typeof require.__$__nodeRequire === 'function') {
+				const os = require.__$__nodeRequire('os') as { release(): string; };
+				const release = os.release();
+
+				if (parseInt(release) >= 20) { // Big Sur
+					const answer = await this.dialogService.show(
+						Severity.Warning,
+						nls.localize('good luck', "'Restart to Update' is not working properly on macOS Big Sur. Click 'Quit to Update' to quit {0} and update it. Then, relaunch it from Finder.", this.productService.nameShort),
+						[
+							nls.localize('quit', "Quit to Update"),
+							nls.localize('learn more', "Learn More"),
+							nls.localize('cancel', "Cancel")
+						],
+						{ cancelId: 2 }
+					);
+
+					if (answer.choice === 2) {
+						return;
+					} else if (answer.choice === 1) {
+						await this.openerService.open(URI.parse('https://github.com/microsoft/vscode/issues/109728'));
+						return;
+					}
+				}
+			}
+
+			this.updateService.quitAndInstall();
+		});
+
 		MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 			group: '6_update',
 			command: {
