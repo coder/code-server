@@ -245,7 +245,9 @@ export interface PluginConfig {
   readonly logger: Logger
 
   /**
-   * Plugins should default to this directory when applicable.
+   * This can be specified by the user on the command line. Plugins should
+   * default to this directory when applicable. For example, the Jupyter plugin
+   * uses this to launch in this directory.
    */
   readonly workingDirectory?: string
 }
