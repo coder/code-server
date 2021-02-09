@@ -1,4 +1,3 @@
-import { Emitter } from 'vs/base/common/event';
 import * as path from 'vs/base/common/path';
 import { URI } from 'vs/base/common/uri';
 import { localize } from 'vs/nls';
@@ -9,10 +8,8 @@ import { ILocalizationsService } from 'vs/platform/localizations/common/localiza
 import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { Registry } from 'vs/platform/registry/common/platform';
-import { PersistentConnectionEventType } from 'vs/platform/remote/common/remoteAgentConnection';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { INodeProxyService, NodeProxyChannelClient } from 'vs/server/common/nodeProxy';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
 import { Options } from 'vs/server/ipc.d';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
@@ -63,33 +60,7 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfigurat
 	}
 });
 
-class NodeProxyService extends NodeProxyChannelClient implements INodeProxyService {
-	private readonly _onClose = new Emitter<void>();
-	public readonly onClose = this._onClose.event;
-	private readonly _onDown = new Emitter<void>();
-	public readonly onDown = this._onDown.event;
-	private readonly _onUp = new Emitter<void>();
-	public readonly onUp = this._onUp.event;
-
-	public constructor(
-		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
-	) {
-		super(remoteAgentService.getConnection()!.getChannel('nodeProxy'));
-		remoteAgentService.getConnection()!.onDidStateChange((state) => {
-			switch (state.type) {
-				case PersistentConnectionEventType.ConnectionGain:
-					return this._onUp.fire();
-				case PersistentConnectionEventType.ConnectionLost:
-					return this._onDown.fire();
-				case PersistentConnectionEventType.ReconnectionPermanentFailure:
-					return this._onClose.fire();
-			}
-		});
-	}
-}
-
 registerSingleton(ILocalizationsService, LocalizationsService);
-registerSingleton(INodeProxyService, NodeProxyService);
 registerSingleton(ITelemetryService, TelemetryService);
 
 /**

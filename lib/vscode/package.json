@@ -50,8 +50,6 @@
   "dependencies_comment": "Move rimraf to dependencies because it is used in the postinstall script.",
   "dependencies": {
     "@coder/logger": "1.1.16",
-    "@coder/node-browser": "^1.0.8",
-    "@coder/requirefs": "^1.1.5",
     "applicationinsights": "1.0.8",
     "chokidar": "3.4.3",
     "graceful-fs": "4.2.3",

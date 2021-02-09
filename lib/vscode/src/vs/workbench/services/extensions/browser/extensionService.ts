@@ -178,10 +178,8 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			this._remoteAgentService.getEnvironment(),
 			this._remoteAgentService.scanExtensions()
 		]);
+		localExtensions = this._checkEnabledAndProposedAPI(localExtensions);
 		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
-		// NOTE@coder: Include remotely hosted extensions that should run locally.
-		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
-			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === 'web' || ext.extensionKind.includes('web'))));
 
 		const remoteAgentConnection = this._remoteAgentService.getConnection();
 		this._runningLocation = this._runningLocationClassifier.determineRunningLocation(localExtensions, remoteExtensions);
