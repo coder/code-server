@@ -104,11 +104,7 @@ export interface IStorageService {
 	 * @param target allows to define the target of the storage operation
 	 * to either the current machine or user.
 	 */
-<<<<<<< HEAD
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> | void;
-=======
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope, target: StorageTarget): void;
->>>>>>> e4a830e9b7ca039c7c70697786d29f5b6679d775
+	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope, target: StorageTarget): Promise<void> | void;
 
 	/**
 	 * Delete an element stored under the provided key from storage.
@@ -402,7 +398,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 	abstract getNumber(key: string, scope: StorageScope, fallbackValue: number): number;
 	abstract getNumber(key: string, scope: StorageScope, fallbackValue?: number): number | undefined;
 
-	protected abstract doStore(key: string, value: string | boolean | number, scope: StorageScope): void;
+	protected abstract doStore(key: string, value: string | boolean | number, scope: StorageScope): Promise<void> | void;
 
 	protected abstract doRemove(key: string, scope: StorageScope): void;
 

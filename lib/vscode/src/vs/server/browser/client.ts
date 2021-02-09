@@ -1,23 +1,23 @@
 import { Emitter } from 'vs/base/common/event';
+import * as path from 'vs/base/common/path';
 import { URI } from 'vs/base/common/uri';
 import { localize } from 'vs/nls';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
+import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { Registry } from 'vs/platform/registry/common/platform';
 import { PersistentConnectionEventType } from 'vs/platform/remote/common/remoteAgentConnection';
+import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { INodeProxyService, NodeProxyChannelClient } from 'vs/server/common/nodeProxy';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
+import { Options } from 'vs/server/ipc.d';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
 import { LocalizationsService } from 'vs/workbench/services/localizations/electron-browser/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
-import { Options } from 'vs/server/ipc.d';
-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
-import { ILogService } from 'vs/platform/log/common/log';
-import * as path from 'vs/base/common/path';
 
 class TelemetryService extends TelemetryChannelClient {
 	public constructor(
@@ -179,7 +179,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 			}
 		}
 
-		storageService.store('csLastUpdateNotification', Date.now(), StorageScope.GLOBAL);
+		storageService.store('csLastUpdateNotification', Date.now(), StorageScope.GLOBAL, StorageTarget.MACHINE);
 		(services.get(INotificationService) as INotificationService).notify({
 			severity: Severity.Info,
 			message: `[code-server v${json.latest}](https://github.com/cdr/code-server/releases/tag/v${json.latest}) has been released!`,

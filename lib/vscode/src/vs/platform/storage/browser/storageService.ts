@@ -118,13 +118,8 @@ export class BrowserStorageService extends AbstractStorageService {
 		return this.getStorage(scope).getNumber(key, fallbackValue);
 	}
 
-<<<<<<< HEAD
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
+	protected doStore(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
 		return this.getStorage(scope).set(key, value);
-=======
-	protected doStore(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): void {
-		this.getStorage(scope).set(key, value);
->>>>>>> e4a830e9b7ca039c7c70697786d29f5b6679d775
 	}
 
 	protected doRemove(key: string, scope: StorageScope): void {
