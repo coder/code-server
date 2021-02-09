@@ -41,13 +41,9 @@ import 'vs/workbench/services/textfile/browser/browserTextFileService';
 import 'vs/workbench/services/keybinding/browser/keyboardLayoutService';
 import 'vs/workbench/services/extensions/browser/extensionService';
 import 'vs/workbench/services/extensionManagement/common/extensionManagementServerService';
-<<<<<<< HEAD
+import 'vs/workbench/services/extensionManagement/browser/extensionUrlTrustService';
 // NOTE@coder: We send it all to the server side to be processed there instead.
 // import 'vs/workbench/services/telemetry/browser/telemetryService';
-=======
-import 'vs/workbench/services/extensionManagement/browser/extensionUrlTrustService';
-import 'vs/workbench/services/telemetry/browser/telemetryService';
->>>>>>> e4a830e9b7ca039c7c70697786d29f5b6679d775
 import 'vs/workbench/services/configurationResolver/browser/configurationResolverService';
 import 'vs/workbench/services/credentials/browser/credentialsService';
 import 'vs/workbench/services/url/browser/urlService';
