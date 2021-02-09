@@ -1,5 +1,4 @@
 import { field, logger } from '@coder/logger';
-import { Server } from '@coder/node-browser';
 import * as os from 'os';
 import * as path from 'path';
 import { VSBuffer } from 'vs/base/common/buffer';
@@ -21,7 +20,6 @@ import { ILogService } from 'vs/platform/log/common/log';
 import product from 'vs/platform/product/common/product';
 import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
 import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { INodeProxyService } from 'vs/server/common/nodeProxy';
 import { getTranslations } from 'vs/server/node/nls';
 import { getUriTransformer } from 'vs/server/node/util';
 import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
@@ -305,14 +303,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 							const newPath = extension.extensionLocation.fsPath;
 							this.log.warn(`${oldPath} has been overridden ${newPath}`);
 						}
-						uniqueExtensions.set(id, {
-							...extension,
-							// Force extensions that should run on the client due to latency
-							// issues.
-							extensionKind: extension.identifier.value === 'vscodevim.vim'
-								? [ 'web' ]
-								: extension.extensionKind,
-						});
+						uniqueExtensions.set(id, extension)
 					});
 				});
 			});
@@ -334,42 +325,6 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 
 	private async flushTelemetry(): Promise<void> {
 		// We always send immediately at the moment.
-	}
-}
-
-export class NodeProxyService implements INodeProxyService {
-	public _serviceBrand = undefined;
-
-	public readonly server: Server;
-
-	private readonly _onMessage = new Emitter<string>();
-	public readonly onMessage = this._onMessage.event;
-	private readonly _$onMessage = new Emitter<string>();
-	public readonly $onMessage = this._$onMessage.event;
-	public readonly _onDown = new Emitter<void>();
-	public readonly onDown = this._onDown.event;
-	public readonly _onUp = new Emitter<void>();
-	public readonly onUp = this._onUp.event;
-
-	// Unused because the server connection will never permanently close.
-	private readonly _onClose = new Emitter<void>();
-	public readonly onClose = this._onClose.event;
-
-	public constructor() {
-		// TODO: down/up
-		this.server = new Server({
-			onMessage: this.$onMessage,
-			onClose: this.onClose,
-			onDown: this.onDown,
-			onUp: this.onUp,
-			send: (message: string): void => {
-				this._onMessage.fire(message);
-			}
-		});
-	}
-
-	public send(message: string): void {
-		this._$onMessage.fire(message);
 	}
 }
 

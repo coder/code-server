@@ -54,7 +54,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			new ExtensionRunningLocationClassifier(
 				productService,
 				configurationService,
-				(extensionKinds, isInstalledLocally, isInstalledRemotely) => this._pickRunningLocation(extensionKinds, isInstalledLocally, isInstalledRemotely)
+				(extensionKinds, isInstalledLocally, isInstalledRemotely) => ExtensionService.pickRunningLocation(extensionKinds, isInstalledLocally, isInstalledRemotely)
 			),
 			instantiationService,
 			notificationService,
@@ -137,11 +137,12 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 		};
 	}
 
-	private _pickRunningLocation(extensionKinds: ExtensionKind[], isInstalledLocally: boolean, isInstalledRemotely: boolean): ExtensionRunningLocation {
+	public static pickRunningLocation(extensionKinds: ExtensionKind[], isInstalledLocally: boolean, isInstalledRemotely: boolean): ExtensionRunningLocation {
+		let canRunRemotely = false;
 		for (const extensionKind of extensionKinds) {
 			if (extensionKind === 'ui' && isInstalledRemotely) {
-				// ui extensions run remotely if possible
-				return ExtensionRunningLocation.Remote;
+				// ui extensions run remotely if possible (but only as a last resort)
+				canRunRemotely = true;
 			}
 			if (extensionKind === 'workspace' && isInstalledRemotely) {
 				// workspace extensions run remotely if possible
@@ -152,7 +153,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 				return ExtensionRunningLocation.LocalWebWorker;
 			}
 		}
-		return ExtensionRunningLocation.None;
+		return (canRunRemotely ? ExtensionRunningLocation.Remote : ExtensionRunningLocation.None);
 	}
 
 	protected _createExtensionHosts(_isInitialStart: boolean): IExtensionHost[] {
@@ -177,10 +178,8 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			this._remoteAgentService.getEnvironment(),
 			this._remoteAgentService.scanExtensions()
 		]);
+		localExtensions = this._checkEnabledAndProposedAPI(localExtensions);
 		remoteExtensions = this._checkEnabledAndProposedAPI(remoteExtensions);
-		// NOTE@coder: Include remotely hosted extensions that should run locally.
-		localExtensions = this._checkEnabledAndProposedAPI(localExtensions)
-			.concat(remoteExtensions.filter(ext => !ext.browser && ext.extensionKind && (ext.extensionKind === 'web' || ext.extensionKind.includes('web'))));
 
 		const remoteAgentConnection = this._remoteAgentService.getConnection();
 		this._runningLocation = this._runningLocationClassifier.determineRunningLocation(localExtensions, remoteExtensions);

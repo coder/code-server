@@ -144,7 +144,6 @@ Some noteworthy changes in our version of VS Code:
 - Sending client-side telemetry through the server
 - Allowing modification of the display language
 - Making it possible for us to load code on the client
-- Making extensions work in the browser
 - Making it possible to install extensions of any kind
 - Fixing issue with getting disconnected when your machine sleeps or hibernates
 - Adding connection type to web socket query parameters
