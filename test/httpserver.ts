@@ -1,7 +1,10 @@
+import * as express from "express"
 import * as http from "http"
 import * as nodeFetch from "node-fetch"
+import Websocket from "ws"
 import * as util from "../src/common/util"
 import { ensureAddress } from "../src/node/app"
+import { handleUpgrade } from "../src/node/wsRouter"
 
 // Perhaps an abstraction similar to this should be used in app.ts as well.
 export class HttpServer {
@@ -40,6 +43,13 @@ export class HttpServer {
   }
 
   /**
+   * Send upgrade requests to an Express app.
+   */
+  public listenUpgrade(app: express.Express): void {
+    handleUpgrade(app, this.hs)
+  }
+
+  /**
    * close cleans up the server.
    */
   public close(): Promise<void> {
@@ -60,6 +70,13 @@ export class HttpServer {
    */
   public fetch(requestPath: string, opts?: nodeFetch.RequestInit): Promise<nodeFetch.Response> {
     return nodeFetch.default(`${ensureAddress(this.hs)}${requestPath}`, opts)
+  }
+
+  /**
+   * Open a websocket against the requset path.
+   */
+  public ws(requestPath: string): Websocket {
+    return new Websocket(`${ensureAddress(this.hs).replace("http:", "ws:")}${requestPath}`)
   }
 
   public port(): number {

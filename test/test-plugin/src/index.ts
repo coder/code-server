@@ -1,8 +1,7 @@
-import * as express from "express"
+import * as cs from "code-server"
 import * as fspath from "path"
-import * as pluginapi from "../../../typings/pluginapi"
 
-export const plugin: pluginapi.Plugin = {
+export const plugin: cs.Plugin = {
   displayName: "Test Plugin",
   routerPath: "/test-plugin",
   homepageURL: "https://example.com",
@@ -13,14 +12,27 @@ export const plugin: pluginapi.Plugin = {
   },
 
   router() {
-    const r = express.Router()
-    r.get("/test-app", (req, res) => {
+    const r = cs.express.Router()
+    r.get("/test-app", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/index.html"))
     })
-    r.get("/goland/icon.svg", (req, res) => {
+    r.get("/goland/icon.svg", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
+    r.get("/error", () => {
+      throw new cs.HttpError("error", cs.HttpCode.LargePayload)
+    })
     return r
+  },
+
+  wsRouter() {
+    const wr = cs.WsRouter()
+    wr.ws("/test-app", (req) => {
+      cs.wss.handleUpgrade(req, req.socket, req.head, (ws) => {
+        ws.send("hello")
+      })
+    })
+    return wr
   },
 
   applications() {
