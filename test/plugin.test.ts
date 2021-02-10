@@ -9,7 +9,7 @@ import * as httpserver from "./httpserver"
 const fsp = fs.promises
 
 // Jest overrides `require` so our usual override doesn't work.
-jest.mock("code-server", () => codeServer)
+jest.mock("code-server", () => codeServer, { virtual: true })
 
 /**
  * Use $LOG_LEVEL=debug to see debug logs.
