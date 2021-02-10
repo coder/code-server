@@ -125,10 +125,6 @@ describe("util", () => {
   })
 
   describe("getOptions", () => {
-    // Things to mock
-    // logger
-    // location
-    // document
     beforeEach(() => {
       const location: LocationLike = {
         pathname: "/healthz",
