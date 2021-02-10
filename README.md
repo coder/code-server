@@ -12,6 +12,15 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 - Use cloud servers to speed up tests, compilations, downloads, and more
 - Preserve battery life when you're on the go; all intensive tasks run on your server
 
+## Requirements
+
+For a good experience, we recommend at least:
+
+- 1 GB of RAM
+- 2 cores
+
+You can use whatever linux distribution floats your boat but in our [guide](./docs/guide.md) we assume Debian on Google Cloud.
+
 ## Getting Started
 
 There are two ways to get started:
