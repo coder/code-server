@@ -64,9 +64,11 @@ See the [TOS](https://cdn.vsassets.io/v/M146_20190123.39/_content/Microsoft-Visu
 > and you may only install and use Marketplace Offerings with Visual Studio Products and Services.
 
 As a result, we cannot offer any extensions on the Microsoft marketplace. Instead,
-we have created our own marketplace for open source extensions.
-It works by scraping GitHub for VS Code extensions and building them. It's not perfect but getting
-better by the day with more and more extensions.
+we use the [Open-VSX extension gallery](https://open-vsx.org), which is also used by various other forks.
+It isn't perfect, but its getting better by the day with more and more extensions.
+
+We also offer our own marketplace for open source extensions, but plan to
+deprecate it at a future date and completely migrate to Open-VSX.
 
 These are the closed source extensions presently unavailable:
 
@@ -79,25 +81,37 @@ For more about the closed source parts of VS Code, see [vscodium/vscodium](https
 
 ## How can I request a missing extension?
 
-Please open a new issue and select the `Extension request` template.
+To add an extension to Open-VSX, please see [open-vsx/publish-extensions](https://github.com/open-vsx/publish-extensions).
+We no longer plan to add new extensions to our legacy extension gallery.
 
 If an extension is not available or does not work, you can grab its VSIX from its Github releases or
 build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
 point to the .vsix file.
 
-See below for installing an extension from the cli.
+You can install an extension on the CLI with:
+
+```bash
+# From the configured extension marketplace
+code-server --install-extension ms-python.python
+
+# From a downloaded VSIX on the file system
+# For example, downloading an extension from the MS store:
+# https://marketplace.visualstudio.com/items?itemName=ms-python.python -> 'Download Extension' on sidebar
+code-server --install-extension /path/to/downloaded-ms-python.python.vsix
+```
 
 ## How do I configure the marketplace URL?
 
-If you have your own marketplace that implements the VS Code Extension Gallery API, it is possible to
-point code-server to it by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
+If you have your own marketplace that implements the VS Code Extension Gallery API or
+if you want to switch to our legacy gallery, it is possible to point code-server to it
+by setting `$SERVICE_URL` and `$ITEM_URL`. These correspond directly
 to `serviceUrl` and `itemUrl` in VS Code's `product.json`.
 
-e.g. to use [open-vsx.org](https://open-vsx.org):
+e.g. to use our [legacy extension gallery](https://xextensions.coder.com):
 
 ```bash
-export SERVICE_URL=https://open-vsx.org/vscode/gallery
-export ITEM_URL=https://open-vsx.org/vscode/item
+export SERVICE_URL=https://extensions.coder.com/api
+export ITEM_URL="" # intentionally blank
 ```
 
 While you can technically use Microsoft's marketplace with these, please do not do so as it
@@ -116,16 +130,6 @@ Defaults to `~/.local/share/code-server/extensions`.
 
 If the `XDG_DATA_HOME` environment variable is set the data directory will be
 `$XDG_DATA_HOME/code-server/extensions`. In general we try to follow the XDG directory spec.
-
-You can install an extension on the CLI with:
-
-```bash
-# From the Coder extension marketplace
-code-server --install-extension ms-python.python
-
-# From a downloaded VSIX on the file system
-code-server --install-extension downloaded-ms-python.python.vsix
-```
 
 ## How is this different from VS Code Codespaces?
 
