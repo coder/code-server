@@ -22,7 +22,6 @@ import { checkForCookie, createCookieIfDoesntExist } from "./helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
-// global.window = (dom.window as unknown) as Window & typeof globalThis
 
 type LocationLike = Pick<Location, "pathname" | "origin">
 
