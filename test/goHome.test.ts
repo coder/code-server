@@ -35,7 +35,6 @@ describe("login", () => {
     // otherwise if it doesn't exist, it will create it
     // hence the name maybeUpdatedCookies
     const maybeUpdatedCookies = createCookieIfDoesntExist(cookies, cookieToStore)
-    console.log("here are the cookies", maybeUpdatedCookies)
 
     context = await browser.newContext({
       storageState: { cookies: maybeUpdatedCookies },
@@ -97,8 +96,8 @@ describe("login", () => {
     // In case the page takes a long time to load
     await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
 
-    // Click the Application menu
-    await page.click(".menubar-menu-button[title='Application Menu']")
+    // Click the Home menu
+    await page.click(".home-bar ul[aria-label='Home'] li")
     // See the Go Home button
     const goHomeButton = "a.action-menu-item span[aria-label='Go Home']"
     expect(await page.isVisible(goHomeButton))
