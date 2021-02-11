@@ -1,18 +1,23 @@
-import { getOptions, normalize } from "../common/util"
-
-const options = getOptions()
+import { getOptions, Options, normalize } from "../common/util"
 
 import "./pages/error.css"
 import "./pages/global.css"
 import "./pages/login.css"
 
-if ("serviceWorker" in navigator) {
-  const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
-  navigator.serviceWorker
-    .register(path, {
+export async function registerServiceWorker(navigator: Navigator, path: string, options: Options): Promise<void> {
+  try {
+    await navigator.serviceWorker.register(path, {
       scope: (options.base ?? "") + "/",
     })
-    .then(() => {
-      console.log("[Service Worker] registered")
-    })
+    console.log("[Service Worker] registered")
+  } catch (error) {
+    console.error(`[Service Worker] failed to register: ${error.message}`)
+  }
+}
+
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+    const options = getOptions()
+    const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
+    registerServiceWorker(navigator, path, options)
+  }
 }
