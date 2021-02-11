@@ -17,8 +17,7 @@ export async function registerServiceWorker(navigator: Navigator, path: string, 
 }
 
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
-    const options = getOptions()
-    const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
-    registerServiceWorker(navigator, path, options)
-  }
+  const options = getOptions()
+  const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
+  registerServiceWorker(navigator, path, options)
 }
