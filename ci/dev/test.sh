@@ -9,8 +9,7 @@ main() {
   # information. We must also run it from the root otherwise coverage will not
   # include our source files.
   cd "$OLDPWD"
-  # We use the same environment variables set in ci.yml in the test job
-  if [[ -z ${PASSWORD+x} ]] || [[ -z ${CODE_SERVER_ADDRESS+x} ]]; then
+  if [[ -z ${PASSWORD-} ]] || [[ -z ${CODE_SERVER_ADDRESS-} ]]; then
     echo "The end-to-end testing suites rely on your local environment"
     echo -e "\n"
     echo "Please set the following environment variables locally:"
