@@ -126,6 +126,7 @@ We recommend installing with `yarn` or `npm` when:
 
 1. You aren't on `amd64` or `arm64`.
 2. If you're on Linux with glibc < v2.17 or glibcxx < v3.4.18
+3. You're running Alpine Linux. See [#1430](https://github.com/cdr/code-server/issues/1430#issuecomment-629883198)
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./npm.md](./npm.md) for installing these dependencies.
