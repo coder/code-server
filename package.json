@@ -145,6 +145,9 @@
     },
     "modulePathIgnorePatterns": [
       "<rootDir>/release"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^.+\\.(css|less)$": "<rootDir>/test/cssStub.ts"
+    }
   }
 }
