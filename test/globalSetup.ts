@@ -1,14 +1,14 @@
 // This setup runs before our e2e tests
 // so that it authenticates us into code-server
 // ensuring that we're logged in before we run any tests
-import { chromium, Page, Browser, BrowserContext } from "playwright"
+import { chromium } from "playwright"
 
 module.exports = async () => {
   console.log("🚨 Running Global Setup for Jest Tests")
   console.log("  Please hang tight...")
-  const browser: Browser = await chromium.launch()
-  const context: BrowserContext = await browser.newContext()
-  const page: Page = await context.newPage()
+  const browser = await chromium.launch()
+  const context = await browser.newContext()
+  const page = await context.newPage()
 
   await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
   // Type in password

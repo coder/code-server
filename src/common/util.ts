@@ -1,4 +1,5 @@
 import { logger, field } from "@coder/logger"
+import { Cookie } from "../../test/helpers"
 
 export interface Options {
   base: string
@@ -119,21 +120,6 @@ export function logError(prefix: string, err: any): void {
   } else {
     logger.error(`${prefix}: ${err}`)
   }
-}
-
-// Borrowed from playwright
-export interface Cookie {
-  name: string
-  value: string
-  domain: string
-  path: string
-  /**
-   * Unix time in seconds.
-   */
-  expires: number
-  httpOnly: boolean
-  secure: boolean
-  sameSite: "Strict" | "Lax" | "None"
 }
 
 /**
