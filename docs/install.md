@@ -2,19 +2,18 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
 
-- [Install](#install)
-  - [Upgrading](#upgrading)
-  - [install.sh](#installsh)
-    - [Flags](#flags)
-    - [Detection Reference](#detection-reference)
-  - [Debian, Ubuntu](#debian-ubuntu)
-  - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
-  - [Arch Linux](#arch-linux)
-  - [yarn, npm](#yarn-npm)
-  - [macOS](#macos)
-  - [Standalone Releases](#standalone-releases)
-  - [Docker](#docker)
-  - [helm](#helm)
+- [Upgrading](#upgrading)
+- [install.sh](#installsh)
+  - [Flags](#flags)
+  - [Detection Reference](#detection-reference)
+- [Debian, Ubuntu](#debian-ubuntu)
+- [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
+- [Arch Linux](#arch-linux)
+- [yarn, npm](#yarn-npm)
+- [macOS](#macos)
+- [Standalone Releases](#standalone-releases)
+- [Docker](#docker)
+- [helm](#helm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
