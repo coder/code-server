@@ -3,6 +3,7 @@ import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
 import { HttpCode } from "../src/common/http"
+import { AuthType } from "../src/node/cli"
 import { codeServer, PluginAPI } from "../src/node/plugin"
 import * as apps from "../src/node/routes/apps"
 import * as httpserver from "./httpserver"
@@ -26,6 +27,28 @@ describe("plugin", () => {
 
     const app = express.default()
     const wsApp = express.default()
+
+    const common: express.RequestHandler = (req, _, next) => {
+      // Routes might use these arguments.
+      req.args = {
+        _: [],
+        auth: AuthType.None,
+        host: "localhost",
+        port: 8080,
+        "proxy-domain": [],
+        config: "~/.config/code-server/config.yaml",
+        verbose: false,
+        usingEnvPassword: false,
+        usingEnvHashedPassword: false,
+        "extensions-dir": "",
+        "user-data-dir": "",
+      }
+      next()
+    }
+
+    app.use(common)
+    wsApp.use(common)
+
     papi.mount(app, wsApp)
     app.use("/api/applications", apps.router(papi))
 
