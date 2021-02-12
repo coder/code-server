@@ -53,8 +53,8 @@ describe("go home", () => {
     // Remove password from local storage
     await context.clearCookies()
 
-    await browser.close()
     await context.close()
+    await browser.close()
   })
 
   beforeEach(async () => {
