@@ -42,6 +42,12 @@ describe("go home", () => {
     // this will return the cookies with no changes
     // otherwise if it doesn't exist, it will create it
     // hence the name maybeUpdatedCookies
+    //
+    // TODO(@jsjoeio)
+    // The playwright storage thing sometimes works and sometimes doesn't. We should investigate this further
+    // at some point.
+    // See discussion: https://github.com/cdr/code-server/pull/2648#discussion_r575434946
+
     const maybeUpdatedCookies = createCookieIfDoesntExist(cookies, cookieToStore)
 
     context = await browser.newContext({
