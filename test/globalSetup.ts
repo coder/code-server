@@ -2,6 +2,7 @@
 // so that it authenticates us into code-server
 // ensuring that we're logged in before we run any tests
 import { chromium } from "playwright"
+import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
 
 module.exports = async () => {
   console.log("🚨 Running Global Setup for Jest Tests")
@@ -10,9 +11,9 @@ module.exports = async () => {
   const context = await browser.newContext()
   const page = await context.newPage()
 
-  await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
+  await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
   // Type in password
-  await page.fill(".password", process.env.PASSWORD || "password")
+  await page.fill(".password", PASSWORD)
   // Click the submit button and login
   await page.click(".submit")
 

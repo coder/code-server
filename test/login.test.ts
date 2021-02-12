@@ -1,4 +1,5 @@
 import { chromium, Page, Browser, BrowserContext } from "playwright"
+import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
 
 describe("login", () => {
   let browser: Browser
@@ -25,9 +26,9 @@ describe("login", () => {
   })
 
   it("should be able to login", async () => {
-    await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080")
+    await page.goto(CODE_SERVER_ADDRESS)
     // Type in password
-    await page.fill(".password", process.env.PASSWORD || "password")
+    await page.fill(".password", PASSWORD)
     // Click the submit button and login
     await page.click(".submit")
     // See the editor

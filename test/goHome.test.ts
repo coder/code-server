@@ -1,6 +1,7 @@
 import { chromium, Page, Browser, BrowserContext, Cookie } from "playwright"
 import { createCookieIfDoesntExist } from "../src/common/util"
 import { hash } from "../src/node/util"
+import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "./constants"
 
 async function setTimeoutPromise(milliseconds: number): Promise<void> {
   return new Promise((resolve, _) => {
@@ -18,12 +19,12 @@ describe("go home", () => {
   beforeAll(async () => {
     browser = await chromium.launch()
     // Create a new context with the saved storage state
-    const storageState = JSON.parse(process.env.STORAGE || "{}")
+    const storageState = JSON.parse(STORAGE) || {}
 
     const cookieToStore = {
       sameSite: "Lax" as const,
       name: "key",
-      value: hash(process.env.PASSWORD || ""),
+      value: hash(PASSWORD),
       domain: "localhost",
       path: "/",
       expires: -1,
@@ -72,7 +73,7 @@ describe("go home", () => {
   it("should see a 'Go Home' button in the Application Menu that goes to /healthz", async () => {
     let requestedGoHomeUrl = false
 
-    const GO_HOME_URL = `${process.env.CODE_SERVER_ADDRESS}/healthz`
+    const GO_HOME_URL = `${CODE_SERVER_ADDRESS}/healthz`
     page.on("request", (request) => {
       // This ensures that we did make a request to the GO_HOME_URL
       // Most reliable way to test button
@@ -89,7 +90,7 @@ describe("go home", () => {
 
     // waitUntil: "domcontentloaded"
     // In case the page takes a long time to load
-    await page.goto(process.env.CODE_SERVER_ADDRESS || "http://localhost:8080", { waitUntil: "domcontentloaded" })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
 
     // Click the Home menu
     await page.click(".home-bar ul[aria-label='Home'] li")

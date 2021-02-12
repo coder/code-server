@@ -17,7 +17,7 @@ afterEach(async () => {
 })
 
 it("should see the login page", async () => {
-  await page.goto("http://localhost:8080")
+  await page.goto(process.env)
   // It should send us to the login page
   expect(await page.title()).toBe("code-server login")
 })
