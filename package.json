@@ -33,6 +33,7 @@
   "devDependencies": {
     "@schemastore/package": "^0.0.6",
     "@types/body-parser": "^1.19.0",
+    "@types/compression": "^1.7.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.8",
     "@types/fs-extra": "^8.0.1",
@@ -51,6 +52,7 @@
     "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
+    "compression": "^1.7.4",
     "doctoc": "^1.4.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^6.0.0",

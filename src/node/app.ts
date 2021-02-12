@@ -1,4 +1,5 @@
 import { logger } from "@coder/logger"
+import compression from "compression"
 import express, { Express } from "express"
 import { promises as fs } from "fs"
 import http from "http"
@@ -12,6 +13,8 @@ import { handleUpgrade } from "./wsRouter"
  */
 export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
   const app = express()
+
+  app.use(compression())
 
   const server = args.cert
     ? httpolyglot.createServer(
