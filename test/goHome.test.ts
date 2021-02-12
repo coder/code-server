@@ -1,7 +1,7 @@
 import { chromium, Page, Browser, BrowserContext, Cookie } from "playwright"
-import { createCookieIfDoesntExist } from "../src/common/util"
 import { hash } from "../src/node/util"
 import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "./constants"
+import { createCookieIfDoesntExist } from "./helpers"
 
 describe("go home", () => {
   let browser: Browser

@@ -6,13 +6,15 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
 import * as wtfnode from "./wtfnode"
 
 module.exports = async () => {
-  console.log("🚨 Running Global Setup for Jest Tests")
-  console.log("  Please hang tight...")
+  console.log("\n🚨 Running Global Setup for Jest Tests")
+  console.log("     Please hang tight...")
   const browser = await chromium.launch()
   const context = await browser.newContext()
   const page = await context.newPage()
 
-  wtfnode.setup()
+  if (process.env.WTF_NODE) {
+    wtfnode.setup()
+  }
 
   await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
   // Type in password

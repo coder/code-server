@@ -143,9 +143,6 @@
         "lines": 40
       }
     },
-    "modulePathIgnorePatterns": [
-      "<rootDir>/release"
-    ],
     "testTimeout": 30000,
     "globalSetup": "<rootDir>/test/globalSetup.ts",
     "modulePathIgnorePatterns": [

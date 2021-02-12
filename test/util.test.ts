@@ -13,13 +13,12 @@ import {
   resolveBase,
   split,
   trimSlashes,
-  checkForCookie,
-  createCookieIfDoesntExist,
   normalize,
 } from "../src/common/util"
 import { Cookie as CookieEnum } from "../src/node/routes/login"
 import { hash } from "../src/node/util"
 import { PASSWORD } from "./constants"
+import { checkForCookie, createCookieIfDoesntExist } from "./helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
