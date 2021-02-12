@@ -6,7 +6,7 @@ import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
 import { HttpCode, HttpError } from "../common/http"
 import { version } from "./constants"
-import { replaceTemplates } from "./http"
+import { ensureAuthenticated, replaceTemplates } from "./http"
 import { proxy } from "./proxy"
 import * as util from "./util"
 import { Router as WsRouter, WebsocketRouter, wss } from "./wsRouter"
@@ -122,10 +122,10 @@ export class PluginAPI {
   public mount(r: express.Router, wr: express.Router): void {
     for (const [, p] of this.plugins) {
       if (p.router) {
-        r.use(`${p.routerPath}`, p.router())
+        r.use(`${p.routerPath}`, ensureAuthenticated, p.router())
       }
       if (p.wsRouter) {
-        wr.use(`${p.routerPath}`, (p.wsRouter() as WebsocketRouter).router)
+        wr.use(`${p.routerPath}`, ensureAuthenticated, (p.wsRouter() as WebsocketRouter).router)
       }
     }
   }
