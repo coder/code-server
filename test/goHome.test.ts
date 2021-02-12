@@ -3,14 +3,6 @@ import { createCookieIfDoesntExist } from "../src/common/util"
 import { hash } from "../src/node/util"
 import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "./constants"
 
-async function setTimeoutPromise(milliseconds: number): Promise<void> {
-  return new Promise((resolve, _) => {
-    setTimeout(() => {
-      resolve()
-    }, milliseconds)
-  })
-}
-
 describe("go home", () => {
   let browser: Browser
   let page: Page
@@ -71,18 +63,7 @@ describe("go home", () => {
 
   // NOTE: this test will fail if you do not run code-server with --home $CODE_SERVER_ADDRESS/healthz
   it("should see a 'Go Home' button in the Application Menu that goes to /healthz", async () => {
-    let requestedGoHomeUrl = false
-
     const GO_HOME_URL = `${CODE_SERVER_ADDRESS}/healthz`
-    page.on("request", (request) => {
-      // This ensures that we did make a request to the GO_HOME_URL
-      // Most reliable way to test button
-      // because we don't care if the request has a response
-      // only that it was made
-      if (request.url() === GO_HOME_URL) {
-        requestedGoHomeUrl = true
-      }
-    })
     // Sometimes a dialog shows up when you navigate
     // asking if you're sure you want to leave
     // so we listen if it comes, we accept it
@@ -101,10 +82,7 @@ describe("go home", () => {
     // Click it and navigate to /healthz
     // NOTE: ran into issues of it failing intermittently
     // without having button: "middle"
-    await Promise.all([ 
-      page.waitForNavigation(), 
-      page.click(goHomeButton, { button: "middle" }) 
-    ])
+    await Promise.all([page.waitForNavigation(), page.click(goHomeButton, { button: "middle" })])
     expect(page.url()).toBe(GO_HOME_URL)
   })
 })
