@@ -1,4 +1,5 @@
 import { logger } from "@coder/logger"
+import compression from "compression"
 import express, { Express } from "express"
 import { promises as fs } from "fs"
 import http from "http"
@@ -6,7 +7,6 @@ import * as httpolyglot from "httpolyglot"
 import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { handleUpgrade } from "./wsRouter"
-import compression from "compression";
 
 /**
  * Create an Express app and an HTTP/S server to serve it.
