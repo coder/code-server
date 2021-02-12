@@ -2,18 +2,19 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Install
 
-- [Upgrading](#upgrading)
-- [install.sh](#installsh)
-  - [Flags](#flags)
-  - [Detection Reference](#detection-reference)
-- [Debian, Ubuntu](#debian-ubuntu)
-- [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
-- [Arch Linux](#arch-linux)
-- [yarn, npm](#yarn-npm)
-- [macOS](#macos)
-- [Standalone Releases](#standalone-releases)
-- [Docker](#docker)
-- [helm](#helm)
+- [Install](#install)
+  - [Upgrading](#upgrading)
+  - [install.sh](#installsh)
+    - [Flags](#flags)
+    - [Detection Reference](#detection-reference)
+  - [Debian, Ubuntu](#debian-ubuntu)
+  - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
+  - [Arch Linux](#arch-linux)
+  - [yarn, npm](#yarn-npm)
+  - [macOS](#macos)
+  - [Standalone Releases](#standalone-releases)
+  - [Docker](#docker)
+  - [helm](#helm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -87,8 +88,8 @@ commands presented in the rest of this document.
 ## Debian, Ubuntu
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.8.1/code-server_3.8.1_amd64.deb
-sudo dpkg -i code-server_3.8.1_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server_3.9.0_amd64.deb
+sudo dpkg -i code-server_3.9.0_amd64.deb
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -96,8 +97,8 @@ sudo systemctl enable --now code-server@$USER
 ## Fedora, CentOS, RHEL, SUSE
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.8.1/code-server-3.8.1-amd64.rpm
-sudo rpm -i code-server-3.8.1-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server-3.9.0-amd64.rpm
+sudo rpm -i code-server-3.9.0-amd64.rpm
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -167,10 +168,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.8.1/code-server-3.8.1-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server-3.9.0-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.8.1-linux-amd64 ~/.local/lib/code-server-3.8.1
-ln -s ~/.local/lib/code-server-3.8.1/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-3.9.0-linux-amd64 ~/.local/lib/code-server-3.9.0
+ln -s ~/.local/lib/code-server-3.9.0/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
