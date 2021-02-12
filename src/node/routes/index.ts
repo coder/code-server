@@ -12,7 +12,7 @@ import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { redirect, replaceTemplates } from "../http"
+import { ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { wrapper } from "../wrapper"
@@ -119,7 +119,7 @@ export const register = async (
     const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
     await pluginApi.loadPlugins()
     pluginApi.mount(app, wsApp)
-    app.use("/api/applications", apps.router(pluginApi))
+    app.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
     wrapper.onDispose(() => pluginApi.dispose())
   }
 
