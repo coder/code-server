@@ -6,7 +6,7 @@ import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
 import { HttpCode, HttpError } from "../common/http"
 import { version } from "./constants"
-import { ensureAuthenticated, replaceTemplates } from "./http"
+import { authenticated, ensureAuthenticated, replaceTemplates } from "./http"
 import { proxy } from "./proxy"
 import * as util from "./util"
 import { Router as WsRouter, WebsocketRouter, wss } from "./wsRouter"
@@ -28,11 +28,13 @@ require("module")._load = function (request: string, parent: object, isMain: boo
  * The module you get when importing "code-server".
  */
 export const codeServer = {
-  express,
-  field,
   HttpCode,
   HttpError,
   Level,
+  authenticated,
+  ensureAuthenticated,
+  express,
+  field,
   proxy,
   replaceTemplates,
   WsRouter,
@@ -122,10 +124,10 @@ export class PluginAPI {
   public mount(r: express.Router, wr: express.Router): void {
     for (const [, p] of this.plugins) {
       if (p.router) {
-        r.use(`${p.routerPath}`, ensureAuthenticated, p.router())
+        r.use(`${p.routerPath}`, p.router())
       }
       if (p.wsRouter) {
-        wr.use(`${p.routerPath}`, ensureAuthenticated, (p.wsRouter() as WebsocketRouter).router)
+        wr.use(`${p.routerPath}`, (p.wsRouter() as WebsocketRouter).router)
       }
     }
   }
