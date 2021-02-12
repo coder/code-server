@@ -251,7 +251,7 @@ export class PluginAPI {
     if (!p.routerPath) {
       throw new Error("plugin missing router path")
     }
-    if (!p.routerPath.startsWith("/") || p.routerPath.length < 2) {
+    if (!p.routerPath.startsWith("/")) {
       throw new Error(`plugin router path ${q(p.routerPath)}: invalid`)
     }
     if (!p.homepageURL) {
