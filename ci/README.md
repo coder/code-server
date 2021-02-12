@@ -49,8 +49,9 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 Currently, we run a command to manually generate the code coverage shield. Follow these steps:
 
-1. Run `yarn badges`
-2. Go into the README and change the color from `red` to `green` in this line:
+1. Run `yarn test` and make sure all the tests are passing
+2. Run `yarn badges`
+3. Go into the README and change the color from `red` to `green` in this line:
 
 ```
 ![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
