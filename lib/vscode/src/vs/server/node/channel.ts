@@ -580,7 +580,7 @@ class Terminal {
 		this._onEvent.dispose();
 		this.bufferer.dispose();
 		await this.process.shutdown(true);
-		this.process.dispose();		
+		this.process.dispose();
 		this._onDispose.fire();
 		this._onDispose.dispose();
 	}
