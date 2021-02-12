@@ -3,6 +3,7 @@
 // ensuring that we're logged in before we run any tests
 import { chromium } from "playwright"
 import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
+import * as wtfnode from "./wtfnode"
 
 module.exports = async () => {
   console.log("🚨 Running Global Setup for Jest Tests")
@@ -10,6 +11,8 @@ module.exports = async () => {
   const browser = await chromium.launch()
   const context = await browser.newContext()
   const page = await context.newPage()
+
+  wtfnode.setup()
 
   await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
   // Type in password
