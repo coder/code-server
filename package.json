@@ -52,7 +52,6 @@
     "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
-    "compression": "^1.7.4",
     "doctoc": "^1.4.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^6.0.0",
@@ -77,6 +76,7 @@
   "dependencies": {
     "@coder/logger": "1.1.16",
     "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
     "express": "^5.0.0-alpha.8",
