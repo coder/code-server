@@ -1,5 +1,6 @@
 import * as express from "express"
 import * as http from "http"
+import * as net from "net"
 import * as nodeFetch from "node-fetch"
 import Websocket from "ws"
 import * as util from "../src/common/util"
@@ -8,13 +9,21 @@ import { handleUpgrade } from "../src/node/wsRouter"
 
 // Perhaps an abstraction similar to this should be used in app.ts as well.
 export class HttpServer {
-  private hs = http.createServer()
+  private readonly sockets = new Set<net.Socket>()
+  private cleanupTimeout?: NodeJS.Timeout
 
-  public constructor(hs?: http.Server) {
-    // See usage in test/integration.ts
-    if (hs) {
-      this.hs = hs
-    }
+  // See usage in test/integration.ts
+  public constructor(private readonly hs = http.createServer()) {
+    this.hs.on("connection", (socket) => {
+      this.sockets.add(socket)
+      socket.on("close", () => {
+        this.sockets.delete(socket)
+        if (this.cleanupTimeout && this.sockets.size === 0) {
+          clearTimeout(this.cleanupTimeout)
+          this.cleanupTimeout = undefined
+        }
+      })
+    })
   }
 
   /**
@@ -54,6 +63,8 @@ export class HttpServer {
    */
   public close(): Promise<void> {
     return new Promise((res, rej) => {
+      // Close will not actually close anything; it just waits until everything
+      // is closed.
       this.hs.close((err) => {
         if (err) {
           rej(err)
@@ -61,6 +72,19 @@ export class HttpServer {
         }
         res()
       })
+
+      // If there are sockets remaining we might need to force close them or
+      // this promise might never resolve.
+      if (this.sockets.size > 0) {
+        // Give sockets a chance to close up shop.
+        this.cleanupTimeout = setTimeout(() => {
+          this.cleanupTimeout = undefined
+          for (const socket of this.sockets.values()) {
+            console.warn("a socket was left hanging")
+            socket.destroy()
+          }
+        }, 1000)
+      }
     })
   }
 
