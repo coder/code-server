@@ -26,6 +26,13 @@ installations.
 ## Bug Fixes
   - ⭐ Summarize bug fixes here with references to issues
 
+## Documentation
+  - ⭐ Summarize doc changes here with references to issues
+
+## Development
+  - ⭐ Summarize development/testing changes here with references to issues
+
+
 Cheers! 🍻
 EOF
 }

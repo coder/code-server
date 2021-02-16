@@ -28,6 +28,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
+   2. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
 4. Wait for the artifacts in step 2 to build.
 5. Run `yarn release:github-assets` to download the `release-packages` artifact.
    - It will upload them to the draft release.
@@ -49,8 +50,9 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 Currently, we run a command to manually generate the code coverage shield. Follow these steps:
 
-1. Run `yarn badges`
-2. Go into the README and change the color from `red` to `green` in this line:
+1. Run `yarn test` and make sure all the tests are passing
+2. Run `yarn badges`
+3. Go into the README and change the color from `red` to `green` in this line:
 
 ```
 ![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
