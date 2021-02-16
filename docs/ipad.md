@@ -3,9 +3,11 @@
 # iPad
 
 - [Known Issues](#known-issues)
+- [How to install PWA](#how-to-install-pwa)
 - [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
   - [Servediter iPad App](#servediter-ipad-app)
 - [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
+- [Ctrl C Workaround](#ctrl-c-workaround)
 - [Recommendations](#recommendations)
 - [By 2022 iPad coding more desirable on Arm Macs](#by-2022-ipad-coding-more-desirable-on-arm-macs)
 
@@ -27,6 +29,34 @@
   - Alternative: Install line-jump extension and use keyboard to nav by jumping large amount of lines
   - Alternative: Just use touch scrolling
 - See [issues tagged with the iPad label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3AiPad) for more.
+- `ctrl+c` does not stop a long-running process in the browser
+  - Tracking upstream issue here: [#114009](https://github.com/microsoft/vscode/issues/114009)
+  - See [workaround](#ctrl-c-workaround)
+
+## How to install PWA
+
+To install the code-server PWA, follow these steps:
+
+1. Open code-server in Safari
+2. Click the Share icon
+3. Click "Add to Home Screen"
+
+Now when you open code-server from the home screen, you will be using the PWA.
+The advantages of this are more screen real estate and access to top-level keyboard shortcuts because it's running like an app.
+An example shortcut is the `cmd+w` to close an active file in the workbench. You can add this to your `keybindings.json` by doing the following:
+
+1. Open up code-serer
+2. `Command Palette > Open Keyboard Shortcuts (JSON)`
+3. Add the following to your `keybindings.json`
+
+```json
+{
+  "key": "cmd+w",
+  "command": "workbench.action.closeActiveEditor"
+}
+```
+
+Test out command by hitting `cmd+w` to close an active file
 
 ## How to access code-server with a self signed certificate on iPad?
 
@@ -90,6 +120,27 @@ Resources worthy of review:
 > Here are my keys to success. I bought a 4" touch screen with fan included that attaches as a case to the Pi. I use the touch screen for anytime I have connection issues, otherwise I turn off the Pi screen. I gave my Pi a network name so I can easily connect at home on wifi or when on go with 1 usb-c cable that supplys both power and network connectivity. Lastly, not all usb-c cables are equal and not all will work so try different usb-c cables if you are going mad (confirm over wifi first then move to cable).
 >
 > -- <cite>[Acker Apple](http://github.com/ackerapple/)</cite>
+
+## Ctrl C Workaround
+
+There is currently an issue with `ctrl+c` not stopping a running process in the integrated terminal. We have filed an issue upstream and are tracking [here](https://github.com/microsoft/vscode/issues/114009). As a temporary workaround, it works if you manually define the shortcut like so:
+
+1. Open Command Palette
+2. Look for "Preferences: Open Keyboard Shortcuts (JSON)"
+3. Add this:
+
+```json
+{
+  "key": "ctrl+c",
+  "command": "workbench.action.terminal.sendSequence",
+  "args": {
+    "text": "\u0003"
+  },
+  "when": "terminalFocus"
+}
+```
+
+Source: [StackOverflow](https://stackoverflow.com/a/52735954/3015595)
 
 ## Recommendations
 

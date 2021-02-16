@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/master/doc/install.md
+# See https://github.com/cdr/code-server/blob/master/docs/install.md
 
 usage() {
   arg0="$0"
@@ -67,7 +67,7 @@ Usage:
 
 It will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://github.com/cdr/code-server/blob/master/doc/install.md
+More installation docs are at https://github.com/cdr/code-server/blob/master/docs/install.md
 EOF
 }
 
@@ -525,7 +525,7 @@ sudo_sh_c() {
   elif command_exists sudo; then
     sh_c "sudo $*"
   elif command_exists su; then
-    sh_c "su -c '$*'"
+    sh_c "su - -c '$*'"
   else
     echoh
     echoerr "This script needs to run the following command as root."

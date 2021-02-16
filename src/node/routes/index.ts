@@ -55,15 +55,15 @@ export const register = async (
       })
     })
   })
+  server.on("close", () => {
+    heart.dispose()
+  })
 
   app.disable("x-powered-by")
   wsApp.disable("x-powered-by")
 
   app.use(cookieParser())
   wsApp.use(cookieParser())
-
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
 
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
@@ -103,6 +103,29 @@ export const register = async (
   app.use("/", domainProxy.router)
   wsApp.use("/", domainProxy.wsRouter.router)
 
+  app.all("/proxy/(:port)(/*)?", (req, res) => {
+    proxy.proxy(req, res)
+  })
+  wsApp.get("/proxy/(:port)(/*)?", (req, res) => {
+    proxy.wsProxy(req as WebsocketRequest)
+  })
+  // These two routes pass through the path directly.
+  // So the proxied app must be aware it is running
+  // under /absproxy/<someport>/
+  app.all("/absproxy/(:port)(/*)?", (req, res) => {
+    proxy.proxy(req, res, {
+      passthroughPath: true,
+    })
+  })
+  wsApp.get("/absproxy/(:port)(/*)?", (req, res) => {
+    proxy.wsProxy(req as WebsocketRequest, {
+      passthroughPath: true,
+    })
+  })
+
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+
   app.use("/", vscode.router)
   wsApp.use("/", vscode.wsRouter.router)
   app.use("/vscode", vscode.router)
@@ -117,9 +140,6 @@ export const register = async (
       redirect(req, res, "/", {})
     })
   }
-
-  app.use("/proxy", proxy.router)
-  wsApp.use("/proxy", proxy.wsRouter.router)
 
   app.use("/static", _static.router)
   app.use("/update", update.router)
@@ -165,7 +185,7 @@ export const register = async (
 
   app.use(errorHandler)
 
-  const wsErrorHandler: express.ErrorRequestHandler = async (err, req) => {
+  const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     logger.error(`${err.message} ${err.stack}`)
     ;(req as WebsocketRequest).ws.end()
   }

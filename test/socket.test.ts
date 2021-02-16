@@ -1,22 +1,23 @@
 import { field, logger } from "@coder/logger"
-import * as assert from "assert"
 import * as fs from "fs-extra"
-import "leaked-handles"
 import * as net from "net"
 import * as path from "path"
 import * as tls from "tls"
 import { Emitter } from "../src/common/emitter"
 import { SocketProxyProvider } from "../src/node/socket"
 import { generateCertificate, tmpdir } from "../src/node/util"
+import * as wtfnode from "./wtfnode"
 
 describe("SocketProxyProvider", () => {
+  wtfnode.setup()
+
   const provider = new SocketProxyProvider()
 
   const onServerError = new Emitter<{ event: string; error: Error }>()
   const onClientError = new Emitter<{ event: string; error: Error }>()
   const onProxyError = new Emitter<{ event: string; error: Error }>()
-  const fromServerToClient = new Emitter<string>()
-  const fromClientToServer = new Emitter<string>()
+  const fromServerToClient = new Emitter<Buffer>()
+  const fromClientToServer = new Emitter<Buffer>()
   const fromClientToProxy = new Emitter<Buffer>()
 
   let errors = 0
@@ -44,7 +45,7 @@ describe("SocketProxyProvider", () => {
     })
   }
 
-  before(async () => {
+  beforeAll(async () => {
     const cert = await generateCertificate("localhost")
     const options = {
       cert: fs.readFileSync(cert.cert),
@@ -56,7 +57,7 @@ describe("SocketProxyProvider", () => {
     const socketPath = await provider.findFreeSocketPath(path.join(tmpdir, "tests/tls-socket-proxy"))
     await fs.remove(socketPath)
 
-    return new Promise((_resolve) => {
+    return new Promise<void>((_resolve) => {
       const resolved: { [key: string]: boolean } = { client: false, server: false }
       const resolve = (type: "client" | "server"): void => {
         resolved[type] = true
@@ -93,14 +94,16 @@ describe("SocketProxyProvider", () => {
 
   it("should work without a proxy", async () => {
     server.write("server->client")
-    assert.equal(await getData(fromServerToClient), "server->client")
+    const dataFromServerToClient = (await getData(fromServerToClient)).toString()
+    expect(dataFromServerToClient).toBe("server->client")
     client.write("client->server")
-    assert.equal(await getData(fromClientToServer), "client->server")
-    assert.equal(errors, 0)
+    const dataFromClientToServer = (await getData(fromClientToServer)).toString()
+    expect(dataFromClientToServer).toBe("client->server")
+    expect(errors).toEqual(0)
   })
 
   it("should work with a proxy", async () => {
-    assert.equal(server instanceof tls.TLSSocket, true)
+    expect(server instanceof tls.TLSSocket).toBe(true)
     proxy = (await provider.createProxy(server))
       .on("data", (d) => fromClientToProxy.emit(d))
       .on("error", (error) => onProxyError.emit({ event: "error", error }))
@@ -110,10 +113,12 @@ describe("SocketProxyProvider", () => {
     provider.stop() // We don't need more proxies.
 
     proxy.write("server proxy->client")
-    assert.equal(await getData(fromServerToClient), "server proxy->client")
+    const dataFromServerToClient = await (await getData(fromServerToClient)).toString()
+    expect(dataFromServerToClient).toBe("server proxy->client")
     client.write("client->server proxy")
-    assert.equal(await getData(fromClientToProxy), "client->server proxy")
-    assert.equal(errors, 0)
+    const dataFromClientToProxy = await (await getData(fromClientToProxy)).toString()
+    expect(dataFromClientToProxy).toBe("client->server proxy")
+    expect(errors).toEqual(0)
   })
 
   it("should close", async () => {

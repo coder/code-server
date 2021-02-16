@@ -9,7 +9,7 @@ assignees: ""
 <!--
 Details on the code-server extension marketplace are at
 
-https://github.com/cdr/code-server/blob/master/doc/FAQ.md#whats-the-deal-with-extensions
+https://github.com/cdr/code-server/blob/master/docs/FAQ.md#whats-the-deal-with-extensions
 
 Please fill in the issue template!
 -->

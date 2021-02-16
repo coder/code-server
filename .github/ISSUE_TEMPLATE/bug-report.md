@@ -7,7 +7,7 @@ assignees: ""
 ---
 
 <!--
-Please see https://github.com/cdr/code-server/blob/master/doc/FAQ.md#how-do-i-debug-issues-with-code-server
+Please see https://github.com/cdr/code-server/blob/master/docs/FAQ.md#how-do-i-debug-issues-with-code-server
 and include any logging information relevant to the issue.
 
 Please search for existing issues before filing.

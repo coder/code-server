@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.8.0",
+  "version": "3.8.1",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -26,7 +26,8 @@
     "test": "./ci/dev/test.sh",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts",
-    "icons": "./ci/dev/gen_icons.sh"
+    "icons": "./ci/dev/gen_icons.sh",
+    "badges": "istanbul-badges-readme"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
@@ -36,7 +37,6 @@
     "@types/fs-extra": "^8.0.1",
     "@types/http-proxy": "^1.17.4",
     "@types/js-yaml": "^3.12.3",
-    "@types/mocha": "^8.0.3",
     "@types/node": "^12.12.7",
     "@types/parcel-bundler": "^1.12.1",
     "@types/pem": "^1.9.5",
@@ -44,10 +44,10 @@
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
     "@types/split2": "^2.1.6",
-    "@types/supertest": "^2.0.10",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
+    "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "doctoc": "^1.4.0",
@@ -55,15 +55,15 @@
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^3.1.0",
+    "istanbul-badges-readme": "^1.2.0",
     "leaked-handles": "^5.2.0",
-    "mocha": "^8.1.2",
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.0.5",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^3.0.0",
-    "supertest": "^6.0.1",
     "ts-node": "^9.0.0",
-    "typescript": "4.0.2"
+    "wtfnode": "^0.8.4",
+    "typescript": "^4.1.3"
   },
   "resolutions": {
     "@types/node": "^12.12.7",
@@ -81,6 +81,7 @@
     "httpolyglot": "^0.1.2",
     "js-yaml": "^3.13.1",
     "limiter": "^1.1.5",
+    "node-fetch": "^2.6.1",
     "pem": "^1.14.2",
     "proxy-agent": "^4.0.0",
     "proxy-from-env": "^1.1.0",
@@ -109,5 +110,34 @@
   ],
   "engines": {
     "node": ">= 12"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.ts$": "<rootDir>/test/node_modules/ts-jest"
+    },
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "node_modules",
+      "lib",
+      "out"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.ts"
+    ],
+    "coverageDirectory": "<rootDir>/coverage",
+    "coverageReporters": [
+      "json",
+      "json-summary",
+      "text"
+    ],
+    "coveragePathIgnorePatterns": [
+      "out"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 40
+      }
+    }
   }
 }

@@ -15,6 +15,8 @@
 - [How do I securely access web services?](#how-do-i-securely-access-web-services)
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
+- [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
+  - [Proxying to Create React App](#proxying-to-create-react-app)
 - [Multi-tenancy](#multi-tenancy)
 - [Docker in code-server container?](#docker-in-code-server-container)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
@@ -105,6 +107,8 @@ discussion regarding the use of the Microsoft URLs in forks:
 
 https://github.com/microsoft/vscode/issues/31168#issue-244533026
 
+See also [VSCodium's docs](https://github.com/VSCodium/vscodium/blob/master/DOCS.md#extensions--marketplace).
+
 These variables are most valuable to our enterprise customers for whom we have a self hosted marketplace product.
 
 ## Where are extensions stored?
@@ -164,13 +168,20 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 
 ## Can I store my password hashed?
 
-Yes you can! Use `hashed-password` instead of `password`. Generate the hash with:
+Yes you can! Set the value of `hashed-password` instead of `password`. Generate the hash with:
 
 ```
-echo "thisismypassword" | sha256sum | cut -d' ' -f1
+printf "thisismypassword" | sha256sum | cut -d' ' -f1
 ```
 
-Of course replace `"thisismypassword"` with your actual password.
+Of course replace `thisismypassword` with your actual password.
+
+Example:
+
+```yaml
+auth: password
+hashed-password: 1da9133ab9dbd11d2937ec8d312e1e2569857059e73cc72df92e670928983ab5 # You got this from the command above
+```
 
 ## How do I securely access web services?
 
@@ -200,6 +211,45 @@ code-server --proxy-domain <domain>
 
 Now you can browse to `<port>.<domain>`. Note that this uses the host header so
 ensure your reverse proxy forwards that information if you are using one.
+
+## Why does the code-server proxy strip `/proxy/<port>` from the request path?
+
+HTTP servers should strive to use relative URLs to avoid needed to be coupled to the
+absolute path at which they are served. This means you must use trailing slashes on all
+paths with subpaths. See https://blog.cdivilly.com/2019/02/28/uri-trailing-slashes
+
+This is really the "correct" way things work and why the striping of the base path is the
+default. If your application uses relative URLs and does not assume the absolute path at
+which it is being served, it will just work no matter what port you decide to serve it off
+or if you put it in behind code-server or any other proxy!
+
+However many people prefer the cleaner aesthetic of no trailing slashes. This couples you
+to the base path as you cannot use relative redirects correctly anymore. See the above
+link.
+
+For users who are ok with this tradeoff, use `/absproxy` instead and the path will be
+passed as is. e.g. `/absproxy/3000/my-app-path`
+
+### Proxying to Create React App
+
+You must use `/absproxy/<port>` with create-react-app.
+See [#2565](https://github.com/cdr/code-server/issues/2565) and
+[#2222](https://github.com/cdr/code-server/issues/2222). You will need to inform
+create-react-app of the path at which you are serving via `$PUBLIC_URL` and webpack
+via `$WDS_SOCKET_PATH`.
+
+e.g.
+
+```sh
+PUBLIC_URL=/absproxy/3000 \
+  WDS_SOCKET_PATH=$PUBLIC_URL/sockjs-node \
+  BROWSER=none yarn start
+```
+
+Then visit `https://my-code-server-address.io/absproxy/3000` to see your app exposed through
+code-server!
+
+Highly recommend using the subdomain approach instead to avoid this class of issue.
 
 ## Multi-tenancy
 

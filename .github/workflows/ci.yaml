@@ -22,13 +22,24 @@ jobs:
           args: ./ci/steps/lint.sh
 
   test:
+    needs: linux-amd64
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Run ./ci/steps/test.sh
-        uses: ./ci/images/debian10
+      - name: Download release packages
+        uses: actions/download-artifact@v2
         with:
-          args: ./ci/steps/test.sh
+          name: release-packages
+          path: ./release-packages
+      - name: Untar code-server file
+        run: |
+          cd release-packages && tar -xzf code-server*-linux-amd64.tar.gz
+      - uses: microsoft/playwright-github-action@v1
+      - name: Install dependencies and run tests
+        run: |
+          node ./release-packages/code-server*-linux-amd64 &
+          yarn --frozen-lockfile
+          yarn test
 
   release:
     runs-on: ubuntu-latest

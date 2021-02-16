@@ -112,3 +112,11 @@ export const getFirstString = (value: string | string[] | object | undefined): s
 
   return typeof value === "string" ? value : undefined
 }
+
+export function logError(prefix: string, err: any): void {
+  if (err instanceof Error) {
+    logger.error(`${prefix}: ${err.message} ${err.stack}`)
+  } else {
+    logger.error(`${prefix}: ${err}`)
+  }
+}
