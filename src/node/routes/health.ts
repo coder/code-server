@@ -13,8 +13,8 @@ router.get("/", (req, res) => {
 export const wsRouter = WsRouter()
 
 wsRouter.ws("/", async (req) => {
-  wss.handleUpgrade(req, req.socket, req.head, (ws) => {
-    ws.on("message", () => {
+  wss.handleUpgrade(req, req.ws, req.head, (ws) => {
+    ws.addEventListener("message", () => {
       ws.send(
         JSON.stringify({
           event: "health",
@@ -23,5 +23,6 @@ wsRouter.ws("/", async (req) => {
         }),
       )
     })
+    req.ws.resume()
   })
 })

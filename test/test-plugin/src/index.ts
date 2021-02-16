@@ -28,7 +28,8 @@ export const plugin: cs.Plugin = {
   wsRouter() {
     const wr = cs.WsRouter()
     wr.ws("/test-app", (req) => {
-      cs.wss.handleUpgrade(req, req.socket, req.head, (ws) => {
+      cs.wss.handleUpgrade(req, req.ws, req.head, (ws) => {
+        req.ws.resume()
         ws.send("hello")
       })
     })
