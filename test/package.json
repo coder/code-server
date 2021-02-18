@@ -1,5 +1,8 @@
 {
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
+  "scripts": {
+    "postinstall": "./scripts/patch.sh"
+  },
   "devDependencies": {
     "@types/jest": "^26.0.20",
     "@types/jsdom": "^16.2.6",

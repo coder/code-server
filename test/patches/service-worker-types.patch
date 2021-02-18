@@ -1,0 +1,14 @@
+--- node_modules/@types/service-worker-mock/index.d.ts	2021-02-18 13:51:50.000000000 -0700
++++ patches/service-workertypes.d.ts	2021-02-18 16:30:01.000000000 -0700
+@@ -3,6 +3,11 @@
+ // Definitions by: Remco Haszing <https://github.com/remcohaszing>
+ // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
+ // TypeScript Version: 2.8
++// https://gist.github.com/shqld/32df51a4a4ed429f2c76e4e2cfdf6f96#gistcomment-2793376
++// excludes default libs such as 'dom' conflicting with 'webworker'
++/// <reference no-default-lib="true"/>
++/// <reference lib="esnext" />
++/// <reference lib="webworker" />
+ 
+ export = makeServiceWorkerEnv;
+ declare function makeServiceWorkerEnv(): WorkerGlobalScope;
