@@ -1,0 +1,9 @@
+--- node_modules/service-worker-mock/models/Response.js	2021-02-18 13:47:55.000000000 -0700
++++ patches/service-worker-mock-response.js	2021-02-18 15:57:12.000000000 -0700
+@@ -1,5 +1,6 @@
+ // stubs https://developer.mozilla.org/en-US/docs/Web/API/Response
+ const Body = require('./Body');
++const Blob = require('./Blob')
+ const Headers = require('./Headers');
+ 
+ const isSupportedBodyType = (body) =>

@@ -1,0 +1,15 @@
+--- node_modules/service-worker-mock/fetch.js	2021-02-18 13:47:55.000000000 -0700
++++ patches/service-worker-mock-fixed.js	2021-02-18 15:49:47.000000000 -0700
+@@ -1,8 +1,11 @@
+ module.exports = async (request) => {
++  const Response = require('./models/Response');
+   const response = new Response('Response from service-worker-mock/fetch.js', {
+     status: 200,
+     statusText: 'ok.'
+   });
+-  response.url = request.url;
++  if (request && request.url) {
++    response.url = request.url;
++  }
+   return response;
+ };
