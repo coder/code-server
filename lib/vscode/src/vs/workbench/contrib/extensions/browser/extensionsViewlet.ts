@@ -476,7 +476,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 				<p style="margin-top: 0; margin-bottom: 4px">
 				These extensions are not official. Find additional open-source extensions
 				<a style="color: ${linkColor}" href="https://open-vsx.org/" target="_blank">here</a>.
-				See <a style="color: ${linkColor}" href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
+				See <a style="color: ${linkColor}" href="https://github.com/cdr/code-server/blob/master/docs/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
 				</p>
 				</div>
 						`;
