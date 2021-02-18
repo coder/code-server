@@ -10,6 +10,10 @@ apply_service_worker_mock_patches() {
 
   # This patch adds a missing import
   patch --forward node_modules/service-worker-mock/models/Response.js < patches/service-worker-mock-response.patch
+
+  # This patch fixes the types declaration file
+  # See discussion:
+  patch --forward node_modules/@types/service-worker-mock/index.d.ts < patches/service-worker-types.patch
 }
 
 main() {
