@@ -588,6 +588,11 @@
   resolved "https://registry.yarnpkg.com/@types/prettier/-/prettier-2.1.6.tgz#f4b1efa784e8db479cdb8b14403e2144b1e9ff03"
   integrity sha512-6gOkRe7OIioWAXfnO/2lFiv+SJichKVSys1mSsgyrYHSEjk8Ctv4tSR/Odvnu+HWlH2C8j53dahU03XmQdd5fA==
 
+"@types/service-worker-mock@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/service-worker-mock/-/service-worker-mock-2.0.1.tgz#4857b2024318c395294a02eda5050ac083f41e56"
+  integrity sha512-LqaP0QmgppRF7YEaqx4amoazHNXaX5bIFDAu62LnWIc5ku0HbgqlPKroQstAu8WsdmWIqEfI9VGlP8Skkq+m5A==
+
 "@types/stack-utils@^2.0.0":
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/@types/stack-utils/-/stack-utils-2.0.0.tgz#7036640b4e21cc2f259ae826ce843d277dad8cff"
@@ -1231,6 +1236,13 @@ diff-sequences@^26.6.2:
   version "26.6.2"
   resolved "https://registry.yarnpkg.com/diff-sequences/-/diff-sequences-26.6.2.tgz#48ba99157de1923412eed41db6b6d4aa9ca7c0b1"
   integrity sha512-Mv/TDa3nZ9sbc5soK+OoA74BsS3mL37yixCvUAQkiuA4Wz6YtwP/K47n2rv2ovzHZvoiQeA5FTQOschKkEwB0Q==
+
+dom-urls@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/dom-urls/-/dom-urls-1.1.0.tgz#001ddf81628cd1e706125c7176f53ccec55d918e"
+  integrity sha1-AB3fgWKM0ecGElxxdvU8zsVdkY4=
+  dependencies:
+    urijs "^1.16.1"
 
 domexception@^2.0.1:
   version "2.0.1"
@@ -2486,6 +2498,38 @@ locate-path@^5.0.0:
   dependencies:
     p-locate "^4.1.0"
 
+lodash._basefor@^3.0.0:
+  version "3.0.3"
+  resolved "https://registry.yarnpkg.com/lodash._basefor/-/lodash._basefor-3.0.3.tgz#7550b4e9218ef09fad24343b612021c79b4c20c2"
+  integrity sha1-dVC06SGO8J+tJDQ7YSAhx5tMIMI=
+
+lodash.isarguments@^3.0.0:
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/lodash.isarguments/-/lodash.isarguments-3.1.0.tgz#2f573d85c6a24289ff00663b491c1d338ff3458a"
+  integrity sha1-L1c9hcaiQon/AGY7SRwdM4/zRYo=
+
+lodash.isarray@^3.0.0:
+  version "3.0.4"
+  resolved "https://registry.yarnpkg.com/lodash.isarray/-/lodash.isarray-3.0.4.tgz#79e4eb88c36a8122af86f844aa9bcd851b5fbb55"
+  integrity sha1-eeTriMNqgSKvhvhEqpvNhRtfu1U=
+
+lodash.isplainobject@^3.0.2:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/lodash.isplainobject/-/lodash.isplainobject-3.2.0.tgz#9a8238ae16b200432960cd7346512d0123fbf4c5"
+  integrity sha1-moI4rhayAEMpYM1zRlEtASP79MU=
+  dependencies:
+    lodash._basefor "^3.0.0"
+    lodash.isarguments "^3.0.0"
+    lodash.keysin "^3.0.0"
+
+lodash.keysin@^3.0.0:
+  version "3.0.8"
+  resolved "https://registry.yarnpkg.com/lodash.keysin/-/lodash.keysin-3.0.8.tgz#22c4493ebbedb1427962a54b445b2c8a767fb47f"
+  integrity sha1-IsRJPrvtsUJ5YqVLRFssinZ/tH8=
+  dependencies:
+    lodash.isarguments "^3.0.0"
+    lodash.isarray "^3.0.0"
+
 lodash.memoize@4.x:
   version "4.1.2"
   resolved "https://registry.yarnpkg.com/lodash.memoize/-/lodash.memoize-4.1.2.tgz#bcc6c49a42a2840ed997f323eada5ecd182e0bfe"
@@ -3016,6 +3060,13 @@ readable-stream@^3.6.0:
     string_decoder "^1.1.1"
     util-deprecate "^1.0.1"
 
+realistic-structured-clone@^1.0.1:
+  version "1.0.1"
+  resolved "https://registry.yarnpkg.com/realistic-structured-clone/-/realistic-structured-clone-1.0.1.tgz#1abe82af0b80cd7b109fdaf5d29308032852d45d"
+  integrity sha1-Gr6CrwuAzXsQn9r10pMIAyhS1F0=
+  dependencies:
+    lodash.isplainobject "^3.0.2"
+
 regex-not@^1.0.0, regex-not@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/regex-not/-/regex-not-1.0.2.tgz#1f4ece27e00b0b65e0247a6810e6a85d83a5752c"
@@ -3199,6 +3250,16 @@ semver@^6.0.0, semver@^6.3.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-6.3.0.tgz#ee0a64c8af5e8ceea67687b133761e1becbd1d3d"
   integrity sha512-b39TBaTSfV6yBrapU89p5fKekE2m/NwnDocOVruQFS1/veMgdzuPcnOM34M6CwxW8jH/lxEa5rBoDeUwu5HHTw==
 
+service-worker-mock@^2.0.5:
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/service-worker-mock/-/service-worker-mock-2.0.5.tgz#89d47ec1571130114d4deed66d69bdcfee4a4545"
+  integrity sha512-yk6NCFnRWGfbOlP+IS4hEbJnGU8dVgtodAAKLxhkTPsOmaES44XVSWTNozK6KwI+p/0PDRrFsb2RjTMhvXiNkA==
+  dependencies:
+    dom-urls "^1.1.0"
+    shelving-mock-indexeddb "^1.1.0"
+    url-search-params "^0.10.0"
+    w3c-hr-time "^1.0.1"
+
 set-blocking@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/set-blocking/-/set-blocking-2.0.0.tgz#045f9782d011ae9a6803ddd382b24392b3d890f7"
@@ -3242,6 +3303,19 @@ shellwords@^0.1.1:
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/shellwords/-/shellwords-0.1.1.tgz#d6b9181c1a48d397324c84871efbcfc73fc0654b"
   integrity sha512-vFwSUfQvqybiICwZY5+DAWIPLKsWO31Q91JSKl3UYv+K5c2QRPzn0qzec6QPu1Qc9eHYItiP3NdJqNVqetYAww==
+
+shelving-mock-event@^1.0.12:
+  version "1.0.12"
+  resolved "https://registry.yarnpkg.com/shelving-mock-event/-/shelving-mock-event-1.0.12.tgz#401dc90b3b49cbf2a817ecf2dd5a83eff4de2e14"
+  integrity sha512-2F+IZ010rwV3sA/Kd2hnC1vGNycsxeBJmjkXR8+4IOlv5e+Wvj+xH+A8Cv8/Z0lUyCut/HcxSpeDccYTVtnuaQ==
+
+shelving-mock-indexeddb@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/shelving-mock-indexeddb/-/shelving-mock-indexeddb-1.1.0.tgz#e065a8d7987d182d058e2b55f0f79a52d48a38f1"
+  integrity sha512-akHJAmGL/dplJ4FZNxPxVbOxMw8Ey6wAnB9+3+GCUNqPUcJaskS55GijxZtarTfAYB4XQyu+FLtjcq2Oa3e2Lg==
+  dependencies:
+    realistic-structured-clone "^1.0.1"
+    shelving-mock-event "^1.0.12"
 
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.3"
@@ -3674,10 +3748,20 @@ uri-js@^4.2.2:
   dependencies:
     punycode "^2.1.0"
 
+urijs@^1.16.1:
+  version "1.19.6"
+  resolved "https://registry.yarnpkg.com/urijs/-/urijs-1.19.6.tgz#51f8cb17ca16faefb20b9a31ac60f84aa2b7c870"
+  integrity sha512-eSXsXZ2jLvGWeLYlQA3Gh36BcjF+0amo92+wHPyN1mdR8Nxf75fuEuYTd9c0a+m/vhCjRK0ESlE9YNLW+E1VEw==
+
 urix@^0.1.0:
   version "0.1.0"
   resolved "https://registry.yarnpkg.com/urix/-/urix-0.1.0.tgz#da937f7a62e21fec1fd18d49b35c2935067a6c72"
   integrity sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
+
+url-search-params@^0.10.0:
+  version "0.10.2"
+  resolved "https://registry.yarnpkg.com/url-search-params/-/url-search-params-0.10.2.tgz#e9da69646e48c6140c6732e1f07fb669525f5a4e"
+  integrity sha512-d6GYsr992Bo9rzTZFc9BUw3UFAAg3prE9JGVBgW2TLTbI3rSvg4VDa0BFXHMzKkWbAuhrmaFWpucpRJl+3W7Jg==
 
 use@^3.1.0:
   version "3.1.1"
@@ -3725,7 +3809,7 @@ verror@1.10.0:
     core-util-is "1.0.2"
     extsprintf "^1.2.0"
 
-w3c-hr-time@^1.0.2:
+w3c-hr-time@^1.0.1, w3c-hr-time@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/w3c-hr-time/-/w3c-hr-time-1.0.2.tgz#0a89cdf5cc15822df9c360543676963e0cc308cd"
   integrity sha512-z8P5DvDNjKDoFIHK7q8r8lackT6l+jo/Ye3HOle7l9nICP9lf1Ci25fy9vHd0JOWewkIFzXIEig3TdKT7JQ5fQ==
