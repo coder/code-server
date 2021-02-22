@@ -1,10 +1,12 @@
-import { getOptions, Options, normalize, logError } from "../common/util"
+import { getOptions, normalize, logError } from "../common/util"
 
 import "./pages/error.css"
 import "./pages/global.css"
 import "./pages/login.css"
 
-export async function registerServiceWorker(navigator: Navigator, path: string, options: Options): Promise<void> {
+async function registerServiceWorker(): Promise<void> {
+  const options = getOptions()
+  const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
   try {
     await navigator.serviceWorker.register(path, {
       scope: (options.base ?? "") + "/",
@@ -15,23 +17,8 @@ export async function registerServiceWorker(navigator: Navigator, path: string, 
   }
 }
 
-interface HandleServiceWorkerRegistration {
-  getOptions: () => Options
-  normalize: (url: string, keepTrailing?: boolean) => string
-  registerServiceWorker: (navigator: Navigator, path: string, options: Options) => Promise<void>
+if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
+  registerServiceWorker()
+} else {
+  console.error(`[Service Worker] navigator is undefined`)
 }
-
-export function handleServiceWorkerRegistration({
-  getOptions,
-  normalize,
-  registerServiceWorker,
-}: HandleServiceWorkerRegistration): void {
-  if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
-    const options = getOptions()
-    const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
-    registerServiceWorker(navigator, path, options)
-  }
-}
-
-// Written this way so that it's easier to test
-handleServiceWorkerRegistration({ getOptions, normalize, registerServiceWorker })
