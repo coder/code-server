@@ -57,6 +57,7 @@ describe("register", () => {
 
     it("should log an error if something doesn't work", () => {
       const message = "Can't find browser"
+      const error = new Error(message)
       const path = "/hello"
       const mockOptions = {
         base: "",
@@ -64,13 +65,14 @@ describe("register", () => {
         logLevel: 0,
       }
       global.navigator.serviceWorker.register = () => {
-        throw new Error(message)
+        throw error
       }
 
       registerServiceWorker(navigator, path, mockOptions)
       expect(loggerSpy).toHaveBeenCalled()
       expect(loggerSpy).toHaveBeenCalledTimes(1)
-      expect(loggerSpy).toHaveBeenCalledWith(`[Service Worker] failed to register: ${message}`)
+      // Because we use logError, it will log the prefix along with the error message
+      expect(loggerSpy).toHaveBeenCalledWith(`[Service Worker] registration: ${error.message} ${error.stack}`)
     })
 
     it("should work when base is undefined", () => {
