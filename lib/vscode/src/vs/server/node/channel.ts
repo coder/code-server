@@ -575,17 +575,17 @@ class Terminal {
 		// type: 'orphan?';
 	}
 
-	public dispose() {
+	public async dispose() {
 		logger.debug('Terminal disposing', field('id', this.id));
 		this._onEvent.dispose();
 		this.bufferer.dispose();
+		await this.process.shutdown(true);
 		this.process.dispose();
-		this.process.shutdown(true);
 		this._onDispose.fire();
 		this._onDispose.dispose();
 	}
 
-	public shutdown(immediate: boolean): void {
+	public shutdown(immediate: boolean): Promise<void> {
 		return this.process.shutdown(immediate);
 	}
 

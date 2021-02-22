@@ -245,9 +245,9 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 		this._onProcessTitleChanged.fire(this._currentTitle);
 	}
 
-	public shutdown(immediate: boolean): void {
+	public async shutdown(immediate: boolean): Promise<void> {
 		if (immediate) {
-			this._kill();
+			await this._kill();
 		} else {
 			this._queueProcessExit();
 		}
