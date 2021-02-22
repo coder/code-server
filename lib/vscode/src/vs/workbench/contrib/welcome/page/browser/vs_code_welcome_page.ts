@@ -38,9 +38,9 @@ export default () => `
 						<li><a href="https://github.com/cdr/code-server">GitHub Repository</a></li>
 						<li><a href="https://github.com/cdr/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>
 						<li><a href="https://github.com/cdr/code-server/issues">Issue Tracker</a></li>
-						<li><a href="https://github.com/cdr/code-server/blob/master/doc/FAQ.md">FAQ</a></li>
-						<li><a href="https://github.com/cdr/code-server/blob/master/doc/guide.md">Setup Guide</a></li>
-						<li><a href="https://github.com/cdr/code-server/tree/master/doc">Docs</a></li>
+						<li><a href="https://github.com/cdr/code-server/blob/master/docs/FAQ.md">FAQ</a></li>
+						<li><a href="https://github.com/cdr/code-server/blob/master/docs/guide.md">Setup Guide</a></li>
+						<li><a href="https://github.com/cdr/code-server/tree/master/docs">Docs</a></li>
 						<li><a href="https://github.com/cdr/code-server/discussions">Discussions</a></li>
 						<li><a href="https://cdr.co/join-community">Slack</a></li>
 					</ul>
