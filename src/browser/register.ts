@@ -1,5 +1,4 @@
-import { logger } from "@coder/logger"
-import { getOptions, Options, normalize } from "../common/util"
+import { getOptions, Options, normalize, logError } from "../common/util"
 
 import "./pages/error.css"
 import "./pages/global.css"
@@ -12,7 +11,7 @@ export async function registerServiceWorker(navigator: Navigator, path: string, 
     })
     console.log("[Service Worker] registered")
   } catch (error) {
-    logger.error(`[Service Worker] failed to register: ${error.message}`)
+    logError(`[Service Worker] registration`, error)
   }
 }
 
