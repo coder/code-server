@@ -1,5 +1,3 @@
-import { field, Level } from "@coder/logger"
-
 // Borrowed from playwright
 export interface Cookie {
   name: string
@@ -37,8 +35,8 @@ export function createCookieIfDoesntExist(cookies: Array<Cookie>, cookieToStore:
 }
 
 export const loggerModule = {
-  field,
-  level: Level.Info,
+  field: jest.fn(),
+  level: 2,
   logger: {
     debug: jest.fn(),
     error: jest.fn(),
