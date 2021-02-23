@@ -1,6 +1,9 @@
 import { JSDOM } from "jsdom"
 import { loggerModule } from "./helpers"
 
+// jest.mock is hoisted above the imports so we must use `require` here.
+jest.mock("@coder/logger", () => require("./helpers").loggerModule)
+
 describe("register", () => {
   const { window } = new JSDOM()
   global.window = (window as unknown) as Window & typeof globalThis
@@ -16,10 +19,6 @@ describe("register", () => {
         register: mockRegisterFn,
       },
     })
-  })
-
-  beforeEach(() => {
-    jest.mock("@coder/logger", () => loggerModule)
   })
 
   afterEach(() => {
