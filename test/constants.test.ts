@@ -1,14 +1,16 @@
 // Note: we need to import logger from the root
 // because this is the logger used in logError in ../src/common/util
-import { logger } from "../node_modules/@coder/logger"
+// import { logger } from "../node_modules/@coder/logger"
 import { commit, getPackageJson, version } from "../src/node/constants"
+import { loggerModule } from "./helpers"
 
 describe("constants", () => {
   describe("getPackageJson", () => {
-    let spy: jest.SpyInstance
+    // let spy: jest.SpyInstance
 
     beforeEach(() => {
-      spy = jest.spyOn(logger, "warn")
+      // spy = jest.spyOn(logger, "warn")
+      jest.mock("@coder/logger", () => loggerModule)
     })
 
     afterEach(() => {
@@ -24,8 +26,10 @@ describe("constants", () => {
 
       getPackageJson("./package.json")
 
-      expect(spy).toHaveBeenCalled()
-      expect(spy).toHaveBeenCalledWith(expectedErrorMessage)
+      // expect(spy).toHaveBeenCalled()
+      // expect(spy).toHaveBeenCalledWith(expectedErrorMessage)
+      expect(loggerModule.logger.warn).toHaveBeenCalled()
+      expect(loggerModule.logger.warn).toHaveBeenCalledWith(expectedErrorMessage)
     })
 
     it("should find the package.json", () => {
