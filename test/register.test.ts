@@ -1,7 +1,5 @@
+import { field, Level } from "@coder/logger"
 import { JSDOM } from "jsdom"
-// Note: we need to import logger from the root
-// because this is the logger used in logError in ../src/common/util
-import { logger } from "../node_modules/@coder/logger"
 
 describe("register", () => {
   const { window } = new JSDOM()
@@ -10,9 +8,18 @@ describe("register", () => {
   global.navigator = window.navigator
   global.location = window.location
 
-  let spy: jest.SpyInstance
-  let loggerSpy: jest.SpyInstance
-  const mockRegisterFn = jest.fn(() => console.log("Mock register fn called"))
+  const mockRegisterFn = jest.fn()
+  const loggerModule = {
+    field,
+    level: Level.Info,
+    logger: {
+      debug: jest.fn(),
+      error: jest.fn(),
+      info: jest.fn(),
+      trace: jest.fn(),
+      warn: jest.fn(),
+    },
+  }
 
   beforeAll(() => {
     Object.defineProperty(global.navigator, "serviceWorker", {
@@ -23,10 +30,11 @@ describe("register", () => {
   })
 
   beforeEach(() => {
-    spy = jest.spyOn(global.navigator.serviceWorker, "register")
+    jest.mock("@coder/logger", () => loggerModule)
   })
 
   afterEach(() => {
+    mockRegisterFn.mockClear()
     jest.resetModules()
   })
 
@@ -35,18 +43,14 @@ describe("register", () => {
   })
 
   it("should register a ServiceWorker", () => {
-    spy = jest.spyOn(global.navigator.serviceWorker, "register")
     // Load service worker like you would in the browser
     require("../src/browser/register")
     // Load service worker like you would in the browser
-    // expect spy to have been called
-    expect(spy).toHaveBeenCalled()
-    expect(spy).toHaveBeenCalledTimes(1)
-    spy.mockClear()
+    expect(mockRegisterFn).toHaveBeenCalled()
+    expect(mockRegisterFn).toHaveBeenCalledTimes(1)
   })
 
   it("should log an error if something doesn't work", () => {
-    loggerSpy = jest.spyOn(logger, "error")
     const message = "Can't find browser"
     const error = new Error(message)
 
@@ -57,10 +61,7 @@ describe("register", () => {
     // Load service worker like you would in the browser
     require("../src/browser/register")
 
-    expect(spy).toHaveBeenCalled()
-    expect(loggerSpy).toHaveBeenCalled()
-    // expect(loggerSpy).toHaveBeenCalledTimes(1)
-    // Because we use logError, it will log the prefix along with the error message
-    // expect(loggerSpy).toHaveBeenCalledWith(`[Service Worker] registration: ${error.message} ${error.stack}`)
+    expect(mockRegisterFn).toHaveBeenCalled()
+    expect(loggerModule.logger.error).toHaveBeenCalled()
   })
 })

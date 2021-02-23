@@ -114,12 +114,9 @@ export const getFirstString = (value: string | string[] | object | undefined): s
 }
 
 export function logError(prefix: string, err: any): void {
-  console.log("hey joe log error was called")
   if (err instanceof Error) {
-    console.log("it was an instance of error")
     logger.error(`${prefix}: ${err.message} ${err.stack}`)
   } else {
-    console.log("not an isntance errro")
     logger.error(`${prefix}: ${err}`)
   }
 }
