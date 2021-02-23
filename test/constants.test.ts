@@ -22,8 +22,6 @@ describe("constants", () => {
 
       getPackageJson("./package.json")
 
-      // expect(spy).toHaveBeenCalled()
-      // expect(spy).toHaveBeenCalledWith(expectedErrorMessage)
       expect(loggerModule.logger.warn).toHaveBeenCalled()
       expect(loggerModule.logger.warn).toHaveBeenCalledWith(expectedErrorMessage)
     })
