@@ -1,5 +1,5 @@
-import { field, Level } from "@coder/logger"
 import { JSDOM } from "jsdom"
+import { loggerModule } from "./helpers"
 
 describe("register", () => {
   const { window } = new JSDOM()
@@ -9,17 +9,6 @@ describe("register", () => {
   global.location = window.location
 
   const mockRegisterFn = jest.fn()
-  const loggerModule = {
-    field,
-    level: Level.Info,
-    logger: {
-      debug: jest.fn(),
-      error: jest.fn(),
-      info: jest.fn(),
-      trace: jest.fn(),
-      warn: jest.fn(),
-    },
-  }
 
   beforeAll(() => {
     Object.defineProperty(global.navigator, "serviceWorker", {
@@ -63,5 +52,9 @@ describe("register", () => {
 
     expect(mockRegisterFn).toHaveBeenCalled()
     expect(loggerModule.logger.error).toHaveBeenCalled()
+    expect(loggerModule.logger.error).toHaveBeenCalledTimes(1)
+    expect(loggerModule.logger.error).toHaveBeenCalledWith(
+      `[Service Worker] registration: ${error.message} ${error.stack}`,
+    )
   })
 })
