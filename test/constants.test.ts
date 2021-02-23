@@ -4,15 +4,11 @@
 import { commit, getPackageJson, version } from "../src/node/constants"
 import { loggerModule } from "./helpers"
 
+// jest.mock is hoisted above the imports so we must use `require` here.
+jest.mock("@coder/logger", () => require("./helpers").loggerModule)
+
 describe("constants", () => {
   describe("getPackageJson", () => {
-    // let spy: jest.SpyInstance
-
-    beforeEach(() => {
-      // spy = jest.spyOn(logger, "warn")
-      jest.mock("@coder/logger", () => loggerModule)
-    })
-
     afterEach(() => {
       jest.clearAllMocks()
     })
