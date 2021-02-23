@@ -1,6 +1,3 @@
-// Note: we need to import logger from the root
-// because this is the logger used in logError in ../src/common/util
-// import { logger } from "../node_modules/@coder/logger"
 import { commit, getPackageJson, version } from "../src/node/constants"
 import { loggerModule } from "./helpers"
 
