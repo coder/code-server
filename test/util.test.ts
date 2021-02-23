@@ -1,8 +1,4 @@
 import { JSDOM } from "jsdom"
-import { Cookie } from "playwright"
-// Note: we need to import logger from the root
-// because this is the logger used in logError in ../src/common/util
-import { logger } from "../node_modules/@coder/logger"
 import {
   arrayify,
   generateUuid,
@@ -18,12 +14,15 @@ import {
 import { Cookie as CookieEnum } from "../src/node/routes/login"
 import { hash } from "../src/node/util"
 import { PASSWORD } from "./constants"
-import { checkForCookie, createCookieIfDoesntExist } from "./helpers"
+import { checkForCookie, createCookieIfDoesntExist, loggerModule, Cookie } from "./helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
 
 type LocationLike = Pick<Location, "pathname" | "origin">
+
+// jest.mock is hoisted above the imports so we must use `require` here.
+jest.mock("@coder/logger", () => require("./helpers").loggerModule)
 
 describe("util", () => {
   describe("normalize", () => {
@@ -228,12 +227,6 @@ describe("util", () => {
   })
 
   describe("logError", () => {
-    let spy: jest.SpyInstance
-
-    beforeEach(() => {
-      spy = jest.spyOn(logger, "error")
-    })
-
     afterEach(() => {
       jest.clearAllMocks()
     })
@@ -248,15 +241,15 @@ describe("util", () => {
 
       logError("ui", error)
 
-      expect(spy).toHaveBeenCalled()
-      expect(spy).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
+      expect(loggerModule.logger.error).toHaveBeenCalled()
+      expect(loggerModule.logger.error).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
     })
 
     it("should log an error, even if not an instance of error", () => {
       logError("api", "oh no")
 
-      expect(spy).toHaveBeenCalled()
-      expect(spy).toHaveBeenCalledWith("api: oh no")
+      expect(loggerModule.logger.error).toHaveBeenCalled()
+      expect(loggerModule.logger.error).toHaveBeenCalledWith("api: oh no")
     })
   })
 
