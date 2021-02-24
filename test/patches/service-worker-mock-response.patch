@@ -3,7 +3,7 @@
 @@ -1,5 +1,6 @@
  // stubs https://developer.mozilla.org/en-US/docs/Web/API/Response
  const Body = require('./Body');
-+const Blob = require('./Blob')
++const Blob = require('./Blob');
  const Headers = require('./Headers');
- 
+
  const isSupportedBodyType = (body) =>
