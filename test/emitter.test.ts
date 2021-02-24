@@ -77,25 +77,6 @@ describe("emitter", () => {
     emitter.event(onHelloWorld)
 
     await emitter.emit({ event: HELLO_WORLD, callback: mockCallback })
-  })
-
-  it("should log an error if something goes wrong", async () => {
-    const HELLO_WORLD = "HELLO_WORLD"
-    const mockCallback = jest.fn(() => "Mock function called")
-    const message = "You don't have access to that folder."
-
-    const emitter = new Emitter<{ event: string; callback: () => void }>()
-
-    const onHelloWorld = ({ event, callback }: { event: string; callback: () => void }): void => {
-      if (event === HELLO_WORLD) {
-        callback()
-        throw new Error(message)
-      }
-    }
-
-    emitter.event(onHelloWorld)
-
-    await emitter.emit({ event: HELLO_WORLD, callback: mockCallback })
 
     // Check that error was called
     expect(spy).toHaveBeenCalled()

@@ -41,7 +41,6 @@ describe("register", () => {
     it("should register a ServiceWorker", () => {
       // Load service worker like you would in the browser
       require("../src/browser/register")
-      // Load service worker like you would in the browser
       expect(mockRegisterFn).toHaveBeenCalled()
       expect(mockRegisterFn).toHaveBeenCalledTimes(1)
     })
