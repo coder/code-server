@@ -27,11 +27,7 @@ import { IProgressService, ProgressLocation } from 'vs/platform/progress/common/
 import { IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
 import Severity from 'vs/base/common/severity';
 import { IActivityService, NumberBadge } from 'vs/workbench/services/activity/common/activity';
-<<<<<<< HEAD
-import { IThemeService, registerThemingParticipant, ThemeIcon } from 'vs/platform/theme/common/themeService';
-=======
-import { IThemeService } from 'vs/platform/theme/common/themeService';
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
+import { IThemeService, registerThemingParticipant } from 'vs/platform/theme/common/themeService';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IViewsRegistry, IViewDescriptor, Extensions, ViewContainer, IViewDescriptorService, IAddedViewDescriptorRef } from 'vs/workbench/common/views';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
