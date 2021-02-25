@@ -15,10 +15,10 @@ main() {
 
   # Ask which version we should update to
   # In the future, we'll automate this and grab the latest version automatically
-  read -p "What version of VSCode would you like to update to? (i.e. 1.52) " VSCODE_VERSION_TO_UPDATE
+  read -r -p "What version of VSCode would you like to update to? (i.e. 1.52) " VSCODE_VERSION_TO_UPDATE
 
   # Check that this version exists
-  if [[ -z $(git ls-remote --heads vscode release/$VSCODE_VERSION_TO_UPDATE) ]]; then
+  if [[ -z $(git ls-remote --heads vscode release/"$VSCODE_VERSION_TO_UPDATE") ]]; then
     echo "Oops, that doesn't look like a valid version."
     echo "You entered: $VSCODE_VERSION_TO_UPDATE"
     echo "Verify that this branches exists here: https://github.com/microsoft/vscode/branches/all?query=release%2F$VSCODE_VERSION_TO_UPDATE"
@@ -39,10 +39,10 @@ main() {
   # If we don't do this, the opening a draft PR step won't work
   # because it will stop and ask where you want to push the branch
   CURRENT_BRANCH=$(git branch --show-current)
-  if [[ -z $(git ls-remote --heads origin $CURRENT_BRANCH) ]]; then
+  if [[ -z $(git ls-remote --heads origin "$CURRENT_BRANCH") ]]; then
     echo "Doesn't look like you've pushed this branch to remote"
     echo -e "Pushing now using: git push origin $CURRENT_BRANCH\n"
-    git push origin $CURRENT_BRANCH
+    git push origin "$CURRENT_BRANCH"
   fi
 
   echo "Opening a draft PR on GitHub"
@@ -52,7 +52,7 @@ main() {
   echo "Going to try to update vscode for you..."
   echo -e "Running: git subtree pull --prefix lib/vscode vscode release/${VSCODE_VERSION_TO_UPDATE} --squash\n"
   # Try to run subtree update command
-  git subtree pull --prefix lib/vscode vscode release/${VSCODE_VERSION_TO_UPDATE} --squash --message "chore(vscode): update to $VSCODE_VERSION_TO_UPDATE"
+  git subtree pull --prefix lib/vscode vscode release/"${VSCODE_VERSION_TO_UPDATE}" --squash --message "chore(vscode): update to $VSCODE_VERSION_TO_UPDATE"
 }
 
 main "$@"
