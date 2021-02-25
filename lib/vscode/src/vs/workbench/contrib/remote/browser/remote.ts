@@ -833,25 +833,6 @@ class RemoteAgentConnectionStatusListener extends Disposable implements IWorkben
 				}
 				switch (e.type) {
 					case PersistentConnectionEventType.ConnectionLost:
-<<<<<<< HEAD
-						break;
-					case PersistentConnectionEventType.ReconnectionWait:
-						const BACKGROUND_RECONNECT_THRESHOLD = 2;
-						// If the first reconnect fails, we show the popup.
-						// This corresponds to about 5s wait.
-						if (e.connectionAttempt < BACKGROUND_RECONNECT_THRESHOLD) {
-							break;
-						}
-
-						if (!visibleProgress) {
-							visibleProgress = showProgress(ProgressLocation.Dialog, [reconnectButton, reloadButton]);
-						}
-						visibleProgress.report(nls.localize('connectionLost', "Connection Lost"));
-
-						reconnectWaitEvent = e;
-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reconnectButton, reloadButton]);
-						visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
-=======
 						reconnectionToken = e.reconnectionToken;
 						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = 0;
@@ -883,19 +864,9 @@ class RemoteAgentConnectionStatusListener extends Disposable implements IWorkben
 							visibleProgress = showProgress(null, [reconnectButton, reloadButton]);
 							visibleProgress.startTimer(Date.now() + 1000 * e.durationSeconds);
 						}
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 						break;
 
 					case PersistentConnectionEventType.ReconnectionRunning:
-<<<<<<< HEAD
-						if (!visibleProgress) {
-							// Our background reconnection threshold hasn't been hit yet.
-							break;
-						}
-
-						visibleProgress = showProgress(lastLocation || ProgressLocation.Notification, [reloadButton]);
-						visibleProgress.report(nls.localize('reconnectionRunning', "Attempting to reconnect..."));
-=======
 						reconnectionToken = e.reconnectionToken;
 						lastIncomingDataTime = Date.now() - e.millisSinceLastIncomingData;
 						reconnectionAttempts = e.attempt;
@@ -922,7 +893,6 @@ class RemoteAgentConnectionStatusListener extends Disposable implements IWorkben
 						if (visibleProgress || e.millisSinceLastIncomingData > DISCONNECT_PROMPT_TIME) {
 							visibleProgress = showProgress(null, [reloadButton]);
 							visibleProgress.report(nls.localize('reconnectionRunning', "Disconnected. Attempting to reconnect..."));
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 
 							// Register to listen for quick input is opened
 							disposableListener = quickInputService.onShow(() => {
