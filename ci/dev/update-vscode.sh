@@ -47,7 +47,7 @@ main() {
 
   echo "Opening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base master --title "feat(vscode): update to version $VSCODE_VERSION_TO_UPDATE" --body "This PR updates `/lib/vscode` to version: $VSCODE_VERSION_TO_UPDATE" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  gh pr create --base master --title "feat(vscode): update to version $VSCODE_VERSION_TO_UPDATE" --body "This PR updates vscode to version: $VSCODE_VERSION_TO_UPDATE" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 
 
   echo "Going to try to update vscode for you..."
