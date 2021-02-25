@@ -39,12 +39,8 @@ import { BufferLogService } from 'vs/platform/log/common/bufferLog';
 import { FileLogService } from 'vs/platform/log/common/fileLogService';
 import { toLocalISOString } from 'vs/base/common/date';
 import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
-<<<<<<< HEAD
-import { getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
 import { initialize } from 'vs/server/browser/client';
-=======
 import { getSingleFolderWorkspaceIdentifier, getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 import { coalesce } from 'vs/base/common/arrays';
 import { InMemoryFileSystemProvider } from 'vs/platform/files/common/inMemoryFilesystemProvider';
 import { ICommandService } from 'vs/platform/commands/common/commands';
@@ -98,15 +94,12 @@ class BrowserMain extends Disposable {
 		// Startup
 		const instantiationService = workbench.startup();
 
-<<<<<<< HEAD
 		await initialize(services.serviceCollection);
-=======
 		// Window
 		this._register(instantiationService.createInstance(BrowserWindow));
 
 		// Logging
 		services.logService.trace('workbench configuration', JSON.stringify(this.configuration));
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 
 		// Return API Facade
 		return instantiationService.invokeFunction(accessor => {
