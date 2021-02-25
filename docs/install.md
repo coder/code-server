@@ -14,7 +14,7 @@
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
 - [helm](#helm)
-- [App Engines (Azure, Heroku)](#app-engines)
+- [App Engines (Azure, Heroku)](#app-engines-azure-heroku)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
