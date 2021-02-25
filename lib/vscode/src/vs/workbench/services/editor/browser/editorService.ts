@@ -11,7 +11,7 @@ import { ResourceEditorInput } from 'vs/workbench/common/editor/resourceEditorIn
 import { Registry } from 'vs/platform/registry/common/platform';
 import { ResourceMap } from 'vs/base/common/map';
 import { IUntitledTextEditorService } from 'vs/workbench/services/untitled/common/untitledTextEditorService';
-import { IFileService, FileOperationEvent, FileOperation, FileChangesEvent, FileChangeType, FileSystemProviderCapabilities } from 'vs/platform/files/common/files';
+import { IFileService, FileOperationEvent, FileOperation, FileChangesEvent, FileChangeType } from 'vs/platform/files/common/files';
 import { Schemas } from 'vs/base/common/network';
 import { Event, Emitter } from 'vs/base/common/event';
 import { URI } from 'vs/base/common/uri';
@@ -251,8 +251,7 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 				if (this.uriIdentityService.extUri.isEqual(source, resource)) {
 					targetResource = target; // file got moved
 				} else {
-					const ignoreCase = !this.fileService.hasCapability(resource, FileSystemProviderCapabilities.PathCaseSensitive);
-					const index = indexOfPath(resource.path, source.path, ignoreCase);
+					const index = indexOfPath(resource.path, source.path, this.uriIdentityService.extUri.ignorePathCasing(resource));
 					targetResource = joinPath(target, resource.path.substr(index + source.path.length + 1)); // parent folder got moved
 				}
 
@@ -753,6 +752,26 @@ export class EditorService extends Disposable implements EditorServiceImpl {
 		}
 
 		return false;
+	}
+
+	//#endregion
+
+	//#region findEditor()
+
+	findEditors(resource: URI, group: IEditorGroup | GroupIdentifier): IEditorInput[] {
+		if (!this.isOpen({ resource })) {
+			return [];
+		}
+
+		const canonicalResource = this.asCanonicalEditorResource(resource);
+		const targetGroup = typeof group === 'number' ? this.editorGroupService.getGroup(group) : group;
+		if (!targetGroup) {
+			return [];
+		}
+
+		return targetGroup.getEditors(EditorsOrder.SEQUENTIAL).filter(editor => {
+			return editor.resource && isEqual(editor.resource, canonicalResource);
+		});
 	}
 
 	//#endregion
@@ -1322,6 +1341,8 @@ export class DelegatingEditorService implements IEditorService {
 	isOpen(editor: IEditorInput): boolean;
 	isOpen(editor: IResourceEditorInput): boolean;
 	isOpen(editor: IEditorInput | IResourceEditorInput): boolean { return this.editorService.isOpen(editor as IResourceEditorInput /* TS fail */); }
+
+	findEditors(resource: URI, group: IEditorGroup | GroupIdentifier) { return this.editorService.findEditors(resource, group); }
 
 	overrideOpenEditor(handler: IOpenEditorOverrideHandler): IDisposable { return this.editorService.overrideOpenEditor(handler); }
 	getEditorOverrides(resource: URI, options: IEditorOptions | undefined, group: IEditorGroup | undefined) { return this.editorService.getEditorOverrides(resource, options, group); }

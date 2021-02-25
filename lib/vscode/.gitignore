@@ -5,6 +5,7 @@ Thumbs.db
 node_modules/
 .build/
 extensions/**/dist/
+<<<<<<< HEAD
 out/
 out-build/
 out-editor/
@@ -25,6 +26,11 @@ out-vscode-reh-web-pkg/
 out-vscode-web/
 out-vscode-web-min/
 out-vscode-web-pkg/
+=======
+/out*/
+/extensions/**/out/
+src/vs/server
+>>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 resources/server
 build/node_modules
 coverage/

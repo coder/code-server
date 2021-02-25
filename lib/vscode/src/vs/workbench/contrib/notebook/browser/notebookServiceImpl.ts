@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getZoomLevel } from 'vs/base/browser/browser';
+import { getPixelRatio, getZoomLevel } from 'vs/base/browser/browser';
 import { flatten } from 'vs/base/common/arrays';
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { Emitter, Event } from 'vs/base/common/event';
@@ -63,6 +63,10 @@ export class NotebookKernelProviderInfoStore extends Disposable {
 
 	get(viewType: string, resource: URI) {
 		return this._notebookKernelProviders.filter(provider => notebookDocumentFilterMatch(provider.selector, viewType, resource));
+	}
+
+	getContributedKernelProviders() {
+		return [...this._notebookKernelProviders.values()];
 	}
 
 	private _updateProviderExtensionsInfo() {
@@ -237,7 +241,7 @@ class ModelData implements IDisposable {
 }
 export class NotebookService extends Disposable implements INotebookService, ICustomEditorViewTypesHandler {
 	declare readonly _serviceBrand: undefined;
-	private readonly _notebookProviders = new Map<string, { controller: IMainNotebookController, extensionData: NotebookExtensionDescription }>();
+	private readonly _notebookProviders = new Map<string, { controller: IMainNotebookController, extensionData: NotebookExtensionDescription; }>();
 	notebookProviderInfoStore: NotebookProviderInfoStore;
 	notebookRenderersInfoStore: NotebookOutputRendererInfoStore = new NotebookOutputRendererInfoStore();
 	notebookKernelProviderInfoStore: NotebookKernelProviderInfoStore = new NotebookKernelProviderInfoStore();
@@ -266,12 +270,12 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 
 	private readonly _onDidChangeKernels = new Emitter<URI | undefined>();
 	onDidChangeKernels: Event<URI | undefined> = this._onDidChangeKernels.event;
-	private readonly _onDidChangeNotebookActiveKernel = new Emitter<{ uri: URI, providerHandle: number | undefined, kernelId: string | undefined }>();
-	onDidChangeNotebookActiveKernel: Event<{ uri: URI, providerHandle: number | undefined, kernelId: string | undefined }> = this._onDidChangeNotebookActiveKernel.event;
+	private readonly _onDidChangeNotebookActiveKernel = new Emitter<{ uri: URI, providerHandle: number | undefined, kernelFriendlyId: string | undefined; }>();
+	onDidChangeNotebookActiveKernel: Event<{ uri: URI, providerHandle: number | undefined, kernelFriendlyId: string | undefined; }> = this._onDidChangeNotebookActiveKernel.event;
 	private cutItems: NotebookCellTextModel[] | undefined;
 	private _lastClipboardIsCopy: boolean = true;
 
-	private _displayOrder: { userOrder: string[], defaultOrder: string[] } = Object.create(null);
+	private _displayOrder: { userOrder: string[], defaultOrder: string[]; } = Object.create(null);
 	private readonly _decorationOptionProviders = new Map<string, INotebookDecorationRenderOptions>();
 
 	constructor(
@@ -366,7 +370,7 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 							// there is a `::before` or `::after` text decoration whose position is above or below current line
 							// we at least make sure that the editor top padding is at least one line
 							const editorOptions = this.configurationService.getValue<IEditorOptions>('editor');
-							updateEditorTopPadding(BareFontInfo.createFromRawSettings(editorOptions, getZoomLevel()).lineHeight + 2);
+							updateEditorTopPadding(BareFontInfo.createFromRawSettings(editorOptions, getZoomLevel(), getPixelRatio()).lineHeight + 2);
 							decorationTriggeredAdjustment = true;
 							break;
 						}
@@ -387,7 +391,7 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 			};
 		};
 
-		const PRIORITY = 50;
+		const PRIORITY = 105;
 		this._register(UndoCommand.addImplementation(PRIORITY, () => {
 			const { editor } = getContext();
 			if (editor?.viewModel) {
@@ -623,6 +627,8 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 	}
 
 	async canResolve(viewType: string): Promise<boolean> {
+		await this._extensionService.activateByEvent(`onNotebook:*`);
+
 		if (!this._notebookProviders.has(viewType)) {
 			await this._extensionService.whenInstalledExtensionsRegistered();
 			// this awaits full activation of all matching extensions
@@ -691,9 +697,10 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 			const data = await provider.provideKernels(resource, token);
 			result[index] = data.map(dto => {
 				return {
+					id: dto.id,
 					extension: dto.extension,
 					extensionLocation: URI.revive(dto.extensionLocation),
-					id: dto.id,
+					friendlyId: dto.friendlyId,
 					label: dto.label,
 					description: dto.description,
 					detail: dto.detail,
@@ -701,13 +708,13 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 					preloads: dto.preloads,
 					providerHandle: dto.providerHandle,
 					resolve: async (uri: URI, editorId: string, token: CancellationToken) => {
-						return provider.resolveKernel(editorId, uri, dto.id, token);
+						return provider.resolveKernel(editorId, uri, dto.friendlyId, token);
 					},
 					executeNotebookCell: async (uri: URI, handle: number | undefined) => {
-						return provider.executeNotebook(uri, dto.id, handle);
+						return provider.executeNotebook(uri, dto.friendlyId, handle);
 					},
 					cancelNotebookCell: (uri: URI, handle: number | undefined): Promise<void> => {
-						return provider.cancelNotebook(uri, dto.id, handle);
+						return provider.cancelNotebook(uri, dto.friendlyId, handle);
 					}
 				};
 			});
@@ -716,6 +723,11 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 		await Promise.all(promises);
 
 		return flatten(result);
+	}
+
+	async getContributedNotebookKernelProviders(): Promise<INotebookKernelProvider[]> {
+		const kernelProviders = this.notebookKernelProviderInfoStore.getContributedKernelProviders();
+		return kernelProviders;
 	}
 
 	getRendererInfo(id: string): INotebookRendererInfo | undefined {
@@ -890,7 +902,7 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 
 	listVisibleNotebookEditors(): INotebookEditor[] {
 		return this._editorService.visibleEditorPanes
-			.filter(pane => (pane as unknown as { isNotebookEditor?: boolean }).isNotebookEditor)
+			.filter(pane => (pane as unknown as { isNotebookEditor?: boolean; }).isNotebookEditor)
 			.map(pane => pane.getControl() as INotebookEditor)
 			.filter(editor => !!editor)
 			.filter(editor => this._notebookEditors.has(editor.getId()));
@@ -912,7 +924,7 @@ export class NotebookService extends Disposable implements INotebookService, ICu
 				this._onDidChangeNotebookActiveKernel.fire({
 					uri: editor.uri!,
 					providerHandle: editor.activeKernel?.providerHandle,
-					kernelId: editor.activeKernel?.id
+					kernelFriendlyId: editor.activeKernel?.friendlyId
 				});
 			}));
 		}

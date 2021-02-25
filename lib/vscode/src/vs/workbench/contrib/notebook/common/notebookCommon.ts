@@ -74,6 +74,7 @@ export const notebookDocumentMetadataDefaults: Required<NotebookDocumentMetadata
 	displayOrder: NOTEBOOK_DISPLAY_ORDER,
 	custom: {},
 	runState: NotebookRunState.Idle,
+	languages: [],
 	trusted: true
 };
 
@@ -86,6 +87,7 @@ export interface NotebookDocumentMetadata {
 	displayOrder?: (string | glob.IRelativePattern)[];
 	custom?: { [key: string]: unknown };
 	runState?: NotebookRunState;
+	languages: string[];
 	trusted: boolean;
 }
 
@@ -270,36 +272,6 @@ export interface INotebookTextModel {
 	readonly cells: readonly ICell[];
 	onWillDispose(listener: () => void): IDisposable;
 }
-
-export const enum RenderOutputType {
-	None,
-	Html,
-	Extension
-}
-
-export interface IRenderNoOutput {
-	type: RenderOutputType.None;
-	hasDynamicHeight: boolean;
-}
-
-export interface IRenderPlainHtmlOutput {
-	type: RenderOutputType.Html;
-	source: ITransformedDisplayOutputDto;
-	htmlContent: string;
-	hasDynamicHeight: boolean;
-}
-
-export interface IRenderOutputViaExtension {
-	type: RenderOutputType.Extension;
-	source: ITransformedDisplayOutputDto;
-	mimeType: string;
-	renderer: INotebookRendererInfo;
-}
-
-export type IInsetRenderOutput = IRenderPlainHtmlOutput | IRenderOutputViaExtension;
-export type IRenderOutput = IRenderNoOutput | IInsetRenderOutput;
-
-export const outputHasDynamicHeight = (o: IRenderOutput) => o.type !== RenderOutputType.Extension && o.hasDynamicHeight;
 
 export type NotebookCellTextModelSplice<T> = [
 	number /* start */,
@@ -503,20 +475,12 @@ export namespace CellUri {
 
 	export const scheme = Schemas.vscodeNotebookCell;
 
-	const _regex = /^\d{7,}/;
+	const _regex = /^ch(\d{7,})/;
 
 	export function generate(notebook: URI, handle: number): URI {
 		return notebook.with({
 			scheme,
-			fragment: `${handle.toString().padStart(7, '0')}${notebook.scheme !== Schemas.file ? notebook.scheme : ''}`
-		});
-	}
-
-	export function generateCellMetadataUri(notebook: URI, handle: number): URI {
-		return notebook.with({
-			scheme: Schemas.vscode,
-			authority: 'vscode-notebook-cell-metadata',
-			fragment: `${handle.toString().padStart(7, '0')}${notebook.scheme !== Schemas.file ? notebook.scheme : ''}`
+			fragment: `ch${handle.toString().padStart(7, '0')}${notebook.scheme !== Schemas.file ? notebook.scheme : ''}`
 		});
 	}
 
@@ -528,11 +492,36 @@ export namespace CellUri {
 		if (!match) {
 			return undefined;
 		}
-		const handle = Number(match[0]);
+		const handle = Number(match[1]);
 		return {
 			handle,
 			notebook: cell.with({
 				scheme: cell.fragment.substr(match[0].length) || Schemas.file,
+				fragment: null
+			})
+		};
+	}
+
+	export function generateCellMetadataUri(notebook: URI, handle: number): URI {
+		return notebook.with({
+			scheme: Schemas.vscodeNotebookCellMetadata,
+			fragment: `ch${handle.toString().padStart(7, '0')}${notebook.scheme !== Schemas.file ? notebook.scheme : ''}`
+		});
+	}
+
+	export function parseCellMetadataUri(metadata: URI) {
+		if (metadata.scheme !== Schemas.vscodeNotebookCellMetadata) {
+			return undefined;
+		}
+		const match = _regex.exec(metadata.fragment);
+		if (!match) {
+			return undefined;
+		}
+		const handle = Number(match[1]);
+		return {
+			handle,
+			notebook: metadata.with({
+				scheme: metadata.fragment.substr(match[0].length) || Schemas.file,
 				fragment: null
 			})
 		};
@@ -812,7 +801,8 @@ export function notebookDocumentFilterMatch(filter: INotebookDocumentFilter, vie
 }
 
 export interface INotebookKernelInfoDto2 {
-	id: string;
+	id?: string;
+	friendlyId: string;
 	label: string;
 	extension: ExtensionIdentifier;
 	extensionLocation: URI;
@@ -887,4 +877,3 @@ export interface INotebookDecorationRenderOptions {
 	borderColor?: string | ThemeColor;
 	top?: editorCommon.IContentDecorationRenderOptions;
 }
-

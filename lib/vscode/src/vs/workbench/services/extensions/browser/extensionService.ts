@@ -84,10 +84,14 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 	protected _onExtensionHostCrashed(extensionHost: ExtensionHostManager, code: number, signal: string | null): void {
 		super._onExtensionHostCrashed(extensionHost, code, signal);
 		if (extensionHost.kind === ExtensionHostKind.LocalWebWorker) {
-			if (code === ExtensionHostExitCode.StartTimeout10s) {
+			if (code === ExtensionHostExitCode.StartTimeout60s) {
 				this._notificationService.prompt(
 					Severity.Error,
+<<<<<<< HEAD
 					nls.localize('extensionService.startTimeout', 'The Web Worker Extension Host did not start in 10s.'),
+=======
+					nls.localize('extensionService.startTimeout', "The Web Worker Extension Host did not start in 60s."),
+>>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 					[]
 				);
 				return;

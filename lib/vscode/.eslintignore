@@ -14,5 +14,9 @@
 **/extensions/**/build/**
 **/extensions/markdown-language-features/media/**
 **/extensions/typescript-basics/test/colorize-fixtures/**
+<<<<<<< HEAD
 # This is a code-server code symlink.
 src/vs/base/node/proxy_agent.ts
+=======
+**/extensions/**/dist/**
+>>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4

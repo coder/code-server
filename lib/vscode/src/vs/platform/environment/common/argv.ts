@@ -30,6 +30,7 @@ export interface NativeParsedArgs {
 	'prof-startup'?: boolean;
 	'prof-startup-prefix'?: string;
 	'prof-append-timers'?: string;
+	'prof-v8-extensions'?: boolean;
 	verbose?: boolean;
 	trace?: boolean;
 	'trace-category-filter'?: string;
