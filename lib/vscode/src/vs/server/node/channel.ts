@@ -30,7 +30,7 @@ import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalCh
 import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError } from 'vs/workbench/contrib/terminal/common/terminal';
 import { TerminalDataBufferer } from 'vs/workbench/contrib/terminal/common/terminalDataBuffering';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
-import { getSystemShell } from 'vs/workbench/contrib/terminal/node/terminal';
+import { getSystemShell } from 'vs/base/node/shell';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/workbench/contrib/terminal/node/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
@@ -263,6 +263,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			workspaceStorageHome: this.environment.workspaceStorageHome,
 			userHome: this.environment.userHome,
 			os: platform.OS,
+			marks: []
 		};
 	}
 
@@ -681,7 +682,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		const resolverService = new VariableResolverService(remoteAuthority, args, process.env as platform.IProcessEnvironment);
 		const resolver = terminalEnvironment.createVariableResolver(activeWorkspace, resolverService);
 
-		const getDefaultShellAndArgs = (): { executable: string; args: string[] | string } => {
+		const getDefaultShellAndArgs = async (): Promise<{ executable: string; args: string[] | string }> => {
 			if (shellLaunchConfig.executable) {
 				const executable = resolverService.resolve(activeWorkspace, shellLaunchConfig.executable);
 				let resolvedArgs: string[] | string = [];
@@ -698,7 +699,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			const executable = terminalEnvironment.getDefaultShell(
 				(key) => args.configuration[key],
 				args.isWorkspaceShellAllowed,
-				getSystemShell(platform.platform),
+				await getSystemShell(platform.platform),
 				process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432'),
 				process.env.windir,
 				resolver,
