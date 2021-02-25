@@ -303,7 +303,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 							const newPath = extension.extensionLocation.fsPath;
 							this.log.warn(`${oldPath} has been overridden ${newPath}`);
 						}
-						uniqueExtensions.set(id, extension)
+						uniqueExtensions.set(id, extension);
 					});
 				});
 			});
