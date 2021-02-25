@@ -313,12 +313,9 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 }
 
 export async function startExtensionHostProcess(): Promise<void> {
-<<<<<<< HEAD
 	proxyAgent.monkeyPatch(true);
 
-=======
 	performance.mark(`code/extHost/willConnectToRenderer`);
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 	const protocol = await createExtHostProtocol();
 	performance.mark(`code/extHost/didConnectToRenderer`);
 	const renderer = await connectToRenderer(protocol);
