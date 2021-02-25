@@ -86,23 +86,6 @@ export interface ISocketFactory {
 	connect(host: string, port: number, query: string, callback: IConnectCallback): void;
 }
 
-<<<<<<< HEAD
-async function connectToRemoteExtensionHostAgent(options: ISimpleConnectionOptions, connectionType: ConnectionType, args: any | undefined): Promise<{ protocol: PersistentProtocol; ownsProtocol: boolean; }> {
-	const logPrefix = connectLogPrefix(options, connectionType);
-	const { protocol, ownsProtocol } = await new Promise<{ protocol: PersistentProtocol; ownsProtocol: boolean; }>((c, e) => {
-		options.logService.trace(`${logPrefix} 1/6. invoking socketFactory.connect().`);
-		options.socketFactory.connect(
-			options.host,
-			options.port,
-			`type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`,
-			(err: any, socket: ISocket | undefined) => {
-				if (err || !socket) {
-					options.logService.error(`${logPrefix} socketFactory.connect() failed. Error:`);
-					options.logService.error(err);
-					e(err);
-					return;
-				}
-=======
 async function readOneControlMessage<T>(protocol: PersistentProtocol): Promise<T> {
 	const raw = await Event.toPromise(protocol.onControlMessage);
 	const msg = JSON.parse(raw.toString());
@@ -112,7 +95,6 @@ async function readOneControlMessage<T>(protocol: PersistentProtocol): Promise<T
 	}
 	return msg;
 }
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 
 function waitWithTimeout<T>(promise: Promise<T>, timeout: number): Promise<T> {
 	return new Promise<T>((resolve, reject) => {
@@ -496,25 +478,15 @@ abstract class PersistentConnection extends Disposable {
 			attempt++;
 			const waitTime = (attempt < TIMES.length ? TIMES[attempt] : TIMES[TIMES.length - 1]);
 			try {
-<<<<<<< HEAD
-				const sleepPromise = sleep(waitTime);
-				this._onDidStateChange.fire(new ReconnectionWaitEvent(waitTime, sleepPromise, attempt+1));
-
-				this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
-				try {
-					await sleepPromise;
-				} catch { } // User canceled timer
-=======
 				if (waitTime > 0) {
 					const sleepPromise = sleep(waitTime);
-					this._onDidStateChange.fire(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise));
+					this._onDidStateChange.fire(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise, attempt));
 
 					this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
 					try {
 						await sleepPromise;
 					} catch { } // User canceled timer
 				}
->>>>>>> 89b6e0164fa770333755b11504e19a4232b1a2d4
 
 				if (PersistentConnection._permanentFailure) {
 					this._options.logService.error(`${logPrefix} permanent failure occurred while running the reconnecting loop.`);
