@@ -15,7 +15,7 @@ main() {
 
   # Ask which version we should update to
   # In the future, we'll automate this and grab the latest version automatically
-  read -p "What version of VSCode would you like to update to? (i.e. 1.52) "  VSCODE_VERSION_TO_UPDATE
+  read -p "What version of VSCode would you like to update to? (i.e. 1.52) " VSCODE_VERSION_TO_UPDATE
 
   # Check that this version exists
   if [[ -z $(git ls-remote --heads vscode release/$VSCODE_VERSION_TO_UPDATE) ]]; then
@@ -29,10 +29,10 @@ main() {
 
   # Check if GitHub CLI is installed
   if ! command -v gh &> /dev/null; then
-      echo "GitHub CLI could not be found."
-      echo "If you install it before you run this script next time, we'll open a draft PR for you!"
-      echo -e "See docs here: https://github.com/cli/cli#installation\n"
-      exit
+    echo "GitHub CLI could not be found."
+    echo "If you install it before you run this script next time, we'll open a draft PR for you!"
+    echo -e "See docs here: https://github.com/cli/cli#installation\n"
+    exit
   fi
 
   # Push branch to remote if not already pushed
@@ -48,7 +48,6 @@ main() {
   echo "Opening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
   gh pr create --base master --title "feat(vscode): update to version $VSCODE_VERSION_TO_UPDATE" --body "This PR updates vscode to version: $VSCODE_VERSION_TO_UPDATE" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
-
 
   echo "Going to try to update vscode for you..."
   echo -e "Running: git subtree pull --prefix lib/vscode vscode release/${VSCODE_VERSION_TO_UPDATE} --squash\n"

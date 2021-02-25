@@ -4,7 +4,7 @@
 
 - [Questions?](#questions)
 - [iPad Status?](#ipad-status)
-- [Community Projects (awesome-code-server)](#awesome-code-server)
+- [Community projects (awesome-code-server)](#community-projects-awesome-code-server)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
