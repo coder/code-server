@@ -12,7 +12,7 @@ import { mark } from 'vs/base/common/performance';
 import { join } from 'vs/base/common/path';
 import { copy, exists, mkdirp, writeFile } from 'vs/base/node/pfs';
 import { IEnvironmentService } from 'vs/platform/environment/common/environment';
-import { IWorkspaceInitializationPayload, isWorkspaceIdentifier, isSingleFolderWorkspaceInitializationPayload } from 'vs/platform/workspaces/common/workspaces';
+import { isSingleFolderWorkspaceIdentifier, isWorkspaceIdentifier, IWorkspaceInitializationPayload } from 'vs/platform/workspaces/common/workspaces';
 import { assertIsDefined } from 'vs/base/common/types';
 import { RunOnceScheduler, runWhenIdle } from 'vs/base/common/async';
 
@@ -83,7 +83,7 @@ export class NativeStorageService extends AbstractStorageService {
 			const useInMemoryStorage = !!this.environmentService.extensionTestsLocationURI; // no storage during extension tests!
 
 			// Create workspace storage and initialize
-			mark('willInitWorkspaceStorage');
+			mark('code/willInitWorkspaceStorage');
 			try {
 				const workspaceStorage = this.createWorkspaceStorage(
 					useInMemoryStorage ? SQLiteStorageDatabase.IN_MEMORY_PATH : join(result.path, NativeStorageService.WORKSPACE_STORAGE_NAME),
@@ -99,7 +99,7 @@ export class NativeStorageService extends AbstractStorageService {
 					workspaceStorage.set(IS_NEW_KEY, false);
 				}
 			} finally {
-				mark('didInitWorkspaceStorage');
+				mark('code/didInitWorkspaceStorage');
 			}
 		} catch (error) {
 			this.logService.error(`[storage] initializeWorkspaceStorage(): Unable to init workspace storage due to ${error}`);
@@ -148,23 +148,22 @@ export class NativeStorageService extends AbstractStorageService {
 
 	private ensureWorkspaceStorageFolderMeta(payload: IWorkspaceInitializationPayload): void {
 		let meta: object | undefined = undefined;
-		if (isSingleFolderWorkspaceInitializationPayload(payload)) {
-			meta = { folder: payload.folder.toString() };
+		if (isSingleFolderWorkspaceIdentifier(payload)) {
+			meta = { folder: payload.uri.toString() };
 		} else if (isWorkspaceIdentifier(payload)) {
-			meta = { configuration: payload.configPath };
+			meta = { workspace: payload.configPath.toString() };
 		}
 
 		if (meta) {
-			const logService = this.logService;
-			const workspaceStorageMetaPath = join(this.getWorkspaceStorageFolderPath(payload), NativeStorageService.WORKSPACE_META_NAME);
-			(async function () {
+			(async () => {
 				try {
+					const workspaceStorageMetaPath = join(this.getWorkspaceStorageFolderPath(payload), NativeStorageService.WORKSPACE_META_NAME);
 					const storageExists = await exists(workspaceStorageMetaPath);
 					if (!storageExists) {
 						await writeFile(workspaceStorageMetaPath, JSON.stringify(meta, undefined, 2));
 					}
 				} catch (error) {
-					logService.error(error);
+					this.logService.error(error);
 				}
 			})();
 		}

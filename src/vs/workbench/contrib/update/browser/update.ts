@@ -18,7 +18,7 @@ import { INotificationService, Severity } from 'vs/platform/notification/common/
 import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 import { ReleaseNotesManager } from './releaseNotesEditor';
-import { isMacintosh, isNative, isWindows } from 'vs/base/common/platform';
+import { isWindows } from 'vs/base/common/platform';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { RawContextKey, IContextKey, IContextKeyService, ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
 import { MenuRegistry, MenuId } from 'vs/platform/actions/common/actions';
@@ -208,7 +208,6 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
 		@IProductService private readonly productService: IProductService,
 		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
-		@IOpenerService private readonly openerService: IOpenerService
 	) {
 		super();
 		this.state = updateService.state;
@@ -292,7 +291,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			return;
 		}
 
-		error = error.replace(/See https:\/\/github\.com\/Squirrel\/Squirrel\.Mac\/issues\/182 for more information/, 'See [this link](https://github.com/microsoft/vscode/issues/7426#issuecomment-425093469) for more information');
+		error = error.replace(/See https:\/\/github\.com\/Squirrel\/Squirrel\.Mac\/issues\/182 for more information/, 'This might mean the application was put on quarantine by macOS. See [this link](https://github.com/microsoft/vscode/issues/7426#issuecomment-425093469) for more information');
 
 		this.notificationService.notify({
 			severity: Severity.Error,
@@ -496,35 +495,7 @@ export class UpdateContribution extends Disposable implements IWorkbenchContribu
 			when: CONTEXT_UPDATE_STATE.isEqualTo(StateType.Updating)
 		});
 
-		CommandsRegistry.registerCommand('update.restart', async () => {
-			if (isNative && isMacintosh && typeof require !== 'undefined' && typeof require.__$__nodeRequire === 'function') {
-				const os = require.__$__nodeRequire('os') as { release(): string; };
-				const release = os.release();
-
-				if (parseInt(release) >= 20) { // Big Sur
-					const answer = await this.dialogService.show(
-						Severity.Warning,
-						nls.localize('good luck', "'Restart to Update' is not working properly on macOS Big Sur. Click 'Quit to Update' to quit {0} and update it. Then, relaunch it from Finder.", this.productService.nameShort),
-						[
-							nls.localize('quit', "Quit to Update"),
-							nls.localize('learn more', "Learn More"),
-							nls.localize('cancel', "Cancel")
-						],
-						{ cancelId: 2 }
-					);
-
-					if (answer.choice === 2) {
-						return;
-					} else if (answer.choice === 1) {
-						await this.openerService.open(URI.parse('https://github.com/microsoft/vscode/issues/109728'));
-						return;
-					}
-				}
-			}
-
-			this.updateService.quitAndInstall();
-		});
-
+		CommandsRegistry.registerCommand('update.restart', () => this.updateService.quitAndInstall());
 		MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
 			group: '6_update',
 			command: {
