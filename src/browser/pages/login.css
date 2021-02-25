@@ -1,4 +1,6 @@
 body {
+  min-height: 568px;
+  min-width: 320px;
   overflow: auto;
 }
 
@@ -13,6 +15,12 @@ body {
   display: flex;
   flex-direction: row;
   width: 100%;
+}
+
+@media (max-width: 600px) {
+  .login-form > .field {
+    flex-direction: column;
+  }
 }
 
 .login-form > .error {
@@ -36,6 +44,13 @@ body {
 
 .login-form > .field > .submit {
   margin-left: 20px;
+}
+
+@media (max-width: 600px) {
+  .login-form > .field > .submit {
+    margin-left: 0px;
+    margin-top: 16px;
+  }
 }
 
 input {
