@@ -121,10 +121,10 @@ node ./release
 
 The `code-server` script serves an HTTP API for login and starting a remote VS Code process.
 
-The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented in
-[./src/node/app](./src/node/app).
+The CLI code is in [src/node](../src/node) and the HTTP routes are implemented in
+[src/node/routes](../src/node/routes).
 
-Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
+Most of the meaty parts are in the VS Code portion of the codebase under [lib/vscode](../lib/vscode), which we described next.
 
 ### Modifications to VS Code
 
@@ -134,7 +134,7 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [./lib/vscode](./lib/vscode).
+the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [lib/vscode](../lib/vscode).
 
 Some noteworthy changes in our version of VS Code:
 
