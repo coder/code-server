@@ -1,4 +1,5 @@
 import { field } from '@coder/logger';
+import { release } from "os"
 import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
@@ -44,7 +45,7 @@ import { TelemetryLogAppender } from 'vs/platform/telemetry/common/telemetryLogA
 import { TelemetryService } from 'vs/platform/telemetry/common/telemetryService';
 import { combinedAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
 import { AppInsightsAppender } from 'vs/platform/telemetry/node/appInsightsAppender';
-import { resolveCommonProperties } from 'vs/platform/telemetry/node/commonProperties';
+import { resolveCommonProperties } from 'vs/platform/telemetry/common/commonProperties';
 import { TelemetryChannel } from 'vs/server/common/telemetry';
 import { Query, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
 import { ExtensionEnvironmentChannel, FileProviderChannel, TerminalProviderChannel } from 'vs/server/node/channel';
@@ -259,7 +260,7 @@ export class Vscode {
 						),
 						sendErrorTelemetry: true,
 						commonProperties: resolveCommonProperties(
-							product.commit, product.version, machineId,
+							fileService, release(), process.arch, product.commit, product.version, machineId,
 							[], environmentService.installSourcePath, 'code-server',
 						),
 						piiPaths,
