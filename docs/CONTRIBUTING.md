@@ -35,8 +35,9 @@ There are several differences, however. You must:
 - Use Node.js version 12.x (or greater)
 - Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
 - Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
+- Have [shfmt](https://pkg.go.dev/mvdan.cc/sh/v3) installed to run `yarn fmt` (requires Go is installed on your system)
 
-The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all
+The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all
 of the dependencies code-server uses.
 
 ## Development Workflow
@@ -120,10 +121,10 @@ node ./release
 
 The `code-server` script serves an HTTP API for login and starting a remote VS Code process.
 
-The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented in
-[./src/node/app](./src/node/app).
+The CLI code is in [src/node](../src/node) and the HTTP routes are implemented in
+[src/node/routes](../src/node/routes).
 
-Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
+Most of the meaty parts are in the VS Code portion of the codebase under [lib/vscode](../lib/vscode), which we described next.
 
 ### Modifications to VS Code
 
@@ -133,7 +134,7 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [./lib/vscode](./lib/vscode).
+the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [lib/vscode](../lib/vscode).
 
 Some noteworthy changes in our version of VS Code:
 

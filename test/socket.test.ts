@@ -6,11 +6,8 @@ import * as tls from "tls"
 import { Emitter } from "../src/common/emitter"
 import { SocketProxyProvider } from "../src/node/socket"
 import { generateCertificate, tmpdir } from "../src/node/util"
-import * as wtfnode from "./wtfnode"
 
 describe("SocketProxyProvider", () => {
-  wtfnode.setup()
-
   const provider = new SocketProxyProvider()
 
   const onServerError = new Emitter<{ event: string; error: Error }>()

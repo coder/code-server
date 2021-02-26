@@ -4,7 +4,7 @@
 
 - [Questions?](#questions)
 - [iPad Status?](#ipad-status)
-- [Community projects (awesome-code-server)](#community-projects-awesome-code-server)
+- [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
@@ -43,7 +43,7 @@ Please file all questions and support requests at https://github.com/cdr/code-se
 
 Please see [./ipad.md](./ipad.md).
 
-## Community projects (awesome-code-server)
+## Community Projects (awesome-code-server)
 
 Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server) repository to view community projects and guides with code-server! Feel free to add your own!
 
