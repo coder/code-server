@@ -1,9 +1,10 @@
 // Note: we need to import logger from the root
 // because this is the logger used in logError in ../src/common/util
 import { logger } from "../node_modules/@coder/logger"
+
 import { Emitter } from "../src/common/emitter"
 
-describe("Emitter", () => {
+describe("emitter", () => {
   let spy: jest.SpyInstance
 
   beforeEach(() => {

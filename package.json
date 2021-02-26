@@ -153,6 +153,9 @@
       "<rootDir>/release-npm-package",
       "<rootDir>/release-gcp",
       "<rootDir>/release-images"
-    ]
+    ],
+    "moduleNameMapper": {
+      "^.+\\.(css|less)$": "<rootDir>/test/cssStub.ts"
+    }
   }
 }
