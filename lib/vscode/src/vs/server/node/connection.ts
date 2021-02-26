@@ -54,7 +54,7 @@ export abstract class Connection {
 export class ManagementConnection extends Connection {
 	public constructor(protected protocol: Protocol, token: string) {
 		super(protocol, token);
-		protocol.onClose(() => this.dispose()); // Explicit close.
+		protocol.onDidDispose(() => this.dispose()); // Explicit close.
 		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
 	}
 
