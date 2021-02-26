@@ -17,7 +17,7 @@ export class Protocol extends PersistentProtocol {
 		super(
 			options.skipWebSocketFrames
 				? new NodeSocket(socket)
-				: new WebSocketNodeSocket(new NodeSocket(socket)),
+				: new WebSocketNodeSocket(new NodeSocket(socket), false, null, false),
 		);
 	}
 
