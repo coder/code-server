@@ -1,5 +1,5 @@
 import { field } from '@coder/logger';
-import { release } from "os"
+import { release } from 'os';
 import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
