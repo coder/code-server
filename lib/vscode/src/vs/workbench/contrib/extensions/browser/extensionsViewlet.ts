@@ -490,6 +490,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			dismiss.style.display = 'block';
 			dismiss.style.textAlign = 'right';
 			dismiss.style.cursor = 'pointer';
+			dismiss.tabIndex = 0;
 			dismiss.onclick = () => {
 				helperHeader.remove();
 				localStorage.setItem(extensionHelperLocalStorageKey, 'viewed');
