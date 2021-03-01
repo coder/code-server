@@ -733,7 +733,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		// longer undefined.
 		const resolvedShellLaunchConfig = {
 			...shellLaunchConfig,
-			...getDefaultShellAndArgs(),
+			...(await getDefaultShellAndArgs()),
 			cwd: getInitialCwd(),
 		};
 
