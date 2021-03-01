@@ -105,9 +105,7 @@ jobs:
           name: release-packages
           path: ./release-packages
       - name: Remove docker images
-        run: |
-          docker rm $(docker ps -aq)
-          docker rmi $(docker images -q)
+        run: docker system prune -af
 
   macos-amd64:
     needs: release
