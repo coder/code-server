@@ -48,6 +48,9 @@ jobs:
         with:
           name: test-videos
           path: ./test/videos
+      - name: Remove release packages and test artifacts
+          run: |
+            rm -rf ./release-packages ./test/videos
 
   release:
     runs-on: ubuntu-latest
