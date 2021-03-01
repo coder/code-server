@@ -466,11 +466,14 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			helperHeader.style.fontWeight = '600';
 			helperHeader.style.padding = 'padding: 5px 16px';
 			helperHeader.style.position = 'relative';
+
+			const helperText = append(helperHeader, $('div'));
+
 			// We call this function because it gives us access to the current theme
 			// Then we can apply the link color to the links in the helper header
 			registerThemingParticipant((theme) => {
 				const linkColor = theme.getColor(textLinkForeground);
-				helperHeader.innerHTML = `
+				helperText.innerHTML = `
 				<div style="margin-bottom: 8px;">
 				<p style="margin-bottom: 0; display: flex; align-items: center"><span class="codicon codicon-warning" style="margin-right: 2px; color: #C4A103"></span>WARNING</p>
 				<p style="margin-top: 0; margin-bottom: 4px">
@@ -481,6 +484,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 				</div>
 						`;
 			});
+
 			const dismiss = append(helperHeader, $('span'));
 			dismiss.innerHTML = 'Dismiss';
 			dismiss.style.display = 'block';
