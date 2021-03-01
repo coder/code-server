@@ -49,8 +49,7 @@ jobs:
           name: test-videos
           path: ./test/videos
       - name: Remove release packages and test artifacts
-          run: |
-            rm -rf ./release-packages ./test/videos
+        run: rm -rf ./release-packages ./test/videos
 
   release:
     runs-on: ubuntu-latest
@@ -105,6 +104,10 @@ jobs:
         with:
           name: release-packages
           path: ./release-packages
+      - name: Remove docker images
+        run: |
+          docker rm $(docker ps -aq)
+          docker rmi $(docker images -q)
 
   macos-amd64:
     needs: release
