@@ -23,6 +23,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
         changed. Replace the numbers as needed.
         - You can install `rg` or `ripgrep` on macOS [here](https://formulae.brew.sh/formula/ripgrep).
    4. Update the code coverage badge (see [here](#updating-code-coverage-in-readme) for instructions)
+   5. Update the docs badge in [./README.md](../README.md)
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
