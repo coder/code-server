@@ -120,12 +120,12 @@ export class VscodeProvider {
   /**
    * VS Code expects a raw socket. It will handle all the web socket frames.
    */
-  public async sendWebsocket(socket: net.Socket, query: ipc.Query): Promise<void> {
+  public async sendWebsocket(socket: net.Socket, query: ipc.Query, permessageDeflate: boolean): Promise<void> {
     const vscode = await this._vscode
     // TLS sockets cannot be transferred to child processes so we need an
     // in-between. Non-TLS sockets will be returned as-is.
     const socketProxy = await this.socketProvider.createProxy(socket)
-    this.send({ type: "socket", query }, vscode, socketProxy)
+    this.send({ type: "socket", query, permessageDeflate }, vscode, socketProxy)
   }
 
   private send(message: ipc.CodeServerMessage, vscode?: cp.ChildProcess, socket?: net.Socket): void {

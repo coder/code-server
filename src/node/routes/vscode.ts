@@ -207,5 +207,8 @@ wsRouter.ws("/", ensureAuthenticated, async (req) => {
       `Sec-WebSocket-Accept: ${reply}`,
     ].join("\r\n") + "\r\n\r\n",
   )
-  await vscode.sendWebsocket(req.ws, req.query)
+  // TODO: Parse this header properly. Currently unused so haven't bothered.
+  const extensions = req.headers["sec-websocket-extensions"]
+  const permessageDeflate = extensions ? extensions.includes("permessage-deflate") : false
+  await vscode.sendWebsocket(req.ws, req.query, permessageDeflate)
 })

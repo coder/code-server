@@ -4,7 +4,7 @@ import { VSBuffer } from 'vs/base/common/buffer';
 import { Emitter } from 'vs/base/common/event';
 import { FileAccess } from 'vs/base/common/network';
 import { ISocket } from 'vs/base/parts/ipc/common/ipc.net';
-import { NodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
+import { WebSocketNodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { getNlsConfiguration } from 'vs/server/node/nls';
 import { Protocol } from 'vs/server/node/protocol';
@@ -88,7 +88,7 @@ export class ExtensionHostConnection extends Connection {
 	private readonly logger: Logger;
 
 	public constructor(
-		locale:string, protocol: Protocol, buffer: VSBuffer, token: string,
+		locale: string, protocol: Protocol, buffer: VSBuffer, token: string,
 		private readonly environment: INativeEnvironmentService,
 	) {
 		super(protocol, token);
@@ -115,11 +115,18 @@ export class ExtensionHostConnection extends Connection {
 	private sendInitMessage(buffer: VSBuffer): void {
 		const socket = this.protocol.getUnderlyingSocket();
 		socket.pause();
+
+		const wrapperSocket = this.protocol.getSocket();
+
 		this.logger.trace('Sending socket');
 		this.process!.send({ // Process must be set at this point.
 			type: 'VSCODE_EXTHOST_IPC_SOCKET',
-			initialDataChunk: (buffer.buffer as Buffer).toString('base64'),
-			skipWebSocketFrames: this.protocol.getSocket() instanceof NodeSocket,
+			initialDataChunk: Buffer.from(buffer.buffer).toString('base64'),
+			skipWebSocketFrames: !(wrapperSocket instanceof WebSocketNodeSocket),
+			permessageDeflate: this.protocol.options.permessageDeflate,
+			inflateBytes: wrapperSocket instanceof WebSocketNodeSocket
+				? Buffer.from(wrapperSocket.recordedInflateBytes.buffer).toString('base64')
+				: undefined,
 		}, socket);
 	}
 

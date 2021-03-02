@@ -68,7 +68,7 @@ process.on('message', async (message: CodeServerMessage, socket) => {
 			}
 			break;
 		case 'socket':
-			vscode.handleWebSocket(socket, message.query);
+			vscode.handleWebSocket(socket, message.query, message.permessageDeflate);
 			break;
 	}
 });
