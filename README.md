@@ -1,5 +1,6 @@
 # code-server &middot; [!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq)
 
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/cdr/code-server)
 ![Lines](https://img.shields.io/badge/Coverage-50.08%25-green.svg)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
