@@ -10,6 +10,7 @@ import * as resources from 'vs/base/common/resources';
 import { ReadableStreamEventPayload } from 'vs/base/common/stream';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { transformOutgoingURIs } from 'vs/base/common/uriIpc';
+import { getSystemShell } from 'vs/base/node/shell';
 import { IServerChannel } from 'vs/base/parts/ipc/common/ipc';
 import { IDiagnosticInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
@@ -27,10 +28,9 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError } from 'vs/workbench/contrib/terminal/common/terminal';
+import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/workbench/contrib/terminal/common/terminal';
 import { TerminalDataBufferer } from 'vs/workbench/contrib/terminal/common/terminalDataBuffering';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
-import { getSystemShell } from 'vs/base/node/shell';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/workbench/contrib/terminal/node/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
@@ -611,6 +611,22 @@ class Terminal {
 		this.rows = rows;
 		return this.process.resize(cols, rows);
 	}
+
+	/**
+	 * Serializable terminal information that can be sent to the client.
+	 */
+	public async description(id: number): Promise<terminal.IRemoteTerminalDescriptionDto> {
+		const cwd = await this.getCwd();
+		return {
+			id,
+			pid: this.pid,
+			title: this.title,
+			cwd,
+			workspaceId: this.workspaceId,
+			workspaceName: this.workspaceName,
+			isOrphan: this.isOrphan,
+		};
+	}
 }
 
 // References: - ../../workbench/api/node/extHostTerminalService.ts
@@ -618,6 +634,8 @@ class Terminal {
 export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
 	private readonly terminals = new Map<number, Terminal>();
 	private id = 0;
+
+	private readonly layouts = new Map<string, terminal.ISetTerminalLayoutInfoArgs>();
 
 	public constructor (private readonly logService: ILogService) {
 
@@ -647,6 +665,8 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(args);
 			case '$orphanQuestionReply': return this.orphanQuestionReply(args[0]);
 			case '$listTerminals': return this.listTerminals(args[0]);
+			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
+			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
 		}
 
 		throw new Error(`Invalid call '${command}'`);
@@ -839,24 +859,53 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		// do differently. Maybe it's to reset the terminal dispose timeouts or
 		// something like that, but why not do it each time you list?
 		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
-			const cwd = await terminal.getCwd();
-			return {
-				id,
-				pid: terminal.pid,
-				title: terminal.title,
-				cwd,
-				workspaceId: terminal.workspaceId,
-				workspaceName: terminal.workspaceName,
-				isOrphan: terminal.isOrphan,
-			};
+			return terminal.description(id);
 		}));
+
 		// Only returned orphaned terminals so we don't end up attaching to
 		// terminals already attached elsewhere.
 		return terminals.filter((t) => t.isOrphan);
+	}
+
+	public async setTerminalLayoutInfo(args: terminal.ISetTerminalLayoutInfoArgs): Promise<void> {
+		this.layouts.set(args.workspaceId, args);
+	}
+
+	public async getTerminalLayoutInfo(args: terminal.IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
+		const layout = this.layouts.get(args.workspaceId);
+		if (!layout) {
+			return undefined;
+		}
+
+		const tabs = await Promise.all(layout.tabs.map(async (tab) => {
+			// The terminals are stored by ID so look them up.
+			const terminals = await Promise.all(tab.terminals.map(async (t) => {
+				const terminal = this.terminals.get(t.terminal);
+				if (!terminal) {
+					return undefined;
+				}
+				return {
+					...t,
+					terminal: await terminal.description(t.terminal),
+				};
+			}));
+
+			return {
+				...tab,
+				// Filter out terminals that have been killed.
+				terminals: terminals.filter(isDefined),
+			};
+		}));
+
+		return { tabs };
 	}
 }
 
 function transformIncoming(remoteAuthority: string, uri: UriComponents | undefined): URI | undefined {
 	const transformer = getUriTransformer(remoteAuthority);
 	return uri ? URI.revive(transformer.transformIncoming(uri)) : uri;
+}
+
+function isDefined<T>(t: T | undefined): t is T {
+	return typeof t !== "undefined";
 }
