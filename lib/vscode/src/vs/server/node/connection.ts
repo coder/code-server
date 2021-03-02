@@ -136,14 +136,15 @@ export class ExtensionHostConnection extends Connection {
 			{
 				env: {
 					...process.env,
-					AMD_ENTRYPOINT: 'vs/workbench/services/extensions/node/extensionHostProcess',
-					PIPE_LOGGING: 'true',
-					VERBOSE_LOGGING: 'true',
+					VSCODE_AMD_ENTRYPOINT: 'vs/workbench/services/extensions/node/extensionHostProcess',
+					VSCODE_PIPE_LOGGING: 'true',
+					VSCODE_VERBOSE_LOGGING: 'true',
 					VSCODE_EXTHOST_WILL_SEND_SOCKET: 'true',
 					VSCODE_HANDLES_UNCAUGHT_ERRORS: 'true',
 					VSCODE_LOG_STACK: 'false',
 					VSCODE_LOG_LEVEL: process.env.LOG_LEVEL,
 					VSCODE_NLS_CONFIG: JSON.stringify(config),
+					VSCODE_PARENT_PID: String(process.pid),
 				},
 				silent: true,
 			},
