@@ -106,11 +106,11 @@ export class Vscode {
 						['enableProposedApi', JSON.stringify(options.args['enable-proposed-api'] || [])]
 					],
 				},
-				homeIndicator: {
-					href: options.args.home || 'https://github.com/cdr/code-server',
+				homeIndicator: options.args.home ? {
+					href: options.args.home,
 					icon: 'code',
 					title: localize('home', "Home"),
-				},
+				} : undefined,
 			},
 			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
 			productConfiguration: product,
