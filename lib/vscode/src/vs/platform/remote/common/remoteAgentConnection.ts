@@ -372,8 +372,7 @@ export class ReconnectionWaitEvent {
 		public readonly reconnectionToken: string,
 		public readonly millisSinceLastIncomingData: number,
 		public readonly durationSeconds: number,
-		private readonly cancellableTimer: CancelablePromise<void>,
-		public readonly connectionAttempt: number
+		private readonly cancellableTimer: CancelablePromise<void>
 	) { }
 
 	public skipWait(): void {
@@ -480,7 +479,7 @@ abstract class PersistentConnection extends Disposable {
 			try {
 				if (waitTime > 0) {
 					const sleepPromise = sleep(waitTime);
-					this._onDidStateChange.fire(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise, attempt));
+					this._onDidStateChange.fire(new ReconnectionWaitEvent(this.reconnectionToken, this.protocol.getMillisSinceLastIncomingData(), waitTime, sleepPromise));
 
 					this._options.logService.info(`${logPrefix} waiting for ${waitTime} seconds before reconnecting...`);
 					try {
