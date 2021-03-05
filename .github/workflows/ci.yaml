@@ -44,6 +44,7 @@ jobs:
           yarn --frozen-lockfile
           yarn test
       - name: Upload test artifacts
+        if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-videos
