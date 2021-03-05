@@ -19,6 +19,7 @@ export type Query = { [key: string]: string | string[] | undefined | Query | Que
 export interface SocketMessage {
 	type: 'socket';
 	query: Query;
+	permessageDeflate: boolean;
 }
 
 export interface CliMessage {

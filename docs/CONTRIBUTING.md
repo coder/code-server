@@ -6,6 +6,7 @@
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
   - [Updating VS Code](#updating-vs-code)
+    - [Notes about Changes](#notes-about-changes)
 - [Build](#build)
 - [Structure](#structure)
   - [Modifications to VS Code](#modifications-to-vs-code)
@@ -59,14 +60,18 @@ To develop inside an isolated Docker container:
 
 ### Updating VS Code
 
-If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52:
+To update VS Code, follow these steps:
 
-```shell
-# Add vscode as a new remote if you haven't already and fetch
-git remote add -f vscode https://github.com/microsoft/vscode.git
+1. Run `yarn update:vscode`.
+2. Enter a version. Ex. 1.53
+3. This will open a draft PR for you.
+4. There will be merge conflicts. First commit them.
+   1. We do this because if we don't, it will be impossible to review your PR.
+5. Once they're all fixed, test code-server locally and make sure it all works.
 
-git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52"
-```
+#### Notes about Changes
+
+- watch out for updates to `lib/vscode/src/vs/code/browser/workbench/workbench.html`. You may need to make changes to `src/browser/pages/vscode.html`
 
 ## Build
 

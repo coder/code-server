@@ -14,7 +14,7 @@ import * as filetype from 'file-type';
 import { assign, groupBy, IDisposable, toDisposable, dispose, mkdirp, readBytes, detectUnicodeEncoding, Encoding, onceEvent, splitInChunks, Limiter } from './util';
 import { CancellationToken, Progress, Uri } from 'vscode';
 import { detectEncoding } from './encoding';
-import { Ref, RefType, Branch, Remote, GitErrorCodes, LogOptions, Change, Status, CommitOptions, BranchQuery } from './api/git';
+import { Ref, RefType, Branch, Remote, ForcePushMode, GitErrorCodes, LogOptions, Change, Status, CommitOptions, BranchQuery } from './api/git';
 import * as byline from 'byline';
 import { StringDecoder } from 'string_decoder';
 
@@ -311,6 +311,7 @@ export class GitError {
 
 export interface IGitOptions {
 	gitPath: string;
+	userAgent: string;
 	version: string;
 	env?: any;
 }
@@ -362,6 +363,8 @@ export interface ICloneOptions {
 export class Git {
 
 	readonly path: string;
+	readonly userAgent: string;
+	readonly version: string;
 	private env: any;
 
 	private _onOutput = new EventEmitter();
@@ -369,6 +372,8 @@ export class Git {
 
 	constructor(options: IGitOptions) {
 		this.path = options.gitPath;
+		this.version = options.version;
+		this.userAgent = options.userAgent;
 		this.env = options.env || {};
 	}
 
@@ -427,7 +432,11 @@ export class Git {
 			if (options.recursive) {
 				command.push('--recursive');
 			}
-			await this.exec(options.parentPath, command, { cancellationToken, onSpawn });
+			await this.exec(options.parentPath, command, {
+				cancellationToken,
+				env: { 'GIT_HTTP_USER_AGENT': this.userAgent },
+				onSpawn,
+			});
 		} catch (err) {
 			if (err.stderr) {
 				err.stderr = err.stderr.replace(/^Cloning.+$/m, '').trim();
@@ -458,7 +467,7 @@ export class Git {
 
 					try {
 						const networkPath = await new Promise<string | undefined>(resolve =>
-							realpath.native(`${letter}:`, { encoding: 'utf8' }, (err, resolvedPath) =>
+							realpath.native(`${letter}:\\`, { encoding: 'utf8' }, (err, resolvedPath) =>
 								resolve(err !== null ? undefined : resolvedPath),
 							),
 						);
@@ -796,11 +805,6 @@ export interface PullOptions {
 	unshallow?: boolean;
 	tags?: boolean;
 	readonly cancellationToken?: CancellationToken;
-}
-
-export enum ForcePushMode {
-	Force,
-	ForceWithLease
 }
 
 export class Repository {
@@ -1365,8 +1369,10 @@ export class Repository {
 			args.push('--no-verify');
 		}
 
-		// Stops git from guessing at user/email
-		args.splice(0, 0, '-c', 'user.useConfigOnly=true');
+		if (opts.requireUserConfig ?? true) {
+			// Stops git from guessing at user/email
+			args.splice(0, 0, '-c', 'user.useConfigOnly=true');
+		}
 
 		try {
 			await this.run(args, !opts.amend || message ? { input: message || '' } : {});
@@ -1563,6 +1569,7 @@ export class Repository {
 		const args = ['fetch'];
 		const spawnOptions: SpawnOptions = {
 			cancellationToken: options.cancellationToken,
+			env: { 'GIT_HTTP_USER_AGENT': this.git.userAgent }
 		};
 
 		if (options.remote) {
@@ -1584,7 +1591,7 @@ export class Repository {
 		}
 
 		if (options.silent) {
-			spawnOptions.env = { 'VSCODE_GIT_FETCH_SILENT': 'true' };
+			spawnOptions.env!['VSCODE_GIT_FETCH_SILENT'] = 'true';
 		}
 
 		try {
@@ -1621,7 +1628,10 @@ export class Repository {
 		}
 
 		try {
-			await this.run(args, options);
+			await this.run(args, {
+				cancellationToken: options.cancellationToken,
+				env: { 'GIT_HTTP_USER_AGENT': this.git.userAgent }
+			});
 		} catch (err) {
 			if (/^CONFLICT \([^)]+\): \b/m.test(err.stdout || '')) {
 				err.gitErrorCode = GitErrorCodes.Conflict;
@@ -1690,7 +1700,7 @@ export class Repository {
 		}
 
 		try {
-			await this.run(args);
+			await this.run(args, { env: { 'GIT_HTTP_USER_AGENT': this.git.userAgent } });
 		} catch (err) {
 			if (/^error: failed to push some refs to\b/m.test(err.stderr || '')) {
 				err.gitErrorCode = GitErrorCodes.PushRejected;
@@ -1913,7 +1923,7 @@ export class Repository {
 			return null;
 		};
 
-		return result.stdout.trim().split('\n')
+		return result.stdout.split('\n')
 			.filter(line => !!line)
 			.map(fn)
 			.filter(ref => !!ref) as Ref[];
@@ -1968,50 +1978,59 @@ export class Repository {
 			return this.getHEAD();
 		}
 
-		let result = await this.run(['rev-parse', name]);
-
-		if (!result.stdout && /^@/.test(name)) {
-			const symbolicFullNameResult = await this.run(['rev-parse', '--symbolic-full-name', name]);
-			name = symbolicFullNameResult.stdout.trim();
-
-			result = await this.run(['rev-parse', name]);
+		const args = ['for-each-ref', '--format=%(refname)%00%(upstream:short)%00%(upstream:track)%00%(objectname)'];
+		if (/^refs\/(head|remotes)\//i.test(name)) {
+			args.push(name);
+		} else {
+			args.push(`refs/heads/${name}`, `refs/remotes/${name}`);
 		}
 
-		if (!result.stdout) {
-			return Promise.reject<Branch>(new Error('No such branch'));
-		}
+		const result = await this.run(args);
+		const branches: Branch[] = result.stdout.trim().split('\n').map<Branch | undefined>(line => {
+			let [branchName, upstream, status, ref] = line.trim().split('\0');
 
-		const commit = result.stdout.trim();
+			if (branchName.startsWith('refs/heads/')) {
+				branchName = branchName.substring(11);
+				const index = upstream.indexOf('/');
 
-		try {
-			const res2 = await this.run(['rev-parse', '--symbolic-full-name', name + '@{u}']);
-			const fullUpstream = res2.stdout.trim();
-			const match = /^refs\/remotes\/([^/]+)\/(.+)$/.exec(fullUpstream);
-
-			if (!match) {
-				throw new Error(`Could not parse upstream branch: ${fullUpstream}`);
-			}
-
-			const upstream = { remote: match[1], name: match[2] };
-			const res3 = await this.run(['rev-list', '--left-right', name + '...' + fullUpstream]);
-
-			let ahead = 0, behind = 0;
-			let i = 0;
-
-			while (i < res3.stdout.length) {
-				switch (res3.stdout.charAt(i)) {
-					case '<': ahead++; break;
-					case '>': behind++; break;
-					default: i++; break;
+				let ahead;
+				let behind;
+				const match = /\[(?:ahead ([0-9]+))?[,\s]*(?:behind ([0-9]+))?]|\[gone]/.exec(status);
+				if (match) {
+					[, ahead, behind] = match;
 				}
 
-				while (res3.stdout.charAt(i++) !== '\n') { /* no-op */ }
-			}
+				return {
+					type: RefType.Head,
+					name: branchName,
+					upstream: upstream ? {
+						name: upstream.substring(index + 1),
+						remote: upstream.substring(0, index)
+					} : undefined,
+					commit: ref || undefined,
+					ahead: Number(ahead) || 0,
+					behind: Number(behind) || 0,
+				};
+			} else if (branchName.startsWith('refs/remotes/')) {
+				branchName = branchName.substring(13);
+				const index = branchName.indexOf('/');
 
-			return { name, type: RefType.Head, commit, upstream, ahead, behind };
-		} catch (err) {
-			return { name, type: RefType.Head, commit };
+				return {
+					type: RefType.RemoteHead,
+					name: branchName.substring(index + 1),
+					remote: branchName.substring(0, index),
+					commit: ref,
+				};
+			} else {
+				return undefined;
+			}
+		}).filter((b?: Branch): b is Branch => !!b);
+
+		if (branches.length) {
+			return branches[0];
 		}
+
+		return Promise.reject<Branch>(new Error('No such branch'));
 	}
 
 	async getBranches(query: BranchQuery): Promise<Ref[]> {

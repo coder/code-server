@@ -73,8 +73,11 @@ describe("go home", () => {
     // In case the page takes a long time to load
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
 
+    // Make sure the editor actually loaded
+    expect(await page.isVisible("div.monaco-workbench"))
+
     // Click the Home menu
-    await page.click(".home-bar ul[aria-label='Home'] li")
+    await page.click("[aria-label='Application Menu']")
     // See the Go Home button
     const goHomeButton = "a.action-menu-item span[aria-label='Go Home']"
     expect(await page.isVisible(goHomeButton))

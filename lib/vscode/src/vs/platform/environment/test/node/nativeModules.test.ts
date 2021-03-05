@@ -37,11 +37,6 @@ suite('Native Modules (all platforms)', () => {
 		assert.ok(typeof spdlog.createRotatingLogger === 'function', testErrorMessage('spdlog'));
 	});
 
-	test('v8-inspect-profiler', async () => {
-		const profiler = await import('v8-inspect-profiler');
-		assert.ok(typeof profiler.startProfiling === 'function', testErrorMessage('v8-inspect-profiler'));
-	});
-
 	test('vscode-nsfw', async () => {
 		const nsfWatcher = await import('vscode-nsfw');
 		assert.ok(typeof nsfWatcher === 'function', testErrorMessage('vscode-nsfw'));
@@ -90,7 +85,7 @@ suite('Native Modules (all platforms)', () => {
 	test('vscode-windows-ca-certs', async () => {
 		// @ts-ignore Windows only
 		const windowsCerts = await import('vscode-windows-ca-certs');
-		const store = windowsCerts();
+		const store = new windowsCerts.Crypt32();
 		assert.ok(windowsCerts, testErrorMessage('vscode-windows-ca-certs'));
 		let certCount = 0;
 		try {

@@ -3,8 +3,7 @@
 <html>
   <head>
     <script>
-      globalThis.MonacoPerformanceMarks = globalThis.MonacoPerformanceMarks || []
-      globalThis.MonacoPerformanceMarks.push("renderer/started", Date.now())
+      performance.mark("code/didStartRenderer")
     </script>
 
     <meta charset="utf-8" />
@@ -44,7 +43,7 @@
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/register.js"></script>
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/loader.js"></script>
   <script>
-    globalThis.MonacoPerformanceMarks.push("willLoadWorkbenchMain", Date.now())
+    performance.mark("code/willLoadWorkbenchMain")
   </script>
   <!-- PROD_ONLY
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>

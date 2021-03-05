@@ -1,7 +1,7 @@
 steps:
   - task: NodeTool@0
     inputs:
-      versionSpec: "12.14.1"
+      versionSpec: "12.18.3"
 
   - task: geeklearningio.gl-vsts-tasks-yarn.yarn-installer-task.YarnInstaller@2
     inputs:
@@ -54,3 +54,11 @@ steps:
       AZURE_DOCUMENTDB_MASTERKEY="$(builds-docdb-key-readwrite)" \
       AZURE_STORAGE_ACCESS_KEY_2="$(vscode-storage-key)" \
       node build/azure-pipelines/common/createAsset.js "linux-snap-$(VSCODE_ARCH)" package "$SNAP_FILENAME" "$SNAP_PATH"
+
+      # Export SNAP_PATH
+      echo "##vso[task.setvariable variable=SNAP_PATH]$SNAP_PATH"
+
+  - publish: $(SNAP_PATH)
+    artifact: vscode-linux-snap-$(VSCODE_ARCH)
+    displayName: Publish snap package
+    condition: and(succeeded(), ne(variables['VSCODE_PUBLISH'], 'false'))
