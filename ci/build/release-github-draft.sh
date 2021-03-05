@@ -23,6 +23,9 @@ installations.
 
   - ⭐ Summarize new features here with references to issues
 
+## VS Code
+  - ⭐ Summarize VS Code version update here with references to issues
+
 ## Bug Fixes
   - ⭐ Summarize bug fixes here with references to issues
 
