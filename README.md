@@ -28,7 +28,7 @@ There are three ways you can get started:
 
 1. Using the [install script](./install.sh), which automates most of the process. The script uses the system package manager (if possible)
 2. Manually installing code-server; see [Installation](./docs/install.md) for instructions applicable to most use cases
-3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server)
+3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server) ⚡
 
 If you choose to use the install script, you can preview what occurs during the install process:
 
@@ -46,7 +46,7 @@ When done, the install script prints out instructions for running and starting c
 
 We also have an in-depth [setup and configuration](./docs/guide.md) guide.
 
-### Cloud Program ☁️
+### code-server --link
 
 We're working on a cloud platform that makes deploying and managing code-server easier.
 Consider running code-server with the beta flag `--link` if you don't want to worry about
