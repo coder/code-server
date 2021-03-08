@@ -120,7 +120,7 @@ export class Vscode {
 		};
 	}
 
-	public async handleWebSocket(socket: net.Socket, query: Query, _permessageDeflate: boolean): Promise<true> {
+	public async handleWebSocket(socket: net.Socket, query: Query, permessageDeflate: boolean): Promise<true> {
 		if (!query.reconnectionToken) {
 			throw new Error('Reconnection token is missing from query parameters');
 		}
@@ -128,7 +128,8 @@ export class Vscode {
 			reconnectionToken: <string>query.reconnectionToken,
 			reconnection: query.reconnection === 'true',
 			skipWebSocketFrames: query.skipWebSocketFrames === 'true',
-			// TODO: permessageDeflate,
+			permessageDeflate,
+			recordInflateBytes: permessageDeflate,
 		});
 		try {
 			await this.connect(await protocol.handshake(), protocol);
