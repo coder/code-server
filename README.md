@@ -24,10 +24,11 @@ You can use whatever linux distribution floats your boat but in our [guide](./do
 
 ## Getting Started
 
-There are two ways to get started:
+There are three ways you can get started:
 
 1. Using the [install script](./install.sh), which automates most of the process. The script uses the system package manager (if possible)
 2. Manually installing code-server; see [Installation](./docs/install.md) for instructions applicable to most use cases
+3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server)
 
 If you choose to use the install script, you can preview what occurs during the install process:
 
