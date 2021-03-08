@@ -14,7 +14,7 @@
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
 - [helm](#helm)
-- [App Engines (Azure, Heroku)](#app-engines-azure-heroku)
+- [Cloud Providers](#cloud-providers)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -207,9 +207,8 @@ https://hub.docker.com/r/linuxserver/code-server
 
 See [the chart](../ci/helm-chart).
 
-## App Engines (Azure, Heroku)
+## Cloud Providers
 
-These community images are optimized for use with popular app engines. They use the latest official [Docker](#docker) image, so they will always be up to date.
+We maintain one-click apps and install scripts for different cloud providers such as DigitalOcean, Railway, Heroku, Azure, etc. Check out the repository:
 
-- [code-server-heroku](https://github.com/bpmct/code-server-heroku)
-- [code-server-azure](https://github.com/bpmct/code-server-azure)
+https://github.com/cdr/deploy-code-server
