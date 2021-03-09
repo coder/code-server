@@ -1,5 +1,5 @@
 import { chromium, Page, Browser } from "playwright"
-import { CODE_SERVER_ADDRESS } from "./constants"
+import { CODE_SERVER_ADDRESS } from "../utils/constants"
 
 let browser: Browser
 let page: Page
