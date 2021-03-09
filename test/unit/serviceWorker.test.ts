@@ -58,7 +58,7 @@ describe("serviceWorker", () => {
   })
 
   it("should add 3 listeners: install, activate and fetch", () => {
-    require("../src/browser/serviceWorker.ts")
+    require("../../src/browser/serviceWorker.ts")
     const listenerEventNames = listeners.map((listener) => listener.event)
 
     expect(listeners).toHaveLength(3)
@@ -68,20 +68,20 @@ describe("serviceWorker", () => {
   })
 
   it("should call the proper callbacks for 'install'", async () => {
-    require("../src/browser/serviceWorker.ts")
+    require("../../src/browser/serviceWorker.ts")
     emit("install")
     expect(spy).toHaveBeenCalledWith("[Service Worker] installed")
     expect(spy).toHaveBeenCalledTimes(1)
   })
 
   it("should do nothing when 'fetch' is called", async () => {
-    require("../src/browser/serviceWorker.ts")
+    require("../../src/browser/serviceWorker.ts")
     emit("fetch")
     expect(spy).not.toHaveBeenCalled()
   })
 
   it("should call the proper callbacks for 'activate'", async () => {
-    require("../src/browser/serviceWorker.ts")
+    require("../../src/browser/serviceWorker.ts")
     emit("activate")
 
     // Activate serviceWorker
