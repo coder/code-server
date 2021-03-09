@@ -2,12 +2,11 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # npm Install Requirements
 
-- [npm Install Requirements](#npm-install-requirements)
-  - [Ubuntu, Debian](#ubuntu-debian)
-  - [Fedora, CentOS, RHEL](#fedora-centos-rhel)
-  - [Alpine](#alpine)
-  - [macOS](#macos)
-  - [FreeBSD](#freebsd)
+- [Ubuntu, Debian](#ubuntu-debian)
+- [Fedora, CentOS, RHEL](#fedora-centos-rhel)
+- [Alpine](#alpine)
+- [macOS](#macos)
+- [FreeBSD](#freebsd)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
