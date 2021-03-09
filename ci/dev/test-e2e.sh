@@ -3,12 +3,9 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
-  cd test/test-plugin
-  make -s out/index.js
   # We must keep jest in a sub-directory. See ../../test/package.json for more
   # information. We must also run it from the root otherwise coverage will not
   # include our source files.
-  cd "$OLDPWD"
   if [[ -z ${PASSWORD-} ]] || [[ -z ${CODE_SERVER_ADDRESS-} ]]; then
     echo "The end-to-end testing suites rely on your local environment"
     echo -e "\n"
@@ -21,7 +18,7 @@ main() {
     echo -e "\n"
     exit 1
   fi
-  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@"
+  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --config ./test/jest.e2e.config.ts
 }
 
 main "$@"

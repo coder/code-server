@@ -16,9 +16,9 @@
     "release:standalone": "./ci/build/build-standalone-release.sh",
     "release:github-draft": "./ci/build/release-github-draft.sh",
     "release:github-assets": "./ci/build/release-github-assets.sh",
-    "test:e2e": "./ci/dev/test.sh",
+    "test:e2e": "./ci/dev/test-e2e.sh",
     "test:standalone-release": "./ci/build/test-standalone-release.sh",
-    "test:unit": "./ci/dev/test.sh",
+    "test:unit": "./ci/dev/test-unit.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
     "update:vscode": "./ci/dev/update-vscode.sh",
@@ -126,7 +126,8 @@
     "testPathIgnorePatterns": [
       "node_modules",
       "lib",
-      "out"
+      "out",
+      "test/e2e"
     ],
     "collectCoverage": true,
     "collectCoverageFrom": [
@@ -146,8 +147,6 @@
         "lines": 40
       }
     },
-    "testTimeout": 30000,
-    "globalSetup": "<rootDir>/test/globalSetup.ts",
     "modulePathIgnorePatterns": [
       "<rootDir>/lib/vscode",
       "<rootDir>/release-packages",
@@ -158,7 +157,7 @@
       "<rootDir>/release-images"
     ],
     "moduleNameMapper": {
-      "^.+\\.(css|less)$": "<rootDir>/test/cssStub.ts"
+      "^.+\\.(css|less)$": "<rootDir>/test/utils/cssStub.ts"
     }
   }
 }

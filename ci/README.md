@@ -52,7 +52,7 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 
 Currently, we run a command to manually generate the code coverage shield. Follow these steps:
 
-1. Run `yarn test` and make sure all the tests are passing
+1. Run `yarn test:unit` and make sure all the tests are passing
 2. Run `yarn badges`
 3. Go into the README and change the color from `red` to `green` in this line:
 
@@ -72,8 +72,10 @@ This directory contains scripts used for the development of code-server.
   - Runs formatters.
 - [./ci/dev/lint.sh](./dev/lint.sh) (`yarn lint`)
   - Runs linters.
-- [./ci/dev/test.sh](./dev/test.sh) (`yarn test`)
-  - Runs tests.
+- [./ci/dev/test-unit.sh](./dev/test-unit.sh) (`yarn test:unit`)
+  - Runs unit tests.
+- [./ci/dev/test-e2e.sh](./dev/test-e2e.sh) (`yarn test:e2e`)
+  - Runs end-to-end tests.
 - [./ci/dev/ci.sh](./dev/ci.sh) (`yarn ci`)
   - Runs `yarn fmt`, `yarn lint` and `yarn test`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
@@ -142,11 +144,13 @@ This directory contains the scripts used in CI.
 Helps avoid clobbering the CI configuration.
 
 - [./steps/fmt.sh](./steps/fmt.sh)
-  - Runs `yarn fmt` after ensuring VS Code is patched.
+  - Runs `yarn fmt`.
 - [./steps/lint.sh](./steps/lint.sh)
-  - Runs `yarn lint` after ensuring VS Code is patched.
-- [./steps/test.sh](./steps/test.sh)
-  - Runs `yarn test` after ensuring VS Code is patched.
+  - Runs `yarn lint`.
+- [./steps/test-unit.sh](./steps/test-unit.sh)
+  - Runs `yarn test:unit`.
+- [./steps/test-e2e.sh](./steps/test-e2e.sh)
+  - Runs `yarn test:e2e`.
 - [./steps/release.sh](./steps/release.sh)
   - Runs the release process.
   - Generates the npm package at `./release`.
