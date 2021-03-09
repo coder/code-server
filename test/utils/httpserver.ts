@@ -3,9 +3,9 @@ import * as http from "http"
 import * as net from "net"
 import * as nodeFetch from "node-fetch"
 import Websocket from "ws"
-import * as util from "../src/common/util"
-import { ensureAddress } from "../src/node/app"
-import { handleUpgrade } from "../src/node/wsRouter"
+import * as util from "../../src/common/util"
+import { ensureAddress } from "../../src/node/app"
+import { handleUpgrade } from "../../src/node/wsRouter"
 
 // Perhaps an abstraction similar to this should be used in app.ts as well.
 export class HttpServer {
