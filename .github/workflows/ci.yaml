@@ -35,7 +35,6 @@ jobs:
         uses: ./ci/images/debian10
         with:
           args: ./ci/steps/test-unit.sh
-
   test-e2e:
     needs: linux-amd64
     runs-on: ubuntu-latest
@@ -53,15 +52,17 @@ jobs:
         run: |
           cd release-packages && tar -xzf code-server*-linux-amd64.tar.gz
       - uses: microsoft/playwright-github-action@v1
-      - name: Install dependencies and run tests
-        with:
-          args: ./ci/steps/test-e2e.sh
+      - name: Install dependencies and run end-to-end tests
+        run: |
+          ./release-packages/code-server*-linux-amd64/bin/code-server --home $CODE_SERVER_ADDRESS/healthz &
+          yarn --frozen-lockfile
+          yarn test:e2e
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-videos
-          path: ./test/e2e//videos
+          path: ./test/e2e/videos
       - name: Remove release packages and test artifacts
         run: rm -rf ./release-packages ./test/e2e/videos
 

@@ -16,5 +16,5 @@ node-*
 .home
 coverage
 **/.DS_Store
-test/videos
-test/screenshots
+test/e2e/videos
+test/e2e/screenshots
