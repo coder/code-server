@@ -1,6 +1,23 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This function expects two arguments
+# 1. the vscode version we're updating to
+# 2. the list of merge conflict files
+make_pr_body(){
+  local BODY="This PR updates vscode to $1
+
+## TODOS
+
+- [ ] test editor locally
+- [ ] test terminal locally
+- [ ] make notes about any significant changes in docs/CONTRIBUTING.md#notes-about-changes
+
+## Files with conflicts (fix these)
+$2"
+  echo "$BODY"
+}
+
 main() {
   cd "$(dirname "$0")/../.."
 
@@ -37,6 +54,12 @@ main() {
 
   echo -e "Great! We'll prep a PR for updating to $VSCODE_EXACT_VERSION\n"
 
+  # For some reason the subtree update doesn't work
+  # unless we fetch all the branches
+  echo -e "Fetching vscode branches..."
+  echo -e "Note: this might take a while"
+  git fetch vscode
+
   # Check if GitHub CLI is installed
   if ! command -v gh &> /dev/null; then
     echo "GitHub CLI could not be found."
@@ -55,14 +78,30 @@ main() {
     git push origin "$CURRENT_BRANCH"
   fi
 
-  echo "Opening a draft PR on GitHub"
-  # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body "This PR updates vscode to version: $VSCODE_EXACT_VERSION" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
-
   echo "Going to try to update vscode for you..."
   echo -e "Running: git subtree pull --prefix lib/vscode vscode release/${VSCODE_VERSION_TO_UPDATE} --squash\n"
   # Try to run subtree update command
-  git subtree pull --prefix lib/vscode vscode release/"${VSCODE_VERSION_TO_UPDATE}" --squash --message "chore(vscode): update to $VSCODE_VERSION_TO_UPDATE"
+  # Note: we add `|| true` because we want the script to keep running even if the squash fails
+  # We know the squash fails everytime because there will always be merge conflicts
+  git subtree pull --prefix lib/vscode vscode release/"${VSCODE_VERSION_TO_UPDATE}" --squash || true
+
+  # Get the files with conflicts before we commit them
+  # so we can list them in the PR body
+  CONFLICTS=$(git diff --name-only --diff-filter=U | while read line; do echo "- $line"; done)
+
+  PR_BODY=$(make_pr_body $VSCODE_EXACT_VERSION $CONFLICTS)
+
+  echo "Forcing a commit with conflicts"
+  echo "Note: this is intentional"
+  echo "If we don't do this, code review is impossible."
+  echo "For more info, see docs: docs/CONTRIBUTING.md#updating-vs-code"
+  git add . && git commit -am "chore(vscode): update to $VSCODE_EXACT_VERSION"
+
+  # Note: we can't open a draft PR unless their are changes.
+  # Hence why we do this after the subtree update.
+  echo "Opening a draft PR on GitHub"
+  # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
+  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body $PR_BODY --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 }
 
 main "$@"
