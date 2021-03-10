@@ -606,6 +606,10 @@ class Terminal {
 		return this.process.input(data);
 	}
 
+	public acknowledgeDataEvent(charCount: number): void {
+		return this.process.acknowledgeDataEvent(charCount);
+	}
+
 	public resize(cols: number, rows: number): void {
 		this.cols = cols;
 		this.rows = rows;
@@ -658,6 +662,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$createTerminalProcess': return this.createTerminalProcess(context.remoteAuthority, args);
 			case '$startTerminalProcess': return this.startTerminalProcess(args);
 			case '$sendInputToTerminalProcess': return this.sendInputToTerminalProcess(args);
+			case '$sendCharCountToTerminalProcess': return this.sendCharCountToTerminalProcess(args);
 			case '$shutdownTerminalProcess': return this.shutdownTerminalProcess(args);
 			case '$resizeTerminalProcess': return this.resizeTerminalProcess(args);
 			case '$getTerminalInitialCwd': return this.getTerminalInitialCwd(args);
@@ -825,6 +830,10 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 
 	private async sendInputToTerminalProcess(args: terminal.ISendInputToTerminalProcessArguments): Promise<void> {
 		return this.getTerminal(args.id).input(args.data);
+	}
+
+	private async sendCharCountToTerminalProcess(args: terminal.ISendCharCountToTerminalProcessArguments): Promise<void> {
+		return this.getTerminal(args.id).acknowledgeDataEvent(args.charCount);
 	}
 
 	private async shutdownTerminalProcess(args: terminal.IShutdownTerminalProcessArguments): Promise<void> {
