@@ -5,15 +5,26 @@ updates:
   schedule:
     interval: "daily"
     time: "11:00"
-  open-pull-requests-limit: 10
   assignees:
-    - "dependabot"
+    - "jawnsy"
+  reviewers:
+    - "jawnsy"
+  ignore:
+    # GitHub always delivers the latest versions for each major
+    # release tag, so ignore minor version tags
+    - dependency-name: "actions/cache"
+      versions:
+        - 2.x
+    - dependency-name: "actions/checkout"
+      versions:
+        - 2.x
 
-- package-ecosystem: npm
+- package-ecosystem: "npm"
   directory: "/"
   schedule:
-    interval: daily
+    interval: "daily"
     time: "11:00"
-  open-pull-requests-limit: 10
   assignees:
-    - "dependabot"
+    - "jawnsy"
+  reviewers:
+    - "jawnsy"
