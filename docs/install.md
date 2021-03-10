@@ -9,6 +9,7 @@
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
+- [Termux](#termux)
 - [yarn, npm](#yarn-npm)
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
@@ -120,6 +121,18 @@ makepkg -si
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
+
+## Termux
+
+Termux is an Android terminal application and Linux environment, which can also run code-server from your phone.
+
+1. Install Termux from the [Google Play Store](https://play.google.com/store/apps/details?id=com.termux&hl=en_US&gl=US)
+2. Make sure it's up-to-date by running `apt update && apt upgrade`
+3. Install required packages: `apt install build-essential python git nodejs yarn`
+4. Install code-server: `yarn global add code-server`
+5. Run code-server: `code-server` and navigate to localhost:8080 in your browser
+
+To upgrade run: `yarn global upgrade code-server --latest`
 
 ## yarn, npm
 
