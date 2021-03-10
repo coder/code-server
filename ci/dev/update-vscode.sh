@@ -8,9 +8,8 @@ main() {
   # if it doesn't, we add it
   if ! git config remote.vscode.url > /dev/null; then
     echo "Could not find 'vscode' as a remote"
-    echo "Adding with: git remote add -f vscode https://github.com/microsoft/vscode.git &> /dev/null"
-    echo "Supressing output with '&> /dev/null'"
-    git remote add -f vscode https://github.com/microsoft/vscode.git &> /dev/null
+    echo "Adding with: git remote add vscode https://github.com/microsoft/vscode.git"
+    git remote add vscode https://github.com/microsoft/vscode.git
   fi
 
   # Ask which version we should update to
@@ -25,7 +24,18 @@ main() {
     exit 1
   fi
 
-  echo -e "Great! We'll prep a PR for updating to $VSCODE_VERSION_TO_UPDATE\n"
+  # Check that they have jq installed
+  if ! command -v jq &> /dev/null; then
+    echo "jq could not be found."
+    echo "We use this when looking up the exact version to update to in the package.json in VS Code."
+    echo -e "See docs here: https://stedolan.github.io/jq/download/"
+    exit
+  fi
+
+  # Grab the exact version from package.json
+  VSCODE_EXACT_VERSION=$(curl -s "https://raw.githubusercontent.com/microsoft/vscode/release/$VSCODE_VERSION_TO_UPDATE/package.json" | jq -r ".version")
+
+  echo -e "Great! We'll prep a PR for updating to $VSCODE_EXACT_VERSION\n"
 
   # Check if GitHub CLI is installed
   if ! command -v gh &> /dev/null; then
@@ -47,7 +57,7 @@ main() {
 
   echo "Opening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base master --title "feat(vscode): update to version $VSCODE_VERSION_TO_UPDATE" --body "This PR updates vscode to version: $VSCODE_VERSION_TO_UPDATE" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body "This PR updates vscode to version: $VSCODE_EXACT_VERSION" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 
   echo "Going to try to update vscode for you..."
   echo -e "Running: git subtree pull --prefix lib/vscode vscode release/${VSCODE_VERSION_TO_UPDATE} --squash\n"
