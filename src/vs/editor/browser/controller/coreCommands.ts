@@ -235,7 +235,7 @@ export namespace RevealLine_ {
 				name: 'Reveal line argument object',
 				description: `Property-value pairs that can be passed through this argument:
 					* 'lineNumber': A mandatory line number value.
-					* 'at': Logical position at which line has to be revealed .
+					* 'at': Logical position at which line has to be revealed.
 						\`\`\`
 						'top', 'center', 'bottom'
 						\`\`\`
@@ -554,6 +554,8 @@ export namespace CoreNavigationCommands {
 				case CursorMove_.Direction.Right:
 				case CursorMove_.Direction.Up:
 				case CursorMove_.Direction.Down:
+				case CursorMove_.Direction.PrevBlankLine:
+				case CursorMove_.Direction.NextBlankLine:
 				case CursorMove_.Direction.WrappedLineStart:
 				case CursorMove_.Direction.WrappedLineFirstNonWhitespaceCharacter:
 				case CursorMove_.Direction.WrappedLineColumnCenter:
@@ -1929,6 +1931,7 @@ registerOverwritableCommand(Handler.Type, {
 	}]
 });
 registerOverwritableCommand(Handler.ReplacePreviousChar);
+registerOverwritableCommand(Handler.CompositionType);
 registerOverwritableCommand(Handler.CompositionStart);
 registerOverwritableCommand(Handler.CompositionEnd);
 registerOverwritableCommand(Handler.Paste);
