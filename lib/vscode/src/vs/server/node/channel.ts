@@ -28,11 +28,11 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/workbench/contrib/terminal/common/terminal';
-import { TerminalDataBufferer } from 'vs/workbench/contrib/terminal/common/terminalDataBuffering';
+import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/platform/terminal/common/terminal';
+import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBuffering';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
-import { TerminalProcess } from 'vs/workbench/contrib/terminal/node/terminalProcess';
+import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
