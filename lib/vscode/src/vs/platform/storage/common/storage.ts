@@ -480,11 +480,7 @@ export abstract class AbstractStorageService extends Disposable implements IStor
 
 	// --- abstract
 
-<<<<<<< HEAD
-	protected abstract doStore(key: string, value: string | boolean | number, scope: StorageScope): Promise<void> | void;
-=======
 	protected abstract doInitialize(): Promise<void>;
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
 
 	protected abstract getStorage(scope: StorageScope): IStorage | undefined;
 
