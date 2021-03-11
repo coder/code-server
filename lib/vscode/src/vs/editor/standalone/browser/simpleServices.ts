@@ -310,12 +310,22 @@ export class StandaloneKeybindingService extends AbstractKeybindingService {
 		this._cachedResolver = null;
 		this._dynamicKeybindings = [];
 
+		// for standard keybindings
 		this._register(dom.addDisposableListener(domNode, dom.EventType.KEY_DOWN, (e: KeyboardEvent) => {
-			let keyEvent = new StandardKeyboardEvent(e);
-			let shouldPreventDefault = this._dispatch(keyEvent, keyEvent.target);
+			const keyEvent = new StandardKeyboardEvent(e);
+			const shouldPreventDefault = this._dispatch(keyEvent, keyEvent.target);
 			if (shouldPreventDefault) {
 				keyEvent.preventDefault();
 				keyEvent.stopPropagation();
+			}
+		}));
+
+		// for single modifier chord keybindings (e.g. shift shift)
+		this._register(dom.addDisposableListener(window, dom.EventType.KEY_UP, (e: KeyboardEvent) => {
+			const keyEvent = new StandardKeyboardEvent(e);
+			const shouldPreventDefault = this._singleModifierDispatch(keyEvent, keyEvent.target);
+			if (shouldPreventDefault) {
+				keyEvent.preventDefault();
 			}
 		}));
 	}
@@ -756,7 +766,7 @@ export class SimpleUriLabelService implements ILabelService {
 export class SimpleLayoutService implements ILayoutService {
 	declare readonly _serviceBrand: undefined;
 
-	public onLayout = Event.None;
+	public onDidLayout = Event.None;
 
 	private _dimension?: dom.IDimension;
 	get dimension(): dom.IDimension {
