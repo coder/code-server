@@ -104,7 +104,9 @@ main() {
   echo "Note: this is intentional"
   echo "If we don't do this, code review is impossible."
   echo -e "For more info, see docs: docs/CONTRIBUTING.md#updating-vs-code\n"
-  git add . && git commit -am "chore(vscode): update to $VSCODE_EXACT_VERSION"
+  # We need --no-verify to skip the husky pre-commit hook
+  # which fails because of the merge conflicts
+  git add . && git commit -am "chore(vscode): update to $VSCODE_EXACT_VERSION" --no-verify
 
   # Note: we can't open a draft PR unless their are changes.
   # Hence why we do this after the subtree update.
