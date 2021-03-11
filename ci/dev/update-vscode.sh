@@ -85,7 +85,9 @@ main() {
   if [[ -z $(git ls-remote --heads origin "$CURRENT_BRANCH") ]]; then
     echo "Doesn't look like you've pushed this branch to remote"
     echo -e "Pushing now using: git push origin $CURRENT_BRANCH\n"
-    git push origin "$CURRENT_BRANCH"
+    # Note: we need to set upstream as well or the gh pr create step will fail
+    # See: https://github.com/cli/cli/issues/575
+    git push -u origin "$CURRENT_BRANCH"
   fi
 
   echo "Going to try to update vscode for you..."
