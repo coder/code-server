@@ -24,12 +24,9 @@ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import Severity from 'vs/base/common/severity';
 import { canceled } from 'vs/base/common/errors';
 import { IUserDataAutoSyncEnablementService, IUserDataSyncResourceEnablementService, SyncResource } from 'vs/platform/userDataSync/common/userDataSync';
-<<<<<<< HEAD
 import { isWeb } from 'vs/base/common/platform';
-=======
 import { Promises } from 'vs/base/common/async';
 import { IWorkspaceTrustService, WorkspaceTrustState } from 'vs/platform/workspace/common/workspaceTrust';
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
 
 export class ExtensionManagementService extends Disposable implements IWorkbenchExtensioManagementService {
 
@@ -263,13 +260,7 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 
 		// Install Language pack on local and remote servers
 		if (isLanguagePackExtension(manifest)) {
-<<<<<<< HEAD
-			// NOTE@coder: It does not appear language packs can be installed on the web
-			// extension management server at this time. Filter out the web to fix this.
-			servers.push(...this.servers.filter(s => s !== this.extensionManagementServerService.webExtensionManagementServer));
-=======
 			servers.push(...this.servers.filter(server => server !== this.extensionManagementServerService.webExtensionManagementServer));
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
 		} else {
 			const server = this.getExtensionManagementServerToInstall(manifest);
 			if (server) {
