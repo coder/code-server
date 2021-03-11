@@ -33,6 +33,7 @@ import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBu
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
+import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess'
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
@@ -639,7 +640,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	private readonly terminals = new Map<number, Terminal>();
 	private id = 0;
 
-	private readonly layouts = new Map<string, terminal.ISetTerminalLayoutInfoArgs>();
+	private readonly layouts = new Map<string, ISetTerminalLayoutInfoArgs>();
 
 	public constructor (private readonly logService: ILogService) {
 
@@ -876,11 +877,11 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		return terminals.filter((t) => t.isOrphan);
 	}
 
-	public async setTerminalLayoutInfo(args: terminal.ISetTerminalLayoutInfoArgs): Promise<void> {
+	public async setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
 		this.layouts.set(args.workspaceId, args);
 	}
 
-	public async getTerminalLayoutInfo(args: terminal.IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
+	public async getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
 		const layout = this.layouts.get(args.workspaceId);
 		if (!layout) {
 			return undefined;
