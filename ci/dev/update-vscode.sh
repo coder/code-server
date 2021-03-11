@@ -98,8 +98,8 @@ main() {
   git subtree pull --prefix lib/vscode vscode release/"${VSCODE_VERSION_TO_UPDATE}" --squash || true
 
   # Get the files with conflicts before we commit them
-  # so we can list them in the PR body
-  CONFLICTS=$(git diff --name-only --diff-filter=U | while read -r line; do echo "- $line"; done)
+  # so we can list them in the PR body as todo items
+  CONFLICTS=$(git diff --name-only --diff-filter=U | while read -r line; do echo "- [ ] $line"; done)
   PR_BODY=$(make_pr_body "$VSCODE_EXACT_VERSION" "$CONFLICTS")
 
   echo -e "\nForcing a commit with conflicts"
