@@ -1,10 +1,20 @@
 #!/usr/bin/env bash
+# Description: This is a script to make the process of updating vscode versions easier
+# Run it with `yarn update:vscode` and it will do the following:
+# 1. Check that you have a remote called `vscode`
+# 2. Ask you which version you want to upgrade to
+# 3. Grab the exact version from the package.json i.e. 1.53.2
+# 4. Fetch the vscode remote branches to run the subtree update
+# 5. Run the subtree update and pull in the vscode update
+# 6. Commit the changes (including merge conflicts)
+# 7. Open a draft PR
+
 set -euo pipefail
 
 # This function expects two arguments
 # 1. the vscode version we're updating to
 # 2. the list of merge conflict files
-make_pr_body(){
+make_pr_body() {
   local BODY="This PR updates vscode to $1
 
 ## TODOS
@@ -87,21 +97,20 @@ main() {
 
   # Get the files with conflicts before we commit them
   # so we can list them in the PR body
-  CONFLICTS=$(git diff --name-only --diff-filter=U | while read line; do echo "- $line"; done)
+  CONFLICTS=$(git diff --name-only --diff-filter=U | while read -r line; do echo "- $line"; done)
+  PR_BODY=$(make_pr_body "$VSCODE_EXACT_VERSION" "$CONFLICTS")
 
-  PR_BODY=$(make_pr_body $VSCODE_EXACT_VERSION $CONFLICTS)
-
-  echo "Forcing a commit with conflicts"
+  echo -e "\nForcing a commit with conflicts"
   echo "Note: this is intentional"
   echo "If we don't do this, code review is impossible."
-  echo "For more info, see docs: docs/CONTRIBUTING.md#updating-vs-code"
+  echo -e "For more info, see docs: docs/CONTRIBUTING.md#updating-vs-code\n"
   git add . && git commit -am "chore(vscode): update to $VSCODE_EXACT_VERSION"
 
   # Note: we can't open a draft PR unless their are changes.
   # Hence why we do this after the subtree update.
   echo "Opening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body $PR_BODY --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body "$PR_BODY" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 }
 
 main "$@"
