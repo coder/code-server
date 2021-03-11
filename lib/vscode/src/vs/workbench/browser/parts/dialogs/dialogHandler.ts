@@ -121,13 +121,8 @@ export class BrowserDialogHandler implements IDialogHandler {
 
 	async about(): Promise<void> {
 		const detailString = (useAgo: boolean): string => {
-<<<<<<< HEAD
-			return nls.localize('aboutDetail',
-				"code-server: v{4}\n VS Code: v{0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
-=======
 			return localize('aboutDetail',
-				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
+				"code-server: v{4}\n VS Code: v{0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
 				this.productService.version || 'Unknown',
 				this.productService.commit || 'Unknown',
 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
