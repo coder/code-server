@@ -137,7 +137,7 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 					See commit: https://github.com/microsoft/vscode/commit/a0d76bb9834b63a02fba8017a6306511fe1ab4fe#diff-2bf233effbb62ea789bb7c4739d222a43ccd97ed9f1219f75bb07e9dee91c1a7
 					3/11/21 @jsjoeio
 				*/
-				return fs.promises.mkdir(targetFileName).then(nextEntry)
+				return fs.promises.mkdir(targetFileName, { recursive: true }).then(nextEntry)
 			}
 
 			const dirName = path.dirname(fileName);
@@ -151,7 +151,7 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 				See commit: https://github.com/microsoft/vscode/commit/a0d76bb9834b63a02fba8017a6306511fe1ab4fe#diff-2bf233effbb62ea789bb7c4739d222a43ccd97ed9f1219f75bb07e9dee91c1a7
 				3/11/21 @jsjoeio
 			*/
-			await fs.promises.mkdir(targetDirName)
+			await fs.promises.mkdir(targetDirName, { recursive: true })
 
 			const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
 			fstream.once('close', () => next());
