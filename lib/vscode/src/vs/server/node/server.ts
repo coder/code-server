@@ -7,7 +7,7 @@ import { Emitter } from 'vs/base/common/event';
 import { Schemas } from 'vs/base/common/network';
 import { URI } from 'vs/base/common/uri';
 import { getMachineId } from 'vs/base/node/id';
-import { ClientConnectionEvent, IPCServer, IServerChannel, ProxyChannel, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
+import { ClientConnectionEvent, IPCServer, IServerChannel, ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
 import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
 import { main } from 'vs/code/node/cliProcessMain';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';

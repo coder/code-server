@@ -350,6 +350,13 @@ class VariableResolverService extends AbstractVariableResolverService {
 			getConfigurationValue: (_: URI, section: string): string | undefined => {
 				return args.resolvedVariables[`config:${section}`];
 			},
+			getAppRoot: (): string | undefined => {
+				/*
+					NOTE@coder: not sure where we could get this from. This is new.
+					@jsjoeio 3/11/21
+				*/
+				return undefined
+			},
 			getExecPath: (): string | undefined => {
 				// Assuming that resolverEnv is just for use in the resolver and not for
 				// the terminal itself.
