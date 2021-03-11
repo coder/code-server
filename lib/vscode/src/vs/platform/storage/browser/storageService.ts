@@ -82,13 +82,8 @@ export class BrowserStorageService extends AbstractStorageService {
 		}
 	}
 
-<<<<<<< HEAD
-	protected doStore(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
-		return this.getStorage(scope).set(key, value);
-=======
 	protected getStorage(scope: StorageScope): IStorage | undefined {
 		return scope === StorageScope.GLOBAL ? this.globalStorage : this.workspaceStorage;
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
 	}
 
 	protected getLogDetails(scope: StorageScope): string | undefined {
