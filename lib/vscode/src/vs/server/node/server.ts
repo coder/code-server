@@ -29,7 +29,7 @@ import { ServiceCollection } from 'vs/platform/instantiation/common/serviceColle
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
 import { ConsoleLogger, getLogLevel, ILoggerService, ILogService, MultiplexLogService } from 'vs/platform/log/common/log';
-import { FollowerLogService, LoggerChannel, LoggerChannelClient } from 'vs/platform/log/common/logIpc';
+import { LoggerChannel } from 'vs/platform/log/common/logIpc';
 import { LoggerService } from 'vs/platform/log/node/loggerService';
 import { SpdLogLogger } from 'vs/platform/log/node/spdlogLog';
 import product from 'vs/platform/product/common/product';
@@ -217,24 +217,29 @@ export class Vscode {
 			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L148
 
 			If upstream changes cause conflicts, look there ^.
+			3/11/21 @jsjoeio
 		*/
 		const environmentService = new NativeEnvironmentService(args);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
 		/*
-			NOTE@coder: Made these updates on 3/11/21 by @jsjoeio
-			based on this file (and lines):
+			NOTE@coder: Made these updates on based on this file (and lines):
 			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L144-L149
+
+			More details (from @code-asher):
+			I think the logLevel channel is only used in the electron version of vscode so we can probably skip it.
+			With that in mind we wouldn't need logLevelClient which means we wouldn't need the follower service
+			either and we can use the multiplex log service directly.
+			3/11/21 @jsjoeio
 		*/
-		const mainRouter = new StaticRouter(ctx => ctx === 'main')
-		const loggerClient = new LoggerChannelClient(this.ipc.getChannel('logger', mainRouter))
-		const multiplexLogger = new MultiplexLogService([
+		const logService = new MultiplexLogService([
 			new ConsoleLogger(getLogLevel(environmentService)),
 			new SpdLogLogger(RemoteExtensionLogFileName, environmentService.logsPath, false, getLogLevel(environmentService))
 		])
-		const logService = new FollowerLogService(loggerClient, multiplexLogger)
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
+
+		const loggerService = new LoggerService(logService, fileService)
 
 		const piiPaths = [
 			path.join(environmentService.userDataPath, 'clp'), // Language packs.
@@ -245,13 +250,17 @@ export class Vscode {
 			...environmentService.extraBuiltinExtensionPaths,
 		];
 
-		this.ipc.registerChannel('logger', new LoggerChannel(logService));
+		this.ipc.registerChannel('logger', new LoggerChannel(loggerService));
 		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
 		this.services.set(ILogService, logService);
 		this.services.set(IEnvironmentService, environmentService);
 		this.services.set(INativeEnvironmentService, environmentService);
-		this.services.set(ILoggerService, new SyncDescriptor(LoggerService));
+		/*
+			NOTE@coder: we changed this from LoggerService to the loggerService defined above.
+			3/11/21 @jsjoeio
+		*/
+		this.services.set(ILoggerService, loggerService);
 
 		const configurationService = new ConfigurationService(environmentService.settingsResource, fileService);
 		await configurationService.initialize();
