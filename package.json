@@ -71,7 +71,8 @@
   "resolutions": {
     "@types/node": "^12.12.7",
     "safe-buffer": "^5.1.1",
-    "vfile-message": "^2.0.2"
+    "vfile-message": "^2.0.2",
+    "node-forge": "^0.10.0"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
