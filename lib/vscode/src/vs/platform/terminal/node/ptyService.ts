@@ -305,7 +305,7 @@ export class PersistentTerminalProcess extends Disposable {
 		}
 		return undefined;
 	}
-	shutdown(immediate: boolean): void {
+	shutdown(immediate: boolean): Promise<void> {
 		return this._terminalProcess.shutdown(immediate);
 	}
 	input(data: string): void {

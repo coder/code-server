@@ -7,7 +7,7 @@ import { Emitter } from 'vs/base/common/event';
 import { Schemas } from 'vs/base/common/network';
 import { URI } from 'vs/base/common/uri';
 import { getMachineId } from 'vs/base/node/id';
-import { ClientConnectionEvent, createChannelReceiver, IPCServer, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
+import { ClientConnectionEvent, IPCServer, IServerChannel, ProxyChannel, StaticRouter } from 'vs/base/parts/ipc/common/ipc';
 import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
 import { main } from 'vs/code/node/cliProcessMain';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
@@ -28,10 +28,10 @@ import { InstantiationService } from 'vs/platform/instantiation/common/instantia
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
-import { getLogLevel, ILoggerService, ILogService } from 'vs/platform/log/common/log';
-import { LoggerChannel } from 'vs/platform/log/common/logIpc';
+import { ConsoleLogger, getLogLevel, ILoggerService, ILogService, MultiplexLogService } from 'vs/platform/log/common/log';
+import { FollowerLogService, LoggerChannel, LoggerChannelClient } from 'vs/platform/log/common/logIpc';
 import { LoggerService } from 'vs/platform/log/node/loggerService';
-import { SpdLogService } from 'vs/platform/log/node/spdlogService';
+import { SpdLogLogger } from 'vs/platform/log/node/spdlogLog';
 import product from 'vs/platform/product/common/product';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { ConnectionType, ConnectionTypeRequest } from 'vs/platform/remote/common/remoteAgentConnection';
@@ -212,11 +212,27 @@ export class Vscode {
 	}
 
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
+		/*
+			NOTE@coder: this initializeServices is loosely based off this file:
+			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L148
+
+			If upstream changes cause conflicts, look there ^.
+		*/
 		const environmentService = new NativeEnvironmentService(args);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
-
-		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
+		/*
+			NOTE@coder: Made these updates on 3/11/21 by @jsjoeio
+			based on this file (and lines):
+			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L144-L149
+		*/
+		const mainRouter = new StaticRouter(ctx => ctx === 'main')
+		const loggerClient = new LoggerChannelClient(this.ipc.getChannel('logger', mainRouter))
+		const multiplexLogger = new MultiplexLogService([
+			new ConsoleLogger(getLogLevel(environmentService)),
+			new SpdLogLogger(RemoteExtensionLogFileName, environmentService.logsPath, false, getLogLevel(environmentService))
+		])
+		const logService = new FollowerLogService(loggerClient, multiplexLogger)
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
 
@@ -286,7 +302,15 @@ export class Vscode {
 				));
 				this.ipc.registerChannel('request', new RequestChannel(accessor.get(IRequestService)));
 				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
-				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(accessor.get(ILocalizationsService)));
+				/*
+					NOTE@coder: they renamed createChannelReceiver and made it part of the ProxyChannel namespace
+					See: https://github.com/microsoft/vscode/commit/e371faebfb679ca0dcdb61f4f2f33b3d69922a77
+
+					And see this as an example similar to our code below:
+					https://github.com/microsoft/vscode/blob/e371faebfb679ca0dcdb61f4f2f33b3d69922a77/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L273
+					3/11/2021 by @jsjoeio
+				*/
+				this.ipc.registerChannel('localizations', <IServerChannel<any>>ProxyChannel.fromService(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService));
 				resolve(new ErrorTelemetry(telemetryService));
