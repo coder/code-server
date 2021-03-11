@@ -114,7 +114,7 @@ main() {
   # Hence why we do this after the subtree update.
   echo "Opening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base master --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body "$PR_BODY" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  gh pr create --base main --title "feat(vscode): update to version $VSCODE_EXACT_VERSION" --body "$PR_BODY" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 }
 
 main "$@"
