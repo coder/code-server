@@ -153,35 +153,8 @@ export class NativeStorageService extends AbstractStorageService {
 		}
 	}
 
-<<<<<<< HEAD
-	get(key: string, scope: StorageScope, fallbackValue: string): string;
-	get(key: string, scope: StorageScope): string | undefined;
-	get(key: string, scope: StorageScope, fallbackValue?: string): string | undefined {
-		return this.getStorage(scope).get(key, fallbackValue);
-	}
-
-	getBoolean(key: string, scope: StorageScope, fallbackValue: boolean): boolean;
-	getBoolean(key: string, scope: StorageScope): boolean | undefined;
-	getBoolean(key: string, scope: StorageScope, fallbackValue?: boolean): boolean | undefined {
-		return this.getStorage(scope).getBoolean(key, fallbackValue);
-	}
-
-	getNumber(key: string, scope: StorageScope, fallbackValue: number): number;
-	getNumber(key: string, scope: StorageScope): number | undefined;
-	getNumber(key: string, scope: StorageScope, fallbackValue?: number): number | undefined {
-		return this.getStorage(scope).getNumber(key, fallbackValue);
-	}
-
-	protected doStore(key: string, value: string | boolean | number | undefined | null, scope: StorageScope): Promise<void> {
-		return this.getStorage(scope).set(key, value);
-	}
-
-	protected doRemove(key: string, scope: StorageScope): void {
-		this.getStorage(scope).delete(key);
-=======
 	protected getStorage(scope: StorageScope): IStorage | undefined {
 		return scope === StorageScope.GLOBAL ? this.globalStorage : this.workspaceStorage;
->>>>>>> e8cd17a97d8c58fffcbac05394b3ee2b3c72d384
 	}
 
 	protected getLogDetails(scope: StorageScope): string | undefined {
