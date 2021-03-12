@@ -13,7 +13,7 @@ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
 import { Options } from 'vs/server/ipc.d';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
-import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
+import { LocalizationsService } from 'vs/workbench/services/localizations/electron-sandbox/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 
 class TelemetryService extends TelemetryChannelClient {
