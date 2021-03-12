@@ -33,7 +33,7 @@ import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBu
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
-import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess'
+import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
@@ -355,7 +355,7 @@ class VariableResolverService extends AbstractVariableResolverService {
 					NOTE@coder: not sure where we could get this from. This is new.
 					@jsjoeio 3/11/21
 				*/
-				return undefined
+				return undefined;
 			},
 			getExecPath: (): string | undefined => {
 				// Assuming that resolverEnv is just for use in the resolver and not for

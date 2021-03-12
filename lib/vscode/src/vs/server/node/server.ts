@@ -234,12 +234,12 @@ export class Vscode {
 		*/
 		const logService = new MultiplexLogService([
 			new ConsoleLogger(getLogLevel(environmentService)),
-			new SpdLogLogger(RemoteExtensionLogFileName, environmentService.logsPath, false, getLogLevel(environmentService))
-		])
+			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, 'server.log'), false, getLogLevel(environmentService))
+		]);
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
 
-		const loggerService = new LoggerService(logService, fileService)
+		const loggerService = new LoggerService(logService, fileService);
 
 		const piiPaths = [
 			path.join(environmentService.userDataPath, 'clp'), // Language packs.
