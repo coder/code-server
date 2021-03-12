@@ -11,13 +11,8 @@ updates:
     - "jawnsy"
   ignore:
     # GitHub always delivers the latest versions for each major
-    # release tag, so ignore minor version tags
-    - dependency-name: "actions/cache"
-      versions:
-        - 2.x
-    - dependency-name: "actions/checkout"
-      versions:
-        - 2.x
+    # release tag, so handle updates manually
+    - dependency-name: "actions/*"
 
 - package-ecosystem: "npm"
   directory: "/"
