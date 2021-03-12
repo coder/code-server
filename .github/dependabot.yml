@@ -1,0 +1,25 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "11:00"
+    assignees:
+      - "jawnsy"
+    reviewers:
+      - "jawnsy"
+    ignore:
+      # GitHub always delivers the latest versions for each major
+      # release tag, so handle updates manually
+      - dependency-name: "actions/*"
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+      time: "11:00"
+    assignees:
+      - "jawnsy"
+    reviewers:
+      - "jawnsy"
