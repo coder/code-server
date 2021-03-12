@@ -1191,10 +1191,10 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
-"@types/fs-extra@^8.0.1":
-  version "8.1.1"
-  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-8.1.1.tgz#1e49f22d09aa46e19b51c0b013cb63d0d923a068"
-  integrity sha512-TcUlBem321DFQzBNuz8p0CLLKp0VvF/XH9E4KHNmgwyp4E3AfgI5cjiIVZWlbfThBop2qxFIh4+LeY6hVWWZ2w==
+"@types/fs-extra@^9.0.8":
+  version "9.0.8"
+  resolved "https://registry.yarnpkg.com/@types/fs-extra/-/fs-extra-9.0.8.tgz#32c3c07ddf8caa5020f84b5f65a48470519f78ba"
+  integrity sha512-bnlTVTwq03Na7DpWxFJ1dvnORob+Otb8xHyUqUWhqvz/Ksg8+JXPlR52oeMSZ37YEOa5PyccbgUNutiQdi13TA==
   dependencies:
     "@types/node" "*"
 
