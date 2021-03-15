@@ -13,7 +13,7 @@ usage() {
 "
   fi
 
-  cath << EOF
+  cath <<EOF
 Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
@@ -81,7 +81,7 @@ echo_latest_version() {
 
 echo_npm_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 The npm package has been installed successfully!
 Please extend your path to use code-server:
   PATH="$NPM_BIN_DIR:\$PATH"
@@ -92,7 +92,7 @@ EOF
 
 echo_standalone_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 Standalone release has been installed into $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
   PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
@@ -103,7 +103,7 @@ EOF
 
 echo_systemd_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 To have systemd start code-server now and restart on boot:
   sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
@@ -509,7 +509,7 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null
+  command -v "$@" >/dev/null
 }
 
 sh_c() {
@@ -571,7 +571,7 @@ prefix() {
   fifo="$(mktemp -d)/fifo"
   mkfifo "$fifo"
   sed -e "s#^#$PREFIX: #" "$fifo" &
-  "$@" > "$fifo" 2>&1
+  "$@" >"$fifo" 2>&1
 }
 
 main "$@"

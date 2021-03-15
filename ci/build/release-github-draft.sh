@@ -10,7 +10,7 @@ main() {
   hub release create \
     --file - \
     -t "$(git rev-parse HEAD)" \
-    --draft "v$VERSION" << EOF
+    --draft "v$VERSION" <<EOF
 v$VERSION
 
 VS Code v$(vscode_version)

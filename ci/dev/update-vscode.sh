@@ -33,7 +33,7 @@ main() {
 
   # Check if the remote exists
   # if it doesn't, we add it
-  if ! git config remote.vscode.url > /dev/null; then
+  if ! git config remote.vscode.url >/dev/null; then
     echo "Could not find 'vscode' as a remote"
     echo "Adding with: git remote add vscode https://github.com/microsoft/vscode.git"
     git remote add vscode https://github.com/microsoft/vscode.git
@@ -52,7 +52,7 @@ main() {
   fi
 
   # Check that they have jq installed
-  if ! command -v jq &> /dev/null; then
+  if ! command -v jq &>/dev/null; then
     echo "jq could not be found."
     echo "We use this when looking up the exact version to update to in the package.json in VS Code."
     echo -e "See docs here: https://stedolan.github.io/jq/download/"
@@ -71,7 +71,7 @@ main() {
   git fetch vscode
 
   # Check if GitHub CLI is installed
-  if ! command -v gh &> /dev/null; then
+  if ! command -v gh &>/dev/null; then
     echo "GitHub CLI could not be found."
     echo "If you install it before you run this script next time, we'll open a draft PR for you!"
     echo -e "See docs here: https://github.com/cli/cli#installation\n"

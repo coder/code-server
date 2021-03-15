@@ -49,7 +49,7 @@ bundle_code_server() {
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
-    cat << EOF
+    cat <<EOF
   {
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
@@ -57,7 +57,7 @@ bundle_code_server() {
     }
   }
 EOF
-  ) > "$RELEASE_PATH/package.json"
+  ) >"$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 
@@ -89,18 +89,18 @@ bundle_vscode() {
 
   # Adds the commit and date to product.json
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
-    cat << EOF
+    cat <<EOF
   {
     "commit": "$(git rev-parse HEAD)",
     "date": $(jq -n 'now | todate')
   }
 EOF
-  ) > "$VSCODE_OUT_PATH/product.json"
+  ) >"$VSCODE_OUT_PATH/product.json"
 
   # We remove the scripts field so that later on we can run
   # yarn to fetch node_modules if necessary without build scripts running.
   # We cannot use --no-scripts because we still want dependent package scripts to run.
-  jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
+  jq 'del(.scripts)' <"$VSCODE_SRC_PATH/package.json" >"$VSCODE_OUT_PATH/package.json"
 
   pushd "$VSCODE_OUT_PATH"
   symlink_asar

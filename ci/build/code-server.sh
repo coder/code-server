@@ -11,9 +11,9 @@ _realpath() {
   cd "$(dirname "$script")"
 
   while [ -L "$(basename "$script")" ]; do
-    if [ -L "./node" ] && [ -L "./code-server" ] &&
-      [ -f "package.json" ] &&
-      cat package.json | grep -q '^  "name": "code-server",$'; then
+    if [ -L "./node" ] && [ -L "./code-server" ] \
+      && [ -f "package.json" ] \
+      && cat package.json | grep -q '^  "name": "code-server",$'; then
       echo "***** Please use the script in bin/code-server instead!" >&2
       echo "***** This script will soon be removed!" >&2
       echo "***** See the release notes at https://github.com/cdr/code-server/releases/tag/v3.4.0" >&2
