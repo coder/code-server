@@ -6850,9 +6850,9 @@ ripemd160@^2.0.0, ripemd160@^2.0.1:
     inherits "^2.0.1"
 
 rotating-file-stream@^2.1.1:
-  version "2.1.3"
-  resolved "https://registry.yarnpkg.com/rotating-file-stream/-/rotating-file-stream-2.1.3.tgz#4b3cc8f56ae70b3e30ccdb4ee6b14d95e66b02bb"
-  integrity sha512-zZ4Tkngxispo7DgiTqX0s4ChLtM3qET6iYsDA9tmgDEqJ3BFgRq/ZotsKEDAYQt9pAn9JwwqT27CSwQt3CTxNg==
+  version "2.1.5"
+  resolved "https://registry.yarnpkg.com/rotating-file-stream/-/rotating-file-stream-2.1.5.tgz#6490d0a09e11dd4d441aa5d4d3676debed4a44e4"
+  integrity sha512-wnYazkT8oD5HXTj44WhB030aKo74OyICrPz/QKCUah59QD7Np4OhdoTC0WNZfhMx1ClsZp4lYMlAdof+DIkZ1Q==
 
 router@2.0.0-alpha.1:
   version "2.0.0-alpha.1"
