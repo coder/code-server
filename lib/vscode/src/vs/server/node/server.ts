@@ -29,7 +29,7 @@ import { ServiceCollection } from 'vs/platform/instantiation/common/serviceColle
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
 import { ConsoleLogger, getLogLevel, ILoggerService, ILogService, MultiplexLogService } from 'vs/platform/log/common/log';
-import { LoggerChannel } from 'vs/platform/log/common/logIpc';
+import { LogLevelChannel } from 'vs/platform/log/common/logIpc';
 import { LoggerService } from 'vs/platform/log/node/loggerService';
 import { SpdLogLogger } from 'vs/platform/log/node/spdlogLog';
 import product from 'vs/platform/product/common/product';
@@ -214,7 +214,7 @@ export class Vscode {
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
 		/*
 			NOTE@coder: this initializeServices is loosely based off this file:
-			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L148
+			Reference: - ../../electron-browser/sharedProcess/sharedProcessMain.ts#L148
 
 			If upstream changes cause conflicts, look there ^.
 			3/11/21 @jsjoeio
@@ -224,7 +224,7 @@ export class Vscode {
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
 		/*
 			NOTE@coder: Made these updates on based on this file (and lines):
-			https://github.com/cdr/code-server/blob/main/lib/vscode/src/vs/code/electron-browser/sharedProcess/sharedProcessMain.ts#L144-L149
+			Reference: - ../../electron-browser/sharedProcess/sharedProcessMain.ts#L144-L149
 
 			More details (from @code-asher):
 			I think the logLevel channel is only used in the electron version of vscode so we can probably skip it.
@@ -234,7 +234,7 @@ export class Vscode {
 		*/
 		const logService = new MultiplexLogService([
 			new ConsoleLogger(getLogLevel(environmentService)),
-			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, 'server.log'), false, getLogLevel(environmentService))
+			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, `${RemoteExtensionLogFileName}.log`), false, getLogLevel(environmentService))
 		]);
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
@@ -250,7 +250,13 @@ export class Vscode {
 			...environmentService.extraBuiltinExtensionPaths,
 		];
 
-		this.ipc.registerChannel('logger', new LoggerChannel(loggerService));
+		/*
+			NOTE@coder: we changed this channel registration from LogLevel to LogLevelChannel
+			because it changed upstream.
+
+			3/15/21 jsjoeio
+		*/
+		this.ipc.registerChannel('logger', new LogLevelChannel(logService));
 		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
 		this.services.set(ILogService, logService);
