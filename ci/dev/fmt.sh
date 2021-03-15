@@ -4,8 +4,6 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  shfmt -i 2 -w -sr $(git ls-files "*.sh" | grep -v "lib/vscode")
-
   local prettierExts
   prettierExts=(
     "*.js"

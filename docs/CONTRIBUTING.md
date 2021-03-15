@@ -2,15 +2,16 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Pull Requests](#pull-requests)
-- [Requirements](#requirements)
-- [Development Workflow](#development-workflow)
-  - [Updating VS Code](#updating-vs-code)
-    - [Notes about Changes](#notes-about-changes)
-- [Build](#build)
-- [Structure](#structure)
-  - [Modifications to VS Code](#modifications-to-vs-code)
-  - [Currently Known Issues](#currently-known-issues)
+- [Contributing](#contributing)
+  - [Pull Requests](#pull-requests)
+  - [Requirements](#requirements)
+  - [Development Workflow](#development-workflow)
+    - [Updating VS Code](#updating-vs-code)
+      - [Notes about Changes](#notes-about-changes)
+  - [Build](#build)
+  - [Structure](#structure)
+    - [Modifications to VS Code](#modifications-to-vs-code)
+    - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -36,7 +37,6 @@ There are several differences, however. You must:
 - Use Node.js version 12.x (or greater)
 - Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
 - Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
-- Have [shfmt](https://pkg.go.dev/mvdan.cc/sh/v3) installed to run `yarn fmt` (requires Go is installed on your system)
 
 The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all
 of the dependencies code-server uses.
