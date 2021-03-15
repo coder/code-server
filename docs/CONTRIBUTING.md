@@ -2,16 +2,15 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Contributing](#contributing)
-  - [Pull Requests](#pull-requests)
-  - [Requirements](#requirements)
-  - [Development Workflow](#development-workflow)
-    - [Updating VS Code](#updating-vs-code)
-      - [Notes about Changes](#notes-about-changes)
-  - [Build](#build)
-  - [Structure](#structure)
-    - [Modifications to VS Code](#modifications-to-vs-code)
-    - [Currently Known Issues](#currently-known-issues)
+- [Pull Requests](#pull-requests)
+- [Requirements](#requirements)
+- [Development Workflow](#development-workflow)
+  - [Updating VS Code](#updating-vs-code)
+    - [Notes about Changes](#notes-about-changes)
+- [Build](#build)
+- [Structure](#structure)
+  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

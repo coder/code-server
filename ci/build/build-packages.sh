@@ -40,7 +40,7 @@ release_gcp() {
 # Generates deb and rpm packages.
 release_nfpm() {
   local nfpm_config
-  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  nfpm_config="$(envsubst <./ci/build/nfpm.yaml)"
 
   # The underscores are convention for .deb.
   nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_$ARCH.deb"

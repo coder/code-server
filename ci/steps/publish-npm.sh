@@ -6,7 +6,7 @@ main() {
   source ./ci/lib.sh
 
   if [[ ${CI-} ]]; then
-    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+    echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" >~/.npmrc
   fi
 
   download_artifact npm-package ./release-npm-package

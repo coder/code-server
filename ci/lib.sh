@@ -2,11 +2,11 @@
 set -euo pipefail
 
 pushd() {
-  builtin pushd "$@" > /dev/null
+  builtin pushd "$@" >/dev/null
 }
 
 popd() {
-  builtin popd > /dev/null
+  builtin popd >/dev/null
 }
 
 pkg_json_version() {
@@ -75,7 +75,7 @@ download_artifact() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  curl -fsSL "$(get_artifact_url "$artifact_name")" > "$tmp_file"
+  curl -fsSL "$(get_artifact_url "$artifact_name")" >"$tmp_file"
   unzip -q -o "$tmp_file" -d "$dst"
   rm "$tmp_file"
 }
