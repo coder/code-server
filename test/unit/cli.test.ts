@@ -360,7 +360,7 @@ describe("cli", () => {
 
   it("should use existing if --reuse-window is set", async () => {
     args["reuse-window"] = true
-    await expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")

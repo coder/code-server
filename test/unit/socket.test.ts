@@ -110,10 +110,10 @@ describe("SocketProxyProvider", () => {
     provider.stop() // We don't need more proxies.
 
     proxy.write("server proxy->client")
-    const dataFromServerToClient = await (await getData(fromServerToClient)).toString()
+    const dataFromServerToClient = (await getData(fromServerToClient)).toString()
     expect(dataFromServerToClient).toBe("server proxy->client")
     client.write("client->server proxy")
-    const dataFromClientToProxy = await (await getData(fromClientToProxy)).toString()
+    const dataFromClientToProxy = (await getData(fromClientToProxy)).toString()
     expect(dataFromClientToProxy).toBe("client->server proxy")
     expect(errors).toEqual(0)
   })
