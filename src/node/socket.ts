@@ -1,4 +1,4 @@
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as net from "net"
 import * as path from "path"
 import * as tls from "tls"
@@ -75,7 +75,7 @@ export class SocketProxyProvider {
       this._proxyServer = this.findFreeSocketPath(this.proxyPipe)
         .then((pipe) => {
           this.proxyPipe = pipe
-          return Promise.all([fs.mkdirp(tmpdir), fs.remove(this.proxyPipe)])
+          return Promise.all([fs.mkdir(tmpdir, { recursive: true }), fs.rmdir(this.proxyPipe, { recursive: true })])
         })
         .then(() => {
           return new Promise((resolve) => {

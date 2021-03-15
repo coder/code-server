@@ -1,4 +1,4 @@
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as http from "http"
 import * as path from "path"
 import { SettingsProvider, UpdateSettings } from "../../src/node/settings"
@@ -53,8 +53,8 @@ describe.skip("update", () => {
         host: "localhost",
       })
     })
-    await fs.remove(path.join(tmpdir, "tests/updates"))
-    await fs.mkdirp(path.join(tmpdir, "tests/updates"))
+    await fs.rmdir(path.join(tmpdir, "tests/updates"), { recursive: true })
+    await fs.mkdir(path.join(tmpdir, "tests/updates"), { recursive: true })
   })
 
   afterAll(() => {
