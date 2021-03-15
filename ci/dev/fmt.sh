@@ -16,6 +16,7 @@ main() {
     "*.toml"
     "*.yaml"
     "*.yml"
+    "*.sh"
   )
   prettier --write --loglevel=warn $(
     git ls-files "${prettierExts[@]}" | grep -v "lib/vscode" | grep -v 'helm-chart'
