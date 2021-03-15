@@ -6,7 +6,7 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
 import * as wtfnode from "./wtfnode"
 
 module.exports = async () => {
-  console.log("\n🚨 Running Global Setup for Jest Tests")
+  console.log("\n🚨 Running Global Setup for Jest End-to-End Tests")
   console.log("     Please hang tight...")
   const browser = await chromium.launch()
   const context = await browser.newContext()
@@ -30,5 +30,5 @@ module.exports = async () => {
   await page.close()
   await browser.close()
   await context.close()
-  console.log("✅ Global Setup for Jest Tests is now complete.")
+  console.log("✅ Global Setup for Jest End-to-End Tests is now complete.")
 }

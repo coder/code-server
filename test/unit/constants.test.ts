@@ -1,8 +1,8 @@
-import { commit, getPackageJson, version } from "../src/node/constants"
-import { loggerModule } from "./helpers"
+import { commit, getPackageJson, version } from "../../src/node/constants"
+import { loggerModule } from "../utils/helpers"
 
 // jest.mock is hoisted above the imports so we must use `require` here.
-jest.mock("@coder/logger", () => require("./helpers").loggerModule)
+jest.mock("@coder/logger", () => require("../utils/helpers").loggerModule)
 
 describe("constants", () => {
   describe("getPackageJson", () => {

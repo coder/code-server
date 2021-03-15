@@ -3,9 +3,9 @@ import * as fs from "fs-extra"
 import * as net from "net"
 import * as path from "path"
 import * as tls from "tls"
-import { Emitter } from "../src/common/emitter"
-import { SocketProxyProvider } from "../src/node/socket"
-import { generateCertificate, tmpdir } from "../src/node/util"
+import { Emitter } from "../../src/common/emitter"
+import { SocketProxyProvider } from "../../src/node/socket"
+import { generateCertificate, tmpdir } from "../../src/node/util"
 
 describe("SocketProxyProvider", () => {
   const provider = new SocketProxyProvider()

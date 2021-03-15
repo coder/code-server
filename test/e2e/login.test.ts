@@ -1,5 +1,5 @@
 import { chromium, Page, Browser, BrowserContext } from "playwright"
-import { CODE_SERVER_ADDRESS, PASSWORD } from "./constants"
+import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("login", () => {
   let browser: Browser
