@@ -1,7 +1,7 @@
 import bodyParser from "body-parser"
 import * as express from "express"
-import * as httpserver from "./httpserver"
-import * as integration from "./integration"
+import * as httpserver from "../utils/httpserver"
+import * as integration from "../utils/integration"
 
 describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()

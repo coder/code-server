@@ -10,11 +10,11 @@ import {
   split,
   trimSlashes,
   normalize,
-} from "../src/common/util"
-import { Cookie as CookieEnum } from "../src/node/routes/login"
-import { hash } from "../src/node/util"
-import { PASSWORD } from "./constants"
-import { checkForCookie, createCookieIfDoesntExist, loggerModule, Cookie } from "./helpers"
+} from "../../src/common/util"
+import { Cookie as CookieEnum } from "../../src/node/routes/login"
+import { hash } from "../../src/node/util"
+import { PASSWORD } from "../utils/constants"
+import { checkForCookie, createCookieIfDoesntExist, loggerModule, Cookie } from "../utils/helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
@@ -22,7 +22,7 @@ global.document = dom.window.document
 type LocationLike = Pick<Location, "pathname" | "origin">
 
 // jest.mock is hoisted above the imports so we must use `require` here.
-jest.mock("@coder/logger", () => require("./helpers").loggerModule)
+jest.mock("@coder/logger", () => require("../utils/helpers").loggerModule)
 
 describe("util", () => {
   describe("normalize", () => {

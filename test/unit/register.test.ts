@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom"
-import { loggerModule } from "./helpers"
+import { loggerModule } from "../utils/helpers"
 
 describe("register", () => {
   describe("when navigator and serviceWorker are defined", () => {
@@ -40,7 +40,7 @@ describe("register", () => {
 
     it("should register a ServiceWorker", () => {
       // Load service worker like you would in the browser
-      require("../src/browser/register")
+      require("../../src/browser/register")
       expect(mockRegisterFn).toHaveBeenCalled()
       expect(mockRegisterFn).toHaveBeenCalledTimes(1)
     })
@@ -54,7 +54,7 @@ describe("register", () => {
       })
 
       // Load service worker like you would in the browser
-      require("../src/browser/register")
+      require("../../src/browser/register")
 
       expect(mockRegisterFn).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalled()
@@ -78,7 +78,7 @@ describe("register", () => {
 
     it("should log an error to the console", () => {
       // Load service worker like you would in the browser
-      require("../src/browser/register")
+      require("../../src/browser/register")
       expect(spy).toHaveBeenCalled()
       expect(spy).toHaveBeenCalledTimes(1)
       expect(spy).toHaveBeenCalledWith("[Service Worker] navigator is undefined")

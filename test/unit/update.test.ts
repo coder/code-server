@@ -1,9 +1,9 @@
 import * as fs from "fs-extra"
 import * as http from "http"
 import * as path from "path"
-import { SettingsProvider, UpdateSettings } from "../src/node/settings"
-import { LatestResponse, UpdateProvider } from "../src/node/update"
-import { tmpdir } from "../src/node/util"
+import { SettingsProvider, UpdateSettings } from "../../src/node/settings"
+import { LatestResponse, UpdateProvider } from "../../src/node/update"
+import { tmpdir } from "../../src/node/util"
 
 describe.skip("update", () => {
   let version = "1.0.0"

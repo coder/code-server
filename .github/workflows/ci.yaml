@@ -1,12 +1,18 @@
 name: ci
 
-on: [push]
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   fmt:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Run ./ci/steps/fmt.sh
         uses: ./ci/images/debian10
         with:
@@ -15,20 +21,28 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Run ./ci/steps/lint.sh
         uses: ./ci/images/debian10
         with:
           args: ./ci/steps/lint.sh
 
-  test:
+  test-unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run unit tests
+        uses: ./ci/images/debian10
+        with:
+          args: ./ci/steps/test-unit.sh
+  test-e2e:
     needs: linux-amd64
     runs-on: ubuntu-latest
     env:
       PASSWORD: e45432jklfdsab
       CODE_SERVER_ADDRESS: http://localhost:8080
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download release packages
         uses: actions/download-artifact@v2
         with:
@@ -38,24 +52,24 @@ jobs:
         run: |
           cd release-packages && tar -xzf code-server*-linux-amd64.tar.gz
       - uses: microsoft/playwright-github-action@v1
-      - name: Install dependencies and run tests
+      - name: Install dependencies and run end-to-end tests
         run: |
           ./release-packages/code-server*-linux-amd64/bin/code-server &
           yarn --frozen-lockfile
-          yarn test
+          yarn test:e2e
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-videos
-          path: ./test/videos
+          path: ./test/e2e/videos
       - name: Remove release packages and test artifacts
-        run: rm -rf ./release-packages ./test/videos
+        run: rm -rf ./release-packages ./test/e2e/videos
 
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Run ./ci/steps/release.sh
         uses: ./ci/images/debian10
         with:
@@ -70,7 +84,7 @@ jobs:
     needs: release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download npm package
         uses: actions/download-artifact@v2
         with:
@@ -90,7 +104,7 @@ jobs:
     needs: release
     runs-on: ubuntu-arm64-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download npm package
         uses: actions/download-artifact@v2
         with:
@@ -111,8 +125,10 @@ jobs:
   macos-amd64:
     needs: release
     runs-on: macos-latest
+    # This job requires secrets, so can only run on the default branch
+    if: github.ref == 'refs/heads/main'
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download npm package
         uses: actions/download-artifact@v2
         with:
@@ -133,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: linux-amd64
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download release package
         uses: actions/download-artifact@v2
         with:
@@ -153,7 +169,7 @@ jobs:
     runs-on: ubuntu-arm64-latest
     needs: linux-arm64
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Download release package
         uses: actions/download-artifact@v2
         with:

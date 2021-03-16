@@ -3,8 +3,8 @@ import * as fs from "fs-extra"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance } from "../src/node/cli"
-import { paths, tmpdir } from "../src/node/util"
+import { Args, parse, setDefaults, shouldOpenInExistingInstance } from "../../src/node/cli"
+import { paths, tmpdir } from "../../src/node/util"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]

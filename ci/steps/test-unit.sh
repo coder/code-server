@@ -6,7 +6,7 @@ main() {
 
   yarn --frozen-lockfile
 
-  yarn test
+  yarn test:unit
 }
 
 main "$@"

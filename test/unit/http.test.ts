@@ -1,4 +1,4 @@
-import { HttpCode, HttpError } from "../src/common/http"
+import { HttpCode, HttpError } from "../../src/common/http"
 
 describe("http", () => {
   describe("HttpCode", () => {
