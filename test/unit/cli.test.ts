@@ -1,5 +1,5 @@
 import { Level, logger } from "@coder/logger"
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -339,14 +339,14 @@ describe("cli", () => {
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
   beforeAll(async () => {
-    await fs.remove(testDir)
-    await fs.mkdirp(testDir)
+    await fs.rmdir(testDir, { recursive: true })
+    await fs.mkdir(testDir, { recursive: true })
   })
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
     args = { _: [] }
-    await fs.remove(vscodeIpcPath)
+    await fs.rmdir(vscodeIpcPath, { recursive: true })
   })
 
   it("should use existing if inside code-server", async () => {
@@ -360,7 +360,7 @@ describe("cli", () => {
 
   it("should use existing if --reuse-window is set", async () => {
     args["reuse-window"] = true
-    await expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+    await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
 
     await fs.writeFile(vscodeIpcPath, "test")
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")

@@ -1,6 +1,6 @@
 import { logger } from "@coder/logger"
 import { Query } from "express-serve-static-core"
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as path from "path"
 import { paths } from "./util"
 

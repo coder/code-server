@@ -1,7 +1,7 @@
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -58,8 +58,11 @@ export const generateCertificate = async (hostname: string): Promise<{ cert: str
   const certPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.crt`)
   const certKeyPath = path.join(paths.data, `${hostname.replace(/\./g, "_")}.key`)
 
-  const checks = await Promise.all([fs.pathExists(certPath), fs.pathExists(certKeyPath)])
-  if (!checks[0] || !checks[1]) {
+  // Try generating the certificates if we can't access them (which probably
+  // means they don't exist).
+  try {
+    await Promise.all([fs.access(certPath), fs.access(certKeyPath)])
+  } catch (error) {
     // Require on demand so openssl isn't required if you aren't going to
     // generate certificates.
     const pem = require("pem") as typeof import("pem")
@@ -86,9 +89,10 @@ DNS.1 = ${hostname}
         },
       )
     })
-    await fs.mkdirp(paths.data)
+    await fs.mkdir(paths.data, { recursive: true })
     await Promise.all([fs.writeFile(certPath, certs.certificate), fs.writeFile(certKeyPath, certs.serviceKey)])
   }
+
   return {
     cert: certPath,
     certKey: certKeyPath,

@@ -1,5 +1,5 @@
 import { field, logger } from "@coder/logger"
-import * as fs from "fs-extra"
+import { promises as fs } from "fs"
 import * as net from "net"
 import * as path from "path"
 import * as tls from "tls"
@@ -45,14 +45,14 @@ describe("SocketProxyProvider", () => {
   beforeAll(async () => {
     const cert = await generateCertificate("localhost")
     const options = {
-      cert: fs.readFileSync(cert.cert),
-      key: fs.readFileSync(cert.certKey),
+      cert: await fs.readFile(cert.cert),
+      key: await fs.readFile(cert.certKey),
       rejectUnauthorized: false,
     }
 
-    await fs.mkdirp(path.join(tmpdir, "tests"))
+    await fs.mkdir(path.join(tmpdir, "tests"), { recursive: true })
     const socketPath = await provider.findFreeSocketPath(path.join(tmpdir, "tests/tls-socket-proxy"))
-    await fs.remove(socketPath)
+    await fs.rmdir(socketPath, { recursive: true })
 
     return new Promise<void>((_resolve) => {
       const resolved: { [key: string]: boolean } = { client: false, server: false }
@@ -110,10 +110,10 @@ describe("SocketProxyProvider", () => {
     provider.stop() // We don't need more proxies.
 
     proxy.write("server proxy->client")
-    const dataFromServerToClient = await (await getData(fromServerToClient)).toString()
+    const dataFromServerToClient = (await getData(fromServerToClient)).toString()
     expect(dataFromServerToClient).toBe("server proxy->client")
     client.write("client->server proxy")
-    const dataFromClientToProxy = await (await getData(fromClientToProxy)).toString()
+    const dataFromClientToProxy = (await getData(fromClientToProxy)).toString()
     expect(dataFromClientToProxy).toBe("client->server proxy")
     expect(errors).toEqual(0)
   })
