@@ -121,9 +121,9 @@
     },
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
-      "node_modules",
-      "lib",
-      "out"
+      "/node_modules/",
+      "/lib/",
+      "/out/"
     ],
     "collectCoverage": true,
     "collectCoverageFrom": [
