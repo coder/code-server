@@ -3,13 +3,13 @@ import { hash } from "../src/node/util"
 import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "./constants"
 import { createCookieIfDoesntExist } from "./helpers"
 
-describe("go home", () => {
+describe("Open Help > About", () => {
   let browser: Browser
   let page: Page
   let context: BrowserContext
 
   beforeAll(async () => {
-    browser = await chromium.launch()
+    browser = await chromium.launch({ headless: false })
     // Create a new context with the saved storage state
     const storageState = JSON.parse(STORAGE) || {}
 
@@ -61,13 +61,11 @@ describe("go home", () => {
     page = await context.newPage()
   })
 
-  // NOTE: this test will fail if you do not run code-server with --home $CODE_SERVER_ADDRESS/healthz
-  it("should see a 'Go Home' button in the Application Menu that goes to /healthz", async () => {
-    const GO_HOME_URL = `${CODE_SERVER_ADDRESS}/healthz`
+  it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {
     // Sometimes a dialog shows up when you navigate
     // asking if you're sure you want to leave
     // so we listen if it comes, we accept it
-    page.on("dialog", (dialog) => dialog.accept())
+    // page.on("dialog", (dialog) => dialog.accept())
 
     // waitUntil: "domcontentloaded"
     // In case the page takes a long time to load
@@ -76,16 +74,19 @@ describe("go home", () => {
     // Make sure the editor actually loaded
     expect(await page.isVisible("div.monaco-workbench"))
 
-    // Click the Home menu
+    // Click the Application menu
     await page.click("[aria-label='Application Menu']")
-    // See the Go Home button
-    const goHomeButton = "a.action-menu-item span[aria-label='Go Home']"
-    expect(await page.isVisible(goHomeButton))
+    // See the Help button
+    const helpButton = "a.action-menu-item span[aria-label='Help']"
+    expect(await page.isVisible(helpButton))
 
     // Click it and navigate to /healthz
     // NOTE: ran into issues of it failing intermittently
     // without having button: "middle"
-    await Promise.all([page.waitForNavigation(), page.click(goHomeButton, { button: "middle" })])
-    expect(page.url()).toBe(GO_HOME_URL)
+    await Promise.all([page.waitForNavigation(), page.click(helpButton, { button: "middle" })])
+
+    // see the About button
+    const aboutButton = "a.action-menu-item span[aria-label='About']"
+    expect(await page.isVisible(aboutButton))
   })
 })
