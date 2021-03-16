@@ -9,7 +9,7 @@ describe("Open Help > About", () => {
   let context: BrowserContext
 
   beforeAll(async () => {
-    browser = await chromium.launch({ headless: false })
+    browser = await chromium.launch()
     // Create a new context with the saved storage state
     const storageState = JSON.parse(STORAGE) || {}
 
@@ -62,11 +62,6 @@ describe("Open Help > About", () => {
   })
 
   it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {
-    // Sometimes a dialog shows up when you navigate
-    // asking if you're sure you want to leave
-    // so we listen if it comes, we accept it
-    // page.on("dialog", (dialog) => dialog.accept())
-
     // waitUntil: "domcontentloaded"
     // In case the page takes a long time to load
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
@@ -80,13 +75,17 @@ describe("Open Help > About", () => {
     const helpButton = "a.action-menu-item span[aria-label='Help']"
     expect(await page.isVisible(helpButton))
 
-    // Click it and navigate to /healthz
-    // NOTE: ran into issues of it failing intermittently
-    // without having button: "middle"
-    await Promise.all([page.waitForNavigation(), page.click(helpButton, { button: "middle" })])
+    // Hover the helpButton
+    await page.hover(helpButton)
 
-    // see the About button
+    // see the About button and click it
     const aboutButton = "a.action-menu-item span[aria-label='About']"
     expect(await page.isVisible(aboutButton))
+    // NOTE: it won't work unless you hover it first
+    await page.hover(aboutButton)
+    await page.click(aboutButton)
+
+    const codeServerText = "text=code-server"
+    expect(await page.isVisible(codeServerText))
   })
 })
