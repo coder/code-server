@@ -330,11 +330,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	}
 }
 
-/*
-	NOTE@coder:
-	Reference: - ../../workbench/api/common/extHostDebugService.ts
-	3/16/21 jsjoeio
-*/
+// Reference: - ../../workbench/api/common/extHostDebugService.ts
 class VariableResolverService extends AbstractVariableResolverService {
 	constructor(
 		remoteAuthority: string,
@@ -356,10 +352,6 @@ class VariableResolverService extends AbstractVariableResolverService {
 				return args.resolvedVariables[`config:${section}`];
 			},
 			getAppRoot: (): string | undefined => {
-				/*
-					NOTE@coder: not sure where we could get this from. This is new.
-					@jsjoeio 3/11/21
-				*/
 				return (args.resolverEnv && args.resolverEnv['VSCODE_CWD']) || env['VSCODE_CWD'] || process.cwd();
 			},
 			getExecPath: (): string | undefined => {
