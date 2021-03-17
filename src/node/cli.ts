@@ -195,8 +195,8 @@ const options: Options<Required<Args>> = {
   link: {
     type: OptionalString,
     description: `
-      Securely bind code-server via Coder Cloud with the passed name. You'll get a URL like
-      https://myname.coder-cloud.com at which you can easily access your code-server instance.
+      Securely bind code-server via our cloud service with the passed name. You'll get a URL like
+      https://hostname-username.cdr.co at which you can easily access your code-server instance.
       Authorization is done via GitHub.
     `,
     beta: true,
