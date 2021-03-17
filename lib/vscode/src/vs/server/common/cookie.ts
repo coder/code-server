@@ -1,3 +1,3 @@
 export enum Cookie {
-  Key = "key",
+  Key = 'key',
 }

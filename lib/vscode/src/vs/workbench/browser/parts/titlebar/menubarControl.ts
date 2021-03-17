@@ -9,8 +9,7 @@ import { registerThemingParticipant, IThemeService } from 'vs/platform/theme/com
 import { MenuBarVisibility, getTitleBarStyle, IWindowOpenable, getMenuBarVisibility } from 'vs/platform/windows/common/windows';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IAction, Action, SubmenuAction, Separator } from 'vs/base/common/actions';
-import * as DOM from 'vs/base/browser/dom';
-import { addDisposableListener, Dimension, EventType } from 'vs/base/browser/dom';
+import { addDisposableListener, Dimension, EventType, getCookieValue } from 'vs/base/browser/dom';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { isMacintosh, isWeb, isIOS, isNative } from 'vs/base/common/platform';
 import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
@@ -717,8 +716,8 @@ export class CustomMenubarControl extends MenubarControl {
 
 		webNavigationActions.push(new Action('logout', localize('logout', "Log out"), undefined, true,
 		async (event?: MouseEvent) => {
-			const COOKIE_KEY = 'key';
-			const loginCookie = DOM.getCookieValue(COOKIE_KEY);
+			const COOKIE_KEY = Cookie.Key;
+			const loginCookie = getCookieValue(COOKIE_KEY);
 
 			this.logService.info('Logging out of code-server');
 
@@ -735,7 +734,7 @@ export class CustomMenubarControl extends MenubarControl {
 			} else {
 				this.logService.warn('Could not log out because we could not find cookie');
 			}
-		}))
+		}));
 
 		return webNavigationActions;
 	}
