@@ -70,13 +70,7 @@ See [CONTRIBUTING](./docs/CONTRIBUTING.md) for details.
 
 ## Hiring
 
-We ([@cdr](https://github.com/cdr)) are looking for engineers to help [maintain
-code-server](https://jobs.lever.co/coder/e40becde-2cbd-4885-9029-e5c7b0a734b8), innovate on open source, and streamline dev workflows.
-
-Our main office is in Austin, Texas. Remote is ok as long as
-you're in North America or Europe.
-
-Please get in [touch](mailto:jobs@coder.com) with your resume/GitHub if interested.
+Interested in working at [@cdr](https://github.com/cdr)? Check out our [jobs page](https://jobs.lever.co/coder)!
 
 ## For Organizations
 
