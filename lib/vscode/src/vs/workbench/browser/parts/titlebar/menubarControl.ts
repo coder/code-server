@@ -40,6 +40,7 @@ import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegis
 import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
 import { ICommandService } from 'vs/platform/commands/common/commands';
 import { ILogService } from 'vs/platform/log/common/log';
+import { Cookie } from 'vs/server/common/cookie';
 
 export abstract class MenubarControl extends Disposable {
 

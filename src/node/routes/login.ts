@@ -3,13 +3,10 @@ import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
 import safeCompare from "safe-compare"
+import { Cookie } from "../../../lib/vscode/src/vs/server/common/cookie"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
 import { hash, humanPath } from "../util"
-
-export enum Cookie {
-  Key = "key",
-}
 
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute and 12 logins every hour.
