@@ -56,7 +56,7 @@ Consider running code-server with the beta flag `--link` if you don't want to wo
 
 ```bash
 $ code-server --link
-Proxying code-server to Coder Cloud, you can access your IDE at https://valmar-jon.cdr.co
+Proxying code-server, you can access your IDE at https://valmar-jon.cdr.co
 ```
 
 ## FAQ
