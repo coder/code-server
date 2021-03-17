@@ -70,7 +70,7 @@ See [CONTRIBUTING](./docs/CONTRIBUTING.md) for details.
 
 ## Hiring
 
-Interested in working at [@cdr](https://github.com/cdr)? Check out our [jobs page](https://jobs.lever.co/coder)!
+Interested in [working at Coder](https://coder.com)? Check out [our open positions](https://jobs.lever.co/coder)!
 
 ## For Organizations
 
