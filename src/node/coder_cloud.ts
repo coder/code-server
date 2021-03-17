@@ -24,7 +24,7 @@ function runAgent(...args: string[]): Promise<void> {
     agent.on("close", (code) => {
       if (code !== 0) {
         rej({
-          message: `coder cloud agent exited with ${code}`,
+          message: `--link agent exited with ${code}`,
         })
         return
       }

@@ -5,10 +5,6 @@ updates:
     schedule:
       interval: "daily"
       time: "11:00"
-    assignees:
-      - "jawnsy"
-    reviewers:
-      - "jawnsy"
     ignore:
       # GitHub always delivers the latest versions for each major
       # release tag, so handle updates manually
@@ -19,7 +15,3 @@ updates:
     schedule:
       interval: "daily"
       time: "11:00"
-    assignees:
-      - "jawnsy"
-    reviewers:
-      - "jawnsy"

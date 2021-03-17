@@ -6,7 +6,7 @@ set -eu
 eval "$(fixuid -q)"
 
 if [ "${DOCKER_USER-}" ] && [ "$DOCKER_USER" != "$USER" ]; then
-  echo "$DOCKER_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/nopasswd > /dev/null
+  echo "$DOCKER_USER ALL=(ALL) NOPASSWD:ALL" | sudo tee -a /etc/sudoers.d/nopasswd >/dev/null
   # Unfortunately we cannot change $HOME as we cannot move any bind mounts
   # nor can we bind mount $HOME into a new home as that requires a privileged container.
   sudo usermod --login "$DOCKER_USER" coder
