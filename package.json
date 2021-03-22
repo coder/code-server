@@ -90,7 +90,7 @@
     "pem": "^1.14.2",
     "proxy-agent": "^4.0.0",
     "proxy-from-env": "^1.1.0",
-    "qs": "6.7.0",
+    "qs": "6.10.1",
     "rotating-file-stream": "^2.1.1",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",
