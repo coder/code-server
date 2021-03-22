@@ -20,5 +20,4 @@ export interface IHoverDelegateOptions {
 
 export interface IHoverDelegate {
 	showHover(options: IHoverDelegateOptions): IDisposable | undefined;
-	hideHover(): void;
 }

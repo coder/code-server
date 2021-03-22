@@ -7,7 +7,7 @@ const config: Config.InitialOptions = {
   },
   globalSetup: "<rootDir>/utils/globalSetup.ts",
   testEnvironment: "node",
-  testPathIgnorePatterns: ["node_modules", "lib", "out", "test/unit"],
+  testPathIgnorePatterns: ["/node_modules/", "/lib/", "/out/", "test/unit"],
   testTimeout: 30000,
   modulePathIgnorePatterns: [
     "<rootDir>/../lib/vscode",

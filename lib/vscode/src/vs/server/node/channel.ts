@@ -28,11 +28,12 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/workbench/contrib/terminal/common/terminal';
-import { TerminalDataBufferer } from 'vs/workbench/contrib/terminal/common/terminalDataBuffering';
+import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/platform/terminal/common/terminal';
+import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBuffering';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
-import { TerminalProcess } from 'vs/workbench/contrib/terminal/node/terminalProcess';
+import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
+import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
@@ -329,6 +330,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 	}
 }
 
+// Reference: - ../../workbench/api/common/extHostDebugService.ts
 class VariableResolverService extends AbstractVariableResolverService {
 	constructor(
 		remoteAuthority: string,
@@ -348,6 +350,9 @@ class VariableResolverService extends AbstractVariableResolverService {
 			// how/if the URI comes into play though.
 			getConfigurationValue: (_: URI, section: string): string | undefined => {
 				return args.resolvedVariables[`config:${section}`];
+			},
+			getAppRoot: (): string | undefined => {
+				return (args.resolverEnv && args.resolverEnv['VSCODE_CWD']) || env['VSCODE_CWD'] || process.cwd();
 			},
 			getExecPath: (): string | undefined => {
 				// Assuming that resolverEnv is just for use in the resolver and not for
@@ -639,7 +644,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	private readonly terminals = new Map<number, Terminal>();
 	private id = 0;
 
-	private readonly layouts = new Map<string, terminal.ISetTerminalLayoutInfoArgs>();
+	private readonly layouts = new Map<string, ISetTerminalLayoutInfoArgs>();
 
 	public constructor (private readonly logService: ILogService) {
 
@@ -876,11 +881,11 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		return terminals.filter((t) => t.isOrphan);
 	}
 
-	public async setTerminalLayoutInfo(args: terminal.ISetTerminalLayoutInfoArgs): Promise<void> {
+	public async setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
 		this.layouts.set(args.workspaceId, args);
 	}
 
-	public async getTerminalLayoutInfo(args: terminal.IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
+	public async getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
 		const layout = this.layouts.get(args.workspaceId);
 		if (!layout) {
 			return undefined;

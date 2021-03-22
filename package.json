@@ -122,9 +122,9 @@
     },
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
-      "node_modules",
-      "lib",
-      "out",
+      "/node_modules/",
+      "/lib/",
+      "/out/",
       "test/e2e"
     ],
     "collectCoverage": true,

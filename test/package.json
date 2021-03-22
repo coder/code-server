@@ -1,4 +1,5 @@
 {
+  "license": "MIT",
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
   "devDependencies": {
     "@types/jest": "^26.0.20",

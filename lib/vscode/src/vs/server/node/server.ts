@@ -7,7 +7,7 @@ import { Emitter } from 'vs/base/common/event';
 import { Schemas } from 'vs/base/common/network';
 import { URI } from 'vs/base/common/uri';
 import { getMachineId } from 'vs/base/node/id';
-import { ClientConnectionEvent, createChannelReceiver, IPCServer, IServerChannel } from 'vs/base/parts/ipc/common/ipc';
+import { ClientConnectionEvent, IPCServer, IServerChannel, ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
 import { LogsDataCleaner } from 'vs/code/electron-browser/sharedProcess/contrib/logsDataCleaner';
 import { main } from 'vs/code/node/cliProcessMain';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
@@ -28,10 +28,10 @@ import { InstantiationService } from 'vs/platform/instantiation/common/instantia
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 import { LocalizationsService } from 'vs/platform/localizations/node/localizations';
-import { getLogLevel, ILoggerService, ILogService } from 'vs/platform/log/common/log';
-import { LoggerChannel } from 'vs/platform/log/common/logIpc';
+import { ConsoleLogger, getLogLevel, ILoggerService, ILogService, MultiplexLogService } from 'vs/platform/log/common/log';
+import { LogLevelChannel } from 'vs/platform/log/common/logIpc';
 import { LoggerService } from 'vs/platform/log/node/loggerService';
-import { SpdLogService } from 'vs/platform/log/node/spdlogService';
+import { SpdLogLogger } from 'vs/platform/log/node/spdlogLog';
 import product from 'vs/platform/product/common/product';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { ConnectionType, ConnectionTypeRequest } from 'vs/platform/remote/common/remoteAgentConnection';
@@ -58,7 +58,6 @@ import { getUriTransformer } from 'vs/server/node/util';
 import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
-import { localize } from 'vs/nls';
 
 export class Vscode {
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
@@ -107,11 +106,6 @@ export class Vscode {
 						['enableProposedApi', JSON.stringify(options.args['enable-proposed-api'] || [])]
 					],
 				},
-				homeIndicator: options.args.home ? {
-					href: options.args.home,
-					icon: 'code',
-					title: localize('home', "Home"),
-				} : undefined,
 			},
 			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
 			productConfiguration: product,
@@ -211,14 +205,21 @@ export class Vscode {
 		}
 	}
 
+	// References:
+	// ../../electron-browser/sharedProcess/sharedProcessMain.ts#L148
+	// ../../../code/electron-main/app.ts
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
 		const environmentService = new NativeEnvironmentService(args);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
-
-		const logService = new SpdLogService(RemoteExtensionLogFileName, environmentService.logsPath, getLogLevel(environmentService));
+		const logService = new MultiplexLogService([
+			new ConsoleLogger(getLogLevel(environmentService)),
+			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, `${RemoteExtensionLogFileName}.log`), false, getLogLevel(environmentService))
+		]);
 		const fileService = new FileService(logService);
 		fileService.registerProvider(Schemas.file, new DiskFileSystemProvider(logService));
+
+		const loggerService = new LoggerService(logService, fileService);
 
 		const piiPaths = [
 			path.join(environmentService.userDataPath, 'clp'), // Language packs.
@@ -229,13 +230,13 @@ export class Vscode {
 			...environmentService.extraBuiltinExtensionPaths,
 		];
 
-		this.ipc.registerChannel('logger', new LoggerChannel(logService));
+		this.ipc.registerChannel('logger', new LogLevelChannel(logService));
 		this.ipc.registerChannel(ExtensionHostDebugBroadcastChannel.ChannelName, new ExtensionHostDebugBroadcastChannel());
 
 		this.services.set(ILogService, logService);
 		this.services.set(IEnvironmentService, environmentService);
 		this.services.set(INativeEnvironmentService, environmentService);
-		this.services.set(ILoggerService, new SyncDescriptor(LoggerService));
+		this.services.set(ILoggerService, loggerService);
 
 		const configurationService = new ConfigurationService(environmentService.settingsResource, fileService);
 		await configurationService.initialize();
@@ -286,7 +287,7 @@ export class Vscode {
 				));
 				this.ipc.registerChannel('request', new RequestChannel(accessor.get(IRequestService)));
 				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
-				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(accessor.get(ILocalizationsService)));
+				this.ipc.registerChannel('localizations', <IServerChannel<any>>ProxyChannel.fromService(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService));
 				resolve(new ErrorTelemetry(telemetryService));
