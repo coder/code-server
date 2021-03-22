@@ -531,7 +531,7 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
     return { _: [], config: configPath }
   }
 
-  const config = yaml.safeLoad(configFile, {
+  const config = yaml.load(configFile, {
     filename: configPath,
   })
   if (!config || typeof config === "string") {
