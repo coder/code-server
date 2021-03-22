@@ -29,6 +29,7 @@ rules:
   "@typescript-eslint/no-var-requires": off
   "@typescript-eslint/explicit-module-boundary-types": off
   "@typescript-eslint/no-explicit-any": off
+  "@typescript-eslint/no-extra-semi": off
   eqeqeq: error
   import/order:
     [error, { alphabetize: { order: "asc" }, groups: [["builtin", "external", "internal"], "parent", "sibling"] }]
