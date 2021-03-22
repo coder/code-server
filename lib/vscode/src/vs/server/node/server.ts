@@ -205,14 +205,10 @@ export class Vscode {
 		}
 	}
 
+	// References:
+	// ../../electron-browser/sharedProcess/sharedProcessMain.ts#L148
+	// ../../../code/electron-main/app.ts
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
-		/*
-			NOTE@coder: this initializeServices is loosely based off this file:
-			Reference: - ../../electron-browser/sharedProcess/sharedProcessMain.ts#L148
-
-			If upstream changes cause conflicts, look there ^.
-			3/11/21 @jsjoeio
-		*/
 		const environmentService = new NativeEnvironmentService(args);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
