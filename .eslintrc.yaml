@@ -16,7 +16,6 @@ extends:
   - plugin:import/typescript
   - plugin:prettier/recommended
   - prettier # Removes eslint rules that conflict with prettier.
-  - prettier/@typescript-eslint # Remove conflicts again.
 
 rules:
   # Sometimes you need to add args to implement a function signature even
