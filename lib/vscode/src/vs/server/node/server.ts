@@ -216,16 +216,6 @@ export class Vscode {
 		const environmentService = new NativeEnvironmentService(args);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
-		/*
-			NOTE@coder: Made these updates on based on this file (and lines):
-			Reference: - ../../electron-browser/sharedProcess/sharedProcessMain.ts#L144-L149
-
-			More details (from @code-asher):
-			I think the logLevel channel is only used in the electron version of vscode so we can probably skip it.
-			With that in mind we wouldn't need logLevelClient which means we wouldn't need the follower service
-			either and we can use the multiplex log service directly.
-			3/11/21 @jsjoeio
-		*/
 		const logService = new MultiplexLogService([
 			new ConsoleLogger(getLogLevel(environmentService)),
 			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, `${RemoteExtensionLogFileName}.log`), false, getLogLevel(environmentService))
