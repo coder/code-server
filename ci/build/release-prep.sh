@@ -5,14 +5,22 @@
 # 2. Update the version of code-server (package.json, docs, etc.)
 # 3. Update the code coverage badge in the README
 # 4. Open a draft PR using the release_template.md and view in browser
+# If you want to perform a dry run of this script run DRY_RUN=0 yarn release:prep
 
 set -euo pipefail
 
 main() {
+  if [ "${DRY_RUN-}" = 1 ]; then
+    echo "Performing a dry run..."
+    CMD="echo"
+  else
+    CMD=''
+  fi
+
   cd "$(dirname "$0")/../.."
 
   # Check that $GITHUB_TOKEN is set
-  if [[ -z "${GITHUB_TOKEN}" ]]; then
+  if [[ -z ${GITHUB_TOKEN-} ]]; then
     echo "We couldn't find an environment variable under GITHUB_TOKEN."
     echo "This is needed for our scripts that use hub."
     echo -e "See docs regarding GITHUB_TOKEN here under 'GitHub OAuth authentication': https://hub.github.com/hub.1.html"
@@ -73,31 +81,32 @@ main() {
   # I can't tell you why but
   # when searching with rg, the version needs to in this format: '3\.7\.5'
   # that's why we have the parameter expansion with the regex
-  rg -g '!yarn.lock' -g '!*.svg' --files-with-matches "${CODE_SERVER_CURRENT_VERSION//\./\\.}" | xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
+  $CMD rg -g '!yarn.lock' -g '!*.svg' --files-with-matches "${CODE_SERVER_CURRENT_VERSION//\./\\.}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
 
   # Ensure the tests are passing and code coverage is up-to-date
   echo -e "Running unit tests and updating code coverage...\n"
-  yarn test:unit
+  $CMD yarn test:unit
   # Updates the Lines badge in the README
-  yarn badges
+  $CMD yarn badges
   # Updates the svg to be green for the badge
-  sd "red.svg" "green.svg" ../../README.md
+  $CMD sd "red.svg" "green.svg" ../../README.md
 
-  git add . && git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
+  $CMD git add . && $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
 
   CURRENT_BRANCH=$(git branch --show-current)
   # Note: we need to set upstream as well or the gh pr create step will fail
   # See: https://github.com/cli/cli/issues/575
-  git push -u origin "$CURRENT_BRANCH"
+  $CMD git push -u origin "$CURRENT_BRANCH"
 
-  RELEASE_TEMPLATE_STRING=$(cat ../../.github/PULL_REQUEST_TEMPLATE/release_template.md)
+  # This runs from the root so that's why we use this path vs. ../../
+  RELEASE_TEMPLATE_STRING=$(cat ./.github/PULL_REQUEST_TEMPLATE/release_template.md)
 
-  echo -e "Opening a draft PR on GitHub\n"
+  echo -e "\nOpening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  $CMD gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 
   # Open PR in browser
-  gh pr view --web
+  $CMD gh pr view --web
 }
 
 main "$@"
