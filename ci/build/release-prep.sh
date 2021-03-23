@@ -4,7 +4,7 @@
 # 1. Check that you have a $GITHUB_TOKEN set and hub installed
 # 2. Update the version of code-server (package.json, docs, etc.)
 # 3. Update the code coverage badge in the README
-# 4. Open a draft PR using the release_template.md
+# 4. Open a draft PR using the release_template.md and view in browser
 
 set -euo pipefail
 
@@ -90,12 +90,14 @@ main() {
   # See: https://github.com/cli/cli/issues/575
   git push -u origin "$CURRENT_BRANCH"
 
-  RELEASE_TEMPLATE_FILE="../../.github/PULL_REQUEST_TEMPLATE/pull_request_template.md"
+  RELEASE_TEMPLATE_STRING=$(cat ../../.github/PULL_REQUEST_TEMPLATE/release_template.md)
+
   echo -e "Opening a draft PR on GitHub\n"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body-file "$RELEASE_TEMPLATE_FILE" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
 
-  # TODO update docs under /ci
+  # Open PR in browser
+  gh pr view --web
 }
 
 main "$@"
