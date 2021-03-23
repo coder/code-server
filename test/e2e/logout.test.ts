@@ -47,11 +47,8 @@ describe("logout", () => {
     await page.hover(logoutButton)
 
     await page.click(logoutButton)
-    // it takes a second to navigate
-    // and since page.url comes back immediately
-    // we need this waitForNavigation, otherwise it will check
-    // before navigation has finished and fail
-    await page.waitForNavigation({ url: `${CODE_SERVER_ADDRESS}/login` })
+    // it takes a couple seconds to navigate
+    await page.waitForTimeout(2000)
     const currentUrl = page.url()
     expect(currentUrl).toBe(`${CODE_SERVER_ADDRESS}/login`)
   })
