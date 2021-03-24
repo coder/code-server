@@ -27,6 +27,15 @@ jobs:
         with:
           args: ./ci/steps/lint.sh
 
+  sanity-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Quick sanity checks
+        uses: ./ci/images/debian10
+        with:
+          args: ./ci/steps/cache.sh
+
   test-unit:
     runs-on: ubuntu-latest
     steps:
