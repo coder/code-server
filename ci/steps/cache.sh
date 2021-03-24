@@ -3,4 +3,7 @@
 # check for yarn cache
 ls -l ~/.cache/yarn
 # check size
-echo "$(ls -l ~/.cache/yarn/v6 | wc -l) packages in cache"
+echo "$(find ~/.cache/yarn/v6 -maxdepth 1 | wc -l) packages in cache"
+
+# check for other items in cache
+ls -l ~/.cache
