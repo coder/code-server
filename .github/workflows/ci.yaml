@@ -55,7 +55,7 @@ jobs:
       - name: Install dependencies and run end-to-end tests
         run: |
           ./release-packages/code-server*-linux-amd64/bin/code-server &
-          yarn --frozen-lockfile
+          yarn --frozen-lockfile --check-files
           yarn test:e2e
       - name: Upload test artifacts
         if: always()

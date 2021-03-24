@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  yarn --frozen-lockfile
+  yarn --frozen-lockfile --check-files
 
   yarn test:unit
 }
