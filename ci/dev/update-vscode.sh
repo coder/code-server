@@ -81,13 +81,14 @@ main() {
   # Push branch to remote if not already pushed
   # If we don't do this, the opening a draft PR step won't work
   # because it will stop and ask where you want to push the branch
-  CURRENT_BRANCH=$(git branch --show-current)
-  if [[ -z $(git ls-remote --heads origin "$CURRENT_BRANCH") ]]; then
+  CURRENT_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2-)
+  if [[ -z $(git config "branch.${CURRENT_BRANCH}.remote") ]]; then
     echo "Doesn't look like you've pushed this branch to remote"
     echo -e "Pushing now using: git push origin $CURRENT_BRANCH\n"
     # Note: we need to set upstream as well or the gh pr create step will fail
     # See: https://github.com/cli/cli/issues/575
-    git push -u origin "$CURRENT_BRANCH"
+    echo "Please set the upstream and re-run the script"
+    exit 1
   fi
 
   echo "Going to try to update vscode for you..."

@@ -5,7 +5,7 @@
 # 2. Update the version of code-server (package.json, docs, etc.)
 # 3. Update the code coverage badge in the README
 # 4. Open a draft PR using the release_template.md and view in browser
-# If you want to perform a dry run of this script run DRY_RUN=0 yarn release:prep
+# If you want to perform a dry run of this script run DRY_RUN=1 yarn release:prep
 
 set -euo pipefail
 
@@ -78,10 +78,7 @@ main() {
   read -r -p "What version of code-server do you want to update to?"$'\n' CODE_SERVER_VERSION_TO_UPDATE
 
   echo -e "Great! We'll prep a PR for updating to $CODE_SERVER_VERSION_TO_UPDATE\n"
-  # I can't tell you why but
-  # when searching with rg, the version needs to in this format: '3\.7\.5'
-  # that's why we have the parameter expansion with the regex
-  $CMD rg -g '!yarn.lock' -g '!*.svg' --files-with-matches "${CODE_SERVER_CURRENT_VERSION//\./\\.}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
+  $CMD rg -g '!yarn.lock' -g '!*.svg' --files-with-matches --fixed-strings "${CODE_SERVER_CURRENT_VERSION}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
 
   # Ensure the tests are passing and code coverage is up-to-date
   echo -e "Running unit tests and updating code coverage...\n"
@@ -91,12 +88,19 @@ main() {
   # Updates the svg to be green for the badge
   $CMD sd "red.svg" "green.svg" ../../README.md
 
-  $CMD git add . && $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
+  $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
 
-  CURRENT_BRANCH=$(git branch --show-current)
   # Note: we need to set upstream as well or the gh pr create step will fail
   # See: https://github.com/cli/cli/issues/575
-  $CMD git push -u origin "$CURRENT_BRANCH"
+  CURRENT_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2-)
+  if [[ -z $(git config "branch.${CURRENT_BRANCH}.remote") ]]; then
+    echo "Doesn't look like you've pushed this branch to remote"
+    echo -e "Pushing now using: git push origin $CURRENT_BRANCH\n"
+    # Note: we need to set upstream as well or the gh pr create step will fail
+    # See: https://github.com/cli/cli/issues/575
+    echo "Please set the upstream and re-run the script"
+    exit 1
+  fi
 
   # This runs from the root so that's why we use this path vs. ../../
   RELEASE_TEMPLATE_STRING=$(cat ./.github/PULL_REQUEST_TEMPLATE/release_template.md)

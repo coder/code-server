@@ -1,4 +1,5 @@
 <!-- Note: this variable $CODE_SERVER_VERSION_TO_UPDATE will be set when you run the release-prep.sh script with `yarn release:prep` -->
+
 This PR is to generate a new release of `code-server` at `$CODE_SERVER_VERSION_TO_UPDATE`
 
 ## Screenshot
