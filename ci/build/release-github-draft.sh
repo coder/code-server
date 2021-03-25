@@ -21,20 +21,27 @@ installations.
 
 ## New Features
 
-  - ⭐ Summarize new features here with references to issues
+⭐ Summarize new features here with references to issues
 
-## VS Code
-  - ⭐ Summarize VS Code version update here with references to issues
+  - item
 
 ## Bug Fixes
-  - ⭐ Summarize bug fixes here with references to issues
+
+⭐ Summarize bug fixes here with references to issues
+
+  - item
 
 ## Documentation
-  - ⭐ Summarize doc changes here with references to issues
+
+⭐ Summarize doc changes here with references to issues
+
+  - item
 
 ## Development
-  - ⭐ Summarize development/testing changes here with references to issues
 
+⭐ Summarize development/testing changes here with references to issues
+
+  - item
 
 Cheers! 🍻
 EOF

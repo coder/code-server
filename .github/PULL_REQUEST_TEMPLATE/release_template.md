@@ -11,7 +11,7 @@ TODO
 - [ ] test locally
 - [ ] upload assets to draft release
 - [ ] test one of the release packages locally
-- [ ] double-check github release tag is the commit with artifacts (*note gets messed up after uploading assets*)
+- [ ] double-check github release tag is the commit with artifacts (_note gets messed up after uploading assets_)
 - [ ] publish release
 - [ ] merge PR
 - [ ] update the homebrew package
