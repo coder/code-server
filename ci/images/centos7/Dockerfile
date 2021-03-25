@@ -8,7 +8,7 @@ ENV PATH=/usr/local/node-$NODE_VERSION/bin:$PATH
 RUN npm install -g yarn
 
 RUN yum groupinstall -y 'Development Tools'
-RUN yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
+RUN yum install -y python2
 
 RUN npm config set python python2
 

@@ -15,10 +15,7 @@ RUN curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get update && apt-get install -y yarn
 
 # Installs VS Code build deps.
-RUN apt-get install -y build-essential \
-                   libsecret-1-dev \
-                   libx11-dev \
-                   libxkbfile-dev
+RUN apt-get install -y build-essential
 
 # Installs envsubst.
 RUN apt-get install -y gettext-base
