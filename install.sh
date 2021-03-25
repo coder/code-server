@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/v3.9.2/docs/install.md
+# See https://github.com/cdr/code-server/blob/main/docs/install.md
 
 usage() {
   arg0="$0"
@@ -67,7 +67,7 @@ Usage:
 
 It will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://github.com/cdr/code-server/blob/v3.9.2/docs/install.md
+More installation docs are at https://github.com/cdr/code-server/blob/main/docs/install.md
 EOF
 }
 
