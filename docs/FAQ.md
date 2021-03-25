@@ -1,36 +1,39 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # FAQ
 
-- [Questions?](#questions)
-- [iPad Status?](#ipad-status)
-- [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
-- [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
-- [Differences compared to VS Code?](#differences-compared-to-vs-code)
-- [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
-- [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
-- [Where are extensions stored?](#where-are-extensions-stored)
-- [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
-- [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
-- [Can I store my password hashed?](#can-i-store-my-password-hashed)
-- [How do I securely access web services?](#how-do-i-securely-access-web-services)
-  - [Sub-paths](#sub-paths)
-  - [Sub-domains](#sub-domains)
-- [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
-  - [Proxying to Create React App](#proxying-to-create-react-app)
-- [Multi-tenancy](#multi-tenancy)
-- [Docker in code-server container?](#docker-in-code-server-container)
-- [How can I disable telemetry?](#how-can-i-disable-telemetry)
-- [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
-- [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
-- [Heartbeat File](#heartbeat-file)
-- [Healthz endpoint](#healthz-endpoint)
-- [How does the config file work?](#how-does-the-config-file-work)
-- [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
-- [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
-- [Differences compared to Theia?](#differences-compared-to-theia)
-- [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
-- [Enterprise](#enterprise)
+- [FAQ](#faq)
+  - [Questions?](#questions)
+  - [iPad Status?](#ipad-status)
+  - [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
+  - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
+  - [Differences compared to VS Code?](#differences-compared-to-vs-code)
+  - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
+  - [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
+  - [Where are extensions stored?](#where-are-extensions-stored)
+    - [Installing VSIX Extensions via the Command Line](#installing-vsix-extensions-via-the-command-line)
+  - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
+  - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+  - [Can I store my password hashed?](#can-i-store-my-password-hashed)
+  - [How do I securely access web services?](#how-do-i-securely-access-web-services)
+    - [Sub-paths](#sub-paths)
+    - [Sub-domains](#sub-domains)
+  - [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
+    - [Proxying to Create React App](#proxying-to-create-react-app)
+  - [Multi-tenancy](#multi-tenancy)
+  - [Docker in code-server container?](#docker-in-code-server-container)
+  - [How can I disable telemetry?](#how-can-i-disable-telemetry)
+  - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
+  - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
+  - [Heartbeat File](#heartbeat-file)
+  - [Healthz endpoint](#healthz-endpoint)
+  - [How does the config file work?](#how-does-the-config-file-work)
+  - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
+  - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+  - [Differences compared to Theia?](#differences-compared-to-theia)
+  - [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
+  - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -131,6 +134,21 @@ code-server --install-extension ms-python.python
 # From a downloaded VSIX on the file system
 code-server --install-extension downloaded-ms-python.python.vsix
 ```
+
+### Installing VSIX Extensions via the Command Line
+
+If you're using code-server on a remote machine, it might be easier to install extensions via the command line. Follow these steps:
+
+1. [optional] create a directory to store your extensions: `mkdir plugins`
+2. Find the extension you want i.e. `https://open-vsx.org/extension/stylelint/vscode-stylelint` and grab the name and identifier: `stylelint/vscode-stylelint`
+3. Download extension to directory:
+   ```sh
+   curl 'https://open-vsx.org/api/stylelint/vscode-stylelint' | jq '.files.download' | xargs curl --compressed -L -o plugins/stylelint.vsix
+   ```
+4. Install in code-server
+   ```sh
+   code-server --install-extension stylelint.vsix
+   ```
 
 ## How is this different from VS Code Codespaces?
 
