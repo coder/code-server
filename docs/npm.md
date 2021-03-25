@@ -26,9 +26,6 @@ Related:
 sudo apt-get install -y \
   build-essential \
   pkg-config \
-  libx11-dev \
-  libxkbfile-dev \
-  libsecret-1-dev \
   python3
 npm config set python python3
 ```
@@ -38,14 +35,14 @@ npm config set python python3
 ```bash
 sudo yum groupinstall -y 'Development Tools'
 sudo yum config-manager --set-enabled PowerTools # unnecessary on CentOS 7
-sudo yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
+sudo yum install -y python2
 npm config set python python2
 ```
 
 ## Alpine
 
 ```bash
-apk add alpine-sdk bash libstdc++ libc6-compat libx11-dev libxkbfile-dev libsecret-dev
+apk add alpine-sdk bash libstdc++ libc6-compat
 npm config set python python3
 ```
 
@@ -59,5 +56,5 @@ xcode-select --install
 
 ```sh
 pkg install -y git python npm-node12 yarn-node12 pkgconf
-pkg install -y libsecret libxkbfile libx11 libinotify
+pkg install -y libinotify
 ```

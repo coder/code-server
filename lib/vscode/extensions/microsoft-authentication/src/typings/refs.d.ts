@@ -5,3 +5,6 @@
 
 /// <reference path='../../../../src/vs/vscode.d.ts'/>
 /// <reference path='../../../../src/vs/vscode.proposed.d.ts'/>
+/// <reference path='../../../../src/typings/keytar.d.ts'/>
+
+// NOTE@coder: add keytar typeref
