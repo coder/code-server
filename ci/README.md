@@ -12,18 +12,7 @@ Any file or directory in this subdirectory should be documented here.
 
 ## Publishing a release
 
-Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
-
-1. Update the version of code-server and make a PR.
-   1. Update in `package.json`
-   2. Update in [./docs/install.md](../docs/install.md)
-   3. Update in [./ci/helm-chart/README.md](../ci/helm-chart/README.md)
-      - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
-      - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
-        changed. Replace the numbers as needed.
-        - You can install `rg` or `ripgrep` on macOS [here](https://formulae.brew.sh/formula/ripgrep).
-   4. Update the code coverage badge (see [here](#updating-code-coverage-in-readme) for instructions)
-   5. Update the docs badge in [./README.md](../README.md)
+1. Run `yarn release:prep` and type in the new version i.e. 3.8.1
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
