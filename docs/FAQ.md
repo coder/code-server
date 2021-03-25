@@ -1,39 +1,38 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 # FAQ
 
-- [FAQ](#faq)
-  - [Questions?](#questions)
-  - [iPad Status?](#ipad-status)
-  - [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
-  - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
-  - [Differences compared to VS Code?](#differences-compared-to-vs-code)
-  - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
-  - [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
-  - [Where are extensions stored?](#where-are-extensions-stored)
-    - [Installing VSIX Extensions via the Command Line](#installing-vsix-extensions-via-the-command-line)
-  - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
-  - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
-  - [Can I store my password hashed?](#can-i-store-my-password-hashed)
-  - [How do I securely access web services?](#how-do-i-securely-access-web-services)
-    - [Sub-paths](#sub-paths)
-    - [Sub-domains](#sub-domains)
-  - [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
-    - [Proxying to Create React App](#proxying-to-create-react-app)
-  - [Multi-tenancy](#multi-tenancy)
-  - [Docker in code-server container?](#docker-in-code-server-container)
-  - [How can I disable telemetry?](#how-can-i-disable-telemetry)
-  - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
-  - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
-  - [Heartbeat File](#heartbeat-file)
-  - [Healthz endpoint](#healthz-endpoint)
-  - [How does the config file work?](#how-does-the-config-file-work)
-  - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
-  - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
-  - [Differences compared to Theia?](#differences-compared-to-theia)
-  - [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
-  - [Enterprise](#enterprise)
+- [Questions?](#questions)
+- [iPad Status?](#ipad-status)
+- [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
+- [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
+- [Differences compared to VS Code?](#differences-compared-to-vs-code)
+  - [Installing an extension](#installing-an-extension)
+- [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
+- [Installing an extension manually](#installing-an-extension-manually)
+- [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
+- [Where are extensions stored?](#where-are-extensions-stored)
+- [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
+- [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+- [Can I store my password hashed?](#can-i-store-my-password-hashed)
+- [How do I securely access web services?](#how-do-i-securely-access-web-services)
+  - [Sub-paths](#sub-paths)
+  - [Sub-domains](#sub-domains)
+- [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
+  - [Proxying to Create React App](#proxying-to-create-react-app)
+- [Multi-tenancy](#multi-tenancy)
+- [Docker in code-server container?](#docker-in-code-server-container)
+- [How can I disable telemetry?](#how-can-i-disable-telemetry)
+- [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
+- [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
+- [Heartbeat File](#heartbeat-file)
+- [Healthz endpoint](#healthz-endpoint)
+- [How does the config file work?](#how-does-the-config-file-work)
+- [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
+- [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+- [Differences compared to Theia?](#differences-compared-to-theia)
+- [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
+- [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -85,15 +84,43 @@ These are the closed source extensions presently unavailable:
 
 For more about the closed source parts of VS Code, see [vscodium/vscodium](https://github.com/VSCodium/vscodium#why-does-this-exist).
 
+### Installing an extension
+
+Extensions can be installed from the marketplace using the extensions sidebar in
+code-server or from the command line:
+
+```shell
+code-server --install-extension <extension id>
+# example: code-server --install-extension wesbos.theme-cobalt2
+```
+
 ## How can I request a missing extension?
 
-Please open a new issue and select the `Extension request` template.
+We are currently in the process of transitioning to [Open VSX](https://open-vsx.org/).
+Once https://github.com/eclipse/openvsx/issues/249
+is implemented, we can fully make this transition. Therefore, we are no longer
+accepting new requests for extension requests.
 
-If an extension is not available or does not work, you can grab its VSIX from its Github releases or
-build it yourself. Then run the `Extensions: Install from VSIX` command in the Command Palette and
-point to the .vsix file.
+Instead, we suggest one of the following:
 
-See below for installing an extension from the cli.
+- [Switch to Open VSX](#how-do-i-configure-the-marketplace-url) now
+- Download and [install the extension manually](#installing-an-extension-manually)
+
+## Installing an extension manually
+
+If an extension is not available from the marketplace or does not work, you can
+grab its VSIX from its GitHub releases or build it yourself.
+
+Once you have downloaded the VSIX to the remote machine you can either:
+
+- Run the `Extensions: Install from VSIX` command in the Command Palette.
+- Use `code-server --install-extension <path to vsix>`
+
+If the extension exists on another marketplace, you can also download it from there using the same command. For instance, downloading off OpenVSX can be done like this:
+
+```shell
+SERVICE_URL=https://open-vsx.org/vscode/gallery ITEM_URL=https://open-vsx.org/vscode/item code-server --install-extension <extension id>
+```
 
 ## How do I configure the marketplace URL?
 
@@ -134,21 +161,6 @@ code-server --install-extension ms-python.python
 # From a downloaded VSIX on the file system
 code-server --install-extension downloaded-ms-python.python.vsix
 ```
-
-### Installing VSIX Extensions via the Command Line
-
-If you're using code-server on a remote machine, it might be easier to install extensions via the command line. Follow these steps:
-
-1. [optional] create a directory to store your extensions: `mkdir plugins`
-2. Find the extension you want i.e. `https://open-vsx.org/extension/stylelint/vscode-stylelint` and grab the name and identifier: `stylelint/vscode-stylelint`
-3. Download extension to directory:
-   ```sh
-   curl 'https://open-vsx.org/api/stylelint/vscode-stylelint' | jq '.files.download' | xargs curl --compressed -L -o plugins/stylelint.vsix
-   ```
-4. Install in code-server
-   ```sh
-   code-server --install-extension stylelint.vsix
-   ```
 
 ## How is this different from VS Code Codespaces?
 
