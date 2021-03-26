@@ -57,7 +57,17 @@ curl() {
 # This will contain the artifacts we want.
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
-  curl -fsSL 'https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=push' | jq -r ".workflow_runs[] | select(.head_sha == \"$(git rev-parse HEAD)\") | .artifacts_url" | head -n 1
+  local head_sha
+  local artifacts_url
+  head_sha=$(git rev-parse HEAD)
+  artifacts_url=$(curl -fsSL 'https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=pull_request' | jq -r ".workflow_runs[] | select(.head_sha == \"$head_sha\") | .artifacts_url" | head -n 1)
+  if [[ -z "$artifacts_url" ]]; then
+    echo >&2 "ERROR: artifacts_url came back empty"
+    echo >&2 "Check the get_artifacts_url function"
+    exit 1
+  fi
+
+  echo "$artifacts_url"
 }
 
 # Grabs the artifact's download url.
