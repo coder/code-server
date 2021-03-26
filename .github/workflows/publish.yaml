@@ -1,6 +1,10 @@
 name: publish
 
 on:
+  # Shows the manual trigger in GitHub UI
+  # helpful as a back-up in case the GitHub Actions Workflow fails
+  workflow_dispatch:
+
   release:
     types: [published]
 
