@@ -210,7 +210,9 @@ wsRouter.ws("/", ensureAuthenticated, async (req) => {
   // TODO: Parse this header properly.
   const extensions = req.headers["sec-websocket-extensions"]
   const permessageDeflate = extensions ? extensions.includes("permessage-deflate") : false
-  responseHeaders.push("Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15")
+  if (permessageDeflate) {
+    responseHeaders.push("Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15")
+  }
 
   req.ws.write(responseHeaders.join("\r\n") + "\r\n\r\n")
 
