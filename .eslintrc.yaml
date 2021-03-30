@@ -16,6 +16,9 @@ extends:
   - plugin:import/typescript
   - plugin:prettier/recommended
   - prettier # Removes eslint rules that conflict with prettier.
+  # Recommended by jest-playwright
+  # https://github.com/playwright-community/jest-playwright#globals
+  - plugin:jest-playwright/recommended
 
 rules:
   # Sometimes you need to add args to implement a function signature even
@@ -32,7 +35,13 @@ rules:
   "@typescript-eslint/no-extra-semi": off
   eqeqeq: error
   import/order:
-    [error, { alphabetize: { order: "asc" }, groups: [["builtin", "external", "internal"], "parent", "sibling"] }]
+    [
+      error,
+      {
+        alphabetize: { order: "asc" },
+        groups: [["builtin", "external", "internal"], "parent", "sibling"],
+      },
+    ]
   no-async-promise-executor: off
   # This isn't a real module, just types, which apparently doesn't resolve.
   import/no-unresolved: [error, { ignore: ["express-serve-static-core"] }]

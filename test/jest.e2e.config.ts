@@ -7,7 +7,13 @@ const config: Config.InitialOptions = {
     "^.+\\.ts$": "<rootDir>/node_modules/ts-jest",
   },
   globalSetup: "<rootDir>/utils/globalSetup.ts",
-  testEnvironment: "node",
+  testEnvironmentOptions: {
+    "jest-playwright": {
+      // TODO enable on webkit as well
+      // waiting on https://github.com/playwright-community/jest-playwright/issues/659
+      browsers: ["chromium", "firefox"],
+    },
+  },
   testPathIgnorePatterns: ["/node_modules/", "/lib/", "/out/", "test/unit"],
   testTimeout: 30000,
   modulePathIgnorePatterns: [
