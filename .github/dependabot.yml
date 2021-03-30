@@ -15,3 +15,6 @@ updates:
     schedule:
       interval: "daily"
       time: "11:00"
+    ignore:
+      - dependency-name: "@types/node"
+        versions: ["14.x"]
