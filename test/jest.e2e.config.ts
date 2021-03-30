@@ -9,9 +9,11 @@ const config: Config.InitialOptions = {
   globalSetup: "<rootDir>/utils/globalSetup.ts",
   testEnvironmentOptions: {
     "jest-playwright": {
-      // TODO enable on webkit as well
-      // waiting on https://github.com/playwright-community/jest-playwright/issues/659
-      browsers: ["chromium", "firefox"],
+      // TODO(@jsjoeio) enable on webkit and firefox
+      // waiting on next playwright release
+      // - https://github.com/microsoft/playwright/issues/6009#event-4536210890
+      // - https://github.com/microsoft/playwright/issues/6020
+      browsers: ["chromium"],
       // If there's a page error, we don't exit
       // i.e. something logged in the console
       exitOnPageError: false,

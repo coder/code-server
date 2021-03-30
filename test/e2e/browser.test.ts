@@ -7,7 +7,7 @@ describe("Browser gutcheck", () => {
     await jestPlaywright.resetBrowser()
   })
 
-  test("should display correct browser", async () => {
+  test("should display correct browser based on userAgent", async () => {
     const displayNames = {
       chromium: "Chrome",
       firefox: "Firefox",
@@ -15,11 +15,15 @@ describe("Browser gutcheck", () => {
     }
     const userAgent = await page.evaluate("navigator.userAgent")
 
+    if (browserName === "chromium") {
+      expect(userAgent).toContain(displayNames[browserName])
+    }
+
     if (browserName === "firefox") {
       expect(userAgent).toContain(displayNames[browserName])
     }
 
-    if (browserName === "chromium") {
+    if (browserName === "webkit") {
       expect(userAgent).toContain(displayNames[browserName])
     }
   })
