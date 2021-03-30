@@ -1,5 +1,5 @@
 import { chromium, Page, Browser, BrowserContext } from "playwright"
-import { CODE_SERVER_ADDRESS, PASSWORD, E2E_VIDEO_DIR } from "../utils/constants"
+import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("logout", () => {
   let browser: Browser
@@ -8,9 +8,7 @@ describe("logout", () => {
 
   beforeAll(async () => {
     browser = await chromium.launch()
-    context = await browser.newContext({
-      recordVideo: { dir: E2E_VIDEO_DIR },
-    })
+    context = await browser.newContext()
   })
 
   afterAll(async () => {

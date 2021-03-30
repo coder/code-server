@@ -12,6 +12,14 @@ const config: Config.InitialOptions = {
       // TODO enable on webkit as well
       // waiting on https://github.com/playwright-community/jest-playwright/issues/659
       browsers: ["chromium", "firefox"],
+      // If there's a page error, we don't exit
+      // i.e. something logged in the console
+      exitOnPageError: false,
+      contextOptions: {
+        recordVideo: {
+          dir: "./test/e2e/videos",
+        },
+      },
     },
   },
   testPathIgnorePatterns: ["/node_modules/", "/lib/", "/out/", "test/unit"],

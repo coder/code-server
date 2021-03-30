@@ -1,6 +1,6 @@
 import { chromium, Page, Browser, BrowserContext, Cookie } from "playwright"
 import { hash } from "../../src/node/util"
-import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE, E2E_VIDEO_DIR } from "../utils/constants"
+import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "../utils/constants"
 import { createCookieIfDoesntExist } from "../utils/helpers"
 
 describe("Open Help > About", () => {
@@ -45,7 +45,6 @@ describe("Open Help > About", () => {
 
     context = await browser.newContext({
       storageState: { cookies: maybeUpdatedCookies },
-      recordVideo: { dir: E2E_VIDEO_DIR },
     })
   })
 
