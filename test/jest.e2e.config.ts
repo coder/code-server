@@ -2,6 +2,7 @@
 import type { Config } from "@jest/types"
 
 const config: Config.InitialOptions = {
+  preset: "jest-playwright-preset",
   transform: {
     "^.+\\.ts$": "<rootDir>/node_modules/ts-jest",
   },

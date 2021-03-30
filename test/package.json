@@ -12,5 +12,11 @@
     "playwright": "^1.8.0",
     "supertest": "^6.1.1",
     "ts-jest": "^26.4.4"
+  },
+  "dependencies": {
+    "jest-playwright-preset": "^1.5.1",
+    "playwright-chromium": "^1.10.0",
+    "playwright-firefox": "^1.10.0",
+    "playwright-webkit": "^1.10.0"
   }
 }
