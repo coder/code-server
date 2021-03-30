@@ -116,7 +116,7 @@ Once you have downloaded the VSIX to the remote machine you can either:
 - Run the `Extensions: Install from VSIX` command in the Command Palette.
 - Use `code-server --install-extension <path to vsix>`
 
-If the extension exists on another marketplace, you can also download it from there using the same command. For instance, downloading off OpenVSX can be done like this:
+You can also download extensions from the command line. For instance, downloading off OpenVSX can be done like this:
 
 ```shell
 SERVICE_URL=https://open-vsx.org/vscode/gallery ITEM_URL=https://open-vsx.org/vscode/item code-server --install-extension <extension id>
