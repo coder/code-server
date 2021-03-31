@@ -314,7 +314,7 @@ export class ParentProcess extends Process {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
-      stdio: ["ipc"],
+      stdio: ["inherit", "inherit", "inherit", "ipc"],
     })
   }
 
