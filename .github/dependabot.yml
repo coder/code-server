@@ -17,4 +17,4 @@ updates:
       time: "11:00"
     ignore:
       - dependency-name: "@types/node"
-        versions: ["14.x"]
+        versions: ["14.x", "13.x"]
