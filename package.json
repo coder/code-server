@@ -41,7 +41,7 @@
     "@types/express": "^4.17.8",
     "@types/http-proxy": "^1.17.4",
     "@types/js-yaml": "^4.0.0",
-    "@types/node": "^12.12.7",
+    "@types/node": "~12.20.7",
     "@types/parcel-bundler": "^1.12.1",
     "@types/pem": "^1.9.5",
     "@types/proxy-from-env": "^1.0.1",
@@ -72,7 +72,6 @@
     "wtfnode": "^0.8.4"
   },
   "resolutions": {
-    "@types/node": "^12.12.7",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2"
   },
