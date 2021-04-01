@@ -1,15 +1,11 @@
-import { chromium, Page, Browser, BrowserContext, Cookie } from "playwright"
+/// <reference types="jest-playwright-preset" />
+import { Cookie } from "playwright"
 import { hash } from "../../src/node/util"
 import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "../utils/constants"
 import { createCookieIfDoesntExist } from "../utils/helpers"
 
 describe("Open Help > About", () => {
-  let browser: Browser
-  let page: Page
-  let context: BrowserContext
-
-  beforeAll(async () => {
-    browser = await chromium.launch()
+  beforeEach(async () => {
     // Create a new context with the saved storage state
     const storageState = JSON.parse(STORAGE) || {}
 
@@ -42,22 +38,7 @@ describe("Open Help > About", () => {
     // See discussion: https://github.com/cdr/code-server/pull/2648#discussion_r575434946
 
     const maybeUpdatedCookies = createCookieIfDoesntExist(cookies, cookieToStore)
-
-    context = await browser.newContext({
-      storageState: { cookies: maybeUpdatedCookies },
-    })
-  })
-
-  afterAll(async () => {
-    // Remove password from local storage
-    await context.clearCookies()
-
-    await context.close()
-    await browser.close()
-  })
-
-  beforeEach(async () => {
-    page = await context.newPage()
+    await jestPlaywright.resetBrowser({ storageState: { cookies: maybeUpdatedCookies } })
   })
 
   it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {

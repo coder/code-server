@@ -21,6 +21,10 @@ module.exports = async () => {
   await page.fill(".password", PASSWORD)
   // Click the submit button and login
   await page.click(".submit")
+  // After logging in, we store a cookie in localStorage
+  // we need to wait a bit to make sure that happens
+  // before we grab the storage and save it
+  await page.waitForTimeout(1000)
 
   // Save storage state and store as an env variable
   // More info: https://playwright.dev/docs/auth?_highlight=authe#reuse-authentication-state

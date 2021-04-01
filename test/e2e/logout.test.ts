@@ -1,28 +1,9 @@
-import { chromium, Page, Browser, BrowserContext } from "playwright"
+/// <reference types="jest-playwright-preset" />
 import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("logout", () => {
-  let browser: Browser
-  let page: Page
-  let context: BrowserContext
-
-  beforeAll(async () => {
-    browser = await chromium.launch()
-    context = await browser.newContext()
-  })
-
-  afterAll(async () => {
-    await browser.close()
-  })
-
   beforeEach(async () => {
-    page = await context.newPage()
-  })
-
-  afterEach(async () => {
-    await page.close()
-    // Remove password from local storage
-    await context.clearCookies()
+    await jestPlaywright.resetContext()
   })
 
   it("should be able login and logout", async () => {
@@ -31,6 +12,8 @@ describe("logout", () => {
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
     await page.click(".submit")
+    // Allow time to navigate
+    await page.waitForTimeout(1000)
     // See the editor
     const codeServerEditor = await page.isVisible(".monaco-workbench")
     expect(codeServerEditor).toBeTruthy()
