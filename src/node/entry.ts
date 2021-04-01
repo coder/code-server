@@ -2,7 +2,7 @@ import { field, logger } from "@coder/logger"
 import * as cp from "child_process"
 import http from "http"
 import * as path from "path"
-import { CliMessage, OpenCommandPipeArgs } from "../../lib/vscode/src/vs/server/ipc"
+import { CliMessage, OpenCommandPipeArgs } from "../../typings/ipc"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import {

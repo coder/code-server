@@ -3,7 +3,7 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { Args as VsArgs } from "../../lib/vscode/src/vs/server/ipc"
+import { Args as VsArgs } from "../../typings/ipc"
 import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
 
 export enum AuthType {
