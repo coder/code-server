@@ -5,7 +5,7 @@ import { CODE_SERVER_ADDRESS } from "../utils/constants"
 describe("login page", () => {
   beforeEach(async () => {
     await jestPlaywright.resetContext()
-    await page.goto(CODE_SERVER_ADDRESS)
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should see the login page", async () => {

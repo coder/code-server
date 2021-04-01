@@ -1,51 +1,16 @@
 /// <reference types="jest-playwright-preset" />
-import { Cookie } from "playwright"
-import { hash } from "../../src/node/util"
-import { CODE_SERVER_ADDRESS, PASSWORD, STORAGE } from "../utils/constants"
-import { createCookieIfDoesntExist } from "../utils/helpers"
+import { CODE_SERVER_ADDRESS, STORAGE } from "../utils/constants"
 
 describe("Open Help > About", () => {
   beforeEach(async () => {
     // Create a new context with the saved storage state
+    // so we don't have to logged in
     const storageState = JSON.parse(STORAGE) || {}
-
-    const cookieToStore = {
-      sameSite: "Lax" as const,
-      name: "key",
-      value: hash(PASSWORD),
-      domain: "localhost",
-      path: "/",
-      expires: -1,
-      httpOnly: false,
-      secure: false,
-    }
-
-    // For some odd reason, the login method used in globalSetup.ts doesn't always work
-    // I don't know if it's on playwright clearing our cookies by accident
-    // or if it's our cookies disappearing.
-    // This means we need an additional check to make sure we're logged in.
-    // We do this by manually adding the cookie to the browser environment
-    // if it's not there at the time the test starts
-    const cookies: Cookie[] = storageState.cookies || []
-    // If the cookie exists in cookies then
-    // this will return the cookies with no changes
-    // otherwise if it doesn't exist, it will create it
-    // hence the name maybeUpdatedCookies
-    //
-    // TODO(@jsjoeio)
-    // The playwright storage thing sometimes works and sometimes doesn't. We should investigate this further
-    // at some point.
-    // See discussion: https://github.com/cdr/code-server/pull/2648#discussion_r575434946
-
-    const maybeUpdatedCookies = createCookieIfDoesntExist(cookies, cookieToStore)
-    await jestPlaywright.resetBrowser({ storageState: { cookies: maybeUpdatedCookies } })
+    await jestPlaywright.resetContext({ storageState })
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {
-    // waitUntil: "domcontentloaded"
-    // In case the page takes a long time to load
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "domcontentloaded" })
-
     // Make sure the editor actually loaded
     expect(await page.isVisible("div.monaco-workbench"))
 

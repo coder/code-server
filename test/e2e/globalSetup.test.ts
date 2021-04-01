@@ -6,12 +6,10 @@ import { CODE_SERVER_ADDRESS, STORAGE } from "../utils/constants"
 describe("globalSetup", () => {
   beforeEach(async () => {
     // Create a new context with the saved storage state
+    // so we don't have to logged in
     const storageState = JSON.parse(STORAGE) || {}
-    console.log("what is storage ", storageState)
     await jestPlaywright.resetContext({ storageState })
-    await page.goto(CODE_SERVER_ADDRESS)
-    // code-server takes a second to load
-    await page.waitForTimeout(1000)
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should keep us logged in if we don't reset the browser", async () => {
