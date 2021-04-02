@@ -76,7 +76,7 @@ export class ExtensionsDownloader extends Disposable {
 	private async cleanUp(): Promise<void> {
 		try {
 			if (!(await this.fileService.exists(this.extensionsDownloadDir))) {
-				this.logService.trace('Extension VSIX downlads cache dir does not exist');
+				this.logService.trace('Extension VSIX downloads cache dir does not exist');
 				return;
 			}
 			const folderStat = await this.fileService.resolve(this.extensionsDownloadDir, { resolveMetadata: true });
