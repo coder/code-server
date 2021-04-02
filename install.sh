@@ -557,8 +557,8 @@ echoerr() {
   echoh "$@" >&2
 }
 
-# humanpath replaces all occurances of " $HOME" with " ~"
-# and all occurances of '"$HOME' with the literal '"$HOME'.
+# humanpath replaces all occurrences of " $HOME" with " ~"
+# and all occurrences of '"$HOME' with the literal '"$HOME'.
 humanpath() {
   sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
 }
