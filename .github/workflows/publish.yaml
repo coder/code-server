@@ -33,3 +33,19 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+
+  homebrew:
+    # The newest version of code-server needs to be available on npm when this runs
+    # otherwise, it will 404 and won't open a PR to bump version on homebrew/homebrew-core
+    needs: npm
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Configure git
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - name: Bump code-server homebrew version
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
+        run: ./ci/steps/brew-bump.sh
