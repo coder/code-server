@@ -15,7 +15,7 @@ main() {
     echo -e "\n"
     exit 1
   fi
-  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --config ./test/jest.e2e.config.ts
+  CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --config ./test/jest.e2e.config.ts --runInBand
 }
 
 main "$@"
