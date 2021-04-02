@@ -12,7 +12,7 @@ describe("globalSetup", () => {
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
-  it("should keep us logged in if we don't reset the browser", async () => {
+  it("should keep us logged in using the storageState", async () => {
     // See the editor
     const codeServerEditor = await page.isVisible(".monaco-workbench")
     expect(codeServerEditor).toBeTruthy()
