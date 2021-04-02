@@ -37,3 +37,11 @@ labels:
       new requests for extension requests. We suggest installing the VSIX
       file and then installing into code-server as a temporary workaround.
       See [docs](https://github.com/cdr/code-server/blob/main/docs/FAQ.md#installing-vsix-extensions-via-the-command-line) for more info."
+  "upstream:vscode":
+    action: close-faster
+    delay: 5s
+    comment: >
+      This issue has been marked as 'upstream:vscode'.
+      Please file this upstream: [link to open issue](https://github.com/microsoft/vscode/issues/new/choose)"
+
+      This issue will automatically close in $DELAY.
