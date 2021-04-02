@@ -4,7 +4,12 @@
 // tests are running in multiple browsers
 describe("Browser gutcheck", () => {
   beforeEach(async () => {
-    await jestPlaywright.resetBrowser()
+    await jestPlaywright.resetBrowser({
+      logger: {
+        isEnabled: (name) => name === "browser",
+        log: (name, severity, message, args) => console.log(`${name} ${message}`),
+      },
+    })
   })
 
   test("should display correct browser based on userAgent", async () => {

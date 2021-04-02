@@ -3,7 +3,12 @@ import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("login", () => {
   beforeEach(async () => {
-    await jestPlaywright.resetBrowser()
+    await jestPlaywright.resetBrowser({
+      logger: {
+        isEnabled: (name, severity) => name === "browser",
+        log: (name, severity, message, args) => console.log(`${name} ${message}`),
+      },
+    })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 

@@ -4,7 +4,12 @@ import { CODE_SERVER_ADDRESS } from "../utils/constants"
 
 describe("login page", () => {
   beforeEach(async () => {
-    await jestPlaywright.resetContext()
+    await jestPlaywright.resetContext({
+      logger: {
+        isEnabled: (name, severity) => name === "browser",
+        log: (name, severity, message, args) => console.log(`${name} ${message}`),
+      },
+    })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 

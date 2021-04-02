@@ -8,7 +8,13 @@ describe("globalSetup", () => {
     // Create a new context with the saved storage state
     // so we don't have to logged in
     const storageState = JSON.parse(STORAGE) || {}
-    await jestPlaywright.resetContext({ storageState })
+    await jestPlaywright.resetContext({
+      storageState,
+      logger: {
+        isEnabled: (name, severity) => name === "browser",
+        log: (name, severity, message, args) => console.log(`${name} ${message}`),
+      },
+    })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
