@@ -1,5 +1,6 @@
 import * as path from 'vs/base/common/path';
 import { URI } from 'vs/base/common/uri';
+import { Options } from 'vs/ipc';
 import { localize } from 'vs/nls';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
@@ -11,7 +12,6 @@ import { Registry } from 'vs/platform/registry/common/platform';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
-import { Options } from 'vs/server/ipc.d';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
 import { LocalizationsService } from 'vs/workbench/services/localizations/electron-sandbox/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
