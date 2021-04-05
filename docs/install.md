@@ -10,6 +10,7 @@
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
 - [Termux](#termux)
+  - [Known Search Issue](#known-search-issue)
 - [yarn, npm](#yarn-npm)
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
@@ -133,6 +134,23 @@ Termux is an Android terminal application and Linux environment, which can also 
 5. Run code-server: `code-server` and navigate to localhost:8080 in your browser
 
 To upgrade run: `yarn global upgrade code-server --latest`
+
+### Known Search Issue
+
+There is a known issue with search not working on Android because it's missing `bin/rg`. To fix:
+
+1. Install `ripgrep` with `pkg`
+   ```sh
+   pkg install ripgrep
+   ```
+2. Make a soft link using `ln -s`
+
+```sh
+# run this command inside the code-server directory
+ln -s $PREFIX/bin/rg ./lib/vscode/node_modules/vscode-ripgrep/bin/rg
+```
+
+For more context, see [comment](https://github.com/cdr/code-server/issues/1730#issuecomment-721515979).
 
 ## yarn, npm
 
