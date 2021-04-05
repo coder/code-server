@@ -99,7 +99,7 @@
     "tar-fs": "^2.0.0",
     "tar-stream": "^2.2.0",
     "ws": "^7.2.0",
-    "xdg-basedir": "^4.0.0",
+    "xdg-basedir": "^5.0.1",
     "yarn": "^1.22.4"
   },
   "bin": {

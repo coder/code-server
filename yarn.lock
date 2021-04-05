@@ -8169,10 +8169,10 @@ x-is-string@^0.1.0:
   resolved "https://registry.yarnpkg.com/x-is-string/-/x-is-string-0.1.0.tgz#474b50865af3a49a9c4657f05acd145458f77d82"
   integrity sha1-R0tQhlrzpJqcRlfwWs0UVFj3fYI=
 
-xdg-basedir@^4.0.0:
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-4.0.0.tgz#4bc8d9984403696225ef83a1573cbbcb4e79db13"
-  integrity sha512-PSNhEJDejZYV7h50BohL09Er9VaIefr2LMAf3OEmpCkjOi34eYyQYAXUTjEQtZJTKcF0E2UKTh+osDLsgNim9Q==
+xdg-basedir@^5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/xdg-basedir/-/xdg-basedir-5.0.1.tgz#b8900938336874b2efacaf8a2d5ad3d65fe0ca7d"
+  integrity sha512-YgJsKtT0Jerlp42eqk9illJhG2ScfLSYEvp7qzYDdVCjHN625BkiK+defqXyv5gYjtif7rOIYi65vKA0JC3qaQ==
 
 xml-name-validator@^3.0.0:
   version "3.0.0"
