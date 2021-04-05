@@ -10,17 +10,12 @@ describe("globalSetup", () => {
     const storageState = JSON.parse(STORAGE) || {}
     await jestPlaywright.resetContext({
       storageState,
-      logger: {
-        isEnabled: (name, severity) => name === "browser",
-        log: (name, severity, message, args) => console.log(`${name} ${message}`),
-      },
     })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should keep us logged in using the storageState", async () => {
-    // See the editor
-    const codeServerEditor = await page.isVisible(".monaco-workbench")
-    expect(codeServerEditor).toBeTruthy()
+    // Make sure the editor actually loaded
+    expect(await page.isVisible("div.monaco-workbench"))
   })
 })

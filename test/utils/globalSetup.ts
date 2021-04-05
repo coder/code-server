@@ -2,8 +2,8 @@
 // so that it authenticates us into code-server
 // ensuring that we're logged in before we run any tests
 import { chromium } from "playwright"
-import { PASSWORD } from "./constants"
 import { hash } from "../../src/node/util"
+import { PASSWORD } from "./constants"
 import * as wtfnode from "./wtfnode"
 
 const cookieToStore = {

@@ -8,10 +8,6 @@ describe("Open Help > About", () => {
     const storageState = JSON.parse(STORAGE) || {}
     await jestPlaywright.resetContext({
       storageState,
-      logger: {
-        isEnabled: (name, severity) => name === "browser",
-        log: (name, severity, message, args) => console.log(`${name} ${message}`),
-      },
     })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
