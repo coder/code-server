@@ -18,3 +18,9 @@ updates:
     ignore:
       - dependency-name: "@types/node"
         versions: ["14.x", "13.x"]
+      - dependency-name: "xdg-basedir"
+        # 5.0.0 has breaking changes as they switch to named exports
+        # and convert the module to ESM
+        # We can't use it until we switch to ESM across the project
+        # See release notes: https://github.com/sindresorhus/xdg-basedir/releases/tag/v5.0.0
+        versions: ["5.x"]
