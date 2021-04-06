@@ -4,10 +4,9 @@ set -euo pipefail
 main() {
   cd "$(dirname "$0")/../.."
 
-  yarn fmt
-  yarn lint
+  yarn --frozen-lockfile
+
   yarn _audit
-  yarn test:unit
 }
 
 main "$@"

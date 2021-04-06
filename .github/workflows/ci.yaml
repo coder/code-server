@@ -27,6 +27,15 @@ jobs:
         with:
           args: ./ci/steps/lint.sh
 
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Audit for vulnerabilities
+        uses: ./ci/images/debian10
+        with:
+          args: ./ci/steps/audit.sh
+
   test-unit:
     runs-on: ubuntu-latest
     steps:
