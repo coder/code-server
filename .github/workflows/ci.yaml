@@ -8,186 +8,363 @@ on:
     branches:
       - main
 
+# Note: if: success() is used in several jobs -
+# this ensures that it only executes if all previous jobs succeeded.
+
+# if: steps.cache-yarn.outputs.cache-hit != 'true'
+# will skip running `yarn install` if it successfully fetched from cache
+
 jobs:
-  fmt:
+  prebuild:
+    name: Pre-build checks
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Run ./ci/steps/fmt.sh
-        uses: ./ci/images/debian10
-        with:
-          args: ./ci/steps/fmt.sh
+      - name: Checkout repo
+        uses: actions/checkout@v2
 
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run ./ci/steps/lint.sh
-        uses: ./ci/images/debian10
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
         with:
-          args: ./ci/steps/lint.sh
+          node-version: "12"
 
-  audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+      - name: Install helm
+        uses: azure/setup-helm@v1
+
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
       - name: Audit for vulnerabilities
-        uses: ./ci/images/debian10
-        with:
-          args: ./ci/steps/audit.sh
+        run: yarn _audit
+        if: success()
 
-  test-unit:
+      - name: Run yarn fmt
+        run: yarn fmt
+        if: success()
+
+      - name: Run yarn lint
+        run: yarn lint
+        if: success()
+
+      - name: Run code-server unit tests
+        run: yarn test:unit
+        if: success()
+
+  build:
+    name: Build
+    needs: prebuild
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-      - name: Run unit tests
-        uses: ./ci/images/debian10
+      - uses: actions/checkout@v2
         with:
-          args: ./ci/steps/test-unit.sh
+          fetch-depth: 0
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      - name: Build code-server
+        run: yarn build
+
+      # Parse the hash of the latest commit inside lib/vscode
+      # use this to avoid rebuilding it if nothing changed
+      # How it works: the `git log` command fetches the hash of the last commit
+      # that changed a file inside `lib/vscode`. If a commit changes any file in there,
+      # the hash returned will change, and we rebuild vscode. If the hash did not change,
+      # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
+      # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
+      - name: Get latest lib/vscode rev
+        id: vscode-rev
+        run: echo "::set-output name=rev::$(git log -1 --format='%H' ./lib/vscode)"
+
+      - name: Attempt to fetch vscode build from cache
+        id: cache-vscode
+        uses: actions/cache@v2
+        with:
+          path: |
+            lib/vscode/.build
+            lib/vscode/out-build
+            lib/vscode/out-vscode
+            lib/vscode/out-vscode-min
+          key: vscode-build-${{ steps.vscode-rev.outputs.rev }}
+
+      - name: Build vscode
+        if: steps.cache-vscode.outputs.cache-hit != 'true'
+        run: yarn build:vscode
+
+      # The release package does not contain any native modules
+      # and is neutral to architecture/os/libc version.
+      - name: Create release package
+        run: yarn release
+        if: success()
+
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Compress release package
+        run: tar -czf package.tar.gz release
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: npm-package
+          path: ./package.tar.gz
+
+  # TODO: cache building yarn --production
+  # possibly 2m30s of savings(?)
+  # this requires refactoring our release scripts
+  package-linux-amd64:
+    name: x86-64 Linux build
+    needs: build
+    runs-on: ubuntu-latest
+    container: "centos:7"
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Install development tools
+        run: |
+          yum install -y epel-release centos-release-scl
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq
+
+      - name: Install nfpm
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Download npm package
+        uses: actions/download-artifact@v2
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      - name: Build standalone release
+        run: |
+          source scl_source enable devtoolset-9
+          yarn release:standalone
+
+      - name: Sanity test standalone release
+        run: yarn test:standalone-release
+
+      - name: Build packages with nfpm
+        run: yarn package
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+
+  # NOTE@oxy:
+  # We use Ubuntu 16.04 here, so that our build is more compatible
+  # with older libc versions. We used to (Q1'20) use CentOS 7 here,
+  # but it has a full update EOL of Q4'20 and a 'critical security'
+  # update EOL of 2024. We're dropping full support a few years before
+  # the final EOL, but I don't believe CentOS 7 has a large arm64 userbase.
+  # It is not feasible to cross-compile with CentOS.
+
+  # Cross-compile notes: To compile native dependencies for arm64,
+  # we install the aarch64 cross toolchain and then set it as the default
+  # compiler/linker/etc. with the AR/CC/CXX/LINK environment variables.
+  # qemu-user-static on ubuntu-16.04 currently doesn't run Node correctly,
+  # so we just build with "native"/x86_64 node, then download arm64 node
+  # and then put it in our release. We can't smoke test the arm64 build this way,
+  # but this means we don't need to maintain a self-hosted runner!
+  package-linux-arm64:
+    name: Linux ARM64 cross-compile build
+    needs: build
+    runs-on: ubuntu-16.04
+    env:
+      AR: aarch64-linux-gnu-ar
+      CC: aarch64-linux-gnu-gcc
+      CXX: aarch64-linux-gnu-g++
+      LINK: aarch64-linux-gnu-g++
+      NPM_CONFIG_ARCH: arm64
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Install nfpm
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install cross-compiler
+        run: sudo apt install g++-aarch64-linux-gnu
+
+      - name: Download npm package
+        uses: actions/download-artifact@v2
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      - name: Build standalone release
+        run: yarn release:standalone
+
+      - name: Replace node with arm64 equivalent
+        run: |
+          wget https://nodejs.org/dist/v12.18.4/node-v12.18.4-linux-arm64.tar.gz
+          tar -xzf node-v12.18.4-linux-arm64.tar.gz node-v12.18.4-linux-arm64/bin/node --strip-components=2
+          mv ./node ./release-standalone/lib/node
+
+      - name: Build packages with nfpm
+        run: yarn package arm64
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+
+  package-macos-amd64:
+    name: x86-64 macOS build
+    needs: build
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Install nfpm
+        run: |
+          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Download npm package
+        uses: actions/download-artifact@v2
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      - name: Build standalone release
+        run: yarn release:standalone
+
+      - name: Sanity test standalone release
+        run: yarn test:standalone-release
+
+      - name: Build packages with nfpm
+        run: yarn package
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+
   test-e2e:
-    needs: linux-amd64
+    name: End-to-end tests
+    needs: package-linux-amd64
     runs-on: ubuntu-latest
     env:
       PASSWORD: e45432jklfdsab
       CODE_SERVER_ADDRESS: http://localhost:8080
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Install playwright
+        uses: microsoft/playwright-github-action@v1
+
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+
       - name: Download release packages
         uses: actions/download-artifact@v2
         with:
           name: release-packages
           path: ./release-packages
+
       - name: Untar code-server file
         run: |
           cd release-packages && tar -xzf code-server*-linux-amd64.tar.gz
-      - uses: microsoft/playwright-github-action@v1
-      - name: Install dependencies and run end-to-end tests
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      # HACK: this shouldn't need to exist, but put it here anyway
+      # in an attempt to solve Playwright cache failures.
+      - name: Reinstall playwright
+        if: steps.cache-yarn.outputs.cache-hit == 'true'
+        run: |
+          cd test/
+          rm -r node_modules/playwright
+          yarn install --check-files
+
+      - name: Run end-to-end tests
         run: |
           ./release-packages/code-server*-linux-amd64/bin/code-server --log trace &
-          yarn --frozen-lockfile
           yarn test:e2e
+
       - name: Upload test artifacts
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test-videos
           path: ./test/e2e/videos
+
       - name: Remove release packages and test artifacts
         run: rm -rf ./release-packages ./test/e2e/videos
 
-  release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Run ./ci/steps/release.sh
-        uses: ./ci/images/debian10
-        with:
-          args: ./ci/steps/release.sh
-      - name: Upload npm package artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: npm-package
-          path: ./release-npm-package
-
-  linux-amd64:
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download npm package
-        uses: actions/download-artifact@v2
-        with:
-          name: npm-package
-          path: ./release-npm-package
-      - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/images/centos7
-        with:
-          args: ./ci/steps/release-packages.sh
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-packages
-          path: ./release-packages
-
-  linux-arm64:
-    needs: release
-    runs-on: ubuntu-arm64-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download npm package
-        uses: actions/download-artifact@v2
-        with:
-          name: npm-package
-          path: ./release-npm-package
-      - name: Run ./ci/steps/release-packages.sh
-        uses: ./ci/images/centos7
-        with:
-          args: ./ci/steps/release-packages.sh
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-packages
-          path: ./release-packages
-      - name: Remove docker images
-        run: docker system prune -af
-
-  macos-amd64:
-    needs: release
-    runs-on: macos-latest
-    # This job requires secrets, so can only run on the default branch
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - uses: actions/checkout@v2
-      - name: Download npm package
-        uses: actions/download-artifact@v2
-        with:
-          name: npm-package
-          path: ./release-npm-package
-      - run: ./ci/steps/release-packages.sh
-        env:
-          # Otherwise we get rate limited when fetching the ripgrep binary.
-          # For whatever reason only MacOS needs it.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-packages
-          path: ./release-packages
-
   docker-amd64:
     runs-on: ubuntu-latest
-    needs: linux-amd64
+    needs: package-linux-amd64
     steps:
       - uses: actions/checkout@v2
-      - name: Download release package
-        uses: actions/download-artifact@v2
-        with:
-          name: release-packages
-          path: ./release-packages
-      - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/images/debian10
-        with:
-          args: ./ci/steps/build-docker-image.sh
-      - name: Upload release image
-        uses: actions/upload-artifact@v2
-        with:
-          name: release-images
-          path: ./release-images
 
-  docker-arm64:
-    runs-on: ubuntu-arm64-latest
-    needs: linux-arm64
-    steps:
-      - uses: actions/checkout@v2
       - name: Download release package
         uses: actions/download-artifact@v2
         with:
           name: release-packages
           path: ./release-packages
+
       - name: Run ./ci/steps/build-docker-image.sh
-        uses: ./ci/images/centos7
-        with:
-          args: ./ci/steps/build-docker-image.sh
+        run: ./ci/steps/build-docker-image.sh
+
       - name: Upload release image
         uses: actions/upload-artifact@v2
         with:

@@ -68,6 +68,7 @@
     "parcel-bundler": "^1.12.4",
     "prettier": "^2.2.1",
     "prettier-plugin-sh": "^0.6.0",
+    "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^4.0.0",
     "ts-node": "^9.1.1",
