@@ -68,6 +68,17 @@ main() {
     exit
   fi
 
+  # Note: we need to set upstream as well or the gh pr create step will fail
+  # See: https://github.com/cli/cli/issues/575
+  CURRENT_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2-)
+  if [[ -z $(git config "branch.${CURRENT_BRANCH}.remote") ]]; then
+    echo "Doesn't look like you've pushed this branch to remote"
+    # Note: we need to set upstream as well or the gh pr create step will fail
+    # See: https://github.com/cli/cli/issues/575
+    echo "Please set the upstream and then run the script"
+    exit 1
+  fi
+
   # credit to jakwuh for this solution
   # https://gist.github.com/DarrenN/8c6a5b969481725a4413#gistcomment-1971123
   CODE_SERVER_CURRENT_VERSION=$(node -pe "require('./package.json').version")
@@ -89,18 +100,6 @@ main() {
   $CMD sd "red.svg" "green.svg" ./README.md
 
   $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
-
-  # Note: we need to set upstream as well or the gh pr create step will fail
-  # See: https://github.com/cli/cli/issues/575
-  CURRENT_BRANCH=$(git branch | grep '\*' | cut -d' ' -f2-)
-  if [[ -z $(git config "branch.${CURRENT_BRANCH}.remote") ]]; then
-    echo "Doesn't look like you've pushed this branch to remote"
-    echo -e "Pushing now using: git push origin $CURRENT_BRANCH\n"
-    # Note: we need to set upstream as well or the gh pr create step will fail
-    # See: https://github.com/cli/cli/issues/575
-    echo "Please set the upstream and re-run the script"
-    exit 1
-  fi
 
   # This runs from the root so that's why we use this path vs. ../../
   RELEASE_TEMPLATE_STRING=$(cat ./.github/PULL_REQUEST_TEMPLATE/release_template.md)
