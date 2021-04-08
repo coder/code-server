@@ -40,6 +40,6 @@ labels:
     delay: 5s
     comment: >
       This issue has been marked as 'upstream:vscode'.
-      Please file this upstream: [link to open issue](https://github.com/microsoft/vscode/issues/new/choose)"
+      Please file this upstream: [link to open issue](https://github.com/microsoft/vscode/issues/new/choose)
 
       This issue will automatically close in $DELAY.
