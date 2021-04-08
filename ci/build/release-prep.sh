@@ -86,7 +86,7 @@ main() {
   # Updates the Lines badge in the README
   $CMD yarn badges
   # Updates the svg to be green for the badge
-  $CMD sd "red.svg" "green.svg" ../../README.md
+  $CMD sd "red.svg" "green.svg" ./README.md
 
   $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
 
