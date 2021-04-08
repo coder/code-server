@@ -26,6 +26,6 @@ ENV PATH=/usr/local/go/bin:$GOPATH/bin:$PATH
 
 # Install Go dependencies
 ENV GO111MODULE=on
-RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v1.9.0
+RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v2.3.1
 
 RUN curl -fsSL https://get.docker.com | sh
