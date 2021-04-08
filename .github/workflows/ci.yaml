@@ -376,3 +376,27 @@ jobs:
         with:
           name: release-images
           path: ./release-images
+
+  # TODO: this is the last place where we use our self-hosted arm64 runner.
+  # In the future, consider switching to docker buildx + qemu,
+  # thus removing the requirement for us to maintain the runner.
+  docker-arm64:
+    runs-on: ubuntu-arm64-latest
+    needs: package-linux-arm64
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Download release package
+        uses: actions/download-artifact@v2
+        with:
+          name: release-packages
+          path: ./release-packages
+
+      - name: Run ./ci/steps/build-docker-image.sh
+        run: ./ci/steps/build-docker-image.sh
+
+      - name: Upload release image
+        uses: actions/upload-artifact@v2
+        with:
+          name: release-images
+          path: ./release-images
