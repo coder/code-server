@@ -147,7 +147,7 @@ jobs:
       - name: Install development tools
         run: |
           yum install -y epel-release centos-release-scl
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync
 
       - name: Install nfpm
         run: |
