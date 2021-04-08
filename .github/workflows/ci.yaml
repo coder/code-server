@@ -154,6 +154,9 @@ jobs:
           curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
+      - name: Install yarn
+        run: npm install -g yarn
+
       - name: Download npm package
         uses: actions/download-artifact@v2
         with:
@@ -162,10 +165,10 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
+      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
+      # file when running inside a docker container.
       - name: Build standalone release
-        run: |
-          source scl_source enable devtoolset-9
-          yarn release:standalone
+        run: source scl_source enable devtoolset-9 && yarn release:standalone
 
       - name: Sanity test standalone release
         run: yarn test:standalone-release
