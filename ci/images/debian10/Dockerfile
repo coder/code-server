@@ -29,8 +29,8 @@ RUN curl -fsSL https://github.com/koalaman/shellcheck/releases/download/v0.7.1/s
   && mv shellcheck*/shellcheck /usr/local/bin \
   && rm -R shellcheck*
 
-# More stable than go get
-RUN curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh
+# Using GitHub release URL is better because now only rely on one service instead of GitHub and install.goreleaser.com
+RUN curl -sSL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_Linux_x86_64.tar.gz | tar -C /tmp -zxv nfpm
 
 RUN VERSION="$(curl -fsSL https://storage.googleapis.com/kubernetes-release/release/stable.txt)" \
   && curl -fsSL "https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl" >/usr/local/bin/kubectl \
