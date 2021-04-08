@@ -60,7 +60,7 @@ get_artifacts_url() {
   local artifacts_url
   local workflow_runs_url="https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=pull_request"
   # For releases, we look for run based on the branch name v$code_server_version
-  # example: v3.9.2
+  # example: v3.9.3
   local version_branch="v$VERSION"
   artifacts_url=$(curl -fsSL "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then
