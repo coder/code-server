@@ -33,7 +33,7 @@ import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBu
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
-import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess';
+import { ISetTerminalLayoutInfoArgs, IGetTerminalLayoutInfoArgs, IProcessDetails } from 'vs/platform/terminal/common/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
@@ -415,7 +415,7 @@ class Terminal {
 	private disposeDelay = 48 * 60 * 60 * 1000;
 
 	private buffering = false;
-	private readonly _onEvent = new Emitter<terminal.IRemoteTerminalProcessEvent>({
+	private readonly _onEvent = new Emitter<any>({
 		// Don't bind to data until something is listening.
 		onFirstListenerAdd: () => {
 			logger.debug('Terminal bound', field('id', this.id));
@@ -461,7 +461,7 @@ class Terminal {
 		}
 	});
 
-	public get onEvent(): Event<terminal.IRemoteTerminalProcessEvent> { return this._onEvent.event; }
+	public get onEvent(): Event<any> { return this._onEvent.event; }
 
 	// Buffer to reduce the number of messages going to the renderer.
 	private readonly bufferer = new TerminalDataBufferer((_, data) => {
@@ -624,7 +624,7 @@ class Terminal {
 	/**
 	 * Serializable terminal information that can be sent to the client.
 	 */
-	public async description(id: number): Promise<terminal.IRemoteTerminalDescriptionDto> {
+	public async description(id: number): Promise<IProcessDetails> {
 		const cwd = await this.getCwd();
 		return {
 			id,
@@ -658,23 +658,22 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		throw new Error(`Invalid listen '${event}'`);
 	}
 
-	private onTerminalProcessEvent(args: terminal.IOnTerminalProcessEventArguments): Event<terminal.IRemoteTerminalProcessEvent> {
-		return this.getTerminal(args.id).onEvent;
+	private onTerminalProcessEvent(id: number): Event<any> {
+		return this.getTerminal(id).onEvent;
 	}
 
 	public call(context: RemoteAgentConnectionContext, command: string, args?: any): Promise<any> {
 		switch (command) {
 			case '$createTerminalProcess': return this.createTerminalProcess(context.remoteAuthority, args);
-			case '$startTerminalProcess': return this.startTerminalProcess(args);
-			case '$sendInputToTerminalProcess': return this.sendInputToTerminalProcess(args);
-			case '$sendCharCountToTerminalProcess': return this.sendCharCountToTerminalProcess(args);
-			case '$shutdownTerminalProcess': return this.shutdownTerminalProcess(args);
-			case '$resizeTerminalProcess': return this.resizeTerminalProcess(args);
-			case '$getTerminalInitialCwd': return this.getTerminalInitialCwd(args);
-			case '$getTerminalCwd': return this.getTerminalCwd(args);
-			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(args);
-			case '$orphanQuestionReply': return this.orphanQuestionReply(args[0]);
-			case '$listTerminals': return this.listTerminals(args[0]);
+			case '$startTerminalProcess': return this.startTerminalProcess(...args as [number]);
+			case '$sendInputToTerminalProcess': return this.sendInputToTerminalProcess(...args as [number, string]);
+			case '$sendCharCountToTerminalProcess': return this.sendCharCountToTerminalProcess(...args as [number, number]);
+			case '$shutdownTerminalProcess': return this.shutdownTerminalProcess(...args as [number, boolean]);
+			case '$resizeTerminalProcess': return this.resizeTerminalProcess(...args as [number, number, number]);
+			case '$getTerminalInitialCwd': return this.getTerminalInitialCwd(...args as [number]);
+			case '$getTerminalCwd': return this.getTerminalCwd(...args as [number]);
+			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(...args as [number, number, boolean, any]);
+			case '$orphanQuestionReply': return this.orphanQuestionReply(...args as [number]);
 			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
 			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
 		}
@@ -729,7 +728,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			const executable = terminalEnvironment.getDefaultShell(
 				(key) => args.configuration[key],
 				args.isWorkspaceShellAllowed,
-				await getSystemShell(platform.platform),
+				await getSystemShell(platform.platform, env),
 				process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432'),
 				process.env.windir,
 				resolver,
@@ -816,7 +815,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		terminal.onDispose(() => this.terminals.delete(terminalId));
 
 		return {
-			terminalId,
+			persistentTerminalId: terminalId,
 			resolvedShellLaunchConfig,
 		};
 	}
@@ -829,56 +828,42 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		return terminal;
 	}
 
-	private async startTerminalProcess(args: terminal.IStartTerminalProcessArguments): Promise<ITerminalLaunchError | void> {
-		return this.getTerminal(args.id).start();
+	private async startTerminalProcess(id: number): Promise<ITerminalLaunchError | void> {
+		return this.getTerminal(id).start();
 	}
 
-	private async sendInputToTerminalProcess(args: terminal.ISendInputToTerminalProcessArguments): Promise<void> {
-		return this.getTerminal(args.id).input(args.data);
+	private async sendInputToTerminalProcess(id: number, data: string): Promise<void> {
+		return this.getTerminal(id).input(data);
 	}
 
-	private async sendCharCountToTerminalProcess(args: terminal.ISendCharCountToTerminalProcessArguments): Promise<void> {
-		return this.getTerminal(args.id).acknowledgeDataEvent(args.charCount);
+	private async sendCharCountToTerminalProcess(id: number, charCount: number): Promise<void> {
+		return this.getTerminal(id).acknowledgeDataEvent(charCount);
 	}
 
-	private async shutdownTerminalProcess(args: terminal.IShutdownTerminalProcessArguments): Promise<void> {
-		return this.getTerminal(args.id).shutdown(args.immediate);
+	private async shutdownTerminalProcess(id: number, immediate: boolean): Promise<void> {
+		return this.getTerminal(id).shutdown(immediate);
 	}
 
-	private async resizeTerminalProcess(args: terminal.IResizeTerminalProcessArguments): Promise<void> {
-		return this.getTerminal(args.id).resize(args.cols, args.rows);
+	private async resizeTerminalProcess(id: number, cols: number, rows: number): Promise<void> {
+		return this.getTerminal(id).resize(cols, rows);
 	}
 
-	private async getTerminalInitialCwd(args: terminal.IGetTerminalInitialCwdArguments): Promise<string> {
-		return this.getTerminal(args.id).getInitialCwd();
+	private async getTerminalInitialCwd(id: number): Promise<string> {
+		return this.getTerminal(id).getInitialCwd();
 	}
 
-	private async getTerminalCwd(args: terminal.IGetTerminalCwdArguments): Promise<string> {
-		return this.getTerminal(args.id).getCwd();
+	private async getTerminalCwd(id: number): Promise<string> {
+		return this.getTerminal(id).getCwd();
 	}
 
-	private async sendCommandResultToTerminalProcess(_: terminal.ISendCommandResultToTerminalProcessArguments): Promise<void> {
+	private async sendCommandResultToTerminalProcess(id: number, reqId: number, isError: boolean, payload: any): Promise<void> {
 		// NOTE: Not required unless we implement the `execCommand` event, see above.
 		throw new Error('not implemented');
 	}
 
-	private async orphanQuestionReply(_: terminal.IOrphanQuestionReplyArgs): Promise<void> {
+	private async orphanQuestionReply(id: number): Promise<void> {
 		// NOTE: Not required unless we implement the `orphan?` event, see above.
 		throw new Error('not implemented');
-	}
-
-	private async listTerminals(_: terminal.IListTerminalsArgs): Promise<terminal.IRemoteTerminalDescriptionDto[]> {
-		// TODO: args.isInitialization. Maybe this is to have slightly different
-		// behavior when first listing terminals but I don't know what you'd want to
-		// do differently. Maybe it's to reset the terminal dispose timeouts or
-		// something like that, but why not do it each time you list?
-		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
-			return terminal.description(id);
-		}));
-
-		// Only returned orphaned terminals so we don't end up attaching to
-		// terminals already attached elsewhere.
-		return terminals.filter((t) => t.isOrphan);
 	}
 
 	public async setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
