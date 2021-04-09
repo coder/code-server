@@ -36,93 +36,9 @@ import { IUriIdentityService } from 'vs/workbench/services/uriIdentity/common/ur
 
 //#region Environment
 
-<<<<<<< HEAD
-export class SimpleNativeWorkbenchEnvironmentService implements INativeWorkbenchEnvironmentService {
-
-	declare readonly _serviceBrand: undefined;
-
-	constructor(
-		readonly configuration: INativeWorkbenchConfiguration
-	) { }
-
-	get userRoamingDataHome(): URI { return URI.file('/sandbox-user-data-dir').with({ scheme: Schemas.userData }); }
-	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
-	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
-	get snippetsHome(): URI { return joinPath(this.userRoamingDataHome, 'snippets'); }
-	get globalStorageHome(): URI { return URI.joinPath(this.userRoamingDataHome, 'globalStorage'); }
-	get workspaceStorageHome(): URI { return URI.joinPath(this.userRoamingDataHome, 'workspaceStorage'); }
-	get keybindingsResource(): URI { return joinPath(this.userRoamingDataHome, 'keybindings.json'); }
-	get logFile(): URI { return joinPath(this.userRoamingDataHome, 'window.log'); }
-	get untitledWorkspacesHome(): URI { return joinPath(this.userRoamingDataHome, 'Workspaces'); }
-	get serviceMachineIdResource(): URI { return joinPath(this.userRoamingDataHome, 'machineid'); }
-	get userDataSyncLogResource(): URI { return joinPath(this.userRoamingDataHome, 'syncLog'); }
-	get userDataSyncHome(): URI { return joinPath(this.userRoamingDataHome, 'syncHome'); }
-	get tmpDir(): URI { return joinPath(this.userRoamingDataHome, 'tmp'); }
-	get logsPath(): string { return joinPath(this.userRoamingDataHome, 'logs').path; }
-
-	sessionId = this.configuration.sessionId;
-	machineId = this.configuration.machineId;
-	remoteAuthority = this.configuration.remoteAuthority;
-	os = { release: 'unknown' };
-
-	options?: IWorkbenchConstructionOptions | undefined;
-	logExtensionHostCommunication?: boolean | undefined;
-	extensionEnabledProposedApi?: string[] | undefined;
-	webviewExternalEndpoint: string = undefined!;
-	webviewResourceRoot: string = undefined!;
-	webviewCspSource: string = undefined!;
-	skipReleaseNotes: boolean = undefined!;
-	keyboardLayoutResource: URI = undefined!;
-	sync: 'on' | 'off' | undefined;
-	debugExtensionHost: IExtensionHostDebugParams = undefined!;
-	debugRenderer = false;
-	isExtensionDevelopment: boolean = false;
-	disableExtensions: boolean | string[] = [];
-	extensionDevelopmentLocationURI?: URI[] | undefined;
-	extensionTestsLocationURI?: URI | undefined;
-	logLevel?: string | undefined;
-
-	args: NativeParsedArgs = Object.create(null);
-
-	execPath: string = undefined!;
-	appRoot: string = undefined!;
-	userHome: URI = undefined!;
-	appSettingsHome: URI = undefined!;
-	userDataPath: string = undefined!;
-	machineSettingsResource: URI = undefined!;
-
-	log?: string | undefined;
-	extHostLogsPath: URI = undefined!;
-
-	installSourcePath: string = undefined!;
-
-	extensionsPath: string = undefined!;
-	extensionsDownloadPath: string = undefined!;
-	builtinExtensionsPath: string = undefined!;
-	extraExtensionPaths: string[] = undefined!;
-	extraBuiltinExtensionPaths: string[] = undefined!;
-
-	driverHandle?: string | undefined;
-
-	crashReporterDirectory?: string | undefined;
-	crashReporterId?: string | undefined;
-
-	nodeCachedDataDir?: string | undefined;
-
-	verbose = false;
-	isBuilt = false;
-
-	get telemetryLogResource(): URI { return joinPath(this.userRoamingDataHome, 'telemetry.log'); }
-	disableTelemetry = false;
-}
-
-//#endregion
-
-=======
 export const simpleHomeDir = URI.file(isWindows ? '\\sandbox-home-dir' : '/sandbox-home-dir');
 export const simpleTmpDir = URI.file(isWindows ? '\\sandbox-tmp-dir' : '/sandbox-tmp-dir');
 export const simpleUserDataDir = URI.file(isWindows ? '\\sandbox-user-data-dir' : '/sandbox-user-data-dir');
->>>>>>> 801aed93200dc0ccf325a09089c911e8e2b612d0
 
 //#region Workspace
 
