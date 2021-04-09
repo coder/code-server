@@ -674,6 +674,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$getCwd': return this.getTerminalCwd(...args as [number]);
 			case '$sendCommandResult': return this.sendCommandResultToTerminalProcess(...args as [number, number, boolean, any]);
 			case '$orphanQuestionReply': return this.orphanQuestionReply(...args as [number]);
+			case '$listProcesses': return this.listProcesses();
 			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
 			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
 		}
@@ -864,6 +865,20 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	private async orphanQuestionReply(id: number): Promise<void> {
 		// NOTE: Not required unless we implement the `orphan?` event, see above.
 		throw new Error('not implemented');
+	}
+
+	private async listProcesses(): Promise<IProcessDetails[]> {
+		// TODO: args.isInitialization. Maybe this is to have slightly different
+		// behavior when first listing terminals but I don't know what you'd want to
+		// do differently. Maybe it's to reset the terminal dispose timeouts or
+		// something like that, but why not do it each time you list?
+		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
+			return terminal.description(id);
+		}));
+
+		// Only returned orphaned terminals so we don't end up attaching to
+		// terminals already attached elsewhere.
+		return terminals.filter((t) => t.isOrphan);
 	}
 
 	public async setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
