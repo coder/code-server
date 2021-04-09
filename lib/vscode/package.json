@@ -73,13 +73,10 @@
     "native-is-elevated": "0.4.1",
     "native-watchdog": "1.3.0",
     "node-pty": "0.10.0-beta19",
-<<<<<<< HEAD
     "proxy-agent": "^4.0.0",
     "proxy-from-env": "^1.1.0",
     "rimraf": "^2.2.8",
-=======
     "nsfw": "^2.1.1",
->>>>>>> 801aed93200dc0ccf325a09089c911e8e2b612d0
     "spdlog": "^0.11.1",
     "sudo-prompt": "9.1.1",
     "tas-client-umd": "0.1.4",
