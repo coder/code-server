@@ -664,15 +664,15 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 
 	public call(context: RemoteAgentConnectionContext, command: string, args?: any): Promise<any> {
 		switch (command) {
-			case '$createTerminalProcess': return this.createTerminalProcess(context.remoteAuthority, args);
-			case '$startTerminalProcess': return this.startTerminalProcess(...args as [number]);
-			case '$sendInputToTerminalProcess': return this.sendInputToTerminalProcess(...args as [number, string]);
-			case '$sendCharCountToTerminalProcess': return this.sendCharCountToTerminalProcess(...args as [number, number]);
-			case '$shutdownTerminalProcess': return this.shutdownTerminalProcess(...args as [number, boolean]);
-			case '$resizeTerminalProcess': return this.resizeTerminalProcess(...args as [number, number, number]);
-			case '$getTerminalInitialCwd': return this.getTerminalInitialCwd(...args as [number]);
-			case '$getTerminalCwd': return this.getTerminalCwd(...args as [number]);
-			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(...args as [number, number, boolean, any]);
+			case '$createProcess': return this.createTerminalProcess(context.remoteAuthority, args);
+			case '$start': return this.startTerminalProcess(...args as [number]);
+			case '$input': return this.sendInputToTerminalProcess(...args as [number, string]);
+			case '$acknowledgeDataEvent': return this.sendCharCountToTerminalProcess(...args as [number, number]);
+			case '$shutdown': return this.shutdownTerminalProcess(...args as [number, boolean]);
+			case '$resize': return this.resizeTerminalProcess(...args as [number, number, number]);
+			case '$getInitialCwd': return this.getTerminalInitialCwd(...args as [number]);
+			case '$getCwd': return this.getTerminalCwd(...args as [number]);
+			case '$sendCommandResult': return this.sendCommandResultToTerminalProcess(...args as [number, number, boolean, any]);
 			case '$orphanQuestionReply': return this.orphanQuestionReply(...args as [number]);
 			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
 			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
