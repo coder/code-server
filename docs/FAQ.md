@@ -289,8 +289,8 @@ Highly recommend using the subdomain approach instead to avoid this class of iss
 
 If you want to run multiple code-servers on shared infrastructure, we recommend using virtual
 machines with a VM per user. This will easily allow users to run a docker daemon. If you want
-to use kubernetes, you'll definitely want to use [kubevirt](https://kubevirt.io) to give each
-user a virtual machine instead of just a container.
+to use kubernetes, you'll definitely want to use [kubevirt](https://kubevirt.io) or [sysbox](https://github.com/nestybox/sysbox) to give each
+user a VM-like experience instead of just a container.
 
 ## Docker in code-server container?
 
