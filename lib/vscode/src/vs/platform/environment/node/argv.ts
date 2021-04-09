@@ -85,6 +85,7 @@ export const OPTIONS: OptionDescriptions<Required<NativeParsedArgs>> = {
 
 	'locate-extension': { type: 'string[]' },
 	'extensionDevelopmentPath': { type: 'string[]' },
+	'extensionDevelopmentKind': { type: 'string[]' },
 	'extensionTestsPath': { type: 'string' },
 	'debugId': { type: 'string' },
 	'debugRenderer': { type: 'boolean' },
@@ -263,7 +264,7 @@ export function formatOptions(options: OptionDescriptions<any>, columns: number)
 }
 
 function indent(count: number): string {
-	return (<any>' ').repeat(count);
+	return ' '.repeat(count);
 }
 
 function wrapText(text: string, columns: number): string[] {

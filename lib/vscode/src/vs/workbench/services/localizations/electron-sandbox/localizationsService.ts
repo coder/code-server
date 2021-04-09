@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
+<<<<<<< HEAD
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { IRemoteAgentService } from '../../remote/common/remoteAgentService';
 
@@ -29,3 +29,8 @@ export class LocalizationsService implements ILocalizationsService {
 }
 
 registerSingleton(ILocalizationsService, LocalizationsService, true);
+=======
+import { registerSharedProcessRemoteService } from 'vs/platform/ipc/electron-sandbox/services';
+
+registerSharedProcessRemoteService(ILocalizationsService, 'localizations', { supportsDelayedInstantiation: true });
+>>>>>>> 801aed93200dc0ccf325a09089c911e8e2b612d0

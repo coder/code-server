@@ -4,40 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { homedir, tmpdir } from 'os';
-import product from 'vs/platform/product/common/product';
-import { IDebugParams, IExtensionHostDebugParams, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { NativeParsedArgs } from 'vs/platform/environment/common/argv';
-import { getDefaultUserDataPath } from 'vs/base/node/userDataPath';
-import { dirname, join, normalize, resolve } from 'vs/base/common/path';
-import { joinPath } from 'vs/base/common/resources';
-import { memoize } from 'vs/base/common/decorators';
-import { toLocalISOString } from 'vs/base/common/date';
-import { FileAccess } from 'vs/base/common/network';
-import { URI } from 'vs/base/common/uri';
+import { getUserDataPath } from 'vs/platform/environment/node/userDataPath';
+import { AbstractNativeEnvironmentService } from 'vs/platform/environment/common/environmentService';
+import { IProductService } from 'vs/platform/product/common/productService';
 
-export class NativeEnvironmentService implements INativeEnvironmentService {
+export class NativeEnvironmentService extends AbstractNativeEnvironmentService {
 
-	declare readonly _serviceBrand: undefined;
-
-	get args(): NativeParsedArgs { return this._args; }
-
-	@memoize
-	get appRoot(): string { return dirname(FileAccess.asFileUri('', require).fsPath); }
-
-	readonly logsPath: string;
-
-	@memoize
-	get userHome(): URI { return URI.file(homedir()); }
-
-	@memoize
-	get userDataPath(): string {
-		const vscodePortable = process.env['VSCODE_PORTABLE'];
-		if (vscodePortable) {
-			return join(vscodePortable, 'user-data');
-		}
-
-		return parseUserDataDir(this._args, process);
+	constructor(args: NativeParsedArgs, productService: IProductService) {
+		super(args, {
+			homeDir: homedir(),
+			tmpDir: tmpdir(),
+			userDataDir: getUserDataPath(args)
+		}, productService);
 	}
+<<<<<<< HEAD
 
 	@memoize
 	get appSettingsHome(): URI { return URI.file(join(this.userDataPath, 'User')); }
@@ -249,4 +230,6 @@ export function parsePathArg(arg: string | undefined, process: NodeJS.Process): 
 
 export function parseUserDataDir(args: NativeParsedArgs, process: NodeJS.Process): string {
 	return parsePathArg(args['user-data-dir'], process) || resolve(getDefaultUserDataPath());
+=======
+>>>>>>> 801aed93200dc0ccf325a09089c911e8e2b612d0
 }
