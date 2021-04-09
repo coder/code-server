@@ -24,7 +24,7 @@ import { isWindows } from 'vs/base/common/platform';
 import { flatten } from 'vs/base/common/arrays';
 import { IStringDictionary } from 'vs/base/common/collections';
 import { FileAccess } from 'vs/base/common/network';
-import { IFileService } from 'vs/platform/files/common/files';
+import { FileOperationError, FileOperationResult, IFileService } from 'vs/platform/files/common/files';
 import { basename } from 'vs/base/common/resources';
 import { generateUuid } from 'vs/base/common/uuid';
 import { getErrorMessage } from 'vs/base/common/errors';
@@ -276,19 +276,20 @@ export class ExtensionsScanner extends Disposable {
 
 	private async scanExtensionsInDir(dir: string, type: ExtensionType): Promise<ILocalExtension[]> {
 		const limiter = new Limiter<any>(10);
-<<<<<<< HEAD
-		const extensionsFolders = await pfs.readdir(dir)
+		/*
+		 * NOTE@coder: use fileService.resolve() like upstream does,
+		 * but simply ignore directories that do not exist. (upstream does not)
+		 * 
+		 * Used to (<1.54) use pfs.readdir.
+		 */
+		const stat = await this.fileService.resolve(URI.file(dir))
 			.catch((error) => {
-				if (error.code !== 'ENOENT') {
+				if (!(error instanceof FileOperationError && error.fileOperationResult == FileOperationResult.FILE_NOT_FOUND)) {
 					throw error;
 				}
-				return <string[]>[];
+				return undefined;
 			});
-		const extensions = await Promise.all<ILocalExtension>(extensionsFolders.map(extensionFolder => limiter.queue(() => this.scanExtension(extensionFolder, dir, type))));
-		return extensions.filter(e => e && e.identifier);
-=======
-		const stat = await this.fileService.resolve(URI.file(dir));
-		if (stat.children) {
+		if (stat && stat.children) {
 			const extensions = await Promise.all<ILocalExtension>(stat.children.filter(c => c.isDirectory)
 				.map(c => limiter.queue(async () => {
 					if (type === ExtensionType.User && basename(c.resource).indexOf('.') === 0) { // Do not consider user extension folder starting with `.`
@@ -299,7 +300,6 @@ export class ExtensionsScanner extends Disposable {
 			return extensions.filter(e => e && e.identifier);
 		}
 		return [];
->>>>>>> 801aed93200dc0ccf325a09089c911e8e2b612d0
 	}
 
 	private async scanExtension(extensionLocation: URI, type: ExtensionType): Promise<ILocalExtension | null> {
