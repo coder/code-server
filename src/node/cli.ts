@@ -9,6 +9,7 @@ import { canConnect, generateCertificate, generatePassword, humanPath, paths } f
 export enum AuthType {
   Password = "password",
   None = "none",
+  Openid = "openid"
 }
 
 export class Optional<T> {
@@ -29,6 +30,12 @@ export interface Args extends VsArgs {
   config?: string
   auth?: AuthType
   password?: string
+  "openid-issuer-base-url"?: string
+  "openid-client-id"?: string
+  "openid-base-url"?: string
+  "openid-secret"?: string
+  "openid-group-claim"?:string
+  "openid-user-group"?:string
   "hashed-password"?: string
   cert?: OptionalString
   "cert-host"?: string
@@ -54,7 +61,7 @@ export interface Args extends VsArgs {
   _: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
-
+  
   link?: OptionalString
 }
 
@@ -104,6 +111,30 @@ const options: Options<Required<Args>> = {
   password: {
     type: "string",
     description: "The password for password authentication (can only be passed in via $PASSWORD or the config file).",
+  },
+  "openid-issuer-base-url": {
+    type: "string",
+    description: "The base url for providers .well-known endpoint",
+  },
+  "openid-client-id": {
+    type: "string",
+    description: "The client ID of this OpenID application",
+  },
+  "openid-base-url": {
+    type: "string",
+    description: "The base URL for code-server",
+  },
+  "openid-secret": {
+    type: "string",
+    description: "A long secret used to encrypt the session cookie",
+  },
+  "openid-group-claim": {
+    type: "string",
+    description: "A claim that contains the authenticated users group assignments",
+  },
+  "openid-user-group": {
+    type: "string",
+    description: "The group that a user will need to be a member of to access this instance",
   },
   "hashed-password": {
     type: "string",

@@ -1,6 +1,7 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
+import { RequestContext } from "express-openid-connect"
 import qs from "qs"
 import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
@@ -9,6 +10,7 @@ import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
 import { hash } from "./util"
+import {} from "./cli"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -16,6 +18,7 @@ declare global {
     export interface Request {
       args: DefaultedArgs
       heart: Heart
+      oidc: RequestContext
     }
   }
 }
@@ -69,6 +72,29 @@ export const authenticated = (req: express.Request): boolean => {
           ? safeCompare(req.cookies.key, req.args["hashed-password"])
           : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
       )
+    case AuthType.Openid:
+      console.log(req.oidc.user)
+      console.log(req.oidc.isAuthenticated())  
+      
+      const groupClaim = req.args["openid-group-claim"]
+      const userGroup = req.args["openid-user-group"]
+
+      if (req.oidc.isAuthenticated()){
+        for (const key in req.oidc.idTokenClaims) {
+          var claims = <string[]>req.oidc.idTokenClaims[key]
+          if (key == groupClaim) {
+            for (const value in claims) {
+              if(userGroup == claims[value]) {
+                return true
+              }
+            }
+          }
+        }
+        throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+      }
+
+      return false
+
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)
   }

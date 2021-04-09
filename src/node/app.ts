@@ -1,11 +1,12 @@
 import { logger } from "@coder/logger"
 import compression from "compression"
 import express, { Express } from "express"
+import { auth } from "express-openid-connect"
 import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
 import * as util from "../common/util"
-import { DefaultedArgs } from "./cli"
+import { AuthType, DefaultedArgs } from "./cli"
 import { handleUpgrade } from "./wsRouter"
 
 /**
@@ -59,6 +60,19 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
   const wsApp = express()
   handleUpgrade(wsApp, server)
 
+  if (args.auth == AuthType.Openid) {
+    const openidConfig = {
+      authRequired: true,
+      auth0Logout: true,
+      issuerBaseURL: args["openid-issuer-base-url"],
+      clientID: args["openid-client-id"],
+      baseURL: args["openid-base-url"],
+      secret: args["openid-secret"]
+    };
+    app.use(auth(openidConfig));
+    wsApp.use(auth(openidConfig));
+  }
+  
   return [app, wsApp, server]
 }
 
