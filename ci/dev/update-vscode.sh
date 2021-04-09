@@ -88,7 +88,7 @@ main() {
     # Note: we need to set upstream as well or the gh pr create step will fail
     # See: https://github.com/cli/cli/issues/575
     echo "Please set the upstream and re-run the script"
-    exit 1
+    # exit 1
   fi
 
   echo "Going to try to update vscode for you..."
