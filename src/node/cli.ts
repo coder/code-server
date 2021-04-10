@@ -61,7 +61,7 @@ export interface Args extends VsArgs {
   _: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
-  
+
   link?: OptionalString
 }
 

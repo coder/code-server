@@ -10,7 +10,6 @@ import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
 import { hash } from "./util"
-import {} from "./cli"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
