@@ -1,41 +1,20 @@
-import { chromium, Page, Browser, BrowserContext } from "playwright"
-import { CODE_SERVER_ADDRESS, PASSWORD, E2E_VIDEO_DIR } from "../utils/constants"
+/// <reference types="jest-playwright-preset" />
+import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 describe("logout", () => {
-  let browser: Browser
-  let page: Page
-  let context: BrowserContext
-
-  beforeAll(async () => {
-    browser = await chromium.launch()
-    context = await browser.newContext({
-      recordVideo: { dir: E2E_VIDEO_DIR },
-    })
-  })
-
-  afterAll(async () => {
-    await browser.close()
-  })
-
   beforeEach(async () => {
-    page = await context.newPage()
-  })
-
-  afterEach(async () => {
-    await page.close()
-    // Remove password from local storage
-    await context.clearCookies()
+    await jestPlaywright.resetBrowser()
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
   it("should be able login and logout", async () => {
-    await page.goto(CODE_SERVER_ADDRESS)
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
     await page.click(".submit")
-    // See the editor
-    const codeServerEditor = await page.isVisible(".monaco-workbench")
-    expect(codeServerEditor).toBeTruthy()
+    await page.waitForLoadState("networkidle")
+    // Make sure the editor actually loaded
+    expect(await page.isVisible("div.monaco-workbench"))
 
     // Click the Application menu
     await page.click("[aria-label='Application Menu']")
@@ -45,10 +24,16 @@ describe("logout", () => {
     expect(await page.isVisible(logoutButton))
 
     await page.hover(logoutButton)
-
-    await page.click(logoutButton)
-    // it takes a couple seconds to navigate
+    // TODO(@jsjoeio)
+    // Look into how we're attaching the handlers for the logout feature
+    // We need to see how it's done upstream and add logging to the
+    // handlers themselves.
+    // They may be attached too slowly, hence why we need this timeout
     await page.waitForTimeout(2000)
+
+    // Recommended by Playwright for async navigation
+    // https://github.com/microsoft/playwright/issues/1987#issuecomment-620182151
+    await Promise.all([page.waitForNavigation(), page.click(logoutButton)])
     const currentUrl = page.url()
     expect(currentUrl).toBe(`${CODE_SERVER_ADDRESS}/login`)
   })

@@ -6,6 +6,7 @@ main() {
 
   yarn fmt
   yarn lint
+  yarn _audit
   yarn test:unit
 }
 

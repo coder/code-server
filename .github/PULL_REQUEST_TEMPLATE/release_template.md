@@ -10,7 +10,8 @@ TODO
 
 - [ ] test locally
 - [ ] upload assets to draft release
-- [ ] double-check github release tag is the commit with artifacts
+- [ ] test one of the release packages locally
+- [ ] double-check github release tag is the commit with artifacts (_note gets messed up after uploading assets_)
 - [ ] publish release
 - [ ] merge PR
 - [ ] update the homebrew package

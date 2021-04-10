@@ -8,6 +8,12 @@ main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
 
+  # Allow us to override architecture
+  # we use this for our Linux ARM64 cross compile builds
+  if [ "$#" -eq 1 ] && [ "$1" ]; then
+    ARCH=$1
+  fi
+
   mkdir -p release-packages
 
   release_archive

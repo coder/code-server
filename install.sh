@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/v3.9.2/docs/install.md
+# See https://github.com/cdr/code-server/blob/main/docs/install.md
 
 usage() {
   arg0="$0"
@@ -67,7 +67,7 @@ Usage:
 
 It will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://github.com/cdr/code-server/blob/v3.9.2/docs/install.md
+More installation docs are at https://github.com/cdr/code-server/blob/main/docs/install.md
 EOF
 }
 
@@ -419,7 +419,7 @@ install_npm() {
   echoh
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.9.2/docs/install.md#yarn-npm"
+  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.9.3/docs/install.md#yarn-npm"
   exit 1
 }
 
@@ -557,8 +557,8 @@ echoerr() {
   echoh "$@" >&2
 }
 
-# humanpath replaces all occurances of " $HOME" with " ~"
-# and all occurances of '"$HOME' with the literal '"$HOME'.
+# humanpath replaces all occurrences of " $HOME" with " ~"
+# and all occurrences of '"$HOME' with the literal '"$HOME'.
 humanpath() {
   sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
 }
