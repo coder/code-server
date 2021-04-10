@@ -72,8 +72,7 @@ export const authenticated = (req: express.Request): boolean => {
           : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
       )
     case AuthType.Openid:
-      console.log(req.oidc.user)
-      console.log(req.oidc.isAuthenticated())  
+      console.debug("authenticated using OpenID Connect as", req.oidc.user)
       
       const groupClaim = req.args["openid-group-claim"]
       const userGroup = req.args["openid-user-group"]
