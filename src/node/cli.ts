@@ -9,7 +9,7 @@ import { canConnect, generateCertificate, generatePassword, humanPath, paths } f
 export enum AuthType {
   Password = "password",
   None = "none",
-  Openid = "openid"
+  Openid = "openid",
 }
 
 export class Optional<T> {
@@ -34,8 +34,8 @@ export interface Args extends VsArgs {
   "openid-client-id"?: string
   "openid-base-url"?: string
   "openid-secret"?: string
-  "openid-group-claim"?:string
-  "openid-user-group"?:string
+  "openid-group-claim"?: string
+  "openid-user-group"?: string
   "hashed-password"?: string
   cert?: OptionalString
   "cert-host"?: string

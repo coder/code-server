@@ -60,19 +60,19 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
   const wsApp = express()
   handleUpgrade(wsApp, server)
 
-  if (args.auth == AuthType.Openid) {
+  if (args.auth === AuthType.Openid) {
     const openidConfig = {
       authRequired: true,
       auth0Logout: true,
       issuerBaseURL: args["openid-issuer-base-url"],
       clientID: args["openid-client-id"],
       baseURL: args["openid-base-url"],
-      secret: args["openid-secret"]
-    };
-    app.use(auth(openidConfig));
-    wsApp.use(auth(openidConfig));
+      secret: args["openid-secret"],
+    }
+    app.use(auth(openidConfig))
+    wsApp.use(auth(openidConfig))
   }
-  
+
   return [app, wsApp, server]
 }
 

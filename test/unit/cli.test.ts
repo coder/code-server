@@ -200,7 +200,7 @@ describe("parser", () => {
 
   it("should error if value is invalid", () => {
     expect(() => parse(["--port", "foo"])).toThrowError(/--port must be a number/)
-    expect(() => parse(["--auth", "invalid"])).toThrowError(/--auth valid values: \[password, none\]/)
+    expect(() => parse(["--auth", "invalid"])).toThrowError(/--auth valid values: \[password, none, openid\]/)
     expect(() => parse(["--log", "invalid"])).toThrowError(/--log valid values: \[trace, debug, info, warn, error\]/)
   })
 

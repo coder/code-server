@@ -1,7 +1,7 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
-import * as expressCore from "express-serve-static-core"
 import { RequestContext } from "express-openid-connect"
+import * as expressCore from "express-serve-static-core"
 import qs from "qs"
 import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
@@ -73,16 +73,13 @@ export const authenticated = (req: express.Request): boolean => {
       )
     case AuthType.Openid:
       console.debug("authenticated using OpenID Connect as", req.oidc.user)
-      
-      const groupClaim = req.args["openid-group-claim"]
-      const userGroup = req.args["openid-user-group"]
 
-      if (req.oidc.isAuthenticated()){
+      if (req.oidc.isAuthenticated()) {
         for (const key in req.oidc.idTokenClaims) {
-          var claims = <string[]>req.oidc.idTokenClaims[key]
-          if (key == groupClaim) {
+          const claims = <string[]>req.oidc.idTokenClaims[key]
+          if (key === req.args["openid-group-claim"]) {
             for (const value in claims) {
-              if(userGroup == claims[value]) {
+              if (req.args["openid-user-group"] === claims[value]) {
                 return true
               }
             }
