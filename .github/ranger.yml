@@ -34,7 +34,7 @@ labels:
       can fully make this transition. Therefore, we are no longer accepting
       new requests for extension requests. We suggest installing the VSIX
       file and then installing into code-server as a temporary workaround.
-      See [docs](https://github.com/cdr/code-server/blob/main/docs/FAQ.md#installing-vsix-extensions-via-the-command-line) for more info."
+      See [docs](https://github.com/cdr/code-server/blob/main/docs/FAQ.md#installing-vsix-extensions-via-the-command-line) for more info.
   "upstream:vscode":
     action: close
     delay: 5s
