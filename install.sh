@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/master/doc/install.md
+# See https://github.com/cdr/code-server/blob/main/docs/install.md
 
 usage() {
   arg0="$0"
@@ -13,7 +13,7 @@ usage() {
 "
   fi
 
-  cath << EOF
+  cath <<EOF
 Installs code-server for Linux, macOS and FreeBSD.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
@@ -67,7 +67,7 @@ Usage:
 
 It will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://github.com/cdr/code-server/blob/master/doc/install.md
+More installation docs are at https://github.com/cdr/code-server/blob/main/docs/install.md
 EOF
 }
 
@@ -81,7 +81,7 @@ echo_latest_version() {
 
 echo_npm_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 The npm package has been installed successfully!
 Please extend your path to use code-server:
   PATH="$NPM_BIN_DIR:\$PATH"
@@ -92,7 +92,7 @@ EOF
 
 echo_standalone_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 Standalone release has been installed into $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION
 Please extend your path to use code-server:
   PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
@@ -103,7 +103,7 @@ EOF
 
 echo_systemd_postinstall() {
   echoh
-  cath << EOF
+  cath <<EOF
 To have systemd start code-server now and restart on boot:
   sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
@@ -419,7 +419,7 @@ install_npm() {
   echoh
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://github.com/cdr/code-server#yarn-npm"
+  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.9.3/docs/install.md#yarn-npm"
   exit 1
 }
 
@@ -509,7 +509,7 @@ arch() {
 }
 
 command_exists() {
-  command -v "$@" > /dev/null
+  command -v "$@" >/dev/null
 }
 
 sh_c() {
@@ -525,7 +525,7 @@ sudo_sh_c() {
   elif command_exists sudo; then
     sh_c "sudo $*"
   elif command_exists su; then
-    sh_c "su -c '$*'"
+    sh_c "su - -c '$*'"
   else
     echoh
     echoerr "This script needs to run the following command as root."
@@ -557,8 +557,8 @@ echoerr() {
   echoh "$@" >&2
 }
 
-# humanpath replaces all occurances of " $HOME" with " ~"
-# and all occurances of '"$HOME' with the literal '"$HOME'.
+# humanpath replaces all occurrences of " $HOME" with " ~"
+# and all occurrences of '"$HOME' with the literal '"$HOME'.
 humanpath() {
   sed "s# $HOME# ~#g; s#\"$HOME#\"\$HOME#g"
 }
@@ -571,7 +571,7 @@ prefix() {
   fifo="$(mktemp -d)/fifo"
   mkfifo "$fifo"
   sed -e "s#^#$PREFIX: #" "$fifo" &
-  "$@" > "$fifo" 2>&1
+  "$@" >"$fifo" 2>&1
 }
 
 main "$@"

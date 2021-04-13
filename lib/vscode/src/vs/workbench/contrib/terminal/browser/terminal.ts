@@ -7,13 +7,15 @@ import type { Terminal as XTermTerminal } from 'xterm';
 import type { SearchAddon as XTermSearchAddon } from 'xterm-addon-search';
 import type { Unicode11Addon as XTermUnicode11Addon } from 'xterm-addon-unicode11';
 import type { WebglAddon as XTermWebglAddon } from 'xterm-addon-webgl';
-import { IWindowsShellHelper, ITerminalConfigHelper, ITerminalChildProcess, IShellLaunchConfig, IDefaultShellAndArgsRequest, ISpawnExtHostProcessRequest, IStartExtensionTerminalRequest, IAvailableShellsRequest, ITerminalProcessExtHostProxy, ICommandTracker, INavigationMode, TitleEventSource, ITerminalDimensions, ITerminalLaunchError, ITerminalNativeWindowsDelegate, LinuxDistro, IRemoteTerminalAttachTarget } from 'vs/workbench/contrib/terminal/common/terminal';
+import { IShellLaunchConfig, ITerminalChildProcess, ITerminalDimensions, ITerminalLaunchError, ITerminalsLayoutInfo, ITerminalsLayoutInfoById, ITerminalTabLayoutInfoById } from 'vs/platform/terminal/common/terminal';
 import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
 import { IProcessEnvironment, Platform } from 'vs/base/common/platform';
 import { Event } from 'vs/base/common/event';
 import { IDisposable } from 'vs/base/common/lifecycle';
 import { FindReplaceState } from 'vs/editor/contrib/find/findState';
 import { URI } from 'vs/base/common/uri';
+import { IAvailableShellsRequest, ICommandTracker, IDefaultShellAndArgsRequest, INavigationMode, IRemoteTerminalAttachTarget, ISpawnExtHostProcessRequest, IStartExtensionTerminalRequest, ITerminalConfigHelper, ITerminalNativeWindowsDelegate, ITerminalProcessExtHostProxy, IWindowsShellHelper, LinuxDistro, TitleEventSource } from 'vs/workbench/contrib/terminal/common/terminal';
+import { ISetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess';
 
 export const ITerminalService = createDecorator<ITerminalService>('terminalService');
 export const ITerminalInstanceService = createDecorator<ITerminalInstanceService>('terminalInstanceService');
@@ -27,6 +29,24 @@ export const IRemoteTerminalService = createDecorator<IRemoteTerminalService>('r
 export interface ITerminalInstanceService {
 	readonly _serviceBrand: undefined;
 
+	/** Fired when the ptyHost process goes down, losing all connections to the service's ptys. */
+	onPtyHostExit: Event<void>;
+	/**
+	 * Fired when the ptyHost process becomes non-responsive, this should disable stdin for all
+	 * terminals using this pty host connection and mark them as disconnected.
+	 */
+	onPtyHostUnresponsive: Event<void>;
+	/**
+	 * Fired when the ptyHost process becomes responsive after being non-responsive. Allowing
+	 * previously disconnected terminals to reconnect.
+	 */
+	onPtyHostResponsive: Event<void>;
+	/**
+	 * Fired when the ptyHost has been restarted, this is used as a signal for listening terminals
+	 * that its pty has been lost and will remain disconnected.
+	 */
+	onPtyHostRestart: Event<void>;
+
 	// These events are optional as the requests they make are only needed on the browser side
 	onRequestDefaultShellAndArgs?: Event<IDefaultShellAndArgsRequest>;
 
@@ -35,10 +55,13 @@ export interface ITerminalInstanceService {
 	getXtermUnicode11Constructor(): Promise<typeof XTermUnicode11Addon>;
 	getXtermWebglConstructor(): Promise<typeof XTermWebglAddon>;
 	createWindowsShellHelper(shellProcessId: number, xterm: XTermTerminal): IWindowsShellHelper;
-	createTerminalProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, env: IProcessEnvironment, windowsEnableConpty: boolean): ITerminalChildProcess;
-
+	createTerminalProcess(shellLaunchConfig: IShellLaunchConfig, cwd: string, cols: number, rows: number, env: IProcessEnvironment, windowsEnableConpty: boolean, shouldPersist: boolean): Promise<ITerminalChildProcess>;
+	attachToProcess(id: number): Promise<ITerminalChildProcess | undefined>;
 	getDefaultShellAndArgs(useAutomationShell: boolean, platformOverride?: Platform): Promise<{ shell: string, args: string[] | string | undefined }>;
 	getMainProcessParentEnv(): Promise<IProcessEnvironment>;
+	setTerminalLayoutInfo(args?: ISetTerminalLayoutInfoArgs): void;
+	setTerminalLayoutInfo(layout: ITerminalsLayoutInfoById): void;
+	getTerminalLayoutInfo(): Promise<ITerminalsLayoutInfo | undefined>;
 }
 
 export interface IBrowserTerminalConfigHelper extends ITerminalConfigHelper {
@@ -58,17 +81,22 @@ export interface ITerminalTab {
 	title: string;
 	onDisposed: Event<ITerminalTab>;
 	onInstancesChanged: Event<void>;
-
-	setWillFocus(focus: boolean): void;
 	focusPreviousPane(): void;
 	focusNextPane(): void;
 	resizePane(direction: Direction): void;
+	resizePanes(relativeSizes: number[]): void;
 	setActiveInstanceByIndex(index: number): void;
 	attachToElement(element: HTMLElement): void;
 	setVisible(visible: boolean): void;
 	layout(width: number, height: number): void;
 	addDisposable(disposable: IDisposable): void;
 	split(shellLaunchConfig: IShellLaunchConfig): ITerminalInstance;
+	getLayoutInfo(isActive: boolean): ITerminalTabLayoutInfoById;
+}
+
+export const enum TerminalConnectionState {
+	Connecting,
+	Connected
 }
 
 export interface ITerminalService {
@@ -79,6 +107,7 @@ export interface ITerminalService {
 	terminalInstances: ITerminalInstance[];
 	terminalTabs: ITerminalTab[];
 	isProcessSupportRegistered: boolean;
+	readonly connectionState: TerminalConnectionState;
 
 	initializeTerminals(): Promise<void>;
 	onActiveTabChanged: Event<void>;
@@ -95,6 +124,7 @@ export interface ITerminalService {
 	onActiveInstanceChanged: Event<ITerminalInstance | undefined>;
 	onRequestAvailableShells: Event<IAvailableShellsRequest>;
 	onDidRegisterProcessSupport: Event<void>;
+	onDidChangeConnectionState: Event<void>;
 
 	/**
 	 * Creates a terminal.
@@ -180,11 +210,12 @@ export interface ITerminalService {
 
 export interface IRemoteTerminalService {
 	readonly _serviceBrand: undefined;
-
 	dispose(): void;
-
 	listTerminals(isInitialization?: boolean): Promise<IRemoteTerminalAttachTarget[]>;
-	createRemoteTerminalProcess(terminalId: number, shellLaunchConfig: IShellLaunchConfig, activeWorkspaceRootUri: URI | undefined, cols: number, rows: number, configHelper: ITerminalConfigHelper,): Promise<ITerminalChildProcess>;
+	createRemoteTerminalProcess(terminalId: number, shellLaunchConfig: IShellLaunchConfig, activeWorkspaceRootUri: URI | undefined, cols: number, rows: number, shouldPersist: boolean, configHelper: ITerminalConfigHelper,): Promise<ITerminalChildProcess>;
+
+	setTerminalLayoutInfo(layout: ITerminalsLayoutInfoById): Promise<void>;
+	getTerminalLayoutInfo(): Promise<ITerminalsLayoutInfo | undefined>;
 }
 
 /**
@@ -254,6 +285,22 @@ export interface ITerminalInstance {
 	 * with this terminal.
 	 */
 	processId: number | undefined;
+
+	/**
+	 * The id of a persistent terminal. Defined if this is a terminal created
+	 * by the RemoteTerminalService or LocalPtyService.
+	 */
+	readonly persistentTerminalId: number | undefined;
+
+	/**
+	 * Whether the process should be persisted across reloads.
+	 */
+	readonly shouldPersist: boolean;
+
+	/**
+	 * Whether the process communication channel has been disconnected.
+	 */
+	readonly isDisconnected: boolean;
 
 	/**
 	 * An event that fires when the terminal instance's title changes.
@@ -372,6 +419,11 @@ export interface ITerminalInstance {
 	dispose(immediate?: boolean): void;
 
 	/**
+	 * Inform the process that the terminal is now detached.
+	 */
+	detachFromProcess(): void;
+
+	/**
 	 * Forces the terminal to redraw its viewport.
 	 */
 	forceRedraw(): void;
@@ -415,6 +467,11 @@ export interface ITerminalInstance {
 	 * Notifies the terminal that the find widget's focus state has been changed.
 	 */
 	notifyFindWidgetFocusChanged(isFocused: boolean): void;
+
+	/**
+	 * Notifies the terminal to refresh its focus state based on the active document elemnet in DOM
+	 */
+	refreshFocusState(): void;
 
 	/**
 	 * Focuses the terminal instance if it's able to (xterm.js instance exists).

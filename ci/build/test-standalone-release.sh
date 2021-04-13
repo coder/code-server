@@ -12,11 +12,12 @@ main() {
 
   echo "Testing standalone release."
 
-  ./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension ms-python.python
+  # Note: using a basic theme extension because it doesn't update often and is more reliable for testing
+  ./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --install-extension wesbos.theme-cobalt2
   local installed_extensions
   installed_extensions="$(./release-standalone/bin/code-server --extensions-dir "$EXTENSIONS_DIR" --list-extensions 2>&1)"
-  # We use grep as ms-python.python may have dependency extensions that change.
-  if ! echo "$installed_extensions" | grep -q "ms-python.python"; then
+  # We use grep as wesbos.theme-cobalt2 may have dependency extensions that change.
+  if ! echo "$installed_extensions" | grep -q "wesbos.theme-cobalt2"; then
     echo "Unexpected output from listing extensions:"
     echo "$installed_extensions"
     exit 1

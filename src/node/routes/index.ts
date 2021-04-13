@@ -6,34 +6,25 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import * as tls from "tls"
+import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
 import { Heart } from "../heart"
-import { replaceTemplates, redirect } from "../http"
+import { ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
-import { WebsocketRequest } from "../wsRouter"
+import { wrapper } from "../wrapper"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
 import * as login from "./login"
-import * as proxy from "./pathProxy"
+import * as pathProxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
 import * as update from "./update"
 import * as vscode from "./vscode"
-
-declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
-  namespace Express {
-    export interface Request {
-      args: DefaultedArgs
-      heart: Heart
-    }
-  }
-}
 
 /**
  * Register all routes and middleware.
@@ -55,15 +46,15 @@ export const register = async (
       })
     })
   })
+  server.on("close", () => {
+    heart.dispose()
+  })
 
   app.disable("x-powered-by")
   wsApp.disable("x-powered-by")
 
   app.use(cookieParser())
   wsApp.use(cookieParser())
-
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
 
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
@@ -103,12 +94,45 @@ export const register = async (
   app.use("/", domainProxy.router)
   wsApp.use("/", domainProxy.wsRouter.router)
 
+  app.all("/proxy/(:port)(/*)?", (req, res) => {
+    pathProxy.proxy(req, res)
+  })
+  wsApp.get("/proxy/(:port)(/*)?", (req) => {
+    pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
+  })
+  // These two routes pass through the path directly.
+  // So the proxied app must be aware it is running
+  // under /absproxy/<someport>/
+  app.all("/absproxy/(:port)(/*)?", (req, res) => {
+    pathProxy.proxy(req, res, {
+      passthroughPath: true,
+    })
+  })
+  wsApp.get("/absproxy/(:port)(/*)?", (req) => {
+    pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
+      passthroughPath: true,
+    })
+  })
+
+  if (!process.env.CS_DISABLE_PLUGINS) {
+    const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
+    const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
+    await pluginApi.loadPlugins()
+    pluginApi.mount(app, wsApp)
+    app.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
+    wrapper.onDispose(() => pluginApi.dispose())
+  }
+
+  app.use(bodyParser.json())
+  app.use(bodyParser.urlencoded({ extended: true }))
+
   app.use("/", vscode.router)
   wsApp.use("/", vscode.wsRouter.router)
   app.use("/vscode", vscode.router)
   wsApp.use("/vscode", vscode.wsRouter.router)
 
   app.use("/healthz", health.router)
+  wsApp.use("/healthz", health.wsRouter.router)
 
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
@@ -118,16 +142,8 @@ export const register = async (
     })
   }
 
-  app.use("/proxy", proxy.router)
-  wsApp.use("/proxy", proxy.wsRouter.router)
-
   app.use("/static", _static.router)
   app.use("/update", update.router)
-
-  const papi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH)
-  await papi.loadPlugins()
-  papi.mount(app)
-  app.use("/api/applications", apps.router(papi))
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
@@ -165,9 +181,9 @@ export const register = async (
 
   app.use(errorHandler)
 
-  const wsErrorHandler: express.ErrorRequestHandler = async (err, req) => {
+  const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
     logger.error(`${err.message} ${err.stack}`)
-    ;(req as WebsocketRequest).ws.end()
+    ;(req as pluginapi.WebsocketRequest).ws.end()
   }
 
   wsApp.use(wsErrorHandler)

@@ -115,11 +115,8 @@ export interface INativeEnvironmentService extends IEnvironmentService {
 	machineSettingsResource: URI;
 	installSourcePath: string;
 
-	// --- IPC Handles
-	sharedIPCHandle: string;
-
 	// --- Extensions
-	extensionsPath?: string;
+	extensionsPath: string;
 	extensionsDownloadPath: string;
 	builtinExtensionsPath: string;
 	extraExtensionPaths: string[]

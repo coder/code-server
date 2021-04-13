@@ -2,11 +2,11 @@
 set -euo pipefail
 
 pushd() {
-  builtin pushd "$@" > /dev/null
+  builtin pushd "$@" >/dev/null
 }
 
 popd() {
-  builtin popd > /dev/null
+  builtin popd >/dev/null
 }
 
 pkg_json_version() {
@@ -57,7 +57,20 @@ curl() {
 # This will contain the artifacts we want.
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
-  curl -fsSL 'https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=push' | jq -r ".workflow_runs[] | select(.head_sha == \"$(git rev-parse HEAD)\") | .artifacts_url" | head -n 1
+  local artifacts_url
+  local workflow_runs_url="https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=pull_request"
+  # For releases, we look for run based on the branch name v$code_server_version
+  # example: v3.9.3
+  local version_branch="v$VERSION"
+  artifacts_url=$(curl -fsSL "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
+  if [[ -z "$artifacts_url" ]]; then
+    echo >&2 "ERROR: artifacts_url came back empty"
+    echo >&2 "We looked for a successful run triggered by a pull_request with for code-server version: $code_server_version and a branch named $version_branch"
+    echo >&2 "URL used for curl call: $workflow_runs_url"
+    exit 1
+  fi
+
+  echo "$artifacts_url"
 }
 
 # Grabs the artifact's download url.
@@ -75,7 +88,7 @@ download_artifact() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  curl -fsSL "$(get_artifact_url "$artifact_name")" > "$tmp_file"
+  curl -fsSL "$(get_artifact_url "$artifact_name")" >"$tmp_file"
   unzip -q -o "$tmp_file" -d "$dst"
   rm "$tmp_file"
 }
@@ -103,7 +116,7 @@ RELEASE_PATH="${RELEASE_PATH-release}"
 # Code itself but also extensions will look specifically in this directory for
 # files (like the ripgrep binary or the oniguruma wasm).
 symlink_asar() {
-  if [ ! -e node_modules.asar ]; then
+  if [ ! -L node_modules.asar ]; then
     if [ "${WINDIR-}" ]; then
       # mklink takes the link name first.
       mklink /J node_modules.asar node_modules

@@ -7,7 +7,11 @@ import * as path from 'path';
 
 const root = path.dirname(path.dirname(__dirname));
 const version = process.versions.node;
-const node = process.platform === 'win32' ? 'node.exe' : 'node';
-const nodePath = path.join(root, '.build', 'node', `v${version}`, `${process.platform}-${process.arch}`, node);
+const platform = process.platform;
+
+const arch = platform === 'darwin' ? 'x64' : process.arch;
+
+const node = platform === 'win32' ? 'node.exe' : 'node';
+const nodePath = path.join(root, '.build', 'node', `v${version}`, `${platform}-${arch}`, node);
 
 console.log(nodePath);

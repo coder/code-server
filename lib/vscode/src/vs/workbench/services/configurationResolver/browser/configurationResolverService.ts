@@ -27,7 +27,10 @@ export abstract class BaseConfigurationResolverService extends AbstractVariableR
 	static readonly INPUT_OR_COMMAND_VARIABLES_PATTERN = /\${((input|command):(.*?))}/g;
 
 	constructor(
-		context: { getExecPath: () => string | undefined },
+		context: {
+			getAppRoot: () => string | undefined,
+			getExecPath: () => string | undefined
+		},
 		envVariables: IProcessEnvironment,
 		editorService: IEditorService,
 		private readonly configurationService: IConfigurationService,
@@ -44,8 +47,11 @@ export abstract class BaseConfigurationResolverService extends AbstractVariableR
 			getWorkspaceFolderCount: (): number => {
 				return workspaceContextService.getWorkspace().folders.length;
 			},
-			getConfigurationValue: (folderUri: uri, suffix: string): string | undefined => {
+			getConfigurationValue: (folderUri: uri | undefined, suffix: string): string | undefined => {
 				return configurationService.getValue<string>(suffix, folderUri ? { resource: folderUri } : {});
+			},
+			getAppRoot: (): string | undefined => {
+				return context.getAppRoot();
 			},
 			getExecPath: (): string | undefined => {
 				return context.getExecPath();
@@ -59,6 +65,20 @@ export abstract class BaseConfigurationResolverService extends AbstractVariableR
 					return undefined;
 				}
 				return this.labelService.getUriLabel(fileResource, { noPrefix: true });
+			},
+			getWorkspaceFolderPathForFile: (): string | undefined => {
+				const fileResource = EditorResourceAccessor.getOriginalUri(editorService.activeEditor, {
+					supportSideBySide: SideBySideEditor.PRIMARY,
+					filterByScheme: [Schemas.file, Schemas.userData, Schemas.vscodeRemote]
+				});
+				if (!fileResource) {
+					return undefined;
+				}
+				const wsFolder = workspaceContextService.getWorkspaceFolder(fileResource);
+				if (!wsFolder) {
+					return undefined;
+				}
+				return this.labelService.getUriLabel(wsFolder.uri, { noPrefix: true });
 			},
 			getSelectedText: (): string | undefined => {
 				const activeTextEditorControl = editorService.activeTextEditorControl;
@@ -350,7 +370,7 @@ export class ConfigurationResolverService extends BaseConfigurationResolverServi
 		@IQuickInputService quickInputService: IQuickInputService,
 		@ILabelService labelService: ILabelService
 	) {
-		super({ getExecPath: () => undefined }, Object.create(null), editorService, configurationService, commandService, workspaceContextService, quickInputService, labelService);
+		super({ getAppRoot: () => undefined, getExecPath: () => undefined }, Object.create(null), editorService, configurationService, commandService, workspaceContextService, quickInputService, labelService);
 	}
 }
 

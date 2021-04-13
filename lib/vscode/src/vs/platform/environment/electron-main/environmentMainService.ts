@@ -19,6 +19,9 @@ export const IEnvironmentMainService = createDecorator<IEnvironmentMainService>(
  */
 export interface IEnvironmentMainService extends INativeEnvironmentService {
 
+	// --- NLS cache path
+	cachedLanguagesPath: string;
+
 	// --- backup paths
 	backupHome: string;
 	backupWorkspacesPath: string;
@@ -33,9 +36,13 @@ export interface IEnvironmentMainService extends INativeEnvironmentService {
 	sandbox: boolean;
 	driverVerbose: boolean;
 	disableUpdates: boolean;
+	disableKeytar: boolean;
 }
 
-export class EnvironmentMainService extends NativeEnvironmentService {
+export class EnvironmentMainService extends NativeEnvironmentService implements IEnvironmentMainService {
+
+	@memoize
+	get cachedLanguagesPath(): string { return join(this.userDataPath, 'clp'); }
 
 	@memoize
 	get backupHome(): string { return join(this.userDataPath, 'Backups'); }
@@ -54,6 +61,9 @@ export class EnvironmentMainService extends NativeEnvironmentService {
 
 	@memoize
 	get disableUpdates(): boolean { return !!this._args['disable-updates']; }
+
+	@memoize
+	get disableKeytar(): boolean { return !!this._args['disable-keytar']; }
 
 	@memoize
 	get nodeCachedDataDir(): string | undefined { return process.env['VSCODE_NODE_CACHED_DATA_DIR'] || undefined; }

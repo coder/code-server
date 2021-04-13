@@ -1,8 +1,10 @@
 import { logger } from "@coder/logger"
+import compression from "compression"
 import express, { Express } from "express"
 import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
+import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { handleUpgrade } from "./wsRouter"
 
@@ -11,6 +13,8 @@ import { handleUpgrade } from "./wsRouter"
  */
 export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
   const app = express()
+
+  app.use(compression())
 
   const server = args.cert
     ? httpolyglot.createServer(
@@ -22,8 +26,21 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
       )
     : http.createServer(app)
 
-  await new Promise<http.Server>(async (resolve, reject) => {
-    server.on("error", reject)
+  let resolved = false
+  await new Promise<void>(async (resolve2, reject) => {
+    const resolve = () => {
+      resolved = true
+      resolve2()
+    }
+    server.on("error", (err) => {
+      if (!resolved) {
+        reject(err)
+      } else {
+        // Promise resolved earlier so this is an unrelated error.
+        util.logError("http server error", err)
+      }
+    })
+
     if (args.socket) {
       try {
         await fs.unlink(args.socket)

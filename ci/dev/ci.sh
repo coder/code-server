@@ -6,7 +6,8 @@ main() {
 
   yarn fmt
   yarn lint
-  yarn test
+  yarn _audit
+  yarn test:unit
 }
 
 main "$@"

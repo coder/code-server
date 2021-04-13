@@ -25,12 +25,6 @@ main() {
   rsync README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
-
-  # code-server exports types which can be imported and used by plugins. Those
-  # types import ipc.d.ts but it isn't included in the final vscode build so
-  # we'll copy it ourselves here.
-  mkdir -p "$RELEASE_PATH/lib/vscode/src/vs/server"
-  rsync ./lib/vscode/src/vs/server/ipc.d.ts "$RELEASE_PATH/lib/vscode/src/vs/server"
 }
 
 bundle_code_server() {
@@ -45,11 +39,11 @@ bundle_code_server() {
 
   # Add typings for plugins
   mkdir -p "$RELEASE_PATH/typings"
-  rsync typings/pluginapi.d.ts"$RELEASE_PATH/typings"
+  rsync typings/pluginapi.d.ts "$RELEASE_PATH/typings"
 
   # Adds the commit to package.json
   jq --slurp '.[0] * .[1]' package.json <(
-    cat << EOF
+    cat <<EOF
   {
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
@@ -57,7 +51,7 @@ bundle_code_server() {
     }
   }
 EOF
-  ) > "$RELEASE_PATH/package.json"
+  ) >"$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 
@@ -83,23 +77,24 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
 
-  mkdir -p "$VSCODE_OUT_PATH/resources/linux"
+  mkdir -p "$VSCODE_OUT_PATH/resources/"{linux,web}
   rsync "$VSCODE_SRC_PATH/resources/linux/code.png" "$VSCODE_OUT_PATH/resources/linux/code.png"
+  rsync "$VSCODE_SRC_PATH/resources/web/callback.html" "$VSCODE_OUT_PATH/resources/web/callback.html"
 
   # Adds the commit and date to product.json
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
-    cat << EOF
+    cat <<EOF
   {
     "commit": "$(git rev-parse HEAD)",
     "date": $(jq -n 'now | todate')
   }
 EOF
-  ) > "$VSCODE_OUT_PATH/product.json"
+  ) >"$VSCODE_OUT_PATH/product.json"
 
   # We remove the scripts field so that later on we can run
   # yarn to fetch node_modules if necessary without build scripts running.
   # We cannot use --no-scripts because we still want dependent package scripts to run.
-  jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
+  jq 'del(.scripts)' <"$VSCODE_SRC_PATH/package.json" >"$VSCODE_OUT_PATH/package.json"
 
   pushd "$VSCODE_OUT_PATH"
   symlink_asar

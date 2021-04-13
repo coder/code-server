@@ -43,7 +43,7 @@ export function positionToString(position: Position): string {
 	}
 }
 
-const positionsByString: { [key: string]: Position } = {
+const positionsByString: { [key: string]: Position; } = {
 	[positionToString(Position.LEFT)]: Position.LEFT,
 	[positionToString(Position.RIGHT)]: Position.RIGHT,
 	[positionToString(Position.BOTTOM)]: Position.BOTTOM
@@ -62,7 +62,7 @@ export function panelOpensMaximizedSettingToString(setting: PanelOpensMaximizedO
 	}
 }
 
-const panelOpensMaximizedByString: { [key: string]: PanelOpensMaximizedOptions } = {
+const panelOpensMaximizedByString: { [key: string]: PanelOpensMaximizedOptions; } = {
 	[panelOpensMaximizedSettingToString(PanelOpensMaximizedOptions.ALWAYS)]: PanelOpensMaximizedOptions.ALWAYS,
 	[panelOpensMaximizedSettingToString(PanelOpensMaximizedOptions.NEVER)]: PanelOpensMaximizedOptions.NEVER,
 	[panelOpensMaximizedSettingToString(PanelOpensMaximizedOptions.REMEMBER_LAST)]: PanelOpensMaximizedOptions.REMEMBER_LAST
@@ -79,32 +79,42 @@ export interface IWorkbenchLayoutService extends ILayoutService {
 	/**
 	 * Emits when the zen mode is enabled or disabled.
 	 */
-	readonly onZenModeChange: Event<boolean>;
+	readonly onDidChangeZenMode: Event<boolean>;
 
 	/**
 	 * Emits when fullscreen is enabled or disabled.
 	 */
-	readonly onFullscreenChange: Event<boolean>;
+	readonly onDidChangeFullscreen: Event<boolean>;
 
 	/**
 	 * Emits when the window is maximized or unmaximized.
 	 */
-	readonly onMaximizeChange: Event<boolean>;
+	readonly onDidChangeWindowMaximized: Event<boolean>;
 
 	/**
 	 * Emits when centered layout is enabled or disabled.
 	 */
-	readonly onCenteredLayoutChange: Event<boolean>;
+	readonly onDidChangeCenteredLayout: Event<boolean>;
 
 	/**
 	 * Emit when panel position changes.
 	 */
-	readonly onPanelPositionChange: Event<string>;
+	readonly onDidChangePanelPosition: Event<string>;
 
 	/**
 	 * Emit when part visibility changes
 	 */
-	readonly onPartVisibilityChange: Event<void>;
+	readonly onDidChangePartVisibility: Event<void>;
+
+	/**
+	 * Emit when notifications (toasts or center) visibility changes.
+	 */
+	readonly onDidChangeNotificationsVisibility: Event<boolean>;
+
+	/**
+	 * Run a layout of the workbench.
+	 */
+	layout(): void;
 
 	/**
 	 * Asks the part service if all parts have been fully restored. For editor part
@@ -193,6 +203,11 @@ export interface IWorkbenchLayoutService extends ILayoutService {
 	 * Gets the current menubar visibility.
 	 */
 	getMenubarVisibility(): MenuBarVisibility;
+
+	/**
+	 * Toggles the menu bar visibility.
+	 */
+	toggleMenuBar(): void;
 
 	/**
 	 * Gets the current panel position. Note that the panel can be hidden too.

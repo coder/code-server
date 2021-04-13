@@ -1,12 +1,45 @@
-import { Logger, field } from "@coder/logger"
+import { field, Level, Logger } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
 import * as semver from "semver"
 import * as pluginapi from "../../typings/pluginapi"
+import { HttpCode, HttpError } from "../common/http"
 import { version } from "./constants"
+import { authenticated, ensureAuthenticated, replaceTemplates } from "./http"
+import { proxy } from "./proxy"
 import * as util from "./util"
+import { Router as WsRouter, WebsocketRouter, wss } from "./wsRouter"
 const fsp = fs.promises
+
+// Represents a required module which could be anything.
+type Module = any
+
+/**
+ * Inject code-server when `require`d. This is required because the API provides
+ * more than just types so these need to be provided at run-time.
+ */
+const originalLoad = require("module")._load
+require("module")._load = function (request: string, parent: object, isMain: boolean): Module {
+  return request === "code-server" ? codeServer : originalLoad.apply(this, [request, parent, isMain])
+}
+
+/**
+ * The module you get when importing "code-server".
+ */
+export const codeServer = {
+  HttpCode,
+  HttpError,
+  Level,
+  authenticated,
+  ensureAuthenticated,
+  express,
+  field,
+  proxy,
+  replaceTemplates,
+  WsRouter,
+  wss,
+}
 
 interface Plugin extends pluginapi.Plugin {
   /**
@@ -26,7 +59,7 @@ interface Application extends pluginapi.Application {
   /*
    * Clone of the above without functions.
    */
-  plugin: Omit<Plugin, "init" | "router" | "applications">
+  plugin: Omit<Plugin, "init" | "deinit" | "router" | "applications">
 }
 
 /**
@@ -44,6 +77,7 @@ export class PluginAPI {
      */
     private readonly csPlugin = "",
     private readonly csPluginPath = `${path.join(util.paths.data, "plugins")}:/usr/share/code-server/plugins`,
+    private readonly workingDirectory: string | undefined = undefined,
   ) {
     this.logger = logger.named("pluginapi")
   }
@@ -85,14 +119,16 @@ export class PluginAPI {
   }
 
   /**
-   * mount mounts all plugin routers onto r.
+   * mount mounts all plugin routers onto r and websocket routers onto wr.
    */
-  public mount(r: express.Router): void {
+  public mount(r: express.Router, wr: express.Router): void {
     for (const [, p] of this.plugins) {
-      if (!p.router) {
-        continue
+      if (p.router) {
+        r.use(`${p.routerPath}`, p.router())
       }
-      r.use(`${p.routerPath}`, p.router())
+      if (p.wsRouter) {
+        wr.use(`${p.routerPath}`, (p.wsRouter() as WebsocketRouter).router)
+      }
     }
   }
 
@@ -100,7 +136,7 @@ export class PluginAPI {
    * loadPlugins loads all plugins based on this.csPlugin,
    * this.csPluginPath and the built in plugins.
    */
-  public async loadPlugins(): Promise<void> {
+  public async loadPlugins(loadBuiltin = true): Promise<void> {
     for (const dir of this.csPlugin.split(":")) {
       if (!dir) {
         continue
@@ -115,8 +151,9 @@ export class PluginAPI {
       await this._loadPlugins(dir)
     }
 
-    // Built-in plugins.
-    await this._loadPlugins(path.join(__dirname, "../../plugins"))
+    if (loadBuiltin) {
+      await this._loadPlugins(path.join(__dirname, "../../plugins"))
+    }
   }
 
   /**
@@ -216,7 +253,7 @@ export class PluginAPI {
     if (!p.routerPath) {
       throw new Error("plugin missing router path")
     }
-    if (!p.routerPath.startsWith("/") || p.routerPath.length < 2) {
+    if (!p.routerPath.startsWith("/")) {
       throw new Error(`plugin router path ${q(p.routerPath)}: invalid`)
     }
     if (!p.homepageURL) {
@@ -225,11 +262,27 @@ export class PluginAPI {
 
     p.init({
       logger: logger,
+      workingDirectory: this.workingDirectory,
     })
 
     logger.debug("loaded")
 
     return p
+  }
+
+  public async dispose(): Promise<void> {
+    await Promise.all(
+      Array.from(this.plugins.values()).map(async (p) => {
+        if (!p.deinit) {
+          return
+        }
+        try {
+          await p.deinit()
+        } catch (error) {
+          this.logger.error("plugin failed to deinit", field("name", p.name), field("error", error.message))
+        }
+      }),
+    )
   }
 }
 

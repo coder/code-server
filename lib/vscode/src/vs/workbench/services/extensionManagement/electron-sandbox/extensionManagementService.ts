@@ -15,8 +15,9 @@ import { IDownloadService } from 'vs/platform/download/common/download';
 import { IProductService } from 'vs/platform/product/common/productService';
 import { INativeWorkbenchEnvironmentService } from 'vs/workbench/services/environment/electron-sandbox/environmentService';
 import { joinPath } from 'vs/base/common/resources';
-import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { IUserDataAutoSyncEnablementService, IUserDataSyncResourceEnablementService } from 'vs/platform/userDataSync/common/userDataSync';
+import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
+import { IWorkspaceTrustService } from 'vs/platform/workspace/common/workspaceTrust';
 
 export class ExtensionManagementService extends BaseExtensionManagementService {
 
@@ -29,9 +30,10 @@ export class ExtensionManagementService extends BaseExtensionManagementService {
 		@IDownloadService downloadService: IDownloadService,
 		@IUserDataAutoSyncEnablementService userDataAutoSyncEnablementService: IUserDataAutoSyncEnablementService,
 		@IUserDataSyncResourceEnablementService userDataSyncResourceEnablementService: IUserDataSyncResourceEnablementService,
-		@IInstantiationService instantiationService: IInstantiationService,
+		@IDialogService dialogService: IDialogService,
+		@IWorkspaceTrustService workspaceTrustService: IWorkspaceTrustService
 	) {
-		super(extensionManagementServerService, extensionGalleryService, configurationService, productService, downloadService, userDataAutoSyncEnablementService, userDataSyncResourceEnablementService, instantiationService);
+		super(extensionManagementServerService, extensionGalleryService, configurationService, productService, downloadService, userDataAutoSyncEnablementService, userDataSyncResourceEnablementService, dialogService, workspaceTrustService);
 	}
 
 	protected async installVSIX(vsix: URI, server: IExtensionManagementServer): Promise<ILocalExtension> {
@@ -40,7 +42,13 @@ export class ExtensionManagementService extends BaseExtensionManagementService {
 			await this.downloadService.download(vsix, downloadedLocation);
 			vsix = downloadedLocation;
 		}
-		return server.extensionManagementService.install(vsix);
+		const manifest = await this.getManifest(vsix);
+		if (manifest) {
+			await this.checkForWorkspaceTrust(manifest);
+			return server.extensionManagementService.install(vsix);
+		}
+
+		return Promise.reject('Unable to get the extension manifest.');
 	}
 }
 

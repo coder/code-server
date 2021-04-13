@@ -199,13 +199,22 @@ wsRouter.ws("/", ensureAuthenticated, async (req) => {
     .createHash("sha1")
     .update(req.headers["sec-websocket-key"] + magic)
     .digest("base64")
-  req.ws.write(
-    [
-      "HTTP/1.1 101 Switching Protocols",
-      "Upgrade: websocket",
-      "Connection: Upgrade",
-      `Sec-WebSocket-Accept: ${reply}`,
-    ].join("\r\n") + "\r\n\r\n",
-  )
-  await vscode.sendWebsocket(req.ws, req.query)
+
+  const responseHeaders = [
+    "HTTP/1.1 101 Switching Protocols",
+    "Upgrade: websocket",
+    "Connection: Upgrade",
+    `Sec-WebSocket-Accept: ${reply}`,
+  ]
+
+  // TODO: Parse this header properly.
+  const extensions = req.headers["sec-websocket-extensions"]
+  const permessageDeflate = extensions ? extensions.includes("permessage-deflate") : false
+  if (permessageDeflate) {
+    responseHeaders.push("Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15")
+  }
+
+  req.ws.write(responseHeaders.join("\r\n") + "\r\n\r\n")
+
+  await vscode.sendWebsocket(req.ws, req.query, permessageDeflate)
 })

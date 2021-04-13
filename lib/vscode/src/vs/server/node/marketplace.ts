@@ -3,7 +3,6 @@ import * as path from 'path';
 import * as tarStream from 'tar-stream';
 import * as util from 'util';
 import { CancellationToken } from 'vs/base/common/cancellation';
-import { mkdirp } from 'vs/base/node/pfs';
 import * as vszip from 'vs/base/node/zip';
 import * as nls from 'vs/nls';
 import product from 'vs/platform/product/common/product';
@@ -133,7 +132,12 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 			const fileName = rawName.replace(sourcePathRegex, '');
 			const targetFileName = path.join(targetPath, fileName);
 			if (/\/$/.test(fileName)) {
-				return mkdirp(targetFileName).then(nextEntry);
+				/*
+					NOTE:@coder: they removed mkdirp in favor of fs.promises
+					See commit: https://github.com/microsoft/vscode/commit/a0d76bb9834b63a02fba8017a6306511fe1ab4fe#diff-2bf233effbb62ea789bb7c4739d222a43ccd97ed9f1219f75bb07e9dee91c1a7
+					3/11/21 @jsjoeio
+				*/
+				return fs.promises.mkdir(targetFileName, { recursive: true }).then(nextEntry);
 			}
 
 			const dirName = path.dirname(fileName);
@@ -142,7 +146,12 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
 				return fail(new Error(nls.localize('invalid file', 'Error extracting {0}. Invalid file.', fileName)));
 			}
 
-			await mkdirp(targetDirName, undefined);
+			/*
+				NOTE:@coder: they removed mkdirp in favor of fs.promises
+				See commit: https://github.com/microsoft/vscode/commit/a0d76bb9834b63a02fba8017a6306511fe1ab4fe#diff-2bf233effbb62ea789bb7c4739d222a43ccd97ed9f1219f75bb07e9dee91c1a7
+				3/11/21 @jsjoeio
+			*/
+			await fs.promises.mkdir(targetDirName, { recursive: true });
 
 			const fstream = fs.createWriteStream(targetFileName, { mode: header.mode });
 			fstream.once('close', () => next());

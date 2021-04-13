@@ -3,21 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IRenderOutput, CellOutputKind, IErrorOutput, RenderOutputType } from 'vs/workbench/contrib/notebook/common/notebookCommon';
-import { NotebookRegistry } from 'vs/workbench/contrib/notebook/browser/notebookRegistry';
 import { RGBA, Color } from 'vs/base/common/color';
 import { ansiColorIdentifiers } from 'vs/workbench/contrib/terminal/common/terminalColorRegistry';
 import { IThemeService } from 'vs/platform/theme/common/themeService';
-import { INotebookEditor, IOutputTransformContribution } from 'vs/workbench/contrib/notebook/browser/notebookBrowser';
+import { IRenderOutput, RenderOutputType } from 'vs/workbench/contrib/notebook/browser/notebookBrowser';
 
-class ErrorTransform implements IOutputTransformContribution {
-	constructor(
-		public editor: INotebookEditor,
-		@IThemeService private readonly themeService: IThemeService
-	) {
-	}
-
-	render(output: IErrorOutput, container: HTMLElement): IRenderOutput {
+export class ErrorTransform {
+	static render(output: any, container: HTMLElement, themeService: IThemeService): IRenderOutput {
 		const header = document.createElement('div');
 		const headerMessage = output.ename && output.evalue
 			? `${output.ename}: ${output.evalue}`
@@ -30,19 +22,14 @@ class ErrorTransform implements IOutputTransformContribution {
 		traceback.classList.add('traceback');
 		if (output.traceback) {
 			for (let j = 0; j < output.traceback.length; j++) {
-				traceback.appendChild(handleANSIOutput(output.traceback[j], this.themeService));
+				traceback.appendChild(handleANSIOutput(output.traceback[j], themeService));
 			}
 		}
 		container.appendChild(traceback);
 		container.classList.add('error');
-		return { type: RenderOutputType.None, hasDynamicHeight: false };
-	}
-
-	dispose(): void {
+		return { type: RenderOutputType.Mainframe, hasDynamicHeight: false };
 	}
 }
-
-NotebookRegistry.registerOutputTransform('notebook.output.error', CellOutputKind.Error, ErrorTransform);
 
 /**
  * @param text The content to stylize.

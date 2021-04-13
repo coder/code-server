@@ -265,7 +265,6 @@ class PollingURLCallbackProvider extends Disposable implements IURLCallbackProvi
 			setTimeout(() => this.periodicFetchCallback(requestId, startTime), PollingURLCallbackProvider.FETCH_INTERVAL);
 		}
 	}
-
 }
 
 class WorkspaceProvider implements IWorkspaceProvider {
@@ -275,6 +274,8 @@ class WorkspaceProvider implements IWorkspaceProvider {
 	static QUERY_PARAM_WORKSPACE = 'workspace';
 
 	static QUERY_PARAM_PAYLOAD = 'payload';
+
+	readonly trusted = true;
 
 	constructor(
 		public readonly workspace: IWorkspace,

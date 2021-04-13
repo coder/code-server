@@ -1,22 +1,27 @@
-import { Request, Router } from "express"
+import { Request, Response } from "express"
+import * as path from "path"
 import qs from "qs"
+import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
-import { proxy } from "../proxy"
-import { Router as WsRouter } from "../wsRouter"
+import { proxy as _proxy } from "../proxy"
 
-export const router = Router()
-
-const getProxyTarget = (req: Request, rewrite: boolean): string => {
-  if (rewrite) {
-    const query = qs.stringify(req.query)
-    return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
+const getProxyTarget = (req: Request, passthroughPath?: boolean): string => {
+  if (passthroughPath) {
+    return `http://0.0.0.0:${req.params.port}/${req.originalUrl}`
   }
-  return `http://0.0.0.0:${req.params.port}/${req.originalUrl}`
+  const query = qs.stringify(req.query)
+  return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
 }
 
-router.all("/(:port)(/*)?", (req, res) => {
+export function proxy(
+  req: Request,
+  res: Response,
+  opts?: {
+    passthroughPath?: boolean
+  },
+): void {
   if (!authenticated(req)) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
@@ -28,20 +33,27 @@ router.all("/(:port)(/*)?", (req, res) => {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
-  // Absolute redirects need to be based on the subpath when rewriting.
-  ;(req as any).base = `${req.baseUrl}/${req.params.port}`
+  if (!opts?.passthroughPath) {
+    // Absolute redirects need to be based on the subpath when rewriting.
+    // See proxy.ts.
+    ;(req as any).base = req.path.split(path.sep).slice(0, 3).join(path.sep)
+  }
 
-  proxy.web(req, res, {
+  _proxy.web(req, res, {
     ignorePath: true,
-    target: getProxyTarget(req, true),
+    target: getProxyTarget(req, opts?.passthroughPath),
   })
-})
+}
 
-export const wsRouter = WsRouter()
-
-wsRouter.ws("/(:port)(/*)?", ensureAuthenticated, (req) => {
-  proxy.ws(req, req.ws, req.head, {
+export function wsProxy(
+  req: pluginapi.WebsocketRequest,
+  opts?: {
+    passthroughPath?: boolean
+  },
+): void {
+  ensureAuthenticated(req)
+  _proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
-    target: getProxyTarget(req, true),
+    target: getProxyTarget(req, opts?.passthroughPath),
   })
-})
+}

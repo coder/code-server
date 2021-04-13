@@ -15,10 +15,7 @@ RUN curl -fsSL https://dl.yarnpkg.com/debian/pubkey.gpg | apt-key add - && \
     apt-get update && apt-get install -y yarn
 
 # Installs VS Code build deps.
-RUN apt-get install -y build-essential \
-                   libsecret-1-dev \
-                   libx11-dev \
-                   libxkbfile-dev
+RUN apt-get install -y build-essential
 
 # Installs envsubst.
 RUN apt-get install -y gettext-base
@@ -40,10 +37,8 @@ ENV GOPATH=/gopath
 RUN mkdir -p $GOPATH && chmod -R 777 $GOPATH
 ENV PATH=/usr/local/go/bin:$GOPATH/bin:$PATH
 
-# Install Go dependencies
-ENV GO111MODULE=on
-RUN go get mvdan.cc/sh/v3/cmd/shfmt
-RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v1.9.0
+# More stable than go get
+RUN curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh
 
 RUN VERSION="$(curl -fsSL https://storage.googleapis.com/kubernetes-release/release/stable.txt)" && \
     curl -fsSL "https://storage.googleapis.com/kubernetes-release/release/$VERSION/bin/linux/amd64/kubectl" > /usr/local/bin/kubectl \

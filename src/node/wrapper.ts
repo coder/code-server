@@ -234,9 +234,7 @@ export class ParentProcess extends Process {
     this.logStdoutStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stdout.log"), opts)
     this.logStderrStream = rfs.createStream(path.join(paths.data, "coder-logs", "code-server-stderr.log"), opts)
 
-    this.onDispose(() => {
-      this.disposeChild()
-    })
+    this.onDispose(() => this.disposeChild())
 
     this.onChildMessage((message) => {
       switch (message.type) {
@@ -252,11 +250,15 @@ export class ParentProcess extends Process {
     })
   }
 
-  private disposeChild(): void {
+  private async disposeChild(): Promise<void> {
     this.started = undefined
     if (this.child) {
-      this.child.removeAllListeners()
-      this.child.kill()
+      const child = this.child
+      child.removeAllListeners()
+      child.kill()
+      // Wait for the child to exit otherwise its output will be lost which can
+      // be especially problematic if you're trying to debug why cleanup failed.
+      await new Promise((r) => child!.on("exit", r))
     }
   }
 
@@ -312,7 +314,7 @@ export class ParentProcess extends Process {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
-      stdio: ["ipc"],
+      stdio: ["inherit", "inherit", "inherit", "ipc"],
     })
   }
 

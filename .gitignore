@@ -14,3 +14,7 @@ node-*
 /plugins
 /lib/coder-cloud-agent
 .home
+coverage
+**/.DS_Store
+test/e2e/videos
+test/e2e/screenshots

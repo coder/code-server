@@ -12,20 +12,13 @@ Any file or directory in this subdirectory should be documented here.
 
 ## Publishing a release
 
-Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) installed.
-
-1. Update the version of code-server and make a PR.
-   1. Update in `package.json`
-   2. Update in [./doc/install.md](../doc/install.md)
-   3. Update in [./ci/helm-chart/README.md](../ci/helm-chart/README.md)
-      - Remember to update the chart version as well on top of appVersion in `Chart.yaml`.
-      - Run `rg -g '!yarn.lock' -g '!*.svg' '3\.7\.5'` to ensure all values have been
-        changed. Replace the numbers as needed.
+1. Run `yarn release:prep` and type in the new version i.e. 3.8.1
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
    1. You do not have to wait for these.
 3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
    the updated version.
    1. Summarize the major changes in the release notes and link to the relevant issues.
+   2. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
 4. Wait for the artifacts in step 2 to build.
 5. Run `yarn release:github-assets` to download the `release-packages` artifact.
    - It will upload them to the draft release.
@@ -40,26 +33,43 @@ Make sure you have `$GITHUB_TOKEN` set and [hub](https://github.com/github/hub) 
 9. Update the AUR package.
    - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 10. Wait for the npm package to be published.
-11. Update the homebrew package.
-    - Send a pull request to [homebrew-core](https://github.com/Homebrew/homebrew-core) with the URL in the [formula](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb) updated.
+11. Update the [homebrew package](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
+    1. Install [homebrew](https://brew.sh/)
+    2. Run `brew bump-formula-pr --version=3.8.1 code-server` and update the version accordingly. This will bump the version and open a PR. Note: this will only work once the version is published on npm.
+
+## Updating Code Coverage in README
+
+Currently, we run a command to manually generate the code coverage shield. Follow these steps:
+
+1. Run `yarn test:unit` and make sure all the tests are passing
+2. Run `yarn badges`
+3. Go into the README and change the color from `red` to `green` in this line:
+
+```
+![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
+```
+
+NOTE: we have to manually change the color because the default is red if coverage is less than 80. See code [here](https://github.com/olavoparno/istanbul-badges-readme/blob/develop/src/editor.ts#L24-L33).
 
 ## dev
 
 This directory contains scripts used for the development of code-server.
 
 - [./ci/dev/image](./dev/image)
-  - See [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md) for docs on the development container.
+  - See [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md) for docs on the development container.
 - [./ci/dev/fmt.sh](./dev/fmt.sh) (`yarn fmt`)
   - Runs formatters.
 - [./ci/dev/lint.sh](./dev/lint.sh) (`yarn lint`)
   - Runs linters.
-- [./ci/dev/test.sh](./dev/test.sh) (`yarn test`)
-  - Runs tests.
+- [./ci/dev/test-unit.sh](./dev/test-unit.sh) (`yarn test:unit`)
+  - Runs unit tests.
+- [./ci/dev/test-e2e.sh](./dev/test-e2e.sh) (`yarn test:e2e`)
+  - Runs end-to-end tests.
 - [./ci/dev/ci.sh](./dev/ci.sh) (`yarn ci`)
   - Runs `yarn fmt`, `yarn lint` and `yarn test`.
 - [./ci/dev/watch.ts](./dev/watch.ts) (`yarn watch`)
   - Starts a process to build and launch code-server and restart on any code changes.
-  - Example usage in [./doc/CONTRIBUTING.md](../doc/CONTRIBUTING.md).
+  - Example usage in [./docs/CONTRIBUTING.md](../docs/CONTRIBUTING.md).
 - [./ci/dev/gen_icons.sh](./ci/dev/gen_icons.sh) (`yarn icons`)
   - Generates the various icons from a single `.svg` favicon in
     `src/browser/media/favicon.svg`.
@@ -123,11 +133,13 @@ This directory contains the scripts used in CI.
 Helps avoid clobbering the CI configuration.
 
 - [./steps/fmt.sh](./steps/fmt.sh)
-  - Runs `yarn fmt` after ensuring VS Code is patched.
+  - Runs `yarn fmt`.
 - [./steps/lint.sh](./steps/lint.sh)
-  - Runs `yarn lint` after ensuring VS Code is patched.
-- [./steps/test.sh](./steps/test.sh)
-  - Runs `yarn test` after ensuring VS Code is patched.
+  - Runs `yarn lint`.
+- [./steps/test-unit.sh](./steps/test-unit.sh)
+  - Runs `yarn test:unit`.
+- [./steps/test-e2e.sh](./steps/test-e2e.sh)
+  - Runs `yarn test:e2e`.
 - [./steps/release.sh](./steps/release.sh)
   - Runs the release process.
   - Generates the npm package at `./release`.

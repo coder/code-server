@@ -9,7 +9,6 @@ import { illegalArgument, isPromiseCanceledError, onUnexpectedExternalError } fr
 import { Disposable, DisposableStore, IDisposable } from 'vs/base/common/lifecycle';
 import { URI } from 'vs/base/common/uri';
 import { TextModelCancellationTokenSource } from 'vs/editor/browser/core/editorState';
-import { registerLanguageCommand } from 'vs/editor/browser/editorExtensions';
 import { Range } from 'vs/editor/common/core/range';
 import { Selection } from 'vs/editor/common/core/selection';
 import { ITextModel } from 'vs/editor/common/model';
@@ -17,6 +16,7 @@ import * as modes from 'vs/editor/common/modes';
 import { IModelService } from 'vs/editor/common/services/modelService';
 import { CodeActionFilter, CodeActionKind, CodeActionTrigger, filtersAction, mayIncludeActionsOfKind } from './types';
 import { IProgress, Progress } from 'vs/platform/progress/common/progress';
+import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 
 export const codeActionCommandId = 'editor.action.codeAction';
 export const refactorCommandId = 'editor.action.refactor';
@@ -223,8 +223,7 @@ function getDocumentation(
 	return undefined;
 }
 
-registerLanguageCommand('_executeCodeActionProvider', async function (accessor, args): Promise<ReadonlyArray<modes.CodeAction>> {
-	const { resource, rangeOrSelection, kind, itemResolveCount } = args;
+CommandsRegistry.registerCommand('_executeCodeActionProvider', async function (accessor, resource: URI, rangeOrSelection: Range | Selection, kind?: string, itemResolveCount?: number): Promise<ReadonlyArray<modes.CodeAction>> {
 	if (!(resource instanceof URI)) {
 		throw illegalArgument();
 	}
@@ -244,13 +243,13 @@ registerLanguageCommand('_executeCodeActionProvider', async function (accessor, 
 		throw illegalArgument();
 	}
 
+	const include = typeof kind === 'string' ? new CodeActionKind(kind) : undefined;
 	const codeActionSet = await getCodeActions(
 		model,
 		validatedRangeOrSelection,
-		{ type: modes.CodeActionTriggerType.Manual, filter: { includeSourceActions: true, include: kind && kind.value ? new CodeActionKind(kind.value) : undefined } },
+		{ type: modes.CodeActionTriggerType.Manual, filter: { includeSourceActions: true, include } },
 		Progress.None,
 		CancellationToken.None);
-
 
 	const resolving: Promise<any>[] = [];
 	const resolveCount = Math.min(codeActionSet.validActions.length, typeof itemResolveCount === 'number' ? itemResolveCount : 0);

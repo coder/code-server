@@ -8,7 +8,7 @@ ENV PATH=/usr/local/node-$NODE_VERSION/bin:$PATH
 RUN npm install -g yarn
 
 RUN yum groupinstall -y 'Development Tools'
-RUN yum install -y python2 libsecret-devel libX11-devel libxkbfile-devel
+RUN yum install -y python2
 
 RUN npm config set python python2
 
@@ -26,7 +26,6 @@ ENV PATH=/usr/local/go/bin:$GOPATH/bin:$PATH
 
 # Install Go dependencies
 ENV GO111MODULE=on
-RUN go get mvdan.cc/sh/v3/cmd/shfmt
-RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v1.9.0
+RUN go get github.com/goreleaser/nfpm/cmd/nfpm@v2.3.1
 
 RUN curl -fsSL https://get.docker.com | sh

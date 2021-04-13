@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.8.0",
+  "version": "3.9.3",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/cdr/code-server",
   "bugs": {
@@ -10,77 +10,87 @@
   "repository": "https://github.com/cdr/code-server",
   "scripts": {
     "clean": "./ci/build/clean.sh",
-    "vscode:reset": "./ci/dev/reset-vscode.sh",
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
     "release:standalone": "./ci/build/build-standalone-release.sh",
     "release:github-draft": "./ci/build/release-github-draft.sh",
     "release:github-assets": "./ci/build/release-github-assets.sh",
+    "release:prep": "./ci/build/release-prep.sh",
+    "test:e2e": "./ci/dev/test-e2e.sh",
     "test:standalone-release": "./ci/build/test-standalone-release.sh",
+    "test:unit": "./ci/dev/test-unit.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
+    "update:vscode": "./ci/dev/update-vscode.sh",
     "_____": "",
+    "_audit": "./ci/dev/audit.sh",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",
-    "test": "./ci/dev/test.sh",
+    "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS=--max_old_space_size=32384 ts-node ./ci/dev/watch.ts",
-    "icons": "./ci/dev/gen_icons.sh"
+    "icons": "./ci/dev/gen_icons.sh",
+    "badges": "istanbul-badges-readme"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
+    "@schemastore/package": "^0.0.6",
     "@types/body-parser": "^1.19.0",
+    "@types/compression": "^1.7.0",
     "@types/cookie-parser": "^1.4.2",
     "@types/express": "^4.17.8",
-    "@types/fs-extra": "^8.0.1",
     "@types/http-proxy": "^1.17.4",
-    "@types/js-yaml": "^3.12.3",
-    "@types/mocha": "^8.0.3",
-    "@types/node": "^12.12.7",
+    "@types/js-yaml": "^4.0.0",
+    "@types/node": "~12.20.7",
     "@types/parcel-bundler": "^1.12.1",
     "@types/pem": "^1.9.5",
     "@types/proxy-from-env": "^1.0.1",
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
     "@types/split2": "^2.1.6",
-    "@types/supertest": "^2.0.10",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
+    "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
-    "doctoc": "^1.4.0",
+    "audit-ci": "^3.1.1",
+    "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
-    "eslint-config-prettier": "^6.0.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-jest-playwright": "^0.2.1",
     "eslint-plugin-prettier": "^3.1.0",
+    "istanbul-badges-readme": "^1.2.0",
     "leaked-handles": "^5.2.0",
-    "mocha": "^8.1.2",
     "parcel-bundler": "^1.12.4",
-    "prettier": "^2.0.5",
+    "prettier": "^2.2.1",
+    "prettier-plugin-sh": "^0.6.0",
+    "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
-    "stylelint-config-recommended": "^3.0.0",
-    "supertest": "^6.0.1",
-    "ts-node": "^9.0.0",
-    "typescript": "4.0.2"
+    "stylelint-config-recommended": "^4.0.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3",
+    "wtfnode": "^0.8.4"
   },
   "resolutions": {
-    "@types/node": "^12.12.7",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
     "body-parser": "^1.19.0",
+    "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
     "express": "^5.0.0-alpha.8",
-    "fs-extra": "^9.0.1",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
-    "js-yaml": "^3.13.1",
+    "js-yaml": "^4.0.0",
     "limiter": "^1.1.5",
+    "node-fetch": "^2.6.1",
     "pem": "^1.14.2",
     "proxy-agent": "^4.0.0",
     "proxy-from-env": "^1.1.0",
@@ -90,8 +100,8 @@
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",
     "split2": "^3.2.2",
-    "tar": "^6.0.1",
     "tar-fs": "^2.0.0",
+    "tar-stream": "^2.2.0",
     "ws": "^7.2.0",
     "xdg-basedir": "^4.0.0",
     "yarn": "^1.22.4"
@@ -108,6 +118,48 @@
     "browser-ide"
   ],
   "engines": {
-    "node": ">= 12"
+    "node": ">= 12 <= 14"
+  },
+  "jest": {
+    "transform": {
+      "^.+\\.ts$": "<rootDir>/test/node_modules/ts-jest"
+    },
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/lib/",
+      "/out/",
+      "test/e2e"
+    ],
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "<rootDir>/src/**/*.ts"
+    ],
+    "coverageDirectory": "<rootDir>/coverage",
+    "coverageReporters": [
+      "json",
+      "json-summary",
+      "text"
+    ],
+    "coveragePathIgnorePatterns": [
+      "out"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "lines": 40
+      }
+    },
+    "modulePathIgnorePatterns": [
+      "<rootDir>/lib/vscode",
+      "<rootDir>/release-packages",
+      "<rootDir>/release",
+      "<rootDir>/release-standalone",
+      "<rootDir>/release-npm-package",
+      "<rootDir>/release-gcp",
+      "<rootDir>/release-images"
+    ],
+    "moduleNameMapper": {
+      "^.+\\.(css|less)$": "<rootDir>/test/utils/cssStub.ts"
+    }
   }
 }

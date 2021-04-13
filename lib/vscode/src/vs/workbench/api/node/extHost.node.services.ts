@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IExtHostNodeProxy } from 'vs/server/browser/extHostNodeProxy';
-import { NotImplementedProxy } from 'vs/base/common/types';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ExtHostOutputService2 } from 'vs/workbench/api/node/extHostOutputService';
 import { ExtHostTerminalService } from 'vs/workbench/api/node/extHostTerminalService';
@@ -38,4 +36,3 @@ registerSingleton(IExtHostSearch, NativeExtHostSearch);
 registerSingleton(IExtHostTask, ExtHostTask);
 registerSingleton(IExtHostTerminalService, ExtHostTerminalService);
 registerSingleton(IExtHostTunnelService, ExtHostTunnelService);
-registerSingleton(IExtHostNodeProxy, class extends NotImplementedProxy<IExtHostNodeProxy>(String(IExtHostNodeProxy)) { whenReady = Promise.resolve(); });
