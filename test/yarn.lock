@@ -1258,10 +1258,10 @@
     "@types/yargs" "^15.0.0"
     chalk "^4.0.0"
 
-"@playwright/test@^0.1101.0":
-  version "0.1101.0"
-  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-0.1101.0.tgz#73f1195a9fd0c23b4efeff8cd2cd760f94247789"
-  integrity sha512-yn/psASZhjKKCOJi9oW/5ImZx9wjlXhKvGVtleOC10XxhV0wshBf3eL+40G9o5VjJ8KwJaujj+mFadBrHjEs5w==
+"@playwright/test@^0.1101.0-alpha2":
+  version "0.1101.0-alpha2"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-0.1101.0-alpha2.tgz#a1121ac70e6ac986532ea63c6f565f06fae99364"
+  integrity sha512-DDJQCTn5iLR2J5T/Fl+BhR9V7G++Y6HmSBLgn3blRZ8HWsJRseD6nowuhUij51rhDiLdJJLVmF4/sVJCqtPGMQ==
   dependencies:
     folio "=0.3.23-alpha"
     playwright "=1.10.0"
