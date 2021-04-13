@@ -1,13 +1,13 @@
-/// <reference types="jest-playwright-preset" />
+import { test, expect } from "@playwright/test"
 import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
-describe("login", () => {
-  beforeEach(async () => {
-    await jestPlaywright.resetBrowser()
+test.describe("login", () => {
+  test.beforeEach(async ({ page }) => {
+    // TODO@jsjoeio reset the browser
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
-  it("should be able to login", async () => {
+  test("should be able to login", async ({ page }) => {
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login

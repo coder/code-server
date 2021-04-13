@@ -1,18 +1,16 @@
-/// <reference types="jest-playwright-preset" />
+import { test, expect } from "@playwright/test"
 import { CODE_SERVER_ADDRESS, STORAGE } from "../utils/constants"
 
-describe("Open Help > About", () => {
-  beforeEach(async () => {
+test.describe("Open Help > About", () => {
+  test.beforeEach(async ({ page }) => {
     // Create a new context with the saved storage state
     // so we don't have to logged in
+    // TODO@jsjoeio reset context and use storageState
     const storageState = JSON.parse(STORAGE) || {}
-    await jestPlaywright.resetContext({
-      storageState,
-    })
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
   })
 
-  it("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async () => {
+  test("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async ({ page }) => {
     // Make sure the editor actually loaded
     expect(await page.isVisible("div.monaco-workbench"))
 
