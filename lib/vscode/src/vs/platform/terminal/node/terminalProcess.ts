@@ -45,14 +45,13 @@ const enum ShutdownConstants {
 }
 
 export class TerminalProcess extends Disposable implements ITerminalChildProcess {
-	readonly id = 0;
 	readonly shouldPersist = false;
 
 	private _exitCode: number | undefined;
 	private _exitMessage: string | undefined;
 	private _closeTimeout: any;
-	private _ptyProcess: pty.IPty | undefined;
-	private _currentTitle: string = '';
+	protected _ptyProcess: pty.IPty | undefined;
+	protected _currentTitle: string = '';
 	private _processStartupComplete: Promise<void> | undefined;
 	private _isDisposed: boolean = false;
 	private _windowsShellHelper: WindowsShellHelper | undefined;
@@ -82,6 +81,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 	public readonly onProcessShellTypeChanged = this._onProcessShellTypeChanged.event;
 
 	constructor(
+		public readonly id: number = 0,
 		private readonly _shellLaunchConfig: IShellLaunchConfig,
 		cwd: string,
 		cols: number,
@@ -293,9 +293,9 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 		this._onProcessTitleChanged.fire(this._currentTitle);
 	}
 
-	public async shutdown(immediate: boolean): Promise<void> {
+	public shutdown(immediate: boolean): void {
 		if (immediate) {
-			await this._kill();
+			this._kill();
 		} else {
 			if (!this._closeTimeout && !this._isDisposed) {
 				this._queueProcessExit();
