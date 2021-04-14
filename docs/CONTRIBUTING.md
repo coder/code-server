@@ -31,14 +31,23 @@ master).
 
 The prerequisites for contributing to code-server are almost the same as those for
 [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
-There are several differences, however. You must:
+There are several differences, however. Here is what is needed:
 
-- Use Node.js version 12.x (or greater)
-- Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
-- Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
-
-The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all
-of the dependencies code-server uses.
+- `node` v12.x or greater
+- `git` v2.x or greater
+- [`yarn`](https://classic.yarnpkg.com/en/)
+  - used to install JS packages and run scripts
+- [`nfpm`](https://classic.yarnpkg.com/en/)
+  - used to build `.deb` and `.rpm` packages
+- [`jq`](https://stedolan.github.io/jq/)
+  - used to build code-server releases
+- [`gnupg`](https://gnupg.org/index.html)
+  - all commits must be signed an verified
+  - see GitHub's ["Managing commit signature verification"](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification) or follow [this tutorial](https://joeprevite.com/verify-commits-on-github)
+- `build-essential` (Linux)
+  - `apt-get install -y build-essential` - used by VS Code
+- `rsync` and `unzip`
+  - used for code-server releases
 
 ## Development Workflow
 
