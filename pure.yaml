@@ -1,0 +1,20 @@
+commands:
+  yarn:
+    image: ./ci/images/centos7/Dockerfile
+    usage: Install dependencies
+    run: yarn
+    env:
+      - YARN_CACHE=/yarn-cache # YARN_CACHE: /yarn-cache
+    ports:
+      - 8080
+    caches:
+      - key: yarn-cache
+        path: /yarn-cache
+  release:
+    image: ./ci/images/centos7/Dockerfile
+    usage: Build a release
+    run: ./ci/steps/release.sh
+  package:
+    image: ./ci/images/centos7/Dockerfile
+    usage: Package a release
+    run: ./ci/steps/release-packages.sh

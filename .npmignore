@@ -1,0 +1,13 @@
+# Ignored by default but not sure it applies to sub-directories.
+# TODO: test
+# node_modules
+
+# Doesn't need to be included as it will be downloaded during postinstall.
+/lib/coder-cloud-agent
+
+# Node and the code-server entry script are not used for the npm version since
+# the user already has Node.
+/bin
+/lib/node
+/code-server
+/node

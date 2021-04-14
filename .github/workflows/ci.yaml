@@ -49,6 +49,11 @@ jobs:
         uses: ./ci/images/debian10
         with:
           args: ./ci/steps/release.sh
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Create npm package artifact
+        run: |
+          mkdir -p release-npm-package
+          tar -czf release-npm-package/package.tar.gz release
       - name: Upload npm package artifact
         uses: actions/upload-artifact@v2
         with:
@@ -60,11 +65,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Download npm package
+      - name: Download npm package artifact
         uses: actions/download-artifact@v2
         with:
           name: npm-package
           path: ./release-npm-package
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Extract npm package artifact
+        run: tar -xzf release-npm-package/package.tar.gz
       - name: Run ./ci/steps/release-packages.sh
         uses: ./ci/images/centos7
         with:
@@ -80,11 +88,14 @@ jobs:
     runs-on: ubuntu-arm64-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Download npm package
+      - name: Download npm package artifact
         uses: actions/download-artifact@v2
         with:
           name: npm-package
           path: ./release-npm-package
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Extract npm package artifact
+        run: tar -xzf release-npm-package/package.tar.gz
       - name: Run ./ci/steps/release-packages.sh
         uses: ./ci/images/centos7
         with:
@@ -100,11 +111,14 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v1
-      - name: Download npm package
+      - name: Download npm package artifact
         uses: actions/download-artifact@v2
         with:
           name: npm-package
           path: ./release-npm-package
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Extract npm package artifact
+        run: tar -xzf release-npm-package/package.tar.gz
       - run: ./ci/steps/release-packages.sh
         env:
           # Otherwise we get rate limited when fetching the ripgrep binary.

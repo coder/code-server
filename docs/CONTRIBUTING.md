@@ -50,8 +50,8 @@ yarn watch
 To develop inside an isolated Docker container:
 
 ```shell
-./ci/dev/image/run.sh yarn
-./ci/dev/image/run.sh yarn watch
+pure yarn
+pure yarn watch
 ```
 
 `yarn watch` will live reload changes to the source.
@@ -63,7 +63,6 @@ If you need to update VS Code, you can update the subtree with one line. Here's 
 ```shell
 # Add vscode as a new remote if you haven't already and fetch
 git remote add -f vscode https://github.com/microsoft/vscode.git
-
 git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52"
 ```
 
@@ -72,48 +71,40 @@ git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Upd
 You can build using:
 
 ```shell
-./ci/dev/image/run.sh ./ci/steps/release.sh
+pure release
 ```
 
-Run your build with:
+This builds the release into the `release` directory. You can run this built
+release directly with:
 
 ```shell
-cd release
-yarn --production
-# Runs the built JavaScript with Node.
-node .
-```
-
-Build the release packages (make sure that you run `./ci/steps/release.sh` first):
-
-```shell
-IMAGE=centos7 ./ci/dev/image/run.sh ./ci/steps/release-packages.sh
-# The standalone release is in ./release-standalone
-# .deb, .rpm and the standalone archive are in ./release-packages
-```
-
-The `release.sh` script is equal to running:
-
-```shell
-yarn
-yarn build
-yarn build:vscode
-yarn release
-```
-
-And `release-packages.sh` is equal to:
-
-```shell
-yarn release:standalone
-yarn test:standalone-release
-yarn package
-```
-
-For a faster release build, you can run instead:
-
-```shell
-KEEP_MODULES=1 ./ci/steps/release.sh
 node ./release
+```
+
+Build the release packages (make sure that you run `pure release` first):
+
+```shell
+pure package
+```
+
+The standalone release will be in `./release-standalone` The `.deb`, `.rpm` and
+the standalone archive will be in `./release-packages`.
+
+Running `pure release` is equal to running:
+
+```shell
+pure yarn --frozen-lockfile
+pure yarn build
+pure yarn build:vscode
+pure yarn release
+```
+
+And `pure package` is equal to:
+
+```shell
+pure yarn release:standalone
+pure yarn test:standalone-release
+pure yarn package
 ```
 
 ## Structure

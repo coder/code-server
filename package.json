@@ -10,7 +10,6 @@
   "repository": "https://github.com/cdr/code-server",
   "scripts": {
     "clean": "./ci/build/clean.sh",
-    "vscode:reset": "./ci/dev/reset-vscode.sh",
     "build": "./ci/build/build-code-server.sh",
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",

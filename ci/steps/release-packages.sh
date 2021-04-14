@@ -15,9 +15,6 @@ main() {
   fi
   PATH="$PWD/node-$NODE_VERSION-$NODE_OS-$NODE_ARCH/bin:$PATH"
 
-  # https://github.com/actions/upload-artifact/issues/38
-  tar -xzf release-npm-package/package.tar.gz
-
   yarn release:standalone
   yarn test:standalone-release
   yarn package
