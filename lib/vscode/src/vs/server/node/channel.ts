@@ -479,7 +479,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	public constructor (private readonly logService: ILogService) {}
 
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
-		logger.trace('TerminalProviderChannel:listen', field("event", event), field("args", args));
+		logger.trace('TerminalProviderChannel:listen', field('event', event), field('args', args));
 
 		switch (event) {
 			case '$onPtyHostExitEvent': return Event.None; // TODO
@@ -506,7 +506,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	}
 
 	public call(context: RemoteAgentConnectionContext, command: string, args: any): Promise<any> {
-		logger.trace('TerminalProviderChannel:call', field("command", command), field("args", args));
+		logger.trace('TerminalProviderChannel:call', field('command', command), field('args', args));
 
 		switch (command) {
 			case '$restartPtyHost': return this.restartPtyHost();

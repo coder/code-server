@@ -279,12 +279,12 @@ export class ExtensionsScanner extends Disposable {
 		/*
 		 * NOTE@coder: use fileService.resolve() like upstream does,
 		 * but simply ignore directories that do not exist. (upstream does not)
-		 * 
+		 *
 		 * Used to (<1.54) use pfs.readdir.
 		 */
 		const stat = await this.fileService.resolve(URI.file(dir))
 			.catch((error) => {
-				if (!(error instanceof FileOperationError && error.fileOperationResult == FileOperationResult.FILE_NOT_FOUND)) {
+				if (!(error instanceof FileOperationError && error.fileOperationResult === FileOperationResult.FILE_NOT_FOUND)) {
 					throw error;
 				}
 				return undefined;
