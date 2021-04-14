@@ -78,7 +78,10 @@ export class PtyService extends Disposable implements IPtyService {
 			throw new Error('Attempt to create a process when attach object was provided');
 		}
 		const id = ++this._lastPtyId;
-		const process = new TerminalProcess(shellLaunchConfig, cwd, cols, rows, env, executableEnv, windowsEnableConpty, this._logService);
+		/**
+		 * NOTE@coder: pass ID into TerminalProcess to fix compile.
+		 */
+		const process = new TerminalProcess(id, shellLaunchConfig, cwd, cols, rows, env, executableEnv, windowsEnableConpty, this._logService);
 		process.onProcessData(event => this._onProcessData.fire({ id, event }));
 		process.onProcessExit(event => this._onProcessExit.fire({ id, event }));
 		if (process.onProcessOverrideDimensions) {
@@ -328,7 +331,7 @@ export class PersistentTerminalProcess extends Disposable {
 		}
 		return undefined;
 	}
-	shutdown(immediate: boolean): Promise<void> {
+	shutdown(immediate: boolean): void {
 		return this._terminalProcess.shutdown(immediate);
 	}
 	input(data: string): void {

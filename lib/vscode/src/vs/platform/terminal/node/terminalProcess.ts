@@ -50,6 +50,12 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 	private _exitCode: number | undefined;
 	private _exitMessage: string | undefined;
 	private _closeTimeout: any;
+	/**
+	 * NOTE@coder: set _ptyProcess and _currentTitle to protected
+	 * to allow access from subclasses.
+	 *
+	 * We subclass it in src/vs/server/channel.ts
+	 */
 	protected _ptyProcess: pty.IPty | undefined;
 	protected _currentTitle: string = '';
 	private _processStartupComplete: Promise<void> | undefined;
@@ -80,6 +86,7 @@ export class TerminalProcess extends Disposable implements ITerminalChildProcess
 	private readonly _onProcessShellTypeChanged = this._register(new Emitter<TerminalShellType>());
 	public readonly onProcessShellTypeChanged = this._onProcessShellTypeChanged.event;
 
+	// NOTE@coder: add id to constructor
 	constructor(
 		public readonly id: number = 0,
 		private readonly _shellLaunchConfig: IShellLaunchConfig,
