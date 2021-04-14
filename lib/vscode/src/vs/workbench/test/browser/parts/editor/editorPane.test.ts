@@ -107,11 +107,11 @@ suite('Workbench EditorPane', () => {
 		assert(!e.input);
 
 		await e.setInput(input, options, Object.create(null), CancellationToken.None);
-		assert.strictEqual(input, e.input);
+		assert.strictEqual(<any>input, e.input);
 		const group = new TestEditorGroupView(1);
 		e.setVisible(true, group);
 		assert(e.isVisible());
-		assert.equal(e.group, group);
+		assert.strictEqual(e.group, group);
 		input.onDispose(() => {
 			assert(false);
 		});
@@ -139,8 +139,8 @@ suite('Workbench EditorPane', () => {
 		const dispose1 = EditorRegistry.registerEditor(d1, [new SyncDescriptor(MyInput)]);
 		const dispose2 = EditorRegistry.registerEditor(d2, [new SyncDescriptor(MyInput), new SyncDescriptor(MyOtherInput)]);
 
-		assert.equal(EditorRegistry.getEditors().length, oldEditorsCnt + 2);
-		assert.equal((<any>EditorRegistry).getEditorInputs().length, oldInputCnt + 3);
+		assert.strictEqual(EditorRegistry.getEditors().length, oldEditorsCnt + 2);
+		assert.strictEqual((<any>EditorRegistry).getEditorInputs().length, oldInputCnt + 3);
 
 		assert.strictEqual(EditorRegistry.getEditor(new MyInput()), d2);
 		assert.strictEqual(EditorRegistry.getEditor(new MyOtherInput()), d2);
@@ -209,12 +209,12 @@ suite('Workbench EditorPane', () => {
 		memento.saveEditorState(testGroup0, URI.file('/A'), { line: 3 });
 		res = memento.loadEditorState(testGroup0, URI.file('/A'));
 		assert.ok(res);
-		assert.equal(res!.line, 3);
+		assert.strictEqual(res!.line, 3);
 
 		memento.saveEditorState(testGroup1, URI.file('/A'), { line: 5 });
 		res = memento.loadEditorState(testGroup1, URI.file('/A'));
 		assert.ok(res);
-		assert.equal(res!.line, 5);
+		assert.strictEqual(res!.line, 5);
 
 		// Ensure capped at 3 elements
 		memento.saveEditorState(testGroup0, URI.file('/B'), { line: 1 });
@@ -276,15 +276,15 @@ suite('Workbench EditorPane', () => {
 		assert.ok(!res);
 
 		res = memento.loadEditorState(testGroup0, URI.file('/some/folder/file-moved.txt'));
-		assert.equal(res?.line, 1);
+		assert.strictEqual(res?.line, 1);
 
 		memento.moveEditorState(URI.file('/some/folder'), URI.file('/some/folder-moved'), extUri);
 
 		res = memento.loadEditorState(testGroup0, URI.file('/some/folder-moved/file-moved.txt'));
-		assert.equal(res?.line, 1);
+		assert.strictEqual(res?.line, 1);
 
 		res = memento.loadEditorState(testGroup0, URI.file('/some/folder-moved/file-2.txt'));
-		assert.equal(res?.line, 2);
+		assert.strictEqual(res?.line, 2);
 	});
 
 	test('EditoMemento - use with editor input', function () {
@@ -317,11 +317,67 @@ suite('Workbench EditorPane', () => {
 		memento.saveEditorState(testGroup0, testInputA, { line: 3 });
 		res = memento.loadEditorState(testGroup0, testInputA);
 		assert.ok(res);
-		assert.equal(res!.line, 3);
+		assert.strictEqual(res!.line, 3);
 
 		// State removed when input gets disposed
 		testInputA.dispose();
 		res = memento.loadEditorState(testGroup0, testInputA);
+		assert.ok(!res);
+	});
+
+	test('EditoMemento - clear on editor dispose', function () {
+		const testGroup0 = new TestEditorGroupView(0);
+
+		interface TestViewState {
+			line: number;
+		}
+
+		class TestEditorInput extends EditorInput {
+			constructor(public resource: URI, private id = 'testEditorInputForMementoTest') {
+				super();
+			}
+			getTypeId() { return 'testEditorInputForMementoTest'; }
+			resolve(): Promise<IEditorModel> { return Promise.resolve(null!); }
+
+			matches(other: TestEditorInput): boolean {
+				return other && this.id === other.id && other instanceof TestEditorInput;
+			}
+		}
+
+		const rawMemento = Object.create(null);
+		let memento = new EditorMemento<TestViewState>('id', 'key', rawMemento, 3, new TestEditorGroupsService());
+
+		const testInputA = new TestEditorInput(URI.file('/A'));
+
+		let res = memento.loadEditorState(testGroup0, testInputA);
+		assert.ok(!res);
+
+		memento.saveEditorState(testGroup0, testInputA.resource, { line: 3 });
+		res = memento.loadEditorState(testGroup0, testInputA);
+		assert.ok(res);
+		assert.strictEqual(res!.line, 3);
+
+		// State not yet removed when input gets disposed
+		// because we used resource
+		testInputA.dispose();
+		res = memento.loadEditorState(testGroup0, testInputA);
+		assert.ok(res);
+
+		const testInputB = new TestEditorInput(URI.file('/B'));
+
+		res = memento.loadEditorState(testGroup0, testInputB);
+		assert.ok(!res);
+
+		memento.saveEditorState(testGroup0, testInputB.resource, { line: 3 });
+		res = memento.loadEditorState(testGroup0, testInputB);
+		assert.ok(res);
+		assert.strictEqual(res!.line, 3);
+
+		memento.clearEditorStateOnDispose(testInputB.resource, testInputB);
+
+		// State removed when input gets disposed
+		testInputB.dispose();
+		res = memento.loadEditorState(testGroup0, testInputB);
 		assert.ok(!res);
 	});
 

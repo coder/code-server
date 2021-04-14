@@ -16,7 +16,7 @@ import { localize } from 'vs/nls';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
 import { IFileDialogService } from 'vs/platform/dialogs/common/dialogs';
 import { IInstantiationService, ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
-import { IStorageService, StorageScope } from 'vs/platform/storage/common/storage';
+import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { EditorInput, GroupIdentifier, IEditorInput, IMoveResult, IRevertOptions, ISaveOptions, IEditorInputFactoryRegistry, Extensions as EditorInputExtensions, EditorResourceAccessor } from 'vs/workbench/common/editor';
 import { Memento } from 'vs/workbench/common/memento';
@@ -40,6 +40,7 @@ export type SearchConfiguration = {
 	isRegexp: boolean,
 	useExcludeSettingsAndIgnoreFiles: boolean,
 	showIncludesExcludes: boolean,
+	onlyOpenEditors: boolean,
 };
 
 export const SEARCH_EDITOR_EXT = '.code-search';
@@ -65,7 +66,7 @@ export class SearchEditorInput extends EditorInput {
 	public get config(): Readonly<SearchConfiguration> { return this._config; }
 	public set config(value: Readonly<SearchConfiguration>) {
 		this._config = value;
-		this.memento.getMemento(StorageScope.WORKSPACE).searchConfig = value;
+		this.memento.getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE).searchConfig = value;
 		this._onDidChangeLabel.fire();
 	}
 
@@ -147,7 +148,7 @@ export class SearchEditorInput extends EditorInput {
 		if (path) {
 			this.telemetryService.publicLog2('searchEditor/saveSearchResults');
 			const toWrite = await this.serializeForDisk();
-			if (await this.textFileService.create(path, toWrite, { overwrite: true })) {
+			if (await this.textFileService.create([{ resource: path, value: toWrite, options: { overwrite: true } }])) {
 				this.setDirty(false);
 				if (!isEqual(path, this.modelUri)) {
 					const input = this.instantiationService.invokeFunction(getOrMakeSearchEditorInput, { config: this.config, backingUri: path });
@@ -276,7 +277,7 @@ export class SearchEditorInput extends EditorInput {
 
 		const searchFileName = (query.replace(/[^\w \-_]+/g, '_') || 'Search') + SEARCH_EDITOR_EXT;
 
-		return joinPath(this.fileDialogService.defaultFilePath(this.pathService.defaultUriScheme) || (await this.pathService.userHome()), searchFileName);
+		return joinPath(await this.fileDialogService.defaultFilePath(this.pathService.defaultUriScheme), searchFileName);
 	}
 }
 
@@ -298,7 +299,7 @@ export const getOrMakeSearchEditorInput = (
 	const reuseOldSettings = searchEditorSettings.reusePriorSearchConfiguration;
 	const defaultNumberOfContextLines = searchEditorSettings.defaultNumberOfContextLines;
 
-	const priorConfig: SearchConfiguration = reuseOldSettings ? new Memento(SearchEditorInput.ID, storageService).getMemento(StorageScope.WORKSPACE).searchConfig : {};
+	const priorConfig: SearchConfiguration = reuseOldSettings ? new Memento(SearchEditorInput.ID, storageService).getMemento(StorageScope.WORKSPACE, StorageTarget.MACHINE).searchConfig : {};
 	const defaultConfig = defaultSearchConfig();
 
 	const config = { ...defaultConfig, ...priorConfig, ...existingData.config };

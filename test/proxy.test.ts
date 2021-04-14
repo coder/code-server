@@ -7,6 +7,7 @@ describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()
   let codeServer: httpserver.HttpServer | undefined
   let proxyPath: string
+  let absProxyPath: string
   let e: express.Express
 
   beforeAll(async () => {
@@ -14,6 +15,7 @@ describe("proxy", () => {
       e(req, res)
     })
     proxyPath = `/proxy/${nhooyrDevServer.port()}/wsup`
+    absProxyPath = proxyPath.replace("/proxy/", "/absproxy/")
   })
 
   afterAll(async () => {
@@ -43,11 +45,11 @@ describe("proxy", () => {
   })
 
   it("should not rewrite the base path", async () => {
-    e.get(proxyPath, (req, res) => {
+    e.get(absProxyPath, (req, res) => {
       res.json("joe is the best")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none", "--proxy-path-passthrough=true"], "")
-    const resp = await codeServer.fetch(proxyPath)
+    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch(absProxyPath)
     expect(resp.status).toBe(200)
     const json = await resp.json()
     expect(json).toBe("joe is the best")
@@ -69,15 +71,15 @@ describe("proxy", () => {
   })
 
   it("should not rewrite redirects", async () => {
-    const finalePath = proxyPath.replace("/wsup", "/finale")
-    e.post(proxyPath, (req, res) => {
+    const finalePath = absProxyPath.replace("/wsup", "/finale")
+    e.post(absProxyPath, (req, res) => {
       res.redirect(307, finalePath)
     })
     e.post(finalePath, (req, res) => {
       res.json("redirect success")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none", "--proxy-path-passthrough=true"], "")
-    const resp = await codeServer.fetch(proxyPath, {
+    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    const resp = await codeServer.fetch(absProxyPath, {
       method: "POST",
     })
     expect(resp.status).toBe(200)

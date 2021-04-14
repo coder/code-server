@@ -25,6 +25,7 @@ import { IWorkspaceEditingService } from 'vs/workbench/services/workspaces/commo
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { BeforeShutdownEvent, ILifecycleService } from 'vs/workbench/services/lifecycle/common/lifecycle';
 import { ILogService } from 'vs/platform/log/common/log';
+import { getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
 
 /**
  * A workspace to open in the workbench can either be:
@@ -126,8 +127,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 			case HostShutdownReason.Keyboard:
 				const confirmBeforeClose = this.configurationService.getValue<'always' | 'keyboardOnly' | 'never'>('window.confirmBeforeClose');
 				if (confirmBeforeClose === 'always' || (confirmBeforeClose === 'keyboardOnly' && this.shutdownReason === HostShutdownReason.Keyboard)) {
-					this.logService.warn(`Unload veto: window.confirmBeforeClose=${confirmBeforeClose}`);
-					e.veto(true);
+					e.veto(true, 'veto.confirmBeforeClose');
 				}
 				break;
 
@@ -244,7 +244,8 @@ export class BrowserHostService extends Disposable implements IHostService {
 					if (this.shouldReuse(options, true /* file */)) {
 						editorService.openEditor({
 							leftResource: editors[0].resource,
-							rightResource: editors[1].resource
+							rightResource: editors[1].resource,
+							options: { pinned: true }
 						});
 					}
 
@@ -338,7 +339,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 		}
 
 		if (isWorkspaceToOpen(openable)) {
-			return this.labelService.getWorkspaceLabel({ id: '', configPath: openable.workspaceUri }, { verbose: true });
+			return this.labelService.getWorkspaceLabel(getWorkspaceIdentifier(openable.workspaceUri), { verbose: true });
 		}
 
 		return this.labelService.getUriLabel(openable.fileUri);
@@ -349,7 +350,7 @@ export class BrowserHostService extends Disposable implements IHostService {
 			return true; // always handle --wait in same window
 		}
 
-		const windowConfig = this.configurationService.getValue<IWindowSettings>('window');
+		const windowConfig = this.configurationService.getValue<IWindowSettings | undefined>('window');
 		const openInNewWindowConfig = isFile ? (windowConfig?.openFilesInNewWindow || 'off' /* default */) : (windowConfig?.openFoldersInNewWindow || 'default' /* default */);
 
 		let openInNewWindow = (options.preferNewWindow || !!options.forceNewWindow) && !options.forceReuseWindow;

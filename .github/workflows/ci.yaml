@@ -24,6 +24,9 @@ jobs:
   test:
     needs: linux-amd64
     runs-on: ubuntu-latest
+    env:
+      PASSWORD: e45432jklfdsab
+      CODE_SERVER_ADDRESS: http://localhost:8080
     steps:
       - uses: actions/checkout@v1
       - name: Download release packages
@@ -37,9 +40,14 @@ jobs:
       - uses: microsoft/playwright-github-action@v1
       - name: Install dependencies and run tests
         run: |
-          node ./release-packages/code-server*-linux-amd64 &
+          ./release-packages/code-server*-linux-amd64/bin/code-server --home $CODE_SERVER_ADDRESS/healthz &
           yarn --frozen-lockfile
           yarn test
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-videos
+          path: ./test/videos
 
   release:
     runs-on: ubuntu-latest

@@ -14,6 +14,7 @@
 - [Standalone Releases](#standalone-releases)
 - [Docker](#docker)
 - [helm](#helm)
+- [App Engines (Azure, Heroku)](#app-engines-azure-heroku)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -87,8 +88,8 @@ commands presented in the rest of this document.
 ## Debian, Ubuntu
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.8.0/code-server_3.8.0_amd64.deb
-sudo dpkg -i code-server_3.8.0_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server_3.9.0_amd64.deb
+sudo dpkg -i code-server_3.9.0_amd64.deb
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -96,8 +97,8 @@ sudo systemctl enable --now code-server@$USER
 ## Fedora, CentOS, RHEL, SUSE
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.8.0/code-server-3.8.0-amd64.rpm
-sudo rpm -i code-server-3.8.0-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server-3.9.0-amd64.rpm
+sudo rpm -i code-server-3.9.0-amd64.rpm
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -126,6 +127,7 @@ We recommend installing with `yarn` or `npm` when:
 
 1. You aren't on `amd64` or `arm64`.
 2. If you're on Linux with glibc < v2.17 or glibcxx < v3.4.18
+3. You're running Alpine Linux. See [#1430](https://github.com/cdr/code-server/issues/1430#issuecomment-629883198)
 
 **note:** Installing via `yarn` or `npm` builds native modules on install and so requires C dependencies.
 See [./npm.md](./npm.md) for installing these dependencies.
@@ -166,10 +168,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.8.0/code-server-3.8.0-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v3.9.0/code-server-3.9.0-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.8.0-linux-amd64 ~/.local/lib/code-server-3.8.0
-ln -s ~/.local/lib/code-server-3.8.0/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-3.9.0-linux-amd64 ~/.local/lib/code-server-3.9.0
+ln -s ~/.local/lib/code-server-3.9.0/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -204,3 +206,10 @@ https://hub.docker.com/r/linuxserver/code-server
 ## helm
 
 See [the chart](../ci/helm-chart).
+
+## App Engines (Azure, Heroku)
+
+These community images are optimized for use with popular app engines. They use the latest official [Docker](#docker) image, so they will always be up to date.
+
+- [code-server-heroku](https://github.com/bpmct/code-server-heroku)
+- [code-server-azure](https://github.com/bpmct/code-server-azure)

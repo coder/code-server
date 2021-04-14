@@ -1,7 +1,8 @@
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import * as http from "http"
-import * as net from "net"
+import Websocket from "ws"
+import * as pluginapi from "../../typings/pluginapi"
 
 export const handleUpgrade = (app: express.Express, server: http.Server): void => {
   server.on("upgrade", (req, socket, head) => {
@@ -20,31 +21,24 @@ export const handleUpgrade = (app: express.Express, server: http.Server): void =
   })
 }
 
-export interface WebsocketRequest extends express.Request {
-  ws: net.Socket
-  head: Buffer
-}
-
-interface InternalWebsocketRequest extends WebsocketRequest {
+interface InternalWebsocketRequest extends pluginapi.WebsocketRequest {
   _ws_handled: boolean
 }
-
-export type WebSocketHandler = (
-  req: WebsocketRequest,
-  res: express.Response,
-  next: express.NextFunction,
-) => void | Promise<void>
 
 export class WebsocketRouter {
   public readonly router = express.Router()
 
-  public ws(route: expressCore.PathParams, ...handlers: WebSocketHandler[]): void {
+  /**
+   * Handle a websocket at this route. Note that websockets are immediately
+   * paused when they come in.
+   */
+  public ws(route: expressCore.PathParams, ...handlers: pluginapi.WebSocketHandler[]): void {
     this.router.get(
       route,
       ...handlers.map((handler) => {
         const wrapped: express.Handler = (req, res, next) => {
           ;(req as InternalWebsocketRequest)._ws_handled = true
-          return handler(req as WebsocketRequest, res, next)
+          return handler(req as pluginapi.WebsocketRequest, res, next)
         }
         return wrapped
       }),
@@ -55,3 +49,5 @@ export class WebsocketRouter {
 export function Router(): WebsocketRouter {
   return new WebsocketRouter()
 }
+
+export const wss = new Websocket.Server({ noServer: true })

@@ -8,7 +8,7 @@ import { AbstractTextFileService } from 'vs/workbench/services/textfile/browser/
 import { ITextFileService, ITextFileStreamContent, ITextFileContent, IReadTextFileOptions, IWriteTextFileOptions } from 'vs/workbench/services/textfile/common/textfiles';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { URI } from 'vs/base/common/uri';
-import { IFileStatWithMetadata, FileOperationError, FileOperationResult, IFileService } from 'vs/platform/files/common/files';
+import { IFileStatWithMetadata, FileOperationError, FileOperationResult, IFileService, ByteSize } from 'vs/platform/files/common/files';
 import { Schemas } from 'vs/base/common/network';
 import { stat, chmod, MAX_FILE_SIZE, MAX_HEAP_SIZE } from 'vs/base/node/pfs';
 import { join } from 'vs/base/common/path';
@@ -96,7 +96,7 @@ export class NativeTextFileService extends AbstractTextFileService {
 			const maxMemory = this.environmentService.args['max-memory'];
 			ensuredLimits.memory = Math.max(
 				typeof maxMemory === 'string'
-					? parseInt(maxMemory) * 1024 * 1024 || 0
+					? parseInt(maxMemory) * ByteSize.MB || 0
 					: 0, MAX_HEAP_SIZE
 			);
 		}
@@ -112,7 +112,7 @@ export class NativeTextFileService extends AbstractTextFileService {
 				const fileStat = await stat(resource.fsPath);
 
 				// try to change mode to writeable
-				await chmod(resource.fsPath, fileStat.mode | 128);
+				await chmod(resource.fsPath, fileStat.mode | 0o200 /* File mode indicating writable by owner (fs.constants.S_IWUSR) */);
 			}
 		} catch (error) {
 			// ignore and simply retry the operation
@@ -132,7 +132,7 @@ export class NativeTextFileService extends AbstractTextFileService {
 				let isReadonly = false;
 				try {
 					const fileStat = await stat(resource.fsPath);
-					if (!(fileStat.mode & 128)) {
+					if (!(fileStat.mode & 0o200 /* File mode indicating writable by owner (fs.constants.S_IWUSR) */)) {
 						isReadonly = true;
 					}
 				} catch (error) {

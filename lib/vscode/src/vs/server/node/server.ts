@@ -1,4 +1,5 @@
 import { field } from '@coder/logger';
+import { release } from 'os';
 import * as fs from 'fs';
 import * as net from 'net';
 import * as path from 'path';
@@ -44,11 +45,10 @@ import { TelemetryLogAppender } from 'vs/platform/telemetry/common/telemetryLogA
 import { TelemetryService } from 'vs/platform/telemetry/common/telemetryService';
 import { combinedAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
 import { AppInsightsAppender } from 'vs/platform/telemetry/node/appInsightsAppender';
-import { resolveCommonProperties } from 'vs/platform/telemetry/node/commonProperties';
-import { INodeProxyService, NodeProxyChannel } from 'vs/server/common/nodeProxy';
+import { resolveCommonProperties } from 'vs/platform/telemetry/common/commonProperties';
 import { TelemetryChannel } from 'vs/server/common/telemetry';
 import { Query, VscodeOptions, WorkbenchOptions } from 'vs/server/ipc';
-import { ExtensionEnvironmentChannel, FileProviderChannel, NodeProxyService, TerminalProviderChannel } from 'vs/server/node/channel';
+import { ExtensionEnvironmentChannel, FileProviderChannel, TerminalProviderChannel } from 'vs/server/node/channel';
 import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/node/connection';
 import { TelemetryClient } from 'vs/server/node/insights';
 import { logger } from 'vs/server/node/logger';
@@ -120,7 +120,7 @@ export class Vscode {
 		};
 	}
 
-	public async handleWebSocket(socket: net.Socket, query: Query): Promise<true> {
+	public async handleWebSocket(socket: net.Socket, query: Query, _permessageDeflate: boolean): Promise<true> {
 		if (!query.reconnectionToken) {
 			throw new Error('Reconnection token is missing from query parameters');
 		}
@@ -128,6 +128,7 @@ export class Vscode {
 			reconnectionToken: <string>query.reconnectionToken,
 			reconnection: query.reconnection === 'true',
 			skipWebSocketFrames: query.skipWebSocketFrames === 'true',
+			// TODO: permessageDeflate,
 		});
 		try {
 			await this.connect(await protocol.handshake(), protocol);
@@ -180,11 +181,6 @@ export class Vscode {
 					this._onDidClientConnect.fire({
 						protocol, onDidClientDisconnect: connection.onClose,
 					});
-					// TODO: Need a way to match clients with a connection. For now
-					// dispose everything which only works because no extensions currently
-					// utilize long-running proxies.
-					(this.services.get(INodeProxyService) as NodeProxyService)._onUp.fire();
-					connection.onClose(() => (this.services.get(INodeProxyService) as NodeProxyService)._onDown.fire());
 				} else {
 					const buffer = protocol.readEntireBuffer();
 					connection = new ExtensionHostConnection(
@@ -265,7 +261,7 @@ export class Vscode {
 						),
 						sendErrorTelemetry: true,
 						commonProperties: resolveCommonProperties(
-							product.commit, product.version, machineId,
+							fileService, release(), process.arch, product.commit, product.version, machineId,
 							[], environmentService.installSourcePath, 'code-server',
 						),
 						piiPaths,
@@ -279,7 +275,6 @@ export class Vscode {
 				this.services.set(IExtensionManagementService, new SyncDescriptor(ExtensionManagementService));
 				this.services.set(IExtensionGalleryService, new SyncDescriptor(ExtensionGalleryService));
 				this.services.set(ILocalizationsService, new SyncDescriptor(LocalizationsService));
-				this.services.set(INodeProxyService, new SyncDescriptor(NodeProxyService));
 
 				this.ipc.registerChannel('extensions', new ExtensionManagementChannel(
 					accessor.get(IExtensionManagementService),
@@ -290,7 +285,6 @@ export class Vscode {
 				));
 				this.ipc.registerChannel('request', new RequestChannel(accessor.get(IRequestService)));
 				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
-				this.ipc.registerChannel('nodeProxy', new NodeProxyChannel(accessor.get(INodeProxyService)));
 				this.ipc.registerChannel('localizations', <IServerChannel<any>>createChannelReceiver(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService));

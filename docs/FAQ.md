@@ -4,6 +4,7 @@
 
 - [Questions?](#questions)
 - [iPad Status?](#ipad-status)
+- [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
 - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
 - [Differences compared to VS Code?](#differences-compared-to-vs-code)
 - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
@@ -16,6 +17,7 @@
   - [Sub-paths](#sub-paths)
   - [Sub-domains](#sub-domains)
 - [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
+  - [Proxying to Create React App](#proxying-to-create-react-app)
 - [Multi-tenancy](#multi-tenancy)
 - [Docker in code-server container?](#docker-in-code-server-container)
 - [How can I disable telemetry?](#how-can-i-disable-telemetry)
@@ -40,6 +42,10 @@ Please file all questions and support requests at https://github.com/cdr/code-se
 ## iPad Status?
 
 Please see [./ipad.md](./ipad.md).
+
+## Community Projects (awesome-code-server)
+
+Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server) repository to view community projects and guides with code-server! Feel free to add your own!
 
 ## How can I reuse my VS Code configuration?
 
@@ -230,24 +236,27 @@ However many people prefer the cleaner aesthetic of no trailing slashes. This co
 to the base path as you cannot use relative redirects correctly anymore. See the above
 link.
 
-For users who are ok with this tradeoff, pass `--proxy-path-passthrough` to code-server
-and the path will be passed as is.
+For users who are ok with this tradeoff, use `/absproxy` instead and the path will be
+passed as is. e.g. `/absproxy/3000/my-app-path`
 
-This is particularly a problem with the `start` script in create-react-app. See
+### Proxying to Create React App
+
+You must use `/absproxy/<port>` with create-react-app.
+See [#2565](https://github.com/cdr/code-server/issues/2565) and
 [#2222](https://github.com/cdr/code-server/issues/2222). You will need to inform
-create-react-app of the path at which you are serving via `homepage` field in your
-`package.json`. e.g. you'd add the following for the default CRA port:
+create-react-app of the path at which you are serving via `$PUBLIC_URL` and webpack
+via `$WDS_SOCKET_PATH`.
 
-```json
-  "homepage": "/proxy/3000",
+e.g.
+
+```sh
+PUBLIC_URL=/absproxy/3000 \
+  WDS_SOCKET_PATH=$PUBLIC_URL/sockjs-node \
+  BROWSER=none yarn start
 ```
 
-Then visit `https://my-code-server-address.io/proxy/3000` to see your app exposed through
+Then visit `https://my-code-server-address.io/absproxy/3000` to see your app exposed through
 code-server!
-
-Unfortunately `webpack-dev-server`'s websocket connections will not go through as it
-always uses `/sockjs-node`. So hot reloading will not work until the `create-react-app`
-team fix this bug.
 
 Highly recommend using the subdomain approach instead to avoid this class of issue.
 

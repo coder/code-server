@@ -37,8 +37,7 @@ export function canExecuteOnWorkspace(manifest: IExtensionManifest, productServi
 
 export function canExecuteOnWeb(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): boolean {
 	const extensionKind = getExtensionKind(manifest, productService, configurationService);
-	// NOTE@coder: Hardcode vim for now.
-	return extensionKind.some(kind => kind === 'web') || manifest.name === 'vim';
+	return extensionKind.some(kind => kind === 'web');
 }
 
 export function getExtensionKind(manifest: IExtensionManifest, productService: IProductService, configurationService: IConfigurationService): ExtensionKind[] {

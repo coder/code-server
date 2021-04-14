@@ -93,7 +93,8 @@ export function shouldSetLangEnvVariable(env: platform.IProcessEnvironment, dete
 		return true;
 	}
 	if (detectLocale === 'auto') {
-		return !env['LANG'] || (env['LANG'].search(/\.UTF\-8$/) === -1 && env['LANG'].search(/\.utf8$/) === -1);
+		const lang = env['LANG'];
+		return !lang || (lang.search(/\.UTF\-8$/) === -1 && lang.search(/\.utf8$/) === -1 && lang.search(/\.euc.+/) === -1);
 	}
 	return false; // 'off'
 }
@@ -236,12 +237,12 @@ export function escapeNonWindowsPath(path: string): string {
 	if (newPath.indexOf('\\') !== 0) {
 		newPath = newPath.replace(/\\/g, '\\\\');
 	}
-	if (!newPath && (newPath.indexOf('"') !== -1)) {
-		newPath = '\'' + newPath + '\'';
-	} else if (newPath.indexOf(' ') !== -1) {
+	if (newPath.indexOf(' ') !== -1) {
 		newPath = newPath.replace(/ /g, '\\ ');
 	}
-	return newPath;
+	const bannedChars = /[\`\$\|\&\>\~\#\!\^\*\;\<\"\']/g;
+	newPath = newPath.replace(bannedChars, '');
+	return `'${newPath}'`;
 }
 
 export type TerminalShellSetting = (

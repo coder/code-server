@@ -1,5 +1,4 @@
 import { field, logger } from '@coder/logger';
-import { Server } from '@coder/node-browser';
 import * as os from 'os';
 import * as path from 'path';
 import { VSBuffer } from 'vs/base/common/buffer';
@@ -11,6 +10,7 @@ import * as resources from 'vs/base/common/resources';
 import { ReadableStreamEventPayload } from 'vs/base/common/stream';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { transformOutgoingURIs } from 'vs/base/common/uriIpc';
+import { getSystemShell } from 'vs/base/node/shell';
 import { IServerChannel } from 'vs/base/parts/ipc/common/ipc';
 import { IDiagnosticInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
@@ -21,7 +21,6 @@ import { ILogService } from 'vs/platform/log/common/log';
 import product from 'vs/platform/product/common/product';
 import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
 import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { INodeProxyService } from 'vs/server/common/nodeProxy';
 import { getTranslations } from 'vs/server/node/nls';
 import { getUriTransformer } from 'vs/server/node/util';
 import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
@@ -29,10 +28,9 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError } from 'vs/workbench/contrib/terminal/common/terminal';
+import { IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/workbench/contrib/terminal/common/terminal';
 import { TerminalDataBufferer } from 'vs/workbench/contrib/terminal/common/terminalDataBuffering';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
-import { getSystemShell } from 'vs/workbench/contrib/terminal/node/terminal';
 import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { TerminalProcess } from 'vs/workbench/contrib/terminal/node/terminalProcess';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
@@ -265,6 +263,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			workspaceStorageHome: this.environment.workspaceStorageHome,
 			userHome: this.environment.userHome,
 			os: platform.OS,
+			marks: []
 		};
 	}
 
@@ -305,14 +304,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 							const newPath = extension.extensionLocation.fsPath;
 							this.log.warn(`${oldPath} has been overridden ${newPath}`);
 						}
-						uniqueExtensions.set(id, {
-							...extension,
-							// Force extensions that should run on the client due to latency
-							// issues.
-							extensionKind: extension.identifier.value === 'vscodevim.vim'
-								? [ 'web' ]
-								: extension.extensionKind,
-						});
+						uniqueExtensions.set(id, extension);
 					});
 				});
 			});
@@ -334,42 +326,6 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 
 	private async flushTelemetry(): Promise<void> {
 		// We always send immediately at the moment.
-	}
-}
-
-export class NodeProxyService implements INodeProxyService {
-	public _serviceBrand = undefined;
-
-	public readonly server: Server;
-
-	private readonly _onMessage = new Emitter<string>();
-	public readonly onMessage = this._onMessage.event;
-	private readonly _$onMessage = new Emitter<string>();
-	public readonly $onMessage = this._$onMessage.event;
-	public readonly _onDown = new Emitter<void>();
-	public readonly onDown = this._onDown.event;
-	public readonly _onUp = new Emitter<void>();
-	public readonly onUp = this._onUp.event;
-
-	// Unused because the server connection will never permanently close.
-	private readonly _onClose = new Emitter<void>();
-	public readonly onClose = this._onClose.event;
-
-	public constructor() {
-		// TODO: down/up
-		this.server = new Server({
-			onMessage: this.$onMessage,
-			onClose: this.onClose,
-			onDown: this.onDown,
-			onUp: this.onUp,
-			send: (message: string): void => {
-				this._onMessage.fire(message);
-			}
-		});
-	}
-
-	public send(message: string): void {
-		this._$onMessage.fire(message);
 	}
 }
 
@@ -620,17 +576,17 @@ class Terminal {
 		// type: 'orphan?';
 	}
 
-	public dispose() {
+	public async dispose() {
 		logger.debug('Terminal disposing', field('id', this.id));
 		this._onEvent.dispose();
 		this.bufferer.dispose();
+		await this.process.shutdown(true);
 		this.process.dispose();
-		this.process.shutdown(true);
 		this._onDispose.fire();
 		this._onDispose.dispose();
 	}
 
-	public shutdown(immediate: boolean): void {
+	public shutdown(immediate: boolean): Promise<void> {
 		return this.process.shutdown(immediate);
 	}
 
@@ -655,6 +611,22 @@ class Terminal {
 		this.rows = rows;
 		return this.process.resize(cols, rows);
 	}
+
+	/**
+	 * Serializable terminal information that can be sent to the client.
+	 */
+	public async description(id: number): Promise<terminal.IRemoteTerminalDescriptionDto> {
+		const cwd = await this.getCwd();
+		return {
+			id,
+			pid: this.pid,
+			title: this.title,
+			cwd,
+			workspaceId: this.workspaceId,
+			workspaceName: this.workspaceName,
+			isOrphan: this.isOrphan,
+		};
+	}
 }
 
 // References: - ../../workbench/api/node/extHostTerminalService.ts
@@ -662,6 +634,8 @@ class Terminal {
 export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
 	private readonly terminals = new Map<number, Terminal>();
 	private id = 0;
+
+	private readonly layouts = new Map<string, terminal.ISetTerminalLayoutInfoArgs>();
 
 	public constructor (private readonly logService: ILogService) {
 
@@ -691,6 +665,8 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$sendCommandResultToTerminalProcess': return this.sendCommandResultToTerminalProcess(args);
 			case '$orphanQuestionReply': return this.orphanQuestionReply(args[0]);
 			case '$listTerminals': return this.listTerminals(args[0]);
+			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
+			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
 		}
 
 		throw new Error(`Invalid call '${command}'`);
@@ -726,7 +702,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		const resolverService = new VariableResolverService(remoteAuthority, args, process.env as platform.IProcessEnvironment);
 		const resolver = terminalEnvironment.createVariableResolver(activeWorkspace, resolverService);
 
-		const getDefaultShellAndArgs = (): { executable: string; args: string[] | string } => {
+		const getDefaultShellAndArgs = async (): Promise<{ executable: string; args: string[] | string }> => {
 			if (shellLaunchConfig.executable) {
 				const executable = resolverService.resolve(activeWorkspace, shellLaunchConfig.executable);
 				let resolvedArgs: string[] | string = [];
@@ -743,7 +719,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			const executable = terminalEnvironment.getDefaultShell(
 				(key) => args.configuration[key],
 				args.isWorkspaceShellAllowed,
-				getSystemShell(platform.platform),
+				await getSystemShell(platform.platform),
 				process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432'),
 				process.env.windir,
 				resolver,
@@ -777,7 +753,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		// longer undefined.
 		const resolvedShellLaunchConfig = {
 			...shellLaunchConfig,
-			...getDefaultShellAndArgs(),
+			...(await getDefaultShellAndArgs()),
 			cwd: getInitialCwd(),
 		};
 
@@ -883,24 +859,53 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		// do differently. Maybe it's to reset the terminal dispose timeouts or
 		// something like that, but why not do it each time you list?
 		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
-			const cwd = await terminal.getCwd();
-			return {
-				id,
-				pid: terminal.pid,
-				title: terminal.title,
-				cwd,
-				workspaceId: terminal.workspaceId,
-				workspaceName: terminal.workspaceName,
-				isOrphan: terminal.isOrphan,
-			};
+			return terminal.description(id);
 		}));
+
 		// Only returned orphaned terminals so we don't end up attaching to
 		// terminals already attached elsewhere.
 		return terminals.filter((t) => t.isOrphan);
+	}
+
+	public async setTerminalLayoutInfo(args: terminal.ISetTerminalLayoutInfoArgs): Promise<void> {
+		this.layouts.set(args.workspaceId, args);
+	}
+
+	public async getTerminalLayoutInfo(args: terminal.IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
+		const layout = this.layouts.get(args.workspaceId);
+		if (!layout) {
+			return undefined;
+		}
+
+		const tabs = await Promise.all(layout.tabs.map(async (tab) => {
+			// The terminals are stored by ID so look them up.
+			const terminals = await Promise.all(tab.terminals.map(async (t) => {
+				const terminal = this.terminals.get(t.terminal);
+				if (!terminal) {
+					return undefined;
+				}
+				return {
+					...t,
+					terminal: await terminal.description(t.terminal),
+				};
+			}));
+
+			return {
+				...tab,
+				// Filter out terminals that have been killed.
+				terminals: terminals.filter(isDefined),
+			};
+		}));
+
+		return { tabs };
 	}
 }
 
 function transformIncoming(remoteAuthority: string, uri: UriComponents | undefined): URI | undefined {
 	const transformer = getUriTransformer(remoteAuthority);
 	return uri ? URI.revive(transformer.transformIncoming(uri)) : uri;
+}
+
+function isDefined<T>(t: T | undefined): t is T {
+	return typeof t !== 'undefined';
 }

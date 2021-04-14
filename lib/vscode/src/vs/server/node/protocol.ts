@@ -10,6 +10,9 @@ export interface SocketOptions {
 	readonly reconnectionToken: string;
 	readonly reconnection: boolean;
 	readonly skipWebSocketFrames: boolean;
+	readonly permessageDeflate?: boolean;
+	readonly inflateBytes?: VSBuffer;
+	readonly recordInflateBytes?: boolean;
 }
 
 export class Protocol extends PersistentProtocol {
@@ -17,7 +20,12 @@ export class Protocol extends PersistentProtocol {
 		super(
 			options.skipWebSocketFrames
 				? new NodeSocket(socket)
-				: new WebSocketNodeSocket(new NodeSocket(socket)),
+				: new WebSocketNodeSocket(
+					new NodeSocket(socket),
+					options.permessageDeflate || false,
+					options.inflateBytes || null,
+					options.recordInflateBytes || false,
+				),
 		);
 	}
 

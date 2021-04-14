@@ -1,6 +1,6 @@
 # code-server &middot; [!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq)
 
-![Lines](https://img.shields.io/badge/Coverage-46.71%25-green.svg)
+![Lines](https://img.shields.io/badge/Coverage-50.08%25-green.svg)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
 
@@ -11,6 +11,15 @@ Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and a
 - Code on any device with a consistent development environment
 - Use cloud servers to speed up tests, compilations, downloads, and more
 - Preserve battery life when you're on the go; all intensive tasks run on your server
+
+## Requirements
+
+For a good experience, we recommend at least:
+
+- 1 GB of RAM
+- 2 cores
+
+You can use whatever linux distribution floats your boat but in our [guide](./docs/guide.md) we assume Debian on Google Cloud.
 
 ## Getting Started
 

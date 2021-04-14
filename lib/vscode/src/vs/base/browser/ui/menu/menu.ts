@@ -18,17 +18,18 @@ import { ScrollbarVisibility, ScrollEvent } from 'vs/base/common/scrollable';
 import { Event } from 'vs/base/common/event';
 import { AnchorAlignment, layout, LayoutAnchorPosition } from 'vs/base/browser/ui/contextview/contextview';
 import { isLinux, isMacintosh } from 'vs/base/common/platform';
-import { Codicon, registerIcon, stripCodicons } from 'vs/base/common/codicons';
+import { Codicon, registerCodicon } from 'vs/base/common/codicons';
 import { BaseActionViewItem, ActionViewItem, IActionViewItemOptions } from 'vs/base/browser/ui/actionbar/actionViewItems';
 import { formatRule } from 'vs/base/browser/ui/codicons/codiconStyles';
 import { isFirefox } from 'vs/base/browser/browser';
 import { StandardMouseEvent } from 'vs/base/browser/mouseEvent';
+import { stripIcons } from 'vs/base/common/iconLabels';
 
 export const MENU_MNEMONIC_REGEX = /\(&([^\s&])\)|(^|[^&])&([^\s&])/;
 export const MENU_ESCAPED_MNEMONIC_REGEX = /(&amp;)?(&amp;)([^\s&])/g;
 
-const menuSelectionIcon = registerIcon('menu-selection', Codicon.check);
-const menuSubmenuIcon = registerIcon('menu-submenu', Codicon.chevronRight);
+const menuSelectionIcon = registerCodicon('menu-selection', Codicon.check);
+const menuSubmenuIcon = registerCodicon('menu-submenu', Codicon.chevronRight);
 
 export enum Direction {
 	Right,
@@ -532,7 +533,7 @@ class BaseMenuActionViewItem extends BaseActionViewItem {
 		if (this.options.label) {
 			clearNode(this.label);
 
-			let label = stripCodicons(this.getAction().label);
+			let label = stripIcons(this.getAction().label);
 			if (label) {
 				const cleanLabel = cleanMnemonic(label);
 				if (!this.options.enableMnemonics) {
@@ -728,6 +729,7 @@ class SubmenuMenuActionViewItem extends BaseMenuActionViewItem {
 
 		if (this.item) {
 			this.item.classList.add('monaco-submenu-item');
+			this.item.tabIndex = 0;
 			this.item.setAttribute('aria-haspopup', 'true');
 			this.updateAriaExpanded('false');
 			this.submenuIndicator = append(this.item, $('span.submenu-indicator' + menuSubmenuIcon.cssSelector));
@@ -775,6 +777,12 @@ class SubmenuMenuActionViewItem extends BaseMenuActionViewItem {
 			this.parentData.parent.focus(false);
 			this.cleanupExistingSubmenu(false);
 		}));
+	}
+
+	updateEnabled(): void {
+		// override on submenu entry
+		// native menus do not observe enablement on sumbenus
+		// we mimic that behavior
 	}
 
 	open(selectFirst?: boolean): void {
@@ -1189,6 +1197,7 @@ ${formatRule(menuSubmenuIcon)}
 	outline: 0;
 	border: none;
 	animation: fadeIn 0.083s linear;
+	-webkit-app-region: no-drag;
 }
 
 .context-view.monaco-menu-container :focus,

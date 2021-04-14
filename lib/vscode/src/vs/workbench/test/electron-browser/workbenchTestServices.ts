@@ -40,7 +40,7 @@ import { IUriIdentityService } from 'vs/workbench/services/uriIdentity/common/ur
 import { MouseInputEvent } from 'vs/base/parts/sandbox/common/electronTypes';
 import { IModeService } from 'vs/editor/common/services/modeService';
 import { IOSProperties, IOSStatistics } from 'vs/platform/native/common/native';
-import { homedir } from 'os';
+import { homedir, release } from 'os';
 
 export const TestWorkbenchConfiguration: INativeWorkbenchConfiguration = {
 	windowId: 0,
@@ -52,8 +52,9 @@ export const TestWorkbenchConfiguration: INativeWorkbenchConfiguration = {
 	appRoot: '',
 	userEnv: {},
 	execPath: process.execPath,
-	perfEntries: [],
+	perfMarks: [],
 	colorScheme: { dark: true, highContrast: false },
+	os: { release: release() },
 	...parseArgs(process.argv, OPTIONS)
 };
 
@@ -150,9 +151,6 @@ export class TestSharedProcessService implements ISharedProcessService {
 	getChannel(channelName: string): any { return undefined; }
 
 	registerChannel(channelName: string, channel: any): void { }
-
-	async toggleSharedProcessWindow(): Promise<void> { }
-	async whenSharedProcessReady(): Promise<void> { }
 }
 
 export class TestNativeHostService implements INativeHostService {
@@ -224,6 +222,7 @@ export class TestNativeHostService implements INativeHostService {
 	async exit(code: number): Promise<void> { }
 	async openDevTools(options?: Electron.OpenDevToolsOptions | undefined): Promise<void> { }
 	async toggleDevTools(): Promise<void> { }
+	async toggleSharedProcessWindow(): Promise<void> { }
 	async resolveProxy(url: string): Promise<string | undefined> { return undefined; }
 	async readClipboardText(type?: 'selection' | 'clipboard' | undefined): Promise<string> { return ''; }
 	async writeClipboardText(text: string, type?: 'selection' | 'clipboard' | undefined): Promise<void> { }

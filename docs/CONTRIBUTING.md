@@ -6,6 +6,7 @@
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
   - [Updating VS Code](#updating-vs-code)
+    - [Notes about Changes](#notes-about-changes)
 - [Build](#build)
 - [Structure](#structure)
   - [Modifications to VS Code](#modifications-to-vs-code)
@@ -35,8 +36,9 @@ There are several differences, however. You must:
 - Use Node.js version 12.x (or greater)
 - Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
 - Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
+- Have [shfmt](https://pkg.go.dev/mvdan.cc/sh/v3) installed to run `yarn fmt` (requires Go is installed on your system)
 
-The [CI container](../ci/images/debian8/Dockerfile) is a useful reference for all
+The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all
 of the dependencies code-server uses.
 
 ## Development Workflow
@@ -58,14 +60,18 @@ To develop inside an isolated Docker container:
 
 ### Updating VS Code
 
-If you need to update VS Code, you can update the subtree with one line. Here's an example using the version 1.52:
+To update VS Code, follow these steps:
 
-```shell
-# Add vscode as a new remote if you haven't already and fetch
-git remote add -f vscode https://github.com/microsoft/vscode.git
+1. Run `yarn update:vscode`.
+2. Enter a version. Ex. 1.53
+3. This will open a draft PR for you.
+4. There will be merge conflicts. First commit them.
+   1. We do this because if we don't, it will be impossible to review your PR.
+5. Once they're all fixed, test code-server locally and make sure it all works.
 
-git subtree pull --prefix lib/vscode vscode release/1.52 --squash --message "Update VS Code to 1.52"
-```
+#### Notes about Changes
+
+- watch out for updates to `lib/vscode/src/vs/code/browser/workbench/workbench.html`. You may need to make changes to `src/browser/pages/vscode.html`
 
 ## Build
 
@@ -120,10 +126,10 @@ node ./release
 
 The `code-server` script serves an HTTP API for login and starting a remote VS Code process.
 
-The CLI code is in [./src/node](./src/node) and the HTTP routes are implemented in
-[./src/node/app](./src/node/app).
+The CLI code is in [src/node](../src/node) and the HTTP routes are implemented in
+[src/node/routes](../src/node/routes).
 
-Most of the meaty parts are in the VS Code portion of the codebase under [./lib/vscode](./lib/vscode), which we described next.
+Most of the meaty parts are in the VS Code portion of the codebase under [lib/vscode](../lib/vscode), which we described next.
 
 ### Modifications to VS Code
 
@@ -133,7 +139,7 @@ and exposed an API to the front-end for file access and all UI needs.
 
 Over time, Microsoft added support to VS Code to run it on the web. They have made
 the front-end open source, but not the server. As such, code-server v2 (and later) uses
-the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [./lib/vscode](./lib/vscode).
+the VS Code front-end and implements the server. We do this by using a git subtree to fork and modify VS Code. This code lives under [lib/vscode](../lib/vscode).
 
 Some noteworthy changes in our version of VS Code:
 
@@ -144,7 +150,6 @@ Some noteworthy changes in our version of VS Code:
 - Sending client-side telemetry through the server
 - Allowing modification of the display language
 - Making it possible for us to load code on the client
-- Making extensions work in the browser
 - Making it possible to install extensions of any kind
 - Fixing issue with getting disconnected when your machine sleeps or hibernates
 - Adding connection type to web socket query parameters

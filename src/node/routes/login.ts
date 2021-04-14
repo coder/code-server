@@ -7,7 +7,7 @@ import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
 import { hash, humanPath } from "../util"
 
-enum Cookie {
+export enum Cookie {
   Key = "key",
 }
 

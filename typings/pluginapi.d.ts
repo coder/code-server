@@ -1,8 +1,12 @@
 /**
  * This file describes the code-server plugin API for adding new applications.
  */
-import { Logger } from "@coder/logger"
+import { field, Level, Logger } from "@coder/logger"
 import * as express from "express"
+import * as expressCore from "express-serve-static-core"
+import ProxyServer from "http-proxy"
+import * as net from "net"
+import Websocket from "ws"
 
 /**
  * Overlay
@@ -78,6 +82,85 @@ import * as express from "express"
  * ]
  */
 
+export enum HttpCode {
+  Ok = 200,
+  Redirect = 302,
+  NotFound = 404,
+  BadRequest = 400,
+  Unauthorized = 401,
+  LargePayload = 413,
+  ServerError = 500,
+}
+
+export declare class HttpError extends Error {
+  constructor(message: string, status: HttpCode, details?: object)
+}
+
+export interface WebsocketRequest extends express.Request {
+  ws: net.Socket
+  head: Buffer
+}
+
+export type WebSocketHandler = (
+  req: WebsocketRequest,
+  res: express.Response,
+  next: express.NextFunction,
+) => void | Promise<void>
+
+export interface WebsocketRouter {
+  readonly router: express.Router
+  ws(route: expressCore.PathParams, ...handlers: WebSocketHandler[]): void
+}
+
+/**
+ * Create a router for websocket routes.
+ */
+export function WsRouter(): WebsocketRouter
+
+/**
+ * The websocket server used by code-server.
+ */
+export const wss: Websocket.Server
+
+/**
+ * The Express import used by code-server.
+ *
+ * Re-exported so plugins don't have to import duplicate copies of Express and
+ * to avoid potential version differences or issues caused by running separate
+ * instances.
+ */
+export { express }
+/**
+ * Use to add a field to a log.
+ *
+ * Re-exported so plugins don't have to import duplicate copies of the logger.
+ */
+export { field, Level, Logger }
+
+/**
+ * code-server's proxy server.
+ */
+export const proxy: ProxyServer
+
+/**
+ * Middleware to ensure the user is authenticated. Throws if they are not.
+ */
+export function ensureAuthenticated(req: express.Request, res?: express.Response, next?: express.NextFunction): void
+
+/**
+ * Returns true if the user is authenticated.
+ */
+export function authenticated(req: express.Request): boolean
+
+/**
+ * Replace variables in HTML: TO, BASE, CS_STATIC_BASE, and OPTIONS.
+ */
+export function replaceTemplates<T extends object>(
+  req: express.Request,
+  content: string,
+  extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
+): string
+
 /**
  * Your plugin module must have a top level export "plugin" that implements this interface.
  *
@@ -126,6 +209,11 @@ export interface Plugin {
   init(config: PluginConfig): void
 
   /**
+   * Called when the plugin should dispose/shutdown everything.
+   */
+  deinit?(): Promise<void>
+
+  /**
    * Returns the plugin's router.
    *
    * Mounted at <code-sever-root>/<plugin-path>
@@ -133,6 +221,15 @@ export interface Plugin {
    * If not present, the plugin provides no routes.
    */
   router?(): express.Router
+
+  /**
+   * Returns the plugin's websocket router.
+   *
+   * Mounted at <code-sever-root>/<plugin-path>
+   *
+   * If not present, the plugin provides no websockets.
+   */
+  wsRouter?(): WebsocketRouter
 
   /**
    * code-server uses this to collect the list of applications that
@@ -156,6 +253,13 @@ export interface PluginConfig {
    * All plugin logs should be logged via this logger.
    */
   readonly logger: Logger
+
+  /**
+   * This can be specified by the user on the command line. Plugins should
+   * default to this directory when applicable. For example, the Jupyter plugin
+   * uses this to launch in this directory.
+   */
+  readonly workingDirectory?: string
 }
 
 /**
