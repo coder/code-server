@@ -1,9 +1,63 @@
-import { ChromiumEnv, FirefoxEnv, WebKitEnv, test, setConfig, PlaywrightOptions } from "@playwright/test"
+import {
+  ChromiumEnv,
+  FirefoxEnv,
+  WebKitEnv,
+  test,
+  setConfig,
+  PlaywrightOptions,
+  Config,
+  globalSetup,
+} from "@playwright/test"
+import * as crypto from "crypto"
+import path from "path"
+import { PASSWORD } from "./utils/constants"
+import * as wtfnode from "./utils/wtfnode"
 
-setConfig({
-  testDir: "e2e", // Search for tests in this directory.
-  timeout: 30000, // Each test is given 30 seconds.
+// Playwright doesn't like that ../src/node/util has an enum in it
+// so I had to copy hash in separately
+const hash = (str: string): string => {
+  return crypto.createHash("sha256").update(str).digest("hex")
+}
+
+const cookieToStore = {
+  sameSite: "Lax" as const,
+  name: "key",
+  value: hash(PASSWORD),
+  domain: "localhost",
+  path: "/",
+  expires: -1,
+  httpOnly: false,
+  secure: false,
+}
+
+globalSetup(async () => {
+  console.log("\n🚨 Running Global Setup for Jest End-to-End Tests")
+  console.log("👋 Please hang tight...")
+
+  if (process.env.WTF_NODE) {
+    wtfnode.setup()
+  }
+
+  const storage = {
+    cookies: [cookieToStore],
+  }
+
+  // Save storage state and store as an env variable
+  // More info: https://playwright.dev/docs/auth?_highlight=authe#reuse-authentication-state
+  process.env.STORAGE = JSON.stringify(storage)
+  console.log("✅ Global Setup for Jest End-to-End Tests is now complete.")
 })
+
+const config: Config = {
+  testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
+  timeout: 30000, // Each test is given 30 seconds.
+}
+
+if (process.env.CI) {
+  config.retries = 2 // Retry failing tests 2 times
+}
+
+setConfig(config)
 
 const options: PlaywrightOptions = {
   headless: true, // Run tests in headless browsers.
