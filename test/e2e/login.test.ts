@@ -2,12 +2,16 @@ import { test, expect } from "@playwright/test"
 import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
 test.describe("login", () => {
-  test.beforeEach(async ({ page }) => {
-    // TODO@jsjoeio reset the browser
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
-  })
+  // Reset the browser so no cookies are persisted
+  // by emptying the storageState
+  const options = {
+    contextOptions: {
+      storageState: {},
+    },
+  }
 
-  test("should be able to login", async ({ page }) => {
+  test("should be able to login", options, async ({ page }) => {
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
