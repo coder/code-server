@@ -31,7 +31,7 @@ const cookieToStore = {
 }
 
 globalSetup(async () => {
-  console.log("\n🚨 Running Global Setup for Jest End-to-End Tests")
+  console.log("\n🚨 Running globalSetup for playwright end-to-end tests")
   console.log("👋 Please hang tight...")
 
   if (process.env.WTF_NODE) {
@@ -45,7 +45,7 @@ globalSetup(async () => {
   // Save storage state and store as an env variable
   // More info: https://playwright.dev/docs/auth?_highlight=authe#reuse-authentication-state
   process.env.STORAGE = JSON.stringify(storage)
-  console.log("✅ Global Setup for Jest End-to-End Tests is now complete.")
+  console.log("✅ globalSetup is now complete.")
 })
 
 const config: Config = {
@@ -55,6 +55,8 @@ const config: Config = {
 }
 
 if (process.env.CI) {
+  // In CI, retry failing tests 2 times
+  // in the event of flakiness
   config.retries = 2
 }
 
