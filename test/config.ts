@@ -51,7 +51,11 @@ globalSetup(async () => {
 const config: Config = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
   timeout: 30000, // Each test is given 30 seconds.
-  retries: 2, // Retry failing tests 2 times
+  retries: 3, // Retry failing tests 2 times
+}
+
+if (process.env.CI) {
+  config.retries = 2
 }
 
 setConfig(config)
