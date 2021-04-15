@@ -68,6 +68,9 @@ To develop inside an isolated Docker container:
 
 ### Updating VS Code
 
+Updating VS Code requires `git subtree`. On some rpm-based Linux distros, `git subtree` is not included by default, and needs to be installed separately.
+To install, run `dnf install git-subtree` or `yum install git-subtree` as necessary.
+
 To update VS Code, follow these steps:
 
 1. Run `yarn update:vscode`.

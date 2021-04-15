@@ -56,8 +56,20 @@ main() {
     echo "jq could not be found."
     echo "We use this when looking up the exact version to update to in the package.json in VS Code."
     echo -e "See docs here: https://stedolan.github.io/jq/download/"
-    exit
+    exit 1
   fi
+
+  # Note: `git subtree` returns 129 when installed, and prints help;
+  # but when uninstalled, returns 1.
+  set +e
+  git subtree &>/dev/null
+  if [ $? -ne 129 ]; then
+    echo "git-subtree could not be found."
+    echo "We use this to fetch and update the lib/vscode subtree."
+    echo -e "Please install git subtree."
+    exit 1
+  fi
+  set -e
 
   # Grab the exact version from package.json
   VSCODE_EXACT_VERSION=$(curl -s "https://raw.githubusercontent.com/microsoft/vscode/release/$VSCODE_VERSION_TO_UPDATE/package.json" | jq -r ".version")
