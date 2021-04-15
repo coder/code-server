@@ -22,15 +22,15 @@ More information reguarding how OpenID Connect works can be found here:
 1. Navigate to the Application management section of your Auth0 dashboard at `https://manage.auth0.com/dashboard/us/{{auth0_account_name}}/applications`
 2. Click the ***Create Application*** button in the top right of the page.
 3. Either provide a name for this application or use the default, then select ***Regular Web Application*** as the application type and click the blue ***Create*** button.
-![Create Application](assets/openid-connect/auth0/create-application.png)
+![Create Application](assets/openid-connect/auth0/create-application.png){:height="50%" width="50%"}.
 
 ### Gather The Client ID
 1. Make note of the `Client ID` value. This value will be used in the Code-Server `openid-client-id` configuration variable.
-![Gather Client ID](assets/openid-connect/auth0/application-client-id.png)
+![Gather Client ID](assets/openid-connect/auth0/application-client-id.png){:height="50%" width="50%"}.
 
 ### Update the application URLs
 1. Update the ***Allowed Callback URL*** and ***Allowed Logout URLs*** fields so that they point to the correct code-server endpoint.
-![Gather Client ID](assets/openid-connect/auth0/update-application.png)
+![Gather Client ID](assets/openid-connect/auth0/update-application.png){:height="50%" width="50%"}.
 
 ### Example Auth0 Code-Server Configuration
 ---
@@ -54,16 +54,16 @@ openid-secret: "{prerequisites_openid-secret_value}"
 1. Navigate to the ***Add Application*** page of your Okta dashboard at `https://{{okta_account_name}}-admin.okta.com/admin/apps/add-app`
 2. Click the ***Create New App*** button located in the upper right of the page.
 3. Set the ***Platform*** to ***Web*** and ***Sign on method*** to ***OpenID Connect***. Then click ***Create***
-![Create Application](assets/openid-connect/okta/create-application.png)
+![Create Application](assets/openid-connect/okta/create-application.png){:height="50%" width="50%"}.
 
 ### Update the application Name and URLs
 1. Update the ***Application name*** field with the desired name for this application.
 2. Update the ***Login redirect URIs*** and ***Logout redirect URIs (Optional)*** fields so that they point to the correct code-server endpoint then click ***Save***
-![Update Application](assets/openid-connect/okta/update-application.png)
+![Update Application](assets/openid-connect/okta/update-application.png){:height="50%" width="50%"}.
 
 ### Gather The Client ID
 1. Make note of the `Client ID` value. This value will be used in the Code-Server `openid-client-id` configuration variable.
-![Gather Client ID](assets/openid-connect/okta/application-client-id.png)
+![Gather Client ID](assets/openid-connect/okta/application-client-id.png){:height="50%" width="50%"}.
 
 ### Example Code-Server Configuration
 ---
@@ -90,11 +90,11 @@ openid-secret: "{prerequisites_openid-secret_value}"
     - ***Client ID***: This is the value that will later be populated in `openid-client-id`. This value is entirely up the the user or process creating the client.
     - ***Client Protocol***: This value should be set to ***openid-connect***
     - ***Root URL***: This field should be populated with the Code-Server base url.
-![Create Client](assets/openid-connect/keycloak/create-client.png)
+![Create Client](assets/openid-connect/keycloak/create-client.png){:height="50%" width="50%"}.
 
 ### Update The Client Name
 1. Once the ***Save*** button in the ***Add Client*** window has been clicked, the client will be created and the page will be redirected to the client settings view. From inside that view proceed to name the newly create client by populating the ***Name*** field. Then scroll to the bottom of the page and click ***Save***.
-![Update Client](assets/openid-connect/keycloak/update-client.png)
+![Update Client](assets/openid-connect/keycloak/update-client.png){:height="50%" width="50%"}.
 
 ### Example Code-Server Configuration
 ---
