@@ -59,10 +59,6 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    if (!limiter.try()) {
-      throw new Error("Login rate limited!")
-    }
-
     if (!req.body.password) {
       throw new Error("Missing password")
     }
@@ -82,6 +78,12 @@ router.post("/", async (req, res) => {
 
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })
+    }
+
+    // Note: successful logins should not count against the RateLimiter
+    // which is why this logic must come after the successful login logic
+    if (!limiter.try()) {
+      throw new Error("Login rate limited!")
     }
 
     console.error(
