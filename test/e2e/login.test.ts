@@ -26,4 +26,23 @@ test.describe("login", () => {
     // Make sure the editor actually loaded
     expect(await page.isVisible("div.monaco-workbench"))
   })
+
+  test("should see an error message for missing password", options, async ({ page }) => {
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+    // Skip entering password
+    // Click the submit button and login
+    await page.click(".submit")
+    await page.waitForLoadState("networkidle")
+    expect(await page.isVisible("text=Missing password"))
+  })
+
+  test("should see an error message for incorrect password", options, async ({ page }) => {
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+    // Type in password
+    await page.fill(".password", "password123")
+    // Click the submit button and login
+    await page.click(".submit")
+    await page.waitForLoadState("networkidle")
+    expect(await page.isVisible("text=Incorrect password"))
+  })
 })
