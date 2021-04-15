@@ -192,12 +192,12 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 
 	/**
 	 * NOTE@coder: add extraExtensionPaths and extraBuiltinExtensionPaths
-	 * Code location changed after 1.54 (was earlier directly in NativeEnvironmentService).
 	 */
 	@memoize
 	get extraExtensionPaths(): string[] {
 		return (this._args['extra-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
 	}
+
 	@memoize
 	get extraBuiltinExtensionPaths(): string[] {
 		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));

@@ -481,22 +481,25 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
 		logger.trace('TerminalProviderChannel:listen', field('event', event), field('args', args));
 
+		// TODO@oxy/code-asher: implement these events (currently Event.None) as needed
+		// Right now, most functionality tested works;
+		// but VSCode might rely on the other events in the future.
 		switch (event) {
-			case '$onPtyHostExitEvent': return Event.None; // TODO
-			case '$onPtyHostStartEvent': return Event.None; // TODO
-			case '$onPtyHostUnresponsiveEvent': return Event.None; // TODO
-			case '$onPtyHostResponsiveEvent': return Event.None; // TODO
+			case '$onPtyHostExitEvent': return Event.None;
+			case '$onPtyHostStartEvent': return Event.None;
+			case '$onPtyHostUnresponsiveEvent': return Event.None;
+			case '$onPtyHostResponsiveEvent': return Event.None;
 
 			case '$onProcessDataEvent': return this._onProcessData.event;
 			case '$onProcessExitEvent': return this._onProcessExit.event;
 			case '$onProcessReadyEvent': return this._onProcessReady.event;
 			case '$onProcessReplayEvent': return this._onProcessReplay.event;
 			case '$onProcessTitleChangedEvent':  return this._onProcessTitleChanged.event;
-			case '$onProcessShellTypeChangedEvent': return Event.None; // TODO;
-			case '$onProcessOverrideDimensionsEvent': return Event.None; // TODO;
-			case '$onProcessResolvedShellLaunchConfigEvent': return Event.None; // TODO;
-			case '$onProcessOrphanQuestion': return Event.None; // TODO
-				// TODO: I think this must have something to do with running commands on
+			case '$onProcessShellTypeChangedEvent': return Event.None;
+			case '$onProcessOverrideDimensionsEvent': return Event.None;
+			case '$onProcessResolvedShellLaunchConfigEvent': return Event.None;
+			case '$onProcessOrphanQuestion': return Event.None;
+				// NOTE@code-asher: I think this must have something to do with running commands on
 				// the terminal that will do things in VS Code but we already have that
 				// functionality via a socket so I'm not sure what this is for.
 			case '$onExecuteCommand': return Event.None;
