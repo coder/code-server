@@ -12,8 +12,8 @@ export enum Cookie {
 }
 
 // RateLimiter wraps around the limiter library for logins.
-// It allows 2 logins every minute and 12 logins every hour.
-class RateLimiter {
+// It allows 2 logins every minute plus 12 logins every hour.
+export class RateLimiter {
   private readonly minuteLimiter = new Limiter(2, "minute")
   private readonly hourLimiter = new Limiter(12, "hour")
 
