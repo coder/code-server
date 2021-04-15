@@ -350,11 +350,11 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v2
         with:
-          name: test-videos
-          path: ./test/e2e/videos
+          name: failed-test-videos
+          path: ./test/test-results
 
       - name: Remove release packages and test artifacts
-        run: rm -rf ./release-packages ./test/e2e/videos
+        run: rm -rf ./release-packages ./test/test-results
 
   docker-amd64:
     runs-on: ubuntu-latest
