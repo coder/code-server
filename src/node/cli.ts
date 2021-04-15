@@ -34,7 +34,7 @@ export interface Args extends VsArgs {
   "openid-client-id"?: string
   "openid-base-url"?: string
   "openid-secret"?: string
-  "openid-group-claim"?: string
+  "openid-group-claim"?: OptionalString
   "openid-user-group"?: string
   "hashed-password"?: string
   cert?: OptionalString
@@ -129,7 +129,7 @@ const options: Options<Required<Args>> = {
     description: "A long secret used to encrypt the session cookie",
   },
   "openid-group-claim": {
-    type: "string",
+    type: OptionalString,
     description: "A claim that contains the authenticated users group assignments",
   },
   "openid-user-group": {
