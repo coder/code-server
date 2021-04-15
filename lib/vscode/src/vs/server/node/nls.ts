@@ -1,13 +1,13 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
-import { getPathFromAmdModule } from 'vs/base/common/amd';
+import { FileAccess } from 'vs/base/common/network';
 import * as lp from 'vs/base/node/languagePacks';
 import product from 'vs/platform/product/common/product';
 import { Translations } from 'vs/workbench/services/extensions/common/extensionPoints';
 
 const configurations = new Map<string, Promise<lp.NLSConfiguration>>();
-const metadataPath = path.join(getPathFromAmdModule(require, ''), 'nls.metadata.json');
+const metadataPath = path.join(FileAccess.asFileUri('', require).fsPath, 'nls.metadata.json');
 
 export const isInternalConfiguration = (config: lp.NLSConfiguration): config is lp.InternalNLSConfiguration => {
 	return config && !!(<lp.InternalNLSConfiguration>config)._languagePackId;

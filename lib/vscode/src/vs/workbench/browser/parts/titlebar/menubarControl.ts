@@ -41,6 +41,8 @@ import { ICommandService } from 'vs/platform/commands/common/commands';
 import { ILogService } from 'vs/platform/log/common/log';
 import { Cookie } from 'vs/server/common/cookie';
 
+export type IOpenRecentAction = IAction & { uri: URI, remoteAuthority?: string };
+
 export abstract class MenubarControl extends Disposable {
 
 	protected keys = [
@@ -160,7 +162,7 @@ export abstract class MenubarControl extends Disposable {
 		this.updateMenubar();
 	}
 
-	protected getOpenRecentActions(): (Separator | IAction & { uri: URI })[] {
+	protected getOpenRecentActions(): (Separator | IOpenRecentAction)[] {
 		if (!this.recentlyOpened) {
 			return [];
 		}
@@ -226,12 +228,13 @@ export abstract class MenubarControl extends Disposable {
 		}
 	}
 
-	private createOpenRecentMenuAction(recent: IRecent): IAction & { uri: URI } {
+	private createOpenRecentMenuAction(recent: IRecent): IOpenRecentAction {
 
 		let label: string;
 		let uri: URI;
 		let commandId: string;
 		let openable: IWindowOpenable;
+		const remoteAuthority = recent.remoteAuthority;
 
 		if (isRecentFolder(recent)) {
 			uri = recent.folderUri;
@@ -254,11 +257,12 @@ export abstract class MenubarControl extends Disposable {
 			const openInNewWindow = event && ((!isMacintosh && (event.ctrlKey || event.shiftKey)) || (isMacintosh && (event.metaKey || event.altKey)));
 
 			return this.hostService.openWindow([openable], {
-				forceNewWindow: openInNewWindow
+				forceNewWindow: openInNewWindow,
+				remoteAuthority
 			});
 		});
 
-		return Object.assign(ret, { uri });
+		return Object.assign(ret, { uri, remoteAuthority });
 	}
 
 	private notifyUserOfCustomMenubarAccessibility(): void {
@@ -415,7 +419,6 @@ export class CustomMenubarControl extends MenubarControl {
 					.monaco-workbench .menubar > .menubar-menu-button.open,
 					.monaco-workbench .menubar > .menubar-menu-button:focus,
 					.monaco-workbench .menubar > .menubar-menu-button:hover {
-						outline-offset: -1px;
 						outline-color: ${menubarSelectedBorderColor};
 					}
 				`);
@@ -594,6 +597,7 @@ export class CustomMenubarControl extends MenubarControl {
 		const updateActions = (menu: IMenu, target: IAction[], topLevelTitle: string) => {
 			target.splice(0);
 			let groups = menu.getActions();
+
 			for (let group of groups) {
 				const [, actions] = group;
 
@@ -622,7 +626,10 @@ export class CustomMenubarControl extends MenubarControl {
 
 						const submenuActions: SubmenuAction[] = [];
 						updateActions(submenu, submenuActions, topLevelTitle);
-						target.push(new SubmenuAction(action.id, mnemonicMenuLabel(title), submenuActions));
+
+						if (submenuActions.length > 0) {
+							target.push(new SubmenuAction(action.id, mnemonicMenuLabel(title), submenuActions));
+						}
 					} else {
 						const newAction = new Action(action.id, mnemonicMenuLabel(title), action.class, action.enabled, () => this.commandService.executeCommand(action.id));
 						newAction.tooltip = action.tooltip;

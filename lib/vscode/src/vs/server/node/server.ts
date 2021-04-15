@@ -209,7 +209,8 @@ export class Vscode {
 	// ../../electron-browser/sharedProcess/sharedProcessMain.ts#L148
 	// ../../../code/electron-main/app.ts
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
-		const environmentService = new NativeEnvironmentService(args);
+		const productService = { _serviceBrand: undefined, ...product };
+		const environmentService = new NativeEnvironmentService(args, productService);
 		// https://github.com/cdr/code-server/issues/1693
 		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
 		const logService = new MultiplexLogService([
@@ -244,7 +245,7 @@ export class Vscode {
 
 		this.services.set(IRequestService, new SyncDescriptor(RequestService));
 		this.services.set(IFileService, fileService);
-		this.services.set(IProductService, { _serviceBrand: undefined, ...product });
+		this.services.set(IProductService, productService);
 
 		const machineId = await getMachineId();
 
