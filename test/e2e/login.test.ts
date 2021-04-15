@@ -10,6 +10,12 @@ test.describe("login", () => {
     },
   }
 
+  test("should see the login page", options, async ({ page }) => {
+    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+    // It should send us to the login page
+    expect(await page.title()).toBe("code-server login")
+  })
+
   test("should be able to login", options, async ({ page }) => {
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Type in password
