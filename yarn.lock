@@ -6283,9 +6283,9 @@ prettier-linter-helpers@^1.0.0:
     fast-diff "^1.1.2"
 
 prettier-plugin-sh@^0.6.0:
-  version "0.6.0"
-  resolved "https://registry.yarnpkg.com/prettier-plugin-sh/-/prettier-plugin-sh-0.6.0.tgz#021c22597a5a866c346095cd7f6c662a49dea249"
-  integrity sha512-y+SSThg/8mrGGkcAolWpociiTZlH7nlIUtqZl1dueyhngof8rD48tUHVQqvIaCx21T/0+9TyzsTEsVviPjR5og==
+  version "0.6.1"
+  resolved "https://registry.yarnpkg.com/prettier-plugin-sh/-/prettier-plugin-sh-0.6.1.tgz#094d1d190f0d8a53bfd522a68f17a95ca741047d"
+  integrity sha512-Weelg53FBb1Z5Q1/GpQIb4s//BdhmPAABjJfe6VTQ3m8upQjM36sVVboNOUVvYn3K+LMwzW4vkxhqLQ+vvfBKQ==
   dependencies:
     mvdan-sh "^0.5.0"
 
