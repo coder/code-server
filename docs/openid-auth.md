@@ -64,12 +64,15 @@ openid-secret: "{prerequisites_openid-secret_value}"
 <img src="assets/openid-connect/okta/create-application.png" />
 </kbd>
 
-### Update the application Name and URLs
+### Update The Application
 1. Update the ***Application name*** field with the desired name for this application.
 2. Update the ***Login redirect URIs*** and ***Logout redirect URIs (Optional)*** fields so that they point to the correct code-server endpoint then click ***Save***
-<kbd>
-<img src="assets/openid-connect/okta/update-application.png" />
-</kbd>
+    <kbd><img src="assets/openid-connect/okta/update-application.png"/></kbd>
+3. To update the ***Allowed grant types*** start by navigating to the ***General Settings*** section and clicking the ***Edit*** link in the top right corner of the section card.
+4. Once in the edit view, locate the ***Allowed grant types*** checkbox list and make sure the check the boxs for ***Implicit (Hybrid)*** and ***Allow ID Token with implicit grant type*** are checked, then scroll to the bottom of the page and click ***Save***.
+    <kbd><img src="assets/openid-connect/okta/update-application-grants.png"/></kbd>
+5. Lastly, ensure a user is assigned to this application by navigating to the ***Assignments*** tab, clicking on ***Assign***, then selecting ***Assign to People***.
+    <kbd><img src="assets/openid-connect/okta/update-application-assignments.png"/></kbd>
 
 ### Gather The Client ID
 1. Make note of the `Client ID` value. This value will be used in the Code-Server `openid-client-id` configuration variable.
@@ -107,7 +110,9 @@ openid-secret: "{prerequisites_openid-secret_value}"
 </kbd>
 
 ### Update The Client Name
-1. Once the ***Save*** button in the ***Add Client*** window has been clicked, the client will be created and the page will be redirected to the client settings view. From inside that view proceed to name the newly create client by populating the ***Name*** field. Then scroll to the bottom of the page and click ***Save***.
+1. Once the ***Save*** button in the ***Add Client*** window has been clicked, the client will be created and the page will be redirected to the client settings view. From inside that view proceed to name the newly create client by populating the ***Name*** field. 
+2. Enable implicit flow by changing ***Implicit Flow Enabled*** from ***OFF*** to ***ON***.
+3. Scroll to the bottom of the page and click ***Save***.
 <kbd>
 <img src="assets/openid-connect/keycloak/update-client.png" />
 </kbd>
