@@ -57,13 +57,6 @@ yarn watch
 # Visit http://localhost:8080 once the build is completed.
 ```
 
-To develop inside an isolated Docker container:
-
-```shell
-./ci/dev/image/run.sh yarn
-./ci/dev/image/run.sh yarn watch
-```
-
 `yarn watch` will live reload changes to the source.
 
 ### Updating VS Code
@@ -89,7 +82,9 @@ To update VS Code, follow these steps:
 You can build using:
 
 ```shell
-./ci/dev/image/run.sh ./ci/steps/release.sh
+yarn build
+yarn build:vscode
+yarn release
 ```
 
 Run your build with:
@@ -101,24 +96,7 @@ yarn --production
 node .
 ```
 
-Build the release packages (make sure that you run `./ci/steps/release.sh` first):
-
-```shell
-IMAGE=centos7 ./ci/dev/image/run.sh ./ci/steps/release-packages.sh
-# The standalone release is in ./release-standalone
-# .deb, .rpm and the standalone archive are in ./release-packages
-```
-
-The `release.sh` script is equal to running:
-
-```shell
-yarn
-yarn build
-yarn build:vscode
-yarn release
-```
-
-And `release-packages.sh` is equal to:
+Build the release packages (make sure that you run `yarn release` first):
 
 ```shell
 yarn release:standalone
@@ -126,12 +104,10 @@ yarn test:standalone-release
 yarn package
 ```
 
-For a faster release build, you can run instead:
-
-```shell
-KEEP_MODULES=1 ./ci/steps/release.sh
-node ./release
-```
+NOTE: On Linux, the currently running distro will become the minimum supported version.
+In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
+If you need your builds to support older distros, run the build commands
+inside a Docker container with all the build requirements installed.
 
 ## Structure
 
