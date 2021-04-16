@@ -17,11 +17,15 @@ export class RateLimiter {
   private readonly minuteLimiter = new Limiter(2, "minute")
   private readonly hourLimiter = new Limiter(12, "hour")
 
+  public canTry(): boolean {
+    return this.minuteLimiter.getTokensRemaining() > 0 || this.hourLimiter.getTokensRemaining() > 0
+  }
+
   public try(): boolean {
-    if (this.minuteLimiter.tryRemoveTokens(1)) {
-      return true
+    if (this.canTry()) {
+      return this.minuteLimiter.tryRemoveTokens(1) || this.hourLimiter.tryRemoveTokens(1)
     }
-    return this.hourLimiter.tryRemoveTokens(1)
+    return false
   }
 }
 
@@ -59,6 +63,11 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
+    // Check to see if they exceeded their login attempts
+    if (!limiter.canTry()) {
+      throw new Error("Login rate limited!")
+    }
+
     if (!req.body.password) {
       throw new Error("Missing password")
     }
