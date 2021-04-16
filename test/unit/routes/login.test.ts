@@ -7,6 +7,19 @@ describe("login", () => {
       expect(limiter.try()).toBe(true)
     })
 
+    it("should pull tokens from both limiters (minute & hour)", () => {
+      const limiter = new RateLimiter()
+
+      // Try twice, which pulls two from the minute bucket
+      limiter.try()
+      limiter.try()
+
+      // Check that we can still try
+      // which should be true since there are 12 remaining in the hour bucket
+      expect(limiter.canTry()).toBe(true)
+      expect(limiter.try()).toBe(true)
+    })
+
     it("should not allow more than 14 tries in less than an hour", () => {
       const limiter = new RateLimiter()
 
