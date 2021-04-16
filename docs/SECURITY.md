@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-Only the latest version of `code-server` is currently support with security updates. These security updates will be patched in the version after the current version.
+Coder sponsors development and maintenance of the code-server project. We will fix security issues within 90 days of receiving a report, and publish the fix in a subsequent release. The code-server project does not provide backports or patch releases for security issues at this time.
 
 | Version | Supported          |
 | ------- | ------------------ |
