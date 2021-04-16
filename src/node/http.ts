@@ -73,7 +73,7 @@ export const authenticated = (req: express.Request): boolean => {
       )
     case AuthType.Openid:
       if (req.oidc.isAuthenticated()) {
-        logger.debug("User is authenticated using OpenID Connect\n", req.oidc.user)
+        logger.debug(`User is authenticated using OpenID Connect\n${req.oidc.user}`)
 
         // Check to see if a group claim was specified.
         // If there was no group claim specified the user will be considered authorized.
@@ -87,7 +87,7 @@ export const authenticated = (req: express.Request): boolean => {
           if (key === req.args["openid-group-claim"] && req.args["openid-group-claim"].value) {
             for (const value in claims) {
               if (req.args["openid-user-group"] === claims[value]) {
-                logger.debug("User is authorized!\n", req.oidc.user)
+                logger.debug(`User is authorized!\n${req.oidc.user}`)
                 return true
               }
             }
@@ -95,13 +95,13 @@ export const authenticated = (req: express.Request): boolean => {
         }
 
         // Throw an error informing the user that they're unauthorized.
-        logger.debug("User is not authorized!\n", req.oidc.user)
+        logger.debug(`User is not authorized!\n${req.oidc.user}`)
         throw new HttpError("Unauthorized", HttpCode.Unauthorized)
       }
 
       // Returning false means the user isn't authenticated.
       // This should trigger a redirect so the user can get authenticated.
-      logger.debug("User is not authenticated using OpenID Connect\n", req.oidc.user)
+      logger.debug(`User is not authenticated using OpenID Connect\n${req.oidc.user}`)
       return false
 
     default:
