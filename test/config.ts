@@ -64,7 +64,7 @@ setConfig(config)
 
 const options: PlaywrightOptions = {
   headless: true, // Run tests in headless browsers.
-  video: "retry-with-video",
+  video: "on",
 }
 
 // Run tests in three browsers.
