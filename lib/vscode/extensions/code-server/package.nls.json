@@ -1,0 +1,5 @@
+{
+	"displayName": "code-server",
+	"description": "code-server",
+	"command.logout": "Logout"
+}

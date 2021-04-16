@@ -1,0 +1,48 @@
+{
+  "name": "code-server",
+  "displayName": "%displayName%",
+  "description": "%description%",
+  "publisher": "coder",
+  "license": "MIT",
+  "version": "1.0.0",
+  "engines": {
+    "vscode": "^1.5.0"
+  },
+  "enableProposedApi": true,
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "*"
+  ],
+  "main": "./out/main",
+  "icon": "resources/icons/code-server.png",
+  "scripts": {
+    "compile": "gulp compile-extension:code-server",
+    "watch": "gulp watch-extension:code-server"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "code-server.logout",
+        "title": "%command.logout%",
+        "category": "code-server"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "code-server.logout",
+          "when": "code-server.authed"
+        }
+      ]
+    }
+  },
+  "dependencies": {
+    "vscode-nls": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cdr/code-server.git"
+  }
+}
