@@ -18,7 +18,10 @@ export class RateLimiter {
   private readonly hourLimiter = new Limiter(12, "hour")
 
   public canTry(): boolean {
-    return this.minuteLimiter.getTokensRemaining() > 0 || this.hourLimiter.getTokensRemaining() > 0
+    // Note: we must check using >= 1 because technically when there are no tokens left
+    // you get back a number like 0.00013333333333333334
+    // which would cause fail if the logic were > 0
+    return this.minuteLimiter.getTokensRemaining() >= 1 || this.hourLimiter.getTokensRemaining() >= 1
   }
 
   public removeToken(): boolean {
