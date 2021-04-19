@@ -21,11 +21,8 @@ export class RateLimiter {
     return this.minuteLimiter.getTokensRemaining() > 0 || this.hourLimiter.getTokensRemaining() > 0
   }
 
-  public try(): boolean {
-    if (this.canTry()) {
-      return this.minuteLimiter.tryRemoveTokens(1) || this.hourLimiter.tryRemoveTokens(1)
-    }
-    return false
+  public removeToken(): boolean {
+    return this.minuteLimiter.tryRemoveTokens(1) || this.hourLimiter.tryRemoveTokens(1)
   }
 }
 
@@ -91,7 +88,7 @@ router.post("/", async (req, res) => {
 
     // Note: successful logins should not count against the RateLimiter
     // which is why this logic must come after the successful login logic
-    if (!limiter.try()) {
+    if (!limiter.removeToken()) {
       throw new Error("Login rate limited!")
     }
 
