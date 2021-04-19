@@ -88,9 +88,7 @@ router.post("/", async (req, res) => {
 
     // Note: successful logins should not count against the RateLimiter
     // which is why this logic must come after the successful login logic
-    if (!limiter.removeToken()) {
-      throw new Error("Login rate limited!")
-    }
+    limiter.removeToken()
 
     console.error(
       "Failed login attempt",
