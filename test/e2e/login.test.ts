@@ -54,12 +54,16 @@ test.describe("login", () => {
     // The current RateLimiter allows 2 logins per minute plus
     // 12 logins per hour for a total of 14
     // See: src/node/routes/login.ts
-    for (let i = 1; i <= 14; i++) {
+    for (let i = 1; i <= 13; i++) {
       await page.click(".submit")
       await page.waitForLoadState("networkidle")
+      // We double-check that the correct error message shows
+      // which should be for incorrect password
+      expect(await page.isVisible("text=Incorrect password"))
     }
 
-    // The 15th should fail
+    // The 15th should fail for a different reason:
+    // login rate
     await page.click(".submit")
     await page.waitForLoadState("networkidle")
     expect(await page.isVisible("text=Login rate limited!"))
