@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Description: This is a script to make the release process easier
 # Run it with `yarn release:prep` and it will do the following:
-# 1. Check that you have a $GITHUB_TOKEN set and hub installed
+# 1. Check that you have gh installed and that you're signed in
 # 2. Update the version of code-server (package.json, docs, etc.)
 # 3. Update the code coverage badge in the README
 # 4. Open a draft PR using the release_template.md and view in browser
@@ -19,19 +19,11 @@ main() {
 
   cd "$(dirname "$0")/../.."
 
-  # Check that $GITHUB_TOKEN is set
-  if [[ -z ${GITHUB_TOKEN-} ]]; then
-    echo "We couldn't find an environment variable under GITHUB_TOKEN."
-    echo "This is needed for our scripts that use hub."
-    echo -e "See docs regarding GITHUB_TOKEN here under 'GitHub OAuth authentication': https://hub.github.com/hub.1.html"
-    exit
-  fi
-
-  # Check that hub is installed
-  if ! command -v hub &>/dev/null; then
-    echo "hub could not be found."
+  # Check that gh is installed
+  if ! command -v gh &>/dev/null; then
+    echo "gh could not be found."
     echo "We use this with the release-github-draft.sh and release-github-assets.sh scripts."
-    echo -e "See docs here: https://github.com/github/hub#installation"
+    echo -e "See docs here: https://github.com/cli/cli#installation"
     exit
   fi
 
@@ -65,6 +57,14 @@ main() {
     echo "That's surprising..."
     echo "We use it in this script for getting the package.json version"
     echo -e "See docs here: https://nodejs.org/en/download/"
+    exit
+  fi
+
+  # Check that gh is authenticated
+  if ! gh auth status -h github.com &>/dev/null; then
+    echo "gh isn't authenticated to github.com."
+    echo "This is needed for our scripts that use gh."
+    echo -e "See docs regarding authentication: https://cli.github.com/manual/gh_auth_login"
     exit
   fi
 
