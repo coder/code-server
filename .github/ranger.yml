@@ -26,7 +26,7 @@ labels:
   extension-request:
     action: close
     delay: 5s
-    message: >
+    comment: >
       Thanks for opening an extension request!
       We are currently in the process of switching extension
       marketplaces and transitioning over to [Open VSX](https://open-vsx.org/).
