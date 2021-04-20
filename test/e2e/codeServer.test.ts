@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test"
-import { STORAGE } from "../utils/constants"
+import { CODE_SERVER_ADDRESS, STORAGE } from "../utils/constants"
 import { CodeServer } from "./models/CodeServer"
 
 test.describe("CodeServer", () => {
@@ -23,24 +23,23 @@ test.describe("CodeServer", () => {
     await codeServer.navigate()
   })
 
-  test("should open the default folder if not open", options, async ({ page }) => {
-    await codeServer.openFolder()
+  test("should navigate to the CODE_SERVER_ADDRESS", options, async ({ page }) => {
+    // We navigate codeServer before each test
+    // and we start the test with a storage state
+    // which means we should be logged in
+    // so it should be on the address
+    const url = page.url()
+    // We use match because there may be a / at the end
+    // so we don't want it to fail if we expect http://localhost:8080 to match http://localhost:8080/
+    expect(url).toMatch(CODE_SERVER_ADDRESS)
+  })
 
-    // find workspaceStorage in the Explorer menu, which would be open in the User folder
-    // which is the default folder that opens
-    expect(await page.isVisible("text=workspaceStorage")).toBe(true)
+  test("should always see the code-server editor", options, async ({ page }) => {
+    expect(await codeServer.isEditorVisible()).toBe(true)
   })
 
   test("should show the Integrated Terminal", options, async ({ page }) => {
-    await codeServer.viewTerminal()
+    await codeServer.focusTerminal()
     expect(await page.isVisible("#terminal")).toBe(true)
-  })
-
-  test("should open a file with quickOpen", options, async ({ page }) => {
-    await codeServer.openFolder()
-    await codeServer.quickOpen("extensions.json")
-    // If the file is open, we will see an empty array
-    // assuming no extensions are installed
-    expect(await page.isVisible("text=[]"))
   })
 })

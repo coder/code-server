@@ -9,53 +9,66 @@ export class CodeServer {
   constructor(page: Page) {
     this.page = page
   }
+
+  /**
+   * Navigates to CODE_SERVER_ADDRESS
+   */
   async navigate() {
     await this.page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+
+    let editorIsVisible = await this.isEditorVisible()
+    let reloadCount = 0
+
+    // Occassionally code-server timeouts in Firefox
+    // we're not sure why
+    // but usually a reload or two fixes it
+    // TODO@jsjoeio @oxy look into Firefox reconnection/timeout issues
+    // TODO@jsjoeio sometimes it's 2 reloads, othertimes it's 9
+    // double-check this logic
+    while (!editorIsVisible) {
+      reloadCount += 1
+      editorIsVisible = await this.isEditorVisible()
+      if (editorIsVisible) {
+        console.log(`Editor became visible after ${reloadCount} reloads`)
+        break
+      }
+      await this.page.reload({ waitUntil: "networkidle" })
+    }
+  }
+
+  /**
+   * Checks if the editor is visible
+   */
+  async isEditorVisible() {
     // Make sure the editor actually loaded
-    await this.page.isVisible("div.monaco-workbench")
-  }
-  /**
-   * Opens the default folder /User if no arg passed
-   * @param absolutePath Example: /Users/jp/.local/share/code-server/User/
-   *
-   */
-  async openFolder(absolutePath?: string) {
-    // Check if no folder is opened
-    const folderIsNotOpen = await this.page.isVisible("text=You have not yet opened")
-
-    if (folderIsNotOpen) {
-      // Open the default folder
-      await this.page.keyboard.press("Meta+O")
-      await this.page.keyboard.press("Enter")
-      await this.page.waitForLoadState("networkidle")
-    }
+    // If it's not visible after 2 seconds, something is wrong
+    await this.page.waitForLoadState("networkidle")
+    return await this.page.isVisible("div.monaco-workbench", { timeout: 5000 })
   }
 
   /**
-   * Toggles the integrated terminal if not already in view
-   * and focuses it
+   * Focuses Integrated Terminal
+   * by going to the Application Menu
+   * and clicking View > Terminal
    */
-  async viewTerminal() {
-    // Check if Terminal is already in view
-    const isTerminalInView = await this.page.isVisible("#terminal")
-
-    if (!isTerminalInView) {
-      // Open using default keyboard shortcut
-      await this.focusTerminal()
-      await this.page.waitForSelector("#terminal")
-    }
-  }
-
   async focusTerminal() {
-    await this.page.keyboard.press("Control+Backquote")
-  }
+    // If the terminal is already visible
+    // then we can focus it by hitting the keyboard shortcut
+    const isTerminalVisible = await this.page.isVisible("#terminal")
+    if (isTerminalVisible) {
+      await this.page.keyboard.press(`Meta+Backquote`)
+      return
+    }
+    // Open using the manu
+    // Click [aria-label="Application Menu"] div[role="none"]
+    await this.page.click('[aria-label="Application Menu"] div[role="none"]')
 
-  async quickOpen(input: string) {
-    await this.page.keyboard.press("Meta+P")
-    await this.page.waitForSelector('[aria-describedby="quickInput_message"]')
-    await this.page.keyboard.type(input)
-    await this.page.waitForTimeout(2000)
-    await this.page.keyboard.press("Enter")
-    await this.page.waitForTimeout(2000)
+    // Click text=View
+    await this.page.hover("text=View")
+    await this.page.click("text=View")
+
+    // Click text=Terminal
+    await this.page.hover("text=Terminal")
+    await this.page.click("text=Terminal")
   }
 }
