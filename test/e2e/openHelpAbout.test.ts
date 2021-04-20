@@ -21,26 +21,26 @@ test.describe("Open Help > About", () => {
     async ({ page }) => {
       await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
       // Make sure the editor actually loaded
-      expect(await page.isVisible("div.monaco-workbench"))
+      expect(await page.isVisible("div.monaco-workbench")).toBe(true)
 
       // Click the Application menu
       await page.click("[aria-label='Application Menu']")
       // See the Help button
       const helpButton = "a.action-menu-item span[aria-label='Help']"
-      expect(await page.isVisible(helpButton))
+      expect(await page.isVisible(helpButton)).toBe(true)
 
       // Hover the helpButton
       await page.hover(helpButton)
 
       // see the About button and click it
       const aboutButton = "a.action-menu-item span[aria-label='About']"
-      expect(await page.isVisible(aboutButton))
+      expect(await page.isVisible(aboutButton)).toBe(true)
       // NOTE: it won't work unless you hover it first
       await page.hover(aboutButton)
       await page.click(aboutButton)
 
       const codeServerText = "text=code-server"
-      expect(await page.isVisible(codeServerText))
+      expect(await page.isVisible(codeServerText)).toBe(true)
     },
   )
 })

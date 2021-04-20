@@ -20,6 +20,6 @@ test.describe("globalSetup", () => {
   test("should keep us logged in using the storageState", options, async ({ page }) => {
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Make sure the editor actually loaded
-    expect(await page.isVisible("div.monaco-workbench"))
+    expect(await page.isVisible("div.monaco-workbench")).toBe(true)
   })
 })

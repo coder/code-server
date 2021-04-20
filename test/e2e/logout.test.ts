@@ -17,14 +17,14 @@ test.describe("logout", () => {
     await page.click(".submit")
     await page.waitForLoadState("networkidle")
     // Make sure the editor actually loaded
-    expect(await page.isVisible("div.monaco-workbench"))
+    expect(await page.isVisible("div.monaco-workbench")).toBe(true)
 
     // Click the Application menu
     await page.click("[aria-label='Application Menu']")
 
     // See the Log out button
     const logoutButton = "a.action-menu-item span[aria-label='Log out']"
-    expect(await page.isVisible(logoutButton))
+    expect(await page.isVisible(logoutButton)).toBe(true)
 
     await page.hover(logoutButton)
     // TODO(@jsjoeio)

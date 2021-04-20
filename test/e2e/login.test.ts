@@ -24,7 +24,7 @@ test.describe("login", () => {
     await page.click(".submit")
     await page.waitForLoadState("networkidle")
     // Make sure the editor actually loaded
-    expect(await page.isVisible("div.monaco-workbench"))
+    expect(await page.isVisible("div.monaco-workbench")).toBe(true)
   })
 
   test("should see an error message for missing password", options, async ({ page }) => {
