@@ -130,12 +130,12 @@ export class Protocol extends PersistentProtocol {
 	}
 
 	/**
-	 * Get inflateBytes in base64 format from the current socket.
+	 * Get inflateBytes from the current socket.
 	 */
-	public get inflateBytes(): string | undefined {
+	public get inflateBytes(): Uint8Array | undefined {
 		const socket = this.getSocket();
 		return socket instanceof WebSocketNodeSocket
-			? Buffer.from(socket.recordedInflateBytes.buffer).toString('base64')
+			? socket.recordedInflateBytes.buffer
 			: undefined;
 	}
 }
