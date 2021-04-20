@@ -54,10 +54,24 @@ export class Protocol extends PersistentProtocol {
 	 */
 	public handshake(): Promise<ConnectionTypeRequest> {
 		this.logger.debug('Initiating handshake...');
+
 		return new Promise((resolve, reject) => {
+			const cleanup = () => {
+				handler.dispose();
+				onClose.dispose();
+				clearTimeout(timeout);
+			};
+
+			const onClose = this.onSocketClose(() => {
+				cleanup();
+				this.logger.debug('Handshake failed');
+				reject(new Error('Protocol socket closed unexpectedly'));
+			});
+
 			const timeout = setTimeout(() => {
+				cleanup();
 				this.logger.debug('Handshake timed out');
-				reject(new Error('protocol handshake timed out'));
+				reject(new Error('Protocol handshake timed out'));
 			}, 10000); // Matches the client timeout.
 
 			const handler = this.onControlMessage((rawMessage) => {
@@ -69,16 +83,14 @@ export class Protocol extends PersistentProtocol {
 						case 'auth':
 							return this.authenticate(message);
 						case 'connectionType':
-							handler.dispose();
-							clearTimeout(timeout);
+							cleanup();
 							this.logger.debug('Handshake completed');
 							return resolve(message);
 						default:
 							throw new Error('Unrecognized message type');
 					}
 				} catch (error) {
-					handler.dispose();
-					clearTimeout(timeout);
+					cleanup();
 					reject(error);
 				}
 			});
