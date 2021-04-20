@@ -123,14 +123,11 @@ export class Vscode {
 			reconnection: query.reconnection === 'true',
 			skipWebSocketFrames: query.skipWebSocketFrames === 'true',
 			permessageDeflate,
-			recordInflateBytes: permessageDeflate,
 		});
 		try {
 			await this.connect(await protocol.handshake(), protocol);
 		} catch (error) {
-			protocol.sendMessage({ type: 'error', reason: error.message });
-			protocol.dispose();
-			protocol.getSocket().dispose();
+			protocol.destroy(error.message);
 		}
 		return true;
 	}

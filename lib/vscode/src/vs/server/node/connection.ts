@@ -4,7 +4,6 @@ import { VSBuffer } from 'vs/base/common/buffer';
 import { Emitter } from 'vs/base/common/event';
 import { FileAccess } from 'vs/base/common/network';
 import { ISocket } from 'vs/base/parts/ipc/common/ipc.net';
-import { WebSocketNodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { getNlsConfiguration } from 'vs/server/node/nls';
 import { Protocol } from 'vs/server/node/protocol';
@@ -59,9 +58,7 @@ export class ManagementConnection extends Connection {
 	}
 
 	protected doDispose(): void {
-		this.protocol.sendDisconnect();
-		this.protocol.dispose();
-		this.protocol.getUnderlyingSocket().destroy();
+		this.protocol.destroy();
 	}
 
 	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
@@ -99,35 +96,34 @@ export class ExtensionHostConnection extends Connection {
 	}
 
 	protected doDispose(): void {
+		this.protocol.destroy();
 		if (this.process) {
 			this.process.kill();
 		}
-		this.protocol.getUnderlyingSocket().destroy();
 	}
 
 	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
-		// This is just to set the new socket.
-		this.protocol.beginAcceptReconnection(socket, null);
+		this.protocol.setSocket(socket);
 		this.protocol.dispose();
 		this.sendInitMessage(buffer);
 	}
 
 	private sendInitMessage(buffer: VSBuffer): void {
-		const socket = this.protocol.getUnderlyingSocket();
-		socket.pause();
+		if (!this.process) {
+			throw new Error("Tried to initialize VS Code before spawning");
+		}
 
-		const wrapperSocket = this.protocol.getSocket();
+		this.protocol.getUnderlyingSocket().pause();
 
-		this.logger.trace('Sending socket');
-		this.process!.send({ // Process must be set at this point.
+		this.logger.debug('Sending socket');
+
+		this.process.send({
 			type: 'VSCODE_EXTHOST_IPC_SOCKET',
 			initialDataChunk: Buffer.from(buffer.buffer).toString('base64'),
-			skipWebSocketFrames: !(wrapperSocket instanceof WebSocketNodeSocket),
+			skipWebSocketFrames: this.protocol.options.skipWebSocketFrames,
 			permessageDeflate: this.protocol.options.permessageDeflate,
-			inflateBytes: wrapperSocket instanceof WebSocketNodeSocket
-				? Buffer.from(wrapperSocket.recordedInflateBytes.buffer).toString('base64')
-				: undefined,
-		}, socket);
+			inflateBytes: this.protocol.inflateBytes,
+		}, this.protocol.getUnderlyingSocket());
 	}
 
 	private async spawn(locale: string, buffer: VSBuffer): Promise<cp.ChildProcess> {
