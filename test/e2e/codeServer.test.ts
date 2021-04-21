@@ -20,10 +20,10 @@ test.describe("CodeServer", () => {
 
   test.beforeEach(async ({ page }) => {
     codeServer = new CodeServer(page)
-    await codeServer.navigate()
+    await codeServer.setup()
   })
 
-  test("should navigate to the CODE_SERVER_ADDRESS", options, async ({ page }) => {
+  test(`should navigate to ${CODE_SERVER_ADDRESS}`, options, async ({ page }) => {
     // We navigate codeServer before each test
     // and we start the test with a storage state
     // which means we should be logged in

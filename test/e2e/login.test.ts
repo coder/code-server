@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test"
-import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
+import { PASSWORD } from "../utils/constants"
+import { CodeServer } from "./models/CodeServer"
 
 test.describe("login", () => {
   // Reset the browser so no cookies are persisted
@@ -9,26 +10,32 @@ test.describe("login", () => {
       storageState: {},
     },
   }
+  let codeServer: CodeServer
+
+  test.beforeEach(async ({ page }) => {
+    codeServer = new CodeServer(page)
+    await codeServer.navigate()
+  })
 
   test("should see the login page", options, async ({ page }) => {
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // It should send us to the login page
     expect(await page.title()).toBe("code-server login")
   })
 
   test("should be able to login", options, async ({ page }) => {
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login
     await page.click(".submit")
     await page.waitForLoadState("networkidle")
+    // We do this because occassionally code-server doesn't load on Firefox
+    // but loads if you reload once or twice
+    await codeServer.reloadUntilEditorIsVisible()
     // Make sure the editor actually loaded
-    expect(await page.isVisible("div.monaco-workbench")).toBe(true)
+    expect(await codeServer.isEditorVisible()).toBe(true)
   })
 
   test("should see an error message for missing password", options, async ({ page }) => {
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Skip entering password
     // Click the submit button and login
     await page.click(".submit")
@@ -37,7 +44,6 @@ test.describe("login", () => {
   })
 
   test("should see an error message for incorrect password", options, async ({ page }) => {
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Type in password
     await page.fill(".password", "password123")
     // Click the submit button and login
@@ -47,7 +53,6 @@ test.describe("login", () => {
   })
 
   test("should hit the rate limiter for too many unsuccessful logins", options, async ({ page }) => {
-    await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
     // Type in password
     await page.fill(".password", "password123")
     // Click the submit button and login
