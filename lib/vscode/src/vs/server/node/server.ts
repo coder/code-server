@@ -1,4 +1,3 @@
-import { field } from '@coder/logger';
 import * as fs from 'fs';
 import * as net from 'net';
 import { release } from 'os';
@@ -123,14 +122,11 @@ export class Vscode {
 			reconnection: query.reconnection === 'true',
 			skipWebSocketFrames: query.skipWebSocketFrames === 'true',
 			permessageDeflate,
-			recordInflateBytes: permessageDeflate,
 		});
 		try {
 			await this.connect(await protocol.handshake(), protocol);
 		} catch (error) {
-			protocol.sendMessage({ type: 'error', reason: error.message });
-			protocol.dispose();
-			protocol.getSocket().dispose();
+			protocol.destroy(error.message);
 		}
 		return true;
 	}
@@ -143,56 +139,61 @@ export class Vscode {
 		switch (message.desiredConnectionType) {
 			case ConnectionType.ExtensionHost:
 			case ConnectionType.Management:
+				// Initialize connection map for this type of connection.
 				if (!this.connections.has(message.desiredConnectionType)) {
 					this.connections.set(message.desiredConnectionType, new Map());
 				}
 				const connections = this.connections.get(message.desiredConnectionType)!;
 
-				const ok = async () => {
-					return message.desiredConnectionType === ConnectionType.ExtensionHost
-						? { debugPort: await this.getDebugPort() }
-						: { type: 'ok' };
-				};
-
 				const token = protocol.options.reconnectionToken;
-				if (protocol.options.reconnection && connections.has(token)) {
-					protocol.sendMessage(await ok());
-					const buffer = protocol.readEntireBuffer();
-					protocol.dispose();
-					return connections.get(token)!.reconnect(protocol.getSocket(), buffer);
-				} else if (protocol.options.reconnection || connections.has(token)) {
-					throw new Error(protocol.options.reconnection
-						? 'Unrecognized reconnection token'
-						: 'Duplicate reconnection token'
-					);
+				let connection = connections.get(token);
+				if (protocol.options.reconnection && connection) {
+					return connection.reconnect(protocol);
 				}
 
-				logger.debug('New connection', field('token', token));
-				protocol.sendMessage(await ok());
+				// This probably means the process restarted so the session was lost
+				// while the browser remained open.
+				if (protocol.options.reconnection) {
+					throw new Error(`Unable to reconnect; session no longer exists (${token})`);
+				}
 
-				let connection: Connection;
+				// This will probably never happen outside a chance collision.
+				if (connection) {
+					throw new Error('Unable to connect; token is already in use');
+				}
+
+				// Now that the initial exchange has completed we can create the actual
+				// connection on top of the protocol then send it to whatever uses it.
 				if (message.desiredConnectionType === ConnectionType.Management) {
-					connection = new ManagementConnection(protocol, token);
+					// The management connection is used by firing onDidClientConnect
+					// which makes the IPC server become aware of the connection.
+					connection = new ManagementConnection(protocol);
 					this._onDidClientConnect.fire({
-						protocol, onDidClientDisconnect: connection.onClose,
+						protocol,
+						onDidClientDisconnect: connection.onClose,
 					});
 				} else {
-					const buffer = protocol.readEntireBuffer();
+					// The extension host connection is used by spawning an extension host
+					// and passing the socket into it.
 					connection = new ExtensionHostConnection(
-						message.args ? message.args.language : 'en',
-						protocol, buffer, token,
+						protocol,
+						{
+							language: 'en',
+							...message.args,
+						},
 						this.services.get(IEnvironmentService) as INativeEnvironmentService,
 					);
 				}
 				connections.set(token, connection);
-				connection.onClose(() => {
-					logger.debug('Connection closed', field('token', token));
-					connections.delete(token);
-				});
+				connection.onClose(() => connections.delete(token));
+
 				this.disposeOldOfflineConnections(connections);
+				logger.debug(`${connections.size} active ${connection.name} connection(s)`);
 				break;
-			case ConnectionType.Tunnel: return protocol.tunnel();
-			default: throw new Error('Unrecognized connection type');
+			case ConnectionType.Tunnel:
+				return protocol.tunnel();
+			default:
+				throw new Error(`Unrecognized connection type ${message.desiredConnectionType}`);
 		}
 	}
 
@@ -200,8 +201,7 @@ export class Vscode {
 		const offline = Array.from(connections.values())
 			.filter((connection) => typeof connection.offline !== 'undefined');
 		for (let i = 0, max = offline.length - this.maxExtraOfflineConnections; i < max; ++i) {
-			logger.debug('Disposing offline connection', field('token', offline[i].token));
-			offline[i].dispose();
+			offline[i].dispose('old');
 		}
 	}
 
@@ -294,12 +294,5 @@ export class Vscode {
 				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});
-	}
-
-	/**
-	 * TODO: implement.
-	 */
-	private async getDebugPort(): Promise<number | undefined> {
-		return undefined;
 	}
 }
