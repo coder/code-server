@@ -8,8 +8,6 @@ import * as path from "path"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
 
-export const tmpdir = path.join(os.tmpdir(), "code-server")
-
 interface Paths {
   data: string
   config: string

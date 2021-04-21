@@ -29,6 +29,10 @@ test.describe("Integrated Terminal", () => {
   })
 
   test("should echo a string to a file", options, async ({ page }) => {
+    // NOTE@jsjoeio
+    // We're not using tmpdir from src/node/constants
+    // because Playwright doesn't fully support ES modules from
+    // the erorrs I'm seeing
     const tmpFolderPath = fs.mkdtempSync(path.join(tmpdir(), "code-server-test"))
     const tmpFile = `${tmpFolderPath}${path.sep}${testFileName}`
     // Open terminal and type in value

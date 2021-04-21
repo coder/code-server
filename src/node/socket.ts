@@ -4,7 +4,8 @@ import * as path from "path"
 import * as tls from "tls"
 import { Emitter } from "../common/emitter"
 import { generateUuid } from "../common/util"
-import { canConnect, tmpdir } from "./util"
+import { tmpdir } from "./constants"
+import { canConnect } from "./util"
 
 /**
  * Provides a way to proxy a TLS socket. Can be used when you need to pass a

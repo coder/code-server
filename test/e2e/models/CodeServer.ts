@@ -16,23 +16,23 @@ export class CodeServer {
   async navigate() {
     await this.page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
 
-    let editorIsVisible = await this.isEditorVisible()
+    const editorIsVisible = await this.isEditorVisible()
     let reloadCount = 0
 
     // Occassionally code-server timeouts in Firefox
     // we're not sure why
     // but usually a reload or two fixes it
     // TODO@jsjoeio @oxy look into Firefox reconnection/timeout issues
-    // TODO@jsjoeio sometimes it's 2 reloads, othertimes it's 9
-    // double-check this logic
     while (!editorIsVisible) {
       reloadCount += 1
-      editorIsVisible = await this.isEditorVisible()
-      if (editorIsVisible) {
-        console.log(`Editor became visible after ${reloadCount} reloads`)
+      if (await this.isEditorVisible()) {
+        console.log(`    Editor became visible after ${reloadCount} reloads`)
         break
       }
-      await this.page.reload({ waitUntil: "networkidle" })
+      // When a reload happens, we want to wait for all resources to be
+      // loaded completely. Hence why we use that instead of DOMContentLoaded
+      // Read more: https://thisthat.dev/dom-content-loaded-vs-load/
+      await this.page.reload({ waitUntil: "load" })
     }
   }
 
