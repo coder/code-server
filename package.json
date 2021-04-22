@@ -139,7 +139,8 @@
     "coverageReporters": [
       "json",
       "json-summary",
-      "text"
+      "text",
+      "clover"
     ],
     "coveragePathIgnorePatterns": [
       "out"
