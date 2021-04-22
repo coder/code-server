@@ -18,6 +18,8 @@ jobs:
   prebuild:
     name: Pre-build checks
     runs-on: ubuntu-latest
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -55,6 +57,10 @@ jobs:
 
       - name: Run code-server unit tests
         run: yarn test:unit
+        if: success()
+
+      - name: Upload coverage report to Codecov
+        run: yarn coverage
         if: success()
 
   build:
