@@ -743,6 +743,11 @@ export class PersistentProtocol implements IMessagePassingProtocol {
 		}, Math.max(ProtocolConstants.KeepAliveTimeoutTime - timeSinceLastIncomingMsg, 0) + 5);
 	}
 
+	// NOTE@coder: Set the socket without initiating a reconnect.
+	public setSocket(socket: ISocket): void {
+		this._socket = socket;
+	}
+
 	public getSocket(): ISocket {
 		return this._socket;
 	}

@@ -1,13 +1,16 @@
-/// <reference types="jest-playwright-preset" />
+import { test, expect } from "@playwright/test"
 import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
 
-describe("logout", () => {
-  beforeEach(async () => {
-    await jestPlaywright.resetBrowser()
+test.describe("logout", () => {
+  // Reset the browser so no cookies are persisted
+  // by emptying the storageState
+  const options = {
+    contextOptions: {
+      storageState: {},
+    },
+  }
+  test("should be able login and logout", options, async ({ page }) => {
     await page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
-  })
-
-  it("should be able login and logout", async () => {
     // Type in password
     await page.fill(".password", PASSWORD)
     // Click the submit button and login

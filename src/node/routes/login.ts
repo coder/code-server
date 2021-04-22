@@ -12,16 +12,20 @@ export enum Cookie {
 }
 
 // RateLimiter wraps around the limiter library for logins.
-// It allows 2 logins every minute and 12 logins every hour.
-class RateLimiter {
+// It allows 2 logins every minute plus 12 logins every hour.
+export class RateLimiter {
   private readonly minuteLimiter = new Limiter(2, "minute")
   private readonly hourLimiter = new Limiter(12, "hour")
 
-  public try(): boolean {
-    if (this.minuteLimiter.tryRemoveTokens(1)) {
-      return true
-    }
-    return this.hourLimiter.tryRemoveTokens(1)
+  public canTry(): boolean {
+    // Note: we must check using >= 1 because technically when there are no tokens left
+    // you get back a number like 0.00013333333333333334
+    // which would cause fail if the logic were > 0
+    return this.minuteLimiter.getTokensRemaining() >= 1 || this.hourLimiter.getTokensRemaining() >= 1
+  }
+
+  public removeToken(): boolean {
+    return this.minuteLimiter.tryRemoveTokens(1) || this.hourLimiter.tryRemoveTokens(1)
   }
 }
 
@@ -59,7 +63,8 @@ router.get("/", async (req, res) => {
 
 router.post("/", async (req, res) => {
   try {
-    if (!limiter.try()) {
+    // Check to see if they exceeded their login attempts
+    if (!limiter.canTry()) {
       throw new Error("Login rate limited!")
     }
 
@@ -83,6 +88,10 @@ router.post("/", async (req, res) => {
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })
     }
+
+    // Note: successful logins should not count against the RateLimiter
+    // which is why this logic must come after the successful login logic
+    limiter.removeToken()
 
     console.error(
       "Failed login attempt",

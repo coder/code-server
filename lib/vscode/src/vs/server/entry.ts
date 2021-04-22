@@ -6,7 +6,9 @@ import { logger } from 'vs/server/node/logger';
 import { enableCustomMarketplace } from 'vs/server/node/marketplace';
 import { Vscode } from 'vs/server/node/server';
 
-setUnexpectedErrorHandler((error) => logger.warn(error instanceof Error ? error.message : error));
+setUnexpectedErrorHandler((error) => {
+	logger.warn('Uncaught error', field('error', error instanceof Error ? error.message : error));
+});
 enableCustomMarketplace();
 proxyAgent.monkeyPatch(true);
 

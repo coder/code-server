@@ -3,31 +3,49 @@ import * as cp from 'child_process';
 import { VSBuffer } from 'vs/base/common/buffer';
 import { Emitter } from 'vs/base/common/event';
 import { FileAccess } from 'vs/base/common/network';
-import { ISocket } from 'vs/base/parts/ipc/common/ipc.net';
-import { WebSocketNodeSocket } from 'vs/base/parts/ipc/node/ipc.net';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
+import { IRemoteExtensionHostStartParams } from 'vs/platform/remote/common/remoteAgentConnection';
 import { getNlsConfiguration } from 'vs/server/node/nls';
 import { Protocol } from 'vs/server/node/protocol';
 import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 
 export abstract class Connection {
 	private readonly _onClose = new Emitter<void>();
+	/**
+	 * Fire when the connection is closed (not just disconnected). This should
+	 * only happen when the connection is offline and old or has an error.
+	 */
 	public readonly onClose = this._onClose.event;
 	private disposed = false;
 	private _offline: number | undefined;
 
-	public constructor(protected protocol: Protocol, public readonly token: string) {}
+	protected readonly logger: Logger;
+
+	public constructor(
+		protected readonly protocol: Protocol,
+		public readonly name: string,
+	) {
+		this.logger = logger.named(
+			this.name,
+			field('token', this.protocol.options.reconnectionToken),
+		);
+
+		this.logger.debug('Connecting...');
+		this.onClose(() => this.logger.debug('Closed'));
+	}
 
 	public get offline(): number | undefined {
 		return this._offline;
 	}
 
-	public reconnect(socket: ISocket, buffer: VSBuffer): void {
+	public reconnect(protocol: Protocol): void {
+		this.logger.debug('Reconnecting...');
 		this._offline = undefined;
-		this.doReconnect(socket, buffer);
+		this.doReconnect(protocol);
 	}
 
-	public dispose(): void {
+	public dispose(reason?: string): void {
+		this.logger.debug('Disposing...', field('reason', reason));
 		if (!this.disposed) {
 			this.disposed = true;
 			this.doDispose();
@@ -36,6 +54,7 @@ export abstract class Connection {
 	}
 
 	protected setOffline(): void {
+		this.logger.debug('Disconnected');
 		if (!this._offline) {
 			this._offline = Date.now();
 		}
@@ -44,7 +63,11 @@ export abstract class Connection {
 	/**
 	 * Set up the connection on a new socket.
 	 */
-	protected abstract doReconnect(socket: ISocket, buffer: VSBuffer): void;
+	protected abstract doReconnect(protcol: Protocol): void;
+
+	/**
+	 * Dispose/destroy everything permanently.
+	 */
 	protected abstract doDispose(): void;
 }
 
@@ -52,21 +75,22 @@ export abstract class Connection {
  * Used for all the IPC channels.
  */
 export class ManagementConnection extends Connection {
-	public constructor(protected protocol: Protocol, token: string) {
-		super(protocol, token);
+	public constructor(protocol: Protocol) {
+		super(protocol, 'management');
 		protocol.onDidDispose(() => this.dispose()); // Explicit close.
 		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
+		protocol.sendMessage({ type: 'ok' });
 	}
 
 	protected doDispose(): void {
-		this.protocol.sendDisconnect();
-		this.protocol.dispose();
-		this.protocol.getUnderlyingSocket().destroy();
+		this.protocol.destroy();
 	}
 
-	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
-		this.protocol.beginAcceptReconnection(socket, buffer);
+	protected doReconnect(protocol: Protocol): void {
+		protocol.sendMessage({ type: 'ok' });
+		this.protocol.beginAcceptReconnection(protocol.getSocket(), protocol.readEntireBuffer());
 		this.protocol.endAcceptReconnection();
+		protocol.dispose();
 	}
 }
 
@@ -85,55 +109,62 @@ type ExtHostMessage = DisconnectedMessage | ConsoleMessage | IExtHostReadyMessag
 
 export class ExtensionHostConnection extends Connection {
 	private process?: cp.ChildProcess;
-	private readonly logger: Logger;
 
 	public constructor(
-		locale: string, protocol: Protocol, buffer: VSBuffer, token: string,
+		protocol: Protocol,
+		private readonly params: IRemoteExtensionHostStartParams,
 		private readonly environment: INativeEnvironmentService,
 	) {
-		super(protocol, token);
-		this.logger = logger.named('exthost', field('token', token));
-		this.protocol.dispose();
-		this.spawn(locale, buffer).then((p) => this.process = p);
-		this.protocol.getUnderlyingSocket().pause();
+		super(protocol, 'exthost');
+
+		protocol.sendMessage({ debugPort: this.params.port });
+		const buffer = protocol.readEntireBuffer();
+		const inflateBytes = protocol.inflateBytes;
+		protocol.dispose();
+		protocol.getUnderlyingSocket().pause();
+
+		this.spawn(buffer, inflateBytes).then((p) => this.process = p);
 	}
 
 	protected doDispose(): void {
+		this.protocol.destroy();
 		if (this.process) {
 			this.process.kill();
 		}
-		this.protocol.getUnderlyingSocket().destroy();
 	}
 
-	protected doReconnect(socket: ISocket, buffer: VSBuffer): void {
-		// This is just to set the new socket.
-		this.protocol.beginAcceptReconnection(socket, null);
-		this.protocol.dispose();
-		this.sendInitMessage(buffer);
+	protected doReconnect(protocol: Protocol): void {
+		protocol.sendMessage({ debugPort: this.params.port });
+		const buffer = protocol.readEntireBuffer();
+		const inflateBytes = protocol.inflateBytes;
+		protocol.dispose();
+		protocol.getUnderlyingSocket().pause();
+		this.protocol.setSocket(protocol.getSocket());
+
+		this.sendInitMessage(buffer, inflateBytes);
 	}
 
-	private sendInitMessage(buffer: VSBuffer): void {
-		const socket = this.protocol.getUnderlyingSocket();
-		socket.pause();
+	private sendInitMessage(buffer: VSBuffer, inflateBytes: Uint8Array | undefined): void {
+		if (!this.process) {
+			throw new Error('Tried to initialize VS Code before spawning');
+		}
 
-		const wrapperSocket = this.protocol.getSocket();
+		this.logger.debug('Sending socket');
 
-		this.logger.trace('Sending socket');
-		this.process!.send({ // Process must be set at this point.
+		// TODO: Do something with the debug port.
+		this.process.send({
 			type: 'VSCODE_EXTHOST_IPC_SOCKET',
 			initialDataChunk: Buffer.from(buffer.buffer).toString('base64'),
-			skipWebSocketFrames: !(wrapperSocket instanceof WebSocketNodeSocket),
+			skipWebSocketFrames: this.protocol.options.skipWebSocketFrames,
 			permessageDeflate: this.protocol.options.permessageDeflate,
-			inflateBytes: wrapperSocket instanceof WebSocketNodeSocket
-				? Buffer.from(wrapperSocket.recordedInflateBytes.buffer).toString('base64')
-				: undefined,
-		}, socket);
+			inflateBytes: inflateBytes ? Buffer.from(inflateBytes).toString('base64') : undefined,
+		}, this.protocol.getUnderlyingSocket());
 	}
 
-	private async spawn(locale: string, buffer: VSBuffer): Promise<cp.ChildProcess> {
-		this.logger.trace('Getting NLS configuration...');
-		const config = await getNlsConfiguration(locale, this.environment.userDataPath);
-		this.logger.trace('Spawning extension host...');
+	private async spawn(buffer: VSBuffer, inflateBytes: Uint8Array | undefined): Promise<cp.ChildProcess> {
+		this.logger.debug('Getting NLS configuration...');
+		const config = await getNlsConfiguration(this.params.language, this.environment.userDataPath);
+		this.logger.debug('Spawning extension host...');
 		const proc = cp.fork(
 			FileAccess.asFileUri('bootstrap-fork', require).fsPath,
 			// While not technically necessary, makes it easier to tell which process
@@ -162,7 +193,7 @@ export class ExtensionHostConnection extends Connection {
 			this.dispose();
 		});
 		proc.on('exit', (code) => {
-			this.logger.trace('Exited', field('code', code));
+			this.logger.debug('Exited', field('code', code));
 			this.dispose();
 		});
 		if (proc.stdout && proc.stderr) {
@@ -181,12 +212,12 @@ export class ExtensionHostConnection extends Connection {
 					}
 					break;
 				case 'VSCODE_EXTHOST_DISCONNECTED':
-					this.logger.trace('Going offline');
+					this.logger.debug('Got disconnected message');
 					this.setOffline();
 					break;
 				case 'VSCODE_EXTHOST_IPC_READY':
-					this.logger.trace('Got ready message');
-					this.sendInitMessage(buffer);
+					this.logger.debug('Handshake completed');
+					this.sendInitMessage(buffer, inflateBytes);
 					break;
 				default:
 					this.logger.error('Unexpected message', field('event', event));
@@ -194,7 +225,7 @@ export class ExtensionHostConnection extends Connection {
 			}
 		});
 
-		this.logger.trace('Waiting for handshake...');
+		this.logger.debug('Waiting for handshake...');
 		return proc;
 	}
 }

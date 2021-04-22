@@ -49,24 +49,20 @@ arch() {
   esac
 }
 
-curl() {
-  command curl -H "Authorization: token $GITHUB_TOKEN" "$@"
-}
-
 # Grabs the most recent ci.yaml github workflow run that was successful and triggered from the same commit being pushd.
 # This will contain the artifacts we want.
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
   local artifacts_url
-  local workflow_runs_url="https://api.github.com/repos/cdr/code-server/actions/workflows/ci.yaml/runs?status=success&event=pull_request"
+  local workflow_runs_url="repos/:owner/:repo/actions/workflows/ci.yaml/runs?status=success&event=pull_request"
   # For releases, we look for run based on the branch name v$code_server_version
   # example: v3.9.3
   local version_branch="v$VERSION"
-  artifacts_url=$(curl -fsSL "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
+  artifacts_url=$(gh api "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then
     echo >&2 "ERROR: artifacts_url came back empty"
     echo >&2 "We looked for a successful run triggered by a pull_request with for code-server version: $code_server_version and a branch named $version_branch"
-    echo >&2 "URL used for curl call: $workflow_runs_url"
+    echo >&2 "URL used for gh API call: $workflow_runs_url"
     exit 1
   fi
 
@@ -77,7 +73,7 @@ get_artifacts_url() {
 # https://developer.github.com/v3/actions/artifacts/#list-workflow-run-artifacts
 get_artifact_url() {
   local artifact_name="$1"
-  curl -fsSL "$(get_artifacts_url)" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" | head -n 1
+  gh api "$(get_artifacts_url)" | jq -r ".artifacts[] | select(.name == \"$artifact_name\") | .archive_download_url" | head -n 1
 }
 
 # Uses the above two functions to download a artifact into a directory.
@@ -88,7 +84,7 @@ download_artifact() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  curl -fsSL "$(get_artifact_url "$artifact_name")" >"$tmp_file"
+  gh api "$(get_artifact_url "$artifact_name")" >"$tmp_file"
   unzip -q -o "$tmp_file" -d "$dst"
   rm "$tmp_file"
 }

@@ -31,14 +31,23 @@ master).
 
 The prerequisites for contributing to code-server are almost the same as those for
 [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
-There are several differences, however. You must:
+There are several differences, however. Here is what is needed:
 
-- Use Node.js version 12.x (or greater)
-- Have [yarn](https://classic.yarnpkg.com/en/) installed (which is used to install JS packages and run development scripts)
-- Have [nfpm](https://github.com/goreleaser/nfpm) (which is used to build `.deb` and `.rpm` packages and [jq](https://stedolan.github.io/jq/) (used to build code-server releases) installed
-
-The [CI container](../ci/images/debian10/Dockerfile) is a useful reference for all
-of the dependencies code-server uses.
+- `node` v12.x or greater
+- `git` v2.x or greater
+- [`yarn`](https://classic.yarnpkg.com/en/)
+  - used to install JS packages and run scripts
+- [`nfpm`](https://classic.yarnpkg.com/en/)
+  - used to build `.deb` and `.rpm` packages
+- [`jq`](https://stedolan.github.io/jq/)
+  - used to build code-server releases
+- [`gnupg`](https://gnupg.org/index.html)
+  - all commits must be signed an verified
+  - see GitHub's ["Managing commit signature verification"](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification) or follow [this tutorial](https://joeprevite.com/verify-commits-on-github)
+- `build-essential` (Linux)
+  - `apt-get install -y build-essential` - used by VS Code
+- `rsync` and `unzip`
+  - used for code-server releases
 
 ## Development Workflow
 
@@ -48,16 +57,12 @@ yarn watch
 # Visit http://localhost:8080 once the build is completed.
 ```
 
-To develop inside an isolated Docker container:
-
-```shell
-./ci/dev/image/run.sh yarn
-./ci/dev/image/run.sh yarn watch
-```
-
 `yarn watch` will live reload changes to the source.
 
 ### Updating VS Code
+
+Updating VS Code requires `git subtree`. On some rpm-based Linux distros, `git subtree` is not included by default, and needs to be installed separately.
+To install, run `dnf install git-subtree` or `yum install git-subtree` as necessary.
 
 To update VS Code, follow these steps:
 
@@ -77,7 +82,9 @@ To update VS Code, follow these steps:
 You can build using:
 
 ```shell
-./ci/dev/image/run.sh ./ci/steps/release.sh
+yarn build
+yarn build:vscode
+yarn release
 ```
 
 Run your build with:
@@ -89,24 +96,7 @@ yarn --production
 node .
 ```
 
-Build the release packages (make sure that you run `./ci/steps/release.sh` first):
-
-```shell
-IMAGE=centos7 ./ci/dev/image/run.sh ./ci/steps/release-packages.sh
-# The standalone release is in ./release-standalone
-# .deb, .rpm and the standalone archive are in ./release-packages
-```
-
-The `release.sh` script is equal to running:
-
-```shell
-yarn
-yarn build
-yarn build:vscode
-yarn release
-```
-
-And `release-packages.sh` is equal to:
+Build the release packages (make sure that you run `yarn release` first):
 
 ```shell
 yarn release:standalone
@@ -114,12 +104,10 @@ yarn test:standalone-release
 yarn package
 ```
 
-For a faster release build, you can run instead:
-
-```shell
-KEEP_MODULES=1 ./ci/steps/release.sh
-node ./release
-```
+NOTE: On Linux, the currently running distro will become the minimum supported version.
+In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
+If you need your builds to support older distros, run the build commands
+inside a Docker container with all the build requirements installed.
 
 ## Structure
 

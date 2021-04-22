@@ -5,7 +5,6 @@ import { localize } from 'vs/nls';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
-import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
 import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { Registry } from 'vs/platform/registry/common/platform';
@@ -13,7 +12,7 @@ import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storag
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
-import { LocalizationsService } from 'vs/workbench/services/localizations/electron-sandbox/localizationsService';
+import 'vs/workbench/services/localizations/browser/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 
 class TelemetryService extends TelemetryChannelClient {
@@ -60,7 +59,6 @@ Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfigurat
 	}
 });
 
-registerSingleton(ILocalizationsService, LocalizationsService);
 registerSingleton(ITelemetryService, TelemetryService);
 
 /**

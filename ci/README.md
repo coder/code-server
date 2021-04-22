@@ -24,8 +24,7 @@ Any file or directory in this subdirectory should be documented here.
    - It will upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
    - Especially make sure the terminal works fine.
-7. Make sure the github release tag is the commit with the artifacts. This is a bug in
-   `hub` where uploading assets in step 5 will break the tag.
+7. Make sure the github release tag is the commit with the artifacts.
 8. Publish the release and merge the PR.
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.
@@ -106,10 +105,10 @@ You can disable minification by setting `MINIFY=`.
 - [./ci/build/code-server.service](./build/code-server.service)
   - systemd user service packaged into the `.deb` and `.rpm`.
 - [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
-  - Uses [hub](https://github.com/github/hub) to create a draft release with a template description.
+  - Uses [gh](https://github.com/cli/cli) to create a draft release with a template description.
 - [./ci/build/release-github-assets.sh](./build/release-github-assets.sh) (`yarn release:github-assets`)
   - Downloads the release-package artifacts for the current commit from CI.
-  - Uses [hub](https://github.com/github/hub) to upload the artifacts to the release
+  - Uses [gh](https://github.com/cli/cli) to upload the artifacts to the release
     specified in `package.json`.
 - [./ci/build/npm-postinstall.sh](./build/npm-postinstall.sh)
   - Post install script for the npm package.

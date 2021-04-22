@@ -41,7 +41,7 @@ export const register = async (
         if (error) {
           return reject(error)
         }
-        logger.trace(plural(count, `${count} active connection`))
+        logger.debug(plural(count, `${count} active connection`))
         resolve(count > 0)
       })
     })

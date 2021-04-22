@@ -2,19 +2,19 @@
   "license": "MIT",
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
   "devDependencies": {
+    "@playwright/test": "^0.1101.0-alpha2",
     "@types/jest": "^26.0.20",
     "@types/jsdom": "^16.2.6",
     "@types/node-fetch": "^2.5.8",
     "@types/supertest": "^2.0.10",
     "jest": "^26.6.3",
-    "jest-playwright-preset": "^1.5.1",
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.1",
-    "playwright": "^1.8.0",
-    "playwright-chromium": "^1.10.0",
-    "playwright-firefox": "^1.10.0",
-    "playwright-webkit": "^1.10.0",
+    "playwright": "^1.11.0-next-alpha-apr-13-2021",
     "supertest": "^6.1.1",
     "ts-jest": "^26.4.4"
+  },
+  "resolutions": {
+    "@playwright/test/playwright": "^1.11.0-next-alpha-apr-13-2021"
   }
 }
