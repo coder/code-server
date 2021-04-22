@@ -3452,7 +3452,7 @@ express-openid-connect@^2.3.1:
     futoin-hkdf "^1.3.2"
     http-errors "^1.7.3"
     joi "^17.4.0"
-    jose "^2.0.0"
+    jose "^2.0.5"
     on-headers "^1.0.2"
     openid-client "^4.0.0"
     p-memoize "^4.0.0"
@@ -5647,7 +5647,7 @@ openid-client@^4.0.0:
   dependencies:
     aggregate-error "^3.1.0"
     got "^11.8.0"
-    jose "^2.0.4"
+    jose "^2.0.5"
     lru-cache "^6.0.0"
     make-error "^1.3.6"
     object-hash "^2.0.1"
