@@ -1,4 +1,6 @@
+import * as fs from "fs"
 import { commit, getPackageJson, version } from "../../src/node/constants"
+import { tmpdir } from "../../test/utils/constants"
 import { loggerModule } from "../utils/helpers"
 
 // jest.mock is hoisted above the imports so we must use `require` here.
@@ -48,6 +50,19 @@ describe("constants", () => {
       // In development, the commit is not stored in our package.json
       // But when we build code-server and release it, it is
       expect(commit).toBe("development")
+    })
+  })
+})
+
+describe("test constants", () => {
+  describe("tmpdir", () => {
+    it("should return a temp directory", async () => {
+      const testName = "temp-dir"
+      const pathToTempDir = await tmpdir(testName)
+
+      expect(pathToTempDir).toContain(testName)
+
+      await fs.promises.rmdir(pathToTempDir)
     })
   })
 })

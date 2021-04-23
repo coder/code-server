@@ -47,7 +47,7 @@ export class CodeServer {
    */
   async isEditorVisible() {
     // Make sure the editor actually loaded
-    // If it's not visible after 2 seconds, something is wrong
+    // If it's not visible after 5 seconds, something is wrong
     await this.page.waitForLoadState("networkidle")
     return await this.page.isVisible("div.monaco-workbench", { timeout: 5000 })
   }

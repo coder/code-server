@@ -1,10 +1,10 @@
 import { test, expect } from "@playwright/test"
+import * as cp from "child_process"
 import * as fs from "fs"
-import { tmpdir } from "os"
+// import { tmpdir } from "os"
 import * as path from "path"
 import util from "util"
-import * as cp from "child_process"
-import { STORAGE } from "../utils/constants"
+import { STORAGE, tmpdir } from "../utils/constants"
 import { CodeServer } from "./models/CodeServer"
 
 test.describe("Integrated Terminal", () => {
@@ -14,8 +14,8 @@ test.describe("Integrated Terminal", () => {
   const testFileName = "pipe"
   const testString = "new string test from e2e test"
   let codeServer: CodeServer
-  let tmpFolderPath: string = ""
-  let tmpFile: string = ""
+  let tmpFolderPath = ""
+  let tmpFile = ""
 
   // TODO@jsjoeio
   // Fix this once https://github.com/microsoft/playwright-test/issues/240
@@ -26,20 +26,19 @@ test.describe("Integrated Terminal", () => {
       storageState,
     }
   }
-  test.beforeEach(async ({ page }) => {
-    codeServer = new CodeServer(page)
-    await codeServer.setup()
-    // NOTE@jsjoeio
-    // We're not using tmpdir from src/node/constants
-    // because Playwright doesn't fully support ES modules from
-    // the erorrs I'm seeing
-    tmpFolderPath = fs.mkdtempSync(path.join(tmpdir(), "code-server-test"))
+  test.beforeAll(async () => {
+    tmpFolderPath = await tmpdir("integrated-terminal")
     tmpFile = path.join(tmpFolderPath, testFileName)
   })
 
-  test.afterEach(async () => {
+  test.beforeEach(async ({ page }) => {
+    codeServer = new CodeServer(page)
+    await codeServer.setup()
+  })
+
+  test.afterAll(async () => {
     // Ensure directory was removed
-    fs.rmdirSync(tmpFolderPath, { recursive: true })
+    await fs.promises.rmdir(tmpFolderPath, { recursive: true })
   })
 
   test("should echo a string to a file", options, async ({ page }) => {
@@ -56,22 +55,5 @@ test.describe("Integrated Terminal", () => {
 
     const { stdout } = await output
     expect(stdout).toMatch(testString)
-
-    // .access checks if the file exists without opening it
-    // it doesn't return anything hence why we expect it to
-    // resolve to undefined
-    // If the promise rejects (i.e. the file doesn't exist)
-    // then the assertion will fail
-    await expect(fs.promises.access(tmpFile)).resolves.toBeUndefined()
-
-    await fs.promises.rmdir(tmpFolderPath, { recursive: true })
-    // Make sure neither file nor folder exist
-    // Note: We have to use ts-ignore because of an upstream typing error
-    // See: https://github.com/microsoft/folio/issues/230#event-4621948411
-    /* eslint-disable @typescript-eslint/ban-ts-comment */
-    // @ts-ignore
-    expect(fs.promises.access(tmpFile)).rejects.toThrowError(/no such file or directory/)
-    // @ts-ignore
-    expect(fs.promises.access(tmpFolderPath)).rejects.toThrowError(/no such file or directory/)
   })
 })
