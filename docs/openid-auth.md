@@ -1,6 +1,6 @@
 # Configuring OpenID authentication
 
-The purpose of this guide is to demonstrate the process of configuring an OpenID application as an authentication and authorization source for Code-Server.
+The purpose of this guide is to demonstrate the process of configuring an OpenID application as an authentication and authorization source for code-server.
 
 More information regarding how OpenID Connect works can be found here:
 
@@ -11,9 +11,9 @@ More information regarding how OpenID Connect works can be found here:
 ## Prerequisites
 
 - Either Keycloak has been deployed or an existing Auth0/Okta account exists.
-  - Auth0 Signup: https://auth0.com/signup
-  - Okta Signup: https://developer.okta.com/signup/
-  - Getting started with Keycloak: https://www.keycloak.org/docs/latest/getting_started/
+  - Auth0 Signup: <https://auth0.com/signup>
+  - Okta Signup: <https://developer.okta.com/signup/>
+  - Getting started with Keycloak: <https://www.keycloak.org/docs/latest/getting_started/>
 - A value needs to be generated for `openid-secret`. This value will be used to encrypt the OpenID Connect session token.
   - MacOS/Linux: `openssl rand -base64 25`
   - Windows: <https://activedirectoryfaq.com/2017/08/creating-individual-random-passwords/>
