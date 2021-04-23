@@ -105,7 +105,6 @@ describe("register", () => {
       const location: LocationLike = {
         pathname: "",
         origin: "http://localhost:8080",
-        // search: "?environmentId=600e0187-0909d8a00cb0a394720d4dce",
       }
       const { window } = new JSDOM()
       global.window = (window as unknown) as Window & typeof globalThis
