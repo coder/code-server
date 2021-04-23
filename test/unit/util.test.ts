@@ -16,7 +16,7 @@ import { loggerModule } from "../utils/helpers"
 const dom = new JSDOM()
 global.document = dom.window.document
 
-type LocationLike = Pick<Location, "pathname" | "origin">
+export type LocationLike = Pick<Location, "pathname" | "origin">
 
 // jest.mock is hoisted above the imports so we must use `require` here.
 jest.mock("@coder/logger", () => require("../utils/helpers").loggerModule)
