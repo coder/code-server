@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom"
-import { loggerModule } from "../utils/helpers"
 import { registerServiceWorker } from "../../src/browser/register"
+import { loggerModule } from "../utils/helpers"
 import { LocationLike } from "./util.test"
 
 describe("register", () => {
