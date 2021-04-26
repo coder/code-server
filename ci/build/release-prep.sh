@@ -43,14 +43,6 @@ main() {
     exit
   fi
 
-  # Check that they have sd installed
-  if ! command -v sd &>/dev/null; then
-    echo "sd could not be found."
-    echo "We use this when updating files across the codebase."
-    echo -e "See docs here: https://github.com/chmln/sd#installation"
-    exit
-  fi
-
   # Check that they have node installed
   if ! command -v node &>/dev/null; then
     echo "node could not be found."
@@ -94,10 +86,6 @@ main() {
   # Ensure the tests are passing and code coverage is up-to-date
   echo -e "Running unit tests and updating code coverage...\n"
   $CMD yarn test:unit
-  # Updates the Lines badge in the README
-  $CMD yarn badges
-  # Updates the svg to be green for the badge
-  $CMD sd "red.svg" "green.svg" ./README.md
 
   $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
 
