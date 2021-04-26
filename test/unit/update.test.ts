@@ -1,9 +1,9 @@
 import { promises as fs } from "fs"
 import * as http from "http"
 import * as path from "path"
+import { tmpdir } from "../../src/node/constants"
 import { SettingsProvider, UpdateSettings } from "../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../src/node/update"
-import { tmpdir } from "../../src/node/util"
 
 describe.skip("update", () => {
   let version = "1.0.0"
