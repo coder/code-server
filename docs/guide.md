@@ -195,6 +195,15 @@ mydomain.com
 reverse_proxy 127.0.0.1:8080
 ```
 
+If you want to serve `code-server` from a sub-path, below is sample configuration for Caddy:
+
+```
+mydomain.com/code/* {
+  uri strip_prefix /code
+  reverse_proxy 127.0.0.1:8080
+}
+```
+
 Remember to replace `mydomain.com` with your domain name!
 
 5. Reload caddy with:
