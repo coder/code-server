@@ -36,20 +36,6 @@ Any file or directory in this subdirectory should be documented here.
     1. Install [homebrew](https://brew.sh/)
     2. Run `brew bump-formula-pr --version=3.8.1 code-server` and update the version accordingly. This will bump the version and open a PR. Note: this will only work once the version is published on npm.
 
-## Updating Code Coverage in README
-
-Currently, we run a command to manually generate the code coverage shield. Follow these steps:
-
-1. Run `yarn test:unit` and make sure all the tests are passing
-2. Run `yarn badges`
-3. Go into the README and change the color from `red` to `green` in this line:
-
-```
-![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
-```
-
-NOTE: we have to manually change the color because the default is red if coverage is less than 80. See code [here](https://github.com/olavoparno/istanbul-badges-readme/blob/develop/src/editor.ts#L24-L33).
-
 ## dev
 
 This directory contains scripts used for the development of code-server.
