@@ -63,6 +63,7 @@ export class CodeServer {
     const isTerminalVisible = await this.page.isVisible("#terminal")
     if (isTerminalVisible) {
       await this.page.keyboard.press(`Control+Backquote`)
+      // TODO fix this
       // Wait for terminal to receive focus
       await this.page.waitForSelector("div.terminal.xterm.focus")
       // Sometimes the terminal reloads
