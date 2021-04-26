@@ -330,8 +330,8 @@ Once this is done, replicate the issue you're having then collect logging
 information from the following places:
 
 1. The most recent files from `~/.local/share/code-server/coder-logs`.
-2. The most recently created directory in the `~/.local/share/code-server/logs` directory.
-3. The browser console and network tabs.
+2. The browser console.
+3. The browser network tab.
 
 Additionally, collecting core dumps (you may need to enable them first) if
 code-server crashes can be helpful.
