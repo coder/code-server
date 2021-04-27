@@ -5,6 +5,7 @@ import { CODE_SERVER_ADDRESS } from "../../utils/constants"
 // See Playwright docs: https://playwright.dev/docs/pom/
 export class CodeServer {
   page: Page
+  editorSelector = "div.monaco-workbench"
 
   constructor(page: Page) {
     this.page = page
@@ -30,15 +31,18 @@ export class CodeServer {
     // but usually a reload or two fixes it
     // TODO@jsjoeio @oxy look into Firefox reconnection/timeout issues
     while (!editorIsVisible) {
+      // When a reload happens, we want to wait for all resources to be
+      // loaded completely. Hence why we use that instead of DOMContentLoaded
+      // Read more: https://thisthat.dev/dom-content-loaded-vs-load/
+      await this.page.waitForLoadState("load")
+      // Give it an extra second just in case it's feeling extra slow
+      await this.page.waitForTimeout(1000)
       reloadCount += 1
       if (await this.isEditorVisible()) {
         console.log(`    Editor became visible after ${reloadCount} reloads`)
         break
       }
-      // When a reload happens, we want to wait for all resources to be
-      // loaded completely. Hence why we use that instead of DOMContentLoaded
-      // Read more: https://thisthat.dev/dom-content-loaded-vs-load/
-      await this.page.reload({ waitUntil: "load" })
+      await this.page.reload()
     }
   }
 
@@ -49,28 +53,19 @@ export class CodeServer {
     // Make sure the editor actually loaded
     // If it's not visible after 5 seconds, something is wrong
     await this.page.waitForLoadState("networkidle")
-    return await this.page.isVisible("div.monaco-workbench", { timeout: 5000 })
+    return await this.page.isVisible(this.editorSelector)
   }
 
   /**
    * Focuses Integrated Terminal
-   * by going to the Application Menu
-   * and clicking View > Terminal
+   * by using "Terminal: Focus Terminal"
+   * from the Command Palette
+   *
+   * This should focus the terminal no matter
+   * if it already has focus and/or is or isn't
+   * visible already.
    */
   async focusTerminal() {
-    // If the terminal is already visible
-    // then we can focus it by hitting the keyboard shortcut
-    const isTerminalVisible = await this.page.isVisible("#terminal")
-    if (isTerminalVisible) {
-      await this.page.keyboard.press(`Control+Backquote`)
-      // Wait for terminal to receive focus
-      await this.page.waitForSelector("div.terminal.xterm.focus")
-      // Sometimes the terminal reloads
-      // which is why we wait for it twice
-      await this.page.waitForSelector("div.terminal.xterm.focus")
-      return
-    }
-    // Open using the manu
     // Click [aria-label="Application Menu"] div[role="none"]
     await this.page.click('[aria-label="Application Menu"] div[role="none"]')
 
@@ -78,17 +73,19 @@ export class CodeServer {
     await this.page.hover("text=View")
     await this.page.click("text=View")
 
-    // Click text=Terminal
-    await this.page.hover("text=Terminal")
-    await this.page.click("text=Terminal")
+    // Click text=Command Palette
+    await this.page.hover("text=Command Palette")
+    await this.page.click("text=Command Palette")
 
-    // Wait for terminal to receive focus
-    // Sometimes the terminal reloads once or twice
-    // which is why we wait for it to have the focus class
-    await this.page.waitForSelector("div.terminal.xterm.focus")
-    // Sometimes the terminal reloads
-    // which is why we wait for it twice
-    await this.page.waitForSelector("div.terminal.xterm.focus")
+    // Type Terminal: Focus Terminal
+    await this.page.keyboard.type("Terminal: Focus Terminal")
+
+    // Click Terminal: Focus Terminal
+    await this.page.hover("text=Terminal: Focus Terminal")
+    await this.page.click("text=Terminal: Focus Terminal")
+
+    // Wait for terminal textarea to show up
+    await this.page.waitForSelector("textarea.xterm-helper-textarea")
   }
 
   /**
