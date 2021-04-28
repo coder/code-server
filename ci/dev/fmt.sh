@@ -30,6 +30,7 @@ main() {
   doctoc --title '# Maintaining' docs/MAINTAINING.md >/dev/null
   doctoc --title '# Contributor Covenant Code of Conduct' docs/CODE_OF_CONDUCT.md >/dev/null
   doctoc --title '# iPad' docs/ipad.md >/dev/null
+  doctoc --title '# Termux' docs/termux.md >/dev/null
 
   if [[ ${CI-} && $(git ls-files --other --modified --exclude-standard) ]]; then
     echo "Files need generation or are formatted incorrectly:"
