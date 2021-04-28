@@ -30,6 +30,7 @@
 - [How does the config file work?](#how-does-the-config-file-work)
 - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
 - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+- [How do I access my Documents/Downloads/Desktop folders in code-server on OSX?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-osx)
 - [Differences compared to Theia?](#differences-compared-to-theia)
 - [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
 - [Enterprise](#enterprise)
@@ -38,7 +39,7 @@
 
 ## Questions?
 
-Please file all questions and support requests at https://github.com/cdr/code-server/discussions.
+Please file all questions and support requests at <https://github.com/cdr/code-server/discussions>.
 
 ## iPad Status?
 
@@ -97,7 +98,7 @@ code-server --install-extension <extension id>
 ## How can I request a missing extension?
 
 We are currently in the process of transitioning to [Open VSX](https://open-vsx.org/).
-Once https://github.com/eclipse/openvsx/issues/249
+Once <https://github.com/eclipse/openvsx/issues/249>
 is implemented, we can fully make this transition. Therefore, we are no longer
 accepting new requests for extension requests.
 
@@ -139,7 +140,7 @@ While you can technically use Microsoft's marketplace with these, please do not 
 is against their terms of use. See [above](#differences-compared-to-vs-code) and this
 discussion regarding the use of the Microsoft URLs in forks:
 
-https://github.com/microsoft/vscode/issues/31168#issue-244533026
+<https://github.com/microsoft/vscode/issues/31168#issue-244533026>
 
 See also [VSCodium's docs](https://github.com/VSCodium/vscodium/blob/master/DOCS.md#extensions--marketplace).
 
@@ -250,7 +251,7 @@ ensure your reverse proxy forwards that information if you are using one.
 
 HTTP servers should strive to use relative URLs to avoid needed to be coupled to the
 absolute path at which they are served. This means you must use trailing slashes on all
-paths with subpaths. See https://blog.cdivilly.com/2019/02/28/uri-trailing-slashes
+paths with subpaths. See <https://blog.cdivilly.com/2019/02/28/uri-trailing-slashes>
 
 This is really the "correct" way things work and why the striping of the base path is the
 default. If your application uses relative URLs and does not assume the absolute path at
@@ -399,6 +400,25 @@ Once you've entered the editor, click the "plus" icon present in the URL toolbar
 This will install a Chrome PWA and now all keybindings will work!
 
 For other browsers you'll have to remap keybindings unfortunately.
+
+## How do I access my Documents/Downloads/Desktop folders in code-server on OSX?
+
+Newer versions of macOS require permission through a non-UNIX mechanism for access to the Desktop, Documents, Pictures, Downloads, and other folders.
+
+You may have to give Node "full disk access" since it doesn't implement any of the macOS permission request stuff natively.
+
+1. Find where Node is installed on your machine
+
+   ```console
+   ➜ ~ which node
+   /usr/local/bin/node
+   ```
+
+1. Grant Node Full Disk Access:
+
+Open System Preferences > Security & Privacy > Privacy (horizontal) tab > Full Disk Access (vertical) tab > Click the 🔒 to unlock > Click + and select the Node binary you located.
+
+See [#2794](https://github.com/cdr/code-server/issues/2794) for context on this.
 
 ## Differences compared to Theia?
 
