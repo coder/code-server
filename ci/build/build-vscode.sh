@@ -10,8 +10,7 @@ main() {
   cd "$(dirname "${0}")/../.."
   cd lib/vscode
 
-  yarn gulp compile-build
-  yarn gulp compile-extensions-build
+  yarn gulp compile-build compile-extensions-build
   yarn gulp optimize --gulpfile ./coder.js
   if [[ $MINIFY ]]; then
     yarn gulp minify --gulpfile ./coder.js
