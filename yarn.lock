@@ -4697,6 +4697,11 @@ jsprim@^1.2.2:
     json-schema "0.2.3"
     verror "1.10.0"
 
+just-performance@4.2.0:
+  version "4.2.0"
+  resolved "https://registry.yarnpkg.com/just-performance/-/just-performance-4.2.0.tgz#5509e348febde87072665d8325781573e2129f85"
+  integrity sha512-4TikKSf+Gb+Et5SnA4ppyrxLSf9qWFq+SqfdDdrgHE1KLwSch/Zi1AQB0TrE4ppYjZdUrHnwdx+6dyx0cx/HyA==
+
 kind-of@^3.0.2, kind-of@^3.0.3, kind-of@^3.2.0:
   version "3.2.2"
   resolved "https://registry.yarnpkg.com/kind-of/-/kind-of-3.2.2.tgz#31ea21a734bab9bbb0f32466d893aea51e4a3c64"
@@ -4751,10 +4756,12 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-limiter@^1.1.5:
-  version "1.1.5"
-  resolved "https://registry.yarnpkg.com/limiter/-/limiter-1.1.5.tgz#8f92a25b3b16c6131293a0cc834b4a838a2aa7c2"
-  integrity sha512-FWWMIEOxz3GwUI4Ts/IvgVy6LPvoMPgjMdQ185nN6psJyBJ4yOpzqm695/h5umdLJg2vW3GR5iG11MAkR2AzJA==
+limiter@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/limiter/-/limiter-2.0.0.tgz#09b47001414bd53de3b4c1d70fe1aebe8febe1ba"
+  integrity sha512-1Y47ll42xmYYZJpfngHF0wOQSXF1ce8+V4zYixCPLwj9gZ19xTJELAlhQ03bTY/FsMjLkqvRF0R84uaB8/kjlg==
+  dependencies:
+    just-performance "4.2.0"
 
 lines-and-columns@^1.1.6:
   version "1.1.6"
