@@ -15,9 +15,6 @@ extends:
   - plugin:import/recommended
   - plugin:import/typescript
   - plugin:prettier/recommended
-  # Recommended by jest-playwright
-  # https://github.com/playwright-community/jest-playwright#globals
-  - plugin:jest-playwright/recommended
   # Prettier should always be last
   # Removes eslint rules that conflict with prettier.
   - prettier
