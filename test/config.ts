@@ -52,6 +52,7 @@ const config: Config = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
   timeout: 60000, // Each test is given 60 seconds.
   retries: 3, // Retry failing tests 2 times
+  workers: 1,
 }
 
 if (process.env.CI) {
