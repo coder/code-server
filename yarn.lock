@@ -3141,11 +3141,6 @@ eslint-plugin-import@^2.18.2:
     resolve "^1.17.0"
     tsconfig-paths "^3.9.0"
 
-eslint-plugin-jest-playwright@^0.2.1:
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/eslint-plugin-jest-playwright/-/eslint-plugin-jest-playwright-0.2.1.tgz#8778fee9d5915132a03d94370d3eea0a7ddd08f3"
-  integrity sha512-BicKUJUpVPsLbHN8c5hYaZn6pv8PCMjBGHXUfvlY1p75fh4APVfX2gTK14HuiR8/Bv3fKBQu5MTaqCro4E3OHg==
-
 eslint-plugin-prettier@^3.1.0:
   version "3.4.0"
   resolved "https://registry.yarnpkg.com/eslint-plugin-prettier/-/eslint-plugin-prettier-3.4.0.tgz#cdbad3bf1dbd2b177e9825737fe63b476a08f0c7"
