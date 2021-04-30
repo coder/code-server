@@ -20,17 +20,20 @@ export class CodeServer {
 
   /**
    * Checks if the editor is visible
-   * and reloads until it is
+   * and that we are connected to the host
+   *
+   * Reload until both checks pass
    */
-  async reloadUntilEditorIsVisible() {
+  async reloadUntilEditorIsReady() {
     const editorIsVisible = await this.isEditorVisible()
+    const editorIsConnected = await this.isConnected()
     let reloadCount = 0
 
     // Occassionally code-server timeouts in Firefox
     // we're not sure why
     // but usually a reload or two fixes it
     // TODO@jsjoeio @oxy look into Firefox reconnection/timeout issues
-    while (!editorIsVisible) {
+    while (!editorIsVisible && !editorIsConnected) {
       // When a reload happens, we want to wait for all resources to be
       // loaded completely. Hence why we use that instead of DOMContentLoaded
       // Read more: https://thisthat.dev/dom-content-loaded-vs-load/
@@ -38,8 +41,8 @@ export class CodeServer {
       // Give it an extra second just in case it's feeling extra slow
       await this.page.waitForTimeout(1000)
       reloadCount += 1
-      if (await this.isEditorVisible()) {
-        console.log(`    Editor became visible after ${reloadCount} reloads`)
+      if ((await this.isEditorVisible()) && (await this.isConnected)) {
+        console.log(`    Editor became ready after ${reloadCount} reloads`)
         break
       }
       await this.page.reload()
@@ -62,17 +65,11 @@ export class CodeServer {
   async isConnected() {
     await this.page.waitForLoadState("networkidle")
 
-    // See [aria-label="Remote Host"]
-    const hostElement = await this.page.$(`[aria-label="Remote Host"]`)
-    // Returns something like " localhost:8080"
-    const host = await hostElement?.innerText()
+    const host = new URL(CODE_SERVER_ADDRESS).host
+    const hostSelector = `[title="Editing on ${host}"]`
+    await this.page.waitForSelector(hostSelector)
 
-    // Check if host (localhost:8080) is in the CODE_SERVER_ADDRESS
-    // if it is, we're connected!
-    // if not, we may need to reload the page
-    // Make sure to trim whitespace too
-    const isEditorConnected = host ? CODE_SERVER_ADDRESS.includes(host.trim()) : false
-    return isEditorConnected
+    return await this.page.isVisible(hostSelector)
   }
 
   /**
@@ -109,12 +106,12 @@ export class CodeServer {
 
   /**
    * Navigates to CODE_SERVER_ADDRESS
-   * and reloads until the editor is visible
+   * and reloads until the editor is ready
    *
    * Helpful for running before tests
    */
   async setup() {
     await this.navigate()
-    await this.reloadUntilEditorIsVisible()
+    await this.reloadUntilEditorIsReady()
   }
 }

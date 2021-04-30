@@ -38,7 +38,7 @@ test.describe("CodeServer", () => {
     expect(await codeServer.isEditorVisible()).toBe(true)
   })
 
-  test.only("should always have a connection", options, async ({ page }) => {
+  test("should always have a connection", options, async ({ page }) => {
     expect(await codeServer.isConnected()).toBe(true)
   })
 
