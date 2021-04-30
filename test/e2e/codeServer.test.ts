@@ -38,6 +38,10 @@ test.describe("CodeServer", () => {
     expect(await codeServer.isEditorVisible()).toBe(true)
   })
 
+  test.only("should always have a connection", options, async ({ page }) => {
+    expect(await codeServer.isConnected()).toBe(true)
+  })
+
   test("should show the Integrated Terminal", options, async ({ page }) => {
     await codeServer.focusTerminal()
     expect(await page.isVisible("#terminal")).toBe(true)

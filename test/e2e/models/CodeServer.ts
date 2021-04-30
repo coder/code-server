@@ -57,6 +57,25 @@ export class CodeServer {
   }
 
   /**
+   * Checks if the editor is visible
+   */
+  async isConnected() {
+    await this.page.waitForLoadState("networkidle")
+
+    // See [aria-label="Remote Host"]
+    const hostElement = await this.page.$(`[aria-label="Remote Host"]`)
+    // Returns something like " localhost:8080"
+    const host = await hostElement?.innerText()
+
+    // Check if host (localhost:8080) is in the CODE_SERVER_ADDRESS
+    // if it is, we're connected!
+    // if not, we may need to reload the page
+    // Make sure to trim whitespace too
+    const isEditorConnected = host ? CODE_SERVER_ADDRESS.includes(host.trim()) : false
+    return isEditorConnected
+  }
+
+  /**
    * Focuses Integrated Terminal
    * by using "Terminal: Focus Terminal"
    * from the Command Palette
