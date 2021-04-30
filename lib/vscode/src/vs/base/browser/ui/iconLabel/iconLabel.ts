@@ -11,12 +11,12 @@ import { Disposable, IDisposable } from 'vs/base/common/lifecycle';
 import { Range } from 'vs/base/common/range';
 import { equals } from 'vs/base/common/objects';
 import { IHoverDelegate, IHoverDelegateOptions, IHoverDelegateTarget } from 'vs/base/browser/ui/iconLabel/iconHoverDelegate';
-import { AnchorPosition } from 'vs/base/browser/ui/contextview/contextview';
 import { IMarkdownString } from 'vs/base/common/htmlContent';
 import { isFunction, isString } from 'vs/base/common/types';
 import { domEvent } from 'vs/base/browser/event';
 import { localize } from 'vs/nls';
 import { CancellationToken, CancellationTokenSource } from 'vs/base/common/cancellation';
+import { HoverPosition } from 'vs/base/browser/ui/hover/hoverWidget';
 
 export interface IIconLabelCreationOptions {
 	supportHighlights?: boolean;
@@ -222,12 +222,12 @@ export class IconLabel extends Disposable {
 		let isHovering = false;
 		let tokenSource: CancellationTokenSource;
 		let hoverDisposable: IDisposable | undefined;
-		function mouseOver(this: HTMLElement, e: MouseEvent): any {
+		function mouseOver(this: HTMLElement, e: MouseEvent): void {
 			if (isHovering) {
 				return;
 			}
 			tokenSource = new CancellationTokenSource();
-			function mouseLeaveOrDown(this: HTMLElement, e: MouseEvent): any {
+			function mouseLeaveOrDown(this: HTMLElement, e: MouseEvent): void {
 				const isMouseDown = e.type === dom.EventType.MOUSE_DOWN;
 				if (isMouseDown) {
 					hoverDisposable?.dispose();
@@ -245,7 +245,7 @@ export class IconLabel extends Disposable {
 			const mouseDownDisposable = domEvent(htmlElement, dom.EventType.MOUSE_DOWN, true)(mouseLeaveOrDown.bind(htmlElement));
 			isHovering = true;
 
-			function mouseMove(this: HTMLElement, e: MouseEvent): any {
+			function mouseMove(this: HTMLElement, e: MouseEvent): void {
 				mouseX = e.x;
 			}
 			const mouseMoveDisposable = domEvent(htmlElement, dom.EventType.MOUSE_MOVE, true)(mouseMove.bind(htmlElement));
@@ -260,7 +260,7 @@ export class IconLabel extends Disposable {
 						hoverOptions = {
 							text: localize('iconLabel.loading', "Loading..."),
 							target,
-							anchorPosition: AnchorPosition.BELOW
+							hoverPosition: HoverPosition.BELOW
 						};
 						hoverDisposable = IconLabel.adjustXAndShowCustomHover(hoverOptions, mouseX, hoverDelegate, isHovering);
 
@@ -269,7 +269,7 @@ export class IconLabel extends Disposable {
 							hoverOptions = {
 								text: resolvedTooltip,
 								target,
-								anchorPosition: AnchorPosition.BELOW
+								hoverPosition: HoverPosition.BELOW
 							};
 							// awaiting the tooltip could take a while. Make sure we're still hovering.
 							hoverDisposable = IconLabel.adjustXAndShowCustomHover(hoverOptions, mouseX, hoverDelegate, isHovering);

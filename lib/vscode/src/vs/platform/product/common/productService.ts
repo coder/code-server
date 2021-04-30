@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { createDecorator } from 'vs/platform/instantiation/common/instantiation';
-import { ExtensionKind } from 'vs/platform/extensions/common/extensions';
-import { IStringDictionary } from 'vs/base/common/collections';
+import { IProductConfiguration } from 'vs/base/common/product';
 
 export const IProductService = createDecorator<IProductService>('productService');
 
@@ -14,6 +13,7 @@ export interface IProductService extends Readonly<IProductConfiguration> {
 	readonly _serviceBrand: undefined;
 
 }
+<<<<<<< HEAD
 
 export interface IBuiltInExtension {
 	readonly name: string;
@@ -171,3 +171,5 @@ export interface ISurveyData {
 	editCount: number;
 	userProbability: number;
 }
+=======
+>>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f

@@ -168,7 +168,7 @@ export class Menubar {
 		// Keep flag when app quits
 		this.lifecycleMainService.onWillShutdown(() => this.willShutdown = true);
 
-		// // Listen to some events from window service to update menu
+		// Listen to some events from window service to update menu
 		this.windowsMainService.onDidChangeWindowsCount(e => this.onDidChangeWindowsCount(e));
 		this.nativeHostMainService.onDidBlurWindow(() => this.onDidChangeWindowFocus());
 		this.nativeHostMainService.onDidFocusWindow(() => this.onDidChangeWindowFocus());
@@ -569,10 +569,7 @@ export class Menubar {
 				return [new MenuItem({
 					label: this.mnemonicLabel(nls.localize('miCheckForUpdates', "Check for &&Updates...")), click: () => setTimeout(() => {
 						this.reportMenuActionTelemetry('CheckForUpdate');
-
-						const window = this.windowsMainService.getLastActiveWindow();
-						const context = window && `window:${window.id}`; // sessionId
-						this.updateService.checkForUpdates(context);
+						this.updateService.checkForUpdates(true);
 					}, 0)
 				})];
 

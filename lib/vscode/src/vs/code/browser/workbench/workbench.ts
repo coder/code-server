@@ -282,23 +282,28 @@ class WorkspaceProvider implements IWorkspaceProvider {
 		public readonly payload: object
 	) { }
 
-	async open(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): Promise<void> {
+	async open(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): Promise<boolean> {
 		if (options?.reuse && !options.payload && this.isSame(this.workspace, workspace)) {
-			return; // return early if workspace and environment is not changing and we are reusing window
+			return true; // return early if workspace and environment is not changing and we are reusing window
 		}
 
 		const targetHref = this.createTargetUrl(workspace, options);
 		if (targetHref) {
 			if (options?.reuse) {
 				window.location.href = targetHref;
+				return true;
 			} else {
+				let result;
 				if (isStandalone) {
-					window.open(targetHref, '_blank', 'toolbar=no'); // ensures to open another 'standalone' window!
+					result = window.open(targetHref, '_blank', 'toolbar=no'); // ensures to open another 'standalone' window!
 				} else {
-					window.open(targetHref);
+					result = window.open(targetHref);
 				}
+
+				return !!result;
 			}
 		}
+		return false;
 	}
 
 	private createTargetUrl(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): string | undefined {
@@ -429,13 +434,6 @@ class WindowIndicator implements IWindowIndicator {
 		config.folderUri.authority = normalizeAuthority(config.folderUri.authority);
 	}
 
-	// Revive static extension locations
-	if (Array.isArray(config.staticExtensions)) {
-		config.staticExtensions.forEach(extension => {
-			extension.extensionLocation = URI.revive(extension.extensionLocation);
-		});
-	}
-
 	// Find workspace to open and payload
 	let foundWorkspace = false;
 	let workspace: IWorkspace;
@@ -497,6 +495,13 @@ class WindowIndicator implements IWindowIndicator {
 	// Finally create workbench
 	create(document.body, {
 		...config,
+<<<<<<< HEAD
+=======
+		developmentOptions: {
+			logLevel: logLevel ? parseLogLevel(logLevel) : undefined,
+			...config.developmentOptions
+		},
+>>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f
 		settingsSyncOptions,
 		windowIndicator,
 		productQualityChangeHandler,
