@@ -303,6 +303,7 @@ export class CustomMenubarControl extends MenubarControl {
 	private readonly _onVisibilityChange: Emitter<boolean>;
 	private readonly _onFocusStateChange: Emitter<boolean>;
 
+	// NOTE@coder: add logService (used in logout)
 	constructor(
 		@IMenuService menuService: IMenuService,
 		@IWorkspacesService workspacesService: IWorkspacesService,
@@ -318,14 +319,9 @@ export class CustomMenubarControl extends MenubarControl {
 		@IAccessibilityService accessibilityService: IAccessibilityService,
 		@IThemeService private readonly themeService: IThemeService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
-<<<<<<< HEAD
-		@IHostService protected readonly hostService: IHostService,
+		@IHostService hostService: IHostService,
 		@ICommandService commandService: ICommandService,
 		@ILogService private readonly logService: ILogService
-=======
-		@IHostService hostService: IHostService,
-		@ICommandService commandService: ICommandService
->>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f
 	) {
 		super(menuService, workspacesService, contextKeyService, keybindingService, configurationService, labelService, updateService, storageService, notificationService, preferencesService, environmentService, accessibilityService, hostService, commandService);
 
@@ -728,7 +724,7 @@ export class CustomMenubarControl extends MenubarControl {
 		}
 
 		webNavigationActions.push(new Action('logout', localize('logout', "Log out"), undefined, true,
-		async (event?: MouseEvent) => {
+		async (_event?: any) => {
 			const COOKIE_KEY = Cookie.Key;
 			const loginCookie = getCookieValue(COOKIE_KEY);
 
