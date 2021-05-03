@@ -20,6 +20,7 @@ import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import * as health from "./health"
 import * as login from "./login"
+import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
@@ -136,10 +137,10 @@ export const register = async (
 
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
+    app.use("/logout", logout.router)
   } else {
-    app.all("/login", (req, res) => {
-      redirect(req, res, "/", {})
-    })
+    app.all("/login", (req, res) => redirect(req, res, "/", {}))
+    app.all("/logout", (req, res) => redirect(req, res, "/", {}))
   }
 
   app.use("/static", _static.router)
