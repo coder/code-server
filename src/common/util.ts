@@ -1,5 +1,13 @@
-import { logger, field } from "@coder/logger"
+/*
+ * This file exists in two locations:
+ * - src/common/util.ts
+ * - lib/vscode/src/vs/server/common/util.ts
+ * The second is a symlink to the first.
+ */
 
+/**
+ * Base options included on every page.
+ */
 export interface Options {
   base: string
   csStaticBase: string
@@ -78,12 +86,8 @@ export const getOptions = <T extends Options>(): T => {
     }
   }
 
-  logger.level = options.logLevel
-
   options.base = resolveBase(options.base)
   options.csStaticBase = resolveBase(options.csStaticBase)
-
-  logger.debug("got options", field("options", options))
 
   return options
 }
@@ -113,7 +117,8 @@ export const getFirstString = (value: string | string[] | object | undefined): s
   return typeof value === "string" ? value : undefined
 }
 
-export function logError(prefix: string, err: any): void {
+// TODO: Might make sense to add Error handling to the logger itself.
+export function logError(logger: { error: (msg: string) => void }, prefix: string, err: Error | string): void {
   if (err instanceof Error) {
     logger.error(`${prefix}: ${err.message} ${err.stack}`)
   } else {

@@ -18,9 +18,6 @@ global.document = dom.window.document
 
 export type LocationLike = Pick<Location, "pathname" | "origin">
 
-// jest.mock is hoisted above the imports so we must use `require` here.
-jest.mock("@coder/logger", () => require("../utils/helpers").loggerModule)
-
 describe("util", () => {
   describe("normalize", () => {
     it("should remove multiple slashes", () => {
@@ -236,14 +233,14 @@ describe("util", () => {
       const message = "You don't have access to that folder."
       const error = new Error(message)
 
-      logError("ui", error)
+      logError(loggerModule.logger, "ui", error)
 
       expect(loggerModule.logger.error).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
     })
 
     it("should log an error, even if not an instance of error", () => {
-      logError("api", "oh no")
+      logError(loggerModule.logger, "api", "oh no")
 
       expect(loggerModule.logger.error).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalledWith("api: oh no")

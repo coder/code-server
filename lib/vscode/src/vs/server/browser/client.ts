@@ -13,9 +13,17 @@ import { Registry } from 'vs/platform/registry/common/platform';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
+import { getOptions } from 'vs/server/common/util';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
 import 'vs/workbench/services/localizations/browser/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+
+/**
+ * All client-side customization to VS Code should live in this file when
+ * possible.
+ */
+
+const options = getOptions<Options>();
 
 class TelemetryService extends TelemetryChannelClient {
 	public constructor(
@@ -24,26 +32,6 @@ class TelemetryService extends TelemetryChannelClient {
 		super(remoteAgentService.getConnection()!.getChannel('telemetry'));
 	}
 }
-
-/**
- * Remove extra slashes in a URL.
- */
-export const normalize = (url: string, keepTrailing = false): string => {
-	return url.replace(/\/\/+/g, '/').replace(/\/+$/, keepTrailing ? '/' : '');
-};
-
-/**
- * Get options embedded in the HTML.
- */
-export const getOptions = <T extends Options>(): T => {
-	try {
-		return JSON.parse(document.getElementById('coder-options')!.getAttribute('data-settings')!);
-	} catch (error) {
-		return {} as T;
-	}
-};
-
-const options = getOptions();
 
 const TELEMETRY_SECTION_ID = 'telemetry';
 Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
