@@ -2,8 +2,10 @@ import * as path from 'vs/base/common/path';
 import { URI } from 'vs/base/common/uri';
 import { Options } from 'vs/ipc';
 import { localize } from 'vs/nls';
+import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
+import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
-import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
+import { ContextKeyExpr, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILogService } from 'vs/platform/log/common/log';
@@ -178,6 +180,34 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	// Use to show or hide logout commands and menu options.
 	const contextKeyService = (services.get(IContextKeyService) as IContextKeyService);
 	contextKeyService.createKey('code-server.authed', options.authed);
+
+	// Add a logout command.
+	const logoutEndpoint = path.join(options.base, '/logout') + `?base=${options.base}`;
+	const LOGOUT_COMMAND_ID = 'code-server.logout';
+	CommandsRegistry.registerCommand(
+		LOGOUT_COMMAND_ID,
+		() => {
+			window.location.href = logoutEndpoint;
+		},
+	);
+
+	// Add logout to command palette.
+	MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+		command: {
+			id: LOGOUT_COMMAND_ID,
+			title: localize('logout', "Log out")
+		},
+		when: ContextKeyExpr.has('code-server.authed')
+	});
+
+	// Add logout to the (web-only) home menu.
+	MenuRegistry.appendMenuItem(MenuId.MenubarHomeMenu, {
+		command: {
+			id: LOGOUT_COMMAND_ID,
+			title: localize('logout', "Log out")
+		},
+		when: ContextKeyExpr.has('code-server.authed')
+	});
 };
 
 export interface Query {
