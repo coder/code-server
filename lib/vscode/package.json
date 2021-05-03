@@ -61,33 +61,21 @@
   },
   "dependencies_comment": "Move rimraf to dependencies because it is used in the postinstall script.",
   "dependencies": {
-    "@coder/logger": "1.1.16",
+    "@coder/logger": "^1.1.16",
     "applicationinsights": "1.0.8",
     "chokidar": "3.5.1",
     "graceful-fs": "4.2.3",
     "http-proxy-agent": "^2.1.0",
     "https-proxy-agent": "^2.2.3",
     "iconv-lite-umd": "0.6.8",
-<<<<<<< HEAD
-    "jschardet": "2.2.1",
-    "minimist": "^1.2.5",
-    "native-is-elevated": "0.4.1",
-    "native-watchdog": "1.3.0",
-    "node-pty": "0.10.0-beta19",
-    "proxy-agent": "^4.0.0",
-    "proxy-from-env": "^1.1.0",
-    "rimraf": "^2.2.8",
-    "nsfw": "^2.1.1",
-=======
     "jschardet": "2.3.0",
-    "keytar": "7.2.0",
     "minimist": "^1.2.5",
     "native-is-elevated": "0.4.3",
-    "native-keymap": "2.2.1",
     "native-watchdog": "1.3.0",
     "node-pty": "0.10.1",
     "nsfw": "2.1.2",
->>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f
+    "proxy-agent": "^4.0.1",
+    "proxy-from-env": "^1.1.0",
     "spdlog": "^0.11.1",
     "sudo-prompt": "9.2.1",
     "tas-client-umd": "0.1.4",
@@ -118,12 +106,7 @@
     "@types/http-proxy-agent": "^2.0.1",
     "@types/minimist": "^1.2.1",
     "@types/mocha": "^8.2.0",
-<<<<<<< HEAD
-    "@types/node": "^12.19.9",
-    "@types/proxy-from-env": "^1.0.1",
-=======
     "@types/node": "^14.14.37",
->>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f
     "@types/sinon": "^1.16.36",
     "@types/trusted-types": "^1.0.6",
     "@types/vscode-windows-registry": "^1.0.0",
@@ -146,10 +129,6 @@
     "cssnano": "^4.1.11",
     "debounce": "^1.0.0",
     "deemon": "^1.4.0",
-<<<<<<< HEAD
-=======
-    "electron": "12.0.4",
->>>>>>> 58ce849223667f77dc0d6d7658870ca3f815e17f
     "eslint": "6.8.0",
     "eslint-plugin-jsdoc": "^19.1.0",
     "event-stream": "3.3.4",
@@ -206,7 +185,7 @@
     "queue": "3.0.6",
     "rcedit": "^1.1.0",
     "request": "^2.85.0",
-    "rimraf": "^2.2.8",
+    "rimraf": "^3.0.2",
     "sinon": "^1.17.2",
     "source-map": "0.6.1",
     "source-map-support": "^0.3.2",
@@ -241,7 +220,6 @@
     "windows-process-tree": "0.3.0"
   },
   "resolutions": {
-    "minimist": "^1.2.5",
     "elliptic": "^6.5.3",
     "nwmatcher": "^1.4.4"
   }
