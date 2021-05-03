@@ -1,5 +1,4 @@
 import * as path from 'vs/base/common/path';
-import { URI } from 'vs/base/common/uri';
 import { Options } from 'vs/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
@@ -208,38 +207,4 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 		},
 		when: ContextKeyExpr.has('code-server.authed')
 	});
-};
-
-export interface Query {
-	[key: string]: string | undefined;
-}
-
-/**
- * Split a string up to the delimiter. If the delimiter doesn't exist the first
- * item will have all the text and the second item will be an empty string.
- */
-export const split = (str: string, delimiter: string): [string, string] => {
-	const index = str.indexOf(delimiter);
-	return index !== -1 ? [str.substring(0, index).trim(), str.substring(index + 1)] : [str, ''];
-};
-
-/**
- * Return the URL modified with the specified query variables. It's pretty
- * stupid so it probably doesn't cover any edge cases. Undefined values will
- * unset existing values. Doesn't allow duplicates.
- */
-export const withQuery = (url: string, replace: Query): string => {
-	const uri = URI.parse(url);
-	const query = { ...replace };
-	uri.query.split('&').forEach((kv) => {
-		const [key, value] = split(kv, '=');
-		if (!(key in query)) {
-			query[key] = value;
-		}
-	});
-	return uri.with({
-		query: Object.keys(query)
-			.filter((k) => typeof query[k] !== 'undefined')
-			.map((k) => `${k}=${query[k]}`).join('&'),
-	}).toString(true);
 };
