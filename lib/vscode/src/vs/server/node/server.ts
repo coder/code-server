@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as net from 'net';
-import { release } from 'os';
+import { hostname, release } from 'os';
 import * as path from 'path';
 import { Emitter } from 'vs/base/common/event';
 import { Schemas } from 'vs/base/common/network';
@@ -255,6 +255,7 @@ export class Vscode {
 			instantiationService.invokeFunction((accessor) => {
 				instantiationService.createInstance(LogsDataCleaner);
 
+				const commit = typeof product.commit === 'string' ? product.commit : 'unknown';
 				let telemetryService: ITelemetryService;
 				if (!environmentService.disableTelemetry) {
 					telemetryService = new TelemetryService({
@@ -264,8 +265,8 @@ export class Vscode {
 						),
 						sendErrorTelemetry: true,
 						commonProperties: resolveCommonProperties(
-							fileService, release(), process.arch, product.commit, product.version, machineId,
-							[], environmentService.installSourcePath, 'code-server',
+							fileService, release(), hostname(), process.arch, commit, product.version, machineId,
+							undefined, environmentService.installSourcePath, 'code-server',
 						),
 						piiPaths,
 					}, configurationService);
