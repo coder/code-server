@@ -6,6 +6,7 @@
  * The second is a symlink to the first.
  */
 export interface Options {
+  authed: boolean
   base: string
   disableTelemetry: boolean
   disableUpdateCheck: boolean

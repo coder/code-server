@@ -3,6 +3,7 @@ import { URI } from 'vs/base/common/uri';
 import { Options } from 'vs/ipc';
 import { localize } from 'vs/nls';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
+import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILogService } from 'vs/platform/log/common/log';
@@ -173,6 +174,10 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	if (theme) {
 		localStorage.setItem('colorThemeData', theme);
 	}
+
+	// Use to show or hide logout commands and menu options.
+	const contextKeyService = (services.get(IContextKeyService) as IContextKeyService);
+	contextKeyService.createKey('code-server.authed', options.authed);
 };
 
 export interface Query {
