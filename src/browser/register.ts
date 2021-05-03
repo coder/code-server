@@ -14,7 +14,7 @@ export async function registerServiceWorker(): Promise<void> {
     await navigator.serviceWorker.register(path, {
       scope: options.base + "/",
     })
-    console.log("[Service Worker] registered")
+    logger.info(`[Service Worker] registered`)
   } catch (error) {
     logError(logger, `[Service Worker] registration`, error)
   }
@@ -23,5 +23,5 @@ export async function registerServiceWorker(): Promise<void> {
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   registerServiceWorker()
 } else {
-  console.error(`[Service Worker] navigator is undefined`)
+  logger.error(`[Service Worker] navigator is undefined`)
 }
