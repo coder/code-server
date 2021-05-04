@@ -5,6 +5,7 @@
 - [Maintaining](#maintaining)
   - [Workflow](#workflow)
     - [Milestones](#milestones)
+    - [Triage](#triage)
     - [Project Boards](#project-boards)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -35,6 +36,18 @@ Here are the milestones we use and how we use them:
 - "<0.0.0>" -> Work to be done for that version.
 
 With this flow, any un-assigned issues are essentially in triage state and once triaged are either "Backlog" or "Backlog Candidates". They will eventually move to "On Deck" (or be closed). Lastly, they will end up on a version milestone where they will be worked on.
+
+### Triage
+
+We use the following process for triaging GitHub issues:
+
+1. a submitter creates an issue
+1. add appropriate labels
+   1. if we need to look into it further, add "needs-investigation"
+1. add to milestone
+   1. if it should be fixed soon, add to version milestone or "On Deck"
+   1. if not urgent, add to "Backlog"
+   1. otherwise, add to "Backlog Candidate" if it should be considered
 
 ### Project Boards
 
