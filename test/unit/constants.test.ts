@@ -1,5 +1,4 @@
 import * as fs from "fs"
-import { commit, getPackageJson, version } from "../../src/node/constants"
 import { tmpdir } from "../../test/utils/constants"
 import { loggerModule } from "../utils/helpers"
 
@@ -8,12 +7,14 @@ jest.mock("@coder/logger", () => require("../utils/helpers").loggerModule)
 
 describe("constants", () => {
   describe("getPackageJson", () => {
+    const { getPackageJson } = require("../../src/node/constants")
     afterEach(() => {
       jest.clearAllMocks()
     })
 
     afterAll(() => {
       jest.restoreAllMocks()
+      jest.resetModules()
     })
 
     it("should log a warning if package.json not found", () => {
@@ -36,20 +37,95 @@ describe("constants", () => {
     })
   })
   describe("version", () => {
-    it("should return the package.json version", () => {
-      // Source: https://gist.github.com/jhorsman/62eeea161a13b80e39f5249281e17c39#gistcomment-2896416
-      const validSemVar = new RegExp("^(0|[1-9]d*).(0|[1-9]d*).(0|[1-9]d*)")
-      const isValidSemVar = validSemVar.test(version)
-      expect(version).not.toBe(null)
-      expect(isValidSemVar).toBe(true)
+    describe("with package.json.version defined", () => {
+      let mockPackageJson = {
+        name: "mock-code-server",
+        version: "1.0.0",
+      }
+      let version = ""
+
+      beforeEach(() => {
+        jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
+        version = require("../../src/node/constants").version
+      })
+
+      afterEach(() => {
+        jest.resetAllMocks()
+        jest.resetModules()
+      })
+
+      it("should return the package.json version", () => {
+        // Source: https://gist.github.com/jhorsman/62eeea161a13b80e39f5249281e17c39#gistcomment-2896416
+        const validSemVar = new RegExp("^(0|[1-9]d*).(0|[1-9]d*).(0|[1-9]d*)")
+        const isValidSemVar = validSemVar.test(version)
+        expect(version).not.toBe(null)
+        expect(isValidSemVar).toBe(true)
+        expect(version).toBe("1.0.0")
+      })
+    })
+    describe("with package.json.version missing", () => {
+      let mockPackageJson = {
+        name: "mock-code-server",
+      }
+      let version = ""
+
+      beforeEach(() => {
+        jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
+        version = require("../../src/node/constants").version
+      })
+
+      afterEach(() => {
+        jest.resetAllMocks()
+        jest.resetModules()
+      })
+
+      it("should return 'development'", () => {
+        expect(version).toBe("development")
+      })
     })
   })
-
   describe("commit", () => {
-    it("should return 'development' if commit is undefined", () => {
-      // In development, the commit is not stored in our package.json
-      // But when we build code-server and release it, it is
-      expect(commit).toBe("development")
+    describe("with package.json.commit defined", () => {
+      let mockPackageJson = {
+        name: "mock-code-server",
+        commit: "f6b2be2838f4afb217c2fd8f03eafedd8d55ef9b",
+      }
+      let commit = ""
+
+      beforeEach(() => {
+        jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
+        commit = require("../../src/node/constants").commit
+      })
+
+      afterEach(() => {
+        jest.resetAllMocks()
+        jest.resetModules()
+      })
+
+      it("should return the package.json.commit", () => {
+        // Source: https://gist.github.com/jhorsman/62eeea161a13b80e39f5249281e17c39#gistcomment-2896416
+        expect(commit).toBe("f6b2be2838f4afb217c2fd8f03eafedd8d55ef9b")
+      })
+    })
+    describe("with package.json.commit missing", () => {
+      let mockPackageJson = {
+        name: "mock-code-server",
+      }
+      let commit = ""
+
+      beforeEach(() => {
+        jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
+        commit = require("../../src/node/constants").commit
+      })
+
+      afterEach(() => {
+        jest.resetAllMocks()
+        jest.resetModules()
+      })
+
+      it("should return 'development'", () => {
+        expect(commit).toBe("development")
+      })
     })
   })
 })
