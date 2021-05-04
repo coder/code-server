@@ -7,6 +7,7 @@
     - [Milestones](#milestones)
     - [Triage](#triage)
     - [Project Boards](#project-boards)
+  - [Versioning](#versioning)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -56,3 +57,9 @@ We use project boards for projects or goals that span multiple milestones.
 Think of this as a place to put miscellaneous things (like testing, clean up stuff, etc). As a maintainer, random todos may come up here and there. This gives you a place to add notes temporarily before opening a new issue. Given that our release milestones function off of issues, we believe tasks should have dedicated issues.
 
 It also gives us a way to separate the issue triage from bigger-picture, long-term work.
+
+## Versioning
+
+`<major.minor.patch>`
+
+The code-server project follows traditional [semantic versioning](ttps://semver.org/), with the objective of minimizing major changes that break backward compatibility. We increment the patch level for all releases, except when the upstream Visual Studio Code project increments its minor version or we change the plugin API in a backward-compatible manner. In those cases, we increment the minor version rather than the patch level.
