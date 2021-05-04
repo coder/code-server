@@ -7,6 +7,7 @@ import * as ipc from "../../../typings/ipc"
 import { Emitter } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { getFirstString } from "../../common/util"
+import { Feature } from "../cli"
 import { isDevMode, rootPath, version } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
@@ -209,14 +210,21 @@ wsRouter.ws("/", ensureAuthenticated, async (req) => {
     `Sec-WebSocket-Accept: ${reply}`,
   ]
 
+  // See if the browser reports it supports web socket compression.
   // TODO: Parse this header properly.
   const extensions = req.headers["sec-websocket-extensions"]
-  const permessageDeflate = extensions ? extensions.includes("permessage-deflate") : false
-  if (permessageDeflate) {
+  const isCompressionSupported = extensions ? extensions.includes("permessage-deflate") : false
+
+  // TODO: For now we only use compression if the user enables it.
+  const isCompressionEnabled = !!req.args.enable?.includes(Feature.PermessageDeflate)
+
+  const useCompression = isCompressionEnabled && isCompressionSupported
+  if (useCompression) {
+    // This response header tells the browser the server supports compression.
     responseHeaders.push("Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15")
   }
 
   req.ws.write(responseHeaders.join("\r\n") + "\r\n\r\n")
 
-  await vscode.sendWebsocket(req.ws, req.query, permessageDeflate)
+  await vscode.sendWebsocket(req.ws, req.query, useCompression)
 })

@@ -8,6 +8,7 @@ import { createApp, ensureAddress } from "./app"
 import {
   AuthType,
   DefaultedArgs,
+  Feature,
   optionDescriptions,
   parse,
   readConfigFile,
@@ -144,6 +145,21 @@ const main = async (args: DefaultedArgs): Promise<void> => {
       logger.error(err.message)
       wrapper.exit(1)
     }
+  }
+
+  if (args.enable && args.enable.length > 0) {
+    logger.info("Enabling the following experimental features:")
+    args.enable.forEach((feature) => {
+      if (Object.values(Feature).includes(feature as Feature)) {
+        logger.info(`  - "${feature}"`)
+      } else {
+        logger.error(`  X "${feature}" (unknown feature)`)
+      }
+    })
+    // TODO: Could be nice to add wrapping to the logger?
+    logger.info(
+      "  The code-server project does not provide stability guarantees or commit to fixing bugs relating to these experimental features. When filing bug reports, please ensure that you can reproduce the bug with all experimental features turned off.",
+    )
   }
 
   if (!args.socket && args.open) {
