@@ -55,7 +55,7 @@
     "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
-    "audit-ci": "^3.1.1",
+    "audit-ci": "^4.0.0",
     "codecov": "^3.8.1",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
