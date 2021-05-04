@@ -1,3 +1,4 @@
+import { logger } from "@coder/logger"
 import { getOptions, normalize, logError } from "../common/util"
 
 import "./pages/error.css"
@@ -6,19 +7,21 @@ import "./pages/login.css"
 
 export async function registerServiceWorker(): Promise<void> {
   const options = getOptions()
+  logger.level = options.logLevel
+
   const path = normalize(`${options.csStaticBase}/dist/serviceWorker.js`)
   try {
     await navigator.serviceWorker.register(path, {
       scope: options.base + "/",
     })
-    console.log("[Service Worker] registered")
+    logger.info(`[Service Worker] registered`)
   } catch (error) {
-    logError(`[Service Worker] registration`, error)
+    logError(logger, `[Service Worker] registration`, error)
   }
 }
 
 if (typeof navigator !== "undefined" && "serviceWorker" in navigator) {
   registerServiceWorker()
 } else {
-  console.error(`[Service Worker] navigator is undefined`)
+  logger.error(`[Service Worker] navigator is undefined`)
 }

@@ -6,9 +6,12 @@
  * The second is a symlink to the first.
  */
 export interface Options {
+  authed: boolean
   base: string
+  csStaticBase: string
   disableTelemetry: boolean
   disableUpdateCheck: boolean
+  logLevel: number
 }
 
 export interface InitMessage {

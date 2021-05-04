@@ -3,6 +3,7 @@ import { Request, Router } from "express"
 import { promises as fs } from "fs"
 import * as path from "path"
 import qs from "qs"
+import * as ipc from "../../../typings/ipc"
 import { Emitter } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { getFirstString } from "../../common/util"
@@ -39,12 +40,13 @@ router.get("/", async (req, res) => {
   options.productConfiguration.codeServerVersion = version
 
   res.send(
-    replaceTemplates(
+    replaceTemplates<ipc.Options>(
       req,
       // Uncomment prod blocks if not in development. TODO: Would this be
       // better as a build step? Or maintain two HTML files again?
       commit !== "development" ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
       {
+        authed: req.args.auth !== "none",
         disableTelemetry: !!req.args["disable-telemetry"],
         disableUpdateCheck: !!req.args["disable-update-check"],
       },
