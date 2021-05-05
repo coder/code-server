@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions, IHomeIndicator } from 'vs/workbench/workbench.web.api';
+import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { Event, Emitter } from 'vs/base/common/event';
 import { generateUuid } from 'vs/base/common/uuid';
@@ -453,14 +453,6 @@ class WindowIndicator implements IWindowIndicator {
 	// Workspace Provider
 	const workspaceProvider = new WorkspaceProvider(workspace, payload);
 
-	// NOTE@coder: copied from upstream, modified to use our repo
-	// Home Indicator
-	const homeIndicator: IHomeIndicator = {
-		href: 'https://github.com/cdr/code-server',
-		icon: 'code',
-		title: localize('home', "Home")
-	};
-
 	// Window indicator (unless connected to a remote)
 	let windowIndicator: WindowIndicator | undefined = undefined;
 	if (!workspaceProvider.hasRemote()) {
@@ -504,7 +496,6 @@ class WindowIndicator implements IWindowIndicator {
 	create(document.body, {
 		...config,
 		settingsSyncOptions,
-		homeIndicator,
 		windowIndicator,
 		productQualityChangeHandler,
 		workspaceProvider,
