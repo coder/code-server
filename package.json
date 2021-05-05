@@ -142,7 +142,7 @@
       "clover"
     ],
     "coveragePathIgnorePatterns": [
-      "out"
+      "/out"
     ],
     "coverageThreshold": {
       "global": {
