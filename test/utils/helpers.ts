@@ -20,8 +20,8 @@ export const loggerModule = {
  * These directories are placed under a single temporary code-server directory.
  */
 export async function tmpdir(testName: string): Promise<string> {
-  const dir = path.join(os.tmpdir(), "code-server")
+  const dir = path.join(os.tmpdir(), "code-server/tests")
   await fs.promises.mkdir(dir, { recursive: true })
 
-  return await fs.promises.mkdtemp(path.join(dir, `test-${testName}-`), { encoding: "utf8" })
+  return await fs.promises.mkdtemp(path.join(dir, `${testName}-`), { encoding: "utf8" })
 }
