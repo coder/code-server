@@ -58,6 +58,8 @@ import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/comm
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
 
+const commit = product.commit || 'development';
+
 export class Vscode {
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
@@ -109,7 +111,7 @@ export class Vscode {
 			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
 			productConfiguration: product,
 			nlsConfiguration: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
-			commit: product.commit || 'development',
+			commit,
 		};
 	}
 
@@ -255,7 +257,6 @@ export class Vscode {
 			instantiationService.invokeFunction((accessor) => {
 				instantiationService.createInstance(LogsDataCleaner);
 
-				const commit = typeof product.commit === 'string' ? product.commit : 'unknown';
 				let telemetryService: ITelemetryService;
 				if (!environmentService.disableTelemetry) {
 					telemetryService = new TelemetryService({
