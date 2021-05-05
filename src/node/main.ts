@@ -10,7 +10,6 @@ import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
-import { wrapper } from "./wrapper"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
@@ -126,13 +125,8 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<void> => {
   }
 
   if (args.link) {
-    try {
-      await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
-      logger.info("  - Connected to cloud agent")
-    } catch (err) {
-      logger.error(err.message)
-      wrapper.exit(1)
-    }
+    await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
+    logger.info("  - Connected to cloud agent")
   }
 
   if (args.enable && args.enable.length > 0) {
