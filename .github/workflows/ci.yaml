@@ -423,7 +423,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner in image mode
         # Commit SHA for v0.0.14
-        uses: aquasecurity/trivy-action@b38389f8efef9798810fe0c5b5096ac198cffd54
+        uses: aquasecurity/trivy-action@master
         with:
           input: "./release-images/code-server-amd64-*.tar"
           scan-type: "image"
