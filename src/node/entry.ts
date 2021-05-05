@@ -24,7 +24,8 @@ async function entry(): Promise<void> {
   if (isChild(wrapper)) {
     const args = await wrapper.handshake()
     wrapper.preventExit()
-    return runCodeServer(args)
+    await runCodeServer(args)
+    return
   }
 
   const cliArgs = parse(process.argv.slice(2))

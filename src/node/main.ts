@@ -82,7 +82,7 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
   vscode.end()
 }
 
-export const runCodeServer = async (args: DefaultedArgs): Promise<void> => {
+export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> => {
   logger.info(`code-server ${version} ${commit}`)
 
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
@@ -154,4 +154,6 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<void> => {
       logger.error("Failed to open", field("address", openAddress), field("error", error))
     }
   }
+
+  return server
 }
