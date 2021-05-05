@@ -93,6 +93,7 @@
     "yauzl": "^2.9.2",
     "yazl": "^2.4.3"
   },
+  "devDependencies_comment": "set gulp-rename to ~1.2.0 (instead of ^1.2.0), build breaks on 1.4.4",
   "devDependencies": {
     "7zip": "0.0.6",
     "@types/applicationinsights": "0.20.0",
@@ -151,7 +152,7 @@
     "gulp-plumber": "^1.2.0",
     "gulp-postcss": "^9.0.0",
     "gulp-remote-retry-src": "^0.6.0",
-    "gulp-rename": "^1.2.0",
+    "gulp-rename": "~1.2.0",
     "gulp-replace": "^0.5.4",
     "gulp-shell": "^0.6.5",
     "gulp-sourcemaps": "^3.0.0",
