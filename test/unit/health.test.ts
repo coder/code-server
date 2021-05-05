@@ -12,7 +12,7 @@ describe("health", () => {
   })
 
   it("/healthz", async () => {
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch("/healthz")
     expect(resp.status).toBe(200)
     const json = await resp.json()
@@ -20,7 +20,7 @@ describe("health", () => {
   })
 
   it("/healthz (websocket)", async () => {
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const ws = codeServer.ws("/healthz")
     const message = await new Promise((resolve, reject) => {
       ws.on("error", console.error)

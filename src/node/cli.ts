@@ -6,6 +6,11 @@ import * as path from "path"
 import { Args as VsArgs } from "../../typings/ipc"
 import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
 
+export enum Feature {
+  /** Web socket compression. */
+  PermessageDeflate = "permessage-deflate",
+}
+
 export enum AuthType {
   Password = "password",
   None = "none",
@@ -35,6 +40,7 @@ export interface Args extends VsArgs {
   "cert-key"?: string
   "disable-telemetry"?: boolean
   "disable-update-check"?: boolean
+  enable?: string[]
   help?: boolean
   host?: string
   json?: boolean
@@ -128,6 +134,9 @@ const options: Options<Required<Args>> = {
       "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
       "then notifies you once every week that a new release is available.",
   },
+  // --enable can be used to enable experimental features. These features
+  // provide no guarantees.
+  enable: { type: "string[]" },
   help: { type: "boolean", short: "h", description: "Show this output." },
   json: { type: "boolean" },
   open: { type: "boolean", description: "Open in browser on startup. Does not work remotely." },
