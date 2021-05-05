@@ -406,3 +406,61 @@ jobs:
         with:
           name: release-images
           path: ./release-images
+
+  trivy-scan-image:
+    runs-on: ubuntu-20.04
+    needs: docker-amd64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Download release images
+        uses: actions/download-artifact@v2
+        with:
+          name: release-images
+          path: ./release-images
+
+      - name: Run Trivy vulnerability scanner in image mode
+        # Commit SHA for v0.0.14
+        uses: aquasecurity/trivy-action@b38389f8efef9798810fe0c5b5096ac198cffd54
+        with:
+          input: "./release-images/code-server-amd64-*.tar"
+          scan-type: "image"
+          ignore-unfixed: true
+          format: "template"
+          template: "@/contrib/sarif.tpl"
+          output: "trivy-image-results.sarif"
+          severity: "HIGH,CRITICAL"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: "trivy-image-results.sarif"
+
+  # We have to use two trivy jobs
+  # because GitHub only allows
+  # codeql/upload-sarif action per job
+  trivy-scan-repo:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Run Trivy vulnerability scanner in repo mode
+        # Commit SHA for v0.0.14
+        uses: aquasecurity/trivy-action@b38389f8efef9798810fe0c5b5096ac198cffd54
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          ignore-unfixed: true
+          format: "template"
+          template: "@/contrib/sarif.tpl"
+          output: "trivy-repo-results.sarif"
+          severity: "HIGH,CRITICAL"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: "trivy-repo-results.sarif"

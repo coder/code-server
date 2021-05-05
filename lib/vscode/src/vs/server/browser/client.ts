@@ -1,8 +1,10 @@
 import * as path from 'vs/base/common/path';
-import { URI } from 'vs/base/common/uri';
 import { Options } from 'vs/ipc';
 import { localize } from 'vs/nls';
+import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
+import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
+import { ContextKeyExpr, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILogService } from 'vs/platform/log/common/log';
@@ -11,9 +13,17 @@ import { Registry } from 'vs/platform/registry/common/platform';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { TelemetryChannelClient } from 'vs/server/common/telemetry';
+import { getOptions } from 'vs/server/common/util';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
 import 'vs/workbench/services/localizations/browser/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
+
+/**
+ * All client-side customization to VS Code should live in this file when
+ * possible.
+ */
+
+const options = getOptions<Options>();
 
 class TelemetryService extends TelemetryChannelClient {
 	public constructor(
@@ -22,26 +32,6 @@ class TelemetryService extends TelemetryChannelClient {
 		super(remoteAgentService.getConnection()!.getChannel('telemetry'));
 	}
 }
-
-/**
- * Remove extra slashes in a URL.
- */
-export const normalize = (url: string, keepTrailing = false): string => {
-	return url.replace(/\/\/+/g, '/').replace(/\/+$/, keepTrailing ? '/' : '');
-};
-
-/**
- * Get options embedded in the HTML.
- */
-export const getOptions = <T extends Options>(): T => {
-	try {
-		return JSON.parse(document.getElementById('coder-options')!.getAttribute('data-settings')!);
-	} catch (error) {
-		return {} as T;
-	}
-};
-
-const options = getOptions();
 
 const TELEMETRY_SECTION_ID = 'telemetry';
 Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
@@ -173,38 +163,36 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	if (theme) {
 		localStorage.setItem('colorThemeData', theme);
 	}
-};
 
-export interface Query {
-	[key: string]: string | undefined;
-}
+	// Use to show or hide logout commands and menu options.
+	const contextKeyService = (services.get(IContextKeyService) as IContextKeyService);
+	contextKeyService.createKey('code-server.authed', options.authed);
 
-/**
- * Split a string up to the delimiter. If the delimiter doesn't exist the first
- * item will have all the text and the second item will be an empty string.
- */
-export const split = (str: string, delimiter: string): [string, string] => {
-	const index = str.indexOf(delimiter);
-	return index !== -1 ? [str.substring(0, index).trim(), str.substring(index + 1)] : [str, ''];
-};
+	// Add a logout command.
+	const logoutEndpoint = path.join(options.base, '/logout') + `?base=${options.base}`;
+	const LOGOUT_COMMAND_ID = 'code-server.logout';
+	CommandsRegistry.registerCommand(
+		LOGOUT_COMMAND_ID,
+		() => {
+			window.location.href = logoutEndpoint;
+		},
+	);
 
-/**
- * Return the URL modified with the specified query variables. It's pretty
- * stupid so it probably doesn't cover any edge cases. Undefined values will
- * unset existing values. Doesn't allow duplicates.
- */
-export const withQuery = (url: string, replace: Query): string => {
-	const uri = URI.parse(url);
-	const query = { ...replace };
-	uri.query.split('&').forEach((kv) => {
-		const [key, value] = split(kv, '=');
-		if (!(key in query)) {
-			query[key] = value;
-		}
+	// Add logout to command palette.
+	MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
+		command: {
+			id: LOGOUT_COMMAND_ID,
+			title: localize('logout', "Log out")
+		},
+		when: ContextKeyExpr.has('code-server.authed')
 	});
-	return uri.with({
-		query: Object.keys(query)
-			.filter((k) => typeof query[k] !== 'undefined')
-			.map((k) => `${k}=${query[k]}`).join('&'),
-	}).toString(true);
+
+	// Add logout to the (web-only) home menu.
+	MenuRegistry.appendMenuItem(MenuId.MenubarHomeMenu, {
+		command: {
+			id: LOGOUT_COMMAND_ID,
+			title: localize('logout', "Log out")
+		},
+		when: ContextKeyExpr.has('code-server.authed')
+	});
 };

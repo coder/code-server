@@ -1,3 +1,4 @@
+import { logger } from "@coder/logger"
 import * as express from "express"
 import * as http from "http"
 import * as net from "net"
@@ -45,7 +46,7 @@ export class HttpServer {
           rej(err)
         } else {
           // Promise resolved earlier so this is some other error.
-          util.logError("http server error", err)
+          util.logError(logger, "http server error", err)
         }
       })
     })

@@ -25,7 +25,7 @@ test.describe("logout", () => {
     await page.waitForLoadState("networkidle")
     // We do this because occassionally code-server doesn't load on Firefox
     // but loads if you reload once or twice
-    await codeServer.reloadUntilEditorIsVisible()
+    await codeServer.reloadUntilEditorIsReady()
     // Make sure the editor actually loaded
     expect(await codeServer.isEditorVisible()).toBe(true)
 

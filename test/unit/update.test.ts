@@ -5,7 +5,7 @@ import { tmpdir } from "../../src/node/constants"
 import { SettingsProvider, UpdateSettings } from "../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../src/node/update"
 
-describe.skip("update", () => {
+describe("update", () => {
   let version = "1.0.0"
   let spy: string[] = []
   const server = http.createServer((request: http.IncomingMessage, response: http.ServerResponse) => {
@@ -75,7 +75,7 @@ describe.skip("update", () => {
     await expect(settings.read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toEqual(false)
     expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
-    expect(update.version).toBe("2.1.0")
+    expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual(["/latest"])
   })
 
@@ -87,9 +87,9 @@ describe.skip("update", () => {
     const update = await p.getUpdate()
 
     await expect(settings.read()).resolves.toEqual({ update })
-    expect(isNaN(update.checked)).toBe(false)
+    expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked < now).toBe(true)
-    expect(update.version).toBe("2.1.0")
+    expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual([])
   })
 
@@ -101,10 +101,10 @@ describe.skip("update", () => {
     const update = await p.getUpdate(true)
 
     await expect(settings.read()).resolves.toEqual({ update })
-    expect(isNaN(update.checked)).toBe(false)
-    expect(update.checked < Date.now() && update.checked >= now).toBe(true)
-    expect(update.version).toBe("4.1.1")
-    expect(spy).toBe(["/latest"])
+    expect(isNaN(update.checked)).toStrictEqual(false)
+    expect(update.checked < Date.now() && update.checked >= now).toStrictEqual(true)
+    expect(update.version).toStrictEqual("4.1.1")
+    expect(spy).toStrictEqual(["/latest"])
   })
 
   it("should get latest after interval passes", async () => {
@@ -121,8 +121,8 @@ describe.skip("update", () => {
     await settings.write({ update: { checked, version } })
 
     const update = await p.getUpdate()
-    expect(update.checked).not.toBe(checked)
-    expect(spy).toBe(["/latest"])
+    expect(update.checked).not.toStrictEqual(checked)
+    expect(spy).toStrictEqual(["/latest"])
   })
 
   it("should check if it's the current version", async () => {
@@ -130,24 +130,31 @@ describe.skip("update", () => {
 
     const p = provider()
     let update = await p.getUpdate(true)
-    expect(p.isLatestVersion(update)).toBe(false)
+    expect(p.isLatestVersion(update)).toStrictEqual(false)
 
     version = "0.0.0"
     update = await p.getUpdate(true)
-    expect(p.isLatestVersion(update)).toBe(true)
+    expect(p.isLatestVersion(update)).toStrictEqual(true)
 
     // Old version format; make sure it doesn't report as being later.
     version = "999999.9999-invalid999.99.9"
     update = await p.getUpdate(true)
-    expect(p.isLatestVersion(update)).toBe(true)
+    expect(p.isLatestVersion(update)).toStrictEqual(true)
   })
 
   it("should not reject if unable to fetch", async () => {
-    expect.assertions(2)
     let provider = new UpdateProvider("invalid", settings)
-    await expect(() => provider.getUpdate(true)).resolves.toBe(undefined)
+    let now = Date.now()
+    let update = await provider.getUpdate(true)
+    expect(isNaN(update.checked)).toStrictEqual(false)
+    expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
+    expect(update.version).toStrictEqual("unknown")
 
     provider = new UpdateProvider("http://probably.invalid.dev.localhost/latest", settings)
-    await expect(() => provider.getUpdate(true)).resolves.toBe(undefined)
+    now = Date.now()
+    update = await provider.getUpdate(true)
+    expect(isNaN(update.checked)).toStrictEqual(false)
+    expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
+    expect(update.version).toStrictEqual("unknown")
   })
 })

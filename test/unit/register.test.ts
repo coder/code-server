@@ -22,11 +22,11 @@ describe("register", () => {
     })
 
     beforeEach(() => {
+      jest.clearAllMocks()
       jest.mock("@coder/logger", () => loggerModule)
     })
 
     afterEach(() => {
-      mockRegisterFn.mockClear()
       jest.resetModules()
     })
 
@@ -39,6 +39,7 @@ describe("register", () => {
       global.navigator = (undefined as unknown) as Navigator & typeof globalThis
       global.location = (undefined as unknown) as Location & typeof globalThis
     })
+
     it("test should have access to browser globals from beforeAll", () => {
       expect(typeof global.window).not.toBeFalsy()
       expect(typeof global.document).not.toBeFalsy()
@@ -74,24 +75,24 @@ describe("register", () => {
   })
 
   describe("when navigator and serviceWorker are NOT defined", () => {
-    let spy: jest.SpyInstance
-
     beforeEach(() => {
-      spy = jest.spyOn(console, "error")
+      jest.clearAllMocks()
+      jest.mock("@coder/logger", () => loggerModule)
     })
 
     afterAll(() => {
       jest.restoreAllMocks()
     })
 
-    it("should log an error to the console", () => {
+    it("should log an error", () => {
       // Load service worker like you would in the browser
       require("../../src/browser/register")
-      expect(spy).toHaveBeenCalled()
-      expect(spy).toHaveBeenCalledTimes(1)
-      expect(spy).toHaveBeenCalledWith("[Service Worker] navigator is undefined")
+      expect(loggerModule.logger.error).toHaveBeenCalled()
+      expect(loggerModule.logger.error).toHaveBeenCalledTimes(1)
+      expect(loggerModule.logger.error).toHaveBeenCalledWith("[Service Worker] navigator is undefined")
     })
   })
+
   describe("registerServiceWorker", () => {
     let serviceWorkerPath: string
     let serviceWorkerScope: string

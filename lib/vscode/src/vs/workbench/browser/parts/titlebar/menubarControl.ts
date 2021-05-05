@@ -9,7 +9,7 @@ import { registerThemingParticipant, IThemeService } from 'vs/platform/theme/com
 import { MenuBarVisibility, getTitleBarStyle, IWindowOpenable, getMenuBarVisibility } from 'vs/platform/windows/common/windows';
 import { IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
 import { IAction, Action, SubmenuAction, Separator } from 'vs/base/common/actions';
-import { addDisposableListener, Dimension, EventType, getCookieValue } from 'vs/base/browser/dom';
+import { addDisposableListener, Dimension, EventType } from 'vs/base/browser/dom';
 import { IKeybindingService } from 'vs/platform/keybinding/common/keybinding';
 import { isMacintosh, isWeb, isIOS, isNative } from 'vs/base/common/platform';
 import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
@@ -38,8 +38,6 @@ import { KeyCode } from 'vs/base/common/keyCodes';
 import { KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
 import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
 import { ICommandService } from 'vs/platform/commands/common/commands';
-import { ILogService } from 'vs/platform/log/common/log';
-import { Cookie } from 'vs/server/common/cookie';
 
 export type IOpenRecentAction = IAction & { uri: URI, remoteAuthority?: string };
 
@@ -303,7 +301,6 @@ export class CustomMenubarControl extends MenubarControl {
 	private readonly _onVisibilityChange: Emitter<boolean>;
 	private readonly _onFocusStateChange: Emitter<boolean>;
 
-	// NOTE@coder: add logService (used in logout)
 	constructor(
 		@IMenuService menuService: IMenuService,
 		@IWorkspacesService workspacesService: IWorkspacesService,
@@ -320,8 +317,7 @@ export class CustomMenubarControl extends MenubarControl {
 		@IThemeService private readonly themeService: IThemeService,
 		@IWorkbenchLayoutService private readonly layoutService: IWorkbenchLayoutService,
 		@IHostService hostService: IHostService,
-		@ICommandService commandService: ICommandService,
-		@ILogService private readonly logService: ILogService
+		@ICommandService commandService: ICommandService
 	) {
 		super(menuService, workspacesService, contextKeyService, keybindingService, configurationService, labelService, updateService, storageService, notificationService, preferencesService, environmentService, accessibilityService, hostService, commandService);
 
@@ -722,28 +718,6 @@ export class CustomMenubarControl extends MenubarControl {
 		if (webNavigationActions.length) {
 			webNavigationActions.pop();
 		}
-
-		webNavigationActions.push(new Action('logout', localize('logout', "Log out"), undefined, true,
-		async (_event?: any) => {
-			const COOKIE_KEY = Cookie.Key;
-			const loginCookie = getCookieValue(COOKIE_KEY);
-
-			this.logService.info('Logging out of code-server');
-
-			if(loginCookie) {
-				this.logService.info(`Removing cookie under ${COOKIE_KEY}`);
-
-				if (document && document.cookie) {
-					// We delete the cookie by setting the expiration to a date/time in the past
-					document.cookie = COOKIE_KEY +'=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
-					window.location.href = '/login';
-				} else {
-					this.logService.warn('Could not delete cookie because document and/or document.cookie is undefined');
-				}
-			} else {
-				this.logService.warn('Could not log out because we could not find cookie');
-			}
-		}));
 
 		return webNavigationActions;
 	}

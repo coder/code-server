@@ -37,7 +37,7 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
         reject(err)
       } else {
         // Promise resolved earlier so this is an unrelated error.
-        util.logError("http server error", err)
+        util.logError(logger, "http server error", err)
       }
     })
 
