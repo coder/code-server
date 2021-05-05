@@ -1,10 +1,10 @@
-import { test, expect } from "@playwright/test"
+import { expect, test } from "@playwright/test"
 import * as cp from "child_process"
 import * as fs from "fs"
-// import { tmpdir } from "os"
 import * as path from "path"
 import util from "util"
-import { STORAGE, tmpdir } from "../utils/constants"
+import { STORAGE } from "../utils/constants"
+import { tmpdir } from "../utils/helpers"
 import { CodeServer } from "./models/CodeServer"
 
 test.describe("Integrated Terminal", () => {

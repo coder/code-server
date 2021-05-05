@@ -1,5 +1,3 @@
-import * as fs from "fs"
-import { tmpdir } from "../../test/utils/constants"
 import { loggerModule } from "../utils/helpers"
 
 // jest.mock is hoisted above the imports so we must use `require` here.
@@ -86,19 +84,6 @@ describe("constants", () => {
     })
     it("commit should return 'development'", () => {
       expect(commit).toBe("development")
-    })
-  })
-})
-
-describe("test constants", () => {
-  describe("tmpdir", () => {
-    it("should return a temp directory", async () => {
-      const testName = "temp-dir"
-      const pathToTempDir = await tmpdir(testName)
-
-      expect(pathToTempDir).toContain(testName)
-
-      await fs.promises.rmdir(pathToTempDir)
     })
   })
 })
