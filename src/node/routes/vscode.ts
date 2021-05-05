@@ -7,7 +7,7 @@ import * as ipc from "../../../typings/ipc"
 import { Emitter } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { getFirstString } from "../../common/util"
-import { commit, rootPath, version } from "../constants"
+import { isDevMode, rootPath, version } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { getMediaMime, pathToFsPath } from "../util"
 import { VscodeProvider } from "../vscode"
@@ -31,7 +31,7 @@ router.get("/", async (req, res) => {
       try {
         return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "" }, req.query)
       } catch (error) {
-        const devMessage = commit === "development" ? "It might not have finished compiling." : ""
+        const devMessage = isDevMode ? "It might not have finished compiling." : ""
         throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
       }
     })(),
@@ -44,7 +44,7 @@ router.get("/", async (req, res) => {
       req,
       // Uncomment prod blocks if not in development. TODO: Would this be
       // better as a build step? Or maintain two HTML files again?
-      commit !== "development" ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
+      !isDevMode ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
       {
         authed: req.args.auth !== "none",
         disableTelemetry: !!req.args["disable-telemetry"],
