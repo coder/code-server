@@ -48,7 +48,7 @@
     "@types/proxy-from-env": "^1.0.1",
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
-    "@types/split2": "^2.1.6",
+    "@types/split2": "^3.2.0",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
     "@types/ws": "^7.2.6",
