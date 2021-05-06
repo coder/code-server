@@ -43,10 +43,6 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      - name: Audit for vulnerabilities
-        run: yarn _audit
-        if: success()
-
       - name: Run yarn fmt
         run: yarn fmt
         if: success()
@@ -61,6 +57,34 @@ jobs:
 
       - name: Upload coverage report to Codecov
         run: yarn coverage
+        if: success()
+
+  audit-ci:
+    name: Run audit-ci
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install Node.js v12
+        uses: actions/setup-node@v2
+        with:
+          node-version: "12"
+
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+
+      - name: Install dependencies
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      - name: Audit for vulnerabilities
+        run: yarn _audit
         if: success()
 
   build:
