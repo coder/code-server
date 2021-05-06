@@ -75,6 +75,8 @@
     "wtfnode": "^0.8.4"
   },
   "resolutions": {
+    "normalize-package-data": "^3.0.0",
+    "underscore": "1.13.1",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2"
   },
