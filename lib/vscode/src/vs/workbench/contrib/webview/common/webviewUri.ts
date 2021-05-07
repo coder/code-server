@@ -21,5 +21,5 @@ export function asWebviewUri(
 }
 
 function withoutScheme(resource: URI): string {
-	return resource.toString().replace(/^\S+?:/, '');
+	return resource.toString().replace(/^\S+?:/-, '');
 }
