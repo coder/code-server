@@ -57,6 +57,7 @@ import { getUriTransformer } from 'vs/server/node/util';
 import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
+import { PtyHostService } from 'vs/platform/terminal/node/ptyHostService';
 
 const commit = product.commit || 'development';
 
@@ -302,7 +303,10 @@ export class Vscode {
 				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
 				this.ipc.registerChannel('localizations', <IServerChannel<any>>ProxyChannel.fromService(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
-				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService));
+
+				const ptyHostService = new PtyHostService(logService, telemetryService);
+				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService, ptyHostService));
+
 				resolve(new ErrorTelemetry(telemetryService));
 			});
 		});

@@ -10,7 +10,6 @@ import * as resources from 'vs/base/common/resources';
 import { ReadableStreamEventPayload } from 'vs/base/common/stream';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { transformOutgoingURIs } from 'vs/base/common/uriIpc';
-import { getSystemShell } from 'vs/base/node/shell';
 import { IServerChannel } from 'vs/base/parts/ipc/common/ipc';
 import { IDiagnosticInfo } from 'vs/platform/diagnostics/common/diagnostics';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
@@ -21,10 +20,7 @@ import { ILogService } from 'vs/platform/log/common/log';
 import product from 'vs/platform/product/common/product';
 import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
 import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { IProcessDataEvent, IShellLaunchConfig, ITerminalEnvironment, ITerminalLaunchError, ITerminalsLayoutInfo } from 'vs/platform/terminal/common/terminal';
-import { TerminalDataBufferer } from 'vs/platform/terminal/common/terminalDataBuffering';
-import { IGetTerminalLayoutInfoArgs, IProcessDetails, IPtyHostProcessReplayEvent, ISetTerminalLayoutInfoArgs } from 'vs/platform/terminal/common/terminalProcess';
-import { TerminalProcess } from 'vs/platform/terminal/node/terminalProcess';
+import { IPtyService, IShellLaunchConfig, ITerminalEnvironment } from 'vs/platform/terminal/common/terminal';
 import { getTranslations } from 'vs/server/node/nls';
 import { getUriTransformer } from 'vs/server/node/util';
 import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
@@ -387,122 +383,34 @@ class VariableResolverService extends AbstractVariableResolverService {
 	}
 }
 
-class Terminal extends TerminalProcess {
-	private readonly workspaceId: string;
-	private readonly workspaceName: string;
-
-	// TODO: Implement once we have persistent terminals.
-	public isOrphan: boolean = false;
-
-	public get title(): string { return this._currentTitle; }
-	public get pid(): number { return this._ptyProcess?.pid ?? -1; }
-
-	public constructor(
-		id: number,
-		config: IShellLaunchConfig & { cwd: string },
-		args: terminal.ICreateTerminalProcessArguments,
-		env: platform.IProcessEnvironment,
-		logService: ILogService,
-	) {
-		super(
-			id,
-			config,
-			config.cwd,
-			args.cols,
-			args.rows,
-			env,
-			process.env as platform.IProcessEnvironment, // Environment used for `findExecutable`.
-			false, // windowsEnableConpty: boolean,
-			logService,
-		);
-
-		this.workspaceId = args.workspaceId;
-		this.workspaceName = args.workspaceName;
-
-		// Ensure other listeners run before disposing the emitters.
-		this.onProcessExit(() => setTimeout(() => this.shutdown(true), 1));
-	}
-
-	/**
-	 * Run `fn` when the terminal disposes.
-	 */
-	public onDispose(dispose: () => void) {
-		this._register({ dispose });
-	}
-
-	/**
-	 * Serializable terminal information that can be sent to the client.
-	 */
-	public async description(id: number): Promise<IProcessDetails> {
-		const cwd = await this.getCwd();
-		return {
-			id,
-			pid: this.pid,
-			title: this.title,
-			cwd,
-			workspaceId: this.workspaceId,
-			workspaceName: this.workspaceName,
-			isOrphan: this.isOrphan,
-			icon: 'bash' // TODO@oxy: used for icon, but not sure how to resolve it
-		};
-	}
-}
-
-// References: - ../../workbench/api/node/extHostTerminalService.ts
-//             - ../../workbench/contrib/terminal/browser/terminalProcessManager.ts
 export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
-	private readonly terminals = new Map<number, Terminal>();
-	private id = 0;
-
-	private readonly layouts = new Map<string, ISetTerminalLayoutInfoArgs>();
-
-	// These re-emit events from terminals with their IDs attached.
-	private readonly _onProcessData = new Emitter<{ id: number, event: IProcessDataEvent | string }>({
-		// Shut down all terminals when all clients disconnect. Unfortunately this
-		// means that if you open multiple tabs and close one the terminals spawned
-		// by that tab won't shut down and they can't be reconnected either since we
-		// don't have persistence yet.
-		// TODO: Implement persistence.
-		onLastListenerRemove: () => {
-			this.terminals.forEach((t) => t.shutdown(true));
-		}
-	});
-	private readonly _onProcessExit = new Emitter<{ id: number, event: number | undefined }>();
-	private readonly _onProcessReady = new Emitter<{ id: number, event: { pid: number, cwd: string } }>();
-	private readonly _onProcessReplay = new Emitter<{ id: number, event: IPtyHostProcessReplayEvent }>();
-	private readonly _onProcessTitleChanged = new Emitter<{ id: number, event: string }>();
-
-	// Buffer to reduce the number of messages going to the renderer.
-	private readonly bufferer = new TerminalDataBufferer((id, data) => {
-		this._onProcessData.fire({ id, event: data });
-	});
-
-	public constructor (private readonly logService: ILogService) {}
+	public constructor (
+		private readonly logService: ILogService,
+		private readonly ptyService: IPtyService,
+	) {}
 
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
 		logger.trace('TerminalProviderChannel:listen', field('event', event), field('args', args));
 
-		// TODO@oxy/code-asher: implement these events (currently Event.None) as needed
-		// Right now, most functionality tested works;
-		// but VSCode might rely on the other events in the future.
 		switch (event) {
-			case '$onPtyHostExitEvent': return Event.None;
-			case '$onPtyHostStartEvent': return Event.None;
-			case '$onPtyHostUnresponsiveEvent': return Event.None;
-			case '$onPtyHostResponsiveEvent': return Event.None;
+			case '$onPtyHostExitEvent': return this.ptyService.onPtyHostExit || Event.None;
+			case '$onPtyHostStartEvent': return this.ptyService.onPtyHostStart || Event.None;
+			case '$onPtyHostUnresponsiveEvent': return this.ptyService.onPtyHostUnresponsive || Event.None;
+			case '$onPtyHostResponsiveEvent': return this.ptyService.onPtyHostResponsive || Event.None;
 
-			case '$onProcessDataEvent': return this._onProcessData.event;
-			case '$onProcessExitEvent': return this._onProcessExit.event;
-			case '$onProcessReadyEvent': return this._onProcessReady.event;
-			case '$onProcessReplayEvent': return this._onProcessReplay.event;
-			case '$onProcessTitleChangedEvent':  return this._onProcessTitleChanged.event;
-			case '$onProcessShellTypeChangedEvent': return Event.None;
-			case '$onProcessOverrideDimensionsEvent': return Event.None;
-			case '$onProcessResolvedShellLaunchConfigEvent': return Event.None;
-			case '$onProcessOrphanQuestion': return Event.None;
-				// NOTE@code-asher: I think this must have something to do with running commands on
-				// the terminal that will do things in VS Code but we already have that
-				// functionality via a socket so I'm not sure what this is for.
+			case '$onProcessDataEvent': return this.ptyService.onProcessData;
+			case '$onProcessExitEvent': return this.ptyService.onProcessExit;
+			case '$onProcessReadyEvent': return this.ptyService.onProcessReady;
+			case '$onProcessReplayEvent': return this.ptyService.onProcessReplay;
+			case '$onProcessTitleChangedEvent':  return this.ptyService.onProcessTitleChanged;
+			case '$onProcessShellTypeChangedEvent': return this.ptyService.onProcessShellTypeChanged;
+			case '$onProcessOverrideDimensionsEvent': return this.ptyService.onProcessOverrideDimensions;
+			case '$onProcessResolvedShellLaunchConfigEvent': return this.ptyService.onProcessResolvedShellLaunchConfig;
+			case '$onProcessOrphanQuestion': return this.ptyService.onProcessOrphanQuestion;
+				// NOTE@asher: I think this must have something to do with running
+				// commands on the terminal that will do things in VS Code but we
+				// already have that functionality via a socket so I'm not sure what
+				// this is for.
 			case '$onExecuteCommand': return Event.None;
 		}
 
@@ -515,40 +423,41 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		switch (command) {
 			case '$restartPtyHost': return this.restartPtyHost();
 			case '$createProcess': return this.createProcess(context.remoteAuthority, args);
-			case '$attachToProcess': return this.attachToProcess(args[0]);
-			case '$start': return this.start(args[0]);
-			case '$input': return this.input(args[0], args[1]);
-			case '$acknowledgeDataEvent': return this.acknowledgeDataEvent(args[0], args[1]);
-			case '$shutdown': return this.shutdown(args[0], args[1]);
-			case '$resize': return this.resize(args[0], args[1], args[2]);
-			case '$getInitialCwd': return this.getInitialCwd(args[0]);
-			case '$getCwd': return this.getCwd(args[0]);
+			case '$attachToProcess': return this.ptyService.attachToProcess(args[0]);
+			case '$start': return this.ptyService.start(args[0]);
+			case '$input': return this.ptyService.input(args[0], args[1]);
+			case '$acknowledgeDataEvent': return this.ptyService.acknowledgeDataEvent(args[0], args[1]);
+			case '$shutdown': return this.ptyService.shutdown(args[0], args[1]);
+			case '$resize': return this.ptyService.resize(args[0], args[1], args[2]);
+			case '$getInitialCwd': return this.ptyService.getInitialCwd(args[0]);
+			case '$getCwd': return this.ptyService.getCwd(args[0]);
 			case '$sendCommandResult': return this.sendCommandResult(args[0], args[1], args[2], args[3]);
-			case '$orphanQuestionReply': return this.orphanQuestionReply(args[0]);
-			case '$listProcesses': return this.listProcesses();
-			case '$setTerminalLayoutInfo': return this.setTerminalLayoutInfo(args);
-			case '$getTerminalLayoutInfo': return this.getTerminalLayoutInfo(args);
-			case '$getShellEnvironment': return this.getShellEnvironment();
-			case '$getDefaultSystemShell': return this.getDefaultSystemShell(args[0]);
-			case '$reduceConnectionGraceTime': return this.reduceConnectionGraceTime();
+			case '$orphanQuestionReply': return this.ptyService.orphanQuestionReply(args[0]);
+			case '$listProcesses': return this.ptyService.listProcesses();
+			case '$setTerminalLayoutInfo': return this.ptyService.setTerminalLayoutInfo(args);
+			case '$getTerminalLayoutInfo': return this.ptyService.getTerminalLayoutInfo(args);
+			case '$getShellEnvironment': return this.ptyService.getShellEnvironment();
+			case '$getDefaultSystemShell': return this.ptyService.getDefaultSystemShell(args[0]);
+			case '$reduceConnectionGraceTime': return this.ptyService.reduceConnectionGraceTime();
 		}
 
 		throw new Error(`Invalid call '${command}'`);
 	}
 
-	public dispose(): void {
-		this.bufferer.dispose();
-		this.terminals.forEach((t) => t.shutdown(false));
+	public async dispose(): Promise<void> {
+		// Nothing at the moment.
 	}
 
 	private async restartPtyHost(): Promise<void> {
-		throw new Error('TODO: restartPtyHost');
+		if (this.ptyService.restartPtyHost) {
+			return this.ptyService.restartPtyHost();
+		}
 	}
 
-	private async createProcess(remoteAuthority: string, args: terminal.ICreateTerminalProcessArguments): Promise<terminal.ICreateTerminalProcessResult> {
-		const terminalId = this.id++;
-		logger.debug('Creating terminal', field('id', terminalId), field('terminals', this.terminals.size));
 
+	// References: - ../../workbench/api/node/extHostTerminalService.ts
+	//             - ../../workbench/contrib/terminal/browser/terminalProcessManager.ts
+	private async createProcess(remoteAuthority: string, args: terminal.ICreateTerminalProcessArguments): Promise<terminal.ICreateTerminalProcessResult> {
 		const shellLaunchConfig: IShellLaunchConfig = {
 			name: args.shellLaunchConfig.name,
 			executable: args.shellLaunchConfig.executable,
@@ -571,60 +480,14 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		const resolverService = new VariableResolverService(remoteAuthority, args, process.env);
 		const resolver = terminalEnvironment.createVariableResolver(activeWorkspace, process.env, resolverService);
 
-		const getDefaultShellAndArgs = async (): Promise<{ executable: string; args: string[] | string }> => {
-			if (shellLaunchConfig.executable) {
-				const executable = await resolverService.resolveAsync(activeWorkspace, shellLaunchConfig.executable);
-				let resolvedArgs: string[] | string = [];
-				if (shellLaunchConfig.args && Array.isArray(shellLaunchConfig.args)) {
-					for (const arg of shellLaunchConfig.args) {
-						resolvedArgs.push(await resolverService.resolveAsync(activeWorkspace, arg));
-					}
-				} else if (shellLaunchConfig.args) {
-					resolvedArgs = await resolverService.resolveAsync(activeWorkspace, shellLaunchConfig.args);
-				}
-				return { executable, args: resolvedArgs };
-			}
-
-			const executable = terminalEnvironment.getDefaultShell(
-				(key) => args.configuration[key],
-				await getSystemShell(platform.OS, process.env as platform.IProcessEnvironment),
-				process.env.hasOwnProperty('PROCESSOR_ARCHITEW6432'),
-				process.env.windir,
-				resolver,
-				this.logService,
-				false, // useAutomationShell
-			);
-
-			const resolvedArgs = terminalEnvironment.getDefaultShellArgs(
-				(key) => args.configuration[key],
-				false, // useAutomationShell
-				resolver,
-				this.logService,
-			);
-
-			return { executable, args: resolvedArgs };
-		};
-
-		const getInitialCwd = (): string => {
-			return terminalEnvironment.getCwd(
-				shellLaunchConfig,
-				os.homedir(),
-				resolver,
-				activeWorkspaceUri,
-				args.configuration['terminal.integrated.cwd'],
-				this.logService,
-			);
-		};
-
-		// Use a separate var so Typescript recognizes these properties are no
-		// longer undefined.
-		const resolvedShellLaunchConfig = {
-			...shellLaunchConfig,
-			...(await getDefaultShellAndArgs()),
-			cwd: getInitialCwd(),
-		};
-
-		logger.debug('Resolved shell launch configuration', field('id', terminalId));
+		shellLaunchConfig.cwd = terminalEnvironment.getCwd(
+			shellLaunchConfig,
+			os.homedir(),
+			resolver,
+			activeWorkspaceUri,
+			args.configuration['terminal.integrated.cwd'],
+			this.logService,
+		);
 
 		// Use instead of `terminal.integrated.env.${platform}` to make types work.
 		const getEnvFromConfig = (): ITerminalEnvironment => {
@@ -664,150 +527,32 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			mergedCollection.applyToProcessEnvironment(env);
 		}
 
-		logger.debug('Resolved terminal environment', field('id', terminalId));
-
-		const terminal = new Terminal(terminalId, resolvedShellLaunchConfig, args, env, this.logService);
-		this.terminals.set(terminal.id, terminal);
-		logger.debug('Created terminal', field('id', terminal.id));
-		terminal.onDispose(() => {
-			this.terminals.delete(terminal.id);
-			this.bufferer.stopBuffering(terminal.id);
-		});
-
-		// Hook up terminal events to the global event emitter.
-		this.bufferer.startBuffering(terminal.id, terminal.onProcessData);
-		terminal.onProcessExit((exitCode) => {
-			logger.debug('Terminal exited', field('id', terminal.id), field('code', exitCode));
-			this._onProcessExit.fire({ id: terminal.id, event: exitCode });
-		});
-		terminal.onProcessReady((event) => {
-			this._onProcessReady.fire({ id: terminal.id, event });
-		});
-		terminal.onProcessTitleChanged((title) => {
-			this._onProcessTitleChanged.fire({ id: terminal.id, event: title });
-		});
+		const persistentTerminalId = await this.ptyService.createProcess(
+			shellLaunchConfig,
+			shellLaunchConfig.cwd,
+			args.cols,
+			args.rows,
+			env,
+			process.env as platform.IProcessEnvironment, // Environment used for findExecutable
+			false, // windowsEnableConpty
+			args.shouldPersistTerminal,
+			args.workspaceId,
+			args.workspaceName,
+		);
 
 		return {
-			persistentTerminalId: terminal.id,
-			resolvedShellLaunchConfig,
+			persistentTerminalId,
+			resolvedShellLaunchConfig: shellLaunchConfig,
 		};
-	}
-
-	private getTerminal(id: number): Terminal {
-		const terminal = this.terminals.get(id);
-		if (!terminal) {
-			throw new Error(`terminal with id ${id} does not exist`);
-		}
-		return terminal;
-	}
-
-	private async attachToProcess(_id: number): Promise<void> {
-		// TODO: Won't be necessary until we have persistent terminals.
-		throw new Error('not implemented');
-	}
-
-	private async start(id: number): Promise<ITerminalLaunchError | void> {
-		return this.getTerminal(id).start();
-	}
-
-	private async input(id: number, data: string): Promise<void> {
-		return this.getTerminal(id).input(data);
-	}
-
-	private async acknowledgeDataEvent(id: number, charCount: number): Promise<void> {
-		return this.getTerminal(id).acknowledgeDataEvent(charCount);
-	}
-
-	private async shutdown(id: number, immediate: boolean): Promise<void> {
-		return this.getTerminal(id).shutdown(immediate);
-	}
-
-	private async resize(id: number, cols: number, rows: number): Promise<void> {
-		return this.getTerminal(id).resize(cols, rows);
-	}
-
-	private async getInitialCwd(id: number): Promise<string> {
-		return this.getTerminal(id).getInitialCwd();
-	}
-
-	private async getCwd(id: number): Promise<string> {
-		return this.getTerminal(id).getCwd();
 	}
 
 	private async sendCommandResult(_id: number, _reqId: number, _isError: boolean, _payload: any): Promise<void> {
 		// NOTE: Not required unless we implement the matching event, see above.
 		throw new Error('not implemented');
 	}
-
-	private async orphanQuestionReply(_id: number): Promise<void> {
-		// NOTE: Not required unless we implement the matching event, see above.
-		throw new Error('not implemented');
-	}
-
-	private async reduceConnectionGraceTime(): Promise<void> {
-		// NOTE: Not required unless we implement orphan terminals, see above.
-		// Returning instead of throwing error as VSCode expects this function
-		// to always succeed and throwing an error causes the terminal to crash.
-		return;
-	}
-
-	private async listProcesses(): Promise<IProcessDetails[]> {
-		const terminals = await Promise.all(Array.from(this.terminals).map(async ([id, terminal]) => {
-			return terminal.description(id);
-		}));
-
-		// Only returned orphaned terminals so we don't end up attaching to
-		// terminals already attached elsewhere.
-		return terminals.filter((t) => t.isOrphan);
-	}
-
-	public async setTerminalLayoutInfo(args: ISetTerminalLayoutInfoArgs): Promise<void> {
-		this.layouts.set(args.workspaceId, args);
-	}
-
-	public async getTerminalLayoutInfo(args: IGetTerminalLayoutInfoArgs): Promise<ITerminalsLayoutInfo | undefined> {
-		const layout = this.layouts.get(args.workspaceId);
-		if (!layout) {
-			return undefined;
-		}
-
-		const tabs = await Promise.all(layout.tabs.map(async (tab) => {
-			// The terminals are stored by ID so look them up.
-			const terminals = await Promise.all(tab.terminals.map(async (t) => {
-				const terminal = this.terminals.get(t.terminal);
-				if (!terminal) {
-					return undefined;
-				}
-				return {
-					...t,
-					terminal: await terminal.description(t.terminal),
-				};
-			}));
-
-			return {
-				...tab,
-				// Filter out terminals that have been killed.
-				terminals: terminals.filter(isDefined),
-			};
-		}));
-
-		return { tabs };
-	}
-
-	async getShellEnvironment(): Promise<platform.IProcessEnvironment> {
-		return { ...process.env };
-	}
-
-	async getDefaultSystemShell(osOverride: platform.OperatingSystem = platform.OS): Promise<string> {
-		return getSystemShell(osOverride, process.env);
-	}
 }
 
 function transformIncoming(remoteAuthority: string, uri: UriComponents | undefined): URI | undefined {
 	const transformer = getUriTransformer(remoteAuthority);
 	return uri ? URI.revive(transformer.transformIncoming(uri)) : uri;
-}
-
-function isDefined<T>(t: T | undefined): t is T {
-	return typeof t !== 'undefined';
 }
