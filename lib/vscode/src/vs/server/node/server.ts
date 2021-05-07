@@ -1,4 +1,4 @@
-import * as fs from 'fs';
+import { promises as fs } from 'fs';
 import * as net from 'net';
 import { hostname, release } from 'os';
 import * as path from 'path';
@@ -213,8 +213,18 @@ export class Vscode {
 	private async initializeServices(args: NativeParsedArgs): Promise<void> {
 		const productService = { _serviceBrand: undefined, ...product };
 		const environmentService = new NativeEnvironmentService(args, productService);
-		// https://github.com/cdr/code-server/issues/1693
-		fs.mkdirSync(environmentService.globalStorageHome.fsPath, { recursive: true });
+
+		await Promise.all([
+			environmentService.extensionsPath,
+			environmentService.logsPath,
+			environmentService.globalStorageHome.fsPath,
+			environmentService.workspaceStorageHome.fsPath,
+			...environmentService.extraExtensionPaths,
+			...environmentService.extraBuiltinExtensionPaths,
+		].map((p) => fs.mkdir(p, { recursive: true }).catch((error) => {
+			logger.warn(error.message || error);
+		})));
+
 		const logService = new MultiplexLogService([
 			new ConsoleLogger(getLogLevel(environmentService)),
 			new SpdLogLogger(RemoteExtensionLogFileName, path.join(environmentService.logsPath, `${RemoteExtensionLogFileName}.log`), false, getLogLevel(environmentService))
