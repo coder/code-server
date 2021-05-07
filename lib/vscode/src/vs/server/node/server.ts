@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as net from 'net';
-import { release } from 'os';
+import { hostname, release } from 'os';
 import * as path from 'path';
 import { Emitter } from 'vs/base/common/event';
 import { Schemas } from 'vs/base/common/network';
@@ -58,6 +58,8 @@ import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/comm
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
 
+const commit = product.commit || 'development';
+
 export class Vscode {
 	public readonly _onDidClientConnect = new Emitter<ClientConnectionEvent>();
 	public readonly onDidClientConnect = this._onDidClientConnect.event;
@@ -109,7 +111,7 @@ export class Vscode {
 			remoteUserDataUri: transformer.transformOutgoing(URI.file(environment.userDataPath)),
 			productConfiguration: product,
 			nlsConfiguration: await getNlsConfiguration(environment.args.locale || await getLocaleFromConfig(environment.userDataPath), environment.userDataPath),
-			commit: product.commit || 'development',
+			commit,
 		};
 	}
 
@@ -264,8 +266,8 @@ export class Vscode {
 						),
 						sendErrorTelemetry: true,
 						commonProperties: resolveCommonProperties(
-							fileService, release(), process.arch, product.commit, product.version, machineId,
-							[], environmentService.installSourcePath, 'code-server',
+							fileService, release(), hostname(), process.arch, commit, product.version, machineId,
+							undefined, environmentService.installSourcePath, 'code-server',
 						),
 						piiPaths,
 					}, configurationService);
