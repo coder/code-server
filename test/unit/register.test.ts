@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom"
 import { registerServiceWorker } from "../../src/browser/register"
-import { loggerModule } from "../utils/helpers"
+import { createLoggerMock } from "../utils/helpers"
 import { LocationLike } from "./util.test"
 
 describe("register", () => {
@@ -21,6 +21,7 @@ describe("register", () => {
       })
     })
 
+    const loggerModule = createLoggerMock()
     beforeEach(() => {
       jest.clearAllMocks()
       jest.mock("@coder/logger", () => loggerModule)
@@ -75,6 +76,7 @@ describe("register", () => {
   })
 
   describe("when navigator and serviceWorker are NOT defined", () => {
+    const loggerModule = createLoggerMock()
     beforeEach(() => {
       jest.clearAllMocks()
       jest.mock("@coder/logger", () => loggerModule)

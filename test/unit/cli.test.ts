@@ -39,6 +39,10 @@ describe("parser", () => {
   it("should parse all available options", () => {
     expect(
       parse([
+        "--enable",
+        "feature1",
+        "--enable",
+        "feature2",
         "--bind-addr=192.169.0.1:8080",
         "--auth",
         "none",
@@ -82,6 +86,7 @@ describe("parser", () => {
       cert: {
         value: path.resolve("baz"),
       },
+      enable: ["feature1", "feature2"],
       "extensions-dir": path.resolve("foo"),
       "extra-builtin-extensions-dir": [path.resolve("bazzle")],
       "extra-extensions-dir": [path.resolve("nozzle")],

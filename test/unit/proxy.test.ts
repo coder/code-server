@@ -37,7 +37,7 @@ describe("proxy", () => {
     e.get("/wsup", (req, res) => {
       res.json("asher is the best")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(proxyPath)
     expect(resp.status).toBe(200)
     const json = await resp.json()
@@ -48,7 +48,7 @@ describe("proxy", () => {
     e.get(absProxyPath, (req, res) => {
       res.json("joe is the best")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(absProxyPath)
     expect(resp.status).toBe(200)
     const json = await resp.json()
@@ -62,7 +62,7 @@ describe("proxy", () => {
     e.post("/finale", (req, res) => {
       res.json("redirect success")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(proxyPath, {
       method: "POST",
     })
@@ -78,7 +78,7 @@ describe("proxy", () => {
     e.post(finalePath, (req, res) => {
       res.json("redirect success")
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(absProxyPath, {
       method: "POST",
     })
@@ -91,7 +91,7 @@ describe("proxy", () => {
     e.post("/wsup", (req, res) => {
       res.json(req.body)
     })
-    ;[, , codeServer] = await integration.setup(["--auth=none"], "")
+    codeServer = await integration.setup(["--auth=none"], "")
     const resp = await codeServer.fetch(proxyPath, {
       method: "post",
       body: JSON.stringify("coder is the best"),

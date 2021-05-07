@@ -11,7 +11,7 @@ import {
   trimSlashes,
   normalize,
 } from "../../src/common/util"
-import { loggerModule } from "../utils/helpers"
+import { createLoggerMock } from "../utils/helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
@@ -228,6 +228,8 @@ describe("util", () => {
     afterAll(() => {
       jest.restoreAllMocks()
     })
+
+    const loggerModule = createLoggerMock()
 
     it("should log an error with the message and stack trace", () => {
       const message = "You don't have access to that folder."
