@@ -79,10 +79,7 @@ export class PtyService extends Disposable implements IPtyService {
 			throw new Error('Attempt to create a process when attach object was provided');
 		}
 		const id = ++this._lastPtyId;
-		/**
-		 * NOTE@coder: pass ID into TerminalProcess to fix compile.
-		 */
-		const process = new TerminalProcess(id, shellLaunchConfig, cwd, cols, rows, env, executableEnv, windowsEnableConpty, this._logService);
+		const process = new TerminalProcess(shellLaunchConfig, cwd, cols, rows, env, executableEnv, windowsEnableConpty, this._logService);
 		process.onProcessData(event => this._onProcessData.fire({ id, event }));
 		process.onProcessExit(event => this._onProcessExit.fire({ id, event }));
 		if (process.onProcessOverrideDimensions) {
