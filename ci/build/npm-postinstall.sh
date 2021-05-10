@@ -1,6 +1,24 @@
 #!/usr/bin/env sh
 set -eu
 
+# Copied from arch() in ci/lib.sh.
+detect_arch() {
+  case "$(uname -m)" in
+  aarch64)
+    echo arm64
+    ;;
+  x86_64 | amd64)
+    echo amd64
+    ;;
+  *)
+    # This will cause the download to fail, but is intentional
+    uname -m
+    ;;
+  esac
+}
+
+ARCH="${NPM_CONFIG_ARCH:-$(detect_arch)}"
+
 main() {
   # Grabs the major version of node from $npm_config_user_agent which looks like
   # yarn/1.21.1 npm/? node/v14.2.0 darwin x64
@@ -25,7 +43,7 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
-  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent; then
+  if curl -fsSL "https://github.com/cdr/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
     echo "Failed to download cloud agent; --link will not work"
