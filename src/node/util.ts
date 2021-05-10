@@ -7,10 +7,12 @@ import * as os from "os"
 import * as path from "path"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import { tmpdir } from "./constants"
 
 interface Paths {
   data: string
   config: string
+  runtime: string
 }
 
 export const paths = getEnvPaths()
@@ -20,12 +22,15 @@ export const paths = getEnvPaths()
  * On MacOS this function gets the standard XDG directories instead of using the native macOS
  * ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
  */
-function getEnvPaths(): Paths {
+export function getEnvPaths(): Paths {
   let paths: Paths
   if (process.platform === "win32") {
-    paths = envPaths("code-server", {
-      suffix: "",
-    })
+    paths = {
+      ...envPaths("code-server", {
+        suffix: "",
+      }),
+      runtime: tmpdir,
+    }
   } else {
     if (xdgBasedir.data === undefined || xdgBasedir.config === undefined) {
       throw new Error("No home folder?")
@@ -33,6 +38,7 @@ function getEnvPaths(): Paths {
     paths = {
       data: path.join(xdgBasedir.data, "code-server"),
       config: path.join(xdgBasedir.config, "code-server"),
+      runtime: xdgBasedir.runtime ? path.join(xdgBasedir.runtime, "code-server") : tmpdir,
     }
   }
 
