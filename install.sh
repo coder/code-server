@@ -419,7 +419,7 @@ install_npm() {
   echoh
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.9.3/docs/install.md#yarn-npm"
+  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.10.0/docs/install.md#yarn-npm"
   exit 1
 }
 
