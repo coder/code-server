@@ -1,3 +1,22 @@
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+# Changelog
+
+- [Changelog](#changelog)
+  - [3.11.0](#3110)
+    - [New Features](#new-features)
+    - [Bug Fixes](#bug-fixes)
+  - [Documentation](#documentation)
+  - [Development](#development)
+  - [3.10.0](#3100)
+    - [New Features](#new-features-1)
+    - [Bug Fixes](#bug-fixes-1)
+  - [Documentation](#documentation-1)
+  - [Development](#development-1)
+  - [Previous versions](#previous-versions)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 # Changelog
 
 <!--
