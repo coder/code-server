@@ -3,16 +3,11 @@
 # Changelog
 
 - [Changelog](#changelog)
-  - [3.11.0](#3110)
+  - [3.10.0](#3100)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
   - [Documentation](#documentation)
   - [Development](#development)
-  - [3.10.0](#3100)
-    - [New Features](#new-features-1)
-    - [Bug Fixes](#bug-fixes-1)
-  - [Documentation](#documentation-1)
-  - [Development](#development-1)
   - [Previous versions](#previous-versions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -32,85 +27,31 @@ Add next version above previous version but below this line using the template
 
 ## 0.0.0
 
-v0.0.0
-
 VS Code v0.00.0
 
-Upgrading is as easy as installing the new version over the old one. code-server
-maintains all user data in \`~/.local/share/code-server\` so that it is preserved in between
-installations.
-
 ### New Features
-
-⭐ Summarize new features here with references to issues
 
 - item
 
 ### Bug Fixes
 
-⭐ Summarize bug fixes here with references to issues
-
 - fix(socket): did this thing #321 @githubuser
 
 ## Documentation
 
-⭐ Summarize doc changes here with references to issues
-
 - item
 
 ## Development
-
-⭐ Summarize development/testing changes here with references to issues
 
 - item
 
 -->
 
-## 3.11.0
-
-v3.11.0
-
-VS Code v1.56
-
-Upgrading is as easy as installing the new version over the old one. code-server
-maintains all user data in \`~/.local/share/code-server\` so that it is preserved in between installations.
-
-### New Features
-
-⭐ Summarize new features here with references to issues
-
-- item
-
-### Bug Fixes
-
-⭐ Summarize bug fixes here with references to issues
-
-- fix(socket): did this thing #321 @githubuser
-
-## Documentation
-
-⭐ Summarize doc changes here with references to issues
-
-- item
-
-## Development
-
-⭐ Summarize development/testing changes here with references to issues
-
-- item
-
 ## 3.10.0
 
-v3.10.0
-
 VS Code v1.56
 
-Upgrading is as easy as installing the new version over the old one. code-server
-maintains all user data in \`~/.local/share/code-server\` so that it is preserved in between installations.
-
 ### New Features
-
-⭐ Summarize new features here with references to issues
 
 - feat: minor connections refactor #3178 @code-asher
 - feat(security): add code-scanning with CodeQL #3229 @jsjoeio
@@ -119,8 +60,6 @@ maintains all user data in \`~/.local/share/code-server\` so that it is preserve
 - feat: use ptyHostService #3308 @code-asher
 
 ### Bug Fixes
-
-⭐ Summarize bug fixes here with references to issues
 
 - fix(socket): did this thing #321 @githubuser
 - fix(login): rate limiter shouldn't count successful logins #3141 @jsjoeio
@@ -131,8 +70,6 @@ maintains all user data in \`~/.local/share/code-server\` so that it is preserve
 - fix: make sure directories exist #3309 @code-asher
 
 ## Documentation
-
-⭐ Summarize doc changes here with references to issues
 
 - docs(FAQ): add mention of sysbox #3087 @bpmct
 - docs: add security policy #3148 @jsjoeio
@@ -145,10 +82,9 @@ maintains all user data in \`~/.local/share/code-server\` so that it is preserve
 - docs(maintaining): add triage to workflow #3284 @jsjoeio
 - docs(security): add section for tools #3287 @jsjoeio
 - docs(maintaining): add versioning #3288 @jsjoeio
+- docs: add changelog #3337 @jsjoeio
 
 ## Development
-
-⭐ Summarize development/testing changes here with references to issues
 
 - fix(update-vscode): add check/docs for git-subtree #3129 @oxy
 - refactor(testing): migrate to playwright-test from jest-playwright #3133 @jsjoeio
