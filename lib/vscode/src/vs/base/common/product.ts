@@ -26,9 +26,6 @@ export type ExtensionUntrustedWorkspaceSupport = {
 };
 
 export interface IProductConfiguration {
-	// NOTE@coder: add codeServerVersion
-	readonly codeServerVersion?: string;
-
 	readonly version: string;
 	readonly date?: string;
 	readonly quality?: string;

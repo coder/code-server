@@ -39,7 +39,6 @@ import { BufferLogService } from 'vs/platform/log/common/bufferLog';
 import { FileLogger } from 'vs/platform/log/common/fileLog';
 import { toLocalISOString } from 'vs/base/common/date';
 import { isWorkspaceToOpen, isFolderToOpen } from 'vs/platform/windows/common/windows';
-import { initialize } from 'vs/server/browser/client';
 import { getSingleFolderWorkspaceIdentifier, getWorkspaceIdentifier } from 'vs/workbench/services/workspaces/browser/workspaces';
 import { coalesce } from 'vs/base/common/arrays';
 import { InMemoryFileSystemProvider } from 'vs/platform/files/common/inMemoryFilesystemProvider';
@@ -96,7 +95,6 @@ class BrowserMain extends Disposable {
 		// Startup
 		const instantiationService = workbench.startup();
 
-		await initialize(services.serviceCollection);
 		// Window
 		this._register(instantiationService.createInstance(BrowserWindow));
 

@@ -106,7 +106,7 @@ export interface IStorageService {
 	 * @param target allows to define the target of the storage operation
 	 * to either the current machine or user.
 	 */
-	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope, target: StorageTarget): Promise<void> | void;
+	store(key: string, value: string | boolean | number | undefined | null, scope: StorageScope, target: StorageTarget): void;
 
 	/**
 	 * Delete an element stored under the provided key from storage.

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
+import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IHomeIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { Event, Emitter } from 'vs/base/common/event';
 import { generateUuid } from 'vs/base/common/uuid';
@@ -17,7 +17,7 @@ import { isStandalone } from 'vs/base/browser/browser';
 import { localize } from 'vs/nls';
 import { Schemas } from 'vs/base/common/network';
 import product from 'vs/platform/product/common/product';
-import { encodePath } from 'vs/server/node/util';
+import { parseLogLevel } from 'vs/platform/log/common/log';
 
 function doCreateUri(path: string, queryValues: Map<string, string>): URI {
 	let query: string | undefined = undefined;
@@ -316,18 +316,12 @@ class WorkspaceProvider implements IWorkspaceProvider {
 
 		// Folder
 		else if (isFolderToOpen(workspace)) {
-			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
-				? encodePath(workspace.folderUri.path)
-				: encodeURIComponent(workspace.folderUri.toString());
-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
+			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${encodeURIComponent(workspace.folderUri.toString())}`;
 		}
 
 		// Workspace
 		else if (isWorkspaceToOpen(workspace)) {
-			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
-				? encodePath(workspace.workspaceUri.path)
-				: encodeURIComponent(workspace.workspaceUri.toString());
-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
+			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${encodeURIComponent(workspace.workspaceUri.toString())}`;
 		}
 
 		// Append payload if any
@@ -417,27 +411,51 @@ class WindowIndicator implements IWindowIndicator {
 		throw new Error('Missing web configuration element');
 	}
 
-	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = {
-		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview`,
-		...JSON.parse(configElementAttribute),
-	};
-
-	// Strip the protocol from the authority if it exists.
-	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, '');
-	if (config.remoteAuthority) {
-		(config as any).remoteAuthority = normalizeAuthority(config.remoteAuthority);
-	}
-	if (config.workspaceUri && config.workspaceUri.authority) {
-		config.workspaceUri.authority = normalizeAuthority(config.workspaceUri.authority);
-	}
-	if (config.folderUri && config.folderUri.authority) {
-		config.folderUri.authority = normalizeAuthority(config.folderUri.authority);
-	}
+	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
 
 	// Find workspace to open and payload
 	let foundWorkspace = false;
 	let workspace: IWorkspace;
-	let payload = config.workspaceProvider?.payload || Object.create(null);
+	let payload = Object.create(null);
+	let logLevel: string | undefined = undefined;
+
+	const query = new URL(document.location.href).searchParams;
+	query.forEach((value, key) => {
+		switch (key) {
+
+			// Folder
+			case WorkspaceProvider.QUERY_PARAM_FOLDER:
+				workspace = { folderUri: URI.parse(value) };
+				foundWorkspace = true;
+				break;
+
+			// Workspace
+			case WorkspaceProvider.QUERY_PARAM_WORKSPACE:
+				workspace = { workspaceUri: URI.parse(value) };
+				foundWorkspace = true;
+				break;
+
+			// Empty
+			case WorkspaceProvider.QUERY_PARAM_EMPTY_WINDOW:
+				workspace = undefined;
+				foundWorkspace = true;
+				break;
+
+			// Payload
+			case WorkspaceProvider.QUERY_PARAM_PAYLOAD:
+				try {
+					payload = JSON.parse(value);
+				} catch (error) {
+					console.error(error); // possible invalid JSON
+				}
+				break;
+
+			// Log level
+			case 'logLevel':
+				logLevel = value;
+				break;
+		}
+	});
 
 	// If no workspace is provided through the URL, check for config attribute from server
 	if (!foundWorkspace) {
@@ -452,6 +470,13 @@ class WindowIndicator implements IWindowIndicator {
 
 	// Workspace Provider
 	const workspaceProvider = new WorkspaceProvider(workspace, payload);
+
+	// Home Indicator
+	const homeIndicator: IHomeIndicator = {
+		href: 'https://github.com/microsoft/vscode',
+		icon: 'code',
+		title: localize('home', "Home")
+	};
 
 	// Window indicator (unless connected to a remote)
 	let windowIndicator: WindowIndicator | undefined = undefined;
@@ -495,7 +520,12 @@ class WindowIndicator implements IWindowIndicator {
 	// Finally create workbench
 	create(document.body, {
 		...config,
+		developmentOptions: {
+			logLevel: logLevel ? parseLogLevel(logLevel) : undefined,
+			...config.developmentOptions
+		},
 		settingsSyncOptions,
+		homeIndicator,
 		windowIndicator,
 		productQualityChangeHandler,
 		workspaceProvider,

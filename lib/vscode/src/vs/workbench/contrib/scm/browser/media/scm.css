@@ -83,12 +83,6 @@
 	display: flex;
 	align-items: center;
 	overflow: hidden;
-	min-width: 16px; /* for flex */
-	height: 100%;
-	margin: 0;
-	background-repeat: no-repeat;
-	background-position: center;
-	background-size: contain;
 }
 
 .scm-view .scm-provider > .actions > .monaco-toolbar > .monaco-action-bar > .actions-container  > .action-item > .action-label > .codicon {
@@ -150,11 +144,9 @@
 	margin-right: 8px;
 }
 
-/* NOTE@coder: Causes the label to shrink to zero width in Firefox due to
- * overflow:hidden. This isn't right anyway, as far as I can tell. */
-/* .scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions { */
-/* 	flex-grow: 100; */
-/* } */
+.scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {
+	flex-grow: 100;
+}
 
 .scm-view .monaco-list .monaco-list-row .resource-group > .actions,
 .scm-view .monaco-list .monaco-list-row .resource > .name > .monaco-icon-label > .actions {

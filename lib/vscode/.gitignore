@@ -7,7 +7,7 @@ node_modules/
 extensions/**/dist/
 /out*/
 /extensions/**/out/
-# src/vs/server NOTE@coder: So our code isn't ignored.
+src/vs/server
 resources/server
 build/node_modules
 coverage/

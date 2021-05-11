@@ -16,7 +16,6 @@ import { ParsedExpression, IExpression, parse } from 'vs/base/common/glob';
 import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
 import { IConfigurationService, IConfigurationChangeEvent } from 'vs/platform/configuration/common/configuration';
 import { withNullAsUndefined } from 'vs/base/common/types';
-import { Schemas } from 'vs/base/common/network';
 
 export class ResourceContextKey extends Disposable implements IContextKey<URI> {
 
@@ -76,8 +75,7 @@ export class ResourceContextKey extends Disposable implements IContextKey<URI> {
 		if (!ResourceContextKey._uriEquals(this._resourceKey.get(), value)) {
 			this._contextKeyService.bufferChangeEvents(() => {
 				this._resourceKey.set(value);
-				// NOTE@coder: Fixes source control context menus (#1104).
-				this._schemeKey.set(value ? (value.scheme === Schemas.vscodeRemote ? Schemas.file : value.scheme) : null);
+				this._schemeKey.set(value ? value.scheme : null);
 				this._filenameKey.set(value ? basename(value) : null);
 				this._dirnameKey.set(value ? dirname(value).fsPath : null);
 				this._pathKey.set(value ? value.fsPath : null);

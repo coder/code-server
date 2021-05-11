@@ -23,7 +23,6 @@ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import Severity from 'vs/base/common/severity';
 import { canceled } from 'vs/base/common/errors';
 import { IUserDataAutoSyncEnablementService, IUserDataSyncResourceEnablementService, SyncResource } from 'vs/platform/userDataSync/common/userDataSync';
-import { isWeb } from 'vs/base/common/platform';
 import { Promises } from 'vs/base/common/async';
 import { IWorkspaceTrustRequestService } from 'vs/platform/workspace/common/workspaceTrust';
 import { IExtensionManifestPropertiesService } from 'vs/workbench/services/extensions/common/extensionManifestPropertiesService';
@@ -306,11 +305,6 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 			if (kind === 'web' && this.extensionManagementServerService.webExtensionManagementServer) {
 				return this.extensionManagementServerService.webExtensionManagementServer;
 			}
-		}
-
-		// NOTE@coder: Fall back to installing on the remote server on web.
-		if (isWeb && this.extensionManagementServerService.remoteExtensionManagementServer) {
-			return this.extensionManagementServerService.remoteExtensionManagementServer;
 		}
 
 		// Local server can accept any extension. So return local server if not compatible server found.
