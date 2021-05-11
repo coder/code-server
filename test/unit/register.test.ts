@@ -9,7 +9,7 @@ describe("register", () => {
 
     beforeAll(() => {
       const { window } = new JSDOM()
-      global.window = (window as unknown) as Window & typeof globalThis
+      global.window = window as unknown as Window & typeof globalThis
       global.document = window.document
       global.navigator = window.navigator
       global.location = window.location
@@ -35,10 +35,10 @@ describe("register", () => {
       jest.restoreAllMocks()
 
       // We don't want these to stay around because it can affect other tests
-      global.window = (undefined as unknown) as Window & typeof globalThis
-      global.document = (undefined as unknown) as Document & typeof globalThis
-      global.navigator = (undefined as unknown) as Navigator & typeof globalThis
-      global.location = (undefined as unknown) as Location & typeof globalThis
+      global.window = undefined as unknown as Window & typeof globalThis
+      global.document = undefined as unknown as Document & typeof globalThis
+      global.navigator = undefined as unknown as Navigator & typeof globalThis
+      global.location = undefined as unknown as Location & typeof globalThis
     })
 
     it("test should have access to browser globals from beforeAll", () => {
@@ -110,7 +110,7 @@ describe("register", () => {
         origin: "http://localhost:8080",
       }
       const { window } = new JSDOM()
-      global.window = (window as unknown) as Window & typeof globalThis
+      global.window = window as unknown as Window & typeof globalThis
       global.document = window.document
       global.navigator = window.navigator
       global.location = location as Location
@@ -131,10 +131,10 @@ describe("register", () => {
       jest.restoreAllMocks()
 
       // We don't want these to stay around because it can affect other tests
-      global.window = (undefined as unknown) as Window & typeof globalThis
-      global.document = (undefined as unknown) as Document & typeof globalThis
-      global.navigator = (undefined as unknown) as Navigator & typeof globalThis
-      global.location = (undefined as unknown) as Location & typeof globalThis
+      global.window = undefined as unknown as Window & typeof globalThis
+      global.document = undefined as unknown as Document & typeof globalThis
+      global.navigator = undefined as unknown as Navigator & typeof globalThis
+      global.location = undefined as unknown as Location & typeof globalThis
     })
     it("should register when options.base is undefined", async () => {
       // Mock getElementById
