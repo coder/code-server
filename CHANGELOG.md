@@ -1,8 +1,10 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # Changelog
 
 - [Changelog](#changelog)
+- [Changelog](#changelog-1)
   - [3.11.0](#3110)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
@@ -11,8 +13,8 @@
   - [3.10.0](#3100)
     - [New Features](#new-features-1)
     - [Bug Fixes](#bug-fixes-1)
-  - [Documentation](#documentation-1)
-  - [Development](#development-1)
+    - [Documentation](#documentation-1)
+    - [Development](#development-1)
   - [Previous versions](#previous-versions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -42,11 +44,11 @@ VS Code v0.00.0
 
 - fix(socket): did this thing #321 @githubuser
 
-## Documentation
+### Documentation
 
 - item
 
-## Development
+### Development
 
 - item
 
@@ -94,7 +96,7 @@ VS Code v1.56
 - fix: add flag for toggling permessage-deflate #3286 @code-asher
 - fix: make sure directories exist #3309 @code-asher
 
-## Documentation
+### Documentation
 
 - docs(FAQ): add mention of sysbox #3087 @bpmct
 - docs: add security policy #3148 @jsjoeio
@@ -109,7 +111,7 @@ VS Code v1.56
 - docs(maintaining): add versioning #3288 @jsjoeio
 - docs: add changelog #3337 @jsjoeio
 
-## Development
+### Development
 
 - fix(update-vscode): add check/docs for git-subtree #3129 @oxy
 - refactor(testing): migrate to playwright-test from jest-playwright #3133 @jsjoeio
