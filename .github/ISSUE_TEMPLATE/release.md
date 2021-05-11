@@ -9,6 +9,7 @@ assignees: "@cdr/code-server-reviewers"
 <!-- Maintainer: fill out the checklist -->
 
 ## Checklist
+
 - [ ] Assign to next release manager
 - [ ] Close previous release milestone
 - [ ] Create next release milestone

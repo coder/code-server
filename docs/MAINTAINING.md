@@ -10,6 +10,8 @@
   - [Versioning](#versioning)
   - [Pull Requests](#pull-requests)
     - [Merge Strategies](#merge-strategies)
+  - [Release](#release)
+    - [Release Manager Rotation](#release-manager-rotation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -75,3 +77,16 @@ If a PR does fix an issue, don't add it to the version milestone. Otherwise, the
 ### Merge Strategies
 
 For most things, we recommend "Squash and Merge". If you're updating `lib/vscode`, we suggest using the "Rebase and Merge" strategy. There may be times where "Create a merge commit" makes sense as well. Use your best judgement. If you're unsure, you can always discuss in the PR with the team.
+The code-server project follows traditional [semantic versioning](ttps://semver.org/), with the objective of minimizing major changes that break backward compatibility. We increment the patch level for all releases, except when the upstream Visual Studio Code project increments its minor version or we change the plugin API in a backward-compatible manner. In those cases, we increment the minor version rather than the patch level.
+
+## Release
+
+### Release Manager Rotation
+
+With each release, we rotate the role of "release manager" to ensure every maintainer goes through the process. This helps us keep documentation up-to-date and encourages us to continually review and improve the flow with each set of eyes.
+
+If you're the current release manager, follow these steps:
+
+1. Create a [release issue](../.github/ISSUE_TEMPLATE/release.md)
+2. Fill out checklist
+3. After release is published, close release milestone

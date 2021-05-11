@@ -72,6 +72,7 @@ VS Code v1.56
 - docs(maintaining): add merge strategies section #3379 @jsjoeio
 - refactor: move default PR template #3375 @jsjoeio
 - docs(contributing): add commits section #3377 @jsjoeio
+- docs(maintaining): add process for release managers #3360 @jsjoeio
 
 ### Development
 
