@@ -3,11 +3,16 @@
 # Changelog
 
 - [Changelog](#changelog)
-  - [3.10.0](#3100)
+  - [3.11.0](#3110)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
   - [Documentation](#documentation)
   - [Development](#development)
+  - [3.10.0](#3100)
+    - [New Features](#new-features-1)
+    - [Bug Fixes](#bug-fixes-1)
+  - [Documentation](#documentation-1)
+  - [Development](#development-1)
   - [Previous versions](#previous-versions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -46,6 +51,26 @@ VS Code v0.00.0
 - item
 
 -->
+
+## 3.11.0
+
+VS Code v1.56
+
+### New Features
+
+- item
+
+### Bug Fixes
+
+- fix: Check the logged user instead of $USER #3330 @videlanicolas
+
+## Documentation
+
+- item
+
+## Development
+
+- item
 
 ## 3.10.0
 
