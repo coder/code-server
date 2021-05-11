@@ -77,6 +77,9 @@
   "resolutions": {
     "normalize-package-data": "^3.0.0",
     "doctoc/underscore": "^1.13.1",
+    "doctoc/**/trim": "^1.0.0",
+    "postcss": "^8.2.1",
+    "parcel-bundler/cssnano": "^5.0.2",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2"
   },
