@@ -6,8 +6,8 @@
   - [3.11.0](#3110)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
-  - [Documentation](#documentation)
-  - [Development](#development)
+    - [Documentation](#documentation)
+    - [Development](#development)
   - [3.10.0](#3100)
     - [New Features](#new-features-1)
     - [Bug Fixes](#bug-fixes-1)
@@ -64,11 +64,11 @@ VS Code v1.56
 
 - fix: Check the logged user instead of $USER #3330 @videlanicolas
 
-## Documentation
+### Documentation
 
 - item
 
-## Development
+### Development
 
 - item
 
