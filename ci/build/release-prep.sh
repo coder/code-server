@@ -81,7 +81,7 @@ main() {
   read -r -p "What version of code-server do you want to update to?"$'\n' CODE_SERVER_VERSION_TO_UPDATE
 
   echo -e "Great! We'll prep a PR for updating to $CODE_SERVER_VERSION_TO_UPDATE\n"
-  $CMD rg -g '!yarn.lock' -g '!*.svg' --files-with-matches --fixed-strings "${CODE_SERVER_CURRENT_VERSION}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
+  $CMD rg -g '!yarn.lock' -g '!*.svg' -g '!CHANGELOG.md' --files-with-matches --fixed-strings "${CODE_SERVER_CURRENT_VERSION}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
 
   # Ensure the tests are passing and code coverage is up-to-date
   echo -e "Running unit tests and updating code coverage...\n"
