@@ -32,9 +32,6 @@ Any file or directory in this subdirectory should be documented here.
 9. Update the AUR package.
    - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 10. Wait for the npm package to be published.
-11. Update the [homebrew package](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
-    1. Install [homebrew](https://brew.sh/)
-    2. Run `brew bump-formula-pr --version=3.8.1 code-server` and update the version accordingly. This will bump the version and open a PR. Note: this will only work once the version is published on npm.
 
 ## dev
 
