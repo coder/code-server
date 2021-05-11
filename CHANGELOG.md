@@ -1,10 +1,8 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 # Changelog
 
 - [Changelog](#changelog)
-- [Changelog](#changelog-1)
   - [3.11.0](#3110)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
