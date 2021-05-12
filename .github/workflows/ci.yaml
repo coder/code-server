@@ -466,16 +466,12 @@ jobs:
   # codeql/upload-sarif action per job
   trivy-scan-repo:
     runs-on: ubuntu-20.04
-    # NOTE@jsjoeio 5/10/2021
-    # Disabling until fixed upstream
-    # See: https://github.com/aquasecurity/trivy-action/issues/22#issuecomment-833768084
-    if: "1 == 2"
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Run Trivy vulnerability scanner in repo mode
-        #Commit SHA for v0.0.14
-        uses: aquasecurity/trivy-action@341f810bd602419f966a081da3f4debedc3e5c8e
+        #Commit SHA for v0.0.15
+        uses: aquasecurity/trivy-action@9789b6ae3b29487541292242e416cd89e4e54874
         with:
           scan-type: "fs"
           scan-ref: "."
