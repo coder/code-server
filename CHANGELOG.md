@@ -68,6 +68,7 @@ VS Code v1.56
 ### Documentation
 
 - docs(install): add raspberry pi section #3376 @jsjoeio
+- docs(maintaining): add pull requests section #3378 @jsjoeio
 
 ### Development
 
