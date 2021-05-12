@@ -63,6 +63,7 @@ VS Code v1.56
 ### Bug Fixes
 
 - fix: Check the logged user instead of $USER #3330 @videlanicolas
+- fix: Fix broken node_modules.asar symlink in npm package #3355 @code-asher
 
 ### Documentation
 

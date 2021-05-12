@@ -112,13 +112,12 @@ RELEASE_PATH="${RELEASE_PATH-release}"
 # Code itself but also extensions will look specifically in this directory for
 # files (like the ripgrep binary or the oniguruma wasm).
 symlink_asar() {
-  if [ ! -L node_modules.asar ]; then
-    if [ "${WINDIR-}" ]; then
-      # mklink takes the link name first.
-      mklink /J node_modules.asar node_modules
-    else
-      # ln takes the link name second.
-      ln -s node_modules node_modules.asar
-    fi
+  rm -f node_modules.asar
+  if [ "${WINDIR-}" ]; then
+    # mklink takes the link name first.
+    mklink /J node_modules.asar node_modules
+  else
+    # ln takes the link name second.
+    ln -s node_modules node_modules.asar
   fi
 }
