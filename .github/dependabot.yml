@@ -10,6 +10,7 @@ updates:
       # release tag, so handle updates manually
       - dependency-name: "actions/*"
       - dependency-name: "github/codeql-action/*"
+      - dependency-name: "microsoft/playwright-github-action"
 
   - package-ecosystem: "npm"
     directory: "/"
