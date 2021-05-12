@@ -24,14 +24,13 @@ Any file or directory in this subdirectory should be documented here.
    - It will upload them to the draft release.
 6. Run some basic sanity tests on one of the released packages.
    - Especially make sure the terminal works fine.
-7. Make sure the github release tag is the commit with the artifacts.
-8. Publish the release and merge the PR.
+7. Publish the release and merge the PR.
    1. CI will automatically grab the artifacts and then:
       1. Publish the NPM package from `npm-package`.
       2. Publish the Docker Hub image from `release-images`.
-9. Update the AUR package.
+8. Update the AUR package.
    - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
-10. Wait for the npm package to be published.
+9. Wait for the npm package to be published.
 
 ## dev
 

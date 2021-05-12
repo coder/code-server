@@ -12,6 +12,5 @@ Follow "Publishing a release" steps in `ci/README.md`
 
 <!-- Note some of these steps below are redundant since they're listed in the "Publishing a release" docs -->
 
-- [ ] double-check github release tag is the commit with artifacts (_note gets messed up after uploading assets_)
 - [ ] publish release and merge PR
 - [ ] update the AUR package
