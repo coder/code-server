@@ -8,6 +8,7 @@
     - [Triage](#triage)
     - [Project Boards](#project-boards)
   - [Versioning](#versioning)
+  - [Pull Requests](#pull-requests)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -63,3 +64,9 @@ It also gives us a way to separate the issue triage from bigger-picture, long-te
 `<major.minor.patch>`
 
 The code-server project follows traditional [semantic versioning](ttps://semver.org/), with the objective of minimizing major changes that break backward compatibility. We increment the patch level for all releases, except when the upstream Visual Studio Code project increments its minor version or we change the plugin API in a backward-compatible manner. In those cases, we increment the minor version rather than the patch level.
+
+## Pull Requests
+
+Ideally, every PR should fix an issue. If it doesn't, make sure it's associated with a version milestone.
+
+If a PR does fix an issue, don't add it to the version milestone. Otherwise, the version milestone will have duplicate information: the issue & the PR fixing the issue.
