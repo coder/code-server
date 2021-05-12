@@ -28,8 +28,7 @@ Please ensure that the base of your PR is the **main** branch.
 
 ### Commits
 
-We prefer a clean commit history. Please clean up your commits before marking your PR
-ready for review.
+We prefer a clean commit history. This means you should squash all fixups and fixup-type commits before asking for review (cleanup, squash, force-push). If you need help with this, feel free to leave a comment in your PR and we'll guide you.
 
 ## Requirements
 
