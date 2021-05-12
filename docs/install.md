@@ -10,6 +10,7 @@
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
 - [Termux](#termux)
+- [Raspberry Pi](#raspberry-pi)
 - [yarn, npm](#yarn-npm)
 - [macOS](#macos)
 - [Standalone Releases](#standalone-releases)
@@ -68,7 +69,7 @@ commands presented in the rest of this document.
 
 ### Detection Reference
 
-- For Debian, Ubuntu and Raspbian it will install the latest deb package.
+- For Debian and Ubuntu it will install the latest deb package.
 - For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
 - For Arch Linux it will install the AUR package.
 - For any unrecognized Linux operating system it will install the latest standalone release into `~/.local`.
@@ -131,6 +132,10 @@ sudo systemctl enable --now code-server@$USER
 ## Termux
 
 Please see "Installation" in the [Termux docs](./termux.md#installation)
+
+## Raspberry Pi
+
+If you're running a Raspberry Pi, we recommend install code-server with `yarn` or `npm`. See [yarn-npm](#yarn-npm).
 
 ## yarn, npm
 
