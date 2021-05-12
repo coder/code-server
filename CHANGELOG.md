@@ -75,6 +75,7 @@ VS Code v1.56
 
 - chore: ignore updates to microsoft/playwright-github-action
 - fix(socket): use xdgBasedir.runtime instead of tmp #3304 @jsjoeio
+- fix(ci): re-enable trivy-scan-repo #3368 @jsjoeio
 
 ## 3.10.0
 
