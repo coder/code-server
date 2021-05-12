@@ -70,7 +70,7 @@ VS Code v1.56
 
 ### Development
 
-- item
+- chore: ignore updates to microsoft/playwright-github-action
 
 ## 3.10.0
 
