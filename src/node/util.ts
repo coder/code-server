@@ -8,9 +8,10 @@ import * as path from "path"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
 
-interface Paths {
+export interface Paths {
   data: string
   config: string
+  runtime: string
 }
 
 export const paths = getEnvPaths()
@@ -20,23 +21,34 @@ export const paths = getEnvPaths()
  * On MacOS this function gets the standard XDG directories instead of using the native macOS
  * ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
  */
-function getEnvPaths(): Paths {
-  let paths: Paths
-  if (process.platform === "win32") {
-    paths = envPaths("code-server", {
-      suffix: "",
-    })
-  } else {
-    if (xdgBasedir.data === undefined || xdgBasedir.config === undefined) {
-      throw new Error("No home folder?")
-    }
-    paths = {
-      data: path.join(xdgBasedir.data, "code-server"),
-      config: path.join(xdgBasedir.config, "code-server"),
-    }
+export function getEnvPaths(): Paths {
+  const paths = envPaths("code-server", { suffix: "" })
+  const append = (p: string): string => path.join(p, "code-server")
+  switch (process.platform) {
+    case "darwin":
+      return {
+        // envPaths uses native directories so force Darwin to use the XDG spec
+        // to align with other CLI tools.
+        data: xdgBasedir.data ? append(xdgBasedir.data) : paths.data,
+        config: xdgBasedir.config ? append(xdgBasedir.config) : paths.config,
+        // Fall back to temp if there is no runtime dir.
+        runtime: xdgBasedir.runtime ? append(xdgBasedir.runtime) : paths.temp,
+      }
+    case "win32":
+      return {
+        data: paths.data,
+        config: paths.config,
+        // Windows doesn't have a runtime dir.
+        runtime: paths.temp,
+      }
+    default:
+      return {
+        data: paths.data,
+        config: paths.config,
+        // Fall back to temp if there is no runtime dir.
+        runtime: xdgBasedir.runtime ? append(xdgBasedir.runtime) : paths.temp,
+      }
   }
-
-  return paths
 }
 
 /**
