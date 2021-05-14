@@ -43,10 +43,13 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /home/coder
+{{- if .Values.extraInitContainers }}
+{{ tpl .Values.extraInitContainers . | indent 6}}
+{{- end }}
       {{- end }}
       containers:
 {{- if .Values.extraContainers }}
-{{ toYaml .Values.extraContainers | indent 8}}
+{{ tpl .Values.extraContainers . | indent 8}}
 {{- end }}
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
