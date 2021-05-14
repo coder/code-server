@@ -3,7 +3,7 @@
 # Changelog
 
 - [Changelog](#changelog)
-  - [3.11.0](#3110)
+  - [Next Version](#next-version)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
     - [Documentation](#documentation)
@@ -30,7 +30,7 @@ We copy from here into the release notes.
 <!--
 Add next version above previous version but below this line using the template
 
-## 0.0.0
+## Next Version
 
 VS Code v0.00.0
 
@@ -52,7 +52,7 @@ VS Code v0.00.0
 
 -->
 
-## 3.11.0
+## Next Version
 
 VS Code v1.56
 
@@ -72,6 +72,7 @@ VS Code v1.56
 - docs(maintaining): add merge strategies section #3379 @jsjoeio
 - refactor: move default PR template #3375 @jsjoeio
 - docs(contributing): add commits section #3377 @jsjoeio
+- docs(maintaining): add process for release managers #3360 @jsjoeio
 
 ### Development
 
