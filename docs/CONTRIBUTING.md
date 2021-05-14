@@ -3,6 +3,7 @@
 # Contributing
 
 - [Pull Requests](#pull-requests)
+  - [Commits](#commits)
 - [Requirements](#requirements)
 - [Development Workflow](#development-workflow)
   - [Updating VS Code](#updating-vs-code)
@@ -23,9 +24,11 @@ you'd like to address unless the proposed fix is minor.
 
 In your Pull Requests (PR), link to the issue that the PR solves.
 
-Please ensure that the base of your PR is the **master** branch. (Note: The default
-GitHub branch is the latest release branch, though you should point all of your changes to be merged into
-master).
+Please ensure that the base of your PR is the **main** branch.
+
+### Commits
+
+We prefer a clean commit history. This means you should squash all fixups and fixup-type commits before asking for review (cleanup, squash, force-push). If you need help with this, feel free to leave a comment in your PR and we'll guide you.
 
 ## Requirements
 
