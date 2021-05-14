@@ -70,6 +70,7 @@ VS Code v1.56
 - docs(install): add raspberry pi section #3376 @jsjoeio
 - docs(maintaining): add pull requests section #3378 @jsjoeio
 - docs(maintaining): add merge strategies section #3379 @jsjoeio
+- refactor: move default PR template #3375 @jsjoeio
 
 ### Development
 
