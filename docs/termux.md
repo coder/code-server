@@ -17,7 +17,7 @@ Termux is an Android terminal application and Linux environment, which can also 
 
 ## Installation
 
-1. Install Termux from the [Google Play Store](https://play.google.com/store/apps/details?id=com.termux)
+1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/)
 2. Make sure it's up-to-date by running `apt update && apt upgrade`
 3. Install required packages: `apt install build-essential python git nodejs yarn`
 4. Install code-server: `yarn global add code-server`
