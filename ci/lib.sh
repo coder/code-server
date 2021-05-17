@@ -49,14 +49,15 @@ arch() {
   esac
 }
 
-# Grabs the most recent ci.yaml github workflow run that was successful and triggered from the same commit being pushd.
+# Grabs the most recent ci.yaml github workflow run that was triggered from the
+# pull request of the release branch for this version (regardless of whether
+# that run succeeded or failed). The release branch name must be in semver
+# format with a v prepended.
 # This will contain the artifacts we want.
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
   local artifacts_url
   local workflow_runs_url="repos/:owner/:repo/actions/workflows/ci.yaml/runs?event=pull_request"
-  # For releases, we look for run based on the branch name v$code_server_version
-  # example: v3.10.0
   local version_branch="v$VERSION"
   artifacts_url=$(gh api "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then

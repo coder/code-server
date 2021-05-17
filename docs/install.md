@@ -93,8 +93,8 @@ NOTE: The standalone arm64 .deb does not support Ubuntu <16.04.
 Please upgrade or [build with yarn](#yarn-npm).
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.10.0/code-server_3.10.0_amd64.deb
-sudo dpkg -i code-server_3.10.0_amd64.deb
+curl -fOL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_$VERSION_amd64.deb
+sudo dpkg -i code-server_$VERSION_amd64.deb
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -105,8 +105,8 @@ NOTE: The standalone arm64 .rpm does not support CentOS 7.
 Please upgrade or [build with yarn](#yarn-npm).
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v3.10.0/code-server-3.10.0-amd64.rpm
-sudo rpm -i code-server-3.10.0-amd64.rpm
+curl -fOL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-amd64.rpm
+sudo rpm -i code-server-$VERSION-amd64.rpm
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -184,10 +184,10 @@ Here is an example script for installing and using a standalone `code-server` re
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v3.10.0/code-server-3.10.0-linux-amd64.tar.gz \
+curl -fL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
-mv ~/.local/lib/code-server-3.10.0-linux-amd64 ~/.local/lib/code-server-3.10.0
-ln -s ~/.local/lib/code-server-3.10.0/bin/code-server ~/.local/bin/code-server
+mv ~/.local/lib/code-server-$VERSION-linux-amd64 ~/.local/lib/code-server-$VERSION
+ln -s ~/.local/lib/code-server-$VERSION/bin/code-server ~/.local/bin/code-server
 PATH="~/.local/bin:$PATH"
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml

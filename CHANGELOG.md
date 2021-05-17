@@ -3,13 +3,12 @@
 # Changelog
 
 - [Changelog](#changelog)
-  - [Next Version](#next-version)
-    - [New Features](#new-features)
+  - [3.10.1](#3101)
     - [Bug Fixes](#bug-fixes)
     - [Documentation](#documentation)
     - [Development](#development)
   - [3.10.0](#3100)
-    - [New Features](#new-features-1)
+    - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes-1)
     - [Documentation](#documentation-1)
     - [Development](#development-1)
@@ -52,18 +51,15 @@ VS Code v0.00.0
 
 -->
 
-## Next Version
+## 3.10.1
 
-VS Code v1.56
-
-### New Features
-
-- item
+VS Code v1.56.1
 
 ### Bug Fixes
 
 - fix: Check the logged user instead of $USER #3330 @videlanicolas
 - fix: Fix broken node_modules.asar symlink in npm package #3355 @code-asher
+- fix: Update cloud agent to fix version issue #3342 @oxy
 
 ### Documentation
 
@@ -82,7 +78,7 @@ VS Code v1.56
 
 ## 3.10.0
 
-VS Code v1.56
+VS Code v1.56.0
 
 ### New Features
 
