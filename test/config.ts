@@ -8,7 +8,7 @@ import {
   Config,
   globalSetup,
 } from "@playwright/test"
-import * as crypto from "crypto"
+import * as bcrypt from "bcrypt"
 import path from "path"
 import { PASSWORD } from "./utils/constants"
 import * as wtfnode from "./utils/wtfnode"
@@ -16,7 +16,7 @@ import * as wtfnode from "./utils/wtfnode"
 // Playwright doesn't like that ../src/node/util has an enum in it
 // so I had to copy hash in separately
 const hash = (str: string): string => {
-  return crypto.createHash("sha256").update(str).digest("hex")
+  return bcrypt.hashSync(str, 10)
 }
 
 const cookieToStore = {

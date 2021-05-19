@@ -3,10 +3,12 @@
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
   "devDependencies": {
     "@playwright/test": "^0.1101.0-alpha2",
+    "@types/bcrypt": "^5.0.0",
     "@types/jest": "^26.0.20",
     "@types/jsdom": "^16.2.6",
     "@types/node-fetch": "^2.5.8",
     "@types/supertest": "^2.0.10",
+    "bcrypt": "^5.0.1",
     "jest": "^26.6.3",
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.1",
