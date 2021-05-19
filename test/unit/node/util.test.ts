@@ -1,3 +1,5 @@
+import { hash } from "../../../src/node/util"
+
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
     let ORIGINAL_PLATFORM = ""
@@ -143,5 +145,13 @@ describe("getEnvPaths", () => {
       expect(envPaths.config).toEqual("/linux/envPath/.config")
       expect(envPaths.runtime).toEqual("/tmp/envPath/runtime")
     })
+  })
+})
+
+describe("hash", () => {
+  it("should return a hash of the string passed in", () => {
+    const plainTextPassword = "mySecretPassword123"
+    const hashed = hash(plainTextPassword)
+    expect(hashed).not.toBe(plainTextPassword)
   })
 })
