@@ -1,5 +1,6 @@
 import * as cp from "child_process"
 import * as crypto from "crypto"
+import * as bcrypt from "bcrypt"
 import envPaths from "env-paths"
 import { promises as fs } from "fs"
 import * as net from "net"
@@ -116,7 +117,7 @@ export const generatePassword = async (length = 24): Promise<string> => {
 }
 
 export const hash = (str: string): string => {
-  return crypto.createHash("sha256").update(str).digest("hex")
+  return bcrypt.hashSync(str, 10)
 }
 
 const mimeTypes: { [key: string]: string } = {

@@ -36,6 +36,7 @@
   "main": "out/node/entry.js",
   "devDependencies": {
     "@schemastore/package": "^0.0.6",
+    "@types/bcrypt": "^5.0.0",
     "@types/body-parser": "^1.19.0",
     "@types/compression": "^1.7.0",
     "@types/cookie-parser": "^1.4.2",
@@ -88,6 +89,7 @@
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
+    "bcrypt": "^5.0.1",
     "body-parser": "^1.19.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
