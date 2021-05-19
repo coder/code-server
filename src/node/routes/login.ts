@@ -5,7 +5,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { hash, humanPath } from "../util"
+import { hash, hashLegacy, humanPath, isHashLegacyMatch } from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -74,12 +74,13 @@ router.post("/", async (req, res) => {
 
     if (
       req.args["hashed-password"]
-        ? safeCompare(hash(req.body.password), req.args["hashed-password"])
+        ? isHashLegacyMatch(req.body.password, req.args["hashed-password"])
         : req.args.password && safeCompare(req.body.password, req.args.password)
     ) {
+      const hashedPassword = req.args["hashed-password"] ? hashLegacy(req.body.password) : hash(req.body.password)
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.Key, hash(req.body.password), {
+      res.cookie(Cookie.Key, hashedPassword, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         path: req.body.base || "/",
         sameSite: "lax",

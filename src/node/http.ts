@@ -8,7 +8,7 @@ import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { hash } from "./util"
+import { isHashMatch } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -67,7 +67,7 @@ export const authenticated = (req: express.Request): boolean => {
         req.cookies.key &&
         (req.args["hashed-password"]
           ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
+          : req.args.password && isHashMatch(req.args.password, req.cookies.key))
       )
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)

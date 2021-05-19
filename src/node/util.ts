@@ -8,6 +8,7 @@ import * as os from "os"
 import * as path from "path"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import safeCompare from "safe-compare"
 
 export interface Paths {
   data: string
@@ -116,8 +117,38 @@ export const generatePassword = async (length = 24): Promise<string> => {
   return buffer.toString("hex").substring(0, length)
 }
 
-export const hash = (str: string): string => {
-  return bcrypt.hashSync(str, 10)
+/**
+ * Used to hash the password.
+ */
+export const hash = (password: string): string => {
+  return bcrypt.hashSync(password, 10)
+}
+
+/**
+ * Used to verify if the password matches the hash
+ */
+export const isHashMatch = (password: string, hash: string) => {
+  return bcrypt.compareSync(password, hash)
+}
+
+/**
+ * Used to hash the password using the sha256
+ * algorithm. We only use this to for checking
+ * the hashed-password set in the config.
+ *
+ * Kept for legacy reasons.
+ */
+export const hashLegacy = (str: string): string => {
+  return crypto.createHash("sha256").update(str).digest("hex")
+}
+
+/**
+ * Used to check if the password matches the hash using
+ * the hashLegacy function
+ */
+export const isHashLegacyMatch = (password: string, hashPassword: string) => {
+  const hashedWithLegacy = hashLegacy(password)
+  return safeCompare(hashedWithLegacy, hashPassword)
 }
 
 const mimeTypes: { [key: string]: string } = {

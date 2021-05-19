@@ -1,4 +1,4 @@
-import { hash } from "../../../src/node/util"
+import { hash, isHashMatch, hashLegacy, isHashLegacyMatch } from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
@@ -153,5 +153,39 @@ describe("hash", () => {
     const plainTextPassword = "mySecretPassword123"
     const hashed = hash(plainTextPassword)
     expect(hashed).not.toBe(plainTextPassword)
+  })
+})
+
+describe("isHashMatch", () => {
+  it("should return true if the password matches the hash", () => {
+    const password = "password123"
+    const _hash = hash(password)
+    expect(isHashMatch(password, _hash)).toBe(true)
+  })
+  it("should return false if the password does not match the hash", () => {
+    const password = "password123"
+    const _hash = hash(password)
+    expect(isHashMatch("otherPassword123", _hash)).toBe(false)
+  })
+})
+
+describe("hashLegacy", () => {
+  it("should return a hash of the string passed in", () => {
+    const plainTextPassword = "mySecretPassword123"
+    const hashed = hashLegacy(plainTextPassword)
+    expect(hashed).not.toBe(plainTextPassword)
+  })
+})
+
+describe("isHashLegacyMatchh", () => {
+  it("should return true if is match", () => {
+    const password = "password123"
+    const _hash = hashLegacy(password)
+    expect(isHashLegacyMatch(password, _hash)).toBe(true)
+  })
+  it("should return false if is match", () => {
+    const password = "password123"
+    const _hash = hashLegacy(password)
+    expect(isHashLegacyMatch("otherPassword123", _hash)).toBe(false)
   })
 })
