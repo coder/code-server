@@ -167,6 +167,11 @@ describe("isHashMatch", () => {
     const _hash = hash(password)
     expect(isHashMatch("otherPassword123", _hash)).toBe(false)
   })
+  it("should return true with actual hash", () => {
+    const password = "password"
+    const _hash = "$2b$10$GA/eZnlboeV9eW8LnntPqe1dZE7tQ/./wCdc7NgJhMRB.xhaJfmG."
+    expect(isHashMatch(password, _hash)).toBe(true)
+  })
 })
 
 describe("hashLegacy", () => {
@@ -177,7 +182,7 @@ describe("hashLegacy", () => {
   })
 })
 
-describe("isHashLegacyMatchh", () => {
+describe("isHashLegacyMatch", () => {
   it("should return true if is match", () => {
     const password = "password123"
     const _hash = hashLegacy(password)
@@ -187,5 +192,11 @@ describe("isHashLegacyMatchh", () => {
     const password = "password123"
     const _hash = hashLegacy(password)
     expect(isHashLegacyMatch("otherPassword123", _hash)).toBe(false)
+  })
+  it("should return true if hashed from command line", () => {
+    const password = "password123"
+    // Hashed using printf "password123" | sha256sum | cut -d' ' -f1
+    const _hash = "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"
+    expect(isHashLegacyMatch(password, _hash)).toBe(true)
   })
 })

@@ -48,7 +48,7 @@ VS Code v0.00.0
 ### Documentation
 
 - docs: add Pomerium #3424 @desimone
-- docs: fix confusing sentence in pull requests section #3460 @shiv-tyag
+- docs: fix confusing sentence in pull requests section #3460 @shiv-tyagi
 - docs: remove toc from changelog @oxy @jsjoeio
 - docs(MAINTAINING): add information about CHANGELOG #3467 @jsjoeio
 - docs: move release process to MAINTAINING.md #3441 @oxy @Prashant168
@@ -81,10 +81,6 @@ VS Code v1.56.1
 ### Development
 
 - fix(ci): update brew-bump.sh to update remote first #3438 @jsjoeio
-
-### Documentation
-
-- item
 
 ## 3.10.1
 
