@@ -183,7 +183,7 @@ code-server only supports password authentication natively.
 **note**: code-server will rate limit password authentication attempts at 2 a minute and 12 an hour.
 
 If you want to use external authentication (i.e sign in with Google) you should handle this
-with a reverse proxy using something like [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
+with a reverse proxy using something like [Pomerium](https://www.pomerium.io/guides/vs-code-server.html), [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
 or [Cloudflare Access](https://teams.cloudflare.com/access).
 
 For HTTPS, you can use a self signed certificate by passing in just `--cert` or
