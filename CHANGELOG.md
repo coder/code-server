@@ -75,7 +75,7 @@ VS Code v1.56.1
 
 ### Development
 
-- fix(ci): update brew-bump.sh to update remote first #0000 @jsjoeio
+- fix(ci): update brew-bump.sh to update remote first #3438 @jsjoeio
 
 ## 3.10.1
 
