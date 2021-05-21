@@ -5,15 +5,18 @@
 - [Changelog](#changelog)
   - [Next Version](#next-version)
     - [New Features](#new-features)
-  - [3.10.1](#3101)
     - [Bug Fixes](#bug-fixes)
     - [Documentation](#documentation)
     - [Development](#development)
-  - [3.10.0](#3100)
-    - [New Features](#new-features-1)
+  - [3.10.1](#3101)
     - [Bug Fixes](#bug-fixes-1)
     - [Documentation](#documentation-1)
     - [Development](#development-1)
+  - [3.10.0](#3100)
+    - [New Features](#new-features-1)
+    - [Bug Fixes](#bug-fixes-2)
+    - [Documentation](#documentation-2)
+    - [Development](#development-2)
   - [Previous versions](#previous-versions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -59,8 +62,20 @@ VS Code v1.56.1
 
 ### New Features
 
-- feat: support `extraInitContainers` in helm chart values
-- feat: change `extraContainers` to support templating in helm chart
+- feat: support `extraInitContainers` in helm chart values #3393 @strowk
+- feat: change `extraContainers` to support templating in helm chart #3393 @strowk
+
+### Bug Fixes
+
+- fix: use correct command to Open Folder on Welcome page #3437 @jsjoeio
+
+### Documentation
+
+- item
+
+### Development
+
+- fix(ci): update brew-bump.sh to update remote first #0000 @jsjoeio
 
 ## 3.10.1
 
@@ -71,7 +86,6 @@ VS Code v1.56.1
 - fix: Check the logged user instead of $USER #3330 @videlanicolas
 - fix: Fix broken node_modules.asar symlink in npm package #3355 @code-asher
 - fix: Update cloud agent to fix version issue #3342 @oxy
-- fix: use correct command to Open Folder on Welcome page #3437 @jsjoeio
 
 ### Documentation
 
@@ -80,7 +94,6 @@ VS Code v1.56.1
 - docs(maintaining): add merge strategies section #3379 @jsjoeio
 - refactor: move default PR template #3375 @jsjoeio
 - docs(contributing): add commits section #3377 @jsjoeio
-- docs(maintaining): add process for release managers #3360 @jsjoeio
 
 ### Development
 
