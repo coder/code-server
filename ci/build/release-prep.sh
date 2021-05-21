@@ -83,10 +83,6 @@ main() {
   echo -e "Great! We'll prep a PR for updating to $CODE_SERVER_VERSION_TO_UPDATE\n"
   $CMD rg -g '!yarn.lock' -g '!*.svg' -g '!CHANGELOG.md' --files-with-matches --fixed-strings "${CODE_SERVER_CURRENT_VERSION}" | $CMD xargs sd "$CODE_SERVER_CURRENT_VERSION" "$CODE_SERVER_VERSION_TO_UPDATE"
 
-  # Ensure the tests are passing and code coverage is up-to-date
-  echo -e "Running unit tests and updating code coverage...\n"
-  $CMD yarn test:unit
-
   $CMD git commit -am "chore(release): bump version to $CODE_SERVER_VERSION_TO_UPDATE"
 
   # This runs from the root so that's why we use this path vs. ../../
@@ -94,7 +90,7 @@ main() {
 
   echo -e "\nOpening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  $CMD gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft
+  $CMD gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft --assignee "@me"
 
   # Open PR in browser
   $CMD gh pr view --web

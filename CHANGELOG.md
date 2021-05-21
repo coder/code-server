@@ -3,19 +3,18 @@
 # Changelog
 
 - [Changelog](#changelog)
-  - [Next Version](#next-version)
+  - [3.10.2](#3102)
     - [New Features](#new-features)
     - [Bug Fixes](#bug-fixes)
-    - [Documentation](#documentation)
     - [Development](#development)
   - [3.10.1](#3101)
     - [Bug Fixes](#bug-fixes-1)
-    - [Documentation](#documentation-1)
+    - [Documentation](#documentation)
     - [Development](#development-1)
   - [3.10.0](#3100)
     - [New Features](#new-features-1)
     - [Bug Fixes](#bug-fixes-2)
-    - [Documentation](#documentation-2)
+    - [Documentation](#documentation-1)
     - [Development](#development-2)
   - [Previous versions](#previous-versions)
 
@@ -56,7 +55,7 @@ VS Code v0.00.0
 
 -->
 
-## Next Version
+## 3.10.2
 
 VS Code v1.56.1
 
@@ -68,10 +67,6 @@ VS Code v1.56.1
 ### Bug Fixes
 
 - fix: use correct command to Open Folder on Welcome page #3437 @jsjoeio
-
-### Documentation
-
-- item
 
 ### Development
 
