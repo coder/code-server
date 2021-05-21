@@ -26,3 +26,7 @@ updates:
         # We can't use it until we switch to ESM across the project
         # See release notes: https://github.com/sindresorhus/xdg-basedir/releases/tag/v5.0.0
         versions: ["5.x"]
+      - dependency-name: "limiter"
+        # 2.0.0 has breaking changes
+        # so we can't update yet.
+        versions: ["2.x"]

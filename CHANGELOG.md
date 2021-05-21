@@ -3,12 +3,14 @@
 # Changelog
 
 - [Changelog](#changelog)
+  - [Next Version](#next-version)
+    - [New Features](#new-features)
   - [3.10.1](#3101)
     - [Bug Fixes](#bug-fixes)
     - [Documentation](#documentation)
     - [Development](#development)
   - [3.10.0](#3100)
-    - [New Features](#new-features)
+    - [New Features](#new-features-1)
     - [Bug Fixes](#bug-fixes-1)
     - [Documentation](#documentation-1)
     - [Development](#development-1)
@@ -50,6 +52,15 @@ VS Code v0.00.0
 - item
 
 -->
+
+## Next Version
+
+VS Code v1.56.1
+
+### New Features
+
+- feat: support `extraInitContainers` in helm chart values
+- feat: change `extraContainers` to support templating in helm chart
 
 ## 3.10.1
 
