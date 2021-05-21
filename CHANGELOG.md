@@ -71,6 +71,7 @@ VS Code v1.56.1
 - fix: Check the logged user instead of $USER #3330 @videlanicolas
 - fix: Fix broken node_modules.asar symlink in npm package #3355 @code-asher
 - fix: Update cloud agent to fix version issue #3342 @oxy
+- fix: use correct command to Open Folder on Welcome page #3437 @jsjoeio
 
 ### Documentation
 
