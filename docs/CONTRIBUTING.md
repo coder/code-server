@@ -19,8 +19,7 @@
 
 ## Pull Requests
 
-Please create a [GitHub Issue](https://github.com/cdr/code-server/issues) for each issue
-you'd like to address unless the proposed fix is minor.
+Please create a [GitHub Issue](https://github.com/cdr/code-server/issues) to address any issue. You can skip this if the proposed fix is minor.
 
 In your Pull Requests (PR), link to the issue that the PR solves.
 
