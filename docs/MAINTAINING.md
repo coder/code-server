@@ -10,6 +10,7 @@
   - [Versioning](#versioning)
   - [Pull Requests](#pull-requests)
     - [Merge Strategies](#merge-strategies)
+    - [Changelog](#changelog)
   - [Release](#release)
     - [Release Manager Rotation](#release-manager-rotation)
 
@@ -78,6 +79,14 @@ If a PR does fix an issue, don't add it to the version milestone. Otherwise, the
 
 For most things, we recommend "Squash and Merge". If you're updating `lib/vscode`, we suggest using the "Rebase and Merge" strategy. There may be times where "Create a merge commit" makes sense as well. Use your best judgement. If you're unsure, you can always discuss in the PR with the team.
 The code-server project follows traditional [semantic versioning](ttps://semver.org/), with the objective of minimizing major changes that break backward compatibility. We increment the patch level for all releases, except when the upstream Visual Studio Code project increments its minor version or we change the plugin API in a backward-compatible manner. In those cases, we increment the minor version rather than the patch level.
+
+### Changelog
+
+To save time when creating a new release for code-server, we keep a running changelog at `CHANGELOG.md`.
+
+If either author or reviewer of a PR believe the change should be mentioned in the `CHANGELOG`, then it should be added.
+
+If there is not a "Next Version" when you modify `CHANGELOG`, please add it using the template you see near the top of `CHANGELOG`. You can use the suggested format: `<pr title> <pr #> <author> Example: `fix: Check the logged user instead of $USER #3330 @videlanicolas`
 
 ## Release
 
