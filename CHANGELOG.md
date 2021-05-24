@@ -55,6 +55,15 @@ VS Code v0.00.0
 
 -->
 
+# Next Version
+
+VS Code v0.00.0
+
+
+### Documentation
+
+ - docs: fix confusing sentence in pull requests section #3460 @shiv-tyagi
+
 ## 3.10.2
 
 VS Code v1.56.1
