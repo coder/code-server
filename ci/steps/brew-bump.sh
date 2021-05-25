@@ -29,7 +29,11 @@ main() {
   # Source: https://serverfault.com/a/912788
   # shellcheck disable=SC2016,SC2028
   echo '#!/bin/sh\nexec echo "$HOMEBREW_GITHUB_API_TOKEN"' >"$HOME"/.git-askpass.sh
-  GIT_ASKPASS="$HOME/.git-askpass.sh" git push https://cdrci@github.com/cdrci/homebrew-core.git --all
+  # Ensure it's executable since we just created it
+  chmod +x "$HOME/.git-askpass.sh"
+  # GIT_ASKPASS lets us use the password when pushing without revealing it in the process list
+  # See: https://serverfault.com/a/912788
+  GIT_ASKPASS="$HOME/.git-askpass.sh" git push https://cdr-oss@github.com/cdr-oss/homebrew-core.git --all
 
   # Find the docs for bump-formula-pr here
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18
