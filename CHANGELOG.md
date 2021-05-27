@@ -37,10 +37,23 @@ VS Code v0.00.0
 
 VS Code v0.00.0
 
+### New Features
+
+- item
+
+### Bug Fixes
+
+- item
+
 ### Documentation
 
 - docs: fix confusing sentence in pull requests section #3460 @shiv-tyagi
 - docs: remove toc from changelog @oxy @jsjoeio
+- docs(MAINTAINING): add information about CHANGELOG #3467 @jsjoeio
+
+### Development
+
+- item
 
 ## 3.10.2
 
