@@ -1,30 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-# Changelog
-
-- [Changelog](#changelog)
-  - [Next Version](#next-version)
-    - [New Features](#new-features)
-    - [Bug Fixes](#bug-fixes)
-    - [Documentation](#documentation)
-    - [Development](#development)
-  - [3.10.2](#3102)
-    - [New Features](#new-features-1)
-    - [Bug Fixes](#bug-fixes-1)
-    - [Development](#development-1)
-  - [3.10.1](#3101)
-    - [Bug Fixes](#bug-fixes-2)
-    - [Documentation](#documentation-1)
-    - [Development](#development-2)
-  - [3.10.0](#3100)
-    - [New Features](#new-features-2)
-    - [Bug Fixes](#bug-fixes-3)
-    - [Documentation](#documentation-2)
-    - [Development](#development-3)
-  - [Previous versions](#previous-versions)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
-
 # Changelog
 
 <!--
@@ -76,6 +49,8 @@ VS Code v0.00.0
 
 - docs: add Pomerium #3424 @desimone
 - docs: fix confusing sentence in pull requests section #3460 @shiv-tyagi
+- docs: remove toc from changelog @oxy @jsjoeio
+- docs(MAINTAINING): add information about CHANGELOG #3467 @jsjoeio
 
 ### Development
 
