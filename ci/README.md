@@ -100,8 +100,8 @@ You can disable minification by setting `MINIFY=`.
 
 This directory contains the release docker container image.
 
-- [./release-image/build.sh](./release-image/build.sh)
-  - Builds the release container with the tag `codercom/code-server-$ARCH:$VERSION`.
+- [./ci/steps/build-docker-image.sh](./ci/steps/build-docker-image.sh)
+  - Builds the release containers with tags `codercom/code-server-$ARCH:$VERSION` for amd64 and arm64 with `docker buildx`.
   - Assumes debian releases are ready in `./release-packages`.
 
 ## images
