@@ -432,7 +432,7 @@ jobs:
 
       - name: Run Trivy vulnerability scanner in image mode
         # Commit SHA for v0.0.17
-        uses: aquasecurity/trivy-action@dba83feec810c70bacbc4bead308ae1e466c572b
+        uses: aquasecurity/trivy-action@ac8de07fd168680dd0331bef43681c0e150e9ad1
         with:
           input: "./release-images/code-server-amd64-*.tar"
           scan-type: "image"
@@ -460,7 +460,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Trivy vulnerability scanner in repo mode
         #Commit SHA for v0.0.17
-        uses: aquasecurity/trivy-action@dba83feec810c70bacbc4bead308ae1e466c572b
+        uses: aquasecurity/trivy-action@ac8de07fd168680dd0331bef43681c0e150e9ad1
         with:
           scan-type: "fs"
           scan-ref: "."
