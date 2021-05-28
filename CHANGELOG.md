@@ -54,7 +54,7 @@ VS Code v0.00.0
 
 ### Development
 
-- chore: cross-compile docker images with buildx
+- chore: cross-compile docker images with buildx #3166 @oxy
 
 ## 3.10.2
 
