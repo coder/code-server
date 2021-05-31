@@ -3,7 +3,6 @@
 # Maintaining
 
 - [Maintaining](#maintaining)
-- [Maintaining](#maintaining-1)
   - [Workflow](#workflow)
     - [Milestones](#milestones)
     - [Triage](#triage)
@@ -14,7 +13,7 @@
     - [Changelog](#changelog)
   - [Release](#release)
     - [Release Manager Rotation](#release-manager-rotation)
-  - [Publishing a release](#publishing-a-release)
+    - [Publishing a release](#publishing-a-release)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -102,7 +101,7 @@ If you're the current release manager, follow these steps:
 2. Fill out checklist
 3. After release is published, close release milestone
 
-## Publishing a release
+### Publishing a release
 
 1. Run `yarn release:prep` and type in the new version i.e. 3.8.1
 2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
