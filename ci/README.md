@@ -10,7 +10,6 @@ Any file or directory in this subdirectory should be documented here.
 - [./ci/lib.sh](./lib.sh)
   - Contains code duplicated across these scripts.
 
-
 ## dev
 
 This directory contains scripts used for the development of code-server.
