@@ -5,7 +5,7 @@
     {
       "file": "package.json",
       "line": 31,
-      "description": "## Commands\n\nTo start developing, make sure you have Node 12+ and the [required dependencies](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites) installed. Then, run the following commands:\n\n1. Install dependencies:\n>> yarn\n\n3. Start development mode (and watch for changes):\n>> yarn watch"
+      "description": "## Commands\n\nTo start developing, make sure you have Node 14+ and the [required dependencies](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites) installed. Then, run the following commands:\n\n1. Install dependencies:\n>> yarn\n\n3. Start development mode (and watch for changes):\n>> yarn watch"
     },
     {
       "file": "src/node/app.ts",

@@ -24,10 +24,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Install helm
         uses: azure/setup-helm@v1.1
@@ -67,10 +67,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -96,10 +96,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -169,10 +169,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Install development tools
         run: |
@@ -244,10 +244,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Install nfpm
         run: |
@@ -270,8 +270,8 @@ jobs:
 
       - name: Replace node with arm64 equivalent
         run: |
-          wget https://nodejs.org/dist/v12.18.4/node-v12.18.4-linux-arm64.tar.gz
-          tar -xzf node-v12.18.4-linux-arm64.tar.gz node-v12.18.4-linux-arm64/bin/node --strip-components=2
+          wget https://nodejs.org/dist/v14.17.0/node-v14.17.0-linux-arm64.tar.xz
+          tar -xf node-v14.17.0-linux-arm64.tar.xz node-v14.17.0-linux-arm64/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
       - name: Build packages with nfpm
@@ -290,10 +290,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Install nfpm
         run: |
@@ -333,10 +333,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Node.js v12
+      - name: Install Node.js v14
         uses: actions/setup-node@v2
         with:
-          node-version: "12"
+          node-version: "14"
 
       - name: Install playwright
         uses: microsoft/playwright-github-action@v1
