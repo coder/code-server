@@ -13,6 +13,7 @@
     - [Changelog](#changelog)
   - [Release](#release)
     - [Release Manager Rotation](#release-manager-rotation)
+    - [Publishing a release](#publishing-a-release)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -99,3 +100,25 @@ If you're the current release manager, follow these steps:
 1. Create a [release issue](../.github/ISSUE_TEMPLATE/release.md)
 2. Fill out checklist
 3. After release is published, close release milestone
+
+### Publishing a release
+
+1. Run `yarn release:prep` and type in the new version i.e. 3.8.1
+2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
+   1. You do not have to wait for these.
+3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
+   the updated version.
+   1. Summarize the major changes in the release notes and link to the relevant issues.
+   2. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
+4. Wait for the artifacts in step 2 to build.
+5. Run `yarn release:github-assets` to download the `release-packages` artifact.
+   - It will upload them to the draft release.
+6. Run some basic sanity tests on one of the released packages.
+   - Especially make sure the terminal works fine.
+7. Publish the release and merge the PR.
+   1. CI will automatically grab the artifacts and then:
+      1. Publish the NPM package from `npm-package`.
+      2. Publish the Docker Hub image from `release-images`.
+8. Update the AUR package.
+   - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
+9. Wait for the npm package to be published.

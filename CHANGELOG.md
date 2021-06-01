@@ -51,6 +51,7 @@ VS Code v0.00.0
 - docs: fix confusing sentence in pull requests section #3460 @shiv-tyagi
 - docs: remove toc from changelog @oxy @jsjoeio
 - docs(MAINTAINING): add information about CHANGELOG #3467 @jsjoeio
+- docs: move release process to MAINTAINING.md #3441 @oxy @Prashant168
 
 ### Development
 
