@@ -80,6 +80,8 @@
     "doctoc/**/trim": "^1.0.0",
     "postcss": "^8.2.1",
     "parcel-bundler/cssnano": "^5.0.2",
+    "parcel-bundler/ws": "^7.4.6",
+    "parcel-bundler/htmlnano/uncss/jsdom/ws": "^7.4.6",
     "browserslist": "^4.16.5",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2"
