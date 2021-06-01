@@ -35,7 +35,7 @@ The prerequisites for contributing to code-server are almost the same as those f
 [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 There are several differences, however. Here is what is needed:
 
-- `node` v12.x or greater
+- `node` v14.x or greater
 - `git` v2.x or greater
 - [`yarn`](https://classic.yarnpkg.com/en/)
   - used to install JS packages and run scripts
@@ -74,6 +74,7 @@ To update VS Code, follow these steps:
 4. There will be merge conflicts. First commit them.
    1. We do this because if we don't, it will be impossible to review your PR.
 5. Once they're all fixed, test code-server locally and make sure it all works.
+6. Check the version of Node.js that the version of Electron shipped with VSCode uses, and update the version of Node.js if necessary.
 
 #### Notes about Changes
 

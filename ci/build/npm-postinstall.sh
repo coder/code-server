@@ -23,10 +23,21 @@ main() {
   # Grabs the major version of node from $npm_config_user_agent which looks like
   # yarn/1.21.1 npm/? node/v14.2.0 darwin x64
   major_node_version=$(echo "$npm_config_user_agent" | sed -n 's/.*node\/v\([^.]*\).*/\1/p')
-  if [ "$major_node_version" -lt 12 ]; then
-    echo "code-server currently requires at least node v12"
+
+  if [ -n "${FORCE_NODE_VERSION:-}" ]; then
+    echo "WARNING: Overriding required Node.js version to v$FORCE_NODE_VERSION"
+    echo "This could lead to broken functionality, and is unsupported."
+    echo "USE AT YOUR OWN RISK!"
+  fi
+
+  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-14}" ]; then
+    echo "ERROR: code-server currently requires node v14."
+    if [ -n "$FORCE_NODE_VERSION" ]; then
+      echo "However, you have overrided the version check to use v$FORCE_NODE_VERSION."
+    fi
     echo "We have detected that you are on node v$major_node_version"
-    echo "See https://github.com/cdr/code-server/issues/1633"
+    echo "You can override this version check by setting \$FORCE_NODE_VERSION,"
+    echo "but configurations that do not use the same node version are unsupported."
     exit 1
   fi
 
@@ -53,6 +64,12 @@ main() {
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/docs/npm.md"
     exit 1
+  fi
+
+  if [ -n "${FORCE_NODE_VERSION:-}" ]; then
+    echo "WARNING: The required Node.js version was overriden to v$FORCE_NODE_VERSION"
+    echo "This could lead to broken functionality, and is unsupported."
+    echo "USE AT YOUR OWN RISK!"
   fi
 }
 

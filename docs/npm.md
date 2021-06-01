@@ -12,9 +12,9 @@
 
 If you're installing the npm module you'll need certain dependencies to build the native modules used by VS Code.
 
-- Node.js: version `>= 12`, `<= 14`
+- Node.js: version `= 14`. Other versions may work, but your mileage may vary.
 
-_Note: the Node.js version requirements are based on the VS Code Node.js requirements. See [here](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites)._
+_Note: We use the same major version of Node.js that is shipped in VSCode's Electron. VS Code also lists Node.js requirements. See [here](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites)._
 
 Related:
 
@@ -55,6 +55,6 @@ xcode-select --install
 ## FreeBSD
 
 ```sh
-pkg install -y git python npm-node12 yarn-node12 pkgconf
+pkg install -y git python npm-node14 yarn-node14 pkgconf
 pkg install -y libinotify
 ```
