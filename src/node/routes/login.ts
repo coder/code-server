@@ -77,7 +77,12 @@ router.post("/", async (req, res) => {
         ? isHashLegacyMatch(req.body.password, req.args["hashed-password"])
         : req.args.password && safeCompare(req.body.password, req.args.password)
     ) {
-      const hashedPassword = req.args["hashed-password"] ? hashLegacy(req.body.password) : hash(req.body.password)
+      // NOTE@jsjoeio:
+      // We store the hashed password as a cookie. In order to be backwards-comptabile for the folks
+      // using sha256 (the original hashing algorithm), we need to check the hashed-password in the req.args
+      // TODO all of this logic should be cleaned up honestly. The current implementation only checks for a hashed-password
+      // but doesn't check which algorithm they are using.
+      const hashedPassword = req.args["hashed-password"] ? hashLegacy(req.body.password) : await hash(req.body.password)
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
       res.cookie(Cookie.Key, hashedPassword, {
