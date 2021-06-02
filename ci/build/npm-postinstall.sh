@@ -75,7 +75,7 @@ main() {
 
 # This is a copy of symlink_asar in ../lib.sh. Look there for details.
 symlink_asar() {
-  rm -f node_modules.asar
+  rm -rf node_modules.asar
   if [ "${WINDIR-}" ]; then
     mklink /J node_modules.asar node_modules
   else
