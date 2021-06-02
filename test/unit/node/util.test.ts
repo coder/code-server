@@ -149,28 +149,31 @@ describe("getEnvPaths", () => {
 })
 
 describe("hash", () => {
-  it("should return a hash of the string passed in", () => {
+  it("should return a hash of the string passed in", async () => {
     const plainTextPassword = "mySecretPassword123"
-    const hashed = hash(plainTextPassword)
+    const hashed = await hash(plainTextPassword)
     expect(hashed).not.toBe(plainTextPassword)
   })
 })
 
 describe("isHashMatch", () => {
-  it("should return true if the password matches the hash", () => {
-    const password = "password123"
-    const _hash = hash(password)
-    expect(isHashMatch(password, _hash)).toBe(true)
+  it("should return true if the password matches the hash", async () => {
+    const password = "codeserver1234"
+    const _hash = await hash(password)
+    const actual = await isHashMatch(password, _hash)
+    expect(actual).toBe(true)
   })
-  it("should return false if the password does not match the hash", () => {
+  it("should return false if the password does not match the hash", async () => {
     const password = "password123"
-    const _hash = hash(password)
-    expect(isHashMatch("otherPassword123", _hash)).toBe(false)
+    const _hash = await hash(password)
+    const actual = await isHashMatch("otherPassword123", _hash)
+    expect(actual).toBe(false)
   })
-  it("should return true with actual hash", () => {
-    const password = "password"
-    const _hash = "$2b$10$GA/eZnlboeV9eW8LnntPqe1dZE7tQ/./wCdc7NgJhMRB.xhaJfmG."
-    expect(isHashMatch(password, _hash)).toBe(true)
+  it("should return true with actual hash", async () => {
+    const password = "password123"
+    const _hash = "$argon2i$v=19$m=4096,t=3,p=1$EAoczTxVki21JDfIZpTUxg$rkXgyrW4RDGoDYrxBFD4H2DlSMEhP4h+Api1hXnGnFY"
+    const actual = await isHashMatch(password, _hash)
+    expect(actual).toBe(true)
   })
 })
 
