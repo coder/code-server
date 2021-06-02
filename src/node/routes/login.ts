@@ -5,7 +5,15 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { hash, hashLegacy, humanPath, isHashLegacyMatch, isHashMatch } from "../util"
+import {
+  getPasswordMethod,
+  handlePasswordValidation,
+  hash,
+  hashLegacy,
+  humanPath,
+  isHashLegacyMatch,
+  isHashMatch,
+} from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -62,36 +70,28 @@ router.get("/", async (req, res) => {
 })
 
 router.post("/", async (req, res) => {
+  const password = req.body.password
+  const hashedPasswordFromArgs = req.args["hashed-password"]
+
   try {
     // Check to see if they exceeded their login attempts
     if (!limiter.canTry()) {
       throw new Error("Login rate limited!")
     }
 
-    if (!req.body.password) {
+    if (!password) {
       throw new Error("Missing password")
     }
 
-    // this logic below is flawed
-    const theHash = await hash(req.body.password)
-    const hashedPassword = req.args["hashed-password"] || ""
-    const match = await isHashMatch(req.body.password, hashedPassword)
-    // console.log(`The actual hash: ${theHash}`)
-    // console.log(`hashed-password from config: ${hashedPassword}`)
-    // console.log(theHash, hashedPassword)
-    console.log(`is it a match??? ${match}`)
-    if (
-      req.args["hashed-password"]
-        ? isHashLegacyMatch(req.body.password, req.args["hashed-password"])
-        : req.args.password && safeCompare(req.body.password, req.args.password)
-    ) {
-      // NOTE@jsjoeio:
-      // We store the hashed password as a cookie. In order to be backwards-comptabile for the folks
-      // using sha256 (the original hashing algorithm), we need to check the hashed-password in the req.args
-      // TODO all of this logic should be cleaned up honestly. The current implementation only checks for a hashed-password
-      // but doesn't check which algorithm they are using.
-      console.log(`What is this? ${req.args["hashed-password"]}`, Boolean(req.args["hashed-password"]))
-      const hashedPassword = req.args["hashed-password"] ? hashLegacy(req.body.password) : await hash(req.body.password)
+    const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+    const { isPasswordValid, hashedPassword } = await handlePasswordValidation({
+      passwordMethod,
+      hashedPasswordFromArgs,
+      passwordFromRequestBody: password,
+      passwordFromArgs: req.args.password,
+    })
+
+    if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
       res.cookie(Cookie.Key, hashedPassword, {
