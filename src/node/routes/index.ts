@@ -98,8 +98,8 @@ export const register = async (
   app.all("/proxy/(:port)(/*)?", (req, res) => {
     pathProxy.proxy(req, res)
   })
-  wsApp.get("/proxy/(:port)(/*)?", (req) => {
-    pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
+  wsApp.get("/proxy/(:port)(/*)?", async (req) => {
+    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
@@ -109,8 +109,8 @@ export const register = async (
       passthroughPath: true,
     })
   })
-  wsApp.get("/absproxy/(:port)(/*)?", (req) => {
-    pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
+  wsApp.get("/absproxy/(:port)(/*)?", async (req) => {
+    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
     })
   })
