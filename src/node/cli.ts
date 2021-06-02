@@ -114,7 +114,7 @@ const options: Options<Required<Args>> = {
   "hashed-password": {
     type: "string",
     description:
-      "The password hashed with SHA-256 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
+      "The password hashed with argon2 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
       "Takes precedence over 'password'.",
   },
   cert: {

@@ -5,7 +5,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { hash, hashLegacy, humanPath, isHashLegacyMatch } from "../util"
+import { hash, hashLegacy, humanPath, isHashLegacyMatch, isHashMatch } from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -72,6 +72,14 @@ router.post("/", async (req, res) => {
       throw new Error("Missing password")
     }
 
+    // this logic below is flawed
+    const theHash = await hash(req.body.password)
+    const hashedPassword = req.args["hashed-password"] || ""
+    const match = await isHashMatch(req.body.password, hashedPassword)
+    // console.log(`The actual hash: ${theHash}`)
+    // console.log(`hashed-password from config: ${hashedPassword}`)
+    // console.log(theHash, hashedPassword)
+    console.log(`is it a match??? ${match}`)
     if (
       req.args["hashed-password"]
         ? isHashLegacyMatch(req.body.password, req.args["hashed-password"])
@@ -82,6 +90,7 @@ router.post("/", async (req, res) => {
       // using sha256 (the original hashing algorithm), we need to check the hashed-password in the req.args
       // TODO all of this logic should be cleaned up honestly. The current implementation only checks for a hashed-password
       // but doesn't check which algorithm they are using.
+      console.log(`What is this? ${req.args["hashed-password"]}`, Boolean(req.args["hashed-password"]))
       const hashedPassword = req.args["hashed-password"] ? hashLegacy(req.body.password) : await hash(req.body.password)
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
