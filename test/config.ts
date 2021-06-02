@@ -8,21 +8,21 @@ import {
   Config,
   globalSetup,
 } from "@playwright/test"
-import * as bcrypt from "bcrypt"
+import * as argon2 from "argon2"
 import path from "path"
 import { PASSWORD } from "./utils/constants"
 import * as wtfnode from "./utils/wtfnode"
 
 // Playwright doesn't like that ../src/node/util has an enum in it
 // so I had to copy hash in separately
-const hash = (str: string): string => {
-  return bcrypt.hashSync(str, 10)
+const hash = async (str: string): Promise<string> => {
+  return await argon2.hash(str)
 }
 
 const cookieToStore = {
   sameSite: "Lax" as const,
   name: "key",
-  value: hash(PASSWORD),
+  value: "",
   domain: "localhost",
   path: "/",
   expires: -1,
@@ -37,6 +37,8 @@ globalSetup(async () => {
   if (process.env.WTF_NODE) {
     wtfnode.setup()
   }
+
+  cookieToStore.value = await hash(PASSWORD)
 
   const storage = {
     cookies: [cookieToStore],
