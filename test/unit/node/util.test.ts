@@ -1,4 +1,11 @@
-import { hash, isHashMatch, hashLegacy, isHashLegacyMatch } from "../../../src/node/util"
+import {
+  hash,
+  isHashMatch,
+  PasswordMethod,
+  getPasswordMethod,
+  hashLegacy,
+  isHashLegacyMatch,
+} from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
@@ -201,5 +208,27 @@ describe("isHashLegacyMatch", () => {
     // Hashed using printf "password123" | sha256sum | cut -d' ' -f1
     const _hash = "ef92b778bafe771e89245b89ecbc08a44a4e166c06659911881f383d4473e94f"
     expect(isHashLegacyMatch(password, _hash)).toBe(true)
+  })
+})
+
+describe("getPasswordMethod", () => {
+  it("should return PLAIN_TEXT for no hashed password", () => {
+    const hashedPassword = undefined
+    const passwordMethod = getPasswordMethod(hashedPassword)
+    const expected: PasswordMethod = "PLAIN_TEXT"
+    expect(passwordMethod).toEqual(expected)
+  })
+  it("should return ARGON2 for password with 'argon2'", () => {
+    const hashedPassword =
+      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
+    const passwordMethod = getPasswordMethod(hashedPassword)
+    const expected: PasswordMethod = "ARGON2"
+    expect(passwordMethod).toEqual(expected)
+  })
+  it("should return SHA256 for password with legacy hash", () => {
+    const hashedPassword = "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af"
+    const passwordMethod = getPasswordMethod(hashedPassword)
+    const expected: PasswordMethod = "SHA256"
+    expect(passwordMethod).toEqual(expected)
   })
 })

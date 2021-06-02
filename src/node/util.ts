@@ -162,6 +162,33 @@ export const isHashLegacyMatch = (password: string, hashPassword: string) => {
   return safeCompare(hashedWithLegacy, hashPassword)
 }
 
+const passwordMethods = ["SHA256", "ARGON2", "PLAIN_TEXT"] as const
+export type PasswordMethod = typeof passwordMethods[number]
+
+/**
+ * Used to determine the password method.
+ *
+ * There are three options for the return value:
+ * 1. "SHA256" -> the legacy hashing algorithm
+ * 2. "ARGON2" -> the newest hashing algorithm
+ * 3. "PLAIN_TEXT" -> regular ol' password with no hashing
+ *
+ * @returns {PasswordMethod} "SHA256" | "ARGON2" | "PLAIN_TEXT"
+ */
+export function getPasswordMethod(hashedPassword: string | undefined): PasswordMethod {
+  if (!hashedPassword) {
+    return "PLAIN_TEXT"
+  }
+
+  // This is the new hashing algorithm
+  if (hashedPassword.includes("$argon")) {
+    return "ARGON2"
+  }
+
+  // This is the legacy hashing algorithm
+  return "SHA256"
+}
+
 const mimeTypes: { [key: string]: string } = {
   ".aac": "audio/x-aac",
   ".avi": "video/x-msvideo",
