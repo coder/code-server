@@ -74,14 +74,14 @@ router.all("*", async (req, res, next) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("*", (req, _, next) => {
+wsRouter.ws("*", async (req, _, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
   // Must be authenticated to use the proxy.
-  ensureAuthenticated(req)
+  await ensureAuthenticated(req)
 
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,

@@ -18,7 +18,7 @@ router.get("/(:commit)(/*)?", async (req, res) => {
   // Used by VS Code to load extensions into the web worker.
   const tar = getFirstString(req.query.tar)
   if (tar) {
-    ensureAuthenticated(req)
+    await ensureAuthenticated(req)
     let stream: Readable = tarFs.pack(pathToFsPath(tar))
     if (req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip")) {
       logger.debug("gzipping tar", field("path", tar))

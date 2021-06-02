@@ -45,13 +45,13 @@ export function proxy(
   })
 }
 
-export function wsProxy(
+export async function wsProxy(
   req: pluginapi.WebsocketRequest,
   opts?: {
     passthroughPath?: boolean
   },
-): void {
-  ensureAuthenticated(req)
+): Promise<void> {
+  await ensureAuthenticated(req)
   _proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, opts?.passthroughPath),
