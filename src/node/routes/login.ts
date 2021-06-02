@@ -49,9 +49,9 @@ const limiter = new RateLimiter()
 
 export const router = Router()
 
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
   const to = (typeof req.query.to === "string" && req.query.to) || "/"
-  if (authenticated(req)) {
+  if (await authenticated(req)) {
     return redirect(req, res, to, { to: undefined })
   }
   next()

@@ -45,8 +45,13 @@ export const replaceTemplates = <T extends object>(
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
-export const ensureAuthenticated = (req: express.Request, _?: express.Response, next?: express.NextFunction): void => {
-  if (!authenticated(req)) {
+export const ensureAuthenticated = async (
+  req: express.Request,
+  _?: express.Response,
+  next?: express.NextFunction,
+): Promise<void> => {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
   if (next) {
@@ -57,17 +62,19 @@ export const ensureAuthenticated = (req: express.Request, _?: express.Response, 
 /**
  * Return true if authenticated via cookies.
  */
-export const authenticated = (req: express.Request): boolean => {
+export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
     case AuthType.None:
       return true
     case AuthType.Password:
       // The password is stored in the cookie after being hashed.
+      // TODO@jsjoeio this also needs to be refactored to check if they're using the legacy password
+      // or the new one. we can't assume hashed-password means legacy
       return !!(
         req.cookies.key &&
         (req.args["hashed-password"]
           ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && isHashMatch(req.args.password, req.cookies.key))
+          : req.args.password && (await isHashMatch(req.args.password, req.cookies.key)))
       )
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)

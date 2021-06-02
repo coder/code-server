@@ -32,14 +32,15 @@ const maybeProxy = (req: Request): string | undefined => {
   return port
 }
 
-router.all("*", (req, res, next) => {
+router.all("*", async (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
   // Must be authenticated to use the proxy.
-  if (!authenticated(req)) {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()

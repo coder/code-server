@@ -43,7 +43,8 @@ router.get("/(:commit)(/*)?", async (req, res) => {
 
   // Make sure it's in code-server if you aren't authenticated. This lets
   // unauthenticated users load the login assets.
-  if (!resourcePath.startsWith(rootPath) && !authenticated(req)) {
+  const isAuthenticated = await authenticated(req)
+  if (!resourcePath.startsWith(rootPath) && !isAuthenticated) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 
