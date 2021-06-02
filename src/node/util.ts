@@ -189,6 +189,66 @@ export function getPasswordMethod(hashedPassword: string | undefined): PasswordM
   return "SHA256"
 }
 
+type PasswordValidation = {
+  isPasswordValid: boolean
+  hashedPassword: string
+}
+
+type HandlePasswordValidationArgs = {
+  /** The PasswordMethod */
+  passwordMethod: PasswordMethod
+  /** The password provided by the user */
+  passwordFromRequestBody: string
+  /** The password set in PASSWORD or config */
+  passwordFromArgs: string | undefined
+  /** The hashed-password set in HASHED_PASSWORD or config */
+  hashedPasswordFromArgs: string | undefined
+}
+
+/**
+ * Checks if a password is valid and also returns the hash
+ * using the PasswordMethod
+ */
+export async function handlePasswordValidation(
+  passwordValidationArgs: HandlePasswordValidationArgs,
+): Promise<PasswordValidation> {
+  const { passwordMethod, passwordFromArgs, passwordFromRequestBody, hashedPasswordFromArgs } = passwordValidationArgs
+  // TODO implement
+  const passwordValidation = <PasswordValidation>{
+    isPasswordValid: false,
+    hashedPassword: "",
+  }
+
+  switch (passwordMethod) {
+    case "PLAIN_TEXT": {
+      const isValid = passwordFromArgs ? safeCompare(passwordFromRequestBody, passwordFromArgs) : false
+      passwordValidation.isPasswordValid = isValid
+
+      const hashedPassword = await hash(passwordFromRequestBody)
+      passwordValidation.hashedPassword = hashedPassword
+      break
+    }
+    case "SHA256": {
+      const isValid = isHashLegacyMatch(passwordFromRequestBody, hashedPasswordFromArgs || "")
+      passwordValidation.isPasswordValid = isValid
+
+      passwordValidation.hashedPassword = hashedPasswordFromArgs || (await hashLegacy(passwordFromRequestBody))
+      break
+    }
+    case "ARGON2": {
+      const isValid = await isHashMatch(passwordFromRequestBody, hashedPasswordFromArgs || "")
+      passwordValidation.isPasswordValid = isValid
+
+      passwordValidation.hashedPassword = hashedPasswordFromArgs || ""
+      break
+    }
+    default:
+      break
+  }
+
+  return passwordValidation
+}
+
 const mimeTypes: { [key: string]: string } = {
   ".aac": "audio/x-aac",
   ".avi": "video/x-msvideo",

@@ -1,6 +1,7 @@
 import {
   hash,
   isHashMatch,
+  handlePasswordValidation,
   PasswordMethod,
   getPasswordMethod,
   hashLegacy,
@@ -230,5 +231,94 @@ describe("getPasswordMethod", () => {
     const passwordMethod = getPasswordMethod(hashedPassword)
     const expected: PasswordMethod = "SHA256"
     expect(passwordMethod).toEqual(expected)
+  })
+})
+
+describe.only("handlePasswordValidation", () => {
+  it("should return true with a hashedPassword for a PLAIN_TEXT password", async () => {
+    const p = "password"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "PLAIN_TEXT",
+      passwordFromRequestBody: p,
+      passwordFromArgs: p,
+      hashedPasswordFromArgs: undefined,
+    })
+
+    const matchesHash = await isHashMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(true)
+    expect(matchesHash).toBe(true)
+  })
+  it("should return false when PLAIN_TEXT password doesn't match args", async () => {
+    const p = "password"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "PLAIN_TEXT",
+      passwordFromRequestBody: "password1",
+      passwordFromArgs: p,
+      hashedPasswordFromArgs: undefined,
+    })
+
+    const matchesHash = await isHashMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(false)
+    expect(matchesHash).toBe(false)
+  })
+  it("should return true with a hashedPassword for a SHA256 password", async () => {
+    const p = "helloworld"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "SHA256",
+      passwordFromRequestBody: p,
+      passwordFromArgs: undefined,
+      hashedPasswordFromArgs: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af",
+    })
+
+    const matchesHash = isHashLegacyMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(true)
+    expect(matchesHash).toBe(true)
+  })
+  it("should return false when SHA256 password doesn't match hash", async () => {
+    const p = "helloworld1"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "SHA256",
+      passwordFromRequestBody: p,
+      passwordFromArgs: undefined,
+      hashedPasswordFromArgs: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af",
+    })
+
+    const matchesHash = isHashLegacyMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(false)
+    expect(matchesHash).toBe(false)
+  })
+  it("should return true with a hashedPassword for a ARGON2 password", async () => {
+    const p = "password"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "ARGON2",
+      passwordFromRequestBody: p,
+      passwordFromArgs: undefined,
+      hashedPasswordFromArgs:
+        "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+    })
+
+    const matchesHash = await isHashMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(true)
+    expect(matchesHash).toBe(true)
+  })
+  it("should return false when ARGON2 password doesn't match hash", async () => {
+    const p = "password1"
+    const passwordValidation = await handlePasswordValidation({
+      passwordMethod: "ARGON2",
+      passwordFromRequestBody: p,
+      passwordFromArgs: undefined,
+      hashedPasswordFromArgs:
+        "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+    })
+
+    const matchesHash = await isHashMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(false)
+    expect(matchesHash).toBe(false)
   })
 })
