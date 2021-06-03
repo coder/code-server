@@ -240,6 +240,25 @@ export const optionDescriptions = (): string[] => {
   })
 }
 
+export function splitOnFirstEquals(str: string): string[] {
+  // we use regex instead of "=" to ensure we split at the first
+  // "=" and return the following substring with it
+  // important for the hashed-password which looks like this
+  // $argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY
+  // 2 means return two items
+  // Source: https://stackoverflow.com/a/4607799/3015595
+  const split = str.split(/=(.+)/, 2)
+
+  // It should always return two elements
+  // because it's used in a place where
+  // it expected two elements
+  if (split.length === 1) {
+    split.push("")
+  }
+
+  return split
+}
+
 export const parse = (
   argv: string[],
   opts?: {
@@ -270,6 +289,7 @@ export const parse = (
       let key: keyof Args | undefined
       let value: string | undefined
       if (arg.startsWith("--")) {
+        // TODO fix this
         const split = arg.replace(/^--/, "").split("=", 2)
         key = split[0] as keyof Args
         value = split[1]
@@ -543,6 +563,7 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
   const config = yaml.load(configFile, {
     filename: configPath,
   })
+  console.log("what is this config", config)
   if (!config || typeof config === "string") {
     throw new Error(`invalid config: ${config}`)
   }
@@ -555,9 +576,11 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
     }
     return `--${optName}=${opt}`
   })
+  console.log("what are the configFileArgv", configFileArgv)
   const args = parse(configFileArgv, {
     configFile: configPath,
   })
+  console.log(args, "args")
   return {
     ...args,
     config: configPath,

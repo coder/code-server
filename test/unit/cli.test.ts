@@ -3,7 +3,7 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance } from "../../src/node/cli"
+import { Args, parse, setDefaults, shouldOpenInExistingInstance, splitOnFirstEquals } from "../../src/node/cli"
 import { tmpdir } from "../../src/node/constants"
 import { paths } from "../../src/node/util"
 
@@ -337,6 +337,18 @@ describe("parser", () => {
       "proxy-domain": ["coder.com", "coder.org"],
     })
   })
+  it("should allow '=,$/' in strings", async () => {
+    const args = parse([
+      "--enable-proposed-api",
+      "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+    ])
+    expect(args).toEqual({
+      _: [],
+      "enable-proposed-api": [
+        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+      ],
+    })
+  })
 })
 
 describe("cli", () => {
@@ -409,5 +421,30 @@ describe("cli", () => {
 
     args.port = 8081
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+  })
+})
+
+describe("splitOnFirstEquals", () => {
+  it("should split on the first equals", () => {
+    const testStr = "--enabled-proposed-api=test=value"
+    const actual = splitOnFirstEquals(testStr)
+    const expected = ["--enabled-proposed-api", "test=value"]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should split on first equals regardless of multiple equals signs", () => {
+    const testStr =
+      "--hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
+    const actual = splitOnFirstEquals(testStr)
+    const expected = [
+      "--hashed-password",
+      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+    ]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should always return two elements", () => {
+    const testStr = ""
+    const actual = splitOnFirstEquals(testStr)
+    const expected = ["", ""]
+    expect(actual).toEqual(expect.arrayContaining(expected))
   })
 })

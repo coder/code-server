@@ -2,18 +2,9 @@ import { Router, Request } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
-import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import {
-  getPasswordMethod,
-  handlePasswordValidation,
-  hash,
-  hashLegacy,
-  humanPath,
-  isHashLegacyMatch,
-  isHashMatch,
-} from "../util"
+import { getPasswordMethod, handlePasswordValidation, humanPath } from "../util"
 
 export enum Cookie {
   Key = "key",
