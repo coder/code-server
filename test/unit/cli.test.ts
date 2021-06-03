@@ -305,7 +305,7 @@ describe("parser", () => {
     })
   })
 
-  it.only("should use env var hashed password", async () => {
+  it("should use env var hashed password", async () => {
     process.env.HASHED_PASSWORD =
       "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY" // test
     const args = parse([])

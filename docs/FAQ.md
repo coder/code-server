@@ -2,38 +2,39 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # FAQ
 
-- [Questions?](#questions)
-- [iPad Status?](#ipad-status)
-- [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
-- [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
-- [Differences compared to VS Code?](#differences-compared-to-vs-code)
-  - [Installing an extension](#installing-an-extension)
-- [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
-- [Installing an extension manually](#installing-an-extension-manually)
-- [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
-- [Where are extensions stored?](#where-are-extensions-stored)
-- [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
-- [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
-- [Can I store my password hashed?](#can-i-store-my-password-hashed)
-- [How do I securely access web services?](#how-do-i-securely-access-web-services)
-  - [Sub-paths](#sub-paths)
-  - [Sub-domains](#sub-domains)
-- [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
-  - [Proxying to Create React App](#proxying-to-create-react-app)
-- [Multi-tenancy](#multi-tenancy)
-- [Docker in code-server container?](#docker-in-code-server-container)
-- [How can I disable telemetry?](#how-can-i-disable-telemetry)
-- [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
-- [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
-- [Heartbeat File](#heartbeat-file)
-- [Healthz endpoint](#healthz-endpoint)
-- [How does the config file work?](#how-does-the-config-file-work)
-- [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
-- [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
-- [How do I access my Documents/Downloads/Desktop folders in code-server on OSX?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-osx)
-- [Differences compared to Theia?](#differences-compared-to-theia)
-- [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
-- [Enterprise](#enterprise)
+- [FAQ](#faq)
+  - [Questions?](#questions)
+  - [iPad Status?](#ipad-status)
+  - [Community Projects (awesome-code-server)](#community-projects-awesome-code-server)
+  - [How can I reuse my VS Code configuration?](#how-can-i-reuse-my-vs-code-configuration)
+  - [Differences compared to VS Code?](#differences-compared-to-vs-code)
+    - [Installing an extension](#installing-an-extension)
+  - [How can I request a missing extension?](#how-can-i-request-a-missing-extension)
+  - [Installing an extension manually](#installing-an-extension-manually)
+  - [How do I configure the marketplace URL?](#how-do-i-configure-the-marketplace-url)
+  - [Where are extensions stored?](#where-are-extensions-stored)
+  - [How is this different from VS Code Codespaces?](#how-is-this-different-from-vs-code-codespaces)
+  - [How should I expose code-server to the internet?](#how-should-i-expose-code-server-to-the-internet)
+  - [Can I store my password hashed?](#can-i-store-my-password-hashed)
+  - [How do I securely access web services?](#how-do-i-securely-access-web-services)
+    - [Sub-paths](#sub-paths)
+    - [Sub-domains](#sub-domains)
+  - [Why does the code-server proxy strip `/proxy/<port>` from the request path?](#why-does-the-code-server-proxy-strip-proxyport-from-the-request-path)
+    - [Proxying to Create React App](#proxying-to-create-react-app)
+  - [Multi-tenancy](#multi-tenancy)
+  - [Docker in code-server container?](#docker-in-code-server-container)
+  - [How can I disable telemetry?](#how-can-i-disable-telemetry)
+  - [How does code-server decide what workspace or folder to open?](#how-does-code-server-decide-what-workspace-or-folder-to-open)
+  - [How do I debug issues with code-server?](#how-do-i-debug-issues-with-code-server)
+  - [Heartbeat File](#heartbeat-file)
+  - [Healthz endpoint](#healthz-endpoint)
+  - [How does the config file work?](#how-does-the-config-file-work)
+  - [Isn't an install script piped into sh insecure?](#isnt-an-install-script-piped-into-sh-insecure)
+  - [How do I make my keyboard shortcuts work?](#how-do-i-make-my-keyboard-shortcuts-work)
+  - [How do I access my Documents/Downloads/Desktop folders in code-server on OSX?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-osx)
+  - [Differences compared to Theia?](#differences-compared-to-theia)
+  - [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
+  - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -205,17 +206,19 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 
 Yes you can! Set the value of `hashed-password` instead of `password`. Generate the hash with:
 
-```
-printf "thisismypassword" | sha256sum | cut -d' ' -f1
+```shell
+echo -n "password" | npx argon2-cli -e
+$argon2i$v=19$m=4096,t=3,p=1$wst5qhbgk2lu1ih4dmuxvg$ls1alrvdiwtvzhwnzcm1dugg+5dto3dt1d5v9xtlws4
+
 ```
 
-Of course replace `thisismypassword` with your actual password.
+Of course replace `thisismypassword` with your actual password and **remember to put it inside quotes**!
 
 Example:
 
 ```yaml
 auth: password
-hashed-password: 1da9133ab9dbd11d2937ec8d312e1e2569857059e73cc72df92e670928983ab5 # You got this from the command above
+hashed-password: "$argon2i$v=19$m=4096,t=3,p=1$wST5QhBgk2lu1ih4DMuxvg$LS1alrVdIWtvZHwnzCM1DUGg+5DTO3Dt1d5v9XtLws4"
 ```
 
 ## How do I securely access web services?

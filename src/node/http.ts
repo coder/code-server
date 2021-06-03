@@ -2,13 +2,12 @@ import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import qs from "qs"
-import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { getPasswordMethod, handlePasswordValidation, IsCookieValidArgs, isCookieValid, isHashMatch } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
