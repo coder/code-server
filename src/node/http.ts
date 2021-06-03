@@ -8,7 +8,7 @@ import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { isHashMatch } from "./util"
+import { getPasswordMethod, handlePasswordValidation, IsCookieValidArgs, isCookieValid, isHashMatch } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -68,14 +68,16 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       return true
     case AuthType.Password:
       // The password is stored in the cookie after being hashed.
-      // TODO@jsjoeio this also needs to be refactored to check if they're using the legacy password
-      // or the new one. we can't assume hashed-password means legacy
-      return !!(
-        req.cookies.key &&
-        (req.args["hashed-password"]
-          ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && (await isHashMatch(req.args.password, req.cookies.key)))
-      )
+      const hashedPasswordFromArgs = req.args["hashed-password"]
+      const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+      const isCookieValidArgs: IsCookieValidArgs = {
+        passwordMethod,
+        cookieKey: req.cookies.key as string,
+        passwordFromArgs: req.args.password || "",
+        hashedPasswordFromArgs: req.args["hashed-password"],
+      }
+
+      return await isCookieValid(isCookieValidArgs)
     default:
       throw new Error(`Unsupported auth type ${req.args.auth}`)
   }
