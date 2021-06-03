@@ -38,6 +38,8 @@ jobs:
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
         if: steps.cache-yarn.outputs.cache-hit != 'true'
@@ -78,6 +80,8 @@ jobs:
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
         if: steps.cache-yarn.outputs.cache-hit != 'true'
@@ -107,6 +111,8 @@ jobs:
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
         if: steps.cache-yarn.outputs.cache-hit != 'true'
@@ -347,6 +353,8 @@ jobs:
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Download release packages
         uses: actions/download-artifact@v2

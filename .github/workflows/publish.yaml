@@ -42,6 +42,13 @@ jobs:
     needs: npm
     runs-on: macos-latest
     steps:
+      # Ensure things are up to date
+      # Suggested by homebrew maintainers
+      # https://github.com/Homebrew/discussions/discussions/1532#discussioncomment-782633
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
       - uses: actions/checkout@v2
       - name: Configure git
         run: |

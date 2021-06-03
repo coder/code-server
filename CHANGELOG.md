@@ -58,6 +58,10 @@ VS Code v0.00.0
 - chore: cross-compile docker images with buildx #3166 @oxy
 - chore: update node to v14 #3458 @oxy
 
+### Development
+
+- fix(publish): update cdrci fork in brew-bump.sh #3468 @jsjoeio
+
 ## 3.10.2
 
 VS Code v1.56.1
