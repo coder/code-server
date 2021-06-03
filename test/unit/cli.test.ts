@@ -349,6 +349,21 @@ describe("parser", () => {
       ],
     })
   })
+  it("should parse options with double-dash and multiple equal signs ", async () => {
+    const args = parse(
+      [
+        "--hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+      ],
+      {
+        configFile: "/pathtoconfig",
+      },
+    )
+    expect(args).toEqual({
+      _: [],
+      "hashed-password":
+        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+    })
+  })
 })
 
 describe("cli", () => {
@@ -426,25 +441,25 @@ describe("cli", () => {
 
 describe("splitOnFirstEquals", () => {
   it("should split on the first equals", () => {
-    const testStr = "--enabled-proposed-api=test=value"
+    const testStr = "enabled-proposed-api=test=value"
     const actual = splitOnFirstEquals(testStr)
-    const expected = ["--enabled-proposed-api", "test=value"]
+    const expected = ["enabled-proposed-api", "test=value"]
     expect(actual).toEqual(expect.arrayContaining(expected))
   })
   it("should split on first equals regardless of multiple equals signs", () => {
     const testStr =
-      "--hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
+      "hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
     const actual = splitOnFirstEquals(testStr)
     const expected = [
-      "--hashed-password",
+      "hashed-password",
       "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
     ]
     expect(actual).toEqual(expect.arrayContaining(expected))
   })
-  it("should always return two elements", () => {
-    const testStr = ""
+  it("should always return the first element before an equals", () => {
+    const testStr = "auth="
     const actual = splitOnFirstEquals(testStr)
-    const expected = ["", ""]
+    const expected = ["auth"]
     expect(actual).toEqual(expect.arrayContaining(expected))
   })
 })

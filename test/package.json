@@ -17,7 +17,5 @@
   },
   "resolutions": {
     "@playwright/test/playwright": "^1.11.0-next-alpha-apr-13-2021"
-  },
-  "dependencies": {
   }
 }

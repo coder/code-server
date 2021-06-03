@@ -1,15 +1,15 @@
+import { logger } from "@coder/logger"
+import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
-import * as argon2 from "argon2"
 import envPaths from "env-paths"
 import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
+import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
-import safeCompare from "safe-compare"
-import { logger } from "@coder/logger"
 
 export interface Paths {
   data: string

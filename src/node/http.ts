@@ -63,9 +63,10 @@ export const ensureAuthenticated = async (
  */
 export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
-    case AuthType.None:
+    case AuthType.None: {
       return true
-    case AuthType.Password:
+    }
+    case AuthType.Password: {
       // The password is stored in the cookie after being hashed.
       const hashedPasswordFromArgs = req.args["hashed-password"]
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
@@ -77,8 +78,10 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       }
 
       return await isCookieValid(isCookieValidArgs)
-    default:
+    }
+    default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)
+    }
   }
 }
 

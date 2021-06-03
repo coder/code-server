@@ -145,7 +145,11 @@ export const proxy: ProxyServer
 /**
  * Middleware to ensure the user is authenticated. Throws if they are not.
  */
-export function ensureAuthenticated(req: express.Request, res?: express.Response, next?: express.NextFunction): Promise<void>
+export function ensureAuthenticated(
+  req: express.Request,
+  res?: express.Response,
+  next?: express.NextFunction,
+): Promise<void>
 
 /**
  * Returns true if the user is authenticated.
