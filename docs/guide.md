@@ -177,7 +177,7 @@ Assuming you have been following the guide, edit your instance and checkmark the
 
 1. You'll need to buy a domain name. We recommend [Google Domains](https://domains.google.com).
 2. Add an A record to your domain with your instance's IP.
-3. Install caddy https://caddyserver.com/docs/download#debian-ubuntu-raspbian.
+3. Install Caddy https://caddyserver.com/docs/download#debian-ubuntu-raspbian.
 
 ```bash
 sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https
@@ -206,7 +206,7 @@ mydomain.com/code/* {
 
 Remember to replace `mydomain.com` with your domain name!
 
-5. Reload caddy with:
+5. Reload Caddy with:
 
 ```bash
 sudo systemctl reload caddy
@@ -215,7 +215,7 @@ sudo systemctl reload caddy
 Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
 In a future release we plan to integrate Let's Encrypt directly with `code-server` to avoid
-the dependency on caddy.
+the dependency on Caddy.
 
 #### NGINX
 
