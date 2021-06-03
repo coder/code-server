@@ -6,6 +6,7 @@ import {
   getPasswordMethod,
   hashLegacy,
   isHashLegacyMatch,
+  isCookieValid,
 } from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
@@ -234,7 +235,7 @@ describe("getPasswordMethod", () => {
   })
 })
 
-describe.only("handlePasswordValidation", () => {
+describe("handlePasswordValidation", () => {
   it("should return true with a hashedPassword for a PLAIN_TEXT password", async () => {
     const p = "password"
     const passwordValidation = await handlePasswordValidation({
@@ -320,5 +321,64 @@ describe.only("handlePasswordValidation", () => {
 
     expect(passwordValidation.isPasswordValid).toBe(false)
     expect(matchesHash).toBe(false)
+  })
+})
+
+describe.only("isCookieValid", () => {
+  it("should be valid if hashed-password for SHA256 matches cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "SHA256",
+      cookieKey: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af",
+      hashedPasswordFromArgs: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af",
+      passwordFromArgs: undefined,
+    })
+    expect(isValid).toBe(true)
+  })
+  it("should be invalid if hashed-password for SHA256 does not match cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "SHA256",
+      cookieKey: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb9442bb6f8f8f07af",
+      hashedPasswordFromArgs: "936a185caaa266bb9cbe981e9e05cb78cd732b0b3280eb944412bb6f8f8f07af",
+      passwordFromArgs: undefined,
+    })
+    expect(isValid).toBe(false)
+  })
+  it("should be valid if hashed-password for ARGON2 matches cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "ARGON2",
+      cookieKey: "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+      hashedPasswordFromArgs:
+        "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+      passwordFromArgs: undefined,
+    })
+    expect(isValid).toBe(true)
+  })
+  it("should be invalid if hashed-password for ARGON2 does not match cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "ARGON2",
+      cookieKey: "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9H",
+      hashedPasswordFromArgs:
+        "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+      passwordFromArgs: undefined,
+    })
+    expect(isValid).toBe(false)
+  })
+  it("should be valid if password for PLAIN_TEXT matches cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "PLAIN_TEXT",
+      cookieKey: "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+      passwordFromArgs: "password",
+      hashedPasswordFromArgs: undefined,
+    })
+    expect(isValid).toBe(true)
+  })
+  it("should be invalid if hashed-password for PLAIN_TEXT does not match cookie.key", async () => {
+    const isValid = await isCookieValid({
+      passwordMethod: "PLAIN_TEXT",
+      cookieKey: "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9H",
+      passwordFromArgs: "password1234",
+      hashedPasswordFromArgs: undefined,
+    })
+    expect(isValid).toBe(false)
   })
 })

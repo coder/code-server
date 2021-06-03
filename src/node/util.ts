@@ -249,6 +249,31 @@ export async function handlePasswordValidation(
   return passwordValidation
 }
 
+export type IsCookieValidArgs = {
+  passwordMethod: PasswordMethod
+  cookieKey: string
+  hashedPasswordFromArgs: string | undefined
+  passwordFromArgs: string | undefined
+}
+
+/** Checks if a req.cookies.key is valid using the PasswordMethod */
+export async function isCookieValid(isCookieValidArgs: IsCookieValidArgs): Promise<boolean> {
+  let isValid = false
+  const { passwordFromArgs = "", cookieKey, hashedPasswordFromArgs = "" } = isCookieValidArgs
+  switch (isCookieValidArgs.passwordMethod) {
+    case "PLAIN_TEXT":
+      isValid = await isHashMatch(passwordFromArgs, cookieKey)
+      break
+    case "ARGON2":
+    case "SHA256":
+      isValid = safeCompare(cookieKey, hashedPasswordFromArgs)
+      break
+    default:
+      break
+  }
+  return isValid
+}
+
 const mimeTypes: { [key: string]: string } = {
   ".aac": "audio/x-aac",
   ".avi": "video/x-msvideo",
