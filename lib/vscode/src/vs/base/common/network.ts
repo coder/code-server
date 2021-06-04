@@ -61,6 +61,7 @@ export namespace Schemas {
 	export const vscodeNotebookCell = 'vscode-notebook-cell';
 
 	export const vscodeNotebookCellMetadata = 'vscode-notebook-cell-metadata';
+	export const vscodeNotebookCellOutput = 'vscode-notebook-cell-output';
 
 	export const vscodeSettings = 'vscode-settings';
 
@@ -125,17 +126,16 @@ class RemoteAuthoritiesImpl {
 		if (host && host.indexOf(':') !== -1) {
 			host = `[${host}]`;
 		}
-		// const port = this._ports[authority];
+		const port = this._ports[authority];
 		const connectionToken = this._connectionTokens[authority];
 		let query = `path=${encodeURIComponent(uri.path)}`;
 		if (typeof connectionToken === 'string') {
 			query += `&tkn=${encodeURIComponent(connectionToken)}`;
 		}
-		// NOTE@coder: Changed this to work against the current path.
 		return URI.from({
 			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
-			authority: window.location.host,
-			path: `${window.location.pathname.replace(/\/+$/, '')}/vscode-remote-resource`,
+			authority: `${host}:${port}`,
+			path: `/vscode-remote-resource`,
 			query
 		});
 	}

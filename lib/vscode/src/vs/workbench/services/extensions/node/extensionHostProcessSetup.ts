@@ -17,12 +17,11 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
 import { MessageType, createMessageOfType, isMessageOfType, IExtHostSocketMessage, IExtHostReadyMessage, IExtHostReduceGraceTimeMessage, ExtensionHostExitCode } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 import { ExtensionHostMain, IExitFn } from 'vs/workbench/services/extensions/common/extensionHostMain';
 import { VSBuffer } from 'vs/base/common/buffer';
-import { IURITransformer, URITransformer } from 'vs/base/common/uriIpc';
+import { IURITransformer, URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
 import { exists } from 'vs/base/node/pfs';
 import { realpath } from 'vs/base/node/extpath';
 import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
 import { RunOnceScheduler } from 'vs/base/common/async';
-import * as proxyAgent from 'vs/base/node/proxy_agent';
 
 import 'vs/workbench/api/common/extHost.common.services';
 import 'vs/workbench/api/node/extHost.node.services';
@@ -138,11 +137,8 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 
 						// Wait for rich client to reconnect
 						protocol.onSocketClose(() => {
-							// NOTE@coder: Inform the server so we can manage offline
-							// connections there instead. Our goal is to persist connections
-							// forever (to a reasonable point) to account for things like
-							// hibernating overnight.
-							process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
+							// The socket has closed, let's give the renderer a certain amount of time to reconnect
+							disconnectRunner1.schedule();
 						});
 					}
 				}
@@ -177,6 +173,9 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 			});
 			socket.once('error', reject);
 
+			socket.on('close', () => {
+				onTerminate('renderer closed the socket');
+			});
 		});
 	}
 }
@@ -313,8 +312,6 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 }
 
 export async function startExtensionHostProcess(): Promise<void> {
-	proxyAgent.monkeyPatch(true);
-
 	performance.mark(`code/extHost/willConnectToRenderer`);
 	const protocol = await createExtHostProtocol();
 	performance.mark(`code/extHost/didConnectToRenderer`);
@@ -335,9 +332,11 @@ export async function startExtensionHostProcess(): Promise<void> {
 
 	// Attempt to load uri transformer
 	let uriTransformer: IURITransformer | null = null;
-	if (initData.remote.authority) {
+	if (initData.remote.authority && args.uriTransformerPath) {
 		try {
-			uriTransformer = new URITransformer(initData.remote.authority);
+			const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
+			const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
+			uriTransformer = new URITransformer(rawURITransformer);
 		} catch (e) {
 			console.error(e);
 		}

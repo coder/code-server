@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { promises } from 'fs';
+import { Promises as FSPromises } from 'vs/base/node/pfs';
 import { Disposable } from 'vs/base/common/lifecycle';
 import { IFileService, IFileStatWithMetadata } from 'vs/platform/files/common/files';
 import { IExtensionGalleryService, IGalleryExtension, InstallOperation } from 'vs/platform/extensionManagement/common/extensionManagement';
@@ -77,7 +77,7 @@ export class ExtensionsDownloader extends Disposable {
 
 	private async rename(from: URI, to: URI, retryUntil: number): Promise<void> {
 		try {
-			await promises.rename(from.fsPath, to.fsPath);
+			await FSPromises.rename(from.fsPath, to.fsPath);
 		} catch (error) {
 			if (isWindows && error && error.code === 'EPERM' && Date.now() < retryUntil) {
 				this.logService.info(`Failed renaming ${from} to ${to} with 'EPERM' error. Trying again...`);
@@ -90,7 +90,7 @@ export class ExtensionsDownloader extends Disposable {
 	private async cleanUp(): Promise<void> {
 		try {
 			if (!(await this.fileService.exists(this.extensionsDownloadDir))) {
-				this.logService.trace('Extension VSIX downloads cache dir does not exist');
+				this.logService.trace('Extension VSIX downlads cache dir does not exist');
 				return;
 			}
 			const folderStat = await this.fileService.resolve(this.extensionsDownloadDir, { resolveMetadata: true });
