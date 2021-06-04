@@ -1,77 +1,75 @@
-# code-server &middot; [!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq)
+# Visual Studio Code - Open Source ("Code - OSS")
+[![Feature Requests](https://img.shields.io/github/issues/microsoft/vscode/feature-request.svg)](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
+[![Bugs](https://img.shields.io/github/issues/microsoft/vscode/bug.svg)](https://github.com/microsoft/vscode/issues?utf8=✓&q=is%3Aissue+is%3Aopen+label%3Abug)
+[![Gitter](https://img.shields.io/badge/chat-on%20gitter-yellow.svg)](https://gitter.im/Microsoft/vscode)
 
-[![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server)
-[![See latest docs](https://img.shields.io/static/v1?label=Docs&message=see%20latest%20&color=blue)](https://github.com/cdr/code-server/tree/v3.9.3/docs)
+## The Repository
 
-Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
+This repository ("`Code - OSS`") is where we (Microsoft) develop the [Visual Studio Code](https://code.visualstudio.com) product together with the community. Not only do we work on code and issues here, we also publish our [roadmap](https://github.com/microsoft/vscode/wiki/Roadmap), [monthly iteration plans](https://github.com/microsoft/vscode/wiki/Iteration-Plans), and our [endgame plans](https://github.com/microsoft/vscode/wiki/Running-the-Endgame). This source code is available to everyone under the standard [MIT license](https://github.com/microsoft/vscode/blob/main/LICENSE.txt).
 
-![Screenshot](./docs/assets/screenshot.png)
+## Visual Studio Code
 
-## Highlights
+<p align="center">
+  <img alt="VS Code in action" src="https://user-images.githubusercontent.com/35271042/118224532-3842c400-b438-11eb-923d-a5f66fa6785a.png">
+</p>
 
-- Code on any device with a consistent development environment
-- Use cloud servers to speed up tests, compilations, downloads, and more
-- Preserve battery life when you're on the go; all intensive tasks run on your server
+[Visual Studio Code](https://code.visualstudio.com) is a distribution of the `Code - OSS` repository with Microsoft specific customizations released under a traditional [Microsoft product license](https://code.visualstudio.com/License/).
 
-## Requirements
+[Visual Studio Code](https://code.visualstudio.com) combines the simplicity of a code editor with what developers need for their core edit-build-debug cycle. It provides comprehensive code editing, navigation, and understanding support along with lightweight debugging, a rich extensibility model, and lightweight integration with existing tools.
 
-For a good experience, we recommend at least:
+Visual Studio Code is updated monthly with new features and bug fixes. You can download it for Windows, macOS, and Linux on [Visual Studio Code's website](https://code.visualstudio.com/Download). To get the latest releases every day, install the [Insiders build](https://code.visualstudio.com/insiders).
 
-- 1 GB of RAM
-- 2 cores
+## Contributing
 
-You can use whatever linux distribution floats your boat but in our [guide](./docs/guide.md) we assume Debian on Google Cloud.
+There are many ways in which you can participate in this project, for example:
 
-## Getting Started
+* [Submit bugs and feature requests](https://github.com/microsoft/vscode/issues), and help us verify as they are checked in
+* Review [source code changes](https://github.com/microsoft/vscode/pulls)
+* Review the [documentation](https://github.com/microsoft/vscode-docs) and make pull requests for anything from typos to additional and new content
 
-There are three ways you can get started:
+If you are interested in fixing issues and contributing directly to the code base,
+please see the document [How to Contribute](https://github.com/microsoft/vscode/wiki/How-to-Contribute), which covers the following:
 
-1. Using the [install script](./install.sh), which automates most of the process. The script uses the system package manager (if possible)
-2. Manually installing code-server; see [Installation](./docs/install.md) for instructions applicable to most use cases
-3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server) ⚡
+* [How to build and run from source](https://github.com/microsoft/vscode/wiki/How-to-Contribute)
+* [The development workflow, including debugging and running tests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#debugging)
+* [Coding guidelines](https://github.com/microsoft/vscode/wiki/Coding-Guidelines)
+* [Submitting pull requests](https://github.com/microsoft/vscode/wiki/How-to-Contribute#pull-requests)
+* [Finding an issue to work on](https://github.com/microsoft/vscode/wiki/How-to-Contribute#where-to-contribute)
+* [Contributing to translations](https://aka.ms/vscodeloc)
 
-If you choose to use the install script, you can preview what occurs during the install process:
+## Feedback
 
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
-```
+* Ask a question on [Stack Overflow](https://stackoverflow.com/questions/tagged/vscode)
+* [Request a new feature](CONTRIBUTING.md)
+* Upvote [popular feature requests](https://github.com/microsoft/vscode/issues?q=is%3Aopen+is%3Aissue+label%3Afeature-request+sort%3Areactions-%2B1-desc)
+* [File an issue](https://github.com/microsoft/vscode/issues)
+* Follow [@code](https://twitter.com/code) and let us know what you think!
 
-To install, run:
+See our [wiki](https://github.com/microsoft/vscode/wiki/Feedback-Channels) for a description of each of these channels and information on some other available community-driven channels.
 
-```bash
-curl -fsSL https://code-server.dev/install.sh | sh
-```
+## Related Projects
 
-When done, the install script prints out instructions for running and starting code-server.
+Many of the core components and extensions to VS Code live in their own repositories on GitHub. For example, the [node debug adapter](https://github.com/microsoft/vscode-node-debug) and the [mono debug adapter](https://github.com/microsoft/vscode-mono-debug) have their own repositories. For a complete list, please visit the [Related Projects](https://github.com/microsoft/vscode/wiki/Related-Projects) page on our [wiki](https://github.com/microsoft/vscode/wiki).
 
-We also have an in-depth [setup and configuration](./docs/guide.md) guide.
+## Bundled Extensions
 
-### code-server --link
+VS Code includes a set of built-in extensions located in the [extensions](extensions) folder, including grammars and snippets for many languages. Extensions that provide rich language support (code completion, Go to Definition) for a language have the suffix `language-features`. For example, the `json` extension provides coloring for `JSON` and the `json-language-features` provides rich language support for `JSON`.
 
-We're working on a cloud platform that makes deploying and managing code-server easier.
-Consider running code-server with the beta flag `--link` if you don't want to worry about
+## Development Container
 
-- TLS
-- Authentication
-- Port Forwarding
+This repository includes a Visual Studio Code Remote - Containers / GitHub Codespaces development container.
 
-```bash
-$ code-server --link
-Proxying code-server, you can access your IDE at https://valmar-jon.cdr.co
-```
+- For [Remote - Containers](https://aka.ms/vscode-remote/download/containers), use the **Remote-Containers: Clone Repository in Container Volume...** command which creates a Docker volume for better disk I/O on macOS and Windows.
+- For Codespaces, install the [Github Codespaces](https://marketplace.visualstudio.com/items?itemName=GitHub.codespacese) extension in VS Code, and use the **Codespaces: Create New Codespace** command.
 
-## FAQ
+Docker / the Codespace should have at least **4 Cores and 6 GB of RAM (8 GB recommended)** to run full build. See the [development container README](.devcontainer/README.md) for more information.
 
-See [./docs/FAQ.md](./docs/FAQ.md).
+## Code of Conduct
 
-## Want to help?
+This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
-See [CONTRIBUTING](./docs/CONTRIBUTING.md) for details.
+## License
 
-## Hiring
+Copyright (c) Microsoft Corporation. All rights reserved.
 
-Interested in [working at Coder](https://coder.com)? Check out [our open positions](https://jobs.lever.co/coder)!
-
-## For Organizations
-
-Visit [our website](https://coder.com) for more information about remote development for your organization or enterprise.
+Licensed under the [MIT](LICENSE.txt) license.

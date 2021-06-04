@@ -1,1 +1,10 @@
-*.afdesign filter=lfs diff=lfs merge=lfs -text
+* text=auto
+
+LICENSE.txt eol=crlf
+ThirdPartyNotices.txt eol=crlf
+
+*.bat eol=crlf
+*.cmd eol=crlf
+*.ps1 eol=lf
+*.sh eol=lf
+*.rtf -text
