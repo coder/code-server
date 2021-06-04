@@ -52,6 +52,7 @@ VS Code v0.00.0
 - docs: remove toc from changelog @oxy @jsjoeio
 - docs(MAINTAINING): add information about CHANGELOG #3467 @jsjoeio
 - docs: move release process to MAINTAINING.md #3441 @oxy @Prashant168
+- docs: format 'Caddy' from guide.md @PisecesPeng
 
 ### Development
 
