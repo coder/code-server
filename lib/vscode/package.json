@@ -223,6 +223,7 @@
   "resolutions": {
     "postcss": "^8.2.1",
     "elliptic": "^6.5.3",
-    "nwmatcher": "^1.4.4"
+    "nwmatcher": "^1.4.4",
+    "chrome-remote-interface": "^0.30.0"
   }
 }
