@@ -263,6 +263,7 @@ export const parse = (
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
     }
+
     return new Error(msg)
   }
 
@@ -286,6 +287,13 @@ export const parse = (
         const split = splitOnFirstEquals(arg.replace(/^--/, ""))
         key = split[0] as keyof Args
         value = split[1]
+      } else {
+        const short = arg.replace(/^-/, "")
+        const pair = Object.entries(options).find(([, v]) => v.short === short)
+        if (pair) {
+          key = pair[0] as keyof Args
+        }
+      }
 
       if (!key || !options[key]) {
         throw error(`Unknown option ${arg}`)

@@ -134,6 +134,9 @@ export const hash = async (password: string): Promise<string> => {
  * Used to verify if the password matches the hash
  */
 export const isHashMatch = async (password: string, hash: string) => {
+  if (password === "" || hash === "") {
+    return false
+  }
   try {
     return await argon2.verify(hash, password)
   } catch (error) {
@@ -209,11 +212,12 @@ type HandlePasswordValidationArgs = {
  * Checks if a password is valid and also returns the hash
  * using the PasswordMethod
  */
-export async function handlePasswordValidation(
-  passwordValidationArgs: HandlePasswordValidationArgs,
-): Promise<PasswordValidation> {
-  const { passwordMethod, passwordFromArgs, passwordFromRequestBody, hashedPasswordFromArgs } = passwordValidationArgs
-  // TODO implement
+export async function handlePasswordValidation({
+  passwordMethod,
+  passwordFromArgs,
+  passwordFromRequestBody,
+  hashedPasswordFromArgs,
+}: HandlePasswordValidationArgs): Promise<PasswordValidation> {
   const passwordValidation = <PasswordValidation>{
     isPasswordValid: false,
     hashedPassword: "",
@@ -257,10 +261,14 @@ export type IsCookieValidArgs = {
 }
 
 /** Checks if a req.cookies.key is valid using the PasswordMethod */
-export async function isCookieValid(isCookieValidArgs: IsCookieValidArgs): Promise<boolean> {
+export async function isCookieValid({
+  passwordFromArgs = "",
+  cookieKey,
+  hashedPasswordFromArgs = "",
+  passwordMethod,
+}: IsCookieValidArgs): Promise<boolean> {
   let isValid = false
-  const { passwordFromArgs = "", cookieKey, hashedPasswordFromArgs = "" } = isCookieValidArgs
-  switch (isCookieValidArgs.passwordMethod) {
+  switch (passwordMethod) {
     case "PLAIN_TEXT":
       isValid = await isHashMatch(passwordFromArgs, cookieKey)
       break

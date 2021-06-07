@@ -185,6 +185,18 @@ describe("isHashMatch", () => {
     const actual = await isHashMatch(password, _hash)
     expect(actual).toBe(true)
   })
+  it("should return false if the password is empty", async () => {
+    const password = ""
+    const _hash = "$argon2i$v=19$m=4096,t=3,p=1$EAoczTxVki21JDfIZpTUxg$rkXgyrW4RDGoDYrxBFD4H2DlSMEhP4h+Api1hXnGnFY"
+    const actual = await isHashMatch(password, _hash)
+    expect(actual).toBe(false)
+  })
+  it("should return false if the hash is empty", async () => {
+    const password = "hellowpasssword"
+    const _hash = ""
+    const actual = await isHashMatch(password, _hash)
+    expect(actual).toBe(false)
+  })
 })
 
 describe("hashLegacy", () => {
@@ -325,7 +337,7 @@ describe("handlePasswordValidation", () => {
   })
 })
 
-describe.only("isCookieValid", () => {
+describe("isCookieValid", () => {
   it("should be valid if hashed-password for SHA256 matches cookie.key", async () => {
     const isValid = await isCookieValid({
       passwordMethod: "SHA256",
@@ -384,7 +396,7 @@ describe.only("isCookieValid", () => {
   })
 })
 
-describe.only("sanitizeString", () => {
+describe("sanitizeString", () => {
   it("should return an empty string if passed a type other than a string", () => {
     expect(sanitizeString({} as string)).toBe("")
   })
