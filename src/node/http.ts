@@ -7,7 +7,7 @@ import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { getPasswordMethod, IsCookieValidArgs, isCookieValid } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -72,7 +72,7 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
-        cookieKey: req.cookies.key as string,
+        cookieKey: sanitizeString(req.cookies.key),
         passwordFromArgs: req.args.password || "",
         hashedPasswordFromArgs: req.args["hashed-password"],
       }

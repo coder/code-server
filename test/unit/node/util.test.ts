@@ -7,6 +7,7 @@ import {
   hashLegacy,
   isHashLegacyMatch,
   isCookieValid,
+  sanitizeString,
 } from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
@@ -380,5 +381,17 @@ describe.only("isCookieValid", () => {
       hashedPasswordFromArgs: undefined,
     })
     expect(isValid).toBe(false)
+  })
+})
+
+describe.only("sanitizeString", () => {
+  it("should return an empty string if passed a type other than a string", () => {
+    expect(sanitizeString({} as string)).toBe("")
+  })
+  it("should trim whitespace", () => {
+    expect(sanitizeString(" hello   ")).toBe("hello")
+  })
+  it("should always return an empty string", () => {
+    expect(sanitizeString("   ")).toBe("")
   })
 })

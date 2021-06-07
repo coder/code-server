@@ -4,7 +4,7 @@ import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { getPasswordMethod, handlePasswordValidation, humanPath } from "../util"
+import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString } from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
 })
 
 router.post("/", async (req, res) => {
-  const password = req.body.password
+  const password = sanitizeString(req.body.password)
   const hashedPasswordFromArgs = req.args["hashed-password"]
 
   try {

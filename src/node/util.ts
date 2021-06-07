@@ -274,6 +274,17 @@ export async function isCookieValid(isCookieValidArgs: IsCookieValidArgs): Promi
   return isValid
 }
 
+/** Ensures that the input is sanitized by checking
+ * - it's a string
+ * - greater than 0 characters
+ * - trims whitespace
+ */
+export function sanitizeString(str: string): string {
+  // Very basic sanitization of string
+  // Credit: https://stackoverflow.com/a/46719000/3015595
+  return typeof str === "string" && str.trim().length > 0 ? str.trim() : ""
+}
+
 const mimeTypes: { [key: string]: string } = {
   ".aac": "audio/x-aac",
   ".avi": "video/x-msvideo",
