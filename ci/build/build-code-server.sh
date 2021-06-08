@@ -7,6 +7,8 @@ set -euo pipefail
 MINIFY=${MINIFY-true}
 
 main() {
+  local opts=()
+  [[ $MINIFY ]] && opts+=("-p" "tinyfy")
   cd "$(dirname "${0}")/../.."
 
   tsc
@@ -32,14 +34,9 @@ main() {
     set -e
   fi
 
-  parcel build \
-    --public-url "." \
-    --dist-dir dist \
-    $([[ $MINIFY ]] || echo --no-optimize) \
-    src/browser/register.ts \
-    src/browser/serviceWorker.ts \
-    src/browser/pages/login.ts \
-    src/browser/pages/vscode.ts
+  yarn browserify "${opts[@]}" src/browser/register.ts -o out/browser/register.browserified.js
+  yarn browserify "${opts[@]}" src/browser/pages/login.ts -o out/browser/pages/login.browserified.js
+  yarn browserify "${opts[@]}" src/browser/pages/vscode.ts -o out/browser/pages/vscode.browserified.js
 }
 
 main "$@"
