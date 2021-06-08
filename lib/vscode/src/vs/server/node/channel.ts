@@ -28,8 +28,8 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
+import { ITerminalProfileResolverService } from 'vs/workbench/contrib/terminal/common/terminal';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
-import { getMainProcessParentEnv } from 'vs/workbench/contrib/terminal/node/terminalEnvironment';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 
@@ -272,6 +272,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 			return Promise.all(paths.map((path) => {
 				return ExtensionScanner.scanExtensions(new ExtensionScannerInput(
 					product.version,
+					product.date,
 					product.commit,
 					language,
 					!!process.env.VSCODE_DEV,
@@ -387,6 +388,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	public constructor (
 		private readonly logService: ILogService,
 		private readonly ptyService: IPtyService,
+		private readonly terminalProfileResolverService: ITerminalProfileResolverService,
 	) {}
 
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
@@ -436,7 +438,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$listProcesses': return this.ptyService.listProcesses();
 			case '$setTerminalLayoutInfo': return this.ptyService.setTerminalLayoutInfo(args);
 			case '$getTerminalLayoutInfo': return this.ptyService.getTerminalLayoutInfo(args);
-			case '$getShellEnvironment': return this.ptyService.getShellEnvironment();
+			case '$getEnvironment': return this.ptyService.getEnvironment();
 			case '$getDefaultSystemShell': return this.ptyService.getDefaultSystemShell(args[0]);
 			case '$reduceConnectionGraceTime': return this.ptyService.reduceConnectionGraceTime();
 		}
@@ -499,8 +501,8 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			return args.configuration['terminal.integrated.env.linux'];
 		};
 
-		const getNonInheritedEnv = async (): Promise<platform.IProcessEnvironment> => {
-			const env = await getMainProcessParentEnv(process.env);
+		const getEnvironment = async (): Promise<platform.IProcessEnvironment> => {
+			const env = await this.terminalProfileResolverService.getEnvironment(remoteAuthority);
 			env.VSCODE_IPC_HOOK_CLI = process.env['VSCODE_IPC_HOOK_CLI']!;
 			return env;
 		};
@@ -511,9 +513,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			resolver,
 			product.version,
 			args.configuration['terminal.integrated.detectLocale'],
-			args.configuration['terminal.integrated.inheritEnv'] !== false
-				? process.env as platform.IProcessEnvironment
-				: await getNonInheritedEnv()
+			await getEnvironment()
 		);
 
 		// Apply extension environment variable collections to the environment.

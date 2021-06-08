@@ -58,6 +58,7 @@ import { REMOTE_TERMINAL_CHANNEL_NAME } from 'vs/workbench/contrib/terminal/comm
 import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteAgentFileSystemChannel';
 import { RemoteExtensionLogFileName } from 'vs/workbench/services/remote/common/remoteAgentService';
 import { PtyHostService } from 'vs/platform/terminal/node/ptyHostService';
+import { ITerminalProfileResolverService } from 'vs/workbench/contrib/terminal/common/terminal';
 
 const commit = product.commit || 'development';
 
@@ -304,8 +305,8 @@ export class Vscode {
 				this.ipc.registerChannel('localizations', <IServerChannel<any>>ProxyChannel.fromService(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 
-				const ptyHostService = new PtyHostService(logService, telemetryService);
-				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService, ptyHostService));
+				const ptyHostService = new PtyHostService({GraceTime: 60000, ShortGraceTime: 6000}, configurationService, logService, telemetryService);
+				this.ipc.registerChannel(REMOTE_TERMINAL_CHANNEL_NAME, new TerminalProviderChannel(logService, ptyHostService, accessor.get(ITerminalProfileResolverService)));
 
 				resolve(new ErrorTelemetry(telemetryService));
 			});
