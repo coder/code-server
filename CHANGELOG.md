@@ -58,6 +58,7 @@ VS Code v0.00.0
 
 - chore: cross-compile docker images with buildx #3166 @oxy
 - chore: update node to v14 #3458 @oxy
+- chore: update .gitignore #3557 @cuining
 
 ### Development
 
