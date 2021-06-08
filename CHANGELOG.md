@@ -64,6 +64,7 @@ VS Code v0.00.0
 ### Development
 
 - fix(publish): update cdrci fork in brew-bump.sh #3468 @jsjoeio
+- chore(dev): upgrade to parcel v2 #3578 @jsjoeio
 
 ## 3.10.2
 
