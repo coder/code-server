@@ -1,6 +1,8 @@
 import * as cp from "child_process"
-import Bundler from "parcel-bundler"
+import Parcel from "@parcel/core"
 import * as path from "path"
+
+type FixMeLater = any
 
 async function main(): Promise<void> {
   try {
@@ -84,15 +86,20 @@ class Watcher {
         cleanup(code)
       })
     }
-    const bundle = bundler.bundle().catch(() => {
-      Watcher.log("parcel watcher terminated unexpectedly")
-      cleanup(1)
-    })
-    bundler.on("buildEnd", () => {
-      console.log("[parcel] bundled")
-    })
-    bundler.on("buildError", (error) => {
-      console.error("[parcel]", error)
+    const bundle = bundler.watch((err: any, buildEvent: string) => {
+      if (err) {
+        console.error(err)
+        Watcher.log("parcel watcher terminated unexpectedly")
+        cleanup(1)
+      }
+
+      if (buildEvent === "buildEnd") {
+        console.log("[parcel] bundled")
+      }
+
+      if (buildEvent === "buildError") {
+        console.error("[parcel]", err)
+      }
     })
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))
@@ -172,22 +179,23 @@ class Watcher {
     }
   }
 
-  private createBundler(out = "dist"): Bundler {
-    return new Bundler(
-      [
+  private createBundler(out = "dist"): FixMeLater {
+    return new (Parcel as any)({
+      entries: [
         path.join(this.rootPath, "src/browser/register.ts"),
         path.join(this.rootPath, "src/browser/serviceWorker.ts"),
         path.join(this.rootPath, "src/browser/pages/login.ts"),
         path.join(this.rootPath, "src/browser/pages/vscode.ts"),
       ],
-      {
-        outDir: path.join(this.rootPath, out),
-        cacheDir: path.join(this.rootPath, ".cache"),
-        minify: !!process.env.MINIFY,
-        logLevel: 1,
+      cacheDir: path.join(this.rootPath, ".cache"),
+      logLevel: 1,
+      defaultConfig: require.resolve("@parcel/config-default"),
+      defaultTargetOptions: {
         publicUrl: ".",
+        shouldOptimize: !!process.env.MINIFY,
+        distDir: path.join(this.rootPath, out),
       },
-    )
+    })
   }
 }
 
