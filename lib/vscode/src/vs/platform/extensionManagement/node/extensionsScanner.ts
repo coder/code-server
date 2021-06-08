@@ -97,7 +97,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	async scanAllUserExtensions(): Promise<ILocalExtension[]> {
-		return this.scanExtensionsInDir(this.extensionsPath, ExtensionType.User);
+		return this.scanExtensionsInDirs([this.extensionsPath, ...this.environmentService.extraExtensionPaths], ExtensionType.User);
 	}
 
 	async extractUserExtension(identifierWithVersion: ExtensionIdentifierWithVersion, zipPath: string, token: CancellationToken): Promise<ILocalExtension> {
@@ -314,7 +314,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	private async scanDefaultSystemExtensions(): Promise<ILocalExtension[]> {
-		const result = await this.scanExtensionsInDir(this.systemExtensionsPath, ExtensionType.System);
+		const result = await this.scanExtensionsInDirs([this.systemExtensionsPath, ...this.environmentService.extraBuiltinExtensionPaths], ExtensionType.System);
 		this.logService.trace('Scanned system extensions:', result.length);
 		return result;
 	}
@@ -417,5 +417,10 @@ export class ExtensionsScanner extends Disposable {
 				e(new Error(localize('invalidManifest', "Extension invalid: package.json is not a JSON file.")));
 			}
 		});
+	}
+
+	private async scanExtensionsInDirs(dirs: string[], type: ExtensionType): Promise<ILocalExtension[]>{
+		const results = await Promise.all(dirs.map((path) => this.scanExtensionsInDir(path, type)));
+		return results.reduce((flat, current) => flat.concat(current), []);
 	}
 }
