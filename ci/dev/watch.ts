@@ -86,18 +86,18 @@ class Watcher {
         cleanup(code)
       })
     }
-    const bundle = bundler.watch((err: FixMeLater, buildEvent: string) => {
+    const bundle = bundler.watch((err: FixMeLater, buildEvent: FixMeLater) => {
       if (err) {
         console.error(err)
         Watcher.log("parcel watcher terminated unexpectedly")
         cleanup(1)
       }
 
-      if (buildEvent === "buildEnd") {
+      if (buildEvent.type === "buildEnd") {
         console.log("[parcel] bundled")
       }
 
-      if (buildEvent === "buildError") {
+      if (buildEvent.type === "buildError") {
         console.error("[parcel]", err)
       }
     })
