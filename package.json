@@ -82,7 +82,12 @@
     "postcss": "^8.2.1",
     "browserslist": "^4.16.5",
     "safe-buffer": "^5.1.1",
-    "vfile-message": "^2.0.2"
+    "vfile-message": "^2.0.2",
+    "parcel/@parcel/config-default/@parcel/optimizer-cssnano/cssnano/cssnano-preset-default/postcss-svgo/svgo/css-select/css-what": "5.0.1",
+    "parcel/@parcel/config-default/@parcel/optimizer-htmlnano/htmlnano/cssnano/cssnano-preset-default/postcss-svgo/svgo/css-select/css-what": "5.0.1",
+    "parcel/@parcel/config-default/@parcel/optimizer-htmlnano/htmlnano/svgo/css-select/css-what": "5.0.1",
+    "parcel/@parcel/config-default/@parcel/optimizer-cssnano/cssnano/cssnano-preset-default/postcss-normalize-url/normalize-url": "4.5.1",
+    "parcel/@parcel/config-default/@parcel/optimizer-htmlnano/htmlnano/cssnano/cssnano-preset-default/postcss-normalize-url/normalize-url": "4.5.1"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
