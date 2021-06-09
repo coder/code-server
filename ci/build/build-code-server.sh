@@ -34,8 +34,8 @@ main() {
 
   parcel build \
     --public-url "." \
-    --out-dir dist \
-    $([[ $MINIFY ]] || echo --no-minify) \
+    --dist-dir dist \
+    $([[ $MINIFY ]] || echo --no-optimize) \
     src/browser/register.ts \
     src/browser/serviceWorker.ts \
     src/browser/pages/login.ts \
