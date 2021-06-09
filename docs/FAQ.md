@@ -205,17 +205,18 @@ Again, please follow [./guide.md](./guide.md) for our recommendations on setting
 
 Yes you can! Set the value of `hashed-password` instead of `password`. Generate the hash with:
 
-```
-printf "thisismypassword" | sha256sum | cut -d' ' -f1
+```shell
+echo -n "password" | npx argon2-cli -e
+$argon2i$v=19$m=4096,t=3,p=1$wst5qhbgk2lu1ih4dmuxvg$ls1alrvdiwtvzhwnzcm1dugg+5dto3dt1d5v9xtlws4
 ```
 
-Of course replace `thisismypassword` with your actual password.
+Of course replace `thisismypassword` with your actual password and **remember to put it inside quotes**!
 
 Example:
 
 ```yaml
 auth: password
-hashed-password: 1da9133ab9dbd11d2937ec8d312e1e2569857059e73cc72df92e670928983ab5 # You got this from the command above
+hashed-password: "$argon2i$v=19$m=4096,t=3,p=1$wST5QhBgk2lu1ih4DMuxvg$LS1alrVdIWtvZHwnzCM1DUGg+5DTO3Dt1d5v9XtLws4"
 ```
 
 ## How do I securely access web services?

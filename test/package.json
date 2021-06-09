@@ -7,6 +7,7 @@
     "@types/jsdom": "^16.2.6",
     "@types/node-fetch": "^2.5.8",
     "@types/supertest": "^2.0.10",
+    "argon2": "^0.28.0",
     "jest": "^26.6.3",
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.1",

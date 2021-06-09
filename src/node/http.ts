@@ -2,13 +2,12 @@ import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import qs from "qs"
-import safeCompare from "safe-compare"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { hash } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -45,8 +44,13 @@ export const replaceTemplates = <T extends object>(
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
-export const ensureAuthenticated = (req: express.Request, _?: express.Response, next?: express.NextFunction): void => {
-  if (!authenticated(req)) {
+export const ensureAuthenticated = async (
+  req: express.Request,
+  _?: express.Response,
+  next?: express.NextFunction,
+): Promise<void> => {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
   if (next) {
@@ -57,20 +61,27 @@ export const ensureAuthenticated = (req: express.Request, _?: express.Response, 
 /**
  * Return true if authenticated via cookies.
  */
-export const authenticated = (req: express.Request): boolean => {
+export const authenticated = async (req: express.Request): Promise<boolean> => {
   switch (req.args.auth) {
-    case AuthType.None:
+    case AuthType.None: {
       return true
-    case AuthType.Password:
+    }
+    case AuthType.Password: {
       // The password is stored in the cookie after being hashed.
-      return !!(
-        req.cookies.key &&
-        (req.args["hashed-password"]
-          ? safeCompare(req.cookies.key, req.args["hashed-password"])
-          : req.args.password && safeCompare(req.cookies.key, hash(req.args.password)))
-      )
-    default:
+      const hashedPasswordFromArgs = req.args["hashed-password"]
+      const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+      const isCookieValidArgs: IsCookieValidArgs = {
+        passwordMethod,
+        cookieKey: sanitizeString(req.cookies.key),
+        passwordFromArgs: req.args.password || "",
+        hashedPasswordFromArgs: req.args["hashed-password"],
+      }
+
+      return await isCookieValid(isCookieValidArgs)
+    }
+    default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)
+    }
   }
 }
 
