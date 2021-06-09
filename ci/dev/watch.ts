@@ -86,7 +86,7 @@ class Watcher {
         cleanup(code)
       })
     }
-    const bundle = bundler.watch((err: any, buildEvent: string) => {
+    const bundle = bundler.watch((err: FixMeLater, buildEvent: string) => {
       if (err) {
         console.error(err)
         Watcher.log("parcel watcher terminated unexpectedly")
@@ -180,7 +180,7 @@ class Watcher {
   }
 
   private createBundler(out = "dist"): FixMeLater {
-    return new (Parcel as any)({
+    return new (Parcel as FixMeLater)({
       entries: [
         path.join(this.rootPath, "src/browser/register.ts"),
         path.join(this.rootPath, "src/browser/serviceWorker.ts"),
