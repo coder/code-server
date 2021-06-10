@@ -28,7 +28,6 @@ import { IEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/co
 import { MergedEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableCollection';
 import { deserializeEnvironmentVariableCollection } from 'vs/workbench/contrib/terminal/common/environmentVariableShared';
 import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalChannel';
-import { ITerminalProfileResolverService } from 'vs/workbench/contrib/terminal/common/terminal';
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
@@ -388,7 +387,6 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	public constructor (
 		private readonly logService: ILogService,
 		private readonly ptyService: IPtyService,
-		private readonly terminalProfileResolverService: ITerminalProfileResolverService,
 	) {}
 
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
@@ -502,7 +500,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		};
 
 		const getEnvironment = async (): Promise<platform.IProcessEnvironment> => {
-			const env = await this.terminalProfileResolverService.getEnvironment(remoteAuthority);
+			const env = await this.ptyService.getEnvironment();
 			env.VSCODE_IPC_HOOK_CLI = process.env['VSCODE_IPC_HOOK_CLI']!;
 			return env;
 		};
