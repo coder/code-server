@@ -1,5 +1,5 @@
 import * as path from 'vs/base/common/path';
-import { Options } from 'vs/ipc';
+import { Options } from 'vs/server/common/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';

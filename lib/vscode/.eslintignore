@@ -16,3 +16,8 @@
 **/extensions/markdown-language-features/notebook-out/**
 **/extensions/typescript-basics/test/colorize-fixtures/**
 **/extensions/**/dist/**
+# These are code-server code symlinks.
+src/vs/base/node/proxy_agent.ts
+src/vs/ipc.d.ts
+src/vs/server/common/util.ts
+src/vs/server/node/uriTransformer.ts

@@ -1,7 +1,7 @@
 import { field } from '@coder/logger';
 import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
 import * as proxyAgent from 'vs/base/node/proxy_agent';
-import { CodeServerMessage, VscodeMessage } from 'vs/ipc';
+import { CodeServerMessage, VscodeMessage } from 'vs/server/common/ipc';
 import { logger } from 'vs/server/node/logger';
 import { enableCustomMarketplace } from 'vs/server/node/marketplace';
 import { Vscode } from 'vs/server/node/server';
