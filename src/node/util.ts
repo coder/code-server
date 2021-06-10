@@ -165,8 +165,7 @@ export const isHashLegacyMatch = (password: string, hashPassword: string) => {
   return safeCompare(hashedWithLegacy, hashPassword)
 }
 
-const passwordMethods = ["SHA256", "ARGON2", "PLAIN_TEXT"] as const
-export type PasswordMethod = typeof passwordMethods[number]
+export type PasswordMethod = "SHA256" | "ARGON2" | "PLAIN_TEXT"
 
 /**
  * Used to determine the password method.
@@ -413,7 +412,7 @@ export const isObject = <T extends object>(obj: T): obj is T => {
  * we don't have to set up a `vs` alias to be able to import with types (since
  * the alternative is to directly import from `out`).
  */
-const enum CharCode {
+enum CharCode {
   Slash = 47,
   A = 65,
   Z = 90,

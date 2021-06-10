@@ -41,7 +41,7 @@ export class CodeServer {
       // Give it an extra second just in case it's feeling extra slow
       await this.page.waitForTimeout(1000)
       reloadCount += 1
-      if ((await this.isEditorVisible()) && (await this.isConnected)) {
+      if ((await this.isEditorVisible()) && (await this.isConnected())) {
         console.log(`    Editor became ready after ${reloadCount} reloads`)
         break
       }
@@ -54,8 +54,7 @@ export class CodeServer {
    */
   async isEditorVisible() {
     // Make sure the editor actually loaded
-    // If it's not visible after 5 seconds, something is wrong
-    await this.page.waitForLoadState("networkidle")
+    await this.page.waitForSelector(this.editorSelector)
     return await this.page.isVisible(this.editorSelector)
   }
 
