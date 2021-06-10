@@ -34,6 +34,9 @@
     "coverage": "codecov"
   },
   "main": "out/node/entry.js",
+  "targets": {
+    "main": false
+  },
   "devDependencies": {
     "@parcel/core": "^2.0.0-beta.3.1",
     "@parcel/types": "^2.0.0-alpha.3",
