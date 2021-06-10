@@ -114,7 +114,7 @@ const options: Options<Required<Args>> = {
   "hashed-password": {
     type: "string",
     description:
-      "The password hashed with SHA-256 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
+      "The password hashed with argon2 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
       "Takes precedence over 'password'.",
   },
   cert: {
@@ -240,6 +240,19 @@ export const optionDescriptions = (): string[] => {
   })
 }
 
+export function splitOnFirstEquals(str: string): string[] {
+  // we use regex instead of "=" to ensure we split at the first
+  // "=" and return the following substring with it
+  // important for the hashed-password which looks like this
+  // $argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY
+  // 2 means return two items
+  // Source: https://stackoverflow.com/a/4607799/3015595
+  // We use the ? to say the the substr after the = is optional
+  const split = str.split(/=(.+)?/, 2)
+
+  return split
+}
+
 export const parse = (
   argv: string[],
   opts?: {
@@ -250,6 +263,7 @@ export const parse = (
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
     }
+
     return new Error(msg)
   }
 
@@ -270,7 +284,7 @@ export const parse = (
       let key: keyof Args | undefined
       let value: string | undefined
       if (arg.startsWith("--")) {
-        const split = arg.replace(/^--/, "").split("=", 2)
+        const split = splitOnFirstEquals(arg.replace(/^--/, ""))
         key = split[0] as keyof Args
         value = split[1]
       } else {

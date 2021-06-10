@@ -19,7 +19,8 @@ export const router = Router()
 const vscode = new VscodeProvider()
 
 router.get("/", async (req, res) => {
-  if (!authenticated(req)) {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     return redirect(req, res, "login", {
       // req.baseUrl can be blank if already at the root.
       to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,

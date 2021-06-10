@@ -2,10 +2,9 @@ import { Router, Request } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
-import safeCompare from "safe-compare"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { hash, humanPath } from "../util"
+import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString } from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -49,9 +48,9 @@ const limiter = new RateLimiter()
 
 export const router = Router()
 
-router.use((req, res, next) => {
+router.use(async (req, res, next) => {
   const to = (typeof req.query.to === "string" && req.query.to) || "/"
-  if (authenticated(req)) {
+  if (await authenticated(req)) {
     return redirect(req, res, to, { to: undefined })
   }
   next()
@@ -62,24 +61,31 @@ router.get("/", async (req, res) => {
 })
 
 router.post("/", async (req, res) => {
+  const password = sanitizeString(req.body.password)
+  const hashedPasswordFromArgs = req.args["hashed-password"]
+
   try {
     // Check to see if they exceeded their login attempts
     if (!limiter.canTry()) {
       throw new Error("Login rate limited!")
     }
 
-    if (!req.body.password) {
+    if (!password) {
       throw new Error("Missing password")
     }
 
-    if (
-      req.args["hashed-password"]
-        ? safeCompare(hash(req.body.password), req.args["hashed-password"])
-        : req.args.password && safeCompare(req.body.password, req.args.password)
-    ) {
+    const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+    const { isPasswordValid, hashedPassword } = await handlePasswordValidation({
+      passwordMethod,
+      hashedPasswordFromArgs,
+      passwordFromRequestBody: password,
+      passwordFromArgs: req.args.password,
+    })
+
+    if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.Key, hash(req.body.password), {
+      res.cookie(Cookie.Key, hashedPassword, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         path: req.body.base || "/",
         sameSite: "lax",

@@ -3,7 +3,7 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance } from "../../src/node/cli"
+import { Args, parse, setDefaults, shouldOpenInExistingInstance, splitOnFirstEquals } from "../../src/node/cli"
 import { tmpdir } from "../../src/node/constants"
 import { paths } from "../../src/node/util"
 
@@ -306,7 +306,8 @@ describe("parser", () => {
   })
 
   it("should use env var hashed password", async () => {
-    process.env.HASHED_PASSWORD = "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08" // test
+    process.env.HASHED_PASSWORD =
+      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY" // test
     const args = parse([])
     expect(args).toEqual({
       _: [],
@@ -316,7 +317,8 @@ describe("parser", () => {
     expect(defaultArgs).toEqual({
       ...defaults,
       _: [],
-      "hashed-password": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
+      "hashed-password":
+        "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
       usingEnvHashedPassword: true,
     })
   })
@@ -333,6 +335,33 @@ describe("parser", () => {
       ...defaults,
       _: [],
       "proxy-domain": ["coder.com", "coder.org"],
+    })
+  })
+  it("should allow '=,$/' in strings", async () => {
+    const args = parse([
+      "--enable-proposed-api",
+      "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+    ])
+    expect(args).toEqual({
+      _: [],
+      "enable-proposed-api": [
+        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+      ],
+    })
+  })
+  it("should parse options with double-dash and multiple equal signs ", async () => {
+    const args = parse(
+      [
+        "--hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+      ],
+      {
+        configFile: "/pathtoconfig",
+      },
+    )
+    expect(args).toEqual({
+      _: [],
+      "hashed-password":
+        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     })
   })
 })
@@ -407,5 +436,30 @@ describe("cli", () => {
 
     args.port = 8081
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
+  })
+})
+
+describe("splitOnFirstEquals", () => {
+  it("should split on the first equals", () => {
+    const testStr = "enabled-proposed-api=test=value"
+    const actual = splitOnFirstEquals(testStr)
+    const expected = ["enabled-proposed-api", "test=value"]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should split on first equals regardless of multiple equals signs", () => {
+    const testStr =
+      "hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY"
+    const actual = splitOnFirstEquals(testStr)
+    const expected = [
+      "hashed-password",
+      "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
+    ]
+    expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+  it("should always return the first element before an equals", () => {
+    const testStr = "auth="
+    const actual = splitOnFirstEquals(testStr)
+    const expected = ["auth"]
+    expect(actual).toEqual(expect.arrayContaining(expected))
   })
 })
