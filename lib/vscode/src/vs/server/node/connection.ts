@@ -3,6 +3,7 @@ import * as cp from 'child_process';
 import { VSBuffer } from 'vs/base/common/buffer';
 import { Emitter } from 'vs/base/common/event';
 import { FileAccess } from 'vs/base/common/network';
+import { join } from 'vs/base/common/path';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { IRemoteExtensionHostStartParams } from 'vs/platform/remote/common/remoteAgentConnection';
 import { getNlsConfiguration } from 'vs/server/node/nls';
@@ -170,7 +171,7 @@ export class ExtensionHostConnection extends Connection {
 			// While not technically necessary, makes it easier to tell which process
 			// bootstrap-fork is executing. Can also do pkill -f extensionHost
 			// Other spawns in the VS Code codebase behave similarly.
-			[ '--type=extensionHost' ],
+			[ '--type=extensionHost', `--uriTransformerPath=${join(FileAccess.asFileUri('bootstrap-fork', require).fsPath, '../../../../out/node/uri_transformer.js')}` ],
 			{
 				env: {
 					...process.env,
