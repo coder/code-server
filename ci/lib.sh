@@ -35,7 +35,8 @@ os() {
 }
 
 arch() {
-  case "$(uname -m)" in
+  cpu="$(uname -m)"
+  case "$cpu" in
   aarch64)
     echo arm64
     ;;
@@ -43,8 +44,7 @@ arch() {
     echo amd64
     ;;
   *)
-    echo "unknown architecture $(uname -a)"
-    exit 1
+    echo "$cpu"
     ;;
   esac
 }
