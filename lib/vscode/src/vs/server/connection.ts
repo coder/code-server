@@ -6,8 +6,8 @@ import { FileAccess } from 'vs/base/common/network';
 import { join } from 'vs/base/common/path';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { IRemoteExtensionHostStartParams } from 'vs/platform/remote/common/remoteAgentConnection';
-import { getNlsConfiguration } from 'vs/server/node/nls';
-import { Protocol } from 'vs/server/node/protocol';
+import { getNlsConfiguration } from 'vs/server/nls';
+import { Protocol } from 'vs/server/protocol';
 import { IExtHostReadyMessage } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 
 export abstract class Connection {

@@ -1,5 +1,5 @@
 import { URITransformer } from 'vs/base/common/uriIpc';
-import rawURITransformerFactory = require('vs/server/node/uriTransformer');
+import rawURITransformerFactory = require('vs/server/uriTransformer');
 
 
 export const getUriTransformer = (remoteAuthority: string): URITransformer => {

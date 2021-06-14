@@ -1,5 +1,5 @@
 import * as path from 'vs/base/common/path';
-import { Options } from 'vs/server/common/ipc';
+import { Options } from 'vs/base/common/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
@@ -12,9 +12,9 @@ import { INotificationService, Severity } from 'vs/platform/notification/common/
 import { Registry } from 'vs/platform/registry/common/platform';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { TelemetryChannelClient } from 'vs/server/common/telemetry';
-import { getOptions } from 'vs/server/common/util';
-import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
+import { TelemetryChannelClient } from 'vs/platform/telemetry/common/telemetryChannel';
+import { getOptions } from 'vs/base/common/util';
+import 'vs/workbench/contrib/localizations/browser/localizations.contribution'; // eslint-disable-line code-import-patterns
 import 'vs/workbench/services/localizations/browser/localizationsService';
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 
