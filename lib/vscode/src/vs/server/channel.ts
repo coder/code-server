@@ -398,7 +398,6 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$onPtyHostUnresponsiveEvent': return this.ptyService.onPtyHostUnresponsive || Event.None;
 			case '$onPtyHostResponsiveEvent': return this.ptyService.onPtyHostResponsive || Event.None;
 			case '$onPtyHostRequestResolveVariablesEvent': return this.ptyService.onPtyHostRequestResolveVariables || Event.None; 
-			
 			case '$onProcessDataEvent': return this.ptyService.onProcessData;
 			case '$onProcessExitEvent': return this.ptyService.onProcessExit;
 			case '$onProcessReadyEvent': return this.ptyService.onProcessReady;
