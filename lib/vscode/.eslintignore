@@ -18,6 +18,6 @@
 **/extensions/**/dist/**
 # These are code-server code symlinks.
 src/vs/base/common/util.ts
+src/vs/base/common/ipc.d.ts
 src/vs/base/node/proxy_agent.ts
-src/vs/ipc.d.ts
 src/vs/server/uriTransformer.ts
