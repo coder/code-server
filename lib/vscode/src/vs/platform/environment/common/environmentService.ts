@@ -15,23 +15,6 @@ import { URI } from 'vs/base/common/uri';
 import { ExtensionKind } from 'vs/platform/extensions/common/extensions';
 import { env } from 'vs/base/common/process';
 
-// NOTE@coder: add parsePathArg
-function parsePathArg(arg: string | undefined, process: NodeJS.Process): string | undefined {
-	if (!arg) {
-		return undefined;
-	}
-
-	// Determine if the arg is relative or absolute, if relative use the original CWD
-	// (VSCODE_CWD), not the potentially overridden one (process.cwd()).
-	const resolved = resolve(arg);
-
-	if (normalize(arg) === resolved) {
-		return resolved;
-	}
-
-	return resolve(process.env['VSCODE_CWD'] || process.cwd(), arg);
-}
-
 
 export interface INativeEnvironmentPaths {
 
@@ -180,12 +163,12 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 	 */
 	@memoize
 	get extraExtensionPaths(): string[] {
-		return (this._args['extra-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
+		return (this._args['extra-extensions-dir'] || []).map((p) => resolve(p));
 	}
 
 	@memoize
 	get extraBuiltinExtensionPaths(): string[] {
-		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => <string>parsePathArg(p, process));
+		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => resolve(p));
 	}
  
 	@memoize
