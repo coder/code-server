@@ -439,6 +439,9 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$getEnvironment': return this.ptyService.getEnvironment();
 			case '$getDefaultSystemShell': return this.ptyService.getDefaultSystemShell(args[0]);
 			case '$reduceConnectionGraceTime': return this.ptyService.reduceConnectionGraceTime();
+			case '$updateTitle': return this.ptyService.updateTitle(args[0], args[1], args[2]);
+			case '$getProfiles': return this.ptyService.getProfiles!(args[0], args[1], args[2]);
+			case '$acceptPtyHostResolvedVariables': return this.ptyService.acceptPtyHostResolvedVariables!(args[0], args[1]);
 		}
 
 		throw new Error(`Invalid call '${command}'`);
@@ -499,6 +502,9 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			return args.configuration['terminal.integrated.env.linux'];
 		};
 
+		// ptyHostService calls getEnvironment in the ptyHost process it creates,
+		// which uses that process's environment. The process spawned doesn't have
+		// VSCODE_IPC_HOOK_CLI in its env, so we add it here.
 		const getEnvironment = async (): Promise<platform.IProcessEnvironment> => {
 			const env = await this.ptyService.getEnvironment();
 			env.VSCODE_IPC_HOOK_CLI = process.env['VSCODE_IPC_HOOK_CLI']!;
