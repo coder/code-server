@@ -43,7 +43,7 @@ VS Code v0.00.0
 
 ### Bug Fixes
 
-- item
+- Fix logout when using a base path (#3608)
 
 ### Documentation
 
