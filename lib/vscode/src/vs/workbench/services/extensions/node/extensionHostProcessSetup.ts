@@ -137,8 +137,11 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 
 						// Wait for rich client to reconnect
 						protocol.onSocketClose(() => {
-							// The socket has closed, let's give the renderer a certain amount of time to reconnect
-							disconnectRunner1.schedule();
+							// NOTE@coder: Inform the server so we can manage offline
+							// connections there instead. Our goal is to persist connections
+							// forever (to a reasonable point) to account for things like
+							// hibernating overnight.
+							process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
 						});
 					}
 				}
