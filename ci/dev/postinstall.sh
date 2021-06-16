@@ -3,15 +3,20 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
+  source ./ci/lib.sh
 
-  echo "Installing code-server test dependencies..."
-
-  cd test
+  pushd test
+  echo "Installing dependencies for $PWD"
   yarn install
-  cd ..
+  popd
 
-  cd vendor
-  echo "Installing vendor dependencies..."
+  pushd test/e2e/extensions/test-extension
+  echo "Installing dependencies for $PWD"
+  yarn install
+  popd
+
+  pushd vendor
+  echo "Installing dependencies for $PWD"
 
   # * We install in 'modules' instead of 'node_modules' because VS Code's extensions
   # use a webpack config which cannot differentiate between its own node_modules
@@ -32,6 +37,8 @@ main() {
 
   # Finally, run the vendor `postinstall`
   yarn run postinstall
+
+  popd
 }
 
 main "$@"
