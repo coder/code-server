@@ -13,6 +13,11 @@ main() {
 
   source ./ci/lib.sh
 
+  pushd test/e2e/extensions/test-extension
+  echo "Building test extension"
+  yarn build
+  popd
+
   local dir="$PWD"
   if [[ ! ${CODE_SERVER_TEST_ENTRY-} ]]; then
     echo "Set CODE_SERVER_TEST_ENTRY to test another build of code-server"
