@@ -35,7 +35,7 @@ The prerequisites for contributing to code-server are almost the same as those f
 [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 There are several differences, however. Here is what is needed:
 
-- `node` v14.x or greater
+- `node` v14.x
 - `git` v2.x or greater
 - [`yarn`](https://classic.yarnpkg.com/en/)
   - used to install JS packages and run scripts
