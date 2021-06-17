@@ -2249,6 +2249,11 @@ codecov@^3.8.1:
     teeny-request "7.0.1"
     urlgrey "0.4.4"
 
+coffeescript@^2.5.1:
+  version "2.5.1"
+  resolved "https://registry.yarnpkg.com/coffeescript/-/coffeescript-2.5.1.tgz#b2442a1f2c806139669534a54adc35010559d16a"
+  integrity sha512-J2jRPX0eeFh5VKyVnoLrfVFgLZtnnmp96WQSLAS8OrLm2wtQLcnikYKe1gViJKDH7vucjuhHvBKKBP3rKcD1tQ==
+
 collapse-white-space@^1.0.2:
   version "1.0.6"
   resolved "https://registry.yarnpkg.com/collapse-white-space/-/collapse-white-space-1.0.6.tgz#e63629c0016665792060dbbeb79c42239d2c5287"
@@ -7540,7 +7545,7 @@ source-map-resolve@^0.5.0:
     source-map-url "^0.4.0"
     urix "^0.1.0"
 
-source-map-support@^0.5.17, source-map-support@~0.5.10, source-map-support@~0.5.19:
+source-map-support@^0.5.17, source-map-support@^0.5.19, source-map-support@~0.5.10, source-map-support@~0.5.19:
   version "0.5.19"
   resolved "https://registry.yarnpkg.com/source-map-support/-/source-map-support-0.5.19.tgz#a98b62f86dcaf4f67399648c085291ab9e8fed61"
   integrity sha512-Wonm7zOCIJzBGQdB+thsPar0kYuCIzYvxZwlBa87yi/Mdjv7Tip2cyVbLj5o0cFPN4EVkuTwb3GDDyUx2DGnGw==
@@ -8779,10 +8784,13 @@ ws@^5.1.1, ws@^6.1.2, ws@^7.2.0, ws@^7.4.6:
   resolved "https://registry.yarnpkg.com/ws/-/ws-7.4.6.tgz#5654ca8ecdeee47c33a9a4bf6d28e2be2980377c"
   integrity sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==
 
-wtfnode@^0.8.4:
-  version "0.8.4"
-  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.8.4.tgz#91ecf78a40ce222a73a063f26d72bea52357efcc"
-  integrity sha512-64GEKtMt/MUBuAm+8kHqP74ojjafzu00aT0JKsmkIwYmjRQ/odO0yhbzKLm+Z9v1gMla+8dwITRKzTAlHsB+Og==
+wtfnode@^0.9.0:
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/wtfnode/-/wtfnode-0.9.0.tgz#f0f880e11309b7120b14fecda39f363f78b66a70"
+  integrity sha512-IKHfNAFZwfm0uCt/zuFADN3mHyoB+ZrmwFpRGOxKPIXV0tifqpIaTH3NvImA7yy7GimsAayZGTaNvOmavKzE+A==
+  dependencies:
+    coffeescript "^2.5.1"
+    source-map-support "^0.5.19"
 
 x-is-string@^0.1.0:
   version "0.1.0"
