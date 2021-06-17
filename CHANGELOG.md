@@ -39,7 +39,7 @@ VS Code v0.00.0
 
 ### New Features
 
-- item
+- Add `VSCODE_PROXY_URI` env var for use in the terminal and extensions (#1510)
 
 ### Bug Fixes
 
