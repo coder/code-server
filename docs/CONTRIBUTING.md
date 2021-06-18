@@ -196,6 +196,19 @@ work as expected.
 If the functionality you're working on does NOT depend on code from VS Code, please
 move it out and into code-server.
 
+### Prepare CHANGELOG.md for releases.
+
+prepare_changelog.py does:
+- extract merged PR´s from last release
+- Prepare CHANGELOG.md (needs manual editing to group the PRs)
+
+the script depend on `gh` which must be installed.
+
+example
+```
+./prepare_changelog.py 3.10.3 1.56.1 3393
+```
+
 ### Currently Known Issues
 
 - Creating custom VS Code extensions and debugging them doesn't work

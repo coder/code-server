@@ -83,11 +83,7 @@ The code-server project follows traditional [semantic versioning](ttps://semver.
 
 ### Changelog
 
-To save time when creating a new release for code-server, we keep a running changelog at `CHANGELOG.md`.
-
-If either author or reviewer of a PR believe the change should be mentioned in the `CHANGELOG`, then it should be added.
-
-If there is not a "Next Version" when you modify `CHANGELOG`, please add it using the template you see near the top of `CHANGELOG`. You can use the suggested format: `<pr title> <pr #> <author> Example: `fix: Check the logged user instead of $USER #3330 @videlanicolas`
+To save time when creating a new release for code-server, we have a script that generates `CHANGELOG.md`.
 
 ## Release
 
