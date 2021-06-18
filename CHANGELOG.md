@@ -60,6 +60,7 @@ VS Code v0.00.0
 - chore: update node to v14 #3458 @oxy
 - chore: update .gitignore #3557 @cuining
 - fix: use sufficient computational effort for password hash #3422 @jsjoeio
+- docs(CONTRIBUTING): add section on testing #3629 @jsjoeio
 
 ### Development
 
