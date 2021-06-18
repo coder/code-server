@@ -15,6 +15,7 @@
   - [End-to-End Tests](#end-to-end-tests)
 - [Structure](#structure)
   - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Prepare CHANGELOG.md for releases.](#prepare-changelogmd-for-releases)
   - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -199,12 +200,14 @@ move it out and into code-server.
 ### Prepare CHANGELOG.md for releases.
 
 prepare_changelog.py does:
+
 - extract merged PR´s from last release
 - Prepare CHANGELOG.md (needs manual editing to group the PRs)
 
 the script depend on `gh` which must be installed.
 
 example
+
 ```
 ./prepare_changelog.py 3.10.3 1.56.1 3393
 ```
