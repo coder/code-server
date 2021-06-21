@@ -134,6 +134,7 @@ the VS Code front-end and implements the server. We do this by using a git subtr
 Some noteworthy changes in our version of VS Code:
 
 - Adding our build file, [`lib/vscode/coder.js`](../lib/vscode/coder.js), which includes build steps specific to code-server
+- Node.js version detection changes in [`build/lib/node.ts`](../lib/vscode/build/lib/node.ts) and [`build/lib/util.ts`](../lib/vscode/build/lib/util.ts)  
 - Allowing extra extension directories
   - Added extra arguments to [`src/vs/platform/environment/common/argv.ts`](../lib/vscode/src/vs/platform/environment/common/argv.ts) and to [`src/vs/platform/environment/node/argv.ts`](../lib/vscode/src/vs/platform/environment/node/argv.ts)
   - Added extra environment state to [`src/vs/platform/environment/common/environment.ts`](../lib/vscode/src/vs/platform/environment/common/environment.ts);
@@ -178,8 +179,10 @@ Some noteworthy changes in our version of VS Code:
   - Use our own server for GitHub authentication in [`extensions/github-authentication/src/githubServer.ts`](../lib/vscode/extensions/github-authentication/src/githubServer.ts)
   - Settings persistence on the server in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
   - Add extension install fallback in [`src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts)
-  - Keep extension host indefinitely running in [`src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts`](../lib/vscode/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts)
+  - Add proxy-agent monkeypatch and keep extension host indefinitely running in [`src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts`](../lib/vscode/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts)
+  - Patch build system to avoid removing extension dependencies for `yarn global add` users in [`build/lib/extensions.ts`](../lib/vscode/build/lib/extensions.ts)
 - Specify webview path in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
+- URL readability improvements for folder/workspace in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
 - Socket/Authority-related fixes (for remote proxying etc.):
   - [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
   - [`src/vs/platform/remote/browser/browserSocketFactory.ts`](../lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts)

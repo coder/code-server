@@ -36,6 +36,15 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
 	return URI.parse(window.location.href).with({ path, query });
 }
 
+/**
+ * NOTE@coder: Add this function.
+ * Encode a path for opening via the folder or workspace query parameter. This
+ * preserves slashes so it can be edited by hand more easily.
+ */
+ export const encodePath = (path: string): string => {
+	return path.split('/').map((p) => encodeURIComponent(p)).join('/');
+};
+
 interface ICredential {
 	service: string;
 	account: string;
@@ -315,12 +324,18 @@ class WorkspaceProvider implements IWorkspaceProvider {
 
 		// Folder
 		else if (isFolderToOpen(workspace)) {
-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${encodeURIComponent(workspace.folderUri.toString())}`;
+			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
+				? encodePath(workspace.folderUri.path)
+				: encodeURIComponent(workspace.folderUri.toString());
+			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
 		}
 
 		// Workspace
 		else if (isWorkspaceToOpen(workspace)) {
-			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${encodeURIComponent(workspace.workspaceUri.toString())}`;
+			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
+				? encodePath(workspace.workspaceUri.path)
+				: encodeURIComponent(workspace.workspaceUri.toString());
+			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
 		}
 
 		// Append payload if any
