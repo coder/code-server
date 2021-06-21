@@ -134,7 +134,7 @@ the VS Code front-end and implements the server. We do this by using a git subtr
 Some noteworthy changes in our version of VS Code:
 
 - Adding our build file, [`lib/vscode/coder.js`](../lib/vscode/coder.js), which includes build steps specific to code-server
-- Node.js version detection changes in [`build/lib/node.ts`](../lib/vscode/build/lib/node.ts) and [`build/lib/util.ts`](../lib/vscode/build/lib/util.ts)  
+- Node.js version detection changes in [`build/lib/node.ts`](../lib/vscode/build/lib/node.ts) and [`build/lib/util.ts`](../lib/vscode/build/lib/util.ts)
 - Allowing extra extension directories
   - Added extra arguments to [`src/vs/platform/environment/common/argv.ts`](../lib/vscode/src/vs/platform/environment/common/argv.ts) and to [`src/vs/platform/environment/node/argv.ts`](../lib/vscode/src/vs/platform/environment/node/argv.ts)
   - Added extra environment state to [`src/vs/platform/environment/common/environment.ts`](../lib/vscode/src/vs/platform/environment/common/environment.ts);
