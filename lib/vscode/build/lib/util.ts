@@ -336,6 +336,6 @@ export function streamToPromise(stream: NodeJS.ReadWriteStream): Promise<void> {
 }
 
 export function getElectronVersion(): string {
-	// NOTE@coder: patch version detection
-	return process.version;
+	// NOTE@coder: Fix version due to .yarnrc removal.
+	return process.versions.node;
 }
