@@ -16,6 +16,14 @@ export class CodeServer {
    */
   async navigate() {
     await this.page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+    // Check if we loaded the getting started page;
+    // and skip past it. There's a few elements on it that load late
+    // and steal focus, which breaks some tests.
+    let allDoneButton = await this.page.$("button.all-done")
+    if (allDoneButton !== null) {
+      allDoneButton.click()
+      await this.page.waitForLoadState("networkidle")
+    }
   }
 
   /**
