@@ -1,1 +1,1 @@
-../../../../../src/node/uri_transformer.ts
+../../../../../src/node/uriTransformer.ts

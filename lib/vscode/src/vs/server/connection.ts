@@ -3,7 +3,6 @@ import * as cp from 'child_process';
 import { VSBuffer } from 'vs/base/common/buffer';
 import { Emitter } from 'vs/base/common/event';
 import { FileAccess } from 'vs/base/common/network';
-import { join } from 'vs/base/common/path';
 import { INativeEnvironmentService } from 'vs/platform/environment/common/environment';
 import { IRemoteExtensionHostStartParams } from 'vs/platform/remote/common/remoteAgentConnection';
 import { getNlsConfiguration } from 'vs/server/nls';
@@ -168,10 +167,17 @@ export class ExtensionHostConnection extends Connection {
 		this.logger.debug('Spawning extension host...');
 		const proc = cp.fork(
 			FileAccess.asFileUri('bootstrap-fork', require).fsPath,
-			// While not technically necessary, makes it easier to tell which process
-			// bootstrap-fork is executing. Can also do pkill -f extensionHost
-			// Other spawns in the VS Code codebase behave similarly.
-			[ '--type=extensionHost', `--uriTransformerPath=${join(FileAccess.asFileUri('bootstrap-fork', require).fsPath, '../../../../out/node/uri_transformer.js')}` ],
+			[
+				// While not technically necessary, adding --type makes it easier to
+				// tell which process bootstrap-fork is executing. Can also do `pkill -f
+				// extensionHost`. Other spawns in the VS Code codebase behave
+				// similarly.
+				'--type=extensionHost',
+				// We can't use the symlinked uriTransformer in this same directory
+				// because it gets compiled into AMD syntax and this path is imported
+				// using Node's native require.
+				`--uriTransformerPath=${FileAccess.asFileUri('vs/../../../../out/node/uriTransformer.js', require).fsPath}`
+			],
 			{
 				env: {
 					...process.env,
