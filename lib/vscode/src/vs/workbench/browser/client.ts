@@ -3,20 +3,14 @@ import { Options } from 'vs/base/common/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
-import { Extensions, IConfigurationRegistry } from 'vs/platform/configuration/common/configurationRegistry';
 import { ContextKeyExpr, IContextKeyService } from 'vs/platform/contextkey/common/contextkey';
-import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ServiceCollection } from 'vs/platform/instantiation/common/serviceCollection';
 import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
-import { Registry } from 'vs/platform/registry/common/platform';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
-import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { TelemetryChannelClient } from 'vs/platform/telemetry/common/telemetryChannel';
 import { getOptions } from 'vs/base/common/util';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution'; // eslint-disable-line code-import-patterns
 import 'vs/workbench/services/localizations/browser/localizationsService';
-import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 
 /**
  * All client-side customization to VS Code should live in this file when
@@ -24,32 +18,6 @@ import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteA
  */
 
 const options = getOptions<Options>();
-
-class TelemetryService extends TelemetryChannelClient {
-	public constructor(
-		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
-	) {
-		super(remoteAgentService.getConnection()!.getChannel('telemetry'));
-	}
-}
-
-const TELEMETRY_SECTION_ID = 'telemetry';
-Registry.as<IConfigurationRegistry>(Extensions.Configuration).registerConfiguration({
-	'id': TELEMETRY_SECTION_ID,
-	'order': 110,
-	'type': 'object',
-	'title': localize('telemetryConfigurationTitle', 'Telemetry'),
-	'properties': {
-		'telemetry.enableTelemetry': {
-			'type': 'boolean',
-			'description': localize('telemetry.enableTelemetry', 'Enable usage data and errors to be sent to a Microsoft online service.'),
-			'default': !options.disableTelemetry,
-			'tags': ['usesOnlineServices']
-		}
-	}
-});
-
-registerSingleton(ITelemetryService, TelemetryService);
 
 /**
  * This is called by vs/workbench/browser/web.main.ts after the workbench has

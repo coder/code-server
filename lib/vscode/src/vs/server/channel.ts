@@ -240,7 +240,7 @@ export class ExtensionEnvironmentChannel implements IServerChannel {
 				);
 			case 'getDiagnosticInfo': return this.getDiagnosticInfo();
 			case 'disableTelemetry': return this.disableTelemetry();
-			case 'logTelemetry': return this.logTelemetry(args[0], args[1]);
+			case 'logTelemetry': return this.logTelemetry(args.eventName, args.data);
 			case 'flushTelemetry': return this.flushTelemetry();
 		}
 		throw new Error(`Invalid call '${command}'`);
