@@ -46,7 +46,6 @@ import { TelemetryLogAppender } from 'vs/platform/telemetry/common/telemetryLogA
 import { TelemetryService } from 'vs/platform/telemetry/common/telemetryService';
 import { combinedAppender, NullTelemetryService } from 'vs/platform/telemetry/common/telemetryUtils';
 import { AppInsightsAppender } from 'vs/platform/telemetry/node/appInsightsAppender';
-import { TelemetryChannel } from 'vs/platform/telemetry/common/telemetryChannel';
 import { ExtensionEnvironmentChannel, FileProviderChannel, TerminalProviderChannel } from 'vs/server/channel';
 import { Connection, ExtensionHostConnection, ManagementConnection } from 'vs/server/connection';
 import { TelemetryClient } from 'vs/server/insights';
@@ -269,7 +268,8 @@ export class Vscode {
 				instantiationService.createInstance(LogsDataCleaner);
 
 				let telemetryService: ITelemetryService;
-				if (!environmentService.disableTelemetry) {
+
+				if (!environmentService.isExtensionDevelopment && !environmentService.disableTelemetry && !!productService.enableTelemetry) {
 					telemetryService = new TelemetryService({
 						appender: combinedAppender(
 							new AppInsightsAppender('code-server', null, () => new TelemetryClient() as any),
@@ -300,7 +300,6 @@ export class Vscode {
 					environmentService, logService, telemetryService, '',
 				));
 				this.ipc.registerChannel('request', new RequestChannel(accessor.get(IRequestService)));
-				this.ipc.registerChannel('telemetry', new TelemetryChannel(telemetryService));
 				this.ipc.registerChannel('localizations', <IServerChannel<any>>ProxyChannel.fromService(accessor.get(ILocalizationsService)));
 				this.ipc.registerChannel(REMOTE_FILE_SYSTEM_CHANNEL_NAME, new FileProviderChannel(environmentService, logService));
 

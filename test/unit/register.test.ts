@@ -145,7 +145,7 @@ describe("register", () => {
       mockElement.id = "coder-options"
       mockElement.setAttribute(
         "data-settings",
-        `{"csStaticBase":"${csStaticBasePath}","logLevel":2,"disableTelemetry":false,"disableUpdateCheck":false}`,
+        `{"csStaticBase":"${csStaticBasePath}","logLevel":2,"disableUpdateCheck":false}`,
       )
       // Return mockElement from the spy
       // this way, when we call "getElementById"
@@ -166,7 +166,7 @@ describe("register", () => {
       mockElement.id = "coder-options"
       mockElement.setAttribute(
         "data-settings",
-        `{"base":"proxy/","csStaticBase":"${csStaticBasePath}","logLevel":2,"disableTelemetry":false,"disableUpdateCheck":false}`,
+        `{"base":"proxy/","csStaticBase":"${csStaticBasePath}","logLevel":2,"disableUpdateCheck":false}`,
       )
       // Return mockElement from the spy
       // this way, when we call "getElementById"
