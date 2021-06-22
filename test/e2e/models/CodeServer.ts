@@ -1,21 +1,24 @@
+import { promises as fs } from "fs"
+import * as path from "path"
 import { Page } from "playwright"
-import { CODE_SERVER_ADDRESS } from "../../utils/constants"
+import { CODE_SERVER_ADDRESS, workspaceDir } from "../../utils/constants"
+import { tmpdir } from "../../utils/helpers"
+
 // This is a Page Object Model
 // We use these to simplify e2e test authoring
 // See Playwright docs: https://playwright.dev/docs/pom/
 export class CodeServer {
-  page: Page
-  editorSelector = "div.monaco-workbench"
+  private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(page: Page) {
-    this.page = page
-  }
+  constructor(public readonly page: Page) {}
 
   /**
-   * Navigates to CODE_SERVER_ADDRESS
+   * Navigates to CODE_SERVER_ADDRESS. It will open a newly created random
+   * directory.
    */
   async navigate() {
-    await this.page.goto(CODE_SERVER_ADDRESS, { waitUntil: "networkidle" })
+    const dir = await this.createWorkspace()
+    await this.page.goto(`${CODE_SERVER_ADDRESS}?folder=${dir}`, { waitUntil: "networkidle" })
   }
 
   /**
@@ -112,5 +115,21 @@ export class CodeServer {
   async setup() {
     await this.navigate()
     await this.reloadUntilEditorIsReady()
+  }
+
+  /**
+   * Create a random workspace and seed it with settings.
+   */
+  private async createWorkspace(): Promise<string> {
+    const dir = await tmpdir(workspaceDir)
+    await fs.mkdir(path.join(dir, ".vscode"))
+    await fs.writeFile(
+      path.join(dir, ".vscode/settings.json"),
+      JSON.stringify({
+        "workbench.startupEditor": "none",
+      }),
+      "utf8",
+    )
+    return dir
   }
 }

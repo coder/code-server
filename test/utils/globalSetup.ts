@@ -1,14 +1,19 @@
-// This setup runs before our e2e tests
-// so that it authenticates us into code-server
-// ensuring that we're logged in before we run any tests
 import { chromium } from "playwright"
 import { hash } from "../../src/node/util"
-import { PASSWORD } from "./constants"
+import { PASSWORD, workspaceDir } from "./constants"
+import { clean } from "./helpers"
 import * as wtfnode from "./wtfnode"
 
+/**
+ * Perform workspace cleanup and authenticate. This should be set up to run
+ * before our tests execute.
+ */
 export default async function () {
   console.log("\n🚨 Running Global Setup for Playwright End-to-End Tests")
   console.log("   Please hang tight...")
+
+  // Cleanup workspaces from previous tests.
+  await clean(workspaceDir)
 
   const cookieToStore = {
     sameSite: "Lax" as const,
