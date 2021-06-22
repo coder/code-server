@@ -20,7 +20,7 @@ import { ILogService } from 'vs/platform/log/common/log';
 import product from 'vs/platform/product/common/product';
 import { IRemoteAgentEnvironment, RemoteAgentConnectionContext } from 'vs/platform/remote/common/remoteAgentEnvironment';
 import { ITelemetryData, ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { IPtyService, IShellLaunchConfig, ITerminalEnvironment } from 'vs/platform/terminal/common/terminal';
+import { IShellLaunchConfig, ITerminalEnvironment } from 'vs/platform/terminal/common/terminal';
 import { getTranslations } from 'vs/server/nls';
 import { getUriTransformer } from 'vs/server/util';
 import { IFileChangeDto } from 'vs/workbench/api/common/extHost.protocol';
@@ -31,6 +31,7 @@ import * as terminal from 'vs/workbench/contrib/terminal/common/remoteTerminalCh
 import * as terminalEnvironment from 'vs/workbench/contrib/terminal/common/terminalEnvironment';
 import { AbstractVariableResolverService } from 'vs/workbench/services/configurationResolver/common/variableResolver';
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
+import { PtyHostService } from 'vs/platform/terminal/node/ptyHostService';
 
 /**
  * Extend the file provider to allow unwatching.
@@ -386,7 +387,7 @@ class VariableResolverService extends AbstractVariableResolverService {
 export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnectionContext>, IDisposable {
 	public constructor (
 		private readonly logService: ILogService,
-		private readonly ptyService: IPtyService,
+		private readonly ptyService: PtyHostService,
 	) {}
 
 	public listen(_: RemoteAgentConnectionContext, event: string, args: any): Event<any> {
@@ -397,7 +398,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$onPtyHostStartEvent': return this.ptyService.onPtyHostStart || Event.None;
 			case '$onPtyHostUnresponsiveEvent': return this.ptyService.onPtyHostUnresponsive || Event.None;
 			case '$onPtyHostResponsiveEvent': return this.ptyService.onPtyHostResponsive || Event.None;
-			case '$onPtyHostRequestResolveVariablesEvent': return this.ptyService.onPtyHostRequestResolveVariables || Event.None; 
+			case '$onPtyHostRequestResolveVariablesEvent': return this.ptyService.onPtyHostRequestResolveVariables || Event.None;
 			case '$onProcessDataEvent': return this.ptyService.onProcessData;
 			case '$onProcessExitEvent': return this.ptyService.onProcessExit;
 			case '$onProcessReadyEvent': return this.ptyService.onProcessReady;
@@ -411,6 +412,8 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 				// commands on the terminal that will do things in VS Code but we
 				// already have that functionality via a socket so I'm not sure what
 				// this is for.
+				// NOTE: VSCODE_IPC_HOOK_CLI is now missing, perhaps this is meant to
+				// replace that in some way.
 			case '$onExecuteCommand': return Event.None;
 		}
 
@@ -421,7 +424,7 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 		logger.trace('TerminalProviderChannel:call', field('command', command), field('args', args));
 
 		switch (command) {
-			case '$restartPtyHost': return this.restartPtyHost();
+			case '$restartPtyHost': return this.ptyService.restartPtyHost();
 			case '$createProcess': return this.createProcess(context.remoteAuthority, args);
 			case '$attachToProcess': return this.ptyService.attachToProcess(args[0]);
 			case '$start': return this.ptyService.start(args[0]);
@@ -440,8 +443,8 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 			case '$getDefaultSystemShell': return this.ptyService.getDefaultSystemShell(args[0]);
 			case '$reduceConnectionGraceTime': return this.ptyService.reduceConnectionGraceTime();
 			case '$updateTitle': return this.ptyService.updateTitle(args[0], args[1], args[2]);
-			case '$getProfiles': return this.ptyService.getProfiles!(args[0], args[1], args[2]);
-			case '$acceptPtyHostResolvedVariables': return this.ptyService.acceptPtyHostResolvedVariables!(args[0], args[1]);
+			case '$getProfiles': return this.ptyService.getProfiles(args[0], args[1], args[2]);
+			case '$acceptPtyHostResolvedVariables': return this.ptyService.acceptPtyHostResolvedVariables(args[0], args[1]);
 		}
 
 		throw new Error(`Invalid call '${command}'`);
@@ -450,13 +453,6 @@ export class TerminalProviderChannel implements IServerChannel<RemoteAgentConnec
 	public async dispose(): Promise<void> {
 		// Nothing at the moment.
 	}
-
-	private async restartPtyHost(): Promise<void> {
-		if (this.ptyService.restartPtyHost) {
-			return this.ptyService.restartPtyHost();
-		}
-	}
-
 
 	// References: - ../../workbench/api/node/extHostTerminalService.ts
 	//             - ../../workbench/contrib/terminal/browser/terminalProcessManager.ts
