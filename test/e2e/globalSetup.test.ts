@@ -1,9 +1,9 @@
 import { storageState } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
 // This test is to make sure the globalSetup works as expected
 // meaning globalSetup ran and stored the storageState
-test.describe("globalSetup", () => {
+describe("globalSetup", () => {
   test.use({
     storageState,
   })

@@ -1,7 +1,7 @@
 import { PASSWORD } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("login", () => {
+describe("login", () => {
   // Reset the browser so no cookies are persisted
   // by emptying the storageState
   test.use({

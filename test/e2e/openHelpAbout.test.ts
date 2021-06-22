@@ -1,7 +1,7 @@
 import { storageState } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("Open Help > About", () => {
+describe("Open Help > About", () => {
   test.use({
     storageState,
   })

@@ -1,24 +1,163 @@
+import { Logger, logger } from "@coder/logger"
+import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
-import { CODE_SERVER_ADDRESS, workspaceDir } from "../../utils/constants"
+import { onLine } from "../../../src/node/util"
+import { PASSWORD, workspaceDir } from "../../utils/constants"
 import { tmpdir } from "../../utils/helpers"
 
-// This is a Page Object Model
-// We use these to simplify e2e test authoring
-// See Playwright docs: https://playwright.dev/docs/pom/
-export class CodeServer {
-  private readonly editorSelector = "div.monaco-workbench"
+interface CodeServerProcess {
+  process: cp.ChildProcess
+  address: string
+}
 
-  constructor(public readonly page: Page) {}
+/**
+ * Class for spawning and managing code-server.
+ */
+export class CodeServer {
+  private process: Promise<CodeServerProcess> | undefined
+  private readonly logger: Logger
+  private closed = false
+
+  constructor(name: string) {
+    this.logger = logger.named(name)
+  }
 
   /**
-   * Navigates to CODE_SERVER_ADDRESS. It will open a newly created random
-   * directory.
+   * The address at which code-server can be accessed. Spawns code-server if it
+   * has not yet been spawned.
+   */
+  async address(): Promise<string> {
+    if (!this.process) {
+      this.process = this.spawn()
+    }
+    const { address } = await this.process
+    return address
+  }
+
+  /**
+   * Create a random workspace and seed it with settings.
+   */
+  private async createWorkspace(): Promise<string> {
+    const dir = await tmpdir(workspaceDir)
+    await fs.mkdir(path.join(dir, ".vscode"))
+    await fs.writeFile(
+      path.join(dir, ".vscode/settings.json"),
+      JSON.stringify({
+        "workbench.startupEditor": "none",
+      }),
+      "utf8",
+    )
+    return dir
+  }
+
+  /**
+   * Spawn a new code-server process with its own workspace and data
+   * directories.
+   */
+  private async spawn(): Promise<CodeServerProcess> {
+    // This will be used both as the workspace and data directory to ensure
+    // instances don't bleed into each other.
+    const dir = await this.createWorkspace()
+
+    return new Promise((resolve, reject) => {
+      this.logger.debug("spawning")
+      const proc = cp.spawn(
+        "node",
+        [
+          process.env.CODE_SERVER_TEST_ENTRY || ".",
+          // Using port zero will spawn on a random port.
+          "--bind-addr",
+          "127.0.0.1:0",
+          // Setting the XDG variables would be easier and more thorough but the
+          // modules we import ignores those variables for non-Linux operating
+          // systems so use these flags instead.
+          "--config",
+          path.join(dir, "config.yaml"),
+          "--user-data-dir",
+          dir,
+          // The last argument is the workspace to open.
+          dir,
+        ],
+        {
+          cwd: path.join(__dirname, "../../.."),
+          env: {
+            ...process.env,
+            PASSWORD,
+          },
+        },
+      )
+
+      proc.on("error", (error) => {
+        this.logger.error(error.message)
+        reject(error)
+      })
+
+      proc.on("close", () => {
+        const error = new Error("closed unexpectedly")
+        if (!this.closed) {
+          this.logger.error(error.message)
+        }
+        reject(error)
+      })
+
+      let resolved = false
+      proc.stdout.setEncoding("utf8")
+      onLine(proc, (line) => {
+        // Log the line without the timestamp.
+        this.logger.trace(line.replace(/\[.+\]/, ""))
+        if (resolved) {
+          return
+        }
+        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)$/)
+        if (match) {
+          // Cookies don't seem to work on IP address so swap to localhost.
+          // TODO: Investigate whether this is a bug with code-server.
+          const address = match[1].replace("127.0.0.1", "localhost")
+          this.logger.debug(`spawned on ${address}`)
+          resolved = true
+          resolve({ process: proc, address })
+        }
+      })
+    })
+  }
+
+  /**
+   * Close the code-server process.
+   */
+  async close(): Promise<void> {
+    logger.debug("closing")
+    if (this.process) {
+      const proc = (await this.process).process
+      this.closed = true // To prevent the close handler from erroring.
+      proc.kill()
+    }
+  }
+}
+
+/**
+ * This is a "Page Object Model" (https://playwright.dev/docs/pom/) meant to
+ * wrap over a page and represent actions on that page in a more readable way.
+ * This targets a specific code-server instance which must be passed in.
+ * Navigation and setup performed by this model will cause the code-server
+ * process to spawn if it hasn't yet.
+ */
+export class CodeServerPage {
+  private readonly editorSelector = "div.monaco-workbench"
+
+  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {}
+
+  address() {
+    return this.codeServer.address()
+  }
+
+  /**
+   * Navigate to code-server.
    */
   async navigate() {
-    const dir = await this.createWorkspace()
-    await this.page.goto(`${CODE_SERVER_ADDRESS}?folder=${dir}`, { waitUntil: "networkidle" })
+    const address = await this.codeServer.address()
+    await this.page.goto(address, { waitUntil: "networkidle" })
   }
 
   /**
@@ -45,7 +184,7 @@ export class CodeServer {
       await this.page.waitForTimeout(1000)
       reloadCount += 1
       if ((await this.isEditorVisible()) && (await this.isConnected())) {
-        console.log(`    Editor became ready after ${reloadCount} reloads`)
+        logger.debug(`editor became ready after ${reloadCount} reloads`)
         break
       }
       await this.page.reload()
@@ -67,7 +206,7 @@ export class CodeServer {
   async isConnected() {
     await this.page.waitForLoadState("networkidle")
 
-    const host = new URL(CODE_SERVER_ADDRESS).host
+    const host = new URL(await this.codeServer.address()).host
     const hostSelector = `[title="Editing on ${host}"]`
     await this.page.waitForSelector(hostSelector)
 
@@ -107,29 +246,12 @@ export class CodeServer {
   }
 
   /**
-   * Navigates to CODE_SERVER_ADDRESS
-   * and reloads until the editor is ready
+   * Navigates to code-server then reloads until the editor is ready.
    *
-   * Helpful for running before tests
+   * It is recommended to run setup before using this model in any tests.
    */
   async setup() {
     await this.navigate()
     await this.reloadUntilEditorIsReady()
-  }
-
-  /**
-   * Create a random workspace and seed it with settings.
-   */
-  private async createWorkspace(): Promise<string> {
-    const dir = await tmpdir(workspaceDir)
-    await fs.mkdir(path.join(dir, ".vscode"))
-    await fs.writeFile(
-      path.join(dir, ".vscode/settings.json"),
-      JSON.stringify({
-        "workbench.startupEditor": "none",
-      }),
-      "utf8",
-    )
-    return dir
   }
 }

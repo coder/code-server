@@ -25,7 +25,7 @@ export function createLoggerMock() {
  */
 export async function clean(testName: string): Promise<void> {
   const dir = path.join(os.tmpdir(), `code-server/tests/${testName}`)
-  await fs.rm(dir, { recursive: true })
+  await fs.rmdir(dir, { recursive: true })
 }
 
 /**

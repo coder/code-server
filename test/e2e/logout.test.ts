@@ -1,7 +1,7 @@
-import { CODE_SERVER_ADDRESS, PASSWORD } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { PASSWORD } from "../utils/constants"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("logout", () => {
+describe("logout", () => {
   // Reset the browser so no cookies are persisted
   // by emptying the storageState
   test.use({
@@ -39,6 +39,6 @@ test.describe("logout", () => {
     // https://github.com/microsoft/playwright/issues/1987#issuecomment-620182151
     await Promise.all([codeServerPage.page.waitForNavigation(), codeServerPage.page.click(logoutButton)])
     const currentUrl = codeServerPage.page.url()
-    expect(currentUrl).toBe(`${CODE_SERVER_ADDRESS}/login`)
+    expect(currentUrl).toBe(`${await codeServerPage.address()}/login`)
   })
 })

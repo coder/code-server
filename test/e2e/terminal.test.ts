@@ -4,9 +4,9 @@ import * as path from "path"
 import util from "util"
 import { storageState } from "../utils/constants"
 import { tmpdir } from "../utils/helpers"
-import { expect, test } from "./baseFixture"
+import { describe, expect, test } from "./baseFixture"
 
-test.describe("Integrated Terminal", () => {
+describe("Integrated Terminal", () => {
   // Create a new context with the saved storage state
   // so we don't have to logged in
   const testFileName = "pipe"

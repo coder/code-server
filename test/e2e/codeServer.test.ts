@@ -1,12 +1,12 @@
-import { CODE_SERVER_ADDRESS, storageState } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { storageState } from "../utils/constants"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("CodeServer", () => {
+describe("CodeServer", () => {
   test.use({
     storageState,
   })
 
-  test(`should navigate to ${CODE_SERVER_ADDRESS}`, async ({ codeServerPage }) => {
+  test("should navigate to home page", async ({ codeServerPage }) => {
     // We navigate codeServer before each test
     // and we start the test with a storage state
     // which means we should be logged in
@@ -14,7 +14,7 @@ test.describe("CodeServer", () => {
     const url = codeServerPage.page.url()
     // We use match because there may be a / at the end
     // so we don't want it to fail if we expect http://localhost:8080 to match http://localhost:8080/
-    expect(url).toMatch(CODE_SERVER_ADDRESS)
+    expect(url).toMatch(await codeServerPage.address())
   })
 
   test("should always see the code-server editor", async ({ codeServerPage }) => {

@@ -1,7 +1,7 @@
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
 // This is a "gut-check" test to make sure playwright is working as expected
-test.describe("browser", () => {
+describe("browser", () => {
   test("browser should display correct userAgent", async ({ codeServerPage, browserName }) => {
     const displayNames = {
       chromium: "Chrome",
