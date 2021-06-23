@@ -2,21 +2,16 @@ import * as cp from "child_process"
 import * as fs from "fs"
 import * as path from "path"
 import util from "util"
-import { storageState } from "../utils/constants"
 import { tmpdir } from "../utils/helpers"
 import { describe, expect, test } from "./baseFixture"
 
-describe("Integrated Terminal", () => {
+describe("Integrated Terminal", true, () => {
   // Create a new context with the saved storage state
   // so we don't have to logged in
   const testFileName = "pipe"
   const testString = "new string test from e2e test"
   let tmpFolderPath = ""
   let tmpFile = ""
-
-  test.use({
-    storageState,
-  })
 
   test.beforeAll(async () => {
     tmpFolderPath = await tmpdir("integrated-terminal")

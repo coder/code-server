@@ -250,8 +250,12 @@ export class CodeServerPage {
    *
    * It is recommended to run setup before using this model in any tests.
    */
-  async setup() {
+  async setup(authenticated: boolean) {
     await this.navigate()
-    await this.reloadUntilEditorIsReady()
+    // If we aren't authenticated we'll see a login page so we can't wait until
+    // the editor is ready.
+    if (authenticated) {
+      await this.reloadUntilEditorIsReady()
+    }
   }
 }

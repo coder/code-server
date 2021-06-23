@@ -6,8 +6,10 @@ import { CodeServer, CodeServerPage } from "./models/CodeServer"
  * Wraps `test.describe` to create and manage an instance of code-server. If you
  * don't use this you will need to create your own code-server instance and pass
  * it to `test.use`.
+ *
+ * If `includeCredentials` is `true` page requests will be authenticated.
  */
-export const describe = (name: string, fn: (codeServer: CodeServer) => void) => {
+export const describe = (name: string, includeCredentials: boolean, fn: (codeServer: CodeServer) => void) => {
   test.describe(name, () => {
     // This will spawn on demand so nothing is necessary on before.
     const codeServer = new CodeServer(name)
@@ -18,14 +20,30 @@ export const describe = (name: string, fn: (codeServer: CodeServer) => void) => 
       await codeServer.close()
     })
 
-    // This makes `codeServer` available to the extend call below.
-    test.use({ codeServer })
+    const storageState = JSON.parse(process.env.STORAGE || "{}")
+
+    // Sanity check to ensure the cookie is set.
+    const cookies = storageState?.cookies
+    if (includeCredentials && (!cookies || cookies.length !== 1 || !!cookies[0].key)) {
+      logger.error("no cookies", field("storage", JSON.stringify(cookies)))
+      throw new Error("no credentials to include")
+    }
+
+    test.use({
+      // Makes `codeServer` and `authenticated` available to the extend call
+      // below.
+      codeServer,
+      authenticated: includeCredentials,
+      // This provides a cookie that authenticates with code-server.
+      storageState: includeCredentials ? storageState : {},
+    })
 
     fn(codeServer)
   })
 }
 
 interface TestFixtures {
+  authenticated: boolean
   codeServer: CodeServer
   codeServerPage: CodeServerPage
 }
@@ -35,10 +53,11 @@ interface TestFixtures {
  * ready.
  */
 export const test = base.extend<TestFixtures>({
+  authenticated: false,
   codeServer: undefined, // No default; should be provided through `test.use`.
-  codeServerPage: async ({ codeServer, page }, use) => {
+  codeServerPage: async ({ authenticated, codeServer, page }, use) => {
     const codeServerPage = new CodeServerPage(codeServer, page)
-    await codeServerPage.navigate()
+    await codeServerPage.setup(authenticated)
     await use(codeServerPage)
   },
 })

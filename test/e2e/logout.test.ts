@@ -1,13 +1,7 @@
 import { PASSWORD } from "../utils/constants"
 import { describe, test, expect } from "./baseFixture"
 
-describe("logout", () => {
-  // Reset the browser so no cookies are persisted
-  // by emptying the storageState
-  test.use({
-    storageState: {},
-  })
-
+describe("logout", false, () => {
   test("should be able login and logout", async ({ codeServerPage }) => {
     // Type in password
     await codeServerPage.page.fill(".password", PASSWORD)
