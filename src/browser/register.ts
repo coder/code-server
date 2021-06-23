@@ -1,10 +1,6 @@
 import { logger } from "@coder/logger"
 import { getOptions, normalize, logError } from "../common/util"
 
-import "./pages/error.css"
-import "./pages/global.css"
-import "./pages/login.css"
-
 export async function registerServiceWorker(): Promise<void> {
   const options = getOptions()
   logger.level = options.logLevel
