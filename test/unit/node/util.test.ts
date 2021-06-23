@@ -1,3 +1,5 @@
+import * as cp from "child_process"
+import { generateUuid } from "../../../src/common/util"
 import * as util from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
@@ -395,5 +397,40 @@ describe("sanitizeString", () => {
   })
   it("should always return an empty string", () => {
     expect(util.sanitizeString("   ")).toBe("")
+  })
+})
+
+describe("onLine", () => {
+  // Spawn a process that outputs anything given on stdin.
+  let proc: cp.ChildProcess | undefined
+
+  beforeAll(() => {
+    proc = cp.spawn("node", ["-e", 'process.stdin.setEncoding("utf8");process.stdin.on("data", console.log)'])
+  })
+
+  afterAll(() => {
+    proc?.kill()
+  })
+
+  it("should call with individual lines", async () => {
+    const size = 100
+    const received = new Promise<string[]>((resolve) => {
+      const lines: string[] = []
+      util.onLine(proc!, (line) => {
+        lines.push(line)
+        if (lines.length === size) {
+          resolve(lines)
+        }
+      })
+    })
+
+    const expected: string[] = []
+    for (let i = 0; i < size; ++i) {
+      expected.push(generateUuid(i))
+    }
+
+    proc?.stdin?.write(expected.join("\n"))
+
+    expect(await received).toEqual(expected)
   })
 })
