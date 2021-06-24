@@ -12,7 +12,7 @@ const config: PlaywrightTestConfig = {
   // Put any shared options on the top level.
   use: {
     headless: true, // Run tests in headless browsers.
-    video: "on",
+    video: "retain-on-failure",
   },
 
   projects: [
