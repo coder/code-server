@@ -1,16 +1,5 @@
 import { JSDOM } from "jsdom"
-import {
-  arrayify,
-  generateUuid,
-  getFirstString,
-  getOptions,
-  logError,
-  plural,
-  resolveBase,
-  split,
-  trimSlashes,
-  normalize,
-} from "../../src/common/util"
+import * as util from "../../src/common/util"
 import { createLoggerMock } from "../utils/helpers"
 
 const dom = new JSDOM()
@@ -21,67 +10,67 @@ export type LocationLike = Pick<Location, "pathname" | "origin">
 describe("util", () => {
   describe("normalize", () => {
     it("should remove multiple slashes", () => {
-      expect(normalize("//foo//bar//baz///mumble")).toBe("/foo/bar/baz/mumble")
+      expect(util.normalize("//foo//bar//baz///mumble")).toBe("/foo/bar/baz/mumble")
     })
 
     it("should remove trailing slashes", () => {
-      expect(normalize("qux///")).toBe("qux")
+      expect(util.normalize("qux///")).toBe("qux")
     })
 
     it("should preserve trailing slash if it exists", () => {
-      expect(normalize("qux///", true)).toBe("qux/")
-      expect(normalize("qux", true)).toBe("qux")
+      expect(util.normalize("qux///", true)).toBe("qux/")
+      expect(util.normalize("qux", true)).toBe("qux")
     })
   })
 
   describe("split", () => {
     it("should split at a comma", () => {
-      expect(split("Hello,world", ",")).toStrictEqual(["Hello", "world"])
+      expect(util.split("Hello,world", ",")).toStrictEqual(["Hello", "world"])
     })
 
     it("shouldn't split if the delimiter doesn't exist", () => {
-      expect(split("Hello world", ",")).toStrictEqual(["Hello world", ""])
+      expect(util.split("Hello world", ",")).toStrictEqual(["Hello world", ""])
     })
   })
 
   describe("plural", () => {
     it("should add an s if count is greater than 1", () => {
-      expect(plural(2, "dog")).toBe("dogs")
+      expect(util.plural(2, "dog")).toBe("dogs")
     })
     it("should NOT add an s if the count is 1", () => {
-      expect(plural(1, "dog")).toBe("dog")
+      expect(util.plural(1, "dog")).toBe("dog")
     })
   })
 
   describe("generateUuid", () => {
     it("should generate a unique uuid", () => {
-      const uuid = generateUuid()
-      const uuid2 = generateUuid()
+      const uuid = util.generateUuid()
+      const uuid2 = util.generateUuid()
       expect(uuid).toHaveLength(24)
       expect(typeof uuid).toBe("string")
       expect(uuid).not.toBe(uuid2)
     })
     it("should generate a uuid of a specific length", () => {
-      const uuid = generateUuid(10)
+      const uuid = util.generateUuid(10)
       expect(uuid).toHaveLength(10)
     })
   })
 
   describe("trimSlashes", () => {
     it("should remove leading slashes", () => {
-      expect(trimSlashes("/hello-world")).toBe("hello-world")
+      expect(util.trimSlashes("/hello-world")).toBe("hello-world")
     })
 
     it("should remove trailing slashes", () => {
-      expect(trimSlashes("hello-world/")).toBe("hello-world")
+      expect(util.trimSlashes("hello-world/")).toBe("hello-world")
     })
 
     it("should remove both leading and trailing slashes", () => {
-      expect(trimSlashes("/hello-world/")).toBe("hello-world")
+      expect(util.trimSlashes("/hello-world/")).toBe("hello-world")
     })
 
     it("should remove multiple leading and trailing slashes", () => {
-      expect(trimSlashes("///hello-world////")).toBe("hello-world")
+      expect(util.trimSlashes("///hello-world////")).toBe("hello-world")
     })
   })
 
@@ -101,23 +90,23 @@ describe("util", () => {
     })
 
     it("should resolve a base", () => {
-      expect(resolveBase("localhost:8080")).toBe("/localhost:8080")
+      expect(util.resolveBase("localhost:8080")).toBe("/localhost:8080")
     })
 
     it("should resolve a base with a forward slash at the beginning", () => {
-      expect(resolveBase("/localhost:8080")).toBe("/localhost:8080")
+      expect(util.resolveBase("/localhost:8080")).toBe("/localhost:8080")
     })
 
     it("should resolve a base with query params", () => {
-      expect(resolveBase("localhost:8080?folder=hello-world")).toBe("/localhost:8080")
+      expect(util.resolveBase("localhost:8080?folder=hello-world")).toBe("/localhost:8080")
     })
 
     it("should resolve a base with a path", () => {
-      expect(resolveBase("localhost:8080/hello/world")).toBe("/localhost:8080/hello/world")
+      expect(util.resolveBase("localhost:8080/hello/world")).toBe("/localhost:8080/hello/world")
     })
 
     it("should resolve a base to an empty string when not provided", () => {
-      expect(resolveBase()).toBe("")
+      expect(util.resolveBase()).toBe("")
     })
   })
 
@@ -142,7 +131,7 @@ describe("util", () => {
     })
 
     it("should return options with base and cssStaticBase even if it doesn't exist", () => {
-      expect(getOptions()).toStrictEqual({
+      expect(util.getOptions()).toStrictEqual({
         base: "",
         csStaticBase: "",
       })
@@ -162,7 +151,7 @@ describe("util", () => {
       // it returns the element
       spy.mockImplementation(() => mockElement)
 
-      expect(getOptions()).toStrictEqual({
+      expect(util.getOptions()).toStrictEqual({
         base: "",
         csStaticBase: "/static/development/Users/jp/Dev/code-server",
         disableTelemetry: false,
@@ -179,7 +168,7 @@ describe("util", () => {
       // spreads the original options
       // then parses the queryOpts
       location.search = '?options={"logLevel":2}'
-      expect(getOptions()).toStrictEqual({
+      expect(util.getOptions()).toStrictEqual({
         base: "",
         csStaticBase: "",
         logLevel: 2,
@@ -189,12 +178,12 @@ describe("util", () => {
 
   describe("arrayify", () => {
     it("should return value it's already an array", () => {
-      expect(arrayify(["hello", "world"])).toStrictEqual(["hello", "world"])
+      expect(util.arrayify(["hello", "world"])).toStrictEqual(["hello", "world"])
     })
 
     it("should wrap the value in an array if not an array", () => {
       expect(
-        arrayify({
+        util.arrayify({
           name: "Coder",
           version: "3.8",
         }),
@@ -202,21 +191,21 @@ describe("util", () => {
     })
 
     it("should return an empty array if the value is undefined", () => {
-      expect(arrayify(undefined)).toStrictEqual([])
+      expect(util.arrayify(undefined)).toStrictEqual([])
     })
   })
 
   describe("getFirstString", () => {
     it("should return the string if passed a string", () => {
-      expect(getFirstString("Hello world!")).toBe("Hello world!")
+      expect(util.getFirstString("Hello world!")).toBe("Hello world!")
     })
 
     it("should get the first string from an array", () => {
-      expect(getFirstString(["Hello", "World"])).toBe("Hello")
+      expect(util.getFirstString(["Hello", "World"])).toBe("Hello")
     })
 
     it("should return undefined if the value isn't an array or a string", () => {
-      expect(getFirstString({ name: "Coder" })).toBe(undefined)
+      expect(util.getFirstString({ name: "Coder" })).toBe(undefined)
     })
   })
 
@@ -235,14 +224,14 @@ describe("util", () => {
       const message = "You don't have access to that folder."
       const error = new Error(message)
 
-      logError(loggerModule.logger, "ui", error)
+      util.logError(loggerModule.logger, "ui", error)
 
       expect(loggerModule.logger.error).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
     })
 
     it("should log an error, even if not an instance of error", () => {
-      logError(loggerModule.logger, "api", "oh no")
+      util.logError(loggerModule.logger, "api", "oh no")
 
       expect(loggerModule.logger.error).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalledWith("api: oh no")
