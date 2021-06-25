@@ -56,6 +56,11 @@ export const test = base.extend<TestFixtures>({
   authenticated: false,
   codeServer: undefined, // No default; should be provided through `test.use`.
   codeServerPage: async ({ authenticated, codeServer, page }, use) => {
+    // It's possible code-server might prevent navigation because of unsaved
+    // changes (seems to happen based on timing even if no changes have been
+    // made too). In these cases just accept.
+    page.on("dialog", (d) => d.accept())
+
     const codeServerPage = new CodeServerPage(codeServer, page)
     await codeServerPage.setup(authenticated)
     await use(codeServerPage)

@@ -10,12 +10,6 @@ describe("logout", true, () => {
     expect(await codeServerPage.page.isVisible(logoutButton)).toBe(true)
 
     await codeServerPage.page.hover(logoutButton)
-    // TODO(@jsjoeio)
-    // Look into how we're attaching the handlers for the logout feature
-    // We need to see how it's done upstream and add logging to the
-    // handlers themselves.
-    // They may be attached too slowly, hence why we need this timeout
-    await codeServerPage.page.waitForTimeout(2000)
 
     // Recommended by Playwright for async navigation
     // https://github.com/microsoft/playwright/issues/1987#issuecomment-620182151
