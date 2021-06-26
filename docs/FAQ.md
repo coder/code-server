@@ -47,7 +47,7 @@ Please see [./ipad.md](./ipad.md).
 
 ## Community Projects (awesome-code-server)
 
-Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server) repository to view community projects and guides with code-server! Feel free to add your own!
+Visit the [awesome-code-server](https://github.com/bpmct/awesome-code-server) repository to view community projects and guides with code-server! Feel free to add your own!
 
 ## How can I reuse my VS Code configuration?
 
