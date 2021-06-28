@@ -66,7 +66,7 @@
     "leaked-handles": "^5.2.0",
     "parcel-bundler": "^1.12.5",
     "prettier": "^2.2.1",
-    "prettier-plugin-sh": "^0.6.0",
+    "prettier-plugin-sh": "^0.7.1",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
