@@ -22,7 +22,7 @@ main() {
   bundle_code_server
   bundle_vscode
 
-  rsync README.md "$RELEASE_PATH"
+  rsync ./docs/README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
 }
