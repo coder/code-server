@@ -26,7 +26,7 @@ You can use whatever linux distribution floats your boat but in our [guide](./gu
 There are three ways you can get started:
 
 1. Using the [install script](https://github.com/cdr/code-server/blob/main/install.sh), which automates most of the process. The script uses the system package manager (if possible)
-2. Manually installing code-server; see [Installation](./install.md) for instructions applicable to most use cases
+2. Manually installing code-server; see [Installation](https://coder.com/docs/code-server/latest/install) for instructions applicable to most use cases
 3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server) ⚡
 
 If you choose to use the install script, you can preview what occurs during the install process:
@@ -43,7 +43,7 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 When done, the install script prints out instructions for running and starting code-server.
 
-We also have an in-depth [setup and configuration](./guide.md) guide.
+We also have an in-depth [setup and configuration](https://coder.com/docs/code-server/latest/guide) guide.
 
 ### code-server --link
 
@@ -61,11 +61,11 @@ Proxying code-server, you can access your IDE at https://valmar-jon.cdr.co
 
 ## FAQ
 
-See [./FAQ.md](./FAQ.md).
+See [./FAQ.md](https://coder.com/docs/code-server/latest/FAQ).
 
 ## Want to help?
 
-See [CONTRIBUTING](./CONTRIBUTING.md) for details.
+See [CONTRIBUTING](https://coder.com/docs/code-server/latest/CONTRIBUTING) for details.
 
 ## Hiring
 
