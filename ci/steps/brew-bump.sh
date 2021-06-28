@@ -28,7 +28,7 @@ main() {
   echo "Pushing changes to cdrci/homebrew-core fork on GitHub"
   # Source: https://serverfault.com/a/912788
   # shellcheck disable=SC2016,SC2028
-  echo '#!/bin/sh\nexec echo "$HOMEBREW_GITHUB_API_TOKEN"' >"$HOME"/.git-askpass.sh
+  echo '#!/bin/sh\nexec echo "$HOMEBREW_GITHUB_API_TOKEN"' > "$HOME"/.git-askpass.sh
   # Ensure it's executable since we just created it
   chmod +x "$HOME/.git-askpass.sh"
   # GIT_ASKPASS lets us use the password when pushing without revealing it in the process list

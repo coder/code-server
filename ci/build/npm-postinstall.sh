@@ -4,16 +4,16 @@ set -eu
 # Copied from arch() in ci/lib.sh.
 detect_arch() {
   case "$(uname -m)" in
-  aarch64)
-    echo arm64
-    ;;
-  x86_64 | amd64)
-    echo amd64
-    ;;
-  *)
-    # This will cause the download to fail, but is intentional
-    uname -m
-    ;;
+    aarch64)
+      echo arm64
+      ;;
+    x86_64 | amd64)
+      echo amd64
+      ;;
+    *)
+      # This will cause the download to fail, but is intentional
+      uname -m
+      ;;
   esac
 }
 
