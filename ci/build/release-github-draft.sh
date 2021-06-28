@@ -10,7 +10,7 @@ main() {
   gh release create "v$VERSION" \
     --notes-file - \
     --target "$(git rev-parse HEAD)" \
-    --draft <<EOF
+    --draft << EOF
 v$VERSION
 
 VS Code v$(vscode_version)

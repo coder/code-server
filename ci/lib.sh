@@ -2,11 +2,11 @@
 set -euo pipefail
 
 pushd() {
-  builtin pushd "$@" >/dev/null
+  builtin pushd "$@" > /dev/null
 }
 
 popd() {
-  builtin popd >/dev/null
+  builtin popd > /dev/null
 }
 
 pkg_json_version() {
@@ -37,15 +37,15 @@ os() {
 arch() {
   cpu="$(uname -m)"
   case "$cpu" in
-  aarch64)
-    echo arm64
-    ;;
-  x86_64 | amd64)
-    echo amd64
-    ;;
-  *)
-    echo "$cpu"
-    ;;
+    aarch64)
+      echo arm64
+      ;;
+    x86_64 | amd64)
+      echo amd64
+      ;;
+    *)
+      echo "$cpu"
+      ;;
   esac
 }
 
@@ -85,7 +85,7 @@ download_artifact() {
   local tmp_file
   tmp_file="$(mktemp)"
 
-  gh api "$(get_artifact_url "$artifact_name")" >"$tmp_file"
+  gh api "$(get_artifact_url "$artifact_name")" > "$tmp_file"
   unzip -q -o "$tmp_file" -d "$dst"
   rm "$tmp_file"
 }

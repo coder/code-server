@@ -20,7 +20,7 @@ main() {
   cd "$(dirname "$0")/../.."
 
   # Check that gh is installed
-  if ! command -v gh &>/dev/null; then
+  if ! command -v gh &> /dev/null; then
     echo "gh could not be found."
     echo "We use this with the release-github-draft.sh and release-github-assets.sh scripts."
     echo -e "See docs here: https://github.com/cli/cli#installation"
@@ -28,7 +28,7 @@ main() {
   fi
 
   # Check that they have jq installed
-  if ! command -v jq &>/dev/null; then
+  if ! command -v jq &> /dev/null; then
     echo "jq could not be found."
     echo "We use this to parse the package.json and grab the current version of code-server."
     echo -e "See docs here: https://stedolan.github.io/jq/download/"
@@ -36,7 +36,7 @@ main() {
   fi
 
   # Check that they have rg installed
-  if ! command -v rg &>/dev/null; then
+  if ! command -v rg &> /dev/null; then
     echo "rg could not be found."
     echo "We use this when updating files across the codebase."
     echo -e "See docs here: https://github.com/BurntSushi/ripgrep#installation"
@@ -44,7 +44,7 @@ main() {
   fi
 
   # Check that they have node installed
-  if ! command -v node &>/dev/null; then
+  if ! command -v node &> /dev/null; then
     echo "node could not be found."
     echo "That's surprising..."
     echo "We use it in this script for getting the package.json version"
@@ -53,7 +53,7 @@ main() {
   fi
 
   # Check that gh is authenticated
-  if ! gh auth status -h github.com &>/dev/null; then
+  if ! gh auth status -h github.com &> /dev/null; then
     echo "gh isn't authenticated to github.com."
     echo "This is needed for our scripts that use gh."
     echo -e "See docs regarding authentication: https://cli.github.com/manual/gh_auth_login"
