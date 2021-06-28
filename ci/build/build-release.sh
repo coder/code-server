@@ -28,13 +28,14 @@ main() {
 }
 
 bundle_code_server() {
-  rsync out dist "$RELEASE_PATH"
+  rsync out "$RELEASE_PATH"
 
   # For source maps and images.
   mkdir -p "$RELEASE_PATH/src/browser"
   rsync src/browser/media/ "$RELEASE_PATH/src/browser/media"
   mkdir -p "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/pages/*.html "$RELEASE_PATH/src/browser/pages"
+  rsync src/browser/pages/*.css "$RELEASE_PATH/src/browser/pages"
   rsync src/browser/robots.txt "$RELEASE_PATH/src/browser"
 
   # Add typings for plugins
