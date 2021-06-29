@@ -39,9 +39,5 @@ describe("Integrated Terminal", true, () => {
 
     const { stdout } = await output
     expect(stdout).toMatch(testString)
-
-    // Clean up the terminal to stop it from stealing focus later
-    await codeServerPage.page.keyboard.type("exit")
-    await codeServerPage.page.keyboard.press("Enter")
   })
 })
