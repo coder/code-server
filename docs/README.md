@@ -19,7 +19,7 @@ For a good experience, we recommend at least:
 - 1 GB of RAM
 - 2 cores
 
-You can use whatever linux distribution floats your boat but in our [guide](./guide.md) we assume Debian on Google Cloud.
+You can use whatever linux distribution floats your boat but in our [guide](https://coder.com/docs/code-server/v3.10.2/guide) we assume Debian on Google Cloud.
 
 ## Getting Started
 
