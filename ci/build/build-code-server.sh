@@ -3,9 +3,6 @@ set -euo pipefail
 
 # Builds code-server into out and the frontend into dist.
 
-# MINIFY controls whether parcel minifies dist.
-MINIFY=${MINIFY-true}
-
 main() {
   cd "$(dirname "${0}")/../.."
 
@@ -32,14 +29,9 @@ main() {
     set -e
   fi
 
-  parcel build \
-    --public-url "." \
-    --out-dir dist \
-    $([[ $MINIFY ]] || echo --no-minify) \
-    src/browser/register.ts \
-    src/browser/serviceWorker.ts \
-    src/browser/pages/login.ts \
-    src/browser/pages/vscode.ts
+  yarn browserify out/browser/register.js -o out/browser/register.browserified.js
+  yarn browserify out/browser/pages/login.js -o out/browser/pages/login.browserified.js
+  yarn browserify out/browser/pages/vscode.js -o out/browser/pages/vscode.browserified.js
 }
 
 main "$@"

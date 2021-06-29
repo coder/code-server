@@ -1,5 +1,6 @@
+import browserify from "browserify"
 import * as cp from "child_process"
-import Bundler from "parcel-bundler"
+import * as fs from "fs"
 import * as path from "path"
 
 async function main(): Promise<void> {
@@ -40,7 +41,6 @@ class Watcher {
     const plugin = process.env.PLUGIN_DIR
       ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
       : undefined
-    const bundler = this.createBundler()
 
     const cleanup = (code?: number | null): void => {
       Watcher.log("killing vs code watcher")
@@ -63,7 +63,7 @@ class Watcher {
         server.kill()
       }
 
-      Watcher.log("killing bundler")
+      Watcher.log("killing watch")
       process.exit(code || 0)
     }
 
@@ -84,22 +84,18 @@ class Watcher {
         cleanup(code)
       })
     }
-    const bundle = bundler.bundle().catch(() => {
-      Watcher.log("parcel watcher terminated unexpectedly")
-      cleanup(1)
-    })
-    bundler.on("buildEnd", () => {
-      console.log("[parcel] bundled")
-    })
-    bundler.on("buildError", (error) => {
-      console.error("[parcel]", error)
-    })
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
     if (plugin) {
       plugin.stderr.on("data", (d) => process.stderr.write(d))
     }
+
+    const browserFiles = [
+      path.join(this.rootPath, "out/browser/register.js"),
+      path.join(this.rootPath, "out/browser/pages/login.js"),
+      path.join(this.rootPath, "out/browser/pages/vscode.js"),
+    ]
 
     // From https://github.com/chalk/ansi-regex
     const pattern = [
@@ -143,7 +139,7 @@ class Watcher {
         startingVscode = true
       } else if (startingVscode && line.includes("Finished compilation")) {
         if (startedVscode) {
-          bundle.then(restartServer)
+          restartServer()
         }
         startedVscode = true
       }
@@ -155,7 +151,8 @@ class Watcher {
         console.log("[tsc]", original)
       }
       if (line.includes("Watching for file changes")) {
-        bundle.then(restartServer)
+        bundleBrowserCode(browserFiles)
+        restartServer()
       }
     })
 
@@ -166,29 +163,26 @@ class Watcher {
           console.log("[plugin]", original)
         }
         if (line.includes("Watching for file changes")) {
-          bundle.then(restartServer)
+          restartServer()
         }
       })
     }
   }
+}
 
-  private createBundler(out = "dist"): Bundler {
-    return new Bundler(
-      [
-        path.join(this.rootPath, "src/browser/register.ts"),
-        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
-        path.join(this.rootPath, "src/browser/pages/login.ts"),
-        path.join(this.rootPath, "src/browser/pages/vscode.ts"),
-      ],
-      {
-        outDir: path.join(this.rootPath, out),
-        cacheDir: path.join(this.rootPath, ".cache"),
-        minify: !!process.env.MINIFY,
-        logLevel: 1,
-        publicUrl: ".",
-      },
-    )
-  }
+function bundleBrowserCode(inputFiles: string[]) {
+  console.log(`[browser] bundling...`)
+  inputFiles.forEach(async (path: string) => {
+    const outputPath = path.replace(".js", ".browserified.js")
+    browserify()
+      .add(path)
+      .bundle()
+      .on("error", function (error: Error) {
+        console.error(error.toString())
+      })
+      .pipe(fs.createWriteStream(outputPath))
+  })
+  console.log(`[browser] done bundling`)
 }
 
 main()
