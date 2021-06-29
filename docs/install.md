@@ -217,7 +217,7 @@ Our official image supports `amd64` and `arm64`.
 
 For `arm32` support there is a popular community maintained alternative:
 
-https://hub.docker.com/r/linuxserver/code-server
+[https://hub.docker.com/r/linuxserver/code-server](https://hub.docker.com/r/linuxserver/code-server)
 
 ## helm
 
@@ -227,4 +227,4 @@ See [the chart](../ci/helm-chart).
 
 We maintain one-click apps and install scripts for different cloud providers such as DigitalOcean, Railway, Heroku, Azure, etc. Check out the repository:
 
-https://github.com/cdr/deploy-code-server
+[https://github.com/cdr/deploy-code-server](https://github.com/cdr/deploy-code-server)
