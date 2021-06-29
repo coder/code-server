@@ -334,8 +334,9 @@ jobs:
     needs: package-linux-amd64
     runs-on: ubuntu-latest
     env:
-      PASSWORD: e45432jklfdsab
-      CODE_SERVER_ADDRESS: http://localhost:8080
+      # Since we build code-server we might as well run tests from the release
+      # since VS Code will load faster due to the bundling.
+      CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
       - uses: actions/checkout@v2
 
@@ -362,9 +363,11 @@ jobs:
           name: release-packages
           path: ./release-packages
 
-      - name: Untar code-server file
+      - name: Untar code-server release
         run: |
-          cd release-packages && tar -xzf code-server*-linux-amd64.tar.gz
+          cd release-packages
+          tar -xzf code-server*-linux-amd64.tar.gz
+          mv code-server*-linux-amd64 code-server-linux-amd64
 
       - name: Install dependencies
         if: steps.cache-yarn.outputs.cache-hit != 'true'
@@ -380,9 +383,7 @@ jobs:
           yarn install --check-files
 
       - name: Run end-to-end tests
-        run: |
-          ./release-packages/code-server*-linux-amd64/bin/code-server --log trace &
-          yarn test:e2e
+        run: yarn test:e2e
 
       - name: Upload test artifacts
         if: always()

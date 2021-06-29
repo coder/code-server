@@ -2,6 +2,7 @@ import browserify from "browserify"
 import * as cp from "child_process"
 import * as fs from "fs"
 import * as path from "path"
+import { onLine } from "../../src/node/util"
 
 async function main(): Promise<void> {
   try {
@@ -96,38 +97,6 @@ class Watcher {
       path.join(this.rootPath, "out/browser/pages/login.js"),
       path.join(this.rootPath, "out/browser/pages/vscode.js"),
     ]
-
-    // From https://github.com/chalk/ansi-regex
-    const pattern = [
-      "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-      "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
-    ].join("|")
-    const re = new RegExp(pattern, "g")
-
-    /**
-     * Split stdout on newlines and strip ANSI codes.
-     */
-    const onLine = (proc: cp.ChildProcess, callback: (strippedLine: string, originalLine: string) => void): void => {
-      let buffer = ""
-      if (!proc.stdout) {
-        throw new Error("no stdout")
-      }
-      proc.stdout.setEncoding("utf8")
-      proc.stdout.on("data", (d) => {
-        const data = buffer + d
-        const split = data.split("\n")
-        const last = split.length - 1
-
-        for (let i = 0; i < last; ++i) {
-          callback(split[i].replace(re, ""), split[i])
-        }
-
-        // The last item will either be an empty string (the data ended with a
-        // newline) or a partial line (did not end with a newline) and we must
-        // wait to parse it until we get a full line.
-        buffer = split[last]
-      })
-    }
 
     let startingVscode = false
     let startedVscode = false

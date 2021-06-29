@@ -1,13 +1,7 @@
 import { PASSWORD } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("login", () => {
-  // Reset the browser so no cookies are persisted
-  // by emptying the storageState
-  test.use({
-    storageState: {},
-  })
-
+describe("login", false, () => {
   test("should see the login page", async ({ codeServerPage }) => {
     // It should send us to the login page
     expect(await codeServerPage.page.title()).toBe("code-server login")

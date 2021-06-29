@@ -1,40 +1,43 @@
-// This setup runs before our e2e tests
-// so that it authenticates us into code-server
-// ensuring that we're logged in before we run any tests
-import { chromium } from "playwright"
+import { Cookie } from "playwright"
 import { hash } from "../../src/node/util"
-import { PASSWORD } from "./constants"
+import { PASSWORD, workspaceDir } from "./constants"
+import { clean } from "./helpers"
 import * as wtfnode from "./wtfnode"
 
+/**
+ * Perform workspace cleanup and authenticate. This should be set up to run
+ * before our tests execute.
+ */
 export default async function () {
   console.log("\n🚨 Running Global Setup for Playwright End-to-End Tests")
   console.log("   Please hang tight...")
 
-  const cookieToStore = {
-    sameSite: "Lax" as const,
-    name: "key",
-    value: await hash(PASSWORD),
-    domain: "localhost",
-    path: "/",
-    expires: -1,
-    httpOnly: false,
-    secure: false,
-  }
-
-  const browser = await chromium.launch()
-  const page = await browser.newPage()
-  const storage = await page.context().storageState()
+  // Cleanup workspaces from previous tests.
+  await clean(workspaceDir)
 
   if (process.env.WTF_NODE) {
     wtfnode.setup()
   }
 
-  storage.cookies = [cookieToStore]
+  // TODO: Replace this with a call to code-server to get the cookie. To avoid
+  // too much overhead we can do an http POST request and avoid spawning a
+  // browser for it.
+  const cookies: Cookie[] = [
+    {
+      domain: "localhost",
+      expires: -1,
+      httpOnly: false,
+      name: "key",
+      path: "/",
+      sameSite: "Lax",
+      secure: false,
+      value: await hash(PASSWORD),
+    },
+  ]
 
   // Save storage state and store as an env variable
   // More info: https://playwright.dev/docs/auth/#reuse-authentication-state
-  process.env.STORAGE = JSON.stringify(storage)
-  await browser.close()
+  process.env.STORAGE = JSON.stringify({ cookies })
 
   console.log("✅ Global Setup for Playwright End-to-End Tests is now complete.")
 }
