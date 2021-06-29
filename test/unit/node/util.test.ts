@@ -445,3 +445,11 @@ describe("onLine", () => {
     expect(await received).toEqual(expected)
   })
 })
+
+describe("escapeHtml", () => {
+  it("should escape HTML", () => {
+    expect(util.escapeHtml(`<div class="error">"Hello & world"</div>`)).toBe(
+      "&lt;div class=&quot;error&quot;&gt;&quot;Hello &amp; world&quot;&lt;/div&gt;",
+    )
+  })
+})
