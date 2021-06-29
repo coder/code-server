@@ -53,9 +53,18 @@ There is a known issue with the backspace key not working correctly when using t
 - [Issues with Backspace in Codespaces on Android (Surface Duo)](https://github.com/microsoft/vscode/issues/107602)
 - [Support mobile platforms](https://github.com/xtermjs/xterm.js/issues/1101)
 
-Workaround: use a Bluetooth keyboard.
+Workaround #1: Modify Keyboard Dispatch Settings
+
+1. Open the Command Palette
+2. Search for "Preferences: Open Settings (JSON)"
+3. Add `"keyboard.dispatch": "keyCode"`
+
+The backspace button should work now.
+(Thanks to @Nefomemes for the suggestion! See [comment](https://github.com/cdr/code-server/issues/1141#issuecomment-789463707))
+
+Workaround #2: use a Bluetooth keyboard.
 
 For more context, see issues:
 
 - [500 error: 3.9.2 not working on Android + Termux](https://github.com/cdr/code-server/issues/3036)
-- [Document Android backspace issue](https://github.com/cdr/code-server/issues/3079)
+- [Issue #3079](https://github.com/cdr/code-server/issues/3079)

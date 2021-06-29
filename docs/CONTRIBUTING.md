@@ -9,6 +9,10 @@
   - [Updating VS Code](#updating-vs-code)
     - [Notes about Changes](#notes-about-changes)
 - [Build](#build)
+- [Testing](#testing)
+  - [Unit Tests](#unit-tests)
+  - [Integration Tests](#integration-tests)
+  - [End-to-End Tests](#end-to-end-tests)
 - [Structure](#structure)
   - [Modifications to VS Code](#modifications-to-vs-code)
   - [Currently Known Issues](#currently-known-issues)
@@ -35,7 +39,7 @@ The prerequisites for contributing to code-server are almost the same as those f
 [VS Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 There are several differences, however. Here is what is needed:
 
-- `node` v14.x or greater
+- `node` v14.x
 - `git` v2.x or greater
 - [`yarn`](https://classic.yarnpkg.com/en/)
   - used to install JS packages and run scripts
@@ -111,6 +115,43 @@ NOTE: On Linux, the currently running distro will become the minimum supported v
 In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
 If you need your builds to support older distros, run the build commands
 inside a Docker container with all the build requirements installed.
+
+## Testing
+
+There are three kinds of tests in code-server:
+
+1. unit tests
+2. integration tests
+3. end-to-end tests
+
+### Unit Tests
+
+Our unit tests are written in TypeScript and run using [Jest, the testing framework](https://jestjs.io/).
+
+These live under [test/unit](../test/unit).
+
+We use unit tests for functions and things that can be tested in isolation.
+
+### Integration Tests
+
+These are a work-in-progress. We build code-server and run a script called [test-standalone-release.sh`](../ci/build/test-standalone-release.sh)
+which ensures that code-server's CLI is working.
+
+Integration for us means testing things that integrate and rely on each other. For instance, testing the CLI which requires that code-server be built and packaged.
+
+### End-to-End Tests
+
+The end-to-end (e2e) are written in TypeScript and run using [Playwright](https://playwright.dev/).
+
+These live under [test/e2e](../test/e2e).
+
+Before the e2e tests run, we have a `globalSetup` that runs which makes it so you don't have to login before each test and can reuse the authentication state.
+
+Take a look at `codeServer.test.ts` to see how you use it (look at `test.use`).
+
+We also have a model where you can create helpers to use within tests. Take a look at [models/CodeServer.ts](../test/e2e/models/CodeServer.ts) to see an example.
+
+Generally speaking, e2e means testing code-server running in the browser, similar to how a user would interact with it. When running these tests with `yarn test:e2e`, you must have code-server running locally. In CI, this is taken care of for you.
 
 ## Structure
 

@@ -43,7 +43,7 @@ VS Code v0.00.0
 
 ### Bug Fixes
 
-- item
+- Fix logout when using a base path (#3608)
 
 ### Documentation
 
@@ -60,10 +60,12 @@ VS Code v0.00.0
 - chore: update node to v14 #3458 @oxy
 - chore: update .gitignore #3557 @cuining
 - fix: use sufficient computational effort for password hash #3422 @jsjoeio
+- docs(CONTRIBUTING): add section on testing #3629 @jsjoeio
 
 ### Development
 
 - fix(publish): update cdrci fork in brew-bump.sh #3468 @jsjoeio
+- chore(dev): migrate away from parcel #3578 @jsjoeio
 
 ## 3.10.2
 

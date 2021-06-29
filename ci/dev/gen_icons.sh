@@ -35,10 +35,10 @@ main() {
   # This escapes all newlines so that sed will accept them.
   favicon_dark_style="$(printf "%s\n" "$favicon_dark_style" | sed -e ':a' -e 'N' -e '$!ba' -e 's/\n/\\n/g')"
   sed "$(
-    cat -n <<EOF
+    cat -n << EOF
 s%<rect id="favicon"%$favicon_dark_style<rect id="favicon"%
 EOF
-  )" favicon.svg >favicon-dark-support.svg
+  )" favicon.svg > favicon-dark-support.svg
 }
 
 main "$@"

@@ -87,7 +87,14 @@ To save time when creating a new release for code-server, we keep a running chan
 
 If either author or reviewer of a PR believe the change should be mentioned in the `CHANGELOG`, then it should be added.
 
-If there is not a "Next Version" when you modify `CHANGELOG`, please add it using the template you see near the top of `CHANGELOG`. You can use the suggested format: `<pr title> <pr #> <author> Example: `fix: Check the logged user instead of $USER #3330 @videlanicolas`
+If there is not a "Next Version" when you modify `CHANGELOG`, please add it using the template you see near the top of `CHANGELOG`.
+
+As for what you should write for your changelog item, we should asking yourself these two questions:
+
+1. How do these changes affect code-server users?
+2. What actions do they need to take? (if any)
+
+If you need inspiration, we suggest looking at the [Emacs changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 
 ## Release
 

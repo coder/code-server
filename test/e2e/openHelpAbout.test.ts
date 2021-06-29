@@ -1,11 +1,6 @@
-import { storageState } from "../utils/constants"
-import { test, expect } from "./baseFixture"
+import { describe, test, expect } from "./baseFixture"
 
-test.describe("Open Help > About", () => {
-  test.use({
-    storageState,
-  })
-
+describe("Open Help > About", true, () => {
   test("should see a 'Help' then 'About' button in the Application Menu that opens a dialog", async ({
     codeServerPage,
   }) => {

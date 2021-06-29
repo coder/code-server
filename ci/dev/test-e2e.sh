@@ -3,10 +3,35 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
+  source ./ci/lib.sh
+
+  local dir="$PWD"
+  if [[ ! ${CODE_SERVER_TEST_ENTRY-} ]]; then
+    echo "Set CODE_SERVER_TEST_ENTRY to test another build of code-server"
+  else
+    pushd "$CODE_SERVER_TEST_ENTRY"
+    dir="$PWD"
+    popd
+  fi
+
+  echo "Testing build in '$dir'"
+
+  # Simple sanity checks to see that we've built. There could still be things
+  # wrong (native modules version issues, incomplete build, etc).
+  if [[ ! -d $dir/out ]]; then
+    echo >&2 "No code-server build detected"
+    echo >&2 "You can build it with 'yarn build' or 'yarn watch'"
+    exit 1
+  fi
+
+  if [[ ! -d $dir/lib/vscode/out ]]; then
+    echo >&2 "No VS Code build detected"
+    echo >&2 "You can build it with 'yarn build:vscode' or 'yarn watch'"
+    exit 1
+  fi
+
   cd test
-  # We set these environment variables because they're used in the e2e tests
-  # they don't have to be these values, but these are the defaults
-  PASSWORD=e45432jklfdsab CODE_SERVER_ADDRESS=http://localhost:8080 yarn playwright test "$@"
+  yarn playwright test "$@"
 }
 
 main "$@"

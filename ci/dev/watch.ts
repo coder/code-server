@@ -1,6 +1,8 @@
+import browserify from "browserify"
 import * as cp from "child_process"
-import Bundler from "parcel-bundler"
+import * as fs from "fs"
 import * as path from "path"
+import { onLine } from "../../src/node/util"
 
 async function main(): Promise<void> {
   try {
@@ -40,7 +42,6 @@ class Watcher {
     const plugin = process.env.PLUGIN_DIR
       ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
       : undefined
-    const bundler = this.createBundler()
 
     const cleanup = (code?: number | null): void => {
       Watcher.log("killing vs code watcher")
@@ -63,7 +64,7 @@ class Watcher {
         server.kill()
       }
 
-      Watcher.log("killing bundler")
+      Watcher.log("killing watch")
       process.exit(code || 0)
     }
 
@@ -84,16 +85,6 @@ class Watcher {
         cleanup(code)
       })
     }
-    const bundle = bundler.bundle().catch(() => {
-      Watcher.log("parcel watcher terminated unexpectedly")
-      cleanup(1)
-    })
-    bundler.on("buildEnd", () => {
-      console.log("[parcel] bundled")
-    })
-    bundler.on("buildError", (error) => {
-      console.error("[parcel]", error)
-    })
 
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
@@ -101,37 +92,11 @@ class Watcher {
       plugin.stderr.on("data", (d) => process.stderr.write(d))
     }
 
-    // From https://github.com/chalk/ansi-regex
-    const pattern = [
-      "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-      "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
-    ].join("|")
-    const re = new RegExp(pattern, "g")
-
-    /**
-     * Split stdout on newlines and strip ANSI codes.
-     */
-    const onLine = (proc: cp.ChildProcess, callback: (strippedLine: string, originalLine: string) => void): void => {
-      let buffer = ""
-      if (!proc.stdout) {
-        throw new Error("no stdout")
-      }
-      proc.stdout.setEncoding("utf8")
-      proc.stdout.on("data", (d) => {
-        const data = buffer + d
-        const split = data.split("\n")
-        const last = split.length - 1
-
-        for (let i = 0; i < last; ++i) {
-          callback(split[i].replace(re, ""), split[i])
-        }
-
-        // The last item will either be an empty string (the data ended with a
-        // newline) or a partial line (did not end with a newline) and we must
-        // wait to parse it until we get a full line.
-        buffer = split[last]
-      })
-    }
+    const browserFiles = [
+      path.join(this.rootPath, "out/browser/register.js"),
+      path.join(this.rootPath, "out/browser/pages/login.js"),
+      path.join(this.rootPath, "out/browser/pages/vscode.js"),
+    ]
 
     let startingVscode = false
     let startedVscode = false
@@ -143,7 +108,7 @@ class Watcher {
         startingVscode = true
       } else if (startingVscode && line.includes("Finished compilation")) {
         if (startedVscode) {
-          bundle.then(restartServer)
+          restartServer()
         }
         startedVscode = true
       }
@@ -155,7 +120,8 @@ class Watcher {
         console.log("[tsc]", original)
       }
       if (line.includes("Watching for file changes")) {
-        bundle.then(restartServer)
+        bundleBrowserCode(browserFiles)
+        restartServer()
       }
     })
 
@@ -166,29 +132,26 @@ class Watcher {
           console.log("[plugin]", original)
         }
         if (line.includes("Watching for file changes")) {
-          bundle.then(restartServer)
+          restartServer()
         }
       })
     }
   }
+}
 
-  private createBundler(out = "dist"): Bundler {
-    return new Bundler(
-      [
-        path.join(this.rootPath, "src/browser/register.ts"),
-        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
-        path.join(this.rootPath, "src/browser/pages/login.ts"),
-        path.join(this.rootPath, "src/browser/pages/vscode.ts"),
-      ],
-      {
-        outDir: path.join(this.rootPath, out),
-        cacheDir: path.join(this.rootPath, ".cache"),
-        minify: !!process.env.MINIFY,
-        logLevel: 1,
-        publicUrl: ".",
-      },
-    )
-  }
+function bundleBrowserCode(inputFiles: string[]) {
+  console.log(`[browser] bundling...`)
+  inputFiles.forEach(async (path: string) => {
+    const outputPath = path.replace(".js", ".browserified.js")
+    browserify()
+      .add(path)
+      .bundle()
+      .on("error", function (error: Error) {
+        console.error(error.toString())
+      })
+      .pipe(fs.createWriteStream(outputPath))
+  })
+  console.log(`[browser] done bundling`)
 }
 
 main()
