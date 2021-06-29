@@ -17,7 +17,7 @@ interface CodeServerProcess {
  */
 export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
-  private readonly logger: Logger
+  public readonly logger: Logger
   private closed = false
 
   constructor(name: string) {
@@ -158,14 +158,6 @@ export class CodeServerPage {
   async navigate() {
     const address = await this.codeServer.address()
     await this.page.goto(address, { waitUntil: "networkidle" })
-    // Check if we loaded the getting started page;
-    // and skip past it. There's a few elements on it that load late
-    // and steal focus, which breaks some tests.
-    let allDoneButton = await this.page.$("button.all-done")
-    if (allDoneButton !== null) {
-      allDoneButton.click()
-      await this.page.waitForLoadState("networkidle")
-    }
   }
 
   /**
@@ -192,7 +184,7 @@ export class CodeServerPage {
       await this.page.waitForTimeout(1000)
       reloadCount += 1
       if ((await this.isEditorVisible()) && (await this.isConnected())) {
-        logger.debug(`editor became ready after ${reloadCount} reloads`)
+        this.codeServer.logger.debug(`editor became ready after ${reloadCount} reloads`)
         break
       }
       await this.page.reload()
@@ -231,26 +223,56 @@ export class CodeServerPage {
    * visible already.
    */
   async focusTerminal() {
-    // Click [aria-label="Application Menu"] div[role="none"]
-    await this.page.click('[aria-label="Application Menu"] div[role="none"]')
-
-    // Click text=View
-    await this.page.hover("text=View")
-    await this.page.click("text=View")
-
-    // Click text=Command Palette
-    await this.page.hover("text=Command Palette")
-    await this.page.click("text=Command Palette")
-
-    // Type Terminal: Focus Terminal
-    await this.page.keyboard.type("Terminal: Focus Terminal")
-
-    // Click Terminal: Focus Terminal
-    await this.page.hover("text=Terminal: Focus Terminal")
-    await this.page.click("text=Terminal: Focus Terminal")
+    await this.executeCommandViaMenus("Terminal: Focus Terminal")
 
     // Wait for terminal textarea to show up
     await this.page.waitForSelector("textarea.xterm-helper-textarea")
+  }
+
+  /**
+   * Navigate to the command palette via menus then execute a command by typing
+   * it then clicking the match from the results.
+   */
+  async executeCommandViaMenus(command: string) {
+    await this.navigateMenus(["View", "Command Palette"])
+
+    await this.page.keyboard.type(command)
+
+    await this.page.hover(`text=${command}`)
+    await this.page.click(`text=${command}`)
+  }
+
+  /**
+   * Navigate through the specified set of menus. If it fails it will keep
+   * trying.
+   */
+  async navigateMenus(menus: string[]) {
+    const navigate = async () => {
+      await this.page.waitForSelector(`${menuSelector}:focus-within`)
+      for (const menu of menus) {
+        await this.page.hover(`text=${menu}`)
+        await this.page.click(`text=${menu}`)
+      }
+      return true
+    }
+
+    const menuSelector = '[aria-label="Application Menu"]'
+    const open = async () => {
+      await this.page.click(menuSelector)
+      await this.page.waitForSelector(`${menuSelector}:not(:focus-within)`)
+      return false
+    }
+
+    // TODO: Starting in 1.57 something closes the menu after opening it if we
+    // open it too soon. To counter that we'll watch for when the menu loses
+    // focus and when/if it does we'll try again.
+    let retryCount = 0
+    while (!(await Promise.race([open(), navigate()]))) {
+      this.codeServer.logger.debug("menu was closed, retrying")
+      ++retryCount
+    }
+
+    this.codeServer.logger.debug(`menu navigation retries: ${retryCount}`)
   }
 
   /**
