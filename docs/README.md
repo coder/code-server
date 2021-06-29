@@ -1,6 +1,6 @@
 # code-server
 
-[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server) [![See latest docs](https://img.shields.io/static/v1?label=Docs&message=see%20latest%20&color=blue)](https://github.com/cdr/code-server/tree/v3.10.2/docs)
+[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server) [![See v3.10.2 docs](https://img.shields.io/static/v1?label=Docs&message=see%20v3.10.2%20&color=blue)](https://github.com/cdr/code-server/tree/v3.10.2/docs)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and access it in the browser.
 
@@ -26,7 +26,7 @@ You can use whatever linux distribution floats your boat but in our [guide](./gu
 There are three ways you can get started:
 
 1. Using the [install script](https://github.com/cdr/code-server/blob/main/install.sh), which automates most of the process. The script uses the system package manager (if possible)
-2. Manually installing code-server; see [Installation](./install.md) for instructions applicable to most use cases
+2. Manually installing code-server; see [Installation](https://coder.com/docs/code-server/v3.10.2/install) for instructions applicable to most use cases
 3. Use our one-click buttons and guides to [deploy code-server to a popular cloud provider](https://github.com/cdr/deploy-code-server) ⚡
 
 If you choose to use the install script, you can preview what occurs during the install process:
@@ -43,7 +43,7 @@ curl -fsSL https://code-server.dev/install.sh | sh
 
 When done, the install script prints out instructions for running and starting code-server.
 
-We also have an in-depth [setup and configuration](./guide.md) guide.
+We also have an in-depth [setup and configuration](https://coder.com/docs/code-server/v3.10.2/guide) guide.
 
 ### code-server --link
 
@@ -61,11 +61,11 @@ Proxying code-server, you can access your IDE at https://valmar-jon.cdr.co
 
 ## FAQ
 
-See [./FAQ.md](./FAQ.md).
+See [./FAQ.md](https://coder.com/docs/code-server/v3.10.2/FAQ).
 
 ## Want to help?
 
-See [CONTRIBUTING](./CONTRIBUTING.md) for details.
+See [CONTRIBUTING](https://coder.com/docs/code-server/v3.10.2/CONTRIBUTING) for details.
 
 ## Hiring
 
