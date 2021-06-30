@@ -112,7 +112,7 @@ router.post("/", async (req, res) => {
 
     throw new Error("Incorrect password")
   } catch (error) {
-    const htmlToRender = await getRoot(req, error)
-    res.send(htmlToRender)
+    const renderedHtml = await getRoot(req, error)
+    res.send(renderedHtml)
   }
 })

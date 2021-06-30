@@ -1,7 +1,6 @@
+import { RateLimiter } from "../../../src/node/routes/login"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
-
-import { RateLimiter } from "../../../src/node/routes/login"
 
 describe("login", () => {
   describe("RateLimiter", () => {
@@ -56,8 +55,12 @@ describe("login", () => {
       _codeServer = await integration.setup(["--auth=password"], "")
     })
 
-    afterEach(() => {
+    afterEach(async () => {
       process.env.PASSWORD = previousEnvPassword
+      if (_codeServer) {
+        await _codeServer.close()
+        _codeServer = undefined
+      }
     })
 
     it("should return HTML with 'Missing password' message", async () => {
