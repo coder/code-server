@@ -100,7 +100,8 @@ export const relativeRoot = (req: express.Request): string => {
 }
 
 /**
- * Redirect relatively to `/${to}`. Query variables will be preserved.
+ * Redirect relatively to `/${to}`. Query variables on the current URI will be preserved.
+ * `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
  */
 export const redirect = (
