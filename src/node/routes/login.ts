@@ -41,7 +41,7 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
     req,
     content
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : ""),
+      .replace(/{{ERROR}}/, error ? `<div class="error">${escapeHtml(error.message)}</div>` : ""),
   )
 }
 
@@ -112,8 +112,7 @@ router.post("/", async (req, res) => {
 
     throw new Error("Incorrect password")
   } catch (error) {
-    const html = await getRoot(req, error)
-    const escapedHtml = escapeHtml(html)
-    res.send(escapedHtml)
+    const htmlToRender = await getRoot(req, error)
+    res.send(htmlToRender)
   }
 })
