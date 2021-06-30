@@ -60,18 +60,14 @@ describe("login", () => {
       process.env.PASSWORD = previousEnvPassword
     })
 
-    it("should return escaped HTML with 'Missing password' message", async () => {
+    it("should return HTML with 'Missing password' message", async () => {
       const resp = await codeServer().fetch("/login", { method: "POST" })
 
       expect(resp.status).toBe(200)
 
       const htmlContent = await resp.text()
 
-      expect(htmlContent).not.toContain(">")
-      expect(htmlContent).not.toContain("<")
-      expect(htmlContent).not.toContain('"')
-      expect(htmlContent).not.toContain("'")
-      expect(htmlContent).toContain("&lt;div class=&quot;error&quot;&gt;Missing password&lt;/div&gt;")
+      expect(htmlContent).toContain("Missing password")
     })
   })
 })
