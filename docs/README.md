@@ -69,7 +69,7 @@ See [CONTRIBUTING](https://coder.com/docs/code-server/v3.10.2/CONTRIBUTING) for 
 
 ## Hiring
 
-Interested in [working at Coder](https://coder.com)? Check out [our open positions](https://jobs.lever.co/coder)!
+Interested in [working at Coder](https://coder.com/careers)? Check out [our open positions](https://coder.com/careers#openings)!
 
 ## For Organizations
 
