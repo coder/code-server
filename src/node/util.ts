@@ -166,14 +166,13 @@ export const hash = async (password: string): Promise<string> => {
  * Used to verify if the password matches the hash
  */
 export const isHashMatch = async (password: string, hash: string) => {
-  if (password === "" || hash === "") {
+  if (password === "" || hash === "" || !hash.startsWith("$")) {
     return false
   }
   try {
     return await argon2.verify(hash, password)
   } catch (error) {
-    logger.error(error)
-    return false
+    throw new Error(error)
   }
 }
 
