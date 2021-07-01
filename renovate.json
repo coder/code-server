@@ -5,6 +5,6 @@
         "lib/vscode/remote"
     ],
     "extends": [
-        "config:base",
+        "config:base"
     ]
 }
