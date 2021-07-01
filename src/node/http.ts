@@ -7,7 +7,7 @@ import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -35,7 +35,7 @@ export const replaceTemplates = <T extends object>(
     ...extraOpts,
   }
   return content
-    .replace(/{{TO}}/g, (typeof req.query.to === "string" && req.query.to) || "/")
+    .replace(/{{TO}}/g, (typeof req.query.to === "string" && escapeHtml(req.query.to)) || "/")
     .replace(/{{BASE}}/g, options.base)
     .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
     .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
@@ -100,7 +100,8 @@ export const relativeRoot = (req: express.Request): string => {
 }
 
 /**
- * Redirect relatively to `/${to}`. Query variables will be preserved.
+ * Redirect relatively to `/${to}`. Query variables on the current URI will be preserved.
+ * `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
  */
 export const redirect = (

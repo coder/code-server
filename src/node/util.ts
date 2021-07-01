@@ -508,3 +508,17 @@ export const isFile = async (path: string): Promise<boolean> => {
     return false
   }
 }
+
+/**
+ * Escapes any HTML string special characters, like &, <, >, ", and '.
+ *
+ * Source: https://stackoverflow.com/a/6234804/3015595
+ **/
+export function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
+}

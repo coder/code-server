@@ -4,7 +4,7 @@ import { RateLimiter as Limiter } from "limiter"
 import * as path from "path"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
-import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString } from "../util"
+import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString, escapeHtml } from "../util"
 
 export enum Cookie {
   Key = "key",
@@ -36,11 +36,12 @@ const getRoot = async (req: Request, error?: Error): Promise<string> => {
   } else if (req.args.usingEnvHashedPassword) {
     passwordMsg = "Password was set from $HASHED_PASSWORD."
   }
+
   return replaceTemplates(
     req,
     content
       .replace(/{{PASSWORD_MSG}}/g, passwordMsg)
-      .replace(/{{ERROR}}/, error ? `<div class="error">${error.message}</div>` : ""),
+      .replace(/{{ERROR}}/, error ? `<div class="error">${escapeHtml(error.message)}</div>` : ""),
   )
 }
 
@@ -111,6 +112,7 @@ router.post("/", async (req, res) => {
 
     throw new Error("Incorrect password")
   } catch (error) {
-    res.send(await getRoot(req, error))
+    const renderedHtml = await getRoot(req, error)
+    res.send(renderedHtml)
   }
 })

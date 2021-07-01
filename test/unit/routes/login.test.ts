@@ -1,4 +1,6 @@
 import { RateLimiter } from "../../../src/node/routes/login"
+import * as httpserver from "../../utils/httpserver"
+import * as integration from "../../utils/integration"
 
 describe("login", () => {
   describe("RateLimiter", () => {
@@ -32,6 +34,43 @@ describe("login", () => {
 
       expect(limiter.canTry()).toBe(false)
       expect(limiter.removeToken()).toBe(false)
+    })
+  })
+  describe("/login", () => {
+    let _codeServer: httpserver.HttpServer | undefined
+    function codeServer(): httpserver.HttpServer {
+      if (!_codeServer) {
+        throw new Error("tried to use code-server before setting it up")
+      }
+      return _codeServer
+    }
+
+    // Store whatever might be in here so we can restore it afterward.
+    // TODO: We should probably pass this as an argument somehow instead of
+    // manipulating the environment.
+    const previousEnvPassword = process.env.PASSWORD
+
+    beforeEach(async () => {
+      process.env.PASSWORD = "test"
+      _codeServer = await integration.setup(["--auth=password"], "")
+    })
+
+    afterEach(async () => {
+      process.env.PASSWORD = previousEnvPassword
+      if (_codeServer) {
+        await _codeServer.close()
+        _codeServer = undefined
+      }
+    })
+
+    it("should return HTML with 'Missing password' message", async () => {
+      const resp = await codeServer().fetch("/login", { method: "POST" })
+
+      expect(resp.status).toBe(200)
+
+      const htmlContent = await resp.text()
+
+      expect(htmlContent).toContain("Missing password")
     })
   })
 })
