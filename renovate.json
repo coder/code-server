@@ -2,7 +2,10 @@
     "rangeStrategy": "replace",
     "ignorePaths": [
         "lib/vscode/extensions",
-        "lib/vscode/remote"
+        "lib/vscode/remote",
+        "lib/vscode/test",
+        "lib/vscode/.devcontainer",
+        "lib/vscode/build/azure-pipelines"
     ],
     "extends": [
         "config:base"
