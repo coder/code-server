@@ -58,7 +58,7 @@ Usage:
   - If Homebrew is not installed it will install the latest standalone release
     into ~/.local
 
-- For FreeBSD, it will install the npm package with yarn or npm.
+- For FreeBSD or Alpine, it will install the npm package with yarn or npm.
 
 - If ran on an architecture with no releases, it will install the
   npm package with yarn or npm.
@@ -234,6 +234,17 @@ main() {
       exit 1
     fi
     echoh "No precompiled releases available for $OS."
+    install_npm
+    return
+  fi
+
+  if [ "$OS" = "linux" ] && [ "$(distro)" = "alpine" ]; then
+    if [ "$METHOD" = standalone ]; then
+      echoerr "No precompiled releases available for alpine."
+      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
+      exit 1
+    fi
+    echoh "No precompiled releases available for alpine."
     install_npm
     return
   fi
@@ -471,6 +482,11 @@ distro() {
 
       echo "$ID"
     )
+    return
+  fi
+
+  if [ -f /etc/alpine-release ]; then
+    echo "alpine"
     return
   fi
 }
