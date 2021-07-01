@@ -17,6 +17,7 @@
 - [Docker](#docker)
 - [helm](#helm)
 - [Cloud Providers](#cloud-providers)
+- [Troubleshooting Node Issues](#troubleshooting-node-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -228,3 +229,18 @@ See [the chart](../ci/helm-chart).
 We maintain one-click apps and install scripts for different cloud providers such as DigitalOcean, Railway, Heroku, Azure, etc. Check out the repository:
 
 [https://github.com/cdr/deploy-code-server](https://github.com/cdr/deploy-code-server)
+
+## Troubleshooting Node Issues
+
+Occassionally, you may run into issues with node.
+
+If you install code-server with `yarn`/`npm` and upgrade your node version, you may need to reinstall code-server to recompile native modules. Sometimes you can get around this by `cd`'ing into the `lib/vscode` directory under code-server and running `npm rebuild` to recompile those native modules.
+
+An example of this might look like:
+
+1. You installed code-server using `brew install code-server`
+2. You `cd` into the directory `cd /usr/local/Cellar/code-server/<version>/libexec/lib/vscode/`
+3. You recompile native modules by running `npm rebuild`
+4. You restart code-server
+
+If you get stuck or need help, post on our [GitHub Discussions page](https://github.com/cdr/code-server/discussions).
