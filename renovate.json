@@ -1,5 +1,10 @@
 {
-  "extends": [
-    "config:base"
-  ]
+    "rangeStrategy": "replace",
+    "ignorePaths": [
+        "lib/vscode/extensions",
+        "lib/vscode/remote"
+    ]
+    "extends": [
+        "config:base",
+    ]
 }
