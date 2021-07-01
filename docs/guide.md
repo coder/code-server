@@ -45,6 +45,8 @@ For a good experience, we recommend at least:
 
 You can use whatever linux distribution floats your boat but in this guide we assume Debian on Google Cloud.
 
+In order to work properly, your environment should have WebSockets enabled, which code-server uses to communicate between the browser and server
+
 ### Google Cloud
 
 For demonstration purposes, this guide assumes you're using a VM on GCP but you should be
