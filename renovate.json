@@ -3,7 +3,7 @@
     "ignorePaths": [
         "lib/vscode/extensions",
         "lib/vscode/remote"
-    ]
+    ],
     "extends": [
         "config:base",
     ]
