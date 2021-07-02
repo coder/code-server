@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/main/docs/install
+# See https://coder.com/docs/code-server/v3.10.2/install
 
 usage() {
   arg0="$0"
