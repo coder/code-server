@@ -1,0 +1,39 @@
+name: Installer integration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "installer.sh"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  ubuntu:
+    name: Test installer on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install code-server
+        run: ./install.sh
+
+      - name: Test code-server
+        run: yarn test:standalone-release code-server
+
+  macos:
+    name: Test installer on macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install code-server
+        run: ./install.sh
+
+      - name: Test code-server
+        run: yarn test:standalone-release code-server

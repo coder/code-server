@@ -1,4 +1,4 @@
-name: ci
+name: Build
 
 on:
   push:
@@ -16,7 +16,7 @@ on:
 
 jobs:
   prebuild:
-    name: Pre-Build checks
+    name: Pre-build checks
     runs-on: ubuntu-latest
     timeout-minutes: 5
     env:
