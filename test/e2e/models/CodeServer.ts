@@ -12,6 +12,16 @@ interface CodeServerProcess {
   address: string
 }
 
+class CancelToken {
+  private _canceled = false
+  public canceled(): boolean {
+    return this._canceled
+  }
+  public cancel(): void {
+    this._canceled = true
+  }
+}
+
 /**
  * Class for spawning and managing code-server.
  */
@@ -247,11 +257,27 @@ export class CodeServerPage {
    * trying.
    */
   async navigateMenus(menus: string[]) {
-    const navigate = async () => {
-      await this.page.waitForSelector(`${menuSelector}:focus-within`)
+    const navigate = async (cancelToken: CancelToken) => {
+      const steps: Array<() => Promise<unknown>> = [() => this.page.waitForSelector(`${menuSelector}:focus-within`)]
       for (const menu of menus) {
-        await this.page.hover(`text=${menu}`)
-        await this.page.click(`text=${menu}`)
+        // Normally these will wait for the item to be visible and then execute
+        // the action. The problem is that if the menu closes these will still
+        // be waiting and continue to execute once the menu is visible again,
+        // potentially conflicting with the new set of navigations (for example
+        // if the old promise clicks logout before the new one can). By
+        // splitting them into two steps each we can cancel before running the
+        // action.
+        steps.push(() => this.page.hover(`text=${menu}`, { trial: true }))
+        steps.push(() => this.page.hover(`text=${menu}`, { force: true }))
+        steps.push(() => this.page.click(`text=${menu}`, { trial: true }))
+        steps.push(() => this.page.click(`text=${menu}`, { force: true }))
+      }
+      for (const step of steps) {
+        await step()
+        if (cancelToken.canceled()) {
+          this.codeServer.logger.debug("menu navigation canceled")
+          return false
+        }
       }
       return true
     }
@@ -266,10 +292,15 @@ export class CodeServerPage {
     // TODO: Starting in 1.57 something closes the menu after opening it if we
     // open it too soon. To counter that we'll watch for when the menu loses
     // focus and when/if it does we'll try again.
+    // I tried using the classic menu but it doesn't show up at all for some
+    // reason. I also tried toggle but the menu disappears after toggling.
     let retryCount = 0
-    while (!(await Promise.race([open(), navigate()]))) {
+    let cancelToken = new CancelToken()
+    while (!(await Promise.race([open(), navigate(cancelToken)]))) {
       this.codeServer.logger.debug("menu was closed, retrying")
       ++retryCount
+      cancelToken.cancel()
+      cancelToken = new CancelToken()
     }
 
     this.codeServer.logger.debug(`menu navigation retries: ${retryCount}`)
