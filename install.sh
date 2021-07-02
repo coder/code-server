@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/main/docs/install.md
+# See https://github.com/cdr/code-server/blob/main/docs/install
 
 usage() {
   arg0="$0"
@@ -58,7 +58,7 @@ Usage:
   - If Homebrew is not installed it will install the latest standalone release
     into ~/.local
 
-- For FreeBSD, it will install the npm package with yarn or npm.
+- For FreeBSD or Alpine, it will install the npm package with yarn or npm.
 
 - If ran on an architecture with no releases, it will install the
   npm package with yarn or npm.
@@ -67,7 +67,7 @@ Usage:
 
 It will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://github.com/cdr/code-server/blob/main/docs/install.md
+More installation docs are at https://coder.com/docs/code-server/v3.10.2/install
 EOF
 }
 
@@ -234,6 +234,17 @@ main() {
       exit 1
     fi
     echoh "No precompiled releases available for $OS."
+    install_npm
+    return
+  fi
+
+  if [ "$OS" = "linux" ] && [ "$(distro)" = "alpine" ]; then
+    if [ "$METHOD" = standalone ]; then
+      echoerr "No precompiled releases available for alpine."
+      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
+      exit 1
+    fi
+    echoh "No precompiled releases available for alpine."
     install_npm
     return
   fi
@@ -419,7 +430,7 @@ install_npm() {
   echoh
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.10.2/docs/install.md#yarn-npm"
+  echoerr "See the docs https://coder.com/docs/code-server/v3.10.2/install#yarn-npm"
   exit 1
 }
 
