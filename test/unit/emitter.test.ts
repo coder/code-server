@@ -41,7 +41,7 @@ describe("emitter", () => {
 
     // Register the onHelloWorld listener
     // and the onGoodbyeWorld
-    emitter.event(onHelloWorld)
+    const _onHelloWorld = emitter.event(onHelloWorld)
     emitter.event(onGoodbyeWorld)
 
     await emitter.emit({ event: HELLO_WORLD, callback: mockCallback })
@@ -55,6 +55,12 @@ describe("emitter", () => {
     // Check that it works with multiple listeners
     expect(mockSecondCallback).toHaveBeenCalled()
     expect(mockSecondCallback).toHaveBeenCalledTimes(1)
+
+    // Dispose of individual listener
+    _onHelloWorld.dispose()
+
+    // Try disposing twice
+    _onHelloWorld.dispose()
 
     // Dispose of all the listeners
     emitter.dispose()
