@@ -24,6 +24,24 @@ jobs:
       - name: Test code-server
         run: yarn test:standalone-release code-server
 
+  alpine:
+    name: Test installer on Alpine
+    runs-on: ubuntu-latest
+    container: "alpine:3.14"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install curl
+        run: apk add curl
+
+      - name: Add user
+        run: adduser coder --disabled-password
+
+      # Standalone should work without root.
+      - name: Test standalone to a non-existent prefix
+        run: su coder -c "./install.sh --method standalone --prefix /tmp/does/not/yet/exist"
+
   macos:
     name: Test installer on macOS
     runs-on: macos-latest

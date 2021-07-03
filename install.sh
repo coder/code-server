@@ -132,7 +132,6 @@ main() {
   unset \
     DRY_RUN \
     METHOD \
-    STANDALONE_INSTALL_PREFIX \
     OPTIONAL \
     ALL_FLAGS \
     RSH_ARGS \
@@ -380,6 +379,10 @@ install_standalone() {
 
   fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
+
+  # -w only works if the directory exists so try creating it first. If this
+  # fails we can ignore the error as the -w check will then swap us to sudo.
+  sh_c mkdir -p "$STANDALONE_INSTALL_PREFIX" 2> /dev/null || true
 
   sh_c="sh_c"
   if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
