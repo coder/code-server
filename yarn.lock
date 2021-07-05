@@ -492,9 +492,9 @@
     "@types/node" "*"
 
 "@types/tar-fs@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-2.0.0.tgz#db94cb4ea1cccecafe3d1a53812807efb4bbdbc1"
-  integrity sha512-3H2HmxuT1OCZYXi1KG5xIjbpv97JjdLSRByH13YhHK8lr+GaJndJ91IuQfHxn23BQRaWHf2LTnlHPQcQDzt8vw==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-2.0.1.tgz#6391dcad1b03dea2d79fac07371585ab54472bb1"
+  integrity sha512-qlsQyIY9sN7p221xHuXKNoMfUenOcvEBN4zI8dGsYbYCqHtTarXOEXSIgUnK+GcR0fZDse6pAIc5pIrCh9NefQ==
   dependencies:
     "@types/node" "*"
     "@types/tar-stream" "*"
