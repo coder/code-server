@@ -13,7 +13,8 @@
     "packageRules": [
         {
             "matchUpdateTypes": ["minor", "patch", "digest"],
-            "automerge": true
+            "automerge": true,
+            "groupName": "Minor dependency updates"
         }
     ]
 }
