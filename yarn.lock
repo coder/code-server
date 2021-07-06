@@ -514,9 +514,9 @@
     "@types/tar-stream" "*"
 
 "@types/tar-stream@*", "@types/tar-stream@^2.1.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-2.2.0.tgz#2778ef8e328a520959a39681c15c83c53553426f"
-  integrity sha512-sRTpT180sVigzD4SiCWJQQrqcdkWnmscWvx+cXvAoPtXbLFC5+QmKi2xwRcPe4iRu0GcVl1qTeJKUTS5hULfrw==
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-2.2.1.tgz#7cb4516fe6d1a926a37b7733905c50885718e7ad"
+  integrity sha512-zhcfACZ4HavArMutfAB1/ApfSx44kNF2zyytU4mbO1dGCT/y9kL2IZwRDRyYYtBUxW6LRparZpLoX8i67b6IZw==
   dependencies:
     "@types/node" "*"
 
