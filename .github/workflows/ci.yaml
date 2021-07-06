@@ -433,9 +433,6 @@ jobs:
   trivy-scan-image:
     runs-on: ubuntu-20.04
     needs: docker-images
-    # NOTE@jsjoeio: disabling due to a memory issue upstream
-    # See: https://github.com/github/codeql-action/issues/528
-    if: 1 == 2
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -462,7 +459,7 @@ jobs:
         run: cat trivy-image-results.sarif && ls -l trivy-image-results.sarif
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v1.0.4
         with:
           sarif_file: "trivy-image-results.sarif"
 
@@ -486,6 +483,6 @@ jobs:
           output: "trivy-repo-results.sarif"
           severity: "HIGH,CRITICAL"
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v1.0.4
         with:
           sarif_file: "trivy-repo-results.sarif"
