@@ -492,17 +492,17 @@
     "@types/node" "*"
 
 "@types/tar-fs@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-2.0.0.tgz#db94cb4ea1cccecafe3d1a53812807efb4bbdbc1"
-  integrity sha512-3H2HmxuT1OCZYXi1KG5xIjbpv97JjdLSRByH13YhHK8lr+GaJndJ91IuQfHxn23BQRaWHf2LTnlHPQcQDzt8vw==
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@types/tar-fs/-/tar-fs-2.0.1.tgz#6391dcad1b03dea2d79fac07371585ab54472bb1"
+  integrity sha512-qlsQyIY9sN7p221xHuXKNoMfUenOcvEBN4zI8dGsYbYCqHtTarXOEXSIgUnK+GcR0fZDse6pAIc5pIrCh9NefQ==
   dependencies:
     "@types/node" "*"
     "@types/tar-stream" "*"
 
 "@types/tar-stream@*", "@types/tar-stream@^2.1.0":
-  version "2.2.0"
-  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-2.2.0.tgz#2778ef8e328a520959a39681c15c83c53553426f"
-  integrity sha512-sRTpT180sVigzD4SiCWJQQrqcdkWnmscWvx+cXvAoPtXbLFC5+QmKi2xwRcPe4iRu0GcVl1qTeJKUTS5hULfrw==
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@types/tar-stream/-/tar-stream-2.2.1.tgz#7cb4516fe6d1a926a37b7733905c50885718e7ad"
+  integrity sha512-zhcfACZ4HavArMutfAB1/ApfSx44kNF2zyytU4mbO1dGCT/y9kL2IZwRDRyYYtBUxW6LRparZpLoX8i67b6IZw==
   dependencies:
     "@types/node" "*"
 
@@ -512,9 +512,9 @@
   integrity sha512-FvUupuM3rlRsRtCN+fDudtmytGO6iHJuuRKS1Ss0pG5z8oX0diNEw94UEL7hgDbpN94rgaK5R7sWm6RrSkZuAQ==
 
 "@types/ws@^7.2.6":
-  version "7.4.5"
-  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.5.tgz#8ff0f7efcd8fea19f51f9dd66cb8b498d172a752"
-  integrity sha512-8mbDgtc8xpxDDem5Gwj76stBDJX35KQ3YBoayxlqUQcL5BZUthiqP/VQ4PQnLHqM4PmlbyO74t98eJpURO+gPA==
+  version "7.4.6"
+  resolved "https://registry.yarnpkg.com/@types/ws/-/ws-7.4.6.tgz#c4320845e43d45a7129bb32905e28781c71c1fff"
+  integrity sha512-ijZ1vzRawI7QoWnTNL8KpHixd2b2XVb9I9HAqI3triPsh1EC0xH0Eg6w2O3TKbDCgiNNlJqfrof6j4T2I+l9vw==
   dependencies:
     "@types/node" "*"
 
