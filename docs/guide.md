@@ -261,6 +261,8 @@ Make sure to substitute `me@example.com` with your actual email.
 
 Visit `https://<your-domain-name>` to access `code-server`. Congratulations!
 
+Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it will change the address displayed in the green section of code-server in the bottom left to show the correct address.
+
 ### Self Signed Certificate
 
 **note:** Self signed certificates do not work with iPad normally. See [./ipad.md](./ipad.md) for details.
