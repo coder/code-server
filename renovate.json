@@ -9,5 +9,11 @@
     ],
     "extends": [
         "config:base"
+    ],
+    "packageRules": [
+        {
+            "matchUpdateTypes": ["minor", "patch", "digest"],
+            "automerge": true
+        }
     ]
 }
