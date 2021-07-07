@@ -2,69 +2,70 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Termux
 
-- [Termux](#termux)
-  - [Installation](#installation)
-  - [Upgrading](#upgrading)
-  - [Known Issues](#known-issues)
-    - [Search issue](#search-issue)
-    - [Backspace not working](#backspace-not-working)
+- [Install](#install)
+- [Upgrade](#upgrade)
+- [Known Issues](#known-issues)
+  - [Search doesn't work](#search-doesnt-work)
+  - [Backspace doesn't work](#backspace-doesnt-work)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# Termux
+Termux is a terminal application and Linux environment that you can also use to
+run code-server from your Android phone.
 
-Termux is an Android terminal application and Linux environment, which can also run code-server from your phone.
+## Install
 
-## Installation
+1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/).
+1. Make sure it's up-to-date: `apt update && apt upgrade`
+1. Install required packages: `apt install build-essential python git nodejs yarn`
+1. Install code-server: `yarn global add code-server`
+1. Run code-server: `code-server` and navigate to localhost:8080 in your browser
 
-1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/)
-2. Make sure it's up-to-date by running `apt update && apt upgrade`
-3. Install required packages: `apt install build-essential python git nodejs yarn`
-4. Install code-server: `yarn global add code-server`
-5. Run code-server: `code-server` and navigate to localhost:8080 in your browser
-
-## Upgrading
+## Upgrade
 
 To upgrade run: `yarn global upgrade code-server --latest`
 
 ## Known Issues
 
-### Search issue
+The following details known issues and suggested workarounds for using
+code-server with Termux.
 
-There is a known issue with search not working on Android because it's missing `bin/rg`. To fix:
+### Search doesn't work
+
+There is a known issue with search not working on Android because it's missing
+`bin/rg` ([context](https://github.com/cdr/code-server/issues/1730#issuecomment-721515979)). To fix this:
 
 1. Install `ripgrep` with `pkg`
+
    ```sh
    pkg install ripgrep
    ```
-2. Make a soft link using `ln -s`
 
-```sh
-# run this command inside the code-server directory
-ln -s $PREFIX/bin/rg ./lib/vscode/node_modules/vscode-ripgrep/bin/rg
-```
+1. Make a soft link using `ln -s`
 
-For more context, see [comment](https://github.com/cdr/code-server/issues/1730#issuecomment-721515979).
+   ```sh
+   # run this command inside the code-server directory
+   ln -s $PREFIX/bin/rg ./lib/vscode/node_modules/vscode-ripgrep/bin/rg
+   ```
 
-### Backspace not working
+### Backspace doesn't work
 
-There is a known issue with the backspace key not working correctly when using the on-screen keyboard on Android. This is due to an upstream issue. Read more:
+When using Android's on-screen keyboard, the backspace key doesn't work
+properly. This is a known upstream issue:
 
-- [Issues with Backspace in Codespaces on Android (Surface Duo)](https://github.com/microsoft/vscode/issues/107602)
+- [Issues with backspace in Codespaces on Android (Surface Duo)](https://github.com/microsoft/vscode/issues/107602)
 - [Support mobile platforms](https://github.com/xtermjs/xterm.js/issues/1101)
 
-Workaround #1: Modify Keyboard Dispatch Settings
+There are two workarounds.
+
+**Option 1:** Modify keyboard dispatch settings
 
 1. Open the Command Palette
-2. Search for "Preferences: Open Settings (JSON)"
+2. Search for **Preferences: Open Settings (JSON)**
 3. Add `"keyboard.dispatch": "keyCode"`
 
-The backspace button should work now.
-(Thanks to @Nefomemes for the suggestion! See [comment](https://github.com/cdr/code-server/issues/1141#issuecomment-789463707))
+The backspace button should work at this point.
 
-Workaround #2: use a Bluetooth keyboard.
+_Thanks to @Nefomemes for the [suggestion](https://github.com/cdr/code-server/issues/1141#issuecomment-789463707)!_
 
-For more context, see issues:
-
-- [500 error: 3.9.2 not working on Android + Termux](https://github.com/cdr/code-server/issues/3036)
-- [Issue #3079](https://github.com/cdr/code-server/issues/3079)
+**Option 2:** Use a Bluetooth keyboard.
