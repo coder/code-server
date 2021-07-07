@@ -499,9 +499,9 @@
     "@types/node" "*"
 
 "@types/split2@^3.2.0":
-  version "3.2.0"
-  resolved "https://registry.yarnpkg.com/@types/split2/-/split2-3.2.0.tgz#a14f5acb1719aca5e6bcd3706f0df5c5b986802b"
-  integrity sha512-Wb9kp2BW5Qs38oyAS36t+wDN9eE6bFt8fpJ0DpYX6R5Og5tY003m8v1H2cEv8bpF9vLpPXago5pgsCgPka8BVQ==
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/@types/split2/-/split2-3.2.1.tgz#97c42b560a1b41064d46cd728cf1267d5755ee34"
+  integrity sha512-7uz3yU+LooBq4yNOzlZD9PU9/1Eu0rTD1MjQ6apOVEoHsPrMUrFw7W8XrvWtesm2vK67SBK9AyJcOXtMpl9bgQ==
   dependencies:
     "@types/node" "*"
 
