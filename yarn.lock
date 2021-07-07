@@ -356,9 +356,9 @@
     "@types/node" "*"
 
 "@types/compression@^1.7.0":
-  version "1.7.0"
-  resolved "https://registry.yarnpkg.com/@types/compression/-/compression-1.7.0.tgz#8dc2a56604873cf0dd4e746d9ae4d31ae77b2390"
-  integrity sha512-3LzWUM+3k3XdWOUk/RO+uSjv7YWOatYq2QADJntK1pjkk4DfVP0KrIEPDnXRJxAAGKe0VpIPRmlINLDuCedZWw==
+  version "1.7.1"
+  resolved "https://registry.yarnpkg.com/@types/compression/-/compression-1.7.1.tgz#d935a1cd6f5cd9a4dc8b0d8aadf2ee91a2975acc"
+  integrity sha512-d6K1bU3qIjtfB2u+A1N0WDf62LpewRjrvbqY79qlPwk2otgQ4mWB4+LzPCWTvGmcuVwo+zAroEhsNlJavRcFvg==
   dependencies:
     "@types/express" "*"
 
