@@ -1,12 +1,5 @@
 {
     "rangeStrategy": "replace",
-    "ignorePaths": [
-        "lib/vscode/extensions",
-        "lib/vscode/remote",
-        "lib/vscode/test",
-        "lib/vscode/.devcontainer",
-        "lib/vscode/build/azure-pipelines"
-    ],
     "extends": [
         "config:base"
     ],
@@ -15,6 +8,13 @@
             "matchUpdateTypes": ["minor", "patch", "digest"],
             "automerge": true,
             "groupName": "Minor dependency updates"
+        },
+        {
+            "matchPaths": ["lib/vscode/"],
+            "enabled": false
         }
-    ]
+    ],
+    "vulnerabilityAlerts": {
+        "enabled": "true"
+    }
 }
