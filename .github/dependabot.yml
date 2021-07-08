@@ -19,7 +19,7 @@ updates:
       time: "11:00"
     ignore:
       - dependency-name: "@types/node"
-        versions: ["15.x", "14.x", "13.x"]
+        update-types: ["version-update:semver-major"]
       - dependency-name: "xdg-basedir"
         # 5.0.0 has breaking changes as they switch to named exports
         # and convert the module to ESM
