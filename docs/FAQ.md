@@ -33,6 +33,7 @@
 - [How do I access my Documents/Downloads/Desktop folders in code-server on OSX?](#how-do-i-access-my-documentsdownloadsdesktop-folders-in-code-server-on-osx)
 - [Differences compared to Theia?](#differences-compared-to-theia)
 - [`$HTTP_PROXY`, `$HTTPS_PROXY`, `$NO_PROXY`](#http_proxy-https_proxy-no_proxy)
+- [Does code-server have any security login validation?](#does-code-server-have-any-security-login-validation)
 - [Enterprise](#enterprise)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -457,6 +458,10 @@ code-server
 requests made from extensions etc. To proxy requests from your browser you need to
 configure your browser separately. Browser requests would cover exploring the extension
 marketplace.
+
+## Does code-server have any security login validation?
+
+code-server only supports a single password and limits logins to two per minute plus twelve per hour.
 
 ## Enterprise
 
