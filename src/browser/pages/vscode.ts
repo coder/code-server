@@ -1,10 +1,8 @@
-import { getOptions } from "../../common/util"
+import { getOptions, Options } from "../../common/util"
 import "../register"
 
-const options = getOptions()
-
-// TODO: Add proper types.
-/* eslint-disable @typescript-eslint/no-explicit-any */
+// TODO@jsjoeio: Add proper types.
+type FixMeLater = any
 
 // NOTE@jsjoeio
 // This lives here ../../../lib/vscode/src/vs/base/common/platform.ts#L106
@@ -19,7 +17,20 @@ type NlsConfiguration = {
   _resolvedLanguagePackCoreLocation?: string
   _corruptedFile?: string
   _languagePackSupport?: boolean
-  loadBundle?: any
+  loadBundle?: FixMeLater
+}
+
+/**
+ * Helper function to create the path to the bundle
+ * for getNlsConfiguration.
+ */
+export function createBundlePath(_resolvedLanguagePackCoreLocation: string, bundle: string) {
+  // NOTE@jsjoeio - this comment was here before me
+  // Refers to operating systems that use a different path separator.
+  // Probably just Windows but we're not sure if "/" breaks on Windows
+  // so we'll leave it alone for now.
+  // FIXME: Only works if path separators are /.
+  return _resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
 }
 
 /**
@@ -30,14 +41,10 @@ type NlsConfiguration = {
  *
  * Make sure to wrap this in a try/catch block when you call it.
  **/
-export function getNlsConfiguration(document: Document) {
+export function getNlsConfiguration(_document: Document, base: string) {
   const errorMsgPrefix = "[vscode]"
-  const nlsConfigElement = document?.getElementById(nlsConfigElementId)
-  const nlsConfig = nlsConfigElement?.getAttribute("data-settings")
-
-  if (!document) {
-    throw new Error(`${errorMsgPrefix} Could not parse NLS configuration. document is undefined.`)
-  }
+  const nlsConfigElement = _document?.getElementById(nlsConfigElementId)
+  const dataSettings = nlsConfigElement?.getAttribute("data-settings")
 
   if (!nlsConfigElement) {
     throw new Error(
@@ -45,27 +52,34 @@ export function getNlsConfiguration(document: Document) {
     )
   }
 
-  if (!nlsConfig) {
+  if (!dataSettings) {
     throw new Error(
       `${errorMsgPrefix} Could not parse NLS configuration. Found nlsConfigElement but missing data-settings attribute.`,
     )
   }
 
-  return JSON.parse(nlsConfig) as NlsConfiguration
-}
+  const nlsConfig = JSON.parse(dataSettings) as NlsConfiguration
 
-try {
-  const nlsConfig = getNlsConfiguration(document)
   if (nlsConfig._resolvedLanguagePackCoreLocation) {
-    const bundles = Object.create(null)
-    nlsConfig.loadBundle = (bundle: any, _language: any, cb: any): void => {
+    // NOTE@jsjoeio
+    // Not sure why we use Object.create(null) instead of {}
+    // They are not the same
+    // See: https://stackoverflow.com/a/15518712/3015595
+    // We copied this from ../../../lib/vscode/src/bootstrap.js#L143
+    const bundles: {
+      [key: string]: string
+    } = Object.create(null)
+
+    type LoadBundleCallback = (_: undefined, result?: string) => void
+
+    nlsConfig.loadBundle = (bundle: string, _language: string, cb: LoadBundleCallback): void => {
       const result = bundles[bundle]
       if (result) {
         return cb(undefined, result)
       }
       // FIXME: Only works if path separators are /.
-      const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
-      fetch(`${options.base}/vscode/resource/?path=${encodeURIComponent(path)}`)
+      const path = createBundlePath(nlsConfig._resolvedLanguagePackCoreLocation || "", bundle)
+      fetch(`${base}/vscode/resource/?path=${encodeURIComponent(path)}`)
         .then((response) => response.json())
         .then((json) => {
           bundles[bundle] = json
@@ -74,17 +88,61 @@ try {
         .catch(cb)
     }
   }
-  ;(self.require as any) = {
+
+  return nlsConfig
+}
+
+type GetLoaderParams = {
+  nlsConfig: NlsConfiguration
+  options: Options
+  _window: Window
+}
+
+/**
+ * Link to types in the loader source repo
+ * https://github.com/microsoft/vscode-loader/blob/main/src/loader.d.ts#L280
+ */
+type Loader = {
+  baseUrl: string
+  recordStats: boolean
+  // TODO@jsjoeio: There don't appear to be any types for trustedTypes yet.
+  trustedTypesPolicy: FixMeLater
+  paths: {
+    [key: string]: string
+  }
+  "vs/nls": NlsConfiguration
+}
+
+/**
+ * A helper function which creates a script url if the value
+ * is valid.
+ *
+ * Extracted into a function to make it easier to test
+ */
+export function _createScriptURL(value: string, origin: string): string {
+  if (value.startsWith(origin)) {
+    return value
+  }
+  throw new Error(`Invalid script url: ${value}`)
+}
+
+/**
+ * A helper function to get the require loader
+ *
+ * This used by VSCode/code-server
+ * to load files.
+ *
+ * We extracted the logic into a function so that
+ * it's easier to test.
+ **/
+export function getConfigurationForLoader({ nlsConfig, options, _window }: GetLoaderParams) {
+  const loader: Loader = {
     // Without the full URL VS Code will try to load file://.
     baseUrl: `${window.location.origin}${options.csStaticBase}/lib/vscode/out`,
     recordStats: true,
-    // TODO: There don't appear to be any types for trustedTypes yet.
-    trustedTypesPolicy: (window as any).trustedTypes?.createPolicy("amdLoader", {
+    trustedTypesPolicy: (_window as FixMeLater).trustedTypes?.createPolicy("amdLoader", {
       createScriptURL(value: string): string {
-        if (value.startsWith(window.location.origin)) {
-          return value
-        }
-        throw new Error(`Invalid script url: ${value}`)
+        return _createScriptURL(value, window.location.origin)
       },
     }),
     paths: {
@@ -100,25 +158,16 @@ try {
     },
     "vs/nls": nlsConfig,
   }
-} catch (error) {
-  console.error(error)
-  /* Probably fine. */
+
+  return loader
 }
 
-export function setBodyBackgroundToThemeBackgroundColor(document: Document, localStorage: Storage) {
+/**
+ * Sets the body background color to match the theme.
+ */
+export function setBodyBackgroundToThemeBackgroundColor(_document: Document, _localStorage: Storage) {
   const errorMsgPrefix = "[vscode]"
-
-  if (!document) {
-    throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. Document is undefined.`)
-  }
-
-  if (!localStorage) {
-    throw new Error(
-      `${errorMsgPrefix} Could not set body background to theme background color. localStorage is undefined.`,
-    )
-  }
-
-  const colorThemeData = localStorage.getItem("colorThemeData")
+  const colorThemeData = _localStorage.getItem("colorThemeData")
 
   if (!colorThemeData) {
     throw new Error(
@@ -155,14 +204,48 @@ export function setBodyBackgroundToThemeBackgroundColor(document: Document, loca
     )
   }
 
-  document.body.style.background = editorBgColor
+  _document.body.style.background = editorBgColor
 
   return null
 }
 
+/**
+ * A helper function to encapsulate all the
+ * logic used in this file.
+ *
+ * We purposely include all of this in a single function
+ * so that it's easier to test.
+ */
+export function main(_document: Document | undefined, _window: Window | undefined, _localStorage: Storage | undefined) {
+  if (!_document) {
+    throw new Error(`document is undefined.`)
+  }
+
+  if (!_window) {
+    throw new Error(`window is undefined.`)
+  }
+
+  if (!_localStorage) {
+    throw new Error(`localStorage is undefined.`)
+  }
+
+  const options = getOptions()
+  const nlsConfig = getNlsConfiguration(_document, options.base)
+
+  const loader = getConfigurationForLoader({
+    nlsConfig,
+    options,
+    _window,
+  })
+
+  ;(self.require as unknown as Loader) = loader
+
+  setBodyBackgroundToThemeBackgroundColor(_document, _localStorage)
+}
+
 try {
-  setBodyBackgroundToThemeBackgroundColor(document, localStorage)
+  main(document, window, localStorage)
 } catch (error) {
-  console.error("Something went wrong setting the body background to the theme background color.")
+  console.error("[vscode] failed to initialize VS Code")
   console.error(error)
 }
