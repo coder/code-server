@@ -183,7 +183,7 @@ Some noteworthy changes in our version of VS Code:
   - Added extra scanning paths to [`src/vs/platform/extensionManagement/node/extensionsScanner.ts`](../lib/vscode/src/vs/platform/extensionManagement/node/extensionsScanner.ts)
 - Additions/removals from [`package.json`](../lib/vscode/package.json):
   - Removing `electron`, `keytar` and `native-keymap` to avoid pulling in desktop dependencies during build on Linux
-  - Removing `gulp-azure-storage` (unsued in our build process, may pull in outdated dependencies)
+  - Removing `gulp-azure-storage` and `gulp-tar` (unsued in our build process, may pull in outdated dependencies)
   - Adding `proxy-agent`, `proxy-from-env` (for proxying) and `rimraf` (used during build/install steps)
 - Adding our branding/custom URLs/version:
   - [`product.json`](../lib/vscode/product.json)
@@ -199,7 +199,6 @@ Some noteworthy changes in our version of VS Code:
   - [`src/vs/base/node/proxy_agent.ts`](../lib/vscode/src/vs/base/node/proxy_agent.ts) points to [`src/node/proxy_agent.ts`](../src/node/proxy_agent.ts)
 - Allowing socket changes by adding `setSocket` in [`src/vs/base/parts/ipc/common/ipc.net.ts`](../lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts)
   - We use this for connection persistence in our server-side code.
-- Added a telemetry channel to send client-side telemetry through the server in [`src/vs/platform/telemetry/common/telemetryChannel.ts`](../src/vs/platform/telemetry/common/telemetryChannel.ts)
 - Added our server-side Node.JS code to `src/vs/server`.
   - This code includes the logic to spawn the various services (extension host, terminal, etc.) and some glue
 - Added [`src/vs/workbench/browser/client.ts`](../lib/vscode/src/vs/workbench/browser/client.ts) to hold some server customizations.
@@ -222,6 +221,8 @@ Some noteworthy changes in our version of VS Code:
   - Add extension install fallback in [`src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts)
   - Add proxy-agent monkeypatch and keep extension host indefinitely running in [`src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts`](../lib/vscode/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts)
   - Patch build system to avoid removing extension dependencies for `yarn global add` users in [`build/lib/extensions.ts`](../lib/vscode/build/lib/extensions.ts)
+  - Allow all extensions to use proposed APIs in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
+  - Make storage writes async to allow extensions to wait for them to complete in [`src/vs/platform/storage/common/storage.ts`](../lib/vscode/src/vs/platform/storage/common/storage.ts)
 - Specify webview path in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
 - URL readability improvements for folder/workspace in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
 - Socket/Authority-related fixes (for remote proxying etc.):
