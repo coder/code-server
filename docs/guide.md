@@ -181,7 +181,7 @@ At this point, you should be able to access code-server via
        server_name mydomain.com;
 
        location / {
-         proxy_pass http://localhost:8080/;
+         proxy_pass https://localhost:8080/;
          proxy_set_header Host $host;
          proxy_set_header Upgrade $http_upgrade;
          proxy_set_header Connection upgrade;
