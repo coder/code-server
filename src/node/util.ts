@@ -10,6 +10,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import { getFirstString } from "../common/util"
 
 export interface Paths {
   data: string
@@ -457,10 +458,17 @@ enum CharCode {
  * Taken from vs/base/common/uri.ts. It's not imported to avoid also importing
  * everything that file imports.
  */
-export function pathToFsPath(path: string, keepDriveLetterCasing = false): string {
+export function pathToFsPath(path: string | string[], keepDriveLetterCasing = false): string {
   const isWindows = process.platform === "win32"
-  const uri = { authority: undefined, path, scheme: "file" }
+  const uri = { authority: undefined, path: getFirstString(path), scheme: "file" }
   let value: string
+
+  if (typeof uri.path !== "string") {
+    throw new Error(
+      `Could not compute fsPath from given uri. Expected path to be of type string, but was of type ${typeof uri.path}.`,
+    )
+  }
+
   if (uri.authority && uri.path.length > 1 && uri.scheme === "file") {
     // unc path: file://shares/c$/far/boo
     value = `//${uri.authority}${uri.path}`
