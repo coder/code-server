@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom"
-import { registerServiceWorker } from "../../src/browser/register"
-import { createLoggerMock } from "../utils/helpers"
-import { LocationLike } from "./util.test"
+import { registerServiceWorker } from "../../../src/browser/register"
+import { createLoggerMock } from "../../utils/helpers"
+import { LocationLike } from "../util.test"
 
 describe("register", () => {
   describe("when navigator and serviceWorker are defined", () => {
@@ -50,7 +50,7 @@ describe("register", () => {
 
     it("should register a ServiceWorker", () => {
       // Load service worker like you would in the browser
-      require("../../src/browser/register")
+      require("../../../src/browser/register")
       expect(mockRegisterFn).toHaveBeenCalled()
       expect(mockRegisterFn).toHaveBeenCalledTimes(1)
     })
@@ -64,7 +64,7 @@ describe("register", () => {
       })
 
       // Load service worker like you would in the browser
-      require("../../src/browser/register")
+      require("../../../src/browser/register")
 
       expect(mockRegisterFn).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalled()
@@ -88,7 +88,7 @@ describe("register", () => {
 
     it("should log an error", () => {
       // Load service worker like you would in the browser
-      require("../../src/browser/register")
+      require("../../../src/browser/register")
       expect(loggerModule.logger.error).toHaveBeenCalled()
       expect(loggerModule.logger.error).toHaveBeenCalledTimes(1)
       expect(loggerModule.logger.error).toHaveBeenCalledWith("[Service Worker] navigator is undefined")

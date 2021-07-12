@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom"
-import { LocationLike } from "../../unit/util.test"
+import { LocationLike } from "../../util.test"
 
 describe("login", () => {
   describe("there is an element with id 'base'", () => {
@@ -36,7 +36,7 @@ describe("login", () => {
       document.body.appendChild(mockElement)
       spy.mockImplementation(() => mockElement)
       // Load file
-      require("../../../src/browser/pages/login")
+      require("../../../../src/browser/pages/login")
 
       const el: HTMLInputElement | null = document.querySelector("input#base")
       expect(el?.value).toBe("/hello-world")
@@ -80,7 +80,7 @@ describe("login", () => {
     it("should do nothing", () => {
       spy.mockImplementation(() => null)
       // Load file
-      require("../../../src/browser/pages/login")
+      require("../../../../src/browser/pages/login")
 
       // It's called once by getOptions in the top of the file
       // and then another to get the base element
