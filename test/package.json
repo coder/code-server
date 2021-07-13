@@ -13,6 +13,8 @@
     "node-fetch": "^2.6.1",
     "playwright": "^1.12.1",
     "supertest": "^6.1.1",
-    "ts-jest": "^26.4.4"
+    "ts-jest": "^26.4.4",
+    "@types/wtfnode": "^0.7.0",
+    "wtfnode": "^0.9.0"
   }
 }

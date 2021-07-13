@@ -189,6 +189,17 @@ describe("isHashMatch", () => {
     const actual = await util.isHashMatch(password, _hash)
     expect(actual).toBe(false)
   })
+  it("should return false and not throw an error if the hash doesn't start with a $", async () => {
+    const password = "hellowpasssword"
+    const _hash = "n2i$v=19$m=4096,t=3,p=1$EAoczTxVki21JDfIZpTUxg$rkXgyrW4RDGoDYrxBFD4H2DlSMEhP4h+Api1hXnGnFY"
+    expect(async () => await util.isHashMatch(password, _hash)).not.toThrow()
+    expect(await util.isHashMatch(password, _hash)).toBe(false)
+  })
+  it("should reject the promise and throw if error", async () => {
+    const password = "hellowpasssword"
+    const _hash = "$ar2i"
+    expect(async () => await util.isHashMatch(password, _hash)).rejects.toThrow()
+  })
 })
 
 describe("hashLegacy", () => {
@@ -432,5 +443,52 @@ describe("onLine", () => {
     proc?.stdin?.write(expected.join("\n"))
 
     expect(await received).toEqual(expected)
+  })
+})
+
+describe("escapeHtml", () => {
+  it("should escape HTML", () => {
+    expect(util.escapeHtml(`<div class="error">"'ello & world"</div>`)).toBe(
+      "&lt;div class=&quot;error&quot;&gt;&quot;&apos;ello &amp; world&quot;&lt;/div&gt;",
+    )
+  })
+})
+
+describe("pathToFsPath", () => {
+  it("should convert a path to a file system path", () => {
+    expect(util.pathToFsPath("/foo/bar/baz")).toBe("/foo/bar/baz")
+  })
+  it("should lowercase drive letter casing by default", () => {
+    expect(util.pathToFsPath("/C:/far/boo")).toBe("c:/far/boo")
+  })
+  it("should keep drive letter casing when set to true", () => {
+    expect(util.pathToFsPath("/C:/far/bo", true)).toBe("C:/far/bo")
+  })
+  it("should throw an error if a non-string is passed in for path", () => {
+    expect(() =>
+      util
+        // @ts-expect-error We need to check other types
+        .pathToFsPath({}),
+    ).toThrow(`Could not compute fsPath from given uri. Expected path to be of type string, but was of type undefined.`)
+  })
+  it("should not throw an error for a string array", () => {
+    // @ts-expect-error We need to check other types
+    expect(() => util.pathToFsPath(["/hello/foo", "/hello/bar"]).not.toThrow())
+  })
+  it("should use the first string in a string array", () => {
+    expect(util.pathToFsPath(["/hello/foo", "/hello/bar"])).toBe("/hello/foo")
+  })
+  it("should replace / with \\ on Windows", () => {
+    let ORIGINAL_PLATFORM = process.platform
+
+    Object.defineProperty(process, "platform", {
+      value: "win32",
+    })
+
+    expect(util.pathToFsPath("/C:/far/boo")).toBe("c:\\far\\boo")
+
+    Object.defineProperty(process, "platform", {
+      value: ORIGINAL_PLATFORM,
+    })
   })
 })

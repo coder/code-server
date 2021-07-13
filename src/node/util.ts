@@ -10,6 +10,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import { getFirstString } from "../common/util"
 
 export interface Paths {
   data: string
@@ -166,14 +167,13 @@ export const hash = async (password: string): Promise<string> => {
  * Used to verify if the password matches the hash
  */
 export const isHashMatch = async (password: string, hash: string) => {
-  if (password === "" || hash === "") {
+  if (password === "" || hash === "" || !hash.startsWith("$")) {
     return false
   }
   try {
     return await argon2.verify(hash, password)
   } catch (error) {
-    logger.error(error)
-    return false
+    throw new Error(error)
   }
 }
 
@@ -458,10 +458,17 @@ enum CharCode {
  * Taken from vs/base/common/uri.ts. It's not imported to avoid also importing
  * everything that file imports.
  */
-export function pathToFsPath(path: string, keepDriveLetterCasing = false): string {
+export function pathToFsPath(path: string | string[], keepDriveLetterCasing = false): string {
   const isWindows = process.platform === "win32"
-  const uri = { authority: undefined, path, scheme: "file" }
+  const uri = { authority: undefined, path: getFirstString(path), scheme: "file" }
   let value: string
+
+  if (typeof uri.path !== "string") {
+    throw new Error(
+      `Could not compute fsPath from given uri. Expected path to be of type string, but was of type ${typeof uri.path}.`,
+    )
+  }
+
   if (uri.authority && uri.path.length > 1 && uri.scheme === "file") {
     // unc path: file://shares/c$/far/boo
     value = `//${uri.authority}${uri.path}`
@@ -508,4 +515,18 @@ export const isFile = async (path: string): Promise<boolean> => {
   } catch (error) {
     return false
   }
+}
+
+/**
+ * Escapes any HTML string special characters, like &, <, >, ", and '.
+ *
+ * Source: https://stackoverflow.com/a/6234804/3015595
+ **/
+export function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;")
 }

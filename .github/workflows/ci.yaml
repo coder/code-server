@@ -16,8 +16,9 @@ on:
 
 jobs:
   prebuild:
-    name: Pre-build checks
+    name: Pre-Build checks
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
@@ -65,6 +66,7 @@ jobs:
     name: Run audit-ci
     needs: prebuild
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -95,6 +97,7 @@ jobs:
     name: Build
     needs: prebuild
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v2
         with:
@@ -170,6 +173,7 @@ jobs:
     name: x86-64 Linux build
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     container: "centos:7"
 
     steps:
@@ -240,6 +244,7 @@ jobs:
     name: Linux ARM64 cross-compile build
     needs: build
     runs-on: ubuntu-16.04
+    timeout-minutes: 15
     env:
       AR: aarch64-linux-gnu-ar
       CC: aarch64-linux-gnu-gcc
@@ -293,6 +298,7 @@ jobs:
     name: x86-64 macOS build
     needs: build
     runs-on: macos-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v2
 
@@ -333,6 +339,7 @@ jobs:
     name: End-to-end tests
     needs: package-linux-amd64
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       # Since we build code-server we might as well run tests from the release
       # since VS Code will load faster due to the bundling.

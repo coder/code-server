@@ -105,8 +105,64 @@ try {
   /* Probably fine. */
 }
 
+export function setBodyBackgroundToThemeBackgroundColor(document: Document, localStorage: Storage) {
+  const errorMsgPrefix = "[vscode]"
+
+  if (!document) {
+    throw new Error(`${errorMsgPrefix} Could not set body background to theme background color. Document is undefined.`)
+  }
+
+  if (!localStorage) {
+    throw new Error(
+      `${errorMsgPrefix} Could not set body background to theme background color. localStorage is undefined.`,
+    )
+  }
+
+  const colorThemeData = localStorage.getItem("colorThemeData")
+
+  if (!colorThemeData) {
+    throw new Error(
+      `${errorMsgPrefix} Could not set body background to theme background color. Could not find colorThemeData in localStorage.`,
+    )
+  }
+
+  let _colorThemeData
+  try {
+    // We wrap this JSON.parse logic in a try/catch
+    // because it can throw if the JSON is invalid.
+    // and instead of throwing a random error
+    // we can throw our own error, which will be more helpful
+    // to the end user.
+    _colorThemeData = JSON.parse(colorThemeData)
+  } catch {
+    throw new Error(
+      `${errorMsgPrefix} Could not set body background to theme background color. Could not parse colorThemeData from localStorage.`,
+    )
+  }
+
+  const hasColorMapProperty = Object.prototype.hasOwnProperty.call(_colorThemeData, "colorMap")
+  if (!hasColorMapProperty) {
+    throw new Error(
+      `${errorMsgPrefix} Could not set body background to theme background color. colorThemeData is missing colorMap.`,
+    )
+  }
+
+  const editorBgColor = _colorThemeData.colorMap["editor.background"]
+
+  if (!editorBgColor) {
+    throw new Error(
+      `${errorMsgPrefix} Could not set body background to theme background color. colorThemeData.colorMap["editor.background"] is undefined.`,
+    )
+  }
+
+  document.body.style.background = editorBgColor
+
+  return null
+}
+
 try {
-  document.body.style.background = JSON.parse(localStorage.getItem("colorThemeData")!).colorMap["editor.background"]
+  setBodyBackgroundToThemeBackgroundColor(document, localStorage)
 } catch (error) {
-  // Oh well.
+  console.error("Something went wrong setting the body background to the theme background color.")
+  console.error(error)
 }
