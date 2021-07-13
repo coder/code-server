@@ -469,9 +469,7 @@ describe("pathToFsPath", () => {
       util
         // @ts-expect-error We need to check other types
         .pathToFsPath({}),
-    ).toThrow(
-      `Could not compute fsPath from given uri. Expected path to be of type string, but was of type undefined.`,
-    )
+    ).toThrow(`Could not compute fsPath from given uri. Expected path to be of type string, but was of type undefined.`)
   })
   it("should not throw an error for a string array", () => {
     // @ts-expect-error We need to check other types

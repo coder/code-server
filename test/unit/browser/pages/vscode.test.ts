@@ -6,7 +6,7 @@ import {
   getNlsConfiguration,
   nlsConfigElementId,
   setBodyBackgroundToThemeBackgroundColor,
-} from "../../../src/browser/pages/vscode"
+} from "../../../../src/browser/pages/vscode"
 
 describe("vscode", () => {
   describe("getNlsConfiguration", () => {
