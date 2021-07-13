@@ -20,8 +20,11 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v2
 
-      - name: Install bats
-        run: apk add bats
+      - name: Install test utilities
+        run: apk add bats checkbashisms
+
+      - name: Check Bashisms
+        run: checkbashisms ./install.sh
 
       - name: Run script unit tests
         run: ./ci/dev/test-scripts.sh
