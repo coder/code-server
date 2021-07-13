@@ -5,7 +5,6 @@
 
 import { CancellationToken } from 'vs/base/common/cancellation';
 import { Disposable } from 'vs/base/common/lifecycle';
-import { isWindows } from 'vs/base/common/platform';
 import { URI } from 'vs/base/common/uri';
 import { IModeService } from 'vs/editor/common/services/modeService';
 import { localize } from 'vs/nls';
@@ -15,52 +14,12 @@ import { Extensions as WorkbenchExtensions, IWorkbenchContributionsRegistry } fr
 import { CHANGE_CELL_LANGUAGE } from 'vs/workbench/contrib/notebook/browser/notebookBrowser';
 import { INotebookCellStatusBarService } from 'vs/workbench/contrib/notebook/common/notebookCellStatusBarService';
 import { CellKind, CellStatusbarAlignment, INotebookCellStatusBarItem, INotebookCellStatusBarItemList, INotebookCellStatusBarItemProvider } from 'vs/workbench/contrib/notebook/common/notebookCommon';
-import { NotebookSelector } from 'vs/workbench/contrib/notebook/common/notebookSelector';
 import { INotebookService } from 'vs/workbench/contrib/notebook/common/notebookService';
 import { LifecyclePhase } from 'vs/workbench/services/lifecycle/common/lifecycle';
 
-class CellStatusBarPlaceholderProvider implements INotebookCellStatusBarItemProvider {
-	readonly selector: NotebookSelector = {
-		pattern: '**/*'
-	};
-
-	constructor(
-		@INotebookService private readonly _notebookService: INotebookService,
-	) { }
-
-	async provideCellStatusBarItems(uri: URI, index: number, token: CancellationToken): Promise<INotebookCellStatusBarItemList | undefined> {
-		const doc = this._notebookService.getNotebookTextModel(uri);
-		const cell = doc?.cells[index];
-		if (!cell || typeof cell.metadata.runState !== 'undefined' || typeof cell.metadata.lastRunSuccess !== 'undefined') {
-			return;
-		}
-
-		let text: string;
-		if (cell.cellKind === CellKind.Code) {
-			text = isWindows ?
-				localize('notebook.cell.status.codeExecuteTipWin', "Press Ctrl+Alt+Enter to execute cell") :
-				localize('notebook.cell.status.codeExecuteTipNotWin', "Press Ctrl+Enter to execute cell");
-		} else {
-			text = localize('notebook.cell.status.markdownExecuteTip', "Press Escape to stop editing");
-		}
-
-		const item = <INotebookCellStatusBarItem>{
-			text,
-			tooltip: text,
-			alignment: CellStatusbarAlignment.Left,
-			opacity: '0.7',
-			onlyShowWhenActive: true
-		};
-		return {
-			items: [item]
-		};
-	}
-}
-
 class CellStatusBarLanguagePickerProvider implements INotebookCellStatusBarItemProvider {
-	readonly selector: NotebookSelector = {
-		pattern: '**/*'
-	};
+
+	readonly viewType = '*';
 
 	constructor(
 		@INotebookService private readonly _notebookService: INotebookService,
@@ -74,7 +33,7 @@ class CellStatusBarLanguagePickerProvider implements INotebookCellStatusBarItemP
 			return;
 		}
 
-		const modeId = cell.cellKind === CellKind.Markdown ?
+		const modeId = cell.cellKind === CellKind.Markup ?
 			'markdown' :
 			(this._modeService.getModeIdForLanguageName(cell.language) || cell.language);
 		const text = this._modeService.getLanguageName(modeId) || this._modeService.getLanguageName('plaintext');
@@ -98,7 +57,6 @@ class BuiltinCellStatusBarProviders extends Disposable {
 		super();
 
 		const builtinProviders = [
-			CellStatusBarPlaceholderProvider,
 			CellStatusBarLanguagePickerProvider,
 		];
 		builtinProviders.forEach(p => {

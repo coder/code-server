@@ -7,8 +7,6 @@
  * A list of command line arguments we support natively.
  */
 export interface NativeParsedArgs {
-	'extra-extensions-dir'?: string[];
-	'extra-builtin-extensions-dir'?: string[];
 	_: string[];
 	'folder-uri'?: string[]; // undefined or array of 1 or more
 	'file-uri'?: string[]; // undefined or array of 1 or more
@@ -41,6 +39,8 @@ export interface NativeParsedArgs {
 	'extensions-dir'?: string;
 	'extensions-download-dir'?: string;
 	'builtin-extensions-dir'?: string;
+	'extra-extensions-dir'?: string[]; // NOTE@coder: added extra extensions dir
+	'extra-builtin-extensions-dir'?: string[]; // NOTE@coder: added extra builtin extensions dir
 	extensionDevelopmentPath?: string[]; // undefined or array of 1 or more local paths or URIs
 	extensionTestsPath?: string; // either a local path or a URI
 	extensionDevelopmentKind?: string[];
@@ -67,6 +67,7 @@ export interface NativeParsedArgs {
 	'install-source'?: string;
 	'disable-updates'?: boolean;
 	'disable-keytar'?: boolean;
+	'disable-workspace-trust'?: boolean;
 	'disable-crash-reporter'?: boolean;
 	'crash-reporter-directory'?: string;
 	'crash-reporter-id'?: string;

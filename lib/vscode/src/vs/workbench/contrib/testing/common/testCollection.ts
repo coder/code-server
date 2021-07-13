@@ -89,7 +89,7 @@ export interface ITestItem {
 	extId: string;
 	label: string;
 	children?: never;
-	uri: URI;
+	uri?: URI;
 	range: IRange | null;
 	description: string | null;
 	error: string | IMarkdownString | null;
@@ -148,6 +148,8 @@ export interface TestResultItem {
 	computedState: TestResultState;
 	/** True if the test is outdated */
 	retired: boolean;
+	/** Max duration of the item's tasks (if run directly) */
+	ownDuration?: number;
 	/** True if the test was directly requested by the run (is not a child or parent) */
 	direct?: boolean;
 }
@@ -169,6 +171,8 @@ export interface ISerializedTestResults {
 	items: SerializedTestResultItem[];
 	/** Tasks involved in the run. */
 	tasks: ITestRunTask[];
+	/** Human-readable name of the test run. */
+	name: string;
 }
 
 export const enum TestDiffOpType {

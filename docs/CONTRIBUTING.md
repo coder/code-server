@@ -200,16 +200,62 @@ a Git subtree to fork and modify VS Code. This code lives under
 
 Some noteworthy changes in our version of VS Code include:
 
-- Adding our build file, which includes our code and VS Code's web code
-- Allowing multiple extension directories (both user and built-in)
-- Modifying the loader, WebSocket, webview, service worker, and asset requests to
-  use the URL of the page as a base (and TLS, if necessary for the WebSocket)
-- Sending client-side telemetry through the server
-- Allowing modification of the display language
-- Making it possible for us to load code on the client
-- Making it possible to install extensions of any kind
-- Fixing issue with getting disconnected when your machine sleeps or hibernates
-- Adding connection type to web socket query parameters
+- Adding our build file, [`lib/vscode/coder.js`](../lib/vscode/coder.js), which includes build steps specific to code-server
+- Node.js version detection changes in [`build/lib/node.ts`](../lib/vscode/build/lib/node.ts) and [`build/lib/util.ts`](../lib/vscode/build/lib/util.ts)
+- Allowing extra extension directories
+  - Added extra arguments to [`src/vs/platform/environment/common/argv.ts`](../lib/vscode/src/vs/platform/environment/common/argv.ts) and to [`src/vs/platform/environment/node/argv.ts`](../lib/vscode/src/vs/platform/environment/node/argv.ts)
+  - Added extra environment state to [`src/vs/platform/environment/common/environment.ts`](../lib/vscode/src/vs/platform/environment/common/environment.ts);
+  - Added extra getters to [`src/vs/platform/environment/common/environmentService.ts`](../lib/vscode/src/vs/platform/environment/common/environmentService.ts)
+  - Added extra scanning paths to [`src/vs/platform/extensionManagement/node/extensionsScanner.ts`](../lib/vscode/src/vs/platform/extensionManagement/node/extensionsScanner.ts)
+- Additions/removals from [`package.json`](../lib/vscode/package.json):
+  - Removing `electron`, `keytar` and `native-keymap` to avoid pulling in desktop dependencies during build on Linux
+  - Removing `gulp-azure-storage` and `gulp-tar` (unsued in our build process, may pull in outdated dependencies)
+  - Adding `proxy-agent`, `proxy-from-env` (for proxying) and `rimraf` (used during build/install steps)
+- Adding our branding/custom URLs/version:
+  - [`product.json`](../lib/vscode/product.json)
+  - [`src/vs/base/common/product.ts`](../lib/vscode/src/vs/base/common/product.ts)
+  - [`src/vs/workbench/browser/parts/dialogs/dialogHandler.ts`](../lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts)
+  - [`src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts`](../lib/vscode/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts)
+  - [`src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts`](../lib/vscode/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts)
+- Removing azure/macOS signing related dependencies from [`build/package.json`](../lib/vscode/build/package.json)
+- Modifying `.gitignore` to allow us to add files to `src/vs/server` and modifying `.eslintignore` to ignore lint on the shared files below (we use different formatter settings than VS Code).
+- Sharing some files with our codebase via symlinks:
+  - [`src/vs/base/common/ipc.d.ts`](../lib/vscode/src/vs/base/common/ipc.d.ts) points to [`typings/ipc.d.ts`](../typings/ipc.d.ts)
+  - [`src/vs/base/common/util.ts`](../lib/vscode/src/vs/base/common/util.ts) points to [`src/common/util.ts`](../src/common/util.ts)
+  - [`src/vs/base/node/proxy_agent.ts`](../lib/vscode/src/vs/base/node/proxy_agent.ts) points to [`src/node/proxy_agent.ts`](../src/node/proxy_agent.ts)
+- Allowing socket changes by adding `setSocket` in [`src/vs/base/parts/ipc/common/ipc.net.ts`](../lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts)
+  - We use this for connection persistence in our server-side code.
+- Added our server-side Node.JS code to `src/vs/server`.
+  - This code includes the logic to spawn the various services (extension host, terminal, etc.) and some glue
+- Added [`src/vs/workbench/browser/client.ts`](../lib/vscode/src/vs/workbench/browser/client.ts) to hold some server customizations.
+  - Includes the functionality for the Log Out command and menu item
+  - Also, imported and called `initialize` from the main web file, [`src/vs/workbench/browser/web.main.ts`](../lib/vscode/src/vs/workbench/browser/web.main.ts)
+- Added a (hopefully temporary) hotfix to [`src/vs/workbench/common/resources.ts`](../lib/vscode/src/vs/workbench/common/resources.ts) to get context menu actions working for the Git integration.
+- Added connection type to WebSocket query parameters in [`src/vs/platform/remote/common/remoteAgentConnection.ts`](../lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts)
+- Added `CODE_SERVER*` variables to the sanitization list in [`src/vs/base/common/processes.ts`](../lib/vscode/src/vs/base/common/processes.ts)
+- Fix localization support:
+  - Added file [`src/vs/workbench/services/localizations/browser/localizationsService.ts`](../lib/vscode/src/vs/workbench/services/localizations/browser/localizationsService.ts).
+  - Modified file [`src/vs/base/common/platform.ts`](../lib/vscode/src/vs/base/common/platform.ts)
+  - Modified file [`src/vs/base/node/languagePacks.js`](../lib/vscode/src/vs/base/node/languagePacks.js)
+- Added code to allow server to inject settings to [`src/vs/platform/product/common/product.ts`](../lib/vscode/src/vs/platform/product/common/product.ts)
+- Extension fixes:
+  - Avoid disabling extensions by extensionKind in [`src/vs/workbench/services/extensionManagement/browser/extensionEnablementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/browser/extensionEnablementService.ts) (Needed for vscode-icons)
+  - Remove broken symlinks in [`extensions/postinstall.js`](../lib/vscode/extensions/postinstall.js)
+  - Add tip about extension gallery in [`src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts`](../lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts)
+  - Use our own server for GitHub authentication in [`extensions/github-authentication/src/githubServer.ts`](../lib/vscode/extensions/github-authentication/src/githubServer.ts)
+  - Settings persistence on the server in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
+  - Add extension install fallback in [`src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts)
+  - Add proxy-agent monkeypatch and keep extension host indefinitely running in [`src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts`](../lib/vscode/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts)
+  - Patch build system to avoid removing extension dependencies for `yarn global add` users in [`build/lib/extensions.ts`](../lib/vscode/build/lib/extensions.ts)
+  - Allow all extensions to use proposed APIs in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
+  - Make storage writes async to allow extensions to wait for them to complete in [`src/vs/platform/storage/common/storage.ts`](../lib/vscode/src/vs/platform/storage/common/storage.ts)
+- Specify webview path in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
+- URL readability improvements for folder/workspace in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
+- Socket/Authority-related fixes (for remote proxying etc.):
+  - [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
+  - [`src/vs/platform/remote/browser/browserSocketFactory.ts`](../lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts)
+  - [`src/vs/base/common/network.ts`](../lib/vscode/src/vs/base/common/network.ts)
+- Added code to write out IPC path in [`src/vs/workbench/api/node/extHostCLIServer.ts`](../lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts)
 
 As the web portion of VS Code matures, we'll be able to shrink and possibly
 eliminate our modifications. In the meantime, upgrading the VS Code version requires

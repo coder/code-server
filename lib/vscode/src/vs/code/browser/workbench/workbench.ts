@@ -17,7 +17,6 @@ import { isStandalone } from 'vs/base/browser/browser';
 import { localize } from 'vs/nls';
 import { Schemas } from 'vs/base/common/network';
 import product from 'vs/platform/product/common/product';
-import { encodePath } from 'vs/server/node/util';
 
 function doCreateUri(path: string, queryValues: Map<string, string>): URI {
 	let query: string | undefined = undefined;
@@ -36,6 +35,15 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
 
 	return URI.parse(window.location.href).with({ path, query });
 }
+
+/**
+ * NOTE@coder: Add this function.
+ * Encode a path for opening via the folder or workspace query parameter. This
+ * preserves slashes so it can be edited by hand more easily.
+ */
+ export const encodePath = (path: string): string => {
+	return path.split('/').map((p) => encodeURIComponent(p)).join('/');
+};
 
 interface ICredential {
 	service: string;
@@ -278,8 +286,8 @@ class WorkspaceProvider implements IWorkspaceProvider {
 	readonly trusted = true;
 
 	constructor(
-		public readonly workspace: IWorkspace,
-		public readonly payload: object
+		readonly workspace: IWorkspace,
+		readonly payload: object
 	) { }
 
 	async open(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): Promise<boolean> {
@@ -409,7 +417,6 @@ class WindowIndicator implements IWindowIndicator {
 }
 
 (function () {
-
 	// Find config by checking for DOM
 	const configElement = document.getElementById('vscode-workbench-web-configuration');
 	const configElementAttribute = configElement ? configElement.getAttribute('data-settings') : undefined;

@@ -144,7 +144,7 @@ describe("util", () => {
       const mockElement = document.createElement("div")
       mockElement.setAttribute(
         "data-settings",
-        '{"base":".","csStaticBase":"./static/development/Users/jp/Dev/code-server","logLevel":2,"disableTelemetry":false,"disableUpdateCheck":false}',
+        '{"base":".","csStaticBase":"./static/development/Users/jp/Dev/code-server","logLevel":2,"disableUpdateCheck":false}',
       )
       // Return mockElement from the spy
       // this way, when we call "getElementById"
@@ -154,7 +154,6 @@ describe("util", () => {
       expect(util.getOptions()).toStrictEqual({
         base: "",
         csStaticBase: "/static/development/Users/jp/Dev/code-server",
-        disableTelemetry: false,
         disableUpdateCheck: false,
         logLevel: 2,
       })

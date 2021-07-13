@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fs from 'fs';
 import * as semver from 'vs/base/common/semver/semver';
 import { Disposable } from 'vs/base/common/lifecycle';
 import * as pfs from 'vs/base/node/pfs';
@@ -98,7 +97,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	async scanAllUserExtensions(): Promise<ILocalExtension[]> {
-		return this.scanExtensionsInDirs(this.extensionsPath, this.environmentService.extraExtensionPaths, ExtensionType.User);
+		return this.scanExtensionsInDirs([this.extensionsPath, ...this.environmentService.extraExtensionPaths], ExtensionType.User);
 	}
 
 	async extractUserExtension(identifierWithVersion: ExtensionIdentifierWithVersion, zipPath: string, token: CancellationToken): Promise<ILocalExtension> {
@@ -159,7 +158,7 @@ export class ExtensionsScanner extends Disposable {
 		storedMetadata.isBuiltin = storedMetadata.isBuiltin || undefined;
 		storedMetadata.installedTimestamp = storedMetadata.installedTimestamp || undefined;
 		const manifestPath = path.join(local.location.fsPath, 'package.json');
-		const raw = await fs.promises.readFile(manifestPath, 'utf8');
+		const raw = await pfs.Promises.readFile(manifestPath, 'utf8');
 		const { manifest } = await this.parseManifest(raw);
 		(manifest as ILocalExtensionManifest).__metadata = storedMetadata;
 		await pfs.writeFile(manifestPath, JSON.stringify(manifest, null, '\t'));
@@ -192,7 +191,7 @@ export class ExtensionsScanner extends Disposable {
 		return this.uninstalledFileLimiter.queue(async () => {
 			let raw: string | undefined;
 			try {
-				raw = await fs.promises.readFile(this.uninstalledPath, 'utf8');
+				raw = await pfs.Promises.readFile(this.uninstalledPath, 'utf8');
 			} catch (err) {
 				if (err.code !== 'ENOENT') {
 					throw err;
@@ -251,7 +250,7 @@ export class ExtensionsScanner extends Disposable {
 
 	private async rename(identifier: IExtensionIdentifier, extractPath: string, renamePath: string, retryUntil: number): Promise<void> {
 		try {
-			await fs.promises.rename(extractPath, renamePath);
+			await pfs.Promises.rename(extractPath, renamePath);
 		} catch (error) {
 			if (isWindows && error && error.code === 'EPERM' && Date.now() < retryUntil) {
 				this.logService.info(`Failed renaming ${extractPath} to ${renamePath} with 'EPERM' error. Trying again...`, identifier.id);
@@ -315,7 +314,7 @@ export class ExtensionsScanner extends Disposable {
 	}
 
 	private async scanDefaultSystemExtensions(): Promise<ILocalExtension[]> {
-		const result = await this.scanExtensionsInDirs(this.systemExtensionsPath, this.environmentService.extraBuiltinExtensionPaths, ExtensionType.System);
+		const result = await this.scanExtensionsInDirs([this.systemExtensionsPath, ...this.environmentService.extraBuiltinExtensionPaths], ExtensionType.System);
 		this.logService.trace('Scanned system extensions:', result.length);
 		return result;
 	}
@@ -394,9 +393,9 @@ export class ExtensionsScanner extends Disposable {
 
 	private async readManifest(extensionPath: string): Promise<{ manifest: IExtensionManifest; metadata: IStoredMetadata | null; }> {
 		const promises = [
-			fs.promises.readFile(path.join(extensionPath, 'package.json'), 'utf8')
+			pfs.Promises.readFile(path.join(extensionPath, 'package.json'), 'utf8')
 				.then(raw => this.parseManifest(raw)),
-			fs.promises.readFile(path.join(extensionPath, 'package.nls.json'), 'utf8')
+			pfs.Promises.readFile(path.join(extensionPath, 'package.nls.json'), 'utf8')
 				.then(undefined, err => err.code !== 'ENOENT' ? Promise.reject<string>(err) : '{}')
 				.then(raw => JSON.parse(raw))
 		];
@@ -420,8 +419,8 @@ export class ExtensionsScanner extends Disposable {
 		});
 	}
 
-	private async scanExtensionsInDirs(dir: string, dirs: string[], type: ExtensionType): Promise<ILocalExtension[]>{
-		const results = await Promise.all([dir, ...dirs].map((path) => this.scanExtensionsInDir(path, type)));
+	private async scanExtensionsInDirs(dirs: string[], type: ExtensionType): Promise<ILocalExtension[]>{
+		const results = await Promise.all(dirs.map((path) => this.scanExtensionsInDir(path, type)));
 		return results.reduce((flat, current) => flat.concat(current), []);
 	}
 }

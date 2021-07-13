@@ -5,13 +5,14 @@
 
 import { addDisposableListener } from 'vs/base/browser/dom';
 import { IDisposable } from 'vs/base/common/lifecycle';
+import { IMenuService } from 'vs/platform/actions/common/actions';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+import { IContextMenuService } from 'vs/platform/contextview/browser/contextView';
 import { IFileService } from 'vs/platform/files/common/files';
 import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService } from 'vs/platform/notification/common/notification';
 import { IRemoteAuthorityResolverService } from 'vs/platform/remote/common/remoteAuthorityResolver';
 import { ITunnelService } from 'vs/platform/remote/common/tunnel';
-import { IRequestService } from 'vs/platform/request/common/request';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { BaseWebview, WebviewMessageChannels } from 'vs/workbench/contrib/webview/browser/baseWebviewElement';
 import { WebviewThemeDataProvider } from 'vs/workbench/contrib/webview/browser/themeing';
@@ -28,25 +29,27 @@ export class IFrameWebview extends BaseWebview<HTMLIFrameElement> implements Web
 		contentOptions: WebviewContentOptions,
 		extension: WebviewExtensionDescription | undefined,
 		webviewThemeDataProvider: WebviewThemeDataProvider,
+		@IContextMenuService contextMenuService: IContextMenuService,
 		@IConfigurationService configurationService: IConfigurationService,
 		@IFileService fileService: IFileService,
 		@ILogService logService: ILogService,
+		@IMenuService menuService: IMenuService,
 		@INotificationService notificationService: INotificationService,
 		@IRemoteAuthorityResolverService remoteAuthorityResolverService: IRemoteAuthorityResolverService,
-		@IRequestService requestService: IRequestService,
 		@ITelemetryService telemetryService: ITelemetryService,
 		@ITunnelService tunnelService: ITunnelService,
 		@IWorkbenchEnvironmentService environmentService: IWorkbenchEnvironmentService,
 	) {
 		super(id, options, contentOptions, extension, webviewThemeDataProvider, {
+			contextMenuService,
 			notificationService,
 			logService,
 			telemetryService,
 			environmentService,
-			requestService,
 			fileService,
 			tunnelService,
-			remoteAuthorityResolverService
+			remoteAuthorityResolverService,
+			menuService,
 		});
 
 		/* __GDPR__
@@ -94,14 +97,18 @@ export class IFrameWebview extends BaseWebview<HTMLIFrameElement> implements Web
 		this.element?.contentWindow?.focus();
 	}
 
-	protected initElement(extension: WebviewExtensionDescription | undefined, options: WebviewOptions, extraParams?: object) {
-		const params = {
+	protected initElement(extension: WebviewExtensionDescription | undefined, options: WebviewOptions, extraParams?: { [key: string]: string }) {
+		const params: { [key: string]: string } = {
 			id: this.id,
+			swVersion: String(this._expectedServiceWorkerVersion),
 			extensionId: extension?.id.value ?? '', // The extensionId and purpose in the URL are used for filtering in js-debug:
-			purpose: options.purpose,
-			serviceWorkerFetchIgnoreSubdomain: options.serviceWorkerFetchIgnoreSubdomain,
-			...extraParams
-		} as const;
+			...extraParams,
+			'vscode-resource-base-authority': this.webviewRootResourceAuthority,
+		};
+
+		if (options.purpose) {
+			params.purpose = options.purpose;
+		}
 
 		const queryString = (Object.keys(params) as Array<keyof typeof params>)
 			.map((key) => `${key}=${encodeURIComponent(params[key]!)}`)
@@ -116,10 +123,6 @@ export class IFrameWebview extends BaseWebview<HTMLIFrameElement> implements Web
 			return endpoint.slice(0, endpoint.length - 1);
 		}
 		return endpoint;
-	}
-
-	protected get webviewResourceEndpoint(): string {
-		return this.webviewContentEndpoint;
 	}
 
 	public mountTo(parent: HTMLElement) {

@@ -19,7 +19,7 @@ import { TypeScriptVersionManager } from './tsServer/versionManager';
 import { ITypeScriptVersionProvider, TypeScriptVersion } from './tsServer/versionProvider';
 import { ClientCapabilities, ClientCapability, ExecConfig, ITypeScriptServiceClient, ServerResponse, TypeScriptRequests } from './typescriptService';
 import API from './utils/api';
-import { TsServerLogLevel, TypeScriptServiceConfiguration } from './utils/configuration';
+import { SeparateSyntaxServerConfiguration, TsServerLogLevel, TypeScriptServiceConfiguration } from './utils/configuration';
 import { Disposable } from './utils/dispose';
 import * as fileSchemes from './utils/fileSchemes';
 import { Logger } from './utils/logger';
@@ -224,6 +224,12 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 	}
 
 	public get capabilities() {
+		if (this._configuration.separateSyntaxServer === SeparateSyntaxServerConfiguration.ForAllRequests) {
+			return new ClientCapabilities(
+				ClientCapability.Syntax,
+				ClientCapability.EnhancedSyntax);
+		}
+
 		if (isWeb()) {
 			return new ClientCapabilities(
 				ClientCapability.Syntax,
@@ -676,6 +682,10 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 	}
 
 	public hasCapabilityForResource(resource: vscode.Uri, capability: ClientCapability): boolean {
+		if (!this.capabilities.has(capability)) {
+			return false;
+		}
+
 		switch (capability) {
 			case ClientCapability.Semantic:
 				{
@@ -727,7 +737,7 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 	}
 
 	public execute(command: keyof TypeScriptRequests, args: any, token: vscode.CancellationToken, config?: ExecConfig): Promise<ServerResponse.Response<Proto.Response>> {
-		let execution: Promise<ServerResponse.Response<Proto.Response>>;
+		let executions: Array<Promise<ServerResponse.Response<Proto.Response>> | undefined>;
 
 		if (config?.cancelOnResourceChange) {
 			const runningServerState = this.service();
@@ -741,17 +751,18 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 			};
 			runningServerState.toCancelOnResourceChange.add(inFlight);
 
-			execution = this.executeImpl(command, args, {
+			executions = this.executeImpl(command, args, {
 				isAsync: false,
 				token: source.token,
 				expectsResult: true,
 				...config,
-			}).finally(() => {
+			});
+			executions[0]!.finally(() => {
 				runningServerState.toCancelOnResourceChange.delete(inFlight);
 				source.dispose();
 			});
 		} else {
-			execution = this.executeImpl(command, args, {
+			executions = this.executeImpl(command, args, {
 				isAsync: false,
 				token,
 				expectsResult: true,
@@ -760,25 +771,25 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 		}
 
 		if (config?.nonRecoverable) {
-			execution.catch(err => this.fatalError(command, err));
+			executions[0]!.catch(err => this.fatalError(command, err));
 		}
-
-		return execution;
-	}
-
-	public executeWithoutWaitingForResponse(command: keyof TypeScriptRequests, args: any): void {
-		const promise = this.executeImpl(command, args, {
-			isAsync: false,
-			token: undefined,
-			expectsResult: command === 'updateOpen'
-		});
 
 		if (command === 'updateOpen') {
 			// If update open has completed, consider that the project has loaded
-			promise.then(() => {
+			Promise.all(executions).then(() => {
 				this.loadingIndicator.reset();
 			});
 		}
+
+		return executions[0]!;
+	}
+
+	public executeWithoutWaitingForResponse(command: keyof TypeScriptRequests, args: any): void {
+		this.executeImpl(command, args, {
+			isAsync: false,
+			token: undefined,
+			expectsResult: false
+		});
 	}
 
 	public executeAsync(command: keyof TypeScriptRequests, args: Proto.GeterrRequestArgs, token: vscode.CancellationToken): Promise<ServerResponse.Response<Proto.Response>> {
@@ -786,12 +797,10 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 			isAsync: true,
 			token,
 			expectsResult: true
-		});
+		})[0]!;
 	}
 
-	private executeImpl(command: keyof TypeScriptRequests, args: any, executeInfo: { isAsync: boolean, token?: vscode.CancellationToken, expectsResult: false, lowPriority?: boolean, requireSemantic?: boolean }): undefined;
-	private executeImpl(command: keyof TypeScriptRequests, args: any, executeInfo: { isAsync: boolean, token?: vscode.CancellationToken, expectsResult: boolean, lowPriority?: boolean, requireSemantic?: boolean }): Promise<ServerResponse.Response<Proto.Response>>;
-	private executeImpl(command: keyof TypeScriptRequests, args: any, executeInfo: { isAsync: boolean, token?: vscode.CancellationToken, expectsResult: boolean, lowPriority?: boolean, requireSemantic?: boolean }): Promise<ServerResponse.Response<Proto.Response>> | undefined {
+	private executeImpl(command: keyof TypeScriptRequests, args: any, executeInfo: { isAsync: boolean, token?: vscode.CancellationToken, expectsResult: boolean, lowPriority?: boolean, requireSemantic?: boolean }): Array<Promise<ServerResponse.Response<Proto.Response>> | undefined> {
 		this.bufferSyncSupport.beforeCommand(command);
 		const runningServerState = this.service();
 		return runningServerState.server.executeImpl(command, args, executeInfo);
@@ -812,7 +821,7 @@ export default class TypeScriptServiceClient extends Disposable implements IType
 			}
 		*/
 		this.logTelemetry('fatalError', { ...(error instanceof TypeScriptServerError ? error.telemetry : { command }) });
-		console.error(`A non-recoverable error occured while executing tsserver command: ${command}`);
+		console.error(`A non-recoverable error occurred while executing tsserver command: ${command}`);
 		if (error instanceof TypeScriptServerError && error.serverErrorText) {
 			console.error(error.serverErrorText);
 		}
@@ -1056,4 +1065,3 @@ class ServerInitializingIndicator extends Disposable {
 		}
 	}
 }
-

@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { escape } from 'vs/base/common/strings';
-import product from 'vs/platform/product/common/product';
 import { localize } from 'vs/nls';
+import product from 'vs/platform/product/common/product';
 
 export default () => `
 <div class="welcomePageContainer">

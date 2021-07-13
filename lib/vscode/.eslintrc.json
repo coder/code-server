@@ -62,7 +62,7 @@
 		"code-no-standalone-editor": "warn",
 		"code-no-unexternalized-strings": "warn",
 		"code-layering": [
-			"off",
+			"warn",
 			{
 				"common": [],
 				"node": [
@@ -88,7 +88,7 @@
 			}
 		],
 		"code-import-patterns": [
-			"off",
+			"warn",
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			// !!! Do not relax these rules !!!
 			// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -501,7 +501,7 @@
 					"**/vs/platform/**",
 					"**/vs/editor/**",
 					"**/vs/workbench/{common,browser,node,electron-sandbox,electron-browser}/**",
-					"vs/workbench/contrib/files/common/editors/fileEditorInput",
+					"vs/workbench/contrib/files/browser/editors/fileEditorInput",
 					"**/vs/workbench/services/**",
 					"**/vs/workbench/test/**",
 					"*" // node modules
@@ -807,6 +807,7 @@
 					"**/vs/platform/**/{common,node}/**",
 					"**/vs/workbench/**/{common,node}/**",
 					"**/vs/server/**",
+					"@coder/logger", // NOTE@coder: add logger
 					"*" // node modules
 				]
 			},

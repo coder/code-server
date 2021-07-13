@@ -78,6 +78,15 @@ try {
     // Without the full URL VS Code will try to load file://.
     baseUrl: `${window.location.origin}${options.csStaticBase}/lib/vscode/out`,
     recordStats: true,
+    // TODO: There don't appear to be any types for trustedTypes yet.
+    trustedTypesPolicy: (window as any).trustedTypes?.createPolicy("amdLoader", {
+      createScriptURL(value: string): string {
+        if (value.startsWith(window.location.origin)) {
+          return value
+        }
+        throw new Error(`Invalid script url: ${value}`)
+      },
+    }),
     paths: {
       "vscode-textmate": `../node_modules/vscode-textmate/release/main`,
       "vscode-oniguruma": `../node_modules/vscode-oniguruma/release/main`,
@@ -93,6 +102,7 @@ try {
   }
 } catch (error) {
   console.error(error)
+  /* Probably fine. */
 }
 
 export function setBodyBackgroundToThemeBackgroundColor(document: Document, localStorage: Storage) {

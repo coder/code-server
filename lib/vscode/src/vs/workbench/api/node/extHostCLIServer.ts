@@ -11,8 +11,8 @@ import { IWindowOpenable, IOpenWindowOptions } from 'vs/platform/windows/common/
 import { URI } from 'vs/base/common/uri';
 import { hasWorkspaceFileExtension } from 'vs/platform/workspaces/common/workspaces';
 import { ILogService } from 'vs/platform/log/common/log';
-import { join } from 'vs/base/common/path';
 import { tmpdir } from 'os';
+import { join } from 'vs/base/common/path';
 
 export interface OpenCommandPipeArgs {
 	type: 'open';

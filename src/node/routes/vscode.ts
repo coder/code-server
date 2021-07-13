@@ -49,7 +49,6 @@ router.get("/", async (req, res) => {
       !isDevMode ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
       {
         authed: req.args.auth !== "none",
-        disableTelemetry: !!req.args["disable-telemetry"],
         disableUpdateCheck: !!req.args["disable-update-check"],
       },
     )
