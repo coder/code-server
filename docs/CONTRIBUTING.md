@@ -44,6 +44,8 @@ Here is what is needed:
   - Get this by running `apt-get install -y build-essential`
 - `rsync` and `unzip`
   - Used for code-server releases
+- `bats`
+  - Used to run script unit tests
 
 ## Creating pull requests
 
