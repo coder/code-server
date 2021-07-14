@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://coder.com/docs/code-server/v3.10.2/install
+# See https://coder.com/docs/code-server/v3.11.0/install
 
 usage() {
   arg0="$0"
@@ -66,7 +66,7 @@ fall back to npm so on architectures without pre-built releases this will error.
 
 The installer will cache all downloaded assets into ~/.cache/code-server
 
-More installation docs are at https://coder.com/docs/code-server/v3.10.2/install
+More installation docs are at https://coder.com/docs/code-server/v3.11.0/install
 EOF
 }
 
@@ -433,7 +433,7 @@ install_npm() {
   fi
   echoerr "Please install npm or yarn to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://coder.com/docs/code-server/v3.10.2/install#yarn-npm"
+  echoerr "See the docs https://coder.com/docs/code-server/v3.11.0/install#yarn-npm"
 
   exit 1
 }
