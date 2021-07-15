@@ -390,19 +390,7 @@ Codespaces web dashboard instead of connecting directly to it.
 On the other hand, code-server is free, open-source, and can be run on any
 machine with few limitations.
 
-<<<<<<< HEAD
-
-## Does code-server have any security login validation?
-
-code-server only supports a single password and limits logins to two per minute plus twelve per hour.
-
-## Enterprise
-
-=======
-
 ## Are there community projects involving code-server?
-
-> > > > > > > Edit code-server docs
 
 Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server)
 repository to view community projects and guides with code-server! Feel free to
