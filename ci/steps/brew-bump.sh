@@ -19,10 +19,10 @@ main() {
   echo "Adding Homebrew/homebrew-core as $(upstream)"
   git remote add upstream https://github.com/Homebrew/homebrew-core.git
 
-  echo "Fetching upstream commits..."
+  echo "Fetching upstream Homebrew/hombrew-core commits"
   git fetch upstream
 
-  echo "Merging in latest changes"
+  echo "Merging in latest Homebrew/homebrew-core changes"
   git merge upstream/master
 
   echo "Pushing changes to cdrci/homebrew-core fork on GitHub"
@@ -37,7 +37,15 @@ main() {
 
   # Find the docs for bump-formula-pr here
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18
-  brew bump-formula-pr --force --version="${VERSION}" code-server --no-browse --no-audit
+  local output
+  if ! output=$(brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit 2>&1); then
+    if [[ $output == *"Duplicate PRs should not be opened"* ]]; then
+      echo "$VERSION is already submitted"
+    else
+      echo "$output"
+      exit 1
+    fi
+  fi
 
   # Clean up and remove homebrew-core
   cd ..
