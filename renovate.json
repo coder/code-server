@@ -1,0 +1,18 @@
+{
+  "rangeStrategy": "replace",
+  "extends": ["config:base"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "automerge": true,
+      "groupName": "Minor dependency updates"
+    },
+    {
+      "matchPaths": ["lib/vscode/"],
+      "enabled": false
+    }
+  ],
+  "vulnerabilityAlerts": {
+    "enabled": "true"
+  }
+}
