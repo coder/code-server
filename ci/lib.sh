@@ -62,7 +62,7 @@ get_artifacts_url() {
   artifacts_url=$(gh api "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then
     echo >&2 "ERROR: artifacts_url came back empty"
-    echo >&2 "We looked for a successful run triggered by a pull_request with for code-server version: $code_server_version and a branch named $version_branch"
+    echo >&2 "We looked for a successful run triggered by a pull_request with for code-server version: $VERSION and a branch named $version_branch"
     echo >&2 "URL used for gh API call: $workflow_runs_url"
     exit 1
   fi
