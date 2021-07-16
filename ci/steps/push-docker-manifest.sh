@@ -12,25 +12,15 @@ function version_exists() {
   fi
 }
 
-# Import and push the Docker image for the provided arch.
+# Import and push the Docker image for the provided arch. We must have
+# individual arch repositories pushed remotely in order to use `docker
+# manifest` to create single a multi-arch image.
+# TODO: Switch to buildx? Seems it can do this more simply.
 push() {
   local arch=$1
   local tag="codercom/code-server-$arch:$VERSION"
-
   docker import "./release-images/code-server-$arch-$VERSION.tar" "$tag"
-
-  # We have to ensure the images exists on the remote registry in order to build
-  # the manifest. We don't put the arch in the tag to avoid polluting the main
-  # repository. These other repositories are private so they don't pollute our
-  # organization namespace.
   docker push "$tag"
-
-  export DOCKER_CLI_EXPERIMENTAL=enabled
-
-  docker manifest create "codercom/code-server:$VERSION" \
-    "codercom/code-server-$arch:$VERSION" \
-    "codercom/code-server-$arch:$VERSION"
-  docker manifest push --purge "codercom/code-server:$VERSION"
 }
 
 main() {
@@ -49,6 +39,18 @@ main() {
 
   push "amd64"
   push "arm64"
+
+  export DOCKER_CLI_EXPERIMENTAL=enabled
+
+  docker manifest create "codercom/code-server:$VERSION" \
+    "codercom/code-server-amd64:$VERSION" \
+    "codercom/code-server-arm64:$VERSION"
+  docker manifest push --purge "codercom/code-server:$VERSION"
+
+  docker manifest create "codercom/code-server:latest" \
+    "codercom/code-server-amd64:$VERSION" \
+    "codercom/code-server-arm64:$VERSION"
+  docker manifest push --purge "codercom/code-server:latest"
 }
 
 main "$@"
