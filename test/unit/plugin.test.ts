@@ -36,6 +36,7 @@ describe("plugin", () => {
         host: "localhost",
         port: 8080,
         "proxy-domain": [],
+        "proxy-port-separator": "dash",
         config: "~/.config/code-server/config.yaml",
         verbose: false,
         usingEnvPassword: false,
