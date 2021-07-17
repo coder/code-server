@@ -1,4 +1,5 @@
 import { Request, Router } from "express"
+// import fs from "fs"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
@@ -39,9 +40,18 @@ router.all("*", async (req, res, next) => {
     return next()
   }
 
-  // Must be authenticated to use the proxy.
+  // Must be authenticated or declare the port as public to use the proxy.
+  // const portsFile = fs.readFileSync()
+  const publicPortsFile = ""
+  const publicPorts = publicPortsFile.split(",")
+  const portIsPublic = port in publicPorts
   const isAuthenticated = await authenticated(req)
-  if (!isAuthenticated) {
+  if (isAuthenticated || portIsPublic) {
+    proxy.web(req, res, {
+      ignorePath: true,
+      target: `http://0.0.0.0:${port}${req.originalUrl}`,
+    })
+  } else {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
@@ -66,11 +76,6 @@ router.all("*", async (req, res, next) => {
     // Everything else gets an unauthorized message.
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
-
-  proxy.web(req, res, {
-    ignorePath: true,
-    target: `http://0.0.0.0:${port}${req.originalUrl}`,
-  })
 })
 
 export const wsRouter = WsRouter()
