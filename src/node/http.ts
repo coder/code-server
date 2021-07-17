@@ -70,6 +70,8 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       // The password is stored in the cookie after being hashed.
       const hashedPasswordFromArgs = req.args["hashed-password"]
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
+      console.log(">>>>>>>>>>> COOKIE", req.cookies.key)
+      console.log(">>>>>>>>>>> SAN COOKIE", sanitizeString(req.cookies.key))
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
         cookieKey: sanitizeString(req.cookies.key),
@@ -130,7 +132,11 @@ export const redirect = (
  * in. This will use the highest level proxy domain (e.g. `coder.com` over
  * `test.coder.com` if both are specified).
  */
-export const getCookieDomain = (host: string, proxyDomains: string[]): string | undefined => {
+export const getCookieDomain = (
+  host: string,
+  proxyDomains: string[],
+  proxyPortSeparator: string,
+): string | undefined => {
   const idx = host.lastIndexOf(":")
   host = idx !== -1 ? host.substring(0, idx) : host
   // If any of these are true we will still set cookies but without an explicit
@@ -162,11 +168,11 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
   }
 
   proxyDomains.forEach((domain) => {
-    if (host.endsWith(domain) && domain.length < host.length) {
+    if (host.endsWith(domain) && domain.length < host.length && proxyPortSeparator === "dot") {
       host = domain
     }
   })
 
-  logger.debug("got cookie doman", field("host", host))
+  logger.debug("got cookie domain", field("host", host))
   return host || undefined
 }
