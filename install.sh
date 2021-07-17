@@ -7,9 +7,9 @@ set -eu
 usage() {
   arg0="$0"
   if [ "$0" = sh ]; then
-    arg0="curl -fsSL https://code-server.dev/install.sh | sh -s --"
+    arg0="curl -fsSL https://raw.githubusercontent.com/brevdev/code-server/main/install.sh | sh -s --"
   else
-    not_curl_usage="The latest script is available at https://code-server.dev/install.sh
+    not_curl_usage="The latest script is available at https://raw.githubusercontent.com/brevdev/code-server/main/install.sh
 "
   fi
 
@@ -73,8 +73,8 @@ EOF
 
 echo_latest_version() {
   # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
-  version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/cdr/code-server/releases/latest)"
-  version="${version#https://github.com/cdr/code-server/releases/tag/}"
+  version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/brevdev/code-server/releases/latest)"
+  version="${version#https://github.com/brevdev/code-server/releases/tag/}"
   version="${version#v}"
   echo "$version"
 }
@@ -345,7 +345,7 @@ install_deb() {
   echoh "Installing v$VERSION deb package from GitHub releases."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
+  fetch "https://github.com/brevdev/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
     "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
   sudo_sh_c dpkg -i "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
 
@@ -356,7 +356,7 @@ install_rpm() {
   echoh "Installing v$VERSION rpm package from GitHub releases."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
+  fetch "https://github.com/brevdev/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
     "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
   sudo_sh_c rpm -i "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
 
@@ -382,7 +382,7 @@ install_standalone() {
   echoh "Installing standalone release archive v$VERSION from GitHub releases."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
+  fetch "https://github.com/brevdev/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
 
   sh_c="sh_c"

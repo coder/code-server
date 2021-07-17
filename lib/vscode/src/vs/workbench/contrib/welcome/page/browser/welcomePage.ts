@@ -450,7 +450,7 @@ class WelcomePage extends Disposable {
 
 		const prodName = container.querySelector('.welcomePage .title .caption') as HTMLElement;
 		if (prodName) {
-			prodName.textContent = `code-server v${this.productService.codeServerVersion}`;
+			prodName.textContent = `Visual Studio v${this.productService.codeServerVersion}`;
 		}
 
 		recentlyOpened.then(({ workspaces }) => {

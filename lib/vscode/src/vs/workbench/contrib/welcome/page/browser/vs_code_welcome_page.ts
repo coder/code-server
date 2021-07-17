@@ -33,15 +33,15 @@ export default () => `
 					<p class="none detail">${escape(localize('welcomePage.noRecentFolders', "No recent folders"))}</p>
 				</div>
 				<div class="section help">
-					<h2 class="caption">code-server ${escape(localize('welcomePage.help', "Help"))}</h2>
+					<h2 class="caption">Brev ${escape(localize('welcomePage.help', "Help"))}</h2>
 					<ul>
-						<li><a href="https://github.com/cdr/code-server">GitHub Repository</a></li>
-						<li><a href="https://github.com/cdr/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>
-						<li><a href="https://github.com/cdr/code-server/issues">Issue Tracker</a></li>
-						<li><a href="https://github.com/cdr/code-server/blob/master/docs/FAQ.md">FAQ</a></li>
-						<li><a href="https://github.com/cdr/code-server/blob/master/docs/guide.md">Setup Guide</a></li>
-						<li><a href="https://github.com/cdr/code-server/tree/master/docs">Docs</a></li>
-						<li><a href="https://github.com/cdr/code-server/discussions">Discussions</a></li>
+						<li><a href="https://github.com/brevdev/code-server">GitHub Repository</a></li>
+						<li><a href="https://github.com/brevdev/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>
+						<li><a href="https://github.com/brevdev/code-server/issues">Issue Tracker</a></li>
+						<li><a href="https://github.com/brevdev/code-server/blob/master/docs/FAQ.md">FAQ</a></li>
+						<li><a href="https://github.com/brevdev/code-server/blob/master/docs/guide.md">Setup Guide</a></li>
+						<li><a href="https://github.com/brevdev/code-server/tree/master/docs">Docs</a></li>
+						<li><a href="https://github.com/brevdev/code-server/discussions">Discussions</a></li>
 						<li><a href="https://cdr.co/join-community">Slack</a></li>
 					</ul>
 				</div>

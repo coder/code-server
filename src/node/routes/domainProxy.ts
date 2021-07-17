@@ -20,11 +20,12 @@ const maybeProxy = (req: Request): string | undefined => {
   const host = req.headers.host || ""
   const idx = host.indexOf(":")
   const domain = idx !== -1 ? host.substring(0, idx) : host
-  const parts = domain.split(".")
+  const separator = req.args["proxy-port-separator"] === "dash" ? "-" : "."
+  const parts = domain.split(separator)
 
   // There must be an exact match.
   const port = parts.shift()
-  const proxyDomain = parts.join(".")
+  const proxyDomain = parts.join(separator)
   if (!port || !req.args["proxy-domain"].includes(proxyDomain)) {
     return undefined
   }

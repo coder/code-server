@@ -10,7 +10,7 @@
       http-equiv="Content-Security-Policy"
       content="style-src 'self'; script-src 'self' 'unsafe-inline'; manifest-src 'self'; img-src 'self' data:; font-src 'self' data:;"
     />
-    <title>code-server login</title>
+    <title>Brev | Secure Project Login</title>
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
     <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
@@ -24,8 +24,11 @@
     <div class="center-container">
       <div class="card-box">
         <div class="header">
-          <h1 class="main">Welcome to code-server</h1>
-          <div class="sub">Please log in below. {{PASSWORD_MSG}}</div>
+          <h1 class="main">Brev Workspace Login</h1>
+          <div class="sub">
+            Click 'Copy Password' button on your workspace from
+            <a href="https://console.brev.dev">console.brev.dev</a> for the password.
+          </div>
         </div>
         <div class="content">
           <form class="login-form" method="post">
@@ -33,15 +36,16 @@
             <input id="base" type="hidden" name="base" value="/" />
             <div class="field">
               <input
+                id="password"
                 required
                 autofocus
                 class="password"
                 type="password"
-                placeholder="PASSWORD"
+                placeholder="Password"
                 name="password"
                 autocomplete="current-password"
               />
-              <input class="submit -button" value="SUBMIT" type="submit" />
+              <input class="submit -button" value="Continue" type="submit" />
             </div>
             {{ERROR}}
           </form>

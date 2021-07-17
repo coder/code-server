@@ -33,6 +33,7 @@ body {
   border-radius: 5px;
   border: 1px solid #ddd;
   box-sizing: border-box;
+  outline-color: #14acb6;
   color: black;
   flex: 1;
   padding: 16px;
