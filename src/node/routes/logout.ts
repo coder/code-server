@@ -7,7 +7,7 @@ export const router = Router()
 router.get("/", async (req, res) => {
   // Must use the *identical* properties used to set the cookie.
   res.clearCookie(Cookie.Key, {
-    domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
+    domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"], req.args["proxy-port-separator"]),
     path: req.query.base || "/",
     sameSite: "lax",
   })

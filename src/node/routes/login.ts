@@ -87,7 +87,7 @@ router.post("/", async (req, res) => {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
       res.cookie(Cookie.Key, hashedPassword, {
-        domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
+        domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"], req.args["proxy-port-separator"]),
         path: req.body.base || "/",
         sameSite: "lax",
       })
