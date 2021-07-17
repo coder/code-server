@@ -70,8 +70,6 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       // The password is stored in the cookie after being hashed.
       const hashedPasswordFromArgs = req.args["hashed-password"]
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
-      console.log(">>>>>>>>>>> COOKIE", req.cookies.key)
-      console.log(">>>>>>>>>>> SAN COOKIE", sanitizeString(req.cookies.key))
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
         cookieKey: sanitizeString(req.cookies.key),
