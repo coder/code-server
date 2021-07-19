@@ -464,19 +464,8 @@ describe("pathToFsPath", () => {
   it("should keep drive letter casing when set to true", () => {
     expect(util.pathToFsPath("/C:/far/bo", true)).toBe("C:/far/bo")
   })
-  it("should throw an error if a non-string is passed in for path", () => {
-    expect(() =>
-      util
-        // @ts-expect-error We need to check other types
-        .pathToFsPath({}),
-    ).toThrow(`Could not compute fsPath from given uri. Expected path to be of type string, but was of type undefined.`)
-  })
-  it("should not throw an error for a string array", () => {
-    // @ts-expect-error We need to check other types
-    expect(() => util.pathToFsPath(["/hello/foo", "/hello/bar"]).not.toThrow())
-  })
   it("should use the first string in a string array", () => {
-    expect(util.pathToFsPath(["/hello/foo", "/hello/bar"])).toBe("/hello/foo")
+    expect(util.pathToFsPath("/hello/foo")).toBe("/hello/foo")
   })
   it("should replace / with \\ on Windows", () => {
     let ORIGINAL_PLATFORM = process.platform
