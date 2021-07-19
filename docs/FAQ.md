@@ -391,7 +391,8 @@ machine with few limitations.
 
 ## Does code-server have any security login validation?
 
-code-server supports setting a single password and limits logins to two per minute and twelve per hour. 
+code-server supports setting a single password and limits logins to two per
+minute plus an additional twelve per hour.
 
 ## Are there community projects involving code-server?
 
