@@ -28,7 +28,6 @@
 - [What's the difference between code-server and Theia?](#whats-the-difference-between-code-server-and-theia)
 - [What's the difference between code-server and VS Code Codespaces?](#whats-the-difference-between-code-server-and-vs-code-codespaces)
 - [Does code-server have any security login validation?](#does-code-server-have-any-security-login-validation)
-- [Enterprise](#enterprise)
 - [Are there community projects involving code-server?](#are-there-community-projects-involving-code-server)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -390,19 +389,11 @@ Codespaces web dashboard instead of connecting directly to it.
 On the other hand, code-server is free, open-source, and can be run on any
 machine with few limitations.
 
-<<<<<<< HEAD
-
 ## Does code-server have any security login validation?
 
-code-server only supports a single password and limits logins to two per minute plus twelve per hour.
-
-## Enterprise
-
-=======
+code-server supports setting a single password and limits logins to two per minute and twelve per hour. 
 
 ## Are there community projects involving code-server?
-
-> > > > > > > Edit code-server docs
 
 Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server)
 repository to view community projects and guides with code-server! Feel free to
