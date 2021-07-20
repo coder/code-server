@@ -8,8 +8,8 @@
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
 - [External authentication](#external-authentication)
-- [HTTPS](#https)
-  - [Self Signed Certificate](#self-signed-certificate)
+- [HTTPS and self-signed certificates](#https-and-self-signed-certificates)
+- [Accessing web services](#accessing-web-services)
   - [Using a subdomain](#using-a-subdomain)
   - [Using a subpath](#using-a-subpath)
   - [Stripping `/proxy/<port>` from the request path](#stripping-proxyport-from-the-request-path)
@@ -261,7 +261,7 @@ Google), you can do this with a reverse proxy such as:
 - [oauth2_proxy](https://github.com/pusher/oauth2_proxy)
 - [Cloudflare Access](https://teams.cloudflare.com/access)
 
-## HTTPS
+## HTTPS and self-signed certificates
 
 For HTTPS, you can use a self-signed certificate by:
 
@@ -280,9 +280,9 @@ redirect all HTTP requests to HTTPS.
 
 Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it will change the address displayed in the green section of code-server in the bottom left to show the correct address.
 
-### Self Signed Certificate
+## Accessing web services
 
-If you're working on a web service and want to access it locally, code-server
+If you're working on web services and want to access it locally, code-server
 can proxy to any port using either a subdomain or a subpath, allowing you to
 securely access these services using code-server's built-in authentication.
 
