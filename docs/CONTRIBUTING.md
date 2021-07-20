@@ -29,6 +29,7 @@ Here is what is needed:
 
 - `node` v14.x
 - `git` v2.x or greater
+- [`git-lfs`](https://git-lfs.github.com)
 - [`yarn`](https://classic.yarnpkg.com/en/)
   - Used to install JS packages and run scripts
 - [`nfpm`](https://classic.yarnpkg.com/en/)
