@@ -57,7 +57,7 @@
     "@typescript-eslint/parser": "^4.7.0",
     "audit-ci": "^4.0.0",
     "browserify": "^17.0.0",
-    "codecov": "^3.8.1",
+    "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
