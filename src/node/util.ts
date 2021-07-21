@@ -3,7 +3,8 @@ import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
-import { promises as fs } from "fs"
+import { promises as fs, Stats, existsSync } from "fs"
+import PromisePool from "lib-promise-pool"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -521,4 +522,68 @@ export function escapeHtml(unsafe: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
+}
+
+/**
+ * Searches for files matching the given pattern
+ */
+export const FindFiles = async (
+  baseDir = path.resolve("../../"),
+  pattern = new RegExp(".*"),
+  depth = 0,
+  options = { concurrency: 10 },
+) => {
+  const result: Array<{ dir: string; file: string }> = []
+  try {
+    const { concurrency } = options
+    const baseDirPath = path.resolve(baseDir)
+    if (!existsSync(baseDirPath)) return result
+    console.log("baseDir", baseDir)
+    depth > -1 && (await search(baseDirPath, pattern, depth, result, concurrency))
+  } catch (err) {
+    if (err) logger.debug(`Error in FindFiles: ${err}`)
+  }
+  return result
+}
+
+const search = async (
+  dir: string,
+  regex: RegExp,
+  depth: number,
+  result: Array<{ dir: string; file: string }> = [],
+  concurrency: number,
+) => {
+  const fs_readDir = util.promisify(fs.readdir)
+  const fs_stat = util.promisify(fs.stat)
+  const fileAnalyzer = async (file: string) => {
+    console.log('"DIR IN FA', dir)
+    const filePath = path.join(dir, file)
+    const stat = (await fs_stat(filePath, undefined)) as Stats
+
+    // Check if it's a file, if so then
+    // check if the pattern contains a global
+    // flag, if so then test the pattern
+    // on the complete path else just the filename
+    if (stat.isFile() && regex.test(regex.global ? filePath : file)) {
+      result.push({ dir, file })
+    } else if (stat.isDirectory() && depth > 0) {
+      await search(filePath, regex, depth - 1, result, concurrency)
+    }
+
+    // reset the lastIndex for the regex
+    // to run the match from the beginning of the
+    // string (filePath)
+    regex.lastIndex = 0
+  }
+
+  let folderContents: Array<string> = []
+  let results: Array<{ dir: string; file: string }> = []
+  try {
+    folderContents = (await fs_readDir(dir, { withFileTypes: true })) as Array<string>
+    console.log(">>>>> folderContents", folderContents)
+    results = await PromisePool(folderContents, fileAnalyzer, concurrency, { stopOnErr: undefined })
+  } catch (err) {
+    if (err) logger.debug(`Error in search helper for FindFiles: ${err}`)
+  }
+  return results
 }
