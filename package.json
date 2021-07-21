@@ -148,7 +148,7 @@
     ],
     "coverageThreshold": {
       "global": {
-        "lines": 40
+        "lines": 60
       }
     },
     "modulePathIgnorePatterns": [
