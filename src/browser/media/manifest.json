@@ -1,10 +1,10 @@
 {
-  "name": "code-server",
-  "short_name": "code-server",
+  "name": "brev-code-server",
+  "short_name": "Brev",
   "start_url": "{{BASE}}",
   "display": "fullscreen",
   "background-color": "#fff",
-  "description": "Run editors on a remote server.",
+  "description": "Remote developer environment.",
   "icons": [
     {
       "src": "{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png",

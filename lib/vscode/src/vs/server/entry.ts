@@ -40,7 +40,7 @@ const send = (message: VscodeMessage): void => {
 	if (!process.send) {
 		throw new Error('not spawned with IPC');
 	}
-	process.send(message);
+	// process.send(message);
 };
 
 // Wait for the init message then start up VS Code. Subsequent messages will
