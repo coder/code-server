@@ -14,6 +14,8 @@ node-*
 /lib/coder-cloud-agent
 .home
 coverage
+yarn.lock
+package-lock.json
 **/.DS_Store
 # Failed e2e test videos are saved here
 test/test-results
