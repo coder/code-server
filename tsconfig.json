@@ -15,8 +15,8 @@
     "sourceMap": true,
     "tsBuildInfoFile": "./.cache/tsbuildinfo",
     "incremental": true,
-    "typeRoots": ["./node_modules/@types", "./typings", "./test/node_modules/@types"],
-    "downlevelIteration": true
+    "typeRoots": ["./node_modules/@types", "./typings", "./test/node_modules/@types", "./typings/file-regex.d.ts"],
+    "downlevelIteration": true,
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["/test", "/lib", "/ci", "/doc"]
