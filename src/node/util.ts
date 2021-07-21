@@ -3,7 +3,7 @@ import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
-import { promises as fs } from "fs"
+import { promises as fs, existsSync } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -521,4 +521,101 @@ export function escapeHtml(unsafe: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
+}
+
+/**
+ * Searches for files matching the given pattern
+ */
+export const FindFiles = async (
+  baseDir = path.resolve("../../"),
+  pattern = new RegExp(".*"),
+  depth = 0,
+  options = { concurrency: 10 },
+) => {
+  const result: Array<{ dir: string; file: string }> = []
+  try {
+    const { concurrency } = options
+    const baseDirPath = path.resolve(baseDir)
+    if (!existsSync(baseDirPath)) return result
+    depth > -1 && (await search(baseDirPath, pattern, depth, result, concurrency))
+  } catch (err) {
+    if (err) logger.debug(`Error in FindFiles: ${err}`)
+  }
+  return result
+}
+
+const search = async (
+  dir: string,
+  regex: RegExp,
+  depth: number,
+  result: Array<{ dir: string; file: string }> = [],
+  concurrency: number,
+) => {
+  const fileAnalyzer = async (file: string) => {
+    const filePath = path.join(dir, file)
+    const stat = await fs.stat(filePath)
+
+    // Check if it's a file, if so then
+    // check if the pattern contains a global
+    // flag, if so then test the pattern
+    // on the complete path else just the filename
+    if (stat.isFile() && regex.test(regex.global ? filePath : file)) {
+      result.push({ dir, file })
+    } else if (stat.isDirectory() && depth > 0) {
+      await search(filePath, regex, depth - 1, result, concurrency)
+    }
+
+    // reset the lastIndex for the regex
+    // to run the match from the beginning of the
+    // string (filePath)
+    regex.lastIndex = 0
+  }
+
+  let folderContents: Array<string> = []
+  let results: Array<{ dir: string; file: string }> = []
+  try {
+    folderContents = await fs.readdir(dir)
+    results = await PromisePool(folderContents, fileAnalyzer, concurrency, { stopOnErr: false })
+  } catch (err) {
+    if (err) logger.debug(`Error in search helper for FindFiles: ${err}`)
+  }
+  return results
+}
+
+const PromisePool = async (
+  arr: Array<string> = [],
+  worker: (file: string, index: number) => Promise<void>,
+  concurrency = 1,
+  options = { stopOnErr: false },
+) => {
+  const { stopOnErr } = options
+  const end = arr.length
+  const result: Array<any> = []
+  let ind = 0
+
+  // Like a thread
+  const runner = async (): Promise<any> => {
+    if (ind < end) {
+      // Make a thread-safe copy of index
+      const _ind = ind
+      const item = arr[ind++]
+      // Assign the result from worker to the same index as data was taken from
+      try {
+        result[_ind] = await worker(item, _ind)
+      } catch (err) {
+        if (stopOnErr) throw new Error(err)
+        result[_ind] = err
+      }
+      return runner()
+    }
+  }
+
+  // Spawn threads
+  const runners = []
+  for (let i = 0; i < concurrency; i++) {
+    if (i >= end) break
+    runners.push(runner())
+  }
+  await Promise.all(runners)
+  return result
 }

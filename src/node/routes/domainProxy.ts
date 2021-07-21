@@ -1,8 +1,13 @@
+import { logger } from "@coder/logger"
 import { Request, Router } from "express"
+import fs from "fs"
+import yaml from "js-yaml"
+import { WORKSPACE_HOME_DIRECTORY_PATH } from "../../common/constants"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
-import { authenticated, ensureAuthenticated, redirect } from "../http"
+import { authenticated, redirect } from "../http"
 import { proxy } from "../proxy"
+import { FindFiles } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
@@ -33,15 +38,48 @@ const maybeProxy = (req: Request): string | undefined => {
   return port
 }
 
+/**
+ * Returns all ports that have been marked as public, specified in the ports.yaml
+ * file in our .brev folder. We recursively search through all ports.yaml files and
+ * add them to our list.
+ */
+const getPublicPorts = async (baseDir: string): Promise<string[]> => {
+  let portFiles: Array<{ dir: string; file: string }> = []
+  try {
+    logger.debug(`Directory path: ${baseDir}`)
+    portFiles = await FindFiles(baseDir, /ports.yaml/g, 5)
+  } catch (error) {
+    if (error) logger.debug(`Error in domain proxy: ${error}`)
+    portFiles = []
+  }
+
+  let publicPorts: Array<string> = []
+  for (let i = 0; i < portFiles.length; i++) {
+    const filePath = `${portFiles[i].dir}/${portFiles[i].file}`
+    const portsFileString = fs.readFileSync(filePath, "utf8")
+    const yamlData = yaml.load(portsFileString)
+
+    let ports: Array<string> = []
+    if (yamlData && typeof yamlData === "object" && "ports" in yamlData) {
+      ports = (yamlData as { version: number; ports: Array<string> })["ports"]
+    }
+
+    publicPorts = publicPorts.concat(ports)
+  }
+  return publicPorts
+}
+
 router.all("*", async (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
-  // Must be authenticated to use the proxy.
+  // Must be authenticated or specify port as open to use the proxy.
+  const publicPorts = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
+  const portIsPublic = publicPorts.includes(port)
   const isAuthenticated = await authenticated(req)
-  if (!isAuthenticated) {
+  if (!isAuthenticated && !portIsPublic) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
@@ -81,8 +119,13 @@ wsRouter.ws("*", async (req, _, next) => {
     return next()
   }
 
-  // Must be authenticated to use the proxy.
-  await ensureAuthenticated(req)
+  // Must be authenticated or specify port as open to use the proxy.
+  const publicPorts = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
+  const portIsPublic = publicPorts.includes(port)
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated && !portIsPublic) {
+    throw new HttpError("Unauthorized", HttpCode.Unauthorized)
+  }
 
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
