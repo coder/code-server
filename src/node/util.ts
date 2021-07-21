@@ -3,7 +3,7 @@ import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
-import { promises as fs, Stats, existsSync } from "fs"
+import { promises as fs, existsSync } from "fs"
 import PromisePool from "lib-promise-pool"
 import * as net from "net"
 import * as os from "os"
@@ -538,7 +538,6 @@ export const FindFiles = async (
     const { concurrency } = options
     const baseDirPath = path.resolve(baseDir)
     if (!existsSync(baseDirPath)) return result
-    console.log("baseDir", baseDir)
     depth > -1 && (await search(baseDirPath, pattern, depth, result, concurrency))
   } catch (err) {
     if (err) logger.debug(`Error in FindFiles: ${err}`)
@@ -553,12 +552,9 @@ const search = async (
   result: Array<{ dir: string; file: string }> = [],
   concurrency: number,
 ) => {
-  const fs_readDir = util.promisify(fs.readdir)
-  const fs_stat = util.promisify(fs.stat)
   const fileAnalyzer = async (file: string) => {
-    console.log('"DIR IN FA', dir)
     const filePath = path.join(dir, file)
-    const stat = (await fs_stat(filePath, undefined)) as Stats
+    const stat = await fs.stat(filePath)
 
     // Check if it's a file, if so then
     // check if the pattern contains a global
@@ -579,8 +575,7 @@ const search = async (
   let folderContents: Array<string> = []
   let results: Array<{ dir: string; file: string }> = []
   try {
-    folderContents = (await fs_readDir(dir, { withFileTypes: true })) as Array<string>
-    console.log(">>>>> folderContents", folderContents)
+    folderContents = await fs.readdir(dir)
     results = await PromisePool(folderContents, fileAnalyzer, concurrency, { stopOnErr: undefined })
   } catch (err) {
     if (err) logger.debug(`Error in search helper for FindFiles: ${err}`)
