@@ -517,12 +517,12 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
 
 async function defaultConfigFile(): Promise<string> {
   return `bind-addr: 127.0.0.1:8080
-          auth: password
-          password: ${await generatePassword()}
-          cert: false
-          proxy-port-separator: dash
-          disable-telemetry: true
-          `
+auth: password
+password: ${await generatePassword()}
+cert: false
+proxy-port-separator: dash
+disable-telemetry: true
+`
 }
 
 interface ConfigArgs extends Args {
