@@ -18,7 +18,7 @@
     "typeRoots": ["./node_modules/@types", "./typings", "./test/node_modules/@types"],
     "downlevelIteration": true,
     "baseUrl": "src",
-    "rootDirs": ["src"],
+    "rootDirs": ["src"]
   },
   "include": ["./src/**/*.ts"],
   "exclude": ["/test", "/lib", "/ci", "/doc"]
