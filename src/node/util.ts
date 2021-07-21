@@ -4,7 +4,6 @@ import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
 import { promises as fs, existsSync } from "fs"
-import PromisePool from "lib-promise-pool"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -576,9 +575,47 @@ const search = async (
   let results: Array<{ dir: string; file: string }> = []
   try {
     folderContents = await fs.readdir(dir)
-    results = await PromisePool(folderContents, fileAnalyzer, concurrency, { stopOnErr: undefined })
+    results = await PromisePool(folderContents, fileAnalyzer, concurrency, { stopOnErr: false })
   } catch (err) {
     if (err) logger.debug(`Error in search helper for FindFiles: ${err}`)
   }
   return results
+}
+
+const PromisePool = async (
+  arr: Array<string> = [],
+  worker: (file: string, index: number) => Promise<void>,
+  concurrency = 1,
+  options = { stopOnErr: false },
+) => {
+  const { stopOnErr } = options
+  const end = arr.length
+  const result: Array<any> = []
+  let ind = 0
+
+  // Like a thread
+  const runner = async (): Promise<any> => {
+    if (ind < end) {
+      // Make a thread-safe copy of index
+      const _ind = ind
+      const item = arr[ind++]
+      // Assign the result from worker to the same index as data was taken from
+      try {
+        result[_ind] = await worker(item, _ind)
+      } catch (err) {
+        if (stopOnErr) throw new Error(err)
+        result[_ind] = err
+      }
+      return runner()
+    }
+  }
+
+  // Spawn threads
+  const runners = []
+  for (let i = 0; i < concurrency; i++) {
+    if (i >= end) break
+    runners.push(runner())
+  }
+  await Promise.all(runners)
+  return result
 }

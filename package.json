@@ -91,7 +91,6 @@
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "js-yaml": "^4.1.0",
-    "lib-promise-pool": "^1.0.1",
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
     "proxy-agent": "^4.0.0",
