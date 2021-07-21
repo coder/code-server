@@ -27,6 +27,7 @@ describe("parser", () => {
     port: 8080,
     "proxy-domain": [],
     "proxy-port-separator": "dash",
+    "disable-telemetry": true,
     usingEnvPassword: false,
     usingEnvHashedPassword: false,
     "extensions-dir": path.join(paths.data, "extensions"),
