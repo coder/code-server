@@ -56,6 +56,7 @@ export interface Args extends VsArgs {
   "show-versions"?: boolean
   "uninstall-extension"?: string[]
   "proxy-domain"?: string[]
+  "proxy-port-separator"?: string // "dot" | "dash"
   locale?: string
   _: string[]
   "reuse-window"?: boolean
@@ -185,6 +186,7 @@ const options: Options<Required<Args>> = {
     short: "e",
     description: "Ignore the last opened directory or workspace in favor of an empty window.",
   },
+  "proxy-port-separator": { type: "string", description: "Separator used to retrieve port in url for routing" },
   "new-window": {
     type: "boolean",
     short: "n",
@@ -387,6 +389,7 @@ export interface DefaultedArgs extends ConfigArgs {
   host: string
   port: number
   "proxy-domain": string[]
+  "proxy-port-separator": string // "dot" | "dash"
   verbose: boolean
   usingEnvPassword: boolean
   usingEnvHashedPassword: boolean
@@ -494,6 +497,11 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
   args["proxy-domain"] = Array.from(proxyDomains)
+
+  // Default for proxy
+  if (!args["proxy-port-separator"]) {
+    args["proxy-port-separator"] = "dash"
+  }
 
   return {
     ...args,
