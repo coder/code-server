@@ -5,7 +5,6 @@
 
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { MarshalledObject } from 'vs/base/common/marshalling';
-import { Schemas } from './network';
 
 export interface IURITransformer {
 	transformIncoming(uri: UriComponents): UriComponents;
@@ -32,35 +31,29 @@ function toJSON(uri: URI): UriComponents {
 
 export class URITransformer implements IURITransformer {
 
-	constructor(private readonly remoteAuthority: string) {
+	private readonly _uriTransformer: IRawURITransformer;
+
+	constructor(uriTransformer: IRawURITransformer) {
+		this._uriTransformer = uriTransformer;
 	}
 
-	// NOTE@coder: Coming in from the browser it'll be vscode-remote so it needs
-	// to be transformed into file.
 	public transformIncoming(uri: UriComponents): UriComponents {
-		return uri.scheme === Schemas.vscodeRemote
-			? toJSON(URI.file(uri.path))
-			: uri;
+		const result = this._uriTransformer.transformIncoming(uri);
+		return (result === uri ? uri : toJSON(URI.from(result)));
 	}
 
-	// NOTE@coder: Going out to the browser it'll be file so it needs to be
-	// transformed into vscode-remote.
 	public transformOutgoing(uri: UriComponents): UriComponents {
-		return uri.scheme === Schemas.file
-			? toJSON(URI.from({ authority: this.remoteAuthority, scheme: Schemas.vscodeRemote, path: uri.path }))
-			: uri;
+		const result = this._uriTransformer.transformOutgoing(uri);
+		return (result === uri ? uri : toJSON(URI.from(result)));
 	}
 
 	public transformOutgoingURI(uri: URI): URI {
-		return uri.scheme === Schemas.file
-			? URI.from({ authority: this.remoteAuthority, scheme: Schemas.vscodeRemote, path:uri.path })
-			: uri;
+		const result = this._uriTransformer.transformOutgoing(uri);
+		return (result === uri ? uri : URI.from(result));
 	}
 
 	public transformOutgoingScheme(scheme: string): string {
-		return scheme === Schemas.file
-			? Schemas.vscodeRemote
-			: scheme;
+		return this._uriTransformer.transformOutgoingScheme(scheme);
 	}
 }
 

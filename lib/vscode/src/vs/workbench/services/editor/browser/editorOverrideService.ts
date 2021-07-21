@@ -9,20 +9,21 @@ import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle'
 import { basename, extname, isEqual } from 'vs/base/common/resources';
 import { URI } from 'vs/base/common/uri';
 import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
-import { EditorActivation, EditorOverride, IEditorOptions, ITextEditorOptions } from 'vs/platform/editor/common/editor';
-import { EditorResourceAccessor, IEditorInput, IEditorInputWithOptions, IEditorInputWithOptionsAndGroup } from 'vs/workbench/common/editor';
+import { EditorActivation, EditorOverride, IEditorOptions } from 'vs/platform/editor/common/editor';
+import { EditorResourceAccessor, IEditorInput, IEditorInputWithOptions, IEditorInputWithOptionsAndGroup, SideBySideEditor } from 'vs/workbench/common/editor';
 import { IEditorGroup, IEditorGroupsService, preferredSideBySideGroupDirection } from 'vs/workbench/services/editor/common/editorGroupsService';
 import { Schemas } from 'vs/base/common/network';
 import { DiffEditorInput } from 'vs/workbench/common/editor/diffEditorInput';
 import { ContributedEditorInfo, ContributedEditorPriority, ContributionPointOptions, DEFAULT_EDITOR_ASSOCIATION, DiffEditorInputFactoryFunction, EditorAssociation, EditorAssociations, EditorInputFactoryFunction, editorsAssociationsSettingId, globMatchesResource, IEditorOverrideService, priorityToRank } from 'vs/workbench/services/editor/common/editorOverrideService';
 import { IKeyMods, IQuickInputService, IQuickPickItem, IQuickPickSeparator } from 'vs/platform/quickinput/common/quickInput';
 import { localize } from 'vs/nls';
-import { Codicon } from 'vs/base/common/codicons';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
 import { IExtensionService } from 'vs/workbench/services/extensions/common/extensions';
+import { IHostService } from 'vs/workbench/services/host/browser/host';
+import { ILogService } from 'vs/platform/log/common/log';
 
 interface IContributedEditorInput extends IEditorInput {
 	viewType?: string;
@@ -41,8 +42,13 @@ type ContributionPoints = Array<ContributionPoint>;
 export class EditorOverrideService extends Disposable implements IEditorOverrideService {
 	readonly _serviceBrand: undefined;
 
-	private _contributionPoints: Map<string | glob.IRelativePattern, ContributionPoints> = new Map<string | glob.IRelativePattern, ContributionPoints>();
+	// Constants
+	private static readonly configureDefaultID = 'promptOpenWith.configureDefault';
 	private static readonly overrideCacheStorageID = 'editorOverrideService.cache';
+	private static readonly conflictingDefaultsStorageID = 'editorOverrideService.conflictingDefaults';
+
+	// Data Stores
+	private _contributionPoints: Map<string | glob.IRelativePattern, ContributionPoints> = new Map<string | glob.IRelativePattern, ContributionPoints>();
 	private cache: Set<string> | undefined;
 
 	constructor(
@@ -52,12 +58,15 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		@INotificationService private readonly notificationService: INotificationService,
 		@ITelemetryService private readonly telemetryService: ITelemetryService,
 		@IStorageService private readonly storageService: IStorageService,
-		@IExtensionService private readonly extensionService: IExtensionService
+		@IExtensionService private readonly extensionService: IExtensionService,
+		@IHostService private readonly hostService: IHostService,
+		@ILogService private readonly logService: ILogService,
 	) {
 		super();
 		// Read in the cache on statup
 		this.cache = new Set<string>(JSON.parse(this.storageService.get(EditorOverrideService.overrideCacheStorageID, StorageScope.GLOBAL, JSON.stringify([]))));
 		this.storageService.remove(EditorOverrideService.overrideCacheStorageID, StorageScope.GLOBAL);
+		this.convertOldAssociationFormat();
 
 		this._register(this.storageService.onWillSaveState(() => {
 			// We want to store the glob patterns we would activate on, this allows us to know if we need to await the ext host on startup for opening a resource
@@ -68,9 +77,16 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		this.extensionService.onDidRegisterExtensions(() => {
 			this.cache = undefined;
 		});
+
+		// When the setting changes we want to ensure that it is properly converted
+		this._register(this.configurationService.onDidChangeConfiguration((e) => {
+			if (e.affectsConfiguration(editorsAssociationsSettingId)) {
+				this.convertOldAssociationFormat();
+			}
+		}));
 	}
 
-	async resolveEditorOverride(editor: IEditorInput, options: IEditorOptions | ITextEditorOptions | undefined, group: IEditorGroup): Promise<IEditorInputWithOptionsAndGroup | undefined> {
+	async resolveEditorOverride(editor: IEditorInput, options: IEditorOptions | undefined, group: IEditorGroup): Promise<IEditorInputWithOptionsAndGroup | undefined> {
 		// If it was an override before we await for the extensions to activate and then proceed with overriding or else they won't be registered
 		if (this.cache && editor.resource && this.resourceMatchesCache(editor.resource)) {
 			await this.extensionService.whenInstalledExtensionsRegistered();
@@ -81,11 +97,8 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		}
 
 		// Always ensure inputs have populated resource fields
-		if (editor instanceof DiffEditorInput) {
-			if ((!editor.modifiedInput.resource || !editor.originalInput.resource)) {
-				return { editor, options, group };
-			}
-		} else if (!editor.resource) {
+		const resource = EditorResourceAccessor.getCanonicalUri(editor, { supportSideBySide: SideBySideEditor.PRIMARY });
+		if (!resource) {
 			return { editor, options, group };
 		}
 
@@ -106,7 +119,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		}
 
 		// Resolved the override as much as possible, now find a given contribution
-		const { contributionPoint, conflictingDefault } = this.getContributionPoint(editor instanceof DiffEditorInput ? editor.modifiedInput.resource! : editor.resource!, override);
+		const { contributionPoint, conflictingDefault } = this.getContributionPoint(resource, override);
 		const selectedContribution = contributionPoint;
 		if (!selectedContribution) {
 			return { editor, options, group };
@@ -121,13 +134,12 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		if (selectedContribution.editorInfo.describes(editor)) {
 			return;
 		}
-		const input = await this.doOverrideEditorInput(editor, options, group, selectedContribution);
+		const input = await this.doOverrideEditorInput(resource, editor, options, group, selectedContribution);
 		if (conflictingDefault && input) {
-			// Wait one second to give the user ample time to see the current editor then ask them to configure a default
-			setTimeout(() => {
-				this.doHandleConflictingDefaults(selectedContribution.editorInfo.label, input.editor, input.options ?? options, group);
-			}, 1200);
+			// Show the conflicting default dialog
+			await this.doHandleConflictingDefaults(resource, selectedContribution.editorInfo.label, input.editor, input.options ?? options, group);
 		}
+
 		// Add the group as we might've changed it with the quickpick
 		if (input) {
 			this.sendOverrideTelemetry(input.editor);
@@ -143,10 +155,12 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		createEditorInput: EditorInputFactoryFunction,
 		createDiffEditorInput?: DiffEditorInputFactoryFunction
 	): IDisposable {
-		if (this._contributionPoints.get(globPattern) === undefined) {
-			this._contributionPoints.set(globPattern, []);
+		let contributionPoint = this._contributionPoints.get(globPattern);
+		if (contributionPoint === undefined) {
+			contributionPoint = [];
+			this._contributionPoints.set(globPattern, contributionPoint);
 		}
-		const remove = insert(this._contributionPoints.get(globPattern)!, {
+		const remove = insert(contributionPoint, {
 			globPattern,
 			editorInfo,
 			options,
@@ -156,47 +170,106 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		return toDisposable(() => remove());
 	}
 
-	hasContributionPoint(schemeOrGlob: string): boolean {
-		return this._contributionPoints.has(schemeOrGlob);
+	hasContributionPoint(glob: string): boolean {
+		return this._contributionPoints.has(glob);
 	}
 
 	getAssociationsForResource(resource: URI): EditorAssociations {
-		const rawAssociations = this.configurationService.getValue<EditorAssociations>(editorsAssociationsSettingId) || [];
-		return rawAssociations.filter(association => association.filenamePattern && globMatchesResource(association.filenamePattern, resource));
+		const associations = this.getAllUserAssociations();
+		const matchingAssociations = associations.filter(association => association.filenamePattern && globMatchesResource(association.filenamePattern, resource));
+		const allContributions: ContributionPoints = this._allContributions;
+		// Ensure that the settings are valid contribution points
+		return matchingAssociations.filter(association => allContributions.find(c => c.editorInfo.id === association.viewType));
+	}
+
+	private convertOldAssociationFormat(): void {
+		this.hostService.hadLastFocus().then(hadLastFocus => {
+			if (!hadLastFocus) {
+				return;
+			}
+			const rawAssociations = this.configurationService.getValue<EditorAssociations | { [fileNamePattern: string]: string }>(editorsAssociationsSettingId) || {};
+			// If it's not an array, then it's the new format
+			if (!Array.isArray(rawAssociations)) {
+				return;
+			}
+			let newSettingObject = Object.create(null);
+			// Make the correctly formatted object from the array and then set that object
+			for (const association of rawAssociations) {
+				if (association.filenamePattern) {
+					newSettingObject[association.filenamePattern] = association.viewType;
+				}
+			}
+			this.logService.info(`Migrating ${editorsAssociationsSettingId}`);
+			this.configurationService.updateValue(editorsAssociationsSettingId, newSettingObject);
+		});
+	}
+
+	private getAllUserAssociations(): EditorAssociations {
+		let rawAssociations = this.configurationService.getValue<EditorAssociations | { [fileNamePattern: string]: string }>(editorsAssociationsSettingId) || {};
+
+		// If it's an array then it is old format
+		if (Array.isArray(rawAssociations)) {
+			// Make the correctly formatted object
+			const newValue = Object.create(null);
+			for (const association of rawAssociations) {
+				if (association.filenamePattern) {
+					newValue[association.filenamePattern] = association.viewType;
+				}
+			}
+			rawAssociations = newValue;
+		}
+
+		let associations = [];
+		for (const [key, value] of Object.entries(rawAssociations)) {
+			const association: EditorAssociation = {
+				filenamePattern: key,
+				viewType: value
+			};
+			associations.push(association);
+		}
+		return associations;
+	}
+
+	/**
+	 * Returns all contributions as an array. Possible to contain duplicates
+	 */
+	private get _allContributions(): ContributionPoints {
+		return flatten(Array.from(this._contributionPoints.values()));
 	}
 
 	updateUserAssociations(globPattern: string, editorID: string): void {
 		const newAssociation: EditorAssociation = { viewType: editorID, filenamePattern: globPattern };
-		const currentAssociations = [...this.configurationService.getValue<EditorAssociations>(editorsAssociationsSettingId)];
-
-		// First try updating existing association
-		for (let i = 0; i < currentAssociations.length; ++i) {
-			const existing = currentAssociations[i];
-			if (existing.filenamePattern === newAssociation.filenamePattern) {
-				currentAssociations.splice(i, 1, newAssociation);
-				this.configurationService.updateValue(editorsAssociationsSettingId, currentAssociations);
-				return;
+		const currentAssociations = this.getAllUserAssociations();
+		const newSettingObject = Object.create(null);
+		// Form the new setting object including the newest associations
+		for (const association of [...currentAssociations, newAssociation]) {
+			if (association.filenamePattern) {
+				newSettingObject[association.filenamePattern] = association.viewType;
 			}
 		}
-
-		// Otherwise, create a new one
-		currentAssociations.unshift(newAssociation);
-		this.configurationService.updateValue(editorsAssociationsSettingId, currentAssociations);
+		this.configurationService.updateValue(editorsAssociationsSettingId, newSettingObject);
 	}
 
 	private findMatchingContributions(resource: URI): ContributionPoint[] {
+		// The user setting should be respected even if the editor doesn't specify that resource in package.json
+		const userSettings = this.getAssociationsForResource(resource);
 		let contributions: ContributionPoint[] = [];
 		// Then all glob patterns
-		for (const key of this._contributionPoints.keys()) {
-			const contributionPoints = this._contributionPoints.get(key)!;
+		for (const [key, contributionPoints] of this._contributionPoints) {
 			for (const contributionPoint of contributionPoints) {
-				if (globMatchesResource(key, resource)) {
+				const foundInSettings = userSettings.find(setting => setting.viewType === contributionPoint.editorInfo.id);
+				if (foundInSettings || globMatchesResource(key, resource)) {
 					contributions.push(contributionPoint);
 				}
 			}
 		}
 		// Return the contributions sorted by their priority
 		return contributions.sort((a, b) => priorityToRank(b.editorInfo.priority) - priorityToRank(a.editorInfo.priority));
+	}
+
+	public getEditorIds(resource: URI): string[] {
+		const contributionPoints = this.findMatchingContributions(resource);
+		return contributionPoints.map(contribution => contribution.editorInfo.id);
 	}
 
 	/**
@@ -214,7 +287,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		};
 		if (override) {
 			// Specific overried passed in doesn't have to match the reosurce, it can be anything
-			const contributionPoints = flatten(Array.from(this._contributionPoints.values()));
+			const contributionPoints = this._allContributions;
 			return {
 				contributionPoint: findMatchingContribPoint(contributionPoints, override),
 				conflictingDefault: false
@@ -242,7 +315,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		};
 	}
 
-	private async doOverrideEditorInput(editor: IEditorInput, options: IEditorOptions | ITextEditorOptions | undefined, group: IEditorGroup, selectedContribution: ContributionPoint): Promise<IEditorInputWithOptions | undefined> {
+	private async doOverrideEditorInput(resource: URI, editor: IEditorInput, options: IEditorOptions | undefined, group: IEditorGroup, selectedContribution: ContributionPoint): Promise<IEditorInputWithOptions | undefined> {
 
 		// If no activation option is provided, populate it.
 		if (options && typeof options.activation === 'undefined') {
@@ -257,9 +330,6 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 			const inputWithOptions = selectedContribution.createDiffEditorInput(editor, options, group);
 			return inputWithOptions;
 		}
-
-		// We only call this function from one place and there we do the check to ensure editor.resource is not undefined
-		const resource = editor.resource!;
 
 		// Respect options passed back
 		const inputWithOptions = selectedContribution.createEditorInput(resource, options, group);
@@ -325,16 +395,27 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		return out;
 	}
 
-	private async doHandleConflictingDefaults(editorName: string, currentEditor: IContributedEditorInput, options: IEditorOptions | undefined, group: IEditorGroup) {
-		const makeCurrentEditorDefault = () => {
-			const viewType = currentEditor.viewType;
-			if (viewType) {
-				this.updateUserAssociations(`*${extname(currentEditor.resource!)}`, viewType);
-			}
+	private async doHandleConflictingDefaults(resource: URI, editorName: string, currentEditor: IContributedEditorInput, options: IEditorOptions | undefined, group: IEditorGroup) {
+		type StoredChoice = {
+			[key: string]: string[];
+		};
+		const contributionPoints = this.findMatchingContributions(resource);
+		const storedChoices: StoredChoice = JSON.parse(this.storageService.get(EditorOverrideService.conflictingDefaultsStorageID, StorageScope.GLOBAL, '{}'));
+		const globForResource = `*${extname(resource)}`;
+		// Writes to the storage service that a choice has been made for the currently installed editors
+		const writeCurrentEditorsToStorage = () => {
+			storedChoices[globForResource] = [];
+			contributionPoints.forEach(contrib => storedChoices[globForResource].push(contrib.editorInfo.id));
+			this.storageService.store(EditorOverrideService.conflictingDefaultsStorageID, JSON.stringify(storedChoices), StorageScope.GLOBAL, StorageTarget.MACHINE);
 		};
 
+		// If the user has already made a choice for this editor we don't want to ask them again
+		if (storedChoices[globForResource] && storedChoices[globForResource].find(editorID => editorID === currentEditor.viewType)) {
+			return;
+		}
+
 		const handle = this.notificationService.prompt(Severity.Warning,
-			localize('editorOverride.conflictingDefaults', 'Multiple editors want to be your default editor for this resource.'),
+			localize('editorOverride.conflictingDefaults', 'There are multiple default editors available for the resource.'),
 			[{
 				label: localize('editorOverride.configureDefault', 'Configure Default'),
 				run: async () => {
@@ -359,21 +440,23 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 			},
 			{
 				label: localize('editorOverride.keepDefault', 'Keep {0}', editorName),
-				run: makeCurrentEditorDefault
+				run: writeCurrentEditorsToStorage
 			}
 			]);
 		// If the user pressed X we assume they want to keep the current editor as default
 		const onCloseListener = handle.onDidClose(() => {
-			makeCurrentEditorDefault();
+			writeCurrentEditorsToStorage();
 			onCloseListener.dispose();
 		});
 	}
 
-	private mapContributionsToQuickPickEntry(resource: URI, group: IEditorGroup, alwaysUpdateSetting?: boolean) {
+	private mapContributionsToQuickPickEntry(resource: URI, group: IEditorGroup, showDefaultPicker?: boolean) {
 		const currentEditor = firstOrDefault(group.findEditors(resource));
 		// If untitled, we want all contribution points
-		let contributionPoints = resource.scheme === Schemas.untitled ? distinct(flatten(Array.from(this._contributionPoints.values())), (contrib) => contrib.editorInfo.id) : this.findMatchingContributions(resource);
-
+		let contributionPoints = resource.scheme === Schemas.untitled ? this._allContributions : this.findMatchingContributions(resource);
+		// We don't want duplicate Id entries
+		contributionPoints = distinct(contributionPoints, c => c.editorInfo.id);
+		const defaultSetting = this.getAssociationsForResource(resource)[0]?.viewType;
 		// Not the most efficient way to do this, but we want to ensure the text editor is at the top of the quickpick
 		contributionPoints = contributionPoints.sort((a, b) => {
 			if (a.editorInfo.id === DEFAULT_EDITOR_ASSOCIATION.id) {
@@ -384,37 +467,43 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 				return priorityToRank(b.editorInfo.priority) - priorityToRank(a.editorInfo.priority);
 			}
 		});
-		const contribGroups: { defaults: Array<IQuickPickSeparator | IQuickPickItem>, optional: Array<IQuickPickSeparator | IQuickPickItem> } = {
-			defaults: [
-				{ type: 'separator', label: localize('editorOverride.picker.default', 'Defaults') }
-			],
-			optional: [
-				{ type: 'separator', label: localize('editorOverride.picker.optional', 'Optional') }
-			],
-		};
-		// Get the matching contribtuions and call resolve whether they're active for the picker
+		const quickPickEntries: Array<IQuickPickItem | IQuickPickSeparator> = [];
+		const currentlyActiveLabel = localize('promptOpenWith.currentlyActive', "Active");
+		const currentDefaultLabel = localize('promptOpenWith.currentDefault', "Default");
+		const currentDefaultAndActiveLabel = localize('promptOpenWith.currentDefaultAndActive', "Active and Default");
+		// Default order = setting -> highest priority -> text
+		let defaultViewType = defaultSetting;
+		if (!defaultViewType && contributionPoints.length > 2 && contributionPoints[1]?.editorInfo.priority !== ContributedEditorPriority.option) {
+			defaultViewType = contributionPoints[1]?.editorInfo.id;
+		}
+		if (!defaultViewType) {
+			defaultViewType = DEFAULT_EDITOR_ASSOCIATION.id;
+		}
+		// Map the contributions to quickpick entries
 		contributionPoints.forEach(contribPoint => {
 			const isActive = currentEditor ? contribPoint.editorInfo.describes(currentEditor) : false;
-			const quickPickEntry = {
+			const isDefault = contribPoint.editorInfo.id === defaultViewType;
+			const quickPickEntry: IQuickPickItem = {
 				id: contribPoint.editorInfo.id,
 				label: contribPoint.editorInfo.label,
-				description: isActive ? localize('promptOpenWith.currentlyActive', "Currently Active") : undefined,
+				description: isActive && isDefault ? currentDefaultAndActiveLabel : isActive ? currentlyActiveLabel : isDefault ? currentDefaultLabel : undefined,
 				detail: contribPoint.editorInfo.detail ?? contribPoint.editorInfo.priority,
-				buttons: alwaysUpdateSetting ? [] : [{
-					iconClass: Codicon.gear.classNames,
-					tooltip: localize('promptOpenWith.setDefaultTooltip', "Set as default editor for '{0}' files", extname(resource))
-				}],
 			};
-			if (contribPoint.editorInfo.priority === ContributedEditorPriority.option) {
-				contribGroups.optional.push(quickPickEntry);
-			} else {
-				contribGroups.defaults.push(quickPickEntry);
-			}
+			quickPickEntries.push(quickPickEntry);
 		});
-		return [...contribGroups.defaults, ...contribGroups.optional];
+		if (!showDefaultPicker) {
+			const separator: IQuickPickSeparator = { type: 'separator' };
+			quickPickEntries.push(separator);
+			const configureDefaultEntry = {
+				id: EditorOverrideService.configureDefaultID,
+				label: localize('promptOpenWith.configureDefault', "Configure default editor for '{0}'...", `*${extname(resource)}`),
+			};
+			quickPickEntries.push(configureDefaultEntry);
+		}
+		return quickPickEntries;
 	}
 
-	private async doPickEditorOverride(editor: IEditorInput, options: IEditorOptions | undefined, group: IEditorGroup, alwaysUpdateSetting?: boolean): Promise<[IEditorOptions, IEditorGroup | undefined] | undefined> {
+	private async doPickEditorOverride(editor: IEditorInput, options: IEditorOptions | undefined, group: IEditorGroup, showDefaultPicker?: boolean): Promise<[IEditorOptions, IEditorGroup | undefined] | undefined> {
 
 		type EditorOverridePick = {
 			readonly item: IQuickPickItem;
@@ -429,12 +518,12 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		}
 
 		// Text editor has the lowest priority because we
-		const editorOverridePicks = this.mapContributionsToQuickPickEntry(resource, group, alwaysUpdateSetting);
+		const editorOverridePicks = this.mapContributionsToQuickPickEntry(resource, group, showDefaultPicker);
 
 		// Create editor override picker
 		const editorOverridePicker = this.quickInputService.createQuickPick<IQuickPickItem>();
-		const placeHolderMessage = alwaysUpdateSetting ?
-			localize('prompOpenWith.updateDefaultPlaceHolder', "Select new default editor for '{0}'", basename(resource)) :
+		const placeHolderMessage = showDefaultPicker ?
+			localize('prompOpenWith.updateDefaultPlaceHolder', "Select new default editor for '{0}'", `*${extname(resource)}`) :
 			localize('promptOpenWith.placeHolder', "Select editor for '{0}'", basename(resource));
 		editorOverridePicker.placeholder = placeHolderMessage;
 		editorOverridePicker.canAcceptInBackground = true;
@@ -458,7 +547,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 				}
 
 				// If asked to always update the setting then update it even if the gear isn't clicked
-				if (alwaysUpdateSetting && result?.item.id) {
+				if (showDefaultPicker && result?.item.id) {
 					this.updateUserAssociations(`*${extname(resource)}`, result.item.id,);
 				}
 
@@ -486,6 +575,11 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		// used (e.g. modifier keys, open in background) and create the
 		// options and group to use accordingly
 		if (picked) {
+
+			// If the user selected to configure default we trigger this picker again and tell it to show the default picker
+			if (picked.item.id === EditorOverrideService.configureDefaultID) {
+				return this.doPickEditorOverride(editor, options, group, true);
+			}
 
 			// Figure out target group
 			let targetGroup: IEditorGroup | undefined;
@@ -525,8 +619,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		const cacheStorage: Set<string> = new Set<string>();
 
 		// Store just the relative pattern pieces without any path info
-		for (const globPattern of this._contributionPoints.keys()) {
-			const contribPoint = this._contributionPoints.get(globPattern)!;
+		for (const [globPattern, contribPoint] of this._contributionPoints) {
 			const nonOptional = !!contribPoint.find(c => c.editorInfo.priority !== ContributedEditorPriority.option && c.editorInfo.id !== DEFAULT_EDITOR_ASSOCIATION.id);
 			// Don't keep a cache of the optional ones as those wouldn't be opened on start anyways
 			if (!nonOptional) {
@@ -540,7 +633,7 @@ export class EditorOverrideService extends Disposable implements IEditorOverride
 		}
 
 		// Also store the users settings as those would have to activate on startup as well
-		const userAssociations = this.configurationService.getValue<EditorAssociations>(editorsAssociationsSettingId) || [];
+		const userAssociations = this.getAllUserAssociations();
 		for (const association of userAssociations) {
 			if (association.filenamePattern) {
 				cacheStorage.add(association.filenamePattern);

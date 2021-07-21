@@ -42,8 +42,7 @@ import 'vs/workbench/services/keybinding/browser/keyboardLayoutService';
 import 'vs/workbench/services/extensions/browser/extensionService';
 import 'vs/workbench/services/extensionManagement/common/extensionManagementServerService';
 import 'vs/workbench/services/extensionManagement/browser/extensionUrlTrustService';
-// NOTE@coder: We send it all to the server side to be processed there instead.
-// import 'vs/workbench/services/telemetry/browser/telemetryService';
+import 'vs/workbench/services/telemetry/browser/telemetryService';
 import 'vs/workbench/services/credentials/browser/credentialsService';
 import 'vs/workbench/services/url/browser/urlService';
 import 'vs/workbench/services/update/browser/updateService';
@@ -131,6 +130,7 @@ import 'vs/workbench/contrib/extensions/browser/extensions.web.contribution';
 
 // Terminal
 import 'vs/workbench/contrib/terminal/browser/terminal.web.contribution';
+import 'vs/workbench/contrib/externalTerminal/browser/externalTerminal.contribution';
 import 'vs/workbench/contrib/terminal/browser/terminalInstanceService';
 
 // Tasks

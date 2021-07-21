@@ -66,6 +66,9 @@ export interface IEnvironmentService {
 	extensionDevelopmentKind?: ExtensionKind[];
 	extensionTestsLocationURI?: URI;
 
+	// --- workspace trust
+	disableWorkspaceTrust: boolean;
+
 	// --- logging
 	logsPath: string;
 	logLevel?: string;
@@ -121,8 +124,9 @@ export interface INativeEnvironmentService extends IEnvironmentService {
 	extensionsPath: string;
 	extensionsDownloadPath: string;
 	builtinExtensionsPath: string;
-	extraExtensionPaths: string[]
-	extraBuiltinExtensionPaths: string[]
+	// NOTE@coder: add extraExtensionPaths/extraBuiltinExtensionPaths
+	extraExtensionPaths: string[];
+	extraBuiltinExtensionPaths: string[];
 
 	// --- smoke test support
 	driverHandle?: string;

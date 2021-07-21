@@ -1,10 +1,10 @@
 import { field } from '@coder/logger';
 import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
 import * as proxyAgent from 'vs/base/node/proxy_agent';
-import { CodeServerMessage, VscodeMessage } from 'vs/ipc';
-import { logger } from 'vs/server/node/logger';
-import { enableCustomMarketplace } from 'vs/server/node/marketplace';
-import { Vscode } from 'vs/server/node/server';
+import { CodeServerMessage, VscodeMessage } from 'vs/base/common/ipc';
+import { logger } from 'vs/server/logger';
+import { enableCustomMarketplace } from 'vs/server/marketplace';
+import { Vscode } from 'vs/server/server';
 
 setUnexpectedErrorHandler((error) => {
 	logger.warn('Uncaught error', field('error', error instanceof Error ? error.message : error));

@@ -17,7 +17,7 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
 import { MessageType, createMessageOfType, isMessageOfType, IExtHostSocketMessage, IExtHostReadyMessage, IExtHostReduceGraceTimeMessage, ExtensionHostExitCode } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 import { ExtensionHostMain, IExitFn } from 'vs/workbench/services/extensions/common/extensionHostMain';
 import { VSBuffer } from 'vs/base/common/buffer';
-import { IURITransformer, URITransformer } from 'vs/base/common/uriIpc';
+import { IURITransformer, URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
 import { exists } from 'vs/base/node/pfs';
 import { realpath } from 'vs/base/node/extpath';
 import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
@@ -177,6 +177,9 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 			});
 			socket.once('error', reject);
 
+			socket.on('close', () => {
+				onTerminate('renderer closed the socket');
+			});
 		});
 	}
 }
@@ -313,6 +316,7 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 }
 
 export async function startExtensionHostProcess(): Promise<void> {
+	// NOTE@coder: add proxy agent patch
 	proxyAgent.monkeyPatch(true);
 
 	performance.mark(`code/extHost/willConnectToRenderer`);
@@ -335,9 +339,11 @@ export async function startExtensionHostProcess(): Promise<void> {
 
 	// Attempt to load uri transformer
 	let uriTransformer: IURITransformer | null = null;
-	if (initData.remote.authority) {
+	if (initData.remote.authority && args.uriTransformerPath) {
 		try {
-			uriTransformer = new URITransformer(initData.remote.authority);
+			const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
+			const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
+			uriTransformer = new URITransformer(rawURITransformer);
 		} catch (e) {
 			console.error(e);
 		}

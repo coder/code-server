@@ -5,7 +5,7 @@
 
 import { Event, EventMultiplexer } from 'vs/base/common/event';
 import {
-	ILocalExtension, IGalleryExtension, InstallExtensionEvent, DidInstallExtensionEvent, IExtensionIdentifier, DidUninstallExtensionEvent, IReportedExtension, IGalleryMetadata, IExtensionGalleryService, InstallOptions, UninstallOptions, INSTALL_ERROR_NOT_SUPPORTED
+	ILocalExtension, IGalleryExtension, InstallExtensionEvent, DidInstallExtensionEvent, IExtensionIdentifier, DidUninstallExtensionEvent, IReportedExtension, IGalleryMetadata, IExtensionGalleryService, InstallOptions, UninstallOptions, INSTALL_ERROR_NOT_SUPPORTED, InstallVSIXOptions
 } from 'vs/platform/extensionManagement/common/extensionManagement';
 import { IExtensionManagementServer, IExtensionManagementServerService, IWorkbenchExtensionManagementService } from 'vs/workbench/services/extensionManagement/common/extensionManagement';
 import { ExtensionType, isLanguagePackExtension, IExtensionManifest } from 'vs/platform/extensions/common/extensions';
@@ -23,10 +23,10 @@ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
 import Severity from 'vs/base/common/severity';
 import { canceled } from 'vs/base/common/errors';
 import { IUserDataAutoSyncEnablementService, IUserDataSyncResourceEnablementService, SyncResource } from 'vs/platform/userDataSync/common/userDataSync';
-import { isWeb } from 'vs/base/common/platform';
 import { Promises } from 'vs/base/common/async';
 import { IWorkspaceTrustRequestService } from 'vs/platform/workspace/common/workspaceTrust';
 import { IExtensionManifestPropertiesService } from 'vs/workbench/services/extensions/common/extensionManifestPropertiesService';
+import { isWeb } from 'vs/base/common/platform';
 
 export class ExtensionManagementService extends Disposable implements IWorkbenchExtensionManagementService {
 
@@ -172,35 +172,35 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 			.map(({ extensionManagementService }) => extensionManagementService.unzip(zipLocation))).then(([extensionIdentifier]) => extensionIdentifier);
 	}
 
-	async install(vsix: URI): Promise<ILocalExtension> {
+	async install(vsix: URI, options?: InstallVSIXOptions): Promise<ILocalExtension> {
 		if (this.extensionManagementServerService.localExtensionManagementServer && this.extensionManagementServerService.remoteExtensionManagementServer) {
 			const manifest = await this.getManifest(vsix);
 			if (isLanguagePackExtension(manifest)) {
 				// Install on both servers
-				const [local] = await Promises.settled([this.extensionManagementServerService.localExtensionManagementServer, this.extensionManagementServerService.remoteExtensionManagementServer].map(server => this.installVSIX(vsix, server)));
+				const [local] = await Promises.settled([this.extensionManagementServerService.localExtensionManagementServer, this.extensionManagementServerService.remoteExtensionManagementServer].map(server => this.installVSIX(vsix, server, options)));
 				return local;
 			}
 			if (this.extensionManifestPropertiesService.prefersExecuteOnUI(manifest)) {
 				// Install only on local server
-				return this.installVSIX(vsix, this.extensionManagementServerService.localExtensionManagementServer);
+				return this.installVSIX(vsix, this.extensionManagementServerService.localExtensionManagementServer, options);
 			}
 			// Install only on remote server
-			return this.installVSIX(vsix, this.extensionManagementServerService.remoteExtensionManagementServer);
+			return this.installVSIX(vsix, this.extensionManagementServerService.remoteExtensionManagementServer, options);
 		}
 		if (this.extensionManagementServerService.localExtensionManagementServer) {
-			return this.installVSIX(vsix, this.extensionManagementServerService.localExtensionManagementServer);
+			return this.installVSIX(vsix, this.extensionManagementServerService.localExtensionManagementServer, options);
 		}
 		if (this.extensionManagementServerService.remoteExtensionManagementServer) {
-			return this.installVSIX(vsix, this.extensionManagementServerService.remoteExtensionManagementServer);
+			return this.installVSIX(vsix, this.extensionManagementServerService.remoteExtensionManagementServer, options);
 		}
 		return Promise.reject('No Servers to Install');
 	}
 
-	protected async installVSIX(vsix: URI, server: IExtensionManagementServer): Promise<ILocalExtension> {
+	protected async installVSIX(vsix: URI, server: IExtensionManagementServer, options: InstallVSIXOptions | undefined): Promise<ILocalExtension> {
 		const manifest = await this.getManifest(vsix);
 		if (manifest) {
 			await this.checkForWorkspaceTrust(manifest);
-			return server.extensionManagementService.install(vsix);
+			return server.extensionManagementService.install(vsix, options);
 		}
 		return Promise.reject('Unable to get the extension manifest.');
 	}
@@ -312,7 +312,7 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 		if (isWeb && this.extensionManagementServerService.remoteExtensionManagementServer) {
 			return this.extensionManagementServerService.remoteExtensionManagementServer;
 		}
-
+		
 		// Local server can accept any extension. So return local server if not compatible server found.
 		return this.extensionManagementServerService.localExtensionManagementServer;
 	}
@@ -366,7 +366,6 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 	protected async checkForWorkspaceTrust(manifest: IExtensionManifest): Promise<void> {
 		if (this.extensionManifestPropertiesService.getExtensionUntrustedWorkspaceSupportType(manifest) === false) {
 			const trustState = await this.workspaceTrustRequestService.requestWorkspaceTrust({
-				modal: true,
 				message: localize('extensionInstallWorkspaceTrustMessage', "Enabling this extension requires a trusted workspace."),
 				buttons: [
 					{ label: localize('extensionInstallWorkspaceTrustButton', "Trust Workspace & Install"), type: 'ContinueWithTrust' },

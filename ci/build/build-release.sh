@@ -82,10 +82,12 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/resources/linux/code.png" "$VSCODE_OUT_PATH/resources/linux/code.png"
   rsync "$VSCODE_SRC_PATH/resources/web/callback.html" "$VSCODE_OUT_PATH/resources/web/callback.html"
 
-  # Adds the commit and date to product.json
+  # Add the commit and date and enable telemetry. This just makes telemetry
+  # available; telemetry can still be disabled by flag or setting.
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
     cat << EOF
   {
+    "enableTelemetry": true,
     "commit": "$(git rev-parse HEAD)",
     "date": $(jq -n 'now | todate')
   }

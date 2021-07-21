@@ -1,0 +1,30 @@
+name: Script unit tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "installer.sh"
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run script unit tests
+    runs-on: ubuntu-latest
+    # This runs on Alpine to make sure we're testing with actual sh.
+    container: "alpine:3.14"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v2
+
+      - name: Install test utilities
+        run: apk add bats checkbashisms
+
+      - name: Check Bashisms
+        run: checkbashisms ./install.sh
+
+      - name: Run script unit tests
+        run: ./ci/dev/test-scripts.sh

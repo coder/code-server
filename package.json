@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "3.10.3",
+  "version": "3.11.1",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/brevdev/code-server",
   "bugs": {
@@ -20,6 +20,7 @@
     "test:e2e": "./ci/dev/test-e2e.sh",
     "test:standalone-release": "./ci/build/test-standalone-release.sh",
     "test:unit": "./ci/dev/test-unit.sh",
+    "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
     "update:vscode": "./ci/dev/update-vscode.sh",
@@ -56,7 +57,7 @@
     "@typescript-eslint/parser": "^4.7.0",
     "audit-ci": "^4.0.0",
     "browserify": "^17.0.0",
-    "codecov": "^3.8.1",
+    "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
@@ -93,7 +94,7 @@
     "js-yaml": "^4.1.0",
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
-    "proxy-agent": "^4.0.0",
+    "proxy-agent": "^5.0.0",
     "proxy-from-env": "^1.1.0",
     "qs": "6.7.0",
     "rotating-file-stream": "^2.1.1",
@@ -147,7 +148,7 @@
     ],
     "coverageThreshold": {
       "global": {
-        "lines": 40
+        "lines": 60
       }
     },
     "modulePathIgnorePatterns": [

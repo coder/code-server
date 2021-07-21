@@ -10,6 +10,7 @@ import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
+import { getFirstString } from "../common/util"
 
 export interface Paths {
   data: string
@@ -459,8 +460,9 @@ enum CharCode {
  */
 export function pathToFsPath(path: string, keepDriveLetterCasing = false): string {
   const isWindows = process.platform === "win32"
-  const uri = { authority: undefined, path, scheme: "file" }
+  const uri = { authority: undefined, path: getFirstString(path) || "", scheme: "file" }
   let value: string
+
   if (uri.authority && uri.path.length > 1 && uri.scheme === "file") {
     // unc path: file://shares/c$/far/boo
     value = `//${uri.authority}${uri.path}`
