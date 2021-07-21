@@ -1,5 +1,7 @@
 import { Request, Router } from "express"
-// import fs from "fs"
+import FindFiles from "file-regex"
+import fs from "fs"
+import { WORKSPACE_HOME_DIRECTORY_PATH } from "../../common/constants"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
@@ -40,20 +42,29 @@ router.all("*", async (req, res, next) => {
     return next()
   }
 
-  // Must be authenticated or declare the port as public to use the proxy.
-  // const portsFile = fs.readFileSync()
-  const publicPortsFile = ""
-  const publicPorts = publicPortsFile.split(",")
-  const portIsPublic = port in publicPorts
-  const isAuthenticated = await authenticated(req)
-  if (isAuthenticated || portIsPublic) {
-    proxy.web(req, res, {
-      ignorePath: true,
-      target: `http://0.0.0.0:${port}${req.originalUrl}`,
-    })
-  } else {
+  // Must be authenticated or specify port as open to use the proxy.
+  console.log(WORKSPACE_HOME_DIRECTORY_PATH)
+  const [portFiles, isAuthenticated] = await Promise.all([
+    FindFiles("/Users/ali/cs/my-app", /ports.txt/g, 10),
+    authenticated(req),
+  ])
+  let publicPorts: Array<string> = []
+  for (let i = 0; i < portFiles.length; i++) {
+    const filePath = `${portFiles[i].dir}/${portFiles[i].file}`
+    const portsFileString = fs.readFileSync(filePath, "utf8")
+    const ports = portsFileString.split("\n").filter((port) => port !== "")
+    publicPorts = publicPorts.concat(ports)
+  }
+
+  const portIsPublic = publicPorts.includes(port)
+  console.log("port", port)
+  console.log("portIsPublic", portIsPublic)
+  console.log("isAuthenticated", isAuthenticated)
+  console.log("!isAuthenticated && !portIsPublic", !isAuthenticated && !portIsPublic)
+  if (!isAuthenticated && !portIsPublic) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
+      console.log("static")
       return next()
     }
 
@@ -64,18 +75,26 @@ router.all("*", async (req, res, next) => {
     if (req.headers.accept && req.headers.accept.includes("text/html")) {
       // Let the login through.
       if (/\/login\/?/.test(req.path)) {
+        console.log("to login")
         return next()
       }
       // Redirect all other pages to the login.
       const to = normalize(`${req.baseUrl}${req.path}`)
+      console.log("redirect")
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,
       })
     }
 
+    console.log("Unauthorized")
     // Everything else gets an unauthorized message.
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
+
+  proxy.web(req, res, {
+    ignorePath: true,
+    target: `http://0.0.0.0:${port}${req.originalUrl}`,
+  })
 })
 
 export const wsRouter = WsRouter()
