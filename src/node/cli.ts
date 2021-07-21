@@ -503,6 +503,11 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args["proxy-port-separator"] = "dash"
   }
 
+  // Default disabling telemetry sent to cdr (instead need to reconfigure this for Brev)
+  if (!args["disable-telemetry"]) {
+    args["disable-telemetry"] = true
+  }
+
   return {
     ...args,
     usingEnvPassword,
@@ -515,6 +520,8 @@ async function defaultConfigFile(): Promise<string> {
 auth: password
 password: ${await generatePassword()}
 cert: false
+proxy-port-separator: dash
+disable-telemetry: true
 `
 }
 
