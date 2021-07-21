@@ -1,11 +1,12 @@
+import { logger } from "@coder/logger"
 import { Request, Router } from "express"
-import FindFiles from "file-regex"
 import fs from "fs"
 import { WORKSPACE_HOME_DIRECTORY_PATH } from "../../common/constants"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
 import { authenticated, ensureAuthenticated, redirect } from "../http"
 import { proxy } from "../proxy"
+import { FindFiles } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 
 export const router = Router()
@@ -43,10 +44,17 @@ router.all("*", async (req, res, next) => {
   }
 
   // Must be authenticated or specify port as open to use the proxy.
-  const [portFiles, isAuthenticated] = await Promise.all([
-    FindFiles(WORKSPACE_HOME_DIRECTORY_PATH, /ports.txt/g, 10),
-    authenticated(req),
-  ])
+  let portFiles: Array<{ dir: string; file: string }> = []
+  try {
+    console.log("starting here")
+    portFiles = await FindFiles(WORKSPACE_HOME_DIRECTORY_PATH, /ports.txt/g, 10)
+    console.log("ending here")
+  } catch (error) {
+    if (error) logger.debug(`Error in domain proxy: ${error}`)
+    portFiles = []
+  }
+
+  console.log("portFiles", portFiles)
   let publicPorts: Array<string> = []
   for (let i = 0; i < portFiles.length; i++) {
     const filePath = `${portFiles[i].dir}/${portFiles[i].file}`
@@ -56,7 +64,11 @@ router.all("*", async (req, res, next) => {
   }
 
   const portIsPublic = publicPorts.includes(port)
+  const isAuthenticated = await authenticated(req)
+  console.log("portIsPublic", portIsPublic)
+  console.log("isAuthenticated", isAuthenticated)
   if (!isAuthenticated && !portIsPublic) {
+    console.log("in here")
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
