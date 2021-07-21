@@ -43,9 +43,8 @@ router.all("*", async (req, res, next) => {
   }
 
   // Must be authenticated or specify port as open to use the proxy.
-  console.log(WORKSPACE_HOME_DIRECTORY_PATH)
   const [portFiles, isAuthenticated] = await Promise.all([
-    FindFiles("/Users/ali/cs/my-app", /ports.txt/g, 10),
+    FindFiles(WORKSPACE_HOME_DIRECTORY_PATH, /ports.txt/g, 10),
     authenticated(req),
   ])
   let publicPorts: Array<string> = []
@@ -57,14 +56,9 @@ router.all("*", async (req, res, next) => {
   }
 
   const portIsPublic = publicPorts.includes(port)
-  console.log("port", port)
-  console.log("portIsPublic", portIsPublic)
-  console.log("isAuthenticated", isAuthenticated)
-  console.log("!isAuthenticated && !portIsPublic", !isAuthenticated && !portIsPublic)
   if (!isAuthenticated && !portIsPublic) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
-      console.log("static")
       return next()
     }
 
@@ -75,18 +69,15 @@ router.all("*", async (req, res, next) => {
     if (req.headers.accept && req.headers.accept.includes("text/html")) {
       // Let the login through.
       if (/\/login\/?/.test(req.path)) {
-        console.log("to login")
         return next()
       }
       // Redirect all other pages to the login.
       const to = normalize(`${req.baseUrl}${req.path}`)
-      console.log("redirect")
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,
       })
     }
 
-    console.log("Unauthorized")
     // Everything else gets an unauthorized message.
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
