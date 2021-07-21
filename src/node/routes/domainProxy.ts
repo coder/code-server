@@ -46,15 +46,13 @@ router.all("*", async (req, res, next) => {
   // Must be authenticated or specify port as open to use the proxy.
   let portFiles: Array<{ dir: string; file: string }> = []
   try {
-    console.log("starting here")
-    portFiles = await FindFiles(WORKSPACE_HOME_DIRECTORY_PATH, /ports.txt/g, 10)
-    console.log("ending here")
+    logger.debug(`Workspace home directory path: ${WORKSPACE_HOME_DIRECTORY_PATH}`)
+    portFiles = await FindFiles(WORKSPACE_HOME_DIRECTORY_PATH, /ports.txt/g, 5)
   } catch (error) {
     if (error) logger.debug(`Error in domain proxy: ${error}`)
     portFiles = []
   }
 
-  console.log("portFiles", portFiles)
   let publicPorts: Array<string> = []
   for (let i = 0; i < portFiles.length; i++) {
     const filePath = `${portFiles[i].dir}/${portFiles[i].file}`
@@ -65,10 +63,7 @@ router.all("*", async (req, res, next) => {
 
   const portIsPublic = publicPorts.includes(port)
   const isAuthenticated = await authenticated(req)
-  console.log("portIsPublic", portIsPublic)
-  console.log("isAuthenticated", isAuthenticated)
   if (!isAuthenticated && !portIsPublic) {
-    console.log("in here")
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
