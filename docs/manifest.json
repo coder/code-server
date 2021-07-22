@@ -1,7 +1,5 @@
 {
-  "versions": [
-    "v3.11.0", "v3.10.2"
-  ],
+  "versions": ["v3.11.0", "v3.10.2"],
   "routes": [
     {
       "title": "Home",
