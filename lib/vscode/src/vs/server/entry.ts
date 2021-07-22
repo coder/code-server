@@ -38,7 +38,7 @@ if (typeof process.env.CODE_SERVER_PARENT_PID !== 'undefined') {
 const vscode = new Vscode();
 const send = (message: VscodeMessage): void => {
 	if (!process.send) {
-		throw new Error('not spawned with IPC');
+    throw new Error('not spawned with IPC');
 	}
 	process.send(message);
 };
