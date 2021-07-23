@@ -62,7 +62,7 @@ function newProxyAgent(inVSCode: boolean): http.Agent {
 
 // If they have $NO_PROXY set to example.com then this check won't work!
 // But that's drastically unlikely.
-function shouldEnableProxy(): boolean {
+export function shouldEnableProxy(): boolean {
   let shouldEnable = false
 
   const httpProxy = proxyFromEnv.getProxyForUrl(`http://example.com`)
