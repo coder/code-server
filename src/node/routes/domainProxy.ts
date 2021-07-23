@@ -42,11 +42,14 @@ const maybeProxy = (req: Request): string | undefined => {
  * Returns all ports that have been marked as public, specified in the ports.yaml
  * file in our .brev folder. We recursively search through all ports.yaml files and
  * add them to our list.
+ *
+ * Ports are either numbers or aliases like "5000" or "alias:5000".
  */
-const getPublicPorts = async (baseDir: string): Promise<string[]> => {
+const getPublicPorts = async (baseDir: string): Promise<[string[], { [key: string]: string }]> => {
   let portFiles: Array<{ dir: string; file: string }> = []
   try {
     logger.debug(`Directory path: ${baseDir}`)
+    // Recursively search for ports.yaml files
     portFiles = await FindFiles(baseDir, /ports.yaml/g, 5)
   } catch (error) {
     if (error) logger.debug(`Error in domain proxy: ${error}`)
@@ -54,19 +57,34 @@ const getPublicPorts = async (baseDir: string): Promise<string[]> => {
   }
 
   let publicPorts: Array<string> = []
+  const portMappings: { [key: string]: string } = {}
   for (let i = 0; i < portFiles.length; i++) {
     const filePath = `${portFiles[i].dir}/${portFiles[i].file}`
     const portsFileString = fs.readFileSync(filePath, "utf8")
     const yamlData = yaml.load(portsFileString)
 
+    // Extract port entries from file
     let ports: Array<string> = []
     if (yamlData && typeof yamlData === "object" && "ports" in yamlData) {
       ports = (yamlData as { version: number; ports: Array<string> })["ports"]
     }
 
+    // Filter and track entries that are mappings from file
+    for (let j = 0; j < ports.length; j++) {
+      const entry = ports[j]
+      if (entry.includes(":")) {
+        ports = ports.filter((v) => v !== entry)
+        const aliasPortEntry = entry.split(":")
+        const [alias, portValue] = aliasPortEntry
+        portMappings[alias] = portValue
+        ports = ports.concat([alias, portValue])
+      }
+    }
+
     publicPorts = publicPorts.concat(ports)
   }
-  return publicPorts
+
+  return [publicPorts, portMappings]
 }
 
 router.all("*", async (req, res, next) => {
@@ -76,7 +94,7 @@ router.all("*", async (req, res, next) => {
   }
 
   // Must be authenticated or specify port as open to use the proxy.
-  const publicPorts = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
+  const [publicPorts, portMappings] = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
   const portIsPublic = publicPorts.includes(port)
   const isAuthenticated = await authenticated(req)
   if (!isAuthenticated && !portIsPublic) {
@@ -107,7 +125,7 @@ router.all("*", async (req, res, next) => {
 
   proxy.web(req, res, {
     ignorePath: true,
-    target: `http://0.0.0.0:${port}${req.originalUrl}`,
+    target: `http://0.0.0.0:${portMappings[port] ? portMappings[port] : port}${req.originalUrl}`,
   })
 })
 
@@ -120,7 +138,7 @@ wsRouter.ws("*", async (req, _, next) => {
   }
 
   // Must be authenticated or specify port as open to use the proxy.
-  const publicPorts = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
+  const [publicPorts, portMappings] = await getPublicPorts(WORKSPACE_HOME_DIRECTORY_PATH)
   const portIsPublic = publicPorts.includes(port)
   const isAuthenticated = await authenticated(req)
   if (!isAuthenticated && !portIsPublic) {
@@ -129,6 +147,6 @@ wsRouter.ws("*", async (req, _, next) => {
 
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
-    target: `http://0.0.0.0:${port}${req.originalUrl}`,
+    target: `http://0.0.0.0:${portMappings[port] ? portMappings[port] : port}${req.originalUrl}`,
   })
 })
