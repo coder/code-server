@@ -155,7 +155,7 @@ describe("register", () => {
       await registerServiceWorker()
 
       expect(mockFn).toBeCalled()
-      expect(serviceWorkerPath).toMatch(`${csStaticBasePath}/dist/serviceWorker.js`)
+      expect(serviceWorkerPath).toMatch(`${csStaticBasePath}/out/browser/serviceWorker.js`)
       expect(serviceWorkerScope).toMatch("/")
     })
     it("should register when options.base is defined", async () => {
@@ -176,7 +176,7 @@ describe("register", () => {
       await registerServiceWorker()
 
       expect(mockFn).toBeCalled()
-      expect(serviceWorkerPath).toMatch(`/dist/serviceWorker.js`)
+      expect(serviceWorkerPath).toMatch(`/out/browser/serviceWorker.js`)
       expect(serviceWorkerScope).toMatch("/")
     })
   })
