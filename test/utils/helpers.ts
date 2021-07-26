@@ -37,3 +37,27 @@ export async function tmpdir(testName: string): Promise<string> {
 
   return await fs.mkdtemp(path.join(dir, `${testName}-`), { encoding: "utf8" })
 }
+
+/**
+ * @description Helper function to use an environment variable.
+ *
+ * @returns an array (similar to useState in React) with a function
+ * to set the value and reset the value
+ */
+export function useEnv(key: string): [(nextValue: string | undefined) => string | undefined, () => void] {
+  const initialValue = process.env[key]
+  const setValue = (nextValue: string | undefined) => (process.env[key] = nextValue)
+  // Node automatically converts undefined to string 'undefined'
+  // when assigning an environment variable.
+  // which is why we need to delete it if it's supposed to be undefined
+  // Source: https://stackoverflow.com/a/60147167
+  const resetValue = () => {
+    if (initialValue !== undefined) {
+      process.env[key] = initialValue
+    } else {
+      delete process.env[key]
+    }
+  }
+
+  return [setValue, resetValue]
+}
