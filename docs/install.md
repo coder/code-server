@@ -15,6 +15,11 @@
 - [Raspberry Pi](#raspberry-pi)
 - [Termux](#termux)
 - [Cloud providers](#cloud-providers)
+- [Uninstall](#uninstall)
+  - [install.sh](#installsh-1)
+  - [Homebrew](#homebrew)
+  - [yarn, npm](#yarn-npm-1)
+  - [Debian, Ubuntu](#debian-ubuntu-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -246,3 +251,54 @@ information.
 We maintain [one-click apps and install scripts for cloud
 providers](https://github.com/cdr/deploy-code-server) such as DigitalOcean,
 Railway, Heroku, and Azure.
+
+## Uninstall
+
+code-server can be completely uninstalled by removing the application directory, and your user configuration directory.
+
+To delete settings and data:
+
+```shell
+rm -rf ~/.local/share/code-server ~/.config/code-server
+```
+
+### install.sh
+
+If you installed with the install script, by default code-server will be in `~/.local/lib/code-server-<version>` and you can remove it with `rm -rf`. e.g.
+
+```shell
+rm -rf ~/.local/lib/code-server-*
+```
+
+### Homebrew
+
+To remove the code-server homebrew package, run:
+
+```shell
+brew remove code-server
+
+# Alternatively
+brew uninstall code-server
+```
+
+### yarn, npm
+
+To remove the code-server global module, run:
+
+```shell
+yarn global remove code-server
+```
+
+or
+
+```shell
+npm uninstall -g code-server
+```
+
+### Debian, Ubuntu
+
+To uninstall, run:
+
+```shell
+sudo apt remove code-server
+```
