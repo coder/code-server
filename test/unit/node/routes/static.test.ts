@@ -1,8 +1,8 @@
 import { promises as fs } from "fs"
 import * as path from "path"
-import { tmpdir } from "../../utils/helpers"
-import * as httpserver from "../../utils/httpserver"
-import * as integration from "../../utils/integration"
+import { tmpdir } from "../../../utils/helpers"
+import * as httpserver from "../../../utils/httpserver"
+import * as integration from "../../../utils/integration"
 
 describe("/static", () => {
   let _codeServer: httpserver.HttpServer | undefined

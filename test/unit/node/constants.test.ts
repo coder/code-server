@@ -1,7 +1,7 @@
-import { createLoggerMock } from "../utils/helpers"
+import { createLoggerMock } from "../../utils/helpers"
 
 describe("constants", () => {
-  let constants: typeof import("../../src/node/constants")
+  let constants: typeof import("../../../src/node/constants")
 
   describe("with package.json defined", () => {
     const loggerModule = createLoggerMock()
@@ -15,8 +15,8 @@ describe("constants", () => {
 
     beforeAll(() => {
       jest.mock("@coder/logger", () => loggerModule)
-      jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
-      constants = require("../../src/node/constants")
+      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
+      constants = require("../../../src/node/constants")
     })
 
     afterAll(() => {
@@ -57,8 +57,8 @@ describe("constants", () => {
     }
 
     beforeAll(() => {
-      jest.mock("../../package.json", () => mockPackageJson, { virtual: true })
-      constants = require("../../src/node/constants")
+      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
+      constants = require("../../../src/node/constants")
     })
 
     afterAll(() => {

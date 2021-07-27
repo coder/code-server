@@ -1,5 +1,5 @@
-import * as httpserver from "../../utils/httpserver"
-import * as integration from "../../utils/integration"
+import * as httpserver from "../../../utils/httpserver"
+import * as integration from "../../../utils/integration"
 
 describe("health", () => {
   let codeServer: httpserver.HttpServer | undefined

@@ -143,7 +143,7 @@ Our unit tests are written in TypeScript and run using
 
 These live under [test/unit](../test/unit).
 
-We use unit tests for functions and things that can be tested in isolation.
+We use unit tests for functions and things that can be tested in isolation. The file structure is modeled closely after `/src` so it's easy for people to know where test files should live.
 
 ### Integration tests
 

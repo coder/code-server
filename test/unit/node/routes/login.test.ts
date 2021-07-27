@@ -1,6 +1,6 @@
-import { RateLimiter } from "../../../src/node/routes/login"
-import * as httpserver from "../../utils/httpserver"
-import * as integration from "../../utils/integration"
+import { RateLimiter } from "../../../../src/node/routes/login"
+import * as httpserver from "../../../utils/httpserver"
+import * as integration from "../../../utils/integration"
 
 describe("login", () => {
   describe("RateLimiter", () => {

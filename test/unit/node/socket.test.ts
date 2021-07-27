@@ -3,10 +3,10 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as path from "path"
 import * as tls from "tls"
-import { Emitter } from "../../src/common/emitter"
-import { tmpdir } from "../../src/node/constants"
-import { SocketProxyProvider } from "../../src/node/socket"
-import { generateCertificate } from "../../src/node/util"
+import { Emitter } from "../../../src/common/emitter"
+import { tmpdir } from "../../../src/node/constants"
+import { SocketProxyProvider } from "../../../src/node/socket"
+import { generateCertificate } from "../../../src/node/util"
 
 describe("SocketProxyProvider", () => {
   const provider = new SocketProxyProvider()

@@ -1,6 +1,6 @@
 import { JSDOM } from "jsdom"
-import * as util from "../../src/common/util"
-import { createLoggerMock } from "../utils/helpers"
+import * as util from "../../../src/common/util"
+import { createLoggerMock } from "../../utils/helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
