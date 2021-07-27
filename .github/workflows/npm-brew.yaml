@@ -1,4 +1,4 @@
-name: publish
+name: Publish on npm and brew
 
 on:
   # Shows the manual trigger in GitHub UI
