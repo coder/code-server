@@ -1,6 +1,7 @@
 import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
+import * as net from "net"
 
 /**
  * Return a mock of @coder/logger.
@@ -61,3 +62,23 @@ export function useEnv(key: string): [(nextValue: string | undefined) => string 
 
   return [setValue, resetValue]
 }
+
+/**
+ * Helper function to get a random port.
+ *
+ * Source: https://github.com/sindresorhus/get-port/blob/main/index.js#L23-L33
+ */
+export const getAvailablePort = (options?: net.ListenOptions): Promise<number> =>
+  new Promise((resolve, reject) => {
+    const server = net.createServer()
+    server.unref()
+    server.on("error", reject)
+    server.listen(options, () => {
+      // NOTE@jsjoeio: not a huge fan of the type assertion
+      // but it works for now.
+      const { port } = server.address() as net.AddressInfo
+      server.close(() => {
+        resolve(port)
+      })
+    })
+  })

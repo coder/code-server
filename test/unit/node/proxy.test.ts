@@ -6,6 +6,7 @@ import { HttpCode } from "../../../src/common/http"
 import { proxy } from "../../../src/node/proxy"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
+import { getAvailablePort } from "../../utils/helpers"
 
 describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()
@@ -166,14 +167,16 @@ describe("proxy", () => {
 // src/node/proxy.ts, you should probably add it to
 // this test suite.
 describe("proxy (standalone)", () => {
-  const PORT = 9003
-  const PROXY_PORT = 8003
-  const URL = `http://localhost:${PORT}`
-  const PROXY_URL = `http://localhost:${PROXY_PORT}`
+  let URL = ""
+  let PROXY_URL = ""
   let testServer: http.Server
   let proxyTarget: http.Server
 
   beforeEach(async () => {
+    const PORT = await getAvailablePort()
+    const PROXY_PORT = await getAvailablePort()
+    URL = `http://localhost:${PORT}`
+    PROXY_URL = `http://localhost:${PROXY_PORT}`
     // Define server and a proxy server
     testServer = http.createServer((req, res) => {
       proxy.web(req, res, {
