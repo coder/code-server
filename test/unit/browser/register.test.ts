@@ -1,7 +1,7 @@
 import { JSDOM } from "jsdom"
 import { registerServiceWorker } from "../../../src/browser/register"
 import { createLoggerMock } from "../../utils/helpers"
-import { LocationLike } from "../util.test"
+import { LocationLike } from "../common/util.test"
 
 describe("register", () => {
   describe("when navigator and serviceWorker are defined", () => {

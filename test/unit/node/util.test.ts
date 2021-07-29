@@ -1,9 +1,9 @@
 import * as cp from "child_process"
-import * as path from "path"
 import { promises as fs } from "fs"
+import * as path from "path"
 import { generateUuid } from "../../../src/common/util"
-import * as util from "../../../src/node/util"
 import { tmpdir } from "../../../src/node/constants"
+import * as util from "../../../src/node/util"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {

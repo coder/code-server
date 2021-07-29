@@ -1,5 +1,5 @@
 import { JSDOM } from "jsdom"
-import { LocationLike } from "../../util.test"
+import { LocationLike } from "../../common/util.test"
 
 describe("login", () => {
   describe("there is an element with id 'base'", () => {
