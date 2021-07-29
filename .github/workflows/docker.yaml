@@ -1,0 +1,28 @@
+name: Publish on Docker
+
+on:
+  # Shows the manual trigger in GitHub UI
+  # helpful as a back-up in case the GitHub Actions Workflow fails
+  workflow_dispatch:
+
+  release:
+    types: [published]
+
+jobs:
+  docker-images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Run ./ci/steps/docker-buildx-push.sh
+        run: ./ci/steps/docker-buildx-push.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}

@@ -78,8 +78,8 @@ You can disable minification by setting `MINIFY=`.
 
 This directory contains the release docker container image.
 
-- [./ci/steps/build-docker-image.sh](./ci/steps/build-docker-image.sh)
-  - Builds the release containers with tags `codercom/code-server-$ARCH:$VERSION` for amd64 and arm64 with `docker buildx`.
+- [./ci/steps/build-docker-buildx-push.sh](./ci/steps/docker-buildx-push.sh)
+  - Builds the release containers with tags `codercom/code-server-$ARCH:$VERSION` for amd64 and arm64 with `docker buildx` and pushes them.
   - Assumes debian releases are ready in `./release-packages`.
 
 ## images
@@ -107,8 +107,8 @@ Helps avoid clobbering the CI configuration.
     release packages into `./release-packages`.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on npm.
-- [./steps/build-docker-image.sh](./steps/build-docker-image.sh)
-  - Builds the docker image and then saves it into `./release-images/code-server-$ARCH-$VERSION.tar`.
+- [./steps/docker-buildx-push.sh](./steps/docker-buildx-push.sh)
+  - Builds the docker image and then pushes it.
 - [./steps/push-docker-manifest.sh](./steps/push-docker-manifest.sh)
   - Loads all images in `./release-images` and then builds and pushes a multi architecture
     docker manifest for the amd64 and arm64 images to `codercom/code-server:$VERSION` and

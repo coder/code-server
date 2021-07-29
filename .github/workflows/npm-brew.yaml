@@ -1,4 +1,4 @@
-name: publish
+name: Publish on npm and brew
 
 on:
   # Shows the manual trigger in GitHub UI
@@ -21,20 +21,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-  # NOTE: this job requires curl, jq and docker
-  # All of them are included in ubuntu-latest.
-  docker:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Run ./ci/steps/push-docker-manifest.sh
-        run: ./ci/steps/push-docker-manifest.sh
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
   homebrew:
     # The newest version of code-server needs to be available on npm when this runs
