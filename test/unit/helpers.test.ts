@@ -1,5 +1,5 @@
 import { promises as fs } from "fs"
-import { tmpdir, useEnv } from "../../test/utils/helpers"
+import { getAvailablePort, tmpdir, useEnv } from "../../test/utils/helpers"
 
 /**
  * This file is for testing test helpers (not core code).
@@ -37,5 +37,18 @@ describe("useEnv", () => {
     expect(process.env[envKey]).toEqual("hello there")
     resetValue()
     expect(process.env[envKey]).toEqual("test environment variable")
+  })
+})
+
+describe("getAvailablePort", () => {
+  it("should return a valid port", async () => {
+    const port = await getAvailablePort()
+    expect(port).toBeGreaterThan(0)
+    expect(port).toBeLessThanOrEqual(65535)
+  })
+  it("should return different ports for different calls", async () => {
+    const portOne = await getAvailablePort()
+    const portTwo = await getAvailablePort()
+    expect(portOne).not.toEqual(portTwo)
   })
 })
