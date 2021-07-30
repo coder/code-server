@@ -62,6 +62,11 @@ Additionally, collecting core dumps (you may need to enable them first) if
 code-server crashes can be helpful.
 -->
 
+<!--
+If you're having issues with installation please include the installation logs
+i.e. the output of `yarn global add code-server` if you installed with `yarn`
+ -->
+
 ## Screenshot
 
 <!-- Ideally provide a screenshot, gif, video or screen recording. -->
