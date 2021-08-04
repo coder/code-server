@@ -16,5 +16,8 @@
     "ts-jest": "^26.4.4",
     "@types/wtfnode": "^0.7.0",
     "wtfnode": "^0.9.0"
+  },
+  "resolutions": {
+    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.3"
   }
 }
