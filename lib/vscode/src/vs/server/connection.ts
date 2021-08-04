@@ -222,7 +222,7 @@ export class ExtensionHostConnection extends Connection {
 				case 'VSCODE_EXTHOST_DISCONNECTED':
 					this.logger.debug('Got disconnected message');
 					// this.setOffline();
-					this.dispose()
+					this.dispose();
 					break;
 				case 'VSCODE_EXTHOST_IPC_READY':
 					this.logger.debug('Handshake completed');
