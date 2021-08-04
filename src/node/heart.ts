@@ -6,7 +6,7 @@ import { promises as fs } from "fs"
  */
 export class Heart {
   private heartbeatTimer?: NodeJS.Timeout
-  private heartbeatInterval = 60000
+  private heartbeatInterval = 10000
   public lastHeartbeat = 0
 
   public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}

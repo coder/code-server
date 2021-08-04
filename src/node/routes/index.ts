@@ -43,7 +43,7 @@ export const register = async (
           return reject(error)
         }
         logger.debug(plural(count, `${count} active connection`))
-        resolve(count > 0)
+        resolve(count > 1) // hack to make heart beat more resilient/accurate with vscode since vscode always opens at least 2 connections
       })
     })
   })

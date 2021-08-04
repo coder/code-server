@@ -78,7 +78,8 @@ export class ManagementConnection extends Connection {
 	public constructor(protocol: Protocol) {
 		super(protocol, 'management');
 		protocol.onDidDispose(() => this.dispose()); // Explicit close.
-		protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
+		// protocol.onSocketClose(() => this.setOffline()); // Might reconnect.
+		protocol.onSocketClose(() => this.dispose()); 
 		protocol.sendMessage({ type: 'ok' });
 	}
 
@@ -220,7 +221,8 @@ export class ExtensionHostConnection extends Connection {
 					break;
 				case 'VSCODE_EXTHOST_DISCONNECTED':
 					this.logger.debug('Got disconnected message');
-					this.setOffline();
+					// this.setOffline();
+					this.dispose()
 					break;
 				case 'VSCODE_EXTHOST_IPC_READY':
 					this.logger.debug('Handshake completed');
