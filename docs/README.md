@@ -53,20 +53,9 @@ code-server.
 We also have an in-depth [setup and
 configuration](https://coder.com/docs/code-server/v3.11.0/guide) guide.
 
-### code-server --link
+## TLS and authentication (beta)
 
-We're working on a cloud platform that makes deploying and managing code-server
-easier. Consider running code-server with the beta flag `--link` if you don't
-want to worry about:
-
-- TLS
-- Authentication
-- Port forwarding
-
-```bash
-$ code-server --link
-Proxying code-server, you can access your IDE at https://example.cdr.co
-```
+To add TLS and authentication out of the box, use [code-server --link](https://coder.com/docs/code-server/v3.11.0/link).
 
 ## Questions?
 
