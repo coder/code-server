@@ -55,9 +55,12 @@ export function asWebviewUri(
 		});
 	}
 
+	// NOTE@coder: Add the port separately because if the port is in the domain the
+	// URL will be invalid and the browser will not request it.
+	const authorityUrl = new URL(`${resource.scheme}://${resource.authority}`);
 	return URI.from({
 		scheme: Schemas.https,
-		authority: `${resource.scheme}+${resource.authority}.${webviewRootResourceAuthority}`,
+		authority: `${resource.scheme}+${authorityUrl.hostname}.${webviewRootResourceAuthority}${authorityUrl.port ? (':' + authorityUrl.port) : ''}`,
 		path: resource.path,
 		fragment: resource.fragment,
 		query: resource.query,
