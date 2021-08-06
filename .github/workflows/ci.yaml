@@ -352,8 +352,8 @@ jobs:
         with:
           node-version: "14"
 
-      - name: Install playwright
-        uses: microsoft/playwright-github-action@v1
+      - name: Install playwright OS dependencies
+        run: npx playwright install-deps
 
       - name: Fetch dependencies from cache
         id: cache-yarn
