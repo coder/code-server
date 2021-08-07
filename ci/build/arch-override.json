@@ -1,0 +1,8 @@
+{
+  "rpm": {
+    "armv7l": "armhfp"
+  },
+  "deb": {
+    "armv7l": "armhf"
+  }
+}
