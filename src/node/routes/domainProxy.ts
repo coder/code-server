@@ -66,7 +66,8 @@ const getPublicPorts = async (baseDir: string): Promise<[string[], { [key: strin
     // Extract port entries from file
     let ports: Array<string> = []
     if (yamlData && typeof yamlData === "object" && "ports" in yamlData) {
-      ports = (yamlData as { version: number; ports: Array<string> })["ports"]
+      const portsData = (yamlData as { version: number; ports: Array<string> })["ports"]
+      ports = portsData || []
     }
 
     // Filter and track entries that are mappings from file
