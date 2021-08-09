@@ -43,14 +43,31 @@ release_gcp() {
   cp "./release-packages/$release_name.tar.gz" "./release-gcp/latest/$OS-$ARCH.tar.gz"
 }
 
+# On some CPU architectures (notably node/uname "armv7l", default on Raspberry Pis),
+# different package managers have different labels for the same CPU (deb=armhf, rpm=armhfp).
+# This function parses arch-override.json and returns the overriden arch on platforms
+# with alternate labels, or the same arch otherwise.
+get_nfpm_arch() {
+  if jq -re ".${PKG_FORMAT}.${ARCH}" ./ci/build/arch-override.json > /dev/null; then
+    jq -re ".${PKG_FORMAT}.${ARCH}" ./ci/build/arch-override.json
+  else
+    echo "$ARCH"
+  fi
+}
+
 # Generates deb and rpm packages.
 release_nfpm() {
   local nfpm_config
-  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
 
-  # The underscores are convention for .deb.
-  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_$ARCH.deb"
-  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$ARCH.rpm"
+  PKG_FORMAT="deb"
+  NFPM_ARCH="$(get_nfpm_arch)"
+  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_${NFPM_ARCH}.deb"
+
+  PKG_FORMAT="rpm"
+  NFPM_ARCH="$(get_nfpm_arch)"
+  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$NFPM_ARCH.rpm"
 }
 
 main "$@"

@@ -234,23 +234,32 @@ jobs:
   # It is not feasible to cross-compile with CentOS.
 
   # Cross-compile notes: To compile native dependencies for arm64,
-  # we install the aarch64 cross toolchain and then set it as the default
+  # we install the aarch64/armv7l cross toolchain and then set it as the default
   # compiler/linker/etc. with the AR/CC/CXX/LINK environment variables.
   # qemu-user-static on ubuntu-16.04 currently doesn't run Node correctly,
-  # so we just build with "native"/x86_64 node, then download arm64 node
-  # and then put it in our release. We can't smoke test the arm64 build this way,
+  # so we just build with "native"/x86_64 node, then download arm64/armv7l node
+  # and then put it in our release. We can't smoke test the cross build this way,
   # but this means we don't need to maintain a self-hosted runner!
-  package-linux-arm64:
-    name: Linux ARM64 cross-compile build
+  package-linux-cross:
+    name: Linux cross-compile builds
     needs: build
     runs-on: ubuntu-16.04
     timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - prefix: aarch64-linux-gnu
+            arch: arm64
+          - prefix: arm-linux-gnueabihf
+            arch: armv7l
+
     env:
-      AR: aarch64-linux-gnu-ar
-      CC: aarch64-linux-gnu-gcc
-      CXX: aarch64-linux-gnu-g++
-      LINK: aarch64-linux-gnu-g++
-      NPM_CONFIG_ARCH: arm64
+      AR: ${{ format('{0}-ar', matrix.prefix) }}
+      CC: ${{ format('{0}-gcc', matrix.prefix) }}
+      CXX: ${{ format('{0}-g++', matrix.prefix) }}
+      LINK: ${{ format('{0}-g++', matrix.prefix) }}
+      NPM_CONFIG_ARCH: ${{ matrix.arch }}
+      NODE_VERSION: v14.17.4
 
     steps:
       - uses: actions/checkout@v2
@@ -266,7 +275,9 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install cross-compiler
-        run: sudo apt install g++-aarch64-linux-gnu
+        run: sudo apt install $PACKAGE
+        env:
+          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
       - name: Download npm package
         uses: actions/download-artifact@v2
@@ -279,14 +290,14 @@ jobs:
       - name: Build standalone release
         run: yarn release:standalone
 
-      - name: Replace node with arm64 equivalent
+      - name: Replace node with cross-compile equivalent
         run: |
-          wget https://nodejs.org/dist/v14.17.0/node-v14.17.0-linux-arm64.tar.xz
-          tar -xf node-v14.17.0-linux-arm64.tar.xz node-v14.17.0-linux-arm64/bin/node --strip-components=2
+          wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz
+          tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
           mv ./node ./release-standalone/lib/node
 
       - name: Build packages with nfpm
-        run: yarn package arm64
+        run: yarn package ${NPM_CONFIG_ARCH}
 
       - name: Upload release artifacts
         uses: actions/upload-artifact@v2

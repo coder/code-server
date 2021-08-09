@@ -1,5 +1,5 @@
 name: "code-server"
-arch: "${ARCH}"
+arch: "${NFPM_ARCH}"
 platform: "linux"
 version: "v${VERSION}"
 section: "devel"
