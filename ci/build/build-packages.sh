@@ -43,6 +43,10 @@ release_gcp() {
   cp "./release-packages/$release_name.tar.gz" "./release-gcp/latest/$OS-$ARCH.tar.gz"
 }
 
+# On some CPU architectures (notably node/uname "armv7l", default on Raspberry Pis),
+# different package managers have different labels for the same CPU (deb=armhf, rpm=armhfp).
+# This function parses arch-override.json and returns the overriden arch on platforms
+# with alternate labels, or the same arch otherwise.
 get_nfpm_arch() {
   if jq -re ".${PKG_FORMAT}.${ARCH}" ./ci/build/arch-override.json > /dev/null; then
     jq -re ".${PKG_FORMAT}.${ARCH}" ./ci/build/arch-override.json
