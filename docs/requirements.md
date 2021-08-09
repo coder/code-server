@@ -9,7 +9,7 @@ At the minimum, we recommend:
 - 2 CPU cores
 
 You can use any Linux distribution, but [our
-docs](https://coder.com/docs/code-server/v3.11.1/guide) assume that you're using
+docs](https://coder.com/docs/code-server/v3.11.2/guide) assume that you're using
 Debian hosted by Google Cloud (see the following section for instructions on
 setting this up).
 

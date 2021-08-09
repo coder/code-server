@@ -1,6 +1,6 @@
 # code-server
 
-[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server) [![See v3.11.1 docs](https://img.shields.io/static/v1?label=Docs&message=see%20v3.11.1%20&color=blue)](https://github.com/cdr/code-server/tree/v3.11.1/docs)
+[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server) [![See v3.11.2 docs](https://img.shields.io/static/v1?label=Docs&message=see%20v3.11.2%20&color=blue)](https://github.com/cdr/code-server/tree/v3.11.2/docs)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
 access it in the browser.
@@ -30,7 +30,7 @@ There are three ways to get started:
    automates most of the process. The script uses the system package manager if
    possible.
 2. Manually [installing
-   code-server](https://coder.com/docs/code-server/v3.11.1/install)
+   code-server](https://coder.com/docs/code-server/v3.11.2/install)
 3. Using our one-click buttons and guides to [deploy code-server to a cloud
    provider](https://github.com/cdr/deploy-code-server) ⚡
 
@@ -51,7 +51,7 @@ When done, the install script prints out instructions for running and starting
 code-server.
 
 We also have an in-depth [setup and
-configuration](https://coder.com/docs/code-server/v3.11.1/guide) guide.
+configuration](https://coder.com/docs/code-server/v3.11.2/guide) guide.
 
 ## TLS and authentication (beta)
 
@@ -60,11 +60,11 @@ To add TLS and authentication out of the box, use [code-server --link](https://c
 ## Questions?
 
 See answers to [frequently asked
-questions](https://coder.com/docs/code-server/v3.11.1/FAQ).
+questions](https://coder.com/docs/code-server/v3.11.2/FAQ).
 
 ## Want to help?
 
-See [Contributing](https://coder.com/docs/code-server/v3.11.1/CONTRIBUTING) for
+See [Contributing](https://coder.com/docs/code-server/v3.11.2/CONTRIBUTING) for
 details.
 
 ## Hiring
