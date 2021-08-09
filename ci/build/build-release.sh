@@ -98,10 +98,6 @@ EOF
   # yarn to fetch node_modules if necessary without build scripts running.
   # We cannot use --no-scripts because we still want dependent package scripts to run.
   jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
-
-  pushd "$VSCODE_OUT_PATH"
-  symlink_asar
-  popd
 }
 
 main "$@"
