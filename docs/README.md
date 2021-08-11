@@ -55,7 +55,7 @@ configuration](https://coder.com/docs/code-server/v3.11.1/guide) guide.
 
 ## TLS and authentication (beta)
 
-To add TLS and authentication out of the box, use [code-server --link](https://coder.com/docs/code-server/v3.11.0/link).
+To add TLS and authentication out of the box, use [code-server --link](https://coder.com/docs/code-server/v3.11.1/link).
 
 ## Questions?
 
