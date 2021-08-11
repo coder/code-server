@@ -20,6 +20,10 @@ main() {
   download_artifact npm-package ./release-npm-package
   # https://github.com/actions/upload-artifact/issues/38
   tar -xzf release-npm-package/package.tar.gz
+
+  # Ignore symlink when publishing npm package
+  # See: https://github.com/cdr/code-server/pull/3935
+  echo "node_modules.asar" > release/.npmignore
   yarn publish --non-interactive release
 }
 
