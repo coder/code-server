@@ -50,7 +50,7 @@ const getPublicPorts = async (baseDir: string): Promise<[string[], { [key: strin
   try {
     logger.debug(`Directory path: ${baseDir}`)
     // Recursively search for ports.yaml files
-    portFiles = await FindFiles(baseDir, /ports.yaml/g, 5)
+    portFiles = await FindFiles(baseDir, /ports.yaml/g, 5) // 1 or 2
   } catch (error) {
     if (error) logger.debug(`Error in domain proxy: ${error}`)
     portFiles = []
@@ -85,6 +85,8 @@ const getPublicPorts = async (baseDir: string): Promise<[string[], { [key: strin
     publicPorts = publicPorts.concat(ports)
   }
 
+  global.ports = publicPorts
+  global.portMappings = portMappings
   return [publicPorts, portMappings]
 }
 
