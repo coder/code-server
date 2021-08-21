@@ -75,15 +75,9 @@ const SearchUnsupportedWorkspaceExtensionsContext = new RawContextKey<boolean>('
 const RecommendedExtensionsContext = new RawContextKey<boolean>('recommendedExtensions', false);
 
 export class ExtensionsViewletViewsContribution implements IWorkbenchContribution {
-
 	private readonly container: ViewContainer;
 
-	constructor(
-		@IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService,
-		@ILabelService private readonly labelService: ILabelService,
-		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
-		@IContextKeyService private readonly contextKeyService: IContextKeyService
-	) {
+	constructor(@IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService, @ILabelService private readonly labelService: ILabelService, @IViewDescriptorService viewDescriptorService: IViewDescriptorService, @IContextKeyService private readonly contextKeyService: IContextKeyService) {
 		this.container = viewDescriptorService.getViewContainerById(VIEWLET_ID)!;
 		this.registerViews();
 	}
@@ -128,8 +122,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		const getViewName = (viewTitle: string, server: IExtensionManagementServer): string => {
 			if (servers.length > 1) {
 				// In Web, use view title as is for remote server, when web extension server is enabled and no web extensions are installed
-				if (isWeb && server === this.extensionManagementServerService.remoteExtensionManagementServer &&
-					this.extensionManagementServerService.webExtensionManagementServer && !this.contextKeyService.getContextKeyValue<boolean>('hasInstalledWebExtensions')) {
+				if (isWeb && server === this.extensionManagementServerService.remoteExtensionManagementServer && this.extensionManagementServerService.webExtensionManagementServer && !this.contextKeyService.getContextKeyValue<boolean>('hasInstalledWebExtensions')) {
 					return viewTitle;
 				}
 				return `${server.label} - ${viewTitle}`;
@@ -144,7 +137,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		}
 		const serverLabelChangeEvent = Event.any(this.labelService.onDidChangeFormatters, installedWebExtensionsContextChangeEvent);
 		for (const server of servers) {
-			const getInstalledViewName = (): string => getViewName(localize('installed', "Installed"), server);
+			const getInstalledViewName = (): string => getViewName(localize('installed', 'Installed'), server);
 			const onDidChangeTitle = Event.map<void, string>(serverLabelChangeEvent, () => getInstalledViewName());
 			const id = servers.length > 1 ? `workbench.views.extensions.${server.id}.installed` : `workbench.views.extensions.installed`;
 			const isWebServer = server === this.extensionManagementServerService.webExtensionManagementServer;
@@ -152,65 +145,75 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 				/* Empty installed extensions view */
 				viewDescriptors.push({
 					id: `${id}.empty`,
-					get name() { return getInstalledViewName(); },
+					get name() {
+						return getInstalledViewName();
+					},
 					weight: 100,
 					order: 1,
 					when: ContextKeyExpr.and(DefaultViewsContext, ContextKeyExpr.not('hasInstalledExtensions')),
 					/* Empty installed extensions view shall have fixed height */
 					ctorDescriptor: new SyncDescriptor(ServerInstalledExtensionsView, [{ server, fixedHeight: true, onDidChangeTitle }]),
 					/* Empty installed extensions views shall not be allowed to hidden */
-					canToggleVisibility: false
+					canToggleVisibility: false,
 				});
 			}
 			/* Installed extensions view */
 			viewDescriptors.push({
 				id,
-				get name() { return getInstalledViewName(); },
+				get name() {
+					return getInstalledViewName();
+				},
 				weight: 100,
 				order: 1,
 				when: ContextKeyExpr.and(DefaultViewsContext, isWebServer ? ContextKeyExpr.has('hasInstalledWebExtensions') : ContextKeyExpr.has('hasInstalledExtensions')),
 				ctorDescriptor: new SyncDescriptor(ServerInstalledExtensionsView, [{ server, onDidChangeTitle }]),
 				/* Installed extensions views shall not be allowed to hidden when there are more than one server */
-				canToggleVisibility: servers.length === 1
+				canToggleVisibility: servers.length === 1,
 			});
 
 			if (server === this.extensionManagementServerService.remoteExtensionManagementServer && this.extensionManagementServerService.localExtensionManagementServer) {
-				registerAction2(class InstallLocalExtensionsInRemoteAction2 extends Action2 {
-					constructor() {
-						super({
-							id: 'workbench.extensions.installLocalExtensions',
-							get title() { return localize('select and install local extensions', "Install Local Extensions in '{0}'...", server.label); },
-							category: localize({ key: 'remote', comment: ['Remote as in remote machine'] }, "Remote"),
-							icon: installLocalInRemoteIcon,
-							f1: true,
-							menu: {
-								id: MenuId.ViewTitle,
-								when: ContextKeyEqualsExpr.create('view', id),
-								group: 'navigation',
-							}
-						});
-					}
-					run(accessor: ServicesAccessor): Promise<void> {
-						return accessor.get(IInstantiationService).createInstance(InstallLocalExtensionsInRemoteAction).run();
-					}
-				});
+				registerAction2(
+					class InstallLocalExtensionsInRemoteAction2 extends Action2 {
+						constructor() {
+							super({
+								id: 'workbench.extensions.installLocalExtensions',
+								get title() {
+									return localize('select and install local extensions', "Install Local Extensions in '{0}'...", server.label);
+								},
+								category: localize({ key: 'remote', comment: ['Remote as in remote machine'] }, 'Remote'),
+								icon: installLocalInRemoteIcon,
+								f1: true,
+								menu: {
+									id: MenuId.ViewTitle,
+									when: ContextKeyEqualsExpr.create('view', id),
+									group: 'navigation',
+								},
+							});
+						}
+						run(accessor: ServicesAccessor): Promise<void> {
+							return accessor.get(IInstantiationService).createInstance(InstallLocalExtensionsInRemoteAction).run();
+						}
+					},
+				);
 			}
 		}
 
 		if (this.extensionManagementServerService.localExtensionManagementServer && this.extensionManagementServerService.remoteExtensionManagementServer) {
-			registerAction2(class InstallRemoteExtensionsInLocalAction2 extends Action2 {
-				constructor() {
-					super({
-						id: 'workbench.extensions.actions.installLocalExtensionsInRemote',
-						title: { value: localize('install remote in local', "Install Remote Extensions Locally..."), original: 'Install Remote Extensions Locally...' },
-						category: localize({ key: 'remote', comment: ['Remote as in remote machine'] }, "Remote"),
-						f1: true
-					});
-				}
-				run(accessor: ServicesAccessor): Promise<void> {
-					return accessor.get(IInstantiationService).createInstance(InstallRemoteExtensionsInLocalAction, 'workbench.extensions.actions.installLocalExtensionsInRemote').run();
-				}
-			});
+			registerAction2(
+				class InstallRemoteExtensionsInLocalAction2 extends Action2 {
+					constructor() {
+						super({
+							id: 'workbench.extensions.actions.installLocalExtensionsInRemote',
+							title: { value: localize('install remote in local', 'Install Remote Extensions Locally...'), original: 'Install Remote Extensions Locally...' },
+							category: localize({ key: 'remote', comment: ['Remote as in remote machine'] }, 'Remote'),
+							f1: true,
+						});
+					}
+					run(accessor: ServicesAccessor): Promise<void> {
+						return accessor.get(IInstantiationService).createInstance(InstallRemoteExtensionsInLocalAction, 'workbench.extensions.actions.installLocalExtensionsInRemote').run();
+					}
+				},
+			);
 		}
 
 		/*
@@ -220,12 +223,12 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.popular',
-			name: localize('popularExtensions', "Popular"),
+			name: localize('popularExtensions', 'Popular'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(DefaultViewsContext, ContextKeyExpr.not('hasInstalledExtensions')),
 			weight: 60,
 			order: 2,
-			canToggleVisibility: false
+			canToggleVisibility: false,
 		});
 
 		/*
@@ -235,12 +238,12 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'extensions.recommendedList',
-			name: localize('recommendedExtensions', "Recommended"),
+			name: localize('recommendedExtensions', 'Recommended'),
 			ctorDescriptor: new SyncDescriptor(DefaultRecommendedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(DefaultViewsContext, ContextKeyExpr.not('config.extensions.showRecommendationsOnlyOnDemand')),
 			weight: 40,
 			order: 3,
-			canToggleVisibility: true
+			canToggleVisibility: true,
 		});
 
 		/* Installed views shall be default in multi server window  */
@@ -251,13 +254,13 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 			 */
 			viewDescriptors.push({
 				id: 'workbench.views.extensions.enabled',
-				name: localize('enabledExtensions', "Enabled"),
+				name: localize('enabledExtensions', 'Enabled'),
 				ctorDescriptor: new SyncDescriptor(EnabledExtensionsView, [{}]),
 				when: ContextKeyExpr.and(DefaultViewsContext, ContextKeyExpr.has('hasInstalledExtensions')),
 				hideByDefault: true,
 				weight: 40,
 				order: 4,
-				canToggleVisibility: true
+				canToggleVisibility: true,
 			});
 
 			/*
@@ -266,15 +269,14 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 			 */
 			viewDescriptors.push({
 				id: 'workbench.views.extensions.disabled',
-				name: localize('disabledExtensions', "Disabled"),
+				name: localize('disabledExtensions', 'Disabled'),
 				ctorDescriptor: new SyncDescriptor(DisabledExtensionsView, [{}]),
 				when: ContextKeyExpr.and(DefaultViewsContext, ContextKeyExpr.has('hasInstalledExtensions')),
 				hideByDefault: true,
 				weight: 10,
 				order: 5,
-				canToggleVisibility: true
+				canToggleVisibility: true,
 			});
-
 		}
 
 		return viewDescriptors;
@@ -288,7 +290,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.marketplace',
-			name: localize('marketPlace', "Marketplace"),
+			name: localize('marketPlace', 'Marketplace'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchMarketplaceExtensions')),
 		});
@@ -298,7 +300,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchInstalled',
-			name: localize('installed', "Installed"),
+			name: localize('installed', 'Installed'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchInstalledExtensions')),
 		});
@@ -308,7 +310,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchEnabled',
-			name: localize('enabled', "Enabled"),
+			name: localize('enabled', 'Enabled'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchEnabledExtensions')),
 		});
@@ -318,7 +320,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchDisabled',
-			name: localize('disabled', "Disabled"),
+			name: localize('disabled', 'Disabled'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchDisabledExtensions')),
 		});
@@ -328,7 +330,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchOutdated',
-			name: localize('outdated', "Outdated"),
+			name: localize('outdated', 'Outdated'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchOutdatedExtensions')),
 		});
@@ -338,7 +340,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchBuiltin',
-			name: localize('builtin', "Builtin"),
+			name: localize('builtin', 'Builtin'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchBuiltInExtensions')),
 		});
@@ -348,7 +350,7 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 		 */
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.searchWorkspaceUnsupported',
-			name: localize('workspaceUnsupported', "Workspace Unsupported"),
+			name: localize('workspaceUnsupported', 'Workspace Unsupported'),
 			ctorDescriptor: new SyncDescriptor(ExtensionsListView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('searchWorkspaceUnsupportedExtensions')),
 		});
@@ -361,18 +363,18 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 
 		viewDescriptors.push({
 			id: WORKSPACE_RECOMMENDATIONS_VIEW_ID,
-			name: localize('workspaceRecommendedExtensions', "Workspace Recommendations"),
+			name: localize('workspaceRecommendedExtensions', 'Workspace Recommendations'),
 			ctorDescriptor: new SyncDescriptor(WorkspaceRecommendedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(ContextKeyExpr.has('recommendedExtensions'), WorkbenchStateContext.notEqualsTo('empty')),
-			order: 1
+			order: 1,
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.otherRecommendations',
-			name: localize('otherRecommendedExtensions', "Other Recommendations"),
+			name: localize('otherRecommendedExtensions', 'Other Recommendations'),
 			ctorDescriptor: new SyncDescriptor(RecommendedExtensionsView, [{}]),
 			when: ContextKeyExpr.has('recommendedExtensions'),
-			order: 2
+			order: 2,
 		});
 
 		return viewDescriptors;
@@ -383,21 +385,21 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.builtinFeatureExtensions',
-			name: localize('builtinFeatureExtensions', "Features"),
+			name: localize('builtinFeatureExtensions', 'Features'),
 			ctorDescriptor: new SyncDescriptor(BuiltInFeatureExtensionsView, [{}]),
 			when: ContextKeyExpr.has('builtInExtensions'),
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.builtinThemeExtensions',
-			name: localize('builtInThemesExtensions', "Themes"),
+			name: localize('builtInThemesExtensions', 'Themes'),
 			ctorDescriptor: new SyncDescriptor(BuiltInThemesExtensionsView, [{}]),
 			when: ContextKeyExpr.has('builtInExtensions'),
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.builtinProgrammingLanguageExtensions',
-			name: localize('builtinProgrammingLanguageExtensions', "Programming Languages"),
+			name: localize('builtinProgrammingLanguageExtensions', 'Programming Languages'),
 			ctorDescriptor: new SyncDescriptor(BuiltInProgrammingLanguageExtensionsView, [{}]),
 			when: ContextKeyExpr.has('builtInExtensions'),
 		});
@@ -410,39 +412,37 @@ export class ExtensionsViewletViewsContribution implements IWorkbenchContributio
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.untrustedUnsupportedExtensions',
-			name: localize('untrustedUnsupportedExtensions', "Disabled in Restricted Mode"),
+			name: localize('untrustedUnsupportedExtensions', 'Disabled in Restricted Mode'),
 			ctorDescriptor: new SyncDescriptor(UntrustedWorkspaceUnsupportedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(WorkspaceTrustContext.IsTrusted.negate(), SearchUnsupportedWorkspaceExtensionsContext),
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.untrustedPartiallySupportedExtensions',
-			name: localize('untrustedPartiallySupportedExtensions', "Limited in Restricted Mode"),
+			name: localize('untrustedPartiallySupportedExtensions', 'Limited in Restricted Mode'),
 			ctorDescriptor: new SyncDescriptor(UntrustedWorkspacePartiallySupportedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(WorkspaceTrustContext.IsTrusted.negate(), SearchUnsupportedWorkspaceExtensionsContext),
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.virtualUnsupportedExtensions',
-			name: localize('virtualUnsupportedExtensions', "Disabled in Virtual Workspaces"),
+			name: localize('virtualUnsupportedExtensions', 'Disabled in Virtual Workspaces'),
 			ctorDescriptor: new SyncDescriptor(VirtualWorkspaceUnsupportedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(VirtualWorkspaceContext, SearchUnsupportedWorkspaceExtensionsContext),
 		});
 
 		viewDescriptors.push({
 			id: 'workbench.views.extensions.virtualPartiallySupportedExtensions',
-			name: localize('virtualPartiallySupportedExtensions', "Limited in Virtual Workspaces"),
+			name: localize('virtualPartiallySupportedExtensions', 'Limited in Virtual Workspaces'),
 			ctorDescriptor: new SyncDescriptor(VirtualWorkspacePartiallySupportedExtensionsView, [{}]),
 			when: ContextKeyExpr.and(VirtualWorkspaceContext, SearchUnsupportedWorkspaceExtensionsContext),
 		});
 
 		return viewDescriptors;
 	}
-
 }
 
 export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IExtensionsViewPaneContainer {
-
 	private defaultViewsContextKey: IContextKey<boolean>;
 	private sortByContextKey: IContextKey<string>;
 	private searchMarketplaceExtensionsContextKey: IContextKey<boolean>;
@@ -462,27 +462,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 	private searchBox: SuggestEnabledInput | undefined;
 	private readonly searchViewletState: MementoObject;
 
-	constructor(
-		@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService,
-		@ITelemetryService telemetryService: ITelemetryService,
-		@IProgressService private readonly progressService: IProgressService,
-		@IInstantiationService instantiationService: IInstantiationService,
-		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
-		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
-		@IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService,
-		@INotificationService private readonly notificationService: INotificationService,
-		@IViewletService private readonly viewletService: IViewletService,
-		@IThemeService themeService: IThemeService,
-		@IConfigurationService configurationService: IConfigurationService,
-		@IStorageService storageService: IStorageService,
-		@IWorkspaceContextService contextService: IWorkspaceContextService,
-		@IContextKeyService contextKeyService: IContextKeyService,
-		@IContextMenuService contextMenuService: IContextMenuService,
-		@IExtensionService extensionService: IExtensionService,
-		@IViewDescriptorService viewDescriptorService: IViewDescriptorService,
-		@IPreferencesService private readonly preferencesService: IPreferencesService,
-		@ICommandService private readonly commandService: ICommandService
-	) {
+	constructor(@IWorkbenchLayoutService layoutService: IWorkbenchLayoutService, @ITelemetryService telemetryService: ITelemetryService, @IProgressService private readonly progressService: IProgressService, @IInstantiationService instantiationService: IInstantiationService, @IEditorGroupsService private readonly editorGroupService: IEditorGroupsService, @IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService, @IExtensionManagementServerService private readonly extensionManagementServerService: IExtensionManagementServerService, @INotificationService private readonly notificationService: INotificationService, @IViewletService private readonly viewletService: IViewletService, @IThemeService themeService: IThemeService, @IConfigurationService configurationService: IConfigurationService, @IStorageService storageService: IStorageService, @IWorkspaceContextService contextService: IWorkspaceContextService, @IContextKeyService contextKeyService: IContextKeyService, @IContextMenuService contextMenuService: IContextMenuService, @IExtensionService extensionService: IExtensionService, @IViewDescriptorService viewDescriptorService: IViewDescriptorService, @IPreferencesService private readonly preferencesService: IPreferencesService, @ICommandService private readonly commandService: ICommandService) {
 		super(VIEWLET_ID, { mergeViewWithContainerWhenSingleView: true }, instantiationService, configurationService, layoutService, contextMenuService, telemetryService, extensionService, themeService, storageService, contextService, viewDescriptorService);
 
 		this.searchDelayer = new Delayer(500);
@@ -503,13 +483,15 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 		this.searchViewletState = this.getMemento(StorageScope.WORKSPACE, StorageTarget.USER);
 
 		if (extensionManagementServerService.webExtensionManagementServer) {
-			this._register(extensionsWorkbenchService.onChange(() => {
-				// show installed web extensions view only when it is not visible
-				// Do not hide the view automatically when it is visible
-				if (!this.hasInstalledWebExtensionsContextKey.get()) {
-					this.updateInstalledWebExtensionsContext();
-				}
-			}));
+			this._register(
+				extensionsWorkbenchService.onChange(() => {
+					// show installed web extensions view only when it is not visible
+					// Do not hide the view automatically when it is visible
+					if (!this.hasInstalledWebExtensionsContextKey.get()) {
+						this.updateInstalledWebExtensionsContext();
+					}
+				}),
+			);
 		}
 	}
 
@@ -538,29 +520,42 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			helperHeader.style.position = 'relative';
 
 			const helperText = append(helperHeader, $('div'));
+			helperText.innerHTML = '';
 
 			// We call this function because it gives us access to the current theme
 			// Then we can apply the link color to the links in the helper header
-			registerThemingParticipant((theme) => {
+			registerThemingParticipant(theme => {
 				const linkColor = theme.getColor(textLinkForeground);
-				helperText.innerHTML = `
-				<div style="margin-bottom: 8px;">
-				<p style="margin-bottom: 0; display: flex; align-items: center"><span class="codicon codicon-warning" style="margin-right: 2px; color: #C4A103"></span>WARNING</p>
-				<p style="margin-top: 0; margin-bottom: 4px">
-				These extensions are not official. Find additional open-source extensions
-				<a style="color: ${linkColor}" href="https://open-vsx.org/" target="_blank">here</a>.
-				See <a style="color: ${linkColor}" href="https://github.com/cdr/code-server/blob/master/docs/FAQ.md#differences-compared-to-vs-code" target="_blank">docs</a>.
-				</p>
-				</div>
-						`;
+
+				append(
+					helperText,
+					$(
+						'div',
+						{ style: 'margin-bottom: 8px;' },
+						$('p', { style: 'margin-bottom: 0; display: flex; align-items: center' }, $('span', { class: 'codicon codicon-warning', style: 'margin-right: 2px; color: #C4A103' }), 'WARNING'),
+						$(
+							'p',
+							{ style: 'margin-top: 0; margin-bottom: 4px' },
+							'These extensions are not official. Find additional open-source extensions ',
+							$('a', { style: `color: ${linkColor}`, href: 'https://open-vsx.org/', target: '_blank' }, 'here'),
+							'. See ',
+							$(
+								'a',
+								{
+									style: `color: ${linkColor}`,
+									href: 'https://github.com/cdr/code-server/blob/master/docs/FAQ.md#differences-compared-to-vs-code',
+									target: '_blank',
+								},
+								'docs',
+							),
+							'.',
+						),
+					),
+				);
 			});
 
-			const dismiss = append(helperHeader, $('span'));
-			dismiss.innerHTML = 'Dismiss';
-			dismiss.style.display = 'block';
-			dismiss.style.textAlign = 'right';
-			dismiss.style.cursor = 'pointer';
-			dismiss.tabIndex = 0;
+			const dismiss = append(helperHeader, $('span', { style: `display: 'block'; textAlign: 'right'; cursor: 'pointer';`, tabindex: '0' }, 'Dismiss'));
+
 			dismiss.onclick = () => {
 				helperHeader.remove();
 				localStorage.setItem(extensionHelperLocalStorageKey, 'viewed');
@@ -568,20 +563,35 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 		}
 
 		const header = append(this.root, $('.header'));
-		const placeholder = localize('searchExtensions', "Search Extensions in Marketplace");
+		const placeholder = localize('searchExtensions', 'Search Extensions in Marketplace');
 
 		const searchValue = this.searchViewletState['query.value'] ? this.searchViewletState['query.value'] : '';
 
-		this.searchBox = this._register(this.instantiationService.createInstance(SuggestEnabledInput, `${VIEWLET_ID}.searchbox`, header, {
-			triggerCharacters: ['@'],
-			sortKey: (item: string) => {
-				if (item.indexOf(':') === -1) { return 'a'; }
-				else if (/ext:/.test(item) || /id:/.test(item) || /tag:/.test(item)) { return 'b'; }
-				else if (/sort:/.test(item)) { return 'c'; }
-				else { return 'd'; }
-			},
-			provideResults: (query: string) => Query.suggestions(query)
-		}, placeholder, 'extensions:searchinput', { placeholderText: placeholder, value: searchValue }));
+		this.searchBox = this._register(
+			this.instantiationService.createInstance(
+				SuggestEnabledInput,
+				`${VIEWLET_ID}.searchbox`,
+				header,
+				{
+					triggerCharacters: ['@'],
+					sortKey: (item: string) => {
+						if (item.indexOf(':') === -1) {
+							return 'a';
+						} else if (/ext:/.test(item) || /id:/.test(item) || /tag:/.test(item)) {
+							return 'b';
+						} else if (/sort:/.test(item)) {
+							return 'c';
+						} else {
+							return 'd';
+						}
+					},
+					provideResults: (query: string) => Query.suggestions(query),
+				},
+				placeholder,
+				'extensions:searchinput',
+				{ placeholderText: placeholder, value: searchValue },
+			),
+		);
 
 		this.updateInstalledExtensionsContexts();
 		if (this.searchBox.getValue()) {
@@ -590,61 +600,66 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 
 		this._register(attachSuggestEnabledInputBoxStyler(this.searchBox, this.themeService));
 
-		this._register(this.searchBox.onInputDidChange(() => {
-			this.sortByContextKey.set(Query.parse(this.searchBox!.getValue() || '').sortBy);
-			this.triggerSearch();
-		}, this));
+		this._register(
+			this.searchBox.onInputDidChange(() => {
+				this.sortByContextKey.set(Query.parse(this.searchBox!.getValue() || '').sortBy);
+				this.triggerSearch();
+			}, this),
+		);
 
 		this._register(this.searchBox.onShouldFocusResults(() => this.focusListView(), this));
 
-		this._register(this.onDidChangeVisibility(visible => {
-			if (visible && !isIOS) {
-				this.searchBox!.focus();
-			}
-		}));
+		this._register(
+			this.onDidChangeVisibility(visible => {
+				if (visible && !isIOS) {
+					this.searchBox!.focus();
+				}
+			}),
+		);
 
 		// Register DragAndDrop support
-		this._register(new DragAndDropObserver(this.root, {
-			onDragEnd: (e: DragEvent) => undefined,
-			onDragEnter: (e: DragEvent) => {
-				if (this.isSupportedDragElement(e)) {
-					show(overlay);
-				}
-			},
-			onDragLeave: (e: DragEvent) => {
-				if (this.isSupportedDragElement(e)) {
-					hide(overlay);
-				}
-			},
-			onDragOver: (e: DragEvent) => {
-				if (this.isSupportedDragElement(e)) {
-					e.dataTransfer!.dropEffect = 'copy';
-				}
-			},
-			onDrop: async (e: DragEvent) => {
-				if (this.isSupportedDragElement(e)) {
-					hide(overlay);
+		this._register(
+			new DragAndDropObserver(this.root, {
+				onDragEnd: (e: DragEvent) => undefined,
+				onDragEnter: (e: DragEvent) => {
+					if (this.isSupportedDragElement(e)) {
+						show(overlay);
+					}
+				},
+				onDragLeave: (e: DragEvent) => {
+					if (this.isSupportedDragElement(e)) {
+						hide(overlay);
+					}
+				},
+				onDragOver: (e: DragEvent) => {
+					if (this.isSupportedDragElement(e)) {
+						e.dataTransfer!.dropEffect = 'copy';
+					}
+				},
+				onDrop: async (e: DragEvent) => {
+					if (this.isSupportedDragElement(e)) {
+						hide(overlay);
 
-					if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-						let vsixPaths: URI[] = [];
-						for (let index = 0; index < e.dataTransfer.files.length; index++) {
-							const path = e.dataTransfer.files.item(index)!.path;
-							if (path.indexOf('.vsix') !== -1) {
-								vsixPaths.push(URI.file(path));
+						if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+							let vsixPaths: URI[] = [];
+							for (let index = 0; index < e.dataTransfer.files.length; index++) {
+								const path = e.dataTransfer.files.item(index)!.path;
+								if (path.indexOf('.vsix') !== -1) {
+									vsixPaths.push(URI.file(path));
+								}
+							}
+
+							try {
+								// Attempt to install the extension(s)
+								await this.commandService.executeCommand(INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, vsixPaths);
+							} catch (err) {
+								this.notificationService.error(err);
 							}
 						}
-
-						try {
-							// Attempt to install the extension(s)
-							await this.commandService.executeCommand(INSTALL_EXTENSION_FROM_VSIX_COMMAND_ID, vsixPaths);
-						}
-						catch (err) {
-							this.notificationService.error(err);
-						}
 					}
-				}
-			}
-		}));
+				},
+			}),
+		);
 
 		super.create(append(this.root, $('.extensions')));
 	}
@@ -696,13 +711,14 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 
 	private normalizedQuery(): string {
 		return this.searchBox
-			? this.searchBox.getValue()
-				.replace(/@category/g, 'category')
-				.replace(/@tag:/g, 'tag:')
-				.replace(/@ext:/g, 'ext:')
-				.replace(/@featured/g, 'featured')
-				.replace(/@web/g, 'tag:"__web_extension"')
-				.replace(/@popular/g, '@sort:installs')
+			? this.searchBox
+					.getValue()
+					.replace(/@category/g, 'category')
+					.replace(/@tag:/g, 'tag:')
+					.replace(/@ext:/g, 'ext:')
+					.replace(/@featured/g, 'featured')
+					.replace(/@web/g, 'tag:"__web_extension"')
+					.replace(/@popular/g, '@sort:installs')
 			: '';
 	}
 
@@ -731,18 +747,12 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 		this.defaultViewsContextKey.set(!value);
 		this.updateInstalledWebExtensionsContext();
 
-		return this.progress(Promise.all(this.panes.map(view =>
-			(<ExtensionsListView>view).show(this.normalizedQuery(), refresh)
-				.then(model => this.alertSearchResult(model.length, view.id))
-		))).then(() => undefined);
+		return this.progress(Promise.all(this.panes.map(view => (<ExtensionsListView>view).show(this.normalizedQuery(), refresh).then(model => this.alertSearchResult(model.length, view.id))))).then(() => undefined);
 	}
 
 	protected override onDidAddViewDescriptors(added: IAddedViewDescriptorRef[]): ViewPane[] {
 		const addedViews = super.onDidAddViewDescriptors(added);
-		this.progress(Promise.all(addedViews.map(addedView =>
-			(<ExtensionsListView>addedView).show(this.normalizedQuery())
-				.then(model => this.alertSearchResult(model.length, addedView.id))
-		)));
+		this.progress(Promise.all(addedViews.map(addedView => (<ExtensionsListView>addedView).show(this.normalizedQuery()).then(model => this.alertSearchResult(model.length, addedView.id)))));
 		return addedViews;
 	}
 
@@ -753,16 +763,16 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 				break;
 			case 1:
 				if (view) {
-					alert(localize('extensionFoundInSection', "1 extension found in the {0} section.", view.name));
+					alert(localize('extensionFoundInSection', '1 extension found in the {0} section.', view.name));
 				} else {
-					alert(localize('extensionFound', "1 extension found."));
+					alert(localize('extensionFound', '1 extension found.'));
 				}
 				break;
 			default:
 				if (view) {
-					alert(localize('extensionsFoundInSection', "{0} extensions found in the {1} section.", count, view.name));
+					alert(localize('extensionsFoundInSection', '{0} extensions found in the {1} section.', count, view.name));
 				} else {
-					alert(localize('extensionsFound', "{0} extensions found.", count));
+					alert(localize('extensionsFound', '{0} extensions found.', count));
 				}
 				break;
 		}
@@ -803,13 +813,11 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			return;
 		}
 
-		const message = err && err.message || '';
+		const message = (err && err.message) || '';
 
 		if (/ECONNREFUSED/.test(message)) {
 			const error = createErrorWithActions(localize('suggestProxyError', "Marketplace returned 'ECONNREFUSED'. Please check the 'http.proxy' setting."), {
-				actions: [
-					new Action('open user settings', localize('open user settings', "Open User Settings"), undefined, true, () => this.preferencesService.openGlobalSettings())
-				]
+				actions: [new Action('open user settings', localize('open user settings', 'Open User Settings'), undefined, true, () => this.preferencesService.openGlobalSettings())],
 			});
 
 			this.notificationService.error(error);
@@ -830,14 +838,9 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 }
 
 export class StatusUpdater extends Disposable implements IWorkbenchContribution {
-
 	private readonly badgeHandle = this._register(new MutableDisposable());
 
-	constructor(
-		@IActivityService private readonly activityService: IActivityService,
-		@IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService,
-		@IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService
-	) {
+	constructor(@IActivityService private readonly activityService: IActivityService, @IExtensionsWorkbenchService private readonly extensionsWorkbenchService: IExtensionsWorkbenchService, @IWorkbenchExtensionEnablementService private readonly extensionEnablementService: IWorkbenchExtensionEnablementService) {
 		super();
 		this._register(extensionsWorkbenchService.onChange(this.onServiceChange, this));
 	}
@@ -854,14 +857,7 @@ export class StatusUpdater extends Disposable implements IWorkbenchContribution 
 }
 
 export class MaliciousExtensionChecker implements IWorkbenchContribution {
-
-	constructor(
-		@IExtensionManagementService private readonly extensionsManagementService: IExtensionManagementService,
-		@IHostService private readonly hostService: IHostService,
-		@ILogService private readonly logService: ILogService,
-		@INotificationService private readonly notificationService: INotificationService,
-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService
-	) {
+	constructor(@IExtensionManagementService private readonly extensionsManagementService: IExtensionManagementService, @IHostService private readonly hostService: IHostService, @ILogService private readonly logService: ILogService, @INotificationService private readonly notificationService: INotificationService, @IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService) {
 		if (!this.environmentService.disableExtensions) {
 			this.loopCheckForMaliciousExtensions();
 		}
@@ -874,29 +870,40 @@ export class MaliciousExtensionChecker implements IWorkbenchContribution {
 	}
 
 	private checkForMaliciousExtensions(): Promise<void> {
-		return this.extensionsManagementService.getExtensionsReport().then(report => {
-			const maliciousSet = getMaliciousExtensionsSet(report);
+		return this.extensionsManagementService.getExtensionsReport().then(
+			report => {
+				const maliciousSet = getMaliciousExtensionsSet(report);
 
-			return this.extensionsManagementService.getInstalled(ExtensionType.User).then(installed => {
-				const maliciousExtensions = installed
-					.filter(e => maliciousSet.has(e.identifier.id));
+				return this.extensionsManagementService
+					.getInstalled(ExtensionType.User)
+					.then(installed => {
+						const maliciousExtensions = installed.filter(e => maliciousSet.has(e.identifier.id));
 
-				if (maliciousExtensions.length) {
-					return Promises.settled(maliciousExtensions.map(e => this.extensionsManagementService.uninstall(e).then(() => {
-						this.notificationService.prompt(
-							Severity.Warning,
-							localize('malicious warning', "We have uninstalled '{0}' which was reported to be problematic.", e.identifier.id),
-							[{
-								label: localize('reloadNow', "Reload Now"),
-								run: () => this.hostService.reload()
-							}],
-							{ sticky: true }
-						);
-					})));
-				} else {
-					return Promise.resolve(undefined);
-				}
-			}).then(() => undefined);
-		}, err => this.logService.error(err));
+						if (maliciousExtensions.length) {
+							return Promises.settled(
+								maliciousExtensions.map(e =>
+									this.extensionsManagementService.uninstall(e).then(() => {
+										this.notificationService.prompt(
+											Severity.Warning,
+											localize('malicious warning', "We have uninstalled '{0}' which was reported to be problematic.", e.identifier.id),
+											[
+												{
+													label: localize('reloadNow', 'Reload Now'),
+													run: () => this.hostService.reload(),
+												},
+											],
+											{ sticky: true },
+										);
+									}),
+								),
+							);
+						} else {
+							return Promise.resolve(undefined);
+						}
+					})
+					.then(() => undefined);
+			},
+			err => this.logService.error(err),
+		);
 	}
 }

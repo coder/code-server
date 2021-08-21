@@ -15,7 +15,6 @@ import { URI } from 'vs/base/common/uri';
 import { ExtensionKind } from 'vs/platform/extensions/common/extensions';
 import { env } from 'vs/base/common/process';
 
-
 export interface INativeEnvironmentPaths {
 
 	/**
@@ -36,7 +35,7 @@ export interface INativeEnvironmentPaths {
 	/**
 	 * OS tmp dir.
 	 */
-	tmpDir: string,
+	tmpDir: string;
 }
 
 export abstract class AbstractNativeEnvironmentService implements INativeEnvironmentService {
@@ -170,7 +169,7 @@ export abstract class AbstractNativeEnvironmentService implements INativeEnviron
 	get extraBuiltinExtensionPaths(): string[] {
 		return (this._args['extra-builtin-extensions-dir'] || []).map((p) => resolve(p));
 	}
- 
+
 	@memoize
 	get extensionDevelopmentLocationURI(): URI[] | undefined {
 		const extensionDevelopmentPaths = this.args.extensionDevelopmentPath;

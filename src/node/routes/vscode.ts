@@ -9,8 +9,8 @@ import { HttpCode, HttpError } from "../../common/http"
 import { getFirstString } from "../../common/util"
 import { Feature } from "../cli"
 import { isDevMode, rootPath, version } from "../constants"
-import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
-import { getMediaMime, pathToFsPath } from "../util"
+import { authenticated, ensureAuthenticated, redirect, replaceTemplates, getServerOptions } from "../http"
+import { getMediaMime, pathToFsPath, escapeJSON } from "../util"
 import { VscodeProvider } from "../vscode"
 import { Router as WsRouter } from "../wsRouter"
 
@@ -27,11 +27,20 @@ router.get("/", async (req, res) => {
     })
   }
 
+  const serverOptions = getServerOptions(req)
+
   const [content, options] = await Promise.all([
-    await fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
+    fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
     (async () => {
       try {
-        return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "" }, req.query)
+        return await vscode.initialize(
+          {
+            args: req.args,
+            remoteAuthority: req.headers.host || "",
+            csStaticBase: serverOptions.csStaticBase,
+          },
+          req.query,
+        )
       } catch (error) {
         const devMessage = isDevMode ? "It might not have finished compiling." : ""
         throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
@@ -42,7 +51,7 @@ router.get("/", async (req, res) => {
   options.productConfiguration.codeServerVersion = version
 
   res.send(
-    replaceTemplates<ipc.Options>(
+    replaceTemplates<ipc.CodeServerConfiguration>(
       req,
       // Uncomment prod blocks if not in development. TODO: Would this be
       // better as a build step? Or maintain two HTML files again?
@@ -51,11 +60,7 @@ router.get("/", async (req, res) => {
         authed: req.args.auth !== "none",
         disableUpdateCheck: !!req.args["disable-update-check"],
       },
-    )
-      .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
-      .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
-      .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
-      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
+    ).replace("{{WORKBENCH_WEB_CONFIGURATION}}", () => escapeJSON(options)),
   )
 })
 

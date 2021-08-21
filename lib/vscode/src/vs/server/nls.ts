@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Coder Technologies. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as util from 'util';
@@ -18,24 +23,25 @@ const DefaultConfiguration = {
 	availableLanguages: {},
 };
 
-export const getNlsConfiguration = async (locale: string, userDataPath: string): Promise<lp.NLSConfiguration> => {
+export const getNlsConfiguration = async (locale: string, userDataPath: string): Promise<lp.NLSConfiguration | lp.InternalNLSConfiguration> => {
 	const id = `${locale}: ${userDataPath}`;
 	if (!configurations.has(id)) {
-		configurations.set(id, new Promise(async (resolve) =>  {
-			const config = product.commit && await util.promisify(fs.exists)(metadataPath)
-				? await lp.getNLSConfiguration(product.commit, userDataPath, metadataPath, locale)
-				: DefaultConfiguration;
-			if (isInternalConfiguration(config)) {
-				config._languagePackSupport = true;
-			}
-			// If the configuration has no results keep trying since code-server
-			// doesn't restart when a language is installed so this result would
-			// persist (the plugin might not be installed yet or something).
-			if (config.locale !== 'en' && config.locale !== 'en-us' && Object.keys(config.availableLanguages).length === 0) {
-				configurations.delete(id);
-			}
-			resolve(config);
-		}));
+		configurations.set(
+			id,
+			new Promise(async resolve => {
+				const config = product.commit && (await util.promisify(fs.exists)(metadataPath)) ? await lp.getNLSConfiguration(product.commit, userDataPath, metadataPath, locale) : DefaultConfiguration;
+				if (isInternalConfiguration(config)) {
+					config._languagePackSupport = true;
+				}
+				// If the configuration has no results keep trying since code-server
+				// doesn't restart when a language is installed so this result would
+				// persist (the plugin might not be installed yet or something).
+				if (config.locale !== 'en' && config.locale !== 'en-us' && Object.keys(config.availableLanguages).length === 0) {
+					configurations.delete(id);
+				}
+				resolve(config);
+			}),
+		);
 	}
 	return configurations.get(id)!;
 };
@@ -45,7 +51,9 @@ export const getTranslations = async (locale: string, userDataPath: string): Pro
 	if (isInternalConfiguration(config)) {
 		try {
 			return JSON.parse(await util.promisify(fs.readFile)(config._translationsConfigFile, 'utf8'));
-		} catch (error) { /* Nothing yet. */}
+		} catch (error) {
+			/* Nothing yet. */
+		}
 	}
 	return {};
 };
@@ -57,7 +65,9 @@ export const getLocaleFromConfig = async (userDataPath: string): Promise<string>
 			const localeConfigUri = path.join(userDataPath, 'User', files[i]);
 			const content = stripComments(await util.promisify(fs.readFile)(localeConfigUri, 'utf8'));
 			return JSON.parse(content).locale;
-		} catch (error) { /* Ignore. */ }
+		} catch (error) {
+			/* Ignore. */
+		}
 	}
 	return 'en';
 };
@@ -76,8 +86,7 @@ const stripComments = (content: string): string => {
 			const length_1 = m4.length;
 			if (length_1 > 2 && m4[length_1 - 1] === '\n') {
 				return m4[length_1 - 2] === '\r' ? '\r\n' : '\n';
-			}
-			else {
+			} else {
 				return '';
 			}
 		} else {

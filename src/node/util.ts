@@ -524,3 +524,6 @@ export function escapeHtml(unsafe: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
 }
+
+// TODO: Replace with proper templating system.
+export const escapeJSON = (value: cp.Serializable) => JSON.stringify(value).replace(/"/g, "&quot;")

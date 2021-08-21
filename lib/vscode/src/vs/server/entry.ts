@@ -1,13 +1,12 @@
-import { field } from '@coder/logger';
 import { setUnexpectedErrorHandler } from 'vs/base/common/errors';
 import * as proxyAgent from 'vs/base/node/proxy_agent';
 import { CodeServerMessage, VscodeMessage } from 'vs/base/common/ipc';
-import { logger } from 'vs/server/logger';
 import { enableCustomMarketplace } from 'vs/server/marketplace';
-import { Vscode } from 'vs/server/server';
+import { CodeServerMain } from './server';
+import { ConnectionOptions } from './connection/abstractConnection';
 
-setUnexpectedErrorHandler((error) => {
-	logger.warn('Uncaught error', field('error', error instanceof Error ? error.message : error));
+setUnexpectedErrorHandler(error => {
+	console.warn('Uncaught error', error instanceof Error ? error.message : error);
 });
 enableCustomMarketplace();
 proxyAgent.monkeyPatch(true);
@@ -16,8 +15,8 @@ proxyAgent.monkeyPatch(true);
  * Ensure we control when the process exits.
  */
 const exit = process.exit;
-process.exit = function(code?: number) {
-	logger.warn(`process.exit() was prevented: ${code || 'unknown code'}.`);
+process.exit = function (code?: number) {
+	console.warn(`process.exit() was prevented: ${code || 'unknown code'}.`);
 } as (code?: number) => never;
 
 // Kill VS Code if the parent process dies.
@@ -31,11 +30,12 @@ if (typeof process.env.CODE_SERVER_PARENT_PID !== 'undefined') {
 		}
 	}, 5000);
 } else {
-	logger.error('no parent process');
+	console.error('no parent process');
 	exit(1);
 }
 
-const vscode = new Vscode();
+const vscode = new CodeServerMain();
+
 const send = (message: VscodeMessage): void => {
 	if (!process.send) {
 		throw new Error('not spawned with IPC');
@@ -46,16 +46,20 @@ const send = (message: VscodeMessage): void => {
 // Wait for the init message then start up VS Code. Subsequent messages will
 // return new workbench options without starting a new instance.
 process.on('message', async (message: CodeServerMessage, socket) => {
-	logger.debug('got message from code-server', field('type', message.type));
-	logger.trace('code-server message content', field('message', message));
+	// console.debug('got message from code-server', message.type);
+	// console.trace('code-server message content', message);
 	switch (message.type) {
 		case 'init':
 			try {
-				const options = await vscode.initialize(message.options);
+				// TODO: get protocol.
+				const serverUrl = new URL(`http://${message.options.remoteAuthority}`);
+
+				const options = await vscode.createWorkbenchConstructionOptions(serverUrl, message.options);
+
 				send({ type: 'options', id: message.id, options });
 			} catch (error) {
-				logger.error(error.message);
-				logger.error(error.stack);
+				console.error(error.message);
+				console.error(error.stack);
 				exit(1);
 			}
 			break;
@@ -64,18 +68,23 @@ process.on('message', async (message: CodeServerMessage, socket) => {
 				await vscode.cli(message.args);
 				exit(0);
 			} catch (error) {
-				logger.error(error.message);
-				logger.error(error.stack);
+				console.error(error.message);
+				console.error(error.stack);
 				exit(1);
 			}
 			break;
 		case 'socket':
-			vscode.handleWebSocket(socket, message.query, message.permessageDeflate);
+			const connectionOptions: ConnectionOptions = {
+				reconnectionToken: message.query.reconnectionToken as string,
+				reconnection: (message.query.reconnection as string) === 'true',
+				skipWebSocketFrames: (message.query.skipWebSocketFrames as string) === 'true',
+			};
+			vscode.handleWebSocket(socket, connectionOptions, message.permessageDeflate);
 			break;
 	}
 });
 if (!process.send) {
-	logger.error('not spawned with IPC');
+	console.error('not spawned with IPC');
 	exit(1);
 } else {
 	// This lets the parent know the child is ready to receive messages.

@@ -13,12 +13,14 @@ import { LogLevel } from 'vs/platform/log/common/log';
 import { IUpdateProvider, IUpdate } from 'vs/workbench/services/update/browser/updateService';
 import { Event, Emitter } from 'vs/base/common/event';
 import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
-import { IWorkspaceProvider, IWorkspace } from 'vs/workbench/services/host/browser/browserHostService';
+import { IWorkspaceProvider, IWorkspace, IServerWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { IProductConfiguration } from 'vs/base/common/product';
 import { mark } from 'vs/base/common/performance';
 import { ICredentialsProvider } from 'vs/workbench/services/credentials/common/credentials';
 import { TunnelProviderFeatures } from 'vs/platform/remote/common/tunnel';
+// eslint-disable-next-line code-import-patterns
+import { InternalNLSConfiguration, NLSConfiguration } from 'vs/base/node/languagePacks';
 
 interface IResourceUriProvider {
 	(uri: URI): URI;
@@ -39,7 +41,6 @@ interface IExternalUriResolver {
 }
 
 interface ITunnelProvider {
-
 	/**
 	 * Support for creating tunnels.
 	 */
@@ -61,8 +62,7 @@ interface ITunnelFactory {
 }
 
 interface ITunnelOptions {
-
-	remoteAddress: { port: number, host: string };
+	remoteAddress: { port: number; host: string };
 
 	/**
 	 * The desired local port. If this port can't be used, then another will be chosen.
@@ -75,7 +75,6 @@ interface ITunnelOptions {
 }
 
 export interface TunnelCreationOptions {
-
 	/**
 	 * True when the local operating system will require elevation to use the requested local port.
 	 */
@@ -83,8 +82,7 @@ export interface TunnelCreationOptions {
 }
 
 interface ITunnel {
-
-	remoteAddress: { port: number, host: string };
+	remoteAddress: { port: number; host: string };
 
 	/**
 	 * The complete local address(ex. localhost:1234)
@@ -106,12 +104,11 @@ interface IShowPortCandidate {
 }
 
 interface ICommand {
-
 	/**
 	 * An identifier for the command. Commands can be executed from extensions
 	 * using the `vscode.commands.executeCommand` API using that command ID.
 	 */
-	id: string,
+	id: string;
 
 	/**
 	 * A function that is being executed with any arguments passed over. The
@@ -124,7 +121,6 @@ interface ICommand {
 }
 
 interface IHomeIndicator {
-
 	/**
 	 * The link to open when clicking the home indicator.
 	 */
@@ -143,7 +139,6 @@ interface IHomeIndicator {
 }
 
 interface IWindowIndicator {
-
 	/**
 	 * Triggering this event will cause the window indicator to update.
 	 */
@@ -171,11 +166,10 @@ interface IWindowIndicator {
 enum ColorScheme {
 	DARK = 'dark',
 	LIGHT = 'light',
-	HIGH_CONTRAST = 'hc'
+	HIGH_CONTRAST = 'hc',
 }
 
 interface IInitialColorTheme {
-
 	/**
 	 * Initial color theme type.
 	 */
@@ -205,7 +199,6 @@ interface IDefaultLayout {
 }
 
 interface IProductQualityChangeHandler {
-
 	/**
 	 * Handler is being called when the user wants to switch between
 	 * `insider` or `stable` product qualities.
@@ -217,7 +210,6 @@ interface IProductQualityChangeHandler {
  * Settings sync options
  */
 interface ISettingsSyncOptions {
-
 	/**
 	 * Is settings sync enabled
 	 */
@@ -236,7 +228,6 @@ interface ISettingsSyncOptions {
 }
 
 interface IWorkbenchConstructionOptions {
-
 	//#region Connection related configuration
 
 	/**
@@ -285,10 +276,9 @@ interface IWorkbenchConstructionOptions {
 	/**
 	 * Endpoints to be used for proxying authentication code exchange calls in the browser.
 	 */
-	readonly codeExchangeProxyEndpoints?: { [providerId: string]: string }
+	readonly codeExchangeProxyEndpoints?: { [providerId: string]: string };
 
 	//#endregion
-
 
 	//#region Workbench configuration
 
@@ -370,7 +360,6 @@ interface IWorkbenchConstructionOptions {
 
 	//#endregion
 
-
 	//#region Update/Quality related
 
 	/**
@@ -384,7 +373,6 @@ interface IWorkbenchConstructionOptions {
 	readonly productQualityChangeHandler?: IProductQualityChangeHandler;
 
 	//#endregion
-
 
 	//#region Branding
 
@@ -414,17 +402,36 @@ interface IWorkbenchConstructionOptions {
 
 	//#endregion
 
-
 	//#region Development options
 
 	readonly developmentOptions?: IDevelopmentOptions;
 
 	//#endregion
+}
 
+/**
+ * @coder This is commonly used when initializing a code server.
+ */
+interface IOptionalPathURIs {
+	folderUri?: UriComponents;
+	workspaceUri?: UriComponents;
+}
+
+/**
+ * @coder Standard workbench constructor options with additional server paths.
+ * JSON serializable.
+ */
+interface IServerWorkbenchConstructionOptions extends Omit<IWorkbenchConstructionOptions, 'workspaceProvider'>, IOptionalPathURIs {
+	readonly workspaceProvider: IServerWorkspaceProvider;
+	/** @TODO still used? */
+	readonly logLevel?: number;
+
+	readonly remoteUserDataUri: UriComponents;
+	readonly nlsConfiguration: NLSConfiguration | InternalNLSConfiguration;
+	readonly commit: string;
 }
 
 interface IDevelopmentOptions {
-
 	/**
 	 * Current logging level. Default is `LogLevel.Info`.
 	 */
@@ -447,7 +454,6 @@ interface IDevelopmentOptions {
 }
 
 interface IPerformanceMark {
-
 	/**
 	 * The name of a performace marker.
 	 */
@@ -460,13 +466,12 @@ interface IPerformanceMark {
 }
 
 interface IWorkbench {
-
 	commands: {
 		/**
 		 * @see [executeCommand](#commands.executeCommand)
 		 */
 		executeCommand(command: string, ...args: any[]): Promise<unknown>;
-	}
+	};
 
 	env: {
 		readonly uriScheme: string;
@@ -475,7 +480,7 @@ interface IWorkbench {
 		 */
 		retrievePerformanceMarks(): Promise<[string, readonly IPerformanceMark[]][]>;
 		openUri(uri: URI): Promise<boolean>;
-	}
+	};
 
 	/**
 	 * Triggers shutdown of the workbench programmatically. After this method is
@@ -496,9 +501,8 @@ interface IWorkbench {
  */
 let created = false;
 let workbenchPromiseResolve: Function;
-const workbenchPromise = new Promise<IWorkbench>(resolve => workbenchPromiseResolve = resolve);
+const workbenchPromise = new Promise<IWorkbench>(resolve => (workbenchPromiseResolve = resolve));
 function create(domElement: HTMLElement, options: IWorkbenchConstructionOptions): IDisposable {
-
 	// Mark start of workbench
 	mark('code/didLoadWorkbenchMain');
 
@@ -537,18 +541,16 @@ function create(domElement: HTMLElement, options: IWorkbenchConstructionOptions)
 	});
 }
 
-
 //#region API Facade
 
 namespace commands {
-
 	/**
-	* Allows to execute any command if known with the provided arguments.
-	*
-	* @param command Identifier of the command to execute.
-	* @param rest Parameters passed to the command function.
-	* @return A promise that resolves to the returned value of the given command.
-	*/
+	 * Allows to execute any command if known with the provided arguments.
+	 *
+	 * @param command Identifier of the command to execute.
+	 * @param rest Parameters passed to the command function.
+	 * @return A promise that resolves to the returned value of the given command.
+	 */
 	export async function executeCommand(command: string, ...args: any[]): Promise<unknown> {
 		const workbench = await workbenchPromise;
 
@@ -557,7 +559,6 @@ namespace commands {
 }
 
 namespace env {
-
 	/**
 	 * Retrieve performance marks that have been collected during startup. This function
 	 * returns tuples of source and marks. A source is a dedicated context, like
@@ -587,12 +588,12 @@ namespace env {
 }
 
 export {
-
 	// Factory
 	create,
 	IWorkbenchConstructionOptions,
+	IServerWorkbenchConstructionOptions,
+	IOptionalPathURIs,
 	IWorkbench,
-
 	// Basic Types
 	URI,
 	UriComponents,
@@ -600,75 +601,57 @@ export {
 	Emitter,
 	IDisposable,
 	Disposable,
-
 	// Workspace
 	IWorkspace,
 	IWorkspaceProvider,
-
 	// WebSockets
 	IWebSocketFactory,
 	IWebSocket,
-
 	// Resources
 	IResourceUriProvider,
-
 	// Credentials
 	ICredentialsProvider,
-
 	// Static Extensions
 	IStaticExtension,
 	IExtensionManifest,
-
 	// Callbacks
 	IURLCallbackProvider,
-
 	// LogLevel
 	LogLevel,
-
 	// SettingsSync
 	ISettingsSyncOptions,
-
 	// Updates/Quality
 	IUpdateProvider,
 	IUpdate,
 	IProductQualityChangeHandler,
-
 	// Telemetry
 	ICommonTelemetryPropertiesResolver,
-
 	// External Uris
 	IExternalUriResolver,
-
 	// Tunnel
 	ITunnelProvider,
 	ITunnelFactory,
 	ITunnel,
 	ITunnelOptions,
-
 	// Ports
 	IShowPortCandidate,
-
 	// Commands
 	ICommand,
 	commands,
-
 	// Branding
 	IHomeIndicator,
 	IProductConfiguration,
 	IWindowIndicator,
 	IInitialColorTheme,
-
 	// Default layout
 	IDefaultView,
 	IDefaultEditor,
 	IDefaultLayout,
-
 	// Env
 	IPerformanceMark,
 	env,
-
 	// Development
-	IDevelopmentOptions
+	IDevelopmentOptions,
 };
 
 //#endregion

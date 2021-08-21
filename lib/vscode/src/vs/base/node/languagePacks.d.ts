@@ -12,6 +12,8 @@ export interface NLSConfiguration {
 	_languagePackSupport?: boolean;
 }
 
+export type LoadBundleCallback = (_: undefined, result?: string) => void;
+
 export interface InternalNLSConfiguration extends NLSConfiguration {
 	_languagePackId: string;
 	_translationsConfigFile: string;
@@ -19,6 +21,7 @@ export interface InternalNLSConfiguration extends NLSConfiguration {
 	_resolvedLanguagePackCoreLocation: string;
 	_corruptedFile: string;
 	_languagePackSupport?: boolean;
+	loadBundle?: (bundle: string, _language: string, cb: LoadBundleCallback) => void;
 }
 
 export function getNLSConfiguration(commit: string, userDataPath: string, metaDataFile: string, locale: string): Promise<NLSConfiguration>;

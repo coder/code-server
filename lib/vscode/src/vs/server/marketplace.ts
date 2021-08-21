@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Coder Technologies. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as fs from 'fs';
 import * as path from 'path';
 import * as tarStream from 'tar-stream';
@@ -6,30 +11,16 @@ import { CancellationToken } from 'vs/base/common/cancellation';
 import * as vszip from 'vs/base/node/zip';
 import * as nls from 'vs/nls';
 import product from 'vs/platform/product/common/product';
+import { IProductConfiguration } from 'vs/workbench/workbench.web.api';
 
 // We will be overriding these, so keep a reference to the original.
 const vszipExtract = vszip.extract;
 const vszipBuffer = vszip.buffer;
 
-export interface IExtractOptions {
-	overwrite?: boolean;
-	/**
-	 * Source path within the TAR/ZIP archive. Only the files
-	 * contained in this path will be extracted.
-	 */
-	sourcePath?: string;
-}
-
-export interface IFile {
-	path: string;
-	contents?: Buffer | string;
-	localPath?: string;
-}
-
-export const tar = async (tarPath: string, files: IFile[]): Promise<string> => {
+export const tar = async (tarPath: string, files: vszip.IFile[]): Promise<string> => {
 	const pack = tarStream.pack();
 	const chunks: Buffer[] = [];
-	const ended = new Promise<Buffer>((resolve) => {
+	const ended = new Promise<Buffer>(resolve => {
 		pack.on('end', () => resolve(Buffer.concat(chunks)));
 	});
 	pack.on('data', (chunk: Buffer) => chunks.push(chunk));
@@ -42,7 +33,7 @@ export const tar = async (tarPath: string, files: IFile[]): Promise<string> => {
 	return tarPath;
 };
 
-export const extract = async (archivePath: string, extractPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
+export const extract = async (archivePath: string, extractPath: string, options: vszip.IExtractOptions = {}, token: CancellationToken): Promise<void> => {
 	try {
 		await extractTar(archivePath, extractPath, options, token);
 	} catch (error) {
@@ -63,7 +54,7 @@ export const buffer = (targetPath: string, filePath: string): Promise<Buffer> =>
 				}
 			});
 			if (!done) {
-				throw new Error('couldn\'t find asset ' + filePath);
+				throw new Error(`couldn't find asset ` + filePath);
 			}
 		} catch (error) {
 			if (error.toString().includes('Invalid tar header')) {
@@ -86,10 +77,12 @@ const extractAssets = async (tarPath: string, match: RegExp, callback: (path: st
 		extractor.on('entry', async (header, stream, next) => {
 			const name = header.name;
 			if (match.test(name)) {
-				extractData(stream).then((data) => {
-					callback(name, data);
-					next();
-				}).catch(fail);
+				extractData(stream)
+					.then(data => {
+						callback(name, data);
+						next();
+					})
+					.catch(fail);
 			} else {
 				stream.on('end', () => next());
 				stream.resume(); // Just drain it.
@@ -105,11 +98,11 @@ const extractData = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
 		const fileData: Buffer[] = [];
 		stream.on('error', reject);
 		stream.on('end', () => resolve(Buffer.concat(fileData)));
-		stream.on('data', (data) => fileData.push(data));
+		stream.on('data', data => fileData.push(data));
 	});
 };
 
-const extractTar = async (tarPath: string, targetPath: string, options: IExtractOptions = {}, token: CancellationToken): Promise<void> => {
+const extractTar = async (tarPath: string, targetPath: string, options: vszip.IExtractOptions = {}, token: CancellationToken): Promise<void> => {
 	return new Promise<void>((resolve, reject): void => {
 		const sourcePathRegex = new RegExp(options.sourcePath ? `^${options.sourcePath}` : '');
 		const extractor = tarStream.extract();
@@ -168,15 +161,21 @@ const extractTar = async (tarPath: string, targetPath: string, options: IExtract
  * either tars or zips.
  */
 export const enableCustomMarketplace = (): void => {
-	(<any>product).extensionsGallery = { // Use `any` to override readonly.
+	const extensionsGallery: IProductConfiguration['extensionsGallery'] = {
 		serviceUrl: process.env.SERVICE_URL || 'https://extensions.coder.com/api',
+		// Placeholder for upstream 1.59.1
+		// resourceUrlTemplate: '',
 		itemUrl: process.env.ITEM_URL || '',
 		controlUrl: '',
 		recommendationsUrl: '',
 		...(product.extensionsGallery || {}),
 	};
 
+	// Workaround for readonly property.
+	Object.assign(product, { extensionsGallery });
+
 	const target = vszip as typeof vszip;
+
 	target.zip = tar;
 	target.extract = extract;
 	target.buffer = buffer;

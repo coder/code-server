@@ -32,52 +32,60 @@ interface ILog {
 
 function log(logger: spdlog.Logger, level: LogLevel, message: string): void {
 	switch (level) {
-		case LogLevel.Trace: logger.trace(message); break;
-		case LogLevel.Debug: logger.debug(message); break;
-		case LogLevel.Info: logger.info(message); break;
-		case LogLevel.Warning: logger.warn(message); break;
-		case LogLevel.Error: logger.error(message); break;
-		case LogLevel.Critical: logger.critical(message); break;
-		default: throw new Error('Invalid log level');
+		case LogLevel.Trace:
+			logger.trace(message);
+			break;
+		case LogLevel.Debug:
+			logger.debug(message);
+			break;
+		case LogLevel.Info:
+			logger.info(message);
+			break;
+		case LogLevel.Warning:
+			logger.warn(message);
+			break;
+		case LogLevel.Error:
+			logger.error(message);
+			break;
+		case LogLevel.Critical:
+			logger.critical(message);
+			break;
+		default:
+			throw new Error('Invalid log level');
 	}
 }
 
 export class SpdLogLogger extends AbstractMessageLogger implements ILogger {
-
 	private buffer: ILog[] = [];
 	private readonly _loggerCreationPromise: Promise<void>;
 	private _logger: spdlog.Logger | undefined;
 
-	constructor(
-		private readonly name: string,
-		private readonly filepath: string,
-		private readonly rotating: boolean,
-		level: LogLevel
-	) {
+	constructor(private readonly name: string, private readonly filepath: string, private readonly rotating: boolean, level: LogLevel) {
 		super();
 		this.setLevel(level);
 		this._loggerCreationPromise = this._createSpdLogLogger();
-		this._register(this.onDidChangeLogLevel(level => {
-			if (this._logger) {
-				this._logger.setLevel(level);
-			}
-		}));
+		this._register(
+			this.onDidChangeLogLevel(level => {
+				if (this._logger) {
+					this._logger.setLevel(level);
+				}
+			}),
+		);
 	}
 
 	private _createSpdLogLogger(): Promise<void> {
 		const filecount = this.rotating ? 6 : 1;
 		const filesize = (30 / filecount) * ByteSize.MB;
-		return createSpdLogLogger(this.name, this.filepath, filesize, filecount)
-			.then(logger => {
-				if (logger) {
-					this._logger = logger;
-					this._logger.setLevel(this.getLevel());
-					for (const { level, message } of this.buffer) {
-						log(this._logger, level, message);
-					}
-					this.buffer = [];
+		return createSpdLogLogger(this.name, this.filepath, filesize, filecount).then(logger => {
+			if (logger) {
+				this._logger = logger;
+				this._logger.setLevel(this.getLevel());
+				for (const { level, message } of this.buffer) {
+					log(this._logger, level, message);
 				}
-			});
+				this.buffer = [];
+			}
+		});
 	}
 
 	protected log(level: LogLevel, message: string): void {

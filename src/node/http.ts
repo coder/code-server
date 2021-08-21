@@ -3,11 +3,11 @@ import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import qs from "qs"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, Options } from "../common/util"
+import { normalize, CoderOptions } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
 import { Heart } from "./heart"
-import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -19,6 +19,16 @@ declare global {
   }
 }
 
+export const getServerOptions = (req: express.Request): CoderOptions => {
+  const base = relativeRoot(req)
+
+  return {
+    base,
+    csStaticBase: base + "/static/" + commit + rootPath,
+    logLevel: logger.level,
+  }
+}
+
 /**
  * Replace common variable strings in HTML templates.
  */
@@ -27,18 +37,16 @@ export const replaceTemplates = <T extends object>(
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
-  const base = relativeRoot(req)
-  const options: Options = {
-    base,
-    csStaticBase: base + "/static/" + commit + rootPath,
-    logLevel: logger.level,
+  const serverOptions = {
+    ...getServerOptions(req),
     ...extraOpts,
   }
+
   return content
     .replace(/{{TO}}/g, (typeof req.query.to === "string" && escapeHtml(req.query.to)) || "/")
-    .replace(/{{BASE}}/g, options.base)
-    .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
-    .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+    .replace(/{{BASE}}/g, serverOptions.base)
+    .replace(/{{CS_STATIC_BASE}}/g, serverOptions.csStaticBase)
+    .replace("{{OPTIONS}}", () => escapeJSON(serverOptions))
 }
 
 /**

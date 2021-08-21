@@ -35,7 +35,7 @@ export class VscodeProvider {
   public async initialize(
     options: Omit<ipc.VscodeOptions, "startPath">,
     query: ipc.Query,
-  ): Promise<ipc.WorkbenchOptions> {
+  ): Promise<ipc.IServerWorkbenchConstructionOptions> {
     const { lastVisited } = await settings.read()
     let startPath = await this.getFirstPath([
       { url: query.workspace, workspace: true },

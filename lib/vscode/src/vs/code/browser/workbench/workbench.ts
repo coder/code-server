@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IWorkbenchConstructionOptions, create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions } from 'vs/workbench/workbench.web.api';
+import { create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions, IServerWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { Event, Emitter } from 'vs/base/common/event';
 import { generateUuid } from 'vs/base/common/uuid';
@@ -28,7 +28,7 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
 				query = '';
 			}
 
-			const prefix = (index++ === 0) ? '' : '&';
+			const prefix = index++ === 0 ? '' : '&';
 			query += `${prefix}${key}=${encodeURIComponent(value)}`;
 		});
 	}
@@ -41,8 +41,11 @@ function doCreateUri(path: string, queryValues: Map<string, string>): URI {
  * Encode a path for opening via the folder or workspace query parameter. This
  * preserves slashes so it can be edited by hand more easily.
  */
- export const encodePath = (path: string): string => {
-	return path.split('/').map((p) => encodeURIComponent(p)).join('/');
+export const encodePath = (path: string): string => {
+	return path
+		.split('/')
+		.map(p => encodeURIComponent(p))
+		.join('/');
 };
 
 interface ICredential {
@@ -52,19 +55,20 @@ interface ICredential {
 }
 
 class LocalStorageCredentialsProvider implements ICredentialsProvider {
-
 	static readonly CREDENTIALS_OPENED_KEY = 'credentials.provider';
 
 	private readonly authService: string | undefined;
 
 	constructor() {
-		let authSessionInfo: { readonly id: string, readonly accessToken: string, readonly providerId: string, readonly canSignOut?: boolean, readonly scopes: string[][] } | undefined;
+		let authSessionInfo: { readonly id: string; readonly accessToken: string; readonly providerId: string; readonly canSignOut?: boolean; readonly scopes: string[][] } | undefined;
 		const authSessionElement = document.getElementById('vscode-workbench-auth-session');
 		const authSessionElementAttribute = authSessionElement ? authSessionElement.getAttribute('data-settings') : undefined;
 		if (authSessionElementAttribute) {
 			try {
 				authSessionInfo = JSON.parse(authSessionElementAttribute);
-			} catch (error) { /* Invalid session is passed. Ignore. */ }
+			} catch (error) {
+				/* Invalid session is passed. Ignore. */
+			}
 		}
 
 		if (authSessionInfo) {
@@ -73,11 +77,17 @@ class LocalStorageCredentialsProvider implements ICredentialsProvider {
 
 			// Auth extension Entry
 			this.authService = `${product.urlProtocol}-${authSessionInfo.providerId}.login`;
-			this.setPassword(this.authService, 'account', JSON.stringify(authSessionInfo.scopes.map(scopes => ({
-				id: authSessionInfo!.id,
-				scopes,
-				accessToken: authSessionInfo!.accessToken
-			}))));
+			this.setPassword(
+				this.authService,
+				'account',
+				JSON.stringify(
+					authSessionInfo.scopes.map(scopes => ({
+						id: authSessionInfo!.id,
+						scopes,
+						accessToken: authSessionInfo!.accessToken,
+					})),
+				),
+			);
 		}
 	}
 
@@ -178,10 +188,8 @@ class LocalStorageCredentialsProvider implements ICredentialsProvider {
 		return this.doGetPassword(service);
 	}
 
-	async findCredentials(service: string): Promise<Array<{ account: string, password: string }>> {
-		return this.credentials
-			.filter(credential => credential.service === service)
-			.map(({ account, password }) => ({ account, password }));
+	async findCredentials(service: string): Promise<Array<{ account: string; password: string }>> {
+		return this.credentials.filter(credential => credential.service === service).map(({ account, password }) => ({ account, password }));
 	}
 
 	private async logout(service: string): Promise<void> {
@@ -189,16 +197,18 @@ class LocalStorageCredentialsProvider implements ICredentialsProvider {
 		queryValues.set('logout', String(true));
 		queryValues.set('service', service);
 
-		await request({
-			url: doCreateUri('/auth/logout', queryValues).toString(true)
-		}, CancellationToken.None);
+		await request(
+			{
+				url: doCreateUri('/auth/logout', queryValues).toString(true),
+			},
+			CancellationToken.None,
+		);
 	}
 }
 
 class PollingURLCallbackProvider extends Disposable implements IURLCallbackProvider {
-
-	static readonly FETCH_INTERVAL = 500; 			// fetch every 500ms
-	static readonly FETCH_TIMEOUT = 5 * 60 * 1000; 	// ...but stop after 5min
+	static readonly FETCH_INTERVAL = 500; // fetch every 500ms
+	static readonly FETCH_TIMEOUT = 5 * 60 * 1000; // ...but stop after 5min
 
 	static readonly QUERY_KEYS = {
 		REQUEST_ID: 'vscode-requestId',
@@ -206,7 +216,7 @@ class PollingURLCallbackProvider extends Disposable implements IURLCallbackProvi
 		AUTHORITY: 'vscode-authority',
 		PATH: 'vscode-path',
 		QUERY: 'vscode-query',
-		FRAGMENT: 'vscode-fragment'
+		FRAGMENT: 'vscode-fragment',
 	};
 
 	private readonly _onCallback = this._register(new Emitter<URI>());
@@ -247,14 +257,16 @@ class PollingURLCallbackProvider extends Disposable implements IURLCallbackProvi
 	}
 
 	private async periodicFetchCallback(requestId: string, startTime: number): Promise<void> {
-
 		// Ask server for callback results
 		const queryValues: Map<string, string> = new Map();
 		queryValues.set(PollingURLCallbackProvider.QUERY_KEYS.REQUEST_ID, requestId);
 
-		const result = await request({
-			url: doCreateUri('/fetch-callback', queryValues).toString(true)
-		}, CancellationToken.None);
+		const result = await request(
+			{
+				url: doCreateUri('/fetch-callback', queryValues).toString(true),
+			},
+			CancellationToken.None,
+		);
 
 		// Check for callback results
 		const content = await streamToBuffer(result.stream);
@@ -276,7 +288,6 @@ class PollingURLCallbackProvider extends Disposable implements IURLCallbackProvi
 }
 
 class WorkspaceProvider implements IWorkspaceProvider {
-
 	static QUERY_PARAM_EMPTY_WINDOW = 'ew';
 	static QUERY_PARAM_FOLDER = 'folder';
 	static QUERY_PARAM_WORKSPACE = 'workspace';
@@ -285,12 +296,9 @@ class WorkspaceProvider implements IWorkspaceProvider {
 
 	readonly trusted = true;
 
-	constructor(
-		readonly workspace: IWorkspace,
-		readonly payload: object
-	) { }
+	constructor(readonly workspace: IWorkspace, readonly payload: object) {}
 
-	async open(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): Promise<boolean> {
+	async open(workspace: IWorkspace, options?: { reuse?: boolean; payload?: object }): Promise<boolean> {
 		if (options?.reuse && !options.payload && this.isSame(this.workspace, workspace)) {
 			return true; // return early if workspace and environment is not changing and we are reusing window
 		}
@@ -314,8 +322,7 @@ class WorkspaceProvider implements IWorkspaceProvider {
 		return false;
 	}
 
-	private createTargetUrl(workspace: IWorkspace, options?: { reuse?: boolean, payload?: object }): string | undefined {
-
+	private createTargetUrl(workspace: IWorkspace, options?: { reuse?: boolean; payload?: object }): string | undefined {
 		// Empty
 		let targetHref: string | undefined = undefined;
 		if (!workspace) {
@@ -324,17 +331,13 @@ class WorkspaceProvider implements IWorkspaceProvider {
 
 		// Folder
 		else if (isFolderToOpen(workspace)) {
-			const target = workspace.folderUri.scheme === Schemas.vscodeRemote
-				? encodePath(workspace.folderUri.path)
-				: encodeURIComponent(workspace.folderUri.toString());
+			const target = workspace.folderUri.scheme === Schemas.vscodeRemote ? encodePath(workspace.folderUri.path) : encodeURIComponent(workspace.folderUri.toString());
 			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_FOLDER}=${target}`;
 		}
 
 		// Workspace
 		else if (isWorkspaceToOpen(workspace)) {
-			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote
-				? encodePath(workspace.workspaceUri.path)
-				: encodeURIComponent(workspace.workspaceUri.toString());
+			const target = workspace.workspaceUri.scheme === Schemas.vscodeRemote ? encodePath(workspace.workspaceUri.path) : encodeURIComponent(workspace.workspaceUri.toString());
 			targetHref = `${document.location.origin}${document.location.pathname}?${WorkspaceProvider.QUERY_PARAM_WORKSPACE}=${target}`;
 		}
 
@@ -378,7 +381,6 @@ class WorkspaceProvider implements IWorkspaceProvider {
 }
 
 class WindowIndicator implements IWindowIndicator {
-
 	readonly onDidChange = Event.None;
 
 	readonly label: string;
@@ -404,14 +406,14 @@ class WindowIndicator implements IWindowIndicator {
 
 		// Repo
 		if (repositoryName && repositoryOwner) {
-			this.label = localize('playgroundLabelRepository', "$(remote) VS Code Web Playground: {0}/{1}", repositoryOwner, repositoryName);
-			this.tooltip = localize('playgroundRepositoryTooltip', "VS Code Web Playground: {0}/{1}", repositoryOwner, repositoryName);
+			this.label = localize('playgroundLabelRepository', '$(remote) VS Code Web Playground: {0}/{1}', repositoryOwner, repositoryName);
+			this.tooltip = localize('playgroundRepositoryTooltip', 'VS Code Web Playground: {0}/{1}', repositoryOwner, repositoryName);
 		}
 
 		// No Repo
 		else {
-			this.label = localize('playgroundLabel', "$(remote) VS Code Web Playground");
-			this.tooltip = localize('playgroundTooltip', "VS Code Web Playground");
+			this.label = localize('playgroundLabel', '$(remote) VS Code Web Playground');
+			this.tooltip = localize('playgroundTooltip', 'VS Code Web Playground');
 		}
 	}
 }
@@ -424,10 +426,7 @@ class WindowIndicator implements IWindowIndicator {
 		throw new Error('Missing web configuration element');
 	}
 
-	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = {
-		webviewEndpoint: `${window.location.origin}${window.location.pathname.replace(/\/+$/, '')}/webview`,
-		...JSON.parse(configElementAttribute),
-	};
+	const config: IServerWorkbenchConstructionOptions = JSON.parse(configElementAttribute);
 
 	// Strip the protocol from the authority if it exists.
 	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, '');
@@ -467,7 +466,7 @@ class WindowIndicator implements IWindowIndicator {
 	}
 
 	// Product Quality Change Handler
-	const productQualityChangeHandler: IProductQualityChangeHandler = (quality) => {
+	const productQualityChangeHandler: IProductQualityChangeHandler = quality => {
 		let queryString = `quality=${quality}`;
 
 		// Save all other query params we might have
@@ -482,22 +481,24 @@ class WindowIndicator implements IWindowIndicator {
 	};
 
 	// settings sync options
-	const settingsSyncOptions: ISettingsSyncOptions | undefined = config.settingsSyncOptions ? {
-		enabled: config.settingsSyncOptions.enabled,
-		enablementHandler: (enablement) => {
-			let queryString = `settingsSync=${enablement ? 'true' : 'false'}`;
+	const settingsSyncOptions: ISettingsSyncOptions | undefined = config.settingsSyncOptions
+		? {
+				enabled: config.settingsSyncOptions.enabled,
+				enablementHandler: enablement => {
+					let queryString = `settingsSync=${enablement ? 'true' : 'false'}`;
 
-			// Save all other query params we might have
-			const query = new URL(document.location.href).searchParams;
-			query.forEach((value, key) => {
-				if (key !== 'settingsSync') {
-					queryString += `&${key}=${value}`;
-				}
-			});
+					// Save all other query params we might have
+					const query = new URL(document.location.href).searchParams;
+					query.forEach((value, key) => {
+						if (key !== 'settingsSync') {
+							queryString += `&${key}=${value}`;
+						}
+					});
 
-			window.location.href = `${window.location.origin}?${queryString}`;
-		}
-	} : undefined;
+					window.location.href = `${window.location.origin}?${queryString}`;
+				},
+		  }
+		: undefined;
 
 	// Finally create workbench
 	create(document.body, {
@@ -507,6 +508,6 @@ class WindowIndicator implements IWindowIndicator {
 		productQualityChangeHandler,
 		workspaceProvider,
 		urlCallbackProvider: new PollingURLCallbackProvider(),
-		credentialsProvider: new LocalStorageCredentialsProvider()
+		credentialsProvider: new LocalStorageCredentialsProvider(),
 	});
 })();

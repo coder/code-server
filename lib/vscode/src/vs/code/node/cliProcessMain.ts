@@ -48,10 +48,7 @@ import { VSBuffer } from 'vs/base/common/buffer';
 import { cwd } from 'vs/base/common/process';
 
 class CliMain extends Disposable {
-
-	constructor(
-		private argv: NativeParsedArgs
-	) {
+	constructor(private argv: NativeParsedArgs) {
 		super();
 
 		// Enable gracefulFs
@@ -61,13 +58,11 @@ class CliMain extends Disposable {
 	}
 
 	private registerListeners(): void {
-
 		// Dispose on exit
 		process.once('exit', () => this.dispose());
 	}
 
 	async run(): Promise<void> {
-
 		// Services
 		const [instantiationService, appenders] = await this.initServices();
 
@@ -103,7 +98,7 @@ class CliMain extends Disposable {
 		services.set(INativeEnvironmentService, environmentService);
 
 		// Init folders
-		await Promise.all([environmentService.appSettingsHome.fsPath, environmentService.extensionsPath].map(path => path ? Promises.mkdir(path, { recursive: true }) : undefined));
+		await Promise.all([environmentService.appSettingsHome.fsPath, environmentService.extensionsPath].map(path => (path ? Promises.mkdir(path, { recursive: true }) : undefined)));
 
 		// Log
 		const logLevel = getLogLevel(environmentService);
@@ -166,11 +161,10 @@ class CliMain extends Disposable {
 
 					return resolveCommonProperties(fileService, release(), hostname(), process.arch, productService.commit, productService.version, machineId, productService.msftInternalDomains, installSourcePath);
 				})(),
-				piiPaths: [appRoot, extensionsPath]
+				piiPaths: [appRoot, extensionsPath],
 			};
 
 			services.set(ITelemetryService, new SyncDescriptor(TelemetryService, [config]));
-
 		} else {
 			services.set(ITelemetryService, NullTelemetryService);
 		}
@@ -179,7 +173,6 @@ class CliMain extends Disposable {
 	}
 
 	private registerErrorHandler(logService: ILogService): void {
-
 		// Install handler for unexpected errors
 		setUnexpectedErrorHandler(error => {
 			const message = toErrorMessage(error, true);
@@ -192,7 +185,6 @@ class CliMain extends Disposable {
 	}
 
 	private async doRun(environmentService: INativeEnvironmentService, extensionManagementCLIService: IExtensionManagementCLIService, fileService: IFileService): Promise<void> {
-
 		// Install Source
 		if (this.argv['install-source']) {
 			return this.setInstallSource(environmentService, fileService, this.argv['install-source']);
@@ -225,7 +217,7 @@ class CliMain extends Disposable {
 	}
 
 	private asExtensionIdOrVSIX(inputs: string[]): (string | URI)[] {
-		return inputs.map(input => /\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input);
+		return inputs.map(input => (/\.vsix$/i.test(input) ? URI.file(isAbsolute(input) ? input : join(cwd(), input)) : input));
 	}
 
 	private async setInstallSource(environmentService: INativeEnvironmentService, fileService: IFileService, installSource: string): Promise<void> {

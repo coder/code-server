@@ -1,7 +1,7 @@
 import { promises as fs } from "fs"
+import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import * as net from "net"
 
 /**
  * Return a mock of @coder/logger.

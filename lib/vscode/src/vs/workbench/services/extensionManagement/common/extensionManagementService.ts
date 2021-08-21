@@ -312,7 +312,7 @@ export class ExtensionManagementService extends Disposable implements IWorkbench
 		if (isWeb && this.extensionManagementServerService.remoteExtensionManagementServer) {
 			return this.extensionManagementServerService.remoteExtensionManagementServer;
 		}
-		
+
 		// Local server can accept any extension. So return local server if not compatible server found.
 		return this.extensionManagementServerService.localExtensionManagementServer;
 	}

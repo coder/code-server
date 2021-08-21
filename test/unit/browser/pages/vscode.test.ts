@@ -2,15 +2,31 @@
  * @jest-environment jsdom
  */
 import { JSDOM } from "jsdom"
+import { InternalNLSConfiguration } from "../../../../lib/vscode/src/vs/base/node/languagePacks"
 import {
   getNlsConfiguration,
-  nlsConfigElementId,
   getConfigurationForLoader,
   setBodyBackgroundToThemeBackgroundColor,
   _createScriptURL,
   main,
   createBundlePath,
+  NLSConfigurationWeb,
 } from "../../../../src/browser/pages/vscode"
+import { WORKBENCH_WEB_CONFIG_ID } from "../../../../src/node/constants"
+
+interface MockWorkbenchConfig {
+  nlsConfiguration: Pick<NLSConfigurationWeb, "locale" | "availableLanguages">
+}
+
+const createMockDataSettings = (): MockWorkbenchConfig => ({
+  nlsConfiguration: {
+    locale: "en",
+    availableLanguages: {
+      en: "English",
+      de: "German",
+    },
+  },
+})
 
 describe("vscode", () => {
   describe("getNlsConfiguration", () => {
@@ -22,9 +38,9 @@ describe("vscode", () => {
       _document = _window.document
     })
 
-    it("should throw an error if no nlsConfigElement", () => {
+    it("should throw an error if no Workbench element", () => {
       const errorMsgPrefix = "[vscode]"
-      const errorMessage = `${errorMsgPrefix} Could not parse NLS configuration. Could not find nlsConfigElement with id: ${nlsConfigElementId}`
+      const errorMessage = `${errorMsgPrefix} Could not find Workbench element`
 
       expect(() => {
         getNlsConfiguration(_document, "")
@@ -32,11 +48,11 @@ describe("vscode", () => {
     })
     it("should throw an error if no nlsConfig", () => {
       const mockElement = _document.createElement("div")
-      mockElement.setAttribute("id", nlsConfigElementId)
+      mockElement.setAttribute("id", WORKBENCH_WEB_CONFIG_ID)
       _document.body.appendChild(mockElement)
 
       const errorMsgPrefix = "[vscode]"
-      const errorMessage = `${errorMsgPrefix} Could not parse NLS configuration. Found nlsConfigElement but missing data-settings attribute.`
+      const errorMessage = `${errorMsgPrefix} Could not find Workbench data`
 
       expect(() => {
         getNlsConfiguration(_document, "")
@@ -46,32 +62,27 @@ describe("vscode", () => {
     })
     it("should return the correct configuration", () => {
       const mockElement = _document.createElement("div")
-      const dataSettings = {
-        first: "Jane",
-        last: "Doe",
-      }
+      const dataSettings = createMockDataSettings()
 
-      mockElement.setAttribute("id", nlsConfigElementId)
+      mockElement.setAttribute("id", WORKBENCH_WEB_CONFIG_ID)
       mockElement.setAttribute("data-settings", JSON.stringify(dataSettings))
       _document.body.appendChild(mockElement)
       const actual = getNlsConfiguration(_document, "")
 
-      expect(actual).toStrictEqual(dataSettings)
+      expect(actual).toStrictEqual(dataSettings.nlsConfiguration)
 
       _document.body.removeChild(mockElement)
     })
     it("should return have loadBundle property if _resolvedLangaugePackCoreLocation", () => {
       const mockElement = _document.createElement("div")
-      const dataSettings = {
-        locale: "en",
-        availableLanguages: ["en", "de"],
-        _resolvedLanguagePackCoreLocation: "./",
-      }
 
-      mockElement.setAttribute("id", nlsConfigElementId)
+      const dataSettings = createMockDataSettings()
+      ;(dataSettings.nlsConfiguration as InternalNLSConfiguration)._resolvedLanguagePackCoreLocation = "./"
+
+      mockElement.setAttribute("id", WORKBENCH_WEB_CONFIG_ID)
       mockElement.setAttribute("data-settings", JSON.stringify(dataSettings))
       _document.body.appendChild(mockElement)
-      const nlsConfig = getNlsConfiguration(_document, "")
+      const nlsConfig = getNlsConfiguration<InternalNLSConfiguration>(_document, "")
 
       expect(nlsConfig._resolvedLanguagePackCoreLocation).not.toBe(undefined)
       expect(nlsConfig.loadBundle).not.toBe(undefined)
@@ -201,16 +212,13 @@ describe("vscode", () => {
         csStaticBase: "/",
         logLevel: 1,
       }
-      const nlsConfig = {
-        first: "Jane",
-        last: "Doe",
-        locale: "en",
-        availableLanguages: {},
-      }
+
+      const { nlsConfiguration } = createMockDataSettings()
+
       const loader = getConfigurationForLoader({
         options,
         _window,
-        nlsConfig: nlsConfig,
+        nlsConfiguration,
       })
 
       expect(loader).toStrictEqual({
@@ -234,20 +242,11 @@ describe("vscode", () => {
         // maybe extract function into function
         // and test manually
         trustedTypesPolicy: undefined,
-        "vs/nls": {
-          availableLanguages: {},
-          first: "Jane",
-          last: "Doe",
-          locale: "en",
-        },
+        "vs/nls": nlsConfiguration,
       })
     })
     it("should return a loader object with trustedTypesPolicy", () => {
-      interface PolicyOptions {
-        createScriptUrl: (url: string) => string
-      }
-
-      function mockCreatePolicy(policyName: string, options: PolicyOptions) {
+      function mockCreatePolicy(policyName: string, options: TrustedTypePolicyOptions) {
         return {
           name: policyName,
           ...options,
@@ -256,9 +255,8 @@ describe("vscode", () => {
 
       const mockFn = jest.fn(mockCreatePolicy)
 
-      // @ts-expect-error we are adding a custom property to window
-      _window.trustedTypes = {
-        createPolicy: mockFn,
+      _window.trustedTypes = <TrustedTypePolicyFactory>{
+        createPolicy: mockFn as TrustedTypePolicyFactory["createPolicy"],
       }
 
       const options = {
@@ -275,11 +273,11 @@ describe("vscode", () => {
       const loader = getConfigurationForLoader({
         options,
         _window,
-        nlsConfig: nlsConfig,
+        nlsConfiguration: nlsConfig,
       })
 
       expect(loader.trustedTypesPolicy).not.toBe(undefined)
-      expect(loader.trustedTypesPolicy.name).toBe("amdLoader")
+      expect(loader.trustedTypesPolicy!.name).toBe("amdLoader")
     })
   })
   describe("_createScriptURL", () => {
@@ -311,12 +309,9 @@ describe("vscode", () => {
       _localStorage = __window.localStorage
 
       const mockElement = _document.createElement("div")
-      const dataSettings = {
-        first: "Jane",
-        last: "Doe",
-      }
+      const dataSettings = createMockDataSettings()
 
-      mockElement.setAttribute("id", nlsConfigElementId)
+      mockElement.setAttribute("id", WORKBENCH_WEB_CONFIG_ID)
       mockElement.setAttribute("data-settings", JSON.stringify(dataSettings))
       _document.body.appendChild(mockElement)
 

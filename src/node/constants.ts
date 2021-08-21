@@ -3,6 +3,8 @@ import { JSONSchemaForNPMPackageJsonFiles } from "@schemastore/package"
 import * as os from "os"
 import * as path from "path"
 
+export const WORKBENCH_WEB_CONFIG_ID = "vscode-workbench-web-configuration"
+
 export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJsonFiles {
   let pkg = {}
   try {

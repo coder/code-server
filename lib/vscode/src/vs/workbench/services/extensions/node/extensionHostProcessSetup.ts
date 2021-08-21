@@ -17,8 +17,9 @@ import { IInitData } from 'vs/workbench/api/common/extHost.protocol';
 import { MessageType, createMessageOfType, isMessageOfType, IExtHostSocketMessage, IExtHostReadyMessage, IExtHostReduceGraceTimeMessage, ExtensionHostExitCode } from 'vs/workbench/services/extensions/common/extensionHostProtocol';
 import { ExtensionHostMain, IExitFn } from 'vs/workbench/services/extensions/common/extensionHostMain';
 import { VSBuffer } from 'vs/base/common/buffer';
-import { IURITransformer, URITransformer, IRawURITransformer } from 'vs/base/common/uriIpc';
 import { exists } from 'vs/base/node/pfs';
+import { IRawURITransformer, IURITransformer, URITransformer } from 'vs/base/common/uriIpc';
+import { createServerURITransformer } from 'vs/base/common/uriServer';
 import { realpath } from 'vs/base/node/extpath';
 import { IHostUtils } from 'vs/workbench/api/common/extHostExtensionService';
 import { RunOnceScheduler } from 'vs/base/common/async';
@@ -44,10 +45,7 @@ interface ParsedExtHostArgs {
 })();
 
 const args = minimist(process.argv.slice(2), {
-	string: [
-		'uriTransformerPath',
-		'useHostProxy'
-	]
+	string: ['uriTransformerPath', 'useHostProxy']
 }) as ParsedExtHostArgs;
 
 // With Electron 2.x and node.js 8.x the "natives" module
@@ -100,9 +98,7 @@ let onTerminate = function (reason: string) {
 
 function _createExtHostProtocol(): Promise<PersistentProtocol> {
 	if (process.env.VSCODE_EXTHOST_WILL_SEND_SOCKET) {
-
 		return new Promise<PersistentProtocol>((resolve, reject) => {
-
 			let protocol: PersistentProtocol | null = null;
 
 			let timer = setTimeout(() => {
@@ -118,6 +114,7 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 				if (msg && msg.type === 'VSCODE_EXTHOST_IPC_SOCKET') {
 					const initialDataChunk = VSBuffer.wrap(Buffer.from(msg.initialDataChunk, 'base64'));
 					let socket: NodeSocket | WebSocketNodeSocket;
+
 					if (msg.skipWebSocketFrames) {
 						socket = new NodeSocket(handle);
 					} else {
@@ -138,11 +135,15 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 
 						// Wait for rich client to reconnect
 						protocol.onSocketClose(() => {
-							// NOTE@coder: Inform the server so we can manage offline
-							// connections there instead. Our goal is to persist connections
-							// forever (to a reasonable point) to account for things like
-							// hibernating overnight.
+							/**
+							 * @coder Inform the server so we can manage offline
+							 * connections there instead. Our goal is to persist connections
+							 * forever (to a reasonable point) to account for things like
+							 * hibernating overnight.
+							 */
 							process.send!({ type: 'VSCODE_EXTHOST_DISCONNECTED' });
+							// // The socket has closed, let's give the renderer a certain amount of time to reconnect
+							// disconnectRunner1.schedule();
 						});
 					}
 				}
@@ -164,13 +165,10 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 				process.send(req);
 			}
 		});
-
 	} else {
-
 		const pipeName = process.env.VSCODE_IPC_HOOK_EXTHOST!;
 
 		return new Promise<PersistentProtocol>((resolve, reject) => {
-
 			const socket = net.createConnection(pipeName, () => {
 				socket.removeListener('error', reject);
 				resolve(new PersistentProtocol(new NodeSocket(socket)));
@@ -185,11 +183,9 @@ function _createExtHostProtocol(): Promise<PersistentProtocol> {
 }
 
 async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
-
 	const protocol = await _createExtHostProtocol();
 
-	return new class implements IMessagePassingProtocol {
-
+	return new (class implements IMessagePassingProtocol {
 		private readonly _onMessage = new BufferedEmitter<VSBuffer>();
 		readonly onMessage: Event<VSBuffer> = this._onMessage.event;
 
@@ -216,14 +212,13 @@ async function createExtHostProtocol(): Promise<IMessagePassingProtocol> {
 		drain(): Promise<void> {
 			return protocol.drain();
 		}
-	};
+	})();
 }
 
 function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRendererConnection> {
 	return new Promise<IRendererConnection>((c) => {
-
 		// Listen init data message
-		const first = protocol.onMessage(raw => {
+		const first = protocol.onMessage((raw) => {
 			first.dispose();
 
 			const initData = <IInitData>JSON.parse(raw.toString());
@@ -247,7 +242,7 @@ function connectToRenderer(protocol: IMessagePassingProtocol): Promise<IRenderer
 				setTimeout(() => {
 					const idx = unhandledPromises.indexOf(promise);
 					if (idx >= 0) {
-						promise.catch(e => {
+						promise.catch((e) => {
 							unhandledPromises.splice(idx, 1);
 							console.warn(`rejected promise not handled within 1 second: ${e}`);
 							if (e && e.stack) {
@@ -330,31 +325,41 @@ export async function startExtensionHostProcess(): Promise<void> {
 	initData.environment.useHostProxy = args.useHostProxy !== undefined ? args.useHostProxy !== 'false' : undefined;
 
 	// host abstraction
-	const hostUtils = new class NodeHost implements IHostUtils {
+	const hostUtils = new (class NodeHost implements IHostUtils {
 		declare readonly _serviceBrand: undefined;
-		exit(code: number) { nativeExit(code); }
-		exists(path: string) { return exists(path); }
-		realpath(path: string) { return realpath(path); }
-	};
+		exit(code: number) {
+			nativeExit(code);
+		}
+		exists(path: string) {
+			return exists(path);
+		}
+		realpath(path: string) {
+			return realpath(path);
+		}
+	})();
 
 	// Attempt to load uri transformer
 	let uriTransformer: IURITransformer | null = null;
-	if (initData.remote.authority && args.uriTransformerPath) {
-		try {
-			const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
-			const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
-			uriTransformer = new URITransformer(rawURITransformer);
-		} catch (e) {
-			console.error(e);
+
+	if (initData.remote.authority) {
+		if (args.uriTransformerPath) {
+			try {
+				const rawURITransformerFactory = <any>require.__$__nodeRequire(args.uriTransformerPath);
+				const rawURITransformer = <IRawURITransformer>rawURITransformerFactory(initData.remote.authority);
+				uriTransformer = new URITransformer(rawURITransformer);
+			} catch (e) {
+				console.error(e);
+			}
+		} else {
+			/**
+			 * @coder Passing a URI transformer path between processes is cumbersome.
+			 * Instead, default to the same module used in the parent process.
+			 */
+			uriTransformer = createServerURITransformer(initData.remote.authority);
 		}
 	}
 
-	const extensionHostMain = new ExtensionHostMain(
-		renderer.protocol,
-		initData,
-		hostUtils,
-		uriTransformer
-	);
+	const extensionHostMain = new ExtensionHostMain(renderer.protocol, initData, hostUtils, uriTransformer);
 
 	// rewrite onTerminate-function to be a proper shutdown
 	onTerminate = (reason: string) => extensionHostMain.terminate(reason);

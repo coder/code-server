@@ -802,12 +802,14 @@
 				"target": "**/vs/server/**",
 				"restrictions": [
 					"vs/nls",
+					// @coder Allow additional imports until our server structure aligns with upstream.
+					"**/vs/code/**/{common,server,browser,node,electron-sandbox,electron-browser}/**",
 					"**/vs/base/**/{common,node}/**",
 					"**/vs/base/parts/**/{common,node}/**",
 					"**/vs/platform/**/{common,node}/**",
 					"**/vs/workbench/**/{common,node}/**",
+					"**/vs/workbench/workbench.web.api",
 					"**/vs/server/**",
-					"@coder/logger", // NOTE@coder: add logger
 					"*" // node modules
 				]
 			},

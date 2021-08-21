@@ -49,7 +49,6 @@ export interface IRemoteExtensionHostDataProvider {
 }
 
 export class RemoteExtensionHost extends Disposable implements IExtensionHost {
-
 	public readonly kind = ExtensionHostKind.Remote;
 	public readonly remoteAuthority: string;
 
@@ -101,8 +100,8 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 			logService: this._logService,
 			ipcLogger: null
 		};
-		return this.remoteAuthorityResolverService.resolveAuthority(this._initDataProvider.remoteAuthority).then((resolverResult) => {
 
+		return this.remoteAuthorityResolverService.resolveAuthority(this._initDataProvider.remoteAuthority).then((resolverResult) => {
 			const startParams: IRemoteExtensionHostStartParams = {
 				language: platform.language,
 				debugId: this._environmentService.debugExtensionHost.debugId,
@@ -125,7 +124,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 				startParams.break = false;
 			}
 
-			return connectRemoteAgentExtensionHost(options, startParams).then(result => {
+			return connectRemoteAgentExtensionHost(options, startParams).then((result) => {
 				let { protocol, debugPort } = result;
 				const isExtensionDevelopmentDebug = typeof debugPort === 'number';
 				if (debugOk && this._environmentService.isExtensionDevelopment && this._environmentService.debugExtensionHost.debugId && debugPort) {
@@ -145,18 +144,16 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 				// 1) wait for the incoming `ready` event and send the initialization data.
 				// 2) wait for the incoming `initialized` event.
 				return new Promise<IMessagePassingProtocol>((resolve, reject) => {
-
 					let handle = setTimeout(() => {
 						reject('timeout');
 					}, 60 * 1000);
 
 					let logFile: URI;
 
-					const disposable = protocol.onMessage(msg => {
-
+					const disposable = protocol.onMessage((msg) => {
 						if (isMessageOfType(msg, MessageType.Ready)) {
 							// 1) Extension Host is ready to receive messages, initialize it
-							this._createExtHostInitData(isExtensionDevelopmentDebug).then(data => {
+							this._createExtHostInitData(isExtensionDevelopmentDebug).then((data) => {
 								logFile = data.logFile;
 								protocol.send(VSBuffer.fromString(JSON.stringify(data)));
 							});
@@ -172,7 +169,7 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 							disposable.dispose();
 
 							// Register log channel for remote exthost log
-							Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels).registerChannel({ id: 'remoteExtHostLog', label: localize('remote extension host Log', "Remote Extension Host"), file: logFile, log: true });
+							Registry.as<IOutputChannelRegistry>(Extensions.OutputChannels).registerChannel({ id: 'remoteExtHostLog', label: localize('remote extension host Log', 'Remote Extension Host'), file: logFile, log: true });
 
 							// release this promise
 							this._protocol = protocol;
@@ -183,7 +180,6 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 
 						console.error(`received unexpected message during handshake phase from the extension host: `, msg);
 					});
-
 				});
 			});
 		});
@@ -215,12 +211,11 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 		const remoteExtensions = new Set<string>();
 		remoteInitData.extensions.forEach((extension) => remoteExtensions.add(ExtensionIdentifier.toKey(extension.identifier.value)));
 
-		const resolvedExtensions = remoteInitData.allExtensions.filter(extension => !extension.main && !extension.browser).map(extension => extension.identifier);
-		const hostExtensions = (
-			remoteInitData.allExtensions
-				.filter(extension => !remoteExtensions.has(ExtensionIdentifier.toKey(extension.identifier.value)))
-				.filter(extension => (extension.main || extension.browser) && extension.api === 'none').map(extension => extension.identifier)
-		);
+		const resolvedExtensions = remoteInitData.allExtensions.filter((extension) => !extension.main && !extension.browser).map((extension) => extension.identifier);
+		const hostExtensions = remoteInitData.allExtensions
+			.filter((extension) => !remoteExtensions.has(ExtensionIdentifier.toKey(extension.identifier.value)))
+			.filter((extension) => (extension.main || extension.browser) && extension.api === 'none')
+			.map((extension) => extension.identifier);
 		const workspace = this._contextService.getWorkspace();
 		return {
 			commit: this._productService.commit,
@@ -237,11 +232,14 @@ export class RemoteExtensionHost extends Disposable implements IExtensionHost {
 				globalStorageHome: remoteInitData.globalStorageHome,
 				workspaceStorageHome: remoteInitData.workspaceStorageHome
 			},
-			workspace: this._contextService.getWorkbenchState() === WorkbenchState.EMPTY ? null : {
-				configuration: workspace.configuration,
-				id: workspace.id,
-				name: this._labelService.getWorkspaceLabel(workspace)
-			},
+			workspace:
+				this._contextService.getWorkbenchState() === WorkbenchState.EMPTY
+					? null
+					: {
+							configuration: workspace.configuration,
+							id: workspace.id,
+							name: this._labelService.getWorkspaceLabel(workspace)
+					  },
 			remote: {
 				isRemote: true,
 				authority: this._initDataProvider.remoteAuthority,

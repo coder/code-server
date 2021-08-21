@@ -10,7 +10,7 @@ import type * as vscode from 'vscode';
 export interface WebviewInitData {
 	readonly remote: {
 		readonly isRemote: boolean;
-		readonly authority: string | undefined
+		readonly authority: string | undefined;
 	};
 }
 
@@ -39,10 +39,7 @@ export const webviewGenericCspSource = `https://*.${webviewResourceBaseHost}`;
  * @param resource Uri of the resource to load.
  * @param remoteInfo Optional information about the remote that specifies where `resource` should be resolved from.
  */
-export function asWebviewUri(
-	resource: vscode.Uri,
-	remoteInfo?: { authority: string | undefined, isRemote: boolean }
-): vscode.Uri {
+export function asWebviewUri(resource: vscode.Uri, remoteInfo?: { authority: string | undefined; isRemote: boolean }): vscode.Uri {
 	if (resource.scheme === Schemas.http || resource.scheme === Schemas.https) {
 		return resource;
 	}
@@ -51,18 +48,20 @@ export function asWebviewUri(
 		resource = URI.from({
 			scheme: Schemas.vscodeRemote,
 			authority: remoteInfo.authority,
-			path: resource.path,
+			path: resource.path
 		});
 	}
 
-	// NOTE@coder: Add the port separately because if the port is in the domain the
-	// URL will be invalid and the browser will not request it.
+	/**
+	 * @coder Add the port separately because if the port is in the domain the
+	 * URL will be invalid and the browser will not request it.
+	 */
 	const authorityUrl = new URL(`${resource.scheme}://${resource.authority}`);
 	return URI.from({
 		scheme: Schemas.https,
-		authority: `${resource.scheme}+${authorityUrl.hostname}.${webviewRootResourceAuthority}${authorityUrl.port ? (':' + authorityUrl.port) : ''}`,
+		authority: `${resource.scheme}+${authorityUrl.hostname}.${webviewRootResourceAuthority}${authorityUrl.port ? ':' + authorityUrl.port : ''}`,
 		path: resource.path,
 		fragment: resource.fragment,
-		query: resource.query,
+		query: resource.query
 	});
 }

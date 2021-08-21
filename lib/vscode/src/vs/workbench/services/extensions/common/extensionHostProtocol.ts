@@ -27,6 +27,8 @@ export interface IExtHostReduceGraceTimeMessage {
 	type: 'VSCODE_EXTHOST_IPC_REDUCE_GRACE_TIME';
 }
 
+export type IExtHostMessage = IExtHostReadyMessage | IExtHostSocketMessage | IExtHostReduceGraceTimeMessage;
+
 export const enum MessageType {
 	Initialized,
 	Ready,

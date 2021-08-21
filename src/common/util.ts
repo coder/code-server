@@ -8,7 +8,7 @@
 /**
  * Base options included on every page.
  */
-export interface Options {
+export interface CoderOptions {
   base: string
   csStaticBase: string
   logLevel: number
@@ -69,7 +69,7 @@ export const resolveBase = (base?: string): string => {
 /**
  * Get options embedded in the HTML or query params.
  */
-export const getOptions = <T extends Options>(): T => {
+export const getOptions = <T extends CoderOptions>(): T => {
   let options: T
   try {
     options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)

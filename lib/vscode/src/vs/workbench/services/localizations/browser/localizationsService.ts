@@ -3,6 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+/**
+ * @file This appears to fix localization as of v1.58.2
+ * However, upstream diverges from this behavior:
+ * https://github.com/microsoft/vscode/commit/3ef4aa861a38a1aac95e3f560e073fe98929ddda
+ */
+
 import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';

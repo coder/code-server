@@ -45,6 +45,7 @@
     "web": "node resources/web/code-web.js",
     "compile-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-web",
     "watch-web": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js watch-web",
+    "server": "node --max_old_space_size=4095 out/vs/server/entry.js",
     "eslint": "node build/eslint",
     "playwright-install": "node build/azure-pipelines/common/installPlaywright.js",
     "compile-build": "node --max_old_space_size=4095 ./node_modules/gulp/bin/gulp.js compile-build",
@@ -91,6 +92,8 @@
   },
   "devDependencies": {
     "7zip": "0.0.6",
+    "@types/proxy-from-env": "^1.0.1",
+    "@types/tar-stream": "^2.2.1",
     "@types/applicationinsights": "0.20.0",
     "@types/chokidar": "2.1.3",
     "@types/cookie": "^0.3.3",

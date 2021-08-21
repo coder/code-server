@@ -15,7 +15,10 @@ import { AuthProviderType } from './github';
 const localize = nls.loadMessageBundle();
 
 export const NETWORK_ERROR = 'network error';
-// NOTE@coder: use our own auth relay (the commented one is microsoft's, not ours)
+/**
+ * @coder Domain to our own auth relay.
+ * @remark `AUTH_RELAY_STAGING_SERVER` comes from Microsoft's
+ */
 const AUTH_RELAY_SERVER = 'auth.code-server.dev';
 // const AUTH_RELAY_STAGING_SERVER = 'client-auth-staging-14a768b.herokuapp.com';
 

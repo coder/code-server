@@ -364,6 +364,9 @@ class BrowserMain extends Disposable {
 		}
 	}
 
+	/**
+	 * @coder There seems to be only partial support for workspaces on the web.
+	 */
 	private resolveWorkspaceInitializationPayload(): IWorkspaceInitializationPayload {
 		let workspace: IWorkspace | undefined = undefined;
 		if (this.configuration.workspaceProvider) {

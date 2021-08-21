@@ -1,5 +1,10 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Coder Technologies. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as path from 'vs/base/common/path';
-import { Options } from 'vs/base/common/ipc';
+import { CodeServerConfiguration } from 'vs/base/common/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
@@ -17,7 +22,7 @@ import 'vs/workbench/services/localizations/browser/localizationsService';
  * possible.
  */
 
-const options = getOptions<Options>();
+const options = getOptions<CodeServerConfiguration>();
 
 /**
  * This is called by vs/workbench/browser/web.main.ts after the workbench has
@@ -33,7 +38,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 
 		// Proxy or stop proxing events as requested by the parent.
 		const listeners = new Map<string, (event: Event) => void>();
-		window.addEventListener('message', (parentEvent) => {
+		window.addEventListener('message', parentEvent => {
 			const eventName = parentEvent.data.bind || parentEvent.data.unbind;
 			if (eventName) {
 				const oldListener = listeners.get(eventName);
@@ -44,10 +49,13 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 
 			if (parentEvent.data.bind && parentEvent.data.prop) {
 				const listener = (event: Event) => {
-					parent.postMessage({
-						event: parentEvent.data.event,
-						[parentEvent.data.prop]: event[parentEvent.data.prop as keyof Event]
-					}, window.location.origin);
+					parent?.postMessage(
+						{
+							event: parentEvent.data.event,
+							[parentEvent.data.prop]: event[parentEvent.data.prop as keyof Event],
+						},
+						window.location.origin,
+					);
 				};
 				listeners.set(parentEvent.data.bind, listener);
 				document.addEventListener(parentEvent.data.bind, listener);
@@ -60,30 +68,32 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 			severity: Severity.Warning,
 			message: 'code-server is being accessed over an insecure domain. Web views, the clipboard, and other functionality will not work as expected.',
 			actions: {
-				primary: [{
-					id: 'understand',
-					label: 'I understand',
-					tooltip: '',
-					class: undefined,
-					enabled: true,
-					checked: true,
-					dispose: () => undefined,
-					run: () => {
-						return Promise.resolve();
-					}
-				}],
-			}
+				primary: [
+					{
+						id: 'understand',
+						label: 'I understand',
+						tooltip: '',
+						class: undefined,
+						enabled: true,
+						checked: true,
+						dispose: () => undefined,
+						run: () => {
+							return Promise.resolve();
+						},
+					},
+				],
+			},
 		});
 	}
 
-	const logService = (services.get(ILogService) as ILogService);
-	const storageService = (services.get(IStorageService) as IStorageService);
+	const logService = services.get(ILogService) as ILogService;
+	const storageService = services.get(IStorageService) as IStorageService;
 	const updateCheckEndpoint = path.join(options.base, '/update/check');
 	const getUpdate = async (): Promise<void> => {
 		logService.debug('Checking for update...');
 
 		const response = await fetch(updateCheckEndpoint, {
-			headers: { 'Accept': 'application/json' },
+			headers: { Accept: 'application/json' },
 		});
 		if (!response.ok) {
 			throw new Error(response.statusText);
@@ -99,7 +109,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 		const lastNoti = storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
 		if (lastNoti) {
 			// Only remind them again after 1 week.
-			const timeout = 1000*60*60*24*7;
+			const timeout = 1000 * 60 * 60 * 24 * 7;
 			const threshold = lastNoti + timeout;
 			if (Date.now() < threshold) {
 				return;
@@ -114,12 +124,14 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	};
 
 	const updateLoop = (): void => {
-		getUpdate().catch((error) => {
-			logService.debug(`failed to check for update: ${error}`);
-		}).finally(() => {
-			// Check again every 6 hours.
-			setTimeout(updateLoop, 1000*60*60*6);
-		});
+		getUpdate()
+			.catch(error => {
+				logService.debug(`failed to check for update: ${error}`);
+			})
+			.finally(() => {
+				// Check again every 6 hours.
+				setTimeout(updateLoop, 1000 * 60 * 60 * 6);
+			});
 	};
 
 	if (!options.disableUpdateCheck) {
@@ -133,34 +145,31 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	}
 
 	// Use to show or hide logout commands and menu options.
-	const contextKeyService = (services.get(IContextKeyService) as IContextKeyService);
+	const contextKeyService = services.get(IContextKeyService) as IContextKeyService;
 	contextKeyService.createKey('code-server.authed', options.authed);
 
 	// Add a logout command.
 	const logoutEndpoint = path.join(options.base, '/logout') + `?base=${options.base}`;
 	const LOGOUT_COMMAND_ID = 'code-server.logout';
-	CommandsRegistry.registerCommand(
-		LOGOUT_COMMAND_ID,
-		() => {
-			window.location.href = logoutEndpoint;
-		},
-	);
+	CommandsRegistry.registerCommand(LOGOUT_COMMAND_ID, () => {
+		window.location.href = logoutEndpoint;
+	});
 
 	// Add logout to command palette.
 	MenuRegistry.appendMenuItem(MenuId.CommandPalette, {
 		command: {
 			id: LOGOUT_COMMAND_ID,
-			title: localize('logout', "Log out")
+			title: localize('logout', 'Log out'),
 		},
-		when: ContextKeyExpr.has('code-server.authed')
+		when: ContextKeyExpr.has('code-server.authed'),
 	});
 
 	// Add logout to the (web-only) home menu.
 	MenuRegistry.appendMenuItem(MenuId.MenubarHomeMenu, {
 		command: {
 			id: LOGOUT_COMMAND_ID,
-			title: localize('logout', "Log out")
+			title: localize('logout', 'Log out'),
 		},
-		when: ContextKeyExpr.has('code-server.authed')
+		when: ContextKeyExpr.has('code-server.authed'),
 	});
 };

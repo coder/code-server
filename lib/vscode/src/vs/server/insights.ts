@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Coder Technologies. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as appInsights from 'applicationinsights';
 import * as https from 'https';
 import * as http from 'http';
@@ -22,7 +27,7 @@ class Channel {
 	}
 }
 
-export class TelemetryClient  {
+export class TelemetryClient {
 	public context: any = undefined;
 	public commonProperties: any = undefined;
 	public config: any = {};
@@ -110,7 +115,9 @@ export class TelemetryClient  {
 					'Content-Type': 'application/json',
 				},
 			});
-			request.on('error', () => { /* We don't care. */ });
+			request.on('error', () => {
+				/* We don't care. */
+			});
 			request.write(JSON.stringify(options));
 			request.end();
 		} catch (error) {}
