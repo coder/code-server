@@ -89,7 +89,7 @@ code-server
 
 A `postinstall.sh` script will attempt to run. Select your terminal (e.g git bash) as the default application for .sh files. If an additional dialog does not appear, run the install command again.
 
-If the `code-server` command is not found, you'll need to [add a directory to your PATH](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/). To find the directory, use the following commands:
+If the `code-server` command is not found, you'll need to [add a directory to your PATH](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/). To find the directory, use the following command:
 
 ```shell
 yarn global bin
