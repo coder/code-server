@@ -230,7 +230,7 @@ You can install code-server via [Helm](https://github.com/cdr/code-server/blob/m
 We currently do not publish windows releases (see [#1397](https://github.com/cdr/code-server/issues/1397)). We recommend installing code-server onto Raspberry Pi with [`yarn` or
 `npm`](#yarn-npm).
 
-> Note: coder --link does not work with Windows at this time.
+> Note: You will also need to [build cdr/cloud-agent manually](https://github.com/cdr/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
 
 ## Raspberry Pi
 
