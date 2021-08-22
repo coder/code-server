@@ -12,6 +12,7 @@
 - [macOS](#macos)
 - [Docker](#docker)
 - [Helm](#helm)
+- [Windows](#windows)
 - [Raspberry Pi](#raspberry-pi)
 - [Termux](#termux)
 - [Cloud providers](#cloud-providers)

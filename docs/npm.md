@@ -1,6 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-# yarn, npm
+# npm Install Requirements
 
 - [Node.js version](#nodejs-version)
 - [Ubuntu, Debian](#ubuntu-debian)
@@ -8,7 +8,10 @@
 - [Alpine](#alpine)
 - [macOS](#macos)
 - [FreeBSD](#freebsd)
-- [Issues with Node.js after version upgrades](#issues-with-nodejs-after-version-upgrades)
+- [Windows](#windows)
+- [Installing](#installing)
+- [Troubleshooting](#troubleshooting)
+  - [Issues with Node.js after version upgrades](#issues-with-nodejs-after-version-upgrades)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
