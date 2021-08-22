@@ -99,27 +99,16 @@ _exact_ same commands presented in the rest of this document.
 We recommend installing with `yarn` or `npm` when:
 
 1. You aren't using a machine with `amd64` or `arm64`.
-2. You're on Linux with `glibc` < v2.17, `glibcxx` < v3.4.18 on `amd64`, `glibc`
+1. You are installing code-server on Windows
+1. You're on Linux with `glibc` < v2.17, `glibcxx` < v3.4.18 on `amd64`, `glibc`
    < v2.23, or `glibcxx` < v3.4.21 on `arm64`.
-3. You're running Alpine Linux or are using a non-glibc libc. See
+1. You're running Alpine Linux or are using a non-glibc libc. See
    [#1430](https://github.com/cdr/code-server/issues/1430#issuecomment-629883198)
    for more information.
 
 Installing code-server with `yarn` or `npm` builds native modules on install.
-This process requires C dependencies; see our guide on [installing these
-dependencies][./npm.md](./npm.md) for more information.
 
-You must have Node.js v12 (or later) installed. See
-[#1633](https://github.com/cdr/code-server/issues/1633).
-
-To install:
-
-```bash
-yarn global add code-server
-# Or: npm install -g code-server
-code-server
-# Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
-```
+This process requires C dependencies; see our guide on [installing with yarn and npm][./npm.md](./npm.md) for more information.
 
 ## Standalone releases
 
@@ -235,6 +224,11 @@ alternative](https://hub.docker.com/r/linuxserver/code-server).
 ## Helm
 
 You can install code-server via [Helm](https://github.com/cdr/code-server/blob/main/ci/helm-chart/README.md).
+
+## Windows
+
+We currently do not publish windows releases (see [#1397](https://github.com/cdr/code-server/issues/1397)). We recommend installing code-server onto Raspberry Pi with [`yarn` or
+`npm`](#yarn-npm).
 
 ## Raspberry Pi
 
