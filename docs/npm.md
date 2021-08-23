@@ -103,7 +103,7 @@ For help and additional troubleshooting, see [#1397](https://github.com/cdr/code
 
 ## Installing
 
-After adding the dependencies for your OS, install code-server package globally:
+After adding the dependencies for your OS, install the code-server package globally:
 
 ```bash
 yarn global add code-server
