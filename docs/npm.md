@@ -12,6 +12,7 @@
 - [Installing](#installing)
 - [Troubleshooting](#troubleshooting)
   - [Issues with Node.js after version upgrades](#issues-with-nodejs-after-version-upgrades)
+  - [Debugging install issues with npm](#debugging-install-issues-with-npm)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -132,3 +133,15 @@ A step-by-step example of how you might do this is:
 2. Navigate into the directory: `cd /usr/local/Cellar/code-server/<version>/libexec/lib/vscode/`
 3. Recompile the native modules: `npm rebuild`
 4. Restart code-server
+
+### Debugging install issues with npm
+
+Unfortunately, `yarn` swallows all logs on `yarn global add` so instead you can install with `npm` and see the logs:
+
+```shell
+# Uninstall
+npm uninstall -g --unsafe-perm code-server > /dev/null 2>&1
+
+# Install with logging
+npm install --loglevel verbose -g --unsafe-perm code-server
+```
