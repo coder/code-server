@@ -136,7 +136,7 @@ A step-by-step example of how you might do this is:
 
 ### Debugging install issues with npm
 
-Unfortunately, `yarn` swallows all logs on `yarn global add` so instead you can install with `npm` and see the logs:
+`yarn` suppresses logs when running `yarn global add`, so to debug installation issues, install with `npm` instead:
 
 ```shell
 # Uninstall
