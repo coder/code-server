@@ -228,7 +228,7 @@ You can install code-server via [Helm](https://github.com/cdr/code-server/blob/m
 
 ## Windows
 
-We currently do not publish Windows releases (see [#1397](https://github.com/cdr/code-server/issues/1397)). We recommend installing code-server onto Windows with [`yarn` or
+We currently [do not publish Windows releases](https://github.com/cdr/code-server/issues/1397). We recommend installing code-server onto Windows with [`yarn` or
 `npm`](#yarn-npm).
 
 > Note: You will also need to [build cdr/cloud-agent manually](https://github.com/cdr/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
