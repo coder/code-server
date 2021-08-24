@@ -29,6 +29,7 @@
 - [What's the difference between code-server and VS Code Codespaces?](#whats-the-difference-between-code-server-and-vs-code-codespaces)
 - [Does code-server have any security login validation?](#does-code-server-have-any-security-login-validation)
 - [Are there community projects involving code-server?](#are-there-community-projects-involving-code-server)
+- [How do I change the port?](#how-do-i-change-the-port)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -399,3 +400,10 @@ minute plus an additional twelve per hour.
 Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server)
 repository to view community projects and guides with code-server! Feel free to
 add your own!
+
+## How do I change the port?
+
+There are two ways to change the port on which code-server runs:
+
+1. with an environment variable e.g. `PORT=3000 code-server`
+2. using the flag `--bind-addr` e.g. `code-server --bind-addr localhost:3000`
