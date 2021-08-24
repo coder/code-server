@@ -57,8 +57,18 @@ ingress:
 
 # Optional additional arguments
 extraArgs: []
-#  - --allow-http
-#  - --no-auth
+  # These are the arguments normally passed to code-server; run
+  # code-server --help for a list of available options.
+  #
+  # Each argument and parameter must have its own entry; if you use
+  # --param value on the command line, then enter it here as:
+  #
+  # - --param
+  # - value
+  #
+  # If you receive an error like "Unknown option --param value", it may be
+  # because both the parameter and value are specified as a single argument,
+  # rather than two separate arguments (e.g. "- --param value" on a line).
 
 # Optional additional environment variables
 extraVars: []
