@@ -53,3 +53,4 @@ Notes:
 
 - To lower costs, you can shut down your server when you're not using it.
 - We recommend using the `gcloud cli` to avoid using the GCP Dashboard if possible.
+- For serving code-server over HTTPS, we recommend using an external domain name along with a service such as Let's Encrypt
