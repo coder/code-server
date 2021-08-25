@@ -66,33 +66,42 @@ export const resolveBase = (base?: string): string => {
   return normalize(url.pathname)
 }
 
+let options: Options
+
 /**
  * Get options embedded in the HTML or query params.
  */
 export const getOptions = <T extends Options>(): T => {
-  let options: T
-  try {
-    options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
-  } catch (error) {
-    options = {} as T
-  }
-
-  // You can also pass options in stringified form to the options query
-  // variable. Options provided here will override the ones in the options
-  // element.
-  const params = new URLSearchParams(location.search)
-  const queryOpts = params.get("options")
-  if (queryOpts) {
-    options = {
-      ...options,
-      ...JSON.parse(queryOpts),
+  if (!options) {
+    try {
+      options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
+    } catch (error) {
+      console.error(error)
+      options = {} as T
     }
+
+    // You can also pass options in stringified form to the options query
+    // variable. Options provided here will override the ones in the options
+    // element.
+    const params = new URLSearchParams(location.search)
+    const queryOpts = params.get("options")
+    if (queryOpts) {
+      try {
+        options = {
+          ...options,
+          ...JSON.parse(queryOpts),
+        }
+      } catch (error) {
+        // Don't fail if the query parameters are malformed.
+        console.error(error)
+      }
+    }
+
+    options.base = resolveBase(options.base)
+    options.csStaticBase = resolveBase(options.csStaticBase)
   }
 
-  options.base = resolveBase(options.base)
-  options.csStaticBase = resolveBase(options.csStaticBase)
-
-  return options
+  return options as T
 }
 
 /**
