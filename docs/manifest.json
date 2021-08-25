@@ -38,11 +38,6 @@
           "path": "./link.md"
         },
         {
-          "title": "Helm",
-          "description": "How to install code-server using the Helm package manager",
-          "path": "./helm.md"
-        },
-        {
           "title": "iPad",
           "description": "How to access your code-server installation using an iPad.",
           "path": "./ipad.md"
