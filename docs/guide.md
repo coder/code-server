@@ -34,7 +34,7 @@ testing, but it doesn't work if you want to access code-server from a different
 machine.
 
 > **Rate limits:** code-server rate limits password authentication attempts to
-> two per minute and twelve per hour.
+> two per minute plus an additional twelve per hour.
 
 There are several approaches to operating and exposing code-server securely:
 
