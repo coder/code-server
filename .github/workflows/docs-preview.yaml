@@ -61,6 +61,11 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           CODE_SERVER_DOCS_MAIN_BRANCH: ${{ github.event.pull_request.head.sha }}
 
+      - name: Check docs
+        run: ts-node ./product/coder.com/site/scripts/checkDocs.ts
+        env:
+          BASE_URL: ${{ steps.preview.outputs.url }}
+
       - name: Update Deployment
         # If we don't specify always, it won't run this check if failed.
         # This means the deployment would be stuck pending.
