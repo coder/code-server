@@ -74,8 +74,9 @@ export class NativeWorkbenchEnvironmentService extends AbstractNativeEnvironment
 	@memoize
 	get logExtensionHostCommunication(): boolean { return !!this.args.logExtensionHostCommunication; }
 
+	/** @coder Added `override` as this is brought into `AbstractNativeEnvironmentService` */
 	@memoize
-	get extensionEnabledProposedApi(): string[] | undefined {
+	override get extensionEnabledProposedApi(): string[] | undefined {
 		if (Array.isArray(this.args['enable-proposed-api'])) {
 			return this.args['enable-proposed-api'];
 		}

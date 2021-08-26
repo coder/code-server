@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions, IServerWorkbenchConstructionOptions } from 'vs/workbench/workbench.web.api';
+import { create, ICredentialsProvider, IURLCallbackProvider, IWorkspaceProvider, IWorkspace, IWindowIndicator, IProductQualityChangeHandler, ISettingsSyncOptions, IWorkbenchWebConfiguration } from 'vs/workbench/workbench.web.api';
 import { URI, UriComponents } from 'vs/base/common/uri';
 import { Event, Emitter } from 'vs/base/common/event';
 import { generateUuid } from 'vs/base/common/uuid';
@@ -426,7 +426,7 @@ class WindowIndicator implements IWindowIndicator {
 		throw new Error('Missing web configuration element');
 	}
 
-	const config: IServerWorkbenchConstructionOptions = JSON.parse(configElementAttribute);
+	const config: IWorkbenchWebConfiguration = JSON.parse(configElementAttribute);
 
 	// Strip the protocol from the authority if it exists.
 	const normalizeAuthority = (authority: string): string => authority.replace(/^https?:\/\//, '');

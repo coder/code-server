@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-
 import { NativeParsedArgs } from 'vs/platform/environment/common/argv';
 import { addArg, parseMainProcessArgv } from 'vs/platform/environment/node/argvHelper';
 import { isWindows, isMacintosh } from 'vs/base/common/platform';
@@ -20,8 +19,7 @@ import { coalesce, distinct } from 'vs/base/common/arrays';
  * @coder This is originally from `CodeMain` but has been separated for use in `CodeServer`
  */
 export class ArgumentParser {
-	protected resolveArgs(): NativeParsedArgs {
-
+	public resolveArgs(): NativeParsedArgs {
 		// Parse arguments
 		const args = this.validatePaths(parseMainProcessArgv(process.argv));
 
@@ -44,7 +42,6 @@ export class ArgumentParser {
 	}
 
 	private validatePaths(args: NativeParsedArgs): NativeParsedArgs {
-
 		// Track URLs if they're going to be used
 		if (args['open-url']) {
 			args._urls = args._;
@@ -92,13 +89,12 @@ export class ArgumentParser {
 		});
 
 		const caseInsensitive = isWindows || isMacintosh;
-		const distinctPaths = distinct(result, path => path && caseInsensitive ? path.toLowerCase() : (path || ''));
+		const distinctPaths = distinct(result, path => (path && caseInsensitive ? path.toLowerCase() : path || ''));
 
 		return coalesce(distinctPaths);
 	}
 
 	private preparePath(cwd: string, path: string): string {
-
 		// Trim trailing quotes
 		if (isWindows) {
 			path = rtrim(path, '"'); // https://github.com/microsoft/vscode/issues/1498
@@ -108,7 +104,6 @@ export class ArgumentParser {
 		path = trim(trim(path, ' '), '\t');
 
 		if (isWindows) {
-
 			// Resolve the path against cwd if it is relative
 			path = resolve(cwd, path);
 

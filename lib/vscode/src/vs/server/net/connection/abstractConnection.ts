@@ -5,7 +5,7 @@
 
 import { onUnexpectedError } from 'vs/base/common/errors';
 import { Emitter } from 'vs/base/common/event';
-import { ConsoleLogger } from 'vs/platform/log/common/log';
+import { ILogService } from 'vs/platform/log/common/log';
 import { ServerProtocol } from 'vs/server/protocol';
 
 export abstract class AbstractConnection {
@@ -22,7 +22,7 @@ export abstract class AbstractConnection {
 		return `[${this.name}] ${this.protocol.logPrefix}`;
 	}
 
-	public constructor(protected readonly protocol: ServerProtocol, protected readonly logService: ConsoleLogger, public readonly name: string) {
+	public constructor(protected readonly protocol: ServerProtocol, protected readonly logService: ILogService, public readonly name: string) {
 		this.logService.debug('Connecting...');
 		this.onClose(() => this.logService.debug('Closed'));
 	}

@@ -36,7 +36,7 @@ export const tar = async (tarPath: string, files: vszip.IFile[]): Promise<string
 export const extract = async (archivePath: string, extractPath: string, options: vszip.IExtractOptions = {}, token: CancellationToken): Promise<void> => {
 	try {
 		await extractTar(archivePath, extractPath, options, token);
-	} catch (error) {
+	} catch (error: any) {
 		if (error.toString().includes('Invalid tar header')) {
 			await vszipExtract(archivePath, extractPath, options, token);
 		}
@@ -56,7 +56,7 @@ export const buffer = (targetPath: string, filePath: string): Promise<Buffer> =>
 			if (!done) {
 				throw new Error(`couldn't find asset ` + filePath);
 			}
-		} catch (error) {
+		} catch (error: any) {
 			if (error.toString().includes('Invalid tar header')) {
 				vszipBuffer(targetPath, filePath).then(resolve).catch(reject);
 			} else {

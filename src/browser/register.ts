@@ -1,9 +1,8 @@
 import { logger } from "@coder/logger"
-import { getOptions, normalize, logError } from "../common/util"
+import { getClientConfiguration, normalize, logError } from "../common/util"
 
 export async function registerServiceWorker(): Promise<void> {
-  const options = getOptions()
-  logger.level = options.logLevel
+  const options = getClientConfiguration()
 
   const path = normalize(`${options.csStaticBase}/out/browser/serviceWorker.js`)
   try {
@@ -11,8 +10,8 @@ export async function registerServiceWorker(): Promise<void> {
       scope: options.base + "/",
     })
     logger.info(`[Service Worker] registered`)
-  } catch (error) {
-    logError(logger, `[Service Worker] registration`, error)
+  } catch (error: unknown) {
+    logError(logger, `[Service Worker] registration`, error as Error)
   }
 }
 

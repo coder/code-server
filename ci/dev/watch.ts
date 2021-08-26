@@ -8,7 +8,7 @@ async function main(): Promise<void> {
   try {
     const watcher = new Watcher()
     await watcher.watch()
-  } catch (error) {
+  } catch (error: any) {
     console.error(error.message)
     process.exit(1)
   }
@@ -38,6 +38,9 @@ class Watcher {
     }
 
     const vscode = cp.spawn("yarn", ["watch"], { cwd: this.vscodeSourcePath })
+
+    const vscodeWebExtensions = cp.spawn("yarn", ["watch-web"], { cwd: this.vscodeSourcePath })
+
     const tsc = cp.spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath })
     const plugin = process.env.PLUGIN_DIR
       ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
@@ -47,6 +50,10 @@ class Watcher {
       Watcher.log("killing vs code watcher")
       vscode.removeAllListeners()
       vscode.kill()
+
+      Watcher.log("killing vs code web extension watcher")
+      vscodeWebExtensions.removeAllListeners()
+      vscodeWebExtensions.kill()
 
       Watcher.log("killing tsc")
       tsc.removeAllListeners()
@@ -75,10 +82,17 @@ class Watcher {
       Watcher.log("vs code watcher terminated unexpectedly")
       cleanup(code)
     })
+
+    vscodeWebExtensions.on("exit", (code) => {
+      Watcher.log("vs code extension watcher terminated unexpectedly")
+      cleanup(code)
+    })
+
     tsc.on("exit", (code) => {
       Watcher.log("tsc terminated unexpectedly")
       cleanup(code)
     })
+
     if (plugin) {
       plugin.on("exit", (code) => {
         Watcher.log("plugin terminated unexpectedly")
@@ -86,8 +100,10 @@ class Watcher {
       })
     }
 
+    vscodeWebExtensions.stderr.on("data", (d) => process.stderr.write(d))
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
+
     if (plugin) {
       plugin.stderr.on("data", (d) => process.stderr.write(d))
     }

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 // eslint-disable-next-line code-import-patterns
-import { IServerWorkbenchConstructionOptions } from '../../workbench/workbench.web.api';
+import { IWorkbenchWebConfiguration } from '../../workbench/workbench.web.api';
 
 const LANGUAGE_DEFAULT = 'en';
 
@@ -110,7 +110,7 @@ if (typeof navigator === 'object' && !isElectronRenderer) {
 	const rawWorkbenchConfig = el && el.getAttribute('data-settings');
 	if (rawWorkbenchConfig) {
 		try {
-			const workbenchConfig: IServerWorkbenchConstructionOptions = JSON.parse(rawWorkbenchConfig);
+			const workbenchConfig: IWorkbenchWebConfiguration = JSON.parse(rawWorkbenchConfig);
 			const nlsConfig = workbenchConfig.nlsConfiguration;
 
 			_locale = nlsConfig.locale;

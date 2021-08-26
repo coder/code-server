@@ -1,10 +1,9 @@
-import { NLSConfiguration, InternalNLSConfiguration } from "../../../lib/vscode/src/vs/base/node/languagePacks"
-
-import { getOptions, CoderOptions } from "../../common/util"
+import { getClientConfiguration } from "../../common/util"
 import { WORKBENCH_WEB_CONFIG_ID } from "../../node/constants"
 import "../register"
 
-export type NLSConfigurationWeb = NLSConfiguration | InternalNLSConfiguration
+type NLSConfigurationWeb = CodeServerLib.NLSConfigurationWeb
+type ClientConfiguration = CodeServerLib.ClientConfiguration
 
 /**
  * Helper function to create the path to the bundle
@@ -81,7 +80,7 @@ export function getNlsConfiguration<T extends NLSConfigurationWeb = NLSConfigura
 
 type GetLoaderParams = {
   nlsConfiguration: NLSConfigurationWeb
-  options: CoderOptions
+  options: ClientConfiguration
   _window: Window
 }
 
@@ -92,7 +91,6 @@ type GetLoaderParams = {
 type Loader = {
   baseUrl: string
   recordStats: boolean
-  // TODO@jsjoeio: There don't appear to be any types for trustedTypes yet.
   trustedTypesPolicy: TrustedTypePolicy | undefined
   paths: {
     [key: string]: string
@@ -218,7 +216,7 @@ export function main(_document: Document | undefined, _window: Window | undefine
     throw new Error(`localStorage is undefined.`)
   }
 
-  const options = getOptions()
+  const options = getClientConfiguration()
   const nlsConfig = getNlsConfiguration(_document, options.base)
 
   const loader = getConfigurationForLoader({

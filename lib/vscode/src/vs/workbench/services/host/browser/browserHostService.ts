@@ -16,7 +16,7 @@ import { IFileService } from 'vs/platform/files/common/files';
 import { ILabelService } from 'vs/platform/label/common/label';
 import { IModifierKeyStatus, ModifierKeyEmitter, trackFocus } from 'vs/base/browser/dom';
 import { Disposable } from 'vs/base/common/lifecycle';
-import { URI } from 'vs/base/common/uri';
+import { URI, UriComponents } from 'vs/base/common/uri';
 import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
 import { domEvent } from 'vs/base/browser/event';
 import { memoize } from 'vs/base/common/decorators';
@@ -38,6 +38,15 @@ import { IDialogService } from 'vs/platform/dialogs/common/dialogs';
  * - empty (via `undefined`)
  */
 export type IWorkspace = { workspaceUri: URI } | { folderUri: URI } | undefined;
+
+
+/**
+ * @coder This is commonly used when initializing a code server.
+ */
+export interface IWorkspaceSerialized {
+	folderUri?: UriComponents;
+	workspaceUri?: UriComponents;
+}
 
 export interface IWorkspaceProvider {
 
@@ -72,11 +81,27 @@ export interface IWorkspaceProvider {
 }
 
 /**
+ * @coder A list of known payload keys.
+ * @remark This should probably be sent upstream to match `BrowserWorkbenchEnvironmentService`
+ * This allows for JSON serialization when passing options to a client.
+ */
+export type PayloadKeys = 'extensionDevelopmentPath'
+	| 'extensionDevelopmentKind'
+	| 'extensionTestsPath'
+	| 'debugRenderer'
+	| 'debugId'
+	| 'inspect-brk-extensions'
+	| 'inspect-extensions'
+	| 'enableProposedApi'
+	| 'userDataPath';
+
+/**
  * @coder Similar to the workspace provider, without `open` helper.
  * This allows for JSON serialization when passing options to a client.
  */
-export interface IServerWorkspaceProvider extends Omit<IWorkspaceProvider, 'open'> {
-	payload: [['userDataPath', string], ['enableProposedApi', string]];
+export interface IServerWorkspaceProvider extends Omit<IWorkspaceProvider, 'open' | 'workspace'> {
+	payload: Array<[PayloadKeys, string]>;
+	workspace?: IWorkspaceSerialized
 }
 
 enum HostShutdownReason {

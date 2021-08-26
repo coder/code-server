@@ -36,6 +36,7 @@ import { AbstractVariableResolverService } from 'vs/workbench/services/configura
 import { ExtensionScanner, ExtensionScannerInput } from 'vs/workbench/services/extensions/node/extensionPoints';
 import { PtyHostService } from 'vs/platform/terminal/node/ptyHostService';
 import { createServerURITransformer } from 'vs/base/common/uriServer';
+import { IEnvironmentServerService } from 'vs/server/environmentService';
 
 /**
  * Extend the file provider to allow unwatching.
@@ -237,7 +238,7 @@ export class FileProviderChannel implements IServerChannel<RemoteAgentConnection
 
 // See ../../workbench/services/remote/common/remoteAgentEnvironmentChannel.ts
 export class ExtensionEnvironmentChannel implements IServerChannel {
-	public constructor(private readonly environment: INativeEnvironmentService, private readonly log: ILogService, private readonly telemetry: ITelemetryService, private readonly connectionToken: string) {}
+	public constructor(private readonly environment: IEnvironmentServerService, private readonly log: ILogService, private readonly telemetry: ITelemetryService, private readonly connectionToken: string) {}
 
 	public listen(_: unknown, event: string): Event<any> {
 		throw new Error(`Invalid listen '${event}'`);

@@ -1,5 +1,4 @@
 import { logger } from "@coder/logger"
-import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import * as express from "express"
 import { promises as fs } from "fs"
@@ -10,7 +9,7 @@ import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
-import { rootPath } from "../constants"
+import { isDevMode, rootPath } from "../constants"
 import { Heart } from "../heart"
 import { ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
@@ -25,7 +24,7 @@ import * as pathProxy from "./pathProxy"
 // static is a reserved keyword.
 import * as _static from "./static"
 import * as update from "./update"
-import * as vscode from "./vscode"
+import { createVSServerRouter } from "./vscode"
 
 /**
  * Register all routes and middleware.
@@ -124,13 +123,10 @@ export const register = async (
     wrapper.onDispose(() => pluginApi.dispose())
   }
 
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
 
-  app.use("/", vscode.router)
-  wsApp.use("/", vscode.wsRouter.router)
-  app.use("/vscode", vscode.router)
-  wsApp.use("/vscode", vscode.wsRouter.router)
+  app.use("/static", _static.router)
 
   app.use("/healthz", health.router)
   wsApp.use("/healthz", health.wsRouter.router)
@@ -143,8 +139,21 @@ export const register = async (
     app.all("/logout", (req, res) => redirect(req, res, "/", {}))
   }
 
-  app.use("/static", _static.router)
   app.use("/update", update.router)
+
+  try {
+    const vscode = await createVSServerRouter(args)
+
+    app.use("/", vscode.router)
+    wsApp.use("/", vscode.wsRouter.router)
+    app.use("/vscode", vscode.router)
+    wsApp.use("/vscode", vscode.wsRouter.router)
+  } catch (error: any) {
+    if (isDevMode) {
+      logger.warn("VS Server router may still be compiling.")
+    }
+    throw error
+  }
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)

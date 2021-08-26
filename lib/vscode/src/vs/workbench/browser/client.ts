@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'vs/base/common/path';
-import { CodeServerConfiguration } from 'vs/base/common/ipc';
 import { localize } from 'vs/nls';
 import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
@@ -13,22 +11,20 @@ import { ServiceCollection } from 'vs/platform/instantiation/common/serviceColle
 import { ILogService } from 'vs/platform/log/common/log';
 import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
-import { getOptions } from 'vs/base/common/util';
 import 'vs/workbench/contrib/localizations/browser/localizations.contribution'; // eslint-disable-line code-import-patterns
 import 'vs/workbench/services/localizations/browser/localizationsService';
+import { IWorkbenchWebConfiguration } from '../workbench.web.api';
 
 /**
- * All client-side customization to VS Code should live in this file when
+ * @file All client-side customization to VS Code should live in this file when
  * possible.
  */
-
-const options = getOptions<CodeServerConfiguration>();
 
 /**
  * This is called by vs/workbench/browser/web.main.ts after the workbench has
  * been initialized so we can initialize our own client-side code.
  */
-export const initialize = async (services: ServiceCollection): Promise<void> => {
+export const initialize = async (services: ServiceCollection, { productConfiguration }: IWorkbenchWebConfiguration): Promise<void> => {
 	const event = new CustomEvent('ide-ready');
 	window.dispatchEvent(event);
 
@@ -85,11 +81,10 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 			},
 		});
 	}
-
 	const logService = services.get(ILogService) as ILogService;
 	const storageService = services.get(IStorageService) as IStorageService;
-	const updateCheckEndpoint = path.join(options.base, '/update/check');
-	const getUpdate = async (): Promise<void> => {
+
+	const getUpdate = async (updateCheckEndpoint: string): Promise<void> => {
 		logService.debug('Checking for update...');
 
 		const response = await fetch(updateCheckEndpoint, {
@@ -124,7 +119,12 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 	};
 
 	const updateLoop = (): void => {
-		getUpdate()
+		const updateUrl = productConfiguration.updateUrl;
+		if (!updateUrl) {
+			return;
+		}
+
+		getUpdate(updateUrl)
 			.catch(error => {
 				logService.debug(`failed to check for update: ${error}`);
 			})
@@ -134,9 +134,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 			});
 	};
 
-	if (!options.disableUpdateCheck) {
-		updateLoop();
-	}
+	updateLoop();
 
 	// This will be used to set the background color while VS Code loads.
 	const theme = storageService.get('colorThemeData', StorageScope.GLOBAL);
@@ -146,13 +144,12 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 
 	// Use to show or hide logout commands and menu options.
 	const contextKeyService = services.get(IContextKeyService) as IContextKeyService;
-	contextKeyService.createKey('code-server.authed', options.authed);
+	contextKeyService.createKey('code-server.authed', !!productConfiguration.authed);
 
 	// Add a logout command.
-	const logoutEndpoint = path.join(options.base, '/logout') + `?base=${options.base}`;
 	const LOGOUT_COMMAND_ID = 'code-server.logout';
 	CommandsRegistry.registerCommand(LOGOUT_COMMAND_ID, () => {
-		window.location.href = logoutEndpoint;
+		window.location.href = productConfiguration.logoutEndpointUrl;
 	});
 
 	// Add logout to command palette.

@@ -9,7 +9,7 @@ export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJso
   let pkg = {}
   try {
     pkg = require(relativePath)
-  } catch (error) {
+  } catch (error: any) {
     logger.warn(error.message)
   }
 
@@ -21,5 +21,6 @@ const pkg = getPackageJson("../../package.json")
 export const version = pkg.version || "development"
 export const commit = pkg.commit || "development"
 export const rootPath = path.resolve(__dirname, "../..")
+export const vsRootPath = path.join(rootPath, "lib/vscode")
 export const tmpdir = path.join(os.tmpdir(), "code-server")
 export const isDevMode = commit === "development"

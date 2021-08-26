@@ -131,7 +131,7 @@ describe("util", () => {
     })
 
     it("should return options with base and cssStaticBase even if it doesn't exist", () => {
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "",
       })
@@ -151,7 +151,7 @@ describe("util", () => {
       // it returns the element
       spy.mockImplementation(() => mockElement)
 
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "/static/development/Users/jp/Dev/code-server",
         disableUpdateCheck: false,
@@ -167,7 +167,7 @@ describe("util", () => {
       // spreads the original options
       // then parses the queryOpts
       location.search = '?options={"logLevel":2}'
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "",
         logLevel: 2,

@@ -4,7 +4,7 @@
   "devDependencies": {
     "@playwright/test": "^1.12.1",
     "@types/jest": "^26.0.20",
-    "@types/jsdom": "^16.2.6",
+    "@types/jsdom": "^16.2.13",
     "@types/node-fetch": "^2.5.8",
     "@types/supertest": "^2.0.10",
     "argon2": "^0.28.0",

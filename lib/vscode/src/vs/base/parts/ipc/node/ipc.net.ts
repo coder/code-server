@@ -18,7 +18,6 @@ import { onUnexpectedError } from 'vs/base/common/errors';
 import { Platform, platform } from 'vs/base/common/platform';
 
 export class NodeSocket implements ISocket {
-
 	public readonly socket: Socket;
 	private readonly _errorListener: (err: any) => void;
 
@@ -50,21 +49,21 @@ export class NodeSocket implements ISocket {
 		const listener = (buff: Buffer) => _listener(VSBuffer.wrap(buff));
 		this.socket.on('data', listener);
 		return {
-			dispose: () => this.socket.off('data', listener)
+			dispose: () => this.socket.off('data', listener),
 		};
 	}
 
 	public onClose(listener: () => void): IDisposable {
 		this.socket.on('close', listener);
 		return {
-			dispose: () => this.socket.off('close', listener)
+			dispose: () => this.socket.off('close', listener),
 		};
 	}
 
 	public onEnd(listener: () => void): IDisposable {
 		this.socket.on('end', listener);
 		return {
-			dispose: () => this.socket.off('end', listener)
+			dispose: () => this.socket.off('end', listener),
 		};
 	}
 
@@ -136,21 +135,20 @@ export class NodeSocket implements ISocket {
 }
 
 const enum Constants {
-	MinHeaderByteSize = 2
+	MinHeaderByteSize = 2,
 }
 
 const enum ReadState {
 	PeekHeader = 1,
 	ReadHeader = 2,
 	ReadBody = 3,
-	Fin = 4
+	Fin = 4,
 }
 
 /**
  * See https://tools.ietf.org/html/rfc6455#section-5.2
  */
 export class WebSocketNodeSocket extends Disposable implements ISocket {
-
 	public readonly socket: NodeSocket;
 	public readonly permessageDeflate: boolean;
 	private _totalIncomingWireBytes: number;
@@ -174,7 +172,7 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 		state: ReadState.PeekHeader,
 		readLen: Constants.MinHeaderByteSize,
 		fin: 0,
-		mask: 0
+		mask: 0,
 	};
 
 	public get totalIncomingWireBytes(): number {
@@ -226,9 +224,9 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 			// To simplify our logic, we don't negociate the window size
 			// and simply dedicate (2^15) / 32kb per web socket
 			this._zlibInflate = zlib.createInflateRaw({
-				windowBits: 15
+				windowBits: 15,
 			});
-			this._zlibInflate.on('error', (err) => {
+			this._zlibInflate.on('error', err => {
 				// zlib errors are fatal, since we have no idea how to recover
 				console.error(err);
 				onUnexpectedError(err);
@@ -245,9 +243,9 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 			}
 
 			this._zlibDeflate = zlib.createDeflateRaw({
-				windowBits: 15
+				windowBits: 15,
 			});
-			this._zlibDeflate.on('error', (err) => {
+			this._zlibDeflate.on('error', err => {
 				// zlib errors are fatal, since we have no idea how to recover
 				console.error(err);
 				onUnexpectedError(err);
@@ -269,9 +267,11 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 	public override dispose(): void {
 		if (this._zlibDeflateFlushWaitingCount > 0) {
 			// Wait for any outstanding writes to finish before disposing
-			this._register(this._onDidZlibFlush.event(() => {
-				this.dispose();
-			}));
+			this._register(
+				this._onDidZlibFlush.event(() => {
+					this.dispose();
+				}),
+			);
 		} else {
 			this.socket.dispose();
 			super.dispose();
@@ -298,7 +298,7 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 
 			this._zlibDeflateFlushWaitingCount++;
 			// See https://zlib.net/manual.html#Constants
-			this._zlibDeflate.flush(/*Z_SYNC_FLUSH*/2, () => {
+			this._zlibDeflate.flush(/*Z_SYNC_FLUSH*/ 2, () => {
 				this._zlibDeflateFlushWaitingCount--;
 				let data = Buffer.concat(this._pendingDeflateData);
 				this._pendingDeflateData.length = 0;
@@ -375,7 +375,6 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 		this._incomingData.acceptChunk(data);
 
 		while (this._incomingData.byteLength >= this._state.readLen) {
-
 			if (this._state.state === ReadState.PeekHeader) {
 				// peek to see if we can read the entire header
 				const peekHeader = this._incomingData.peek(this._state.readLen);
@@ -383,53 +382,34 @@ export class WebSocketNodeSocket extends Disposable implements ISocket {
 				const finBit = (firstByte & 0b10000000) >>> 7;
 				const secondByte = peekHeader.readUInt8(1);
 				const hasMask = (secondByte & 0b10000000) >>> 7;
-				const len = (secondByte & 0b01111111);
+				const len = secondByte & 0b01111111;
 
 				this._state.state = ReadState.ReadHeader;
 				this._state.readLen = Constants.MinHeaderByteSize + (hasMask ? 4 : 0) + (len === 126 ? 2 : 0) + (len === 127 ? 8 : 0);
 				this._state.fin = finBit;
 				this._state.mask = 0;
-
 			} else if (this._state.state === ReadState.ReadHeader) {
 				// read entire header
 				const header = this._incomingData.read(this._state.readLen);
 				const secondByte = header.readUInt8(1);
 				const hasMask = (secondByte & 0b10000000) >>> 7;
-				let len = (secondByte & 0b01111111);
+				let len = secondByte & 0b01111111;
 
 				let offset = 1;
 				if (len === 126) {
-					len = (
-						header.readUInt8(++offset) * 2 ** 8
-						+ header.readUInt8(++offset)
-					);
+					len = header.readUInt8(++offset) * 2 ** 8 + header.readUInt8(++offset);
 				} else if (len === 127) {
-					len = (
-						header.readUInt8(++offset) * 0
-						+ header.readUInt8(++offset) * 0
-						+ header.readUInt8(++offset) * 0
-						+ header.readUInt8(++offset) * 0
-						+ header.readUInt8(++offset) * 2 ** 24
-						+ header.readUInt8(++offset) * 2 ** 16
-						+ header.readUInt8(++offset) * 2 ** 8
-						+ header.readUInt8(++offset)
-					);
+					len = header.readUInt8(++offset) * 0 + header.readUInt8(++offset) * 0 + header.readUInt8(++offset) * 0 + header.readUInt8(++offset) * 0 + header.readUInt8(++offset) * 2 ** 24 + header.readUInt8(++offset) * 2 ** 16 + header.readUInt8(++offset) * 2 ** 8 + header.readUInt8(++offset);
 				}
 
 				let mask = 0;
 				if (hasMask) {
-					mask = (
-						header.readUInt8(++offset) * 2 ** 24
-						+ header.readUInt8(++offset) * 2 ** 16
-						+ header.readUInt8(++offset) * 2 ** 8
-						+ header.readUInt8(++offset)
-					);
+					mask = header.readUInt8(++offset) * 2 ** 24 + header.readUInt8(++offset) * 2 ** 16 + header.readUInt8(++offset) * 2 ** 8 + header.readUInt8(++offset);
 				}
 
 				this._state.state = ReadState.ReadBody;
 				this._state.readLen = len;
 				this._state.mask = mask;
-
 			} else if (this._state.state === ReadState.ReadBody) {
 				// read body
 
@@ -505,7 +485,7 @@ export const XDG_RUNTIME_DIR = <string | undefined>process.env['XDG_RUNTIME_DIR'
 
 const safeIpcPathLengths: { [platform: number]: number } = {
 	[Platform.Linux]: 107,
-	[Platform.Mac]: 103
+	[Platform.Mac]: 103,
 };
 
 export function createRandomIPCHandle(): string {
@@ -564,13 +544,12 @@ function validateIPCHandleLength(handle: string): void {
 }
 
 export class Server extends IPCServer {
-
 	private static toClientConnectionEvent(server: NetServer): Event<ClientConnectionEvent> {
 		const onConnection = Event.fromNodeEventEmitter<Socket>(server, 'connection');
 
 		return Event.map(onConnection, socket => ({
 			protocol: new Protocol(new NodeSocket(socket)),
-			onDidClientDisconnect: Event.once(Event.fromNodeEventEmitter<void>(socket, 'close'))
+			onDidClientDisconnect: Event.once(Event.fromNodeEventEmitter<void>(socket, 'close')),
 		}));
 	}
 
@@ -604,7 +583,7 @@ export function serve(hook: any): Promise<Server> {
 	});
 }
 
-export function connect(options: { host: string, port: number }, clientId: string): Promise<Client>;
+export function connect(options: { host: string; port: number }, clientId: string): Promise<Client>;
 export function connect(port: number, clientId: string): Promise<Client>;
 export function connect(namedPipe: string, clientId: string): Promise<Client>;
 export function connect(hook: any, clientId: string): Promise<Client> {

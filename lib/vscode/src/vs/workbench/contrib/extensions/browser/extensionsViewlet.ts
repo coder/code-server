@@ -13,7 +13,7 @@ import { Event } from 'vs/base/common/event';
 import { Action } from 'vs/base/common/actions';
 import { IViewlet } from 'vs/workbench/common/viewlet';
 import { IViewletService } from 'vs/workbench/services/viewlet/browser/viewlet';
-import { append, $, Dimension, hide, show } from 'vs/base/browser/dom';
+import { append, $, Dimension, hide, show, reset } from 'vs/base/browser/dom';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
 import { IInstantiationService, ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
 import { IExtensionService } from 'vs/workbench/services/extensions/common/extensions';
@@ -520,7 +520,7 @@ export class ExtensionsViewPaneContainer extends ViewPaneContainer implements IE
 			helperHeader.style.position = 'relative';
 
 			const helperText = append(helperHeader, $('div'));
-			helperText.innerHTML = '';
+			reset(helperText);
 
 			// We call this function because it gives us access to the current theme
 			// Then we can apply the link color to the links in the helper header

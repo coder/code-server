@@ -15,9 +15,14 @@
     "sourceMap": true,
     "tsBuildInfoFile": "./.cache/tsbuildinfo",
     "incremental": true,
-    "typeRoots": ["./node_modules/@types", "./typings", "./test/node_modules/@types"],
-    "downlevelIteration": true
+    "typeRoots": [
+      "./node_modules/@types",
+      "./typings",
+      "./test/node_modules/@types",
+      "./lib/vscode/src/vs/server/@types"
+    ],
+    "downlevelIteration": true,
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*"],
   "exclude": ["/test", "/lib", "/ci", "/doc"]
 }

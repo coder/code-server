@@ -8,6 +8,36 @@ import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
 import { handleUpgrade } from "./wsRouter"
 
+type ListenOptions = Pick<DefaultedArgs, "socket" | "port" | "host">
+
+const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
+  return new Promise<void>(async (resolve, reject) => {
+    server.on("error", reject)
+
+    const onListen = () => {
+      // Promise resolved earlier so this is an unrelated error.
+      server.off("error", reject)
+      server.on("error", (err) => util.logError(logger, "http server error", err))
+
+      resolve()
+    }
+
+    if (socket) {
+      try {
+        await fs.unlink(socket)
+      } catch (error: any) {
+        if (error.code !== "ENOENT") {
+          logger.error(error.message)
+        }
+      }
+      server.listen(socket, onListen)
+    } else {
+      // [] is the correct format when using :: but Node errors with them.
+      server.listen(port, host.replace(/^\[|\]$/g, ""), onListen)
+    }
+  })
+}
+
 /**
  * Create an Express app and an HTTP/S server to serve it.
  */
@@ -26,35 +56,7 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
       )
     : http.createServer(app)
 
-  let resolved = false
-  await new Promise<void>(async (resolve2, reject) => {
-    const resolve = () => {
-      resolved = true
-      resolve2()
-    }
-    server.on("error", (err) => {
-      if (!resolved) {
-        reject(err)
-      } else {
-        // Promise resolved earlier so this is an unrelated error.
-        util.logError(logger, "http server error", err)
-      }
-    })
-
-    if (args.socket) {
-      try {
-        await fs.unlink(args.socket)
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          logger.error(error.message)
-        }
-      }
-      server.listen(args.socket, resolve)
-    } else {
-      // [] is the correct format when using :: but Node errors with them.
-      server.listen(args.port, args.host.replace(/^\[|\]$/g, ""), resolve)
-    }
-  })
+  await listen(server, args)
 
   const wsApp = express()
   handleUpgrade(wsApp, server)

@@ -42,8 +42,8 @@ export interface NativeParsedArgs {
 	/** @coder: BEGIN */
 	'extra-extensions-dir'?: string[];
 	'extra-builtin-extensions-dir'?: string[];
-	'ignore-last-opened'?: string,
-	'server'?: string,
+	'ignore-last-opened'?: boolean;
+	server?: string;
 	/** @coder: END */
 	extensionDevelopmentPath?: string[]; // undefined or array of 1 or more local paths or URIs
 	extensionTestsPath?: string; // either a local path or a URI
@@ -58,7 +58,7 @@ export interface NativeParsedArgs {
 	'disable-extension'?: string[]; // undefined or array of 1 or more
 	'list-extensions'?: boolean;
 	'show-versions'?: boolean;
-	'category'?: string;
+	category?: string;
 	'install-extension'?: string[]; // undefined or array of 1 or more
 	'install-builtin-extension'?: string[]; // undefined or array of 1 or more
 	'uninstall-extension'?: string[]; // undefined or array of 1 or more
@@ -79,31 +79,31 @@ export interface NativeParsedArgs {
 	'max-memory'?: string;
 	'file-write'?: boolean;
 	'file-chmod'?: boolean;
-	'driver'?: string;
+	driver?: string;
 	'driver-verbose'?: boolean;
-	'remote'?: string;
-	'force'?: boolean;
+	remote?: string;
+	force?: boolean;
 	'do-not-sync'?: boolean;
 	'force-user-env'?: boolean;
 	'force-disable-user-env'?: boolean;
-	'sync'?: 'on' | 'off';
-	'__sandbox'?: boolean;
-	'logsPath'?: string;
+	sync?: 'on' | 'off';
+	__sandbox?: boolean;
+	logsPath?: string;
 
 	// chromium command line args: https://electronjs.org/docs/all#supported-chrome-command-line-switches
 	'no-proxy-server'?: boolean;
 	'proxy-server'?: string;
 	'proxy-bypass-list'?: string;
 	'proxy-pac-url'?: string;
-	'inspect'?: string;
+	inspect?: string;
 	'inspect-brk'?: string;
 	'js-flags'?: string;
 	'disable-gpu'?: boolean;
-	'nolazy'?: boolean;
+	nolazy?: boolean;
 	'force-device-scale-factor'?: string;
 	'force-renderer-accessibility'?: boolean;
 	'ignore-certificate-errors'?: boolean;
 	'allow-insecure-localhost'?: boolean;
 	'log-net-log'?: string;
-	'vmodule'?: string;
+	vmodule?: string;
 }

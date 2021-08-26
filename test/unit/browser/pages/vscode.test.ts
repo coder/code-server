@@ -2,7 +2,6 @@
  * @jest-environment jsdom
  */
 import { JSDOM } from "jsdom"
-import { InternalNLSConfiguration } from "../../../../lib/vscode/src/vs/base/node/languagePacks"
 import {
   getNlsConfiguration,
   getConfigurationForLoader,
@@ -10,12 +9,11 @@ import {
   _createScriptURL,
   main,
   createBundlePath,
-  NLSConfigurationWeb,
 } from "../../../../src/browser/pages/vscode"
-import { WORKBENCH_WEB_CONFIG_ID } from "../../../../src/node/constants"
+import { WORKBENCH_WEB_CONFIG_ID, version as codeServerVersion } from "../../../../src/node/constants"
 
 interface MockWorkbenchConfig {
-  nlsConfiguration: Pick<NLSConfigurationWeb, "locale" | "availableLanguages">
+  nlsConfiguration: Pick<CodeServerLib.NLSConfigurationWeb, "locale" | "availableLanguages">
 }
 
 const createMockDataSettings = (): MockWorkbenchConfig => ({
@@ -77,12 +75,13 @@ describe("vscode", () => {
       const mockElement = _document.createElement("div")
 
       const dataSettings = createMockDataSettings()
-      ;(dataSettings.nlsConfiguration as InternalNLSConfiguration)._resolvedLanguagePackCoreLocation = "./"
+      ;(dataSettings.nlsConfiguration as CodeServerLib.InternalNLSConfiguration)._resolvedLanguagePackCoreLocation =
+        "./"
 
       mockElement.setAttribute("id", WORKBENCH_WEB_CONFIG_ID)
       mockElement.setAttribute("data-settings", JSON.stringify(dataSettings))
       _document.body.appendChild(mockElement)
-      const nlsConfig = getNlsConfiguration<InternalNLSConfiguration>(_document, "")
+      const nlsConfig = getNlsConfiguration<CodeServerLib.InternalNLSConfiguration>(_document, "")
 
       expect(nlsConfig._resolvedLanguagePackCoreLocation).not.toBe(undefined)
       expect(nlsConfig.loadBundle).not.toBe(undefined)
@@ -207,10 +206,10 @@ describe("vscode", () => {
       _window = __window
     })
     it("should return a loader object (with undefined trustedTypesPolicy)", () => {
-      const options = {
+      const options: CodeServerLib.ClientConfiguration = {
         base: ".",
         csStaticBase: "/",
-        logLevel: 1,
+        codeServerVersion,
       }
 
       const { nlsConfiguration } = createMockDataSettings()
@@ -263,7 +262,9 @@ describe("vscode", () => {
         base: "/",
         csStaticBase: "/",
         logLevel: 1,
+        codeServerVersion,
       }
+
       const nlsConfig = {
         first: "Jane",
         last: "Doe",

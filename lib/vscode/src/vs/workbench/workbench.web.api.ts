@@ -13,7 +13,7 @@ import { LogLevel } from 'vs/platform/log/common/log';
 import { IUpdateProvider, IUpdate } from 'vs/workbench/services/update/browser/updateService';
 import { Event, Emitter } from 'vs/base/common/event';
 import { Disposable, IDisposable, toDisposable } from 'vs/base/common/lifecycle';
-import { IWorkspaceProvider, IWorkspace, IServerWorkspaceProvider } from 'vs/workbench/services/host/browser/browserHostService';
+import { IWorkspaceProvider, IWorkspace, IServerWorkspaceProvider as IWebWorkspaceProvider, IWorkspaceSerialized } from 'vs/workbench/services/host/browser/browserHostService';
 import { CommandsRegistry } from 'vs/platform/commands/common/commands';
 import { IProductConfiguration } from 'vs/base/common/product';
 import { mark } from 'vs/base/common/performance';
@@ -410,25 +410,15 @@ interface IWorkbenchConstructionOptions {
 }
 
 /**
- * @coder This is commonly used when initializing a code server.
- */
-interface IOptionalPathURIs {
-	folderUri?: UriComponents;
-	workspaceUri?: UriComponents;
-}
-
-/**
  * @coder Standard workbench constructor options with additional server paths.
  * JSON serializable.
  */
-interface IServerWorkbenchConstructionOptions extends Omit<IWorkbenchConstructionOptions, 'workspaceProvider'>, IOptionalPathURIs {
-	readonly workspaceProvider: IServerWorkspaceProvider;
-	/** @TODO still used? */
+interface IWorkbenchWebConfiguration extends Omit<IWorkbenchConstructionOptions, 'workspaceProvider'>, IWorkspaceSerialized {
+	readonly workspaceProvider: IWebWorkspaceProvider;
 	readonly logLevel?: number;
-
 	readonly remoteUserDataUri: UriComponents;
 	readonly nlsConfiguration: NLSConfiguration | InternalNLSConfiguration;
-	readonly commit: string;
+	readonly productConfiguration: Partial<IProductConfiguration> & Pick<IProductConfiguration, 'logoutEndpointUrl'>;
 }
 
 interface IDevelopmentOptions {
@@ -591,8 +581,8 @@ export {
 	// Factory
 	create,
 	IWorkbenchConstructionOptions,
-	IServerWorkbenchConstructionOptions,
-	IOptionalPathURIs,
+	IWorkbenchWebConfiguration,
+	IWorkspaceSerialized,
 	IWorkbench,
 	// Basic Types
 	URI,
