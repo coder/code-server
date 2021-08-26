@@ -61,8 +61,11 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           CODE_SERVER_DOCS_MAIN_BRANCH: ${{ github.event.pull_request.head.sha }}
 
+      - name: Install node_modules
+        run: yarn install
+
       - name: Check docs
-        run: npx ts-node ./product/coder.com/site/scripts/checkDocs.ts
+        run: yarn ts-node ./product/coder.com/site/scripts/checkDocs.ts
         env:
           BASE_URL: ${{ steps.preview.outputs.url }}
 
