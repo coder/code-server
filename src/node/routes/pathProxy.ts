@@ -22,7 +22,7 @@ export function proxy(
     passthroughPath?: boolean
   },
 ): void {
-  if (!authenticated(req)) {
+  if (!authenticated(req, res)) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
       const to = normalize(`${req.baseUrl}${req.path}`)
@@ -47,11 +47,12 @@ export function proxy(
 
 export async function wsProxy(
   req: pluginapi.WebsocketRequest,
+  res: Response,
   opts?: {
     passthroughPath?: boolean
   },
 ): Promise<void> {
-  await ensureAuthenticated(req)
+  await ensureAuthenticated(req, res)
   _proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, opts?.passthroughPath),

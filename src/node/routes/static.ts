@@ -18,7 +18,7 @@ router.get("/(:commit)(/*)?", async (req, res) => {
   // Used by VS Code to load extensions into the web worker.
   const tar = getFirstString(req.query.tar)
   if (tar) {
-    await ensureAuthenticated(req)
+    await ensureAuthenticated(req, res)
     let stream: Readable = tarFs.pack(pathToFsPath(tar))
     if (req.headers["accept-encoding"] && req.headers["accept-encoding"].includes("gzip")) {
       logger.debug("gzipping tar", field("path", tar))
@@ -43,8 +43,7 @@ router.get("/(:commit)(/*)?", async (req, res) => {
 
   // Make sure it's in code-server if you aren't authenticated. This lets
   // unauthenticated users load the login assets.
-  const isAuthenticated = await authenticated(req)
-  if (!resourcePath.startsWith(rootPath) && !isAuthenticated) {
+  if (!resourcePath.startsWith(rootPath) && !(await authenticated(req, res))) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
 

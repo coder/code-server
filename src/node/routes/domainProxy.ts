@@ -39,7 +39,7 @@ router.all("*", async (req, res, next) => {
   }
 
   // Must be authenticated to use the proxy.
-  const isAuthenticated = await authenticated(req)
+  const isAuthenticated = await authenticated(req, res)
   if (!isAuthenticated) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
@@ -74,14 +74,14 @@ router.all("*", async (req, res, next) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("*", async (req, _, next) => {
+wsRouter.ws("*", async (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
   // Must be authenticated to use the proxy.
-  await ensureAuthenticated(req)
+  await ensureAuthenticated(req, res)
 
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
