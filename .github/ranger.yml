@@ -15,10 +15,6 @@ labels:
   "squash when passing": merge
   "rebase when passing": merge
   "merge when passing": merge
-  stale:
-    action: close
-    delay: 7 days
-    comment: "⚠️ This issue has been marked stale and will automatically be closed in $DELAY."
   "new contributor":
     action: comment
     delay: 5s
