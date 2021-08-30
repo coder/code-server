@@ -7,14 +7,15 @@
     "@types/jsdom": "^16.2.6",
     "@types/node-fetch": "^2.5.8",
     "@types/supertest": "^2.0.10",
+    "@types/wtfnode": "^0.7.0",
     "argon2": "^0.28.0",
     "jest": "^26.6.3",
+    "jest-fetch-mock": "^3.0.3",
     "jsdom": "^16.4.0",
     "node-fetch": "^2.6.1",
     "playwright": "^1.12.1",
     "supertest": "^6.1.1",
     "ts-jest": "^26.4.4",
-    "@types/wtfnode": "^0.7.0",
     "wtfnode": "^0.9.0"
   },
   "resolutions": {

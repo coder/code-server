@@ -1,6 +1,7 @@
 /**
  * @jest-environment jsdom
  */
+import fetchMock from "jest-fetch-mock"
 import { JSDOM } from "jsdom"
 import {
   getNlsConfiguration,
@@ -20,6 +21,11 @@ describe("vscode", () => {
       // We use underscores to not confuse with global values
       const { window: _window } = new JSDOM()
       _document = _window.document
+      fetchMock.enableMocks()
+    })
+
+    afterEach(() => {
+      fetchMock.resetMocks()
     })
 
     it("should throw an error if no nlsConfigElement", () => {
@@ -60,7 +66,7 @@ describe("vscode", () => {
 
       _document.body.removeChild(mockElement)
     })
-    it("should return have loadBundle property if _resolvedLangaugePackCoreLocation", () => {
+    it("should return and have a loadBundle property if _resolvedLangaugePackCoreLocation", async () => {
       const mockElement = _document.createElement("div")
       const dataSettings = {
         locale: "en",
@@ -76,6 +82,32 @@ describe("vscode", () => {
       expect(nlsConfig._resolvedLanguagePackCoreLocation).not.toBe(undefined)
       expect(nlsConfig.loadBundle).not.toBe(undefined)
 
+      const mockCallbackFn = jest.fn((_, bundle) => {
+        return bundle
+      })
+
+      fetchMock.mockOnce(JSON.stringify({ key: "hello world" }))
+      // Ensure that load bundle works as expected
+      // by mocking the fetch response and checking that the callback
+      // had the expected value
+      await nlsConfig.loadBundle("hello", "en", mockCallbackFn)
+      expect(mockCallbackFn).toHaveBeenCalledTimes(1)
+      expect(mockCallbackFn).toHaveBeenCalledWith(undefined, { key: "hello world" })
+
+      // Call it again to ensure it loads from the cache
+      // it should return the same value
+      await nlsConfig.loadBundle("hello", "en", mockCallbackFn)
+      expect(mockCallbackFn).toHaveBeenCalledTimes(2)
+      expect(mockCallbackFn).toHaveBeenCalledWith(undefined, { key: "hello world" })
+
+      fetchMock.mockReject(new Error("fake error message"))
+      const mockCallbackFn2 = jest.fn((error) => error)
+      // Call it for a different bundle and mock a failed fetch call
+      // to ensure we get the expected error
+      const error = await nlsConfig.loadBundle("goodbye", "es", mockCallbackFn2)
+      expect(error.message).toEqual("fake error message")
+
+      // Clean up
       _document.body.removeChild(mockElement)
     })
   })
@@ -84,6 +116,13 @@ describe("vscode", () => {
       const _resolvedLangaugePackCoreLocation = "./languages"
       const bundle = "/bundle.js"
       const expected = "./languages/!bundle.js.nls.json"
+      const actual = createBundlePath(_resolvedLangaugePackCoreLocation, bundle)
+      expect(actual).toBe(expected)
+    })
+    it("should return the correct path (even if _resolvedLangaugePackCoreLocation is undefined)", () => {
+      const _resolvedLangaugePackCoreLocation = undefined
+      const bundle = "/bundle.js"
+      const expected = "/!bundle.js.nls.json"
       const actual = createBundlePath(_resolvedLangaugePackCoreLocation, bundle)
       expect(actual).toBe(expected)
     })
@@ -228,11 +267,6 @@ describe("vscode", () => {
         },
         recordStats: true,
 
-        // TODO@jsjoeio address trustedTypesPolicy part
-        // might need to look up types
-        // and find a way to test the function
-        // maybe extract function into function
-        // and test manually
         trustedTypesPolicy: undefined,
         "vs/nls": {
           availableLanguages: {},
@@ -280,6 +314,11 @@ describe("vscode", () => {
 
       expect(loader.trustedTypesPolicy).not.toBe(undefined)
       expect(loader.trustedTypesPolicy.name).toBe("amdLoader")
+
+      // Check that we can actually create a script URL
+      // using the createScriptURL on the loader object
+      const scriptUrl = loader.trustedTypesPolicy.createScriptURL("http://localhost/foo.js")
+      expect(scriptUrl).toBe("http://localhost/foo.js")
     })
   })
   describe("_createScriptURL", () => {
