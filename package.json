@@ -63,7 +63,7 @@
     "eslint-config-prettier": "^8.1.0",
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.18.2",
-    "eslint-plugin-prettier": "^3.1.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "prettier": "^2.2.1",
     "prettier-plugin-sh": "^0.7.1",
     "shellcheck": "^1.0.0",
