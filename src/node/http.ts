@@ -6,6 +6,7 @@ import { HttpCode, HttpError } from "../common/http"
 import { normalize, Options } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { commit, rootPath } from "./constants"
+import { getCustomAuth } from "./customAuth"
 import { Heart } from "./heart"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml } from "./util"
 
@@ -46,10 +47,10 @@ export const replaceTemplates = <T extends object>(
  */
 export const ensureAuthenticated = async (
   req: express.Request,
-  _?: express.Response,
+  res: express.Response,
   next?: express.NextFunction,
 ): Promise<void> => {
-  const isAuthenticated = await authenticated(req)
+  const isAuthenticated = await authenticated(req, res)
   if (!isAuthenticated) {
     throw new HttpError("Unauthorized", HttpCode.Unauthorized)
   }
@@ -61,7 +62,7 @@ export const ensureAuthenticated = async (
 /**
  * Return true if authenticated via cookies.
  */
-export const authenticated = async (req: express.Request): Promise<boolean> => {
+export const authenticated = async (req: express.Request, res: express.Response): Promise<boolean> => {
   switch (req.args.auth) {
     case AuthType.None: {
       return true
@@ -78,6 +79,9 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       }
 
       return await isCookieValid(isCookieValidArgs)
+    }
+    case AuthType.Custom: {
+      return (await getCustomAuth()?.authenticated(req, res)) ?? false
     }
     default: {
       throw new Error(`Unsupported auth type ${req.args.auth}`)

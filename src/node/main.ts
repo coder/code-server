@@ -8,6 +8,7 @@ import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
+import { registerCustomAuth } from "./customAuth"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 
@@ -94,6 +95,18 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     )
   }
 
+  const customAuthModulePath = args["custom-auth-module"]
+  if (args.auth === AuthType.Custom && !customAuthModulePath) {
+    throw new Error("Please pass in a custom-auth-module when using custom authentication")
+  }
+  if (args.auth === AuthType.Custom && customAuthModulePath) {
+    const customAuthModule = require(customAuthModulePath)
+    if (!customAuthModule.customAuth) {
+      throw new Error("The passed in custom-auth-module must export a 'customAuth' property")
+    }
+    await registerCustomAuth(customAuthModule.customAuth)
+  }
+
   const [app, wsApp, server] = await createApp(args)
   const serverAddress = ensureAddress(server)
   await register(app, wsApp, server, args)
@@ -109,6 +122,9 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     } else {
       logger.info(`    - Using password from ${humanPath(args.config)}`)
     }
+  } else if (args.auth === AuthType.Custom) {
+    logger.info("  - Authentication is enabled")
+    logger.info(`      - using custom authentication module at ${customAuthModulePath ?? ""}`)
   } else {
     logger.info(`  - Authentication is disabled ${args.link ? "(disabled by --link)" : ""}`)
   }

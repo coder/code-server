@@ -51,7 +51,7 @@ export const router = Router()
 
 router.use(async (req, res, next) => {
   const to = (typeof req.query.to === "string" && req.query.to) || "/"
-  if (await authenticated(req)) {
+  if (await authenticated(req, res)) {
     return redirect(req, res, to, { to: undefined })
   }
   next()

@@ -14,6 +14,7 @@ export enum Feature {
 export enum AuthType {
   Password = "password",
   None = "none",
+  Custom = "custom",
 }
 
 export class Optional<T> {
@@ -35,6 +36,7 @@ export interface Args extends VsArgs {
   auth?: AuthType
   password?: string
   "hashed-password"?: string
+  "custom-auth-module"?: string
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
@@ -116,6 +118,10 @@ const options: Options<Required<Args>> = {
     description:
       "The password hashed with argon2 for password authentication (can only be passed in via $HASHED_PASSWORD or the config file). \n" +
       "Takes precedence over 'password'.",
+  },
+  "custom-auth-module": {
+    type: "string",
+    description: "Path to a node module containing custom authentication code",
   },
   cert: {
     type: OptionalString,

@@ -11,6 +11,7 @@ import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { rootPath } from "../constants"
+import { getCustomAuth } from "../customAuth"
 import { Heart } from "../heart"
 import { ensureAuthenticated, redirect, replaceTemplates } from "../http"
 import { PluginAPI } from "../plugin"
@@ -98,8 +99,8 @@ export const register = async (
   app.all("/proxy/(:port)(/*)?", (req, res) => {
     pathProxy.proxy(req, res)
   })
-  wsApp.get("/proxy/(:port)(/*)?", async (req) => {
-    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
+  wsApp.get("/proxy/(:port)(/*)?", async (req, res) => {
+    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, res)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
@@ -109,8 +110,8 @@ export const register = async (
       passthroughPath: true,
     })
   })
-  wsApp.get("/absproxy/(:port)(/*)?", async (req) => {
-    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
+  wsApp.get("/absproxy/(:port)(/*)?", async (req, res) => {
+    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, res, {
       passthroughPath: true,
     })
   })
@@ -138,6 +139,12 @@ export const register = async (
   if (args.auth === AuthType.Password) {
     app.use("/login", login.router)
     app.use("/logout", logout.router)
+  } else if (args.auth === AuthType.Custom) {
+    const customAuth = getCustomAuth()
+    if (customAuth) {
+      app.use("/login", customAuth.loginRouter)
+      app.use("/logout", customAuth.logoutRouter)
+    }
   } else {
     app.all("/login", (req, res) => redirect(req, res, "/", {}))
     app.all("/logout", (req, res) => redirect(req, res, "/", {}))

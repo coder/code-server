@@ -19,7 +19,7 @@ export const router = Router()
 const vscode = new VscodeProvider()
 
 router.get("/", async (req, res) => {
-  const isAuthenticated = await authenticated(req)
+  const isAuthenticated = await authenticated(req, res)
   if (!isAuthenticated) {
     return redirect(req, res, "login", {
       // req.baseUrl can be blank if already at the root.
@@ -198,7 +198,7 @@ router.get("/fetch-callback", ensureAuthenticated, async (req, res) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("/", ensureAuthenticated, async (req) => {
+wsRouter.ws("/", ensureAuthenticated, async (req, res) => {
   const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
   const reply = crypto
     .createHash("sha1")
@@ -211,6 +211,11 @@ wsRouter.ws("/", ensureAuthenticated, async (req) => {
     "Connection: Upgrade",
     `Sec-WebSocket-Accept: ${reply}`,
   ]
+  // if any cookie was set by a middleware, add it to the response
+  const setCookie = res.get("set-cookie")
+  if (setCookie) {
+    responseHeaders.push(`Set-Cookie: ${setCookie}`)
+  }
 
   // See if the browser reports it supports web socket compression.
   // TODO: Parse this header properly.
