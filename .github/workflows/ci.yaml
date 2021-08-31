@@ -1,4 +1,4 @@
-name: Build
+name: etv
 
 on:
   push:
