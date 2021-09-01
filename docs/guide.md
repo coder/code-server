@@ -376,7 +376,7 @@ Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#
 
 ## SSH into code-server on VS Code
 
-[![SSH](https://img.shields.io/badge/SSH-363636?style=for-the-badge&logo=GNU+Bash&logoColor=ffffff)](https://ohmyz.sh/) ![Terminal](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff) [![Visual Studio Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=for-the-badge&logo=Visual+Studio+Code&logoColor=ffffff)](vscode:extension/ms-vscode-remote.remote-ssh)
+[![SSH](https://img.shields.io/badge/SSH-363636?style=for-the-badge&logo=GNU+Bash&logoColor=ffffff)](https://ohmyz.sh/) [![Terminal](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff)](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff) [![Visual Studio Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=for-the-badge&logo=Visual+Studio+Code&logoColor=ffffff)](vscode:extension/ms-vscode-remote.remote-ssh)
 
 Follow these steps where code-server is running:
 
