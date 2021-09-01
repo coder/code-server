@@ -454,10 +454,12 @@ Web Interface                 http://127.0.0.1:4040
 Forwarding                    tcp://0.tcp.ngrok.io:19028 -> localhost:22
 ```
 
-Copy the forwarded link `0.tcp.ngrok.io` and remember the port number `19028`. Type this on your local Visual Studio Code:
+In this case, copy the forwarded link `0.tcp.ngrok.io` and remember the port number `19028`. Type this on your local Visual Studio Code:
 
 ```bash
 ssh user@0.tcp.ngrok.io -p 19028
 ```
 
 The port redirects you to the default SSH port 22, and you can then successfully connect to code-server by entering the password you set for the user.
+
+Note: the port and the url provided by ngrok will change each time you run it so modify as needed.
