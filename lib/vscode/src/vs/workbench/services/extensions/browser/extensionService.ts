@@ -9,7 +9,7 @@ import { IWorkbenchExtensionEnablementService, IWebExtensionsScannerService } fr
 import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
 import { IInstantiationService } from 'vs/platform/instantiation/common/instantiation';
 import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
-import { IExtensionService, IExtensionHost } from 'vs/workbench/services/extensions/common/extensions';
+import { IExtensionService, IExtensionHost, ExtensionHostKind,  } from 'vs/workbench/services/extensions/common/extensions';
 import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 import { IFileService } from 'vs/platform/files/common/files';
 import { IProductService } from 'vs/platform/product/common/productService';
@@ -28,6 +28,7 @@ import { IExtensionManagementService } from 'vs/platform/extensionManagement/com
 import { IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
 import { IExtensionManifestPropertiesService } from 'vs/workbench/services/extensions/common/extensionManifestPropertiesService';
 import { IUserDataInitializationService } from 'vs/workbench/services/userData/browser/userDataInit';
+import { IRemoteExplorerService } from '../../remote/common/remoteExplorerService';
 
 export class ExtensionService extends AbstractExtensionService implements IExtensionService {
 
@@ -51,6 +52,7 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 		@ILifecycleService private readonly _lifecycleService: ILifecycleService,
 		@IExtensionManifestPropertiesService extensionManifestPropertiesService: IExtensionManifestPropertiesService,
 		@IUserDataInitializationService private readonly _userDataInitializationService: IUserDataInitializationService,
+		@IRemoteExplorerService private readonly _remoteExplorerService: IRemoteExplorerService
 	) {
 		super(
 			new ExtensionRunningLocationClassifier(
@@ -75,7 +77,17 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 		// Initialize installed extensions first and do it only after workbench is ready
 		this._lifecycleService.when(LifecyclePhase.Ready).then(async () => {
 			await this._userDataInitializationService.initializeInstalledExtensions(this._instantiationService);
-			this._initialize();
+			this._initialize().then(async () => {
+				try {
+					const extHost = this._getExtensionHostManager(ExtensionHostKind.Remote)
+					const resolved = await extHost?.resolveAuthority("coder-link+main")
+					if (resolved) {
+						this._remoteExplorerService.setTunnelInformation(resolved.tunnelInformation);
+					}
+				} catch (ex) {
+					this._logOrShowMessage(Severity.Error, nls.localize('link', "Failed to initialize remote Link authority: {0}", ex))
+				}
+			})
 		});
 
 		this._initFetchFileSystem();
