@@ -218,6 +218,7 @@
     "elliptic": "^6.5.3",
     "nwmatcher": "^1.4.4",
     "chrome-remote-interface": "^0.30.0",
-    "glob-parent": "^5.1.2"
+    "glob-parent": "^5.1.2",
+    "tar": "^6.1.9"
   }
 }
