@@ -79,8 +79,15 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			await this._userDataInitializationService.initializeInstalledExtensions(this._instantiationService);
 			this._initialize().then(async () => {
 				try {
+					// This enables the `vscode.workspace.registerRemoteAuthorityResolver` API to be executed.
+					// 
+					// It's specifically scoped to the "coder-link" scheme at the moment to reduce external
+					// dependency on forking VS Code functionality. 
+					// 
+					// The remote host doesn't resolve to an extension host like the API expects, but instead
+					// we only utilize the tunnel functionality.
 					const extHost = this._getExtensionHostManager(ExtensionHostKind.Remote);
-					const resolved = await extHost?.resolveAuthority('coder-link+main');
+					const resolved = await extHost?.resolveAuthority('coder-link+web');
 					if (resolved) {
 						this._remoteExplorerService.setTunnelInformation(resolved.tunnelInformation);
 					}
