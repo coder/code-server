@@ -79,15 +79,15 @@ export class ExtensionService extends AbstractExtensionService implements IExten
 			await this._userDataInitializationService.initializeInstalledExtensions(this._instantiationService);
 			this._initialize().then(async () => {
 				try {
-					const extHost = this._getExtensionHostManager(ExtensionHostKind.Remote)
-					const resolved = await extHost?.resolveAuthority("coder-link+main")
+					const extHost = this._getExtensionHostManager(ExtensionHostKind.Remote);
+					const resolved = await extHost?.resolveAuthority('coder-link+main');
 					if (resolved) {
 						this._remoteExplorerService.setTunnelInformation(resolved.tunnelInformation);
 					}
 				} catch (ex) {
-					this._logOrShowMessage(Severity.Error, nls.localize('link', "Failed to initialize remote Link authority: {0}", ex))
+					this._logOrShowMessage(Severity.Error, nls.localize('link', "Failed to initialize remote Link authority: {0}", ex));
 				}
-			})
+			});
 		});
 
 		this._initFetchFileSystem();
