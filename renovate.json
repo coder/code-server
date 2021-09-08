@@ -6,10 +6,6 @@
       "matchUpdateTypes": ["minor", "patch", "digest"],
       "automerge": true,
       "groupName": "Minor dependency updates"
-    },
-    {
-      "matchPaths": ["lib/vscode/"],
-      "enabled": false
     }
   ],
   "vulnerabilityAlerts": {

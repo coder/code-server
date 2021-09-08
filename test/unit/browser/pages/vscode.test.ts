@@ -253,7 +253,7 @@ describe("vscode", () => {
       })
 
       expect(loader).toStrictEqual({
-        baseUrl: "http://localhost//lib/vscode/out",
+        baseUrl: "http://localhost//vendor/modules/code-oss-dev/out",
         paths: {
           "iconv-lite-umd": "../node_modules/iconv-lite-umd/lib/iconv-lite-umd.js",
           jschardet: "../node_modules/jschardet/dist/jschardet.min.js",

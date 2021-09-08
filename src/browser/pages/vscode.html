@@ -40,13 +40,13 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/out/browser/pages/vscode.browserified.js"></script>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/loader.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/loader.js"></script>
   <script>
     performance.mark("code/willLoadWorkbenchMain")
   </script>
   <!-- PROD_ONLY
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/workbench/workbench.web.api.nls.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/workbench/workbench.web.api.js"></script>
   END_PROD_ONLY -->
   <script>
     require(["vs/code/browser/workbench/workbench"], function () {})

@@ -166,7 +166,7 @@ router.get("/callback", ensureAuthenticated, async (req, res) => {
   callbacks.set(id, callback)
   callbackEmitter.emit({ id, callback })
 
-  res.sendFile(path.join(rootPath, "lib/vscode/resources/web/callback.html"))
+  res.sendFile(path.join(rootPath, "vendor/modules/code-oss-dev/resources/web/callback.html"))
 })
 
 router.get("/fetch-callback", ensureAuthenticated, async (req, res) => {

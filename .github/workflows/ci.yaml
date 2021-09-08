@@ -124,26 +124,26 @@ jobs:
       - name: Build code-server
         run: yarn build
 
-      # Parse the hash of the latest commit inside lib/vscode
+      # Parse the hash of the latest commit inside vendor/modules/code-oss-dev
       # use this to avoid rebuilding it if nothing changed
       # How it works: the `git log` command fetches the hash of the last commit
-      # that changed a file inside `lib/vscode`. If a commit changes any file in there,
+      # that changed a file inside `vendor/modules/code-oss-dev`. If a commit changes any file in there,
       # the hash returned will change, and we rebuild vscode. If the hash did not change,
       # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
       # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
-      - name: Get latest lib/vscode rev
+      - name: Get latest vendor/modules/code-oss-dev rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(git log -1 --format='%H' ./lib/vscode)"
+        run: echo "::set-output name=rev::$(cat vendor/modules/code-oss-dev/package.json | jq -r .version)"
 
       - name: Attempt to fetch vscode build from cache
         id: cache-vscode
         uses: actions/cache@v2
         with:
           path: |
-            lib/vscode/.build
-            lib/vscode/out-build
-            lib/vscode/out-vscode
-            lib/vscode/out-vscode-min
+            vendor/modules/code-oss-dev/.build
+            vendor/modules/code-oss-dev/out-build
+            vendor/modules/code-oss-dev/out-vscode
+            vendor/modules/code-oss-dev/out-vscode-min
           key: vscode-build-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
