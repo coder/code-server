@@ -1,12 +1,12 @@
 import bodyParser from "body-parser"
 import * as express from "express"
-import * as nodeFetch from "node-fetch"
 import * as http from "http"
+import * as nodeFetch from "node-fetch"
 import { HttpCode } from "../../../src/common/http"
 import { proxy } from "../../../src/node/proxy"
+import { getAvailablePort } from "../../utils/helpers"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
-import { getAvailablePort } from "../../utils/helpers"
 
 describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()
