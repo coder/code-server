@@ -1,1 +1,0 @@
-../../../../../src/node/uriTransformer.ts
