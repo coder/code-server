@@ -45,7 +45,7 @@ There is a known issue with search not working on Android because it's missing
 
    ```sh
    # run this command inside the code-server directory
-   ln -s $PREFIX/bin/rg ./lib/vscode/node_modules/vscode-ripgrep/bin/rg
+   ln -s $PREFIX/bin/rg ./vendor/modules/code-oss-dev/vscode-ripgrep/bin/rg
    ```
 
 ### Backspace doesn't work

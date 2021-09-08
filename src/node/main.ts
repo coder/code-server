@@ -13,7 +13,7 @@ import { humanPath, isFile, open } from "./util"
 
 export const runVsCodeCli = (args: DefaultedArgs): void => {
   logger.debug("forking vs code cli...")
-  const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
+  const vscode = cp.fork(path.resolve(__dirname, "../../vendor/modules/code-oss-dev/out/vs/server/fork"), [], {
     env: {
       ...process.env,
       CODE_SERVER_PARENT_PID: process.pid.toString(),

@@ -140,7 +140,7 @@ export function _createScriptURL(value: string, origin: string): string {
 export function getConfigurationForLoader({ nlsConfig, options, _window }: GetLoaderParams) {
   const loader: Loader = {
     // Without the full URL VS Code will try to load file://.
-    baseUrl: `${window.location.origin}${options.csStaticBase}/lib/vscode/out`,
+    baseUrl: `${window.location.origin}${options.csStaticBase}/vendor/modules/code-oss-dev/out`,
     recordStats: true,
     trustedTypesPolicy: (_window as FixMeLater).trustedTypes?.createPolicy("amdLoader", {
       createScriptURL(value: string): string {

@@ -7,6 +7,7 @@ export npm_config_build_from_source=true
 
 main() {
   cd "$(dirname "${0}")/../.."
+
   source ./ci/lib.sh
 
   rsync "$RELEASE_PATH/" "$RELEASE_PATH-standalone"
@@ -32,7 +33,7 @@ main() {
   # leaves a few stray symlinks. Clean them up so nfpm does not fail.
   # Remove this line when its no longer needed.
 
-  rm -fr "$RELEASE_PATH/lib/vscode/extensions/node_modules/.bin"
+  rm -fr "$RELEASE_PATH/vendor/modules/code-oss-dev/extensions/node_modules/.bin"
 }
 
 main "$@"

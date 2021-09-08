@@ -1,0 +1,12 @@
+{
+  "name": "vendor",
+  "version": "1.0.0",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "postinstall": "./postinstall.sh"
+  },
+  "devDependencies": {
+    "code-oss-dev": "cdr/vscode#50f8fff79d612104eed6eb067daf596031fe9f83"
+  }
+}

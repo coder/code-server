@@ -1,4 +1,1 @@
 name: "code-server CodeQL config"
-
-paths-ignore:
-  - lib/vscode
