@@ -23,8 +23,6 @@
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
-    "update:vscode": "./ci/dev/update-vscode.sh",
-    "_____": "",
     "_audit": "./ci/dev/audit.sh",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",
@@ -130,6 +128,7 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/node_modules/",
+      "/vendor/",
       "/lib/",
       "/out/",
       "test/e2e"
@@ -154,7 +153,6 @@
       }
     },
     "modulePathIgnorePatterns": [
-      "<rootDir>/lib/vscode",
       "<rootDir>/release-packages",
       "<rootDir>/release",
       "<rootDir>/release-standalone",

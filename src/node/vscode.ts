@@ -17,7 +17,7 @@ export class VscodeProvider {
   private readonly socketProvider = new SocketProxyProvider()
 
   public constructor() {
-    this.vsRootPath = path.resolve(rootPath, "lib/vscode")
+    this.vsRootPath = path.resolve(rootPath, "vendor/modules/code-oss-dev")
     this.serverRootPath = path.join(this.vsRootPath, "out/vs/server")
     wrapper.onDispose(() => this.dispose())
   }

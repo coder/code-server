@@ -3,6 +3,7 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
+
   source ./ci/lib.sh
 
   local dir="$PWD"
@@ -24,7 +25,7 @@ main() {
     exit 1
   fi
 
-  if [[ ! -d $dir/lib/vscode/out ]]; then
+  if [[ ! -d $dir/vendor/modules/code-oss-dev/out ]]; then
     echo >&2 "No VS Code build detected"
     echo >&2 "You can build it with 'yarn build:vscode' or 'yarn watch'"
     exit 1

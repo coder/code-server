@@ -3,17 +3,28 @@ set -euo pipefail
 
 main() {
   cd "$(dirname "$0")/../.."
-  source ./ci/lib.sh
 
-  # This installs the dependencies needed for testing
+  echo 'Installing code-server test dependencies...'
+
   cd test
-  yarn
+  yarn install
   cd ..
 
-  cd lib/vscode
-  yarn ${CI+--frozen-lockfile}
+  cd vendor
+  echo 'Installing vendor dependencies...'
 
-  symlink_asar
+  # * We install in 'modules' instead of 'node_modules' because VS Code's extensions
+  # use a webpack config which cannot differentiate between its own node_modules
+  # and itself being in a directory with the same name.
+  #
+  # * We ignore scripts because NPM/Yarn's default behavior is to assume that
+  # devDependencies are not needed, and that even git repo based packages are
+  # assumed to be compiled. Because the default behavior for VS Code's `postinstall`
+  # assumes we're also compiled, this needs to be ignored.
+  yarn install --modules-folder modules --ignore-scripts --frozen-lockfile
+
+  # Finally, run the vendor `postinstall`
+  yarn run postinstall
 }
 
 main "$@"

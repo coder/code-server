@@ -87,13 +87,15 @@ symlink_asar() {
 }
 
 vscode_yarn() {
-  cd lib/vscode
+  echo 'Installing vendor dependencies...'
+  cd vendor/modules/code-oss-dev
   yarn --production --frozen-lockfile
 
   symlink_asar
 
   cd extensions
   yarn --production --frozen-lockfile
+
   for ext in */; do
     ext="${ext%/}"
     echo "extensions/$ext: installing dependencies"

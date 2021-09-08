@@ -16,7 +16,7 @@ async function main(): Promise<void> {
 
 class Watcher {
   private readonly rootPath = path.resolve(__dirname, "../..")
-  private readonly vscodeSourcePath = path.join(this.rootPath, "lib/vscode")
+  private readonly vscodeSourcePath = path.join(this.rootPath, "vendor/modules/code-oss-dev")
 
   private static log(message: string, skipNewline = false): void {
     process.stdout.write(message)

@@ -27,7 +27,7 @@
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
     <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
     <!-- PROD_ONLY
-    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.css">
+    <link data-name="vs/workbench/workbench.web.api" rel="stylesheet" href="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/workbench/workbench.web.api.css">
     END_PROD_ONLY -->
     <link rel="apple-touch-icon" sizes="192x192" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-512.png" />
@@ -40,13 +40,13 @@
 
   <!-- Startup (do not modify order of script tags!) -->
   <script data-cfasync="false" src="{{CS_STATIC_BASE}}/out/browser/pages/vscode.browserified.js"></script>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/loader.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/loader.js"></script>
   <script>
     performance.mark("code/willLoadWorkbenchMain")
   </script>
   <!-- PROD_ONLY
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.nls.js"></script>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/lib/vscode/out/vs/workbench/workbench.web.api.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/workbench/workbench.web.api.nls.js"></script>
+  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/vendor/modules/code-oss-dev/out/vs/workbench/workbench.web.api.js"></script>
   END_PROD_ONLY -->
   <script>
     require(["vs/code/browser/workbench/workbench"], function () {})
