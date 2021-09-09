@@ -129,7 +129,7 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
     logger.info("  - Connected to cloud agent")
   }
-  
+
   try {
     const port = parseInt(serverAddress.split(":").pop() as string, 10)
     startLink(port).catch((ex) => {
