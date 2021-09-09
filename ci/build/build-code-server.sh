@@ -29,6 +29,20 @@ main() {
     set -e
   fi
 
+  if ! [ -f ./lib/linkup ]; then
+    echo "Downloading Link agent..."
+
+    # for arch; we do not use OS from lib.sh and get our own.
+    # lib.sh normalizes macos to darwin - but cloud-agent's binaries do not
+    source ./ci/lib.sh
+    OS="$(uname | tr '[:upper:]' '[:lower:]')"
+
+    set +e
+    curl -fsSL "https://storage.googleapis.com/coder-link-releases/latest/linkup-$OS-$ARCH" -o ./lib/linkup
+    chmod +x ./lib/linkup
+    set -e
+  fi
+
   yarn browserify out/browser/register.js -o out/browser/register.browserified.js
   yarn browserify out/browser/pages/login.js -o out/browser/pages/login.browserified.js
   yarn browserify out/browser/pages/vscode.js -o out/browser/pages/vscode.browserified.js

@@ -63,6 +63,12 @@ main() {
     echo "Failed to download cloud agent; --link will not work"
   fi
 
+  if curl -fsSL "https://storage.googleapis.com/coder-link-releases/latest/linkup-$OS-$ARCH" -o ./lib/linkup; then
+    chmod +x ./lib/linkup
+  else
+    echo "Failed to download Link agent; the Link extension will not work"
+  fi
+
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/cdr/code-server/blob/master/docs/npm.md"
