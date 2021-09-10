@@ -24,7 +24,10 @@ export const webviewResourceBaseHost = 'vscode-webview.net';
 
 export const webviewRootResourceAuthority = `vscode-resource.${webviewResourceBaseHost}`;
 
-export const webviewGenericCspSource = `https://*.${webviewResourceBaseHost}`;
+// NOTE@coder: This is a temporary change to include ":*"
+// due to the patch we had to make for webview resources.
+// See PR#3895 and https://github.com/cdr/code-server/issues/3936 for more details.
+export const webviewGenericCspSource = `https://*.${webviewResourceBaseHost}:*`;
 
 /**
  * Construct a uri that can load resources inside a webview
