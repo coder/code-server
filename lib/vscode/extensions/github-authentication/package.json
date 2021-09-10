@@ -96,6 +96,9 @@
     "@types/node-fetch": "^2.5.7",
     "@types/uuid": "8.0.0"
   },
+  "resolutions": {
+    "axios": "^0.21.2"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/microsoft/vscode.git"

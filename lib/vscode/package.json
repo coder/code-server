@@ -219,6 +219,9 @@
     "nwmatcher": "^1.4.4",
     "chrome-remote-interface": "^0.30.0",
     "glob-parent": "^5.1.2",
-    "tar": "^6.1.9"
+    "tar": "^6.1.9",
+    "pac-resolver": "^5.0.0",
+    "path-parse": "^1.0.7",
+    "yargs-parser": "^13.1.2"
   }
 }
