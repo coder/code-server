@@ -28,7 +28,8 @@
 		"ms-vscode.remotehub",
 		"ms-vscode.remotehub-insiders",
 		"GitHub.remotehub",
-		"GitHub.remotehub-insiders"
+		"GitHub.remotehub-insiders",
+		"coder.vscode-link"
 	],
 	"builtInExtensions": [
 		{

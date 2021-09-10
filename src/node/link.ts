@@ -6,7 +6,6 @@ export function startLink(port: number): Promise<void> {
   logger.debug(`running link targetting ${port}`)
 
   const agent = spawn(path.resolve(__dirname, "../../lib/linkup"), ["--devurl", `code:${port}:code-server`], {
-    stdio: "ignore",
     shell: false,
   })
   return new Promise((res, rej) => {
