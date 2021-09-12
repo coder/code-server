@@ -1,0 +1,94 @@
+name: Docs preview
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: write
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+jobs:
+  preview:
+    name: Docs preview
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.1
+
+      - name: Checkout m
+        uses: actions/checkout@v2
+        with:
+          repository: cdr/m
+          ref: refs/heads/master
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+          submodules: true
+          fetch-depth: 0
+
+      - name: Install Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 12.x
+
+      - name: Cache Node Modules
+        uses: actions/cache@v2
+        with:
+          path: "/node_modules"
+          key: node-${{ hashFiles('yarn.lock') }}
+
+      - name: Create Deployment
+        id: deployment
+        run: ./ci/scripts/github_deployment.sh create
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOY_ENVIRONMENT: codercom-preview-docs
+
+      - name: Deploy Preview to Vercel
+        id: preview
+        run: ./ci/scripts/deploy_vercel.sh
+        env:
+          VERCEL_ORG_ID: team_tGkWfhEGGelkkqUUm9nXq17r
+          VERCEL_PROJECT_ID: QmZRucMRh3GFk1817ZgXjRVuw5fhTspHPHKct3JNQDEPGd
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          CODE_SERVER_DOCS_MAIN_BRANCH: ${{ github.event.pull_request.head.sha }}
+
+      - name: Install node_modules
+        run: yarn install
+
+      - name: Check docs
+        run: yarn ts-node ./product/coder.com/site/scripts/checkDocs.ts
+        env:
+          BASE_URL: ${{ steps.preview.outputs.url }}
+
+      - name: Update Deployment
+        # If we don't specify always, it won't run this check if failed.
+        # This means the deployment would be stuck pending.
+        if: always()
+        run: ./ci/scripts/github_deployment.sh update
+        env:
+          GITHUB_DEPLOYMENT: ${{ steps.deployment.outputs.id }}
+          GITHUB_TOKEN: ${{ github.token }}
+          DEPLOY_STATUS: ${{ steps.preview.outcome }}
+          DEPLOY_URL: ${{ steps.preview.outputs.url }}
+
+      - name: Comment Credentials
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: always()
+        with:
+          header: codercom-preview-docs
+          message: |
+            ✨ Coder.com for PR #${{ github.event.number }} deployed! It will be updated on every commit.
+
+            * _Host_: ${{ steps.preview.outputs.url }}/docs/code-server
+            * _Last deploy status_: ${{ steps.preview.outcome }}
+            * _Commit_: ${{ github.event.pull_request.head.sha }}
+            * _Workflow status_: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}

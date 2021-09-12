@@ -30,7 +30,7 @@ There are three ways to get started:
    automates most of the process. The script uses the system package manager if
    possible.
 2. Manually [installing
-   code-server](https://coder.com/docs/code-server/v3.11.1/install)
+   code-server](https://coder.com/docs/code-server/latest/install)
 3. Using our one-click buttons and guides to [deploy code-server to a cloud
    provider](https://github.com/cdr/deploy-code-server) ⚡
 
@@ -51,20 +51,20 @@ When done, the install script prints out instructions for running and starting
 code-server.
 
 We also have an in-depth [setup and
-configuration](https://coder.com/docs/code-server/v3.11.1/guide) guide.
+configuration](https://coder.com/docs/code-server/latest/guide) guide.
 
 ## TLS and authentication (beta)
 
-To add TLS and authentication out of the box, use [code-server --link](https://coder.com/docs/code-server/v3.11.0/link).
+To add TLS and authentication out of the box, use [code-server --link](https://coder.com/docs/code-server/latest/link).
 
 ## Questions?
 
 See answers to [frequently asked
-questions](https://coder.com/docs/code-server/v3.11.1/FAQ).
+questions](https://coder.com/docs/code-server/latest/FAQ).
 
 ## Want to help?
 
-See [Contributing](https://coder.com/docs/code-server/v3.11.1/CONTRIBUTING) for
+See [Contributing](https://coder.com/docs/code-server/latest/CONTRIBUTING) for
 details.
 
 ## Hiring

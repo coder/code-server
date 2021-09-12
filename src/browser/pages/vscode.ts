@@ -24,13 +24,13 @@ type NlsConfiguration = {
  * Helper function to create the path to the bundle
  * for getNlsConfiguration.
  */
-export function createBundlePath(_resolvedLanguagePackCoreLocation: string, bundle: string) {
+export function createBundlePath(_resolvedLanguagePackCoreLocation: string | undefined, bundle: string) {
   // NOTE@jsjoeio - this comment was here before me
   // Refers to operating systems that use a different path separator.
   // Probably just Windows but we're not sure if "/" breaks on Windows
   // so we'll leave it alone for now.
   // FIXME: Only works if path separators are /.
-  return _resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
+  return (_resolvedLanguagePackCoreLocation || "") + "/" + bundle.replace(/\//g, "!") + ".nls.json"
 }
 
 /**
@@ -72,20 +72,22 @@ export function getNlsConfiguration(_document: Document, base: string) {
 
     type LoadBundleCallback = (_: undefined, result?: string) => void
 
-    nlsConfig.loadBundle = (bundle: string, _language: string, cb: LoadBundleCallback): void => {
+    nlsConfig.loadBundle = async (bundle: string, _language: string, cb: LoadBundleCallback): Promise<void> => {
       const result = bundles[bundle]
+
       if (result) {
         return cb(undefined, result)
       }
-      // FIXME: Only works if path separators are /.
-      const path = createBundlePath(nlsConfig._resolvedLanguagePackCoreLocation || "", bundle)
-      fetch(`${base}/vscode/resource/?path=${encodeURIComponent(path)}`)
-        .then((response) => response.json())
-        .then((json) => {
-          bundles[bundle] = json
-          cb(undefined, json)
-        })
-        .catch(cb)
+
+      try {
+        const path = createBundlePath(nlsConfig._resolvedLanguagePackCoreLocation, bundle)
+        const response = await fetch(`${base}/vscode/resource/?path=${encodeURIComponent(path)}`)
+        const json = await response.json()
+        bundles[bundle] = json
+        return cb(undefined, json)
+      } catch (error) {
+        return cb(error)
+      }
     }
   }
 

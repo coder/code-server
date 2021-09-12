@@ -12,6 +12,8 @@
   - [Changelog](#changelog)
 - [Releases](#releases)
   - [Publishing a release](#publishing-a-release)
+- [Documentation](#documentation)
+  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -156,3 +158,16 @@ If you're the current release manager, follow these steps:
 1. Update the AUR package. Instructions for updating the AUR package are at
    [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 1. Wait for the npm package to be published.
+
+## Documentation
+
+### Troubleshooting
+
+Our docs are hosted on [Vercel](https://vercel.com/). Vercel only shows logs in realtime, which means you need to have the logs open in one tab and reproduce your error in another tab. Since our logs are private to Coder the organization, you can only follow these steps if you're a Coder employee. Ask a maintainer for help if you need it.
+
+Taking a real scenario, let's say you wanted to troubleshoot [this docs change](https://github.com/cdr/code-server/pull/4042). Here is how you would do it:
+
+1. Go to https://vercel.com/codercom/codercom
+2. Click "View Function Logs"
+3. In a separate tab, open the preview link from github-actions-bot
+4. Now look at the function logs and see if there are errors in the logs
