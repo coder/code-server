@@ -17,11 +17,13 @@ You can use code server to collaborate with other developers in real time.
 Duckly uses an extension to provide real time sharing features
 
 1. Install the Duckly extension from OpenVSX on `code-server`.
+
 ```bash
 SERVICE_URL=https://open-vsx.org/vscode/gallery \
   ITEM_URL=https://open-vsx.org/vscode/item \
   code-server --install-extension gitduck.code-streaming
 ```
+
 2. Refresh you `code-server` window. You should now be able to see the Duckly extension.
 
 ### Sharing with Duckly
