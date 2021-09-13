@@ -524,3 +524,12 @@ export function escapeHtml(unsafe: string): string {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;")
 }
+
+/**
+ * A helper function which returns a boolean indicating whether
+ * the given error is a NodeJS.ErrnoException by checking if
+ * it has a .code property.
+ */
+export function isNodeJSErrnoException(error: unknown): error is NodeJS.ErrnoException {
+  return error instanceof Error && (error as NodeJS.ErrnoException).code !== undefined
+}

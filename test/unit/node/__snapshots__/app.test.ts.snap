@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handleServerError should log an error if resolved is true 1`] = `"Cannot read property 'handle' of undefined"`;
