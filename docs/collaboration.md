@@ -1,6 +1,6 @@
 # Collaboration
 
-You can use code server to collaborate with other developers in real time.
+With third-party extensions, you can use code-server to collaborate with other developers in real time.
 
 ## Code sharing using Duckly
 
@@ -28,4 +28,4 @@ SERVICE_URL=https://open-vsx.org/vscode/gallery \
 
 ### Sharing with Duckly
 
-As `code-server` is based on VScode, you can follow the steps described on Duckly's [Pair programming with VS Code](https://duckly.com/tools/vscode) page and skip the installation step.
+As `code-server` is based on VS Code, you can follow the steps described on Duckly's [Pair programming with VS Code](https://duckly.com/tools/vscode) page and skip the installation step.
