@@ -6,7 +6,8 @@ coverage:
   precision: 2
   round: down
   range: "40...70"
-  patch: off
+  status:
+    patch: off
 
 parsers:
   gcov:
