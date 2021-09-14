@@ -224,7 +224,7 @@ alternative](https://hub.docker.com/r/linuxserver/code-server).
 
 ## Helm
 
-You can install code-server via [Helm](https://github.com/cdr/code-server/blob/main/ci/helm-chart/README.md).
+You can install code-server using the [Helm package manager](https://coder.com/docs/code-server/latest/helm).
 
 ## Windows
 

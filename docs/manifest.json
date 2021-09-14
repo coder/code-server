@@ -23,6 +23,11 @@
           "title": "npm",
           "description": "How to install code-server using npm or yarn",
           "path": "./npm.md"
+        },
+        {
+          "title": "Helm",
+          "description": "How to install code-server using the Helm package manager",
+          "path": "./helm.md"
         }
       ]
     },
