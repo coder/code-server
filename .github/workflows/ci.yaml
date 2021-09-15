@@ -108,20 +108,21 @@ jobs:
         with:
           node-version: "14"
 
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v2
-        with:
-          path: |
-            "**/node_modules"
-            "**/vendor/modules"
-            "**/vendor/modules/code-oss-dev/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      # TODO@Teffen investigate why this omits code-oss-dev/node_modules
+      # - name: Fetch dependencies from cache
+      #   id: cache-yarn
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       "**/node_modules"
+      #       "**/vendor/modules"
+      #       "**/vendor/modules/code-oss-dev/node_modules"
+      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
+      #     restore-keys: |
+      #       yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        # if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
