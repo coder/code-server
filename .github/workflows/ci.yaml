@@ -112,14 +112,16 @@ jobs:
         id: cache-yarn
         uses: actions/cache@v2
         with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          path: |
+            "**/node_modules"
+            "**/vendor/modules"
+            "**/vendor/modules/code-oss-dev/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
           restore-keys: |
             yarn-build-
 
       - name: Install dependencies
-        # TODO@Teffen investigate why this never matches the cache.
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
