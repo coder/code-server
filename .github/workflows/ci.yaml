@@ -118,7 +118,8 @@ jobs:
             yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        # TODO@Teffen investigate why this never matches the cache.
+        # if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
