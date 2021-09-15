@@ -85,16 +85,16 @@
     "vscode:prepublish": "npm run compile"
   },
   "dependencies": {
-    "node-fetch": "2.6.1",
-    "uuid": "8.1.0",
-    "vscode-extension-telemetry": "0.1.7",
+    "node-fetch": "2.6.2",
+    "uuid": "8.3.2",
+    "vscode-extension-telemetry": "0.3.2",
     "vscode-nls": "^4.1.2",
     "vscode-tas-client": "^0.1.22"
   },
   "devDependencies": {
     "@types/node": "14.x",
     "@types/node-fetch": "^2.5.7",
-    "@types/uuid": "8.0.0"
+    "@types/uuid": "8.3.1"
   },
   "resolutions": {
     "axios": "^0.21.2"

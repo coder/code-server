@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@iktakahiro/markdown-it-katex": "https://github.com/mjbvz/markdown-it-katex.git",
-    "@types/markdown-it": "^0.0.0",
+    "@types/markdown-it": "^0.0.9",
     "markdown-it": "^12.0.4",
     "markdown-it-emoji": "^2.0.0"
   },

@@ -32,9 +32,9 @@
   ],
   "dependencies": {
     "jsonc-parser": "^2.2.1",
-    "semver": "5.5.1",
+    "semver": "5.7.1",
     "typescript-vscode-sh-plugin": "^0.7.3",
-    "vscode-extension-telemetry": "0.1.7",
+    "vscode-extension-telemetry": "0.3.2",
     "vscode-nls": "^4.1.1"
   },
   "devDependencies": {
