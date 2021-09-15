@@ -12,6 +12,7 @@ vendor/modules
 node-*
 /plugins
 /lib/coder-cloud-agent
+/lib/linkup
 .home
 coverage
 **/.DS_Store
