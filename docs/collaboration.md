@@ -34,9 +34,9 @@ As `code-server` is based on VS Code, you can follow the steps described on Duck
 
 [CodeTogether](https://www.codetogether.com/) is another service with cross-platform live collaborative features:
 
-- sharing ports
-- shared read/write terminals
-- joining via web browser or another IDE
+- Sharing ports,
+- Sharing, read/write terminals,
+- Joining via web browser or another IDE.
 
 However, some of these are [paid options](https://www.codetogether.com/pricing/).
 
