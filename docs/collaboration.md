@@ -58,4 +58,4 @@ However, some of these are [paid options](https://www.codetogether.com/pricing/)
 
    Or you could add a value in code-server's [config file](https://coder.com/docs/code-server/v3.11.1/FAQ#how-does-the-config-file-work).
 
-3. Refresh code-server and navigate to the CodeTogether icon in the sidebar to start collaborating.
+3. Refresh code-server and navigate to the CodeTogether icon in the sidebar to host or join a coding session.
