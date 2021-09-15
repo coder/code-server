@@ -29,3 +29,33 @@ SERVICE_URL=https://open-vsx.org/vscode/gallery \
 ### Sharing with Duckly
 
 As `code-server` is based on VS Code, you can follow the steps described on Duckly's [Pair programming with VS Code](https://duckly.com/tools/vscode) page and skip the installation step.
+
+## Code sharing with CodeTogether
+
+[CodeTogether](https://www.codetogether.com/) is another service with cross-platform live collaborative features:
+
+- Sharing ports,
+- Sharing, read/write terminals,
+- Joining via web browser or another IDE.
+
+However, some of these are [paid options](https://www.codetogether.com/pricing/).
+
+### Installing the CodeTogether extension
+
+1. Install the CodeTogether extension from OpenVSX on `code-server`.
+
+   ```sh
+   SERVICE_URL=https://open-vsx.org/vscode/gallery \
+     ITEM_URL=https://open-vsx.org/vscode/item \
+     code-server --install-extension genuitecllc.codetogether
+   ```
+
+2. CodeTogether requires VS Code's proposed API to run. Start code-server with the following flag:
+
+   ```sh
+   code-server --enable-proposed-api genuitecllc.codetogether
+   ```
+
+   Another option would be to add a value in code-server's [config file](https://coder.com/docs/code-server/v3.11.1/FAQ#how-does-the-config-file-work).
+
+3. Refresh code-server and navigate to the CodeTogether icon in the sidebar to host or join a coding session.
