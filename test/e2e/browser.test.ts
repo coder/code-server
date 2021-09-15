@@ -8,7 +8,7 @@ describe("browser", true, () => {
       firefox: "Firefox",
       webkit: "Safari",
     }
-    const userAgent = await codeServerPage.page.evaluate("navigator.userAgent")
+    const userAgent = await codeServerPage.page.evaluate(() => navigator.userAgent)
 
     expect(userAgent).toContain(displayNames[browserName])
   })

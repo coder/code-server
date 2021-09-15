@@ -177,6 +177,8 @@ export class CodeServerPage {
    * Reload until both checks pass
    */
   async reloadUntilEditorIsReady() {
+    this.codeServer.logger.debug("Waiting for editor to be ready...")
+
     const editorIsVisible = await this.isEditorVisible()
     const editorIsConnected = await this.isConnected()
     let reloadCount = 0
@@ -199,25 +201,36 @@ export class CodeServerPage {
       }
       await this.page.reload()
     }
+
+    this.codeServer.logger.debug("Editor is ready!")
   }
 
   /**
    * Checks if the editor is visible
    */
   async isEditorVisible() {
+    this.codeServer.logger.debug("Waiting for editor to be visible...")
     // Make sure the editor actually loaded
     await this.page.waitForSelector(this.editorSelector)
-    return await this.page.isVisible(this.editorSelector)
+    const visible = await this.page.isVisible(this.editorSelector)
+
+    this.codeServer.logger.debug(`Editor is ${visible ? "not visible" : "visible"}!`)
+
+    return visible
   }
 
   /**
    * Checks if the editor is visible
    */
   async isConnected() {
+    this.codeServer.logger.debug("Waiting for network idle...")
+
     await this.page.waitForLoadState("networkidle")
 
     const host = new URL(await this.codeServer.address()).host
-    const hostSelector = `[title="Editing on ${host}"]`
+    // NOTE: This seems to be pretty brittle between version changes.
+    const hostSelector = `[aria-label="remote  ${host}"]`
+    this.codeServer.logger.debug(`Waiting selector: ${hostSelector}`)
     await this.page.waitForSelector(hostSelector)
 
     return await this.page.isVisible(hostSelector)
