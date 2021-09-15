@@ -61,6 +61,7 @@ EOF
     rsync node_modules/ "$RELEASE_PATH/node_modules"
     mkdir -p "$RELEASE_PATH/lib"
     rsync ./lib/coder-cloud-agent "$RELEASE_PATH/lib"
+    rsync ./lib/linkup "$RELEASE_PATH/lib"
   fi
 }
 

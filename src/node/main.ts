@@ -8,6 +8,7 @@ import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
+import { startLink } from "./link"
 import { register } from "./routes"
 import { humanPath, isFile, open } from "./util"
 
@@ -127,6 +128,15 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
   if (args.link) {
     await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
     logger.info("  - Connected to cloud agent")
+  }
+
+  try {
+    const port = parseInt(serverAddress.split(":").pop() as string, 10)
+    startLink(port).catch((ex) => {
+      logger.debug("Link daemon exited!", field("error", ex))
+    })
+  } catch (ex) {
+    logger.debug("Failed to start link daemon!", ex)
   }
 
   if (args.enable && args.enable.length > 0) {
