@@ -59,14 +59,20 @@ get_nfpm_arch() {
 release_nfpm() {
   local nfpm_config
 
+  export NFPM_ARCH
+
   PKG_FORMAT="deb"
   NFPM_ARCH="$(get_nfpm_arch)"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  echo "Building deb"
+  echo "$nfpm_config" | head --lines=4
   nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_${NFPM_ARCH}.deb"
 
   PKG_FORMAT="rpm"
   NFPM_ARCH="$(get_nfpm_arch)"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  echo "Building rpm"
+  echo "$nfpm_config" | head --lines=4
   nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$NFPM_ARCH.rpm"
 }
 
