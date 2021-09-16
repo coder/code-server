@@ -20,6 +20,7 @@
 Current maintainers:
 
 - @code-asher
+- @TeffenEllis
 - @oxy
 - @jsjoeio
 
