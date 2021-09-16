@@ -59,6 +59,8 @@ get_nfpm_arch() {
 release_nfpm() {
   local nfpm_config
 
+  export NFPM_ARCH
+
   PKG_FORMAT="deb"
   NFPM_ARCH="$(get_nfpm_arch)"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
