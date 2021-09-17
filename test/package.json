@@ -19,6 +19,7 @@
     "wtfnode": "^0.9.0"
   },
   "resolutions": {
-    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9"
+    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9",
+    "set-value": "^4.0.1"
   }
 }
