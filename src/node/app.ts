@@ -6,6 +6,7 @@ import http from "http"
 import * as httpolyglot from "httpolyglot"
 import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
+import { isNodeJSErrnoException } from "./util"
 import { handleUpgrade } from "./wsRouter"
 
 /**
@@ -33,21 +34,14 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
       resolve2()
     }
     server.on("error", (err) => {
-      if (!resolved) {
-        reject(err)
-      } else {
-        // Promise resolved earlier so this is an unrelated error.
-        util.logError(logger, "http server error", err)
-      }
+      handleServerError(resolved, err, reject)
     })
 
     if (args.socket) {
       try {
         await fs.unlink(args.socket)
-      } catch (error) {
-        if (error.code !== "ENOENT") {
-          logger.error(error.message)
-        }
+      } catch (error: any) {
+        handleArgsSocketCatchError(error)
       }
       server.listen(args.socket, resolve)
     } else {
@@ -69,10 +63,46 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
 export const ensureAddress = (server: http.Server): string => {
   const addr = server.address()
   if (!addr) {
-    throw new Error("server has no address") // NOTE@jsjoeio test this line
+    throw new Error("server has no address")
   }
   if (typeof addr !== "string") {
     return `http://${addr.address}:${addr.port}`
   }
-  return addr // NOTE@jsjoeio test this line
+  return addr
+}
+
+/**
+ * Handles error events from the server.
+ *
+ * If the outlying Promise didn't resolve
+ * then we reject with the error.
+ *
+ * Otherwise, we log the error.
+ *
+ * We extracted into a function so that we could
+ * test this logic more easily.
+ */
+export const handleServerError = (resolved: boolean, err: Error, reject: (err: Error) => void) => {
+  // Promise didn't resolve earlier so this means it's an error
+  // that occurs before the server can successfully listen.
+  // Possibly triggered by listening on an invalid port or socket.
+  if (!resolved) {
+    reject(err)
+  } else {
+    // Promise resolved earlier so this is an unrelated error.
+    util.logError(logger, "http server error", err)
+  }
+}
+
+/**
+ * Handles the error that occurs in the catch block
+ * after we try fs.unlink(args.socket).
+ *
+ * We extracted into a function so that we could
+ * test this logic more easily.
+ */
+export const handleArgsSocketCatchError = (error: any) => {
+  if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
+    logger.error(error.message ? error.message : error)
+  }
 }
