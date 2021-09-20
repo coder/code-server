@@ -3,7 +3,14 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance, splitOnFirstEquals } from "../../../src/node/cli"
+import {
+  Args,
+  parse,
+  setDefaults,
+  shouldOpenInExistingInstance,
+  shouldRunVsCodeCli,
+  splitOnFirstEquals,
+} from "../../../src/node/cli"
 import { tmpdir } from "../../../src/node/constants"
 import { paths } from "../../../src/node/util"
 
@@ -461,5 +468,50 @@ describe("splitOnFirstEquals", () => {
     const actual = splitOnFirstEquals(testStr)
     const expected = ["auth"]
     expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+})
+
+describe("shouldRunVsCodeCli", () => {
+  it("should return false if no 'extension' related args passed in", () => {
+    const args = {
+      _: [],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = false
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'list-extensions' passed in", () => {
+    const args = {
+      _: [],
+      ["list-extensions"]: true,
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'install-extension' passed in", () => {
+    const args = {
+      _: [],
+      ["install-extension"]: ["hello.world"],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'uninstall-extension' passed in", () => {
+    const args = {
+      _: [],
+      ["uninstall-extension"]: ["hello.world"],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
   })
 })
