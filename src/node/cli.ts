@@ -626,7 +626,20 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
 }
 
 export const shouldRunVsCodeCli = (args: Args): boolean => {
-  return !!args["list-extensions"] || !!args["install-extension"] || !!args["uninstall-extension"]
+  // Create new interface with only these keys
+  // Pick<Args, "list-extensions" | "install-extension" | "uninstall-extension">
+  // Get the keys of new interface
+  // keyof ...
+  // Turn that into an array
+  // Array<...>
+  type ExtensionArgs = Array<keyof Pick<Args, "list-extensions" | "install-extension" | "uninstall-extension">>
+  const extensionRelatedArgs: ExtensionArgs = ["list-extensions", "install-extension", "uninstall-extension"]
+
+  const argKeys = Object.keys(args)
+
+  // If any of the extensionRelatedArgs are included in args
+  // then we don't want to run the vscode cli
+  return extensionRelatedArgs.some((arg) => argKeys.includes(arg))
 }
 
 /**
