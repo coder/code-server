@@ -3,9 +3,18 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance, splitOnFirstEquals } from "../../../src/node/cli"
+import {
+  Args,
+  bindAddrFromArgs,
+  parse,
+  setDefaults,
+  shouldOpenInExistingInstance,
+  shouldRunVsCodeCli,
+  splitOnFirstEquals,
+} from "../../../src/node/cli"
 import { tmpdir } from "../../../src/node/constants"
 import { paths } from "../../../src/node/util"
+import { useEnv } from "../../utils/helpers"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
@@ -461,5 +470,175 @@ describe("splitOnFirstEquals", () => {
     const actual = splitOnFirstEquals(testStr)
     const expected = ["auth"]
     expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+})
+
+describe("shouldRunVsCodeCli", () => {
+  it("should return false if no 'extension' related args passed in", () => {
+    const args = {
+      _: [],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = false
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'list-extensions' passed in", () => {
+    const args = {
+      _: [],
+      ["list-extensions"]: true,
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'install-extension' passed in", () => {
+    const args = {
+      _: [],
+      ["install-extension"]: ["hello.world"],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'uninstall-extension' passed in", () => {
+    const args = {
+      _: [],
+      ["uninstall-extension"]: ["hello.world"],
+    }
+    const actual = shouldRunVsCodeCli(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+})
+
+describe("bindAddrFromArgs", () => {
+  it("should return the bind address", () => {
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = addr
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the bind-address if set in args", () => {
+    const args = {
+      _: [],
+      ["bind-addr"]: "localhost:3000",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the host if set in args", () => {
+    const args = {
+      _: [],
+      ["host"]: "coder",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "coder",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use process.env.PORT if set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 8000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
+  it("should set port if in args", () => {
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the args.port over process.env.PORT if both set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
   })
 })
