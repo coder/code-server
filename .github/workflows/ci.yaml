@@ -244,10 +244,14 @@ jobs:
   # so we just build with "native"/x86_64 node, then download arm64/armv7l node
   # and then put it in our release. We can't smoke test the cross build this way,
   # but this means we don't need to maintain a self-hosted runner!
+
+  # NOTE@jsjoeio:
+  # We used to use 16.04 until GitHub deprecated it on September 20, 2021
+  # See here: https://github.com/actions/virtual-environments/pull/3862/files
   package-linux-cross:
     name: Linux cross-compile builds
     needs: build
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     timeout-minutes: 15
     strategy:
       matrix:
