@@ -594,7 +594,11 @@ interface Addr {
   port: number
 }
 
-function bindAddrFromArgs(addr: Addr, args: Args): Addr {
+/**
+ * This function creates the bind address
+ * using the CLI args.
+ */
+export function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   addr = { ...addr }
   if (args["bind-addr"]) {
     addr = parseBindAddr(args["bind-addr"])
@@ -626,13 +630,11 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
 }
 
 export const shouldRunVsCodeCli = (args: Args): boolean => {
-  // Create new interface with only these keys
-  // Pick<Args, "list-extensions" | "install-extension" | "uninstall-extension">
-  // Get the keys of new interface
-  // keyof ...
+  // Create new interface with only Arg keys
+  // keyof Args
   // Turn that into an array
   // Array<...>
-  type ExtensionArgs = Array<keyof Pick<Args, "list-extensions" | "install-extension" | "uninstall-extension">>
+  type ExtensionArgs = Array<keyof Args>
   const extensionRelatedArgs: ExtensionArgs = ["list-extensions", "install-extension", "uninstall-extension"]
 
   const argKeys = Object.keys(args)

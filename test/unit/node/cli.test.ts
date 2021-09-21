@@ -5,6 +5,7 @@ import * as os from "os"
 import * as path from "path"
 import {
   Args,
+  bindAddrFromArgs,
   parse,
   setDefaults,
   shouldOpenInExistingInstance,
@@ -13,6 +14,7 @@ import {
 } from "../../../src/node/cli"
 import { tmpdir } from "../../../src/node/constants"
 import { paths } from "../../../src/node/util"
+import { useEnv } from "../../utils/helpers"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
@@ -513,5 +515,130 @@ describe("shouldRunVsCodeCli", () => {
     const expected = true
 
     expect(actual).toBe(expected)
+  })
+})
+
+describe("bindAddrFromArgs", () => {
+  it("should return the bind address", () => {
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = addr
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the bind-address if set in args", () => {
+    const args = {
+      _: [],
+      ["bind-addr"]: "localhost:3000",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the host if set in args", () => {
+    const args = {
+      _: [],
+      ["host"]: "coder",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "coder",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use process.env.PORT if set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 8000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
+  it("should set port if in args", () => {
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the args.port over process.env.PORT if both set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
   })
 })
