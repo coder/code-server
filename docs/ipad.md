@@ -3,14 +3,14 @@
 # iPad
 
 - [Using the code-server progressive web app (PWA)](#using-the-code-server-progressive-web-app-pwa)
-- [Access code-server with a self-signed certificate on an iPad](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
-  - [Certificate requirements](#certificate-requirements)
-  - [Sharing a self-signed certificate with an iPad](#sharing-a-self-signed-certificate-with-an-ipad)
 - [Access code-server using Servediter](#access-code-server-using-servediter)
 - [Raspberry Pi USB-C network](#raspberry-pi-usb-c-network)
 - [Recommendations](#recommendations)
 - [Known issues](#known-issues)
   - [Workaround for issue with `ctrl+c` not stopping a running process in the terminal](#workaround-for-issue-with-ctrlc-not-stopping-a-running-process-in-the-terminal)
+- [Access code-server with a self-signed certificate on an iPad](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
+  - [Certificate requirements](#certificate-requirements)
+  - [Sharing a self-signed certificate with an iPad](#sharing-a-self-signed-certificate-with-an-ipad)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
