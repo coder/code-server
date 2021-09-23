@@ -49,7 +49,7 @@ bundle_code_server() {
   {
     "commit": "$(git rev-parse HEAD)",
     "scripts": {
-      "postinstall": "./postinstall.sh"
+      "postinstall": "sh ./postinstall.sh"
     }
   }
 EOF
