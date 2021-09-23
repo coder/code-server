@@ -111,15 +111,9 @@ and tricks helpful:
     - In general, expect to edit your keyboard shortcuts
   - There's no escape key by default on the Magic Keyboard, so most users set
     the globe key to be an escape key
-- Trackpad scrolling does not work
+- Trackpad scrolling does not work on iPadOS < 145
   ([#1455](https://github.com/cdr/code-server/issues/1455))
-  - Bug tracking of a WebKit fix
-    [here](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
-  - Tracking of [WebKit patch](https://trac.webkit.org/changeset/270712/webkit)
-  - Alternatives:
-    - Install line-jump extension and use keyboard to navigate by jumping large
-      amount of lines
-    - Use touch scrolling
+  - [WebKit fix](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
 - `ctrl+c` does not stop a long-running process in the browser
   - Tracking upstream issue here:
     [#114009](https://github.com/microsoft/vscode/issues/114009)
