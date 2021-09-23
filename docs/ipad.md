@@ -114,6 +114,7 @@ and tricks helpful:
 - Trackpad scrolling does not work on iPadOS < 145
   ([#1455](https://github.com/cdr/code-server/issues/1455))
   - [WebKit fix](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
+- Keyboard may lose focus in Safari / split view [#4182](https://github.com/cdr/code-server/issues/4182)
 - Terminal text does not appear by default [#3824](https://github.com/cdr/code-server/issues/3824)
 - `ctrl+c` does not stop a long-running process in the browser
   - Tracking upstream issue here:
