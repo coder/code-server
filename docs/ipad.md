@@ -104,7 +104,6 @@ and tricks helpful:
   process](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
 - Keyboard issues:
   - The keyboard disappear sometimes
-    [#1313](https://github.com/cdr/code-server/issues/1313),
     [#979](https://github.com/cdr/code-server/issues/979)
   - Some expectations regarding shortcuts may not be met:
     - `cmd + n` opens new browser window instead of new file, and it's difficult
