@@ -3,6 +3,7 @@
 # Maintaining
 
 - [Maintaining](#maintaining)
+  - [Team](#team)
   - [Workflow](#workflow)
     - [Milestones](#milestones)
     - [Triage](#triage)
@@ -18,14 +19,18 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+This document is meant to serve current and future maintainers of code-server,
+as well as share our workflow for maintaining the project.
+
+## Team
+
 Current maintainers:
 
 - @code-asher
 - @TeffenEllis
 - @jsjoeio
 
-This document is meant to serve current and future maintainers of code-server,
-as well as share our workflow for maintaining the project.
+Occassionally, other Coder employees may step in time to time to assist with code-server.
 
 ## Workflow
 
