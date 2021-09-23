@@ -2,6 +2,9 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Maintaining
 
+- [Team](#team)
+  - [Onboarding](#onboarding)
+  - [Offboarding](#offboarding)
 - [Workflow](#workflow)
   - [Milestones](#milestones)
   - [Triage](#triage)
@@ -12,20 +15,43 @@
   - [Changelog](#changelog)
 - [Releases](#releases)
   - [Publishing a release](#publishing-a-release)
+    - [AUR](#aur)
+    - [Docker](#docker)
+    - [Homebrew](#homebrew)
+    - [npm](#npm)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+This document is meant to serve current and future maintainers of code-server,
+as well as share our workflow for maintaining the project.
+
+## Team
+
 Current maintainers:
 
 - @code-asher
 - @TeffenEllis
-- @oxy
 - @jsjoeio
 
-This document is meant to serve current and future maintainers of code-server,
-as well as share our workflow for maintaining the project.
+Occassionally, other Coder employees may step in time to time to assist with code-server.
+
+### Onboarding
+
+To onboard a new maintainer to the project, please make sure to do the following:
+
+- [ ] Add to [cdr/code-server-reviewers](https://github.com/orgs/cdr/teams/code-server-reviewers)
+- [ ] Add as Admin under [Repository Settings > Access](https://github.com/cdr/code-server/settings/access)
+- [ ] Add to [npm Coder org](https://www.npmjs.com/org/coder)
+- [ ] Add as [AUR maintainer](https://aur.archlinux.org/packages/code-server/) (talk to Colin)
+- [ ] Introduce to community via Discussion (see [example](https://github.com/cdr/code-server/discussions/3955))
+
+### Offboarding
+
+Very similar to Onboarding but Remove maintainer from all teams and revoke access. Please also do the following:
+
+- [ ] Write farewell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
 
 ## Workflow
 
@@ -138,6 +164,7 @@ If you're the current release manager, follow these steps:
 
 ### Publishing a release
 
+1. Create a release branch called `v0.0.0` but replace with new version
 1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
 1. GitHub Actions will generate the `npm-package`, `release-packages` and
    `release-images` artifacts. You do not have to wait for this step to complete
@@ -159,6 +186,33 @@ If you're the current release manager, follow these steps:
 1. Update the AUR package. Instructions for updating the AUR package are at
    [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 1. Wait for the npm package to be published.
+
+#### AUR
+
+We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/cdr/code-server-aur).
+
+#### Docker
+
+We publish code-server as a Docker image [here](https://registry.hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
+
+This is currently automated with the release process.
+
+#### Homebrew
+
+We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
+
+This is currently automated with the release process (but may fail occassionally). If it does, run this locally:
+
+```shell
+# Replace VERSION with version
+brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
+```
+
+#### npm
+
+We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
+
+This is currently automated with the release process.
 
 ## Documentation
 
