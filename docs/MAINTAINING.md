@@ -51,7 +51,7 @@ To onboard a new maintainer to the project, please make sure to do the following
 
 Very similar to Onboarding but Remove maintainer from all teams and revoke access. Please also do the following:
 
-- [ ] Write fairwell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
+- [ ] Write farewell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
 
 ## Workflow
 
@@ -164,6 +164,7 @@ If you're the current release manager, follow these steps:
 
 ### Publishing a release
 
+1. Create a release branch called `v0.0.0` but replace with new version
 1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
 1. GitHub Actions will generate the `npm-package`, `release-packages` and
    `release-images` artifacts. You do not have to wait for this step to complete
@@ -209,7 +210,7 @@ brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
 
 #### npm
 
-We publish code-server as an npm package [here](https://www.npmjs.com/package/code-server/v/latest).
+We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
 
 This is currently automated with the release process.
 
