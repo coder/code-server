@@ -1,9 +1,12 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # Maintaining
 
 - [Maintaining](#maintaining)
   - [Team](#team)
+    - [Onboarding](#onboarding)
+    - [Offboarding](#offboarding)
   - [Workflow](#workflow)
     - [Milestones](#milestones)
     - [Triage](#triage)
@@ -31,6 +34,22 @@ Current maintainers:
 - @jsjoeio
 
 Occassionally, other Coder employees may step in time to time to assist with code-server.
+
+### Onboarding
+
+To onboard a new maintainer to the project, please make sure to do the following:
+
+- [ ] Add to [cdr/code-server-reviewers](https://github.com/orgs/cdr/teams/code-server-reviewers)
+- [ ] Add as Admin under [Repository Settings > Access](https://github.com/cdr/code-server/settings/access)
+- [ ] Add to [npm Coder org](https://www.npmjs.com/org/coder)
+- [ ] Add as [AUR maintainer](https://aur.archlinux.org/packages/code-server/) (talk to Colin)
+- [ ] Introduce to community via Discussion (see [example](https://github.com/cdr/code-server/discussions/3955))
+
+### Offboarding
+
+Very similar to Onboarding but Remove maintainer from all teams and revoke access. Please also do the following:
+
+- [ ] Write fairwell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
 
 ## Workflow
 
