@@ -2,18 +2,19 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Maintaining
 
-- [Workflow](#workflow)
-  - [Milestones](#milestones)
-  - [Triage](#triage)
-  - [Project boards](#project-boards)
-- [Versioning](#versioning)
-- [Pull requests](#pull-requests)
-  - [Merge strategies](#merge-strategies)
-  - [Changelog](#changelog)
-- [Releases](#releases)
-  - [Publishing a release](#publishing-a-release)
-- [Documentation](#documentation)
-  - [Troubleshooting](#troubleshooting)
+- [Maintaining](#maintaining)
+  - [Workflow](#workflow)
+    - [Milestones](#milestones)
+    - [Triage](#triage)
+    - [Project boards](#project-boards)
+  - [Versioning](#versioning)
+  - [Pull requests](#pull-requests)
+    - [Merge strategies](#merge-strategies)
+    - [Changelog](#changelog)
+  - [Releases](#releases)
+    - [Publishing a release](#publishing-a-release)
+  - [Documentation](#documentation)
+    - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -21,7 +22,6 @@ Current maintainers:
 
 - @code-asher
 - @TeffenEllis
-- @oxy
 - @jsjoeio
 
 This document is meant to serve current and future maintainers of code-server,
