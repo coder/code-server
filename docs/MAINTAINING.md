@@ -1,24 +1,26 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 # Maintaining
 
-- [Maintaining](#maintaining)
-  - [Team](#team)
-    - [Onboarding](#onboarding)
-    - [Offboarding](#offboarding)
-  - [Workflow](#workflow)
-    - [Milestones](#milestones)
-    - [Triage](#triage)
-    - [Project boards](#project-boards)
-  - [Versioning](#versioning)
-  - [Pull requests](#pull-requests)
-    - [Merge strategies](#merge-strategies)
-    - [Changelog](#changelog)
-  - [Releases](#releases)
-    - [Publishing a release](#publishing-a-release)
-  - [Documentation](#documentation)
-    - [Troubleshooting](#troubleshooting)
+- [Team](#team)
+  - [Onboarding](#onboarding)
+  - [Offboarding](#offboarding)
+- [Workflow](#workflow)
+  - [Milestones](#milestones)
+  - [Triage](#triage)
+  - [Project boards](#project-boards)
+- [Versioning](#versioning)
+- [Pull requests](#pull-requests)
+  - [Merge strategies](#merge-strategies)
+  - [Changelog](#changelog)
+- [Releases](#releases)
+  - [Publishing a release](#publishing-a-release)
+    - [AUR](#aur)
+    - [Docker](#docker)
+    - [Homebrew](#homebrew)
+    - [npm](#npm)
+- [Documentation](#documentation)
+  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -183,6 +185,33 @@ If you're the current release manager, follow these steps:
 1. Update the AUR package. Instructions for updating the AUR package are at
    [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 1. Wait for the npm package to be published.
+
+#### AUR
+
+We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/cdr/code-server-aur).
+
+#### Docker
+
+We publish code-server as a Docker image [here](https://registry.hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
+
+This is currently automated with the release process.
+
+#### Homebrew
+
+We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
+
+This is currently automated with the release process (but may fail occassionally). If it does, run this locally:
+
+```shell
+# Replace VERSION with version
+brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
+```
+
+#### npm
+
+We publish code-server as an npm package [here](https://www.npmjs.com/package/code-server/v/latest).
+
+This is currently automated with the release process.
 
 ## Documentation
 
