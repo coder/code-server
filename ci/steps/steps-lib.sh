@@ -10,9 +10,9 @@
 is_env_var_set() {
   local name="${1:-}"
   if test -n "${!name:-}"; then
-    echo 0
+    return 0
   else
-    echo 1
+    return 1
   fi
 }
 
@@ -20,9 +20,9 @@ is_env_var_set() {
 directory_exists() {
   local dir="${1:-}"
   if [[ -d "${dir:-}" ]]; then
-    echo 0
+    return 0
   else
-    echo 1
+    return 1
   fi
 }
 
@@ -30,9 +30,9 @@ directory_exists() {
 file_exists() {
   local file="${1:-}"
   if test -f "${file:-}"; then
-    echo 0
+    return 0
   else
-    echo 1
+    return 1
   fi
 }
 
@@ -40,8 +40,8 @@ file_exists() {
 is_executable() {
   local file="${1:-}"
   if [ -f "${file}" ] && [ -r "${file}" ] && [ -x "${file}" ]; then
-    echo 0
+    return 0
   else
-    echo 1
+    return 1
   fi
 }

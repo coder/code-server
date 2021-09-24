@@ -10,13 +10,13 @@ main() {
   echo "Checking environment variables"
 
   # We need VERSION to bump the brew formula
-  if [[ $(is_env_var_set "VERSION") -eq 1 ]]; then
+  if is_env_var_set "VERSION"; then
     echo "VERSION is not set"
     exit 1
   fi
 
   # We need HOMEBREW_GITHUB_API_TOKEN to push up commits
-  if [[ $(is_env_var_set "HOMEBREW_GITHUB_API_TOKEN") -eq 1 ]]; then
+  if is_env_var_set "HOMEBREW_GITHUB_API_TOKEN"; then
     echo "HOMEBREW_GITHUB_API_TOKEN is not set"
     exit 1
   fi
@@ -29,14 +29,14 @@ main() {
   git clone https://github.com/cdrci/homebrew-core.git
 
   # Make sure the git clone step is successful
-  if [[ $(directory_exists "homebrew-core") -eq 1 ]]; then
+  if directory_exists "homebrew-core"; then
     echo "git clone failed. Cannot find homebrew-core directory."
     ls -la
     exit 1
   fi
 
   echo "Changing into homebrew-core directory"
-  cd homebrew-core && pwd
+  pushd homebrew-core && pwd
 
   echo "Adding Homebrew/homebrew-core"
   git remote add upstream https://github.com/Homebrew/homebrew-core.git
@@ -61,28 +61,31 @@ main() {
 
   # GIT_ASKPASS lets us use the password when pushing without revealing it in the process list
   # See: https://serverfault.com/a/912788
-  GIT_ASKPASS="$HOME/git-askpass.sh"
+  PATH_TO_GIT_ASKPASS="$HOME/git-askpass.sh"
   # Source: https://serverfault.com/a/912788
   # shellcheck disable=SC2016,SC2028
-  echo '#!/bin/sh\nexec echo "$HOMEBREW_GITHUB_API_TOKEN"' > "$GIT_ASKPASS"
+  echo 'echo $HOMEBREW_GITHUB_API_TOKEN' > "$PATH_TO_ASKPASS"
 
   # Make sure the git-askpass.sh file creation is successful
-  if [[ $(file_exists "git-askpass.sh") -eq 1 ]]; then
+  if file_exists "$PATH_TO_GIT_ASKPASS"; then
     echo "git-askpass.sh not found in $HOME."
     ls -la "$HOME"
     exit 1
   fi
 
   # Ensure it's executable since we just created it
-  chmod +x "$GIT_ASKPASS"
+  chmod +x "$PATH_TO_GIT_ASKPASS"
 
   # Make sure the git-askpass.sh file is executable
-  if [[ $(is_executable "$GIT_ASKPASS") -eq 1 ]]; then
-    echo "git-askpass.sh is not executable."
-    ls -la "$GIT_ASKPASS"
+  if is_executable "$PATH_TO_GIT_ASKPASS"; then
+    echo "$PATH_TO_GIT_ASKPASS is not executable."
+    ls -la "$PATH_TO_GIT_ASKPASS"
     exit 1
   fi
 
+  # Export the variables so git sees them
+  export HOMEBREW_GITHUB_API_TOKEN="$HOMEBREW_GITHUB_API_TOKEN"
+  export GIT_ASKPASS="$PATH_TO_ASKPASS"
   git push https://cdr-oss@github.com/cdr-oss/homebrew-core.git --all
 
   # Find the docs for bump-formula-pr here
@@ -98,10 +101,14 @@ main() {
   fi
 
   # Clean up and remove homebrew-core
-  cd ..
+  popd
   rm -rf homebrew-core
 
-  # TODO@jsjoeio - check that homebrew-core was removed
+  # Make sure homebrew-core is removed
+  if directory_exists "homebrew-core"; then
+    echo "rm -rf homebrew-core failed."
+    ls -la
+  fi
 }
 
 main "$@"
