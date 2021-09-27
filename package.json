@@ -71,6 +71,7 @@
     "typescript": "^4.1.3"
   },
   "resolutions": {
+    "ansi-regex": "^5.0.1",
     "normalize-package-data": "^3.0.0",
     "doctoc/underscore": "^1.13.1",
     "doctoc/**/trim": "^1.0.0",
