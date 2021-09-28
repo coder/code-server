@@ -502,7 +502,17 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
 }
 
-async function defaultConfigFile(): Promise<string> {
+/**
+ * Helper function to return the default config file.
+ *
+ * @returns The default config file:
+ *
+ * - bind-addr: 127.0.0.1:8080
+ * - auth: password
+ * - password: <generated-password>
+ * - cert: false
+ */
+export async function defaultConfigFile(): Promise<string> {
   return `bind-addr: 127.0.0.1:8080
 auth: password
 password: ${await generatePassword()}
