@@ -6,6 +6,7 @@ import * as path from "path"
 import {
   Args,
   bindAddrFromArgs,
+  defaultConfigFile,
   parse,
   setDefaults,
   shouldOpenInExistingInstance,
@@ -13,7 +14,7 @@ import {
   splitOnFirstEquals,
 } from "../../../src/node/cli"
 import { tmpdir } from "../../../src/node/constants"
-import { paths } from "../../../src/node/util"
+import { generatePassword, paths } from "../../../src/node/util"
 import { useEnv } from "../../utils/helpers"
 
 type Mutable<T> = {
@@ -640,5 +641,17 @@ describe("bindAddrFromArgs", () => {
 
     expect(actual).toStrictEqual(expected)
     resetValue()
+  })
+})
+
+describe("defaultConfigFile", () => {
+  it("should return the default config file as a string", async () => {
+    const password = await generatePassword()
+    const actual = defaultConfigFile(password)
+
+    expect(actual).toMatch(`bind-addr: 127.0.0.1:8080
+auth: password
+password: ${password}
+cert: false`)
   })
 })
