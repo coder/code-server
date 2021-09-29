@@ -656,6 +656,12 @@ export const shouldRunVsCodeCli = (args: Args): boolean => {
   return extensionRelatedArgs.some((arg) => argKeys.includes(arg))
 }
 
+/**
+ * Reads the socketPath which defaults to a temporary directory
+ * with another directory called vscode-ipc.
+ *
+ * If it can't read the path, it throws an error and returns undefined.
+ */
 export async function readSocketPath(): Promise<string | undefined> {
   try {
     return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
