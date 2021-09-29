@@ -50,7 +50,7 @@
     "@types/split2": "^3.2.0",
     "@types/tar-fs": "^2.0.0",
     "@types/tar-stream": "^2.1.0",
-    "@types/ws": "^7.2.6",
+    "@types/ws": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "audit-ci": "^4.0.0",
