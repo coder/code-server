@@ -667,6 +667,7 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
     return process.env.VSCODE_IPC_HOOK_CLI
   }
 
+  // TODO@jsjoeio - add test here
   const readSocketPath = async (): Promise<string | undefined> => {
     try {
       return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
