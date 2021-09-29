@@ -8,6 +8,7 @@ import {
   bindAddrFromArgs,
   defaultConfigFile,
   parse,
+  readSocketPath,
   setDefaults,
   shouldOpenInExistingInstance,
   shouldRunVsCodeCli,
@@ -653,5 +654,35 @@ describe("defaultConfigFile", () => {
 auth: password
 password: ${password}
 cert: false`)
+  })
+})
+
+describe.only("readSocketPath", () => {
+  const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+  const fileContents = "readSocketPath file contents"
+
+  beforeEach(async () => {
+    await fs.writeFile(vscodeIpcPath, fileContents)
+  })
+
+  afterEach(async () => {
+    await fs.rmdir(vscodeIpcPath, { recursive: true })
+  })
+
+  it.skip("should throw an error if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    // TODO@jsjoeio - implement
+    const p = await readSocketPath()
+    console.log(p)
+    expect(p).toThrowError("oops")
+  })
+  it.skip("should return undefined if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    const socketPath = await readSocketPath()
+    expect(socketPath).toBeUndefined()
+  })
+  it("should return the file contents", async () => {
+    const contents = await readSocketPath()
+    expect(contents).toBe(fileContents)
   })
 })
