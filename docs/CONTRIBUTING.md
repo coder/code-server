@@ -1,23 +1,21 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 # Contributing
 
-- [Contributing](#contributing)
-  - [Requirements](#requirements)
-  - [Creating pull requests](#creating-pull-requests)
-    - [Commits and commit history](#commits-and-commit-history)
-  - [Development workflow](#development-workflow)
-    - [Updates to VS Code](#updates-to-vs-code)
-    - [Build](#build)
-  - [Test](#test)
-    - [Unit tests](#unit-tests)
-    - [Script tests](#script-tests)
-    - [Integration tests](#integration-tests)
-    - [End-to-end tests](#end-to-end-tests)
-  - [Structure](#structure)
-    - [Modifications to VS Code](#modifications-to-vs-code)
-    - [Currently Known Issues](#currently-known-issues)
+- [Requirements](#requirements)
+- [Creating pull requests](#creating-pull-requests)
+  - [Commits and commit history](#commits-and-commit-history)
+- [Development workflow](#development-workflow)
+  - [Updates to VS Code](#updates-to-vs-code)
+  - [Build](#build)
+- [Test](#test)
+  - [Unit tests](#unit-tests)
+  - [Script tests](#script-tests)
+  - [Integration tests](#integration-tests)
+  - [End-to-end tests](#end-to-end-tests)
+- [Structure](#structure)
+  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
