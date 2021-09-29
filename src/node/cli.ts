@@ -656,6 +656,16 @@ export const shouldRunVsCodeCli = (args: Args): boolean => {
   return extensionRelatedArgs.some((arg) => argKeys.includes(arg))
 }
 
+export async function readSocketPath(): Promise<string | undefined> {
+  try {
+    return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
+  } catch (error) {
+    if (error.code !== "ENOENT") {
+      throw error
+    }
+  }
+  return undefined
+}
 /**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user
@@ -665,18 +675,6 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
   // Always use the existing instance if we're running from VS Code's terminal.
   if (process.env.VSCODE_IPC_HOOK_CLI) {
     return process.env.VSCODE_IPC_HOOK_CLI
-  }
-
-  // TODO@jsjoeio - add test here
-  const readSocketPath = async (): Promise<string | undefined> => {
-    try {
-      return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
-    } catch (error) {
-      if (error.code !== "ENOENT") {
-        throw error
-      }
-    }
-    return undefined
   }
 
   // If these flags are set then assume the user is trying to open in an
