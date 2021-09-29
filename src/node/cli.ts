@@ -4,7 +4,7 @@ import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
 import { Args as VsArgs } from "../../typings/ipc"
-import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, isNodeJSErrnoException, paths } from "./util"
 
 export enum Feature {
   /** Web socket compression. */
@@ -666,7 +666,7 @@ export async function readSocketPath(): Promise<string | undefined> {
   try {
     return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
   } catch (error) {
-    if (error.code !== "ENOENT") {
+    if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
       throw error
     }
   }
