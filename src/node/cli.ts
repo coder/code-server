@@ -663,6 +663,8 @@ export const shouldRunVsCodeCli = (args: Args): boolean => {
  * If it can't read the path, it throws an error and returns undefined.
  */
 export async function readSocketPath(): Promise<string | undefined> {
+  // TODO@jsjoeio - we should make this function pure and pass in the path
+  // to the file it reads
   try {
     return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
   } catch (error) {
