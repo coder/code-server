@@ -3,7 +3,9 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
+
+const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
 export enum Feature {
   // No current experimental features!
@@ -658,6 +660,26 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
 }
 
 /**
+ * Reads the socketPath which defaults to a temporary directory
+ * with another directory called vscode-ipc.
+ *
+ * If it can't read the path, it throws an error and returns undefined.
+ */
+export async function readSocketPath(path: string): Promise<string | undefined> {
+  try {
+    return await fs.readFile(path, "utf8")
+  } catch (error) {
+    // If it doesn't exist, we don't care.
+    // But if it fails for some reason, we should throw.
+    // We want to surface that to the user.
+    if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
+      throw error
+    }
+  }
+  return undefined
+}
+
+/**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user
  * explicitly passed on the command line, not defaults or the configuration.
@@ -668,24 +690,13 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
     return process.env.VSCODE_IPC_HOOK_CLI
   }
 
-  const readSocketPath = async (): Promise<string | undefined> => {
-    try {
-      return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
-    } catch (error: any) {
-      if (error.code !== "ENOENT") {
-        throw error
-      }
-    }
-    return undefined
-  }
-
   // If these flags are set then assume the user is trying to open in an
   // existing instance since these flags have no effect otherwise.
   const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
     return args[cur as keyof Args] ? prev + 1 : prev
   }, 0)
   if (openInFlagCount > 0) {
-    return readSocketPath()
+    return readSocketPath(DEFAULT_SOCKET_PATH)
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
@@ -693,7 +704,7 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
   // exists), that a file or directory was passed, and that the socket is
   // active.
   if (Object.keys(args).length === 1 && args._.length > 0) {
-    const socketPath = await readSocketPath()
+    const socketPath = await readSocketPath(DEFAULT_SOCKET_PATH)
     if (socketPath && (await canConnect(socketPath))) {
       return socketPath
     }
