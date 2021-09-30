@@ -54,10 +54,6 @@ jobs:
         run: yarn lint
         if: success()
 
-      - name: Run code-server unit tests
-        run: yarn test:unit
-        if: success()
-
       - name: Upload coverage report to Codecov
         run: yarn coverage
         if: success()
@@ -407,6 +403,9 @@ jobs:
           cd test/
           rm -r node_modules/playwright
           yarn install --check-files
+
+      - name: Run end-to-end tests
+        run: yarn test:unit
 
       - name: Run end-to-end tests
         run: yarn test:e2e

@@ -1,19 +1,3 @@
-/*
- * This file exists in two locations:
- * - src/common/util.ts
- * - lib/vscode/src/vs/server/common/util.ts
- * The second is a symlink to the first.
- */
-
-/**
- * Base options included on every page.
- */
-export interface Options {
-  base: string
-  csStaticBase: string
-  logLevel: number
-}
-
 /**
  * Split a string up to the delimiter. If the delimiter doesn't exist the first
  * item will have all the text and the second item will be an empty string.
@@ -67,14 +51,14 @@ export const resolveBase = (base?: string): string => {
 }
 
 /**
- * Get options embedded in the HTML or query params.
+ * Get client-side configuration embedded in the HTML or query params.
  */
-export const getOptions = <T extends Options>(): T => {
-  let options: T
+export const getClientConfiguration = <T extends CodeServerLib.ClientConfiguration>(): T => {
+  let config: T
   try {
-    options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
+    config = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
   } catch (error) {
-    options = {} as T
+    config = {} as T
   }
 
   // You can also pass options in stringified form to the options query
@@ -83,16 +67,16 @@ export const getOptions = <T extends Options>(): T => {
   const params = new URLSearchParams(location.search)
   const queryOpts = params.get("options")
   if (queryOpts) {
-    options = {
-      ...options,
+    config = {
+      ...config,
       ...JSON.parse(queryOpts),
     }
   }
 
-  options.base = resolveBase(options.base)
-  options.csStaticBase = resolveBase(options.csStaticBase)
+  config.base = resolveBase(config.base)
+  config.csStaticBase = resolveBase(config.csStaticBase)
 
-  return options
+  return config
 }
 
 /**
@@ -107,17 +91,6 @@ export const arrayify = <T>(value?: T | T[]): T[] => {
     return []
   }
   return [value]
-}
-
-/**
- * Get the first string. If there's no string return undefined.
- */
-export const getFirstString = (value: string | string[] | object | undefined): string | undefined => {
-  if (Array.isArray(value)) {
-    return value[0]
-  }
-
-  return typeof value === "string" ? value : undefined
 }
 
 // TODO: Might make sense to add Error handling to the logger itself.

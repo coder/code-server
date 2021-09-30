@@ -111,7 +111,7 @@ router.post("/", async (req, res) => {
     )
 
     throw new Error("Incorrect password")
-  } catch (error) {
+  } catch (error: any) {
     const renderedHtml = await getRoot(req, error)
     res.send(renderedHtml)
   }

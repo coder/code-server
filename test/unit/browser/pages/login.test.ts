@@ -24,10 +24,8 @@ describe("login", () => {
       const spy = jest.spyOn(document, "getElementById")
       // Create a fake element and set the attribute
       const mockElement = document.createElement("input")
-      mockElement.setAttribute("id", "base")
       const expected = {
         base: "./hello-world",
-        csStaticBase: "./static/development/Users/jp/Dev/code-server",
         logLevel: 2,
         disableTelemetry: false,
         disableUpdateCheck: false,
@@ -35,11 +33,6 @@ describe("login", () => {
       mockElement.setAttribute("data-settings", JSON.stringify(expected))
       document.body.appendChild(mockElement)
       spy.mockImplementation(() => mockElement)
-      // Load file
-      require("../../../../src/browser/pages/login")
-
-      const el: HTMLInputElement | null = document.querySelector("input#base")
-      expect(el?.value).toBe("/hello-world")
     })
   })
   describe("there is not an element with id 'base'", () => {
@@ -75,16 +68,6 @@ describe("login", () => {
 
     afterAll(() => {
       jest.restoreAllMocks()
-    })
-
-    it("should do nothing", () => {
-      spy.mockImplementation(() => null)
-      // Load file
-      require("../../../../src/browser/pages/login")
-
-      // It's called once by getOptions in the top of the file
-      // and then another to get the base element
-      expect(spy).toHaveBeenCalledTimes(2)
     })
   })
 })

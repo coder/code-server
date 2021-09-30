@@ -20,7 +20,7 @@ export class SettingsProvider<T> {
     try {
       const raw = (await fs.readFile(this.settingsPath, "utf8")).trim()
       return raw ? JSON.parse(raw) : {}
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== "ENOENT") {
         logger.warn(error.message)
       }
@@ -37,7 +37,7 @@ export class SettingsProvider<T> {
       const oldSettings = await this.read()
       const nextSettings = { ...oldSettings, ...settings }
       await fs.writeFile(this.settingsPath, JSON.stringify(nextSettings, null, 2))
-    } catch (error) {
+    } catch (error: any) {
       logger.warn(error.message)
     }
   }

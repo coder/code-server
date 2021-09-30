@@ -122,26 +122,6 @@ describe("createApp", () => {
     expect(unlinkSpy).toHaveBeenCalledTimes(1)
     server.close()
   })
-  it("should catch errors thrown when unlinking a socket", async () => {
-    const tmpDir2 = await tmpdir("unlink-socket-error")
-    const tmpFile = path.join(tmpDir2, "unlink-socket-file")
-    // await promises.writeFile(tmpFile, "")
-    const socketPath = tmpFile
-    const defaultArgs = await setDefaults({
-      _: [],
-      socket: socketPath,
-    })
-
-    const app = await createApp(defaultArgs)
-    const server = app[2]
-
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(`ENOENT: no such file or directory, unlink '${socketPath}'`)
-
-    server.close()
-    // Ensure directory was removed
-    rmdirSync(tmpDir2, { recursive: true })
-  })
 
   it("should create an https server if args.cert exists", async () => {
     const testCertificate = await generateCertificate("localhost")

@@ -3,12 +3,11 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { Args as VsArgs } from "../../typings/ipc"
 import { canConnect, generateCertificate, generatePassword, humanPath, paths } from "./util"
 
 export enum Feature {
-  /** Web socket compression. */
-  PermessageDeflate = "permessage-deflate",
+  // No current experimental features!
+  Placeholder = "placeholder",
 }
 
 export enum AuthType {
@@ -30,7 +29,21 @@ export enum LogLevel {
 
 export class OptionalString extends Optional<string> {}
 
-export interface Args extends VsArgs {
+export interface Args
+  extends Pick<
+    CodeServerLib.NativeParsedArgs,
+    | "user-data-dir"
+    | "enable-proposed-api"
+    | "extensions-dir"
+    | "builtin-extensions-dir"
+    | "extra-extensions-dir"
+    | "extra-builtin-extensions-dir"
+    | "ignore-last-opened"
+    | "locale"
+    | "log"
+    | "verbose"
+    | "_"
+  > {
   config?: string
   auth?: AuthType
   password?: string
@@ -56,8 +69,6 @@ export interface Args extends VsArgs {
   "show-versions"?: boolean
   "uninstall-extension"?: string[]
   "proxy-domain"?: string[]
-  locale?: string
-  _: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
 
@@ -546,7 +557,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
       flag: "wx", // wx means to fail if the path exists.
     })
     logger.info(`Wrote default config file to ${humanPath(configPath)}`)
-  } catch (error) {
+  } catch (error: any) {
     // EEXIST is fine; we don't want to overwrite existing configurations.
     if (error.code !== "EEXIST") {
       throw error
@@ -670,7 +681,7 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
   const readSocketPath = async (): Promise<string | undefined> => {
     try {
       return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== "ENOENT") {
         throw error
       }
