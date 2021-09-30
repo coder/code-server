@@ -11,11 +11,11 @@ import {
   setDefaults,
   shouldOpenInExistingInstance,
   splitOnFirstEquals,
+  readSocketPath,
 } from "../../../src/node/cli"
-import { tmpdir } from "../../../src/node/constants"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
-import { useEnv } from "../../utils/helpers"
+import { useEnv, tmpdir } from "../../utils/helpers"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
@@ -390,10 +390,11 @@ describe("parser", () => {
 
 describe("cli", () => {
   let args: Mutable<Args> = { _: [] }
-  const testDir = path.join(tmpdir, "tests/cli")
+  let testDir: string
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
   beforeAll(async () => {
+    testDir = await tmpdir("cli")
     await fs.rmdir(testDir, { recursive: true })
     await fs.mkdir(testDir, { recursive: true })
   })
@@ -665,5 +666,42 @@ describe("defaultConfigFile", () => {
 auth: password
 password: ${password}
 cert: false`)
+  })
+})
+
+describe("readSocketPath", () => {
+  const fileContents = "readSocketPath file contents"
+  let tmpDirPath: string
+  let tmpFilePath: string
+
+  beforeEach(async () => {
+    tmpDirPath = await tmpdir("readSocketPath")
+    tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
+    await fs.writeFile(tmpFilePath, fileContents)
+  })
+
+  afterEach(async () => {
+    await fs.rmdir(tmpDirPath, { recursive: true })
+  })
+
+  it("should throw an error if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    // Test it on a directory.... ESDIR
+    // TODO@jsjoeio - implement
+    expect(() => readSocketPath(tmpDirPath)).rejects.toThrow("EISDIR")
+  })
+  it("should return undefined if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    const socketPath = await readSocketPath(path.join(tmpDirPath, "not-a-file"))
+    expect(socketPath).toBeUndefined()
+  })
+  it("should return the file contents", async () => {
+    const contents = await readSocketPath(tmpFilePath)
+    expect(contents).toBe(fileContents)
+  })
+  it("should return the same file contents for two different calls", async () => {
+    const contents1 = await readSocketPath(tmpFilePath)
+    const contents2 = await readSocketPath(tmpFilePath)
+    expect(contents2).toBe(contents1)
   })
 })

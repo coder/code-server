@@ -660,8 +660,9 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
 }
 
 /**
- * Reads the socketPath which defaults to a temporary directory
- * with another directory called vscode-ipc.
+ * Reads the socketPath based on path passed in.
+ *
+ * The one usually pased in is the DEFAULT_SOCKET_PATH.
  *
  * If it can't read the path, it throws an error and returns undefined.
  */
