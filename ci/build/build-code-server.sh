@@ -37,10 +37,6 @@ main() {
     chmod +x ./lib/linkup
     set -e
   fi
-
-  yarn browserify out/browser/register.js -o out/browser/register.browserified.js
-  yarn browserify out/browser/pages/login.js -o out/browser/pages/login.browserified.js
-  yarn browserify out/browser/pages/vscode.js -o out/browser/pages/vscode.browserified.js
 }
 
 main "$@"

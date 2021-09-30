@@ -46,7 +46,7 @@ export class Emitter<T> {
       this.listeners.map(async (cb) => {
         try {
           await cb(value, promise)
-        } catch (error) {
+        } catch (error: any) {
           logger.error(error.message)
         }
       }),

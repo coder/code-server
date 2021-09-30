@@ -13,7 +13,7 @@
     <title>code-server login</title>
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
-    <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
+    <link rel="manifest" href="{{BASE}}/manifest.json" crossorigin="use-credentials" />
     <link rel="apple-touch-icon" sizes="192x192" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-512.png" />
     <link href="{{CS_STATIC_BASE}}/src/browser/pages/global.css" rel="stylesheet" />
@@ -30,7 +30,6 @@
         <div class="content">
           <form class="login-form" method="post">
             <input class="user" type="text" autocomplete="username" />
-            <input id="base" type="hidden" name="base" value="/" />
             <div class="field">
               <input
                 required
@@ -49,5 +48,4 @@
       </div>
     </div>
   </body>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/out/browser/pages/login.browserified.js"></script>
 </html>

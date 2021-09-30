@@ -457,31 +457,6 @@ describe("escapeHtml", () => {
   })
 })
 
-describe("pathToFsPath", () => {
-  it("should convert a path to a file system path", () => {
-    expect(util.pathToFsPath("/foo/bar/baz")).toBe("/foo/bar/baz")
-  })
-  it("should lowercase drive letter casing by default", () => {
-    expect(util.pathToFsPath("/C:/far/boo")).toBe("c:/far/boo")
-  })
-  it("should keep drive letter casing when set to true", () => {
-    expect(util.pathToFsPath("/C:/far/bo", true)).toBe("C:/far/bo")
-  })
-  it("should replace / with \\ on Windows", () => {
-    const ORIGINAL_PLATFORM = process.platform
-
-    Object.defineProperty(process, "platform", {
-      value: "win32",
-    })
-
-    expect(util.pathToFsPath("/C:/far/boo")).toBe("c:\\far\\boo")
-
-    Object.defineProperty(process, "platform", {
-      value: ORIGINAL_PLATFORM,
-    })
-  })
-})
-
 describe("isFile", () => {
   const testDir = path.join(tmpdir, "tests", "isFile")
   let pathToFile = ""

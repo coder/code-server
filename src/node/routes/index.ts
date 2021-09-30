@@ -1,5 +1,4 @@
 import { logger } from "@coder/logger"
-import bodyParser from "body-parser"
 import cookieParser from "cookie-parser"
 import * as express from "express"
 import { promises as fs } from "fs"
@@ -10,22 +9,21 @@ import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
-import { rootPath } from "../constants"
+import { commit, isDevMode, rootPath } from "../constants"
 import { Heart } from "../heart"
-import { ensureAuthenticated, redirect, replaceTemplates } from "../http"
+import { ensureAuthenticated, redirect } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
 import { wrapper } from "../wrapper"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
+import { errorHandler, wsErrorHandler } from "./errors"
 import * as health from "./health"
 import * as login from "./login"
 import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
-// static is a reserved keyword.
-import * as _static from "./static"
 import * as update from "./update"
-import * as vscode from "./vscode"
+import { createVSServerRouter, VSServerResult } from "./vscode"
 
 /**
  * Register all routes and middleware.
@@ -124,13 +122,15 @@ export const register = async (
     wrapper.onDispose(() => pluginApi.dispose())
   }
 
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(express.json())
+  app.use(express.urlencoded({ extended: true }))
 
-  app.use("/", vscode.router)
-  wsApp.use("/", vscode.wsRouter.router)
-  app.use("/vscode", vscode.router)
-  wsApp.use("/vscode", vscode.wsRouter.router)
+  app.use(
+    "/_static",
+    express.static(rootPath, {
+      cacheControl: commit !== "development",
+    }),
+  )
 
   app.use("/healthz", health.router)
   wsApp.use("/healthz", health.wsRouter.router)
@@ -143,49 +143,32 @@ export const register = async (
     app.all("/logout", (req, res) => redirect(req, res, "/", {}))
   }
 
-  app.use("/static", _static.router)
   app.use("/update", update.router)
+
+  let vscode: VSServerResult
+  try {
+    vscode = await createVSServerRouter(args)
+    app.use("/", vscode.router)
+    wsApp.use("/", vscode.wsRouter.router)
+    app.use("/vscode", vscode.router)
+    wsApp.use("/vscode", vscode.wsRouter.router)
+  } catch (error: any) {
+    if (isDevMode) {
+      logger.warn(error)
+      logger.warn("VS Server router may still be compiling.")
+    } else {
+      throw error
+    }
+  }
+
+  server.on("close", () => {
+    vscode.vscodeServer.close()
+  })
 
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
-    if (err.code === "ENOENT" || err.code === "EISDIR") {
-      err.status = HttpCode.NotFound
-    }
-
-    const status = err.status ?? err.statusCode ?? 500
-    res.status(status)
-
-    // Assume anything that explicitly accepts text/html is a user browsing a
-    // page (as opposed to an xhr request). Don't use `req.accepts()` since
-    // *every* request that I've seen (in Firefox and Chromium at least)
-    // includes `*/*` making it always truthy. Even for css/javascript.
-    if (req.headers.accept && req.headers.accept.includes("text/html")) {
-      const resourcePath = path.resolve(rootPath, "src/browser/pages/error.html")
-      res.set("Content-Type", getMediaMime(resourcePath))
-      const content = await fs.readFile(resourcePath, "utf8")
-      res.send(
-        replaceTemplates(req, content)
-          .replace(/{{ERROR_TITLE}}/g, status)
-          .replace(/{{ERROR_HEADER}}/g, status)
-          .replace(/{{ERROR_BODY}}/g, err.message),
-      )
-    } else {
-      res.json({
-        error: err.message,
-        ...(err.details || {}),
-      })
-    }
-  }
-
   app.use(errorHandler)
-
-  const wsErrorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
-    logger.error(`${err.message} ${err.stack}`)
-    ;(req as pluginapi.WebsocketRequest).ws.end()
-  }
-
   wsApp.use(wsErrorHandler)
 }

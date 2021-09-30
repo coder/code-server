@@ -267,7 +267,7 @@ export class ParentProcess extends Process {
     try {
       this.started = this._start()
       await this.started
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(error.message)
       this.exit(typeof error.code === "number" ? error.code : 1)
     }

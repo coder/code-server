@@ -131,7 +131,7 @@ describe("util", () => {
     })
 
     it("should return options with base and cssStaticBase even if it doesn't exist", () => {
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "",
       })
@@ -151,7 +151,7 @@ describe("util", () => {
       // it returns the element
       spy.mockImplementation(() => mockElement)
 
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "/static/development/Users/jp/Dev/code-server",
         disableUpdateCheck: false,
@@ -167,7 +167,7 @@ describe("util", () => {
       // spreads the original options
       // then parses the queryOpts
       location.search = '?options={"logLevel":2}'
-      expect(util.getOptions()).toStrictEqual({
+      expect(util.getClientConfiguration()).toStrictEqual({
         base: "",
         csStaticBase: "",
         logLevel: 2,
@@ -191,20 +191,6 @@ describe("util", () => {
 
     it("should return an empty array if the value is undefined", () => {
       expect(util.arrayify(undefined)).toStrictEqual([])
-    })
-  })
-
-  describe("getFirstString", () => {
-    it("should return the string if passed a string", () => {
-      expect(util.getFirstString("Hello world!")).toBe("Hello world!")
-    })
-
-    it("should get the first string from an array", () => {
-      expect(util.getFirstString(["Hello", "World"])).toBe("Hello")
-    })
-
-    it("should return undefined if the value isn't an array or a string", () => {
-      expect(util.getFirstString({ name: "Coder" })).toBe(undefined)
     })
   })
 

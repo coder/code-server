@@ -1,13 +1,14 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
+import path from "path"
 import qs from "qs"
 import { HttpCode, HttpError } from "../common/http"
-import { normalize, Options } from "../common/util"
+import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
-import { commit, rootPath } from "./constants"
+import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
-import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml } from "./util"
+import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -19,6 +20,16 @@ declare global {
   }
 }
 
+export const createClientConfiguration = (req: express.Request): CodeServerLib.ClientConfiguration => {
+  const base = relativeRoot(req)
+
+  return {
+    base,
+    csStaticBase: normalize(path.join(base, "_static/")),
+    codeServerVersion,
+  }
+}
+
 /**
  * Replace common variable strings in HTML templates.
  */
@@ -27,18 +38,16 @@ export const replaceTemplates = <T extends object>(
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
-  const base = relativeRoot(req)
-  const options: Options = {
-    base,
-    csStaticBase: base + "/static/" + commit + rootPath,
-    logLevel: logger.level,
+  const serverOptions: CodeServerLib.ClientConfiguration = {
+    ...createClientConfiguration(req),
     ...extraOpts,
   }
+
   return content
     .replace(/{{TO}}/g, (typeof req.query.to === "string" && escapeHtml(req.query.to)) || "/")
-    .replace(/{{BASE}}/g, options.base)
-    .replace(/{{CS_STATIC_BASE}}/g, options.csStaticBase)
-    .replace(/"{{OPTIONS}}"/, `'${JSON.stringify(options)}'`)
+    .replace(/{{BASE}}/g, serverOptions.base)
+    .replace(/{{CS_STATIC_BASE}}/g, serverOptions.csStaticBase)
+    .replace("{{OPTIONS}}", () => escapeJSON(serverOptions))
 }
 
 /**

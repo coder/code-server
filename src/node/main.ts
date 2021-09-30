@@ -1,8 +1,6 @@
 import { field, logger } from "@coder/logger"
-import * as cp from "child_process"
 import http from "http"
-import * as path from "path"
-import { CliMessage, OpenCommandPipeArgs } from "../../typings/ipc"
+import path from "path"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
@@ -10,41 +8,35 @@ import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { startLink } from "./link"
 import { register } from "./routes"
-import { humanPath, isFile, open } from "./util"
+import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const runVsCodeCli = (args: DefaultedArgs): void => {
-  logger.debug("forking vs code cli...")
-  const vscode = cp.fork(path.resolve(__dirname, "../../vendor/modules/code-oss-dev/out/vs/server/fork"), [], {
-    env: {
-      ...process.env,
-      CODE_SERVER_PARENT_PID: process.pid.toString(),
-    },
-  })
-  vscode.once("message", (message: any) => {
-    logger.debug("got message from VS Code", field("message", message))
-    if (message.type !== "ready") {
-      logger.error("Unexpected response waiting for ready response", field("type", message.type))
-      process.exit(1)
-    }
-    const send: CliMessage = { type: "cli", args }
-    vscode.send(send)
-  })
-  vscode.once("error", (error) => {
+/**
+ * This is useful when an CLI arg should be passed to VS Code directly,
+ * such as when managing extensions.
+ * @deprecated This should be removed when code-server merges with lib/vscode.
+ */
+export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
+  logger.debug("Running VS Code CLI")
+
+  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cliProcessMain", "main")
+
+  try {
+    await cliProcessMain(args)
+  } catch (error) {
     logger.error("Got error from VS Code", field("error", error))
-    process.exit(1)
-  })
-  vscode.on("exit", (code) => process.exit(code || 0))
+  }
+
+  process.exit(0)
 }
 
 export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
-  const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
+  const pipeArgs: CodeServerLib.OpenCommandPipeArgs & { fileURIs: string[] } = {
     type: "open",
     folderURIs: [],
     fileURIs: [],
     forceReuseWindow: args["reuse-window"],
     forceNewWindow: args["new-window"],
   }
-
   for (let i = 0; i < args._.length; i++) {
     const fp = path.resolve(args._[i])
     if (await isFile(fp)) {
@@ -53,17 +45,14 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
       pipeArgs.folderURIs.push(fp)
     }
   }
-
   if (pipeArgs.forceNewWindow && pipeArgs.fileURIs.length > 0) {
     logger.error("--new-window can only be used with folder paths")
     process.exit(1)
   }
-
   if (pipeArgs.folderURIs.length === 0 && pipeArgs.fileURIs.length === 0) {
     logger.error("Please specify at least one file or folder")
     process.exit(1)
   }
-
   const vscode = http.request(
     {
       path: "/",
@@ -135,8 +124,8 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     startLink(port).catch((ex) => {
       logger.debug("Link daemon exited!", field("error", ex))
     })
-  } catch (ex) {
-    logger.debug("Failed to start link daemon!", ex)
+  } catch (error) {
+    logger.debug("Failed to start link daemon!", error as any)
   }
 
   if (args.enable && args.enable.length > 0) {
