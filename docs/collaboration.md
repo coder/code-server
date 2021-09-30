@@ -41,7 +41,7 @@ As `code-server` is based on VS Code, you can follow the steps described on Duck
 - Shared servers, terminals, and consoles
 - Unit Testing - with support for Red, Green, Refactor TDD
 - Joining via a web browser or your preferred IDE
-- Free unlimited 1 hour sessions with 4 participants 
+- Free unlimited 1 hour sessions with 4 participants
 - Multiple plans including [free or paid options](https://www.codetogether.com/pricing/)
 
 ### Installing the CodeTogether extension
