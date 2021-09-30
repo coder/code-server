@@ -14,9 +14,8 @@ import {
   shouldRunVsCodeCli,
   splitOnFirstEquals,
 } from "../../../src/node/cli"
-import { tmpdir } from "../../../src/node/constants"
 import { generatePassword, paths } from "../../../src/node/util"
-import { useEnv } from "../../utils/helpers"
+import { tmpdir, useEnv } from "../../utils/helpers"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
@@ -379,10 +378,11 @@ describe("parser", () => {
 
 describe("cli", () => {
   let args: Mutable<Args> = { _: [] }
-  const testDir = path.join(tmpdir, "tests/cli")
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+  let testDir: string
 
   beforeAll(async () => {
+    testDir = await tmpdir("cli")
     await fs.rmdir(testDir, { recursive: true })
     await fs.mkdir(testDir, { recursive: true })
   })
@@ -657,32 +657,39 @@ cert: false`)
   })
 })
 
-describe.only("readSocketPath", () => {
-  const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
+describe("readSocketPath", () => {
   const fileContents = "readSocketPath file contents"
+  let tmpDirPath: string
+  let tmpFilePath: string
 
   beforeEach(async () => {
-    await fs.writeFile(vscodeIpcPath, fileContents)
+    tmpDirPath = await tmpdir("readSocketPath")
+    tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
+    await fs.writeFile(tmpFilePath, fileContents)
   })
 
   afterEach(async () => {
-    await fs.rmdir(vscodeIpcPath, { recursive: true })
+    await fs.rmdir(tmpDirPath, { recursive: true })
   })
 
-  it.skip("should throw an error if it can't read the file", async () => {
+  it("should throw an error if it can't read the file", async () => {
     // TODO@jsjoeio - implement
+    // Test it on a directory.... ESDIR
     // TODO@jsjoeio - implement
-    const p = await readSocketPath()
-    console.log(p)
-    expect(p).toThrowError("oops")
+    expect(() => readSocketPath(tmpDirPath)).rejects.toThrow("EISDIR")
   })
-  it.skip("should return undefined if it can't read the file", async () => {
+  it("should return undefined if it can't read the file", async () => {
     // TODO@jsjoeio - implement
-    const socketPath = await readSocketPath()
+    const socketPath = await readSocketPath(path.join(tmpDirPath, "not-a-file"))
     expect(socketPath).toBeUndefined()
   })
   it("should return the file contents", async () => {
-    const contents = await readSocketPath()
+    const contents = await readSocketPath(tmpFilePath)
     expect(contents).toBe(fileContents)
+  })
+  it("should return the same file contents for two different calls", async () => {
+    const contents1 = await readSocketPath(tmpFilePath)
+    const contents2 = await readSocketPath(tmpFilePath)
+    expect(contents2).toBe(contents1)
   })
 })

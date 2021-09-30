@@ -531,5 +531,5 @@ export function escapeHtml(unsafe: string): string {
  * it has a .code property.
  */
 export function isNodeJSErrnoException(error: unknown): error is NodeJS.ErrnoException {
-  return error instanceof Error && (error as NodeJS.ErrnoException).code !== undefined
+  return error !== undefined && (error as NodeJS.ErrnoException).code !== undefined
 }

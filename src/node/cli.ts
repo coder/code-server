@@ -6,6 +6,8 @@ import * as path from "path"
 import { Args as VsArgs } from "../../typings/ipc"
 import { canConnect, generateCertificate, generatePassword, humanPath, isNodeJSErrnoException, paths } from "./util"
 
+const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
+
 export enum Feature {
   /** Web socket compression. */
   PermessageDeflate = "permessage-deflate",
@@ -662,18 +664,20 @@ export const shouldRunVsCodeCli = (args: Args): boolean => {
  *
  * If it can't read the path, it throws an error and returns undefined.
  */
-export async function readSocketPath(): Promise<string | undefined> {
-  // TODO@jsjoeio - we should make this function pure and pass in the path
-  // to the file it reads
+export async function readSocketPath(path: string): Promise<string | undefined> {
   try {
-    return await fs.readFile(path.join(os.tmpdir(), "vscode-ipc"), "utf8")
+    return await fs.readFile(path, "utf8")
   } catch (error) {
+    // If it doesn't exist, we don't care.
+    // But if it fails for some reason, we should throw.
+    // We want to surface that to the user.
     if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
       throw error
     }
   }
   return undefined
 }
+
 /**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user
@@ -691,7 +695,7 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
     return args[cur as keyof Args] ? prev + 1 : prev
   }, 0)
   if (openInFlagCount > 0) {
-    return readSocketPath()
+    return readSocketPath(DEFAULT_SOCKET_PATH)
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
@@ -699,7 +703,7 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
   // exists), that a file or directory was passed, and that the socket is
   // active.
   if (Object.keys(args).length === 1 && args._.length > 0) {
-    const socketPath = await readSocketPath()
+    const socketPath = await readSocketPath(DEFAULT_SOCKET_PATH)
     if (socketPath && (await canConnect(socketPath))) {
       return socketPath
     }
