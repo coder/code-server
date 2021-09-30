@@ -30,15 +30,19 @@ SERVICE_URL=https://open-vsx.org/vscode/gallery \
 
 As `code-server` is based on VS Code, you can follow the steps described on Duckly's [Pair programming with VS Code](https://duckly.com/tools/vscode) page and skip the installation step.
 
-## Code sharing with CodeTogether
+## Code sharing using CodeTogether
 
-[CodeTogether](https://www.codetogether.com/) is another service with cross-platform live collaborative features:
+[CodeTogether](https://www.codetogether.com/) is a real-time cross-IDE replacement for Microsoft Live Share providing:
 
-- Sharing ports,
-- Sharing, read/write terminals,
-- Joining via web browser or another IDE.
-
-However, some of these are [paid options](https://www.codetogether.com/pricing/).
+- Cross-IDE support - between VS Code, Eclipse, IntelliJ and IDEs based on them (browser or desktop)
+- Real-time editing - shared or individual cursors for pairing, mobbing, swarming, or whatever
+- P2P encrypted - servers can't decrypt the traffic ([Security Details](https://codetogether.com/download/security/))
+- SaaS or [On-premises](https://codetogether.com/on-premises/) options
+- Shared servers, terminals, and consoles
+- Unit Testing - with support for Red, Green, Refactor TDD
+- Joining via a web browser or your preferred IDE
+- Free unlimited 1 hour sessions with 4 participants
+- Multiple plans including [free or paid options](https://www.codetogether.com/pricing/)
 
 ### Installing the CodeTogether extension
 
