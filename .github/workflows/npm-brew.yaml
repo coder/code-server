@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
   release:
-    types: [published]
+    types: [released]
 
 jobs:
   # NOTE: this job requires curl, jq and yarn
