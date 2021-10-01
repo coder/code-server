@@ -8,8 +8,9 @@
 - [Development workflow](#development-workflow)
   - [Updates to VS Code](#updates-to-vs-code)
   - [Build](#build)
-  - [Test](#test)
+- [Test](#test)
   - [Unit tests](#unit-tests)
+  - [Script tests](#script-tests)
   - [Integration tests](#integration-tests)
   - [End-to-end tests](#end-to-end-tests)
 - [Structure](#structure)
@@ -129,13 +130,14 @@ yarn package
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
 
-### Test
+## Test
 
-There are three kinds of tests in code-server:
+There are four kinds of tests in code-server:
 
 1. Unit tests
-2. Integration tests
-3. End-to-end tests
+2. Script tests
+3. Integration tests
+4. End-to-end tests
 
 ### Unit tests
 
@@ -145,6 +147,14 @@ Our unit tests are written in TypeScript and run using
 These live under [test/unit](../test/unit).
 
 We use unit tests for functions and things that can be tested in isolation. The file structure is modeled closely after `/src` so it's easy for people to know where test files should live.
+
+### Script tests
+
+Our script tests are written in bash and run using [bats](https://github.com/bats-core/bats-core).
+
+These tests live under `test/scripts`.
+
+We use these to test anything related to our scripts (most of which live under `ci`).
 
 ### Integration tests
 

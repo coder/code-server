@@ -19,6 +19,7 @@
     - [Docker](#docker)
     - [Homebrew](#homebrew)
     - [npm](#npm)
+- [Testing](#testing)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
 
@@ -213,6 +214,20 @@ brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
 We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
 
 This is currently automated with the release process.
+
+## Testing
+
+Our testing structure is laid out under our [Contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
+
+We hope to eventually hit 100% test converage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
+
+If you're ever looking to add more tests, here are a few ways to get started:
+
+- run `yarn test:unit` and look at the coverage chart. You'll see all the uncovered lines. This is a good place to start.
+- look at `test/scripts` to see which scripts are tested. We can always use more tests there.
+- look at `test/e2e`. We can always use more end-to-end tests.
+
+Otherwise, talk to a current maintainer and ask which part of the codebase is lacking most when it comes to tests.
 
 ## Documentation
 
