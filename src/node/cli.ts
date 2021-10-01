@@ -662,7 +662,7 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
 /**
  * Reads the socketPath based on path passed in.
  *
- * The one usually pased in is the DEFAULT_SOCKET_PATH.
+ * The one usually passed in is the DEFAULT_SOCKET_PATH.
  *
  * If it can't read the path, it throws an error and returns undefined.
  */
