@@ -22,8 +22,8 @@ export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
 
   try {
     await cliProcessMain(args)
-  } catch (error) {
-    logger.error("Got error from VS Code", field("error", error))
+  } catch (error: any) {
+    logger.error("Got error from VS Code", error)
   }
 
   process.exit(0)
