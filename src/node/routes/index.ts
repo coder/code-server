@@ -162,7 +162,7 @@ export const register = async (
   }
 
   server.on("close", () => {
-    vscode.vscodeServer.close()
+    vscode?.vscodeServer.close()
   })
 
   app.use(() => {
