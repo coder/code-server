@@ -310,12 +310,10 @@ export const parse = (
         throw error(`Unknown option ${arg}`)
       }
 
-      // TODO@jsjoeio add test for this if block
       if (key === "password" && !opts?.configFile) {
         throw new Error("--password can only be set in the config file or passed in via $PASSWORD")
       }
 
-      // TODO@jsjoeio add test for this if block
       if (key === "hashed-password" && !opts?.configFile) {
         throw new Error("--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD")
       }
