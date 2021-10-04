@@ -1,5 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # FAQ
 
 - [Questions?](#questions)
@@ -377,18 +378,31 @@ for extensions.
 
 Theia doesn't allow you to reuse your existing VS Code config.
 
+## What's the difference between code-server and OpenVSCode-Server?
+
+code-server and OpenVSCode-Servr both allow you to access VS Code via a
+browser. The two projects also use their own [forks of VS Code](https://github.com/cdr/vscode) to
+leverage modern VS Code APIs and stay up to date with the upsteam version.
+
+However, OpenVSCode-Server is scoped at only making VS Code avalible in the web browser.
+code-server includes some other features:
+
+- password auth
+- proxy web ports
+- certificate support
+- plugin API
+- settings sync (coming soon)
+
+For more details, see [this discussion post](https://github.com/cdr/code-server/discussions/4267#discussioncomment-1411583).
+
 ## What's the difference between code-server and VS Code Codespaces?
 
 Both code-server and VS Code Codespaces allow you to access VS Code via a
-browser.
+browser. VS Code Codespaces, however, is a closed-source, paid service offered by
+Microsoft. Codespaces are hosted in Microsoft's cloud.
 
-VS Code Codespaces, however, is a closed-source, paid service offered by
-Microsoft. While you can self-host environments with VS Code Codespaces, you
-still need an Azure billing account, and you must access VS Code via the
-Codespaces web dashboard instead of connecting directly to it.
-
-On the other hand, code-server is free, open-source, and can be run on any
-machine with few limitations.
+On the other hand, code-server is self-hosted, free, open-source, and
+can be run on any machine with few limitations.
 
 ## Does code-server have any security login validation?
 
