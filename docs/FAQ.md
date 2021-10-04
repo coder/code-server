@@ -1,5 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # FAQ
 
 - [Questions?](#questions)
@@ -380,7 +381,7 @@ Theia doesn't allow you to reuse your existing VS Code config.
 
 ## What's the difference between code-server and OpenVSCode-Server?
 
-code-server and OpenVSCode-Servr both allow you to access VS Code via a
+code-server and OpenVSCode-Server both allow you to access VS Code via a
 browser. The two projects also use their own [forks of VS Code](https://github.com/cdr/vscode) to
 leverage modern VS Code APIs and stay up to date with the upsteam version.
 
