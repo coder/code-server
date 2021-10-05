@@ -400,7 +400,7 @@ For more details, see [this discussion post](https://github.com/cdr/code-server/
 
 Both code-server and GitHub Codespaces allow you to access VS Code via a
 browser. VS Code Codespaces, however, is a closed-source, paid service offered by
-Microsoft. Codespaces are hosted in Microsoft's cloud.
+GitHub and Microsoft.
 
 On the other hand, code-server is self-hosted, free, open-source, and
 can be run on any machine with few limitations.
