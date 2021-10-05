@@ -26,7 +26,8 @@
 - [Can I use Docker in a code-server container?](#can-i-use-docker-in-a-code-server-container)
 - [How do I disable telemetry?](#how-do-i-disable-telemetry)
 - [What's the difference between code-server and Theia?](#whats-the-difference-between-code-server-and-theia)
-- [What's the difference between code-server and VS Code Codespaces?](#whats-the-difference-between-code-server-and-vs-code-codespaces)
+- [What's the difference between code-server and OpenVSCode-Server?](#whats-the-difference-between-code-server-and-openvscode-server)
+- [What's the difference between code-server and GitHub Codespaces?](#whats-the-difference-between-code-server-and-github-codespaces)
 - [Does code-server have any security login validation?](#does-code-server-have-any-security-login-validation)
 - [Are there community projects involving code-server?](#are-there-community-projects-involving-code-server)
 - [How do I change the port?](#how-do-i-change-the-port)
@@ -377,18 +378,31 @@ for extensions.
 
 Theia doesn't allow you to reuse your existing VS Code config.
 
-## What's the difference between code-server and VS Code Codespaces?
+## What's the difference between code-server and OpenVSCode-Server?
 
-Both code-server and VS Code Codespaces allow you to access VS Code via a
-browser.
+code-server and OpenVSCode-Server both allow you to access VS Code via a
+browser. The two projects also use their own [forks of VS Code](https://github.com/cdr/vscode) to
+leverage modern VS Code APIs and stay up to date with the upsteam version.
 
-VS Code Codespaces, however, is a closed-source, paid service offered by
-Microsoft. While you can self-host environments with VS Code Codespaces, you
-still need an Azure billing account, and you must access VS Code via the
-Codespaces web dashboard instead of connecting directly to it.
+However, OpenVSCode-Server is scoped at only making VS Code available in the web browser.
+code-server includes some other features:
 
-On the other hand, code-server is free, open-source, and can be run on any
-machine with few limitations.
+- password auth
+- proxy web ports
+- certificate support
+- plugin API
+- settings sync (coming soon)
+
+For more details, see [this discussion post](https://github.com/cdr/code-server/discussions/4267#discussioncomment-1411583).
+
+## What's the difference between code-server and GitHub Codespaces?
+
+Both code-server and GitHub Codespaces allow you to access VS Code via a
+browser. GitHub Codespaces, however, is a closed-source, paid service offered by
+GitHub and Microsoft.
+
+On the other hand, code-server is self-hosted, free, open-source, and
+can be run on any machine with few limitations.
 
 ## Does code-server have any security login validation?
 
