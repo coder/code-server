@@ -333,6 +333,18 @@ describe("parser", () => {
     })
   })
 
+  it("should error if password passed in", () => {
+    expect(() => parse(["--password", "supersecret123"])).toThrowError(
+      "--password can only be set in the config file or passed in via $PASSWORD",
+    )
+  })
+
+  it("should error if hashed-password passed in", () => {
+    expect(() => parse(["--hashed-password", "fdas423fs8a"])).toThrowError(
+      "--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD",
+    )
+  })
+
   it("should filter proxy domains", async () => {
     const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
     expect(args).toEqual({
