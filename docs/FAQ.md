@@ -398,7 +398,7 @@ For more details, see [this discussion post](https://github.com/cdr/code-server/
 
 ## What's the difference between code-server and GitHub Codespaces?
 
-Both code-server and VS Code Codespaces allow you to access VS Code via a
+Both code-server and GitHub Codespaces allow you to access VS Code via a
 browser. VS Code Codespaces, however, is a closed-source, paid service offered by
 Microsoft. Codespaces are hosted in Microsoft's cloud.
 
