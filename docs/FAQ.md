@@ -385,7 +385,7 @@ code-server and OpenVSCode-Server both allow you to access VS Code via a
 browser. The two projects also use their own [forks of VS Code](https://github.com/cdr/vscode) to
 leverage modern VS Code APIs and stay up to date with the upsteam version.
 
-However, OpenVSCode-Server is scoped at only making VS Code avalible in the web browser.
+However, OpenVSCode-Server is scoped at only making VS Code available in the web browser.
 code-server includes some other features:
 
 - password auth
