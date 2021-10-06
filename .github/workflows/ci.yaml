@@ -139,19 +139,19 @@ jobs:
         id: vscode-rev
         run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
 
-      - name: Attempt to fetch vscode build from cache
-        id: cache-vscode
-        uses: actions/cache@v2
-        with:
-          path: |
-            vendor/modules/code-oss-dev/.build
-            vendor/modules/code-oss-dev/out-build
-            vendor/modules/code-oss-dev/out-vscode
-            vendor/modules/code-oss-dev/out-vscode-min
-          key: vscode-build-${{ steps.vscode-rev.outputs.rev }}
+      # - name: Attempt to fetch vscode build from cache
+      #   id: cache-vscode
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       vendor/modules/code-oss-dev/.build
+      #       vendor/modules/code-oss-dev/out-build
+      #       vendor/modules/code-oss-dev/out-vscode
+      #       vendor/modules/code-oss-dev/out-vscode-min
+      #     key: vscode-build-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
-        if: steps.cache-vscode.outputs.cache-hit != 'true'
+        # if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: yarn build:vscode
 
       # The release package does not contain any native modules
