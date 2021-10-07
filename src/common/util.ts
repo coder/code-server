@@ -1,5 +1,3 @@
-import { ClientConfiguration } from "./http"
-
 /**
  * Split a string up to the delimiter. If the delimiter doesn't exist the first
  * item will have all the text and the second item will be an empty string.
@@ -50,35 +48,6 @@ export const resolveBase = (base?: string): string => {
   parts[parts.length - 1] = base
   const url = new URL(location.origin + "/" + parts.join("/"))
   return normalize(url.pathname)
-}
-
-/**
- * Get client-side configuration embedded in the HTML or query params.
- */
-export const getClientConfiguration = <T extends ClientConfiguration>(): T => {
-  let config: T
-  try {
-    config = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
-  } catch (error) {
-    config = {} as T
-  }
-
-  // You can also pass options in stringified form to the options query
-  // variable. Options provided here will override the ones in the options
-  // element.
-  const params = new URLSearchParams(location.search)
-  const queryOpts = params.get("options")
-  if (queryOpts) {
-    config = {
-      ...config,
-      ...JSON.parse(queryOpts),
-    }
-  }
-
-  config.base = resolveBase(config.base)
-  config.csStaticBase = resolveBase(config.csStaticBase)
-
-  return config
 }
 
 /**

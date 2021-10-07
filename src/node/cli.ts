@@ -32,6 +32,7 @@ export class OptionalString extends Optional<string> {}
 export interface Args
   extends Pick<
     CodeServerLib.NativeParsedArgs,
+    | "_"
     | "user-data-dir"
     | "enable-proposed-api"
     | "extensions-dir"
@@ -42,7 +43,12 @@ export interface Args
     | "locale"
     | "log"
     | "verbose"
-    | "_"
+    | "install-source"
+    | "list-extensions"
+    | "install-extension"
+    | "uninstall-extension"
+    | "locate-extension"
+    // | "telemetry"
   > {
   config?: string
   auth?: AuthType
@@ -64,10 +70,7 @@ export interface Args
   socket?: string
   version?: boolean
   force?: boolean
-  "list-extensions"?: boolean
-  "install-extension"?: string[]
   "show-versions"?: boolean
-  "uninstall-extension"?: string[]
   "proxy-domain"?: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
@@ -177,6 +180,8 @@ const options: Options<Required<Args>> = {
   "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
+  "install-source": { type: "string" },
+  "locate-extension": { type: "string[]" },
   "install-extension": {
     type: "string[]",
     description:

@@ -7,7 +7,7 @@ import * as integration from "../../../utils/integration"
 
 const NOT_FOUND = {
   code: 404,
-  message: "Not Found",
+  message: /not found/i,
 }
 
 describe("/_static", () => {
@@ -44,7 +44,7 @@ describe("/_static", () => {
       expect(resp.status).toBe(NOT_FOUND.code)
 
       const content = await resp.json()
-      expect(content.error).toContain(NOT_FOUND.message)
+      expect(content.error).toMatch(NOT_FOUND.message)
     })
   }
 

@@ -18,12 +18,3 @@ export class HttpError extends Error {
     this.name = this.constructor.name
   }
 }
-
-/**
- * Base options included on every page.
- */
-export interface ClientConfiguration {
-  codeServerVersion: string
-  base: string
-  csStaticBase: string
-}

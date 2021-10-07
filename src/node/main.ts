@@ -10,8 +10,11 @@ import { startLink } from "./link"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const shouldSpawnCliProcess = async (args: DefaultedArgs): Promise<boolean> => {
-  const shouldSpawn = await loadAMDModule<(argv: DefaultedArgs) => boolean>("vs/code/node/cli", "shouldSpawnCliProcess")
+export const shouldSpawnCliProcess = async (args: CodeServerLib.NativeParsedArgs): Promise<boolean> => {
+  const shouldSpawn = await loadAMDModule<(argv: CodeServerLib.NativeParsedArgs) => boolean>(
+    "vs/code/node/cli",
+    "shouldSpawnCliProcess",
+  )
 
   return shouldSpawn(args)
 }
