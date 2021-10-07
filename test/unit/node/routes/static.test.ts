@@ -7,7 +7,7 @@ import * as integration from "../../../utils/integration"
 
 const NOT_FOUND = {
   code: 404,
-  message: "Not Found",
+  message: "not found",
 }
 
 describe("/_static", () => {

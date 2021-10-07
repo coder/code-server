@@ -63,16 +63,6 @@
       "description": "code-server's routes live here in `src/node/routes` (see the explorer)."
     },
     {
-      "file": "src/node/routes/index.ts",
-      "line": 123,
-      "description": "The architecture of code-server allows it to be extended with applications via plugins. Each application is registered at its own route and handles requests at and below that route. Currently we have only VS Code (although it is not yet actually split out into a plugin)."
-    },
-    {
-      "file": "src/node/plugin.ts",
-      "line": 103,
-      "description": "The previously mentioned plugins are loaded here."
-    },
-    {
       "file": "src/node/routes/apps.ts",
       "line": 12,
       "description": "This provides a list of the applications registered with code-server."

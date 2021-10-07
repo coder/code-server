@@ -390,7 +390,6 @@ code-server includes some other features:
 - password auth
 - proxy web ports
 - certificate support
-- plugin API
 - settings sync (coming soon)
 
 For more details, see [this discussion post](https://github.com/cdr/code-server/discussions/4267#discussioncomment-1411583).

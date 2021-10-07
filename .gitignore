@@ -10,7 +10,6 @@ release-images/
 node_modules
 vendor/modules
 node-*
-/plugins
 /lib/coder-cloud-agent
 /lib/linkup
 .home

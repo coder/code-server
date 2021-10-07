@@ -5,17 +5,14 @@ import { promises as fs } from "fs"
 import http from "http"
 import * as path from "path"
 import * as tls from "tls"
-import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
 import { commit, isDevMode, rootPath } from "../constants"
 import { Heart } from "../heart"
-import { ensureAuthenticated, redirect } from "../http"
-import { PluginAPI } from "../plugin"
+import { redirect } from "../http"
 import { getMediaMime, paths } from "../util"
-import { wrapper } from "../wrapper"
-import * as apps from "./apps"
+import { WebsocketRequest } from "../wsRouter"
 import * as domainProxy from "./domainProxy"
 import { errorHandler, wsErrorHandler } from "./errors"
 import * as health from "./health"
@@ -97,7 +94,7 @@ export const register = async (
     pathProxy.proxy(req, res)
   })
   wsApp.get("/proxy/(:port)(/*)?", async (req) => {
-    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
+    await pathProxy.wsProxy(req as WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
@@ -108,19 +105,10 @@ export const register = async (
     })
   })
   wsApp.get("/absproxy/(:port)(/*)?", async (req) => {
-    await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
+    await pathProxy.wsProxy(req as WebsocketRequest, {
       passthroughPath: true,
     })
   })
-
-  if (!process.env.CS_DISABLE_PLUGINS) {
-    const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
-    const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
-    await pluginApi.loadPlugins()
-    pluginApi.mount(app, wsApp)
-    app.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
-    wrapper.onDispose(() => pluginApi.dispose())
-  }
 
   app.use(express.json())
   app.use(express.urlencoded({ extended: true }))

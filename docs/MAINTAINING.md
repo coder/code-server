@@ -112,8 +112,8 @@ The code-server project follows traditional [semantic
 versioning](https://semver.org/), with the objective of minimizing major changes
 that break backward compatibility. We increment the patch level for all
 releases, except when the upstream Visual Studio Code project increments its
-minor version or we change the plugin API in a backward-compatible manner. In
-those cases, we increment the minor version rather than the patch level.
+minor version.
+In those cases, we increment the minor version rather than the patch level.
 
 ## Pull requests
 

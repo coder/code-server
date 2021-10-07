@@ -40,9 +40,6 @@ class Watcher {
     const vscodeWebExtensions = cp.spawn("yarn", ["watch-web"], { cwd: this.vscodeSourcePath })
 
     const tsc = cp.spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath })
-    const plugin = process.env.PLUGIN_DIR
-      ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
-      : undefined
 
     const cleanup = (code?: number | null): void => {
       Watcher.log("killing vs code watcher")
@@ -56,12 +53,6 @@ class Watcher {
       Watcher.log("killing tsc")
       tsc.removeAllListeners()
       tsc.kill()
-
-      if (plugin) {
-        Watcher.log("killing plugin")
-        plugin.removeAllListeners()
-        plugin.kill()
-      }
 
       if (server) {
         Watcher.log("killing server")
@@ -91,20 +82,9 @@ class Watcher {
       cleanup(code)
     })
 
-    if (plugin) {
-      plugin.on("exit", (code) => {
-        Watcher.log("plugin terminated unexpectedly")
-        cleanup(code)
-      })
-    }
-
     vscodeWebExtensions.stderr.on("data", (d) => process.stderr.write(d))
     vscode.stderr.on("data", (d) => process.stderr.write(d))
     tsc.stderr.on("data", (d) => process.stderr.write(d))
-
-    if (plugin) {
-      plugin.stderr.on("data", (d) => process.stderr.write(d))
-    }
 
     let startingVscode = false
     let startedVscode = false
@@ -131,18 +111,6 @@ class Watcher {
         restartServer()
       }
     })
-
-    if (plugin) {
-      onLine(plugin, (line, original) => {
-        // tsc outputs blank lines; skip them.
-        if (line !== "") {
-          console.log("[plugin]", original)
-        }
-        if (line.includes("Watching for file changes")) {
-          restartServer()
-        }
-      })
-    }
   }
 }
 
