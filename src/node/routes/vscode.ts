@@ -3,7 +3,7 @@ import { Server } from "http"
 import path from "path"
 import { AuthType, DefaultedArgs } from "../cli"
 import { version as codeServerVersion, vsRootPath } from "../constants"
-import { ensureAuthenticated } from "../http"
+import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter, WebsocketRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
@@ -52,6 +52,17 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
 
   const router = express.Router()
   const wsRouter = WsRouter()
+
+  router.get("/", async (req, res, next) => {
+    const isAuthenticated = await authenticated(req)
+    if (!isAuthenticated) {
+      return redirect(req, res, "login", {
+        // req.baseUrl can be blank if already at the root.
+        to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
+      })
+    }
+    next()
+  })
 
   router.all("*", ensureAuthenticated, (req, res, next) => {
     req.on("error", (error) => errorHandler(error, req, res, next))
