@@ -7,6 +7,7 @@ const config: PlaywrightTestConfig = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
   timeout: 60000, // Each test is given 60 seconds.
   retries: process.env.CI ? 2 : 1, // Retry in CI due to flakiness.
+  workers: 1,
   globalSetup: require.resolve("./utils/globalSetup.ts"),
   reporter: "list",
   // Put any shared options on the top level.
