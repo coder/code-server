@@ -1,3 +1,5 @@
+import { ClientConfiguration } from "../node/http"
+
 /**
  * Split a string up to the delimiter. If the delimiter doesn't exist the first
  * item will have all the text and the second item will be an empty string.
@@ -53,7 +55,7 @@ export const resolveBase = (base?: string): string => {
 /**
  * Get client-side configuration embedded in the HTML or query params.
  */
-export const getClientConfiguration = <T extends CodeServerLib.ClientConfiguration>(): T => {
+export const getClientConfiguration = <T extends ClientConfiguration>(): T => {
   let config: T
   try {
     config = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)

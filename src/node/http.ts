@@ -10,6 +10,15 @@ import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
 
+/**
+ * Base options included on every page.
+ */
+export interface ClientConfiguration {
+  codeServerVersion: string
+  base: string
+  csStaticBase: string
+}
+
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Express {
@@ -20,7 +29,7 @@ declare global {
   }
 }
 
-export const createClientConfiguration = (req: express.Request): CodeServerLib.ClientConfiguration => {
+export const createClientConfiguration = (req: express.Request): ClientConfiguration => {
   const base = relativeRoot(req)
 
   return {
@@ -38,7 +47,7 @@ export const replaceTemplates = <T extends object>(
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
-  const serverOptions: CodeServerLib.ClientConfiguration = {
+  const serverOptions: ClientConfiguration = {
     ...createClientConfiguration(req),
     ...extraOpts,
   }
