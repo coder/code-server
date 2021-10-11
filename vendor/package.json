@@ -7,6 +7,6 @@
     "postinstall": "./postinstall.sh"
   },
   "devDependencies": {
-    "code-oss-dev": "../../../../../../../../../vscode"
+    "code-oss-dev": "lukapetek/vscode#b222b3b4cf73726a5a06ae60657ffb7094f98bf7"
   }
 }
