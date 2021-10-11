@@ -7,6 +7,6 @@
     "postinstall": "./postinstall.sh"
   },
   "devDependencies": {
-    "code-oss-dev": "../../vscode"
+    "code-oss-dev": "../../../../../../../../../vscode"
   }
 }
