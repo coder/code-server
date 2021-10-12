@@ -105,7 +105,7 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
    # This is the same as the above SSH command, but it runs in the background
    # continuously. Be sure to add `mutagen daemon start` to your ~/.bashrc to
    # start the mutagen daemon when you open a shell.
-   
+
    mutagen forward create --name=code-server tcp:127.0.0.1:8080 < instance-ip > :tcp:127.0.0.1:8080
    ```
 
@@ -159,7 +159,7 @@ sudo apt install caddy
    mydomain.com/code/* {
      uri strip_prefix /code
      reverse_proxy 127.0.0.1:8080
-      }
+   }
    ```
 
    Remember to replace `mydomain.com` with your domain name!
@@ -269,6 +269,13 @@ If you'd like to avoid the warnings displayed by code-server when using a
 self-signed certificate, you can use [mkcert](https://mkcert.dev) to create a
 self-signed certificate that's trusted by your operating system, then pass the
 certificate to code-server via the `cert` and `cert-key` config fields.
+
+### TLS 1.3 and Safari
+
+If you will be using Safari and your configuration does not allow anything less
+than TLS 1.3 you will need to add support for TLS 1.2 since Safari does not
+support TLS 1.3 for web sockets at the time of writing. If this is the case you
+should see OSSStatus: 9836 in the browser console.
 
 ## External authentication
 
@@ -482,7 +489,7 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
    # This is the same as the above SSH command, but it runs in the background
    # continuously. Be sure to add `mutagen daemon start` to your ~/.bashrc to
    # start the mutagen daemon when you open a shell.
-   
+
    mutagen forward create --name=code-server tcp:127.0.0.1:8080 < instance-ip > :tcp:127.0.0.1:8080
    ```
 
