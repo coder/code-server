@@ -1,4 +1,4 @@
-import { ClientConfiguration } from "../node/http"
+import { ClientConfiguration } from "./http"
 
 /**
  * Split a string up to the delimiter. If the delimiter doesn't exist the first

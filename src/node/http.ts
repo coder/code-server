@@ -3,21 +3,12 @@ import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import path from "path"
 import qs from "qs"
-import { HttpCode, HttpError } from "../common/http"
+import { ClientConfiguration, HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
-
-/**
- * Base options included on every page.
- */
-export interface ClientConfiguration {
-  codeServerVersion: string
-  base: string
-  csStaticBase: string
-}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
