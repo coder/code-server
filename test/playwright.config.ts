@@ -2,12 +2,16 @@ import { PlaywrightTestConfig } from "@playwright/test"
 
 import path from "path"
 
-// Run tests in three browsers.
+// The default configuration runs all tests in three browsers with workers equal
+// to half the available threads. See 'yarn test:e2e --help' to customize from
+// the command line. For example:
+//   yarn test:e2e --workers 1        # Run with one worker
+//   yarn test:e2e --project Chromium # Only run on Chromium
+//   yarn test:e2e --grep login       # Run tests matching "login"
 const config: PlaywrightTestConfig = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
   timeout: 60000, // Each test is given 60 seconds.
   retries: process.env.CI ? 2 : 1, // Retry in CI due to flakiness.
-  workers: 1,
   globalSetup: require.resolve("./utils/globalSetup.ts"),
   reporter: "list",
   // Put any shared options on the top level.
