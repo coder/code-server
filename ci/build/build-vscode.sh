@@ -11,12 +11,10 @@ main() {
 
   cd vendor/modules/code-oss-dev
 
-  yarn gulp compile-build compile-extensions-build compile-extension-media compile-web
-
-  yarn gulp optimize --gulpfile ./coder.js
-
   if [[ $MINIFY ]]; then
-    yarn gulp minify --gulpfile ./coder.js
+    yarn compile-server
+  else
+    yarn compile-server-min
   fi
 }
 
