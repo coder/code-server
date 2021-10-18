@@ -12,9 +12,9 @@ main() {
   cd vendor/modules/code-oss-dev
 
   if [[ $MINIFY ]]; then
-    yarn compile-server
-  else
     yarn compile-server-min
+  else
+    yarn compile-server
   fi
 }
 
