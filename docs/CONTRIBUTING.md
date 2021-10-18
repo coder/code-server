@@ -33,7 +33,7 @@ Here is what is needed:
 - [`git-lfs`](https://git-lfs.github.com)
 - [`yarn`](https://classic.yarnpkg.com/en/)
   - Used to install JS packages and run scripts
-- [`nfpm`](https://classic.yarnpkg.com/en/)
+- [`nfpm`](https://nfpm.goreleaser.com/)
   - Used to build `.deb` and `.rpm` packages
 - [`jq`](https://stedolan.github.io/jq/)
   - Used to build code-server releases
