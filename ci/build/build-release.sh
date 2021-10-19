@@ -90,6 +90,7 @@ bundle_vscode() {
   {
     "enableTelemetry": true,
     "commit": "$(git rev-parse HEAD)",
+    "quality": "stable",
     "date": $(jq -n 'now | todate')
   }
 EOF
