@@ -80,9 +80,8 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
 
-  mkdir -p "$VSCODE_OUT_PATH/resources/"{linux,web}
-  rsync "$VSCODE_SRC_PATH/resources/linux/" "$VSCODE_OUT_PATH/resources/linux/"
-  rsync "$VSCODE_SRC_PATH/resources/web/" "$VSCODE_OUT_PATH/resources/web/"
+  mkdir -p "$VSCODE_OUT_PATH/resources/"
+  rsync "$VSCODE_SRC_PATH/resources/" "$VSCODE_OUT_PATH/resources/"
 
   # Add the commit and date and enable telemetry. This just makes telemetry
   # available; telemetry can still be disabled by flag or setting.
