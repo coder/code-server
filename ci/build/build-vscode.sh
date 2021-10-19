@@ -11,11 +11,9 @@ main() {
 
   cd vendor/modules/code-oss-dev
 
-  if [[ $MINIFY ]]; then
-    yarn compile-server-min
-  else
-    yarn compile-server
-  fi
+  # extensions-ci compiles extensions and includes their media.
+  # compile-web compiles web extensions. TODO: Unsure if used.
+  yarn gulp extensions-ci compile-web "vscode-server${MINIFY:+-min}"
 }
 
 main "$@"
