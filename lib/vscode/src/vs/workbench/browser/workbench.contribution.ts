@@ -225,7 +225,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			'workbench.commandPalette.history': {
 				'type': 'number',
 				'description': localize('commandHistory', "Controls the number of recently used commands to keep in history for the command palette. Set to 0 to disable command history."),
-				'default': 50
+				'default': 0
 			},
 			'workbench.commandPalette.preserveInput': {
 				'type': 'boolean',
@@ -282,7 +282,7 @@ const registry = Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Con
 			},
 			'workbench.statusBar.visible': {
 				'type': 'boolean',
-				'default': true,
+				'default': false,
 				'description': localize('statusBarVisibility', "Controls the visibility of the status bar at the bottom of the workbench.")
 			},
 			'workbench.activityBar.visible': {

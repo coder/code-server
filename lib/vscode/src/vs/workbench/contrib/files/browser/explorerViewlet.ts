@@ -311,7 +311,7 @@ viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 // See: https://github.com/cdr/code-server/issues/3457
 viewsRegistry.registerViewWelcomeContent(EmptyView.ID, {
 	content: localize({ key: 'noFolderHelp', comment: ['Please do not translate the word "commmand", it is part of our internal syntax which must not change'] },
-		"You have not yet opened a folder.\n[Open Folder](command:{0})", OpenFolderAction.ID),
+		"You do not seem to be attached to a Codestream Project.\n[Open Folder](command:{0})", OpenFolderAction.ID),
 	when: ContextKeyExpr.or(ContextKeyExpr.and(WorkbenchStateContext.notEqualsTo('workspace'), RemoteNameContext.isEqualTo('')), ContextKeyExpr.and(WorkbenchStateContext.notEqualsTo('workspace'), IsWebContext)),
 	group: ViewContentGroups.Open,
 	order: 1

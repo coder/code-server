@@ -33,7 +33,7 @@ export default () => `
 					<p class="none detail">${escape(localize('welcomePage.noRecentFolders', "No recent folders"))}</p>
 				</div>
 				<div class="section help">
-					<h2 class="caption">code-server ${escape(localize('welcomePage.help', "Help"))}</h2>
+					<h2 class="caption">Codestream Studios Editor ${escape(localize('welcomePage.help', "Help"))}</h2>
 					<ul>
 						<li><a href="https://github.com/cdr/code-server">GitHub Repository</a></li>
 						<li><a href="https://github.com/cdr/code-server/releases/tag/v${product.codeServerVersion}">Release Notes</a></li>

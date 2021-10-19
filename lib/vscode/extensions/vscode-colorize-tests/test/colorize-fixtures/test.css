@@ -127,6 +127,7 @@ footer a:visited {
 }
 
 .sidebar {
+    display: none;
     margin-left: 600px;
     position: absolute;
     top: 0;

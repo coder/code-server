@@ -146,7 +146,6 @@ isUSStandard: true
 |                           KeyP |   p   |                         P |     |                         P |                              p |                         P |                         [KeyP] |         |
 |                      Ctrl+KeyP |   p   |                    Ctrl+P |     |                    Ctrl+P |                         ctrl+p |                    Ctrl+P |                    ctrl+[KeyP] |         |
 |                     Shift+KeyP |   P   |                   Shift+P |     |                   Shift+P |                        shift+p |                   Shift+P |                   shift+[KeyP] |         |
-|                Ctrl+Shift+KeyP |   P   |              Ctrl+Shift+P |     |              Ctrl+Shift+P |                   ctrl+shift+p |              Ctrl+Shift+P |              ctrl+shift+[KeyP] |         |
 |                       Alt+KeyP |   p   |                     Alt+P |     |                     Alt+P |                          alt+p |                     Alt+P |                     alt+[KeyP] |         |
 |                  Ctrl+Alt+KeyP |   π   |                Ctrl+Alt+P |     |                Ctrl+Alt+P |                     ctrl+alt+p |                Ctrl+Alt+P |                ctrl+alt+[KeyP] |         |
 |                 Shift+Alt+KeyP |   P   |               Shift+Alt+P |     |               Shift+Alt+P |                    shift+alt+p |               Shift+Alt+P |               shift+alt+[KeyP] |         |

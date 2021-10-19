@@ -14,7 +14,7 @@ import { KeyMod } from 'vs/base/common/keyCodes';
 import { ContextKeyExpr } from 'vs/platform/contextkey/common/contextkey';
 import { inQuickPickContext, getQuickNavigateHandler } from 'vs/workbench/browser/quickaccess';
 import { KeybindingsRegistry, KeybindingWeight } from 'vs/platform/keybinding/common/keybindingsRegistry';
-import { EditorContextKeys } from 'vs/editor/common/editorContextKeys';
+// import { EditorContextKeys } from 'vs/editor/common/editorContextKeys'; // Hidden for controlling environment config
 
 //#region Quick Access Proviers
 
@@ -48,14 +48,14 @@ quickAccessRegistry.registerQuickAccessProvider({
 
 //#region Menu contributions
 
-MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
-	group: '1_open',
-	command: {
-		id: ShowAllCommandsAction.ID,
-		title: localize({ key: 'miCommandPalette', comment: ['&& denotes a mnemonic'] }, "&&Command Palette...")
-	},
-	order: 1
-});
+// MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
+// 	group: '1_open',
+// 	command: {
+// 		id: ShowAllCommandsAction.ID,
+// 		title: localize({ key: 'miCommandPalette', comment: ['&& denotes a mnemonic'] }, "&&Command Palette...")
+// 	},
+// 	order: 1
+// });
 
 MenuRegistry.appendMenuItem(MenuId.MenubarViewMenu, {
 	group: '1_open',
@@ -84,24 +84,26 @@ MenuRegistry.appendMenuItem(MenuId.MenubarGoMenu, {
 	order: 1
 });
 
-MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
-	group: '1_command',
-	command: {
-		id: ShowAllCommandsAction.ID,
-		title: localize('commandPalette', "Command Palette...")
-	},
-	order: 1
-});
+// Hide Command Palette Options 
 
-MenuRegistry.appendMenuItem(MenuId.EditorContext, {
-	group: 'z_commands',
-	when: EditorContextKeys.editorSimpleInput.toNegated(),
-	command: {
-		id: ShowAllCommandsAction.ID,
-		title: localize('commandPalette', "Command Palette..."),
-	},
-	order: 1
-});
+// MenuRegistry.appendMenuItem(MenuId.GlobalActivity, {
+// 	group: '1_command',
+// 	command: {
+// 		id: ShowAllCommandsAction.ID,
+// 		title: localize('commandPalette', "Command Palette...")
+// 	},
+// 	order: 1
+// });
+
+// MenuRegistry.appendMenuItem(MenuId.EditorContext, {
+// 	group: 'z_commands',
+// 	when: EditorContextKeys.editorSimpleInput.toNegated(),
+// 	command: {
+// 		id: ShowAllCommandsAction.ID,
+// 		title: localize('commandPalette', "Command Palette..."),
+// 	},
+// 	order: 1
+// });
 
 //#endregion
 

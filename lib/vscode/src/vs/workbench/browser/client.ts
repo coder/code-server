@@ -99,7 +99,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 		const lastNoti = storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
 		if (lastNoti) {
 			// Only remind them again after 1 week.
-			const timeout = 1000*60*60*24*7;
+			const timeout = 1000 * 60 * 60 * 24 * 7;
 			const threshold = lastNoti + timeout;
 			if (Date.now() < threshold) {
 				return;
@@ -118,7 +118,7 @@ export const initialize = async (services: ServiceCollection): Promise<void> => 
 			logService.debug(`failed to check for update: ${error}`);
 		}).finally(() => {
 			// Check again every 6 hours.
-			setTimeout(updateLoop, 1000*60*60*6);
+			setTimeout(updateLoop, 1000 * 60 * 60 * 6);
 		});
 	};
 

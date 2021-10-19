@@ -865,40 +865,40 @@ class PreferencesActionsContribution extends Disposable implements IWorkbenchCon
 			group: '2_keybindings',
 			order: 1
 		});
-		registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: 'workbench.action.openDefaultKeybindingsFile',
-					title: { value: nls.localize('openDefaultKeybindingsFile', "Open Default Keyboard Shortcuts (JSON)"), original: 'Open Default Keyboard Shortcuts (JSON)' },
-					category,
-					menu: { id: MenuId.CommandPalette }
-				});
-			}
-			run(accessor: ServicesAccessor) {
-				return accessor.get(IPreferencesService).openDefaultKeybindingsFile();
-			}
-		});
-		registerAction2(class extends Action2 {
-			constructor() {
-				super({
-					id: 'workbench.action.openGlobalKeybindingsFile',
-					title: { value: nls.localize('openGlobalKeybindingsFile', "Open Keyboard Shortcuts (JSON)"), original: 'Open Keyboard Shortcuts (JSON)' },
-					category,
-					icon: preferencesOpenSettingsIcon,
-					menu: [
-						{ id: MenuId.CommandPalette },
-						{
-							id: MenuId.EditorTitle,
-							when: ContextKeyExpr.and(CONTEXT_KEYBINDINGS_EDITOR),
-							group: 'navigation',
-						}
-					]
-				});
-			}
-			run(accessor: ServicesAccessor) {
-				return accessor.get(IPreferencesService).openGlobalKeybindingSettings(true);
-			}
-		});
+		// registerAction2(class extends Action2 {
+		// 	constructor() {
+		// 		super({
+		// 			id: 'workbench.action.openDefaultKeybindingsFile',
+		// 			title: { value: nls.localize('openDefaultKeybindingsFile', "Open Default Keyboard Shortcuts (JSON)"), original: 'Open Default Keyboard Shortcuts (JSON)' },
+		// 			category,
+		// menu: { id: MenuId.CommandPalette }
+		// 		});
+		// 	}
+		// 	run(accessor: ServicesAccessor) {
+		// 		return accessor.get(IPreferencesService).openDefaultKeybindingsFile();
+		// 	}
+		// });
+		// registerAction2(class extends Action2 {
+		// 	constructor() {
+		// 		super({
+		// 			id: 'workbench.action.openGlobalKeybindingsFile',
+		// 			title: { value: nls.localize('openGlobalKeybindingsFile', "Open Keyboard Shortcuts (JSON)"), original: 'Open Keyboard Shortcuts (JSON)' },
+		// 			category,
+		// 			icon: preferencesOpenSettingsIcon,
+		// 			menu: [
+		// 				{ id: MenuId.CommandPalette },
+		// 				{
+		// 					id: MenuId.EditorTitle,
+		// 					when: ContextKeyExpr.and(CONTEXT_KEYBINDINGS_EDITOR),
+		// 					group: 'navigation',
+		// 				}
+		// 			]
+		// 		});
+		// 	}
+		// 	run(accessor: ServicesAccessor) {
+		// 		return accessor.get(IPreferencesService).openGlobalKeybindingSettings(true);
+		// 	}
+		// });
 		registerAction2(class extends Action2 {
 			constructor() {
 				super({

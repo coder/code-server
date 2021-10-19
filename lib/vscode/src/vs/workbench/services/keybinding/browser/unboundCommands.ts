@@ -35,7 +35,7 @@ export function getAllUnboundCommands(boundCommands: Map<string, boolean>): stri
 	// Add all commands from Command Palette
 	for (const menuItem of MenuRegistry.getMenuItems(MenuId.CommandPalette)) {
 		if (isIMenuItem(menuItem)) {
-			addCommand(menuItem.command.id, true);
+			// addCommand(menuItem.command.id, true);
 		}
 	}
 

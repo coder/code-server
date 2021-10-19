@@ -1,6 +1,6 @@
 {
-	"nameShort": "code-server",
-	"nameLong": "code-server",
+	"nameShort": "CSOS Editor",
+	"nameLong": "Codestream Studios Editor",
 	"applicationName": "code-oss",
 	"dataFolderName": ".vscode-oss",
 	"win32MutexName": "vscodeoss",

@@ -27,12 +27,12 @@ interface IAPIMenu {
 }
 
 const apiMenus: IAPIMenu[] = [
-	{
-		key: 'commandPalette',
-		id: MenuId.CommandPalette,
-		description: localize('menus.commandPalette', "The Command Palette"),
-		supportsSubmenus: false
-	},
+	// {
+	// 	key: 'commandPalette',
+	// 	id: MenuId.CommandPalette,
+	// 	description: localize('menus.commandPalette', "The Command Palette"),
+	// 	supportsSubmenus: false
+	// },
 	{
 		key: 'touchBar',
 		id: MenuId.TouchBarContext,

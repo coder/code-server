@@ -1,6 +1,6 @@
 {
-  "name": "code-server",
-  "short_name": "code-server",
+  "name": "Codestream Studios Editor",
+  "short_name": "CSOS Editor",
   "start_url": "{{BASE}}",
   "display": "fullscreen",
   "background-color": "#fff",

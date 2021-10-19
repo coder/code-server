@@ -123,8 +123,8 @@ const Button = (title: string, href: string) => `[${title}](${href})`;
 export const walkthroughs: GettingStartedWalkthroughContent = [
 	{
 		id: 'Setup',
-		title: localize('gettingStarted.setup.title', "Get Started with VS Code"),
-		description: localize('gettingStarted.setup.description', "Discover the best customizations to make VS Code yours."),
+		title: localize('gettingStarted.setup.title', "Get Started with Codestream Online Studios Editor"),
+		description: localize('gettingStarted.setup.description', "Discover the best customizations to make the Codestream Online Studios Editor yours."),
 		icon: setupIcon,
 		next: 'Beginner',
 		content: {
@@ -140,7 +140,7 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 				{
 					id: 'findLanguageExtensions',
 					title: localize('gettingStarted.findLanguageExts.title', "Rich support for all your languages"),
-					description: localize('gettingStarted.findLanguageExts.description.interpolated', "Code smarter with syntax highlighting, code completion, linting and debugging. While many languages are built-in, many more can be added as extensions.\n{0}", Button(localize('browseLangExts', "Browse Language Extensions"), 'command:workbench.extensions.action.showLanguageExtensions')),
+					description: localize('gettingStarted.findLanguageExts.description.interpolated', "Code smarter with syntax highlighting, code completion, linting and debugging. All languages stated in the platform are supported by extensions and is already ready to go for you!\n{0}"),
 					media: {
 						type: 'image', altText: 'Language extensions', path: {
 							dark: 'dark/languageExtensions.png',
@@ -149,18 +149,19 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 						}
 					}
 				},
-				{
-					id: 'commandPaletteTask',
-					title: localize('gettingStarted.commandPalette.title', "One shortcut to access everything"),
-					description: localize('gettingStarted.commandPalette.description.interpolated', "Commands Palette is the keyboard way to accomplish any task in VS Code. **Practice** by looking up your frequently used commands to save time and keep in the flow.\n{0}\n__Try searching for 'view toggle'.__", Button(localize('commandPalette', "Open Command Palette"), 'command:workbench.action.showCommands')),
-					media: {
-						type: 'image', altText: 'Command Palette overlay for searching and executing commands.', path: {
-							dark: 'dark/commandPalette.png',
-							light: 'light/commandPalette.png',
-							hc: 'hc/commandPalette.png',
-						}
-					},
-				},
+				// Hide Options to get to command Palette
+				// {
+				// 	id: 'commandPaletteTask',
+				// 	title: localize('gettingStarted.commandPalette.title', "One shortcut to access everything"),
+				// 	description: localize('gettingStarted.commandPalette.description.interpolated', "Commands Palette is the keyboard way to accomplish any task in VS Code. **Practice** by looking up your frequently used commands to save time and keep in the flow.\n{0}\n__Try searching for 'view toggle'.__", Button(localize('commandPalette', "Open Command Palette"), 'command:workbench.action.showCommands')),
+				// 	media: {
+				// 		type: 'image', altText: 'Command Palette overlay for searching and executing commands.', path: {
+				// 			dark: 'dark/commandPalette.png',
+				// 			light: 'light/commandPalette.png',
+				// 			hc: 'hc/commandPalette.png',
+				// 		}
+				// 	},
+				// },
 				{
 					id: 'workspaceTrust',
 					title: localize('gettingStarted.workspaceTrust.title', "Safely browse and edit code"),
@@ -177,6 +178,7 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 				{
 					id: 'pickAFolderTask-Mac',
 					title: localize('gettingStarted.setup.OpenFolder.title', "Open up your code"),
+					// This button should be given the command to open the project from s3
 					description: localize('gettingStarted.setup.OpenFolder.description.interpolated', "You're all set to start coding. Open a project folder to get your files into VS Code.\n{0}", Button(localize('pickFolder', "Pick a Folder"), 'command:workbench.action.files.openFileFolder')),
 					when: 'isMac && workspaceFolderCount == 0',
 					media: {
@@ -238,57 +240,58 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 						},
 					},
 				},
-				{
-					id: 'terminal',
-					title: localize('gettingStarted.terminal.title', "Convenient built-in terminal"),
-					description: localize('gettingStarted.terminal.description.interpolated', "Quickly run shell commands and monitor build output, right next to your code.\n{0}", Button(localize('showTerminal', "Show Terminal Panel"), 'command:workbench.action.terminal.toggleTerminal')),
-					when: 'remoteName != codespaces && !terminalIsOpen',
-					media: {
-						type: 'image', altText: 'Integrated terminal running a few npm commands', path: {
-							dark: 'dark/terminal.png',
-							light: 'light/terminal.png',
-							hc: 'hc/terminal.png',
-						}
-					},
-				},
-				{
-					id: 'extensions',
-					title: localize('gettingStarted.extensions.title', "Limitless extensibility"),
-					description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browseRecommended', "Browse Recommended Extensions"), 'command:workbench.extensions.action.showRecommendedExtensions')),
-					media: {
-						type: 'image', altText: 'VS Code extension marketplace with featured language extensions', path: {
-							dark: 'dark/extensions.png',
-							light: 'light/extensions.png',
-							hc: 'hc/extensions.png',
-						}
-					},
-				},
-				{
-					id: 'settings',
-					title: localize('gettingStarted.settings.title', "Tune your settings"),
-					description: localize('gettingStarted.settings.description.interpolated', "Tweak every aspect of VS Code and your extensions to your liking. Commonly used settings are listed first to get you started.\n{0}", Button(localize('tweakSettings', "Tweak my Settings"), 'command:toSide:workbench.action.openSettings')),
-					media: {
-						type: 'image', altText: 'VS Code Settings', path: {
-							dark: 'dark/settings.png',
-							light: 'light/settings.png',
-							hc: 'hc/settings.png',
-						}
-					},
-				},
-				{
-					id: 'settingsSync',
-					title: localize('gettingStarted.settingsSync.title', "Sync your stuff across devices"),
-					description: localize('gettingStarted.settingsSync.description.interpolated', "Never lose the perfect VS Code setup! Settings Sync will back up and share settings, keybindings & extensions across several installations.\n{0}", Button(localize('enableSync', "Enable Settings Sync"), 'command:workbench.userDataSync.actions.turnOn')),
-					when: 'syncStatus != uninitialized',
-					completionEvents: ['onEvent:sync-enabled'],
-					media: {
-						type: 'image', altText: 'The "Turn on Sync" entry in the settings gear menu.', path: {
-							dark: 'dark/settingsSync.png',
-							light: 'light/settingsSync.png',
-							hc: 'hc/settingsSync.png',
-						},
-					}
-				},
+				// We need to decide if we are going to hide this compleatly or modify it based on our custom configuration.
+				// {
+				// 	id: 'terminal',
+				// 	title: localize('gettingStarted.terminal.title', "Convenient built-in terminal"),
+				// 	description: localize('gettingStarted.terminal.description.interpolated', "Quickly run shell commands and monitor build output, right next to your code.\n{0}", Button(localize('showTerminal', "Show Terminal Panel"), 'command:workbench.action.terminal.toggleTerminal')),
+				// 	when: 'remoteName != codespaces && !terminalIsOpen',
+				// 	media: {
+				// 		type: 'image', altText: 'Integrated terminal running a few npm commands', path: {
+				// 			dark: 'dark/terminal.png',
+				// 			light: 'light/terminal.png',
+				// 			hc: 'hc/terminal.png',
+				// 		}
+				// 	},
+				// },
+				// {
+				// 	id: 'extensions',
+				// 	title: localize('gettingStarted.extensions.title', "Limitless extensibility"),
+				// 	description: localize('gettingStarted.extensions.description.interpolated', "Extensions are VS Code's power-ups. They range from handy productivity hacks, expanding out-of-the-box features, to adding completely new capabilities.\n{0}", Button(localize('browseRecommended', "Browse Recommended Extensions"), 'command:workbench.extensions.action.showRecommendedExtensions')),
+				// 	media: {
+				// 		type: 'image', altText: 'VS Code extension marketplace with featured language extensions', path: {
+				// 			dark: 'dark/extensions.png',
+				// 			light: 'light/extensions.png',
+				// 			hc: 'hc/extensions.png',
+				// 		}
+				// 	},
+				// },
+				// {
+				// 	id: 'settings',
+				// 	title: localize('gettingStarted.settings.title', "Tune your settings"),
+				// 	description: localize('gettingStarted.settings.description.interpolated', "Tweak every aspect of VS Code and your extensions to your liking. Commonly used settings are listed first to get you started.\n{0}", Button(localize('tweakSettings', "Tweak my Settings"), 'command:toSide:workbench.action.openSettings')),
+				// 	media: {
+				// 		type: 'image', altText: 'VS Code Settings', path: {
+				// 			dark: 'dark/settings.png',
+				// 			light: 'light/settings.png',
+				// 			hc: 'hc/settings.png',
+				// 		}
+				// 	},
+				// },
+				// {
+				// 	id: 'settingsSync',
+				// 	title: localize('gettingStarted.settingsSync.title', "Sync your stuff across devices"),
+				// 	description: localize('gettingStarted.settingsSync.description.interpolated', "Never lose the perfect VS Code setup! Settings Sync will back up and share settings, keybindings & extensions across several installations.\n{0}", Button(localize('enableSync', "Enable Settings Sync"), 'command:workbench.userDataSync.actions.turnOn')),
+				// 	when: 'syncStatus != uninitialized',
+				// 	completionEvents: ['onEvent:sync-enabled'],
+				// 	media: {
+				// 		type: 'image', altText: 'The "Turn on Sync" entry in the settings gear menu.', path: {
+				// 			dark: 'dark/settingsSync.png',
+				// 			light: 'light/settingsSync.png',
+				// 			hc: 'hc/settingsSync.png',
+				// 		},
+				// 	}
+				// },
 				{
 					id: 'videoTutorial',
 					title: localize('gettingStarted.videoTutorial.title', "Lean back and learn"),
@@ -384,18 +387,18 @@ export const walkthroughs: GettingStartedWalkthroughContent = [
 						},
 					},
 				},
-				{
-					id: 'shortcuts',
-					title: localize('gettingStarted.shortcuts.title', "Customize your shortcuts"),
-					description: localize('gettingStarted.shortcuts.description.interpolated', "Once you have discovered your favorite commands, create custom keyboard shortcuts for instant access.\n{0}", Button(localize('keyboardShortcuts', "Keyboard Shortcuts"), 'command:toSide:workbench.action.openGlobalKeybindings')),
-					media: {
-						type: 'image', altText: 'Interactive shortcuts.', path: {
-							dark: 'dark/shortcuts.png',
-							light: 'light/shortcuts.png',
-							hc: 'light/shortcuts.png'
-						},
-					}
-				}
+				// {
+				// 	id: 'shortcuts',
+				// 	title: localize('gettingStarted.shortcuts.title', "Customize your shortcuts"),
+				// 	description: localize('gettingStarted.shortcuts.description.interpolated', "Once you have discovered your favorite commands, create custom keyboard shortcuts for instant access.\n{0}", Button(localize('keyboardShortcuts', "Keyboard Shortcuts"), 'command:toSide:workbench.action.openGlobalKeybindings')),
+				// 	media: {
+				// 		type: 'image', altText: 'Interactive shortcuts.', path: {
+				// 			dark: 'dark/shortcuts.png',
+				// 			light: 'light/shortcuts.png',
+				// 			hc: 'light/shortcuts.png'
+				// 		},
+				// 	}
+				// }
 			]
 		}
 	},

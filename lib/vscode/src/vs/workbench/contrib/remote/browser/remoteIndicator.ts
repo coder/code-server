@@ -333,7 +333,7 @@ export class RemoteStatusIndicator extends Disposable implements IWorkbenchContr
 	}
 
 	private renderRemoteStatusIndicator(text: string, tooltip?: string | IMarkdownString, command?: string, showProgress?: boolean): void {
-		const name = nls.localize('remoteHost', "Remote Host");
+		const name = nls.localize('remoteHost', "Remote Host Codestream");
 		if (typeof command !== 'string' && this.getRemoteMenuActions().length > 0) {
 			command = RemoteStatusIndicator.REMOTE_ACTIONS_COMMAND_ID;
 		}
