@@ -21,7 +21,7 @@ main() {
   # devDependencies are not needed, and that even git repo based packages are
   # assumed to be compiled. Because the default behavior for VS Code's `postinstall`
   # assumes we're also compiled, this needs to be ignored.
-  yarn install --modules-folder modules --ignore-scripts --frozen-lockfile
+  yarn install --modules-folder modules --ignore-scripts
 
   # Finally, run the vendor `postinstall`
   yarn run postinstall
