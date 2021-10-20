@@ -7,6 +7,6 @@
     "postinstall": "./postinstall.sh"
   },
   "devDependencies": {
-    "code-oss-dev": "cdr/vscode#96a09a7846538c3bbedb6a2aeca729537bb8202b"
+    "code-oss-dev": "lpetek/vscode#c391fe3d22c932c3d159a779e85925f4cb0c4fdf"
   }
 }
