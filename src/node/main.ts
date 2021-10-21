@@ -18,15 +18,11 @@ import { humanPath, isFile, loadAMDModule, open } from "./util"
 export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running VS Code CLI")
 
-  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cliProcessMain", "main")
-
   try {
-    await cliProcessMain(args)
+    await loadAMDModule("vs/code/node/cli", "main")
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }
-
-  process.exit(0)
 }
 
 export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
