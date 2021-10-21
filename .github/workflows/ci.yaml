@@ -147,7 +147,12 @@ jobs:
         run: yarn build:vscode
 
       # Our code imports code from VS Code's output directory meaning VS Code
-      # must be built before running these tests.
+      # must be built before running these tests.  It looks for `out` in order
+      # to works during development (for release we move `out-build` to `out`)
+      # so symlink `out` to `out-build` as this is a production build.
+      - name: Link vscode
+        run: ln -s out-build vendor/modules/code-oss-dev/out
+
       # TODO: Move to its own step?
       - name: Run code-server unit tests
         run: yarn test:unit
