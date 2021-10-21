@@ -19,8 +19,6 @@ jobs:
     name: Pre-build checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -52,14 +50,6 @@ jobs:
 
       - name: Run yarn lint
         run: yarn lint
-        if: success()
-
-      - name: Run code-server unit tests
-        run: yarn test:unit
-        if: success()
-
-      - name: Upload coverage report to Codecov
-        run: yarn coverage
         if: success()
 
   audit-ci:
@@ -98,6 +88,8 @@ jobs:
     needs: prebuild
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -153,6 +145,17 @@ jobs:
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: yarn build:vscode
+
+      # Our code imports code from VS Code's output directory meaning VS Code
+      # must be built before running these tests.
+      # TODO: Move to its own step?
+      - name: Run code-server unit tests
+        run: yarn test:unit
+        if: success()
+
+      - name: Upload coverage report to Codecov
+        run: yarn coverage
+        if: success()
 
       # The release package does not contain any native modules
       # and is neutral to architecture/os/libc version.
