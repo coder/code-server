@@ -652,21 +652,6 @@ function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
   return addr
 }
 
-export const shouldRunVsCodeCli = (args: Args): boolean => {
-  // Create new interface with only Arg keys
-  // keyof Args
-  // Turn that into an array
-  // Array<...>
-  type ExtensionArgs = Array<keyof Args>
-  const extensionRelatedArgs: ExtensionArgs = ["list-extensions", "install-extension", "uninstall-extension"]
-
-  const argKeys = Object.keys(args)
-
-  // If any of the extensionRelatedArgs are included in args
-  // then we don't want to run the vscode cli
-  return extensionRelatedArgs.some((arg) => argKeys.includes(arg))
-}
-
 /**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user

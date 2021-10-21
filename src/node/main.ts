@@ -5,23 +5,53 @@ import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
-import { commit, version } from "./constants"
+import { commit, version, vsRootPath } from "./constants"
 import { startLink } from "./link"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
+
+export const shouldSpawnCliProcess = async (args: DefaultedArgs): Promise<boolean> => {
+  const shouldSpawn = await loadAMDModule<(argv: DefaultedArgs) => boolean>("vs/code/node/cli", "shouldSpawnCliProcess")
+
+  return shouldSpawn(args)
+}
 
 /**
  * This is useful when an CLI arg should be passed to VS Code directly,
  * such as when managing extensions.
  * @deprecated This should be removed when code-server merges with lib/vscode.
  */
-export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
+export const runVsCodeCli = async (): Promise<void> => {
   logger.debug("Running VS Code CLI")
 
-  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cliProcessMain", "main")
+  // Delete `VSCODE_CWD` very early even before
+  // importing bootstrap files. We have seen
+  // reports where `code .` would use the wrong
+  // current working directory due to our variable
+  // somehow escaping to the parent shell
+  // (https://github.com/microsoft/vscode/issues/126399)
+  delete process.env["VSCODE_CWD"]
+
+  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
+  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
+  const product = require(path.join(vsRootPath, "product.json"))
+
+  // Avoid Monkey Patches from Application Insights
+  bootstrap.avoidMonkeyPatchFromAppInsights()
+
+  // Enable portable support
+  bootstrapNode.configurePortable(product)
+
+  // Enable ASAR support
+  bootstrap.enableASARSupport()
+
+  // Signal processes that we got launched as CLI
+  process.env["VSCODE_CLI"] = "1"
+
+  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cli", "initialize")
 
   try {
-    await cliProcessMain(args)
+    await cliProcessMain(process.argv)
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }
