@@ -36,3 +36,9 @@ spec:
           image: <Image>
           ports:
             - containerPort: <Port>
+apiVersion: pubsub.cnrm.cloud.google.com/v1beta1
+kind: PubSubTopic
+metadata:
+  labels:
+    label: "value"
+  name: pubsubtopic-name
