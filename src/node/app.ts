@@ -67,8 +67,10 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
 /**
  * Get the address of a server as a string (protocol *is* included) while
  * ensuring there is one (will throw if there isn't).
+ *
+ * The address might be a URL or it might be a pipe or socket path.
  */
-export const ensureAddress = (server: http.Server, protocol: string): URL => {
+export const ensureAddress = (server: http.Server, protocol: string): URL | string => {
   const addr = server.address()
 
   if (!addr) {
@@ -79,7 +81,8 @@ export const ensureAddress = (server: http.Server, protocol: string): URL => {
     return new URL(`${protocol}://${addr.address}:${addr.port}`)
   }
 
-  return new URL(addr)
+  // If this is a string then it is a pipe or Unix socket.
+  return addr
 }
 
 /**

@@ -393,9 +393,17 @@ export const isWsl = async (): Promise<boolean> => {
 }
 
 /**
- * Try opening a URL using whatever the system has set for opening URLs.
+ * Try opening an address using whatever the system has set for opening URLs.
  */
-export const open = async (url: string): Promise<void> => {
+export const open = async (address: URL | string): Promise<void> => {
+  if (typeof address === "string") {
+    throw new Error("Cannot open socket paths")
+  }
+  // Web sockets do not seem to work if browsing with 0.0.0.0.
+  const url = new URL(address)
+  if (url.hostname === "0.0.0.0") {
+    url.hostname = "localhost"
+  }
   const args = [] as string[]
   const options = {} as cp.SpawnOptions
   const platform = (await isWsl()) ? "wsl" : process.platform
@@ -403,9 +411,9 @@ export const open = async (url: string): Promise<void> => {
   if (platform === "win32" || platform === "wsl") {
     command = platform === "wsl" ? "cmd.exe" : "cmd"
     args.push("/c", "start", '""', "/b")
-    url = url.replace(/&/g, "^&")
+    url.search = url.search.replace(/&/g, "^&")
   }
-  const proc = cp.spawn(command, [...args, url], options)
+  const proc = cp.spawn(command, [...args, url.toString()], options)
   await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {

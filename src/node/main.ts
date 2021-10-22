@@ -152,25 +152,23 @@ export const runCodeServer = async (
   }
 
   if (args.link) {
-    await coderCloudBind(serverAddress.host, args.link.value)
+    await coderCloudBind(serverAddress, args.link.value)
     logger.info("  - Connected to cloud agent")
   }
 
   let linkAgent: undefined | ChildProcessWithoutNullStreams
 
   try {
-    linkAgent = startLink(parseInt(serverAddress.port, 10))
+    linkAgent = startLink(serverAddress)
+    linkAgent.on("error", (error) => {
+      logger.debug("[Link daemon]", field("error", error))
+    })
+    linkAgent.on("close", (code) => {
+      logger.debug("[Link daemon]", field("code", `Closed with code ${code}`))
+    })
   } catch (error) {
     logger.debug("Failed to start link daemon!", error as any)
   }
-
-  linkAgent?.on("error", (error) => {
-    logger.debug("[Link daemon]", field("error", error))
-  })
-
-  linkAgent?.on("close", (code) => {
-    logger.debug("[Link daemon]", field("code", `Closed with code ${code}`))
-  })
 
   if (args.enable && args.enable.length > 0) {
     logger.info("Enabling the following experimental features:")
@@ -187,14 +185,9 @@ export const runCodeServer = async (
     )
   }
 
-  if (!args.socket && args.open) {
-    // The web socket doesn't seem to work if browsing with 0.0.0.0.
-    if (serverAddress.hostname === "0.0.0.0") {
-      serverAddress.hostname = "localhost"
-    }
-
+  if (args.open) {
     try {
-      await open(serverAddress.toString())
+      await open(serverAddress)
       logger.info(`Opened ${serverAddress}`)
     } catch (error) {
       logger.error("Failed to open", field("address", serverAddress.toString()), field("error", error))
