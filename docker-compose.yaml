@@ -1,0 +1,18 @@
+version: '3.9'
+services:
+  code-server:
+  #  image: lpetek-code-server_code-server
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Europe/London
+      - PASSWORD=password #optional
+      - SUDO_PASSWORD=password #optional
+    build:
+      context: ./
+      dockerfile: .Dockerfiles/Dockerfile
+    volumes:
+      - ./:/home/node/app
+      - /home/node/app/node_modules # anonymous volume for node_modules only
+    ports:
+      - "80:8080"
