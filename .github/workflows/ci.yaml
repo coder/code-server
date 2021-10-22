@@ -147,14 +147,7 @@ jobs:
         run: yarn build:vscode
 
       # Our code imports code from VS Code's `out` directory meaning VS Code
-      # must be built before running these tests.  It looks for `out` in order
-      # to work during development but production creates `out-build`,
-      # `out-vscode-server, and `out-vscode-server-min` so symlink to one of
-      # those (during release we move `out-vscode-server-min` to out so using
-      # that gives the closest environment to release).
-      - name: Link VS Code build
-        run: ln -s out-vscode-server-min vendor/modules/code-oss-dev/out
-
+      # must be built before running these tests.
       # TODO: Move to its own step?
       - name: Run code-server unit tests
         run: yarn test:unit
