@@ -63,6 +63,12 @@ describe("login", () => {
       }
     })
 
+    afterAll(async () => {
+      if (_codeServer) {
+        _codeServer.dispose()
+      }
+    })
+
     it("should return HTML with 'Missing password' message", async () => {
       const resp = await codeServer().fetch("/login", { method: "POST" })
 

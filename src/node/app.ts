@@ -68,15 +68,18 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
  * Get the address of a server as a string (protocol *is* included) while
  * ensuring there is one (will throw if there isn't).
  */
-export const ensureAddress = (server: http.Server): string => {
+export const ensureAddress = (server: http.Server, protocol: string): URL => {
   const addr = server.address()
+
   if (!addr) {
-    throw new Error("server has no address")
+    throw new Error("Server has no address")
   }
+
   if (typeof addr !== "string") {
-    return `http://${addr.address}:${addr.port}`
+    return new URL(`${protocol}://${addr.address}:${addr.port}`)
   }
-  return addr
+
+  return new URL(addr)
 }
 
 /**

@@ -1,6 +1,8 @@
 import { field, logger } from "@coder/logger"
+import { ChildProcessWithoutNullStreams } from "child_process"
 import http from "http"
 import path from "path"
+import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
@@ -105,7 +107,9 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
   vscode.end()
 }
 
-export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> => {
+export const runCodeServer = async (
+  args: DefaultedArgs,
+): Promise<{ dispose: Disposable["dispose"]; server: http.Server }> => {
   logger.info(`code-server ${version} ${commit}`)
 
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
@@ -118,11 +122,11 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
   }
 
   const [app, wsApp, server] = await createApp(args)
-  const serverAddress = ensureAddress(server)
-  await register(app, wsApp, server, args)
+  const serverAddress = ensureAddress(server, args.cert ? "https" : "http")
+  const disposeApp = await register(app, wsApp, server, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
-  logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)
+  logger.info(`HTTP server listening on ${serverAddress.toString()} ${args.link ? "(randomized by --link)" : ""}`)
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
@@ -148,18 +152,25 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
   }
 
   if (args.link) {
-    await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
+    await coderCloudBind(serverAddress.host, args.link.value)
     logger.info("  - Connected to cloud agent")
   }
 
+  let linkAgent: undefined | ChildProcessWithoutNullStreams
+
   try {
-    const port = parseInt(serverAddress.split(":").pop() as string, 10)
-    startLink(port).catch((ex) => {
-      logger.debug("Link daemon exited!", field("error", ex))
-    })
+    linkAgent = startLink(parseInt(serverAddress.port, 10))
   } catch (error) {
     logger.debug("Failed to start link daemon!", error as any)
   }
+
+  linkAgent?.on("error", (error) => {
+    logger.debug("[Link daemon]", field("error", error))
+  })
+
+  linkAgent?.on("close", (code) => {
+    logger.debug("[Link daemon]", field("code", `Closed with code ${code}`))
+  })
 
   if (args.enable && args.enable.length > 0) {
     logger.info("Enabling the following experimental features:")
@@ -178,14 +189,25 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
 
   if (!args.socket && args.open) {
     // The web socket doesn't seem to work if browsing with 0.0.0.0.
-    const openAddress = serverAddress.replace("://0.0.0.0", "://localhost")
+    if (serverAddress.hostname === "0.0.0.0") {
+      serverAddress.hostname = "localhost"
+    }
+
     try {
-      await open(openAddress)
-      logger.info(`Opened ${openAddress}`)
+      await open(serverAddress.toString())
+      logger.info(`Opened ${serverAddress}`)
     } catch (error) {
-      logger.error("Failed to open", field("address", openAddress), field("error", error))
+      logger.error("Failed to open", field("address", serverAddress.toString()), field("error", error))
     }
   }
 
-  return server
+  const dispose = () => {
+    disposeApp()
+    linkAgent?.kill()
+  }
+
+  return {
+    server,
+    dispose,
+  }
 }

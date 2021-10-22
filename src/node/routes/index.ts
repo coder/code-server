@@ -6,6 +6,7 @@ import http from "http"
 import * as path from "path"
 import * as tls from "tls"
 import * as pluginapi from "../../../typings/pluginapi"
+import { Disposable } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { AuthType, DefaultedArgs } from "../cli"
@@ -33,7 +34,7 @@ export const register = async (
   wsApp: express.Express,
   server: http.Server,
   args: DefaultedArgs,
-): Promise<void> => {
+): Promise<Disposable["dispose"]> => {
   const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
       server.getConnections((error, count) => {
@@ -161,14 +162,14 @@ export const register = async (
     }
   }
 
-  server.on("close", () => {
-    vscode?.vscodeServer.close()
-  })
-
   app.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
   app.use(errorHandler)
   wsApp.use(wsErrorHandler)
+
+  return () => {
+    vscode?.codeServerMain.dispose()
+  }
 }

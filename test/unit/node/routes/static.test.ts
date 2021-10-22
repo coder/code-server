@@ -38,6 +38,12 @@ describe("/_static", () => {
     }
   })
 
+  afterAll(async () => {
+    if (_codeServer) {
+      _codeServer.dispose()
+    }
+  })
+
   function commonTests() {
     it("should return a 404 when a file is not provided", async () => {
       const resp = await codeServer().fetch(`/_static/`)

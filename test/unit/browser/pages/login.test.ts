@@ -35,39 +35,40 @@ describe("login", () => {
       spy.mockImplementation(() => mockElement)
     })
   })
-  describe("there is not an element with id 'base'", () => {
-    let spy: jest.SpyInstance
+  // TODO: Is this still used?
+  // describe("there is not an element with id 'base'", () => {
+  //   let spy: jest.SpyInstance
 
-    beforeAll(() => {
-      // This is important because we're manually requiring the file
-      // If you don't call this before all tests
-      // the module registry from other tests may cause side effects.
-      jest.resetModuleRegistry()
-    })
+  //   beforeAll(() => {
+  //     // This is important because we're manually requiring the file
+  //     // If you don't call this before all tests
+  //     // the module registry from other tests may cause side effects.
+  //     jest.resetModules()
+  //   })
 
-    beforeEach(() => {
-      const dom = new JSDOM()
-      global.document = dom.window.document
-      spy = jest.spyOn(document, "getElementById")
+  //   beforeEach(() => {
+  //     const dom = new JSDOM()
+  //     global.document = dom.window.document
+  //     spy = jest.spyOn(document, "getElementById")
 
-      const location: LocationLike = {
-        pathname: "/healthz",
-        origin: "http://localhost:8080",
-      }
+  //     const location: LocationLike = {
+  //       pathname: "/healthz",
+  //       origin: "http://localhost:8080",
+  //     }
 
-      global.location = location as Location
-    })
+  //     global.location = location as Location
+  //   })
 
-    afterEach(() => {
-      spy.mockClear()
-      jest.resetModules()
-      // Reset the global.document
-      global.document = undefined as any as Document
-      global.location = undefined as any as Location
-    })
+  //   afterEach(() => {
+  //     spy.mockClear()
+  //     jest.resetModules()
+  //     // Reset the global.document
+  //     global.document = undefined as any as Document
+  //     global.location = undefined as any as Location
+  //   })
 
-    afterAll(() => {
-      jest.restoreAllMocks()
-    })
-  })
+  //   afterAll(() => {
+  //     jest.restoreAllMocks()
+  //   })
+  // })
 })

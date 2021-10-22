@@ -156,18 +156,12 @@ describe("ensureAddress", () => {
   })
 
   it("should throw and error if no address", () => {
-    expect(() => ensureAddress(mockServer)).toThrow("server has no address")
-  })
-  it("should return the address if it exists and not a string", async () => {
-    const port = await getAvailablePort()
-    mockServer.listen(port)
-    const address = ensureAddress(mockServer)
-    expect(address).toBe(`http://:::${port}`)
+    expect(() => ensureAddress(mockServer, "http")).toThrow("Server has no address")
   })
   it("should return the address if it exists", async () => {
-    mockServer.address = () => "http://localhost:8080"
-    const address = ensureAddress(mockServer)
-    expect(address).toBe(`http://localhost:8080`)
+    mockServer.address = () => "http://localhost:8080/"
+    const address = ensureAddress(mockServer, "http")
+    expect(address.toString()).toBe(`http://localhost:8080/`)
   })
 })
 
