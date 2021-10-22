@@ -17,3 +17,22 @@ spec:
           image: <Image>
           ports:
             - containerPort: <Port>
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: myapp
+spec:
+  replicas: <Replicas>
+  selector:
+    app: myapp
+  template:
+    metadata:
+      name: myapp
+      labels:
+        app: myapp
+    spec:
+      containers:
+        - name: myapp
+          image: <Image>
+          ports:
+            - containerPort: <Port>
