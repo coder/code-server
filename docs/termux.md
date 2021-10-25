@@ -17,7 +17,7 @@ run code-server from your Android phone.
 
 1. Install Termux from [F-Droid](https://f-droid.org/en/packages/com.termux/).
 1. Make sure it's up-to-date: `apt update && apt upgrade`
-1. Install required packages: `apt install build-essential python git nodejs yarn`
+1. Install required packages: `apt install build-essential python git nodejs-lts yarn`
 1. Install code-server: `yarn global add code-server`
 1. Run code-server: `code-server` and navigate to localhost:8080 in your browser
 
