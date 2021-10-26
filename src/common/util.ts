@@ -65,7 +65,7 @@ export const arrayify = <T>(value?: T | T[]): T[] => {
 }
 
 // TODO: Might make sense to add Error handling to the logger itself.
-export function logError(logger: { error: (msg: string) => void }, prefix: string, err: Error | string): void {
+export function logError(logger: { error: (msg: string) => void }, prefix: string, err: unknown): void {
   if (err instanceof Error) {
     logger.error(`${prefix}: ${err.message} ${err.stack}`)
   } else {

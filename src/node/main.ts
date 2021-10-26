@@ -3,7 +3,7 @@ import { ChildProcessWithoutNullStreams } from "child_process"
 import http from "http"
 import path from "path"
 import { Disposable } from "../common/emitter"
-import { plural } from "../common/util"
+import { plural, logError } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
@@ -160,13 +160,13 @@ export const runCodeServer = async (
   try {
     linkAgent = startLink(serverAddress)
     linkAgent.on("error", (error) => {
-      logger.debug("[Link daemon]", field("error", error))
+      logError(logger, "link daemon", error)
     })
     linkAgent.on("close", (code) => {
-      logger.debug("[Link daemon]", field("code", `Closed with code ${code}`))
+      logger.debug("link daemon closed", field("code", code))
     })
   } catch (error) {
-    logger.debug("Failed to start link daemon!", error as any)
+    logError(logger, "link daemon", error)
   }
 
   if (args.enable && args.enable.length > 0) {
