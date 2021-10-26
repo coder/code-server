@@ -60,9 +60,9 @@ export class HttpServer {
   }
 
   /**
-   * close cleans up the server.
+   * Clean up the server.
    */
-  public close(): Promise<void> {
+  public dispose(): Promise<void> {
     return new Promise((resolve, reject) => {
       // Close will not actually close anything; it just waits until everything
       // is closed.
@@ -73,6 +73,8 @@ export class HttpServer {
 
         resolve()
       })
+
+      this._dispose?.()
 
       // If there are sockets remaining we might need to force close them or
       // this promise might never resolve.
@@ -88,11 +90,6 @@ export class HttpServer {
         }, 1000)
       }
     })
-  }
-
-  public dispose() {
-    console.log("Disposing HTTP Server")
-    this._dispose?.()
   }
 
   /**

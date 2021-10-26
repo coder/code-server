@@ -24,7 +24,7 @@ describe("proxy", () => {
   })
 
   afterAll(async () => {
-    await nhooyrDevServer.close()
+    await nhooyrDevServer.dispose()
   })
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe("proxy", () => {
 
   afterEach(async () => {
     if (codeServer) {
-      await codeServer.close()
+      await codeServer.dispose()
       codeServer = undefined
     }
   })

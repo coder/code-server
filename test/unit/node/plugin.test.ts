@@ -58,7 +58,7 @@ describe("plugin", () => {
   })
 
   afterAll(async () => {
-    await s.close()
+    await s.dispose()
   })
 
   it("/api/applications", async () => {

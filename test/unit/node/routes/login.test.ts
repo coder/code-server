@@ -58,14 +58,8 @@ describe("login", () => {
     afterEach(async () => {
       process.env.PASSWORD = previousEnvPassword
       if (_codeServer) {
-        await _codeServer.close()
+        await _codeServer.dispose()
         _codeServer = undefined
-      }
-    })
-
-    afterAll(async () => {
-      if (_codeServer) {
-        _codeServer.dispose()
       }
     })
 

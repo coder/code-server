@@ -157,7 +157,6 @@ export const runCodeServer = async (
   }
 
   let linkAgent: undefined | ChildProcessWithoutNullStreams
-
   try {
     linkAgent = startLink(serverAddress)
     linkAgent.on("error", (error) => {
@@ -194,13 +193,11 @@ export const runCodeServer = async (
     }
   }
 
-  const dispose = () => {
-    disposeApp()
-    linkAgent?.kill()
-  }
-
   return {
     server,
-    dispose,
+    dispose: () => {
+      disposeApp()
+      linkAgent?.kill()
+    },
   }
 }

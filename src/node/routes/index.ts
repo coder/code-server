@@ -15,7 +15,6 @@ import { Heart } from "../heart"
 import { ensureAuthenticated, redirect } from "../http"
 import { PluginAPI } from "../plugin"
 import { getMediaMime, paths } from "../util"
-import { wrapper } from "../wrapper"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
 import { errorHandler, wsErrorHandler } from "./errors"
@@ -45,9 +44,6 @@ export const register = async (
         resolve(count > 0)
       })
     })
-  })
-  server.on("close", () => {
-    heart.dispose()
   })
 
   app.disable("x-powered-by")
@@ -114,13 +110,13 @@ export const register = async (
     })
   })
 
+  let pluginApi: PluginAPI
   if (!process.env.CS_DISABLE_PLUGINS) {
     const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
-    const pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
+    pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
     await pluginApi.loadPlugins()
     pluginApi.mount(app, wsApp)
     app.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
-    wrapper.onDispose(() => pluginApi.dispose())
   }
 
   app.use(express.json())
@@ -170,6 +166,8 @@ export const register = async (
   wsApp.use(wsErrorHandler)
 
   return () => {
+    heart.dispose()
+    pluginApi?.dispose()
     vscode?.codeServerMain.dispose()
   }
 }
