@@ -17,7 +17,8 @@ async function entry(): Promise<void> {
   if (isChild(wrapper)) {
     const args = await wrapper.handshake()
     wrapper.preventExit()
-    await runCodeServer(args)
+    const server = await runCodeServer(args)
+    wrapper.onDispose(() => server.dispose())
     return
   }
 
