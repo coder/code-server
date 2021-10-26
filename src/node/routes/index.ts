@@ -2,13 +2,13 @@ import { logger } from "@coder/logger"
 import cookieParser from "cookie-parser"
 import * as express from "express"
 import { promises as fs } from "fs"
-import http from "http"
 import * as path from "path"
 import * as tls from "tls"
 import * as pluginapi from "../../../typings/pluginapi"
 import { Disposable } from "../../common/emitter"
 import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
+import { App } from "../app"
 import { AuthType, DefaultedArgs } from "../cli"
 import { commit, isDevMode, rootPath } from "../constants"
 import { Heart } from "../heart"
@@ -28,15 +28,10 @@ import { createVSServerRouter, VSServerResult } from "./vscode"
 /**
  * Register all routes and middleware.
  */
-export const register = async (
-  app: express.Express,
-  wsApp: express.Express,
-  server: http.Server,
-  args: DefaultedArgs,
-): Promise<Disposable["dispose"]> => {
+export const register = async (app: App, args: DefaultedArgs): Promise<Disposable["dispose"]> => {
   const heart = new Heart(path.join(paths.data, "heartbeat"), async () => {
     return new Promise((resolve, reject) => {
-      server.getConnections((error, count) => {
+      app.server.getConnections((error, count) => {
         if (error) {
           return reject(error)
         }
@@ -46,11 +41,11 @@ export const register = async (
     })
   })
 
-  app.disable("x-powered-by")
-  wsApp.disable("x-powered-by")
+  app.router.disable("x-powered-by")
+  app.wsRouter.disable("x-powered-by")
 
-  app.use(cookieParser())
-  wsApp.use(cookieParser())
+  app.router.use(cookieParser())
+  app.wsRouter.use(cookieParser())
 
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
@@ -66,10 +61,10 @@ export const register = async (
     next()
   }
 
-  app.use(common)
-  wsApp.use(common)
+  app.router.use(common)
+  app.wsRouter.use(common)
 
-  app.use(async (req, res, next) => {
+  app.router.use(async (req, res, next) => {
     // If we're handling TLS ensure all requests are redirected to HTTPS.
     // TODO: This does *NOT* work if you have a base path since to specify the
     // protocol we need to specify the whole path.
@@ -87,24 +82,24 @@ export const register = async (
     next()
   })
 
-  app.use("/", domainProxy.router)
-  wsApp.use("/", domainProxy.wsRouter.router)
+  app.router.use("/", domainProxy.router)
+  app.wsRouter.use("/", domainProxy.wsRouter.router)
 
-  app.all("/proxy/(:port)(/*)?", (req, res) => {
+  app.router.all("/proxy/(:port)(/*)?", (req, res) => {
     pathProxy.proxy(req, res)
   })
-  wsApp.get("/proxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/proxy/(:port)(/*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest)
   })
   // These two routes pass through the path directly.
   // So the proxied app must be aware it is running
   // under /absproxy/<someport>/
-  app.all("/absproxy/(:port)(/*)?", (req, res) => {
+  app.router.all("/absproxy/(:port)(/*)?", (req, res) => {
     pathProxy.proxy(req, res, {
       passthroughPath: true,
     })
   })
-  wsApp.get("/absproxy/(:port)(/*)?", async (req) => {
+  app.wsRouter.get("/absproxy/(:port)(/*)?", async (req) => {
     await pathProxy.wsProxy(req as pluginapi.WebsocketRequest, {
       passthroughPath: true,
     })
@@ -115,40 +110,40 @@ export const register = async (
     const workingDir = args._ && args._.length > 0 ? path.resolve(args._[args._.length - 1]) : undefined
     pluginApi = new PluginAPI(logger, process.env.CS_PLUGIN, process.env.CS_PLUGIN_PATH, workingDir)
     await pluginApi.loadPlugins()
-    pluginApi.mount(app, wsApp)
-    app.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
+    pluginApi.mount(app.router, app.wsRouter)
+    app.router.use("/api/applications", ensureAuthenticated, apps.router(pluginApi))
   }
 
-  app.use(express.json())
-  app.use(express.urlencoded({ extended: true }))
+  app.router.use(express.json())
+  app.router.use(express.urlencoded({ extended: true }))
 
-  app.use(
+  app.router.use(
     "/_static",
     express.static(rootPath, {
       cacheControl: commit !== "development",
     }),
   )
 
-  app.use("/healthz", health.router)
-  wsApp.use("/healthz", health.wsRouter.router)
+  app.router.use("/healthz", health.router)
+  app.wsRouter.use("/healthz", health.wsRouter.router)
 
   if (args.auth === AuthType.Password) {
-    app.use("/login", login.router)
-    app.use("/logout", logout.router)
+    app.router.use("/login", login.router)
+    app.router.use("/logout", logout.router)
   } else {
-    app.all("/login", (req, res) => redirect(req, res, "/", {}))
-    app.all("/logout", (req, res) => redirect(req, res, "/", {}))
+    app.router.all("/login", (req, res) => redirect(req, res, "/", {}))
+    app.router.all("/logout", (req, res) => redirect(req, res, "/", {}))
   }
 
-  app.use("/update", update.router)
+  app.router.use("/update", update.router)
 
   let vscode: VSServerResult
   try {
     vscode = await createVSServerRouter(args)
-    app.use("/", vscode.router)
-    wsApp.use("/", vscode.wsRouter.router)
-    app.use("/vscode", vscode.router)
-    wsApp.use("/vscode", vscode.wsRouter.router)
+    app.router.use("/", vscode.router)
+    app.wsRouter.use("/", vscode.wsRouter.router)
+    app.router.use("/vscode", vscode.router)
+    app.wsRouter.use("/vscode", vscode.wsRouter.router)
   } catch (error: any) {
     if (isDevMode) {
       logger.warn(error)
@@ -158,12 +153,12 @@ export const register = async (
     }
   }
 
-  app.use(() => {
+  app.router.use(() => {
     throw new HttpError("Not Found", HttpCode.NotFound)
   })
 
-  app.use(errorHandler)
-  wsApp.use(wsErrorHandler)
+  app.router.use(errorHandler)
+  app.wsRouter.use(wsErrorHandler)
 
   return () => {
     heart.dispose()

@@ -4,12 +4,23 @@ import express, { Express } from "express"
 import { promises as fs } from "fs"
 import http from "http"
 import * as httpolyglot from "httpolyglot"
+import { Disposable } from "../common/emitter"
 import * as util from "../common/util"
 import { DefaultedArgs } from "./cli"
+import { disposer } from "./http"
 import { isNodeJSErrnoException } from "./util"
 import { handleUpgrade } from "./wsRouter"
 
 type ListenOptions = Pick<DefaultedArgs, "socket" | "port" | "host">
+
+export interface App extends Disposable {
+  /** Handles regular HTTP requests. */
+  router: Express
+  /** Handles websocket requests. */
+  wsRouter: Express
+  /** The underlying HTTP server. */
+  server: http.Server
+}
 
 const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
   return new Promise<void>(async (resolve, reject) => {
@@ -41,10 +52,9 @@ const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
 /**
  * Create an Express app and an HTTP/S server to serve it.
  */
-export const createApp = async (args: DefaultedArgs): Promise<[Express, Express, http.Server]> => {
-  const app = express()
-
-  app.use(compression())
+export const createApp = async (args: DefaultedArgs): Promise<App> => {
+  const router = express()
+  router.use(compression())
 
   const server = args.cert
     ? httpolyglot.createServer(
@@ -52,16 +62,18 @@ export const createApp = async (args: DefaultedArgs): Promise<[Express, Express,
           cert: args.cert && (await fs.readFile(args.cert.value)),
           key: args["cert-key"] && (await fs.readFile(args["cert-key"])),
         },
-        app,
+        router,
       )
-    : http.createServer(app)
+    : http.createServer(router)
+
+  const dispose = disposer(server)
 
   await listen(server, args)
 
-  const wsApp = express()
-  handleUpgrade(wsApp, server)
+  const wsRouter = express()
+  handleUpgrade(wsRouter, server)
 
-  return [app, wsApp, server]
+  return { router, wsRouter, server, dispose }
 }
 
 /**

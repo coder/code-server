@@ -1,33 +1,29 @@
 import { logger } from "@coder/logger"
 import * as express from "express"
 import * as http from "http"
-import * as net from "net"
 import nodeFetch, { RequestInit, Response } from "node-fetch"
 import Websocket from "ws"
 import { Disposable } from "../../src/common/emitter"
 import * as util from "../../src/common/util"
 import { ensureAddress } from "../../src/node/app"
+import { disposer } from "../../src/node/http"
+
 import { handleUpgrade } from "../../src/node/wsRouter"
 
 // Perhaps an abstraction similar to this should be used in app.ts as well.
 export class HttpServer {
-  private readonly sockets = new Set<net.Socket>()
-  private cleanupTimeout?: NodeJS.Timeout
+  private hs: http.Server
+  public dispose: Disposable["dispose"]
 
-  // See usage in test/integration.ts
-  public constructor(private readonly hs = http.createServer(), private _dispose?: Disposable["dispose"]) {
-    this.hs.on("connection", (socket) => {
-      this.sockets.add(socket)
-
-      socket.on("close", () => {
-        this.sockets.delete(socket)
-
-        if (this.cleanupTimeout && this.sockets.size === 0) {
-          clearTimeout(this.cleanupTimeout)
-          this.cleanupTimeout = undefined
-        }
-      })
-    })
+  /**
+   * Expects a server and a disposal that cleans up the server (and anything
+   * else that may need cleanup).
+   *
+   * Otherwise a new server is created.
+   */
+  public constructor(server?: { server: http.Server; dispose: Disposable["dispose"] }) {
+    this.hs = server?.server || http.createServer()
+    this.dispose = server?.dispose || disposer(this.hs)
   }
 
   /**
@@ -57,39 +53,6 @@ export class HttpServer {
    */
   public listenUpgrade(app: express.Express): void {
     handleUpgrade(app, this.hs)
-  }
-
-  /**
-   * Clean up the server.
-   */
-  public dispose(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      // Close will not actually close anything; it just waits until everything
-      // is closed.
-      this.hs.close((err) => {
-        if (err) {
-          return reject(err)
-        }
-
-        resolve()
-      })
-
-      this._dispose?.()
-
-      // If there are sockets remaining we might need to force close them or
-      // this promise might never resolve.
-      if (this.sockets.size > 0) {
-        // Give sockets a chance to close up shop.
-        this.cleanupTimeout = setTimeout(() => {
-          this.cleanupTimeout = undefined
-
-          for (const socket of this.sockets.values()) {
-            console.warn("a socket was left hanging")
-            socket.destroy()
-          }
-        }, 1000)
-      }
-    })
   }
 
   /**

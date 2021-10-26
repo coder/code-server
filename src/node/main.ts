@@ -121,9 +121,9 @@ export const runCodeServer = async (
     )
   }
 
-  const [app, wsApp, server] = await createApp(args)
-  const serverAddress = ensureAddress(server, args.cert ? "https" : "http")
-  const disposeApp = await register(app, wsApp, server, args)
+  const app = await createApp(args)
+  const serverAddress = ensureAddress(app.server, args.cert ? "https" : "http")
+  const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
   logger.info(`HTTP server listening on ${serverAddress.toString()} ${args.link ? "(randomized by --link)" : ""}`)
@@ -194,10 +194,11 @@ export const runCodeServer = async (
   }
 
   return {
-    server,
-    dispose: () => {
-      disposeApp()
+    server: app.server,
+    dispose: async () => {
       linkAgent?.kill()
+      disposeRoutes()
+      await app.dispose()
     },
   }
 }

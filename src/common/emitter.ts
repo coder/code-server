@@ -7,7 +7,7 @@ import { logger } from "@coder/logger"
 export type Callback<T, R = void | Promise<void>> = (t: T, p: Promise<void>) => R
 
 export interface Disposable {
-  dispose(): void
+  dispose(): void | Promise<void>
 }
 
 export interface Event<T> {
