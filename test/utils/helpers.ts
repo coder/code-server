@@ -82,3 +82,21 @@ export const getAvailablePort = (options?: net.ListenOptions): Promise<number> =
       })
     })
   })
+
+/**
+ * Return a timer that will not reject as long as it is disposed or continually
+ * reset before the delay elapses.
+ */
+export function idleTimer(message: string, reject: (error: Error) => void, delay = 5000) {
+  const start = () => setTimeout(() => reject(new Error(message)), delay)
+  let timeout = start()
+  return {
+    reset: () => {
+      clearTimeout(timeout)
+      timeout = start()
+    },
+    dispose: () => {
+      clearTimeout(timeout)
+    },
+  }
+}

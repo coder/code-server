@@ -1,11 +1,11 @@
-import { Logger, logger } from "@coder/logger"
+import { field, Logger, logger } from "@coder/logger"
 import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
-import { tmpdir } from "../../utils/helpers"
+import { idleTimer, tmpdir } from "../../utils/helpers"
 
 interface CodeServerProcess {
   process: cp.ChildProcess
@@ -99,34 +99,44 @@ export class CodeServer {
         },
       )
 
+      const timer = idleTimer("Failed to extract address; did the format change?", reject)
+
       proc.on("error", (error) => {
         this.logger.error(error.message)
+        timer.dispose()
         reject(error)
       })
 
-      proc.on("close", () => {
+      proc.on("close", (code) => {
         const error = new Error("closed unexpectedly")
         if (!this.closed) {
-          this.logger.error(error.message)
+          this.logger.error(error.message, field("code", code))
         }
+        timer.dispose()
         reject(error)
       })
 
       let resolved = false
       proc.stdout.setEncoding("utf8")
       onLine(proc, (line) => {
+        // As long as we are actively getting input reset the timer.  If we stop
+        // getting input and still have not found the address the timer will
+        // reject.
+        timer.reset()
+
         // Log the line without the timestamp.
         this.logger.trace(line.replace(/\[.+\]/, ""))
         if (resolved) {
           return
         }
-        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)$/)
+        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)\/?$/)
         if (match) {
           // Cookies don't seem to work on IP address so swap to localhost.
           // TODO: Investigate whether this is a bug with code-server.
           const address = match[1].replace("127.0.0.1", "localhost")
           this.logger.debug(`spawned on ${address}`)
           resolved = true
+          timer.dispose()
           resolve({ process: proc, address })
         }
       })
