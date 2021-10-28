@@ -30,6 +30,7 @@
         <div class="content">
           <form class="login-form" method="post">
             <input class="user" type="text" autocomplete="username" />
+            <input id="base" type="hidden" name="base" value="/" />
             <div class="field">
               <input
                 required
@@ -47,5 +48,13 @@
         </div>
       </div>
     </div>
+    <script>
+      // Inform the backend about the path since the proxy might have rewritten
+      // it out of the headers and cookies must be set with absolute paths.
+      const el = document.getElementById("base")
+      if (el) {
+        el.value = window.location.pathname
+      }
+    </script>
   </body>
 </html>

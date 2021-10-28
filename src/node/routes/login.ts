@@ -88,7 +88,11 @@ router.post("/", async (req, res) => {
       // obfuscation purposes (and as a side effect it handles escaping).
       res.cookie(Cookie.Key, hashedPassword, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
-        path: req.body.base || "/",
+        // Browsers do not appear to allow cookies to be set relatively so we
+        // need to get the root path from the browser since the proxy rewrites
+        // it out of the path.  Otherwise code-server instances hosted on
+        // separate sub-paths will clobber each other.
+        path: req.body.base ? path.posix.join(req.body.base, "..") : "/",
         sameSite: "lax",
       })
 
