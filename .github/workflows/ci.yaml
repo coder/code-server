@@ -286,7 +286,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install cross-compiler
-        run: sudo apt install $PACKAGE
+        run: sudo apt update && sudo apt install $PACKAGE
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
