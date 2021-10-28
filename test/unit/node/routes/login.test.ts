@@ -72,5 +72,20 @@ describe("login", () => {
 
       expect(htmlContent).toContain("Missing password")
     })
+
+    it("should return HTML with 'Incorrect password' message", async () => {
+      const params = new URLSearchParams()
+      params.append("password", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      const resp = await codeServer().fetch("/login", {
+        method: "POST",
+        body: params,
+      })
+
+      expect(resp.status).toBe(200)
+
+      const htmlContent = await resp.text()
+
+      expect(htmlContent).toContain("Incorrect password")
+    })
   })
 })
