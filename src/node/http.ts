@@ -1,14 +1,26 @@
 import { field, logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
+import * as http from "http"
+import * as net from "net"
 import path from "path"
 import qs from "qs"
+import { Disposable } from "../common/emitter"
 import { HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
+
+/**
+ * Base options included on every page.
+ */
+export interface ClientConfiguration {
+  codeServerVersion: string
+  base: string
+  csStaticBase: string
+}
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -20,12 +32,12 @@ declare global {
   }
 }
 
-export const createClientConfiguration = (req: express.Request): CodeServerLib.ClientConfiguration => {
+export const createClientConfiguration = (req: express.Request): ClientConfiguration => {
   const base = relativeRoot(req)
 
   return {
     base,
-    csStaticBase: normalize(path.join(base, "_static/")),
+    csStaticBase: normalize(path.posix.join(base, "_static/")),
     codeServerVersion,
   }
 }
@@ -38,7 +50,7 @@ export const replaceTemplates = <T extends object>(
   content: string,
   extraOpts?: Omit<T, "base" | "csStaticBase" | "logLevel">,
 ): string => {
-  const serverOptions: CodeServerLib.ClientConfiguration = {
+  const serverOptions: ClientConfiguration = {
     ...createClientConfiguration(req),
     ...extraOpts,
   }
@@ -178,4 +190,54 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
 
   logger.debug("got cookie doman", field("host", host))
   return host || undefined
+}
+
+/**
+ * Return a function capable of fully disposing an HTTP server.
+ */
+export function disposer(server: http.Server): Disposable["dispose"] {
+  const sockets = new Set<net.Socket>()
+  let cleanupTimeout: undefined | NodeJS.Timeout
+
+  server.on("connection", (socket) => {
+    sockets.add(socket)
+
+    socket.on("close", () => {
+      sockets.delete(socket)
+
+      if (cleanupTimeout && sockets.size === 0) {
+        clearTimeout(cleanupTimeout)
+        cleanupTimeout = undefined
+      }
+    })
+  })
+
+  return () => {
+    return new Promise<void>((resolve, reject) => {
+      // The whole reason we need this disposer is because close will not
+      // actually close anything; it only prevents future connections then waits
+      // until everything is closed.
+      server.close((err) => {
+        if (err) {
+          return reject(err)
+        }
+
+        resolve()
+      })
+
+      // If there are sockets remaining we might need to force close them or
+      // this promise might never resolve.
+      if (sockets.size > 0) {
+        // Give sockets a chance to close up shop.
+        cleanupTimeout = setTimeout(() => {
+          cleanupTimeout = undefined
+
+          for (const socket of sockets.values()) {
+            console.warn("a socket was left hanging")
+            socket.destroy()
+          }
+        }, 1000)
+      }
+    })
+  }
 }

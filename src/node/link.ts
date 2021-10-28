@@ -1,22 +1,16 @@
 import { logger } from "@coder/logger"
-import { spawn } from "child_process"
+import { ChildProcessWithoutNullStreams, spawn } from "child_process"
 import path from "path"
 
-export function startLink(port: number): Promise<void> {
-  logger.debug(`running link targetting ${port}`)
+export function startLink(address: URL | string): ChildProcessWithoutNullStreams {
+  if (typeof address === "string") {
+    throw new Error("Cannot link socket paths")
+  }
 
-  const agent = spawn(path.resolve(__dirname, "../../lib/linkup"), ["--devurl", `code:${port}:code-server`], {
+  const port = parseInt(address.port, 10)
+  logger.debug(`running link targeting ${port}`)
+
+  return spawn(path.resolve(__dirname, "../../lib/linkup"), ["--devurl", `code:${port}:code-server`], {
     shell: false,
-  })
-  return new Promise((res, rej) => {
-    agent.on("error", rej)
-    agent.on("close", (code) => {
-      if (code !== 0) {
-        return rej({
-          message: `Link exited with ${code}`,
-        })
-      }
-      res()
-    })
   })
 }

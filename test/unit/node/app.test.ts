@@ -47,16 +47,16 @@ describe("createApp", () => {
       port,
       _: [],
     })
-    const [app, wsApp, server] = await createApp(defaultArgs)
+    const app = await createApp(defaultArgs)
 
     // This doesn't check much, but it's a good sanity check
     // to ensure we actually get back values from createApp
-    expect(app).not.toBeNull()
-    expect(wsApp).not.toBeNull()
-    expect(server).toBeInstanceOf(http.Server)
+    expect(app.router).not.toBeNull()
+    expect(app.wsRouter).not.toBeNull()
+    expect(app.server).toBeInstanceOf(http.Server)
 
     // Cleanup
-    server.close()
+    app.dispose()
   })
 
   it("should handle error events on the server", async () => {
@@ -65,24 +65,18 @@ describe("createApp", () => {
       _: [],
     })
 
-    // This looks funky, but that's because createApp
-    // returns an array like [app, wsApp, server]
-    // We only need server which is at index 2
-    // we do it this way so ESLint is happy that we're
-    // have no declared variables not being used
     const app = await createApp(defaultArgs)
-    const server = app[2]
 
     const testError = new Error("Test error")
     // We can easily test how the server handles errors
     // By emitting an error event
     // Ref: https://stackoverflow.com/a/33872506/3015595
-    server.emit("error", testError)
+    app.server.emit("error", testError)
     expect(spy).toHaveBeenCalledTimes(1)
     expect(spy).toHaveBeenCalledWith(`http server error: ${testError.message} ${testError.stack}`)
 
     // Cleanup
-    server.close()
+    app.dispose()
   })
 
   it("should reject errors that happen before the server can listen", async () => {
@@ -96,14 +90,13 @@ describe("createApp", () => {
 
     async function masterBall() {
       const app = await createApp(defaultArgs)
-      const server = app[2]
 
       const testError = new Error("Test error")
 
-      server.emit("error", testError)
+      app.server.emit("error", testError)
 
       // Cleanup
-      server.close()
+      app.dispose()
     }
 
     expect(() => masterBall()).rejects.toThrow(`listen EACCES: permission denied 127.0.0.1:${port}`)
@@ -117,10 +110,9 @@ describe("createApp", () => {
     })
 
     const app = await createApp(defaultArgs)
-    const server = app[2]
 
     expect(unlinkSpy).toHaveBeenCalledTimes(1)
-    server.close()
+    app.dispose()
   })
 
   it("should create an https server if args.cert exists", async () => {
@@ -133,14 +125,13 @@ describe("createApp", () => {
       ["cert-key"]: testCertificate.certKey,
     })
     const app = await createApp(defaultArgs)
-    const server = app[2]
 
     // This doesn't check much, but it's a good sanity check
     // to ensure we actually get an https.Server
-    expect(server).toBeInstanceOf(https.Server)
+    expect(app.server).toBeInstanceOf(https.Server)
 
     // Cleanup
-    server.close()
+    app.dispose()
   })
 })
 
@@ -156,18 +147,12 @@ describe("ensureAddress", () => {
   })
 
   it("should throw and error if no address", () => {
-    expect(() => ensureAddress(mockServer)).toThrow("server has no address")
-  })
-  it("should return the address if it exists and not a string", async () => {
-    const port = await getAvailablePort()
-    mockServer.listen(port)
-    const address = ensureAddress(mockServer)
-    expect(address).toBe(`http://:::${port}`)
+    expect(() => ensureAddress(mockServer, "http")).toThrow("Server has no address")
   })
   it("should return the address if it exists", async () => {
-    mockServer.address = () => "http://localhost:8080"
-    const address = ensureAddress(mockServer)
-    expect(address).toBe(`http://localhost:8080`)
+    mockServer.address = () => "http://localhost:8080/"
+    const address = ensureAddress(mockServer, "http")
+    expect(address.toString()).toBe(`http://localhost:8080/`)
   })
 })
 

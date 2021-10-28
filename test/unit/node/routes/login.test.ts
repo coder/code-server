@@ -58,7 +58,7 @@ describe("login", () => {
     afterEach(async () => {
       process.env.PASSWORD = previousEnvPassword
       if (_codeServer) {
-        await _codeServer.close()
+        await _codeServer.dispose()
         _codeServer = undefined
       }
     })
@@ -71,6 +71,21 @@ describe("login", () => {
       const htmlContent = await resp.text()
 
       expect(htmlContent).toContain("Missing password")
+    })
+
+    it("should return HTML with 'Incorrect password' message", async () => {
+      const params = new URLSearchParams()
+      params.append("password", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+      const resp = await codeServer().fetch("/login", {
+        method: "POST",
+        body: params,
+      })
+
+      expect(resp.status).toBe(200)
+
+      const htmlContent = await resp.text()
+
+      expect(htmlContent).toContain("Incorrect password")
     })
   })
 })

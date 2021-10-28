@@ -20,6 +20,8 @@ main() {
   source ./ci/lib.sh
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
 
+  mkdir -p ./lib
+
   if ! [ -f ./lib/coder-cloud-agent ]; then
     echo "Downloading the cloud agent..."
 

@@ -10,10 +10,10 @@ import {
   parse,
   setDefaults,
   shouldOpenInExistingInstance,
-  shouldRunVsCodeCli,
   splitOnFirstEquals,
 } from "../../../src/node/cli"
 import { tmpdir } from "../../../src/node/constants"
+import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
 import { useEnv } from "../../utils/helpers"
 
@@ -486,45 +486,45 @@ describe("splitOnFirstEquals", () => {
   })
 })
 
-describe("shouldRunVsCodeCli", () => {
-  it("should return false if no 'extension' related args passed in", () => {
+describe("shouldSpawnCliProcess", () => {
+  it("should return false if no 'extension' related args passed in", async () => {
     const args = {
       _: [],
     }
-    const actual = shouldRunVsCodeCli(args)
+    const actual = await shouldSpawnCliProcess(args)
     const expected = false
 
     expect(actual).toBe(expected)
   })
 
-  it("should return true if 'list-extensions' passed in", () => {
+  it("should return true if 'list-extensions' passed in", async () => {
     const args = {
       _: [],
       ["list-extensions"]: true,
     }
-    const actual = shouldRunVsCodeCli(args)
+    const actual = await shouldSpawnCliProcess(args)
     const expected = true
 
     expect(actual).toBe(expected)
   })
 
-  it("should return true if 'install-extension' passed in", () => {
+  it("should return true if 'install-extension' passed in", async () => {
     const args = {
       _: [],
       ["install-extension"]: ["hello.world"],
     }
-    const actual = shouldRunVsCodeCli(args)
+    const actual = await shouldSpawnCliProcess(args)
     const expected = true
 
     expect(actual).toBe(expected)
   })
 
-  it("should return true if 'uninstall-extension' passed in", () => {
+  it("should return true if 'uninstall-extension' passed in", async () => {
     const args = {
       _: [],
       ["uninstall-extension"]: ["hello.world"],
     }
-    const actual = shouldRunVsCodeCli(args)
+    const actual = await shouldSpawnCliProcess(args)
     const expected = true
 
     expect(actual).toBe(expected)

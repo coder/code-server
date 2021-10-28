@@ -1,9 +1,8 @@
 import * as express from "express"
-import { Server } from "http"
 import path from "path"
 import { AuthType, DefaultedArgs } from "../cli"
 import { version as codeServerVersion, vsRootPath } from "../constants"
-import { ensureAuthenticated } from "../http"
+import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter, WebsocketRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
@@ -11,7 +10,7 @@ import { errorHandler } from "./errors"
 export interface VSServerResult {
   router: express.Router
   wsRouter: WebsocketRouter
-  vscodeServer: Server
+  codeServerMain: CodeServerLib.IServerProcessMain
 }
 
 export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServerResult> => {
@@ -39,10 +38,10 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   // Signal processes that we got launched as CLI
   process.env["VSCODE_CLI"] = "1"
 
-  const vscodeServerMain = await loadAMDModule<CodeServerLib.CreateVSServer>("vs/server/entry", "createVSServer")
+  const createVSServer = await loadAMDModule<CodeServerLib.CreateVSServer>("vs/server/entry", "createVSServer")
 
   const serverUrl = new URL(`${args.cert ? "https" : "http"}://${args.host}:${args.port}`)
-  const vscodeServer = await vscodeServerMain({
+  const codeServerMain = await createVSServer({
     codeServerVersion,
     serverUrl,
     args,
@@ -50,17 +49,30 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
     disableUpdateCheck: !!args["disable-update-check"],
   })
 
+  const netServer = await codeServerMain.startup({ listenWhenReady: false })
+
   const router = express.Router()
   const wsRouter = WsRouter()
+
+  router.get("/", async (req, res, next) => {
+    const isAuthenticated = await authenticated(req)
+    if (!isAuthenticated) {
+      return redirect(req, res, "login", {
+        // req.baseUrl can be blank if already at the root.
+        to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
+      })
+    }
+    next()
+  })
 
   router.all("*", ensureAuthenticated, (req, res, next) => {
     req.on("error", (error) => errorHandler(error, req, res, next))
 
-    vscodeServer.emit("request", req, res)
+    netServer.emit("request", req, res)
   })
 
   wsRouter.ws("/", ensureAuthenticated, (req) => {
-    vscodeServer.emit("upgrade", req, req.socket, req.head)
+    netServer.emit("upgrade", req, req.socket, req.head)
 
     req.socket.resume()
   })
@@ -68,6 +80,6 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   return {
     router,
     wsRouter,
-    vscodeServer,
+    codeServerMain,
   }
 }

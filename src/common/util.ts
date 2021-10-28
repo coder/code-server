@@ -51,35 +51,6 @@ export const resolveBase = (base?: string): string => {
 }
 
 /**
- * Get client-side configuration embedded in the HTML or query params.
- */
-export const getClientConfiguration = <T extends CodeServerLib.ClientConfiguration>(): T => {
-  let config: T
-  try {
-    config = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
-  } catch (error) {
-    config = {} as T
-  }
-
-  // You can also pass options in stringified form to the options query
-  // variable. Options provided here will override the ones in the options
-  // element.
-  const params = new URLSearchParams(location.search)
-  const queryOpts = params.get("options")
-  if (queryOpts) {
-    config = {
-      ...config,
-      ...JSON.parse(queryOpts),
-    }
-  }
-
-  config.base = resolveBase(config.base)
-  config.csStaticBase = resolveBase(config.csStaticBase)
-
-  return config
-}
-
-/**
  * Wrap the value in an array if it's not already an array. If the value is
  * undefined return an empty array.
  */
@@ -94,7 +65,7 @@ export const arrayify = <T>(value?: T | T[]): T[] => {
 }
 
 // TODO: Might make sense to add Error handling to the logger itself.
-export function logError(logger: { error: (msg: string) => void }, prefix: string, err: Error | string): void {
+export function logError(logger: { error: (msg: string) => void }, prefix: string, err: unknown): void {
   if (err instanceof Error) {
     logger.error(`${prefix}: ${err.message} ${err.stack}`)
   } else {

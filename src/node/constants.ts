@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { JSONSchemaForNPMPackageJsonFiles } from "@schemastore/package"
+import type { JSONSchemaForNPMPackageJsonFiles } from "@schemastore/package"
 import * as os from "os"
 import * as path from "path"
 

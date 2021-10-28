@@ -1,14 +1,7 @@
 import { logger } from "@coder/logger"
-import {
-  optionDescriptions,
-  parse,
-  readConfigFile,
-  setDefaults,
-  shouldOpenInExistingInstance,
-  shouldRunVsCodeCli,
-} from "./cli"
+import { optionDescriptions, parse, readConfigFile, setDefaults, shouldOpenInExistingInstance } from "./cli"
 import { commit, version } from "./constants"
-import { openInExistingInstance, runCodeServer, runVsCodeCli } from "./main"
+import { openInExistingInstance, runCodeServer, runVsCodeCli, shouldSpawnCliProcess } from "./main"
 import { monkeyPatchProxyProtocols } from "./proxy_agent"
 import { isChild, wrapper } from "./wrapper"
 
@@ -24,7 +17,8 @@ async function entry(): Promise<void> {
   if (isChild(wrapper)) {
     const args = await wrapper.handshake()
     wrapper.preventExit()
-    await runCodeServer(args)
+    const server = await runCodeServer(args)
+    wrapper.onDispose(() => server.dispose())
     return
   }
 
@@ -59,8 +53,8 @@ async function entry(): Promise<void> {
     return
   }
 
-  if (shouldRunVsCodeCli(args)) {
-    return runVsCodeCli(args)
+  if (await shouldSpawnCliProcess(args)) {
+    return runVsCodeCli()
   }
 
   const socketPath = await shouldOpenInExistingInstance(cliArgs)

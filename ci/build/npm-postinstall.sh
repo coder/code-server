@@ -57,6 +57,9 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
+
+  mkdir -p ./lib
+
   if curl -fsSL "https://github.com/cdr/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
