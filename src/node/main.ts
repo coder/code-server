@@ -12,13 +12,15 @@ import { startLink } from "./link"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const shouldSpawnCliProcess = async (args: CodeServerLib.NativeParsedArgs): Promise<boolean> => {
-  const shouldSpawn = await loadAMDModule<(argv: CodeServerLib.NativeParsedArgs) => boolean>(
-    "vs/code/node/cli",
-    "shouldSpawnCliProcess",
+export const shouldSpawnCliProcess = async (args: CodeServerLib.ServerParsedArgs): Promise<boolean> => {
+  return (
+    !args["start-server"] &&
+    (!!args["list-extensions"] ||
+      !!args["install-extension"] ||
+      !!args["install-builtin-extension"] ||
+      !!args["uninstall-extension"] ||
+      !!args["locate-extension"])
   )
-
-  return shouldSpawn(args)
 }
 
 /**

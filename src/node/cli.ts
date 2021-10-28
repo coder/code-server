@@ -31,27 +31,7 @@ export enum LogLevel {
 
 export class OptionalString extends Optional<string> {}
 
-export interface Args
-  extends Pick<
-    CodeServerLib.NativeParsedArgs,
-    | "_"
-    | "user-data-dir"
-    | "enable-proposed-api"
-    | "extensions-dir"
-    | "builtin-extensions-dir"
-    | "extra-extensions-dir"
-    | "extra-builtin-extensions-dir"
-    | "ignore-last-opened"
-    | "locale"
-    | "log"
-    | "verbose"
-    | "install-source"
-    | "list-extensions"
-    | "install-extension"
-    | "uninstall-extension"
-    | "locate-extension"
-    // | "telemetry"
-  > {
+export interface Args extends CodeServerLib.ServerParsedArgs {
   config?: string
   auth?: AuthType
   password?: string
@@ -67,7 +47,6 @@ export interface Args
   json?: boolean
   log?: LogLevel
   open?: boolean
-  port?: number
   "bind-addr"?: string
   socket?: string
   version?: boolean
@@ -76,6 +55,7 @@ export interface Args
   "proxy-domain"?: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
+  verbose?: boolean
 
   link?: OptionalString
 }
@@ -169,7 +149,7 @@ const options: Options<Required<Args>> = {
 
   // These two have been deprecated by bindAddr.
   host: { type: "string", description: "" },
-  port: { type: "number", description: "" },
+  port: { type: "string", description: "" },
 
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
   version: { type: "boolean", short: "v", description: "Display version information." },
@@ -178,11 +158,8 @@ const options: Options<Required<Args>> = {
   "user-data-dir": { type: "string", path: true, description: "Path to the user data directory." },
   "extensions-dir": { type: "string", path: true, description: "Path to the extensions directory." },
   "builtin-extensions-dir": { type: "string", path: true },
-  "extra-extensions-dir": { type: "string[]", path: true },
-  "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
-  "install-source": { type: "string" },
   "locate-extension": { type: "string[]" },
   "install-extension": {
     type: "string[]",
@@ -190,19 +167,9 @@ const options: Options<Required<Args>> = {
       "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
       "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
   },
-  "enable-proposed-api": {
-    type: "string[]",
-    description:
-      "Enable proposed API features for extensions. Can receive one or more extension IDs to enable individually.",
-  },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
-  "ignore-last-opened": {
-    type: "boolean",
-    short: "e",
-    description: "Ignore the last opened directory or workspace in favor of an empty window.",
-  },
   "new-window": {
     type: "boolean",
     short: "n",
@@ -214,7 +181,6 @@ const options: Options<Required<Args>> = {
     description: "Force to open a file or folder in an already opened window.",
   },
 
-  locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 
@@ -227,6 +193,43 @@ const options: Options<Required<Args>> = {
     `,
     beta: true,
   },
+
+  connectionToken: { type: "string" },
+  "connection-secret": {
+    type: "string",
+    description:
+      "Path to file that contains the connection token. This will require that all incoming connections know the secret.",
+  },
+  "socket-path": { type: "string" },
+  driver: { type: "string" },
+  "start-server": { type: "boolean" },
+  "print-startup-performance": { type: "boolean" },
+  "print-ip-address": { type: "boolean" },
+  "disable-websocket-compression": { type: "boolean" },
+
+  fileWatcherPolling: { type: "string" },
+
+  "enable-remote-auto-shutdown": { type: "boolean" },
+  "remote-auto-shutdown-without-delay": { type: "boolean" },
+
+  "without-browser-env-var": { type: "boolean" },
+  "extensions-download-dir": { type: "string" },
+  "install-builtin-extension": { type: "string[]" },
+
+  category: {
+    type: "string",
+    description: "Filters installed extensions by provided category, when using --list-extensions.",
+  },
+  "do-not-sync": { type: "boolean" },
+  "force-disable-user-env": { type: "boolean" },
+
+  folder: { type: "string" },
+  workspace: { type: "string" },
+  "web-user-data-dir": { type: "string" },
+  "use-host-proxy": { type: "string" },
+  "enable-sync": { type: "boolean" },
+  "github-auth": { type: "string" },
+  logsPath: { type: "string" },
 }
 
 export const optionDescriptions = (): string[] => {
@@ -271,6 +274,14 @@ export function splitOnFirstEquals(str: string): string[] {
   return split
 }
 
+const createDefaultArgs = (): Args => {
+  return {
+    _: [],
+    workspace: "",
+    folder: "",
+  }
+}
+
 export const parse = (
   argv: string[],
   opts?: {
@@ -285,7 +296,8 @@ export const parse = (
     return new Error(msg)
   }
 
-  const args: Args = { _: [] }
+  // TODO: parse workspace and folder.
+  const args: Args = createDefaultArgs()
   let ended = false
 
   for (let i = 0; i < argv.length; ++i) {
@@ -403,7 +415,7 @@ export interface DefaultedArgs extends ConfigArgs {
     value: string
   }
   host: string
-  port: number
+  port: string
   "proxy-domain": string[]
   verbose: boolean
   usingEnvPassword: boolean
@@ -472,15 +484,15 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.auth = AuthType.Password
   }
 
-  const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
+  const addr = bindAddrFromAllSources(configArgs || createDefaultArgs(), cliArgs)
   args.host = addr.host
-  args.port = addr.port
+  args.port = addr.port.toString()
 
   // If we're being exposed to the cloud, we listen on a random address and
   // disable auth.
   if (args.link) {
     args.host = "localhost"
-    args.port = 0
+    args.port = "0"
     args.socket = undefined
     args.cert = undefined
     args.auth = AuthType.None
@@ -581,7 +593,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
  */
 export function parseConfigFile(configFile: string, configPath: string): ConfigArgs {
   if (!configFile) {
-    return { _: [], config: configPath }
+    return { ...createDefaultArgs(), config: configPath }
   }
 
   const config = yaml.load(configFile, {
@@ -641,7 +653,7 @@ export function bindAddrFromArgs(addr: Addr, args: Args): Addr {
     addr.port = parseInt(process.env.PORT, 10)
   }
   if (args.port !== undefined) {
-    addr.port = args.port
+    addr.port = parseInt(args.port, 10)
   }
   return addr
 }

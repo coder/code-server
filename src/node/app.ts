@@ -44,7 +44,7 @@ const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
       server.listen(socket, onListen)
     } else {
       // [] is the correct format when using :: but Node errors with them.
-      server.listen(port, host.replace(/^\[|\]$/g, ""), onListen)
+      server.listen(parseInt(port, 10), host.replace(/^\[|\]$/g, ""), onListen)
     }
   })
 }

@@ -1,7 +1,7 @@
 import * as express from "express"
 import path from "path"
-import { AuthType, DefaultedArgs } from "../cli"
-import { version as codeServerVersion, vsRootPath } from "../constants"
+import { DefaultedArgs } from "../cli"
+import { vsRootPath } from "../constants"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter, WebsocketRouter } from "../wsRouter"
@@ -10,7 +10,7 @@ import { errorHandler } from "./errors"
 export interface VSServerResult {
   router: express.Router
   wsRouter: WebsocketRouter
-  codeServerMain: CodeServerLib.IServerProcessMain
+  codeServerMain: CodeServerLib.IServerAPI
 }
 
 export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServerResult> => {
@@ -37,19 +37,15 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
 
   // Signal processes that we got launched as CLI
   process.env["VSCODE_CLI"] = "1"
+  // Seems to be necessary to load modules properly.
+  process.env["VSCODE_DEV"] = "1"
 
-  const createVSServer = await loadAMDModule<CodeServerLib.CreateVSServer>("vs/server/entry", "createVSServer")
+  const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
+    "vs/server/remoteExtensionHostAgentServer",
+    "createServer",
+  )
 
-  const serverUrl = new URL(`${args.cert ? "https" : "http"}://${args.host}:${args.port}`)
-  const codeServerMain = await createVSServer({
-    codeServerVersion,
-    serverUrl,
-    args,
-    authed: args.auth !== AuthType.None,
-    disableUpdateCheck: !!args["disable-update-check"],
-  })
-
-  const netServer = await codeServerMain.startup({ listenWhenReady: false })
+  const codeServerMain = await createVSServer(null, { ...args, connectionToken: "0000" }, args["user-data-dir"])
 
   const router = express.Router()
   const wsRouter = WsRouter()
@@ -68,11 +64,12 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   router.all("*", ensureAuthenticated, (req, res, next) => {
     req.on("error", (error) => errorHandler(error, req, res, next))
 
-    netServer.emit("request", req, res)
+    codeServerMain.handleRequest(req, res)
   })
 
   wsRouter.ws("/", ensureAuthenticated, (req) => {
-    netServer.emit("upgrade", req, req.socket, req.head)
+    codeServerMain.handleUpgrade(req, req.socket)
+    // netServer.emit("upgrade", req, req.socket, req.head)
 
     req.socket.resume()
   })
