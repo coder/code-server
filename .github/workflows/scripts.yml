@@ -5,10 +5,14 @@ on:
     branches:
       - main
     paths:
-      - "installer.sh"
+      - "**.sh"
+      - "**.bats"
   pull_request:
     branches:
       - main
+    paths:
+      - "**.sh"
+      - "**.bats"
 
 jobs:
   test:
