@@ -37,7 +37,7 @@ export const createClientConfiguration = (req: express.Request): ClientConfigura
 
   return {
     base,
-    csStaticBase: normalize(path.join(base, "_static/")),
+    csStaticBase: normalize(path.posix.join(base, "_static/")),
     codeServerVersion,
   }
 }
