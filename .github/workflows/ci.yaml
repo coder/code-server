@@ -31,14 +31,18 @@ jobs:
       - name: Install helm
         uses: azure/setup-helm@v1.1
 
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v2
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      # NOTE@jsjoeio
+      # disabling this until we can audit the build process
+      # and the usefulness of this step
+      # See: https://github.com/cdr/code-server/issues/4287
+      # - name: Fetch dependencies from cache
+      #   id: cache-yarn
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: "**/node_modules"
+      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+      #     restore-keys: |
+      #       yarn-build-
 
       - name: Install dependencies
         # if: steps.cache-yarn.outputs.cache-hit != 'true'
