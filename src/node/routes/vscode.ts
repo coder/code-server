@@ -62,14 +62,19 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   })
 
   router.all("*", ensureAuthenticated, (req, res, next) => {
-    req.on("error", (error) => errorHandler(error, req, res, next))
+    req.on("error", (error: any) => {
+      if (error.code === "FileNotFound") {
+        next()
+      }
+
+      errorHandler(error, req, res, next)
+    })
 
     codeServerMain.handleRequest(req, res)
   })
 
   wsRouter.ws("/", ensureAuthenticated, (req) => {
     codeServerMain.handleUpgrade(req, req.socket)
-    // netServer.emit("upgrade", req, req.socket, req.head)
 
     req.socket.resume()
   })

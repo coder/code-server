@@ -8,7 +8,7 @@ import { rootPath } from "../constants"
 import { replaceTemplates } from "../http"
 import { getMediaMime } from "../util"
 
-const notFoundCodes = ["ENOENT", "EISDIR", "FileNotFound"]
+const notFoundCodes = ["ENOENT", "EISDIR"]
 export const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
   if (notFoundCodes.includes(err.code)) {
     err.status = HttpCode.NotFound

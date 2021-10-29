@@ -296,9 +296,9 @@ clone-response@^1.0.2:
   dependencies:
     mimic-response "^1.0.0"
 
-code-oss-dev@cdr/vscode#3fc885904886003d88d1f300d6158bee486f644f:
+code-oss-dev@cdr/vscode#b3a1bf472c2f08f772cb675dcd43014063d03570:
   version "1.61.1"
-  resolved "https://codeload.github.com/cdr/vscode/tar.gz/3fc885904886003d88d1f300d6158bee486f644f"
+  resolved "https://codeload.github.com/cdr/vscode/tar.gz/b3a1bf472c2f08f772cb675dcd43014063d03570"
   dependencies:
     "@microsoft/applicationinsights-web" "^2.6.4"
     "@vscode/sqlite3" "4.0.12"
