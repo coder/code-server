@@ -13,7 +13,7 @@ main() {
 
   # extensions-ci compiles extensions and includes their media.
   # compile-web compiles web extensions. TODO: Unsure if used.
-  yarn gulp extensions-ci compile-web "vscode-server${MINIFY:+-min}"
+  yarn gulp extensions-ci compile-web "vscode-reh-web${MINIFY:+-min}"
 }
 
 main "$@"

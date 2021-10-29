@@ -4,14 +4,14 @@ import * as http from "http"
 import * as https from "https"
 import * as path from "path"
 import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError } from "../../../src/node/app"
-import { OptionalString, setDefaults } from "../../../src/node/cli"
+import { createDefaultArgs, OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
 import { getAvailablePort, tmpdir } from "../../utils/helpers"
 
 describe("createApp", () => {
   let spy: jest.SpyInstance
   let unlinkSpy: jest.SpyInstance
-  let port: number
+  let port: string
   let tmpDirPath: string
   let tmpFilePath: string
 
@@ -29,7 +29,7 @@ describe("createApp", () => {
     // then you can spy on those modules methods, like unlink.
     // See: https://github.com/aelbore/esbuild-jest/issues/26#issuecomment-893763840
     unlinkSpy = jest.spyOn(promises, "unlink")
-    port = await getAvailablePort()
+    port = (await getAvailablePort()).toString()
   })
 
   afterEach(() => {
@@ -44,8 +44,8 @@ describe("createApp", () => {
 
   it("should return an Express app, a WebSockets Express app and an http server", async () => {
     const defaultArgs = await setDefaults({
+      ...createDefaultArgs(),
       port,
-      _: [],
     })
     const app = await createApp(defaultArgs)
 
@@ -61,8 +61,8 @@ describe("createApp", () => {
 
   it("should handle error events on the server", async () => {
     const defaultArgs = await setDefaults({
+      ...createDefaultArgs(),
       port,
-      _: [],
     })
 
     const app = await createApp(defaultArgs)
@@ -82,10 +82,10 @@ describe("createApp", () => {
   it("should reject errors that happen before the server can listen", async () => {
     // We listen on an invalid port
     // causing the app to reject the Promise called at startup
-    const port = 2
+    const port = "2"
     const defaultArgs = await setDefaults({
+      ...createDefaultArgs(),
       port,
-      _: [],
     })
 
     async function masterBall() {
@@ -105,7 +105,7 @@ describe("createApp", () => {
   it("should unlink a socket before listening on the socket", async () => {
     await promises.writeFile(tmpFilePath, "")
     const defaultArgs = await setDefaults({
-      _: [],
+      ...createDefaultArgs(),
       socket: tmpFilePath,
     })
 
@@ -119,9 +119,9 @@ describe("createApp", () => {
     const testCertificate = await generateCertificate("localhost")
     const cert = new OptionalString(testCertificate.cert)
     const defaultArgs = await setDefaults({
+      ...createDefaultArgs(),
       port,
       cert,
-      _: [],
       ["cert-key"]: testCertificate.certKey,
     })
     const app = await createApp(defaultArgs)

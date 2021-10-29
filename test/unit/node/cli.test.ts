@@ -6,6 +6,7 @@ import * as path from "path"
 import {
   Args,
   bindAddrFromArgs,
+  createDefaultArgs,
   defaultConfigFile,
   parse,
   setDefaults,
@@ -32,9 +33,10 @@ describe("parser", () => {
   // values the user actually set. These are only set after explicitly calling
   // `setDefaults`.
   const defaults = {
+    ...createDefaultArgs(),
     auth: "password",
     host: "localhost",
-    port: 8080,
+    port: "8080",
     "proxy-domain": [],
     usingEnvPassword: false,
     usingEnvHashedPassword: false,
@@ -43,7 +45,7 @@ describe("parser", () => {
   }
 
   it("should parse nothing", () => {
-    expect(parse([])).toStrictEqual({ _: [] })
+    expect(parse([])).toStrictEqual(createDefaultArgs())
   })
 
   it("should parse all available options", () => {
@@ -60,10 +62,8 @@ describe("parser", () => {
         "foo",
         "--builtin-extensions-dir",
         "foobar",
-        "--extra-extensions-dir",
         "nozzle",
         "1",
-        "--extra-builtin-extensions-dir",
         "bazzle",
         "--verbose",
         "2",
@@ -116,7 +116,7 @@ describe("parser", () => {
 
   it("should work with short options", () => {
     expect(parse(["-vvv", "-v"])).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       verbose: true,
       version: true,
     })
@@ -124,7 +124,7 @@ describe("parser", () => {
 
   it("should use log level env var", async () => {
     const args = parse([])
-    expect(args).toEqual({ _: [] })
+    expect(args).toEqual(createDefaultArgs())
 
     process.env.LOG_LEVEL = "debug"
     const defaults = await setDefaults(args)
@@ -152,7 +152,7 @@ describe("parser", () => {
   it("should prefer --log to env var and --verbose to --log", async () => {
     let args = parse(["--log", "info"])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       log: "info",
     })
 
@@ -180,7 +180,7 @@ describe("parser", () => {
 
     args = parse(["--log", "info", "--verbose"])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       log: "info",
       verbose: true,
     })
@@ -215,7 +215,7 @@ describe("parser", () => {
   })
 
   it("should error if value is invalid", () => {
-    expect(() => parse(["--port", "foo"])).toThrowError(/--port must be a number/)
+    expect(() => parse(["--port", "foo"])).toThrowError(/--port must be a stringly number/)
     expect(() => parse(["--auth", "invalid"])).toThrowError(/--auth valid values: \[password, none\]/)
     expect(() => parse(["--log", "invalid"])).toThrowError(/--log valid values: \[trace, debug, info, warn, error\]/)
   })
@@ -226,7 +226,7 @@ describe("parser", () => {
 
   it("should not error if the value is optional", () => {
     expect(parse(["--cert"])).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       cert: {
         value: undefined,
       },
@@ -237,7 +237,7 @@ describe("parser", () => {
     expect(() => parse(["--socket", "--socket-path-value"])).toThrowError(/--socket requires a value/)
     // If you actually had a path like this you would do this instead:
     expect(parse(["--socket", "./--socket-path-value"])).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       socket: path.resolve("--socket-path-value"),
     })
     expect(() => parse(["--cert", "--socket-path-value"])).toThrowError(/Unknown option --socket-path-value/)
@@ -245,6 +245,7 @@ describe("parser", () => {
 
   it("should allow positional arguments before options", () => {
     expect(parse(["foo", "test", "--auth", "none"])).toEqual({
+      ...createDefaultArgs(),
       _: ["foo", "test"],
       auth: "none",
     })
@@ -252,11 +253,11 @@ describe("parser", () => {
 
   it("should support repeatable flags", () => {
     expect(parse(["--proxy-domain", "*.coder.com"])).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com"],
     })
     expect(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com", "test.com"],
     })
   })
@@ -264,7 +265,7 @@ describe("parser", () => {
   it("should enforce cert-key with cert value or otherwise generate one", async () => {
     const args = parse(["--cert"])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       cert: {
         value: undefined,
       },
@@ -272,7 +273,7 @@ describe("parser", () => {
     expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       ...defaults,
       cert: {
         value: path.join(paths.data, "localhost.crt"),
@@ -285,7 +286,7 @@ describe("parser", () => {
     const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       ...defaults,
       auth: "none",
       host: "localhost",
@@ -303,7 +304,7 @@ describe("parser", () => {
     process.env.PASSWORD = "test"
     const args = parse([])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
     })
 
     const defaultArgs = await setDefaults(args)
@@ -320,7 +321,7 @@ describe("parser", () => {
       "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY" // test
     const args = parse([])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
     })
 
     const defaultArgs = await setDefaults(args)
@@ -348,7 +349,7 @@ describe("parser", () => {
   it("should filter proxy domains", async () => {
     const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com", "coder.com", "coder.org"],
     })
 
@@ -365,7 +366,7 @@ describe("parser", () => {
       "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     ])
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       "enable-proposed-api": [
         "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
       ],
@@ -381,7 +382,7 @@ describe("parser", () => {
       },
     )
     expect(args).toEqual({
-      _: [],
+      ...createDefaultArgs(),
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     })
@@ -389,8 +390,8 @@ describe("parser", () => {
 })
 
 describe("cli", () => {
-  let args: Mutable<Args> = { _: [] }
   let testDir: string
+  let args: Mutable<Args> = createDefaultArgs()
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
   beforeAll(async () => {
@@ -401,7 +402,7 @@ describe("cli", () => {
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
-    args = { _: [] }
+    args = createDefaultArgs()
     await fs.rmdir(vscodeIpcPath, { recursive: true })
   })
 
@@ -409,7 +410,7 @@ describe("cli", () => {
     process.env.VSCODE_IPC_HOOK_CLI = "test"
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
-    args.port = 8081
+    args.port = "8081"
     args._.push("./file")
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
@@ -421,7 +422,7 @@ describe("cli", () => {
     await fs.writeFile(vscodeIpcPath, "test")
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
 
-    args.port = 8081
+    args.port = "8081"
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual("test")
   })
 
@@ -432,7 +433,7 @@ describe("cli", () => {
     await fs.writeFile(vscodeIpcPath, "test")
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
-    args.port = 8081
+    args.port = "8081"
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
@@ -457,7 +458,7 @@ describe("cli", () => {
 
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(socketPath)
 
-    args.port = 8081
+    args.port = "8081"
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
   })
 })
@@ -489,9 +490,7 @@ describe("splitOnFirstEquals", () => {
 
 describe("shouldSpawnCliProcess", () => {
   it("should return false if no 'extension' related args passed in", async () => {
-    const args = {
-      _: [],
-    }
+    const args = createDefaultArgs()
     const actual = await shouldSpawnCliProcess(args)
     const expected = false
 
@@ -500,7 +499,7 @@ describe("shouldSpawnCliProcess", () => {
 
   it("should return true if 'list-extensions' passed in", async () => {
     const args = {
-      _: [],
+      ...createDefaultArgs(),
       ["list-extensions"]: true,
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -511,7 +510,7 @@ describe("shouldSpawnCliProcess", () => {
 
   it("should return true if 'install-extension' passed in", async () => {
     const args = {
-      _: [],
+      ...createDefaultArgs(),
       ["install-extension"]: ["hello.world"],
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -522,7 +521,7 @@ describe("shouldSpawnCliProcess", () => {
 
   it("should return true if 'uninstall-extension' passed in", async () => {
     const args = {
-      _: [],
+      ...createDefaultArgs(),
       ["uninstall-extension"]: ["hello.world"],
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -534,9 +533,7 @@ describe("shouldSpawnCliProcess", () => {
 
 describe("bindAddrFromArgs", () => {
   it("should return the bind address", () => {
-    const args = {
-      _: [],
-    }
+    const args = createDefaultArgs()
 
     const addr = {
       host: "localhost",
@@ -551,7 +548,7 @@ describe("bindAddrFromArgs", () => {
 
   it("should use the bind-address if set in args", () => {
     const args = {
-      _: [],
+      ...createDefaultArgs(),
       ["bind-addr"]: "localhost:3000",
     }
 
@@ -571,7 +568,7 @@ describe("bindAddrFromArgs", () => {
 
   it("should use the host if set in args", () => {
     const args = {
-      _: [],
+      ...createDefaultArgs(),
       ["host"]: "coder",
     }
 
@@ -593,9 +590,7 @@ describe("bindAddrFromArgs", () => {
     const [setValue, resetValue] = useEnv("PORT")
     setValue("8000")
 
-    const args = {
-      _: [],
-    }
+    const args = createDefaultArgs()
 
     const addr = {
       host: "localhost",
@@ -614,8 +609,8 @@ describe("bindAddrFromArgs", () => {
 
   it("should set port if in args", () => {
     const args = {
-      _: [],
-      port: 3000,
+      ...createDefaultArgs(),
+      port: "3000",
     }
 
     const addr = {
@@ -637,8 +632,8 @@ describe("bindAddrFromArgs", () => {
     setValue("8000")
 
     const args = {
-      _: [],
-      port: 3000,
+      ...createDefaultArgs(),
+      port: "3000",
     }
 
     const addr = {
