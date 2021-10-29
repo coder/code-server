@@ -5,10 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "installer.sh"
+      - "install.sh"
   pull_request:
     branches:
       - main
+    paths:
+      - "install.sh"
 
 jobs:
   ubuntu:
