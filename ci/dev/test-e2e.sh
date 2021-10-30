@@ -1,8 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+help() {
+  echo >&2 "  You can build with 'yarn watch' or you can build a release"
+  echo >&2 "  For example: 'yarn build && yarn build:vscode && KEEP_MODULES=1 yarn release'"
+  echo >&2 "  Then 'CODE_SERVER_TEST_ENTRY=./release yarn test:e2e'"
+  echo >&2 "  You can manually run that release with 'node ./release'"
+}
+
 main() {
   cd "$(dirname "$0")/../.."
+
   source ./ci/lib.sh
 
   local dir="$PWD"
@@ -20,13 +28,13 @@ main() {
   # wrong (native modules version issues, incomplete build, etc).
   if [[ ! -d $dir/out ]]; then
     echo >&2 "No code-server build detected"
-    echo >&2 "You can build it with 'yarn build' or 'yarn watch'"
+    help
     exit 1
   fi
 
-  if [[ ! -d $dir/lib/vscode/out ]]; then
+  if [[ ! -d $dir/vendor/modules/code-oss-dev/out ]]; then
     echo >&2 "No VS Code build detected"
-    echo >&2 "You can build it with 'yarn build:vscode' or 'yarn watch'"
+    help
     exit 1
   fi
 

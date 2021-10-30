@@ -8,10 +8,11 @@ release-packages/
 release-gcp/
 release-images/
 node_modules
-/lib/vscode/node_modules.asar
+vendor/modules
 node-*
 /plugins
 /lib/coder-cloud-agent
+/lib/linkup
 .home
 coverage
 **/.DS_Store

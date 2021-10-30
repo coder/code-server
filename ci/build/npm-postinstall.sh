@@ -57,10 +57,19 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
+
+  mkdir -p ./lib
+
   if curl -fsSL "https://github.com/cdr/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
     echo "Failed to download cloud agent; --link will not work"
+  fi
+
+  if curl -fsSL "https://storage.googleapis.com/coder-link-releases/latest/linkup-$OS-$ARCH" -o ./lib/linkup; then
+    chmod +x ./lib/linkup
+  else
+    echo "Failed to download Link agent; the Link extension will not work"
   fi
 
   if ! vscode_yarn; then
@@ -87,13 +96,15 @@ symlink_asar() {
 }
 
 vscode_yarn() {
-  cd lib/vscode
+  echo 'Installing vendor dependencies...'
+  cd vendor/modules/code-oss-dev
   yarn --production --frozen-lockfile
 
   symlink_asar
 
   cd extensions
   yarn --production --frozen-lockfile
+
   for ext in */; do
     ext="${ext%/}"
     echo "extensions/$ext: installing dependencies"

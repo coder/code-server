@@ -1,12 +1,12 @@
 import bodyParser from "body-parser"
 import * as express from "express"
-import * as nodeFetch from "node-fetch"
 import * as http from "http"
+import nodeFetch from "node-fetch"
 import { HttpCode } from "../../../src/common/http"
 import { proxy } from "../../../src/node/proxy"
+import { getAvailablePort } from "../../utils/helpers"
 import * as httpserver from "../../utils/httpserver"
 import * as integration from "../../utils/integration"
-import { getAvailablePort } from "../../utils/helpers"
 
 describe("proxy", () => {
   const nhooyrDevServer = new httpserver.HttpServer()
@@ -24,7 +24,7 @@ describe("proxy", () => {
   })
 
   afterAll(async () => {
-    await nhooyrDevServer.close()
+    await nhooyrDevServer.dispose()
   })
 
   beforeEach(() => {
@@ -33,7 +33,7 @@ describe("proxy", () => {
 
   afterEach(async () => {
     if (codeServer) {
-      await codeServer.close()
+      await codeServer.dispose()
       codeServer = undefined
     }
   })
@@ -202,13 +202,13 @@ describe("proxy (standalone)", () => {
   it("should return a 500 when proxy target errors ", async () => {
     // Close the proxy target so that proxy errors
     await proxyTarget.close()
-    const errorResp = await nodeFetch.default(`${URL}/error`)
+    const errorResp = await nodeFetch(`${URL}/error`)
     expect(errorResp.status).toBe(HttpCode.ServerError)
     expect(errorResp.statusText).toBe("Internal Server Error")
   })
 
   it("should proxy correctly", async () => {
-    const resp = await nodeFetch.default(`${URL}/route`)
+    const resp = await nodeFetch(`${URL}/route`)
     expect(resp.status).toBe(200)
     expect(resp.statusText).toBe("OK")
   })

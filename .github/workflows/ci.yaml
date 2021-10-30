@@ -19,8 +19,6 @@ jobs:
     name: Pre-build checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -33,17 +31,21 @@ jobs:
       - name: Install helm
         uses: azure/setup-helm@v1.1
 
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v2
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      # NOTE@jsjoeio
+      # disabling this until we can audit the build process
+      # and the usefulness of this step
+      # See: https://github.com/cdr/code-server/issues/4287
+      # - name: Fetch dependencies from cache
+      #   id: cache-yarn
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: "**/node_modules"
+      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+      #     restore-keys: |
+      #       yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        # if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Run yarn fmt
@@ -52,14 +54,6 @@ jobs:
 
       - name: Run yarn lint
         run: yarn lint
-        if: success()
-
-      - name: Run code-server unit tests
-        run: yarn test:unit
-        if: success()
-
-      - name: Upload coverage report to Codecov
-        run: yarn coverage
         if: success()
 
   audit-ci:
@@ -98,6 +92,8 @@ jobs:
     needs: prebuild
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - uses: actions/checkout@v2
         with:
@@ -108,47 +104,62 @@ jobs:
         with:
           node-version: "14"
 
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v2
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
+      # TODO@Teffen investigate why this omits code-oss-dev/node_modules
+      # - name: Fetch dependencies from cache
+      #   id: cache-yarn
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: |
+      #       "**/node_modules"
+      #       "**/vendor/modules"
+      #       "**/vendor/modules/code-oss-dev/node_modules"
+      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
+      #     restore-keys: |
+      #       yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        # if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
         run: yarn build
 
-      # Parse the hash of the latest commit inside lib/vscode
+      # Parse the hash of the latest commit inside vendor/modules/code-oss-dev
       # use this to avoid rebuilding it if nothing changed
       # How it works: the `git log` command fetches the hash of the last commit
-      # that changed a file inside `lib/vscode`. If a commit changes any file in there,
+      # that changed a file inside `vendor/modules/code-oss-dev`. If a commit changes any file in there,
       # the hash returned will change, and we rebuild vscode. If the hash did not change,
       # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
       # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
-      - name: Get latest lib/vscode rev
+      - name: Get latest vendor/modules/code-oss-dev rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(git log -1 --format='%H' ./lib/vscode)"
+        run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
 
       - name: Attempt to fetch vscode build from cache
         id: cache-vscode
         uses: actions/cache@v2
         with:
           path: |
-            lib/vscode/.build
-            lib/vscode/out-build
-            lib/vscode/out-vscode
-            lib/vscode/out-vscode-min
-          key: vscode-build-${{ steps.vscode-rev.outputs.rev }}
+            vendor/modules/code-oss-dev/.build
+            vendor/modules/code-oss-dev/out-build
+            vendor/modules/code-oss-dev/out-vscode-server
+            vendor/modules/code-oss-dev/out-vscode-server-min
+          key: vscode-server-build-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: yarn build:vscode
+
+      # Our code imports code from VS Code's `out` directory meaning VS Code
+      # must be built before running these tests.
+      # TODO: Move to its own step?
+      - name: Run code-server unit tests
+        run: yarn test:unit
+        if: success()
+
+      - name: Upload coverage report to Codecov
+        run: yarn coverage
+        if: success()
 
       # The release package does not contain any native modules
       # and is neutral to architecture/os/libc version.
@@ -240,10 +251,14 @@ jobs:
   # so we just build with "native"/x86_64 node, then download arm64/armv7l node
   # and then put it in our release. We can't smoke test the cross build this way,
   # but this means we don't need to maintain a self-hosted runner!
+
+  # NOTE@jsjoeio:
+  # We used to use 16.04 until GitHub deprecated it on September 20, 2021
+  # See here: https://github.com/actions/virtual-environments/pull/3862/files
   package-linux-cross:
     name: Linux cross-compile builds
     needs: build
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-18.04
     timeout-minutes: 15
     strategy:
       matrix:
@@ -275,7 +290,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install cross-compiler
-        run: sudo apt install $PACKAGE
+        run: sudo apt update && sudo apt install $PACKAGE
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
@@ -420,7 +435,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Trivy vulnerability scanner in repo mode
         #Commit SHA for v0.0.17
-        uses: aquasecurity/trivy-action@8eccb5539730451af599c84f444c6d6cf0fc2bb0
+        uses: aquasecurity/trivy-action@1ccef265f594a7555a720f623a461a3d69b45bf7
         with:
           scan-type: "fs"
           scan-ref: "."

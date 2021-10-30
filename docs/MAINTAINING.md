@@ -2,6 +2,9 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Maintaining
 
+- [Team](#team)
+  - [Onboarding](#onboarding)
+  - [Offboarding](#offboarding)
 - [Workflow](#workflow)
   - [Milestones](#milestones)
   - [Triage](#triage)
@@ -12,17 +15,44 @@
   - [Changelog](#changelog)
 - [Releases](#releases)
   - [Publishing a release](#publishing-a-release)
+    - [AUR](#aur)
+    - [Docker](#docker)
+    - [Homebrew](#homebrew)
+    - [npm](#npm)
+- [Testing](#testing)
+- [Documentation](#documentation)
+  - [Troubleshooting](#troubleshooting)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+This document is meant to serve current and future maintainers of code-server,
+as well as share our workflow for maintaining the project.
+
+## Team
 
 Current maintainers:
 
 - @code-asher
-- @oxy
+- @TeffenEllis
 - @jsjoeio
 
-This document is meant to serve current and future maintainers of code-server,
-as well as share our workflow for maintaining the project.
+Occassionally, other Coder employees may step in time to time to assist with code-server.
+
+### Onboarding
+
+To onboard a new maintainer to the project, please make sure to do the following:
+
+- [ ] Add to [cdr/code-server-reviewers](https://github.com/orgs/cdr/teams/code-server-reviewers)
+- [ ] Add as Admin under [Repository Settings > Access](https://github.com/cdr/code-server/settings/access)
+- [ ] Add to [npm Coder org](https://www.npmjs.com/org/coder)
+- [ ] Add as [AUR maintainer](https://aur.archlinux.org/packages/code-server/) (talk to Colin)
+- [ ] Introduce to community via Discussion (see [example](https://github.com/cdr/code-server/discussions/3955))
+
+### Offboarding
+
+Very similar to Onboarding but Remove maintainer from all teams and revoke access. Please also do the following:
+
+- [ ] Write farewell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
 
 ## Workflow
 
@@ -135,6 +165,7 @@ If you're the current release manager, follow these steps:
 
 ### Publishing a release
 
+1. Create a release branch called `v0.0.0` but replace with new version
 1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
 1. GitHub Actions will generate the `npm-package`, `release-packages` and
    `release-images` artifacts. You do not have to wait for this step to complete
@@ -156,3 +187,57 @@ If you're the current release manager, follow these steps:
 1. Update the AUR package. Instructions for updating the AUR package are at
    [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
 1. Wait for the npm package to be published.
+
+#### AUR
+
+We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/cdr/code-server-aur).
+
+#### Docker
+
+We publish code-server as a Docker image [here](https://registry.hub.docker.com/r/codercom/code-server), tagging it both with the version and latest.
+
+This is currently automated with the release process.
+
+#### Homebrew
+
+We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
+
+This is currently automated with the release process (but may fail occassionally). If it does, run this locally:
+
+```shell
+# Replace VERSION with version
+brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
+```
+
+#### npm
+
+We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
+
+This is currently automated with the release process.
+
+## Testing
+
+Our testing structure is laid out under our [Contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
+
+We hope to eventually hit 100% test converage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
+
+If you're ever looking to add more tests, here are a few ways to get started:
+
+- run `yarn test:unit` and look at the coverage chart. You'll see all the uncovered lines. This is a good place to start.
+- look at `test/scripts` to see which scripts are tested. We can always use more tests there.
+- look at `test/e2e`. We can always use more end-to-end tests.
+
+Otherwise, talk to a current maintainer and ask which part of the codebase is lacking most when it comes to tests.
+
+## Documentation
+
+### Troubleshooting
+
+Our docs are hosted on [Vercel](https://vercel.com/). Vercel only shows logs in realtime, which means you need to have the logs open in one tab and reproduce your error in another tab. Since our logs are private to Coder the organization, you can only follow these steps if you're a Coder employee. Ask a maintainer for help if you need it.
+
+Taking a real scenario, let's say you wanted to troubleshoot [this docs change](https://github.com/cdr/code-server/pull/4042). Here is how you would do it:
+
+1. Go to https://vercel.com/codercom/codercom
+2. Click "View Function Logs"
+3. In a separate tab, open the preview link from github-actions-bot
+4. Now look at the function logs and see if there are errors in the logs

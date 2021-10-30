@@ -33,9 +33,11 @@ function runAgent(...args: string[]): Promise<void> {
   })
 }
 
-export function coderCloudBind(csAddr: string, serverName = ""): Promise<void> {
-  // addr needs to be in host:port format.
-  // So we trim the protocol.
-  csAddr = csAddr.replace(/^https?:\/\//, "")
-  return runAgent("bind", `--code-server-addr=${csAddr}`, serverName)
+export function coderCloudBind(address: URL | string, serverName = ""): Promise<void> {
+  if (typeof address === "string") {
+    throw new Error("Cannot link socket paths")
+  }
+
+  // Address needs to be in hostname:port format without the protocol.
+  return runAgent("bind", `--code-server-addr=${address.host}`, serverName)
 }

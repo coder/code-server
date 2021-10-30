@@ -6,7 +6,7 @@ describe("health", () => {
 
   afterEach(async () => {
     if (codeServer) {
-      await codeServer.close()
+      await codeServer.dispose()
       codeServer = undefined
     }
   })

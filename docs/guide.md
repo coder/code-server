@@ -7,6 +7,7 @@
   - [Using Let's Encrypt with Caddy](#using-lets-encrypt-with-caddy)
   - [Using Let's Encrypt with NGINX](#using-lets-encrypt-with-nginx)
   - [Using a self-signed certificate](#using-a-self-signed-certificate)
+  - [TLS 1.3 and Safari](#tls-13-and-safari)
 - [External authentication](#external-authentication)
 - [HTTPS and self-signed certificates](#https-and-self-signed-certificates)
 - [Accessing web services](#accessing-web-services)
@@ -15,6 +16,9 @@
   - [Stripping `/proxy/<port>` from the request path](#stripping-proxyport-from-the-request-path)
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
+- [SSH into code-server on VS Code](#ssh-into-code-server-on-vs-code)
+  - [Option 1: cloudflared tunnel](#option-1-cloudflared-tunnel)
+  - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -142,7 +146,7 @@ sudo apt install caddy
    mydomain.com/code/* {
      uri strip_prefix /code
      reverse_proxy 127.0.0.1:8080
-      }
+   }
    ```
 
    Remember to replace `mydomain.com` with your domain name!
@@ -252,6 +256,13 @@ If you'd like to avoid the warnings displayed by code-server when using a
 self-signed certificate, you can use [mkcert](https://mkcert.dev) to create a
 self-signed certificate that's trusted by your operating system, then pass the
 certificate to code-server via the `cert` and `cert-key` config fields.
+
+### TLS 1.3 and Safari
+
+If you will be using Safari and your configuration does not allow anything less
+than TLS 1.3 you will need to add support for TLS 1.2 since Safari does not
+support TLS 1.3 for web sockets at the time of writing. If this is the case you
+should see OSSStatus: 9836 in the browser console.
 
 ## External authentication
 
@@ -370,3 +381,93 @@ module.exports = {
 3. access app at `<code-server-root>/absproxy/3454` e.g. `http://localhost:8080/absproxy/3454`
 
 Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#publicpath)
+
+## SSH into code-server on VS Code
+
+[![SSH](https://img.shields.io/badge/SSH-363636?style=for-the-badge&logo=GNU+Bash&logoColor=ffffff)](https://ohmyz.sh/) [![Terminal](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff)](https://img.shields.io/badge/Terminal-2E2E2E?style=for-the-badge&logo=Windows+Terminal&logoColor=ffffff) [![Visual Studio Code](https://img.shields.io/badge/Visual_Studio_Code-007ACC?style=for-the-badge&logo=Visual+Studio+Code&logoColor=ffffff)](vscode:extension/ms-vscode-remote.remote-ssh)
+
+Follow these steps where code-server is running:
+
+1. Install `openssh-server`, `wget`, and `unzip`.
+
+```bash
+# example for Debian and Ubuntu operating systems
+sudo apt update
+sudo apt install wget unzip openssh-server
+```
+
+2. Start the SSH server and set the password for your user, if you haven't already. If you use [deploy-code-server](https://github.com/cdr/deploy-code-server),
+
+```bash
+sudo service ssh start
+sudo passwd {user} # replace user with your code-server user
+```
+
+### Option 1: cloudflared tunnel
+
+[![Cloudflared](https://img.shields.io/badge/Cloudflared-E4863B?style=for-the-badge&logo=cloudflare&logoColor=ffffff)](https://github.com/cloudflare/cloudflared)
+
+1.  Install [cloudflared](https://github.com/cloudflare/cloudflared#installing-cloudflared) on your local computer
+2.  Then go to `~/.ssh/config` and add the following:
+
+```shell
+Host *.trycloudflare.com
+HostName %h
+User root
+Port 22
+ProxyCommand "cloudflared location" access ssh --hostname %h
+```
+
+3. Run `cloudflared tunnel --url ssh://localhost:22` on the remote server
+
+4. Finally on VS Code or any IDE that supports SSH, run `ssh coder@https://your-link.trycloudflare.com` or `ssh coder@your-link.trycloudflare.com`
+
+### Option 2: ngrok tunnel
+
+[![Ngrok](https://img.shields.io/badge/Ngrok-1F1E37?style=for-the-badge&logo=ngrok&logoColor=ffffff)](https://ngrok.com/)
+
+1.  Make a new account for ngrok [here](https://dashboard.ngrok.com/login)
+
+2.  Now, get the ngrok binary with `wget` and unzip it with `unzip`:
+
+```bash
+wget "https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip"
+unzip "ngrok-stable-linux-amd64.zip"
+```
+
+5.  Then, go to [dashboard.ngrok.com](https://dashboard.ngrok.com) and go to the `Your Authtoken` section.
+6.  Copy the Authtoken shown there.
+7.  Now, go to the folder where you unzipped ngrok and store the Authtoken from the ngrok Dashboard.
+
+```bash
+./ngrok authtoken YOUR_AUTHTOKEN # replace YOUR_AUTHTOKEN with the ngrok authtoken.
+```
+
+8.  Now, forward port 22, which is the SSH port with this command:
+
+```bash
+./ngrok tcp 22
+```
+
+Now, you get a screen in the terminal like this:
+
+```console
+ngrok by @inconshreveable(Ctrl+C to quit)
+
+Session Status                online
+Account                       {Your name} (Plan: Free)
+Version                       2.3.40
+Region                        United States (us)
+Web Interface                 http://127.0.0.1:4040
+Forwarding                    tcp://0.tcp.ngrok.io:19028 -> localhost:22
+```
+
+In this case, copy the forwarded link `0.tcp.ngrok.io` and remember the port number `19028`. Type this on your local Visual Studio Code:
+
+```bash
+ssh user@0.tcp.ngrok.io -p 19028
+```
+
+The port redirects you to the default SSH port 22, and you can then successfully connect to code-server by entering the password you set for the user.
+
+Note: the port and the url provided by ngrok will change each time you run it so modify as needed.

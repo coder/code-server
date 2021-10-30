@@ -1,49 +1,77 @@
 import { field, logger } from "@coder/logger"
-import * as cp from "child_process"
+import { ChildProcessWithoutNullStreams } from "child_process"
 import http from "http"
-import * as path from "path"
-import { CliMessage, OpenCommandPipeArgs } from "../../typings/ipc"
-import { plural } from "../common/util"
+import path from "path"
+import { Disposable } from "../common/emitter"
+import { plural, logError } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
-import { commit, version } from "./constants"
+import { commit, version, vsRootPath } from "./constants"
+import { startLink } from "./link"
 import { register } from "./routes"
-import { humanPath, isFile, open } from "./util"
+import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const runVsCodeCli = (args: DefaultedArgs): void => {
-  logger.debug("forking vs code cli...")
-  const vscode = cp.fork(path.resolve(__dirname, "../../lib/vscode/out/vs/server/fork"), [], {
-    env: {
-      ...process.env,
-      CODE_SERVER_PARENT_PID: process.pid.toString(),
-    },
-  })
-  vscode.once("message", (message: any) => {
-    logger.debug("got message from VS Code", field("message", message))
-    if (message.type !== "ready") {
-      logger.error("Unexpected response waiting for ready response", field("type", message.type))
-      process.exit(1)
-    }
-    const send: CliMessage = { type: "cli", args }
-    vscode.send(send)
-  })
-  vscode.once("error", (error) => {
-    logger.error("Got error from VS Code", field("error", error))
-    process.exit(1)
-  })
-  vscode.on("exit", (code) => process.exit(code || 0))
+export const shouldSpawnCliProcess = async (args: CodeServerLib.NativeParsedArgs): Promise<boolean> => {
+  const shouldSpawn = await loadAMDModule<(argv: CodeServerLib.NativeParsedArgs) => boolean>(
+    "vs/code/node/cli",
+    "shouldSpawnCliProcess",
+  )
+
+  return shouldSpawn(args)
+}
+
+/**
+ * This is useful when an CLI arg should be passed to VS Code directly,
+ * such as when managing extensions.
+ * @deprecated This should be removed when code-server merges with lib/vscode.
+ */
+export const runVsCodeCli = async (): Promise<void> => {
+  logger.debug("Running VS Code CLI")
+
+  // Delete `VSCODE_CWD` very early even before
+  // importing bootstrap files. We have seen
+  // reports where `code .` would use the wrong
+  // current working directory due to our variable
+  // somehow escaping to the parent shell
+  // (https://github.com/microsoft/vscode/issues/126399)
+  delete process.env["VSCODE_CWD"]
+
+  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
+  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
+  const product = require(path.join(vsRootPath, "product.json"))
+
+  // Avoid Monkey Patches from Application Insights
+  bootstrap.avoidMonkeyPatchFromAppInsights()
+
+  // Enable portable support
+  bootstrapNode.configurePortable(product)
+
+  // Enable ASAR support
+  bootstrap.enableASARSupport()
+
+  // Signal processes that we got launched as CLI
+  process.env["VSCODE_CLI"] = "1"
+
+  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cli", "initialize")
+
+  try {
+    await cliProcessMain(process.argv)
+  } catch (error: any) {
+    logger.error("Got error from VS Code", error)
+  }
+
+  process.exit(0)
 }
 
 export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
-  const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
+  const pipeArgs: CodeServerLib.OpenCommandPipeArgs & { fileURIs: string[] } = {
     type: "open",
     folderURIs: [],
     fileURIs: [],
     forceReuseWindow: args["reuse-window"],
     forceNewWindow: args["new-window"],
   }
-
   for (let i = 0; i < args._.length; i++) {
     const fp = path.resolve(args._[i])
     if (await isFile(fp)) {
@@ -52,17 +80,14 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
       pipeArgs.folderURIs.push(fp)
     }
   }
-
   if (pipeArgs.forceNewWindow && pipeArgs.fileURIs.length > 0) {
     logger.error("--new-window can only be used with folder paths")
     process.exit(1)
   }
-
   if (pipeArgs.folderURIs.length === 0 && pipeArgs.fileURIs.length === 0) {
     logger.error("Please specify at least one file or folder")
     process.exit(1)
   }
-
   const vscode = http.request(
     {
       path: "/",
@@ -82,7 +107,9 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
   vscode.end()
 }
 
-export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> => {
+export const runCodeServer = async (
+  args: DefaultedArgs,
+): Promise<{ dispose: Disposable["dispose"]; server: http.Server }> => {
   logger.info(`code-server ${version} ${commit}`)
 
   logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
@@ -94,12 +121,12 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     )
   }
 
-  const [app, wsApp, server] = await createApp(args)
-  const serverAddress = ensureAddress(server)
-  await register(app, wsApp, server, args)
+  const app = await createApp(args)
+  const serverAddress = ensureAddress(app.server, args.cert ? "https" : "http")
+  const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
-  logger.info(`HTTP server listening on ${serverAddress} ${args.link ? "(randomized by --link)" : ""}`)
+  logger.info(`HTTP server listening on ${serverAddress.toString()} ${args.link ? "(randomized by --link)" : ""}`)
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
@@ -125,8 +152,21 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
   }
 
   if (args.link) {
-    await coderCloudBind(serverAddress.replace(/^https?:\/\//, ""), args.link.value)
+    await coderCloudBind(serverAddress, args.link.value)
     logger.info("  - Connected to cloud agent")
+  }
+
+  let linkAgent: undefined | ChildProcessWithoutNullStreams
+  try {
+    linkAgent = startLink(serverAddress)
+    linkAgent.on("error", (error) => {
+      logError(logger, "link daemon", error)
+    })
+    linkAgent.on("close", (code) => {
+      logger.debug("link daemon closed", field("code", code))
+    })
+  } catch (error) {
+    logError(logger, "link daemon", error)
   }
 
   if (args.enable && args.enable.length > 0) {
@@ -144,16 +184,21 @@ export const runCodeServer = async (args: DefaultedArgs): Promise<http.Server> =
     )
   }
 
-  if (!args.socket && args.open) {
-    // The web socket doesn't seem to work if browsing with 0.0.0.0.
-    const openAddress = serverAddress.replace("://0.0.0.0", "://localhost")
+  if (args.open) {
     try {
-      await open(openAddress)
-      logger.info(`Opened ${openAddress}`)
+      await open(serverAddress)
+      logger.info(`Opened ${serverAddress}`)
     } catch (error) {
-      logger.error("Failed to open", field("address", openAddress), field("error", error))
+      logger.error("Failed to open", field("address", serverAddress.toString()), field("error", error))
     }
   }
 
-  return server
+  return {
+    server: app.server,
+    dispose: async () => {
+      linkAgent?.kill()
+      disposeRoutes()
+      await app.dispose()
+    },
+  }
 }

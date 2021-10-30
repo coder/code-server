@@ -1,19 +1,12 @@
 import { logger } from "@coder/logger"
-import {
-  optionDescriptions,
-  parse,
-  readConfigFile,
-  setDefaults,
-  shouldOpenInExistingInstance,
-  shouldRunVsCodeCli,
-} from "./cli"
+import { optionDescriptions, parse, readConfigFile, setDefaults, shouldOpenInExistingInstance } from "./cli"
 import { commit, version } from "./constants"
-import { openInExistingInstance, runCodeServer, runVsCodeCli } from "./main"
-import * as proxyAgent from "./proxy_agent"
+import { openInExistingInstance, runCodeServer, runVsCodeCli, shouldSpawnCliProcess } from "./main"
+import { monkeyPatchProxyProtocols } from "./proxy_agent"
 import { isChild, wrapper } from "./wrapper"
 
 async function entry(): Promise<void> {
-  proxyAgent.monkeyPatch(false)
+  monkeyPatchProxyProtocols()
 
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
@@ -24,7 +17,8 @@ async function entry(): Promise<void> {
   if (isChild(wrapper)) {
     const args = await wrapper.handshake()
     wrapper.preventExit()
-    await runCodeServer(args)
+    const server = await runCodeServer(args)
+    wrapper.onDispose(() => server.dispose())
     return
   }
 
@@ -46,19 +40,21 @@ async function entry(): Promise<void> {
 
   if (args.version) {
     if (args.json) {
-      console.log({
-        codeServer: version,
-        commit,
-        vscode: require("../../lib/vscode/package.json").version,
-      })
+      console.log(
+        JSON.stringify({
+          codeServer: version,
+          commit,
+          vscode: require("../../vendor/modules/code-oss-dev/package.json").version,
+        }),
+      )
     } else {
       console.log(version, commit)
     }
     return
   }
 
-  if (shouldRunVsCodeCli(args)) {
-    return runVsCodeCli(args)
+  if (await shouldSpawnCliProcess(args)) {
+    return runVsCodeCli()
   }
 
   const socketPath = await shouldOpenInExistingInstance(cliArgs)

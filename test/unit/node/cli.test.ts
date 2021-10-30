@@ -3,9 +3,19 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
-import { Args, parse, setDefaults, shouldOpenInExistingInstance, splitOnFirstEquals } from "../../../src/node/cli"
-import { tmpdir } from "../../../src/node/constants"
-import { paths } from "../../../src/node/util"
+import {
+  Args,
+  bindAddrFromArgs,
+  defaultConfigFile,
+  parse,
+  setDefaults,
+  shouldOpenInExistingInstance,
+  splitOnFirstEquals,
+  readSocketPath,
+} from "../../../src/node/cli"
+import { shouldSpawnCliProcess } from "../../../src/node/main"
+import { generatePassword, paths } from "../../../src/node/util"
+import { useEnv, tmpdir } from "../../utils/helpers"
 
 type Mutable<T> = {
   -readonly [P in keyof T]: T[P]
@@ -323,6 +333,18 @@ describe("parser", () => {
     })
   })
 
+  it("should error if password passed in", () => {
+    expect(() => parse(["--password", "supersecret123"])).toThrowError(
+      "--password can only be set in the config file or passed in via $PASSWORD",
+    )
+  })
+
+  it("should error if hashed-password passed in", () => {
+    expect(() => parse(["--hashed-password", "fdas423fs8a"])).toThrowError(
+      "--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD",
+    )
+  })
+
   it("should filter proxy domains", async () => {
     const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
     expect(args).toEqual({
@@ -368,10 +390,11 @@ describe("parser", () => {
 
 describe("cli", () => {
   let args: Mutable<Args> = { _: [] }
-  const testDir = path.join(tmpdir, "tests/cli")
+  let testDir: string
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
   beforeAll(async () => {
+    testDir = await tmpdir("cli")
     await fs.rmdir(testDir, { recursive: true })
     await fs.mkdir(testDir, { recursive: true })
   })
@@ -461,5 +484,224 @@ describe("splitOnFirstEquals", () => {
     const actual = splitOnFirstEquals(testStr)
     const expected = ["auth"]
     expect(actual).toEqual(expect.arrayContaining(expected))
+  })
+})
+
+describe("shouldSpawnCliProcess", () => {
+  it("should return false if no 'extension' related args passed in", async () => {
+    const args = {
+      _: [],
+    }
+    const actual = await shouldSpawnCliProcess(args)
+    const expected = false
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'list-extensions' passed in", async () => {
+    const args = {
+      _: [],
+      ["list-extensions"]: true,
+    }
+    const actual = await shouldSpawnCliProcess(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'install-extension' passed in", async () => {
+    const args = {
+      _: [],
+      ["install-extension"]: ["hello.world"],
+    }
+    const actual = await shouldSpawnCliProcess(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+
+  it("should return true if 'uninstall-extension' passed in", async () => {
+    const args = {
+      _: [],
+      ["uninstall-extension"]: ["hello.world"],
+    }
+    const actual = await shouldSpawnCliProcess(args)
+    const expected = true
+
+    expect(actual).toBe(expected)
+  })
+})
+
+describe("bindAddrFromArgs", () => {
+  it("should return the bind address", () => {
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = addr
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the bind-address if set in args", () => {
+    const args = {
+      _: [],
+      ["bind-addr"]: "localhost:3000",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the host if set in args", () => {
+    const args = {
+      _: [],
+      ["host"]: "coder",
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "coder",
+      port: 8080,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use process.env.PORT if set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 8000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+
+  it("should set port if in args", () => {
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+  })
+
+  it("should use the args.port over process.env.PORT if both set", () => {
+    const [setValue, resetValue] = useEnv("PORT")
+    setValue("8000")
+
+    const args = {
+      _: [],
+      port: 3000,
+    }
+
+    const addr = {
+      host: "localhost",
+      port: 8080,
+    }
+
+    const actual = bindAddrFromArgs(addr, args)
+    const expected = {
+      host: "localhost",
+      port: 3000,
+    }
+
+    expect(actual).toStrictEqual(expected)
+    resetValue()
+  })
+})
+
+describe("defaultConfigFile", () => {
+  it("should return the default config file as a string", async () => {
+    const password = await generatePassword()
+    const actual = defaultConfigFile(password)
+
+    expect(actual).toMatch(`bind-addr: 127.0.0.1:8080
+auth: password
+password: ${password}
+cert: false`)
+  })
+})
+
+describe("readSocketPath", () => {
+  const fileContents = "readSocketPath file contents"
+  let tmpDirPath: string
+  let tmpFilePath: string
+
+  beforeEach(async () => {
+    tmpDirPath = await tmpdir("readSocketPath")
+    tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
+    await fs.writeFile(tmpFilePath, fileContents)
+  })
+
+  afterEach(async () => {
+    await fs.rmdir(tmpDirPath, { recursive: true })
+  })
+
+  it("should throw an error if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    // Test it on a directory.... ESDIR
+    // TODO@jsjoeio - implement
+    expect(() => readSocketPath(tmpDirPath)).rejects.toThrow("EISDIR")
+  })
+  it("should return undefined if it can't read the file", async () => {
+    // TODO@jsjoeio - implement
+    const socketPath = await readSocketPath(path.join(tmpDirPath, "not-a-file"))
+    expect(socketPath).toBeUndefined()
+  })
+  it("should return the file contents", async () => {
+    const contents = await readSocketPath(tmpFilePath)
+    expect(contents).toBe(fileContents)
+  })
+  it("should return the same file contents for two different calls", async () => {
+    const contents1 = await readSocketPath(tmpFilePath)
+    const contents2 = await readSocketPath(tmpFilePath)
+    expect(contents2).toBe(contents1)
   })
 })

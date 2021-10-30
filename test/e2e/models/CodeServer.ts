@@ -1,11 +1,11 @@
-import { Logger, logger } from "@coder/logger"
+import { field, Logger, logger } from "@coder/logger"
 import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
-import { tmpdir } from "../../utils/helpers"
+import { idleTimer, tmpdir } from "../../utils/helpers"
 
 interface CodeServerProcess {
   process: cp.ChildProcess
@@ -99,34 +99,44 @@ export class CodeServer {
         },
       )
 
+      const timer = idleTimer("Failed to extract address; did the format change?", reject)
+
       proc.on("error", (error) => {
         this.logger.error(error.message)
+        timer.dispose()
         reject(error)
       })
 
-      proc.on("close", () => {
+      proc.on("close", (code) => {
         const error = new Error("closed unexpectedly")
         if (!this.closed) {
-          this.logger.error(error.message)
+          this.logger.error(error.message, field("code", code))
         }
+        timer.dispose()
         reject(error)
       })
 
       let resolved = false
       proc.stdout.setEncoding("utf8")
       onLine(proc, (line) => {
+        // As long as we are actively getting input reset the timer.  If we stop
+        // getting input and still have not found the address the timer will
+        // reject.
+        timer.reset()
+
         // Log the line without the timestamp.
         this.logger.trace(line.replace(/\[.+\]/, ""))
         if (resolved) {
           return
         }
-        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)$/)
+        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)\/?$/)
         if (match) {
           // Cookies don't seem to work on IP address so swap to localhost.
           // TODO: Investigate whether this is a bug with code-server.
           const address = match[1].replace("127.0.0.1", "localhost")
           this.logger.debug(`spawned on ${address}`)
           resolved = true
+          timer.dispose()
           resolve({ process: proc, address })
         }
       })
@@ -156,7 +166,14 @@ export class CodeServer {
 export class CodeServerPage {
   private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {}
+  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {
+    this.page.on("console", (message) => {
+      this.codeServer.logger.debug(message)
+    })
+    this.page.on("pageerror", (error) => {
+      logError(this.codeServer.logger, "page", error)
+    })
+  }
 
   address() {
     return this.codeServer.address()
@@ -177,6 +194,8 @@ export class CodeServerPage {
    * Reload until both checks pass
    */
   async reloadUntilEditorIsReady() {
+    this.codeServer.logger.debug("Waiting for editor to be ready...")
+
     const editorIsVisible = await this.isEditorVisible()
     const editorIsConnected = await this.isConnected()
     let reloadCount = 0
@@ -199,25 +218,36 @@ export class CodeServerPage {
       }
       await this.page.reload()
     }
+
+    this.codeServer.logger.debug("Editor is ready!")
   }
 
   /**
    * Checks if the editor is visible
    */
   async isEditorVisible() {
+    this.codeServer.logger.debug("Waiting for editor to be visible...")
     // Make sure the editor actually loaded
     await this.page.waitForSelector(this.editorSelector)
-    return await this.page.isVisible(this.editorSelector)
+    const visible = await this.page.isVisible(this.editorSelector)
+
+    this.codeServer.logger.debug(`Editor is ${visible ? "not visible" : "visible"}!`)
+
+    return visible
   }
 
   /**
    * Checks if the editor is visible
    */
   async isConnected() {
+    this.codeServer.logger.debug("Waiting for network idle...")
+
     await this.page.waitForLoadState("networkidle")
 
     const host = new URL(await this.codeServer.address()).host
-    const hostSelector = `[title="Editing on ${host}"]`
+    // NOTE: This seems to be pretty brittle between version changes.
+    const hostSelector = `[aria-label="remote  ${host}"]`
+    this.codeServer.logger.debug(`Waiting selector: ${hostSelector}`)
     await this.page.waitForSelector(hostSelector)
 
     return await this.page.isVisible(hostSelector)

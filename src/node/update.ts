@@ -60,7 +60,7 @@ export class UpdateProvider {
       }
       logger.debug("got latest version", field("latest", update.version))
       return update
-    } catch (error) {
+    } catch (error: any) {
       logger.error("Failed to get latest version", field("error", error.message))
       return {
         checked: now,

@@ -15,13 +15,15 @@ main() {
     chmod +x out/node/entry.js
   fi
 
+  # for arch; we do not use OS from lib.sh and get our own.
+  # lib.sh normalizes macos to darwin - but cloud-agent's binaries do not
+  source ./ci/lib.sh
+  OS="$(uname | tr '[:upper:]' '[:lower:]')"
+
+  mkdir -p ./lib
+
   if ! [ -f ./lib/coder-cloud-agent ]; then
     echo "Downloading the cloud agent..."
-
-    # for arch; we do not use OS from lib.sh and get our own.
-    # lib.sh normalizes macos to darwin - but cloud-agent's binaries do not
-    source ./ci/lib.sh
-    OS="$(uname | tr '[:upper:]' '[:lower:]')"
 
     set +e
     curl -fsSL "https://github.com/cdr/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent
@@ -29,9 +31,14 @@ main() {
     set -e
   fi
 
-  yarn browserify out/browser/register.js -o out/browser/register.browserified.js
-  yarn browserify out/browser/pages/login.js -o out/browser/pages/login.browserified.js
-  yarn browserify out/browser/pages/vscode.js -o out/browser/pages/vscode.browserified.js
+  if ! [ -f ./lib/linkup ]; then
+    echo "Downloading Link agent..."
+
+    set +e
+    curl -fsSL "https://storage.googleapis.com/coder-link-releases/latest/linkup-$OS-$ARCH" -o ./lib/linkup
+    chmod +x ./lib/linkup
+    set -e
+  fi
 }
 
 main "$@"
