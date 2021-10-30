@@ -76,3 +76,6 @@ positions](https://coder.com/careers#openings)!
 
 Want remote development for your organization or enterprise? Visit [our
 website](https://coder.com) to learn more about Coder.
+
+| 🔔 Code Server is the free and open source single-user variant of [Coder](https://coder.com/), an Enterprise developer workspace platform. For more info, visit [Coder.com](https://coder.com/docs/comparison)
+| ---
