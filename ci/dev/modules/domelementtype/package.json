@@ -1,0 +1,45 @@
+{
+    "name": "domelementtype",
+    "version": "2.2.0",
+    "description": "all the types of nodes in htmlparser2's dom",
+    "author": "Felix Boehm <me@feedic.com>",
+    "license": "BSD-2-Clause",
+    "funding": [
+        {
+            "type": "github",
+            "url": "https://github.com/sponsors/fb55"
+        }
+    ],
+    "sideEffects": false,
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": [
+        "lib/**/*"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fb55/domelementtype.git"
+    },
+    "keywords": [
+        "dom",
+        "htmlparser2"
+    ],
+    "scripts": {
+        "test": "npm run lint && prettier --check **/*.{ts,json,md}",
+        "lint": "eslint src",
+        "format": "prettier --write **/*.{ts,json,md}",
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "prettier": {
+        "tabWidth": 4
+    },
+    "devDependencies": {
+        "@typescript-eslint/eslint-plugin": "^4.1.0",
+        "@typescript-eslint/parser": "^4.1.0",
+        "eslint": "^7.9.0",
+        "eslint-config-prettier": "^6.0.0",
+        "prettier": "^2.1.1",
+        "typescript": "^4.0.2"
+    }
+}

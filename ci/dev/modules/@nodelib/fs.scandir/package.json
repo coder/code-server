@@ -1,0 +1,35 @@
+{
+  "name": "@nodelib/fs.scandir",
+  "version": "2.1.4",
+  "description": "List files and directories inside the specified directory",
+  "license": "MIT",
+  "repository": "https://github.com/nodelib/nodelib/tree/master/packages/fs/fs.scandir",
+  "keywords": [
+    "NodeLib",
+    "fs",
+    "FileSystem",
+    "file system",
+    "scandir",
+    "readdir",
+    "dirent"
+  ],
+  "engines": {
+    "node": ">= 8"
+  },
+  "main": "out/index.js",
+  "typings": "out/index.d.ts",
+  "scripts": {
+    "clean": "rimraf {tsconfig.tsbuildinfo,out}",
+    "lint": "eslint \"src/**/*.ts\" --cache",
+    "compile": "tsc -b .",
+    "compile:watch": "tsc -p . --watch --sourceMap",
+    "test": "mocha \"out/**/*.spec.js\" -s 0",
+    "build": "npm run clean && npm run compile && npm run lint && npm test",
+    "watch": "npm run clean && npm run compile:watch"
+  },
+  "dependencies": {
+    "@nodelib/fs.stat": "2.0.4",
+    "run-parallel": "^1.1.9"
+  },
+  "gitHead": "cb5f7e893a986164c3b847a4f1faef6c54cadd68"
+}

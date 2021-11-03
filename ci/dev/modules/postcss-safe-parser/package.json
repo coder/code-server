@@ -1,0 +1,102 @@
+{
+  "name": "postcss-safe-parser",
+  "version": "4.0.2",
+  "description": "Fault-tolerant CSS parser for PostCSS",
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-syntax",
+    "parser",
+    "fault tolerant"
+  ],
+  "scripts": {
+    "clean": "del-cli build/ lib/*.js",
+    "build": "yarn clean && gulp build",
+    "test": "gulp build && eslint-ci . && jest && ./test/integration.js"
+  },
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "repository": "postcss/postcss-safe-parser",
+  "engines": {
+    "node": ">=6.0.0"
+  },
+  "dependencies": {
+    "postcss": "^7.0.26"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.8.4",
+    "@babel/preset-env": "^7.8.4",
+    "@logux/eslint-config": "^35.0.4",
+    "babel-plugin-add-module-exports": "^1.0.2",
+    "ci-job-number": "^0.3.1",
+    "del-cli": "^3.0.0",
+    "eslint": "^6.8.0",
+    "eslint-ci": "^1.0.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-es5": "^1.5.0",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^23.6.0",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prefer-let": "^1.0.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-unicorn": "^16.0.0",
+    "gulp": "^4.0.2",
+    "gulp-babel": "^8.0.0",
+    "gulp-sourcemaps": "^2.6.5",
+    "husky": "^4.2.1",
+    "jest": "^25.1.0",
+    "lint-staged": "^10.0.7",
+    "postcss-parser-tests": "^6.5.0",
+    "pre-commit": "^1.1.3"
+  },
+  "eslintConfig": {
+    "extends": "@logux/eslint-config/node",
+    "overrides": [
+      {
+        "files": [
+          "gulpfile.js"
+        ],
+        "rules": {
+          "node/no-unpublished-require": "off",
+          "global-require": "off"
+        }
+      }
+    ]
+  },
+  "eslintIgnore": [
+    "build/",
+    "lib/*.js"
+  ],
+  "jest": {
+    "testEnvironment": "node",
+    "modulePathIgnorePatterns": [
+      "<rootDir>/build"
+    ]
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/env",
+        {
+          "loose": true
+        }
+      ]
+    ],
+    "plugins": [
+      "add-module-exports"
+    ]
+  },
+  "main": "lib/safe-parse",
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "gulpfile.js": "eslint",
+    "test/*.js": "eslint",
+    "lib/*.es6": "eslint"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "assert",
+  "description": "The node.js assert module, re-packaged for web browsers.",
+  "version": "1.5.0",
+  "dependencies": {
+    "object-assign": "^4.1.1",
+    "util": "0.10.3"
+  },
+  "devDependencies": {
+    "mocha": "~1.21.4",
+    "zuul": "~3.10.0",
+    "zuul-ngrok": "^4.0.0"
+  },
+  "homepage": "https://github.com/browserify/commonjs-assert",
+  "keywords": [
+    "assert",
+    "browser"
+  ],
+  "license": "MIT",
+  "main": "./assert.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/commonjs-assert.git"
+  },
+  "scripts": {
+    "browser-local": "zuul --no-coverage --local 8000 -- test.js",
+    "test": "npm run test-node && npm run test-browser",
+    "test-browser": "zuul -- test.js",
+    "test-native": "TEST_NATIVE=true mocha --ui qunit test.js",
+    "test-node": "mocha --ui qunit test.js"
+  }
+}

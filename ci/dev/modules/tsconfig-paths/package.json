@@ -1,0 +1,63 @@
+{
+  "name": "tsconfig-paths",
+  "version": "3.9.0",
+  "description": "Load node modules according to tsconfig paths, in run-time or via API.",
+  "main": "lib/index.js",
+  "types": "lib/index",
+  "author": "Jonas Kello",
+  "license": "MIT",
+  "repository": "https://github.com/dividab/tsconfig-paths",
+  "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/minimist": "^1.2.0",
+    "@types/mocha": "^5.2.3",
+    "@types/node": "^6.0.54",
+    "@types/strip-bom": "^3.0.0",
+    "@types/strip-json-comments": "^0.0.30",
+    "chai": "^4.1.2",
+    "codecov": "^3.1.0",
+    "husky": "^0.14.3",
+    "lint-staged": "^4.3.0",
+    "mocha": "^5.2.0",
+    "nyc": "^11.4.1",
+    "prettier": "1.7.4",
+    "rimraf": "^2.6.2",
+    "shelljs": "^0.7.5",
+    "ts-node": "^7.0.0",
+    "tslint": "^5.8.0",
+    "typescript": "^2.4.1"
+  },
+  "dependencies": {
+    "@types/json5": "^0.0.29",
+    "json5": "^1.0.1",
+    "minimist": "^1.2.0",
+    "strip-bom": "^3.0.0"
+  },
+  "scripts": {
+    "start": "cd src && ts-node index.ts",
+    "example:node": "yarn build && cd ./example/node && ts-node -r ../register.js main.ts",
+    "example:project": "yarn build && ts-node -r ./register.js -P ./example/project/tsconfig.json ./example/project/main.ts",
+    "example:api": "cd example/api && ts-node main.ts",
+    "example:perf": "cd example/perf && ts-node main.ts",
+    "test": "mocha",
+    "build": "rimraf lib && tsc -p src",
+    "build:test": "rimraf ./test/js_out && tsc -p test",
+    "lint": "tslint './{src,tests}/**/*.ts{,x}'",
+    "verify": "yarn build && yarn lint && yarn coverage",
+    "coverage": "rimraf coverage .nyc_output && nyc yarn test",
+    "report-coverage": "codecov -f coverage/*.json",
+    "precommit": "lint-staged",
+    "publish:major": "yarn build && node scripts/publish.js major",
+    "publish:minor": "yarn build && node scripts/publish.js minor",
+    "publish:patch": "yarn build && node scripts/publish.js patch",
+    "preversion": "yarn verify",
+    "postversion": "git push --tags && yarn publish --new-version $npm_package_version && git push && echo \"Successfully released version $npm_package_version!\""
+  },
+  "lint-staged": {
+    "*.ts": [
+      "tslint",
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "anchor-markdown-header",
+  "version": "0.5.7",
+  "description": "Generates an anchor for a markdown header.",
+  "main": "anchor-markdown-header.js",
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thlorenz/anchor-markdown-header.git"
+  },
+  "keywords": [
+    "markdown",
+    "anchor",
+    "link",
+    "regex",
+    "github",
+    "readme"
+  ],
+  "author": "Thorsten Lorenz <thlorenz@gmx.de> (thlorenz.com)",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "dcde154040d17d321664a7efc38e8531330335f9",
+  "devDependencies": {
+    "tap": "~0.4.8"
+  },
+  "dependencies": {
+    "emoji-regex": "~6.1.0"
+  }
+}

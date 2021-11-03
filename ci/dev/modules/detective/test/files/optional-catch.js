@@ -1,0 +1,4 @@
+try {
+    require;
+} catch {
+}

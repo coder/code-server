@@ -1,0 +1,83 @@
+{
+  "name": "extend-shallow",
+  "description": "Extend an object with the properties of additional objects. node.js/javascript util.",
+  "version": "3.0.2",
+  "homepage": "https://github.com/jonschlinkert/extend-shallow",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "contributors": [
+    "Jon Schlinkert (http://twitter.com/jonschlinkert)",
+    "Peter deHaan (http://about.me/peterdehaan)"
+  ],
+  "repository": "jonschlinkert/extend-shallow",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/extend-shallow/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "assign-symbols": "^1.0.0",
+    "is-extendable": "^1.0.1"
+  },
+  "devDependencies": {
+    "array-slice": "^1.0.0",
+    "benchmarked": "^2.0.0",
+    "for-own": "^1.0.0",
+    "gulp-format-md": "^1.0.0",
+    "is-plain-object": "^2.0.4",
+    "kind-of": "^6.0.1",
+    "minimist": "^1.2.0",
+    "mocha": "^3.5.3",
+    "object-assign": "^4.1.1"
+  },
+  "keywords": [
+    "assign",
+    "clone",
+    "extend",
+    "merge",
+    "obj",
+    "object",
+    "object-assign",
+    "object.assign",
+    "prop",
+    "properties",
+    "property",
+    "props",
+    "shallow",
+    "util",
+    "utility",
+    "utils",
+    "value"
+  ],
+  "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "related": {
+      "list": [
+        "extend-shallow",
+        "for-in",
+        "for-own",
+        "is-plain-object",
+        "isobject",
+        "kind-of"
+      ]
+    },
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}

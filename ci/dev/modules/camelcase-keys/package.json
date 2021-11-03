@@ -1,0 +1,73 @@
+{
+	"name": "camelcase-keys",
+	"version": "6.2.2",
+	"description": "Convert object keys to camel case",
+	"license": "MIT",
+	"repository": "sindresorhus/camelcase-keys",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=8"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd",
+		"bench": "matcha bench/bench.js"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"map",
+		"obj",
+		"object",
+		"key",
+		"keys",
+		"value",
+		"values",
+		"val",
+		"iterate",
+		"camelcase",
+		"camel-case",
+		"camel",
+		"case",
+		"dash",
+		"hyphen",
+		"dot",
+		"underscore",
+		"separator",
+		"string",
+		"text",
+		"convert",
+		"pascalcase",
+		"pascal-case",
+		"deep",
+		"recurse",
+		"recursive"
+	],
+	"dependencies": {
+		"camelcase": "^5.3.1",
+		"map-obj": "^4.0.0",
+		"quick-lru": "^4.0.1"
+	},
+	"devDependencies": {
+		"ava": "^2.1.0",
+		"matcha": "^0.7.0",
+		"tsd": "^0.11.0",
+		"xo": "^0.25.3"
+	},
+	"xo": {
+		"overrides": [
+			{
+				"files": "bench/bench.js",
+				"rules": {
+					"import/no-unresolved": "off"
+				}
+			}
+		]
+	}
+}

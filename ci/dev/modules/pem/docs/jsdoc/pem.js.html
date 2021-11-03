@@ -1,0 +1,1389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>pem.js - Documentation</title>
+
+    <script src="/pem/jsdoc/scripts/prettify/prettify.js"></script>
+    <script src="/pem/jsdoc/scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="/pem/jsdoc/styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="/pem/jsdoc/styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-helper.html">helper</a><ul class='members'><li data-type='member'><a href="module-helper.html#.ciphers">ciphers</a></li></ul><ul class='methods'><li data-type='method'><a href="module-helper.html#.createPasswordFile">createPasswordFile</a></li><li data-type='method'><a href="module-helper.html#.deleteTempFiles">deleteTempFiles</a></li><li data-type='method'><a href="module-helper.html#.isHex">isHex</a></li><li data-type='method'><a href="module-helper.html#.isNumber">isNumber</a></li><li data-type='method'><a href="module-helper.html#.toHex">toHex</a></li></ul></li><li><a href="module-openssl.html">openssl</a><ul class='methods'><li data-type='method'><a href="module-openssl.html#.exec">exec</a></li><li data-type='method'><a href="module-openssl.html#.execBinary">execBinary</a></li><li data-type='method'><a href="module-openssl.html#.get">get</a></li><li data-type='method'><a href="module-openssl.html#.set">set</a></li><li data-type='method'><a href="module-openssl.html#.spawn">spawn</a></li><li data-type='method'><a href="module-openssl.html#.spawnWrapper">spawnWrapper</a></li></ul></li><li><a href="module-pem.html">pem</a><ul class='members'><li data-type='member'><a href="module-pem.html#.convert">convert</a></li></ul><ul class='methods'><li data-type='method'><a href="module-pem.html#.checkCertificate">checkCertificate</a></li><li data-type='method'><a href="module-pem.html#.checkPkcs12">checkPkcs12</a></li><li data-type='method'><a href="module-pem.html#.config">config</a></li><li data-type='method'><a href="module-pem.html#.createCertificate">createCertificate</a></li><li data-type='method'><a href="module-pem.html#.createCSR">createCSR</a></li><li data-type='method'><a href="module-pem.html#.createDhparam">createDhparam</a></li><li data-type='method'><a href="module-pem.html#.createEcparam">createEcparam</a></li><li data-type='method'><a href="module-pem.html#.createPkcs12">createPkcs12</a></li><li data-type='method'><a href="module-pem.html#.createPrivateKey">createPrivateKey</a></li><li data-type='method'><a href="module-pem.html#.getDhparamInfo">getDhparamInfo</a></li><li data-type='method'><a href="module-pem.html#.getFingerprint">getFingerprint</a></li><li data-type='method'><a href="module-pem.html#.getModulus">getModulus</a></li><li data-type='method'><a href="module-pem.html#.getPublicKey">getPublicKey</a></li><li data-type='method'><a href="module-pem.html#.readCertificateInfo">readCertificateInfo</a></li><li data-type='method'><a href="module-pem.html#.readPkcs12">readPkcs12</a></li><li data-type='method'><a href="module-pem.html#.verifySigningChain">verifySigningChain</a></li></ul></li></ul><h3>Namespaces</h3><ul><li><a href="module-pem-promisified.html">promisified</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DER2PEM">DER2PEM</a></li><li><a href="global.html#P7B2PEM">P7B2PEM</a></li><li><a href="global.html#P7B2PFX">P7B2PFX</a></li><li><a href="global.html#PEM2P7B">PEM2P7B</a></li><li><a href="global.html#PEM2PFX">PEM2PFX</a></li><li><a href="global.html#PFX2PEM">PFX2PEM</a></li></ul>
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">pem.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>'use strict'
+
+/**
+ * pem module
+ *
+ * @module pem
+ */
+
+const { promisify } = require('es6-promisify')
+var net = require('net')
+var helper = require('./helper.js')
+var openssl = require('./openssl.js')
+
+module.exports.createPrivateKey = createPrivateKey
+module.exports.createDhparam = createDhparam
+module.exports.createEcparam = createEcparam
+module.exports.createCSR = createCSR
+module.exports.createCertificate = createCertificate
+module.exports.readCertificateInfo = readCertificateInfo
+module.exports.getPublicKey = getPublicKey
+module.exports.getFingerprint = getFingerprint
+module.exports.getModulus = getModulus
+module.exports.getDhparamInfo = getDhparamInfo
+module.exports.createPkcs12 = createPkcs12
+module.exports.readPkcs12 = readPkcs12
+module.exports.verifySigningChain = verifySigningChain
+module.exports.checkCertificate = checkCertificate
+module.exports.checkPkcs12 = checkPkcs12
+module.exports.config = config
+
+/**
+ * quick access the convert module
+ * @type {module:convert}
+ */
+module.exports.convert = require('./convert.js')
+
+var KEY_START = '-----BEGIN PRIVATE KEY-----'
+var KEY_END = '-----END PRIVATE KEY-----'
+var RSA_KEY_START = '-----BEGIN RSA PRIVATE KEY-----'
+var RSA_KEY_END = '-----END RSA PRIVATE KEY-----'
+var ENCRYPTED_KEY_START = '-----BEGIN ENCRYPTED PRIVATE KEY-----'
+var ENCRYPTED_KEY_END = '-----END ENCRYPTED PRIVATE KEY-----'
+var CERT_START = '-----BEGIN CERTIFICATE-----'
+var CERT_END = '-----END CERTIFICATE-----'
+
+/**
+ * Creates a private key
+ *
+ * @static
+ * @param {Number} [keyBitsize=2048] Size of the key, defaults to 2048bit
+ * @param {Object} [options] object of cipher and password {cipher:'aes128',password:'xxx'}, defaults empty object
+ * @param {String} [options.cipher] string of the cipher for the encryption - needed with password
+ * @param {String} [options.password] string of the cipher password for the encryption needed with cipher
+ * @param {Function} callback Callback function with an error object and {key}
+ */
+function createPrivateKey (keyBitsize, options, callback) {
+  if (!callback &amp;&amp; !options &amp;&amp; typeof keyBitsize === 'function') {
+    callback = keyBitsize
+    keyBitsize = undefined
+    options = {}
+  } else if (!callback &amp;&amp; keyBitsize &amp;&amp; typeof options === 'function') {
+    callback = options
+    options = {}
+  }
+
+  keyBitsize = Number(keyBitsize) || 2048
+
+  var params = ['genrsa']
+  var delTempPWFiles = []
+
+  if (options &amp;&amp; options.cipher &amp;&amp; (Number(helper.ciphers.indexOf(options.cipher)) !== -1) &amp;&amp; options.password) {
+    helper.createPasswordFile({ cipher: options.cipher, password: options.password, passType: 'out' }, params, delTempPWFiles)
+  }
+
+  params.push(keyBitsize)
+
+  openssl.exec(params, 'RSA PRIVATE KEY', function (sslErr, key) {
+    function done (err) {
+      if (err) {
+        return callback(err)
+      }
+      callback(null, {
+        key: key
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+/**
+ * Creates a dhparam key
+ *
+ * @static
+ * @param {Number} [keyBitsize=512] Size of the key, defaults to 512bit
+ * @param {Function} callback Callback function with an error object and {dhparam}
+ */
+function createDhparam (keyBitsize, callback) {
+  if (!callback &amp;&amp; typeof keyBitsize === 'function') {
+    callback = keyBitsize
+    keyBitsize = undefined
+  }
+
+  keyBitsize = Number(keyBitsize) || 512
+
+  var params = ['dhparam',
+    '-outform',
+    'PEM',
+    keyBitsize
+  ]
+
+  openssl.exec(params, 'DH PARAMETERS', function (error, dhparam) {
+    if (error) {
+      return callback(error)
+    }
+    return callback(null, {
+      dhparam: dhparam
+    })
+  })
+}
+
+/**
+ * Creates a ecparam key
+ * @static
+ * @param {String} [keyName=secp256k1] Name of the key, defaults to secp256k1
+ * @param {String} [paramEnc=explicit] Encoding of the elliptic curve parameters, defaults to explicit
+ * @param {Boolean} [noOut=false] This option inhibits the output of the encoded version of the parameters.
+ * @param {Function} callback Callback function with an error object and {ecparam}
+ */
+function createEcparam (keyName, paramEnc, noOut, callback) {
+  if (!callback &amp;&amp; typeof noOut === 'undefined' &amp;&amp; !paramEnc &amp;&amp; typeof keyName === 'function') {
+    callback = keyName
+    keyName = undefined
+  } else if (!callback &amp;&amp; typeof noOut === 'undefined' &amp;&amp; keyName &amp;&amp; typeof paramEnc === 'function') {
+    callback = paramEnc
+    paramEnc = undefined
+  } else if (!callback &amp;&amp; typeof noOut === 'function' &amp;&amp; keyName &amp;&amp; paramEnc) {
+    callback = noOut
+    noOut = undefined
+  }
+
+  keyName = keyName || 'secp256k1'
+  paramEnc = paramEnc || 'explicit'
+  noOut = noOut || false
+
+  var params = ['ecparam',
+    '-name',
+    keyName,
+    '-genkey',
+    '-param_enc',
+    paramEnc
+  ]
+
+  var searchString = 'EC PARAMETERS'
+  if (noOut) {
+    params.push('-noout')
+    searchString = 'EC PRIVATE KEY'
+  }
+
+  openssl.exec(params, searchString, function (error, ecparam) {
+    if (error) {
+      return callback(error)
+    }
+    return callback(null, {
+      ecparam: ecparam
+    })
+  })
+}
+
+/**
+ * Creates a Certificate Signing Request
+ * If client key is undefined, a new key is created automatically. The used key is included
+ * in the callback return as clientKey
+ * @static
+ * @param {Object} [options] Optional options object
+ * @param {String} [options.clientKey] Optional client key to use
+ * @param {Number} [options.keyBitsize] If clientKey is undefined, bit size to use for generating a new key (defaults to 2048)
+ * @param {String} [options.hash] Hash function to use (either md5 sha1 or sha256, defaults to sha256)
+ * @param {String} [options.country] CSR country field
+ * @param {String} [options.state] CSR state field
+ * @param {String} [options.locality] CSR locality field
+ * @param {String} [options.organization] CSR organization field
+ * @param {String} [options.organizationUnit] CSR organizational unit field
+ * @param {String} [options.commonName='localhost'] CSR common name field
+ * @param {String} [options.emailAddress] CSR email address field
+ * @param {String} [options.csrConfigFile] CSR config file
+ * @param {Array}  [options.altNames] is a list of subjectAltNames in the subjectAltName field
+ * @param {Function} callback Callback function with an error object and {csr, clientKey}
+ */
+function createCSR (options, callback) {
+  if (!callback &amp;&amp; typeof options === 'function') {
+    callback = options
+    options = undefined
+  }
+
+  options = options || {}
+
+  // http://stackoverflow.com/questions/14089872/why-does-node-js-accept-ip-addresses-in-certificates-only-for-san-not-for-cn
+  if (options.commonName &amp;&amp; (net.isIPv4(options.commonName) || net.isIPv6(options.commonName))) {
+    if (!options.altNames) {
+      options.altNames = [options.commonName]
+    } else if (options.altNames.indexOf(options.commonName) === -1) {
+      options.altNames = options.altNames.concat([options.commonName])
+    }
+  }
+
+  if (!options.clientKey) {
+    createPrivateKey(options.keyBitsize || 2048, function (error, keyData) {
+      if (error) {
+        return callback(error)
+      }
+      options.clientKey = keyData.key
+      createCSR(options, callback)
+    })
+    return
+  }
+
+  var params = ['req',
+    '-new',
+    '-' + (options.hash || 'sha256')
+  ]
+
+  if (options.csrConfigFile) {
+    params.push('-config')
+    params.push(options.csrConfigFile)
+  } else {
+    params.push('-subj')
+    params.push(generateCSRSubject(options))
+  }
+
+  params.push('-key')
+  params.push('--TMPFILE--')
+
+  var tmpfiles = [options.clientKey]
+  var config = null
+
+  if (options.altNames &amp;&amp; Array.isArray(options.altNames) &amp;&amp; options.altNames.length) {
+    params.push('-extensions')
+    params.push('v3_req')
+    params.push('-config')
+    params.push('--TMPFILE--')
+    var altNamesRep = []
+    for (var i = 0; i &lt; options.altNames.length; i++) {
+      altNamesRep.push((net.isIP(options.altNames[i]) ? 'IP' : 'DNS') + '.' + (i + 1) + ' = ' + options.altNames[i])
+    }
+
+    tmpfiles.push(config = [
+      '[req]',
+      'req_extensions = v3_req',
+      'distinguished_name = req_distinguished_name',
+      '[v3_req]',
+      'subjectAltName = @alt_names',
+      '[alt_names]',
+      altNamesRep.join('\n'),
+      '[req_distinguished_name]',
+      'commonName = Common Name',
+      'commonName_max = 64'
+    ].join('\n'))
+  } else if (options.config) {
+    config = options.config
+  }
+
+  var delTempPWFiles = []
+  if (options.clientKeyPassword) {
+    helper.createPasswordFile({ cipher: '', password: options.clientKeyPassword, passType: 'in' }, params, delTempPWFiles)
+  }
+
+  openssl.exec(params, 'CERTIFICATE REQUEST', tmpfiles, function (sslErr, data) {
+    function done (err) {
+      if (err) {
+        return callback(err)
+      }
+      callback(null, {
+        csr: data,
+        config: config,
+        clientKey: options.clientKey
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+/**
+ * Creates a certificate based on a CSR. If CSR is not defined, a new one
+ * will be generated automatically. For CSR generation all the options values
+ * can be used as with createCSR.
+ * @static
+ * @param {Object} [options] Optional options object
+ * @param {String} [options.serviceCertificate] PEM encoded certificate
+ * @param {String} [options.serviceKey] Private key for signing the certificate, if not defined a new one is generated
+ * @param {String} [options.serviceKeyPassword] Password of the service key
+ * @param {Boolean} [options.selfSigned] If set to true and serviceKey is not defined, use clientKey for signing
+ * @param {String|Number} [options.serial] Set a serial max. 20 octets - only together with options.serviceCertificate
+ * @param {String} [options.serialFile] Set the name of the serial file, without extension. - only together with options.serviceCertificate and never in tandem with options.serial
+ * @param {String} [options.hash] Hash function to use (either md5 sha1 or sha256, defaults to sha256)
+ * @param {String} [options.csr] CSR for the certificate, if not defined a new one is generated
+ * @param {Number} [options.days] Certificate expire time in days
+ * @param {String} [options.clientKeyPassword] Password of the client key
+ * @param {String} [options.extFile] extension config file - without '-extensions v3_req'
+ * @param {String} [options.config] extension config file - with '-extensions v3_req'
+ * @param {String} [options.csrConfigFile] CSR config file - only used if no options.csr is provided
+ * @param {Array}  [options.altNames] is a list of subjectAltNames in the subjectAltName field - only used if no options.csr is provided
+ * @param {Function} callback Callback function with an error object and {certificate, csr, clientKey, serviceKey}
+ */
+function createCertificate (options, callback) {
+  if (!callback &amp;&amp; typeof options === 'function') {
+    callback = options
+    options = undefined
+  }
+
+  options = options || {}
+
+  if (!options.csr) {
+    createCSR(options, function (error, keyData) {
+      if (error) {
+        return callback(error)
+      }
+      options.csr = keyData.csr
+      options.config = keyData.config
+      options.clientKey = keyData.clientKey
+      createCertificate(options, callback)
+    })
+    return
+  }
+
+  if (!options.clientKey) {
+    options.clientKey = ''
+  }
+
+  if (!options.serviceKey) {
+    if (options.selfSigned) {
+      options.serviceKey = options.clientKey
+    } else {
+      createPrivateKey(options.keyBitsize || 2048, function (error, keyData) {
+        if (error) {
+          return callback(error)
+        }
+        options.serviceKey = keyData.key
+        createCertificate(options, callback)
+      })
+      return
+    }
+  }
+
+  readCertificateInfo(options.csr, function (error2, data2) {
+    if (error2) {
+      return callback(error2)
+    }
+
+    var params = ['x509',
+      '-req',
+      '-' + (options.hash || 'sha256'),
+      '-days',
+      Number(options.days) || '365',
+      '-in',
+      '--TMPFILE--'
+    ]
+    var tmpfiles = [options.csr]
+    var delTempPWFiles = []
+
+    if (options.serviceCertificate) {
+      params.push('-CA')
+      params.push('--TMPFILE--')
+      params.push('-CAkey')
+      params.push('--TMPFILE--')
+      if (options.serial) {
+        params.push('-set_serial')
+        if (helper.isNumber(options.serial)) {
+        // set the serial to the max lenth of 20 octets ()
+        // A certificate serial number is not decimal conforming. That is the
+        // bytes in a serial number do not necessarily map to a printable ASCII
+        // character.
+        // eg: 0x00 is a valid serial number and can not be represented in a
+        // human readable format (atleast one that can be directly mapped to
+        // the ACSII table).
+          params.push('0x' + ('0000000000000000000000000000000000000000' + options.serial.toString(16)).slice(-40))
+        } else {
+          if (helper.isHex(options.serial)) {
+            if (options.serial.startsWith('0x')) {
+              options.serial = options.serial.substring(2, options.serial.length)
+            }
+            params.push('0x' + ('0000000000000000000000000000000000000000' + options.serial).slice(-40))
+          } else {
+            params.push('0x' + ('0000000000000000000000000000000000000000' + helper.toHex(options.serial)).slice(-40))
+          }
+        }
+      } else {
+        params.push('-CAcreateserial')
+        if (options.serialFile) {
+          params.push('-CAserial')
+          params.push(options.serialFile + '.srl')
+        }
+      }
+      if (options.serviceKeyPassword) {
+        helper.createPasswordFile({ cipher: '', password: options.serviceKeyPassword, passType: 'in' }, params, delTempPWFiles)
+      }
+      tmpfiles.push(options.serviceCertificate)
+      tmpfiles.push(options.serviceKey)
+    } else {
+      params.push('-signkey')
+      params.push('--TMPFILE--')
+      if (options.serviceKeyPassword) {
+        helper.createPasswordFile({ cipher: '', password: options.serviceKeyPassword, passType: 'in' }, params, delTempPWFiles)
+      }
+      tmpfiles.push(options.serviceKey)
+    }
+
+    if (options.config) {
+      params.push('-extensions')
+      params.push('v3_req')
+      params.push('-extfile')
+      params.push('--TMPFILE--')
+      tmpfiles.push(options.config)
+    } else if (options.extFile) {
+      params.push('-extfile')
+      params.push(options.extFile)
+    } else {
+      var altNamesRep = []
+      if (data2 &amp;&amp; data2.san) {
+        for (var i = 0; i &lt; data2.san.dns.length; i++) {
+          altNamesRep.push('DNS' + '.' + (i + 1) + ' = ' + data2.san.dns[i])
+        }
+        for (var i2 = 0; i2 &lt; data2.san.ip.length; i2++) {
+          altNamesRep.push('IP' + '.' + (i2 + 1) + ' = ' + data2.san.ip[i2])
+        }
+        for (var i3 = 0; i3 &lt; data2.san.email.length; i3++) {
+          altNamesRep.push('email' + '.' + (i3 + 1) + ' = ' + data2.san.email[i3])
+        }
+        params.push('-extensions')
+        params.push('v3_req')
+        params.push('-extfile')
+        params.push('--TMPFILE--')
+        tmpfiles.push([
+          '[v3_req]',
+          'subjectAltName = @alt_names',
+          '[alt_names]',
+          altNamesRep.join('\n')
+        ].join('\n'))
+      }
+    }
+
+    if (options.clientKeyPassword) {
+      helper.createPasswordFile({ cipher: '', password: options.clientKeyPassword, passType: 'in' }, params, delTempPWFiles)
+    }
+
+    openssl.exec(params, 'CERTIFICATE', tmpfiles, function (sslErr, data) {
+      function done (err) {
+        if (err) {
+          return callback(err)
+        }
+        var response = {
+          csr: options.csr,
+          clientKey: options.clientKey,
+          certificate: data,
+          serviceKey: options.serviceKey
+        }
+        return callback(null, response)
+      }
+
+      helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+        done(sslErr || fsErr)
+      })
+    })
+  })
+}
+
+/**
+ * Exports a public key from a private key, CSR or certificate
+ * @static
+ * @param {String} certificate PEM encoded private key, CSR or certificate
+ * @param {Function} callback Callback function with an error object and {publicKey}
+ */
+function getPublicKey (certificate, callback) {
+  if (!callback &amp;&amp; typeof certificate === 'function') {
+    callback = certificate
+    certificate = undefined
+  }
+
+  certificate = (certificate || '').toString()
+
+  var params
+
+  if (certificate.match(/BEGIN(\sNEW)? CERTIFICATE REQUEST/)) {
+    params = ['req',
+      '-in',
+      '--TMPFILE--',
+      '-pubkey',
+      '-noout'
+    ]
+  } else if (certificate.match(/BEGIN RSA PRIVATE KEY/) || certificate.match(/BEGIN PRIVATE KEY/)) {
+    params = ['rsa',
+      '-in',
+      '--TMPFILE--',
+      '-pubout'
+    ]
+  } else {
+    params = ['x509',
+      '-in',
+      '--TMPFILE--',
+      '-pubkey',
+      '-noout'
+    ]
+  }
+
+  openssl.exec(params, 'PUBLIC KEY', certificate, function (error, key) {
+    if (error) {
+      return callback(error)
+    }
+    return callback(null, {
+      publicKey: key
+    })
+  })
+}
+
+/**
+ * Reads subject data from a certificate or a CSR
+ * @static
+ * @param {String} certificate PEM encoded CSR or certificate
+ * @param {Function} callback Callback function with an error object and {country, state, locality, organization, organizationUnit, commonName, emailAddress}
+ */
+function readCertificateInfo (certificate, callback) {
+  if (!callback &amp;&amp; typeof certificate === 'function') {
+    callback = certificate
+    certificate = undefined
+  }
+
+  certificate = (certificate || '').toString()
+  var isMatch = certificate.match(/BEGIN(\sNEW)? CERTIFICATE REQUEST/)
+  var type = isMatch ? 'req' : 'x509'
+  var params = [type,
+    '-noout',
+    '-nameopt',
+    'RFC2253,sep_multiline,space_eq,-esc_msb,utf8',
+    '-text',
+    '-in',
+    '--TMPFILE--'
+  ]
+  openssl.spawnWrapper(params, certificate, function (err, code, stdout, stderr) {
+    if (err) {
+      return callback(err)
+    } else if (stderr) {
+      return callback(stderr)
+    }
+    return fetchCertificateData(stdout, callback)
+  })
+}
+
+/**
+ * get the modulus from a certificate, a CSR or a private key
+ * @static
+ * @param {String} certificate PEM encoded, CSR PEM encoded, or private key
+ * @param {String} [password] password for the certificate
+ * @param {String} [hash] hash function to use (up to now `md5` supported) (default: none)
+ * @param {Function} callback Callback function with an error object and {modulus}
+ */
+function getModulus (certificate, password, hash, callback) {
+  if (!callback &amp;&amp; !hash &amp;&amp; typeof password === 'function') {
+    callback = password
+    password = undefined
+    hash = false
+  } else if (!callback &amp;&amp; hash &amp;&amp; typeof hash === 'function') {
+    callback = hash
+    hash = false
+    // password will be falsy if not provided
+  }
+  // adding hash function to params, is not supported by openssl.
+  // process piping would be the right way (... | openssl md5)
+  // No idea how this can be achieved in easy with the current build in methods
+  // of pem.
+  if (hash &amp;&amp; hash !== 'md5') {
+    hash = false
+  }
+
+  certificate = (Buffer.isBuffer(certificate) &amp;&amp; certificate.toString()) || certificate
+
+  var type = ''
+  if (certificate.match(/BEGIN(\sNEW)? CERTIFICATE REQUEST/)) {
+    type = 'req'
+  } else if (certificate.match(/BEGIN RSA PRIVATE KEY/) || certificate.match(/BEGIN PRIVATE KEY/)) {
+    type = 'rsa'
+  } else {
+    type = 'x509'
+  }
+  var params = [
+    type,
+    '-noout',
+    '-modulus',
+    '-in',
+    '--TMPFILE--'
+  ]
+  var delTempPWFiles = []
+  if (password) {
+    helper.createPasswordFile({ cipher: '', password: password, passType: 'in' }, params, delTempPWFiles)
+  }
+
+  openssl.spawnWrapper(params, certificate, function (sslErr, code, stdout, stderr) {
+    function done (err) {
+      if (err) {
+        return callback(err)
+      }
+      var match = stdout.match(/Modulus=([0-9a-fA-F]+)$/m)
+      if (match) {
+        return callback(null, {
+          modulus: hash ? require(hash)(match[1]) : match[1]
+        })
+      } else {
+        return callback(new Error('No modulus'))
+      }
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr || stderr)
+    })
+  })
+}
+
+/**
+ * get the size and prime of DH parameters
+ * @static
+ * @param {String} DH parameters PEM encoded
+ * @param {Function} callback Callback function with an error object and {size, prime}
+ */
+function getDhparamInfo (dh, callback) {
+  dh = (Buffer.isBuffer(dh) &amp;&amp; dh.toString()) || dh
+
+  var params = [
+    'dhparam',
+    '-text',
+    '-in',
+    '--TMPFILE--'
+  ]
+
+  openssl.spawnWrapper(params, dh, function (err, code, stdout, stderr) {
+    if (err) {
+      return callback(err)
+    } else if (stderr) {
+      return callback(stderr)
+    }
+
+    var result = {}
+    var match = stdout.match(/Parameters: \((\d+) bit\)/)
+
+    if (match) {
+      result.size = Number(match[1])
+    }
+
+    var prime = ''
+    stdout.split('\n').forEach(function (line) {
+      if (/\s+([0-9a-f][0-9a-f]:)+[0-9a-f]?[0-9a-f]?/g.test(line)) {
+        prime += line.trim()
+      }
+    })
+
+    if (prime) {
+      result.prime = prime
+    }
+
+    if (!match &amp;&amp; !prime) {
+      return callback(new Error('No DH info found'))
+    }
+
+    return callback(null, result)
+  })
+}
+
+/**
+ * config the pem module
+ * @static
+ * @param {Object} options
+ */
+function config (options) {
+  Object.keys(options).forEach(function (k) {
+    openssl.set(k, options[k])
+  })
+}
+
+/**
+ * Gets the fingerprint for a certificate
+ * @static
+ * @param {String} PEM encoded certificate
+ * @param {String} [hash] hash function to use (either `md5`, `sha1` or `sha256`, defaults to `sha1`)
+ * @param {Function} callback Callback function with an error object and {fingerprint}
+ */
+function getFingerprint (certificate, hash, callback) {
+  if (!callback &amp;&amp; typeof hash === 'function') {
+    callback = hash
+    hash = undefined
+  }
+
+  hash = hash || 'sha1'
+
+  var params = ['x509',
+    '-in',
+    '--TMPFILE--',
+    '-fingerprint',
+    '-noout',
+    '-' + hash
+  ]
+
+  openssl.spawnWrapper(params, certificate, function (err, code, stdout, stderr) {
+    if (err) {
+      return callback(err)
+    } else if (stderr) {
+      return callback(stderr)
+    }
+    var match = stdout.match(/Fingerprint=([0-9a-fA-F:]+)$/m)
+    if (match) {
+      return callback(null, {
+        fingerprint: match[1]
+      })
+    } else {
+      return callback(new Error('No fingerprint'))
+    }
+  })
+}
+
+/**
+ * Export private key and certificate to a PKCS12 keystore
+ * @static
+ * @param {String} PEM encoded private key
+ * @param {String} PEM encoded certificate
+ * @param {String} Password of the result PKCS12 file
+ * @param {Object} [options] object of cipher and optional client key password {cipher:'aes128', clientKeyPassword: 'xxxx', certFiles: ['file1','file2']}
+ * @param {Function} callback Callback function with an error object and {pkcs12}
+ */
+function createPkcs12 (key, certificate, password, options, callback) {
+  if (!callback &amp;&amp; typeof options === 'function') {
+    callback = options
+    options = {}
+  }
+
+  var params = ['pkcs12', '-export']
+  var delTempPWFiles = []
+
+  if (options.cipher &amp;&amp; options.clientKeyPassword) {
+    // NOTICE: The password field is needed! self if it is empty.
+    // create password file for the import "-passin"
+    helper.createPasswordFile({ cipher: options.cipher, password: options.clientKeyPassword, passType: 'in' }, params, delTempPWFiles)
+  }
+  // NOTICE: The password field is needed! self if it is empty.
+  // create password file for the password "-password"
+  helper.createPasswordFile({ cipher: '', password: password, passType: 'word' }, params, delTempPWFiles)
+
+  params.push('-in')
+  params.push('--TMPFILE--')
+  params.push('-inkey')
+  params.push('--TMPFILE--')
+
+  var tmpfiles = [certificate, key]
+
+  if (options.certFiles) {
+    tmpfiles.push(options.certFiles.join(''))
+
+    params.push('-certfile')
+    params.push('--TMPFILE--')
+  }
+
+  openssl.execBinary(params, tmpfiles, function (sslErr, pkcs12) {
+    function done (err) {
+      if (err) {
+        return callback(err)
+      }
+      return callback(null, {
+        pkcs12: pkcs12
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+/**
+ * read sslcert data from Pkcs12 file. Results are provided in callback response in object notation ({cert: .., ca:..., key:...})
+ * @static
+ * @param  {Buffer|String}   bufferOrPath Buffer or path to file
+ * @param  {Object}   [options]      openssl options
+ * @param  {Function} callback     Called with error object and sslcert bundle object
+ */
+function readPkcs12 (bufferOrPath, options, callback) {
+  if (!callback &amp;&amp; typeof options === 'function') {
+    callback = options
+    options = {}
+  }
+
+  options.p12Password = options.p12Password || ''
+
+  var tmpfiles = []
+  var delTempPWFiles = []
+  var args = ['pkcs12', '-in', bufferOrPath]
+
+  helper.createPasswordFile({ cipher: '', password: options.p12Password, passType: 'in' }, args, delTempPWFiles)
+
+  if (Buffer.isBuffer(bufferOrPath)) {
+    tmpfiles = [bufferOrPath]
+    args[2] = '--TMPFILE--'
+  }
+
+  if (options.clientKeyPassword) {
+    helper.createPasswordFile({ cipher: '', password: options.clientKeyPassword, passType: 'out' }, args, delTempPWFiles)
+  } else {
+    args.push('-nodes')
+  }
+
+  openssl.execBinary(args, tmpfiles, function (sslErr, stdout) {
+    function done (err) {
+      var keybundle = {}
+
+      if (err &amp;&amp; err.message.indexOf('No such file or directory') !== -1) {
+        err.code = 'ENOENT'
+      }
+
+      if (!err) {
+        var certs = readFromString(stdout, CERT_START, CERT_END)
+        keybundle.cert = certs.shift()
+        keybundle.ca = certs
+        keybundle.key = readFromString(stdout, KEY_START, KEY_END).pop()
+
+        if (keybundle.key) {
+        // convert to RSA key
+          return openssl.exec(['rsa', '-in', '--TMPFILE--'], 'RSA PRIVATE KEY', [keybundle.key], function (err, key) {
+            keybundle.key = key
+
+            return callback(err, keybundle)
+          })
+        }
+
+        if (options.clientKeyPassword) {
+          keybundle.key = readFromString(stdout, ENCRYPTED_KEY_START, ENCRYPTED_KEY_END).pop()
+        } else {
+          keybundle.key = readFromString(stdout, RSA_KEY_START, RSA_KEY_END).pop()
+        }
+      }
+
+      return callback(err, keybundle)
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+/**
+ * Check a certificate
+ * @static
+ * @param {String} PEM encoded certificate
+ * @param {String} [passphrase] password for the certificate
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */
+function checkCertificate (certificate, passphrase, callback) {
+  var params
+  var delTempPWFiles = []
+
+  if (!callback &amp;&amp; typeof passphrase === 'function') {
+    callback = passphrase
+    passphrase = undefined
+  }
+  certificate = (certificate || '').toString()
+
+  if (certificate.match(/BEGIN(\sNEW)? CERTIFICATE REQUEST/)) {
+    params = ['req', '-text', '-noout', '-verify', '-in', '--TMPFILE--']
+  } else if (certificate.match(/BEGIN RSA PRIVATE KEY/) || certificate.match(/BEGIN PRIVATE KEY/)) {
+    params = ['rsa', '-noout', '-check', '-in', '--TMPFILE--']
+  } else {
+    params = ['x509', '-text', '-noout', '-in', '--TMPFILE--']
+  }
+  if (passphrase) {
+    helper.createPasswordFile({ cipher: '', password: passphrase, passType: 'in' }, params, delTempPWFiles)
+  }
+
+  openssl.spawnWrapper(params, certificate, function (sslErr, code, stdout, stderr) {
+    function done (err) {
+      if (err &amp;&amp; err.toString().trim() !== 'verify OK') {
+        return callback(err)
+      }
+      var result
+      switch (params[0]) {
+        case 'rsa':
+          result = /^Rsa key ok$/i.test(stdout.trim())
+          break
+        default:
+          result = /Signature Algorithm/im.test(stdout)
+          break
+      }
+
+      callback(null, result)
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr || stderr)
+    })
+  })
+}
+
+/**
+ * check a PKCS#12 file (.pfx or.p12)
+ * @static
+ * @param {Buffer|String} bufferOrPath PKCS#12 certificate
+ * @param {String} [passphrase] optional passphrase which will be used to open the keystore
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */
+function checkPkcs12 (bufferOrPath, passphrase, callback) {
+  if (!callback &amp;&amp; typeof passphrase === 'function') {
+    callback = passphrase
+    passphrase = ''
+  }
+
+  var tmpfiles = []
+  var delTempPWFiles = []
+  var args = ['pkcs12', '-info', '-in', bufferOrPath, '-noout', '-maciter', '-nodes']
+
+  helper.createPasswordFile({ cipher: '', password: passphrase, passType: 'in' }, args, delTempPWFiles)
+
+  if (Buffer.isBuffer(bufferOrPath)) {
+    tmpfiles = [bufferOrPath]
+    args[3] = '--TMPFILE--'
+  }
+
+  openssl.spawnWrapper(args, tmpfiles, function (sslErr, code, stdout, stderr) {
+    function done (err) {
+      if (err) {
+        return callback(err)
+      }
+      callback(null, (/MAC verified OK/im.test(stderr) || (!(/MAC verified OK/im.test(stderr)) &amp;&amp; !(/Mac verify error/im.test(stderr)))))
+    }
+    helper.deleteTempFiles(delTempPWFiles, function (fsErr) {
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+/**
+ * Verifies the signing chain of the passed certificate
+ * @static
+ * @param {String|Array} PEM encoded certificate include intermediate certificates
+ * @param {String|Array} [List] of CA certificates
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */
+function verifySigningChain (certificate, ca, callback) {
+  if (!callback &amp;&amp; typeof ca === 'function') {
+    callback = ca
+    ca = undefined
+  }
+  if (!Array.isArray(certificate)) {
+    certificate = [certificate]
+  }
+  if (!Array.isArray(ca) &amp;&amp; ca !== undefined) {
+    if (ca !== '') {
+      ca = [ca]
+    }
+  }
+
+  var files = []
+
+  if (ca !== undefined) {
+    // ca certificates
+    files.push(ca.join('\n'))
+  }
+  // certificate incl. intermediate certificates
+  files.push(certificate.join('\n'))
+
+  var params = ['verify']
+
+  if (ca !== undefined) {
+    // ca certificates
+    params.push('-CAfile')
+    params.push('--TMPFILE--')
+  }
+  // certificate incl. intermediate certificates
+  params.push('--TMPFILE--')
+
+  openssl.spawnWrapper(params, files, function (err, code, stdout, stderr) {
+    if (err) {
+      return callback(err)
+    }
+
+    callback(null, stdout.trim().slice(-4) === ': OK')
+  })
+}
+
+// HELPER FUNCTIONS
+function fetchCertificateData (certData, callback) {
+  // try catch : if something will fail in parsing it won't crash the calling code
+  try {
+    certData = (certData || '').toString()
+
+    var serial, subject, tmp, issuer
+    var certValues = {
+      issuer: {}
+    }
+    var validity = {}
+    var san
+
+    var ky, i
+
+    // serial
+    if ((serial = certData.match(/\s*Serial Number:\r?\n?\s*([^\r\n]*)\r?\n\s*\b/)) &amp;&amp; serial.length > 1) {
+      certValues.serial = serial[1]
+    }
+
+    if ((subject = certData.match(/\s*Subject:\r?\n(\s*(([a-zA-Z0-9.]+)\s=\s[^\r\n]+\r?\n))*\s*\b/)) &amp;&amp; subject.length > 1) {
+      subject = subject[0]
+      tmp = matchAll(subject, /\s([a-zA-Z0-9.]+)\s=\s([^\r\n].*)/g)
+      if (tmp) {
+        for (i = 0; i &lt; tmp.length; i++) {
+          ky = tmp[i][1].trim()
+          if (ky.match('(C|ST|L|O|OU|CN|emailAddress|DC)') || ky === '') {
+            continue
+          }
+          certValues[ky] = tmp[i][2].trim()
+        }
+      }
+
+      // country
+      tmp = subject.match(/\sC\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.country = (tmp &amp;&amp; tmp[1]) || ''
+
+      // state
+      tmp = subject.match(/\sST\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.state = (tmp &amp;&amp; tmp[1]) || ''
+
+      // locality
+      tmp = subject.match(/\sL\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.locality = (tmp &amp;&amp; tmp[1]) || ''
+
+      // organization
+      tmp = matchAll(subject, /\sO\s=\s([^\r\n].*)/g)
+      certValues.organization = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // unit
+      tmp = matchAll(subject, /\sOU\s=\s([^\r\n].*)/g)
+      certValues.organizationUnit = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // common name
+      tmp = matchAll(subject, /\sCN\s=\s([^\r\n].*)/g)
+      certValues.commonName = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // email
+      tmp = matchAll(subject, /emailAddress\s=\s([^\r\n].*)/g)
+      certValues.emailAddress = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // DC name
+      tmp = matchAll(subject, /\sDC\s=\s([^\r\n].*)/g)
+      certValues.dc = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+    }
+
+    if ((issuer = certData.match(/\s*Issuer:\r?\n(\s*([a-zA-Z0-9.]+)\s=\s[^\r\n].*\r?\n)*\s*\b/)) &amp;&amp; issuer.length > 1) {
+      issuer = issuer[0]
+      tmp = matchAll(issuer, /\s([a-zA-Z0-9.]+)\s=\s([^\r\n].*)/g)
+      for (i = 0; i &lt; tmp.length; i++) {
+        ky = tmp[i][1].toString()
+        if (ky.match('(C|ST|L|O|OU|CN|emailAddress|DC)')) {
+          continue
+        }
+        certValues.issuer[ky] = tmp[i][2].toString()
+      }
+
+      // country
+      tmp = issuer.match(/\sC\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.issuer.country = (tmp &amp;&amp; tmp[1]) || ''
+
+      // state
+      tmp = issuer.match(/\sST\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.issuer.state = (tmp &amp;&amp; tmp[1]) || ''
+
+      // locality
+      tmp = issuer.match(/\sL\s=\s([^\r\n].*?)[\r\n]/)
+      certValues.issuer.locality = (tmp &amp;&amp; tmp[1]) || ''
+
+      // organization
+      tmp = matchAll(issuer, /\sO\s=\s([^\r\n].*)/g)
+      certValues.issuer.organization = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // unit
+      tmp = matchAll(issuer, /\sOU\s=\s([^\r\n].*)/g)
+      certValues.issuer.organizationUnit = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var
+          r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // common name
+      tmp = matchAll(issuer, /\sCN\s=\s([^\r\n].*)/g)
+      certValues.issuer.commonName = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var
+          r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+
+      // DC name
+      tmp = matchAll(issuer, /\sDC\s=\s([^\r\n].*)/g)
+      certValues.issuer.dc = tmp ? (tmp.length > 1 ? tmp.sort(function (t, n) {
+        var e = t[1].toUpperCase()
+        var
+          r = n[1].toUpperCase()
+        return r > e ? -1 : e > r ? 1 : 0
+      }).sort(function (t, n) {
+        return t[1].length - n[1].length
+      }).map(function (t) {
+        return t[1]
+      }) : tmp[0][1]) : ''
+    }
+
+    // SAN
+    if ((san = certData.match(/X509v3 Subject Alternative Name: \r?\n([^\r\n]*)\r?\n/)) &amp;&amp; san.length > 1) {
+      san = san[1].trim() + '\n'
+      certValues.san = {}
+
+      // hostnames
+      tmp = pregMatchAll('DNS:([^,\\r\\n].*?)[,\\r\\n\\s]', san)
+      certValues.san.dns = tmp || ''
+
+      // IP-Addresses IPv4 &amp; IPv6
+      tmp = pregMatchAll('IP Address:([^,\\r\\n].*?)[,\\r\\n\\s]', san)
+      certValues.san.ip = tmp || ''
+
+      // Email Addresses
+      tmp = pregMatchAll('email:([^,\\r\\n].*?)[,\\r\\n\\s]', san)
+      certValues.san.email = tmp || ''
+    }
+
+    // Validity
+    if ((tmp = certData.match(/Not Before\s?:\s?([^\r\n]*)\r?\n/)) &amp;&amp; tmp.length > 1) {
+      validity.start = Date.parse((tmp &amp;&amp; tmp[1]) || '')
+    }
+
+    if ((tmp = certData.match(/Not After\s?:\s?([^\r\n]*)\r?\n/)) &amp;&amp; tmp.length > 1) {
+      validity.end = Date.parse((tmp &amp;&amp; tmp[1]) || '')
+    }
+
+    if (validity.start &amp;&amp; validity.end) {
+      certValues.validity = validity
+    }
+    // Validity end
+
+    // Signature Algorithm
+    if ((tmp = certData.match(/Signature Algorithm: ([^\r\n]*)\r?\n/)) &amp;&amp; tmp.length > 1) {
+      certValues.signatureAlgorithm = (tmp &amp;&amp; tmp[1]) || ''
+    }
+
+    // Public Key
+    if ((tmp = certData.match(/Public[ -]Key: ([^\r\n]*)\r?\n/)) &amp;&amp; tmp.length > 1) {
+      certValues.publicKeySize = ((tmp &amp;&amp; tmp[1]) || '').replace(/[()]/g, '')
+    }
+
+    // Public Key Algorithm
+    if ((tmp = certData.match(/Public Key Algorithm: ([^\r\n]*)\r?\n/)) &amp;&amp; tmp.length > 1) {
+      certValues.publicKeyAlgorithm = (tmp &amp;&amp; tmp[1]) || ''
+    }
+
+    callback(null, certValues)
+  } catch (err) {
+    callback(err)
+  }
+}
+
+function matchAll (str, regexp) {
+  var matches = []
+  str.replace(regexp, function () {
+    var arr = ([]).slice.call(arguments, 0)
+    var extras = arr.splice(-2)
+    arr.index = extras[0]
+    arr.input = extras[1]
+    matches.push(arr)
+  })
+  return matches.length ? matches : null
+}
+
+function pregMatchAll (regex, haystack) {
+  var globalRegex = new RegExp(regex, 'g')
+  var globalMatch = haystack.match(globalRegex) || []
+  var matchArray = []
+  var nonGlobalRegex, nonGlobalMatch
+  for (var i = 0; i &lt; globalMatch.length; i++) {
+    nonGlobalRegex = new RegExp(regex)
+    nonGlobalMatch = globalMatch[i].match(nonGlobalRegex)
+    matchArray.push(nonGlobalMatch[1])
+  }
+  return matchArray
+}
+
+function generateCSRSubject (options) {
+  options = options || {}
+
+  var csrData = {
+    C: options.country || options.C,
+    ST: options.state || options.ST,
+    L: options.locality || options.L,
+    O: options.organization || options.O,
+    OU: options.organizationUnit || options.OU,
+    CN: options.commonName || options.CN || 'localhost',
+    DC: options.dc || options.DC || '',
+    emailAddress: options.emailAddress
+  }
+
+  var csrBuilder = Object.keys(csrData).map(function (key) {
+    if (csrData[key]) {
+      if (typeof csrData[key] === 'object' &amp;&amp; csrData[key].length >= 1) {
+        var tmpStr = ''
+        csrData[key].map(function (o) {
+          tmpStr += '/' + key + '=' + o.replace(/[^\w .*\-,@']+/g, ' ').trim()
+        })
+        return tmpStr
+      } else {
+        return '/' + key + '=' + csrData[key].replace(/[^\w .*\-,@']+/g, ' ').trim()
+      }
+    }
+  })
+
+  return csrBuilder.join('')
+}
+
+function readFromString (string, start, end) {
+  if (Buffer.isBuffer(string)) {
+    string = string.toString('utf8')
+  }
+
+  var output = []
+
+  if (!string) {
+    return output
+  }
+
+  var offset = string.indexOf(start)
+
+  while (offset !== -1) {
+    string = string.substring(offset)
+
+    var endOffset = string.indexOf(end)
+
+    if (endOffset === -1) {
+      break
+    }
+
+    endOffset += end.length
+
+    output.push(string.substring(0, endOffset))
+    offset = string.indexOf(start, endOffset)
+  }
+
+  return output
+}
+
+// promisify not tested yet
+/**
+ * Verifies the signing chain of the passed certificate
+ * @namespace
+ * @name promisified
+ * @property {function}  createPrivateKey               @see createPrivateKey
+ * @property {function}  createDhparam       - The default number of players.
+ * @property {function}  createEcparam         - The default level for the party.
+ * @property {function}  createCSR      - The default treasure.
+ * @property {function}  createCertificate - How much gold the party starts with.
+ */
+module.exports.promisified = {
+  createPrivateKey: promisify(createPrivateKey),
+  createDhparam: promisify(createDhparam),
+  createEcparam: promisify(createEcparam),
+  createCSR: promisify(createCSR),
+  createCertificate: promisify(createCertificate),
+  readCertificateInfo: promisify(readCertificateInfo),
+  getPublicKey: promisify(getPublicKey),
+  getFingerprint: promisify(getFingerprint),
+  getModulus: promisify(getModulus),
+  getDhparamInfo: promisify(getDhparamInfo),
+  createPkcs12: promisify(createPkcs12),
+  readPkcs12: promisify(readPkcs12),
+  verifySigningChain: promisify(verifySigningChain),
+  checkCertificate: promisify(checkCertificate),
+  checkPkcs12: promisify(checkPkcs12)
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sat Jan 25 2020 20:11:01 GMT+0100 (GMT+01:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="/pem/jsdoc/scripts/linenumber.js"></script>
+</body>
+</html>

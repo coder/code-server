@@ -1,0 +1,34 @@
+{
+  "name": "esbuild",
+  "version": "0.13.9",
+  "description": "An extremely fast JavaScript and CSS bundler and minifier.",
+  "repository": "https://github.com/evanw/esbuild",
+  "scripts": {
+    "postinstall": "node install.js"
+  },
+  "main": "lib/main.js",
+  "types": "lib/main.d.ts",
+  "bin": {
+    "esbuild": "bin/esbuild"
+  },
+  "optionalDependencies": {
+    "esbuild-android-arm64": "0.13.9",
+    "esbuild-darwin-64": "0.13.9",
+    "esbuild-darwin-arm64": "0.13.9",
+    "esbuild-freebsd-64": "0.13.9",
+    "esbuild-freebsd-arm64": "0.13.9",
+    "esbuild-linux-32": "0.13.9",
+    "esbuild-linux-64": "0.13.9",
+    "esbuild-linux-arm": "0.13.9",
+    "esbuild-linux-arm64": "0.13.9",
+    "esbuild-linux-mips64le": "0.13.9",
+    "esbuild-linux-ppc64le": "0.13.9",
+    "esbuild-netbsd-64": "0.13.9",
+    "esbuild-openbsd-64": "0.13.9",
+    "esbuild-sunos-64": "0.13.9",
+    "esbuild-windows-32": "0.13.9",
+    "esbuild-windows-64": "0.13.9",
+    "esbuild-windows-arm64": "0.13.9"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,13 @@
+language: node_js
+
+sudo: false
+
+node_js:
+  - 'node'
+  - '14'
+  - '12'
+  - '10'
+
+after_success:
+  - ./bin/codecov -e TRAVIS_NODE_VERSION -f coverage/*.json
+  - ./bin/codecov -e TRAVIS_NODE_VERSION

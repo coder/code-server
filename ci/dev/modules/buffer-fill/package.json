@@ -1,0 +1,16 @@
+{
+  "name": "buffer-fill",
+  "version": "1.0.0",
+  "license": "MIT",
+  "repository": "LinusU/buffer-fill",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "standard && node test"
+  },
+  "devDependencies": {
+    "buffer-alloc-unsafe": "^1.1.0",
+    "standard": "^7.1.2"
+  }
+}

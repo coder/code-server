@@ -1,0 +1,76 @@
+{
+  "name": "object-inspect",
+  "version": "1.10.2",
+  "description": "string representations of objects in node and the browser",
+  "main": "index.js",
+  "devDependencies": {
+    "@ljharb/eslint-config": "^17.5.1",
+    "aud": "^1.1.4",
+    "core-js": "^2.6.12",
+    "eslint": "^7.24.0",
+    "for-each": "^0.3.3",
+    "functions-have-names": "^1.2.2",
+    "make-arrow-function": "^1.2.0",
+    "nyc": "^10.3.2",
+    "safe-publish-latest": "^1.1.4",
+    "string.prototype.repeat": "^1.0.0",
+    "tape": "^5.2.2"
+  },
+  "scripts": {
+    "prepublish": "not-in-publish || npm run prepublishOnly",
+    "prepublishOnly": "safe-publish-latest",
+    "pretest": "npm run lint",
+    "lint": "eslint .",
+    "test": "npm run tests-only",
+    "tests-only": "nyc npm run tests-only:tape",
+    "pretests-only:tape": "node test-core-js",
+    "tests-only:tape": "tape 'test/*.js'",
+    "posttest": "npx aud --production"
+  },
+  "testling": {
+    "files": [
+      "test/*.js",
+      "test/browser/*.js"
+    ],
+    "browsers": [
+      "ie/6..latest",
+      "chrome/latest",
+      "firefox/latest",
+      "safari/latest",
+      "opera/latest",
+      "iphone/latest",
+      "ipad/latest",
+      "android/latest"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/inspect-js/object-inspect.git"
+  },
+  "homepage": "https://github.com/inspect-js/object-inspect",
+  "keywords": [
+    "inspect",
+    "util.inspect",
+    "object",
+    "stringify",
+    "pretty"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "funding": {
+    "url": "https://github.com/sponsors/ljharb"
+  },
+  "license": "MIT",
+  "browser": {
+    "./util.inspect.js": false
+  },
+  "greenkeeper": {
+    "ignore": [
+      "nyc",
+      "core-js"
+    ]
+  }
+}

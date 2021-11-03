@@ -1,0 +1,57 @@
+{
+  "name": "read-pkg-up",
+  "version": "3.0.0",
+  "description": "Read the closest package.json file",
+  "license": "MIT",
+  "repository": "sindresorhus/read-pkg-up",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "json",
+    "read",
+    "parse",
+    "file",
+    "fs",
+    "graceful",
+    "load",
+    "pkg",
+    "package",
+    "find",
+    "up",
+    "find-up",
+    "findup",
+    "look-up",
+    "look",
+    "search",
+    "match",
+    "resolve",
+    "parent",
+    "parents",
+    "folder",
+    "directory",
+    "dir",
+    "walk",
+    "walking",
+    "path"
+  ],
+  "dependencies": {
+    "find-up": "^2.0.0",
+    "read-pkg": "^3.0.0"
+  },
+  "devDependencies": {
+    "ava": "*",
+    "xo": "*"
+  }
+}

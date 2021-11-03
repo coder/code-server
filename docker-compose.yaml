@@ -14,5 +14,6 @@ services:
     volumes:
       - ./:/home/node/app
       - /home/node/app/node_modules # anonymous volume for node_modules only
+      - /home/node/app/vendor/modules/code-oss-dev # anonymous volume for node_modules only
     ports:
       - "80:8080"

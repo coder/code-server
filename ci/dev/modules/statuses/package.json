@@ -1,0 +1,48 @@
+{
+  "name": "statuses",
+  "description": "HTTP status utility",
+  "version": "1.5.0",
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>",
+    "Jonathan Ong <me@jongleberry.com> (http://jongleberry.com)"
+  ],
+  "repository": "jshttp/statuses",
+  "license": "MIT",
+  "keywords": [
+    "http",
+    "status",
+    "code"
+  ],
+  "files": [
+    "HISTORY.md",
+    "index.js",
+    "codes.json",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "csv-parse": "1.2.4",
+    "eslint": "4.19.1",
+    "eslint-config-standard": "11.0.0",
+    "eslint-plugin-import": "2.9.0",
+    "eslint-plugin-markdown": "1.0.0-beta.6",
+    "eslint-plugin-node": "6.0.1",
+    "eslint-plugin-promise": "3.7.0",
+    "eslint-plugin-standard": "3.0.1",
+    "istanbul": "0.4.5",
+    "mocha": "1.21.5",
+    "raw-body": "2.3.2",
+    "stream-to-array": "2.3.0"
+  },
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "build": "node scripts/build.js",
+    "fetch": "node scripts/fetch-apache.js && node scripts/fetch-iana.js && node scripts/fetch-nginx.js && node scripts/fetch-node.js",
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --reporter spec --check-leaks --bail test/",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "update": "npm run fetch && npm run build"
+  }
+}

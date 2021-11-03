@@ -1,0 +1,1 @@
+{"processes":{"3c76107a-329c-4f05-aa08-3c66849e4ec1":{"parent":null,"children":["ea9d9b32-c1f4-4a8f-8f47-388ba08bf52f"]},"ea9d9b32-c1f4-4a8f-8f47-388ba08bf52f":{"parent":"3c76107a-329c-4f05-aa08-3c66849e4ec1","children":[]}},"files":{"/home/toshi/work/me/readline-transform/index.js":["ea9d9b32-c1f4-4a8f-8f47-388ba08bf52f"]},"externalIds":{}}

@@ -1,0 +1,27 @@
+language: node_js
+os:
+  - linux
+  - osx
+  - windows
+node_js:
+  - "0.8"
+  - "0.10"
+  - "0.12"
+  - "iojs"
+  - "4"
+  - "5"
+  - "6"
+  - "7"
+  - "8"
+  - "9"
+  - "10"
+  - "11"
+  - "12"
+matrix:
+  exclude:
+    - os: windows
+      node_js: "0.8"
+    - os: windows
+      node_js: "iojs"
+before_install:
+  - 'if [ $TRAVIS_NODE_VERSION == 0.8 ]; then nvm install-latest-npm; fi'

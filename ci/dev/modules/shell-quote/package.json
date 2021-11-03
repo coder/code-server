@@ -1,0 +1,30 @@
+{
+  "name": "shell-quote",
+  "description": "quote and parse shell commands",
+  "version": "1.7.2",
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "bugs": "https://github.com/substack/node-shell-quote/issues",
+  "devDependencies": {
+    "tape": "4"
+  },
+  "homepage": "https://github.com/substack/node-shell-quote",
+  "keywords": [
+    "command",
+    "parse",
+    "quote",
+    "shell"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/substack/node-shell-quote.git"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  }
+}

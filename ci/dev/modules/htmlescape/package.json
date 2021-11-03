@@ -1,0 +1,30 @@
+{
+  "name": "htmlescape",
+  "version": "1.1.1",
+  "description": "Properly escape JSON for usage as an object literal inside of a `<script>` tag",
+  "keywords": [
+    "escape",
+    "encoding",
+    "html",
+    "json",
+    "template"
+  ],
+  "homepage": "https://github.com/zertosh/htmlescape",
+  "license": "MIT",
+  "author": "Andres Suarez <zertosh@gmail.com>",
+  "main": "htmlescape.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/zertosh/htmlescape.git"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=0.10"
+  }
+}

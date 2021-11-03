@@ -1,0 +1,1 @@
+{"version":3,"file":"misc.d.ts","sourceRoot":"","sources":["../../src/ast-utils/misc.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,QAAQ,EAAE,MAAM,cAAc,CAAC;AAExC,QAAA,MAAM,iBAAiB,QAA4B,CAAC;AAEpD;;GAEG;AACH,iBAAS,iBAAiB,CACxB,IAAI,EAAE,QAAQ,CAAC,KAAK,EACpB,KAAK,EAAE,QAAQ,CAAC,KAAK,GACpB,OAAO,CAET;AAED,OAAO,EAAE,iBAAiB,EAAE,iBAAiB,EAAE,CAAC"}

@@ -1,0 +1,29 @@
+{
+  "name": "autoprefixer",
+  "version": "9.8.6",
+  "description": "Parse CSS and add vendor prefixes to CSS rules using values from the Can I Use website",
+  "keywords": ["autoprefixer", "css", "prefix", "postcss", "postcss-plugin"],
+  "bin": "./bin/autoprefixer",
+  "funding": {
+    "type": "tidelift",
+    "url": "https://tidelift.com/funding/github/npm/autoprefixer"
+  },
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "repository": "postcss/autoprefixer",
+  "dependencies": {
+    "browserslist": "^4.12.0",
+    "caniuse-lite": "^1.0.30001109",
+    "colorette": "^1.2.1",
+    "normalize-range": "^0.1.2",
+    "num2fraction": "^1.2.2",
+    "postcss": "^7.0.32",
+    "postcss-value-parser": "^4.1.0"
+  },
+  "eslintIgnore": ["build/"],
+  "browser": {
+    "colorette": false,
+    "chalk": false
+  },
+  "main": "lib/autoprefixer"
+}

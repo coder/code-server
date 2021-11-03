@@ -1,0 +1,43 @@
+{
+  "name": "first-chunk-stream",
+  "version": "2.0.0",
+  "description": "Transform the first chunk in a stream",
+  "license": "MIT",
+  "repository": "sindresorhus/first-chunk-stream",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "xo && mocha",
+    "cover": "istanbul cover --report html _mocha -- test.js -R spec -t 5000"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "buffer",
+    "stream",
+    "streams",
+    "transform",
+    "first",
+    "chunk",
+    "size",
+    "min",
+    "minimum"
+  ],
+  "dependencies": {
+    "readable-stream": "^2.0.2"
+  },
+  "devDependencies": {
+    "istanbul": "^0.3.19",
+    "mocha": "*",
+    "mocha-lcov-reporter": "0.0.2",
+    "streamtest": "^1.2.1",
+    "xo": "*"
+  }
+}

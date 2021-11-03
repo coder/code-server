@@ -1,0 +1,33 @@
+{
+  "name": "@babel/generator",
+  "version": "7.13.9",
+  "description": "Turns an AST into code.",
+  "author": "Sebastian McKenzie <sebmck@gmail.com>",
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/babel/babel.git",
+    "directory": "packages/babel-generator"
+  },
+  "homepage": "https://babel.dev/docs/en/next/babel-generator",
+  "bugs": "https://github.com/babel/babel/issues?utf8=%E2%9C%93&q=is%3Aissue+label%3A%22pkg%3A%20generator%22+is%3Aopen",
+  "main": "lib/index.js",
+  "files": [
+    "lib"
+  ],
+  "dependencies": {
+    "@babel/types": "^7.13.0",
+    "jsesc": "^2.5.1",
+    "source-map": "^0.5.0"
+  },
+  "devDependencies": {
+    "@babel/helper-fixtures": "7.13.9",
+    "@babel/parser": "7.13.9",
+    "@types/jsesc": "^2.5.0",
+    "@types/lodash": "^4.14.150",
+    "@types/source-map": "^0.5.0"
+  }
+}

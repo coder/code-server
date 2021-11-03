@@ -1,0 +1,27 @@
+{
+  "name": "style-search",
+  "version": "0.1.0",
+  "description": "Search CSS(-like) strings",
+  "main": "index.js",
+  "scripts": {
+    "test": "tape test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidtheclark/style-search.git"
+  },
+  "keywords": [
+    "css",
+    "search",
+    "stylelint"
+  ],
+  "author": "David Clark",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/davidtheclark/style-search/issues"
+  },
+  "homepage": "https://github.com/davidtheclark/style-search#readme",
+  "devDependencies": {
+    "tape": "^4.5.1"
+  }
+}

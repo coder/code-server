@@ -1,0 +1,44 @@
+{
+  "name": "strip-bom-stream",
+  "version": "2.0.0",
+  "description": "Strip UTF-8 byte order mark (BOM) from a stream",
+  "license": "MIT",
+  "repository": "sindresorhus/strip-bom-stream",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "node test.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "bom",
+    "strip",
+    "byte",
+    "mark",
+    "unicode",
+    "utf8",
+    "utf-8",
+    "remove",
+    "delete",
+    "trim",
+    "text",
+    "stream",
+    "streams"
+  ],
+  "dependencies": {
+    "first-chunk-stream": "^2.0.0",
+    "strip-bom": "^2.0.0"
+  },
+  "devDependencies": {
+    "ava": "0.0.4",
+    "concat-stream": "^1.4.5"
+  }
+}

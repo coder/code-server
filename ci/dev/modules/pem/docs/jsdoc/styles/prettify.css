@@ -1,0 +1,79 @@
+.pln {
+  color: #ddd;
+}
+
+/* string content */
+.str {
+  color: #61ce3c;
+}
+
+/* a keyword */
+.kwd {
+  color: #fbde2d;
+}
+
+/* a comment */
+.com {
+  color: #aeaeae;
+}
+
+/* a type name */
+.typ {
+  color: #8da6ce;
+}
+
+/* a literal value */
+.lit {
+  color: #fbde2d;
+}
+
+/* punctuation */
+.pun {
+  color: #ddd;
+}
+
+/* lisp open bracket */
+.opn {
+  color: #000000;
+}
+
+/* lisp close bracket */
+.clo {
+  color: #000000;
+}
+
+/* a markup tag name */
+.tag {
+  color: #8da6ce;
+}
+
+/* a markup attribute name */
+.atn {
+  color: #fbde2d;
+}
+
+/* a markup attribute value */
+.atv {
+  color: #ddd;
+}
+
+/* a declaration */
+.dec {
+  color: #EF5050;
+}
+
+/* a variable name */
+.var {
+  color: #c82829;
+}
+
+/* a function name */
+.fun {
+  color: #4271ae;
+}
+
+/* Specify class=linenums on a pre to get line numbering */
+ol.linenums {
+  margin-top: 0;
+  margin-bottom: 0;
+}

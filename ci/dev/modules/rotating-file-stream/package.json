@@ -1,0 +1,71 @@
+{
+	"name": "rotating-file-stream",
+	"version": "2.1.5",
+	"description": "Opens a stream.Writable to a file rotated by interval and/or size. A logrotate alternative.",
+	"scripts": {
+		"all": "npm run eslint && npm run coverage",
+		"clean": "node -r ts-node/register utils.ts clean",
+		"coverage": "npm run clean && TZ=\"Europe/Rome\" nyc -r lcov -r text -r text-summary -r html mocha -r ts-node/register test/*ts",
+		"eslint": "eslint index.ts utils.ts test/*ts",
+		"ignore": "node -r ts-node/register utils.ts ignore",
+		"prepare": "npm run ignore && tsc",
+		"test": "npm run clean && mocha -r ts-node/register test/*ts"
+	},
+	"bugs": "https://github.com/iccicci/rotating-file-stream/issues",
+	"repository": "https://github.com/iccicci/rotating-file-stream",
+	"keywords": [
+		"log",
+		"rotate",
+		"logrotate"
+	],
+	"engines": {
+		"node": ">=10.0"
+	},
+	"author": "Daniele Ricci <daniele.icc@gmail.com> (https://github.com/iccicci)",
+	"contributors": [
+		"cicci (https://www.trinityteam.it/DanieleRicci#en)",
+		"allevo",
+		"kbirger",
+		"jvassev",
+		"wangao",
+		"rakshith-ravi",
+		"Jorge Silva <jorgemsrs@gmail.com>",
+		"Jan Christoph Bernack <jc.bernack@gmail.com>",
+		"cchare (https://github.com/cchare)"
+	],
+	"license": "MIT",
+	"funding": {
+		"url": "https://www.blockchain.com/btc/address/12p1p5q7sK75tPyuesZmssiMYr4TKzpSCN"
+	},
+	"readmeFilename": "README.md",
+	"types": "index.d.ts",
+	"devDependencies": {
+		"@types/mocha": "8.2.1",
+		"@types/node": "14.14.30",
+		"@typescript-eslint/eslint-plugin": "4.15.1",
+		"@typescript-eslint/parser": "4.15.1",
+		"eslint": "7.20.0",
+		"mocha": "8.3.0",
+		"nyc": "15.1.0",
+		"prettier": "2.2.1",
+		"ts-node": "9.1.1",
+		"typescript": "4.1.5"
+	},
+	"prettier": {
+		"arrowParens": "avoid",
+		"jsxBracketSameLine": true,
+		"printWidth": 200,
+		"trailingComma": "none",
+		"useTabs": true,
+		"overrides": [
+			{
+				"files": [
+					"*.md"
+				],
+				"options": {
+					"useTabs": false
+				}
+			}
+		]
+	}
+}

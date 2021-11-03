@@ -1,0 +1,42 @@
+{
+  "name": "browserify-sign",
+  "version": "4.2.1",
+  "description": "adds node crypto signing for browsers",
+  "bugs": {
+    "url": "https://github.com/crypto-browserify/browserify-sign/issues"
+  },
+  "license": "ISC",
+  "files": [
+    "browser",
+    "index.js",
+    "algos.js"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crypto-browserify/browserify-sign.git"
+  },
+  "scripts": {
+    "coverage": "nyc npm run unit",
+    "lint": "standard",
+    "test": "npm run lint && npm run unit",
+    "unit": "tape test/*.js"
+  },
+  "dependencies": {
+    "bn.js": "^5.1.1",
+    "browserify-rsa": "^4.0.1",
+    "create-hash": "^1.2.0",
+    "create-hmac": "^1.1.7",
+    "elliptic": "^6.5.3",
+    "inherits": "^2.0.4",
+    "parse-asn1": "^5.1.5",
+    "readable-stream": "^3.6.0",
+    "safe-buffer": "^5.2.0"
+  },
+  "devDependencies": {
+    "nyc": "^15.0.1",
+    "standard": "^14.3.3",
+    "tape": "^5.0.0"
+  },
+  "browser": "browser/index.js"
+}

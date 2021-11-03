@@ -1,0 +1,40 @@
+{
+  "author": "Thorsten Lorenz <thlorenz@gmx.de> (thlorenz.com)",
+  "name": "doctoc",
+  "description": "Generates TOC for markdown files of local git repo.",
+  "version": "2.0.1",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thlorenz/doctoc.git"
+  },
+  "scripts": {
+    "test": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "files": [
+    "lib"
+  ],
+  "main": "doctoc.js",
+  "bin": "doctoc.js",
+  "dependencies": {
+    "@textlint/markdown-to-ast": "~6.1.7",
+    "anchor-markdown-header": "~0.5.7",
+    "htmlparser2": "~4.1.0",
+    "minimist": "~1.2.5",
+    "underscore": "~1.12.1",
+    "update-section": "~0.3.3"
+  },
+  "devDependencies": {
+    "tap": "^14.10.7"
+  },
+  "license": "MIT",
+  "keywords": [
+    "github",
+    "markdown",
+    "documentation",
+    "readme",
+    "parser",
+    "bitbucket",
+    "gitlab",
+    "ghost"
+  ]
+}

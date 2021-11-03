@@ -1,0 +1,77 @@
+{
+  "name": "time-stamp",
+  "description": "Get a formatted timestamp.",
+  "version": "1.1.0",
+  "homepage": "https://github.com/jonschlinkert/time-stamp",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "contributors": [
+    "Daniel Stockman (http://evocateur.org)",
+    "Drew (https://github.com/mendenhallmagic)",
+    "Jon Schlinkert (http://twitter.com/jonschlinkert)"
+  ],
+  "repository": "jonschlinkert/time-stamp",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/time-stamp/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "gulp-format-md": "^0.1.12",
+    "mocha": "^3.4.1",
+    "pad-left": "^2.1.0"
+  },
+  "keywords": [
+    "console",
+    "date",
+    "format",
+    "formatting",
+    "log",
+    "pretty",
+    "stamp",
+    "terminal",
+    "time",
+    "time-stamp"
+  ],
+  "verb": {
+    "run": true,
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "helpers": {
+      "timestamp": "./index.js"
+    },
+    "related": {
+      "list": [
+        "days",
+        "iso-week",
+        "month",
+        "months",
+        "o-clock",
+        "seconds",
+        "week",
+        "weekday",
+        "year"
+      ]
+    },
+    "reflinks": [
+      "verb"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}

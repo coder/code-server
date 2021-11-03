@@ -1,0 +1,55 @@
+{
+	"name": "is-bigint",
+	"version": "1.0.1",
+	"description": "Is this value an ES BigInt?",
+	"main": "index.js",
+	"scripts": {
+		"prepublish": "safe-publish-latest",
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"tests-only": "nyc tape 'test/**/*.js'",
+		"test": "npm run tests-only",
+		"posttest": "aud --production",
+		"version": "auto-changelog && git add CHANGELOG.md",
+		"postversion": "auto-changelog && git add CHANGELOG.md && git commit --no-edit --amend && git tag -f \"v$(node -e \"console.log(require('./package.json').version)\")\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/ljharb/is-bigint.git"
+	},
+	"keywords": [
+		"bigint",
+		"es",
+		"integer",
+		"is"
+	],
+	"author": "Jordan Harband <ljharb@gmail.com>",
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/ljharb/is-bigint/issues"
+	},
+	"homepage": "https://github.com/ljharb/is-bigint#readme",
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.3.0",
+		"aud": "^1.1.3",
+		"auto-changelog": "^2.2.1",
+		"eslint": "^7.14.0",
+		"has-symbols": "^1.0.1",
+		"nyc": "^10.3.2",
+		"object-inspect": "^1.8.0",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.0.1"
+	},
+	"dependencies": {},
+	"auto-changelog": {
+		"output": "CHANGELOG.md",
+		"template": "keepachangelog",
+		"unreleased": false,
+		"commitLimit": false,
+		"backfillLimit": false,
+		"hideCredit": true
+	}
+}

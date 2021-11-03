@@ -1,0 +1,44 @@
+{
+    "tags": {
+        "allowUnknownTags": false
+    },
+    "source": {
+      "include": "./lib",
+       "includePattern": ".js$",
+       "excludePattern": "(node_modules/|test/|docs)"
+    },
+    "plugins": ["plugins/markdown"],
+    "templates": {
+      "cleverLinks": true,
+      "monospaceLinks": true,
+      "outputSourceFiles": true,
+      "outputSourcePath": true,
+      "dateFormat": "MMMM Do YYYY, HH:mm Z",
+      "systemName": "pem",
+      "footer": "",
+      "copyright": "Copyright (c) 2012 Andris Reinman; 2016 Josef Fröhle",
+      "navType": "vertical",
+      "linenums": true,
+      "collapseSymbols": false,
+      "inverseNav": true,
+      "highlightTutorialCode": true,
+      "protocol": "html://",
+      "syntaxTheme": "dark"
+    },
+    "markdown": {
+      "parser": "gfm",
+      "hardwrap": true
+    },
+    "opts": {
+      "verbose": true,
+      "encoding": "utf8",
+      "destination": "docs/jsdoc/",
+      "recurse": true,
+      "readme": "./README.md",
+      "template": "node_modules/@deineagenturug/docdash"
+    },
+    "docdash": {
+        "static": true,
+        "sort": true
+    }
+}

@@ -1,0 +1,120 @@
+{
+  "name": "domain-browser",
+  "version": "1.2.0",
+  "description": "Node's domain module for the web browser. This is merely an evented try...catch with the same API as node, nothing more.",
+  "homepage": "https://github.com/bevry/domain-browser",
+  "license": "MIT",
+  "keywords": [
+    "domain",
+    "trycatch",
+    "try",
+    "catch",
+    "node-compat",
+    "ender.js",
+    "component",
+    "component.io",
+    "umd",
+    "amd",
+    "require.js",
+    "browser"
+  ],
+  "badges": {
+    "list": [
+      "travisci",
+      "npmversion",
+      "npmdownloads",
+      "daviddm",
+      "daviddmdev",
+      "---",
+      "patreon",
+      "opencollective",
+      "gratipay",
+      "flattr",
+      "paypal",
+      "bitcoin",
+      "wishlist",
+      "---",
+      "slackin"
+    ],
+    "config": {
+      "patreonUsername": "bevry",
+      "opencollectiveUsername": "bevry",
+      "gratipayUsername": "bevry",
+      "flattrUsername": "balupton",
+      "paypalURL": "https://bevry.me/paypal",
+      "bitcoinURL": "https://bevry.me/bitcoin",
+      "wishlistURL": "https://bevry.me/wishlist",
+      "slackinURL": "https://slack.bevry.me"
+    }
+  },
+  "author": "2013+ Bevry Pty Ltd <us@bevry.me> (http://bevry.me)",
+  "maintainers": [
+    "Benjamin Lupton <b@lupton.cc> (http://balupton.com)"
+  ],
+  "contributors": [
+    "Benjamin Lupton <b@lupton.cc> (http://balupton.com)",
+    "Evan Solomon (http://evansolomon.me)",
+    "James Halliday <substack@gmail.com> (http://substack.neocities.org/)",
+    "Guy Bedford <guybedford@gmail.com> (twitter.com/guybedford)",
+    "Bogdan Chadkin <trysound@yandex.ru> (https://github.com/TrySound)"
+  ],
+  "bugs": {
+    "url": "https://github.com/bevry/domain-browser/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bevry/domain-browser.git"
+  },
+  "engines": {
+    "node": ">=0.4",
+    "npm": ">=1.2"
+  },
+  "editions": [
+    {
+      "description": "Source + ES5 + Require",
+      "directory": "source",
+      "entry": "index.js",
+      "syntaxes": [
+        "javascript",
+        "es5",
+        "require"
+      ]
+    }
+  ],
+  "main": "source/index.js",
+  "browser": "source/index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "assert-helpers": "^4.5.0",
+    "eslint": "^4.16.0",
+    "joe": "^2.0.2",
+    "joe-reporter-console": "^2.0.1",
+    "projectz": "^1.4.0"
+  },
+  "scripts": {
+    "our:setup": "npm run our:setup:npm",
+    "our:setup:npm": "npm install",
+    "our:clean": "rm -Rf ./docs ./es2015 ./es5 ./out",
+    "our:compile": "echo no need for this project",
+    "our:meta": "npm run our:meta:projectz",
+    "our:meta:projectz": "projectz compile",
+    "our:verify": "npm run our:verify:eslint",
+    "our:verify:eslint": "eslint --fix ./source",
+    "our:test": "npm run our:verify && npm test",
+    "our:release": "npm run our:release:prepare && npm run our:release:check && npm run our:release:tag && npm run our:release:push",
+    "our:release:prepare": "npm run our:clean && npm run our:compile && npm run our:test && npm run our:meta",
+    "our:release:check": "npm run our:release:check:changelog && npm run our:release:check:dirty",
+    "our:release:check:changelog": "cat ./HISTORY.md | grep v$npm_package_version || (echo add a changelog entry for v$npm_package_version && exit -1)",
+    "our:release:check:dirty": "git diff --exit-code",
+    "our:release:tag": "export MESSAGE=$(cat ./HISTORY.md | sed -n \"/## v$npm_package_version/,/##/p\" | sed 's/## //' | awk 'NR>1{print buf}{buf = $0}') && test \"$MESSAGE\" || (echo 'proper changelog entry not found' && exit -1) && git tag v$npm_package_version -am \"$MESSAGE\"",
+    "our:release:push": "git push origin master && git push origin --tags",
+    "test": "node --harmony source/test.js --joe-reporter=console"
+  },
+  "jspm": {
+    "map": {
+      "source/index.js": {
+        "node": "@node/domain"
+      }
+    }
+  }
+}

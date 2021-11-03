@@ -1,0 +1,119 @@
+{
+	"name": "es-abstract",
+	"version": "1.18.0",
+	"author": {
+		"name": "Jordan Harband",
+		"email": "ljharb@gmail.com",
+		"url": "http://ljharb.codes"
+	},
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"contributors": [
+		{
+			"name": "Jordan Harband",
+			"email": "ljharb@gmail.com",
+			"url": "http://ljharb.codes"
+		}
+	],
+	"description": "ECMAScript spec abstract operations.",
+	"license": "MIT",
+	"main": "index.js",
+	"scripts": {
+		"prespackle": "git ls-files | xargs git check-attr spackled | grep -v 'unspecified$' | cut -d: -f1 | xargs rm || true",
+		"spackle": "node operations/spackle 1",
+		"postspackle": "git ls-files | xargs git check-attr spackled | grep -v 'unspecified$' | cut -d: -f1 | xargs git add",
+		"prepublish": "safe-publish-latest && (not-in-publish || npm run spackle)",
+		"pretest": "npm run lint",
+		"test": "npm run tests-only && npm run test:ses",
+		"test:ses": "node test/ses-compat",
+		"posttest": "aud --production",
+		"tests-only": "nyc node test",
+		"lint": "eslint .",
+		"eccheck": "eclint check *.js **/*.js > /dev/null"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/ljharb/es-abstract.git"
+	},
+	"keywords": [
+		"ECMAScript",
+		"ES",
+		"abstract",
+		"operation",
+		"abstract operation",
+		"JavaScript",
+		"ES5",
+		"ES6",
+		"ES7"
+	],
+	"dependencies": {
+		"call-bind": "^1.0.2",
+		"es-to-primitive": "^1.2.1",
+		"function-bind": "^1.1.1",
+		"get-intrinsic": "^1.1.1",
+		"has": "^1.0.3",
+		"has-symbols": "^1.0.2",
+		"is-callable": "^1.2.3",
+		"is-negative-zero": "^2.0.1",
+		"is-regex": "^1.1.2",
+		"is-string": "^1.0.5",
+		"object-inspect": "^1.9.0",
+		"object-keys": "^1.1.1",
+		"object.assign": "^4.1.2",
+		"string.prototype.trimend": "^1.0.4",
+		"string.prototype.trimstart": "^1.0.4",
+		"unbox-primitive": "^1.0.0"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.5.1",
+		"array.prototype.indexof": "^1.0.2",
+		"aud": "^1.1.4",
+		"cheerio": "=1.0.0-rc.3",
+		"diff": "^5.0.0",
+		"eclint": "^2.8.1",
+		"es-value-fixtures": "^1.2.1",
+		"eslint": "^7.21.0",
+		"foreach": "^2.0.5",
+		"functions-have-names": "^1.2.2",
+		"has-bigints": "^1.0.1",
+		"has-strict-mode": "^1.0.1",
+		"in-publish": "^2.0.1",
+		"make-arrow-function": "^1.2.0",
+		"make-async-function": "^1.0.0",
+		"make-async-generator-function": "^1.0.0",
+		"make-generator-function": "^2.0.0",
+		"nyc": "^10.3.2",
+		"object.fromentries": "^2.0.4",
+		"safe-publish-latest": "^1.1.4",
+		"ses": "^0.10.4",
+		"tape": "^5.2.1"
+	},
+	"testling": {
+		"files": "test/index.js",
+		"browsers": [
+			"iexplore/6.0..latest",
+			"firefox/3.0..6.0",
+			"firefox/15.0..latest",
+			"firefox/nightly",
+			"chrome/4.0..10.0",
+			"chrome/20.0..latest",
+			"chrome/canary",
+			"opera/10.0..latest",
+			"opera/next",
+			"safari/4.0..latest",
+			"ipad/6.0..latest",
+			"iphone/6.0..latest",
+			"android-browser/4.2"
+		]
+	},
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"greenkeeper": {
+		"//": "nyc is ignored because it requires node 4+, and we support older than that",
+		"ignore": [
+			"nyc"
+		]
+	}
+}

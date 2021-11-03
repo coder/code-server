@@ -1,0 +1,42 @@
+{
+  "name": "combine-source-map",
+  "version": "0.8.0",
+  "description": "Add source maps of multiple files, offset them and then combine them into one source map",
+  "main": "index.js",
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thlorenz/combine-source-map.git"
+  },
+  "homepage": "https://github.com/thlorenz/combine-source-map",
+  "dependencies": {
+    "convert-source-map": "~1.1.0",
+    "inline-source-map": "~0.6.0",
+    "lodash.memoize": "~3.0.3",
+    "source-map": "~0.5.3"
+  },
+  "devDependencies": {
+    "tap": "~0.4.3"
+  },
+  "keywords": [
+    "source",
+    "map",
+    "sourcemap",
+    "bundle",
+    "combine",
+    "cat",
+    "sourceMappingUrl",
+    "browserify"
+  ],
+  "author": {
+    "name": "Thorsten Lorenz",
+    "email": "thlorenz@gmx.de",
+    "url": "http://thlorenz.com"
+  },
+  "license": "MIT",
+  "engine": {
+    "node": ">=0.6"
+  }
+}

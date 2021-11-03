@@ -1,0 +1,22 @@
+{
+    "name": "@types/normalize-package-data",
+    "version": "2.4.0",
+    "description": "TypeScript definitions for normalize-package-data",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Jeff Dickey",
+            "url": "https://github.com/jdxcode",
+            "githubUsername": "jdxcode"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "5d2101e9e55c73e1d649a6c311e0d40bdfaa25bb06bb75ea6f3bb0d149c1303b",
+    "typeScriptVersion": "2.0"
+}

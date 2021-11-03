@@ -1,0 +1,67 @@
+{
+  "name": "@typescript-eslint/experimental-utils",
+  "version": "4.28.5",
+  "description": "(Experimental) Utilities for working with TypeScript + ESLint together",
+  "keywords": [
+    "eslint",
+    "typescript",
+    "estree"
+  ],
+  "engines": {
+    "node": "^10.12.0 || >=12.0.0"
+  },
+  "files": [
+    "dist",
+    "_ts3.4",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+    "directory": "packages/experimental-utils"
+  },
+  "bugs": {
+    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "postbuild": "downlevel-dts dist _ts3.4/dist",
+    "clean": "tsc -b tsconfig.build.json --clean",
+    "postclean": "rimraf dist && rimraf _ts3.4 && rimraf coverage",
+    "format": "prettier --write \"./**/*.{ts,js,json,md}\" --ignore-path ../../.prettierignore",
+    "lint": "eslint . --ext .js,.ts --ignore-path='../../.eslintignore'",
+    "test": "jest --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@types/json-schema": "^7.0.7",
+    "@typescript-eslint/scope-manager": "4.28.5",
+    "@typescript-eslint/types": "4.28.5",
+    "@typescript-eslint/typescript-estree": "4.28.5",
+    "eslint-scope": "^5.1.1",
+    "eslint-utils": "^3.0.0"
+  },
+  "peerDependencies": {
+    "eslint": "*"
+  },
+  "devDependencies": {
+    "typescript": "*"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/typescript-eslint"
+  },
+  "typesVersions": {
+    "<3.8": {
+      "*": [
+        "_ts3.4/*"
+      ]
+    }
+  },
+  "gitHead": "15f718415eb4e522440a5d81f38d65ee81535795"
+}

@@ -1,0 +1,97 @@
+{
+	"name": "is-typed-array",
+	"version": "1.1.5",
+	"author": {
+		"name": "Jordan Harband",
+		"email": "ljharb@gmail.com",
+		"url": "http://ljharb.codes"
+	},
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"contributors": [
+		{
+			"name": "Jordan Harband",
+			"email": "ljharb@gmail.com",
+			"url": "http://ljharb.codes"
+		}
+	],
+	"description": "Is this value a JS Typed Array? This module works cross-realm/iframe, does not depend on `instanceof` or mutable properties, and despite ES6 Symbol.toStringTag.",
+	"license": "MIT",
+	"main": "index.js",
+	"scripts": {
+		"prepublish": "safe-publish-latest",
+		"pretest": "npm run --silent lint",
+		"test": "npm run tests-only && npm run test:harmony",
+		"tests-only": "nyc tape test",
+		"test:harmony": "nyc node --harmony --es-staging test",
+		"posttest": "npx aud --production",
+		"prelint": "evalmd README.md",
+		"lint": "eslint ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/inspect-js/is-typed-array.git"
+	},
+	"keywords": [
+		"array",
+		"TypedArray",
+		"typed array",
+		"is",
+		"typed",
+		"Int8Array",
+		"Uint8Array",
+		"Uint8ClampedArray",
+		"Int16Array",
+		"Uint16Array",
+		"Int32Array",
+		"Uint32Array",
+		"Float32Array",
+		"Float64Array",
+		"ES6",
+		"toStringTag",
+		"Symbol.toStringTag",
+		"@@toStringTag"
+	],
+	"dependencies": {
+		"available-typed-arrays": "^1.0.2",
+		"call-bind": "^1.0.2",
+		"es-abstract": "^1.18.0-next.2",
+		"foreach": "^2.0.5",
+		"has-symbols": "^1.0.1"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.5.1",
+		"aud": "^1.1.4",
+		"eslint": "^7.20.0",
+		"evalmd": "^0.0.19",
+		"is-callable": "^1.2.3",
+		"make-arrow-function": "^1.2.0",
+		"make-generator-function": "^2.0.0",
+		"nyc": "^10.3.2",
+		"object-inspect": "^1.9.0",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.1.1"
+	},
+	"testling": {
+		"files": "test/index.js",
+		"browsers": [
+			"iexplore/6.0..latest",
+			"firefox/3.0..6.0",
+			"firefox/15.0..latest",
+			"firefox/nightly",
+			"chrome/4.0..10.0",
+			"chrome/20.0..latest",
+			"chrome/canary",
+			"opera/10.0..latest",
+			"opera/next",
+			"safari/4.0..latest",
+			"ipad/6.0..latest",
+			"iphone/6.0..latest",
+			"android-browser/4.2"
+		]
+	},
+	"engines": {
+		"node": ">= 0.4"
+	}
+}

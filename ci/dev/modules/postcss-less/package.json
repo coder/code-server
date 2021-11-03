@@ -1,0 +1,66 @@
+{
+  "name": "postcss-less",
+  "version": "3.1.4",
+  "description": "LESS parser for PostCSS",
+  "license": "MIT",
+  "repository": "shellscape/postcss-less",
+  "author": "Denys Kniazevych <webschik@gmail.com>",
+  "maintainer": "Andrew Powell <andrew@shellscape.org>",
+  "homepage": "https://github.com/shellscape/postcss-less",
+  "bugs": "https://github.com/shellscape/postcss-less/issues",
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=6.14.4"
+  },
+  "scripts": {
+    "ci:coverage": "nyc npm run test && nyc report --reporter=text-lcov > coverage.lcov",
+    "ci:lint": "npm run lint && npm run security",
+    "ci:test": "npm run test",
+    "commitlint": "commitlint",
+    "commitmsg": "commitlint -e $GIT_PARAMS",
+    "lint": "eslint --fix --cache lib test",
+    "lint-staged": "lint-staged",
+    "security": "npm audit",
+    "test": "ava"
+  },
+  "files": [
+    "lib",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "postcss": "^7.0.14"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^7.1.2",
+    "@commitlint/config-conventional": "^7.1.2",
+    "ava": "^1.0.0-beta.8",
+    "cheerio": "^1.0.0-rc.2",
+    "eslint": "^5.6.0",
+    "eslint-config-shellscape": "^2.0.2",
+    "eslint-plugin-filenames": "^1.2.0",
+    "is-absolute-url": "^2.1.0",
+    "less": "^3.8.1",
+    "lint-staged": "^8.1.0",
+    "node-fetch": "^2.2.0",
+    "nyc": "^13.3.0",
+    "postcss-parser-tests": "^6.3.1",
+    "pre-commit": "^1.2.2",
+    "standard-version": "^4.4.0",
+    "url-join": "^4.0.0"
+  },
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-syntax",
+    "parser",
+    "less"
+  ],
+  "pre-commit": "lint-staged",
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "git add"
+    ]
+  }
+}

@@ -1,0 +1,10 @@
+{
+	"ignore": [
+		"node_modules/"
+	],
+	"linters": {
+		"jshint": {
+			"boss": true
+		}
+	}
+}

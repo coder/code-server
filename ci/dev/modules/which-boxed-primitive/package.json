@@ -1,0 +1,65 @@
+{
+	"name": "which-boxed-primitive",
+	"version": "1.0.2",
+	"description": "Which kind of boxed JS primitive is this?",
+	"main": "index.js",
+	"scripts": {
+		"preversion": "auto-changelog",
+		"prepublish": "not-in-publish || safe-publish-latest",
+		"lint": "eslint --ext=js,mjs .",
+		"pretest": "npm run lint",
+		"tests-only": "nyc tape 'test/**/*.js'",
+		"test": "npm run tests-only",
+		"posttest": "aud --production",
+		"version": "auto-changelog && git add CHANGELOG.md",
+		"postversion": "auto-changelog && git add CHANGELOG.md && git commit --no-edit --amend && git tag -f \"v$(node -e \"console.log(require('./package.json').version)\")\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/inspect-js/which-boxed-primitive.git"
+	},
+	"keywords": [
+		"boxed",
+		"primitive",
+		"object",
+		"ecmascript",
+		"javascript",
+		"which"
+	],
+	"author": "Jordan Harband <ljharb@gmail.com>",
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/inspect-js/which-boxed-primitive/issues"
+	},
+	"homepage": "https://github.com/inspect-js/which-boxed-primitive#readme",
+	"dependencies": {
+		"is-bigint": "^1.0.1",
+		"is-boolean-object": "^1.1.0",
+		"is-number-object": "^1.0.4",
+		"is-string": "^1.0.5",
+		"is-symbol": "^1.0.3"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.3.0",
+		"aud": "^1.1.3",
+		"auto-changelog": "^2.2.1",
+		"eslint": "^7.15.0",
+		"has-symbols": "^1.0.1",
+		"in-publish": "^2.0.1",
+		"nyc": "^10.3.2",
+		"object-inspect": "^1.9.0",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.0.1"
+	},
+	"auto-changelog": {
+		"output": "CHANGELOG.md",
+		"template": "keepachangelog",
+		"unreleased": false,
+		"commitLimit": false,
+		"backfillLimit": false,
+		"hideCredit": true
+	}
+}

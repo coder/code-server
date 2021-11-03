@@ -1,0 +1,34 @@
+{
+  "name": "toidentifier",
+  "description": "Convert a string of words to a JavaScript identifier",
+  "version": "1.0.0",
+  "author": "Douglas Christopher Wilson <doug@somethingdoug.com>",
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>",
+    "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)"
+  ],
+  "repository": "component/toidentifier",
+  "devDependencies": {
+    "eslint": "4.19.1",
+    "eslint-config-standard": "11.0.0",
+    "eslint-plugin-import": "2.11.0",
+    "eslint-plugin-markdown": "1.0.0-beta.6",
+    "eslint-plugin-node": "6.0.1",
+    "eslint-plugin-promise": "3.7.0",
+    "eslint-plugin-standard": "3.1.0",
+    "mocha": "1.21.5",
+    "nyc": "11.8.0"
+  },
+  "engines": {
+    "node": ">=0.6"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "nyc --reporter=html --reporter=text npm test"
+  }
+}

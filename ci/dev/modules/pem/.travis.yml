@@ -1,0 +1,65 @@
+language: node_js
+sudo: required
+notifications:
+  email:
+    recipients:
+      - github@josef-froehle.de
+    on_success: change
+    on_failure: change
+node_js:
+  - "12"
+  - "10"
+  - "8"
+cache:
+  npm: false
+env:
+  global:
+    - OPENSSL_DIR=/openssl
+    - TARGET=x86_64-unknown-linux-gnu
+  matrix:
+    - LIBRARY=openssl VERSION=0.9.8zh
+    - LIBRARY=openssl VERSION=1.0.1u
+    - LIBRARY=openssl VERSION=1.0.2p
+    - LIBRARY=openssl VERSION=1.1.0i
+    - LIBRARY=libressl VERSION=2.4.5
+    - LIBRARY=libressl VERSION=2.6.5
+    - LIBRARY=libressl VERSION=2.7.4
+    - LIBRARY=libressl VERSION=2.8.0
+matrix:
+  exclude:
+    - node_js: "10"
+    - node_js: "8"
+  include:
+    - node_js: "10"
+      env:
+        - OPENSSL_DIR=""
+    - node_js: "8"
+      env:
+        - OPENSSL_DIR=""
+before_install:
+  - sudo apt-get install -y haveged
+  - |
+    if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" != "false" ]]; then
+      #git clone "https://github.com/$TRAVIS_REPO_SLUG.git" "$TRAVIS_REPO_SLUG";
+      #cd "$TRAVIS_REPO_SLUG";
+      ( set -euo pipefail
+        if [[ "${TRAVIS_COMMIT}" != "$(git rev-parse HEAD)" ]]; then
+          echo "Commit $(git rev-parse HEAD) doesn't match expected commit ${TRAVIS_COMMIT}"
+          git checkout "${TRAVIS_COMMIT}"
+        fi
+      )
+    fi
+before_script:
+  - npm prune
+  - npm install -g travis-deploy-once
+  - sudo haveged -w 2048
+script:
+  - if [[ "$OPENSSL_DIR" != "" ]]; then "./bin/test_build_openssl.sh" ; fi
+  - npm run test
+after_success:
+  #  - if [[ "$TRAVIS_NODE_VERSION" == "8" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then npm run aftersuccess ; fi
+  - if [[ "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then travis-deploy-once -b 3 && npm run changelog && npm run semantic-release ; fi
+  #  - if [[ "$TRAVIS_NODE_VERSION" == "8" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == "false" ]]; then npm run aftersuccess -- -push ; fi
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/

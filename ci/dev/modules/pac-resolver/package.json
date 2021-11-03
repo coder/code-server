@@ -1,0 +1,59 @@
+{
+  "name": "pac-resolver",
+  "version": "5.0.0",
+  "description": "Generates an asynchronous resolver function from a PAC file",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "dependencies": {
+    "degenerator": "^3.0.1",
+    "ip": "^1.1.5",
+    "netmask": "^2.0.1"
+  },
+  "devDependencies": {
+    "@types/debug": "4",
+    "@types/ip": "^1.1.0",
+    "@types/netmask": "^1.0.30",
+    "@types/node": "^12.12.11",
+    "@typescript-eslint/eslint-plugin": "1.6.0",
+    "@typescript-eslint/parser": "1.1.0",
+    "eslint": "5.16.0",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-config-prettier": "4.1.0",
+    "eslint-import-resolver-typescript": "1.1.1",
+    "eslint-plugin-import": "2.16.0",
+    "eslint-plugin-jsx-a11y": "6.2.1",
+    "eslint-plugin-react": "7.12.4",
+    "mocha": "^6.2.2",
+    "rimraf": "^3.0.0",
+    "typescript": "^4.3.5"
+  },
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "test": "mocha --reporter spec",
+    "test-lint": "eslint src --ext .js,.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TooTallNate/node-pac-resolver.git"
+  },
+  "engines": {
+    "node": ">= 8"
+  },
+  "keywords": [
+    "pac",
+    "file",
+    "proxy",
+    "resolve",
+    "dns"
+  ],
+  "author": "Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TooTallNate/node-pac-resolver/issues"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "name": "eslint-module-utils",
+  "version": "2.6.1",
+  "description": "Core utilities to support eslint-plugin-import and other module-related plugins.",
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "prepublishOnly": "cp ../{LICENSE,.npmrc} ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benmosher/eslint-plugin-import.git"
+  },
+  "keywords": [
+    "eslint-plugin-import",
+    "eslint",
+    "modules",
+    "esmodules"
+  ],
+  "author": "Ben Mosher <me@benmosher.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/benmosher/eslint-plugin-import/issues"
+  },
+  "homepage": "https://github.com/benmosher/eslint-plugin-import#readme",
+  "dependencies": {
+    "debug": "^3.2.7",
+    "pkg-dir": "^2.0.0"
+  }
+}

@@ -1,0 +1,26 @@
+[ req ]
+default_bits           = 4096
+days                   = 9999
+distinguished_name     = req_distinguished_name
+attributes             = req_attributes
+prompt                 = no
+x509_extensions        = v3_ca
+
+[ req_distinguished_name ]
+C                      = EE
+ST                     = Harjumaa
+L                      = Tallinn
+O                      = Node.ee
+OU                     = test
+CN                     = www.node.ee
+emailAddress           = andris@node.ee
+
+[ req_attributes ]
+challengePassword      = challengePass
+
+[ v3_ca ]
+authorityInfoAccess = @issuer_info
+
+[ issuer_info ]
+OCSP;URI.0 = http://ocsp.node.ee/
+caIssuers;URI.0 = http://node.ee/ca.cert

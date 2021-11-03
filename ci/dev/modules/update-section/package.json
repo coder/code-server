@@ -1,0 +1,54 @@
+{
+  "name": "update-section",
+  "version": "0.3.3",
+  "description": "Updates a section inside a file with newer content while removing the old content.",
+  "main": "update-section.js",
+  "scripts": {
+    "test": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/thlorenz/update-section.git"
+  },
+  "homepage": "https://github.com/thlorenz/update-section",
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "~1.0.4"
+  },
+  "keywords": [
+    "update",
+    "replace",
+    "section",
+    "regex",
+    "readme",
+    "text"
+  ],
+  "author": {
+    "name": "Thorsten Lorenz",
+    "email": "thlorenz@gmx.de",
+    "url": "http://thlorenz.com"
+  },
+  "license": {
+    "type": "MIT",
+    "url": "https://github.com/thlorenz/update-section/blob/master/LICENSE"
+  },
+  "engine": {
+    "node": ">=0.6"
+  },
+  "testling": {
+    "files": "test/*.js",
+    "browsers": [
+      "ie/8..latest",
+      "firefox/22..latest",
+      "firefox/nightly",
+      "chrome/27..latest",
+      "chrome/canary",
+      "opera/12..latest",
+      "opera/next",
+      "safari/5.1..latest",
+      "ipad/6.0..latest",
+      "iphone/6.0..latest",
+      "android-browser/4.2..latest"
+    ]
+  }
+}

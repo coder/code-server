@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>helper.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="../docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="helper.html">
+                  lib/helper.js
+                </a>
+              
+                
+                <a class="source" href="openssl.html">
+                  lib/openssl.js
+                </a>
+              
+                
+                <a class="source" href="pem.html">
+                  lib/pem.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>helper.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">'use strict'</span>
+
+<span class="hljs-keyword">var</span> pathlib = <span class="hljs-built_in">require</span>(<span class="hljs-string">'path'</span>)
+<span class="hljs-keyword">var</span> fs = <span class="hljs-built_in">require</span>(<span class="hljs-string">'fs'</span>)
+<span class="hljs-keyword">var</span> crypto = <span class="hljs-built_in">require</span>(<span class="hljs-string">'crypto'</span>)
+<span class="hljs-keyword">var</span> osTmpdir = <span class="hljs-built_in">require</span>(<span class="hljs-string">'os-tmpdir'</span>)
+<span class="hljs-keyword">var</span> tempDir = process.env.PEMJS_TMPDIR || osTmpdir()
+
+<span class="hljs-comment">/**
+ * pem helper module
+ *
+ * @module helper
+ */</span>
+
+<span class="hljs-comment">/**
+ * helper function to check is the string a number or not
+ * @param {String} str String that should be checked to be a number
+ */</span>
+<span class="hljs-built_in">module</span>.exports.isNumber = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">str</span>) </span>{
+  <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Array</span>.isArray(str)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+  }
+  <span class="hljs-comment">/*
+  var bstr = str &amp;&amp; str.toString()
+  str = str + ''
+
+  return bstr - parseFloat(bstr) + 1 &gt;= 0 &amp;&amp;
+          !/^\s+|\s+$/g.test(str) &amp;&amp; /^\d+$/g.test(str) &amp;&amp;
+          !isNaN(str) &amp;&amp; !isNaN(parseFloat(str))
+  */</span>
+  <span class="hljs-keyword">return</span> <span class="hljs-regexp">/^\d+$/g</span>.test(str)
+}
+
+<span class="hljs-comment">/**
+ * helper function to check is the string a hexaceximal value
+ * @param {String} hex String that should be checked to be a hexaceximal
+ */</span>
+<span class="hljs-built_in">module</span>.exports.isHex = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">isHex</span> (<span class="hljs-params">hex</span>) </span>{
+  <span class="hljs-keyword">return</span> <span class="hljs-regexp">/^(0x){0,1}([0-9A-F]{1,40}|[0-9A-F]{1,40})$/gi</span>.test(hex)
+}
+
+<span class="hljs-comment">/**
+ * helper function to convert a string to a hexaceximal value
+ * @param {String} str String that should be converted to a hexaceximal
+ */</span>
+<span class="hljs-built_in">module</span>.exports.toHex = <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">toHex</span> (<span class="hljs-params">str</span>) </span>{
+  <span class="hljs-keyword">var</span> hex = <span class="hljs-string">''</span>
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; str.length; i++) {
+    hex += <span class="hljs-string">''</span> + str.charCodeAt(i).toString(<span class="hljs-number">16</span>)
+  }
+  <span class="hljs-keyword">return</span> hex
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p>cipherPassword returns an array of supported ciphers.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
+ * list of supported ciphers
+ * @type {Array}
+ */</span>
+<span class="hljs-built_in">module</span>.exports.ciphers = [<span class="hljs-string">'aes128'</span>, <span class="hljs-string">'aes192'</span>, <span class="hljs-string">'aes256'</span>, <span class="hljs-string">'camellia128'</span>, <span class="hljs-string">'camellia192'</span>, <span class="hljs-string">'camellia256'</span>, <span class="hljs-string">'des'</span>, <span class="hljs-string">'des3'</span>, <span class="hljs-string">'idea'</span>]
+<span class="hljs-keyword">var</span> ciphers = <span class="hljs-built_in">module</span>.exports.ciphers
+
+<span class="hljs-comment">/**
+ * Creates a PasswordFile to hide the password form process infos via `ps auxf` etc.
+ * @param {Object} options object of cipher, password and passType, mustPass, {cipher:'aes128', password:'xxxx', passType:"in/out/word"}, if the object empty we do nothing
+ * @param {String} options.cipher cipher like 'aes128', 'aes192', 'aes256', 'camellia128', 'camellia192', 'camellia256', 'des', 'des3', 'idea'
+ * @param {String} options.password password can be empty or at last 4 to 1023 chars
+ * @param {String} options.passType passType: can be in/out/word for passIN/passOUT/passWORD
+ * @param {Boolean} options.mustPass mustPass is used when you need to set the pass like as "-password pass:" most needed when empty password
+ * @param {Object} params params will be extended with the data that need for the openssl command. IS USED AS POINTER!
+ * @param {String} PasswordFileArray PasswordFileArray is an array of filePaths that later need to deleted ,after the openssl command. IS USED AS POINTER!
+ * @return {Boolean} result
+ */</span>
+<span class="hljs-built_in">module</span>.exports.createPasswordFile = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">options, params, PasswordFileArray</span>) </span>{
+  <span class="hljs-keyword">if</span> (!options || !<span class="hljs-built_in">Object</span>.prototype.hasOwnProperty.call(options, <span class="hljs-string">'password'</span>) || !<span class="hljs-built_in">Object</span>.prototype.hasOwnProperty.call(options, <span class="hljs-string">'passType'</span>) || !<span class="hljs-regexp">/^(word|in|out)$/</span>.test(options.passType)) {
+    <span class="hljs-keyword">return</span> <span class="hljs-literal">false</span>
+  }
+  <span class="hljs-keyword">var</span> PasswordFile = pathlib.join(tempDir, crypto.randomBytes(<span class="hljs-number">20</span>).toString(<span class="hljs-string">'hex'</span>))
+  PasswordFileArray.push(PasswordFile)
+  options.password = options.password.trim()
+  <span class="hljs-keyword">if</span> (options.password === <span class="hljs-string">''</span>) {
+    options.mustPass = <span class="hljs-literal">true</span>
+  }
+  <span class="hljs-keyword">if</span> (options.cipher &amp;&amp; (ciphers.indexOf(options.cipher) !== <span class="hljs-number">-1</span>)) {
+    params.push(<span class="hljs-string">'-'</span> + options.cipher)
+  }
+  params.push(<span class="hljs-string">'-pass'</span> + options.passType)
+  <span class="hljs-keyword">if</span> (options.mustPass) {
+    params.push(<span class="hljs-string">'pass:'</span> + options.password)
+  } <span class="hljs-keyword">else</span> {
+    fs.writeFileSync(PasswordFile, options.password)
+    params.push(<span class="hljs-string">'file:'</span> + PasswordFile)
+  }
+  <span class="hljs-keyword">return</span> <span class="hljs-literal">true</span>
+}
+
+<span class="hljs-comment">/**
+ * Deletes a file or an array of files
+ * @param {Array} files array of files that shoudld be deleted
+ * @param {errorCallback} callback Callback function with an error object
+ */</span>
+<span class="hljs-built_in">module</span>.exports.deleteTempFiles = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">files, callback</span>) </span>{
+  <span class="hljs-keyword">var</span> rmFiles = []
+  <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> files === <span class="hljs-string">'string'</span>) {
+    rmFiles.push(files)
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (<span class="hljs-built_in">Array</span>.isArray(files)) {
+    rmFiles = files
+  } <span class="hljs-keyword">else</span> {
+    <span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'Unexcepted files parameter type; only string or array supported'</span>))
+  }
+  <span class="hljs-keyword">var</span> deleteSeries = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">list, finalCallback</span>) </span>{
+    <span class="hljs-keyword">if</span> (list.length) {
+      <span class="hljs-keyword">var</span> file = list.shift()
+      <span class="hljs-keyword">var</span> myCallback = <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-keyword">if</span> (err &amp;&amp; err.code === <span class="hljs-string">'ENOENT'</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>file doens’t exist</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          <span class="hljs-keyword">return</span> deleteSeries(list, finalCallback)
+        } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (err) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>other errors, e.g. maybe we don’t have enough permission</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          <span class="hljs-keyword">return</span> finalCallback(err)
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-keyword">return</span> deleteSeries(list, finalCallback)
+        }
+      }
+      <span class="hljs-keyword">if</span> (file &amp;&amp; <span class="hljs-keyword">typeof</span> file === <span class="hljs-string">'string'</span>) {
+        fs.unlink(file, myCallback)
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> deleteSeries(list, finalCallback)
+      }
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">return</span> finalCallback(<span class="hljs-literal">null</span>) <span class="hljs-comment">// no errors</span>
+    }
+  }
+  deleteSeries(rmFiles, callback)
+}
+<span class="hljs-comment">/**
+ * Callback for return an error object.
+ * @callback errorCallback
+ * @param {Error} err - An Error Object or null
+ */</span></pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

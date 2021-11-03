@@ -1,0 +1,37 @@
+{
+  "name": "syntax-error",
+  "version": "1.4.0",
+  "description": "detect and report syntax errors in source code strings",
+  "main": "index.js",
+  "dependencies": {
+    "acorn-node": "^1.2.0"
+  },
+  "devDependencies": {
+    "tap": "^1.1.0"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/substack/node-syntax-error.git"
+  },
+  "homepage": "https://github.com/substack/node-syntax-error",
+  "keywords": [
+    "syntax",
+    "error",
+    "esprima",
+    "stack",
+    "line",
+    "column"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT",
+  "engine": {
+    "node": ">=0.6"
+  }
+}

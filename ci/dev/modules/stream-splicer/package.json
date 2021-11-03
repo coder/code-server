@@ -1,0 +1,36 @@
+{
+  "name": "stream-splicer",
+  "version": "2.0.1",
+  "description": "streaming pipeline with a mutable configuration",
+  "main": "index.js",
+  "dependencies": {
+    "inherits": "^2.0.1",
+    "readable-stream": "^2.0.2"
+  },
+  "devDependencies": {
+    "JSONStream": "^1.0.4",
+    "concat-stream": "^1.4.6",
+    "split": "^1.0.0",
+    "tape": "^4.2.0",
+    "through2": "^2.0.0"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/stream-splicer.git"
+  },
+  "homepage": "https://github.com/browserify/stream-splicer",
+  "keywords": [
+    "stream",
+    "mutable",
+    "pipeline"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT"
+}

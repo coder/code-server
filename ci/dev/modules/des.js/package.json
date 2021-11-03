@@ -1,0 +1,34 @@
+{
+  "name": "des.js",
+  "version": "1.0.1",
+  "description": "DES implementation",
+  "main": "lib/des.js",
+  "scripts": {
+    "test": "mocha --reporter=spec test/*-test.js && jscs lib/*.js lib/**/*.js test/*.js && jshint lib/*.js lib/**/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/indutny/des.js.git"
+  },
+  "keywords": [
+    "DES",
+    "3DES",
+    "EDE",
+    "CBC"
+  ],
+  "author": "Fedor Indutny <fedor@indutny.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/indutny/des.js/issues"
+  },
+  "homepage": "https://github.com/indutny/des.js#readme",
+  "devDependencies": {
+    "jscs": "^3.0.7",
+    "jshint": "^2.8.0",
+    "mocha": "^6.2.2"
+  },
+  "dependencies": {
+    "inherits": "^2.0.1",
+    "minimalistic-assert": "^1.0.0"
+  }
+}

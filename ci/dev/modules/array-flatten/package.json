@@ -1,0 +1,47 @@
+{
+  "name": "array-flatten",
+  "version": "2.1.1",
+  "description": "Flatten nested arrays",
+  "main": "array-flatten.js",
+  "typings": "array-flatten.d.ts",
+  "files": [
+    "array-flatten.js",
+    "array-flatten.d.ts",
+    "LICENSE"
+  ],
+  "scripts": {
+    "lint": "standard",
+    "test-spec": "mocha -R spec --bail",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- -R spec --bail",
+    "test": "npm run lint && npm run test-cov",
+    "benchmark": "node benchmark"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/blakeembrey/array-flatten.git"
+  },
+  "keywords": [
+    "array",
+    "flatten",
+    "arguments",
+    "depth",
+    "fast",
+    "for"
+  ],
+  "author": {
+    "name": "Blake Embrey",
+    "email": "hello@blakeembrey.com",
+    "url": "http://blakeembrey.me"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/blakeembrey/array-flatten/issues"
+  },
+  "homepage": "https://github.com/blakeembrey/array-flatten",
+  "devDependencies": {
+    "benchmarked": "^0.2.5",
+    "istanbul": "^0.4.0",
+    "mocha": "^3.1.2",
+    "standard": "^8.5.0"
+  }
+}

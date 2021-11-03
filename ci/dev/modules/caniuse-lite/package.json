@@ -1,0 +1,27 @@
+{
+  "name": "caniuse-lite",
+  "version": "1.0.30001209",
+  "description": "A smaller version of caniuse-db, with only the essentials!",
+  "main": "dist/unpacker/index.js",
+  "scripts": {
+    "prepublish": "del-cli dist && babel src/unpacker -d dist/unpacker && mkdir dist/lib && babel src/lib/statuses.js -o dist/lib/statuses.js && babel src/lib/supported.js -o dist/lib/supported.js"
+  },
+  "files": [
+    "data",
+    "dist"
+  ],
+  "keywords": [
+    "support",
+    "css",
+    "js",
+    "html5",
+    "svg"
+  ],
+  "author": {
+    "name": "Ben Briggs",
+    "email": "beneb.info@gmail.com",
+    "url": "http://beneb.info"
+  },
+  "repository": "ben-eb/caniuse-lite",
+  "license": "CC-BY-4.0"
+}

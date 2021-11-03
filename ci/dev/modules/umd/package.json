@@ -1,0 +1,28 @@
+{
+  "name": "umd",
+  "version": "3.0.3",
+  "description": "Universal Module Definition for use in automated build systems",
+  "bin": "./bin/cli.js",
+  "dependencies": {},
+  "devDependencies": {
+    "brfs": "^1.3.0",
+    "linify": "^1.0.1",
+    "mocha": "*",
+    "uglify-js": "^3.3.15"
+  },
+  "scripts": {
+    "build": "uglifyjs template.js > template.min.js && brfs source.js > index.js",
+    "test": "npm run build && mocha -R spec",
+    "prepublish": "npm run build && linify transform bin"
+  },
+  "files": [
+    "index.js",
+    "bin/cli.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ForbesLindesay/umd.git"
+  },
+  "author": "ForbesLindesay",
+  "license": "MIT"
+}

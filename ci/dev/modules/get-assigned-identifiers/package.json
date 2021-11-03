@@ -1,0 +1,33 @@
+{
+  "name": "get-assigned-identifiers",
+  "description": "get a list of identifiers that are initialised by a JavaScript AST node.",
+  "version": "1.2.0",
+  "author": "Renée Kooi <renee@kooi.me>",
+  "bugs": {
+    "url": "https://github.com/goto-bus-stop/get-assigned-identifiers/issues"
+  },
+  "devDependencies": {
+    "acorn": "^5.4.1",
+    "standard": "^10.0.3",
+    "tape": "^4.8.0"
+  },
+  "homepage": "https://github.com/goto-bus-stop/get-assigned-identifiers",
+  "keywords": [
+    "ast",
+    "bindings",
+    "destructuring",
+    "identifiers",
+    "javascript",
+    "names",
+    "node"
+  ],
+  "license": "Apache-2.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/goto-bus-stop/get-assigned-identifiers.git"
+  },
+  "scripts": {
+    "test": "standard && tape test/*.js"
+  }
+}

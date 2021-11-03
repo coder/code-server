@@ -1,0 +1,77 @@
+{
+	"name": "meow",
+	"version": "9.0.0",
+	"description": "CLI app helper",
+	"license": "MIT",
+	"repository": "sindresorhus/meow",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "https://sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=10"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"cli",
+		"bin",
+		"util",
+		"utility",
+		"helper",
+		"argv",
+		"command",
+		"line",
+		"meow",
+		"cat",
+		"kitten",
+		"parser",
+		"option",
+		"flags",
+		"input",
+		"cmd",
+		"console"
+	],
+	"dependencies": {
+		"@types/minimist": "^1.2.0",
+		"camelcase-keys": "^6.2.2",
+		"decamelize": "^1.2.0",
+		"decamelize-keys": "^1.1.0",
+		"hard-rejection": "^2.1.0",
+		"minimist-options": "4.1.0",
+		"normalize-package-data": "^3.0.0",
+		"read-pkg-up": "^7.0.1",
+		"redent": "^3.0.0",
+		"trim-newlines": "^3.0.0",
+		"type-fest": "^0.18.0",
+		"yargs-parser": "^20.2.3"
+	},
+	"devDependencies": {
+		"ava": "^2.4.0",
+		"execa": "^4.1.0",
+		"indent-string": "^4.0.0",
+		"tsd": "^0.13.1",
+		"xo": "^0.34.1"
+	},
+	"xo": {
+		"rules": {
+			"unicorn/no-process-exit": "off",
+			"node/no-unsupported-features/es-syntax": "off"
+		},
+		"ignores": [
+			"estest/index.js"
+		]
+	},
+	"ava": {
+		"files": [
+			"test/*"
+		]
+	}
+}

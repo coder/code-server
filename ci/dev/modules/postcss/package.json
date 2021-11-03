@@ -1,0 +1,76 @@
+{
+  "name": "postcss",
+  "version": "8.2.15",
+  "description": "Tool for transforming styles with JS plugins",
+  "engines": {
+    "node": "^10 || ^12 || >=14"
+  },
+  "exports": {
+    ".": {
+      "require": "./lib/postcss.js",
+      "import": "./lib/postcss.mjs",
+      "types": "./lib/postcss.d.ts"
+    },
+    "./lib/at-rule": "./lib/at-rule.js",
+    "./lib/comment": "./lib/comment.js",
+    "./lib/container": "./lib/container.js",
+    "./lib/css-syntax-error": "./lib/css-syntax-error.js",
+    "./lib/declaration": "./lib/declaration.js",
+    "./lib/fromJSON": "./lib/fromJSON.js",
+    "./lib/input": "./lib/input.js",
+    "./lib/lazy-result": "./lib/lazy-result.js",
+    "./lib/list": "./lib/list.js",
+    "./lib/map-generator": "./lib/map-generator.js",
+    "./lib/node": "./lib/node.js",
+    "./lib/parse": "./lib/parse.js",
+    "./lib/parser": "./lib/parser.js",
+    "./lib/postcss": "./lib/postcss.js",
+    "./lib/previous-map": "./lib/previous-map.js",
+    "./lib/processor": "./lib/processor.js",
+    "./lib/result": "./lib/result.js",
+    "./lib/root": "./lib/root.js",
+    "./lib/rule": "./lib/rule.js",
+    "./lib/stringifier": "./lib/stringifier.js",
+    "./lib/stringify": "./lib/stringify.js",
+    "./lib/symbols": "./lib/symbols.js",
+    "./lib/terminal-highlight": "./lib/terminal-highlight.js",
+    "./lib/tokenize": "./lib/tokenize.js",
+    "./lib/warn-once": "./lib/warn-once.js",
+    "./lib/warning": "./lib/warning.js",
+    "./package.json": "./package.json"
+  },
+  "main": "./lib/postcss.js",
+  "types": "./lib/postcss.d.ts",
+  "keywords": [
+    "css",
+    "postcss",
+    "rework",
+    "preprocessor",
+    "parser",
+    "source map",
+    "transform",
+    "manipulation",
+    "transpiler"
+  ],
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/postcss/"
+  },
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "homepage": "https://postcss.org/",
+  "repository": "postcss/postcss",
+  "dependencies": {
+    "colorette": "^1.2.2",
+    "nanoid": "^3.1.23",
+    "source-map": "^0.6.1"
+  },
+  "browser": {
+    "./lib/terminal-highlight": false,
+    "colorette": false,
+    "fs": false,
+    "path": false,
+    "url": false,
+    "source-map": false
+  }
+}

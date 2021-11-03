@@ -1,0 +1,23 @@
+{
+  "name": "stream-combiner2",
+  "version": "1.1.1",
+  "homepage": "https://github.com/substack/stream-combiner2",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/substack/stream-combiner2.git"
+  },
+  "dependencies": {
+    "duplexer2": "~0.1.0",
+    "readable-stream": "^2.0.2"
+  },
+  "devDependencies": {
+    "tape": "~2.3.0",
+    "through2": "^2.0.0",
+    "event-stream": "~3.0.7"
+  },
+  "scripts": {
+    "test": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "author": "'Dominic Tarr' <dominic.tarr@gmail.com> (http://dominictarr.com)",
+  "license": "MIT"
+}

@@ -1,0 +1,51 @@
+{
+  "name": "plugin-error",
+  "version": "1.0.1",
+  "description": "Error handling for Vinyl plugins.",
+  "author": "Gulp Team <team@gulpjs.com> (http://gulpjs.com/)",
+  "contributors": [
+    "Jon Schlinkert <jon.schlinkert@sellside.com>",
+    "Blaine Bublitz <blaine.bublitz@gmail.com>"
+  ],
+  "repository": "gulpjs/plugin-error",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "main": "index.js",
+  "files": [
+    "LICENSE",
+    "index.d.ts",
+    "index.js"
+  ],
+  "scripts": {
+    "lint": "eslint . && jscs index.js test/",
+    "pretest": "npm run lint",
+    "test": "mocha --async-only && npm run test-types",
+    "test-types": "tsc -p test/types",
+    "cover": "istanbul cover _mocha --report lcovonly",
+    "coveralls": "npm run cover && istanbul-coveralls"
+  },
+  "dependencies": {
+    "ansi-colors": "^1.0.1",
+    "arr-diff": "^4.0.0",
+    "arr-union": "^3.1.0",
+    "extend-shallow": "^3.0.2"
+  },
+  "devDependencies": {
+    "eslint": "^1.7.3",
+    "eslint-config-gulp": "^2.0.0",
+    "expect": "^1.20.2",
+    "istanbul": "^0.4.3",
+    "istanbul-coveralls": "^1.0.3",
+    "jscs": "^2.3.5",
+    "jscs-preset-gulp": "^1.0.0",
+    "mocha": "^3.0.0",
+    "typescript": "^2.6.2"
+  },
+  "keywords": [
+    "error",
+    "plugin",
+    "gulp-util"
+  ]
+}

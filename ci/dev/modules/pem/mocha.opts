@@ -1,0 +1,6 @@
+--recursive
+--bail
+--inline-diffs
+--reporter spec
+--check-leaks
+--use_strict

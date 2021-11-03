@@ -1,0 +1,37 @@
+{
+  "name": "detective",
+  "description": "find all require() calls by walking the AST",
+  "version": "5.2.0",
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "bin": "bin/detective.js",
+  "dependencies": {
+    "acorn-node": "^1.6.1",
+    "defined": "^1.0.0",
+    "minimist": "^1.1.1"
+  },
+  "devDependencies": {
+    "tap": "^10.7.3"
+  },
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "keywords": [
+    "analyze",
+    "ast",
+    "require",
+    "source"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/detective.git"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  }
+}

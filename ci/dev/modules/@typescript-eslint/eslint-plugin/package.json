@@ -1,0 +1,78 @@
+{
+  "name": "@typescript-eslint/eslint-plugin",
+  "version": "4.28.5",
+  "description": "TypeScript plugin for ESLint",
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin",
+    "typescript"
+  ],
+  "engines": {
+    "node": "^10.12.0 || >=12.0.0"
+  },
+  "files": [
+    "dist",
+    "docs",
+    "index.d.ts",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+    "directory": "packages/eslint-plugin"
+  },
+  "bugs": {
+    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc -b tsconfig.build.json",
+    "check-docs": "jest tests/docs.test.ts --runTestsByPath --silent --runInBand",
+    "check-configs": "jest tests/configs.test.ts --runTestsByPath --silent --runInBand",
+    "clean": "tsc -b tsconfig.build.json --clean",
+    "postclean": "rimraf dist && rimraf coverage",
+    "format": "prettier --write \"./**/*.{ts,js,json,md}\" --ignore-path ../../.prettierignore",
+    "generate:configs": "../../node_modules/.bin/ts-node --files --transpile-only tools/generate-configs.ts",
+    "generate:rules-lists": "../../node_modules/.bin/ts-node --files --transpile-only tools/generate-rules-lists.ts",
+    "lint": "eslint . --ext .js,.ts --ignore-path ../../.eslintignore",
+    "test": "jest --coverage",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@typescript-eslint/experimental-utils": "4.28.5",
+    "@typescript-eslint/scope-manager": "4.28.5",
+    "debug": "^4.3.1",
+    "functional-red-black-tree": "^1.0.1",
+    "regexpp": "^3.1.0",
+    "semver": "^7.3.5",
+    "tsutils": "^3.21.0"
+  },
+  "devDependencies": {
+    "@types/debug": "*",
+    "@types/marked": "*",
+    "@types/prettier": "*",
+    "chalk": "^4.1.1",
+    "marked": "^2.0.6",
+    "prettier": "*",
+    "typescript": "*"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/parser": "^4.0.0",
+    "eslint": "^5.0.0 || ^6.0.0 || ^7.0.0"
+  },
+  "peerDependenciesMeta": {
+    "typescript": {
+      "optional": true
+    }
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/typescript-eslint"
+  },
+  "gitHead": "15f718415eb4e522440a5d81f38d65ee81535795"
+}

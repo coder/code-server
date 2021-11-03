@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>mocha browser-suite: normalize-selector</title>
+    <link rel="stylesheet" href="../../node_modules/mocha/mocha.css" />
+  </head>
+  <body>
+    <div id="mocha"></div>
+    <script src="../../lib/normalize-selector.js"></script>
+    <script src="../../node_modules/assertik/assertik.js"></script>
+    <script src="../../node_modules/mocha/mocha.js"></script>
+    <script>mocha.setup('qunit')</script>
+
+    <!-- get tests and start -->
+    <script src="./suite.js"></script>
+    <script>
+      mocha.checkLeaks();
+      mocha.globals(['boilerplate']); // watch our boilerplate function
+      mocha.run();
+    </script>        
+  </body>
+</html>

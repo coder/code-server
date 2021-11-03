@@ -1,0 +1,1 @@
+{"version":3,"file":"createIsolatedProgram.d.ts","sourceRoot":"","sources":["../../src/create-program/createIsolatedProgram.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,KAAK,EAAE,MAAM,mBAAmB,CAAC;AAC1C,OAAO,EACL,aAAa,EAGd,MAAM,UAAU,CAAC;AAIlB;;;GAGG;AACH,iBAAS,qBAAqB,CAAC,IAAI,EAAE,MAAM,EAAE,KAAK,EAAE,KAAK,GAAG,aAAa,CAmExE;AAED,OAAO,EAAE,qBAAqB,EAAE,CAAC"}

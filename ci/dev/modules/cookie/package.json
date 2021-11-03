@@ -1,0 +1,40 @@
+{
+  "name": "cookie",
+  "description": "HTTP server cookie parsing and serialization",
+  "version": "0.4.0",
+  "author": "Roman Shtylman <shtylman@gmail.com>",
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "cookie",
+    "cookies"
+  ],
+  "repository": "jshttp/cookie",
+  "devDependencies": {
+    "beautify-benchmark": "0.2.4",
+    "benchmark": "2.1.4",
+    "eslint": "5.16.0",
+    "eslint-plugin-markdown": "1.0.0",
+    "istanbul": "0.4.5",
+    "mocha": "6.1.4"
+  },
+  "files": [
+    "HISTORY.md",
+    "LICENSE",
+    "README.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "bench": "node benchmark/index.js",
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "version": "node scripts/version-history.js && git add HISTORY.md"
+  }
+}

@@ -1,0 +1,50 @@
+{
+  "name": "boundary",
+  "version": "1.0.1",
+  "description": "Provides boundary functions, (upper-bound and lower-bound).",
+  "author": "Yusuke SUZUKI",
+  "homepage": "https://github.com/Constellation/boundary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Constellation/boundary.git"
+  },
+  "main": "lib/index.js",
+  "maintainers": [
+    {
+      "name": "Yusuke SUZUKI",
+      "email": "utatane.tea@gmail.com",
+      "web": "http://github.com/Constellation"
+    }
+  ],
+  "files": [
+    "lib"
+  ],
+  "scripts": {
+    "test": "gulp test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "gulp": "^3.8.10",
+    "gulp-6to5": "^1.0.2",
+    "gulp-bump": "^0.1.11",
+    "gulp-espower": "^0.10.0",
+    "gulp-filter": "^2.0.0",
+    "gulp-git": "^0.5.5",
+    "gulp-mocha": "^2.0.0",
+    "gulp-sourcemaps": "^1.2.8",
+    "gulp-tag-version": "^1.2.1",
+    "power-assert": "^0.10.0"
+  },
+  "keywords": [
+    "algorithm"
+  ],
+  "bugs": {
+    "url": "https://github.com/Constellation/boundary/issues"
+  },
+  "licenses": [
+    {
+      "type": "BSD",
+      "url": "http://github.com/Constellation/boundary/raw/master/LICENSE.BSD"
+    }
+  ]
+}

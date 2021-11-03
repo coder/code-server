@@ -1,0 +1,72 @@
+{
+    "name": "qs",
+    "description": "A querystring parser that supports nesting and arrays, with a depth limit",
+    "homepage": "https://github.com/ljharb/qs",
+    "version": "6.10.1",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ljharb/qs.git"
+    },
+    "funding": {
+        "url": "https://github.com/sponsors/ljharb"
+    },
+    "main": "lib/index.js",
+    "contributors": [
+        {
+            "name": "Jordan Harband",
+            "email": "ljharb@gmail.com",
+            "url": "http://ljharb.codes"
+        }
+    ],
+    "keywords": [
+        "querystring",
+        "qs",
+        "query",
+        "url",
+        "parse",
+        "stringify"
+    ],
+    "engines": {
+        "node": ">=0.6"
+    },
+    "dependencies": {
+        "side-channel": "^1.0.4"
+    },
+    "devDependencies": {
+        "@ljharb/eslint-config": "^17.5.1",
+        "aud": "^1.1.4",
+        "browserify": "^16.5.2",
+        "eclint": "^2.8.1",
+        "eslint": "^7.22.0",
+        "evalmd": "^0.0.19",
+        "for-each": "^0.3.3",
+        "has-symbols": "^1.0.2",
+        "iconv-lite": "^0.5.1",
+        "in-publish": "^2.0.1",
+        "mkdirp": "^0.5.5",
+        "nyc": "^10.3.2",
+        "object-inspect": "^1.9.0",
+        "qs-iconv": "^1.0.4",
+        "safe-publish-latest": "^1.1.4",
+        "safer-buffer": "^2.1.2",
+        "tape": "^5.2.2"
+    },
+    "scripts": {
+        "prepublish": "safe-publish-latest && (not-in-publish || npm run dist)",
+        "pretest": "npm run --silent readme && npm run --silent lint",
+        "test": "npm run tests-only",
+        "tests-only": "nyc tape 'test/**/*.js'",
+        "posttest": "aud --production",
+        "readme": "evalmd README.md",
+        "postlint": "eclint check * lib/* test/* !dist/*",
+        "lint": "eslint lib/*.js test/*.js",
+        "dist": "mkdirp dist && browserify --standalone Qs lib/index.js > dist/qs.js"
+    },
+    "license": "BSD-3-Clause",
+    "greenkeeper": {
+        "ignore": [
+            "iconv-lite",
+            "mkdirp"
+        ]
+    }
+}

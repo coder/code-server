@@ -1,0 +1,1 @@
+{"version":3,"file":"async.d.ts","sourceRoot":"","sources":["../../src/providers/async.ts"],"names":[],"mappings":"AAAA,OAAO,QAAQ,MAAM,aAAa,CAAC;AACnC,OAAO,EAAE,cAAc,EAAE,KAAK,EAAE,MAAM,UAAU,CAAC;AAKjD,oBAAY,aAAa,GAAG,CAAC,GAAG,EAAE,cAAc,EAAE,KAAK,EAAE,KAAK,KAAK,IAAI,CAAC;AAExE,wBAAgB,IAAI,CAAC,IAAI,EAAE,MAAM,EAAE,QAAQ,EAAE,QAAQ,EAAE,QAAQ,EAAE,aAAa,GAAG,IAAI,CA0BpF"}

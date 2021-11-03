@@ -1,0 +1,76 @@
+{
+	"name": "is-symbol",
+	"version": "1.0.3",
+	"description": "Determine if a value is an ES6 Symbol or not.",
+	"main": "index.js",
+	"scripts": {
+		"prepublish": "safe-publish-latest",
+		"pretest": "npm run lint",
+		"tests-only": "node --es-staging --harmony test",
+		"test": "npm run tests-only",
+		"posttest": "npx aud",
+		"coverage": "covert test",
+		"lint": "eslint .",
+		"version": "auto-changelog && git add CHANGELOG.md",
+		"postversion": "auto-changelog && git add CHANGELOG.md && git commit --no-edit --amend && git tag -f \"v$(node -e \"console.log(require('./package.json').version)\")\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/inspect-js/is-symbol.git"
+	},
+	"keywords": [
+		"symbol",
+		"es6",
+		"is",
+		"Symbol"
+	],
+	"author": "Jordan Harband <ljharb@gmail.com>",
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/inspect-js/is-symbol/issues"
+	},
+	"dependencies": {
+		"has-symbols": "^1.0.1"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^15.0.2",
+		"auto-changelog": "^1.16.2",
+		"covert": "^1.1.1",
+		"eslint": "^6.6.0",
+		"object-inspect": "^1.7.0",
+		"safe-publish-latest": "^1.1.4",
+		"semver": "^6.3.0",
+		"tape": "^4.11.0"
+	},
+	"testling": {
+		"files": "test/index.js",
+		"browsers": [
+			"iexplore/6.0..latest",
+			"firefox/3.0..6.0",
+			"firefox/15.0..latest",
+			"firefox/nightly",
+			"chrome/4.0..10.0",
+			"chrome/20.0..latest",
+			"chrome/canary",
+			"opera/10.0..latest",
+			"opera/next",
+			"safari/4.0..latest",
+			"ipad/6.0..latest",
+			"iphone/6.0..latest",
+			"android-browser/4.2"
+		]
+	},
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"auto-changelog": {
+		"output": "CHANGELOG.md",
+		"template": "keepachangelog",
+		"unreleased": false,
+		"commitLimit": false,
+		"backfillLimit": false
+	}
+}

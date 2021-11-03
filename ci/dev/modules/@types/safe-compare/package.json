@@ -1,0 +1,22 @@
+{
+    "name": "@types/safe-compare",
+    "version": "1.1.0",
+    "description": "TypeScript definitions for safe-compare",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Vadim Belorussov",
+            "url": "https://github.com/bevalorous",
+            "githubUsername": "bevalorous"
+        }
+    ],
+    "main": "",
+    "repository": {
+        "type": "git",
+        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"
+    },
+    "scripts": {},
+    "dependencies": {},
+    "typesPublisherContentHash": "cb2745f3518fd174473977424b9b52d069a8552cc52065a492ab7db2996b8f6b",
+    "typeScriptVersion": "2.0"
+}

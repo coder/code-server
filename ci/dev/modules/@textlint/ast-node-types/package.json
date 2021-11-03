@@ -1,0 +1,38 @@
+{
+  "name": "@textlint/ast-node-types",
+  "version": "4.4.1",
+  "description": "textlint AST node type definition.",
+  "keywords": [
+    "textlint"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/textlint/textlint.git"
+  },
+  "license": "MIT",
+  "author": "azu",
+  "main": "./lib/index.js",
+  "module": "./module/index.js",
+  "types": "./lib/index.d.ts",
+  "files": [
+    "bin/",
+    "lib/",
+    "module/",
+    "src/"
+  ],
+  "scripts": {
+    "build": "tsc -b && tsc -b tsconfig.module.json",
+    "clean": "rimraf lib/ module/ tsconfig.tsbuildinfo tsconfig.module.tsbuildinfo",
+    "prepublish": "npm run build",
+    "test": "mocha \"test/**/*.{js,ts}\""
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "mocha": "^8.2.1",
+    "rimraf": "^3.0.2",
+    "ts-node": "^9.1.1",
+    "ts-node-test-register": "^9.0.1",
+    "typescript": "~4.0.2"
+  },
+  "gitHead": "12508548c3d261d3a01ced5b53315fbf944e630c"
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"semantic-or-syntactic-errors.d.ts","sourceRoot":"","sources":["../src/semantic-or-syntactic-errors.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,MAAM,YAAY,CAAC;AAEjC,UAAU,wBAAyB,SAAQ,EAAE,CAAC,UAAU;IACtD,OAAO,EAAE,MAAM,CAAC;CACjB;AAED;;;;;;GAMG;AACH,wBAAgB,gCAAgC,CAC9C,OAAO,EAAE,EAAE,CAAC,OAAO,EACnB,GAAG,EAAE,EAAE,CAAC,UAAU,GACjB,wBAAwB,GAAG,SAAS,CAmCtC"}

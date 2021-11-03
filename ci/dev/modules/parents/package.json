@@ -1,0 +1,38 @@
+{
+    "name" : "parents",
+    "version" : "1.0.1",
+    "description" : "return all the parent directories for a directory",
+    "main" : "index.js",
+    "bin" : {},
+    "directories" : {
+        "example" : "example",
+        "test" : "test"
+    },
+    "dependencies" : {
+        "path-platform": "~0.11.15"
+    },
+    "devDependencies" : {
+        "tap" : "~0.2.5"
+    },
+    "scripts" : {
+        "test" : "tap test/*.js"
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/node-parents.git"
+    },
+    "homepage" : "https://github.com/substack/node-parents",
+    "keywords" : [
+        "directory",
+        "parent",
+        "path",
+        "tree"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT",
+    "engine" : { "node" : ">=0.6" }
+}

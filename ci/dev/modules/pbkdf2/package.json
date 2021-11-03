@@ -1,0 +1,70 @@
+{
+  "name": "pbkdf2",
+  "version": "3.1.2",
+  "description": "This library provides the functionality of PBKDF2 with the ability to use any supported hashing algorithm returned from crypto.getHashes()",
+  "keywords": [
+    "pbkdf2",
+    "kdf",
+    "salt",
+    "hash"
+  ],
+  "homepage": "https://github.com/crypto-browserify/pbkdf2",
+  "bugs": {
+    "url": "https://github.com/crypto-browserify/pbkdf2/issues"
+  },
+  "license": "MIT",
+  "author": "Daniel Cousens",
+  "browser": {
+    "./index.js": "./browser.js",
+    "./lib/sync.js": "./lib/sync-browser.js"
+  },
+  "files": [
+    "browser.js",
+    "index.js",
+    "lib/"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crypto-browserify/pbkdf2.git"
+  },
+  "scripts": {
+    "prepublish": "npm run test",
+    "coverage-report": "nyc report --reporter=lcov",
+    "coverage-html": "nyc report --reporter=html",
+    "coverage": "nyc --check-coverage --branches 95 --functions 95 tape test/*.js",
+    "lint": "standard",
+    "test": "npm run lint && npm run unit",
+    "bundle-test": "browserify test/index.js > test/bundle.js",
+    "unit": "tape test/*.js",
+    "bench": "node bench/"
+  },
+  "devDependencies": {
+    "benchmark": "^2.1.4",
+    "browserify": "*",
+    "nyc": "^6.4.0",
+    "standard": "*",
+    "tape": "^4.5.1"
+  },
+  "dependencies": {
+    "create-hash": "^1.1.2",
+    "create-hmac": "^1.1.4",
+    "ripemd160": "^2.0.1",
+    "safe-buffer": "^5.0.1",
+    "sha.js": "^2.4.8"
+  },
+  "standard": {
+    "ignore": [
+      "test/bundle.js"
+    ]
+  },
+  "engines": {
+    "node": ">=0.12"
+  },
+  "nyc": {
+    "exclude": [
+      "lib/async.js",
+      "test/bundle.js"
+    ]
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "safe-compare",
+  "version": "1.1.4",
+  "description": "Constant-time comparison algorithm to prevent timing attacks.",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha",
+    "posttest": "matcha",
+    "test-travis": "node --harmony node_modules/istanbul/lib/cli.js cover ./node_modules/mocha/bin/_mocha --report lcovonly -- -u exports",
+    "coveralls": "node ./node_modules/.bin/coveralls < ./coverage/lcov.info",
+    "codeclimate": "node ./node_modules/.bin/codeclimate-test-reporter < ./coverage/lcov.info"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bruce17/safe-compare.git"
+  },
+  "keywords": [
+    "safe-compare",
+    "secure-compare",
+    "compare",
+    "time-equivalent-comparison",
+    "time",
+    "equivalent",
+    "timing",
+    "attack",
+    "constant-time",
+    "constant",
+    "time"
+  ],
+  "author": "Michael Raith",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "bugs": {
+    "url": "https://github.com/Bruce17/safe-compare/issues"
+  },
+  "homepage": "https://github.com/Bruce17/safe-compare#readme",
+  "devDependencies": {
+    "coveralls": "^2.11.14",
+    "istanbul": "^0.4.5",
+    "matcha": "^0.7.0",
+    "mocha": "^3.1.2"
+  },
+  "dependencies": {
+    "buffer-alloc": "^1.2.0"
+  }
+}

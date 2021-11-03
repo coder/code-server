@@ -1,0 +1,76 @@
+{
+  "name": "arr-union",
+  "description": "Combines a list of arrays, returning a single array with unique values, using strict equality for comparisons.",
+  "version": "3.1.0",
+  "homepage": "https://github.com/jonschlinkert/arr-union",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/arr-union",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/arr-union/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "devDependencies": {
+    "ansi-bold": "^0.1.1",
+    "array-union": "^1.0.1",
+    "array-unique": "^0.2.1",
+    "benchmarked": "^0.1.4",
+    "gulp-format-md": "^0.1.7",
+    "minimist": "^1.1.1",
+    "mocha": "*",
+    "should": "*"
+  },
+  "keywords": [
+    "add",
+    "append",
+    "array",
+    "arrays",
+    "combine",
+    "concat",
+    "extend",
+    "union",
+    "uniq",
+    "unique",
+    "util",
+    "utility",
+    "utils"
+  ],
+  "verb": {
+    "run": true,
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "related": {
+      "list": [
+        "arr-diff",
+        "arr-flatten",
+        "arr-filter",
+        "arr-map",
+        "arr-pluck",
+        "arr-reduce",
+        "array-unique"
+      ]
+    },
+    "reflinks": [
+      "verb",
+      "array-union"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}

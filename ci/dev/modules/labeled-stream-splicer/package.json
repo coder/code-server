@@ -1,0 +1,38 @@
+{
+  "name": "labeled-stream-splicer",
+  "version": "2.0.2",
+  "description": "stream splicer with labels",
+  "main": "index.js",
+  "dependencies": {
+    "inherits": "^2.0.1",
+    "stream-splicer": "^2.0.0"
+  },
+  "devDependencies": {
+    "browser-pack": "^6.1.0",
+    "concat-stream": "^1.4.6",
+    "module-deps": "^6.2.0",
+    "tape": "^4.10.1",
+    "through2": "^1.0.0"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/labeled-stream-splicer.git"
+  },
+  "homepage": "https://github.com/browserify/labeled-stream-splicer",
+  "keywords": [
+    "splice",
+    "stream",
+    "labels",
+    "mutable",
+    "pipeline"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT"
+}

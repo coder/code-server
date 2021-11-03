@@ -1,0 +1,175 @@
+{
+  "name": "ts-node",
+  "version": "10.1.0",
+  "description": "TypeScript execution environment and REPL for node.js, with source map support",
+  "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./package": "./package.json",
+    "./package.json": "./package.json",
+    "./dist/bin": "./dist/bin.js",
+    "./dist/bin.js": "./dist/bin.js",
+    "./dist/bin-transpile": "./dist/bin-transpile.js",
+    "./dist/bin-transpile.js": "./dist/bin-transpile.js",
+    "./dist/bin-script": "./dist/bin-script.js",
+    "./dist/bin-script.js": "./dist/bin-script.js",
+    "./dist/bin-cwd": "./dist/bin-cwd.js",
+    "./dist/bin-cwd.js": "./dist/bin-cwd.js",
+    "./register": "./register/index.js",
+    "./register/files": "./register/files.js",
+    "./register/transpile-only": "./register/transpile-only.js",
+    "./register/type-check": "./register/type-check.js",
+    "./esm": "./esm.mjs",
+    "./esm.mjs": "./esm.mjs",
+    "./esm/transpile-only": "./esm/transpile-only.mjs",
+    "./esm/transpile-only.mjs": "./esm/transpile-only.mjs",
+    "./transpilers/swc-experimental": "./transpilers/swc-experimental.js",
+    "./node10/tsconfig.json": "./node10/tsconfig.json",
+    "./node12/tsconfig.json": "./node12/tsconfig.json",
+    "./node14/tsconfig.json": "./node14/tsconfig.json",
+    "./node16/tsconfig.json": "./node16/tsconfig.json"
+  },
+  "types": "dist/index.d.ts",
+  "bin": {
+    "ts-node": "dist/bin.js",
+    "ts-script": "dist/bin-script-deprecated.js",
+    "ts-node-script": "dist/bin-script.js",
+    "ts-node-cwd": "dist/bin-cwd.js",
+    "ts-node-transpile-only": "dist/bin-transpile.js"
+  },
+  "files": [
+    "/transpilers/",
+    "/dist/",
+    "!/dist/test",
+    "/dist-raw/**.js",
+    "/register/",
+    "/esm/",
+    "/esm.mjs",
+    "/LICENSE",
+    "/tsconfig.schema.json",
+    "/tsconfig.schemastore-schema.json",
+    "/node10/",
+    "/node12/",
+    "/node14/",
+    "/node16/"
+  ],
+  "scripts": {
+    "lint": "prettier --check .",
+    "lint-fix": "prettier --write .",
+    "clean": "rimraf dist tsconfig.schema.json tsconfig.schemastore-schema.json tsconfig.tsbuildinfo tests/ts-node-packed.tgz",
+    "rebuild": "npm run clean && npm run build",
+    "build": "npm run build-nopack && npm run build-pack",
+    "build-nopack": "npm run build-tsc && npm run build-configSchema",
+    "build-tsc": "tsc",
+    "build-configSchema": "typescript-json-schema --topRef --refs --validationKeywords allOf --out tsconfig.schema.json tsconfig.build-schema.json TsConfigSchema && node --require ./register ./scripts/create-merged-schema",
+    "build-pack": "node ./scripts/build-pack.js",
+    "test-spec": "ava",
+    "test-cov": "nyc ava",
+    "test": "npm run build && npm run lint && npm run test-cov --",
+    "test-local": "npm run lint && npm run build-tsc && npm run build-pack && npm run test-spec --",
+    "coverage-report": "nyc report --reporter=lcov",
+    "prepare": "npm run clean && npm run build-nopack",
+    "api-extractor": "api-extractor run --local --verbose"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TypeStrong/ts-node.git"
+  },
+  "keywords": [
+    "typescript",
+    "node",
+    "runtime",
+    "environment",
+    "ts",
+    "compiler"
+  ],
+  "author": {
+    "name": "Blake Embrey",
+    "email": "hello@blakeembrey.com",
+    "url": "http://blakeembrey.me"
+  },
+  "contributors": [
+    {
+      "name": "Andrew Bradley",
+      "email": "cspotcode@gmail.com",
+      "url": "https://github.com/cspotcode"
+    }
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TypeStrong/ts-node/issues"
+  },
+  "homepage": "https://typestrong.org/ts-node",
+  "ava": {
+    "files": [
+      "dist/test/*.spec.js"
+    ],
+    "failWithoutAssertions": false,
+    "timeout": "300s"
+  },
+  "devDependencies": {
+    "@microsoft/api-extractor": "^7.15.2",
+    "@swc/core": ">=1.2.50",
+    "@swc/wasm": ">=1.2.50",
+    "@types/chai": "^4.0.4",
+    "@types/diff": "^4.0.2",
+    "@types/lodash": "^4.14.151",
+    "@types/node": "13.13.5",
+    "@types/proxyquire": "^1.3.28",
+    "@types/react": "^16.0.2",
+    "@types/rimraf": "^3.0.0",
+    "@types/semver": "^7.1.0",
+    "@types/source-map-support": "^0.5.0",
+    "@yarnpkg/fslib": "^2.4.0",
+    "ava": "^3.15.0",
+    "axios": "^0.21.1",
+    "chai": "^4.0.1",
+    "expect": "^27.0.2",
+    "get-stream": "^6.0.0",
+    "lodash": "^4.17.15",
+    "ntypescript": "^1.201507091536.1",
+    "nyc": "^15.0.1",
+    "prettier": "^2.2.1",
+    "proxyquire": "^2.0.0",
+    "react": "^16.14.0",
+    "rimraf": "^3.0.0",
+    "semver": "^7.1.3",
+    "throat": "^6.0.1",
+    "typedoc": "^0.20.28",
+    "typescript": "4.2.2",
+    "typescript-json-schema": "^0.42.0",
+    "util.promisify": "^1.0.1"
+  },
+  "peerDependencies": {
+    "@swc/core": ">=1.2.50",
+    "@swc/wasm": ">=1.2.50",
+    "@types/node": "*",
+    "typescript": ">=2.7"
+  },
+  "peerDependenciesMeta": {
+    "@swc/core": {
+      "optional": true
+    },
+    "@swc/wasm": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@tsconfig/node10": "^1.0.7",
+    "@tsconfig/node12": "^1.0.7",
+    "@tsconfig/node14": "^1.0.0",
+    "@tsconfig/node16": "^1.0.1",
+    "arg": "^4.1.0",
+    "create-require": "^1.1.0",
+    "diff": "^4.0.1",
+    "make-error": "^1.1.1",
+    "source-map-support": "^0.5.17",
+    "yn": "3.1.1"
+  },
+  "prettier": {
+    "singleQuote": true
+  }
+}

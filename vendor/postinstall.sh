@@ -4,7 +4,7 @@ set -euo pipefail
 main() {
   echo 'Installing VS Code dependencies...'
   cd modules/code-oss-dev
-  yarn install --frozen-lockfile
+  npm i
 }
 
 main "$@"

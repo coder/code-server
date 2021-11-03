@@ -1,0 +1,12 @@
+{
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+  },
+  "plugins": [
+    "import"
+  ],
+  "extends": [
+    "plugin:import/errors"
+  ]
+}

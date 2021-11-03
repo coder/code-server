@@ -1,0 +1,64 @@
+{
+    "root": true,
+    "extends": "@ljharb",
+    "rules": {
+        "complexity": 0,
+        "func-style": [2, "declaration"],
+        "indent": [2, 4],
+        "max-lines": 1,
+        "max-lines-per-function": 1,
+        "max-params": [2, 4],
+        "max-statements": 0,
+        "max-statements-per-line": [2, { "max": 2 }],
+        "no-magic-numbers": 0,
+        "no-param-reassign": 1,
+        "operator-linebreak": [2, "before"],
+        "strict": 0, // TODO
+    },
+    "globals": {
+        "BigInt": false,
+        "WeakSet": false,
+        "WeakMap": false,
+    },
+    "overrides": [
+        {
+            "files": ["test/**", "test-*", "example/**"],
+            "rules": {
+              "array-bracket-newline": 0,
+              "id-length": 0,
+              "max-params": 0,
+              "max-statements": 0,
+              "max-statements-per-line": 0,
+              "object-curly-newline": 0,
+              "sort-keys": 0,
+            },
+        },
+        {
+            "files": ["example/**"],
+            "rules": {
+                "no-console": 0,
+            },
+        },
+        {
+            "files": ["test/browser/**"],
+            "env": {
+                "browser": true,
+            },
+        },
+        {
+            "files": ["test/bigint*"],
+            "rules": {
+                "new-cap": [2, { "capIsNewExceptions": ["BigInt"] }],
+            },
+        },
+        {
+            "files": "index.js",
+            "globals": {
+                "HTMLElement": false,
+            },
+            "rules": {
+                "no-use-before-define": 1,
+            },
+        },
+    ],
+}

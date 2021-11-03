@@ -1,0 +1,43 @@
+{
+  "name": "vinyl-file",
+  "version": "3.0.0",
+  "description": "Create a vinyl file from an actual file",
+  "license": "MIT",
+  "repository": "sindresorhus/vinyl-file",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "sindresorhus.com"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "vinyl",
+    "fs",
+    "file",
+    "read",
+    "virtual",
+    "format",
+    "gulp",
+    "gulpfriendly"
+  ],
+  "dependencies": {
+    "graceful-fs": "^4.1.2",
+    "pify": "^2.3.0",
+    "strip-bom-buf": "^1.0.0",
+    "strip-bom-stream": "^2.0.0",
+    "vinyl": "^2.0.1"
+  },
+  "devDependencies": {
+    "ava": "*",
+    "is-stream": "^1.0.0",
+    "xo": "*"
+  }
+}

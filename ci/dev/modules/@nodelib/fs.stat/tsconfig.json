@@ -1,0 +1,12 @@
+{
+	"extends": "../../../tsconfig.json",
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "out"
+	},
+	"references": [
+		{
+			"path": "../fs.macchiato"
+		}
+	]
+}

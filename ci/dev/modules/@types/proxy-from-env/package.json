@@ -1,0 +1,31 @@
+{
+    "name": "@types/proxy-from-env",
+    "version": "1.0.1",
+    "description": "TypeScript definitions for proxy-from-env",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "JasonHK",
+            "url": "https://github.com/JasonHK",
+            "githubUsername": "JasonHK"
+        },
+        {
+            "name": "FloPes",
+            "url": "https://github.com/flopes89",
+            "githubUsername": "flopes89"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/proxy-from-env"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "893dc560f0d81ddcba87db15cdbdbcb51d7424fa81d2d55c1093a3ee6b5e0542",
+    "typeScriptVersion": "2.8"
+}

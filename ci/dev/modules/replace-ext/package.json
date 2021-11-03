@@ -1,0 +1,43 @@
+{
+  "name": "replace-ext",
+  "version": "1.0.1",
+  "description": "Replaces a file extension with another one",
+  "author": "Gulp Team <team@gulpjs.com> (http://gulpjs.com/)",
+  "contributors": [
+    "Eric Schoffstall <yo@contra.io>",
+    "Blaine Bublitz <blaine.bublitz@gmail.com>"
+  ],
+  "repository": "gulpjs/replace-ext",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "main": "index.js",
+  "files": [
+    "LICENSE",
+    "index.js"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "nyc mocha --async-only",
+    "cover": "nyc --reporter=lcov --reporter=text-summary npm test",
+    "azure-pipelines": "nyc mocha --async-only --reporter xunit -O output=test.xunit",
+    "coveralls": "nyc report --reporter=text-lcov | coveralls"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "coveralls": "github:phated/node-coveralls#2.x",
+    "eslint": "^2.13.1",
+    "eslint-config-gulp": "^3.0.1",
+    "expect": "^1.20.2",
+    "mocha": "^3.0.0",
+    "nyc": "^10.3.2"
+  },
+  "keywords": [
+    "gulp",
+    "extensions",
+    "filepath",
+    "basename"
+  ]
+}

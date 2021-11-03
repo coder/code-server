@@ -1,0 +1,66 @@
+{
+    "name": "htmlparser2",
+    "description": "Fast & forgiving HTML/XML/RSS parser",
+    "version": "4.1.0",
+    "author": "Felix Boehm <me@feedic.com>",
+    "keywords": [
+        "html",
+        "parser",
+        "streams",
+        "xml",
+        "dom",
+        "rss",
+        "feed",
+        "atom"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fb55/htmlparser2.git"
+    },
+    "directories": {
+        "lib": "lib/"
+    },
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": [
+        "lib/**/*"
+    ],
+    "browser": {
+        "./lib/WritableStream.js": false
+    },
+    "scripts": {
+        "test": "jest --coverage -u && npm run lint",
+        "coverage": "cat coverage/lcov.info | coveralls",
+        "lint": "eslint --ext=js,ts src",
+        "format": "prettier --write '**/*.{ts,md,json}'",
+        "build": "tsc",
+        "prepare": "npm run build"
+    },
+    "dependencies": {
+        "domelementtype": "^2.0.1",
+        "domhandler": "^3.0.0",
+        "domutils": "^2.0.0",
+        "entities": "^2.0.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^25.1.3",
+        "@types/node": "^13.1.1",
+        "@typescript-eslint/eslint-plugin": "^1.13.0",
+        "@typescript-eslint/parser": "^1.13.0",
+        "coveralls": "^3.0.1",
+        "eslint": "^6.0.0",
+        "eslint-config-prettier": "^6.0.0",
+        "jest": "^24.8.0",
+        "prettier": "^1.18.2",
+        "ts-jest": "^24.0.2",
+        "typescript": "^3.5.3"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node"
+    },
+    "license": "MIT",
+    "prettier": {
+        "tabWidth": 4
+    }
+}

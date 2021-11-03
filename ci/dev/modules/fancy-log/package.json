@@ -1,0 +1,49 @@
+{
+  "name": "fancy-log",
+  "version": "1.3.3",
+  "description": "Log things, prefixed with a timestamp.",
+  "author": "Gulp Team <team@gulpjs.com> (http://gulpjs.com/)",
+  "contributors": [
+    "Blaine Bublitz <blaine.bublitz@gmail.com>",
+    "Aman Mittal (http://amandeepmittal.github.io/)"
+  ],
+  "repository": "gulpjs/fancy-log",
+  "license": "MIT",
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "main": "index.js",
+  "files": [
+    "LICENSE",
+    "index.js"
+  ],
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "mocha --async-only",
+    "cover": "istanbul cover _mocha --report lcovonly",
+    "coveralls": "npm run cover && istanbul-coveralls"
+  },
+  "dependencies": {
+    "ansi-gray": "^0.1.1",
+    "color-support": "^1.1.3",
+    "parse-node-version": "^1.0.0",
+    "time-stamp": "^1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "^2.13.0",
+    "eslint-config-gulp": "^3.0.1",
+    "expect": "^1.20.2",
+    "istanbul": "^0.4.3",
+    "istanbul-coveralls": "^1.0.3",
+    "mocha": "^3.5.3"
+  },
+  "keywords": [
+    "console.log",
+    "log",
+    "logger",
+    "logging",
+    "pretty",
+    "timestamp"
+  ]
+}

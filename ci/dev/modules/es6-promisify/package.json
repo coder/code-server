@@ -1,0 +1,41 @@
+{
+    "name": "es6-promisify",
+    "version": "6.1.1",
+    "description": "Converts callback-based functions to ES6 Promises",
+    "main": "dist/promisify.js",
+    "author": "Mike Hall <mikehall314@gmail.com>",
+    "keywords": [
+        "promises",
+        "es6",
+        "promisify"
+    ],
+    "license": "MIT",
+    "scripts": {
+        "prettier": "prettier --write 'lib/**/*.{js,yml}'",
+        "lint": "eslint 'lib/*.js' 'test/*.js'",
+        "pretest": "npm run lint && npm run build",
+        "build": "babel lib -d dist",
+        "test": "tape test",
+        "test:coverage": "nyc npm test"
+    },
+    "bugs": "http://github.com/digitaldesignlabs/es6-promisify/issues",
+    "files": [
+        "dist/promisify.js"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/digitaldesignlabs/es6-promisify.git"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.8.4",
+        "@babel/core": "^7.8.7",
+        "@babel/preset-env": "^7.8.7",
+        "@puntt/eslint-config": "0.0.4",
+        "es6-promise": "^4.2.8",
+        "eslint": "5.16.0",
+        "nyc": "^15.0.0",
+        "prettier": "^2.0.5",
+        "sinon": "^9.0.1",
+        "tape": "^4.13.2"
+    }
+}

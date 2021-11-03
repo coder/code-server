@@ -1,0 +1,28 @@
+{
+  "name": "duplexer2",
+  "version": "0.1.4",
+  "description": "Like duplexer but using streams3",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "mocha -R tap"
+  },
+  "repository": "deoxxa/duplexer2",
+  "keywords": [
+    "duplex",
+    "duplexer",
+    "stream",
+    "stream3",
+    "join",
+    "combine"
+  ],
+  "author": "Conrad Pankoff <deoxxa@fknsrs.biz> (http://www.fknsrs.biz/)",
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "readable-stream": "^2.0.2"
+  },
+  "devDependencies": {
+    "mocha": "^2.2.5"
+  }
+}

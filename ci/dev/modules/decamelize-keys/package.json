@@ -1,0 +1,62 @@
+{
+  "name": "decamelize-keys",
+  "version": "1.1.0",
+  "description": "Convert object keys from camelCase to lowercase with a custom separator",
+  "license": "MIT",
+  "repository": "dsblv/decamelize-keys",
+  "author": {
+    "name": "Sindre Sorhus",
+    "email": "sindresorhus@gmail.com",
+    "url": "http://sindresorhus.com"
+  },
+  "contributors": [
+    {
+      "name": "Dmirty Sobolev",
+      "email": "disobolev@icloud.com",
+      "url": "https://github.com/dsblv"
+    }
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "xo && ava"
+  },
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "map",
+    "obj",
+    "object",
+    "key",
+    "keys",
+    "value",
+    "values",
+    "val",
+    "iterate",
+    "decamelize",
+    "decamelcase",
+    "lowercase",
+    "camelcase",
+    "camel-case",
+    "camel",
+    "case",
+    "dash",
+    "hyphen",
+    "dot",
+    "underscore",
+    "separator",
+    "string",
+    "text",
+    "convert"
+  ],
+  "devDependencies": {
+    "ava": "*",
+    "xo": "*"
+  },
+  "dependencies": {
+    "decamelize": "^1.1.0",
+    "map-obj": "^1.0.0"
+  }
+}

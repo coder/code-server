@@ -1,0 +1,102 @@
+{
+  "name": "postcss-syntax",
+  "version": "0.36.2",
+  "description": "Automatically switch PostCSS syntax by file extensions",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gucong3000/postcss-syntax.git"
+  },
+  "keywords": [
+    "postcss",
+    "syntax",
+    "switch",
+    "extension"
+  ],
+  "author": "gucong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gucong3000/postcss-syntax/issues"
+  },
+  "homepage": "https://github.com/gucong3000/postcss-syntax#readme",
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "all": true,
+    "cache": true,
+    "check-coverage": true
+  },
+  "scripts": {
+    "mocha": "mocha --require ./test/fixtures/link --no-timeouts",
+    "test": "nyc npm run mocha",
+    "debug": "npm run mocha -- --inspect-brk"
+  },
+  "extensions": [
+    ".css",
+    ".pcss",
+    ".postcss",
+    ".acss",
+    ".wxss",
+    ".sass",
+    ".scss",
+    ".less",
+    ".sss",
+    ".js",
+    ".es6",
+    ".mjs",
+    ".pac",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".babel",
+    ".flow",
+    ".html",
+    ".htm",
+    ".shtml",
+    ".xhtml",
+    ".mdoc",
+    ".jsp",
+    ".asp",
+    ".aspx",
+    ".jshtm",
+    ".volt",
+    ".ejs",
+    ".rhtml",
+    ".xsl",
+    ".xslt",
+    ".vue",
+    ".wpy",
+    ".ux",
+    ".php",
+    ".php4",
+    ".php5",
+    ".phtml",
+    ".ctp",
+    ".twig",
+    ".liquid",
+    ".md",
+    ".mdown",
+    ".markdown",
+    ".markdn",
+    ".svelte"
+  ],
+  "peerDependencies": {
+    "postcss": ">=5.0.0"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "codecov": "^3.1.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "postcss": "^7.0.7",
+    "postcss-html": ">=0.36.0",
+    "postcss-jsx": ">=0.36.0",
+    "postcss-less": "^3.1.0",
+    "postcss-markdown": ">=0.36.0",
+    "postcss-safe-parser": "^4.0.1",
+    "postcss-scss": "^2.0.0",
+    "proxyquire": "^2.1.0",
+    "sugarss": "^2.0.0"
+  }
+}

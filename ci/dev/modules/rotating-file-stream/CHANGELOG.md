@@ -1,0 +1,138 @@
+- 2021-02-19 - v2.1.5
+  - Changed \_writev to make it compliant with Node.js v14; this should solve [#67](https://github.com/iccicci/rotating-file-stream/issues/67)
+  - devDependencies update
+- 2021-02-02 - v2.1.4
+  - Fixed a bug which [requires a write operation to emit errors on open](https://github.com/iccicci/rotating-file-stream/issues/62) (thanks to [Raynos](https://github.com/Raynos))
+  - devDependencies update
+- 2020-07-07 - v2.1.3
+  - Fixed a bug causing EEXIST opening two files in same not existing directory in a rapid sequence (thanks to [jameslahm](https://github.com/jameslahm))
+  - devDependencies update
+- 2020-07-04 - v2.1.2
+  - Applied a change to use on mounts with the noexec option (thanks to [jvassev](https://github.com/jvassev))
+  - devDependencies update
+- 2020-05-13 - v2.1.1
+  - Bug fix for **teeToStdout**
+  - devDependencies update
+- 2020-04-29 - v2.1.0
+  - **teeToStdout** option added
+  - devDependencies update
+- 2020-01-26 - v2.0.2
+  - Fixed two [bugs](https://github.com/iccicci/rotating-file-stream/pull/47)
+  - devDependencies update
+- 2019-12-24 - v2.0.1
+  - Fixed a [bug about setTimeout on some node environments](https://github.com/iccicci/rotating-file-stream/pull/46) (thanks to [Rastopyr](https://github.com/Rastopyr))
+  - devDependencies update
+- 2019-11-24 - v2.0.0
+  - complete refactoring with TypeScript
+  - full Windows compliance (at least all tests are OK)
+  - file is recreated if externally removed while logging
+- 2019-10-20 - v1.4.6
+  - tests fix
+- 2019-10-18 - v1.4.5
+  - Fixed a [bug](https://github.com/iccicci/rotating-file-stream/issues/39) when **immutable** and **history** are both set.
+  - devDependencies update
+- 2019-10-01 - v1.4.4
+  - Fixed a [bug](https://github.com/iccicci/rotating-file-stream/issues/42) occurring adding properties to **Array.prototype**
+  - devDependencies update
+- 2019-07-23 - v1.4.3
+  - Exported the options interface
+  - devDependencies update
+- 2019-06-27 - v1.4.2
+  - Fixed a [bug causing a ERR_MULTIPLE_CALLBACK error](https://github.com/iccicci/rotating-file-stream/issues/36) (thanks to [rooftopsparrow](https://github.com/rooftopsparrow))
+  - devDependencies update
+- 2019-04-22 - v1.4.1
+  - From [istanbul](https://www.npmjs.com/package/istanbul) to [nyc](https://www.npmjs.com/package/nyc) for tests coverage
+  - Several typos fixed in [README.md](https://github.com/iccicci/rotating-file-stream/blob/master/README.md); thanks to [dhurlburtusa](https://github.com/dhurlburtusa)
+  - devDependencies update
+- 2019-01-09 - v1.4.0
+  - Fixed the [TimeoutOverflowWarning bug](https://github.com/iccicci/rotating-file-stream/issues/34)
+  - Added **experimental** monthly rotation
+  - devDependencies update
+- 2019-01-04 - v1.3.10
+  - Fixed a [bug occurring when two calls to _makePath_ are concurrently done](https://github.com/iccicci/rotating-file-stream/pull/33) (thanks to [cchare](https://github.com/cchare))
+  - devDependencies update
+- 2018-09-26 - v1.3.9
+  - Fixed TypeScript Definition file (thanks to [rakshith-ravi](https://www.npmjs.com/~rakshith-ravi) and [kbirger](https://www.npmjs.com/~kbirger))
+  - Added TOC and **TypeScript** import documentation
+  - devDependencies update
+- 2018-09-18 - v1.3.8
+  - Added TypeScript Definition file (thanks to [rakshith-ravi](https://www.npmjs.com/~rakshith-ravi))
+- 2018-07-19 - v1.3.7
+  - devDependencies update
+- 2018-04-05 - v1.3.6
+  - Discovered and solved: ["write after end" error with immutable option](https://github.com/iccicci/rotating-file-stream/issues/23) (thanks to [JcBernack](https://github.com/JcBernack))
+  - Added a test case to cover that bug
+  - devDependencies update
+- 2018-03-15 - v1.3.5
+  - Using slightly faster timestamp generator function (thanks to [jorgemsrs](https://github.com/jorgemsrs))
+  - devDependencies update
+- 2017-11-13 - v1.3.4
+  - **immutable** option review
+- 2017-11-13 - v1.3.3
+  - Solved: [problem with TypeScript](https://github.com/iccicci/rotating-file-stream/issues/19)
+  - **immutable** option added
+- 2017-09-23 - v1.3.2
+  - devDependencies updated
+- 2017-09-21 - v1.3.1
+  - devDependencies updated
+- 2017-09-17 - v1.3.0
+  - **initialRotation** option added
+- 2017-04-26 - v1.2.2
+  - Fixed bug: [Handle does not close](https://github.com/iccicci/rotating-file-stream/issues/11)
+- 2017-03-22 - v1.2.1
+  - fixed removed event
+- 2017-03-20 - v1.2.0
+  - **maxFiles** and **maxSize** options added
+- 2017-02-14 - v1.1.9
+  - fixed warning events order in case of external compression errors
+- 2017-02-13 - v1.1.8
+  - removed tmp dependecy due it was causing a strange instability now disappeared
+- 2017-02-07 - v1.1.7
+  - fixed tmp.file call
+- 2017-02-03 - v1.1.6
+  - eslint
+- 2017-01-23 - v1.1.5
+  - README fix
+- 2017-01-23 - v1.1.4
+  - Changed dependencies badges
+- 2016-12-27 - v1.1.3
+  - Fixed bug: [end method wrong implementation](https://github.com/iccicci/rotating-file-stream/issues/9)
+- 2016-12-19 - v1.1.2
+  - Fixed bug: [unable to reuse configuration object](https://github.com/iccicci/rotating-file-stream/issues/10)
+  - Fixed bug: [Events cross over: rotate and rotated](https://github.com/iccicci/rotating-file-stream/issues/6)
+- 2016-12-05 - v1.1.1
+  - Dependencies update
+- 2016-10-18 - v1.1.0
+  - Added classical **UNIX logrotate** tool behaviour.
+  - Dependencies update
+- 2016-04-29 - v1.0.5
+  - Tested on node v6.0
+  - Fixed a bug on rotation with interval and compression
+- 2015-11-09 - v1.0.4
+  - Tested on node v5.0
+  - Fixed bug on [initial rotation with interval](https://github.com/iccicci/rotating-file-stream/issues/2)
+- 2015-10-25 - v1.0.3
+  - Tested on node v4.2
+  - Dependencies update
+- 2015-10-09 - v1.0.2
+  - README update
+- 2015-10-08 - v1.0.1
+  - README fix
+- 2015-10-08 - v1.0.0
+  - Async error reporting refactory
+- 2015-10-07 - v0.1.0
+  - Internal gzip compression
+- 2015-10-06 - v0.0.5
+  - External compression
+- 2015-09-30 - v0.0.4
+  - Added _path_ option
+  - Missing path creation
+- 2015-09-29 - v0.0.3
+  - Rotation by interval
+  - **Buffer** optimization (thanks to [allevo](https://www.npmjs.com/~allevo))
+- 2015-09-17 - v0.0.2
+  - Rotation by size
+- 2015-09-14 - v0.0.1
+  - README.md
+- 2015-09-10 - v0.0.0
+  - Embryonal stage

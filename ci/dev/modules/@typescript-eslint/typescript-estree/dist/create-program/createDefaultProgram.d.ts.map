@@ -1,0 +1,1 @@
+{"version":3,"file":"createDefaultProgram.d.ts","sourceRoot":"","sources":["../../src/create-program/createDefaultProgram.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,KAAK,EAAE,MAAM,mBAAmB,CAAC;AAC1C,OAAO,EACL,aAAa,EAGd,MAAM,UAAU,CAAC;AAIlB;;;;;;GAMG;AACH,iBAAS,oBAAoB,CAC3B,IAAI,EAAE,MAAM,EACZ,KAAK,EAAE,KAAK,GACX,aAAa,GAAG,SAAS,CAqC3B;AAED,OAAO,EAAE,oBAAoB,EAAE,CAAC"}

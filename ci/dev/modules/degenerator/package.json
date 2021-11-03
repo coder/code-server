@@ -1,0 +1,52 @@
+{
+  "name": "degenerator",
+  "version": "3.0.1",
+  "description": "Compiles sync functions into async generator functions",
+  "main": "dist/src/index",
+  "typings": "dist/src/index",
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "postbuild": "cpy --parents src test '!**/*.ts' dist",
+    "test": "mocha --reporter spec dist/test/test.js",
+    "test-lint": "eslint src --ext .js,.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "author": "Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TooTallNate/node-degenerator.git"
+  },
+  "engines": {
+    "node": ">= 6"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ast-types": "^0.13.2",
+    "escodegen": "^1.8.1",
+    "esprima": "^4.0.0",
+    "vm2": "^3.9.3"
+  },
+  "devDependencies": {
+    "@types/escodegen": "^0.0.6",
+    "@types/esprima": "^4.0.2",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^12.12.17",
+    "@typescript-eslint/eslint-plugin": "1.6.0",
+    "@typescript-eslint/parser": "1.1.0",
+    "cpy-cli": "^2.0.0",
+    "eslint": "5.16.0",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-config-prettier": "4.1.0",
+    "eslint-import-resolver-typescript": "1.1.1",
+    "eslint-plugin-import": "2.16.0",
+    "eslint-plugin-jsx-a11y": "6.2.1",
+    "eslint-plugin-react": "7.12.4",
+    "mocha": "^6.2.0",
+    "rimraf": "^3.0.0",
+    "typescript": "^3.7.3"
+  }
+}

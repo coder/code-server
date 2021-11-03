@@ -1,0 +1,45 @@
+{
+  "name": "router",
+  "description": "Simple middleware-style router",
+  "version": "2.0.0-alpha.1",
+  "author": "Douglas Christopher Wilson <doug@somethingdoug.com>",
+  "contributors": [
+    "Blake Embrey <hello@blakeembrey.com>"
+  ],
+  "license": "MIT",
+  "repository": "pillarjs/router",
+  "dependencies": {
+    "array-flatten": "2.1.1",
+    "debug": "3.1.0",
+    "methods": "~1.1.2",
+    "parseurl": "~1.3.2",
+    "path-to-regexp": "0.1.7",
+    "setprototypeof": "1.1.0",
+    "utils-merge": "1.0.1"
+  },
+  "devDependencies": {
+    "after": "0.8.2",
+    "eslint": "3.19.0",
+    "eslint-plugin-markdown": "1.0.0-beta.6",
+    "finalhandler": "1.1.1",
+    "mocha": "3.5.3",
+    "nyc": "10.3.2",
+    "supertest": "1.2.0"
+  },
+  "files": [
+    "lib/",
+    "LICENSE",
+    "HISTORY.md",
+    "README.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.10"
+  },
+  "scripts": {
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "nyc --reporter=text npm test",
+    "test-travis": "nyc --reporter=html --reporter=text npm test"
+  }
+}

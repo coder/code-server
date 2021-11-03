@@ -1,0 +1,56 @@
+{
+  "name": "module-deps",
+  "version": "6.2.3",
+  "description": "walk the dependency graph to generate json output that can be fed into browser-pack",
+  "main": "index.js",
+  "bin": {
+    "module-deps": "bin/cmd.js"
+  },
+  "dependencies": {
+    "JSONStream": "^1.0.3",
+    "browser-resolve": "^2.0.0",
+    "cached-path-relative": "^1.0.2",
+    "concat-stream": "~1.6.0",
+    "defined": "^1.0.0",
+    "detective": "^5.2.0",
+    "duplexer2": "^0.1.2",
+    "inherits": "^2.0.1",
+    "parents": "^1.0.0",
+    "readable-stream": "^2.0.2",
+    "resolve": "^1.4.0",
+    "stream-combiner2": "^1.1.1",
+    "subarg": "^1.0.0",
+    "through2": "^2.0.0",
+    "xtend": "^4.0.0"
+  },
+  "devDependencies": {
+    "browser-pack": "^6.0.2",
+    "tap": "^10.7.3"
+  },
+  "scripts": {
+    "test": "tap test/*.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/module-deps.git"
+  },
+  "homepage": "https://github.com/browserify/module-deps",
+  "keywords": [
+    "dependency",
+    "graph",
+    "browser",
+    "require",
+    "module",
+    "exports",
+    "json"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "license": "MIT"
+}

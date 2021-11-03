@@ -1,0 +1,15 @@
+{
+	"all": true,
+	"check-coverage": false,
+	"reporter": ["text-summary", "text", "html", "json"],
+	"require": [
+		"babel-register"
+	],
+	"sourceMap": true,
+	"instrument": false,
+	"exclude": [
+		"coverage",
+		"test",
+		"tests"
+	]
+}

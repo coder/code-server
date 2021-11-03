@@ -1,0 +1,45 @@
+{
+  "name": "json-parse-better-errors",
+  "version": "1.0.2",
+  "description": "JSON.parse with context information on error",
+  "main": "index.js",
+  "files": [
+    "*.js"
+  ],
+  "scripts": {
+    "prerelease": "npm t",
+    "postrelease": "npm publish && git push --follow-tags",
+    "pretest": "standard",
+    "release": "standard-version -s",
+    "test": "tap -J --coverage test/*.js",
+    "update-coc": "weallbehave -o . && git add CODE_OF_CONDUCT.md && git commit -m 'docs(coc): updated CODE_OF_CONDUCT.md'",
+    "update-contrib": "weallcontribute -o . && git add CONTRIBUTING.md && git commit -m 'docs(contributing): updated CONTRIBUTING.md'"
+  },
+  "repository": "https://github.com/zkat/json-parse-better-errors",
+  "keywords": [
+    "JSON",
+    "parser"
+  ],
+  "author": {
+    "name": "Kat Marchán",
+    "email": "kzm@zkat.tech",
+    "twitter": "maybekatz"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "nyc": "^10.3.2",
+    "standard": "^9.0.2",
+    "standard-version": "^4.1.0",
+    "tap": "^10.3.3",
+    "weallbehave": "^1.2.0",
+    "weallcontribute": "^1.0.8"
+  },
+  "config": {
+    "nyc": {
+      "exclude": [
+        "node_modules/**",
+        "test/**"
+      ]
+    }
+  }
+}

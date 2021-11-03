@@ -1,0 +1,38 @@
+{
+  "name": "prettier-linter-helpers",
+  "version": "1.0.0",
+  "description": "Utilities to help expose prettier output in linting tools",
+  "contributors": [
+    "Ben Scott",
+    "Teddy Katz"
+  ],
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "lint": "eslint .",
+    "test": "npm run lint && mocha",
+    "format": "yarn run prettier '**/*.{js,json,md,yml}' --write && yarn run lint --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prettier/prettier-linter-helpers.git"
+  },
+  "bugs": {
+    "url": "https://github.com/prettier/prettier-linter-helpers/issues"
+  },
+  "homepage": "https://github.com/prettier/prettier-linter-helpers#readme",
+  "dependencies": {
+    "fast-diff": "^1.1.2"
+  },
+  "devDependencies": {
+    "eslint": "^5.6.1",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-node": "^7.0.1",
+    "eslint-plugin-prettier": "^2.7.0",
+    "mocha": "^5.2.0",
+    "prettier": "^1.14.3"
+  },
+  "engines": {
+    "node": ">=6.0.0"
+  }
+}

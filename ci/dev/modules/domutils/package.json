@@ -1,0 +1,66 @@
+{
+    "name": "domutils",
+    "version": "2.6.0",
+    "description": "Utilities for working with htmlparser2's dom",
+    "author": "Felix Boehm <me@feedic.com>",
+    "funding": {
+        "url": "https://github.com/fb55/domutils?sponsor=1"
+    },
+    "license": "BSD-2-Clause",
+    "sideEffects": false,
+    "main": "lib/index.js",
+    "types": "lib/index.d.ts",
+    "files": [
+        "lib/**/*"
+    ],
+    "scripts": {
+        "test": "jest --coverage && npm run lint",
+        "coverage": "cat coverage/lcov.info | coveralls",
+        "lint": "npm run lint:es && npm run lint:prettier",
+        "lint:es": "eslint --ignore-path .gitignore .",
+        "lint:prettier": "npm run prettier -- --check",
+        "format": "npm run format:es && npm run format:prettier",
+        "format:es": "npm run lint:es -- --fix",
+        "format:prettier": "npm run prettier -- --write",
+        "prettier": "prettier \"**/*.{ts,md,json,yml}\" --ignore-path .gitignore",
+        "build": "tsc",
+        "build:docs": "typedoc --hideGenerator --exclude \"**/*+(index|.spec).ts\" src",
+        "prepare": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/fb55/domutils.git"
+    },
+    "keywords": [
+        "dom",
+        "htmlparser2"
+    ],
+    "dependencies": {
+        "dom-serializer": "^1.0.1",
+        "domelementtype": "^2.2.0",
+        "domhandler": "^4.2.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^26.0.0",
+        "@types/node": "^14.0.5",
+        "@typescript-eslint/eslint-plugin": "^4.1.0",
+        "@typescript-eslint/parser": "^4.1.0",
+        "coveralls": "^3.0.5",
+        "eslint": "^7.0.0",
+        "eslint-config-prettier": "^8.1.0",
+        "eslint-plugin-jsdoc": "^32.0.2",
+        "htmlparser2": "~6.1.0",
+        "jest": "^26.0.1",
+        "prettier": "^2.0.5",
+        "ts-jest": "^26.0.0",
+        "typedoc": "^0.20.5",
+        "typescript": "^4.0.2"
+    },
+    "jest": {
+        "preset": "ts-jest",
+        "testEnvironment": "node"
+    },
+    "prettier": {
+        "tabWidth": 4
+    }
+}

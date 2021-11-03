@@ -1,0 +1,37 @@
+# Docs
+
+- User guide
+  - [Get started](user-guide/get-started.md)
+  - [Configuration](user-guide/configure.md)
+  - Rules
+    - [About](user-guide/rules/about.md)
+    - [Combine](user-guide/rules/combine.md)
+    - [Regex](user-guide/rules/regex.md)
+    - [List](user-guide/rules/list.md)
+  - Usage
+    - [CLI](user-guide/usage/cli.md)
+    - [Node.js API](user-guide/usage/node-api.md)
+    - [PostCSS plugin](user-guide/usage/postcss-plugin.md)
+    - [Options](user-guide/usage/options.md)
+  - Integrations
+    - [Editor](user-guide/integrations/editor.md)
+    - [Task runner](user-guide/integrations/task-runner.md)
+    - [Other](user-guide/integrations/other.md)
+  - [Ignore code](user-guide/ignore-code.md)
+  - [Errors](user-guide/errors.md)
+- Developer guide
+  - [Rules](developer-guide/rules.md)
+  - [Syntaxes](developer-guide/syntaxes.md)
+  - [Plugins](developer-guide/plugins.md)
+  - [Formatters](developer-guide/formatters.md)
+  - [System tests](developer-guide/system-tests.md)
+  - [Processors](developer-guide/processors.md)
+- Maintainer guide
+  - [Issues](maintainer-guide/issues.md)
+  - [Pull requests](maintainer-guide/pull-requests.md)
+  - [Releases](maintainer-guide/releases.md)
+- About
+  - [Linting](about/linting.md)
+  - [Syntaxes](about/syntaxes.md)
+  - [Semantic versioning](about/semantic-versioning.md)
+  - [Vision](about/vision.md)

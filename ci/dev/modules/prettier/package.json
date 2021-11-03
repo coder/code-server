@@ -1,0 +1,23 @@
+{
+  "name": "prettier",
+  "version": "2.3.2",
+  "description": "Prettier is an opinionated code formatter",
+  "bin": "./bin-prettier.js",
+  "repository": "prettier/prettier",
+  "homepage": "https://prettier.io",
+  "author": "James Long",
+  "license": "MIT",
+  "main": "./index.js",
+  "browser": "./standalone.js",
+  "unpkg": "./standalone.js",
+  "engines": {
+    "node": ">=10.13.0"
+  },
+  "files": [
+    "*.js",
+    "esm/*.mjs"
+  ],
+  "scripts": {
+    "prepublishOnly": "node -e \"assert.equal(require('.').version, require('..').version)\""
+  }
+}

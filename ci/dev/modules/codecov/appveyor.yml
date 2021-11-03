@@ -1,0 +1,27 @@
+environment:
+  matrix:
+    - nodejs_version: '14'
+    - nodejs_version: '12'
+    - nodejs_version: '10'
+
+max_jobs: 4
+
+clone_depth: 50
+
+init:
+  - git config --global core.autocrlf true
+
+install:
+  - ps: Install-Product node $env:nodejs_version x64
+  - npm install
+
+test_script:
+  - cmd: SET PATH=C:\MinGW\bin;%PATH%
+  - npm run test
+
+after_test:
+  - node .\bin\codecov -f coverage\*.json
+
+build: off
+
+deploy: off

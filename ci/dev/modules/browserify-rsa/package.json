@@ -1,0 +1,31 @@
+{
+  "name": "browserify-rsa",
+  "version": "4.1.0",
+  "description": "RSA for browserify",
+  "bugs": {
+    "url": "https://github.com/crypto-browserify/browserify-rsa/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com:crypto-browserify/browserify-rsa.git"
+  },
+  "scripts": {
+    "lint": "standard",
+    "test": "npm run lint && npm run unit",
+    "unit": "tape test/*.js"
+  },
+  "dependencies": {
+    "bn.js": "^5.0.0",
+    "randombytes": "^2.0.1"
+  },
+  "devDependencies": {
+    "parse-asn1": "^5.0.0",
+    "standard": "^6.0.8",
+    "tape": "^4.5.1"
+  }
+}

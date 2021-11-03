@@ -1,0 +1,69 @@
+{
+  "name": "pac-proxy-agent",
+  "version": "5.0.0",
+  "description": "A PAC file proxy `http.Agent` implementation for HTTP",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prebuild": "rimraf dist",
+    "build": "tsc",
+    "test": "mocha --reporter spec",
+    "test-lint": "eslint src --ext .js,.ts",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/TooTallNate/node-pac-proxy-agent.git"
+  },
+  "keywords": [
+    "pac",
+    "proxy",
+    "agent",
+    "http",
+    "https",
+    "socks",
+    "request",
+    "access"
+  ],
+  "author": "Nathan Rajlich <nathan@tootallnate.net> (http://n8.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TooTallNate/node-pac-proxy-agent/issues"
+  },
+  "homepage": "https://github.com/TooTallNate/node-pac-proxy-agent",
+  "dependencies": {
+    "@tootallnate/once": "1",
+    "agent-base": "6",
+    "debug": "4",
+    "get-uri": "3",
+    "http-proxy-agent": "^4.0.1",
+    "https-proxy-agent": "5",
+    "pac-resolver": "^5.0.0",
+    "raw-body": "^2.2.0",
+    "socks-proxy-agent": "5"
+  },
+  "devDependencies": {
+    "@types/debug": "4",
+    "@types/node": "^12.12.11",
+    "@typescript-eslint/eslint-plugin": "1.6.0",
+    "@typescript-eslint/parser": "1.1.0",
+    "eslint": "5.16.0",
+    "eslint-config-airbnb": "17.1.0",
+    "eslint-config-prettier": "4.1.0",
+    "eslint-import-resolver-typescript": "1.1.1",
+    "eslint-plugin-import": "2.16.0",
+    "eslint-plugin-jsx-a11y": "6.2.1",
+    "eslint-plugin-react": "7.12.4",
+    "mocha": "^6.2.2",
+    "proxy": "1",
+    "rimraf": "^3.0.0",
+    "socksv5": "0.0.6",
+    "typescript": "^3.5.3"
+  },
+  "engines": {
+    "node": ">= 8"
+  }
+}

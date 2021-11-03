@@ -1,0 +1,40 @@
+{
+  "name": "JSONStream",
+  "version": "1.3.5",
+  "description": "rawStream.pipe(JSONStream.parse()).pipe(streamOfObjects)",
+  "homepage": "http://github.com/dominictarr/JSONStream",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dominictarr/JSONStream.git"
+  },
+  "license": "(MIT OR Apache-2.0)",
+  "keywords": [
+    "json",
+    "stream",
+    "streaming",
+    "parser",
+    "async",
+    "parsing"
+  ],
+  "dependencies": {
+    "jsonparse": "^1.2.0",
+    "through": ">=2.2.7 <3"
+  },
+  "devDependencies": {
+    "it-is": "~1",
+    "assertions": "~2.2.2",
+    "render": "~0.1.1",
+    "trees": "~0.0.3",
+    "event-stream": "~0.7.0",
+    "tape": "~2.12.3"
+  },
+  "bin": "./bin.js",
+  "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://bit.ly/dominictarr)",
+  "scripts": {
+    "test": "node test/run.js"
+  },
+  "optionalDependencies": {},
+  "engines": {
+    "node": "*"
+  }
+}

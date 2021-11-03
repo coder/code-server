@@ -1,0 +1,41 @@
+#!/usr/bin/env node
+var argv = require('argv');
+var codecov = require('../lib/codecov');
+
+
+var args = argv.option([
+  {name: 'token', short: 't', type: 'string', description: "Private repository token. Not required for public repos on Travis, CircleCI and AppVeyor"},
+  {name: 'file', short: 'f', type: 'path', description: "Target a specific file for uploading and disabling automatic detection of coverage files."},
+  {name: 'env', short: 'e', type: 'string', description: "Store environment variables to help distinguish CI builds.", example: "--env=VAR1,VAR2,VAR3"},
+  {name: 'root', short: 'p', type: 'path', description: "Project root, if not current directory"},
+  {name: 'gcov-root', type: 'path', description: "Project root directory when preparing gcov"},
+  {name: 'gcov-glob', type: 'string', description: "Paths to ignore during gcov gathering"},
+  {name: 'gcov-exec', type: 'string', description: "gcov executable to run. Defaults to 'gcov'"},
+  {name: 'gcov-args', type: 'string', description: "extra arguments to pass to gcov"},
+  {name: 'disable', short: 'X', type: 'string', description: "Disable features. Accepting `search` to disable crawling through directories, `detect` to disable detecting CI provider, `gcov` disable gcov commands"},
+  {name: 'commit', short: 'c', type: 'string', description: "Commit sha, set automatically"},
+  {name: 'clear', short: 'C', type: 'boolean', description: "Remove all discovered reports after uploading"},
+  {name: 'branch', short: 'b', type: 'string', description: "Branch name"},
+  {name: 'build', short: 'B', type: 'string', description: "Specify a custom build number to distinguish ci jobs, provided automatically for supported ci companies"},
+  {name: 'slug', short: 'r', type: 'string', description: "Specify repository slug for Enterprise ex. owner/repo"},
+  {name: 'url', short: 'u', type: 'string', description: "Your Codecov endpoint"},
+  {name: 'flags', short: 'F', type: 'string', description: "Codecov Flags"},
+  {name: 'dump', type: 'boolean', description: "Dump collected data and do not send to Codecov"},
+  {name: 'pipe', short: 'l', type: 'boolean', description: "Listen to stdin for coverage data"},
+  {name: 'yml', short: 'y', type: 'string', description: "Configuration file Used to specify the location of the .codecov.yml config file. Defaults to codecov.yml and .codecov.yml"},
+]).run();
+
+if (args.options.pipe) {
+  process.stdin.setEncoding('utf8');
+  args.options.pipe = [];
+
+  process.stdin.on('data', function(report) {
+    args.options.pipe.push(report);
+  });
+
+  process.stdin.on('end', function() {
+    codecov.upload(args);
+  });
+} else {
+  codecov.upload(args);
+}

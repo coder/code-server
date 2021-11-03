@@ -1,0 +1,25 @@
+{
+  "name": "path-platform",
+  "version": "0.11.15",
+  "license": "MIT",
+  "author": "Timothy J Fontaine <tjfontaine@gmail.com> (http://atxconsulting.com)",
+  "description": "Provide access to win32 and posix path operations; sourced directly from upstream Node.js",
+  "keywords": [
+    "path",
+    "platform",
+    "posix",
+    "win32"
+  ],
+  "homepage": "http://github.com/tjfontaine/node-path-platform",
+  "bugs": {
+    "url": "http://github.com/tjfontaine/node-path-platform/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/tjfontaine/node-path-platform.git"
+  },
+  "main": "path.js",
+  "engines": {
+    "node": ">= 0.8.0"
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "extends": ["eslint:recommended", "prettier"],
+  "env": {
+    "node": true,
+    "jest": true
+  },
+  "globals": {
+    "expect": true
+  },
+  "rules": {
+    "no-console": "off",
+    "no-empty": ["error", { "allowEmptyCatch": true }]
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "name": "cookie-parser",
+  "description": "Parse HTTP request cookies",
+  "version": "1.4.5",
+  "author": "TJ Holowaychuk <tj@vision-media.ca> (http://tjholowaychuk.com)",
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>"
+  ],
+  "license": "MIT",
+  "repository": "expressjs/cookie-parser",
+  "keywords": [
+    "cookie",
+    "middleware"
+  ],
+  "dependencies": {
+    "cookie": "0.4.0",
+    "cookie-signature": "1.0.6"
+  },
+  "devDependencies": {
+    "eslint": "6.8.0",
+    "eslint-config-standard": "14.1.0",
+    "eslint-plugin-import": "2.20.1",
+    "eslint-plugin-markdown": "1.0.2",
+    "eslint-plugin-node": "11.0.0",
+    "eslint-plugin-promise": "4.2.1",
+    "eslint-plugin-standard": "4.0.1",
+    "istanbul": "0.4.5",
+    "mocha": "7.1.0",
+    "supertest": "4.0.2"
+  },
+  "files": [
+    "LICENSE",
+    "HISTORY.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --reporter spec --bail --check-leaks test/",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot --check-leaks test/",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter spec --check-leaks test/"
+  }
+}

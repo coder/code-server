@@ -1,0 +1,44 @@
+{
+	"name": "html-tags",
+	"version": "3.1.0",
+	"description": "List of standard HTML tags",
+	"license": "MIT",
+	"repository": "sindresorhus/html-tags",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=8"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts",
+		"void.js",
+		"void.d.ts",
+		"html-tags.json",
+		"html-tags.json.d.ts",
+		"html-tags-void.json",
+		"html-tags-void.json.d.ts"
+	],
+	"keywords": [
+		"html",
+		"html5",
+		"tags",
+		"elements",
+		"list",
+		"whatwg",
+		"w3c",
+		"void",
+		"self-closing"
+	],
+	"devDependencies": {
+		"ava": "^1.4.1",
+		"tsd": "^0.7.2",
+		"xo": "^0.24.0"
+	}
+}

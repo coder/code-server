@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+// CLI uses CommonJS require to support older versions of Node.js
+var specificity = require('../dist/specificity'),
+	selector = process.argv[2],
+	result;
+
+if (selector) {
+	result = specificity.calculate(selector)[0];
+	console.log(result.specificity);
+} else {
+	console.log('Usage: specificity <selector>');
+	console.log('Computes specificity of a CSS selector.');
+	process.exit(1);
+}

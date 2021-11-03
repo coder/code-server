@@ -1,0 +1,13 @@
+{
+  "name": "cached-path-relative",
+  "description": "Memoize the results of the path.relative function",
+  "repository": "git://github.com/ashaffer/cached-path-relative.git",
+  "version": "1.0.2",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "dependencies": {},
+  "devDependencies": {
+    "tape": "^4.2.0",
+    "standard": "^4.0.0"
+  }
+}

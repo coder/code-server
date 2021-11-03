@@ -1,0 +1,4 @@
+coverage:
+  parsers:
+    javascript:
+      enable_partials: no

@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>pem.js</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="../docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    
+      <ul id="jump_to">
+        <li>
+          <a class="large" href="javascript:void(0);">Jump To &hellip;</a>
+          <a class="small" href="javascript:void(0);">+</a>
+          <div id="jump_wrapper">
+          <div id="jump_page_wrapper">
+            <div id="jump_page">
+              
+                
+                <a class="source" href="helper.html">
+                  lib/helper.js
+                </a>
+              
+                
+                <a class="source" href="openssl.html">
+                  lib/openssl.js
+                </a>
+              
+                
+                <a class="source" href="pem.html">
+                  lib/pem.js
+                </a>
+              
+            </div>
+          </div>
+        </li>
+      </ul>
+    
+    <ul class="sections">
+        
+          <li id="title">
+              <div class="annotation">
+                  <h1>pem.js</h1>
+              </div>
+          </li>
+        
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-meta">'use strict'</span>
+
+<span class="hljs-comment">/**
+ * pem module
+ *
+ * @module pem
+ */</span>
+
+<span class="hljs-keyword">const</span> { promisify } = <span class="hljs-built_in">require</span>(<span class="hljs-string">'es6-promisify'</span>)
+<span class="hljs-keyword">var</span> net = <span class="hljs-built_in">require</span>(<span class="hljs-string">'net'</span>)
+<span class="hljs-keyword">var</span> helper = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./helper.js'</span>)
+<span class="hljs-keyword">var</span> openssl = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./openssl.js'</span>)
+
+<span class="hljs-built_in">module</span>.exports.createPrivateKey = createPrivateKey
+<span class="hljs-built_in">module</span>.exports.createDhparam = createDhparam
+<span class="hljs-built_in">module</span>.exports.createEcparam = createEcparam
+<span class="hljs-built_in">module</span>.exports.createCSR = createCSR
+<span class="hljs-built_in">module</span>.exports.createCertificate = createCertificate
+<span class="hljs-built_in">module</span>.exports.readCertificateInfo = readCertificateInfo
+<span class="hljs-built_in">module</span>.exports.getPublicKey = getPublicKey
+<span class="hljs-built_in">module</span>.exports.getFingerprint = getFingerprint
+<span class="hljs-built_in">module</span>.exports.getModulus = getModulus
+<span class="hljs-built_in">module</span>.exports.getDhparamInfo = getDhparamInfo
+<span class="hljs-built_in">module</span>.exports.createPkcs12 = createPkcs12
+<span class="hljs-built_in">module</span>.exports.readPkcs12 = readPkcs12
+<span class="hljs-built_in">module</span>.exports.verifySigningChain = verifySigningChain
+<span class="hljs-built_in">module</span>.exports.checkCertificate = checkCertificate
+<span class="hljs-built_in">module</span>.exports.checkPkcs12 = checkPkcs12
+<span class="hljs-built_in">module</span>.exports.config = config
+
+<span class="hljs-comment">/**
+ * quick access the convert module
+ * @type {module:convert}
+ */</span>
+<span class="hljs-built_in">module</span>.exports.convert = <span class="hljs-built_in">require</span>(<span class="hljs-string">'./convert.js'</span>)
+
+<span class="hljs-keyword">var</span> KEY_START = <span class="hljs-string">'-----BEGIN PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> KEY_END = <span class="hljs-string">'-----END PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> RSA_KEY_START = <span class="hljs-string">'-----BEGIN RSA PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> RSA_KEY_END = <span class="hljs-string">'-----END RSA PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> ENCRYPTED_KEY_START = <span class="hljs-string">'-----BEGIN ENCRYPTED PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> ENCRYPTED_KEY_END = <span class="hljs-string">'-----END ENCRYPTED PRIVATE KEY-----'</span>
+<span class="hljs-keyword">var</span> CERT_START = <span class="hljs-string">'-----BEGIN CERTIFICATE-----'</span>
+<span class="hljs-keyword">var</span> CERT_END = <span class="hljs-string">'-----END CERTIFICATE-----'</span>
+
+<span class="hljs-comment">/**
+ * Creates a private key
+ *
+ * @static
+ * @param {Number} [keyBitsize=2048] Size of the key, defaults to 2048bit
+ * @param {Object} [options] object of cipher and password {cipher:'aes128',password:'xxx'}, defaults empty object
+ * @param {String} [options.cipher] string of the cipher for the encryption - needed with password
+ * @param {String} [options.password] string of the cipher password for the encryption needed with cipher
+ * @param {Function} callback Callback function with an error object and {key}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createPrivateKey</span> (<span class="hljs-params">keyBitsize, options, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; !options &amp;&amp; <span class="hljs-keyword">typeof</span> keyBitsize === <span class="hljs-string">'function'</span>) {
+    callback = keyBitsize
+    keyBitsize = <span class="hljs-literal">undefined</span>
+    options = {}
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!callback &amp;&amp; keyBitsize &amp;&amp; <span class="hljs-keyword">typeof</span> options === <span class="hljs-string">'function'</span>) {
+    callback = options
+    options = {}
+  }
+
+  keyBitsize = <span class="hljs-built_in">Number</span>(keyBitsize) || <span class="hljs-number">2048</span>
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'genrsa'</span>]
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+
+  <span class="hljs-keyword">if</span> (options &amp;&amp; options.cipher &amp;&amp; (<span class="hljs-built_in">Number</span>(helper.ciphers.indexOf(options.cipher)) !== <span class="hljs-number">-1</span>) &amp;&amp; options.password) {
+    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: options.cipher, <span class="hljs-attr">password</span>: options.password, <span class="hljs-attr">passType</span>: <span class="hljs-string">'out'</span> }, params, delTempPWFiles)
+  }
+
+  params.push(keyBitsize)
+
+  openssl.exec(params, <span class="hljs-string">'RSA PRIVATE KEY'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, key</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      callback(<span class="hljs-literal">null</span>, {
+        <span class="hljs-attr">key</span>: key
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Creates a dhparam key
+ *
+ * @static
+ * @param {Number} [keyBitsize=512] Size of the key, defaults to 512bit
+ * @param {Function} callback Callback function with an error object and {dhparam}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createDhparam</span> (<span class="hljs-params">keyBitsize, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> keyBitsize === <span class="hljs-string">'function'</span>) {
+    callback = keyBitsize
+    keyBitsize = <span class="hljs-literal">undefined</span>
+  }
+
+  keyBitsize = <span class="hljs-built_in">Number</span>(keyBitsize) || <span class="hljs-number">512</span>
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'dhparam'</span>,
+    <span class="hljs-string">'-outform'</span>,
+    <span class="hljs-string">'PEM'</span>,
+    keyBitsize
+  ]
+
+  openssl.exec(params, <span class="hljs-string">'DH PARAMETERS'</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, dhparam</span>) </span>{
+    <span class="hljs-keyword">if</span> (error) {
+      <span class="hljs-keyword">return</span> callback(error)
+    }
+    <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+      <span class="hljs-attr">dhparam</span>: dhparam
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Creates a ecparam key
+ * @static
+ * @param {String} [keyName=secp256k1] Name of the key, defaults to secp256k1
+ * @param {String} [paramEnc=explicit] Encoding of the elliptic curve parameters, defaults to explicit
+ * @param {Boolean} [noOut=false] This option inhibits the output of the encoded version of the parameters.
+ * @param {Function} callback Callback function with an error object and {ecparam}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createEcparam</span> (<span class="hljs-params">keyName, paramEnc, noOut, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> noOut === <span class="hljs-string">'undefined'</span> &amp;&amp; !paramEnc &amp;&amp; <span class="hljs-keyword">typeof</span> keyName === <span class="hljs-string">'function'</span>) {
+    callback = keyName
+    keyName = <span class="hljs-literal">undefined</span>
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> noOut === <span class="hljs-string">'undefined'</span> &amp;&amp; keyName &amp;&amp; <span class="hljs-keyword">typeof</span> paramEnc === <span class="hljs-string">'function'</span>) {
+    callback = paramEnc
+    paramEnc = <span class="hljs-literal">undefined</span>
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> noOut === <span class="hljs-string">'function'</span> &amp;&amp; keyName &amp;&amp; paramEnc) {
+    callback = noOut
+    noOut = <span class="hljs-literal">undefined</span>
+  }
+
+  keyName = keyName || <span class="hljs-string">'secp256k1'</span>
+  paramEnc = paramEnc || <span class="hljs-string">'explicit'</span>
+  noOut = noOut || <span class="hljs-literal">false</span>
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'ecparam'</span>,
+    <span class="hljs-string">'-name'</span>,
+    keyName,
+    <span class="hljs-string">'-genkey'</span>,
+    <span class="hljs-string">'-param_enc'</span>,
+    paramEnc
+  ]
+
+  <span class="hljs-keyword">var</span> searchString = <span class="hljs-string">'EC PARAMETERS'</span>
+  <span class="hljs-keyword">if</span> (noOut) {
+    params.push(<span class="hljs-string">'-noout'</span>)
+    searchString = <span class="hljs-string">'EC PRIVATE KEY'</span>
+  }
+
+  openssl.exec(params, searchString, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, ecparam</span>) </span>{
+    <span class="hljs-keyword">if</span> (error) {
+      <span class="hljs-keyword">return</span> callback(error)
+    }
+    <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+      <span class="hljs-attr">ecparam</span>: ecparam
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Creates a Certificate Signing Request
+ * If client key is undefined, a new key is created automatically. The used key is included
+ * in the callback return as clientKey
+ * @static
+ * @param {Object} [options] Optional options object
+ * @param {String} [options.clientKey] Optional client key to use
+ * @param {Number} [options.keyBitsize] If clientKey is undefined, bit size to use for generating a new key (defaults to 2048)
+ * @param {String} [options.hash] Hash function to use (either md5 sha1 or sha256, defaults to sha256)
+ * @param {String} [options.country] CSR country field
+ * @param {String} [options.state] CSR state field
+ * @param {String} [options.locality] CSR locality field
+ * @param {String} [options.organization] CSR organization field
+ * @param {String} [options.organizationUnit] CSR organizational unit field
+ * @param {String} [options.commonName='localhost'] CSR common name field
+ * @param {String} [options.emailAddress] CSR email address field
+ * @param {String} [options.csrConfigFile] CSR config file
+ * @param {Array}  [options.altNames] is a list of subjectAltNames in the subjectAltName field
+ * @param {Function} callback Callback function with an error object and {csr, clientKey}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createCSR</span> (<span class="hljs-params">options, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> options === <span class="hljs-string">'function'</span>) {
+    callback = options
+    options = <span class="hljs-literal">undefined</span>
+  }
+
+  options = options || {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              <p><a href="http://stackoverflow.com/questions/14089872/why-does-node-js-accept-ip-addresses-in-certificates-only-for-san-not-for-cn">http://stackoverflow.com/questions/14089872/why-does-node-js-accept-ip-addresses-in-certificates-only-for-san-not-for-cn</a></p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (options.commonName &amp;&amp; (net.isIPv4(options.commonName) || net.isIPv6(options.commonName))) {
+    <span class="hljs-keyword">if</span> (!options.altNames) {
+      options.altNames = [options.commonName]
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options.altNames.indexOf(options.commonName) === <span class="hljs-number">-1</span>) {
+      options.altNames = options.altNames.concat([options.commonName])
+    }
+  }
+
+  <span class="hljs-keyword">if</span> (!options.clientKey) {
+    createPrivateKey(options.keyBitsize || <span class="hljs-number">2048</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, keyData</span>) </span>{
+      <span class="hljs-keyword">if</span> (error) {
+        <span class="hljs-keyword">return</span> callback(error)
+      }
+      options.clientKey = keyData.key
+      createCSR(options, callback)
+    })
+    <span class="hljs-keyword">return</span>
+  }
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'req'</span>,
+    <span class="hljs-string">'-new'</span>,
+    <span class="hljs-string">'-'</span> + (options.hash || <span class="hljs-string">'sha256'</span>)
+  ]
+
+  <span class="hljs-keyword">if</span> (options.csrConfigFile) {
+    params.push(<span class="hljs-string">'-config'</span>)
+    params.push(options.csrConfigFile)
+  } <span class="hljs-keyword">else</span> {
+    params.push(<span class="hljs-string">'-subj'</span>)
+    params.push(generateCSRSubject(options))
+  }
+
+  params.push(<span class="hljs-string">'-key'</span>)
+  params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+
+  <span class="hljs-keyword">var</span> tmpfiles = [options.clientKey]
+  <span class="hljs-keyword">var</span> config = <span class="hljs-literal">null</span>
+
+  <span class="hljs-keyword">if</span> (options.altNames &amp;&amp; <span class="hljs-built_in">Array</span>.isArray(options.altNames) &amp;&amp; options.altNames.length) {
+    params.push(<span class="hljs-string">'-extensions'</span>)
+    params.push(<span class="hljs-string">'v3_req'</span>)
+    params.push(<span class="hljs-string">'-config'</span>)
+    params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+    <span class="hljs-keyword">var</span> altNamesRep = []
+    <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; options.altNames.length; i++) {
+      altNamesRep.push((net.isIP(options.altNames[i]) ? <span class="hljs-string">'IP'</span> : <span class="hljs-string">'DNS'</span>) + <span class="hljs-string">'.'</span> + (i + <span class="hljs-number">1</span>) + <span class="hljs-string">' = '</span> + options.altNames[i])
+    }
+
+    tmpfiles.push(config = [
+      <span class="hljs-string">'[req]'</span>,
+      <span class="hljs-string">'req_extensions = v3_req'</span>,
+      <span class="hljs-string">'distinguished_name = req_distinguished_name'</span>,
+      <span class="hljs-string">'[v3_req]'</span>,
+      <span class="hljs-string">'subjectAltName = @alt_names'</span>,
+      <span class="hljs-string">'[alt_names]'</span>,
+      altNamesRep.join(<span class="hljs-string">'\n'</span>),
+      <span class="hljs-string">'[req_distinguished_name]'</span>,
+      <span class="hljs-string">'commonName = Common Name'</span>,
+      <span class="hljs-string">'commonName_max = 64'</span>
+    ].join(<span class="hljs-string">'\n'</span>))
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options.config) {
+    config = options.config
+  }
+
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+  <span class="hljs-keyword">if</span> (options.clientKeyPassword) {
+    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.clientKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+  }
+
+  openssl.exec(params, <span class="hljs-string">'CERTIFICATE REQUEST'</span>, tmpfiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, data</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      callback(<span class="hljs-literal">null</span>, {
+        <span class="hljs-attr">csr</span>: data,
+        <span class="hljs-attr">config</span>: config,
+        <span class="hljs-attr">clientKey</span>: options.clientKey
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Creates a certificate based on a CSR. If CSR is not defined, a new one
+ * will be generated automatically. For CSR generation all the options values
+ * can be used as with createCSR.
+ * @static
+ * @param {Object} [options] Optional options object
+ * @param {String} [options.serviceCertificate] PEM encoded certificate
+ * @param {String} [options.serviceKey] Private key for signing the certificate, if not defined a new one is generated
+ * @param {String} [options.serviceKeyPassword] Password of the service key
+ * @param {Boolean} [options.selfSigned] If set to true and serviceKey is not defined, use clientKey for signing
+ * @param {String|Number} [options.serial] Set a serial max. 20 octets - only together with options.serviceCertificate
+ * @param {String} [options.serialFile] Set the name of the serial file, without extension. - only together with options.serviceCertificate and never in tandem with options.serial
+ * @param {String} [options.hash] Hash function to use (either md5 sha1 or sha256, defaults to sha256)
+ * @param {String} [options.csr] CSR for the certificate, if not defined a new one is generated
+ * @param {Number} [options.days] Certificate expire time in days
+ * @param {String} [options.clientKeyPassword] Password of the client key
+ * @param {String} [options.extFile] extension config file - without '-extensions v3_req'
+ * @param {String} [options.config] extension config file - with '-extensions v3_req'
+ * @param {String} [options.csrConfigFile] CSR config file - only used if no options.csr is provided
+ * @param {Array}  [options.altNames] is a list of subjectAltNames in the subjectAltName field - only used if no options.csr is provided
+ * @param {Function} callback Callback function with an error object and {certificate, csr, clientKey, serviceKey}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createCertificate</span> (<span class="hljs-params">options, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> options === <span class="hljs-string">'function'</span>) {
+    callback = options
+    options = <span class="hljs-literal">undefined</span>
+  }
+
+  options = options || {}
+
+  <span class="hljs-keyword">if</span> (!options.csr) {
+    createCSR(options, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, keyData</span>) </span>{
+      <span class="hljs-keyword">if</span> (error) {
+        <span class="hljs-keyword">return</span> callback(error)
+      }
+      options.csr = keyData.csr
+      options.config = keyData.config
+      options.clientKey = keyData.clientKey
+      createCertificate(options, callback)
+    })
+    <span class="hljs-keyword">return</span>
+  }
+
+  <span class="hljs-keyword">if</span> (!options.clientKey) {
+    options.clientKey = <span class="hljs-string">''</span>
+  }
+
+  <span class="hljs-keyword">if</span> (!options.serviceKey) {
+    <span class="hljs-keyword">if</span> (options.selfSigned) {
+      options.serviceKey = options.clientKey
+    } <span class="hljs-keyword">else</span> {
+      createPrivateKey(options.keyBitsize || <span class="hljs-number">2048</span>, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, keyData</span>) </span>{
+        <span class="hljs-keyword">if</span> (error) {
+          <span class="hljs-keyword">return</span> callback(error)
+        }
+        options.serviceKey = keyData.key
+        createCertificate(options, callback)
+      })
+      <span class="hljs-keyword">return</span>
+    }
+  }
+
+  readCertificateInfo(options.csr, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error2, data2</span>) </span>{
+    <span class="hljs-keyword">if</span> (error2) {
+      <span class="hljs-keyword">return</span> callback(error2)
+    }
+
+    <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'x509'</span>,
+      <span class="hljs-string">'-req'</span>,
+      <span class="hljs-string">'-'</span> + (options.hash || <span class="hljs-string">'sha256'</span>),
+      <span class="hljs-string">'-days'</span>,
+      <span class="hljs-built_in">Number</span>(options.days) || <span class="hljs-string">'365'</span>,
+      <span class="hljs-string">'-in'</span>,
+      <span class="hljs-string">'--TMPFILE--'</span>
+    ]
+    <span class="hljs-keyword">var</span> tmpfiles = [options.csr]
+    <span class="hljs-keyword">var</span> delTempPWFiles = []
+
+    <span class="hljs-keyword">if</span> (options.serviceCertificate) {
+      params.push(<span class="hljs-string">'-CA'</span>)
+      params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+      params.push(<span class="hljs-string">'-CAkey'</span>)
+      params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+      <span class="hljs-keyword">if</span> (options.serial) {
+        params.push(<span class="hljs-string">'-set_serial'</span>)
+        <span class="hljs-keyword">if</span> (helper.isNumber(options.serial)) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-3">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-3">&#182;</a>
+              </div>
+              <p>set the serial to the max lenth of 20 octets ()
+A certificate serial number is not decimal conforming. That is the
+bytes in a serial number do not necessarily map to a printable ASCII
+character.
+eg: 0x00 is a valid serial number and can not be represented in a
+human readable format (atleast one that can be directly mapped to
+the ACSII table).</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          params.push(<span class="hljs-string">'0x'</span> + (<span class="hljs-string">'0000000000000000000000000000000000000000'</span> + options.serial.toString(<span class="hljs-number">16</span>)).slice(<span class="hljs-number">-40</span>))
+        } <span class="hljs-keyword">else</span> {
+          <span class="hljs-keyword">if</span> (helper.isHex(options.serial)) {
+            <span class="hljs-keyword">if</span> (options.serial.startsWith(<span class="hljs-string">'0x'</span>)) {
+              options.serial = options.serial.substring(<span class="hljs-number">2</span>, options.serial.length)
+            }
+            params.push(<span class="hljs-string">'0x'</span> + (<span class="hljs-string">'0000000000000000000000000000000000000000'</span> + options.serial).slice(<span class="hljs-number">-40</span>))
+          } <span class="hljs-keyword">else</span> {
+            params.push(<span class="hljs-string">'0x'</span> + (<span class="hljs-string">'0000000000000000000000000000000000000000'</span> + helper.toHex(options.serial)).slice(<span class="hljs-number">-40</span>))
+          }
+        }
+      } <span class="hljs-keyword">else</span> {
+        params.push(<span class="hljs-string">'-CAcreateserial'</span>)
+        <span class="hljs-keyword">if</span> (options.serialFile) {
+          params.push(<span class="hljs-string">'-CAserial'</span>)
+          params.push(options.serialFile + <span class="hljs-string">'.srl'</span>)
+        }
+      }
+      <span class="hljs-keyword">if</span> (options.serviceKeyPassword) {
+        helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.serviceKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+      }
+      tmpfiles.push(options.serviceCertificate)
+      tmpfiles.push(options.serviceKey)
+    } <span class="hljs-keyword">else</span> {
+      params.push(<span class="hljs-string">'-signkey'</span>)
+      params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+      <span class="hljs-keyword">if</span> (options.serviceKeyPassword) {
+        helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.serviceKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+      }
+      tmpfiles.push(options.serviceKey)
+    }
+
+    <span class="hljs-keyword">if</span> (options.config) {
+      params.push(<span class="hljs-string">'-extensions'</span>)
+      params.push(<span class="hljs-string">'v3_req'</span>)
+      params.push(<span class="hljs-string">'-extfile'</span>)
+      params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+      tmpfiles.push(options.config)
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (options.extFile) {
+      params.push(<span class="hljs-string">'-extfile'</span>)
+      params.push(options.extFile)
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">var</span> altNamesRep = []
+      <span class="hljs-keyword">if</span> (data2 &amp;&amp; data2.san) {
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; data2.san.dns.length; i++) {
+          altNamesRep.push(<span class="hljs-string">'DNS'</span> + <span class="hljs-string">'.'</span> + (i + <span class="hljs-number">1</span>) + <span class="hljs-string">' = '</span> + data2.san.dns[i])
+        }
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i2 = <span class="hljs-number">0</span>; i2 &lt; data2.san.ip.length; i2++) {
+          altNamesRep.push(<span class="hljs-string">'IP'</span> + <span class="hljs-string">'.'</span> + (i2 + <span class="hljs-number">1</span>) + <span class="hljs-string">' = '</span> + data2.san.ip[i2])
+        }
+        <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i3 = <span class="hljs-number">0</span>; i3 &lt; data2.san.email.length; i3++) {
+          altNamesRep.push(<span class="hljs-string">'email'</span> + <span class="hljs-string">'.'</span> + (i3 + <span class="hljs-number">1</span>) + <span class="hljs-string">' = '</span> + data2.san.email[i3])
+        }
+        params.push(<span class="hljs-string">'-extensions'</span>)
+        params.push(<span class="hljs-string">'v3_req'</span>)
+        params.push(<span class="hljs-string">'-extfile'</span>)
+        params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+        tmpfiles.push([
+          <span class="hljs-string">'[v3_req]'</span>,
+          <span class="hljs-string">'subjectAltName = @alt_names'</span>,
+          <span class="hljs-string">'[alt_names]'</span>,
+          altNamesRep.join(<span class="hljs-string">'\n'</span>)
+        ].join(<span class="hljs-string">'\n'</span>))
+      }
+    }
+
+    <span class="hljs-keyword">if</span> (options.clientKeyPassword) {
+      helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.clientKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+    }
+
+    openssl.exec(params, <span class="hljs-string">'CERTIFICATE'</span>, tmpfiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, data</span>) </span>{
+      <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+        <span class="hljs-keyword">if</span> (err) {
+          <span class="hljs-keyword">return</span> callback(err)
+        }
+        <span class="hljs-keyword">var</span> response = {
+          <span class="hljs-attr">csr</span>: options.csr,
+          <span class="hljs-attr">clientKey</span>: options.clientKey,
+          <span class="hljs-attr">certificate</span>: data,
+          <span class="hljs-attr">serviceKey</span>: options.serviceKey
+        }
+        <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, response)
+      }
+
+      helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+        done(sslErr || fsErr)
+      })
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Exports a public key from a private key, CSR or certificate
+ * @static
+ * @param {String} certificate PEM encoded private key, CSR or certificate
+ * @param {Function} callback Callback function with an error object and {publicKey}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getPublicKey</span> (<span class="hljs-params">certificate, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> certificate === <span class="hljs-string">'function'</span>) {
+    callback = certificate
+    certificate = <span class="hljs-literal">undefined</span>
+  }
+
+  certificate = (certificate || <span class="hljs-string">''</span>).toString()
+
+  <span class="hljs-keyword">var</span> params
+
+  <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN(\sNEW)? CERTIFICATE REQUEST/</span>)) {
+    params = [<span class="hljs-string">'req'</span>,
+      <span class="hljs-string">'-in'</span>,
+      <span class="hljs-string">'--TMPFILE--'</span>,
+      <span class="hljs-string">'-pubkey'</span>,
+      <span class="hljs-string">'-noout'</span>
+    ]
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN RSA PRIVATE KEY/</span>) || certificate.match(<span class="hljs-regexp">/BEGIN PRIVATE KEY/</span>)) {
+    params = [<span class="hljs-string">'rsa'</span>,
+      <span class="hljs-string">'-in'</span>,
+      <span class="hljs-string">'--TMPFILE--'</span>,
+      <span class="hljs-string">'-pubout'</span>
+    ]
+  } <span class="hljs-keyword">else</span> {
+    params = [<span class="hljs-string">'x509'</span>,
+      <span class="hljs-string">'-in'</span>,
+      <span class="hljs-string">'--TMPFILE--'</span>,
+      <span class="hljs-string">'-pubkey'</span>,
+      <span class="hljs-string">'-noout'</span>
+    ]
+  }
+
+  openssl.exec(params, <span class="hljs-string">'PUBLIC KEY'</span>, certificate, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">error, key</span>) </span>{
+    <span class="hljs-keyword">if</span> (error) {
+      <span class="hljs-keyword">return</span> callback(error)
+    }
+    <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+      <span class="hljs-attr">publicKey</span>: key
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Reads subject data from a certificate or a CSR
+ * @static
+ * @param {String} certificate PEM encoded CSR or certificate
+ * @param {Function} callback Callback function with an error object and {country, state, locality, organization, organizationUnit, commonName, emailAddress}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readCertificateInfo</span> (<span class="hljs-params">certificate, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> certificate === <span class="hljs-string">'function'</span>) {
+    callback = certificate
+    certificate = <span class="hljs-literal">undefined</span>
+  }
+
+  certificate = (certificate || <span class="hljs-string">''</span>).toString()
+  <span class="hljs-keyword">var</span> isMatch = certificate.match(<span class="hljs-regexp">/BEGIN(\sNEW)? CERTIFICATE REQUEST/</span>)
+  <span class="hljs-keyword">var</span> type = isMatch ? <span class="hljs-string">'req'</span> : <span class="hljs-string">'x509'</span>
+  <span class="hljs-keyword">var</span> params = [type,
+    <span class="hljs-string">'-noout'</span>,
+    <span class="hljs-string">'-nameopt'</span>,
+    <span class="hljs-string">'RFC2253,sep_multiline,space_eq,-esc_msb,utf8'</span>,
+    <span class="hljs-string">'-text'</span>,
+    <span class="hljs-string">'-in'</span>,
+    <span class="hljs-string">'--TMPFILE--'</span>
+  ]
+  openssl.spawnWrapper(params, certificate, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, code, stdout, stderr</span>) </span>{
+    <span class="hljs-keyword">if</span> (err) {
+      <span class="hljs-keyword">return</span> callback(err)
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (stderr) {
+      <span class="hljs-keyword">return</span> callback(stderr)
+    }
+    <span class="hljs-keyword">return</span> fetchCertificateData(stdout, callback)
+  })
+}
+
+<span class="hljs-comment">/**
+ * get the modulus from a certificate, a CSR or a private key
+ * @static
+ * @param {String} certificate PEM encoded, CSR PEM encoded, or private key
+ * @param {String} [password] password for the certificate
+ * @param {String} [hash] hash function to use (up to now `md5` supported) (default: none)
+ * @param {Function} callback Callback function with an error object and {modulus}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getModulus</span> (<span class="hljs-params">certificate, password, hash, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; !hash &amp;&amp; <span class="hljs-keyword">typeof</span> password === <span class="hljs-string">'function'</span>) {
+    callback = password
+    password = <span class="hljs-literal">undefined</span>
+    hash = <span class="hljs-literal">false</span>
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (!callback &amp;&amp; hash &amp;&amp; <span class="hljs-keyword">typeof</span> hash === <span class="hljs-string">'function'</span>) {
+    callback = hash
+    hash = <span class="hljs-literal">false</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-4">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-4">&#182;</a>
+              </div>
+              <p>password will be falsy if not provided</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-5">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-5">&#182;</a>
+              </div>
+              <p>adding hash function to params, is not supported by openssl.
+process piping would be the right way (… | openssl md5)
+No idea how this can be achieved in easy with the current build in methods
+of pem.</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">if</span> (hash &amp;&amp; hash !== <span class="hljs-string">'md5'</span>) {
+    hash = <span class="hljs-literal">false</span>
+  }
+
+  certificate = (Buffer.isBuffer(certificate) &amp;&amp; certificate.toString()) || certificate
+
+  <span class="hljs-keyword">var</span> type = <span class="hljs-string">''</span>
+  <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN(\sNEW)? CERTIFICATE REQUEST/</span>)) {
+    type = <span class="hljs-string">'req'</span>
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN RSA PRIVATE KEY/</span>) || certificate.match(<span class="hljs-regexp">/BEGIN PRIVATE KEY/</span>)) {
+    type = <span class="hljs-string">'rsa'</span>
+  } <span class="hljs-keyword">else</span> {
+    type = <span class="hljs-string">'x509'</span>
+  }
+  <span class="hljs-keyword">var</span> params = [
+    type,
+    <span class="hljs-string">'-noout'</span>,
+    <span class="hljs-string">'-modulus'</span>,
+    <span class="hljs-string">'-in'</span>,
+    <span class="hljs-string">'--TMPFILE--'</span>
+  ]
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+  <span class="hljs-keyword">if</span> (password) {
+    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: password, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+  }
+
+  openssl.spawnWrapper(params, certificate, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, code, stdout, stderr</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      <span class="hljs-keyword">var</span> match = stdout.match(<span class="hljs-regexp">/Modulus=([0-9a-fA-F]+)$/m</span>)
+      <span class="hljs-keyword">if</span> (match) {
+        <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+          <span class="hljs-attr">modulus</span>: hash ? <span class="hljs-built_in">require</span>(hash)(match[<span class="hljs-number">1</span>]) : match[<span class="hljs-number">1</span>]
+        })
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'No modulus'</span>))
+      }
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr || stderr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * get the size and prime of DH parameters
+ * @static
+ * @param {String} DH parameters PEM encoded
+ * @param {Function} callback Callback function with an error object and {size, prime}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getDhparamInfo</span> (<span class="hljs-params">dh, callback</span>) </span>{
+  dh = (Buffer.isBuffer(dh) &amp;&amp; dh.toString()) || dh
+
+  <span class="hljs-keyword">var</span> params = [
+    <span class="hljs-string">'dhparam'</span>,
+    <span class="hljs-string">'-text'</span>,
+    <span class="hljs-string">'-in'</span>,
+    <span class="hljs-string">'--TMPFILE--'</span>
+  ]
+
+  openssl.spawnWrapper(params, dh, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, code, stdout, stderr</span>) </span>{
+    <span class="hljs-keyword">if</span> (err) {
+      <span class="hljs-keyword">return</span> callback(err)
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (stderr) {
+      <span class="hljs-keyword">return</span> callback(stderr)
+    }
+
+    <span class="hljs-keyword">var</span> result = {}
+    <span class="hljs-keyword">var</span> match = stdout.match(<span class="hljs-regexp">/Parameters: \((\d+) bit\)/</span>)
+
+    <span class="hljs-keyword">if</span> (match) {
+      result.size = <span class="hljs-built_in">Number</span>(match[<span class="hljs-number">1</span>])
+    }
+
+    <span class="hljs-keyword">var</span> prime = <span class="hljs-string">''</span>
+    stdout.split(<span class="hljs-string">'\n'</span>).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">line</span>) </span>{
+      <span class="hljs-keyword">if</span> (<span class="hljs-regexp">/\s+([0-9a-f][0-9a-f]:)+[0-9a-f]?[0-9a-f]?/g</span>.test(line)) {
+        prime += line.trim()
+      }
+    })
+
+    <span class="hljs-keyword">if</span> (prime) {
+      result.prime = prime
+    }
+
+    <span class="hljs-keyword">if</span> (!match &amp;&amp; !prime) {
+      <span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'No DH info found'</span>))
+    }
+
+    <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, result)
+  })
+}
+
+<span class="hljs-comment">/**
+ * config the pem module
+ * @static
+ * @param {Object} options
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">config</span> (<span class="hljs-params">options</span>) </span>{
+  <span class="hljs-built_in">Object</span>.keys(options).forEach(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">k</span>) </span>{
+    openssl.set(k, options[k])
+  })
+}
+
+<span class="hljs-comment">/**
+ * Gets the fingerprint for a certificate
+ * @static
+ * @param {String} PEM encoded certificate
+ * @param {String} [hash] hash function to use (either `md5`, `sha1` or `sha256`, defaults to `sha1`)
+ * @param {Function} callback Callback function with an error object and {fingerprint}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">getFingerprint</span> (<span class="hljs-params">certificate, hash, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> hash === <span class="hljs-string">'function'</span>) {
+    callback = hash
+    hash = <span class="hljs-literal">undefined</span>
+  }
+
+  hash = hash || <span class="hljs-string">'sha1'</span>
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'x509'</span>,
+    <span class="hljs-string">'-in'</span>,
+    <span class="hljs-string">'--TMPFILE--'</span>,
+    <span class="hljs-string">'-fingerprint'</span>,
+    <span class="hljs-string">'-noout'</span>,
+    <span class="hljs-string">'-'</span> + hash
+  ]
+
+  openssl.spawnWrapper(params, certificate, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, code, stdout, stderr</span>) </span>{
+    <span class="hljs-keyword">if</span> (err) {
+      <span class="hljs-keyword">return</span> callback(err)
+    } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (stderr) {
+      <span class="hljs-keyword">return</span> callback(stderr)
+    }
+    <span class="hljs-keyword">var</span> match = stdout.match(<span class="hljs-regexp">/Fingerprint=([0-9a-fA-F:]+)$/m</span>)
+    <span class="hljs-keyword">if</span> (match) {
+      <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+        <span class="hljs-attr">fingerprint</span>: match[<span class="hljs-number">1</span>]
+      })
+    } <span class="hljs-keyword">else</span> {
+      <span class="hljs-keyword">return</span> callback(<span class="hljs-keyword">new</span> <span class="hljs-built_in">Error</span>(<span class="hljs-string">'No fingerprint'</span>))
+    }
+  })
+}
+
+<span class="hljs-comment">/**
+ * Export private key and certificate to a PKCS12 keystore
+ * @static
+ * @param {String} PEM encoded private key
+ * @param {String} PEM encoded certificate
+ * @param {String} Password of the result PKCS12 file
+ * @param {Object} [options] object of cipher and optional client key password {cipher:'aes128', clientKeyPassword: 'xxxx', certFiles: ['file1','file2']}
+ * @param {Function} callback Callback function with an error object and {pkcs12}
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">createPkcs12</span> (<span class="hljs-params">key, certificate, password, options, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> options === <span class="hljs-string">'function'</span>) {
+    callback = options
+    options = {}
+  }
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'pkcs12'</span>, <span class="hljs-string">'-export'</span>]
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+
+  <span class="hljs-keyword">if</span> (options.cipher &amp;&amp; options.clientKeyPassword) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-6">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-6">&#182;</a>
+              </div>
+              <p>NOTICE: The password field is needed! self if it is empty.
+create password file for the import “-passin”</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: options.cipher, <span class="hljs-attr">password</span>: options.clientKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-7">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-7">&#182;</a>
+              </div>
+              <p>NOTICE: The password field is needed! self if it is empty.
+create password file for the password “-password”</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: password, <span class="hljs-attr">passType</span>: <span class="hljs-string">'word'</span> }, params, delTempPWFiles)
+
+  params.push(<span class="hljs-string">'-in'</span>)
+  params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+  params.push(<span class="hljs-string">'-inkey'</span>)
+  params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+
+  <span class="hljs-keyword">var</span> tmpfiles = [certificate, key]
+
+  <span class="hljs-keyword">if</span> (options.certFiles) {
+    tmpfiles.push(options.certFiles.join(<span class="hljs-string">''</span>))
+
+    params.push(<span class="hljs-string">'-certfile'</span>)
+    params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+  }
+
+  openssl.execBinary(params, tmpfiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, pkcs12</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      <span class="hljs-keyword">return</span> callback(<span class="hljs-literal">null</span>, {
+        <span class="hljs-attr">pkcs12</span>: pkcs12
+      })
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * read sslcert data from Pkcs12 file. Results are provided in callback response in object notation ({cert: .., ca:..., key:...})
+ * @static
+ * @param  {Buffer|String}   bufferOrPath Buffer or path to file
+ * @param  {Object}   [options]      openssl options
+ * @param  {Function} callback     Called with error object and sslcert bundle object
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readPkcs12</span> (<span class="hljs-params">bufferOrPath, options, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> options === <span class="hljs-string">'function'</span>) {
+    callback = options
+    options = {}
+  }
+
+  options.p12Password = options.p12Password || <span class="hljs-string">''</span>
+
+  <span class="hljs-keyword">var</span> tmpfiles = []
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+  <span class="hljs-keyword">var</span> args = [<span class="hljs-string">'pkcs12'</span>, <span class="hljs-string">'-in'</span>, bufferOrPath]
+
+  helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.p12Password, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, args, delTempPWFiles)
+
+  <span class="hljs-keyword">if</span> (Buffer.isBuffer(bufferOrPath)) {
+    tmpfiles = [bufferOrPath]
+    args[<span class="hljs-number">2</span>] = <span class="hljs-string">'--TMPFILE--'</span>
+  }
+
+  <span class="hljs-keyword">if</span> (options.clientKeyPassword) {
+    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: options.clientKeyPassword, <span class="hljs-attr">passType</span>: <span class="hljs-string">'out'</span> }, args, delTempPWFiles)
+  } <span class="hljs-keyword">else</span> {
+    args.push(<span class="hljs-string">'-nodes'</span>)
+  }
+
+  openssl.execBinary(args, tmpfiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, stdout</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">var</span> keybundle = {}
+
+      <span class="hljs-keyword">if</span> (err &amp;&amp; err.message.indexOf(<span class="hljs-string">'No such file or directory'</span>) !== <span class="hljs-number">-1</span>) {
+        err.code = <span class="hljs-string">'ENOENT'</span>
+      }
+
+      <span class="hljs-keyword">if</span> (!err) {
+        <span class="hljs-keyword">var</span> certs = readFromString(stdout, CERT_START, CERT_END)
+        keybundle.cert = certs.shift()
+        keybundle.ca = certs
+        keybundle.key = readFromString(stdout, KEY_START, KEY_END).pop()
+
+        <span class="hljs-keyword">if</span> (keybundle.key) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-8">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-8">&#182;</a>
+              </div>
+              <p>convert to RSA key</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>          <span class="hljs-keyword">return</span> openssl.exec([<span class="hljs-string">'rsa'</span>, <span class="hljs-string">'-in'</span>, <span class="hljs-string">'--TMPFILE--'</span>], <span class="hljs-string">'RSA PRIVATE KEY'</span>, [keybundle.key], <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, key</span>) </span>{
+            keybundle.key = key
+
+            <span class="hljs-keyword">return</span> callback(err, keybundle)
+          })
+        }
+
+        <span class="hljs-keyword">if</span> (options.clientKeyPassword) {
+          keybundle.key = readFromString(stdout, ENCRYPTED_KEY_START, ENCRYPTED_KEY_END).pop()
+        } <span class="hljs-keyword">else</span> {
+          keybundle.key = readFromString(stdout, RSA_KEY_START, RSA_KEY_END).pop()
+        }
+      }
+
+      <span class="hljs-keyword">return</span> callback(err, keybundle)
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Check a certificate
+ * @static
+ * @param {String} PEM encoded certificate
+ * @param {String} [passphrase] password for the certificate
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">checkCertificate</span> (<span class="hljs-params">certificate, passphrase, callback</span>) </span>{
+  <span class="hljs-keyword">var</span> params
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> passphrase === <span class="hljs-string">'function'</span>) {
+    callback = passphrase
+    passphrase = <span class="hljs-literal">undefined</span>
+  }
+  certificate = (certificate || <span class="hljs-string">''</span>).toString()
+
+  <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN(\sNEW)? CERTIFICATE REQUEST/</span>)) {
+    params = [<span class="hljs-string">'req'</span>, <span class="hljs-string">'-text'</span>, <span class="hljs-string">'-noout'</span>, <span class="hljs-string">'-verify'</span>, <span class="hljs-string">'-in'</span>, <span class="hljs-string">'--TMPFILE--'</span>]
+  } <span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span> (certificate.match(<span class="hljs-regexp">/BEGIN RSA PRIVATE KEY/</span>) || certificate.match(<span class="hljs-regexp">/BEGIN PRIVATE KEY/</span>)) {
+    params = [<span class="hljs-string">'rsa'</span>, <span class="hljs-string">'-noout'</span>, <span class="hljs-string">'-check'</span>, <span class="hljs-string">'-in'</span>, <span class="hljs-string">'--TMPFILE--'</span>]
+  } <span class="hljs-keyword">else</span> {
+    params = [<span class="hljs-string">'x509'</span>, <span class="hljs-string">'-text'</span>, <span class="hljs-string">'-noout'</span>, <span class="hljs-string">'-in'</span>, <span class="hljs-string">'--TMPFILE--'</span>]
+  }
+  <span class="hljs-keyword">if</span> (passphrase) {
+    helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: passphrase, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, params, delTempPWFiles)
+  }
+
+  openssl.spawnWrapper(params, certificate, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, code, stdout, stderr</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err &amp;&amp; err.toString().trim() !== <span class="hljs-string">'verify OK'</span>) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      <span class="hljs-keyword">var</span> result
+      <span class="hljs-keyword">switch</span> (params[<span class="hljs-number">0</span>]) {
+        <span class="hljs-keyword">case</span> <span class="hljs-string">'rsa'</span>:
+          result = <span class="hljs-regexp">/^Rsa key ok$/i</span>.test(stdout.trim())
+          <span class="hljs-keyword">break</span>
+        <span class="hljs-keyword">default</span>:
+          result = <span class="hljs-regexp">/Signature Algorithm/im</span>.test(stdout)
+          <span class="hljs-keyword">break</span>
+      }
+
+      callback(<span class="hljs-literal">null</span>, result)
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr || stderr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * check a PKCS#12 file (.pfx or.p12)
+ * @static
+ * @param {Buffer|String} bufferOrPath PKCS#12 certificate
+ * @param {String} [passphrase] optional passphrase which will be used to open the keystore
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">checkPkcs12</span> (<span class="hljs-params">bufferOrPath, passphrase, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> passphrase === <span class="hljs-string">'function'</span>) {
+    callback = passphrase
+    passphrase = <span class="hljs-string">''</span>
+  }
+
+  <span class="hljs-keyword">var</span> tmpfiles = []
+  <span class="hljs-keyword">var</span> delTempPWFiles = []
+  <span class="hljs-keyword">var</span> args = [<span class="hljs-string">'pkcs12'</span>, <span class="hljs-string">'-info'</span>, <span class="hljs-string">'-in'</span>, bufferOrPath, <span class="hljs-string">'-noout'</span>, <span class="hljs-string">'-maciter'</span>, <span class="hljs-string">'-nodes'</span>]
+
+  helper.createPasswordFile({ <span class="hljs-attr">cipher</span>: <span class="hljs-string">''</span>, <span class="hljs-attr">password</span>: passphrase, <span class="hljs-attr">passType</span>: <span class="hljs-string">'in'</span> }, args, delTempPWFiles)
+
+  <span class="hljs-keyword">if</span> (Buffer.isBuffer(bufferOrPath)) {
+    tmpfiles = [bufferOrPath]
+    args[<span class="hljs-number">3</span>] = <span class="hljs-string">'--TMPFILE--'</span>
+  }
+
+  openssl.spawnWrapper(args, tmpfiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">sslErr, code, stdout, stderr</span>) </span>{
+    <span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">done</span> (<span class="hljs-params">err</span>) </span>{
+      <span class="hljs-keyword">if</span> (err) {
+        <span class="hljs-keyword">return</span> callback(err)
+      }
+      callback(<span class="hljs-literal">null</span>, (<span class="hljs-regexp">/MAC verified OK/im</span>.test(stderr) || (!(<span class="hljs-regexp">/MAC verified OK/im</span>.test(stderr)) &amp;&amp; !(<span class="hljs-regexp">/Mac verify error/im</span>.test(stderr)))))
+    }
+    helper.deleteTempFiles(delTempPWFiles, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">fsErr</span>) </span>{
+      done(sslErr || fsErr)
+    })
+  })
+}
+
+<span class="hljs-comment">/**
+ * Verifies the signing chain of the passed certificate
+ * @static
+ * @param {String|Array} PEM encoded certificate include intermediate certificates
+ * @param {String|Array} [List] of CA certificates
+ * @param {Function} callback Callback function with an error object and a boolean valid
+ */</span>
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">verifySigningChain</span> (<span class="hljs-params">certificate, ca, callback</span>) </span>{
+  <span class="hljs-keyword">if</span> (!callback &amp;&amp; <span class="hljs-keyword">typeof</span> ca === <span class="hljs-string">'function'</span>) {
+    callback = ca
+    ca = <span class="hljs-literal">undefined</span>
+  }
+  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">Array</span>.isArray(certificate)) {
+    certificate = [certificate]
+  }
+  <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">Array</span>.isArray(ca) &amp;&amp; ca !== <span class="hljs-literal">undefined</span>) {
+    <span class="hljs-keyword">if</span> (ca !== <span class="hljs-string">''</span>) {
+      ca = [ca]
+    }
+  }
+
+  <span class="hljs-keyword">var</span> files = []
+
+  <span class="hljs-keyword">if</span> (ca !== <span class="hljs-literal">undefined</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-9">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-9">&#182;</a>
+              </div>
+              <p>ca certificates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    files.push(ca.join(<span class="hljs-string">'\n'</span>))
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-10">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-10">&#182;</a>
+              </div>
+              <p>certificate incl. intermediate certificates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  files.push(certificate.join(<span class="hljs-string">'\n'</span>))
+
+  <span class="hljs-keyword">var</span> params = [<span class="hljs-string">'verify'</span>]
+
+  <span class="hljs-keyword">if</span> (ca !== <span class="hljs-literal">undefined</span>) {</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-11">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-11">&#182;</a>
+              </div>
+              <p>ca certificates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    params.push(<span class="hljs-string">'-CAfile'</span>)
+    params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+  }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-12">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-12">&#182;</a>
+              </div>
+              <p>certificate incl. intermediate certificates</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  params.push(<span class="hljs-string">'--TMPFILE--'</span>)
+
+  openssl.spawnWrapper(params, files, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">err, code, stdout, stderr</span>) </span>{
+    <span class="hljs-keyword">if</span> (err) {
+      <span class="hljs-keyword">return</span> callback(err)
+    }
+
+    callback(<span class="hljs-literal">null</span>, stdout.trim().slice(<span class="hljs-number">-4</span>) === <span class="hljs-string">': OK'</span>)
+  })
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-13">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-13">&#182;</a>
+              </div>
+              <p>HELPER FUNCTIONS</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">fetchCertificateData</span> (<span class="hljs-params">certData, callback</span>) </span>{</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-14">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-14">&#182;</a>
+              </div>
+              <p>try catch : if something will fail in parsing it won’t crash the calling code</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>  <span class="hljs-keyword">try</span> {
+    certData = (certData || <span class="hljs-string">''</span>).toString()
+
+    <span class="hljs-keyword">var</span> serial, subject, tmp, issuer
+    <span class="hljs-keyword">var</span> certValues = {
+      <span class="hljs-attr">issuer</span>: {}
+    }
+    <span class="hljs-keyword">var</span> validity = {}
+    <span class="hljs-keyword">var</span> san
+
+    <span class="hljs-keyword">var</span> ky, i</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-15">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-15">&#182;</a>
+              </div>
+              <p>serial</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((serial = certData.match(<span class="hljs-regexp">/\s*Serial Number:\r?\n?\s*([^\r\n]*)\r?\n\s*\b/</span>)) &amp;&amp; serial.length &gt; <span class="hljs-number">1</span>) {
+      certValues.serial = serial[<span class="hljs-number">1</span>]
+    }
+
+    <span class="hljs-keyword">if</span> ((subject = certData.match(<span class="hljs-regexp">/\s*Subject:\r?\n(\s*(([a-zA-Z0-9.]+)\s=\s[^\r\n]+\r?\n))*\s*\b/</span>)) &amp;&amp; subject.length &gt; <span class="hljs-number">1</span>) {
+      subject = subject[<span class="hljs-number">0</span>]
+      tmp = matchAll(subject, /\s([a-zA-Z0<span class="hljs-number">-9.</span>]+)\s=\s([^\r\n].*)/g)
+      <span class="hljs-keyword">if</span> (tmp) {
+        <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; tmp.length; i++) {
+          ky = tmp[i][<span class="hljs-number">1</span>].trim()
+          <span class="hljs-keyword">if</span> (ky.match(<span class="hljs-string">'(C|ST|L|O|OU|CN|emailAddress|DC)'</span>) || ky === <span class="hljs-string">''</span>) {
+            <span class="hljs-keyword">continue</span>
+          }
+          certValues[ky] = tmp[i][<span class="hljs-number">2</span>].trim()
+        }
+      }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-16">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-16">&#182;</a>
+              </div>
+              <p>country</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = subject.match(<span class="hljs-regexp">/\sC\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.country = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-17">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-17">&#182;</a>
+              </div>
+              <p>state</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = subject.match(<span class="hljs-regexp">/\sST\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.state = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-18">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-18">&#182;</a>
+              </div>
+              <p>locality</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = subject.match(<span class="hljs-regexp">/\sL\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.locality = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-19">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-19">&#182;</a>
+              </div>
+              <p>organization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(subject, /\sO\s=\s([^\r\n].*)/g)
+      certValues.organization = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-20">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-20">&#182;</a>
+              </div>
+              <p>unit</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(subject, /\sOU\s=\s([^\r\n].*)/g)
+      certValues.organizationUnit = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-21">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-21">&#182;</a>
+              </div>
+              <p>common name</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(subject, /\sCN\s=\s([^\r\n].*)/g)
+      certValues.commonName = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-22">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-22">&#182;</a>
+              </div>
+              <p>email</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(subject, /emailAddress\s=\s([^\r\n].*)/g)
+      certValues.emailAddress = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-23">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-23">&#182;</a>
+              </div>
+              <p>DC name</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(subject, /\sDC\s=\s([^\r\n].*)/g)
+      certValues.dc = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span>
+    }
+
+    <span class="hljs-keyword">if</span> ((issuer = certData.match(<span class="hljs-regexp">/\s*Issuer:\r?\n(\s*([a-zA-Z0-9.]+)\s=\s[^\r\n].*\r?\n)*\s*\b/</span>)) &amp;&amp; issuer.length &gt; <span class="hljs-number">1</span>) {
+      issuer = issuer[<span class="hljs-number">0</span>]
+      tmp = matchAll(issuer, /\s([a-zA-Z0<span class="hljs-number">-9.</span>]+)\s=\s([^\r\n].*)/g)
+      <span class="hljs-keyword">for</span> (i = <span class="hljs-number">0</span>; i &lt; tmp.length; i++) {
+        ky = tmp[i][<span class="hljs-number">1</span>].toString()
+        <span class="hljs-keyword">if</span> (ky.match(<span class="hljs-string">'(C|ST|L|O|OU|CN|emailAddress|DC)'</span>)) {
+          <span class="hljs-keyword">continue</span>
+        }
+        certValues.issuer[ky] = tmp[i][<span class="hljs-number">2</span>].toString()
+      }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-24">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-24">&#182;</a>
+              </div>
+              <p>country</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = issuer.match(<span class="hljs-regexp">/\sC\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.issuer.country = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-25">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-25">&#182;</a>
+              </div>
+              <p>state</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = issuer.match(<span class="hljs-regexp">/\sST\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.issuer.state = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-26">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-26">&#182;</a>
+              </div>
+              <p>locality</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = issuer.match(<span class="hljs-regexp">/\sL\s=\s([^\r\n].*?)[\r\n]/</span>)
+      certValues.issuer.locality = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-27">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-27">&#182;</a>
+              </div>
+              <p>organization</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(issuer, /\sO\s=\s([^\r\n].*)/g)
+      certValues.issuer.organization = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span> r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-28">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-28">&#182;</a>
+              </div>
+              <p>unit</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(issuer, /\sOU\s=\s([^\r\n].*)/g)
+      certValues.issuer.organizationUnit = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span>
+          r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-29">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-29">&#182;</a>
+              </div>
+              <p>common name</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(issuer, /\sCN\s=\s([^\r\n].*)/g)
+      certValues.issuer.commonName = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span>
+          r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-30">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-30">&#182;</a>
+              </div>
+              <p>DC name</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = matchAll(issuer, /\sDC\s=\s([^\r\n].*)/g)
+      certValues.issuer.dc = tmp ? (tmp.length &gt; <span class="hljs-number">1</span> ? tmp.sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">var</span> e = t[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">var</span>
+          r = n[<span class="hljs-number">1</span>].toUpperCase()
+        <span class="hljs-keyword">return</span> r &gt; e ? <span class="hljs-number">-1</span> : e &gt; r ? <span class="hljs-number">1</span> : <span class="hljs-number">0</span>
+      }).sort(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t, n</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>].length - n[<span class="hljs-number">1</span>].length
+      }).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">t</span>) </span>{
+        <span class="hljs-keyword">return</span> t[<span class="hljs-number">1</span>]
+      }) : tmp[<span class="hljs-number">0</span>][<span class="hljs-number">1</span>]) : <span class="hljs-string">''</span>
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-31">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-31">&#182;</a>
+              </div>
+              <p>SAN</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((san = certData.match(<span class="hljs-regexp">/X509v3 Subject Alternative Name: \r?\n([^\r\n]*)\r?\n/</span>)) &amp;&amp; san.length &gt; <span class="hljs-number">1</span>) {
+      san = san[<span class="hljs-number">1</span>].trim() + <span class="hljs-string">'\n'</span>
+      certValues.san = {}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-32">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-32">&#182;</a>
+              </div>
+              <p>hostnames</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = pregMatchAll(<span class="hljs-string">'DNS:([^,\\r\\n].*?)[,\\r\\n\\s]'</span>, san)
+      certValues.san.dns = tmp || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-33">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-33">&#182;</a>
+              </div>
+              <p>IP-Addresses IPv4 &amp; IPv6</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = pregMatchAll(<span class="hljs-string">'IP Address:([^,\\r\\n].*?)[,\\r\\n\\s]'</span>, san)
+      certValues.san.ip = tmp || <span class="hljs-string">''</span></pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-34">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-34">&#182;</a>
+              </div>
+              <p>Email Addresses</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>      tmp = pregMatchAll(<span class="hljs-string">'email:([^,\\r\\n].*?)[,\\r\\n\\s]'</span>, san)
+      certValues.san.email = tmp || <span class="hljs-string">''</span>
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-35">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-35">&#182;</a>
+              </div>
+              <p>Validity</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((tmp = certData.match(<span class="hljs-regexp">/Not Before\s?:\s?([^\r\n]*)\r?\n/</span>)) &amp;&amp; tmp.length &gt; <span class="hljs-number">1</span>) {
+      validity.start = <span class="hljs-built_in">Date</span>.parse((tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span>)
+    }
+
+    <span class="hljs-keyword">if</span> ((tmp = certData.match(<span class="hljs-regexp">/Not After\s?:\s?([^\r\n]*)\r?\n/</span>)) &amp;&amp; tmp.length &gt; <span class="hljs-number">1</span>) {
+      validity.end = <span class="hljs-built_in">Date</span>.parse((tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span>)
+    }
+
+    <span class="hljs-keyword">if</span> (validity.start &amp;&amp; validity.end) {
+      certValues.validity = validity
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-36">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-36">&#182;</a>
+              </div>
+              <p>Validity end</p>
+
+            </div>
+            
+        </li>
+        
+        
+        <li id="section-37">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-37">&#182;</a>
+              </div>
+              <p>Signature Algorithm</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((tmp = certData.match(<span class="hljs-regexp">/Signature Algorithm: ([^\r\n]*)\r?\n/</span>)) &amp;&amp; tmp.length &gt; <span class="hljs-number">1</span>) {
+      certValues.signatureAlgorithm = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span>
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-38">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-38">&#182;</a>
+              </div>
+              <p>Public Key</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((tmp = certData.match(<span class="hljs-regexp">/Public[ -]Key: ([^\r\n]*)\r?\n/</span>)) &amp;&amp; tmp.length &gt; <span class="hljs-number">1</span>) {
+      certValues.publicKeySize = ((tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span>).replace(<span class="hljs-regexp">/[()]/g</span>, <span class="hljs-string">''</span>)
+    }</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-39">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-39">&#182;</a>
+              </div>
+              <p>Public Key Algorithm</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre>    <span class="hljs-keyword">if</span> ((tmp = certData.match(<span class="hljs-regexp">/Public Key Algorithm: ([^\r\n]*)\r?\n/</span>)) &amp;&amp; tmp.length &gt; <span class="hljs-number">1</span>) {
+      certValues.publicKeyAlgorithm = (tmp &amp;&amp; tmp[<span class="hljs-number">1</span>]) || <span class="hljs-string">''</span>
+    }
+
+    callback(<span class="hljs-literal">null</span>, certValues)
+  } <span class="hljs-keyword">catch</span> (err) {
+    callback(err)
+  }
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">matchAll</span> (<span class="hljs-params">str, regexp</span>) </span>{
+  <span class="hljs-keyword">var</span> matches = []
+  str.replace(regexp, <span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params"></span>) </span>{
+    <span class="hljs-keyword">var</span> arr = ([]).slice.call(<span class="hljs-built_in">arguments</span>, <span class="hljs-number">0</span>)
+    <span class="hljs-keyword">var</span> extras = arr.splice(<span class="hljs-number">-2</span>)
+    arr.index = extras[<span class="hljs-number">0</span>]
+    arr.input = extras[<span class="hljs-number">1</span>]
+    matches.push(arr)
+  })
+  <span class="hljs-keyword">return</span> matches.length ? matches : <span class="hljs-literal">null</span>
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">pregMatchAll</span> (<span class="hljs-params">regex, haystack</span>) </span>{
+  <span class="hljs-keyword">var</span> globalRegex = <span class="hljs-keyword">new</span> <span class="hljs-built_in">RegExp</span>(regex, <span class="hljs-string">'g'</span>)
+  <span class="hljs-keyword">var</span> globalMatch = haystack.match(globalRegex) || []
+  <span class="hljs-keyword">var</span> matchArray = []
+  <span class="hljs-keyword">var</span> nonGlobalRegex, nonGlobalMatch
+  <span class="hljs-keyword">for</span> (<span class="hljs-keyword">var</span> i = <span class="hljs-number">0</span>; i &lt; globalMatch.length; i++) {
+    nonGlobalRegex = <span class="hljs-keyword">new</span> <span class="hljs-built_in">RegExp</span>(regex)
+    nonGlobalMatch = globalMatch[i].match(nonGlobalRegex)
+    matchArray.push(nonGlobalMatch[<span class="hljs-number">1</span>])
+  }
+  <span class="hljs-keyword">return</span> matchArray
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">generateCSRSubject</span> (<span class="hljs-params">options</span>) </span>{
+  options = options || {}
+
+  <span class="hljs-keyword">var</span> csrData = {
+    <span class="hljs-attr">C</span>: options.country || options.C,
+    <span class="hljs-attr">ST</span>: options.state || options.ST,
+    <span class="hljs-attr">L</span>: options.locality || options.L,
+    <span class="hljs-attr">O</span>: options.organization || options.O,
+    <span class="hljs-attr">OU</span>: options.organizationUnit || options.OU,
+    <span class="hljs-attr">CN</span>: options.commonName || options.CN || <span class="hljs-string">'localhost'</span>,
+    <span class="hljs-attr">DC</span>: options.dc || options.DC || <span class="hljs-string">''</span>,
+    <span class="hljs-attr">emailAddress</span>: options.emailAddress
+  }
+
+  <span class="hljs-keyword">var</span> csrBuilder = <span class="hljs-built_in">Object</span>.keys(csrData).map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">key</span>) </span>{
+    <span class="hljs-keyword">if</span> (csrData[key]) {
+      <span class="hljs-keyword">if</span> (<span class="hljs-keyword">typeof</span> csrData[key] === <span class="hljs-string">'object'</span> &amp;&amp; csrData[key].length &gt;= <span class="hljs-number">1</span>) {
+        <span class="hljs-keyword">var</span> tmpStr = <span class="hljs-string">''</span>
+        csrData[key].map(<span class="hljs-function"><span class="hljs-keyword">function</span> (<span class="hljs-params">o</span>) </span>{
+          tmpStr += <span class="hljs-string">'/'</span> + key + <span class="hljs-string">'='</span> + o.replace(<span class="hljs-regexp">/[^\w .*\-,@']+/g</span>, <span class="hljs-string">' '</span>).trim()
+        })
+        <span class="hljs-keyword">return</span> tmpStr
+      } <span class="hljs-keyword">else</span> {
+        <span class="hljs-keyword">return</span> <span class="hljs-string">'/'</span> + key + <span class="hljs-string">'='</span> + csrData[key].replace(<span class="hljs-regexp">/[^\w .*\-,@']+/g</span>, <span class="hljs-string">' '</span>).trim()
+      }
+    }
+  })
+
+  <span class="hljs-keyword">return</span> csrBuilder.join(<span class="hljs-string">''</span>)
+}
+
+<span class="hljs-function"><span class="hljs-keyword">function</span> <span class="hljs-title">readFromString</span> (<span class="hljs-params">string, start, end</span>) </span>{
+  <span class="hljs-keyword">if</span> (Buffer.isBuffer(string)) {
+    string = string.toString(<span class="hljs-string">'utf8'</span>)
+  }
+
+  <span class="hljs-keyword">var</span> output = []
+
+  <span class="hljs-keyword">if</span> (!string) {
+    <span class="hljs-keyword">return</span> output
+  }
+
+  <span class="hljs-keyword">var</span> offset = string.indexOf(start)
+
+  <span class="hljs-keyword">while</span> (offset !== <span class="hljs-number">-1</span>) {
+    string = string.substring(offset)
+
+    <span class="hljs-keyword">var</span> endOffset = string.indexOf(end)
+
+    <span class="hljs-keyword">if</span> (endOffset === <span class="hljs-number">-1</span>) {
+      <span class="hljs-keyword">break</span>
+    }
+
+    endOffset += end.length
+
+    output.push(string.substring(<span class="hljs-number">0</span>, endOffset))
+    offset = string.indexOf(start, endOffset)
+  }
+
+  <span class="hljs-keyword">return</span> output
+}</pre></div></div>
+            
+        </li>
+        
+        
+        <li id="section-40">
+            <div class="annotation">
+              
+              <div class="pilwrap ">
+                <a class="pilcrow" href="#section-40">&#182;</a>
+              </div>
+              <p>promisify not tested yet</p>
+
+            </div>
+            
+            <div class="content"><div class='highlight'><pre><span class="hljs-comment">/**
+ * Verifies the signing chain of the passed certificate
+ * @namespace
+ * @name promisified
+ * @property {function}  createPrivateKey               @see createPrivateKey
+ * @property {function}  createDhparam       - The default number of players.
+ * @property {function}  createEcparam         - The default level for the party.
+ * @property {function}  createCSR      - The default treasure.
+ * @property {function}  createCertificate - How much gold the party starts with.
+ */</span>
+<span class="hljs-built_in">module</span>.exports.promisified = {
+  <span class="hljs-attr">createPrivateKey</span>: promisify(createPrivateKey),
+  <span class="hljs-attr">createDhparam</span>: promisify(createDhparam),
+  <span class="hljs-attr">createEcparam</span>: promisify(createEcparam),
+  <span class="hljs-attr">createCSR</span>: promisify(createCSR),
+  <span class="hljs-attr">createCertificate</span>: promisify(createCertificate),
+  <span class="hljs-attr">readCertificateInfo</span>: promisify(readCertificateInfo),
+  <span class="hljs-attr">getPublicKey</span>: promisify(getPublicKey),
+  <span class="hljs-attr">getFingerprint</span>: promisify(getFingerprint),
+  <span class="hljs-attr">getModulus</span>: promisify(getModulus),
+  <span class="hljs-attr">getDhparamInfo</span>: promisify(getDhparamInfo),
+  <span class="hljs-attr">createPkcs12</span>: promisify(createPkcs12),
+  <span class="hljs-attr">readPkcs12</span>: promisify(readPkcs12),
+  <span class="hljs-attr">verifySigningChain</span>: promisify(verifySigningChain),
+  <span class="hljs-attr">checkCertificate</span>: promisify(checkCertificate),
+  <span class="hljs-attr">checkPkcs12</span>: promisify(checkPkcs12)
+}</pre></div></div>
+            
+        </li>
+        
+    </ul>
+  </div>
+</body>
+</html>

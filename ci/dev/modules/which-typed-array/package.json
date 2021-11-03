@@ -1,0 +1,106 @@
+{
+	"name": "which-typed-array",
+	"version": "1.1.4",
+	"author": {
+		"name": "Jordan Harband",
+		"email": "ljharb@gmail.com",
+		"url": "http://ljharb.codes"
+	},
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"contributors": [
+		{
+			"name": "Jordan Harband",
+			"email": "ljharb@gmail.com",
+			"url": "http://ljharb.codes"
+		}
+	],
+	"description": "Which kind of Typed Array is this JavaScript value? Works cross-realm, without `instanceof`, and despite Symbol.toStringTag.",
+	"license": "MIT",
+	"main": "index.js",
+	"scripts": {
+		"prepublish": "safe-publish-latest",
+		"pretest": "npm run --silent lint",
+		"test": "npm run tests-only && npm run test:harmony",
+		"tests-only": "nyc tape test",
+		"test:harmony": "nyc node --harmony --es-staging test",
+		"posttest": "npx aud --production",
+		"lint": "eslint .",
+		"version": "auto-changelog && git add CHANGELOG.md",
+		"postversion": "auto-changelog && git add CHANGELOG.md && git commit --no-edit --amend && git tag -f \"v$(node -e \"console.log(require('./package.json').version)\")\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/inspect-js/which-typed-array.git"
+	},
+	"keywords": [
+		"array",
+		"TypedArray",
+		"typed array",
+		"which",
+		"typed",
+		"Int8Array",
+		"Uint8Array",
+		"Uint8ClampedArray",
+		"Int16Array",
+		"Uint16Array",
+		"Int32Array",
+		"Uint32Array",
+		"Float32Array",
+		"Float64Array",
+		"ES6",
+		"toStringTag",
+		"Symbol.toStringTag",
+		"@@toStringTag"
+	],
+	"dependencies": {
+		"available-typed-arrays": "^1.0.2",
+		"call-bind": "^1.0.0",
+		"es-abstract": "^1.18.0-next.1",
+		"foreach": "^2.0.5",
+		"function-bind": "^1.1.1",
+		"has-symbols": "^1.0.1",
+		"is-typed-array": "^1.1.3"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.3.0",
+		"aud": "^1.1.3",
+		"auto-changelog": "^2.2.1",
+		"eslint": "^7.15.0",
+		"is-callable": "^1.2.2",
+		"make-arrow-function": "^1.2.0",
+		"make-generator-function": "^2.0.0",
+		"nyc": "^10.3.2",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.0.1"
+	},
+	"testling": {
+		"files": "test/index.js",
+		"browsers": [
+			"iexplore/6.0..latest",
+			"firefox/3.0..6.0",
+			"firefox/15.0..latest",
+			"firefox/nightly",
+			"chrome/4.0..10.0",
+			"chrome/20.0..latest",
+			"chrome/canary",
+			"opera/10.0..latest",
+			"opera/next",
+			"safari/4.0..latest",
+			"ipad/6.0..latest",
+			"iphone/6.0..latest",
+			"android-browser/4.2"
+		]
+	},
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"auto-changelog": {
+		"output": "CHANGELOG.md",
+		"template": "keepachangelog",
+		"unreleased": false,
+		"commitLimit": false,
+		"backfillLimit": false
+	}
+}

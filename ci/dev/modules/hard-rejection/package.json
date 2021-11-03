@@ -1,0 +1,47 @@
+{
+	"name": "hard-rejection",
+	"version": "2.1.0",
+	"description": "Make unhandled promise rejections fail hard right away instead of the default silent fail",
+	"license": "MIT",
+	"repository": "sindresorhus/hard-rejection",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "sindresorhus.com"
+	},
+	"engines": {
+		"node": ">=6"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts",
+		"register.js"
+	],
+	"keywords": [
+		"promise",
+		"promises",
+		"unhandled",
+		"uncaught",
+		"rejection",
+		"hard",
+		"fail",
+		"catch",
+		"throw",
+		"handler",
+		"exit",
+		"debug",
+		"debugging",
+		"verbose",
+		"immediate",
+		"immediately"
+	],
+	"devDependencies": {
+		"ava": "^1.4.1",
+		"execa": "^1.0.0",
+		"tsd": "^0.7.1",
+		"xo": "^0.24.0"
+	}
+}

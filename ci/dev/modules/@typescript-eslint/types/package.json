@@ -1,0 +1,56 @@
+{
+  "name": "@typescript-eslint/types",
+  "version": "4.28.5",
+  "description": "Types for the TypeScript-ESTree AST spec",
+  "keywords": [
+    "eslint",
+    "typescript",
+    "estree"
+  ],
+  "engines": {
+    "node": "^8.10.0 || ^10.13.0 || >=11.10.1"
+  },
+  "files": [
+    "dist",
+    "package.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/typescript-eslint/typescript-eslint.git",
+    "directory": "packages/types"
+  },
+  "bugs": {
+    "url": "https://github.com/typescript-eslint/typescript-eslint/issues"
+  },
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "prebuild": "yarn ts-node --transpile-only ./tools/copy-ast-spec.ts",
+    "build": "tsc -b tsconfig.build.json",
+    "postbuild": "downlevel-dts dist _ts3.4/dist",
+    "clean": "tsc -b tsconfig.build.json --clean",
+    "postclean": "rimraf dist && rimraf _ts3.4 && rimraf coverage",
+    "format": "prettier --write \"./**/*.{ts,js,json,md}\" --ignore-path ../../.prettierignore",
+    "generate:lib": "../../node_modules/.bin/ts-node --files --transpile-only ../scope-manager/tools/generate-lib.ts",
+    "lint": "eslint . --ext .js,.ts --ignore-path='../../.eslintignore'",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "funding": {
+    "type": "opencollective",
+    "url": "https://opencollective.com/typescript-eslint"
+  },
+  "typesVersions": {
+    "<3.8": {
+      "*": [
+        "_ts3.4/*"
+      ]
+    }
+  },
+  "devDependencies": {
+    "typescript": "*"
+  },
+  "gitHead": "15f718415eb4e522440a5d81f38d65ee81535795"
+}

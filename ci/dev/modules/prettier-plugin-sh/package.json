@@ -1,0 +1,39 @@
+{
+  "name": "prettier-plugin-sh",
+  "version": "0.7.1",
+  "description": "An opinionated `shellscript、Dockerfile、properties、gitignore、dotenv、hosts、jvmoptions...` formatter plugin for Prettier",
+  "repository": "git@github.com/rx-ts/prettier.git",
+  "homepage": "https://github.com/rx-ts/prettier/blob/master/packages/sh",
+  "author": "JounQin <admin@1stg.me>",
+  "license": "MIT",
+  "main": "lib/cjs",
+  "module": "lib",
+  "es2015": "lib/es2015",
+  "fesm5": "lib/esm",
+  "jsdelivr": "lib/umd.min",
+  "unpkg": "lib/umd.min",
+  "types": "lib",
+  "files": [
+    "lib"
+  ],
+  "keywords": [
+    "dockerfile",
+    "ini",
+    "properties",
+    "sh",
+    "shell",
+    "shellscript",
+    "plugin",
+    "prettier",
+    "prettier-plugin"
+  ],
+  "peerDependencies": {
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "mvdan-sh": "^0.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

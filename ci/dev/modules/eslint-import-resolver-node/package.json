@@ -1,0 +1,47 @@
+{
+  "name": "eslint-import-resolver-node",
+  "version": "0.3.4",
+  "description": "Node default behavior import resolution plugin for eslint-plugin-import.",
+  "main": "index.js",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "prepublishOnly": "cp ../../{LICENSE,.npmrc} ./",
+    "tests-only": "nyc mocha",
+    "test": "npm run tests-only",
+    "coveralls": "nyc report --reporter lcovonly && cd ../.. && coveralls < ./resolvers/node/coverage/lcov.info"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/benmosher/eslint-plugin-import"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "esnext",
+    "modules",
+    "eslint-plugin-import"
+  ],
+  "author": "Ben Mosher (me@benmosher.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/benmosher/eslint-plugin-import/issues"
+  },
+  "homepage": "https://github.com/benmosher/eslint-plugin-import",
+  "dependencies": {
+    "debug": "^2.6.9",
+    "resolve": "^1.13.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "coveralls": "^3.0.0",
+    "mocha": "^3.5.3",
+    "nyc": "^11.7.1"
+  },
+  "nyc": {
+    "exclude": [
+      "test/"
+    ]
+  }
+}

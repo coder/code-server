@@ -1,0 +1,63 @@
+{
+  "name": "postcss-html",
+  "version": "0.36.0",
+  "description": "PostCSS syntax for parsing HTML (and HTML-like)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gucong3000/postcss-html.git"
+  },
+  "keywords": [
+    "postcss",
+    "syntax",
+    "html",
+    "vue",
+    "quickapp",
+    "PHP",
+    "css",
+    "less",
+    "sass",
+    "scss",
+    "sss",
+    "sugarss"
+  ],
+  "author": "gucong",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/gucong3000/postcss-html/issues"
+  },
+  "homepage": "https://github.com/gucong3000/postcss-html#readme",
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "all": true,
+    "cache": true,
+    "check-coverage": true
+  },
+  "scripts": {
+    "mocha": "mocha --no-timeouts",
+    "test": "nyc npm run mocha",
+    "debug": "npm run mocha -- --inspect-brk"
+  },
+  "dependencies": {
+    "htmlparser2": "^3.10.0"
+  },
+  "peerDependencies": {
+    "postcss": ">=5.0.0",
+    "postcss-syntax": ">=0.36.0"
+  },
+  "devDependencies": {
+    "autoprefixer": "^9.4.3",
+    "chai": "^4.2.0",
+    "codecov": "^3.1.0",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "postcss": "^7.0.7",
+    "postcss-less": "^3.1.0",
+    "postcss-safe-parser": "^4.0.1",
+    "postcss-scss": "^2.0.0",
+    "postcss-syntax": ">=0.36.0",
+    "sugarss": "^2.0.0"
+  }
+}

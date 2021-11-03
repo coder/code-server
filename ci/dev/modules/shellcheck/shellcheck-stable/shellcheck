@@ -1,0 +1,6 @@
+#! /usr/bin/env sh
+
+echo "This is a placeholder and should be overwritten during package install."
+echo "If this file exists after installation, the install.sh script was not successful."
+
+exit 1

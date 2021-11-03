@@ -1,0 +1,59 @@
+{
+  "name": "@textlint/markdown-to-ast",
+  "version": "6.1.7",
+  "description": "Parse Markdown to AST with location info.",
+  "homepage": "https://github.com/textlint/textlint/tree/master/packages/@textlint/markdown-to-ast/",
+  "bugs": {
+    "url": "https://github.com/textlint/textlint/issues"
+  },
+  "license": "MIT",
+  "author": "azu",
+  "files": [
+    "lib/",
+    "src/"
+  ],
+  "main": "lib/markdown-parser.js",
+  "directories": {
+    "test": "test/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/textlint/textlint.git"
+  },
+  "scripts": {
+    "build": "cross-env NODE_ENV=production babel src --out-dir lib --source-maps",
+    "clean": "rimraf lib/",
+    "example:build": "browserify example/js/index.js -o example/app/app.js",
+    "prepublish": "npm run --if-present build",
+    "updateSnapshot": "npm run build && node tools/update-fixtures.js",
+    "test": "mocha \"test/**/*.{js,ts}\"",
+    "watch": "babel src --out-dir lib --watch --source-maps"
+  },
+  "dependencies": {
+    "@textlint/ast-node-types": "^4.2.5",
+    "debug": "^4.1.1",
+    "remark-frontmatter": "^1.2.0",
+    "remark-parse": "^5.0.0",
+    "structured-source": "^3.0.2",
+    "traverse": "^0.6.6",
+    "unified": "^6.1.6"
+  },
+  "devDependencies": {
+    "@textlint/ast-tester": "^2.1.6",
+    "babel-cli": "^6.24.1",
+    "babel-preset-env": "^1.4.0",
+    "babel-preset-jsdoc-to-assert": "^4.0.0",
+    "babel-preset-power-assert": "^1.0.0",
+    "babel-register": "^6.24.1",
+    "browserify": "^14.3.0",
+    "cross-env": "^6.0.3",
+    "mkdirp": "^0.5.1",
+    "mocha": "^6.2.1",
+    "power-assert": "^1.6.1",
+    "rimraf": "^3.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "07ab1c204508da3f9b26f1299bcbdb48a52a58a9"
+}

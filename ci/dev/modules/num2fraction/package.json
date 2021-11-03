@@ -1,0 +1,31 @@
+{
+  "name": "num2fraction",
+  "version": "1.2.2",
+  "description": "Convert number to fraction",
+  "main": "index.js",
+  "author": {
+    "name": "yisi",
+    "email": "yiorsi@gmail.com",
+    "url": "http://iyunlu.com/view"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:yisibl/num2fraction.git"
+  },
+  "keywords": [
+    "fraction",
+    "number",
+    "math",
+    "maths",
+    "arithmetic",
+    "gcd",
+    "rational"
+  ],
+  "devDependencies": {
+    "tape": "^3.0.0"
+  },
+  "scripts": {
+    "test": "tape test/*.js"
+  }
+}

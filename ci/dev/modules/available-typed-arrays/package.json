@@ -1,0 +1,82 @@
+{
+	"name": "available-typed-arrays",
+	"version": "1.0.4",
+	"description": "Returns an array of Typed Array names that are available in the current environment",
+	"main": "index.js",
+	"type": "commonjs",
+	"exports": {
+		".": [
+			{
+				"default": "./index.js"
+			},
+			"./index.js"
+		],
+		"./package": "./package.json",
+		"./package.json": "./package.json"
+	},
+	"sideEffects": false,
+	"scripts": {
+		"prepublish": "not-in-publish || npm run prepublishOnly",
+		"prepublishOnly": "safe-publish-latest",
+		"prelint": "evalmd README.md",
+		"lint": "eslint --ext=js,mjs .",
+		"pretest": "npm run lint",
+		"tests-only": "nyc tape 'test/**/*.js'",
+		"test:harmony": "nyc node --harmony --es-staging test",
+		"test": "npm run tests-only && npm run test:harmony",
+		"posttest": "aud --production",
+		"version": "auto-changelog && git add CHANGELOG.md",
+		"postversion": "auto-changelog && git add CHANGELOG.md && git commit --no-edit --amend && git tag -f \"v$(node -e \"console.log(require('./package.json').version)\")\""
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/inspect-js/available-typed-arrays.git"
+	},
+	"keywords": [
+		"typed",
+		"arrays",
+		"Float32Array",
+		"Float64Array",
+		"Int8Array",
+		"Int16Array",
+		"Int32Array",
+		"Uint8Array",
+		"Uint8ClampedArray",
+		"Uint16Array",
+		"Uint32Array",
+		"BigInt64Array",
+		"BigUint64Array"
+	],
+	"author": "Jordan Harband <ljharb@gmail.com>",
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"license": "MIT",
+	"bugs": {
+		"url": "https://github.com/inspect-js/available-typed-arrays/issues"
+	},
+	"homepage": "https://github.com/inspect-js/available-typed-arrays#readme",
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.6.0",
+		"array.prototype.every": "^1.1.2",
+		"aud": "^1.1.5",
+		"auto-changelog": "^2.3.0",
+		"eslint": "^7.27.0",
+		"evalmd": "^0.0.19",
+		"isarray": "^2.0.5",
+		"nyc": "^10.3.2",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.2.2"
+	},
+	"auto-changelog": {
+		"output": "CHANGELOG.md",
+		"template": "keepachangelog",
+		"unreleased": false,
+		"commitLimit": false,
+		"backfillLimit": false,
+		"hideCredit": true
+	}
+}

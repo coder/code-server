@@ -1,0 +1,119 @@
+{
+  "name": "postcss-sass",
+  "version": "0.4.4",
+  "description": "A Sass parser for PostCSS, using gonzales-pe.",
+  "keywords": [
+    "postcss",
+    "css",
+    "postcss-plugin",
+    "postcss-sass",
+    "sass"
+  ],
+  "author": "Oleh Aloshkin <olegaleshkin@gmail.com>",
+  "license": "MIT",
+  "repository": "AleshaOleg/postcss-sass",
+  "bugs": {
+    "url": "https://github.com/AleshaOleg/postcss-sass/issues"
+  },
+  "homepage": "https://github.com/AleshaOleg/postcss-sass",
+  "dependencies": {
+    "gonzales-pe": "^4.3.0",
+    "postcss": "^7.0.21"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@logux/eslint-config": "^36.0.0",
+    "babel-jest": "^24.9.0",
+    "babel-plugin-precompile-charcodes": "^1.1.0",
+    "coveralls": "^3.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-postcss": "^4.0.0",
+    "eslint-config-standard": "^14.1.0",
+    "eslint-plugin-import": "^2.18.2",
+    "eslint-plugin-import-helpers": "^1.0.2",
+    "eslint-plugin-jest": "^23.0.3",
+    "eslint-plugin-node": "^11.0.0",
+    "eslint-plugin-prefer-let": "^1.0.1",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-security": "^1.4.0",
+    "eslint-plugin-standard": "^4.0.1",
+    "eslint-plugin-unicorn": "^18.0.1",
+    "greenkeeper-lockfile": "^1.15.1",
+    "husky": "^4.0.2",
+    "istanbul": "^0.4.5",
+    "jest": "^24.9.0",
+    "lint-staged": "^10.0.3",
+    "postcss-parser-tests": "^6.2.1"
+  },
+  "scripts": {
+    "precommit": "yarn run test && lint-staged",
+    "clean": "rm *.js || echo 'Already cleaned'",
+    "build": "yarn run clean && babel -s inline -d ./ *.es6",
+    "coveralls": "cat ./coverage/lcov.info | ./node_modules/.bin/coveralls",
+    "prepublishOnly": "yarn run build && yarn run test",
+    "pretest": "eslint *.es6 __tests__",
+    "test": "jest"
+  },
+  "eslintConfig": {
+    "extends": "eslint-config-postcss",
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "settings": {
+      "node": {
+        "tryExtensions": [
+          ".js",
+          ".es6"
+        ]
+      }
+    },
+    "rules": {
+      "max-len": [
+        "error",
+        120
+      ]
+    }
+  },
+  "jest": {
+    "collectCoverage": true,
+    "moduleFileExtensions": [
+      "es6",
+      "js",
+      "json"
+    ],
+    "testPathIgnorePatterns": [
+      "<rootDir>/__tests__/utils"
+    ],
+    "testEnvironment": "node",
+    "transform": {
+      "^.+\\.es6$": "babel-jest"
+    }
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "browsers": "last 1 version",
+            "node": 6
+          },
+          "loose": true
+        }
+      ]
+    ],
+    "plugins": [
+      "precompile-charcodes"
+    ]
+  },
+  "lint-staged": {
+    "*.es6": [
+      "eslint --fix",
+      "git add"
+    ]
+  },
+  "main": "index.js"
+}

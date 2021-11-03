@@ -1,0 +1,66 @@
+{
+	"root": true,
+
+	"extends": "@ljharb",
+
+	"env": {
+		"es6": true,
+	},
+
+	"rules": {
+		"array-bracket-newline": 0,
+		"array-element-newline": 0,
+		"complexity": 0,
+		"eqeqeq": [2, "allow-null"],
+		"func-name-matching": 0,
+		"id-length": [2, { "min": 1, "max": 40 }],
+		"max-params": [2, 4],
+		"max-statements-per-line": [2, { "max": 2 }],
+		"multiline-comment-style": 0,
+		"no-magic-numbers": 0,
+		"new-cap": 0,
+		"no-extra-parens": 1,
+		"operator-linebreak": [2, "before"],
+		"sort-keys": 0,
+	},
+
+	"overrides": [
+		{
+			"files": "GetIntrinsic.js",
+			"rules": {
+				"max-statements": 0,
+			}
+		},
+		{
+			"files": "operations/*",
+			"rules": {
+				"max-lines": 0,
+			},
+		},
+		{
+			"files": [
+				"operations/deltas.js",
+				"operations/getOps.js",
+				"operations/spackle.js",
+				"operations/years.js",
+			],
+			"extends": "@ljharb/eslint-config/node/latest",
+			"rules": {
+				"func-style": 0,
+				"max-lines-per-function": 0,
+				"max-nested-callbacks": 0,
+				"no-throw-literal": 0,
+			},
+		},
+		{
+			"files": "test/**",
+			"extends": "@ljharb/eslint-config/tests",
+			"rules": {
+				"id-length": 0,
+				"max-lines-per-function": 0,
+				"no-implicit-coercion": 0,
+				"no-invalid-this": 1,
+			},
+		},
+	],
+}

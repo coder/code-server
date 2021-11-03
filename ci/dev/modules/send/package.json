@@ -1,0 +1,61 @@
+{
+  "name": "send",
+  "description": "Better streaming static file server with Range and conditional-GET support",
+  "version": "0.17.1",
+  "author": "TJ Holowaychuk <tj@vision-media.ca>",
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>",
+    "James Wyatt Cready <jcready@gmail.com>",
+    "Jesús Leganés Combarro <piranna@gmail.com>"
+  ],
+  "license": "MIT",
+  "repository": "pillarjs/send",
+  "keywords": [
+    "static",
+    "file",
+    "server"
+  ],
+  "dependencies": {
+    "debug": "2.6.9",
+    "depd": "~1.1.2",
+    "destroy": "~1.0.4",
+    "encodeurl": "~1.0.2",
+    "escape-html": "~1.0.3",
+    "etag": "~1.8.1",
+    "fresh": "0.5.2",
+    "http-errors": "~1.7.2",
+    "mime": "1.6.0",
+    "ms": "2.1.1",
+    "on-finished": "~2.3.0",
+    "range-parser": "~1.2.1",
+    "statuses": "~1.5.0"
+  },
+  "devDependencies": {
+    "after": "0.8.2",
+    "eslint": "5.16.0",
+    "eslint-config-standard": "12.0.0",
+    "eslint-plugin-import": "2.17.2",
+    "eslint-plugin-markdown": "1.0.0",
+    "eslint-plugin-node": "8.0.1",
+    "eslint-plugin-promise": "4.1.1",
+    "eslint-plugin-standard": "4.0.0",
+    "istanbul": "0.4.5",
+    "mocha": "6.1.4",
+    "supertest": "4.0.2"
+  },
+  "files": [
+    "HISTORY.md",
+    "LICENSE",
+    "README.md",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "lint": "eslint --plugin markdown --ext js,md .",
+    "test": "mocha --check-leaks --reporter spec --bail",
+    "test-ci": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --check-leaks --reporter spec",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --check-leaks --reporter dot"
+  }
+}

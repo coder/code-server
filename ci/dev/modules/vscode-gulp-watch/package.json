@@ -1,0 +1,55 @@
+{
+  "name": "vscode-gulp-watch",
+  "version": "5.0.3",
+  "description": "Watch, that actually is an endless stream",
+  "main": "index.js",
+  "keywords": [
+    "gulp",
+    "watch",
+    "gulpplugin"
+  ],
+  "scripts": {
+    "test": "xo --ignore ./test/fixtures/ && mocha -r test/util/set-default-options -t 5000 -R spec test/test-*",
+    "coverage": "istanbul cover node_modules/.bin/_mocha --report html -- -r test/util/set-default-options -R spec",
+    "coveralls": "istanbul cover _mocha --report lcovonly -- -r test/util/set-default-options -R spec && cat ./coverage/lcov.info | coveralls && rm -rf ./coverage"
+  },
+  "files": [
+    "index.js"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/microsoft/vscode-gulp-watch.git"
+  },
+  "author": "Vsevolod Strukchinsky",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/microsoft/vscode-gulp-watch/issues"
+  },
+  "devDependencies": {
+    "coveralls": "^3.1.0",
+    "istanbul": "^0.4.5",
+    "mocha": "^8.1.2",
+    "mocha-lcov-reporter": "1.3.0",
+    "proxyquire": "^2.1.3",
+    "rimraf": "^3.0.2",
+    "should": "~13.2.3",
+    "sinon": "^9.0.3",
+    "stream-assert": "^2.0.3",
+    "strip-ansi": "^6.0.0",
+    "xo": "^0.33.0"
+  },
+  "dependencies": {
+    "ansi-colors": "4.1.1",
+    "anymatch": "^3.1.1",
+    "chokidar": "3.5.1",
+    "fancy-log": "^1.3.3",
+    "glob-parent": "^5.1.1",
+    "normalize-path": "^3.0.0",
+    "object-assign": "^4.1.1",
+    "plugin-error": "1.0.1",
+    "readable-stream": "^3.6.0",
+    "vinyl": "^2.2.0",
+    "vinyl-file": "^3.0.0"
+  },
+  "engine": "node >= 10"
+}

@@ -1,0 +1,37 @@
+{
+  "author": {
+    "name": "Patrik Simek",
+    "url": "https://patriksimek.cz"
+  },
+  "name": "vm2",
+  "description": "vm2 is a sandbox that can run untrusted code with whitelisted Node's built-in modules. Securely!",
+  "keywords": [
+    "sandbox",
+    "prison",
+    "jail",
+    "vm",
+    "alcatraz",
+    "contextify"
+  ],
+  "version": "3.9.3",
+  "main": "index.js",
+  "repository": "github:patriksimek/vm2",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "eslint": "^5.16.0",
+    "eslint-config-integromat": "^1.5.0",
+    "mocha": "^6.2.2"
+  },
+  "engines": {
+    "node": ">=6.0"
+  },
+  "scripts": {
+    "test": "mocha test",
+    "pretest": "eslint ."
+  },
+  "bin": {
+    "vm2": "./bin/vm2"
+  },
+  "types": "index.d.ts"
+}

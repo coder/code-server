@@ -1,0 +1,30 @@
+{
+  "name": "normalize-selector",
+  "version": "0.2.0",
+  "description": "Normalize CSS Selectors",
+  "main": "./lib/normalize-selector.js",
+  "scripts": {
+    "test": "node ./test/mocha/node-suite.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/getify/normalize-selector.git"
+  },
+  "keywords": [
+    "CSS"
+  ],
+  "bugs": {
+    "url": "https://github.com/getify/normalize-selector/issues",
+    "email": "getify@gmail.com"
+  },
+  "homepage": "http://github.com/getify/normalize-selector",
+  "author": "Kyle Simpson <getify@gmail.com>",
+  "contributors": [
+    "David Kaye (https://github.com/dfkaye)"
+  ],
+  "license": "MIT",
+  "devDependencies": {
+    "assertik": "^1.0.0",
+    "mocha": "^2.2.5"
+  }
+}

@@ -1,0 +1,100 @@
+{
+	"name": "is-callable",
+	"version": "1.2.3",
+	"author": {
+		"name": "Jordan Harband",
+		"email": "ljharb@gmail.com",
+		"url": "http://ljharb.codes"
+	},
+	"funding": {
+		"url": "https://github.com/sponsors/ljharb"
+	},
+	"contributors": [
+		{
+			"name": "Jordan Harband",
+			"email": "ljharb@gmail.com",
+			"url": "http://ljharb.codes"
+		}
+	],
+	"description": "Is this JS value callable? Works with Functions and GeneratorFunctions, despite ES6 @@toStringTag.",
+	"license": "MIT",
+	"main": "index.js",
+	"scripts": {
+		"prepublish": "safe-publish-latest",
+		"pretest": "npm run --silent lint",
+		"test": "npm run --silent tests-only",
+		"posttest": "npx aud --production",
+		"tests-only": "npm run --silent test:stock && npm run --silent test:staging",
+		"test:stock": "node test",
+		"test:staging": "node --es-staging test",
+		"coverage": "npm run --silent istanbul",
+		"covert": "covert test",
+		"covert:quiet": "covert test --quiet",
+		"istanbul": "npm run --silent istanbul:clean && npm run --silent istanbul:std && npm run --silent istanbul:harmony && npm run --silent istanbul:merge && istanbul check",
+		"istanbul:clean": "rimraf coverage coverage-std coverage-harmony",
+		"istanbul:merge": "istanbul-merge --out coverage/coverage.raw.json coverage-harmony/coverage.raw.json coverage-std/coverage.raw.json && istanbul report html",
+		"istanbul:harmony": "node --harmony ./node_modules/istanbul/lib/cli.js cover test --dir coverage-harmony",
+		"istanbul:std": "istanbul cover test --report html --dir coverage-std",
+		"prelint": "eclint check *",
+		"lint": "eslint ."
+	},
+	"repository": {
+		"type": "git",
+		"url": "git://github.com/ljharb/is-callable.git"
+	},
+	"keywords": [
+		"Function",
+		"function",
+		"callable",
+		"generator",
+		"generator function",
+		"arrow",
+		"arrow function",
+		"ES6",
+		"toStringTag",
+		"@@toStringTag"
+	],
+	"dependencies": {},
+	"devDependencies": {
+		"@ljharb/eslint-config": "^17.5.0",
+		"aud": "^1.1.3",
+		"covert": "^1.1.1",
+		"eclint": "^2.8.1",
+		"eslint": "^7.19.0",
+		"foreach": "^2.0.5",
+		"istanbul": "1.1.0-alpha.1",
+		"istanbul-merge": "^1.1.1",
+		"make-arrow-function": "^1.2.0",
+		"make-async-function": "^1.0.0",
+		"make-generator-function": "^2.0.0",
+		"rimraf": "^2.7.1",
+		"safe-publish-latest": "^1.1.4",
+		"tape": "^5.1.1"
+	},
+	"testling": {
+		"files": "test/index.js",
+		"browsers": [
+			"iexplore/6.0..latest",
+			"firefox/3.0..6.0",
+			"firefox/15.0..latest",
+			"firefox/nightly",
+			"chrome/4.0..10.0",
+			"chrome/20.0..latest",
+			"chrome/canary",
+			"opera/10.0..latest",
+			"opera/next",
+			"safari/4.0..latest",
+			"ipad/6.0..latest",
+			"iphone/6.0..latest",
+			"android-browser/4.2"
+		]
+	},
+	"engines": {
+		"node": ">= 0.4"
+	},
+	"greenkeeper": {
+		"ignore": [
+			"rimraf"
+		]
+	}
+}

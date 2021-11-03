@@ -1,0 +1,88 @@
+{
+  "rules": {
+    "no-any": true,
+    "no-internal-module": true,
+    "no-namespace": true,
+    "no-reference": true,
+    "no-var-requires": true,
+    "typedef": [true, "call-signature", "parameter", "property-declaration"],
+    "typedef-whitespace": [
+      true,
+      {
+        "call-signature": "nospace",
+        "index-signature": "nospace",
+        "parameter": "nospace",
+        "property-declaration": "nospace",
+        "variable-declaration": "nospace"
+      },
+      {
+        "call-signature": "onespace",
+        "index-signature": "onespace",
+        "parameter": "onespace",
+        "property-declaration": "onespace",
+        "variable-declaration": "onespace"
+      }
+    ],
+    "curly": true,
+    "forin": true,
+    "label-position": true,
+    "no-arg": true,
+    "no-bitwise": true,
+    "no-conditional-assignment": true,
+    // "no-console": [
+    //   true,
+    //   "log"
+    // ],
+    "no-construct": true,
+    "no-debugger": true,
+    "no-duplicate-variable": true,
+    "no-empty": true,
+    "no-eval": true,
+    "no-invalid-this": true,
+    // "no-null-keyword": true,
+    "no-shadowed-variable": true,
+    // "no-string-literal": true,
+    "no-switch-case-fall-through": true,
+    "no-unsafe-finally": true,
+    "no-unused-expression": true,
+    "no-var-keyword": true,
+    "radix": true,
+    "switch-default": true,
+    "triple-equals": true,
+    "use-isnan": true,
+    "eofline": true,
+    "indent": [true, "spaces"],
+    "max-file-line-count": [true, 800],
+    "max-line-length": [true, 160],
+    "no-default-export": true,
+    "no-mergeable-namespace": true,
+    "no-require-imports": true,
+    "align": [true, "statements"],
+    //"arrow-parens": true,
+    "class-name": true,
+    "jsdoc-format": true,
+    "new-parens": true,
+    "no-angle-bracket-type-assertion": true,
+    "no-consecutive-blank-lines": [true, 1],
+    "no-parameter-properties": true,
+    // "object-literal-key-quotes": [
+    //   true,
+    //   "as-needed"
+    // ],
+    "one-line": [
+      true,
+      "check-catch",
+      "check-finally",
+      "check-else",
+      "check-open-brace",
+      "check-whitespace"
+    ],
+    "one-variable-per-declaration": [true],
+    "variable-name": [
+      true,
+      "ban-keywords",
+      "check-format",
+      "allow-leading-underscore"
+    ]
+  }
+}

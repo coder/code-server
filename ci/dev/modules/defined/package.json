@@ -1,0 +1,46 @@
+{
+    "name" : "defined",
+    "version" : "1.0.0",
+    "description" : "return the first argument that is `!== undefined`",
+    "main" : "index.js",
+    "directories" : {
+        "example" : "example",
+        "test" : "test"
+    },
+    "dependencies" : {},
+    "devDependencies" : {
+        "tape" : "~3.5.0"
+    },
+    "scripts" : {
+        "test" : "tape test/*.js"
+    },
+    "testling" : {
+        "files" : "test/*.js",
+        "browsers" : {
+            "ie" : [ 6, 7, 8, 9 ],
+            "ff" : [ 3.5, 10, 15.0 ],
+            "chrome" : [ 10, 22 ],
+            "safari" : [ 5.1 ],
+            "opera" : [ 12 ]
+        }
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/defined.git"
+    },
+    "homepage" : "https://github.com/substack/defined",
+    "keywords" : [
+        "undefined",
+        "short-circuit",
+        "||",
+        "or",
+        "//",
+        "defined-or"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT"
+}

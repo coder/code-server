@@ -1,0 +1,24 @@
+{
+	"name": "mvdan-sh",
+	"version": "0.5.0",
+	"description": "A shell parser and formatter (POSIX/Bash/mksh)",
+	"main": "index.js",
+	"repository": "https://github.com/mvdan/sh",
+	"author": "Daniel Martí",
+	"license": "BSD-3-Clause",
+	"files": [
+		"README.md",
+		"LICENSE",
+		"index.js"
+	],
+	"keywords": [
+		"shell",
+		"bash",
+		"sh",
+		"parser",
+		"ast",
+		"syntax",
+		"posix",
+		"bash-parser"
+	]
+}

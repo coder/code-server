@@ -1,0 +1,56 @@
+{
+  "name": "eslint-import-resolver-alias",
+  "version": "1.1.2",
+  "description": "a simple Node behavior import resolution plugin for eslint-plugin-import, supporting module alias.",
+  "main": "index.js",
+  "scripts": {
+    "release": "node build/release.js",
+    "test": "mocha test/test.js --require test/setup.js",
+    "cov": "istanbul cover node_modules/mocha/bin/_mocha -- test/test.js --require test/setup.js"
+  },
+  "keywords": [
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin-import",
+    "eslint-import-resolver",
+    "import-resolver",
+    "resolver",
+    "resolve",
+    "resolution",
+    "alias",
+    "mapping",
+    "rewrite",
+    "rename",
+    "webpack",
+    "module",
+    "node-native",
+    "module-resolver",
+    "import",
+    "require"
+  ],
+  "engines": {
+    "node": ">= 4"
+  },
+  "author": "johvin",
+  "license": "MIT",
+  "devDependencies": {
+    "adjust-md-for-publish": "^1.0.0",
+    "builtin-modules": "^2.0.0",
+    "istanbul": "^1.0.0-alpha.2",
+    "mocha": "^3.2.0"
+  },
+  "peerDependencies": {
+    "eslint-plugin-import": ">=1.4.0"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/johvin/eslint-import-resolver-alias.git"
+  },
+  "bugs": {
+    "url": "https://github.com/johvin/eslint-import-resolver-alias/issues"
+  },
+  "homepage": "https://github.com/johvin/eslint-import-resolver-alias#readme"
+}

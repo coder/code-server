@@ -1,0 +1,61 @@
+{
+  "name": "nanoid",
+  "version": "3.1.23",
+  "description": "A tiny (108 bytes), secure URL-friendly unique string ID generator",
+  "keywords": [
+    "uuid",
+    "random",
+    "id",
+    "url"
+  ],
+  "engines": {
+    "node": "^10 || ^12 || ^13.7 || ^14 || >=15.0.1"
+  },
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "repository": "ai/nanoid",
+  "browser": {
+    "./index.js": "./index.browser.js"
+  },
+  "react-native": "index.js",
+  "bin": "./bin/nanoid.cjs",
+  "sideEffects": false,
+  "types": "./index.d.ts",
+  "type": "module",
+  "main": "index.cjs",
+  "module": "index.js",
+  "exports": {
+    ".": {
+      "browser": {
+        "development": "./index.dev.js",
+        "production": "./index.prod.js",
+        "default": "./index.prod.js"
+      },
+      "require": "./index.cjs",
+      "import": "./index.js",
+      "default": "./index.js",
+      "types": "./index.d.ts"
+    },
+    "./package.json": "./package.json",
+    "./async/package.json": "./async/package.json",
+    "./async": {
+      "browser": "./async/index.browser.js",
+      "require": "./async/index.cjs",
+      "import": "./async/index.js",
+      "default": "./async/index.js"
+    },
+    "./non-secure/package.json": "./non-secure/package.json",
+    "./non-secure": {
+      "require": "./non-secure/index.cjs",
+      "import": "./non-secure/index.js",
+      "default": "./non-secure/index.js"
+    },
+    "./url-alphabet/package.json": "./url-alphabet/package.json",
+    "./url-alphabet": {
+      "require": "./url-alphabet/index.cjs",
+      "import": "./url-alphabet/index.js",
+      "default": "./url-alphabet/index.js"
+    },
+    "./index.d.ts": "./index.d.ts"
+  }
+}

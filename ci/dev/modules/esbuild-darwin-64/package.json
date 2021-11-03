@@ -1,0 +1,14 @@
+{
+  "name": "esbuild-darwin-64",
+  "version": "0.13.9",
+  "description": "The macOS 64-bit binary for esbuild, a JavaScript bundler.",
+  "repository": "https://github.com/evanw/esbuild",
+  "license": "MIT",
+  "preferUnplugged": false,
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ]
+}

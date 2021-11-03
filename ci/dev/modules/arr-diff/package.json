@@ -1,0 +1,69 @@
+{
+  "name": "arr-diff",
+  "description": "Returns an array with only the unique values from the first array, by excluding all values from additional arrays using strict equality for comparisons.",
+  "version": "4.0.0",
+  "homepage": "https://github.com/jonschlinkert/arr-diff",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "contributors": [
+    "Jon Schlinkert <jon.schlinkert@sellside.com> (http://twitter.com/jonschlinkert)",
+    "Paul Miller <paul+gh@paulmillr.com> (paulmillr.com)"
+  ],
+  "repository": "jonschlinkert/arr-diff",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/arr-diff/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js"
+  ],
+  "main": "index.js",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "ansi-bold": "^0.1.1",
+    "arr-flatten": "^1.0.1",
+    "array-differ": "^1.0.0",
+    "benchmarked": "^0.2.4",
+    "gulp-format-md": "^0.1.9",
+    "minimist": "^1.2.0",
+    "mocha": "^2.4.5"
+  },
+  "keywords": [
+    "arr",
+    "array",
+    "array differ",
+    "array-differ",
+    "diff",
+    "differ",
+    "difference"
+  ],
+  "verb": {
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "related": {
+      "list": [
+        "arr-flatten",
+        "array-filter",
+        "array-intersection"
+      ]
+    },
+    "reflinks": [
+      "array-differ",
+      "verb"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}

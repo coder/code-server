@@ -1,0 +1,49 @@
+{
+  "name": "http-errors",
+  "description": "Create HTTP error objects",
+  "version": "1.7.2",
+  "author": "Jonathan Ong <me@jongleberry.com> (http://jongleberry.com)",
+  "contributors": [
+    "Alan Plum <me@pluma.io>",
+    "Douglas Christopher Wilson <doug@somethingdoug.com>"
+  ],
+  "license": "MIT",
+  "repository": "jshttp/http-errors",
+  "dependencies": {
+    "depd": "~1.1.2",
+    "inherits": "2.0.3",
+    "setprototypeof": "1.1.1",
+    "statuses": ">= 1.5.0 < 2",
+    "toidentifier": "1.0.0"
+  },
+  "devDependencies": {
+    "eslint": "5.13.0",
+    "eslint-config-standard": "12.0.0",
+    "eslint-plugin-import": "2.16.0",
+    "eslint-plugin-markdown": "1.0.0",
+    "eslint-plugin-node": "7.0.1",
+    "eslint-plugin-promise": "4.0.1",
+    "eslint-plugin-standard": "4.0.0",
+    "istanbul": "0.4.5",
+    "mocha": "5.2.0"
+  },
+  "engines": {
+    "node": ">= 0.6"
+  },
+  "scripts": {
+    "lint": "eslint --plugin markdown --ext js,md . && node ./scripts/lint-readme-list.js",
+    "test": "mocha --reporter spec --bail",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter dot"
+  },
+  "keywords": [
+    "http",
+    "error"
+  ],
+  "files": [
+    "index.js",
+    "HISTORY.md",
+    "LICENSE",
+    "README.md"
+  ]
+}

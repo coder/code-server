@@ -1,0 +1,43 @@
+{
+    "name": "@types/browserify",
+    "version": "12.0.37",
+    "description": "TypeScript definitions for Browserify",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/browserify",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Andrew Gaspar",
+            "url": "https://github.com/AndrewGaspar",
+            "githubUsername": "AndrewGaspar"
+        },
+        {
+            "name": "John Vilk",
+            "url": "https://github.com/jvilk",
+            "githubUsername": "jvilk"
+        },
+        {
+            "name": "Leonard Thieu",
+            "url": "https://github.com/leonard-thieu",
+            "githubUsername": "leonard-thieu"
+        },
+        {
+            "name": "Linus Unnebäck",
+            "url": "https://github.com/LinusU",
+            "githubUsername": "LinusU"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/browserify"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/insert-module-globals": "*",
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "69bd7ef927f667c56d5b428fb5c6d32f843458566bd62ba3613b3f58d282cfe6",
+    "typeScriptVersion": "3.6"
+}

@@ -1,0 +1,63 @@
+{
+  "name": "@stylelint/postcss-markdown",
+  "version": "0.36.2",
+  "description": "PostCSS syntax for parsing Markdown",
+  "repository": "stylelint/postcss-markdown",
+  "keywords": [
+    "postcss",
+    "syntax",
+    "markdown",
+    "html",
+    "css",
+    "less",
+    "sass",
+    "scss",
+    "sss",
+    "sugarss"
+  ],
+  "main": "index.js",
+  "files": [
+    "*.js"
+  ],
+  "author": "gucong",
+  "license": "MIT",
+  "nyc": {
+    "reporter": [
+      "lcov",
+      "text"
+    ],
+    "all": true,
+    "cache": true,
+    "check-coverage": true
+  },
+  "scripts": {
+    "mocha": "mocha --no-timeouts",
+    "test": "nyc npm run mocha",
+    "debug": "npm run mocha -- --inspect-brk",
+    "release": "np"
+  },
+  "dependencies": {
+    "remark": "^13.0.0",
+    "unist-util-find-all-after": "^3.0.2"
+  },
+  "peerDependencies": {
+    "postcss": ">=7.0.0",
+    "postcss-syntax": ">=0.36.2"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "codecov": "^3.8.1",
+    "mocha": "^8.2.1",
+    "np": "^7.0.0",
+    "nyc": "^15.1.0",
+    "postcss": ">=7.0.27",
+    "postcss-html": ">=0.36.0",
+    "postcss-less": "^3.1.4",
+    "postcss-scss": "^2.0.0",
+    "postcss-syntax": ">=0.36.2",
+    "sugarss": "^2.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

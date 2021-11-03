@@ -1,0 +1,46 @@
+{
+    "name" : "traverse",
+    "version" : "0.6.6",
+    "description" : "traverse and transform objects by visiting every node on a recursive walk",
+    "main" : "index.js",
+    "directories" : {
+        "example" : "example",
+        "test" : "test"
+    },
+    "devDependencies" : {
+        "tape" : "~1.0.4"
+    },
+    "scripts" : {
+        "test" : "tape test/*.js"
+    },
+    "testling" : {
+        "files" : "test/*.js",
+        "browsers" : {
+            "iexplore" : [ "6.0", "7.0", "8.0", "9.0" ],
+            "chrome" : [ "10.0", "20.0" ],
+            "firefox" : [ "10.0", "15.0" ],
+            "safari" : [ "5.1" ],
+            "opera" : [ "12.0" ]
+        }
+    },
+    "repository" : {
+        "type" : "git",
+        "url" : "git://github.com/substack/js-traverse.git"
+    },
+    "homepage" : "https://github.com/substack/js-traverse",
+    "keywords" : [
+        "traverse",
+        "walk",
+        "recursive",
+        "map",
+        "forEach",
+        "deep",
+        "clone"
+    ],
+    "author" : {
+        "name" : "James Halliday",
+        "email" : "mail@substack.net",
+        "url" : "http://substack.net"
+    },
+    "license" : "MIT"
+}

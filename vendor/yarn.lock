@@ -250,9 +250,9 @@ chrome-remote-interface@0.28.2:
     commander "2.11.x"
     ws "^7.2.0"
 
-code-oss-dev@cdr/vscode#96a09a7846538c3bbedb6a2aeca729537bb8202b:
+code-oss-dev@lpetek/vscode#e16b3c62022022bd2ea0423433233c3e325f6035:
   version "1.60.0"
-  resolved "https://codeload.github.com/cdr/vscode/tar.gz/96a09a7846538c3bbedb6a2aeca729537bb8202b"
+  resolved "https://codeload.github.com/lpetek/vscode/tar.gz/e16b3c62022022bd2ea0423433233c3e325f6035"
   dependencies:
     "@coder/logger" "^1.1.16"
     "@microsoft/applicationinsights-web" "^2.6.4"

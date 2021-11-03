@@ -1,0 +1,63 @@
+{
+  "name": "browser-pack",
+  "version": "6.1.0",
+  "description": "pack node-style source files from a json stream into a browser bundle",
+  "main": "index.js",
+  "bin": {
+    "browser-pack": "bin/cmd.js"
+  },
+  "dependencies": {
+    "JSONStream": "^1.0.3",
+    "combine-source-map": "~0.8.0",
+    "defined": "^1.0.0",
+    "safe-buffer": "^5.1.1",
+    "through2": "^2.0.0",
+    "umd": "^3.0.0"
+  },
+  "devDependencies": {
+    "concat-stream": "~1.5.1",
+    "convert-source-map": "~1.1.0",
+    "parse-base64vlq-mappings": "~0.1.1",
+    "tap": "^10.7.2",
+    "uglify-js": "^2.8.29"
+  },
+  "scripts": {
+    "test": "tap test/*.js",
+    "prepublish": "node bin/prepublish.js"
+  },
+  "testling": {
+    "files": "test/*.js",
+    "browsers": [
+      "ie/8",
+      "ie/9",
+      "ie/10",
+      "chrome/15",
+      "chrome/latest",
+      "firefox/10",
+      "firefox/latest",
+      "safari/latest",
+      "opera/10",
+      "opera/latest"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/browserify/browser-pack.git"
+  },
+  "homepage": "https://github.com/browserify/browser-pack",
+  "keywords": [
+    "browser",
+    "bundle",
+    "commonjs",
+    "commonj-esque",
+    "exports",
+    "module.exports",
+    "require"
+  ],
+  "author": {
+    "name": "James Halliday",
+    "email": "mail@substack.net",
+    "url": "http://substack.net"
+  },
+  "license": "MIT"
+}

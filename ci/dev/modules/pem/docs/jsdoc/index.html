@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Home - Documentation</title>
+
+    <script src="/pem/jsdoc/scripts/prettify/prettify.js"></script>
+    <script src="/pem/jsdoc/scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="/pem/jsdoc/styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="/pem/jsdoc/styles/jsdoc.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-helper.html">helper</a><ul class='members'><li data-type='member'><a href="module-helper.html#.ciphers">ciphers</a></li></ul><ul class='methods'><li data-type='method'><a href="module-helper.html#.createPasswordFile">createPasswordFile</a></li><li data-type='method'><a href="module-helper.html#.deleteTempFiles">deleteTempFiles</a></li><li data-type='method'><a href="module-helper.html#.isHex">isHex</a></li><li data-type='method'><a href="module-helper.html#.isNumber">isNumber</a></li><li data-type='method'><a href="module-helper.html#.toHex">toHex</a></li></ul></li><li><a href="module-openssl.html">openssl</a><ul class='methods'><li data-type='method'><a href="module-openssl.html#.exec">exec</a></li><li data-type='method'><a href="module-openssl.html#.execBinary">execBinary</a></li><li data-type='method'><a href="module-openssl.html#.get">get</a></li><li data-type='method'><a href="module-openssl.html#.set">set</a></li><li data-type='method'><a href="module-openssl.html#.spawn">spawn</a></li><li data-type='method'><a href="module-openssl.html#.spawnWrapper">spawnWrapper</a></li></ul></li><li><a href="module-pem.html">pem</a><ul class='members'><li data-type='member'><a href="module-pem.html#.convert">convert</a></li></ul><ul class='methods'><li data-type='method'><a href="module-pem.html#.checkCertificate">checkCertificate</a></li><li data-type='method'><a href="module-pem.html#.checkPkcs12">checkPkcs12</a></li><li data-type='method'><a href="module-pem.html#.config">config</a></li><li data-type='method'><a href="module-pem.html#.createCertificate">createCertificate</a></li><li data-type='method'><a href="module-pem.html#.createCSR">createCSR</a></li><li data-type='method'><a href="module-pem.html#.createDhparam">createDhparam</a></li><li data-type='method'><a href="module-pem.html#.createEcparam">createEcparam</a></li><li data-type='method'><a href="module-pem.html#.createPkcs12">createPkcs12</a></li><li data-type='method'><a href="module-pem.html#.createPrivateKey">createPrivateKey</a></li><li data-type='method'><a href="module-pem.html#.getDhparamInfo">getDhparamInfo</a></li><li data-type='method'><a href="module-pem.html#.getFingerprint">getFingerprint</a></li><li data-type='method'><a href="module-pem.html#.getModulus">getModulus</a></li><li data-type='method'><a href="module-pem.html#.getPublicKey">getPublicKey</a></li><li data-type='method'><a href="module-pem.html#.readCertificateInfo">readCertificateInfo</a></li><li data-type='method'><a href="module-pem.html#.readPkcs12">readPkcs12</a></li><li data-type='method'><a href="module-pem.html#.verifySigningChain">verifySigningChain</a></li></ul></li></ul><h3>Namespaces</h3><ul><li><a href="module-pem-promisified.html">promisified</a></li></ul><h3>Global</h3><ul><li><a href="global.html#DER2PEM">DER2PEM</a></li><li><a href="global.html#P7B2PEM">P7B2PEM</a></li><li><a href="global.html#P7B2PFX">P7B2PFX</a></li><li><a href="global.html#PEM2P7B">PEM2P7B</a></li><li><a href="global.html#PEM2PFX">PEM2PFX</a></li><li><a href="global.html#PFX2PEM">PFX2PEM</a></li></ul>
+</nav>
+
+<div id="main">
+    
+
+    
+
+
+
+    
+
+
+
+
+
+
+
+
+
+    
+
+
+    <section class="readme">
+        <article><h1>pem</h1>
+<p>Create private keys and certificates with node.js</p>
+<p><a href="http://travis-ci.org/Dexus/pem"><img src="https://secure.travis-ci.org/Dexus/pem.png" alt="Build Status"></a> <a href="http://badge.fury.io/js/pem"><img src="https://badge.fury.io/js/pem.svg" alt="npm version"></a> <a href="https://www.npmjs.com/package/pem"><img src="https://img.shields.io/npm/dt/pem.svg" alt="npm downloads"></a> <a href="https://www.deineagentur.com/projects/pem"><img src="https://img.shields.io/badge/pem-documentation-0099ff.svg?style=flat" alt="pem documentation"></a> <a href="https://greenkeeper.io/"><img src="https://badges.greenkeeper.io/Dexus/pem.svg" alt="Greenkeeper badge"></a></p>
+<p><a href="https://github.com/standard/standard"><img src="https://cdn.rawgit.com/standard/standard/master/badge.svg" alt="JavaScript Style Guide"></a></p>
+<h2>Installation</h2>
+<p>Install with npm</p>
+<pre><code>npm install pem
+</code></pre>
+<h2>Examples</h2>
+<p>Here are some examples for creating an SSL key/cert on the fly, and running an HTTPS server on port 443.  443 is the standard HTTPS port, but requires root permissions on most systems.  To get around this, you could use a higher port number, like 4300, and use https://localhost:4300 to access your server.</p>
+<h3>Basic https</h3>
+<pre class="prettyprint source lang-javascript"><code>var https = require('https')
+var pem = require('pem')
+
+pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
+  if (err) {
+    throw err
+  }
+  https.createServer({ key: keys.serviceKey, cert: keys.certificate }, function (req, res) {
+    res.end('o hai!')
+  }).listen(443)
+})
+</code></pre>
+<h3>Express</h3>
+<pre class="prettyprint source lang-javascript"><code>var https = require('https')
+var pem = require('pem')
+var express = require('express')
+
+pem.createCertificate({ days: 1, selfSigned: true }, function (err, keys) {
+  if (err) {
+    throw err
+  }
+  var app = express()
+
+  app.get('/', function (req, res) {
+    res.send('o hai!')
+  })
+
+  https.createServer({ key: keys.serviceKey, cert: keys.certificate }, app).listen(443)
+})
+</code></pre>
+<h2>API</h2>
+<p>Please have a look into the <a href="https://www.deineagentur.com/projects/pem/index.html">API documentation</a>.</p>
+<p><em>we had to clean up a bit</em></p>
+<!--
+### Create a dhparam key
+
+Use `createDhparam` for creating dhparam keys
+
+    pem.createDhparam(keyBitsize, callback)
+
+Where
+
+  * **keyBitsize** is an optional size of the key, defaults to 512 (bit)
+  * **callback** is a callback function with an error object and `{dhparam}`
+
+### Create a ecparam key
+
+Use `createEcparam` for creating ecparam keys
+
+    pem.createEcparam(keyName, callback)
+
+Where
+
+  * **keyName** is an optional name of the key curves name, defaults to secp256k1
+  * **callback** is a callback function with an error object and `{ecparam}`
+
+### Create a private key
+
+Use `createPrivateKey` for creating private keys
+
+    pem.createPrivateKey(keyBitsize, [options,] callback)
+
+Where
+
+  * **keyBitsize** is an optional size of the key, defaults to 2048 (bit)
+  * **options** is an optional object of the cipher and password (both required for encryption), defaults {cipher:'',password:''}
+  (ciphers:["aes128", "aes192", "aes256", "camellia128", "camellia192", "camellia256", "des", "des3", "idea"])
+  * **callback** is a callback function with an error object and `{key}`
+
+### Create a Certificate Signing Request
+
+Use `createCSR` for creating certificate signing requests
+
+    pem.createCSR(options, callback)
+
+Where
+
+  * **options** is an optional options object
+  * **callback** is a callback function with an error object and `{csr, clientKey}`
+
+Possible options are the following
+
+  * **clientKey** is an optional client key to use
+  * **clientKeyPassword** the optional password for `clientKey`
+  * **keyBitsize** - if `clientKey` is undefined, bit size to use for generating a new key (defaults to 2048)
+  * **hash** is a hash function to use (either `md5`, `sha1` or `sha256`, defaults to `sha256`)
+  * **country** is a CSR country field
+  * **state** is a CSR state field
+  * **locality** is a CSR locality field
+  * **organization** is a CSR organization field
+  * **organizationUnit** is a CSR organizational unit field
+  * **commonName** is a CSR common name field (defaults to `localhost`)
+  * **altNames** is a list (`Array`) of subjectAltNames in the subjectAltName field (optional)
+  * **emailAddress** is a CSR email address field
+  * **csrConfigFile** is a CSR config file
+
+### Create a certificate
+
+Use `createCertificate` for creating private keys
+
+    pem.createCertificate(options, callback)
+
+Where
+
+  * **options** is an optional options object
+  * **callback** is a callback function with an error object and `{certificate, csr, clientKey, serviceKey}`
+
+Possible options include all the options for `createCSR` - in case `csr` parameter is not defined and a new
+CSR needs to be generated.
+
+In addition, possible options are the following
+
+  * **serviceKey** is a private key for signing the certificate, if not defined a new one is generated
+  * **serviceKeyPassword** Password of the service key
+  * **serviceCertificate** is the optional certificate for the `serviceKey`
+  * **serial** is the unique serial number for the signed certificate, required if `serviceCertificate` is defined
+  * **selfSigned** - if set to true and `serviceKey` is not defined, use `clientKey` for signing
+  * **csr** is a CSR for the certificate, if not defined a new one is generated
+  * **days** is the certificate expire time in days
+  * **extFile** extension config file - **without** `-extensions v3_req`
+  * **config** extension config file - **with** `-extensions v3_req`
+
+### Export a public key
+
+Use `getPublicKey` for exporting a public key from a private key, CSR or certificate
+
+    pem.getPublicKey(certificate, callback)
+
+Where
+
+  * **certificate** is a PEM encoded private key, CSR or certificate
+  * **callback** is a callback function with an error object and `{publicKey}`
+
+### Read certificate info
+
+Use `readCertificateInfo` for reading subject data from a certificate or a CSR
+
+    pem.readCertificateInfo(certificate, callback)
+
+Where
+
+  * **certificate** is a PEM encoded CSR or a certificate
+  * **callback** is a callback function with an error object and `{serial, country, state, locality, organization, organizationUnit, commonName, emailAddress, validity{start, end}, san{dns, ip, email}?, issuer{country, state, locality, organization, organizationUnit}, signatureAlgorithm, publicKeyAlgorithm, publicKeySize }`
+
+? *san* is only present if the CSR or certificate has SAN entries.
+
+*signatureAlgorithm, publicKeyAlgorithm and publicKeySize* only available if supportet and can parsed form openssl output
+
+### Get fingerprint
+
+Use `getFingerprint` to get the default SHA1 fingerprint for a certificate
+
+    pem.getFingerprint(certificate, [hash], callback)
+
+Where
+
+  * **certificate** is a PEM encoded certificate
+  * **hash** is a hash function to use (either `md5`, `sha1` or `sha256`, defaults to `sha1`)
+  * **callback** is a callback function with an error object and `{fingerprint}`
+
+### Get modulus
+
+Use `getModulus` to get the modulus for a certificate, a CSR or a private key. Modulus can be useful to check that a Private Key Matches a Certificate
+
+    pem.getModulus(certificate, [password], [hash], callback)
+
+Where
+
+  * **certificate** is a PEM encoded certificate, CSR or private key
+  * **password** is an optional passphrase for passpharse protected certificates
+  * **hash** is an optional hash function to use (up to now `md5` supported) (default: none)
+  * **callback** is a callback function with an error object and `{modulus}`
+
+### Get DH parameter information
+
+Use `getDhparamInfo` to get the size and prime of DH parameters.
+
+    pem.getDhparamInfo(dhparam, callback)
+
+Where
+
+  * **dhparam** is a PEM encoded DH parameters string
+  * **callback** is a callback function with an error object and `{size, prime}`
+
+
+### Export to a PKCS12 keystore
+
+Use `createPkcs12` to export a certificate, the private key and optionally any signing or intermediate CA certificates to a PKCS12 keystore.
+
+	pem.createPkcs12(clientKey, certificate, p12Password, [options], callback)
+
+Where
+
+* **clientKey** is a PEM encoded private key
+* **certificate** is a PEM encoded certificate
+* **p12Password** is the password of the exported keystore
+* **options** is an optional options object with `cipher`, (one of "aes128", "aes192", "aes256", "camellia128", "camellia192", "camellia256", "des", "des3" or "idea"), `clientKeyPassword` and `certFiles` (an array of additional certificates to include - e.g. CA certificates)
+* **callback** is a callback function with an error object and `{pkcs12}` (binary)
+
+### Read a PKCS12 keystore
+
+Use `readPkcs12` to read a certificate, private key and CA certificates from a PKCS12 keystore.
+
+	pem.readPkcs12(bufferOrPath, [options], callback)
+
+Where
+
+* **bufferOrPath** is a PKCS12 keystore as a [Buffer](https://nodejs.org/api/buffer.html) or the path to a file
+* **options** is an optional options object with `clientKeyPassword` which will be used to encrypt the stored key and `p12Password` which will be used to open the keystore
+* **callback** is a callback function with an error object and `{key: String, cert: String, ca: Array}`
+
+### Check a PKCS12 keystore
+
+Use `checkPkcs12` to check a PKCS12 keystore.
+
+	pem.checkPkcs12(bufferOrPath, [passphrase], callback)
+
+Where
+
+* **bufferOrPath** is a PKCS12 keystore as a [Buffer](https://nodejs.org/api/buffer.html) or the path to a file
+* **passphrase** is an optional passphrase which will be used to open the keystore
+* **callback** is a callback function with an error object and a boolean as arguments
+
+### Verify a certificate signing chain
+
+Use `verifySigningChain` to assert that a given certificate has a valid signing chain.
+
+    pem.verifySigningChain(certificate, ca, callback)
+
+Where
+
+* **certificate** is a PEM encoded certificate string
+* **ca** is a PEM encoded CA certificate string or an array of certificate strings
+* **callback** is a callback function with an error object and a boolean as arguments
+
+### Check a certificate file
+
+Use `checkCertificate` to check / verify consistency of a certificate.
+
+    pem.checkCertificate(certificate, callback)
+
+Where
+
+* **certificate** is a PEM encoded certificate string
+* **callback** is a callback function with an error object and a boolean as arguments
+-->
+<h3>Custom extensions config file</h3>
+<p>You can specify custom OpenSSL extensions using the <code>config</code> or <code>extFile</code> options for <code>createCertificate</code> (or using <code>csrConfigFile</code> with <code>createCSR</code>).</p>
+<p><code>extFile</code> and <code>csrConfigFile</code> should be paths to the extension files. While <code>config</code> will generate a temporary file from the supplied file contents.</p>
+<p>If you specify <code>config</code> then the <code>v3_req</code> section of your config file will be used.</p>
+<p>The following would be an example of a Certificate Authority extensions file:</p>
+<pre><code>[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+
+[req_distinguished_name]
+commonName = Common Name
+commonName_max = 64
+
+[v3_req]
+basicConstraints = critical,CA:TRUE
+</code></pre>
+<p>While the following would specify subjectAltNames in the resulting certificate:</p>
+<pre><code>[req]
+req_extensions = v3_req
+
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = host1.example.com
+DNS.2 = host2.example.com
+DNS.3 = host3.example.com
+</code></pre>
+<p>Note that <code>createCertificate</code> and <code>createCSR</code> supports the <code>altNames</code> option which would be easier to use in most cases.</p>
+<p><strong>Warning: If you specify <code>altNames</code> the custom extensions file will not be passed to OpenSSL.</strong></p>
+<h3>Setting openssl location</h3>
+<p>In some systems the <code>openssl</code> executable might not be available by the default name or it is not included in $PATH. In this case you can define the location of the executable yourself as a one time action after you have loaded the pem module:</p>
+<pre class="prettyprint source lang-javascript"><code>var pem = require('pem')
+pem.config({
+  pathOpenSSL: '/usr/local/bin/openssl'
+})
+// do something with the pem module
+</code></pre>
+<h3>Specialthanks to</h3>
+<ul>
+<li>Andris Reinman (@andris9) - Initiator of pem</li>
+</ul>
+<h2>License</h2>
+<p><strong>MIT</strong></p></article>
+    </section>
+
+
+
+
+
+
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.6.3</a> on Sat Jan 25 2020 20:11:01 GMT+0100 (GMT+01:00) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="/pem/jsdoc/scripts/linenumber.js"></script>
+</body>
+</html>

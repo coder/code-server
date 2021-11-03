@@ -1,0 +1,518 @@
+/*--------------------- Typography ----------------------------*/
+
+@font-face {
+    font-family: 'aller-light';
+    src: url('public/fonts/aller-light.eot');
+    src: url('public/fonts/aller-light.eot?#iefix') format('embedded-opentype'),
+         url('public/fonts/aller-light.woff') format('woff'),
+         url('public/fonts/aller-light.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'aller-bold';
+    src: url('public/fonts/aller-bold.eot');
+    src: url('public/fonts/aller-bold.eot?#iefix') format('embedded-opentype'),
+         url('public/fonts/aller-bold.woff') format('woff'),
+         url('public/fonts/aller-bold.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'roboto-black';
+    src: url('public/fonts/roboto-black.eot');
+    src: url('public/fonts/roboto-black.eot?#iefix') format('embedded-opentype'),
+         url('public/fonts/roboto-black.woff') format('woff'),
+         url('public/fonts/roboto-black.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/*--------------------- Layout ----------------------------*/
+html { height: 100%; }
+body {
+  font-family: "aller-light";
+  font-size: 14px;
+  line-height: 18px;
+  color: #30404f;
+  margin: 0; padding: 0;
+  height:100%;
+}
+#container { min-height: 100%; }
+
+a {
+  color: #000;
+}
+
+b, strong {
+  font-weight: normal;
+  font-family: "aller-bold";
+}
+
+p {
+  margin: 15px 0 0px;
+}
+  .annotation ul, .annotation ol {
+    margin: 25px 0;
+  }
+    .annotation ul li, .annotation ol li {
+      font-size: 14px;
+      line-height: 18px;
+      margin: 10px 0;
+    }
+
+h1, h2, h3, h4, h5, h6 {
+  color: #112233;
+  line-height: 1em;
+  font-weight: normal;
+  font-family: "roboto-black";
+  text-transform: uppercase;
+  margin: 30px 0 15px 0;
+}
+
+h1 {
+  margin-top: 40px;
+}
+h2 {
+  font-size: 1.26em;
+}
+
+hr {
+  border: 0;
+  background: 1px #ddd;
+  height: 1px;
+  margin: 20px 0;
+}
+
+pre, tt, code {
+  font-size: 12px; line-height: 16px;
+  font-family: Menlo, Monaco, Consolas, "Lucida Console", monospace;
+  margin: 0; padding: 0;
+}
+  .annotation pre {
+    display: block;
+    margin: 0;
+    padding: 7px 10px;
+    background: #fcfcfc;
+    -moz-box-shadow:    inset 0 0 10px rgba(0,0,0,0.1);
+    -webkit-box-shadow: inset 0 0 10px rgba(0,0,0,0.1);
+    box-shadow:         inset 0 0 10px rgba(0,0,0,0.1);
+    overflow-x: auto;
+  }
+    .annotation pre code {
+      border: 0;
+      padding: 0;
+      background: transparent;
+    }
+
+
+blockquote {
+  border-left: 5px solid #ccc;
+  margin: 0;
+  padding: 1px 0 1px 1em;
+}
+  .sections blockquote p {
+    font-family: Menlo, Consolas, Monaco, monospace;
+    font-size: 12px; line-height: 16px;
+    color: #999;
+    margin: 10px 0 0;
+    white-space: pre-wrap;
+  }
+
+ul.sections {
+  list-style: none;
+  padding:0 0 5px 0;;
+  margin:0;
+}
+
+/*
+  Force border-box so that % widths fit the parent
+  container without overlap because of margin/padding.
+
+  More Info : http://www.quirksmode.org/css/box.html
+*/
+ul.sections > li > div {
+  -moz-box-sizing: border-box;    /* firefox */
+  -ms-box-sizing: border-box;     /* ie */
+  -webkit-box-sizing: border-box; /* webkit */
+  -khtml-box-sizing: border-box;  /* konqueror */
+  box-sizing: border-box;         /* css3 */
+}
+
+
+/*---------------------- Jump Page -----------------------------*/
+#jump_to, #jump_page {
+  margin: 0;
+  background: white;
+  -webkit-box-shadow: 0 0 25px #777; -moz-box-shadow: 0 0 25px #777;
+  -webkit-border-bottom-left-radius: 5px; -moz-border-radius-bottomleft: 5px;
+  font: 16px Arial;
+  cursor: pointer;
+  text-align: right;
+  list-style: none;
+}
+
+#jump_to a {
+  text-decoration: none;
+}
+
+#jump_to a.large {
+  display: none;
+}
+#jump_to a.small {
+  font-size: 22px;
+  font-weight: bold;
+  color: #676767;
+}
+
+#jump_to, #jump_wrapper {
+  position: fixed;
+  right: 0; top: 0;
+  padding: 10px 15px;
+  margin:0;
+}
+
+#jump_wrapper {
+  display: none;
+  padding:0;
+}
+
+#jump_to:hover #jump_wrapper {
+  display: block;
+}
+
+#jump_page_wrapper{
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+}
+
+#jump_page {
+  padding: 5px 0 3px;
+  margin: 0 0 25px 25px;
+  max-height: 100%;
+  overflow: auto;
+}
+
+#jump_page .source {
+  display: block;
+  padding: 15px;
+  text-decoration: none;
+  border-top: 1px solid #eee;
+}
+
+#jump_page .source:hover {
+  background: #f5f5ff;
+}
+
+#jump_page .source:first-child {
+}
+
+/*---------------------- Low resolutions (> 320px) ---------------------*/
+@media only screen and (min-width: 320px) {
+  .pilwrap { display: none; }
+
+  ul.sections > li > div {
+    display: block;
+    padding:5px 10px 0 10px;
+  }
+
+  ul.sections > li > div.annotation ul, ul.sections > li > div.annotation ol {
+    padding-left: 30px;
+  }
+
+  ul.sections > li > div.content {
+    overflow-x:auto;
+    -webkit-box-shadow: inset 0 0 5px #e5e5ee;
+    box-shadow: inset 0 0 5px #e5e5ee;
+    border: 1px solid #dedede;
+    margin:5px 10px 5px 10px;
+    padding-bottom: 5px;
+  }
+
+  ul.sections > li > div.annotation pre {
+    margin: 7px 0 7px;
+    padding-left: 15px;
+  }
+
+  ul.sections > li > div.annotation p tt, .annotation code {
+    background: #f8f8ff;
+    border: 1px solid #dedede;
+    font-size: 12px;
+    padding: 0 0.2em;
+  }
+}
+
+/*----------------------  (> 481px) ---------------------*/
+@media only screen and (min-width: 481px) {
+  #container {
+    position: relative;
+  }
+  body {
+    background-color: #F5F5FF;
+    font-size: 15px;
+    line-height: 21px;
+  }
+  pre, tt, code {
+    line-height: 18px;
+  }
+  p, ul, ol {
+    margin: 0 0 15px;
+  }
+
+
+  #jump_to {
+    padding: 5px 10px;
+  }
+  #jump_wrapper {
+    padding: 0;
+  }
+  #jump_to, #jump_page {
+    font: 10px Arial;
+    text-transform: uppercase;
+  }
+  #jump_page .source {
+    padding: 5px 10px;
+  }
+  #jump_to a.large {
+    display: inline-block;
+  }
+  #jump_to a.small {
+    display: none;
+  }
+
+
+
+  #background {
+    position: absolute;
+    top: 0; bottom: 0;
+    width: 350px;
+    background: #fff;
+    border-right: 1px solid #e5e5ee;
+    z-index: -1;
+  }
+
+  ul.sections > li > div.annotation ul, ul.sections > li > div.annotation ol {
+    padding-left: 40px;
+  }
+
+  ul.sections > li {
+    white-space: nowrap;
+  }
+
+  ul.sections > li > div {
+    display: inline-block;
+  }
+
+  ul.sections > li > div.annotation {
+    max-width: 350px;
+    min-width: 350px;
+    min-height: 5px;
+    padding: 13px;
+    overflow-x: hidden;
+    white-space: normal;
+    vertical-align: top;
+    text-align: left;
+  }
+  ul.sections > li > div.annotation pre {
+    margin: 15px 0 15px;
+    padding-left: 15px;
+  }
+
+  ul.sections > li > div.content {
+    padding: 13px;
+    vertical-align: top;
+    border: none;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+  }
+
+  .pilwrap {
+    position: relative;
+    display: inline;
+  }
+
+  .pilcrow {
+    font: 12px Arial;
+    text-decoration: none;
+    color: #454545;
+    position: absolute;
+    top: 3px; left: -20px;
+    padding: 1px 2px;
+    opacity: 0;
+    -webkit-transition: opacity 0.2s linear;
+  }
+    .for-h1 .pilcrow {
+      top: 47px;
+    }
+    .for-h2 .pilcrow, .for-h3 .pilcrow, .for-h4 .pilcrow {
+      top: 35px;
+    }
+
+  ul.sections > li > div.annotation:hover .pilcrow {
+    opacity: 1;
+  }
+}
+
+/*---------------------- (> 1025px) ---------------------*/
+@media only screen and (min-width: 1025px) {
+
+  body {
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  #background {
+    width: 525px;
+  }
+  ul.sections > li > div.annotation {
+    max-width: 525px;
+    min-width: 525px;
+    padding: 10px 25px 1px 50px;
+  }
+  ul.sections > li > div.content {
+    padding: 9px 15px 16px 25px;
+  }
+}
+
+/*---------------------- Syntax Highlighting -----------------------------*/
+
+td.linenos { background-color: #f0f0f0; padding-right: 10px; }
+span.lineno { background-color: #f0f0f0; padding: 0 5px 0 5px; }
+/*
+
+github.com style (c) Vasily Polovnyov <vast@whiteants.net>
+
+*/
+
+pre code {
+  display: block; padding: 0.5em;
+  color: #000;
+  background: #f8f8ff
+}
+
+pre .hljs-comment,
+pre .hljs-template_comment,
+pre .hljs-diff .hljs-header,
+pre .hljs-javadoc {
+  color: #408080;
+  font-style: italic
+}
+
+pre .hljs-keyword,
+pre .hljs-assignment,
+pre .hljs-literal,
+pre .hljs-css .hljs-rule .hljs-keyword,
+pre .hljs-winutils,
+pre .hljs-javascript .hljs-title,
+pre .hljs-lisp .hljs-title,
+pre .hljs-subst {
+  color: #954121;
+  /*font-weight: bold*/
+}
+
+pre .hljs-number,
+pre .hljs-hexcolor {
+  color: #40a070
+}
+
+pre .hljs-string,
+pre .hljs-tag .hljs-value,
+pre .hljs-phpdoc,
+pre .hljs-tex .hljs-formula {
+  color: #219161;
+}
+
+pre .hljs-title,
+pre .hljs-id {
+  color: #19469D;
+}
+pre .hljs-params {
+  color: #00F;
+}
+
+pre .hljs-javascript .hljs-title,
+pre .hljs-lisp .hljs-title,
+pre .hljs-subst {
+  font-weight: normal
+}
+
+pre .hljs-class .hljs-title,
+pre .hljs-haskell .hljs-label,
+pre .hljs-tex .hljs-command {
+  color: #458;
+  font-weight: bold
+}
+
+pre .hljs-tag,
+pre .hljs-tag .hljs-title,
+pre .hljs-rules .hljs-property,
+pre .hljs-django .hljs-tag .hljs-keyword {
+  color: #000080;
+  font-weight: normal
+}
+
+pre .hljs-attribute,
+pre .hljs-variable,
+pre .hljs-instancevar,
+pre .hljs-lisp .hljs-body {
+  color: #008080
+}
+
+pre .hljs-regexp {
+  color: #B68
+}
+
+pre .hljs-class {
+  color: #458;
+  font-weight: bold
+}
+
+pre .hljs-symbol,
+pre .hljs-ruby .hljs-symbol .hljs-string,
+pre .hljs-ruby .hljs-symbol .hljs-keyword,
+pre .hljs-ruby .hljs-symbol .hljs-keymethods,
+pre .hljs-lisp .hljs-keyword,
+pre .hljs-tex .hljs-special,
+pre .hljs-input_number {
+  color: #990073
+}
+
+pre .hljs-builtin,
+pre .hljs-constructor,
+pre .hljs-built_in,
+pre .hljs-lisp .hljs-title {
+  color: #0086b3
+}
+
+pre .hljs-preprocessor,
+pre .hljs-pi,
+pre .hljs-doctype,
+pre .hljs-shebang,
+pre .hljs-cdata {
+  color: #999;
+  font-weight: bold
+}
+
+pre .hljs-deletion {
+  background: #fdd
+}
+
+pre .hljs-addition {
+  background: #dfd
+}
+
+pre .hljs-diff .hljs-change {
+  background: #0086b3
+}
+
+pre .hljs-chunk {
+  color: #aaa
+}
+
+pre .hljs-tex .hljs-formula {
+  opacity: 0.5;
+}

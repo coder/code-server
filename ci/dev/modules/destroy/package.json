@@ -1,0 +1,37 @@
+{
+  "name": "destroy",
+  "description": "destroy a stream if possible",
+  "version": "1.0.4",
+  "author": {
+    "name": "Jonathan Ong",
+    "email": "me@jongleberry.com",
+    "url": "http://jongleberry.com",
+    "twitter": "https://twitter.com/jongleberry"
+  },
+  "contributors": [
+    "Douglas Christopher Wilson <doug@somethingdoug.com>"
+  ],
+  "license": "MIT",
+  "repository": "stream-utils/destroy",
+  "devDependencies": {
+    "istanbul": "0.4.2",
+    "mocha": "2.3.4"
+  },
+  "scripts": {
+    "test": "mocha --reporter spec",
+    "test-cov": "istanbul cover node_modules/mocha/bin/_mocha -- --reporter dot",
+    "test-travis": "istanbul cover node_modules/mocha/bin/_mocha --report lcovonly -- --reporter dot"
+  },
+  "files": [
+    "index.js",
+    "LICENSE"
+  ],
+  "keywords": [
+    "stream",
+    "streams",
+    "destroy",
+    "cleanup",
+    "leak",
+    "fd"
+  ]
+}

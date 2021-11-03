@@ -1,0 +1,57 @@
+{
+    "name": "@types/ws",
+    "version": "7.4.7",
+    "description": "TypeScript definitions for ws",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/ws",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Paul Loyd",
+            "url": "https://github.com/loyd",
+            "githubUsername": "loyd"
+        },
+        {
+            "name": "Margus Lamp",
+            "url": "https://github.com/mlamp",
+            "githubUsername": "mlamp"
+        },
+        {
+            "name": "Philippe D'Alva",
+            "url": "https://github.com/TitaneBoy",
+            "githubUsername": "TitaneBoy"
+        },
+        {
+            "name": "reduckted",
+            "url": "https://github.com/reduckted",
+            "githubUsername": "reduckted"
+        },
+        {
+            "name": "teidesu",
+            "url": "https://github.com/teidesu",
+            "githubUsername": "teidesu"
+        },
+        {
+            "name": "Bartosz Wojtkowiak",
+            "url": "https://github.com/wojtkowiak",
+            "githubUsername": "wojtkowiak"
+        },
+        {
+            "name": "Kyle Hensel",
+            "url": "https://github.com/k-yle",
+            "githubUsername": "k-yle"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/ws"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "bfa5f3d19c5c1f1c415aec2e218c5c83c4c88b441bb05b2c022b6cfee2c36dfd",
+    "typeScriptVersion": "3.6"
+}

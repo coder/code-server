@@ -1,0 +1,32 @@
+{
+    "name": "@types/pem",
+    "version": "1.9.6",
+    "description": "TypeScript definitions for PEM",
+    "homepage": "https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/pem",
+    "license": "MIT",
+    "contributors": [
+        {
+            "name": "Anthony Trinh",
+            "url": "https://github.com/tony19",
+            "githubUsername": "tony19"
+        },
+        {
+            "name": "Ruslan Arkhipau",
+            "url": "https://github.com/DethAriel",
+            "githubUsername": "DethAriel"
+        }
+    ],
+    "main": "",
+    "types": "index.d.ts",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/DefinitelyTyped/DefinitelyTyped.git",
+        "directory": "types/pem"
+    },
+    "scripts": {},
+    "dependencies": {
+        "@types/node": "*"
+    },
+    "typesPublisherContentHash": "a6d16cf23dda0e54bb73f0421cf226e79b5d545f5f483ad57dbc7cf8adaea1e2",
+    "typeScriptVersion": "3.6"
+}

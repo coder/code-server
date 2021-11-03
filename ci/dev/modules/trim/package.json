@@ -1,0 +1,21 @@
+{
+  "name": "trim",
+  "version": "1.0.1",
+  "description": "Trim string whitespace",
+  "license": "MIT",
+  "keywords": [
+    "string",
+    "trim"
+  ],
+  "author": "TJ Holowaychuk <tj@vision-media.ca>",
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "*",
+    "should": "*"
+  },
+  "main": "index",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Trott/trim.git"
+  }
+}

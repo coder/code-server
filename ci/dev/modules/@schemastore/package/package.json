@@ -1,0 +1,14 @@
+{
+  "author": "Florian Keller <github@floriankeller.de>",
+  "dependencies": {},
+  "description": "TypeScript definitions for package.",
+  "license": "MIT",
+  "main": "index.d.ts",
+  "name": "@schemastore/package",
+  "repository": "https://github.com/ffflorian/schemastore-updater/tree/main/schemas/package",
+  "scripts": {},
+  "typesPublisherContentHash": "4476e2319e6b9682246c7a83d93eade8fec74d7c9e158de26b5c3812f1719e3f",
+  "types": "index.d.ts",
+  "version": "0.0.6",
+  "typeScriptVersion": "2.2"
+}

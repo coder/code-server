@@ -1,0 +1,26 @@
+{
+  "name": "buffer-alloc",
+  "version": "1.2.0",
+  "license": "MIT",
+  "repository": "LinusU/buffer-alloc",
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "standard && node test"
+  },
+  "dependencies": {
+    "buffer-alloc-unsafe": "^1.1.0",
+    "buffer-fill": "^1.0.0"
+  },
+  "devDependencies": {
+    "standard": "^7.1.2"
+  },
+  "keywords": [
+    "alloc",
+    "allocate",
+    "buffer alloc",
+    "buffer allocate",
+    "buffer"
+  ]
+}

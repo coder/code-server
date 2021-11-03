@@ -1,0 +1,36 @@
+{
+  "name": "event-stream",
+  "version": "4.0.1",
+  "description": "construct pipes of streams of events",
+  "homepage": "http://github.com/dominictarr/event-stream",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dominictarr/event-stream.git"
+  },
+  "dependencies": {
+    "duplexer": "^0.1.1",
+    "from": "^0.1.7",
+    "map-stream": "0.0.7",
+    "pause-stream": "^0.0.11",
+    "split": "^1.0.1",
+    "stream-combiner": "^0.2.2",
+    "through": "^2.3.8"
+  },
+  "devDependencies": {
+    "asynct": "^1.1.0",
+    "it-is": "^1.0.3",
+    "stream-spec": "^0.3.6",
+    "tape": "^4.9.1",
+    "ubelt": "^3.2.2"
+  },
+  "scripts": {
+    "prepublish": "npm ls && npm test",
+    "test": "asynct test/",
+    "test_tap": "set -e; for t in test/*.js; do node $t; done"
+  },
+  "keywords": [
+    "stream", "map", "flatmap", "filter", "split", "join", "merge", "replace"
+  ],
+  "license": "MIT",
+  "author": "Dominic Tarr <dominic.tarr@gmail.com> (http://bit.ly/dominictarr)"
+}

@@ -1,0 +1,19 @@
+{
+  "name": "sugarss",
+  "version": "2.0.0",
+  "description": "Indent-based CSS syntax for PostCSS",
+  "keywords": [
+    "css",
+    "postcss",
+    "postcss-syntax",
+    "syntax",
+    "indent",
+    "parser"
+  ],
+  "author": "Andrey Sitnik <andrey@sitnik.ru>",
+  "license": "MIT",
+  "repository": "postcss/sugarss",
+  "dependencies": {
+    "postcss": "^7.0.2"
+  }
+}

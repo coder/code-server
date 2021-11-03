@@ -1,0 +1,67 @@
+{
+  "name": "is-extendable",
+  "description": "Returns true if a value is a plain object, array or function.",
+  "version": "1.0.1",
+  "homepage": "https://github.com/jonschlinkert/is-extendable",
+  "author": "Jon Schlinkert (https://github.com/jonschlinkert)",
+  "repository": "jonschlinkert/is-extendable",
+  "bugs": {
+    "url": "https://github.com/jonschlinkert/is-extendable/issues"
+  },
+  "license": "MIT",
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
+  "main": "index.js",
+  "types": "index.d.ts",
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "dependencies": {
+    "is-plain-object": "^2.0.4"
+  },
+  "devDependencies": {
+    "gulp-format-md": "^1.0.0",
+    "mocha": "^3.4.2"
+  },
+  "keywords": [
+    "array",
+    "assign",
+    "check",
+    "date",
+    "extend",
+    "extendable",
+    "extensible",
+    "function",
+    "is",
+    "object",
+    "regex",
+    "test"
+  ],
+  "verb": {
+    "related": {
+      "list": [
+        "assign-deep",
+        "is-equal-shallow",
+        "is-plain-object",
+        "isobject",
+        "kind-of"
+      ]
+    },
+    "toc": false,
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "lint": {
+      "reflinks": true
+    }
+  }
+}
