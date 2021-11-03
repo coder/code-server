@@ -13,7 +13,7 @@ access it in the browser.
 - Use cloud servers to speed up tests, compilations, downloads, and more
 - Preserve battery life when you're on the go; all intensive tasks run on your
   server
-  
+
 | 🔔 code-server is a free browser-based IDE while [Coder](https://coder.com/), is our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
 | ---
 
@@ -79,5 +79,3 @@ positions](https://coder.com/careers#openings)!
 
 Want remote development for your organization or enterprise? Visit [our
 website](https://coder.com) to learn more about Coder.
-
-
