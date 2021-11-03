@@ -14,7 +14,7 @@ access it in the browser.
 - Preserve battery life when you're on the go; all intensive tasks run on your
   server
   
-| 🔔 code-server is the free and libre single-user variant of [Coder](https://coder.com/), our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
+| 🔔 code-server is a free browser-based IDE while [Coder](https://coder.com/), is our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
 | ---
 
 ## Requirements
