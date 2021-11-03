@@ -378,9 +378,6 @@ jobs:
         with:
           node-version: "14"
 
-      - name: Install playwright OS dependencies
-        run: npx playwright install-deps
-
       - name: Fetch dependencies from cache
         id: cache-yarn
         uses: actions/cache@v2
@@ -406,14 +403,8 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      # HACK: this shouldn't need to exist, but put it here anyway
-      # in an attempt to solve Playwright cache failures.
-      - name: Reinstall playwright
-        if: steps.cache-yarn.outputs.cache-hit == 'true'
-        run: |
-          cd test/
-          rm -r node_modules/playwright
-          yarn install --check-files
+      - name: Install Playwright OS dependencies
+        run: ./test/node_modules/.bin/playwright install-deps
 
       - name: Run end-to-end tests
         run: yarn test:e2e
