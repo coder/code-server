@@ -75,8 +75,8 @@
     "browserslist": "^4.16.5",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2",
-    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9",
-    "path-parse": "^1.0.7"
+    "path-parse": "^1.0.7",
+    "tar": "^6.1.9"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
