@@ -60,7 +60,7 @@ jobs:
     name: Run audit-ci
     needs: prebuild
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
