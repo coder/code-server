@@ -28,14 +28,6 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 service:
   type: ClusterIP
   port: 8080
@@ -126,10 +118,6 @@ persistence:
   annotations: {}
   # existingClaim: ""
   # hostPath: /data
-
-serviceAccount:
-  create: true
-  name:
 
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.
