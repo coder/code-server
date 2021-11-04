@@ -123,7 +123,7 @@ describe("parser", () => {
   })
 
   it("should use log level env var", async () => {
-    const args = parse([])
+    const args = await parse([])
     expect(args).toEqual(createDefaultArgs())
 
     process.env.LOG_LEVEL = "debug"
@@ -150,7 +150,7 @@ describe("parser", () => {
   })
 
   it("should prefer --log to env var and --verbose to --log", async () => {
-    let args = parse(["--log", "info"])
+    let args = await parse(["--log", "info"])
     expect(args).toEqual({
       ...createDefaultArgs(),
       log: "info",
@@ -178,7 +178,7 @@ describe("parser", () => {
     expect(process.env.LOG_LEVEL).toEqual("info")
     expect(logger.level).toEqual(Level.Info)
 
-    args = parse(["--log", "info", "--verbose"])
+    args = await parse(["--log", "info", "--verbose"])
     expect(args).toEqual({
       ...createDefaultArgs(),
       log: "info",
@@ -199,7 +199,7 @@ describe("parser", () => {
 
   it("should ignore invalid log level env var", async () => {
     process.env.LOG_LEVEL = "bogus"
-    const defaults = await setDefaults(parse([]))
+    const defaults = await setDefaults(await parse([]))
     expect(defaults).toEqual({
       ...defaults,
       _: [],
@@ -263,7 +263,7 @@ describe("parser", () => {
   })
 
   it("should enforce cert-key with cert value or otherwise generate one", async () => {
-    const args = parse(["--cert"])
+    const args = await parse(["--cert"])
     expect(args).toEqual({
       ...createDefaultArgs(),
       cert: {
@@ -283,7 +283,9 @@ describe("parser", () => {
   })
 
   it("should override with --link", async () => {
-    const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
+    const args = await parse(
+      "--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "),
+    )
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...createDefaultArgs(),
@@ -302,7 +304,7 @@ describe("parser", () => {
 
   it("should use env var password", async () => {
     process.env.PASSWORD = "test"
-    const args = parse([])
+    const args = await parse([])
     expect(args).toEqual({
       ...createDefaultArgs(),
     })
@@ -319,7 +321,7 @@ describe("parser", () => {
   it("should use env var hashed password", async () => {
     process.env.HASHED_PASSWORD =
       "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY" // test
-    const args = parse([])
+    const args = await parse([])
     expect(args).toEqual({
       ...createDefaultArgs(),
     })
@@ -347,7 +349,14 @@ describe("parser", () => {
   })
 
   it("should filter proxy domains", async () => {
-    const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
+    const args = await parse([
+      "--proxy-domain",
+      "*.coder.com",
+      "--proxy-domain",
+      "coder.com",
+      "--proxy-domain",
+      "coder.org",
+    ])
     expect(args).toEqual({
       ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com", "coder.com", "coder.org"],
@@ -361,7 +370,7 @@ describe("parser", () => {
     })
   })
   it("should allow '=,$/' in strings", async () => {
-    const args = parse([
+    const args = await parse([
       "--enable-proposed-api",
       "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     ])
@@ -373,7 +382,7 @@ describe("parser", () => {
     })
   })
   it("should parse options with double-dash and multiple equal signs ", async () => {
-    const args = parse(
+    const args = await parse(
       [
         "--hashed-password=$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
       ],
