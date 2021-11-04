@@ -11,9 +11,8 @@ main() {
 
   cd vendor/modules/code-oss-dev
 
-  # extensions-ci compiles extensions and includes their media.
-  # compile-web compiles web extensions. TODO: Unsure if used.
-  yarn gulp extensions-ci compile-web "vscode-reh-web${MINIFY:+-min}"
+  # Any platform works since we have our own packaging step (for now).
+  yarn gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
 }
 
 main "$@"
