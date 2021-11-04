@@ -737,10 +737,11 @@ export const shouldOpenInExistingInstance = async (args: Args): Promise<string |
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
-  // Check if any unrelated flags are set (check against one because `_` always
-  // exists), that a file or directory was passed, and that the socket is
-  // active.
-  if (Object.keys(args).length === 1 && args._.length > 0) {
+  // 1. Check if any unrelated flags are set
+  // 2. That a file or directory was passed
+  // 3.  That the socket is active
+  // TODO: We check against 3 because some defaults always exist. This is fragile.
+  if (Object.keys(args).length === 3 && args._.length > 0) {
     const socketPath = await readSocketPath(DEFAULT_SOCKET_PATH)
     if (socketPath && (await canConnect(socketPath))) {
       return socketPath
