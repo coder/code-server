@@ -406,14 +406,20 @@ export const parse = async (
     args._.push(arg)
   }
 
-  if (args._.length && !args.folder && !args.workspace) {
-    const firstEntry = path.resolve(process.cwd(), args._[0])
+  if (args.port && isNaN(parseInt(args.port, 10))) {
+    throw new Error("--port must be a number")
+  }
 
-    if ((await isFile(firstEntry)) && path.extname(firstEntry) === ".code-workspace") {
-      args.workspace = firstEntry
-      args._.shift()
-    } else {
-      args.folder = args._.join(" ")
+  if (args._.length && !args.folder && !args.workspace) {
+    const lastEntry = path.resolve(process.cwd(), args._[args._.length - 1])
+    const entryIsFile = await isFile(lastEntry)
+
+    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+      args.workspace = lastEntry
+      args._.pop()
+    } else if (!entryIsFile) {
+      args.folder = lastEntry
+      args._.pop()
     }
   }
 

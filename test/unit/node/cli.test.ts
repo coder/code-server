@@ -44,78 +44,87 @@ describe("parser", () => {
     "user-data-dir": paths.data,
   }
 
-  it("should parse nothing", () => {
-    expect(parse([])).toStrictEqual(createDefaultArgs())
+  it("should parse nothing", async () => {
+    expect(await parse([])).toStrictEqual(createDefaultArgs())
   })
 
-  it("should parse all available options", () => {
+  it("should parse all available options", async () => {
     expect(
-      parse([
-        "--enable",
-        "feature1",
-        "--enable",
-        "feature2",
-        "--bind-addr=192.169.0.1:8080",
-        "--auth",
-        "none",
-        "--extensions-dir",
-        "foo",
-        "--builtin-extensions-dir",
-        "foobar",
-        "nozzle",
-        "1",
-        "bazzle",
-        "--verbose",
-        "2",
-        "--log",
-        "error",
-        "--help",
-        "--open",
-        "--socket=mumble",
-        "3",
-        "--user-data-dir",
-        "bar",
-        "--cert=baz",
-        "--cert-key",
-        "qux",
-        "--version",
-        "--json",
-        "--port=8081",
-        "--host",
-        "0.0.0.0",
-        "4",
-        "--",
-        "-5",
-        "--6",
-      ]),
+      await parse(
+        [
+          ["--enable", "feature1"],
+          ["--enable", "feature2"],
+
+          "--bind-addr=192.169.0.1:8080",
+
+          ["--auth", "none"],
+
+          ["--extensions-dir", "some/ext/dir"],
+
+          ["--builtin-extensions-dir", "some/built/ext/dir"],
+
+          "1",
+          "--verbose",
+          "2",
+
+          ["--log", "error"],
+
+          "--help",
+
+          "--open",
+
+          "--socket=mumble",
+
+          "3",
+
+          "--user-data-dir",
+          "some/user/dir",
+
+          "--cert=Foo",
+          "--cert-key",
+          "someCertKeyBar",
+
+          "--version",
+
+          "--json",
+
+          "--port=8081",
+
+          ["--host", "0.0.0.0"],
+          "4",
+          "--",
+          "--5",
+          "some/project/directory",
+        ].flat(),
+      ),
     ).toEqual({
-      _: ["1", "2", "3", "4", "-5", "--6"],
+      _: ["1", "2", "3", "4", "--5"],
       auth: "none",
-      "builtin-extensions-dir": path.resolve("foobar"),
-      "cert-key": path.resolve("qux"),
+      "builtin-extensions-dir": path.resolve("some/built/ext/dir"),
+      "extensions-dir": path.resolve("some/ext/dir"),
+      "user-data-dir": path.resolve("some/user/dir"),
+      folder: path.resolve(process.cwd(), "some/project/directory"),
+      "cert-key": path.resolve("someCertKeyBar"),
       cert: {
-        value: path.resolve("baz"),
+        value: path.resolve("Foo"),
       },
       enable: ["feature1", "feature2"],
-      "extensions-dir": path.resolve("foo"),
-      "extra-builtin-extensions-dir": [path.resolve("bazzle")],
-      "extra-extensions-dir": [path.resolve("nozzle")],
       help: true,
       host: "0.0.0.0",
       json: true,
       log: "error",
       open: true,
-      port: 8081,
+      port: "8081",
       socket: path.resolve("mumble"),
-      "user-data-dir": path.resolve("bar"),
       verbose: true,
       version: true,
       "bind-addr": "192.169.0.1:8080",
+      workspace: "",
     })
   })
 
-  it("should work with short options", () => {
-    expect(parse(["-vvv", "-v"])).toEqual({
+  it("should work with short options", async () => {
+    expect(await parse(["-vvv", "-v"])).toEqual({
       ...createDefaultArgs(),
       verbose: true,
       version: true,
@@ -206,26 +215,28 @@ describe("parser", () => {
     })
   })
 
-  it("should error if value isn't provided", () => {
-    expect(() => parse(["--auth"])).toThrowError(/--auth requires a value/)
-    expect(() => parse(["--auth=", "--log=debug"])).toThrowError(/--auth requires a value/)
-    expect(() => parse(["--auth", "--log"])).toThrowError(/--auth requires a value/)
-    expect(() => parse(["--auth", "--invalid"])).toThrowError(/--auth requires a value/)
-    expect(() => parse(["--bind-addr"])).toThrowError(/--bind-addr requires a value/)
+  it("should error if value isn't provided", async () => {
+    await expect(parse(["--auth"])).rejects.toThrowError(/--auth requires a value/)
+    await expect(parse(["--auth=", "--log=debug"])).rejects.toThrowError(/--auth requires a value/)
+    await expect(parse(["--auth", "--log"])).rejects.toThrowError(/--auth requires a value/)
+    await expect(parse(["--auth", "--invalid"])).rejects.toThrowError(/--auth requires a value/)
+    await expect(parse(["--bind-addr"])).rejects.toThrowError(/--bind-addr requires a value/)
   })
 
-  it("should error if value is invalid", () => {
-    expect(() => parse(["--port", "foo"])).toThrowError(/--port must be a stringly number/)
-    expect(() => parse(["--auth", "invalid"])).toThrowError(/--auth valid values: \[password, none\]/)
-    expect(() => parse(["--log", "invalid"])).toThrowError(/--log valid values: \[trace, debug, info, warn, error\]/)
+  it("should error if value is invalid", async () => {
+    await expect(parse(["--port", "foo"])).rejects.toThrowError(/--port must be a number/)
+    await expect(parse(["--auth", "invalid"])).rejects.toThrowError(/--auth valid values: \[password, none\]/)
+    await expect(parse(["--log", "invalid"])).rejects.toThrowError(
+      /--log valid values: \[trace, debug, info, warn, error\]/,
+    )
   })
 
-  it("should error if the option doesn't exist", () => {
-    expect(() => parse(["--foo"])).toThrowError(/Unknown option --foo/)
+  it("should error if the option doesn't exist", async () => {
+    await expect(parse(["--foo"])).rejects.toThrowError(/Unknown option --foo/)
   })
 
-  it("should not error if the value is optional", () => {
-    expect(parse(["--cert"])).toEqual({
+  it("should not error if the value is optional", async () => {
+    expect(await parse(["--cert"])).toEqual({
       ...createDefaultArgs(),
       cert: {
         value: undefined,
@@ -233,30 +244,31 @@ describe("parser", () => {
     })
   })
 
-  it("should not allow option-like values", () => {
-    expect(() => parse(["--socket", "--socket-path-value"])).toThrowError(/--socket requires a value/)
+  it("should not allow option-like values", async () => {
+    await expect(parse(["--socket", "--socket-path-value"])).rejects.toThrowError(/--socket requires a value/)
     // If you actually had a path like this you would do this instead:
-    expect(parse(["--socket", "./--socket-path-value"])).toEqual({
+    expect(await parse(["--socket", "./--socket-path-value"])).toEqual({
       ...createDefaultArgs(),
       socket: path.resolve("--socket-path-value"),
     })
-    expect(() => parse(["--cert", "--socket-path-value"])).toThrowError(/Unknown option --socket-path-value/)
+    await expect(parse(["--cert", "--socket-path-value"])).rejects.toThrowError(/Unknown option --socket-path-value/)
   })
 
-  it("should allow positional arguments before options", () => {
-    expect(parse(["foo", "test", "--auth", "none"])).toEqual({
+  it("should allow positional arguments before options", async () => {
+    expect(await parse(["test", "some/project/directory", "--auth", "none"])).toEqual({
       ...createDefaultArgs(),
-      _: ["foo", "test"],
+      _: ["test"],
       auth: "none",
+      folder: path.resolve(process.cwd(), "some/project/directory"),
     })
   })
 
-  it("should support repeatable flags", () => {
-    expect(parse(["--proxy-domain", "*.coder.com"])).toEqual({
+  it("should support repeatable flags", async () => {
+    expect(await parse(["--proxy-domain", "*.coder.com"])).toEqual({
       ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com"],
     })
-    expect(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
+    expect(await parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
       ...createDefaultArgs(),
       "proxy-domain": ["*.coder.com", "test.com"],
     })
@@ -270,7 +282,7 @@ describe("parser", () => {
         value: undefined,
       },
     })
-    expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
+    await expect(parse(["--cert", "test"])).rejects.toThrowError(/--cert-key is missing/)
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...createDefaultArgs(),
@@ -295,7 +307,7 @@ describe("parser", () => {
       link: {
         value: "test",
       },
-      port: 0,
+      port: "0",
       cert: undefined,
       "cert-key": path.resolve("test"),
       socket: undefined,
@@ -336,14 +348,14 @@ describe("parser", () => {
     })
   })
 
-  it("should error if password passed in", () => {
-    expect(() => parse(["--password", "supersecret123"])).toThrowError(
+  it("should error if password passed in", async () => {
+    await expect(parse(["--password", "supersecret123"])).rejects.toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",
     )
   })
 
-  it("should error if hashed-password passed in", () => {
-    expect(() => parse(["--hashed-password", "fdas423fs8a"])).toThrowError(
+  it("should error if hashed-password passed in", async () => {
+    await expect(parse(["--hashed-password", "fdas423fs8a"])).rejects.toThrowError(
       "--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD",
     )
   })
@@ -371,14 +383,15 @@ describe("parser", () => {
   })
   it("should allow '=,$/' in strings", async () => {
     const args = await parse([
-      "--enable-proposed-api",
+      "--disable-update-check",
       "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
+      "foobar",
     ])
     expect(args).toEqual({
       ...createDefaultArgs(),
-      "enable-proposed-api": [
-        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
-      ],
+      "disable-update-check": true,
+      folder: path.resolve(process.cwd(), "foobar"),
+      _: ["$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy"],
     })
   })
   it("should parse options with double-dash and multiple equal signs ", async () => {
