@@ -3,7 +3,15 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
+import {
+  canConnect,
+  generateCertificate,
+  generatePassword,
+  humanPath,
+  paths,
+  isNodeJSErrnoException,
+  isFile,
+} from "./util"
 
 const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -282,12 +290,12 @@ export const createDefaultArgs = (): Args => {
   }
 }
 
-export const parse = (
+export const parse = async (
   argv: string[],
   opts?: {
     configFile?: string
   },
-): Args => {
+): Promise<Args> => {
   const error = (msg: string): Error => {
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
@@ -296,7 +304,6 @@ export const parse = (
     return new Error(msg)
   }
 
-  // TODO: parse workspace and folder.
   const args: Args = createDefaultArgs()
   let ended = false
 
@@ -397,6 +404,17 @@ export const parse = (
 
     // Everything else goes into _.
     args._.push(arg)
+  }
+
+  if (args._.length && !args.folder && !args.workspace) {
+    const firstEntry = path.resolve(process.cwd(), args._[0])
+
+    if ((await isFile(firstEntry)) && path.extname(firstEntry) === ".code-workspace") {
+      args.workspace = firstEntry
+      args._.shift()
+    } else {
+      args.folder = args._.join(" ")
+    }
   }
 
   // If a cert was provided a key must also be provided.
@@ -591,7 +609,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
  * parseConfigFile parses configFile into ConfigArgs.
  * configPath is used as the filename in error messages
  */
-export function parseConfigFile(configFile: string, configPath: string): ConfigArgs {
+export async function parseConfigFile(configFile: string, configPath: string): Promise<ConfigArgs> {
   if (!configFile) {
     return { ...createDefaultArgs(), config: configPath }
   }
@@ -611,7 +629,7 @@ export function parseConfigFile(configFile: string, configPath: string): ConfigA
     }
     return `--${optName}=${opt}`
   })
-  const args = parse(configFileArgv, {
+  const args = await parse(configFileArgv, {
     configFile: configPath,
   })
   return {

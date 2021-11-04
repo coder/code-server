@@ -129,7 +129,7 @@ export class CodeServer {
         if (resolved) {
           return
         }
-        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)\/?$/)
+        const match = line.trim().match(/HTTPS? server listening on (https?:\/\/[.:\d]+)\/?$/)
         if (match) {
           // Cookies don't seem to work on IP address so swap to localhost.
           // TODO: Investigate whether this is a bug with code-server.

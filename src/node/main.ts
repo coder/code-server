@@ -124,11 +124,17 @@ export const runCodeServer = async (
   }
 
   const app = await createApp(args)
-  const serverAddress = ensureAddress(app.server, args.cert ? "https" : "http")
+  const protocol = args.cert ? "https" : "http"
+  const serverAddress = ensureAddress(app.server, protocol)
   const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
-  logger.info(`HTTP server listening on ${serverAddress.toString()} ${args.link ? "(randomized by --link)" : ""}`)
+  logger.info(
+    `${protocol.toUpperCase()} server listening on ${serverAddress.toString()} ${
+      args.link ? "(randomized by --link)" : ""
+    }`,
+  )
+
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {
