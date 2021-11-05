@@ -45,7 +45,15 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
     "createServer",
   )
 
-  const codeServerMain = await createVSServer(null, { ...args, connectionToken: "0000" }, args["user-data-dir"])
+  const codeServerMain = await createVSServer(
+    null,
+    {
+      ...args,
+      protocol: args["cert"] || args.link ? "https:" : "http:",
+      connectionToken: "0000",
+    },
+    args["user-data-dir"],
+  )
 
   const router = express.Router()
   const wsRouter = WsRouter()
