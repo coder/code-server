@@ -6,7 +6,7 @@ import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
 import { AuthType, DefaultedArgs, Feature } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
-import { commit, version, vsRootPath } from "./constants"
+import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
 
@@ -26,37 +26,14 @@ export const shouldSpawnCliProcess = async (args: CodeServerLib.ServerParsedArgs
  * such as when managing extensions.
  * @deprecated This should be removed when code-server merges with lib/vscode.
  */
-export const runVsCodeCli = async (): Promise<void> => {
+export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running VS Code CLI")
 
-  // Delete `VSCODE_CWD` very early even before
-  // importing bootstrap files. We have seen
-  // reports where `code .` would use the wrong
-  // current working directory due to our variable
-  // somehow escaping to the parent shell
-  // (https://github.com/microsoft/vscode/issues/126399)
-  delete process.env["VSCODE_CWD"]
-
-  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
-  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
-  const product = require(path.join(vsRootPath, "product.json"))
-
-  // Avoid Monkey Patches from Application Insights
-  bootstrap.avoidMonkeyPatchFromAppInsights()
-
-  // Enable portable support
-  bootstrapNode.configurePortable(product)
-
-  // Enable ASAR support
-  bootstrap.enableASARSupport()
-
-  // Signal processes that we got launched as CLI
-  process.env["VSCODE_CLI"] = "1"
-
-  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cli", "initialize")
+  // See ../../vendor/modules/code-oss-dev/src/vs/server/main.js.
+  const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/remoteExtensionHostAgent", "spawnCli")
 
   try {
-    await cliProcessMain(process.argv)
+    await spawnCli(args)
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }

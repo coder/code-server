@@ -41,19 +41,15 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   process.env["VSCODE_DEV"] = "1"
 
   const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
-    "vs/server/remoteExtensionHostAgentServer",
+    "vs/server/remoteExtensionHostAgent",
     "createServer",
   )
 
-  const codeServerMain = await createVSServer(
-    null,
-    {
-      ...args,
-      protocol: args["cert"] || args.link ? "https:" : "http:",
-      connectionToken: "0000",
-    },
-    args["user-data-dir"],
-  )
+  const codeServerMain = await createVSServer(null, {
+    ...args,
+    protocol: args["cert"] || args.link ? "https:" : "http:",
+    connectionToken: "0000",
+  })
 
   const router = express.Router()
   const wsRouter = WsRouter()

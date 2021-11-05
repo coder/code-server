@@ -75,7 +75,7 @@ async function entry(): Promise<void> {
   }
 
   if (await shouldSpawnCliProcess(args)) {
-    return runVsCodeCli()
+    return runVsCodeCli(args)
   }
 
   const socketPath = await shouldOpenInExistingInstance(cliArgs)
