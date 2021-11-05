@@ -63,7 +63,7 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
 
   router.all("*", ensureAuthenticated, (req, res, next) => {
     req.on("error", (error: any) => {
-      if (error.code === "FileNotFound") {
+      if (error instanceof Error && ["EntryNotFound", "FileNotFound", "HttpError"].includes(error.message)) {
         next()
       }
 
