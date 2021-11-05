@@ -144,6 +144,64 @@ abstract class Process {
 }
 
 /**
+ * Child process that will clean up after itself if the parent goes away and can
+ * perform a handshake with the parent and ask it to relaunch.
+ */
+class ChildProcess extends Process {
+  public logger = logger.named(`child:${process.pid}`)
+
+  public constructor(private readonly parentPid: number) {
+    super()
+
+    // Kill the inner process if the parent dies. This is for the case where the
+    // parent process is forcefully terminated and cannot clean up.
+    setInterval(() => {
+      try {
+        // process.kill throws an exception if the process doesn't exist.
+        process.kill(this.parentPid, 0)
+      } catch (_) {
+        // Consider this an error since it should have been able to clean up
+        // the child process unless it was forcefully killed.
+        this.logger.error(`parent process ${parentPid} died`)
+        this._onDispose.emit(undefined)
+      }
+    }, 5000)
+  }
+
+  /**
+   * Initiate the handshake and wait for a response from the parent.
+   */
+  public async handshake(): Promise<DefaultedArgs> {
+    this.send({ type: "handshake" })
+    const message = await onMessage<ParentMessage, ParentHandshakeMessage>(
+      process,
+      (message): message is ParentHandshakeMessage => {
+        return message.type === "handshake"
+      },
+      this.logger,
+    )
+    return message.args
+  }
+
+  /**
+   * Notify the parent process that it should relaunch the child.
+   */
+  public relaunch(version: string): void {
+    this.send({ type: "relaunch", version })
+  }
+
+  /**
+   * Send a message to the parent.
+   */
+  private send(message: ChildMessage): void {
+    if (!process.send) {
+      throw new Error("not spawned with IPC")
+    }
+    process.send(message)
+  }
+}
+
+/**
  * Parent process wrapper that spawns the child process and performs a handshake
  * with it. Will relaunch the child if it receives a SIGUSR1 or is asked to by
  * the child. If the child otherwise exits the parent will also exit.
@@ -288,7 +346,14 @@ export class ParentProcess extends Process {
 /**
  * Process wrapper.
  */
-export const wrapper = new ParentProcess(require("../../package.json").version)
+export const wrapper =
+  typeof process.env.CODE_SERVER_PARENT_PID !== "undefined"
+    ? new ChildProcess(parseInt(process.env.CODE_SERVER_PARENT_PID))
+    : new ParentProcess(require("../../package.json").version)
+
+export function isChild(proc: ChildProcess | ParentProcess): proc is ChildProcess {
+  return proc instanceof ChildProcess
+}
 
 // It's possible that the pipe has closed (for example if you run code-server
 // --version | head -1). Assume that means we're done.
