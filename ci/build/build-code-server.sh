@@ -30,15 +30,6 @@ main() {
     chmod +x ./lib/coder-cloud-agent
     set -e
   fi
-
-  if ! [ -f ./lib/linkup ]; then
-    echo "Downloading Link agent..."
-
-    set +e
-    curl -fsSL "https://storage.googleapis.com/coder-link-releases/latest/linkup-$OS-$ARCH" -o ./lib/linkup
-    chmod +x ./lib/linkup
-    set -e
-  fi
 }
 
 main "$@"

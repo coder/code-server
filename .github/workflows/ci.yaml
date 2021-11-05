@@ -60,7 +60,7 @@ jobs:
     name: Run audit-ci
     needs: prebuild
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
       - name: Checkout repo
         uses: actions/checkout@v2
@@ -378,9 +378,6 @@ jobs:
         with:
           node-version: "14"
 
-      - name: Install playwright OS dependencies
-        run: npx playwright install-deps
-
       - name: Fetch dependencies from cache
         id: cache-yarn
         uses: actions/cache@v2
@@ -406,14 +403,10 @@ jobs:
         if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
-      # HACK: this shouldn't need to exist, but put it here anyway
-      # in an attempt to solve Playwright cache failures.
-      - name: Reinstall playwright
-        if: steps.cache-yarn.outputs.cache-hit == 'true'
+      - name: Install Playwright OS dependencies
         run: |
-          cd test/
-          rm -r node_modules/playwright
-          yarn install --check-files
+          ./test/node_modules/.bin/playwright install-deps
+          ./test/node_modules/.bin/playwright install
 
       - name: Run end-to-end tests
         run: yarn test:e2e
