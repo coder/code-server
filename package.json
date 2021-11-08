@@ -50,7 +50,7 @@
     "@types/ws": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "audit-ci": "^4.0.0",
+    "audit-ci": "^5.0.0",
     "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
@@ -75,8 +75,9 @@
     "browserslist": "^4.16.5",
     "safe-buffer": "^5.1.1",
     "vfile-message": "^2.0.2",
-    "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9",
-    "path-parse": "^1.0.7"
+    "tar": "^6.1.9",
+    "path-parse": "^1.0.7",
+    "vm2": "^3.9.4"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
@@ -93,7 +94,7 @@
     "proxy-agent": "^5.0.0",
     "proxy-from-env": "^1.1.0",
     "qs": "6.10.1",
-    "rotating-file-stream": "^2.1.1",
+    "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",
     "semver": "^7.1.3",

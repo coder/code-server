@@ -3,6 +3,7 @@
 # Contributing
 
 - [Requirements](#requirements)
+  - [Linux-specific requirements](#linux-specific-requirements)
 - [Creating pull requests](#creating-pull-requests)
   - [Commits and commit history](#commits-and-commit-history)
 - [Development workflow](#development-workflow)
@@ -42,12 +43,20 @@ Here is what is needed:
     signature
     verification](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification)
     or follow [this tutorial](https://joeprevite.com/verify-commits-on-github)
-- `build-essential` (Linux only - used by VS Code)
-  - Get this by running `apt-get install -y build-essential`
 - `rsync` and `unzip`
   - Used for code-server releases
 - `bats`
   - Used to run script unit tests
+
+### Linux-specific requirements
+
+If you're developing code-server on Linux, make sure you have installed or install the following dependencies:
+
+```shell
+sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev python-is-python3
+```
+
+These are required by VS Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.
 
 ## Creating pull requests
 
