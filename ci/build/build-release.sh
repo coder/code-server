@@ -88,7 +88,7 @@ bundle_vscode() {
     cat << EOF
   {
     "enableTelemetry": true,
-    "commit": "$(git rev-parse HEAD)",
+    "commit": "$(cd "$VSCODE_SRC_PATH" && git rev-parse HEAD)",
     "quality": "stable",
     "date": $(jq -n 'now | todate')
   }
