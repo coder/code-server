@@ -41,7 +41,7 @@ async function entry(): Promise<void> {
     return
   }
 
-  const cliArgs = await parse(process.argv.slice(2))
+  const cliArgs = parse(process.argv.slice(2))
   const configArgs = await readConfigFile(cliArgs.config)
   const args = await setDefaults(cliArgs, configArgs)
 
@@ -74,12 +74,14 @@ async function entry(): Promise<void> {
     return
   }
 
-  if (await shouldSpawnCliProcess(args)) {
+  if (shouldSpawnCliProcess(args)) {
+    logger.debug("Found VS Code arguments; spawning VS Code CLI")
     return runVsCodeCli(args)
   }
 
   const socketPath = await shouldOpenInExistingInstance(cliArgs)
   if (socketPath) {
+    logger.debug("Trying to open in existing instance")
     return openInExistingInstance(args, socketPath)
   }
 

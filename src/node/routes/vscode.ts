@@ -19,9 +19,10 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   )
 
   const codeServerMain = await createVSServer(null, {
-    ...args,
-    protocol: args["cert"] || args.link ? "https:" : "http:",
     connectionToken: "0000",
+    ...args,
+    // For some reason VS Code takes the port as a string.
+    port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
   })
 
   const router = express.Router()

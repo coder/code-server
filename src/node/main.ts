@@ -4,20 +4,21 @@ import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature } from "./cli"
+import { AuthType, DefaultedArgs, Feature, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const shouldSpawnCliProcess = async (args: CodeServerLib.ServerParsedArgs): Promise<boolean> => {
+/**
+ * Return true if the user passed an extension-related VS Code flag.
+ */
+export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
   return (
-    !args["start-server"] &&
-    (!!args["list-extensions"] ||
-      !!args["install-extension"] ||
-      !!args["install-builtin-extension"] ||
-      !!args["uninstall-extension"] ||
-      !!args["locate-extension"])
+    !!args["list-extensions"] ||
+    !!args["install-extension"] ||
+    !!args["uninstall-extension"] ||
+    !!args["locate-extension"]
   )
 }
 
@@ -33,7 +34,11 @@ export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/remoteExtensionHostAgent", "spawnCli")
 
   try {
-    await spawnCli(args)
+    await spawnCli({
+      ...args,
+      // For some reason VS Code takes the port as a string.
+      port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
+    })
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }
@@ -49,8 +54,9 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     forceReuseWindow: args["reuse-window"],
     forceNewWindow: args["new-window"],
   }
-  for (let i = 0; i < args._.length; i++) {
-    const fp = path.resolve(args._[i])
+  const paths = args._ || []
+  for (let i = 0; i < paths.length; i++) {
+    const fp = path.resolve(paths[i])
     if (await isFile(fp)) {
       pipeArgs.fileURIs.push(fp)
     } else {

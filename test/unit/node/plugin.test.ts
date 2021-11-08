@@ -34,7 +34,7 @@ describe("plugin", () => {
         _: [],
         auth: AuthType.None,
         host: "localhost",
-        port: "8080",
+        port: 8080,
         "proxy-domain": [],
         config: "~/.config/code-server/config.yaml",
         verbose: false,
