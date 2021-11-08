@@ -404,7 +404,9 @@ jobs:
         run: yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
-        run: ./test/node_modules/.bin/playwright install-deps
+        run: |
+          ./test/node_modules/.bin/playwright install-deps
+          ./test/node_modules/.bin/playwright install
 
       - name: Run end-to-end tests
         run: yarn test:e2e
