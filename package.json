@@ -28,7 +28,7 @@
     "lint": "./ci/dev/lint.sh",
     "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
     "ci": "./ci/dev/ci.sh",
-    "watch": "VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
+    "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
     "icons": "./ci/dev/gen_icons.sh",
     "coverage": "codecov"
   },

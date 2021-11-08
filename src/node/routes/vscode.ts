@@ -1,7 +1,5 @@
 import * as express from "express"
-import path from "path"
 import { DefaultedArgs } from "../cli"
-import { vsRootPath } from "../constants"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter, WebsocketRouter } from "../wsRouter"
@@ -14,32 +12,7 @@ export interface VSServerResult {
 }
 
 export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServerResult> => {
-  // Delete `VSCODE_CWD` very early even before
-  // importing bootstrap files. We have seen
-  // reports where `code .` would use the wrong
-  // current working directory due to our variable
-  // somehow escaping to the parent shell
-  // (https://github.com/microsoft/vscode/issues/126399)
-  delete process.env["VSCODE_CWD"]
-
-  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
-  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
-  const product = require(path.join(vsRootPath, "product.json"))
-
-  // Avoid Monkey Patches from Application Insights
-  bootstrap.avoidMonkeyPatchFromAppInsights()
-
-  // Enable portable support
-  bootstrapNode.configurePortable(product)
-
-  // Enable ASAR support
-  bootstrap.enableASARSupport()
-
-  // Signal processes that we got launched as CLI
-  process.env["VSCODE_CLI"] = "1"
-  // Seems to be necessary to load modules properly.
-  process.env["VSCODE_DEV"] = "1"
-
+  // See ../../../vendor/modules/code-oss-dev/src/vs/server/main.js.
   const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
     "vs/server/remoteExtensionHostAgent",
     "createServer",
