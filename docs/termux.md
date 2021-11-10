@@ -7,6 +7,7 @@
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
 - [Extra](#extra)
+  - [Create a new user](#create-a-new-user)
   - [Install Go](#install-go)
   - [Install Python](#install-python)
 
@@ -57,7 +58,7 @@ curl -fsSL https://code-server.dev/install.sh | sh
 8. You can now start code server by simply running `code-server`.
 
 > Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
-> Learn how to add a user [here](https://gist.github.com/arHSM/62242c343efc2827861ddc38e485d7df).
+> Learn how to add a user [here](#create-a-new-user).
 
 ## Upgrade
 
@@ -76,6 +77,19 @@ Potential Workaround :
 2. Use git from termux (preferred)
 
 ## Extra
+
+### Create a new user
+
+To create a new user follow these simple steps -
+
+1. Create a new user by running `useradd username -m`.
+2. Change the password by running `passwd username`.
+3. Give your new user sudo access by runnning `visudo`, scroll down to `User privilege specification` and add the following line after root `username ALL=(ALL:ALL) ALL`.
+4. Now edit the `/etc/passwd` file with your commadline editor of choice and at the end of the line that specifies your user change `/bin/sh` to `/bin/bash`.
+5. Now switch users, by running `su - username`
+
+- Remember the `-` betweeen `su` and username is required to execute `/etc/profile`,\
+  since `/etc/profile` may have some necessary things to be executed you should always add a `-`.
 
 ### Install Go
 
