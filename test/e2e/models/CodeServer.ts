@@ -3,6 +3,7 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
+import { logError } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
 import { idleTimer, tmpdir } from "../../utils/helpers"
@@ -51,9 +52,9 @@ export class CodeServer {
    */
   private async createWorkspace(): Promise<string> {
     const dir = await tmpdir(workspaceDir)
-    await fs.mkdir(path.join(dir, ".vscode"))
+    await fs.mkdir(path.join(dir, "User"))
     await fs.writeFile(
-      path.join(dir, ".vscode/settings.json"),
+      path.join(dir, "User/settings.json"),
       JSON.stringify({
         "workbench.startupEditor": "none",
       }),
@@ -129,7 +130,7 @@ export class CodeServer {
         if (resolved) {
           return
         }
-        const match = line.trim().match(/HTTP server listening on (https?:\/\/[.:\d]+)\/?$/)
+        const match = line.trim().match(/HTTPS? server listening on (https?:\/\/[.:\d]+)\/?$/)
         if (match) {
           // Cookies don't seem to work on IP address so swap to localhost.
           // TODO: Investigate whether this is a bug with code-server.

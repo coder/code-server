@@ -14,6 +14,9 @@ access it in the browser.
 - Preserve battery life when you're on the go; all intensive tasks run on your
   server
 
+| 🔔 code-server is a free browser-based IDE while [Coder](https://coder.com/), is our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
+| ---
+
 ## Requirements
 
 See [requirements](requirements.md) for minimum specs, as well as instructions

@@ -45,7 +45,6 @@ describe("createApp", () => {
   it("should return an Express app, a WebSockets Express app and an http server", async () => {
     const defaultArgs = await setDefaults({
       port,
-      _: [],
     })
     const app = await createApp(defaultArgs)
 
@@ -62,7 +61,6 @@ describe("createApp", () => {
   it("should handle error events on the server", async () => {
     const defaultArgs = await setDefaults({
       port,
-      _: [],
     })
 
     const app = await createApp(defaultArgs)
@@ -85,7 +83,6 @@ describe("createApp", () => {
     const port = 2
     const defaultArgs = await setDefaults({
       port,
-      _: [],
     })
 
     async function masterBall() {
@@ -105,7 +102,6 @@ describe("createApp", () => {
   it("should unlink a socket before listening on the socket", async () => {
     await promises.writeFile(tmpFilePath, "")
     const defaultArgs = await setDefaults({
-      _: [],
       socket: tmpFilePath,
     })
 
@@ -121,7 +117,6 @@ describe("createApp", () => {
     const defaultArgs = await setDefaults({
       port,
       cert,
-      _: [],
       ["cert-key"]: testCertificate.certKey,
     })
     const app = await createApp(defaultArgs)
