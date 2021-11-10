@@ -52,9 +52,9 @@ export class CodeServer {
    */
   private async createWorkspace(): Promise<string> {
     const dir = await tmpdir(workspaceDir)
-    await fs.mkdir(path.join(dir, ".vscode"))
+    await fs.mkdir(path.join(dir, "User"))
     await fs.writeFile(
-      path.join(dir, ".vscode/settings.json"),
+      path.join(dir, "User/settings.json"),
       JSON.stringify({
         "workbench.startupEditor": "none",
       }),
