@@ -6,7 +6,7 @@ import { WebsocketRequest } from "../../../typings/pluginapi"
 import { HttpCode } from "../../common/http"
 import { rootPath } from "../constants"
 import { replaceTemplates } from "../http"
-import { getMediaMime } from "../util"
+import { escapeHtml, getMediaMime } from "../util"
 
 const notFoundCodes = ["ENOENT", "EISDIR"]
 export const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
@@ -29,7 +29,7 @@ export const errorHandler: express.ErrorRequestHandler = async (err, req, res, n
       replaceTemplates(req, content)
         .replace(/{{ERROR_TITLE}}/g, status)
         .replace(/{{ERROR_HEADER}}/g, status)
-        .replace(/{{ERROR_BODY}}/g, err.message),
+        .replace(/{{ERROR_BODY}}/g, escapeHtml(err.message)),
     )
   } else {
     res.json({
