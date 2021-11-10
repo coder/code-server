@@ -4,22 +4,18 @@ import * as net from "net"
 import * as os from "os"
 import * as path from "path"
 import {
-  Args,
+  UserProvidedArgs,
   bindAddrFromArgs,
   defaultConfigFile,
   parse,
+  readSocketPath,
   setDefaults,
   shouldOpenInExistingInstance,
   splitOnFirstEquals,
-  readSocketPath,
 } from "../../../src/node/cli"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
 import { useEnv, tmpdir } from "../../utils/helpers"
-
-type Mutable<T> = {
-  -readonly [P in keyof T]: T[P]
-}
 
 describe("parser", () => {
   beforeEach(() => {
@@ -40,66 +36,71 @@ describe("parser", () => {
     usingEnvHashedPassword: false,
     "extensions-dir": path.join(paths.data, "extensions"),
     "user-data-dir": paths.data,
+    _: [],
+    workspace: "",
+    folder: "",
   }
 
-  it("should parse nothing", () => {
-    expect(parse([])).toStrictEqual({ _: [] })
+  it("should parse nothing", async () => {
+    expect(parse([])).toStrictEqual({})
   })
 
-  it("should parse all available options", () => {
+  it("should parse all available options", async () => {
     expect(
-      parse([
-        "--enable",
-        "feature1",
-        "--enable",
-        "feature2",
-        "--bind-addr=192.169.0.1:8080",
-        "--auth",
-        "none",
-        "--extensions-dir",
-        "foo",
-        "--builtin-extensions-dir",
-        "foobar",
-        "--extra-extensions-dir",
-        "nozzle",
-        "1",
-        "--extra-builtin-extensions-dir",
-        "bazzle",
-        "--verbose",
-        "2",
-        "--log",
-        "error",
-        "--help",
-        "--open",
-        "--socket=mumble",
-        "3",
-        "--user-data-dir",
-        "bar",
-        "--cert=baz",
-        "--cert-key",
-        "qux",
-        "--version",
-        "--json",
-        "--port=8081",
-        "--host",
-        "0.0.0.0",
-        "4",
-        "--",
-        "-5",
-        "--6",
-      ]),
+      parse(
+        [
+          ["--enable", "feature1"],
+          ["--enable", "feature2"],
+
+          "--bind-addr=192.169.0.1:8080",
+
+          ["--auth", "none"],
+
+          ["--extensions-dir", "path/to/ext/dir"],
+
+          ["--builtin-extensions-dir", "path/to/builtin/ext/dir"],
+
+          "1",
+          "--verbose",
+          "2",
+
+          ["--log", "error"],
+
+          "--help",
+
+          "--open",
+
+          "--socket=mumble",
+
+          "3",
+
+          ["--user-data-dir", "path/to/user/dir"],
+
+          ["--cert=path/to/cert", "--cert-key", "path/to/cert/key"],
+
+          "--version",
+
+          "--json",
+
+          "--port=8081",
+
+          ["--host", "0.0.0.0"],
+          "4",
+          "--",
+          "--5",
+        ].flat(),
+      ),
     ).toEqual({
-      _: ["1", "2", "3", "4", "-5", "--6"],
+      _: ["1", "2", "3", "4", "--5"],
       auth: "none",
-      "builtin-extensions-dir": path.resolve("foobar"),
-      "cert-key": path.resolve("qux"),
+      "builtin-extensions-dir": path.resolve("path/to/builtin/ext/dir"),
+      "extensions-dir": path.resolve("path/to/ext/dir"),
+      "user-data-dir": path.resolve("path/to/user/dir"),
+      "cert-key": path.resolve("path/to/cert/key"),
       cert: {
-        value: path.resolve("baz"),
+        value: path.resolve("path/to/cert"),
       },
       enable: ["feature1", "feature2"],
-      "extensions-dir": path.resolve("foo"),
-      "extra-builtin-extensions-dir": [path.resolve("bazzle")],
-      "extra-extensions-dir": [path.resolve("nozzle")],
       help: true,
       host: "0.0.0.0",
       json: true,
@@ -107,16 +108,14 @@ describe("parser", () => {
       open: true,
       port: 8081,
       socket: path.resolve("mumble"),
-      "user-data-dir": path.resolve("bar"),
       verbose: true,
       version: true,
       "bind-addr": "192.169.0.1:8080",
     })
   })
 
-  it("should work with short options", () => {
+  it("should work with short options", async () => {
     expect(parse(["-vvv", "-v"])).toEqual({
-      _: [],
       verbose: true,
       version: true,
     })
@@ -124,13 +123,12 @@ describe("parser", () => {
 
   it("should use log level env var", async () => {
     const args = parse([])
-    expect(args).toEqual({ _: [] })
+    expect(args).toEqual({})
 
     process.env.LOG_LEVEL = "debug"
     const defaults = await setDefaults(args)
     expect(defaults).toStrictEqual({
       ...defaults,
-      _: [],
       log: "debug",
       verbose: false,
     })
@@ -141,7 +139,6 @@ describe("parser", () => {
     const updated = await setDefaults(args)
     expect(updated).toStrictEqual({
       ...updated,
-      _: [],
       log: "trace",
       verbose: true,
     })
@@ -152,7 +149,6 @@ describe("parser", () => {
   it("should prefer --log to env var and --verbose to --log", async () => {
     let args = parse(["--log", "info"])
     expect(args).toEqual({
-      _: [],
       log: "info",
     })
 
@@ -160,7 +156,6 @@ describe("parser", () => {
     const defaults = await setDefaults(args)
     expect(defaults).toEqual({
       ...defaults,
-      _: [],
       log: "info",
       verbose: false,
     })
@@ -171,7 +166,6 @@ describe("parser", () => {
     const updated = await setDefaults(args)
     expect(updated).toEqual({
       ...defaults,
-      _: [],
       log: "info",
       verbose: false,
     })
@@ -180,7 +174,6 @@ describe("parser", () => {
 
     args = parse(["--log", "info", "--verbose"])
     expect(args).toEqual({
-      _: [],
       log: "info",
       verbose: true,
     })
@@ -189,7 +182,6 @@ describe("parser", () => {
     const updatedAgain = await setDefaults(args)
     expect(updatedAgain).toEqual({
       ...defaults,
-      _: [],
       log: "trace",
       verbose: true,
     })
@@ -202,7 +194,6 @@ describe("parser", () => {
     const defaults = await setDefaults(parse([]))
     expect(defaults).toEqual({
       ...defaults,
-      _: [],
     })
   })
 
@@ -224,9 +215,8 @@ describe("parser", () => {
     expect(() => parse(["--foo"])).toThrowError(/Unknown option --foo/)
   })
 
-  it("should not error if the value is optional", () => {
+  it("should not error if the value is optional", async () => {
     expect(parse(["--cert"])).toEqual({
-      _: [],
       cert: {
         value: undefined,
       },
@@ -237,26 +227,23 @@ describe("parser", () => {
     expect(() => parse(["--socket", "--socket-path-value"])).toThrowError(/--socket requires a value/)
     // If you actually had a path like this you would do this instead:
     expect(parse(["--socket", "./--socket-path-value"])).toEqual({
-      _: [],
       socket: path.resolve("--socket-path-value"),
     })
     expect(() => parse(["--cert", "--socket-path-value"])).toThrowError(/Unknown option --socket-path-value/)
   })
 
-  it("should allow positional arguments before options", () => {
-    expect(parse(["foo", "test", "--auth", "none"])).toEqual({
-      _: ["foo", "test"],
+  it("should allow positional arguments before options", async () => {
+    expect(parse(["test", "--auth", "none"])).toEqual({
+      _: ["test"],
       auth: "none",
     })
   })
 
-  it("should support repeatable flags", () => {
+  it("should support repeatable flags", async () => {
     expect(parse(["--proxy-domain", "*.coder.com"])).toEqual({
-      _: [],
       "proxy-domain": ["*.coder.com"],
     })
     expect(parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "test.com"])).toEqual({
-      _: [],
       "proxy-domain": ["*.coder.com", "test.com"],
     })
   })
@@ -264,7 +251,6 @@ describe("parser", () => {
   it("should enforce cert-key with cert value or otherwise generate one", async () => {
     const args = parse(["--cert"])
     expect(args).toEqual({
-      _: [],
       cert: {
         value: undefined,
       },
@@ -272,7 +258,6 @@ describe("parser", () => {
     expect(() => parse(["--cert", "test"])).toThrowError(/--cert-key is missing/)
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
-      _: [],
       ...defaults,
       cert: {
         value: path.join(paths.data, "localhost.crt"),
@@ -285,7 +270,6 @@ describe("parser", () => {
     const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
-      _: [],
       ...defaults,
       auth: "none",
       host: "localhost",
@@ -302,14 +286,11 @@ describe("parser", () => {
   it("should use env var password", async () => {
     process.env.PASSWORD = "test"
     const args = parse([])
-    expect(args).toEqual({
-      _: [],
-    })
+    expect(args).toEqual({})
 
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
-      _: [],
       password: "test",
       usingEnvPassword: true,
     })
@@ -319,14 +300,11 @@ describe("parser", () => {
     process.env.HASHED_PASSWORD =
       "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY" // test
     const args = parse([])
-    expect(args).toEqual({
-      _: [],
-    })
+    expect(args).toEqual({})
 
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
-      _: [],
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qR/o+0t00hsbJFQCKSfdQ$oFcM4rL6o+B7oxpuA4qlXubypbBPsf+8L531U7P9HYY",
       usingEnvHashedPassword: true,
@@ -348,27 +326,23 @@ describe("parser", () => {
   it("should filter proxy domains", async () => {
     const args = parse(["--proxy-domain", "*.coder.com", "--proxy-domain", "coder.com", "--proxy-domain", "coder.org"])
     expect(args).toEqual({
-      _: [],
       "proxy-domain": ["*.coder.com", "coder.com", "coder.org"],
     })
 
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
-      _: [],
       "proxy-domain": ["coder.com", "coder.org"],
     })
   })
   it("should allow '=,$/' in strings", async () => {
     const args = parse([
-      "--enable-proposed-api",
+      "--disable-update-check",
       "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     ])
     expect(args).toEqual({
-      _: [],
-      "enable-proposed-api": [
-        "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
-      ],
+      "disable-update-check": true,
+      _: ["$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy"],
     })
   })
   it("should parse options with double-dash and multiple equal signs ", async () => {
@@ -381,7 +355,6 @@ describe("parser", () => {
       },
     )
     expect(args).toEqual({
-      _: [],
       "hashed-password":
         "$argon2i$v=19$m=4096,t=3,p=1$0qr/o+0t00hsbjfqcksfdq$ofcm4rl6o+b7oxpua4qlxubypbbpsf+8l531u7p9hyy",
     })
@@ -389,7 +362,6 @@ describe("parser", () => {
 })
 
 describe("cli", () => {
-  let args: Mutable<Args> = { _: [] }
   let testDir: string
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -401,20 +373,21 @@ describe("cli", () => {
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
-    args = { _: [] }
     await fs.rmdir(vscodeIpcPath, { recursive: true })
   })
 
   it("should use existing if inside code-server", async () => {
     process.env.VSCODE_IPC_HOOK_CLI = "test"
+    const args: UserProvidedArgs = {}
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
 
     args.port = 8081
-    args._.push("./file")
+    args._ = ["./file"]
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual("test")
   })
 
   it("should use existing if --reuse-window is set", async () => {
+    const args: UserProvidedArgs = {}
     args["reuse-window"] = true
     await expect(shouldOpenInExistingInstance(args)).resolves.toStrictEqual(undefined)
 
@@ -426,6 +399,7 @@ describe("cli", () => {
   })
 
   it("should use existing if --new-window is set", async () => {
+    const args: UserProvidedArgs = {}
     args["new-window"] = true
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
@@ -437,9 +411,10 @@ describe("cli", () => {
   })
 
   it("should use existing if no unrelated flags are set, has positional, and socket is active", async () => {
+    const args: UserProvidedArgs = {}
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
-    args._.push("./file")
+    args._ = ["./file"]
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
     const socketPath = path.join(testDir, "socket")
@@ -489,9 +464,7 @@ describe("splitOnFirstEquals", () => {
 
 describe("shouldSpawnCliProcess", () => {
   it("should return false if no 'extension' related args passed in", async () => {
-    const args = {
-      _: [],
-    }
+    const args = {}
     const actual = await shouldSpawnCliProcess(args)
     const expected = false
 
@@ -500,7 +473,6 @@ describe("shouldSpawnCliProcess", () => {
 
   it("should return true if 'list-extensions' passed in", async () => {
     const args = {
-      _: [],
       ["list-extensions"]: true,
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -511,7 +483,6 @@ describe("shouldSpawnCliProcess", () => {
 
   it("should return true if 'install-extension' passed in", async () => {
     const args = {
-      _: [],
       ["install-extension"]: ["hello.world"],
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -521,8 +492,7 @@ describe("shouldSpawnCliProcess", () => {
   })
 
   it("should return true if 'uninstall-extension' passed in", async () => {
-    const args = {
-      _: [],
+    const args: UserProvidedArgs = {
       ["uninstall-extension"]: ["hello.world"],
     }
     const actual = await shouldSpawnCliProcess(args)
@@ -534,9 +504,7 @@ describe("shouldSpawnCliProcess", () => {
 
 describe("bindAddrFromArgs", () => {
   it("should return the bind address", () => {
-    const args = {
-      _: [],
-    }
+    const args: UserProvidedArgs = {}
 
     const addr = {
       host: "localhost",
@@ -550,8 +518,7 @@ describe("bindAddrFromArgs", () => {
   })
 
   it("should use the bind-address if set in args", () => {
-    const args = {
-      _: [],
+    const args: UserProvidedArgs = {
       ["bind-addr"]: "localhost:3000",
     }
 
@@ -570,8 +537,7 @@ describe("bindAddrFromArgs", () => {
   })
 
   it("should use the host if set in args", () => {
-    const args = {
-      _: [],
+    const args: UserProvidedArgs = {
       ["host"]: "coder",
     }
 
@@ -593,9 +559,7 @@ describe("bindAddrFromArgs", () => {
     const [setValue, resetValue] = useEnv("PORT")
     setValue("8000")
 
-    const args = {
-      _: [],
-    }
+    const args: UserProvidedArgs = {}
 
     const addr = {
       host: "localhost",
@@ -613,8 +577,7 @@ describe("bindAddrFromArgs", () => {
   })
 
   it("should set port if in args", () => {
-    const args = {
-      _: [],
+    const args: UserProvidedArgs = {
       port: 3000,
     }
 
@@ -636,8 +599,7 @@ describe("bindAddrFromArgs", () => {
     const [setValue, resetValue] = useEnv("PORT")
     setValue("8000")
 
-    const args = {
-      _: [],
+    const args: UserProvidedArgs = {
       port: 3000,
     }
 

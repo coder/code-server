@@ -506,6 +506,14 @@ type AMDModule<T> = { [exportName: string]: T }
  * @param exportName Given name of export in the file
  */
 export const loadAMDModule = async <T>(amdPath: string, exportName: string): Promise<T> => {
+  // Set default remote native node modules path, if unset
+  process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"] =
+    process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"] || path.join(vsRootPath, "remote", "node_modules")
+
+  require(path.join(vsRootPath, "out/bootstrap-node")).injectNodeModuleLookupPath(
+    process.env["VSCODE_INJECT_NODE_MODULE_LOOKUP_PATH"],
+  )
+
   const module = await new Promise<AMDModule<T>>((resolve, reject) => {
     require(path.join(vsRootPath, "out/bootstrap-amd")).load(amdPath, resolve, reject)
   })

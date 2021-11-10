@@ -1,7 +1,5 @@
 import * as express from "express"
-import path from "path"
-import { AuthType, DefaultedArgs } from "../cli"
-import { version as codeServerVersion, vsRootPath } from "../constants"
+import { DefaultedArgs } from "../cli"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter, WebsocketRouter } from "../wsRouter"
@@ -10,46 +8,22 @@ import { errorHandler } from "./errors"
 export interface VSServerResult {
   router: express.Router
   wsRouter: WebsocketRouter
-  codeServerMain: CodeServerLib.IServerProcessMain
+  codeServerMain: CodeServerLib.IServerAPI
 }
 
 export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServerResult> => {
-  // Delete `VSCODE_CWD` very early even before
-  // importing bootstrap files. We have seen
-  // reports where `code .` would use the wrong
-  // current working directory due to our variable
-  // somehow escaping to the parent shell
-  // (https://github.com/microsoft/vscode/issues/126399)
-  delete process.env["VSCODE_CWD"]
+  // See ../../../vendor/modules/code-oss-dev/src/vs/server/main.js.
+  const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
+    "vs/server/remoteExtensionHostAgent",
+    "createServer",
+  )
 
-  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
-  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
-  const product = require(path.join(vsRootPath, "product.json"))
-
-  // Avoid Monkey Patches from Application Insights
-  bootstrap.avoidMonkeyPatchFromAppInsights()
-
-  // Enable portable support
-  bootstrapNode.configurePortable(product)
-
-  // Enable ASAR support
-  bootstrap.enableASARSupport()
-
-  // Signal processes that we got launched as CLI
-  process.env["VSCODE_CLI"] = "1"
-
-  const createVSServer = await loadAMDModule<CodeServerLib.CreateVSServer>("vs/server/entry", "createVSServer")
-
-  const serverUrl = new URL(`${args.cert ? "https" : "http"}://${args.host}:${args.port}`)
-  const codeServerMain = await createVSServer({
-    codeServerVersion,
-    serverUrl,
-    args,
-    authed: args.auth !== AuthType.None,
-    disableUpdateCheck: !!args["disable-update-check"],
+  const codeServerMain = await createVSServer(null, {
+    connectionToken: "0000",
+    ...args,
+    // For some reason VS Code takes the port as a string.
+    port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
   })
-
-  const netServer = await codeServerMain.startup({ listenWhenReady: false })
 
   const router = express.Router()
   const wsRouter = WsRouter()
@@ -66,13 +40,19 @@ export const createVSServerRouter = async (args: DefaultedArgs): Promise<VSServe
   })
 
   router.all("*", ensureAuthenticated, (req, res, next) => {
-    req.on("error", (error) => errorHandler(error, req, res, next))
+    req.on("error", (error: any) => {
+      if (error instanceof Error && ["EntryNotFound", "FileNotFound", "HttpError"].includes(error.message)) {
+        next()
+      }
 
-    netServer.emit("request", req, res)
+      errorHandler(error, req, res, next)
+    })
+
+    codeServerMain.handleRequest(req, res)
   })
 
   wsRouter.ws("/", ensureAuthenticated, (req) => {
-    netServer.emit("upgrade", req, req.socket, req.head)
+    codeServerMain.handleUpgrade(req, req.socket)
 
     req.socket.resume()
   })

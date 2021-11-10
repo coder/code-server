@@ -4,19 +4,22 @@ import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature } from "./cli"
+import { AuthType, DefaultedArgs, Feature, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
-import { commit, version, vsRootPath } from "./constants"
+import { commit, version } from "./constants"
 import { register } from "./routes"
 import { humanPath, isFile, loadAMDModule, open } from "./util"
 
-export const shouldSpawnCliProcess = async (args: CodeServerLib.NativeParsedArgs): Promise<boolean> => {
-  const shouldSpawn = await loadAMDModule<(argv: CodeServerLib.NativeParsedArgs) => boolean>(
-    "vs/code/node/cli",
-    "shouldSpawnCliProcess",
+/**
+ * Return true if the user passed an extension-related VS Code flag.
+ */
+export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
+  return (
+    !!args["list-extensions"] ||
+    !!args["install-extension"] ||
+    !!args["uninstall-extension"] ||
+    !!args["locate-extension"]
   )
-
-  return shouldSpawn(args)
 }
 
 /**
@@ -24,37 +27,18 @@ export const shouldSpawnCliProcess = async (args: CodeServerLib.NativeParsedArgs
  * such as when managing extensions.
  * @deprecated This should be removed when code-server merges with lib/vscode.
  */
-export const runVsCodeCli = async (): Promise<void> => {
+export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running VS Code CLI")
 
-  // Delete `VSCODE_CWD` very early even before
-  // importing bootstrap files. We have seen
-  // reports where `code .` would use the wrong
-  // current working directory due to our variable
-  // somehow escaping to the parent shell
-  // (https://github.com/microsoft/vscode/issues/126399)
-  delete process.env["VSCODE_CWD"]
-
-  const bootstrap = require(path.join(vsRootPath, "out", "bootstrap"))
-  const bootstrapNode = require(path.join(vsRootPath, "out", "bootstrap-node"))
-  const product = require(path.join(vsRootPath, "product.json"))
-
-  // Avoid Monkey Patches from Application Insights
-  bootstrap.avoidMonkeyPatchFromAppInsights()
-
-  // Enable portable support
-  bootstrapNode.configurePortable(product)
-
-  // Enable ASAR support
-  bootstrap.enableASARSupport()
-
-  // Signal processes that we got launched as CLI
-  process.env["VSCODE_CLI"] = "1"
-
-  const cliProcessMain = await loadAMDModule<CodeServerLib.IMainCli["main"]>("vs/code/node/cli", "initialize")
+  // See ../../vendor/modules/code-oss-dev/src/vs/server/main.js.
+  const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/remoteExtensionHostAgent", "spawnCli")
 
   try {
-    await cliProcessMain(process.argv)
+    await spawnCli({
+      ...args,
+      // For some reason VS Code takes the port as a string.
+      port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
+    })
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }
@@ -70,8 +54,9 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     forceReuseWindow: args["reuse-window"],
     forceNewWindow: args["new-window"],
   }
-  for (let i = 0; i < args._.length; i++) {
-    const fp = path.resolve(args._[i])
+  const paths = args._ || []
+  for (let i = 0; i < paths.length; i++) {
+    const fp = path.resolve(paths[i])
     if (await isFile(fp)) {
       pipeArgs.fileURIs.push(fp)
     } else {
@@ -120,11 +105,17 @@ export const runCodeServer = async (
   }
 
   const app = await createApp(args)
-  const serverAddress = ensureAddress(app.server, args.cert ? "https" : "http")
+  const protocol = args.cert ? "https" : "http"
+  const serverAddress = ensureAddress(app.server, protocol)
   const disposeRoutes = await register(app, args)
 
   logger.info(`Using config file ${humanPath(args.config)}`)
-  logger.info(`HTTP server listening on ${serverAddress.toString()} ${args.link ? "(randomized by --link)" : ""}`)
+  logger.info(
+    `${protocol.toUpperCase()} server listening on ${serverAddress.toString()} ${
+      args.link ? "(randomized by --link)" : ""
+    }`,
+  )
+
   if (args.auth === AuthType.Password) {
     logger.info("  - Authentication is enabled")
     if (args.usingEnvPassword) {

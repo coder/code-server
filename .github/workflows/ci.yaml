@@ -142,9 +142,9 @@ jobs:
           path: |
             vendor/modules/code-oss-dev/.build
             vendor/modules/code-oss-dev/out-build
-            vendor/modules/code-oss-dev/out-vscode-server
-            vendor/modules/code-oss-dev/out-vscode-server-min
-          key: vscode-server-build-${{ steps.vscode-rev.outputs.rev }}
+            vendor/modules/code-oss-dev/out-vscode-reh-web
+            vendor/modules/code-oss-dev/out-vscode-reh-web-min
+          key: vscode-reh-build-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
