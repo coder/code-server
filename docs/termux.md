@@ -7,23 +7,25 @@
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
 - [Extra](#extra)
-  - [Install GO](#install-go)
+  - [Install Go](#install-go)
   - [Install Python](#install-python)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-### Install
+## Install
 
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
-2. Install Debian by running the following. - Run `termux-setup-storage` to allow storage access, or else code-server won't be able to read from `/sdcard`.\
-    If you used the Andronix command \\/ then you may have to edit the `start-debian.sh` script to mount `/sdcard` just as simple as uncommenting the `command+=" -b /sdcard"` line.
-   > The following command was extracted from [Andronix](https://andronix.app/) you can also use [proot-distro](https://github.com/termux/proot-distro).
+2. Install Debian by running the following.
+   - Run `termux-setup-storage` to allow storage access, or else code-server won't be able to read from `/sdcard`.\
+      If you used the Andronix command then you may have to edit the `start-debian.sh` script to mount `/sdcard` just as simple as uncommenting the `command+=" -b /sdcard"` line.
+     > The following command was extracted from [Andronix](https://andronix.app/) you can also use [proot-distro](https://github.com/termux/proot-distro).
+     > After Debian is installed the `~ $` will change to `root@localhost`.
 
 ```bash
 pkg update -y && pkg install wget curl proot tar -y && wget https://raw.githubusercontent.com/AndronixApp/AndronixOrigin/master/Installer/Debian/debian.sh -O debian.sh && chmod +x debian.sh && bash debian.sh
 ```
 
-> After Debian is installed the `~ $` will change to `root@localhost`. 3. Run the following commands to setup Debian.
+3. Run the following commands to setup Debian.
 
 ```bash
 apt update
@@ -31,54 +33,40 @@ apt upgrade -y
 apt-get install nano vim sudo curl wget git -y
 ```
 
-4. Then create a new user to use later and change its password.
-
-```bash
-useradd username -m
-passwd username
-```
-
-5. Install [NVM](https://github.com/nvm-sh/nvm) by following the install guide in the README, just a curl/wget command.
-6. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root; which we do not want (see step 9) so do the following things.
+4. Install [NVM](https://github.com/nvm-sh/nvm) by following the install guide in the README, just a curl/wget command.
+5. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root; which we do not want (see step 9) so do the following things.
 
    - Copy the lines NVM asks you to run after running the install script.
    - Run `nano /root/.bashrc` and comment out those lines by adding a `#` at the start.
    - Run `nano /etc/profile` and paste those lines at the end and make sure to replace `$HOME` with `/root`
    - Now run `exit` and start Debain again.
 
-7. After following the instructions and setting up NVM you can now install the [required node version](https://coder.com/docs/code-server/latest/npm#nodejs-version) using `nvm install version_here`.
-8. You don't need to install yarn.
-9. Now you are ready to install code-server, but let's switch users first.
-   - There are many answers on Stack Exchange for why logging in as root is not recommended,\
-     but here's a [short article](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) for you.
-   - Run the following `visudo` to give your user (created in step 4) sudo privileges.
-   - After executing the command, scroll to `User privilege specification` and add `username ALL=(ALL:ALL) ALL`.
-10. To switch users, run `su - username`. **DO NOT forget to add the `-` between `su` and the username or, else the `/etc/profile` file won't be executed,** you may instead follow step 6 but edit the `/etc/bash.bashrc` file instead of `/etc/profile` if you don't want to add a `-` between `su` and username.
-
-11. To install `code-server` run the following.
-
-To check the install process (Will not actually install code-server)
+6. After following the instructions and setting up NVM you can now install the [required node version](https://coder.com/docs/code-server/latest/npm#nodejs-version) using `nvm install version_here`.
+7. To install `code-server` run the following.
+   > To check the install process (Will not actually install code-server)
+   > If it all looks good, you can install code-server by running the second command
 
 ```bash
 curl -fsSL https://code-server.dev/install.sh | sh -s -- --dry-run
 ```
 
-If all looks good, you can run to install code-server.
-
 ```bash
 curl -fsSL https://code-server.dev/install.sh | sh
 ```
 
-12. Every time you run `./start-debian.sh` (or `proot-distro login debian` if you used proot-distro), you can switch to your user `su - username` and run code-server.
+8. You can now start code server by simply running `code-server`.
 
-### Upgrade
+> Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
+> Learn how to add a user [here](https://gist.github.com/arHSM/62242c343efc2827861ddc38e485d7df).
+
+## Upgrade
 
 1. Remove all previous installs `rm -rf ~/.local/lib/code-server-*`
 2. Run the install script again `curl -fsSL https://code-server.dev/install.sh | sh`
 
-### Known Issues
+## Known Issues
 
-#### Git won't work in `/sdcard`
+### Git won't work in `/sdcard`
 
 Issue : Using git in the `/sdcard` directory will fail during cloning/commit/staging/etc...\
 Fix : None\
@@ -87,9 +75,9 @@ Potential Workaround :
 1. Create a soft-link from the debian-fs to your folder in `/sdcard`
 2. Use git from termux (preferred)
 
-### Extra
+## Extra
 
-#### Install GO
+### Install Go
 
 > From https://golang.org/doc/install
 
@@ -109,7 +97,7 @@ rm -rf /usr/local/go && tar -C /usr/local -xzf archive_name
 4. Now run `exit` (depending on if you have switched users or not, you may have to run `exit` multiple times to get to normal termux shell) and start Debian again.
 5. Check if your install was successful by running `go version`
 
-#### Install Python
+### Install Python
 
 > Run these commands as root
 
@@ -144,4 +132,3 @@ eval "$(pyenv virtualenv-init -)"
 7. Run `touch /root/.pyenv/version && echo "your_version_here" > /root/.pyenv/version`
 8. (You may have to start Debian again) Run `python3 -V` to verify if PATH works or not.
    > If `python3` doesn't work but pyenv says that the install was successful in step 6 then try running `$PYENV_ROOT/versions/your_version/bin/python3`.
-9. You can now switch users by `su - username` and try running `python3 -V` and `pip -V` to check if it works or not.
