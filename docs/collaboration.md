@@ -54,12 +54,4 @@ As `code-server` is based on VS Code, you can follow the steps described on Duck
      code-server --install-extension genuitecllc.codetogether
    ```
 
-2. CodeTogether requires VS Code's proposed API to run. Start code-server with the following flag:
-
-   ```sh
-   code-server --enable-proposed-api genuitecllc.codetogether
-   ```
-
-   Another option would be to add a value in code-server's [config file](https://coder.com/docs/code-server/v3.12.0/FAQ#how-does-the-config-file-work).
-
-3. Refresh code-server and navigate to the CodeTogether icon in the sidebar to host or join a coding session.
+2. Refresh code-server and navigate to the CodeTogether icon in the sidebar to host or join a coding session.

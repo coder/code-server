@@ -38,6 +38,8 @@ implementation (#4414).
   vscode-remote-resource endpoint still can.
 - OpenVSX has been made the default marketplace. However this means web
   extensions like Vim are now broken.
+- The proposed API has been defaulted to on.  As a result the
+  `--enable-proposed-api` flag has been removed.
 
 ## [3.12.0](https://github.com/cdr/code-server/releases/tag/v3.12.0) - 2021-09-15
 

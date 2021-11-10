@@ -439,9 +439,9 @@ describe("cli", () => {
 
 describe("splitOnFirstEquals", () => {
   it("should split on the first equals", () => {
-    const testStr = "enabled-proposed-api=test=value"
+      const testStr = "proxy-domain=test=value"
     const actual = splitOnFirstEquals(testStr)
-    const expected = ["enabled-proposed-api", "test=value"]
+      const expected = ["proxy-domain", "test=value"]
     expect(actual).toEqual(expect.arrayContaining(expected))
   })
   it("should split on first equals regardless of multiple equals signs", () => {

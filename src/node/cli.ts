@@ -77,7 +77,6 @@ export interface UserProvidedArgs {
   "disable-telemetry"?: boolean
   force?: boolean
   "user-data-dir"?: string
-  "enable-proposed-api"?: string[]
   "extensions-dir"?: string
   "builtin-extensions-dir"?: string
   "install-extension"?: string[]
@@ -195,11 +194,6 @@ const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
       "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
-  },
-  "enable-proposed-api": {
-    type: "string[]",
-    description:
-      "Enable proposed API features for extensions. Can receive one or more extension IDs to enable individually.",
   },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
