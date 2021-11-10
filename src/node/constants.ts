@@ -18,6 +18,7 @@ export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJso
 
 const pkg = getPackageJson("../../package.json")
 
+export const pkgName = pkg.name || "code-server"
 export const version = pkg.version || "development"
 export const commit = pkg.commit || "development"
 export const rootPath = path.resolve(__dirname, "../..")

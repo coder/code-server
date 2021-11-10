@@ -121,6 +121,7 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
     "/_static",
     express.static(rootPath, {
       cacheControl: commit !== "development",
+      fallthrough: false,
     }),
   )
 

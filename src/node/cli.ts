@@ -3,7 +3,15 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
+import {
+  canConnect,
+  generateCertificate,
+  generatePassword,
+  humanPath,
+  paths,
+  isNodeJSErrnoException,
+  isFile,
+} from "./util"
 
 const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -31,27 +39,13 @@ export enum LogLevel {
 
 export class OptionalString extends Optional<string> {}
 
-export interface Args
-  extends Pick<
-    CodeServerLib.NativeParsedArgs,
-    | "_"
-    | "user-data-dir"
-    | "enable-proposed-api"
-    | "extensions-dir"
-    | "builtin-extensions-dir"
-    | "extra-extensions-dir"
-    | "extra-builtin-extensions-dir"
-    | "ignore-last-opened"
-    | "locale"
-    | "log"
-    | "verbose"
-    | "install-source"
-    | "list-extensions"
-    | "install-extension"
-    | "uninstall-extension"
-    | "locate-extension"
-    // | "telemetry"
-  > {
+/**
+ * Arguments that the user explicitly provided on the command line.  All
+ * arguments must be optional.
+ *
+ * For arguments with defaults see DefaultedArgs.
+ */
+export interface UserProvidedArgs {
   config?: string
   auth?: AuthType
   password?: string
@@ -59,25 +53,39 @@ export interface Args
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
-  "disable-telemetry"?: boolean
   "disable-update-check"?: boolean
   enable?: string[]
   help?: boolean
   host?: string
+  port?: number
   json?: boolean
   log?: LogLevel
   open?: boolean
-  port?: number
   "bind-addr"?: string
   socket?: string
   version?: boolean
-  force?: boolean
-  "show-versions"?: boolean
   "proxy-domain"?: string[]
   "reuse-window"?: boolean
   "new-window"?: boolean
-
+  "ignore-last-opened"?: boolean
   link?: OptionalString
+  verbose?: boolean
+  /* Positional arguments. */
+  _?: string[]
+
+  // VS Code flags.
+  "disable-telemetry"?: boolean
+  force?: boolean
+  "user-data-dir"?: string
+  "enable-proposed-api"?: string[]
+  "extensions-dir"?: string
+  "builtin-extensions-dir"?: string
+  "install-extension"?: string[]
+  "uninstall-extension"?: string[]
+  "list-extensions"?: boolean
+  "locate-extension"?: string[]
+  "show-versions"?: boolean
+  category?: string
 }
 
 interface Option<T> {
@@ -121,7 +129,7 @@ type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
 }
 
-const options: Options<Required<Args>> = {
+const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
   password: {
     type: "string",
@@ -178,12 +186,10 @@ const options: Options<Required<Args>> = {
   "user-data-dir": { type: "string", path: true, description: "Path to the user data directory." },
   "extensions-dir": { type: "string", path: true, description: "Path to the extensions directory." },
   "builtin-extensions-dir": { type: "string", path: true },
-  "extra-extensions-dir": { type: "string[]", path: true },
-  "extra-builtin-extensions-dir": { type: "string[]", path: true },
   "list-extensions": { type: "boolean", description: "List installed VS Code extensions." },
   force: { type: "boolean", description: "Avoid prompts when installing VS Code extensions." },
-  "install-source": { type: "string" },
   "locate-extension": { type: "string[]" },
+  category: { type: "string" },
   "install-extension": {
     type: "string[]",
     description:
@@ -214,7 +220,6 @@ const options: Options<Required<Args>> = {
     description: "Force to open a file or folder in an already opened window.",
   },
 
-  locale: { type: "string" },
   log: { type: LogLevel },
   verbose: { type: "boolean", short: "vvv", description: "Enable verbose logging." },
 
@@ -271,12 +276,16 @@ export function splitOnFirstEquals(str: string): string[] {
   return split
 }
 
+/**
+ * Parse arguments into UserProvidedArgs.  This should not go beyond checking
+ * that arguments are valid types and have values when required.
+ */
 export const parse = (
   argv: string[],
   opts?: {
     configFile?: string
   },
-): Args => {
+): UserProvidedArgs => {
   const error = (msg: string): Error => {
     if (opts?.configFile) {
       msg = `error reading ${opts.configFile}: ${msg}`
@@ -285,7 +294,7 @@ export const parse = (
     return new Error(msg)
   }
 
-  const args: Args = { _: [] }
+  const args: UserProvidedArgs = {}
   let ended = false
 
   for (let i = 0; i < argv.length; ++i) {
@@ -299,17 +308,17 @@ export const parse = (
 
     // Options start with a dash and require a value if non-boolean.
     if (!ended && arg.startsWith("-")) {
-      let key: keyof Args | undefined
+      let key: keyof UserProvidedArgs | undefined
       let value: string | undefined
       if (arg.startsWith("--")) {
         const split = splitOnFirstEquals(arg.replace(/^--/, ""))
-        key = split[0] as keyof Args
+        key = split[0] as keyof UserProvidedArgs
         value = split[1]
       } else {
         const short = arg.replace(/^-/, "")
         const pair = Object.entries(options).find(([, v]) => v.short === short)
         if (pair) {
-          key = pair[0] as keyof Args
+          key = pair[0] as keyof UserProvidedArgs
         }
       }
 
@@ -384,6 +393,10 @@ export const parse = (
     }
 
     // Everything else goes into _.
+    if (typeof args._ === "undefined") {
+      args._ = []
+    }
+
     args._.push(arg)
   }
 
@@ -397,6 +410,11 @@ export const parse = (
   return args
 }
 
+/**
+ * User-provided arguments with defaults.  The distinction between user-provided
+ * args and defaulted args exists so we can tell the difference between end
+ * values and what the user actually provided on the command line.
+ */
 export interface DefaultedArgs extends ConfigArgs {
   auth: AuthType
   cert?: {
@@ -410,6 +428,10 @@ export interface DefaultedArgs extends ConfigArgs {
   usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
+  /* Positional arguments. */
+  _: []
+  folder: string
+  workspace: string
 }
 
 /**
@@ -417,7 +439,7 @@ export interface DefaultedArgs extends ConfigArgs {
  * with the defaults set. Arguments from the CLI are prioritized over config
  * arguments.
  */
-export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promise<DefaultedArgs> {
+export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: ConfigArgs): Promise<DefaultedArgs> {
   const args = Object.assign({}, configArgs || {}, cliArgs)
 
   if (!args["user-data-dir"]) {
@@ -472,7 +494,7 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
     args.auth = AuthType.Password
   }
 
-  const addr = bindAddrFromAllSources(configArgs || { _: [] }, cliArgs)
+  const addr = bindAddrFromAllSources(configArgs || {}, cliArgs)
   args.host = addr.host
   args.port = addr.port
 
@@ -513,8 +535,29 @@ export async function setDefaults(cliArgs: Args, configArgs?: ConfigArgs): Promi
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
   args["proxy-domain"] = Array.from(proxyDomains)
 
+  if (typeof args._ === "undefined") {
+    args._ = []
+  }
+
+  let workspace = ""
+  let folder = ""
+  if (args._.length) {
+    const lastEntry = path.resolve(process.cwd(), args._[args._.length - 1])
+    const entryIsFile = await isFile(lastEntry)
+
+    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+      workspace = lastEntry
+      args._.pop()
+    } else if (!entryIsFile) {
+      folder = lastEntry
+      args._.pop()
+    }
+  }
+
   return {
     ...args,
+    workspace,
+    folder,
     usingEnvPassword,
     usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
@@ -539,7 +582,7 @@ cert: false
 `
 }
 
-interface ConfigArgs extends Args {
+interface ConfigArgs extends UserProvidedArgs {
   config: string
 }
 
@@ -581,7 +624,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
  */
 export function parseConfigFile(configFile: string, configPath: string): ConfigArgs {
   if (!configFile) {
-    return { _: [], config: configPath }
+    return { config: configPath }
   }
 
   const config = yaml.load(configFile, {
@@ -628,7 +671,7 @@ interface Addr {
  * This function creates the bind address
  * using the CLI args.
  */
-export function bindAddrFromArgs(addr: Addr, args: Args): Addr {
+export function bindAddrFromArgs(addr: Addr, args: UserProvidedArgs): Addr {
   addr = { ...addr }
   if (args["bind-addr"]) {
     addr = parseBindAddr(args["bind-addr"])
@@ -646,7 +689,7 @@ export function bindAddrFromArgs(addr: Addr, args: Args): Addr {
   return addr
 }
 
-function bindAddrFromAllSources(...argsConfig: Args[]): Addr {
+function bindAddrFromAllSources(...argsConfig: UserProvidedArgs[]): Addr {
   let addr: Addr = {
     host: "localhost",
     port: 8080,
@@ -683,30 +726,34 @@ export async function readSocketPath(path: string): Promise<string | undefined> 
 /**
  * Determine if it looks like the user is trying to open a file or folder in an
  * existing instance. The arguments here should be the arguments the user
- * explicitly passed on the command line, not defaults or the configuration.
+ * explicitly passed on the command line, *NOT DEFAULTS* or the configuration.
  */
-export const shouldOpenInExistingInstance = async (args: Args): Promise<string | undefined> => {
+export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Promise<string | undefined> => {
   // Always use the existing instance if we're running from VS Code's terminal.
   if (process.env.VSCODE_IPC_HOOK_CLI) {
+    logger.debug("Found VSCODE_IPC_HOOK_CLI")
     return process.env.VSCODE_IPC_HOOK_CLI
   }
 
   // If these flags are set then assume the user is trying to open in an
   // existing instance since these flags have no effect otherwise.
   const openInFlagCount = ["reuse-window", "new-window"].reduce((prev, cur) => {
-    return args[cur as keyof Args] ? prev + 1 : prev
+    return args[cur as keyof UserProvidedArgs] ? prev + 1 : prev
   }, 0)
   if (openInFlagCount > 0) {
+    logger.debug("Found --reuse-window or --new-window")
     return readSocketPath(DEFAULT_SOCKET_PATH)
   }
 
   // It's possible the user is trying to spawn another instance of code-server.
-  // Check if any unrelated flags are set (check against one because `_` always
-  // exists), that a file or directory was passed, and that the socket is
-  // active.
-  if (Object.keys(args).length === 1 && args._.length > 0) {
+  // 1. Check if any unrelated flags are set (this should only run when
+  //    code-server is invoked exactly like this: `code-server my-file`).
+  // 2. That a file or directory was passed.
+  // 3. That the socket is active.
+  if (Object.keys(args).length === 1 && typeof args._ !== "undefined" && args._.length > 0) {
     const socketPath = await readSocketPath(DEFAULT_SOCKET_PATH)
     if (socketPath && (await canConnect(socketPath))) {
+      logger.debug("Found existing code-server socket")
       return socketPath
     }
   }
