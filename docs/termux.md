@@ -35,7 +35,7 @@ apt-get install nano vim sudo curl wget git -y
 ```
 
 4. Install [NVM](https://github.com/nvm-sh/nvm) by following the install guide in the README, just a curl/wget command.
-5. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root; which we do not wanto do the following things.
+5. Set up NVM for multi-user. After installing NVM it automatically adds the necessary commands for it to work, but it will only work if you are logged in as root;
 
    - Copy the lines NVM asks you to run after running the install script.
    - Run `nano /root/.bashrc` and comment out those lines by adding a `#` at the start.
