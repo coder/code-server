@@ -142,6 +142,12 @@ spec:
           secretName: {{ .secretName }}
           defaultMode: {{ .defaultMode }}
       {{- end }}
+      {{- range .Values.extraConfigmapMounts }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .configMap }}
+          defaultMode: {{ .defaultMode }}
+      {{- end }}
       {{- range .Values.extraVolumeMounts }}
       - name: {{ .name }}
         {{- if .existingClaim }}
