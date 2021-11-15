@@ -1,4 +1,5 @@
 import { field, logger } from "@coder/logger"
+import * as os from "os"
 import http from "http"
 import path from "path"
 import { Disposable } from "../common/emitter"
@@ -95,8 +96,8 @@ export const runCodeServer = async (
 ): Promise<{ dispose: Disposable["dispose"]; server: http.Server }> => {
   logger.info(`code-server ${version} ${commit}`)
 
-  logger.info(`Using user-data-dir ${humanPath(args["user-data-dir"])}`)
-  logger.trace(`Using extensions-dir ${humanPath(args["extensions-dir"])}`)
+  logger.info(`Using user-data-dir ${humanPath(os.homedir(), args["user-data-dir"])}`)
+  logger.trace(`Using extensions-dir ${humanPath(os.homedir(), args["extensions-dir"])}`)
 
   if (args.auth === AuthType.Password && !args.password && !args["hashed-password"]) {
     throw new Error(
@@ -109,7 +110,7 @@ export const runCodeServer = async (
   const serverAddress = ensureAddress(app.server, protocol)
   const disposeRoutes = await register(app, args)
 
-  logger.info(`Using config file ${humanPath(args.config)}`)
+  logger.info(`Using config file ${humanPath(os.homedir(), args.config)}`)
   logger.info(
     `${protocol.toUpperCase()} server listening on ${serverAddress.toString()} ${
       args.link ? "(randomized by --link)" : ""
@@ -123,14 +124,14 @@ export const runCodeServer = async (
     } else if (args.usingEnvHashedPassword) {
       logger.info("    - Using password from $HASHED_PASSWORD")
     } else {
-      logger.info(`    - Using password from ${humanPath(args.config)}`)
+      logger.info(`    - Using password from ${humanPath(os.homedir(), args.config)}`)
     }
   } else {
     logger.info(`  - Authentication is disabled ${args.link ? "(disabled by --link)" : ""}`)
   }
 
   if (args.cert) {
-    logger.info(`  - Using certificate for HTTPS: ${humanPath(args.cert.value)}`)
+    logger.info(`  - Using certificate for HTTPS: ${humanPath(os.homedir(), args.cert.value)}`)
   } else {
     logger.info(`  - Not serving HTTPS ${args.link ? "(disabled by --link)" : ""}`)
   }

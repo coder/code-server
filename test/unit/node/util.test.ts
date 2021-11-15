@@ -476,3 +476,19 @@ describe("isFile", () => {
     expect(await util.isFile(pathToFile)).toBe(true)
   })
 })
+
+describe("humanPath", () => {
+  it("should return an empty string if no path provided", () => {
+    const mockHomedir = "/home/coder"
+    const actual = util.humanPath(mockHomedir)
+    const expected = ""
+    expect(actual).toBe(expected)
+  })
+  it("should replace the homedir with ~", () => {
+    const mockHomedir = "/home/coder"
+    const path = `${mockHomedir}/code-server`
+    const actual = util.humanPath(mockHomedir, path)
+    const expected = "~/code-server"
+    expect(actual).toBe(expected)
+  })
+})

@@ -1,6 +1,7 @@
 import { Router, Request } from "express"
 import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
+import * as os from "os"
 import * as path from "path"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
@@ -30,7 +31,7 @@ export class RateLimiter {
 
 const getRoot = async (req: Request, error?: Error): Promise<string> => {
   const content = await fs.readFile(path.join(rootPath, "src/browser/pages/login.html"), "utf8")
-  let passwordMsg = `Check the config file at ${humanPath(req.args.config)} for the password.`
+  let passwordMsg = `Check the config file at ${humanPath(os.homedir(), req.args.config)} for the password.`
   if (req.args.usingEnvPassword) {
     passwordMsg = "Password was set from $PASSWORD."
   } else if (req.args.usingEnvHashedPassword) {
