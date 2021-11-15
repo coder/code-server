@@ -10,7 +10,7 @@ import { HttpCode, HttpError } from "../../common/http"
 import { plural } from "../../common/util"
 import { App } from "../app"
 import { AuthType, DefaultedArgs } from "../cli"
-import { commit, isDevMode, rootPath } from "../constants"
+import { commit, rootPath } from "../constants"
 import { Heart } from "../heart"
 import { ensureAuthenticated, redirect } from "../http"
 import { PluginAPI } from "../plugin"
@@ -23,7 +23,7 @@ import * as login from "./login"
 import * as logout from "./logout"
 import * as pathProxy from "./pathProxy"
 import * as update from "./update"
-import { createVSServerRouter, VSServerResult } from "./vscode"
+import { CodeServerRouteWrapper } from "./vscode"
 
 /**
  * Register all routes and middleware.
@@ -138,20 +138,12 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
 
   app.router.use("/update", update.router)
 
-  let vscode: VSServerResult
-  try {
-    vscode = await createVSServerRouter(args)
-    app.router.use("/", vscode.router)
-    app.wsRouter.use("/", vscode.wsRouter.router)
-    app.router.use("/vscode", vscode.router)
-    app.wsRouter.use("/vscode", vscode.wsRouter.router)
-  } catch (error: any) {
-    if (isDevMode) {
-      logger.warn(error)
-      logger.warn("VS Server router may still be compiling.")
-    } else {
-      throw error
-    }
+  const vsServerRouteHandler = new CodeServerRouteWrapper()
+
+  // Note that the root route is replaced in Coder Enterprise by the plugin API.
+  for (const routePrefix of ["/", "/vscode"]) {
+    app.router.use(routePrefix, vsServerRouteHandler.router)
+    app.wsRouter.use(routePrefix, vsServerRouteHandler.wsRouter)
   }
 
   app.router.use(() => {
@@ -164,6 +156,6 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   return () => {
     heart.dispose()
     pluginApi?.dispose()
-    vscode?.codeServerMain.dispose()
+    vsServerRouteHandler.dispose()
   }
 }
