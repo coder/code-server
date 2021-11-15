@@ -4,7 +4,7 @@ import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { isDevMode } from "../constants"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
-import { loadAMDModule } from "../util"
+import { loadAMDModule, readCompilationStats } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
@@ -40,7 +40,6 @@ export class CodeServerRouteWrapper {
       if (error instanceof Error && ["EntryNotFound", "FileNotFound", "HttpError"].includes(error.message)) {
         next()
       }
-
       errorHandler(error, req, res, next)
     }
 
@@ -62,8 +61,20 @@ export class CodeServerRouteWrapper {
    */
   private ensureCodeServerLoaded: express.Handler = async (req, _res, next) => {
     if (this._codeServerMain) {
+      // Already loaded...
       return next()
     }
+
+    if (isDevMode) {
+      // Is the development mode file watcher still busy?
+      const compileStats = await readCompilationStats()
+
+      if (!compileStats || !compileStats.lastCompiledAt) {
+        return next(new Error("VS Code may still be compiling..."))
+      }
+    }
+
+    // Create the server...
 
     const { args } = req
 
@@ -84,10 +95,7 @@ export class CodeServerRouteWrapper {
       })
     } catch (createServerError) {
       logError(logger, "CodeServerRouteWrapper", createServerError)
-
-      const loggedError = isDevMode ? new Error("VS Code may still be compiling...") : createServerError
-
-      return next(loggedError)
+      return next(createServerError)
     }
 
     return next()
