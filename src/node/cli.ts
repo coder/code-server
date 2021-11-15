@@ -606,7 +606,7 @@ export async function readConfigFile(configPath?: string): Promise<ConfigArgs> {
     await fs.writeFile(configPath, defaultConfigFile(generatedPassword), {
       flag: "wx", // wx means to fail if the path exists.
     })
-    logger.info(`Wrote default config file to ${humanPath(configPath)}`)
+    logger.info(`Wrote default config file to ${humanPath(os.homedir(), configPath)}`)
   } catch (error: any) {
     // EEXIST is fine; we don't want to overwrite existing configurations.
     if (error.code !== "EEXIST") {

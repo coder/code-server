@@ -91,13 +91,14 @@ export function getEnvPaths(): Paths {
  * humanPath replaces the home directory in path with ~.
  * Makes it more readable.
  *
+ * @param homedir - the home directory(i.e. `os.homedir()`)
  * @param path - a file path
  */
-export function humanPath(path?: string): string {
+export function humanPath(homedir: string, path?: string): string {
   if (!path) {
     return ""
   }
-  return path.replace(os.homedir(), "~")
+  return path.replace(homedir, "~")
 }
 
 export const generateCertificate = async (hostname: string): Promise<{ cert: string; certKey: string }> => {
