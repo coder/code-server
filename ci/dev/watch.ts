@@ -106,19 +106,10 @@ class Watcher {
       plugin.stderr.on("data", (d) => process.stderr.write(d))
     }
 
-    let startingVscode = false
-    let startedVscode = false
     onLine(vscode, (line, original) => {
       console.log("[vscode]", original)
-      // Wait for watch-client since "Finished compilation" will appear multiple
-      // times before the client starts building.
-      if (!startingVscode && line.includes("Starting watch-client")) {
-        startingVscode = true
-      } else if (startingVscode && line.includes("Finished compilation")) {
-        if (startedVscode) {
-          restartServer()
-        }
-        startedVscode = true
+      if (line.includes("Finished compilation")) {
+        restartServer()
       }
     })
 
