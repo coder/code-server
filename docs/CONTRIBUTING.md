@@ -9,6 +9,7 @@
 - [Development workflow](#development-workflow)
   - [Updates to VS Code](#updates-to-vs-code)
   - [Build](#build)
+  - [Help](#help)
 - [Test](#test)
   - [Unit tests](#unit-tests)
   - [Script tests](#script-tests)
@@ -77,15 +78,22 @@ we'll guide you.
 
 ## Development workflow
 
-```shell
-yarn
-yarn watch
-# Visit http://localhost:8080 once the build is completed.
-```
+The current development workflow is a bit tricky because we have this repo and we use our `cdr/vscode` fork inside it with [`yarn link`](https://classic.yarnpkg.com/lang/en/docs/cli/link/).
 
-`yarn watch` will live reload changes to the source.
+Here are these steps you should follow to get your dev environment setup:
+
+1. `git clone https://github.com/cdr/code-server.git` - Clone `code-server`
+2. `git clone https://github.com/cdr/vscode.git` - Clone `vscode`
+3. `cd vscode && git checkout code-server-v2` - checkout the branch we use (not the default)
+4. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
+5. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
+6. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
+7. `cd code-server && yarn link code-oss-dev --modules-folder vendor/modules` - links your local `vscode` repo (`code-oss-dev` package) inside your local version of code-server
+8. `cd code-server && yarn watch` - this will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
 
 ### Updates to VS Code
+
+If changes are made and merged into `code-server-v2` in the `cdr/vscode` repo, then you'll need to update the version in the `code-server` repo by following these steps:
 
 1. Update the package tag listed in `vendor/package.json`:
 
@@ -97,7 +105,7 @@ yarn watch
 }
 ```
 
-2. From the code-server **project root**, run `yarn install`.
+1. From the code-server **project root**, run `yarn install`.
    Then, test code-server locally to make sure everything works.
 1. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
@@ -138,6 +146,10 @@ yarn package
 > version. In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
+
+### Help
+
+If you get stuck or need help, you can always start a new GitHub Discussion [here](https://github.com/cdr/code-server/discussions). One of the maintainers will respond and help you out.
 
 ## Test
 
