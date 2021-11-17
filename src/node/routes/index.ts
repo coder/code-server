@@ -141,7 +141,7 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   const vsServerRouteHandler = new CodeServerRouteWrapper()
 
   // Note that the root route is replaced in Coder Enterprise by the plugin API.
-  for (const routePrefix of ["/", "/vscode"]) {
+  for (const routePrefix of ["/vscode", "/"]) {
     app.router.use(routePrefix, vsServerRouteHandler.router)
     app.wsRouter.use(routePrefix, vsServerRouteHandler.wsRouter)
   }
