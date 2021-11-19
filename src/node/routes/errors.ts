@@ -8,14 +8,36 @@ import { rootPath } from "../constants"
 import { replaceTemplates } from "../http"
 import { escapeHtml, getMediaMime } from "../util"
 
-const notFoundCodes = ["ENOENT", "EISDIR"]
+interface ErrorWithStatusCode {
+  statusCode: number
+}
+
+interface ErrorWithCode {
+  code: string
+}
+
+/** Error is network related. */
+export const errorHasStatusCode = (error: any): error is ErrorWithStatusCode => {
+  return error && "statusCode" in error
+}
+
+/** Error originates from file system. */
+export const errorHasCode = (error: any): error is ErrorWithCode => {
+  return error && "code" in error
+}
+
+const notFoundCodes = [404, "ENOENT", "EISDIR"]
+
 export const errorHandler: express.ErrorRequestHandler = async (err, req, res, next) => {
-  if (notFoundCodes.includes(err.code)) {
-    err.status = HttpCode.NotFound
+  let statusCode = 500
+
+  if (errorHasStatusCode(err)) {
+    statusCode = err.statusCode
+  } else if (errorHasCode(err) && notFoundCodes.includes(err.code)) {
+    statusCode = HttpCode.NotFound
   }
 
-  const status = err.status ?? err.statusCode ?? 500
-  res.status(status)
+  res.status(statusCode)
 
   // Assume anything that explicitly accepts text/html is a user browsing a
   // page (as opposed to an xhr request). Don't use `req.accepts()` since
@@ -27,8 +49,8 @@ export const errorHandler: express.ErrorRequestHandler = async (err, req, res, n
     const content = await fs.readFile(resourcePath, "utf8")
     res.send(
       replaceTemplates(req, content)
-        .replace(/{{ERROR_TITLE}}/g, status)
-        .replace(/{{ERROR_HEADER}}/g, status)
+        .replace(/{{ERROR_TITLE}}/g, statusCode.toString())
+        .replace(/{{ERROR_HEADER}}/g, statusCode.toString())
         .replace(/{{ERROR_BODY}}/g, escapeHtml(err.message)),
     )
   } else {
