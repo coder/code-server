@@ -8,6 +8,14 @@ coverage:
   range: "40...70"
   status:
     patch: off
+  notify:
+    slack:
+      default:
+        url: secret:v1::tXC7VwEIKYjNU8HRgRv2GdKOSCt5UzpykKZb+o1eCDqBgb2PEqwE3A26QUPYMLo4BO2qtrJhFIvwhUvlPwyzDCNGoNiuZfXr0UeZZ0y1TcZu672R/NBNMwEPO/e1Ye0pHxjzKHnuH7HqbjFucox/RBQLtiL3J56SWGE3JtbkC6o=
+        threshold: 1%
+        only_pulls: false
+        branches:
+          - "main"
 
 parsers:
   gcov:
