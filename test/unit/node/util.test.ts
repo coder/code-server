@@ -447,6 +447,28 @@ describe("onLine", () => {
 
     expect(await received).toEqual(expected)
   })
+
+  describe("used with a process missing stdout ", () => {
+    it("should throw an error", async () => {
+      // Initialize a process that does not have stdout.
+      // "If the child was spawned with stdio set to anything
+      // other than 'pipe', then subprocess.stdout will be null."
+      // Source: https://stackoverflow.com/a/46024006/3015595
+      // Other source: https://nodejs.org/api/child_process.html#child_process_subprocess_stdout
+      // NOTE@jsjoeio - I'm not sure if this actually happens though
+      // which is why I have to set proc.stdout = null
+      // a couple lines below.
+      const proc = cp.spawn("node", [], {
+        stdio: "ignore",
+      })
+      const mockCallback = jest.fn()
+
+      expect(() => util.onLine(proc, mockCallback)).toThrowError(/stdout/)
+
+      // Cleanup
+      proc?.kill()
+    })
+  })
 })
 
 describe("escapeHtml", () => {
