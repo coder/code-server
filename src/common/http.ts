@@ -13,7 +13,7 @@ export enum HttpCode {
  * used in the HTTP response.
  */
 export class HttpError extends Error {
-  public constructor(message: string, public readonly status: HttpCode, public readonly details?: object) {
+  public constructor(message: string, public readonly statusCode: HttpCode, public readonly details?: object) {
     super(message)
     this.name = this.constructor.name
   }
