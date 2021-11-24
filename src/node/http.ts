@@ -62,6 +62,10 @@ export const replaceTemplates = <T extends object>(
     .replace("{{OPTIONS}}", () => escapeJSON(serverOptions))
 }
 
+export enum Cookie {
+  SessionKey = "code-server-session",
+}
+
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
@@ -93,7 +97,7 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
-        cookieKey: sanitizeString(req.cookies.key),
+        cookieKey: sanitizeString(req.cookies[Cookie.SessionKey]),
         passwordFromArgs: req.args.password || "",
         hashedPasswordFromArgs: req.args["hashed-password"],
       }
