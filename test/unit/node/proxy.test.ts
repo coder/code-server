@@ -1,4 +1,4 @@
-import bodyParser from "body-parser"
+import * as bodyParser from "body-parser"
 import * as express from "express"
 import * as http from "http"
 import nodeFetch from "node-fetch"

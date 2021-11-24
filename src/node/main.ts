@@ -1,6 +1,6 @@
 import { field, logger } from "@coder/logger"
-import * as os from "os"
 import http from "http"
+import * as os from "os"
 import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"

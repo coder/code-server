@@ -1,6 +1,6 @@
 import { Request, Response } from "express"
 import * as path from "path"
-import qs from "qs"
+import * as qs from "qs"
 import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
 import { normalize } from "../../common/util"
