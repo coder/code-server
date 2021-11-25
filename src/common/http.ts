@@ -18,3 +18,7 @@ export class HttpError extends Error {
     this.name = this.constructor.name
   }
 }
+
+export enum CookieKeys {
+  Session = "code-server-session",
+}

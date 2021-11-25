@@ -6,7 +6,7 @@ import * as net from "net"
 import path from "path"
 import qs from "qs"
 import { Disposable } from "../common/emitter"
-import { HttpCode, HttpError } from "../common/http"
+import { CookieKeys, HttpCode, HttpError } from "../common/http"
 import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
@@ -62,10 +62,6 @@ export const replaceTemplates = <T extends object>(
     .replace("{{OPTIONS}}", () => escapeJSON(serverOptions))
 }
 
-export enum Cookie {
-  SessionKey = "code-server-session",
-}
-
 /**
  * Throw an error if not authorized. Call `next` if provided.
  */
@@ -97,7 +93,7 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
       const passwordMethod = getPasswordMethod(hashedPasswordFromArgs)
       const isCookieValidArgs: IsCookieValidArgs = {
         passwordMethod,
-        cookieKey: sanitizeString(req.cookies[Cookie.SessionKey]),
+        cookieKey: sanitizeString(req.cookies[CookieKeys.Session]),
         passwordFromArgs: req.args.password || "",
         hashedPasswordFromArgs: req.args["hashed-password"],
       }

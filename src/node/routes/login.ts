@@ -3,8 +3,9 @@ import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as os from "os"
 import * as path from "path"
+import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
-import { authenticated, Cookie, getCookieDomain, redirect, replaceTemplates } from "../http"
+import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
 import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString, escapeHtml } from "../util"
 
 // RateLimiter wraps around the limiter library for logins.
@@ -83,7 +84,7 @@ router.post<{}, string, { password: string; base?: string }, { to?: string }>("/
     if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.SessionKey, hashedPassword, {
+      res.cookie(CookieKeys.Session, hashedPassword, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         // Browsers do not appear to allow cookies to be set relatively so we
         // need to get the root path from the browser since the proxy rewrites

@@ -1,4 +1,5 @@
 import { Cookie } from "playwright"
+import { CookieKeys } from "../../src/common/http"
 import { hash } from "../../src/node/util"
 import { PASSWORD, workspaceDir } from "./constants"
 import { clean } from "./helpers"
@@ -27,7 +28,7 @@ export default async function () {
       domain: "localhost",
       expires: -1,
       httpOnly: false,
-      name: "key",
+      name: CookieKeys.Session,
       path: "/",
       sameSite: "Lax",
       secure: false,
