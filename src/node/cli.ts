@@ -104,9 +104,9 @@ interface Option<T> {
   description?: string
 
   /**
-   * If marked as beta, the option is marked as beta in help.
+   * If marked as deprecated, the option is marked as deprecated in help.
    */
-  beta?: boolean
+  deprecated?: boolean
 }
 
 type OptionType<T> = T extends boolean
@@ -230,7 +230,7 @@ const options: Options<Required<UserProvidedArgs>> = {
       https://hostname-username.cdr.co at which you can easily access your code-server instance.
       Authorization is done via GitHub.
     `,
-    beta: true,
+    deprecated: true,
   },
 }
 
@@ -253,7 +253,7 @@ export const optionDescriptions = (): string[] => {
         .map((line, i) => {
           line = line.trim()
           if (i === 0) {
-            return " ".repeat(widths.long - k.length) + (v.beta ? "(beta) " : "") + line
+            return " ".repeat(widths.long - k.length) + (v.deprecated ? "(deprecated) " : "") + line
           }
           return " ".repeat(widths.long + widths.short + 6) + line
         })
