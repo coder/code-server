@@ -19,6 +19,7 @@
     - [Docker](#docker)
     - [Homebrew](#homebrew)
     - [npm](#npm)
+- [Syncing with Upstream VS Code](#syncing-with-upstream-vs-code)
 - [Testing](#testing)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
@@ -126,8 +127,7 @@ the issue.
 
 ### Merge strategies
 
-For most things, we recommend the **squash and merge** strategy. If you're
-updating `lib/vscode`, we suggest using the **rebase and merge** strategy. There
+For most things, we recommend the **squash and merge** strategy. There
 may be times where **creating a merge commit** makes sense as well. Use your
 best judgment. If you're unsure, you can always discuss in the PR with the team.
 
@@ -214,6 +214,18 @@ brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
 We publish code-server as a npm package [here](https://www.npmjs.com/package/code-server/v/latest).
 
 This is currently automated with the release process.
+
+## Syncing with Upstream VS Code
+
+The VS Code portion of code-server lives under [`cdr/vscode`](https://github.com/cdr/vscode). To update VS Code for code-server, follow these steps:
+
+1. `git checkout -b vscode-update` - Create a new branch locally based off `main`
+2. `git fetch upstream` - Fetch upstream (VS Code)'s latest `main` branch
+3. `git merge upstream/main` - Merge it locally
+   1. If there are merge conflicts, fix them locally
+4. Open a PR merging your branch (`vscode-update`) into `main` and add the code-server review team
+
+Ideally, our fork stays as close to upstream as possible. See the differences between our fork and upstream [here](https://github.com/microsoft/vscode/compare/main...cdr:main).
 
 ## Testing
 

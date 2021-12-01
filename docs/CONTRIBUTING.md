@@ -2,23 +2,22 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Contributing](#contributing)
-  - [Requirements](#requirements)
-    - [Linux-specific requirements](#linux-specific-requirements)
-  - [Creating pull requests](#creating-pull-requests)
-    - [Commits and commit history](#commits-and-commit-history)
-  - [Development workflow](#development-workflow)
-    - [Updates to VS Code](#updates-to-vs-code)
-    - [Build](#build)
-    - [Help](#help)
-  - [Test](#test)
-    - [Unit tests](#unit-tests)
-    - [Script tests](#script-tests)
-    - [Integration tests](#integration-tests)
-    - [End-to-end tests](#end-to-end-tests)
-  - [Structure](#structure)
-    - [Modifications to VS Code](#modifications-to-vs-code)
-    - [Currently Known Issues](#currently-known-issues)
+- [Requirements](#requirements)
+  - [Linux-specific requirements](#linux-specific-requirements)
+- [Creating pull requests](#creating-pull-requests)
+  - [Commits and commit history](#commits-and-commit-history)
+- [Development workflow](#development-workflow)
+  - [Updates to VS Code](#updates-to-vs-code)
+  - [Build](#build)
+  - [Help](#help)
+- [Test](#test)
+  - [Unit tests](#unit-tests)
+  - [Script tests](#script-tests)
+  - [Integration tests](#integration-tests)
+  - [End-to-end tests](#end-to-end-tests)
+- [Structure](#structure)
+  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -105,11 +104,11 @@ If changes are made and merged into `main` in the [`cdr/vscode`](https://github.
 }
 ```
 
-1. From the code-server **project root**, run `yarn install`.
+2. From the code-server **project root**, run `yarn install`.
    Then, test code-server locally to make sure everything works.
-1. Check the Node.js version that's used by Electron (which is shipped with VS
+3. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
-1. Open a PR
+4. Open a PR
 
 > Watch for updates to
 > `vendor/modules/code-oss-dev/src/vs/code/browser/workbench/workbench.html`. You may need to
