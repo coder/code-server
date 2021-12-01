@@ -2,22 +2,23 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # Contributing
 
-- [Requirements](#requirements)
-  - [Linux-specific requirements](#linux-specific-requirements)
-- [Creating pull requests](#creating-pull-requests)
-  - [Commits and commit history](#commits-and-commit-history)
-- [Development workflow](#development-workflow)
-  - [Updates to VS Code](#updates-to-vs-code)
-  - [Build](#build)
-  - [Help](#help)
-- [Test](#test)
-  - [Unit tests](#unit-tests)
-  - [Script tests](#script-tests)
-  - [Integration tests](#integration-tests)
-  - [End-to-end tests](#end-to-end-tests)
-- [Structure](#structure)
-  - [Modifications to VS Code](#modifications-to-vs-code)
-  - [Currently Known Issues](#currently-known-issues)
+- [Contributing](#contributing)
+  - [Requirements](#requirements)
+    - [Linux-specific requirements](#linux-specific-requirements)
+  - [Creating pull requests](#creating-pull-requests)
+    - [Commits and commit history](#commits-and-commit-history)
+  - [Development workflow](#development-workflow)
+    - [Updates to VS Code](#updates-to-vs-code)
+    - [Build](#build)
+    - [Help](#help)
+  - [Test](#test)
+    - [Unit tests](#unit-tests)
+    - [Script tests](#script-tests)
+    - [Integration tests](#integration-tests)
+    - [End-to-end tests](#end-to-end-tests)
+  - [Structure](#structure)
+    - [Modifications to VS Code](#modifications-to-vs-code)
+    - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -84,23 +85,22 @@ Here are these steps you should follow to get your dev environment setup:
 
 1. `git clone https://github.com/cdr/code-server.git` - Clone `code-server`
 2. `git clone https://github.com/cdr/vscode.git` - Clone `vscode`
-3. `cd vscode && git checkout code-server-v2` - checkout the branch we use (not the default)
-4. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
-5. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
-6. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
-7. `cd code-server && yarn link code-oss-dev --modules-folder vendor/modules` - links your local `vscode` repo (`code-oss-dev` package) inside your local version of code-server
-8. `cd code-server && yarn watch` - this will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
+3. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
+4. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
+5. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
+6. `cd code-server && yarn link code-oss-dev --modules-folder vendor/modules` - links your local `vscode` repo (`code-oss-dev` package) inside your local version of code-server
+7. `cd code-server && yarn watch` - this will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
 
 ### Updates to VS Code
 
-If changes are made and merged into `code-server-v2` in the `cdr/vscode` repo, then you'll need to update the version in the `code-server` repo by following these steps:
+If changes are made and merged into `main` in the [`cdr/vscode`](https://github.com/cdr/vscode) repo, then you'll need to update the version in the `code-server` repo by following these steps:
 
 1. Update the package tag listed in `vendor/package.json`:
 
 ```json
 {
   "devDependencies": {
-    "vscode": "cdr/vscode#X.XX.X-code-server"
+    "vscode": "cdr/vscode#<latest-commit-sha>"
   }
 }
 ```
