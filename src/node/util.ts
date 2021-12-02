@@ -321,7 +321,7 @@ export async function isCookieValid({
  * - greater than 0 characters
  * - trims whitespace
  */
-export function sanitizeString(str: string): string {
+export function sanitizeString(str: unknown): string {
   // Very basic sanitization of string
   // Credit: https://stackoverflow.com/a/46719000/3015595
   return typeof str === "string" && str.trim().length > 0 ? str.trim() : ""

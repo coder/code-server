@@ -3,13 +3,10 @@ import { promises as fs } from "fs"
 import { RateLimiter as Limiter } from "limiter"
 import * as os from "os"
 import * as path from "path"
+import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
 import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
 import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString, escapeHtml } from "../util"
-
-export enum Cookie {
-  Key = "key",
-}
 
 // RateLimiter wraps around the limiter library for logins.
 // It allows 2 logins every minute plus 12 logins every hour.
@@ -62,7 +59,7 @@ router.get("/", async (req, res) => {
   res.send(await getRoot(req))
 })
 
-router.post("/", async (req, res) => {
+router.post<{}, string, { password: string; base?: string }, { to?: string }>("/", async (req, res) => {
   const password = sanitizeString(req.body.password)
   const hashedPasswordFromArgs = req.args["hashed-password"]
 
@@ -87,13 +84,13 @@ router.post("/", async (req, res) => {
     if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(Cookie.Key, hashedPassword, {
+      res.cookie(CookieKeys.Session, hashedPassword, {
         domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
         // Browsers do not appear to allow cookies to be set relatively so we
         // need to get the root path from the browser since the proxy rewrites
         // it out of the path.  Otherwise code-server instances hosted on
         // separate sub-paths will clobber each other.
-        path: req.body.base ? path.posix.join(req.body.base, "..") : "/",
+        path: req.body.base ? path.posix.join(req.body.base, "..", "/") : "/",
         sameSite: "lax",
       })
 

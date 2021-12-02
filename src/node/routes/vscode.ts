@@ -24,7 +24,7 @@ export class CodeServerRouteWrapper {
     const isAuthenticated = await authenticated(req)
 
     if (!isAuthenticated) {
-      return redirect(req, res, "login", {
+      return redirect(req, res, "login/", {
         // req.baseUrl can be blank if already at the root.
         to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
       })
@@ -88,9 +88,12 @@ export class CodeServerRouteWrapper {
 
     try {
       this._codeServerMain = await createVSServer(null, {
-        connectionToken: "0000",
+        "connection-token": "0000",
+        "accept-server-license-terms": true,
         ...args,
-        // For some reason VS Code takes the port as a string.
+        /** Type casting. */
+        help: !!args.help,
+        version: !!args.version,
         port: args.port?.toString(),
       })
     } catch (createServerError) {
