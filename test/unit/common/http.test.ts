@@ -19,7 +19,7 @@ describe("http", () => {
       const httpError = new HttpError(message, HttpCode.BadRequest)
 
       expect(httpError.message).toBe(message)
-      expect(httpError.status).toBe(400)
+      expect(httpError.statusCode).toBe(400)
       expect(httpError.details).toBeUndefined()
     })
     it("should have details if provided", () => {
