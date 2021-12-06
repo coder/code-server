@@ -1,6 +1,6 @@
 import { field, logger } from "@coder/logger"
-import * as os from "os"
 import http from "http"
+import * as os from "os"
 import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
@@ -37,8 +37,11 @@ export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   try {
     await spawnCli({
       ...args,
-      // For some reason VS Code takes the port as a string.
-      port: typeof args.port !== "undefined" ? args.port.toString() : undefined,
+      /** Type casting. */
+      "accept-server-license-terms": true,
+      help: !!args.help,
+      version: !!args.version,
+      port: args.port?.toString(),
     })
   } catch (error: any) {
     logger.error("Got error from VS Code", error)

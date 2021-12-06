@@ -23,6 +23,7 @@
     "argon2/@mapbox/node-pre-gyp/tar": "^6.1.9",
     "set-value": "^4.0.1",
     "tmpl": "^1.0.5",
-    "path-parse": "^1.0.7"
+    "path-parse": "^1.0.7",
+    "json-schema": "^0.4.0"
   }
 }
