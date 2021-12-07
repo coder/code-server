@@ -33,7 +33,7 @@ declare global {
 }
 
 export const createClientConfiguration = (req: express.Request): ClientConfiguration => {
-  const base = relativeRoot(req)
+  const base = relativeRoot(req.originalUrl)
 
   return {
     base,
@@ -108,15 +108,28 @@ export const authenticated = async (req: express.Request): Promise<boolean> => {
 
 /**
  * Get the relative path that will get us to the root of the page. For each
- * slash we need to go up a directory. For example:
+ * slash we need to go up a directory.  Will not have a trailing slash.
+ *
+ * For example:
+ *
  * / => .
  * /foo => .
  * /foo/ => ./..
  * /foo/bar => ./..
  * /foo/bar/ => ./../..
+ *
+ * All paths must be relative in order to work behind a reverse proxy since we
+ * we do not know the base path.  Anything that needs to be absolute (for
+ * example cookies) must get the base path from the frontend.
+ *
+ * All relative paths must be prefixed with the relative root to ensure they
+ * work no matter the depth at which they happen to appear.
+ *
+ * For Express `req.originalUrl` should be used as they remove the base from the
+ * standard `url` property making it impossible to get the true depth.
  */
-export const relativeRoot = (req: express.Request): string => {
-  const depth = (req.originalUrl.split("?", 1)[0].match(/\//g) || []).length
+export const relativeRoot = (originalUrl: string): string => {
+  const depth = (originalUrl.split("?", 1)[0].match(/\//g) || []).length
   return normalize("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
 }
 
@@ -138,7 +151,7 @@ export const redirect = (
     }
   })
 
-  const relativePath = normalize(`${relativeRoot(req)}/${to}`, true)
+  const relativePath = normalize(`${relativeRoot(req.originalUrl)}/${to}`, true)
   const queryString = qs.stringify(query)
   const redirectPath = `${relativePath}${queryString ? `?${queryString}` : ""}`
   logger.debug(`redirecting from ${req.originalUrl} to ${redirectPath}`)
