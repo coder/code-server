@@ -524,14 +524,7 @@ export const loadAMDModule = async <T>(amdPath: string, exportName: string): Pro
   return module[exportName] as T
 }
 
-export const enum VSCodeCompileStatus {
-  Loading = "Loading",
-  Compiling = "Compiling",
-  Compiled = "Compiled",
-}
-
 export interface CompilationStats {
-  status: VSCodeCompileStatus
   lastCompiledAt: Date
 }
 
