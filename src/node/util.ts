@@ -324,7 +324,7 @@ export async function isCookieValid({
 export function sanitizeString(str: unknown): string {
   // Very basic sanitization of string
   // Credit: https://stackoverflow.com/a/46719000/3015595
-  return typeof str === "string" && str.trim().length > 0 ? str.trim() : ""
+  return typeof str === "string" ? str.trim() : ""
 }
 
 const mimeTypes: { [key: string]: string } = {

@@ -5,7 +5,7 @@ import * as os from "os"
 import * as path from "path"
 import { CookieKeys } from "../../common/http"
 import { rootPath } from "../constants"
-import { authenticated, getCookieDomain, redirect, replaceTemplates } from "../http"
+import { authenticated, getCookieOptions, redirect, replaceTemplates } from "../http"
 import { getPasswordMethod, handlePasswordValidation, humanPath, sanitizeString, escapeHtml } from "../util"
 
 // RateLimiter wraps around the limiter library for logins.
@@ -84,15 +84,7 @@ router.post<{}, string, { password: string; base?: string }, { to?: string }>("/
     if (isPasswordValid) {
       // The hash does not add any actual security but we do it for
       // obfuscation purposes (and as a side effect it handles escaping).
-      res.cookie(CookieKeys.Session, hashedPassword, {
-        domain: getCookieDomain(req.headers.host || "", req.args["proxy-domain"]),
-        // Browsers do not appear to allow cookies to be set relatively so we
-        // need to get the root path from the browser since the proxy rewrites
-        // it out of the path.  Otherwise code-server instances hosted on
-        // separate sub-paths will clobber each other.
-        path: req.body.base ? path.posix.join(req.body.base, "..", "/") : "/",
-        sameSite: "lax",
-      })
+      res.cookie(CookieKeys.Session, hashedPassword, getCookieOptions(req))
 
       const to = (typeof req.query.to === "string" && req.query.to) || "/"
       return redirect(req, res, to, { to: undefined })

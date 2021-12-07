@@ -255,3 +255,36 @@ export function disposer(server: http.Server): Disposable["dispose"] {
     })
   }
 }
+
+/**
+ * Get the options for setting a cookie.  The options must be identical for
+ * setting and unsetting cookies otherwise they are considered separate.
+ */
+export const getCookieOptions = (req: express.Request): express.CookieOptions => {
+  // Normally we set paths relatively.  However browsers do not appear to allow
+  // cookies to be set relatively which means we need an absolute path.  We
+  // cannot be guaranteed we know the path since a reverse proxy might have
+  // rewritten it.  That means we need to get the path from the frontend.
+
+  // The reason we need to set the path (as opposed to defaulting to /) is to
+  // avoid code-server instances on different sub-paths clobbering each other or
+  // from accessing each other's tokens (and to prevent other services from
+  // accessing code-server's tokens).
+
+  // When logging in or out the request must include the href (the full current
+  // URL of that page) and the relative path to the root as given to it by the
+  // backend.  Using these two we can determine the true absolute root.
+  let domain = req.headers.host || ""
+  let pathname = "/"
+  const href = req.query.href || req.body.href
+  if (href) {
+    const url = new URL(req.query.base || req.body.base || "/", href)
+    domain = url.host
+    pathname = url.pathname
+  }
+  return {
+    domain: getCookieDomain(domain, req.args["proxy-domain"]),
+    path: normalize(pathname) || "/",
+    sameSite: "lax",
+  }
+}
