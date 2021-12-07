@@ -3,7 +3,6 @@ import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import * as http from "http"
 import * as net from "net"
-import path from "path"
 import * as qs from "qs"
 import { Disposable } from "../common/emitter"
 import { CookieKeys, HttpCode, HttpError } from "../common/http"
@@ -18,7 +17,9 @@ import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, es
  */
 export interface ClientConfiguration {
   codeServerVersion: string
+  /** Relative path from this page to the root.  No trailing slash. */
   base: string
+  /** Relative path from this page to the static root.  No trailing slash. */
   csStaticBase: string
 }
 
@@ -36,8 +37,8 @@ export const createClientConfiguration = (req: express.Request): ClientConfigura
   const base = relativeRoot(req.originalUrl)
 
   return {
-    base,
-    csStaticBase: normalize(path.posix.join(base, "_static/")),
+    base: base,
+    csStaticBase: base + "/_static",
     codeServerVersion,
   }
 }

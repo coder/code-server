@@ -23,6 +23,12 @@ export const generateUuid = (length = 24): string => {
 
 /**
  * Remove extra slashes in a URL.
+ *
+ * This is meant to fill the job of `path.join` so you can concatenate paths and
+ * then normalize out any extra slashes.
+ *
+ * If you are using `path.join` you do not need this but note that `path` is for
+ * file system paths, not URLs.
  */
 export const normalize = (url: string, keepTrailing = false): string => {
   return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
