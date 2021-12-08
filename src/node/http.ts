@@ -37,7 +37,7 @@ export const createClientConfiguration = (req: express.Request): ClientConfigura
   const base = relativeRoot(req.originalUrl)
 
   return {
-    base: base,
+    base,
     csStaticBase: base + "/_static",
     codeServerVersion,
   }
