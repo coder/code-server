@@ -274,17 +274,13 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
   // When logging in or out the request must include the href (the full current
   // URL of that page) and the relative path to the root as given to it by the
   // backend.  Using these two we can determine the true absolute root.
-  let domain = req.headers.host || ""
-  let pathname = "/"
-  const href = req.query.href || req.body.href
-  if (href) {
-    const url = new URL(req.query.base || req.body.base || "/", href)
-    domain = url.host
-    pathname = url.pathname
-  }
+  const url = new URL(
+    req.query.base || req.body.base || "/",
+    req.query.href || req.body.href || "http://" + (req.headers.host || "localhost"),
+  )
   return {
-    domain: getCookieDomain(domain, req.args["proxy-domain"]),
-    path: normalize(pathname) || "/",
+    domain: getCookieDomain(url.host, req.args["proxy-domain"]),
+    path: normalize(url.pathname) || "/",
     sameSite: "lax",
   }
 }
