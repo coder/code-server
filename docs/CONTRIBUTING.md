@@ -84,32 +84,31 @@ Here are these steps you should follow to get your dev environment setup:
 
 1. `git clone https://github.com/cdr/code-server.git` - Clone `code-server`
 2. `git clone https://github.com/cdr/vscode.git` - Clone `vscode`
-3. `cd vscode && git checkout code-server-v2` - checkout the branch we use (not the default)
-4. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
-5. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
-6. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
-7. `cd code-server && yarn link code-oss-dev --modules-folder vendor/modules` - links your local `vscode` repo (`code-oss-dev` package) inside your local version of code-server
-8. `cd code-server && yarn watch` - this will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
+3. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
+4. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
+5. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
+6. `cd code-server && yarn link code-oss-dev --modules-folder vendor/modules` - links your local `vscode` repo (`code-oss-dev` package) inside your local version of code-server
+7. `cd code-server && yarn watch` - this will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
 
 ### Updates to VS Code
 
-If changes are made and merged into `code-server-v2` in the `cdr/vscode` repo, then you'll need to update the version in the `code-server` repo by following these steps:
+If changes are made and merged into `main` in the [`cdr/vscode`](https://github.com/cdr/vscode) repo, then you'll need to update the version in the `code-server` repo by following these steps:
 
 1. Update the package tag listed in `vendor/package.json`:
 
 ```json
 {
   "devDependencies": {
-    "vscode": "cdr/vscode#X.XX.X-code-server"
+    "vscode": "cdr/vscode#<latest-commit-sha>"
   }
 }
 ```
 
-1. From the code-server **project root**, run `yarn install`.
+2. From the code-server **project root**, run `yarn install`.
    Then, test code-server locally to make sure everything works.
-1. Check the Node.js version that's used by Electron (which is shipped with VS
+3. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
-1. Open a PR
+4. Open a PR
 
 > Watch for updates to
 > `vendor/modules/code-oss-dev/src/vs/code/browser/workbench/workbench.html`. You may need to
