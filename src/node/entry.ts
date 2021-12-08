@@ -1,31 +1,12 @@
 import { logger } from "@coder/logger"
 import { optionDescriptions, parse, readConfigFile, setDefaults, shouldOpenInExistingInstance } from "./cli"
-import { commit, pkgName, version } from "./constants"
+import { commit, version } from "./constants"
 import { openInExistingInstance, runCodeServer, runVsCodeCli, shouldSpawnCliProcess } from "./main"
 import { monkeyPatchProxyProtocols } from "./proxy_agent"
-import { loadAMDModule } from "./util"
 import { isChild, wrapper } from "./wrapper"
-
-const cliPipe = process.env["VSCODE_IPC_HOOK_CLI"] as string
-const cliCommand = process.env["VSCODE_CLIENT_COMMAND"] as string
 
 async function entry(): Promise<void> {
   monkeyPatchProxyProtocols()
-
-  if (cliPipe || cliCommand) {
-    const remoteAgentMain = await loadAMDModule<CodeServerLib.RemoteCLIMain>("vs/server/remoteCli", "main")
-
-    remoteAgentMain(
-      {
-        productName: pkgName,
-        version,
-        commit,
-        executableName: pkgName,
-      },
-      process.argv.slice(2),
-    )
-    return
-  }
 
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
