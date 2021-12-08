@@ -42,21 +42,6 @@ export const trimSlashes = (url: string): string => {
 }
 
 /**
- * Resolve a relative base against the window location. This is used for
- * anything that doesn't work with a relative path.
- */
-export const resolveBase = (base?: string): string => {
-  // After resolving the base will either start with / or be an empty string.
-  if (!base || base.startsWith("/")) {
-    return base ?? ""
-  }
-  const parts = location.pathname.split("/")
-  parts[parts.length - 1] = base
-  const url = new URL(location.origin + "/" + parts.join("/"))
-  return normalize(url.pathname)
-}
-
-/**
  * Wrap the value in an array if it's not already an array. If the value is
  * undefined return an empty array.
  */
