@@ -23,6 +23,12 @@ export const generateUuid = (length = 24): string => {
 
 /**
  * Remove extra slashes in a URL.
+ *
+ * This is meant to fill the job of `path.join` so you can concatenate paths and
+ * then normalize out any extra slashes.
+ *
+ * If you are using `path.join` you do not need this but note that `path` is for
+ * file system paths, not URLs.
  */
 export const normalize = (url: string, keepTrailing = false): string => {
   return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
@@ -33,21 +39,6 @@ export const normalize = (url: string, keepTrailing = false): string => {
  */
 export const trimSlashes = (url: string): string => {
   return url.replace(/^\/+|\/+$/g, "")
-}
-
-/**
- * Resolve a relative base against the window location. This is used for
- * anything that doesn't work with a relative path.
- */
-export const resolveBase = (base?: string): string => {
-  // After resolving the base will either start with / or be an empty string.
-  if (!base || base.startsWith("/")) {
-    return base ?? ""
-  }
-  const parts = location.pathname.split("/")
-  parts[parts.length - 1] = base
-  const url = new URL(location.origin + "/" + parts.join("/"))
-  return normalize(url.pathname)
 }
 
 /**

@@ -24,7 +24,7 @@ export class CodeServerRouteWrapper {
     const isAuthenticated = await authenticated(req)
 
     if (!isAuthenticated) {
-      return redirect(req, res, "login/", {
+      return redirect(req, res, "login", {
         // req.baseUrl can be blank if already at the root.
         to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
       })

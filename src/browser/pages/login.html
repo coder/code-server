@@ -30,7 +30,8 @@
         <div class="content">
           <form class="login-form" method="post">
             <input class="user" type="text" autocomplete="username" />
-            <input id="base" type="hidden" name="base" value="/" />
+            <input id="base" type="hidden" name="base" value="{{BASE}}" />
+            <input id="href" type="hidden" name="href" value="" />
             <div class="field">
               <input
                 required
@@ -51,9 +52,9 @@
     <script>
       // Inform the backend about the path since the proxy might have rewritten
       // it out of the headers and cookies must be set with absolute paths.
-      const el = document.getElementById("base")
+      const el = document.getElementById("href")
       if (el) {
-        el.value = window.location.pathname
+        el.value = location.href
       }
     </script>
   </body>
