@@ -74,42 +74,6 @@ describe("util", () => {
     })
   })
 
-  describe("resolveBase", () => {
-    beforeEach(() => {
-      const location: LocationLike = {
-        pathname: "/healthz",
-        origin: "http://localhost:8080",
-      }
-
-      // Because resolveBase is not a pure function
-      // and relies on the global location to be set
-      // we set it before all the tests
-      // and tell TS that our location should be looked at
-      // as Location (even though it's missing some properties)
-      global.location = location as Location
-    })
-
-    it("should resolve a base", () => {
-      expect(util.resolveBase("localhost:8080")).toBe("/localhost:8080")
-    })
-
-    it("should resolve a base with a forward slash at the beginning", () => {
-      expect(util.resolveBase("/localhost:8080")).toBe("/localhost:8080")
-    })
-
-    it("should resolve a base with query params", () => {
-      expect(util.resolveBase("localhost:8080?folder=hello-world")).toBe("/localhost:8080")
-    })
-
-    it("should resolve a base with a path", () => {
-      expect(util.resolveBase("localhost:8080/hello/world")).toBe("/localhost:8080/hello/world")
-    })
-
-    it("should resolve a base to an empty string when not provided", () => {
-      expect(util.resolveBase()).toBe("")
-    })
-  })
-
   describe("arrayify", () => {
     it("should return value it's already an array", () => {
       expect(util.arrayify(["hello", "world"])).toStrictEqual(["hello", "world"])

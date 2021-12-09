@@ -1,5 +1,4 @@
 import { spawn, fork, ChildProcess } from "child_process"
-import del from "del"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { CompilationStats, onLine, OnLineCallback } from "../../src/node/util"
@@ -56,8 +55,6 @@ class Watcher {
     for (const event of ["SIGINT", "SIGTERM"]) {
       process.on(event, () => this.dispose(0))
     }
-
-    this.cleanFiles()
 
     for (const [processName, devProcess] of Object.entries(this.compilers)) {
       if (!devProcess) continue
@@ -120,15 +117,6 @@ class Watcher {
   //#endregion
 
   //#region Utilities
-
-  /**
-   * Cleans files from previous builds.
-   */
-  private cleanFiles(): Promise<string[]> {
-    console.log("[Watcher]", "Cleaning files from previous builds...")
-
-    return del(["out/**/*"])
-  }
 
   /**
    * Emits a file containing compilation data.
