@@ -42,8 +42,6 @@ describe("plugin", () => {
         usingEnvHashedPassword: false,
         "extensions-dir": "",
         "user-data-dir": "",
-        workspace: "",
-        folder: "",
       }
       next()
     }

@@ -3,6 +3,7 @@ import * as express from "express"
 import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { isDevMode } from "../constants"
+import { toVsCodeArgs } from "../cli"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule, readCompilationStats } from "../util"
 import { Router as WsRouter } from "../wsRouter"
@@ -87,15 +88,7 @@ export class CodeServerRouteWrapper {
     )
 
     try {
-      this._codeServerMain = await createVSServer(null, {
-        "connection-token": "0000",
-        "accept-server-license-terms": true,
-        ...args,
-        /** Type casting. */
-        help: !!args.help,
-        version: !!args.version,
-        port: args.port?.toString(),
-      })
+      this._codeServerMain = await createVSServer(null, await toVsCodeArgs(args))
     } catch (createServerError) {
       logError(logger, "CodeServerRouteWrapper", createServerError)
       return next(createServerError)
