@@ -405,7 +405,10 @@ export const parse = (
     throw new Error("--cert-key is missing")
   }
 
-  logger.debug(() => ["parsed command line", field("args", { ...args, password: undefined })])
+  logger.debug(() => [
+    `parsed ${opts?.configFile ? "config" : "command line"}`,
+    field("args", { ...args, password: undefined }),
+  ])
 
   return args
 }
@@ -430,8 +433,6 @@ export interface DefaultedArgs extends ConfigArgs {
   "user-data-dir": string
   /* Positional arguments. */
   _: []
-  folder: string
-  workspace: string
 }
 
 /**
@@ -539,25 +540,8 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args._ = []
   }
 
-  let workspace = ""
-  let folder = ""
-  if (args._.length) {
-    const lastEntry = path.resolve(process.cwd(), args._[args._.length - 1])
-    const entryIsFile = await isFile(lastEntry)
-
-    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
-      workspace = lastEntry
-      args._.pop()
-    } else if (!entryIsFile) {
-      folder = lastEntry
-      args._.pop()
-    }
-  }
-
   return {
     ...args,
-    workspace,
-    folder,
     usingEnvPassword,
     usingEnvHashedPassword,
   } as DefaultedArgs // TODO: Technically no guarantee this is fulfilled.
@@ -759,4 +743,35 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
   }
 
   return undefined
+}
+
+/**
+ * Convert our arguments to VS Code server arguments.
+ */
+export const toVsCodeArgs = async (args: DefaultedArgs): Promise<CodeServerLib.ServerParsedArgs> => {
+  let workspace = ""
+  let folder = ""
+  if (args._.length) {
+    const lastEntry = path.resolve(args._[args._.length - 1])
+    const entryIsFile = await isFile(lastEntry)
+    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+      workspace = lastEntry
+    } else if (!entryIsFile) {
+      folder = lastEntry
+    }
+    // Otherwise it is a regular file.  Spawning VS Code with a file is not yet
+    // supported but it can be done separately after code-server spawns.
+  }
+
+  return {
+    "connection-token": "0000",
+    ...args,
+    workspace,
+    folder,
+    "accept-server-license-terms": true,
+    /** Type casting. */
+    help: !!args.help,
+    version: !!args.version,
+    port: args.port?.toString(),
+  }
 }

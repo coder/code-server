@@ -5,7 +5,7 @@ import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature, UserProvidedArgs } from "./cli"
+import { AuthType, DefaultedArgs, Feature, toVsCodeArgs, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
@@ -35,14 +35,7 @@ export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/remoteExtensionHostAgent", "spawnCli")
 
   try {
-    await spawnCli({
-      ...args,
-      /** Type casting. */
-      "accept-server-license-terms": true,
-      help: !!args.help,
-      version: !!args.version,
-      port: args.port?.toString(),
-    })
+    await spawnCli(await toVsCodeArgs(args))
   } catch (error: any) {
     logger.error("Got error from VS Code", error)
   }
