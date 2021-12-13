@@ -32,7 +32,7 @@ Usage:
   --version X.X.X
       Install a specific version instead of the latest.
 
-  --edge [true | false (default) ]
+  --edge
       Install the latest edge version instead of the latest stable version.
 
   --method [detect | standalone]
@@ -74,7 +74,7 @@ EOF
 }
 
 echo_latest_version() {
-  if [ "${EDGE:-false}" = "true" ]; then
+  if [ "${EDGE-}" ]; then
     version="$(curl -fsSL https://api.github.com/repos/cdr/code-server/releases | awk 'match($0,/.*"html_url": "(.*\/releases\/tag\/.*)".*/)' | head -n 1 | awk -F '"' '{print $4}')"
   else
     # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
@@ -142,6 +142,7 @@ main() {
     OPTIONAL \
     ALL_FLAGS \
     RSH_ARGS \
+    EDGE \
     RSH
 
   ALL_FLAGS=""
@@ -178,11 +179,7 @@ main() {
         VERSION="$(parse_arg "$@")"
         ;;
       --edge)
-        EDGE="$(parse_arg "$@")"
-        shift
-        ;;
-      --edge=*)
-        EDGE="$(parse_arg "$@")"
+        EDGE=1
         ;;
       --rsh)
         RSH="$(parse_arg "$@")"
