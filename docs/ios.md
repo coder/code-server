@@ -1,9 +1,7 @@
- # Instructions For iOS using the power of iSH
+# Using code-server on iOS with iSH
 
-Install iSH From Apple AppStore First
-
-First Run `apk add curl`
-
-Run `curl -fsSL https://code-server.dev/install.sh | sh`
-
-Start code server using `code-server` [If not work then use `node code-server`]
+1. Install iSH from the [App Store](https://apps.apple.com/us/app/ish-shell/id1436902243)
+2. Install `curl` with `apk add curl`
+3. Install code-server with `curl -fsSL https://code-server.dev/install.sh | sh`
+4. Run code-server with `code-server`
+5. Access on localhost:8080 in your browser
