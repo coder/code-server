@@ -51,6 +51,11 @@
           "title": "Termux",
           "description": "How to install Termux to run code-server on an Android device.",
           "path": "./termux.md"
+        },
+        {
+          "title": "iOS",
+          "description": "How to use code-server on iOS with iSH.",
+          "path": "./ios.md"
         }
       ]
     },
