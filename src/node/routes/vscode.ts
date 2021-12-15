@@ -4,6 +4,7 @@ import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { isDevMode } from "../constants"
 import { toVsCodeArgs } from "../cli"
+import { settings } from "../settings"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule, readCompilationStats } from "../util"
 import { Router as WsRouter } from "../wsRouter"
@@ -30,6 +31,30 @@ export class CodeServerRouteWrapper {
         to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
       })
     }
+
+    // Ew means the workspace was closed so clear the last folder/workspace.
+    const { query } = await settings.read()
+    if (req.query.ew) {
+      delete query.folder
+      delete query.workspace
+    }
+
+    // Redirect to the last folder/workspace if nothing else is opened.
+    if (
+      !req.query.folder &&
+      !req.query.workspace &&
+      (query.folder || query.workspace) &&
+      !req.args["ignore-last-opened"] // This flag disables this behavior.
+    ) {
+      return redirect(req, res, "", {
+        folder: query.folder,
+        workspace: query.workspace,
+      })
+    }
+
+    // Store the query parameters so we can use them on the next load.  This
+    // also allows users to create functionality around query parameters.
+    settings.write({ query: req.query })
 
     next()
   }

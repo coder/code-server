@@ -38,6 +38,8 @@ implementation (#4414).
   vscode-remote-resource endpoint still can.
 - OpenVSX has been made the default marketplace. However this means web
   extensions like Vim may be broken.
+- The last opened folder/workspace is no longer stored separately in the
+  settings file (we rely on the already-existing query object instead).
 
 ### Deprecated
 
