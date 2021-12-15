@@ -428,7 +428,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Trivy vulnerability scanner in repo mode
         #Commit SHA for v0.0.17
-        uses: aquasecurity/trivy-action@0769bbf0d2a77b3c15b3b57fbcdd2edd25a1c3f0
+        uses: aquasecurity/trivy-action@81cc8cd841e9e59602c165cc93336e39dc2f12c8
         with:
           scan-type: "fs"
           scan-ref: "."
