@@ -18,6 +18,6 @@ nvm install 14
 nvm use 14
 ```
 
-8. Install code-server globally on device with: `npm i -g code-server
+8. Install code-server globally on device with: `npm i -g code-server`
 9. Run code-server with `code-server`
 10. Access on localhost:8080 in your browser
