@@ -91,7 +91,7 @@ bundle_vscode() {
     "commit": "$(cd "$VSCODE_SRC_PATH" && git rev-parse HEAD)",
     "quality": "stable",
     "date": $(jq -n 'now | todate'),
-    "codeServerVersion": "$VERSION",
+    "codeServerVersion": "$VERSION"
   }
 EOF
   ) > "$VSCODE_OUT_PATH/product.json"
