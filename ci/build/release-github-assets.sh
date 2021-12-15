@@ -13,7 +13,7 @@ main() {
   download_artifact release-packages ./release-packages
   local assets=(./release-packages/code-server*"$VERSION"*{.tar.gz,.deb,.rpm})
 
-  EDITOR=true gh release upload "v$VERSION" "${assets[@]}"
+  EDITOR=true gh release upload "v$VERSION" "${assets[@]}" --clobber
 }
 
 main "$@"
