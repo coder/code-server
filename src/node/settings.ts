@@ -54,11 +54,7 @@ export interface UpdateSettings {
  * Global code-server settings.
  */
 export interface CoderSettings extends UpdateSettings {
-  lastVisited: {
-    url: string
-    workspace: boolean
-  }
-  query: Query
+  query?: Query
 }
 
 /**
