@@ -361,13 +361,11 @@ describe("parser", () => {
 })
 
 describe("cli", () => {
-  let testDir: string
+  const testName = "cli"
   const vscodeIpcPath = path.join(os.tmpdir(), "vscode-ipc")
 
   beforeAll(async () => {
-    testDir = await tmpdir("cli")
-    await fs.rmdir(testDir, { recursive: true })
-    await fs.mkdir(testDir, { recursive: true })
+    await clean(testName)
   })
 
   beforeEach(async () => {
@@ -416,6 +414,7 @@ describe("cli", () => {
     args._ = ["./file"]
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
 
+    const testDir = await tmpdir(testName)
     const socketPath = path.join(testDir, "socket")
     await fs.writeFile(vscodeIpcPath, socketPath)
     expect(await shouldOpenInExistingInstance(args)).toStrictEqual(undefined)
@@ -636,13 +635,11 @@ describe("readSocketPath", () => {
   let tmpFilePath: string
 
   beforeEach(async () => {
-    tmpDirPath = await tmpdir("readSocketPath")
+    const testName = "readSocketPath"
+    await clean(testName)
+    tmpDirPath = await tmpdir(testName)
     tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
     await fs.writeFile(tmpFilePath, fileContents)
-  })
-
-  afterEach(async () => {
-    await fs.rmdir(tmpDirPath, { recursive: true })
   })
 
   it("should throw an error if it can't read the file", async () => {
@@ -677,9 +674,10 @@ describe("toVsCodeArgs", () => {
     version: false,
   }
 
+  const testName = "vscode-args"
   beforeAll(async () => {
     // Clean up temporary directories from the previous run.
-    await clean("vscode-args")
+    await clean(testName)
   })
 
   it("should convert empty args", async () => {
@@ -691,7 +689,7 @@ describe("toVsCodeArgs", () => {
   })
 
   it("should convert with workspace", async () => {
-    const workspace = path.join(await tmpdir("vscode-args"), "test.code-workspace")
+    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
     await fs.writeFile(workspace, "foobar")
     expect(await toVsCodeArgs(await setDefaults(parse([workspace])))).toStrictEqual({
       ...vscodeDefaults,
@@ -702,7 +700,7 @@ describe("toVsCodeArgs", () => {
   })
 
   it("should convert with folder", async () => {
-    const folder = await tmpdir("vscode-args")
+    const folder = await tmpdir(testName)
     expect(await toVsCodeArgs(await setDefaults(parse([folder])))).toStrictEqual({
       ...vscodeDefaults,
       folder,
@@ -712,7 +710,7 @@ describe("toVsCodeArgs", () => {
   })
 
   it("should ignore regular file", async () => {
-    const file = path.join(await tmpdir("vscode-args"), "file")
+    const file = path.join(await tmpdir(testName), "file")
     await fs.writeFile(file, "foobar")
     expect(await toVsCodeArgs(await setDefaults(parse([file])))).toStrictEqual({
       ...vscodeDefaults,

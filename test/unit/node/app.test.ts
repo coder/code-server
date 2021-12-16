@@ -1,12 +1,12 @@
 import { logger } from "@coder/logger"
-import { promises, rmdirSync } from "fs"
+import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
 import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
-import { getAvailablePort, tmpdir } from "../../utils/helpers"
+import { clean, getAvailablePort, tmpdir } from "../../utils/helpers"
 
 describe("createApp", () => {
   let spy: jest.SpyInstance
@@ -16,7 +16,9 @@ describe("createApp", () => {
   let tmpFilePath: string
 
   beforeAll(async () => {
-    tmpDirPath = await tmpdir("unlink-socket")
+    const testName = "unlink-socket"
+    await clean(testName)
+    tmpDirPath = await tmpdir(testName)
     tmpFilePath = path.join(tmpDirPath, "unlink-socket-file")
   })
 
@@ -34,12 +36,6 @@ describe("createApp", () => {
 
   afterEach(() => {
     jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    jest.restoreAllMocks()
-    // Ensure directory was removed
-    rmdirSync(tmpDirPath, { recursive: true })
   })
 
   it("should return an Express app, a WebSockets Express app and an http server", async () => {

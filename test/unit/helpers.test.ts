@@ -1,12 +1,16 @@
 import { promises as fs } from "fs"
-import { getAvailablePort, tmpdir, useEnv } from "../../test/utils/helpers"
+import { clean, getAvailablePort, tmpdir, useEnv } from "../../test/utils/helpers"
 
 /**
  * This file is for testing test helpers (not core code).
  */
 describe("test helpers", () => {
+  const testName = "temp-dir"
+  beforeAll(async () => {
+    await clean(testName)
+  })
+
   it("should return a temp directory", async () => {
-    const testName = "temp-dir"
     const pathToTempDir = await tmpdir(testName)
     expect(pathToTempDir).toContain(testName)
     expect(fs.access(pathToTempDir)).resolves.toStrictEqual(undefined)

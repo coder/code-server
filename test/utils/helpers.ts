@@ -31,6 +31,8 @@ export async function clean(testName: string): Promise<void> {
 
 /**
  * Create a uniquely named temporary directory for a test.
+ *
+ * `tmpdir` should usually be preceeded by at least one call to `clean`.
  */
 export async function tmpdir(testName: string): Promise<string> {
   const dir = path.join(os.tmpdir(), `code-server/tests/${testName}`)
