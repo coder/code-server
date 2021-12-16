@@ -80,7 +80,7 @@ echo_latest_version() {
     # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
     version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/cdr/code-server/releases/latest)"
   fi
-  version="${version#https://github.com/cdr/code-server/releases/tag/}"
+  version="${version#https://github.com/coder/code-server/releases/tag/}"
   version="${version#v}"
   echo "$version"
 }
