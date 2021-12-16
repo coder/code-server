@@ -1,6 +1,6 @@
 import * as http from "http"
 import * as path from "path"
-import { clean, tmpdir } from "../../utils/helpers"
+import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
 
@@ -45,6 +45,8 @@ describe("update", () => {
   }
 
   beforeAll(async () => {
+    mockLogger()
+
     const testName = "update"
     await clean(testName)
     const testDir = await tmpdir(testName)

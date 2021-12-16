@@ -1,8 +1,13 @@
 import { RateLimiter } from "../../../../src/node/routes/login"
+import { mockLogger } from "../../../utils/helpers"
 import * as httpserver from "../../../utils/httpserver"
 import * as integration from "../../../utils/integration"
 
 describe("login", () => {
+  beforeAll(() => {
+    mockLogger()
+  })
+
   describe("RateLimiter", () => {
     it("should allow one try ", () => {
       const limiter = new RateLimiter()
