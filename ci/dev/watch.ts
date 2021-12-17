@@ -1,7 +1,6 @@
 import { spawn, fork, ChildProcess } from "child_process"
-import { promises as fs } from "fs"
 import * as path from "path"
-import { CompilationStats, onLine, OnLineCallback } from "../../src/node/util"
+import { onLine, OnLineCallback } from "../../src/node/util"
 
 interface DevelopmentCompilers {
   [key: string]: ChildProcess | undefined
@@ -16,7 +15,6 @@ class Watcher {
   private readonly paths = {
     /** Path to uncompiled VS Code source. */
     vscodeDir: path.join(this.rootPath, "vendor", "modules", "code-oss-dev"),
-    compilationStatsFile: path.join(this.rootPath, "out", "watcher.json"),
     pluginDir: process.env.PLUGIN_DIR,
   }
 
@@ -88,7 +86,6 @@ class Watcher {
 
     if (strippedLine.includes("Finished compilation with")) {
       console.log("[VS Code] ✨ Finished compiling! ✨", "(Refresh your web browser ♻️)")
-      this.emitCompilationStats()
       this.reloadWebServer()
     }
   }
@@ -117,19 +114,6 @@ class Watcher {
   //#endregion
 
   //#region Utilities
-
-  /**
-   * Emits a file containing compilation data.
-   * This is especially useful when Express needs to determine if VS Code is still compiling.
-   */
-  private emitCompilationStats(): Promise<void> {
-    const stats: CompilationStats = {
-      lastCompiledAt: new Date(),
-    }
-
-    console.log("Writing watcher stats...")
-    return fs.writeFile(this.paths.compilationStatsFile, JSON.stringify(stats, null, 2))
-  }
 
   private dispose(code: number | null): void {
     for (const [processName, devProcess] of Object.entries(this.compilers)) {

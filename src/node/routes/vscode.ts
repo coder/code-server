@@ -5,7 +5,7 @@ import { logError } from "../../common/util"
 import { toVsCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, self } from "../http"
-import { loadAMDModule, readCompilationStats } from "../util"
+import { loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
@@ -93,15 +93,6 @@ export class CodeServerRouteWrapper {
       return next()
     }
 
-    if (isDevMode) {
-      // Is the development mode file watcher still busy?
-      const compileStats = await readCompilationStats()
-
-      if (!compileStats || !compileStats.lastCompiledAt) {
-        return next(new Error("VS Code may still be compiling..."))
-      }
-    }
-
     // Create the server...
 
     const { args } = req
@@ -116,9 +107,12 @@ export class CodeServerRouteWrapper {
 
     try {
       this._codeServerMain = await createVSServer(null, await toVsCodeArgs(args))
-    } catch (createServerError) {
-      logError(logger, "CodeServerRouteWrapper", createServerError)
-      return next(createServerError)
+    } catch (error) {
+      logError(logger, "CodeServerRouteWrapper", error)
+      if (isDevMode) {
+        return next(new Error((error instanceof Error ? error.message : error) + " (VS Code may still be compiling)"))
+      }
+      return next(error)
     }
 
     return next()
