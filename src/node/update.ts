@@ -4,7 +4,7 @@ import * as https from "https"
 import * as semver from "semver"
 import * as url from "url"
 import { version } from "./constants"
-import { settings as globalSettings, SettingsProvider, UpdateSettings } from "./settings"
+import { SettingsProvider, UpdateSettings } from "./settings"
 
 export interface Update {
   checked: number
@@ -27,12 +27,11 @@ export class UpdateProvider {
      * The URL for getting the latest version of code-server. Should return JSON
      * that fulfills `LatestResponse`.
      */
-    private readonly latestUrl = "https://api.github.com/repos/cdr/code-server/releases/latest",
+    private readonly latestUrl: string,
     /**
-     * Update information will be stored here. If not provided, the global
-     * settings will be used.
+     * Update information will be stored here.
      */
-    private readonly settings: SettingsProvider<UpdateSettings> = globalSettings,
+    private readonly settings: SettingsProvider<UpdateSettings>,
   ) {}
 
   /**

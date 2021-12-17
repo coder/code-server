@@ -1,8 +1,6 @@
 import { logger } from "@coder/logger"
 import { Query } from "express-serve-static-core"
 import { promises as fs } from "fs"
-import * as path from "path"
-import { paths } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
 
@@ -56,8 +54,3 @@ export interface UpdateSettings {
 export interface CoderSettings extends UpdateSettings {
   query?: Query
 }
-
-/**
- * Global code-server settings file.
- */
-export const settings = new SettingsProvider<CoderSettings>(path.join(paths.data, "coder.json"))

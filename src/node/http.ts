@@ -10,6 +10,8 @@ import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
+import { UpdateProvider } from "./update"
+import { CoderSettings, SettingsProvider } from "./settings"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
 
 /**
@@ -29,6 +31,8 @@ declare global {
     export interface Request {
       args: DefaultedArgs
       heart: Heart
+      settings: SettingsProvider<CoderSettings>
+      updater: UpdateProvider
     }
   }
 }

@@ -4,7 +4,6 @@ import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { isDevMode } from "../constants"
 import { toVsCodeArgs } from "../cli"
-import { settings } from "../settings"
 import { ensureAuthenticated, authenticated, redirect } from "../http"
 import { loadAMDModule, readCompilationStats } from "../util"
 import { Router as WsRouter } from "../wsRouter"
@@ -33,7 +32,7 @@ export class CodeServerRouteWrapper {
     }
 
     // Ew means the workspace was closed so clear the last folder/workspace.
-    const { query } = await settings.read()
+    const { query } = await req.settings.read()
     if (query) {
       if (req.query.ew) {
         delete query.folder
@@ -58,7 +57,7 @@ export class CodeServerRouteWrapper {
 
     // Store the query parameters so we can use them on the next load.  This
     // also allows users to create functionality around query parameters.
-    await settings.write({ query: req.query })
+    await req.settings.write({ query: req.query })
 
     next()
   }
