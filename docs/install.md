@@ -30,7 +30,7 @@ operating systems.
 ## install.sh
 
 The easiest way to install code-server is to use our [install
-script](../install.sh) for Linux, macOS and FreeBSD. The install script
+script](https://github.com/cdr/code-server/blob/main/install.sh) for Linux, macOS and FreeBSD. The install script
 [attempts to use the system package manager](#detection-reference) if possible.
 
 You can preview what occurs during the install process:
@@ -67,7 +67,7 @@ code-server.
 
 If you prefer to install code-server manually, despite the [detection
 references](#detection-reference) and `--dry-run` feature, then continue on for
-information on how to do this. The [`install.sh`](../install.sh) script runs the
+information on how to do this. The [`install.sh`](https://github.com/cdr/code-server/blob/main/install.sh) script runs the
 _exact_ same commands presented in the rest of this document.
 
 ### Detection reference
