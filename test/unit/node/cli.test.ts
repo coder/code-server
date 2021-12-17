@@ -634,9 +634,12 @@ describe("readSocketPath", () => {
   let tmpDirPath: string
   let tmpFilePath: string
 
-  beforeEach(async () => {
-    const testName = "readSocketPath"
+  const testName = "readSocketPath"
+  beforeAll(async () => {
     await clean(testName)
+  })
+
+  beforeEach(async () => {
     tmpDirPath = await tmpdir(testName)
     tmpFilePath = path.join(tmpDirPath, "readSocketPath.txt")
     await fs.writeFile(tmpFilePath, fileContents)
