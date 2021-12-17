@@ -4,7 +4,7 @@ import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { toVsCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
-import { ensureAuthenticated, authenticated, redirect } from "../http"
+import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { loadAMDModule, readCompilationStats } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
@@ -25,9 +25,9 @@ export class CodeServerRouteWrapper {
     const isAuthenticated = await authenticated(req)
 
     if (!isAuthenticated) {
+      const to = self(req)
       return redirect(req, res, "login", {
-        // req.baseUrl can be blank if already at the root.
-        to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
+        to: to !== "/" ? to : undefined,
       })
     }
 
@@ -46,9 +46,8 @@ export class CodeServerRouteWrapper {
         (query.folder || query.workspace) &&
         !req.args["ignore-last-opened"] // This flag disables this behavior.
       ) {
-        // Redirect to the same page but with the query parameters attached
-        // (preserving the trailing slash if any).
-        return redirect(req, res, req.baseUrl + (req.originalUrl.endsWith("/") ? "/" : ""), {
+        const to = self(req)
+        return redirect(req, res, to, {
           folder: query.folder,
           workspace: query.workspace,
         })

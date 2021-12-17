@@ -139,8 +139,8 @@ export const relativeRoot = (originalUrl: string): string => {
 }
 
 /**
- * Redirect relatively to `/${to}`. Query variables on the current URI will be preserved.
- * `to` should be a simple path without any query parameters
+ * Redirect relatively to `/${to}`. Query variables on the current URI will be
+ * preserved.  `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
  */
 export const redirect = (
@@ -287,4 +287,11 @@ export const getCookieOptions = (req: express.Request): express.CookieOptions =>
     path: normalize(url.pathname) || "/",
     sameSite: "lax",
   }
+}
+
+/**
+ * Return the full path to the current page, preserving any trailing slash.
+ */
+export const self = (req: express.Request): string => {
+  return normalize(`${req.baseUrl}${req.originalUrl.endsWith("/") ? "/" : ""}`, true)
 }
