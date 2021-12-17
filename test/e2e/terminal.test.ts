@@ -1,8 +1,7 @@
 import * as cp from "child_process"
-import * as fs from "fs"
 import * as path from "path"
 import util from "util"
-import { tmpdir } from "../utils/helpers"
+import { clean, tmpdir } from "../utils/helpers"
 import { describe, expect, test } from "./baseFixture"
 
 describe("Integrated Terminal", true, () => {
@@ -10,20 +9,16 @@ describe("Integrated Terminal", true, () => {
   // so we don't have to logged in
   const testFileName = "pipe"
   const testString = "new string test from e2e test"
-  let tmpFolderPath = ""
-  let tmpFile = ""
 
+  const testName = "integrated-terminal"
   test.beforeAll(async () => {
-    tmpFolderPath = await tmpdir("integrated-terminal")
-    tmpFile = path.join(tmpFolderPath, testFileName)
-  })
-
-  test.afterAll(async () => {
-    // Ensure directory was removed
-    await fs.promises.rmdir(tmpFolderPath, { recursive: true })
+    await clean(testName)
   })
 
   test("should echo a string to a file", async ({ codeServerPage }) => {
+    const tmpFolderPath = await tmpdir(testName)
+    const tmpFile = path.join(tmpFolderPath, testFileName)
+
     const command = `mkfifo '${tmpFile}' && cat '${tmpFile}'`
     const exec = util.promisify(cp.exec)
     const output = exec(command, { encoding: "utf8" })

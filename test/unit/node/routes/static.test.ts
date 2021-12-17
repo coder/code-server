@@ -1,7 +1,7 @@
 import { promises as fs } from "fs"
 import * as path from "path"
 import { rootPath } from "../../../../src/node/constants"
-import { tmpdir } from "../../../utils/helpers"
+import { clean, tmpdir } from "../../../utils/helpers"
 import * as httpserver from "../../../utils/httpserver"
 import * as integration from "../../../utils/integration"
 
@@ -23,8 +23,10 @@ describe("/_static", () => {
   let testFileContent: string | undefined
   let nonExistentTestFile: string | undefined
 
+  const testName = "_static"
   beforeAll(async () => {
-    const testDir = await tmpdir("_static")
+    await clean(testName)
+    const testDir = await tmpdir(testName)
     testFile = path.join(testDir, "test")
     testFileContent = "static file contents"
     nonExistentTestFile = path.join(testDir, "i-am-not-here")

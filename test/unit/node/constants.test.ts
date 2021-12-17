@@ -1,10 +1,10 @@
-import { createLoggerMock } from "../../utils/helpers"
+import { logger } from "@coder/logger"
+import { mockLogger } from "../../utils/helpers"
 
 describe("constants", () => {
   let constants: typeof import("../../../src/node/constants")
 
   describe("with package.json defined", () => {
-    const loggerModule = createLoggerMock()
     const mockPackageJson = {
       name: "mock-code-server",
       description: "Run VS Code on a remote server.",
@@ -14,7 +14,7 @@ describe("constants", () => {
     }
 
     beforeAll(() => {
-      jest.mock("@coder/logger", () => loggerModule)
+      mockLogger()
       jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
       constants = require("../../../src/node/constants")
     })
@@ -38,8 +38,8 @@ describe("constants", () => {
 
         constants.getPackageJson("./package.json")
 
-        expect(loggerModule.logger.warn).toHaveBeenCalled()
-        expect(loggerModule.logger.warn).toHaveBeenCalledWith(expectedErrorMessage)
+        expect(logger.warn).toHaveBeenCalled()
+        expect(logger.warn).toHaveBeenCalledWith(expectedErrorMessage)
       })
 
       it("should find the package.json", () => {

@@ -1,27 +1,29 @@
 import { logger } from "@coder/logger"
-import { promises, rmdirSync } from "fs"
+import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
 import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
-import { getAvailablePort, tmpdir } from "../../utils/helpers"
+import { clean, mockLogger, getAvailablePort, tmpdir } from "../../utils/helpers"
 
 describe("createApp", () => {
-  let spy: jest.SpyInstance
   let unlinkSpy: jest.SpyInstance
   let port: number
   let tmpDirPath: string
   let tmpFilePath: string
 
   beforeAll(async () => {
-    tmpDirPath = await tmpdir("unlink-socket")
+    mockLogger()
+
+    const testName = "unlink-socket"
+    await clean(testName)
+    tmpDirPath = await tmpdir(testName)
     tmpFilePath = path.join(tmpDirPath, "unlink-socket-file")
   })
 
   beforeEach(async () => {
-    spy = jest.spyOn(logger, "error")
     // NOTE:@jsjoeio
     // Be mindful when spying.
     // You can't spy on fs functions if you do import * as fs
@@ -34,12 +36,6 @@ describe("createApp", () => {
 
   afterEach(() => {
     jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    jest.restoreAllMocks()
-    // Ensure directory was removed
-    rmdirSync(tmpDirPath, { recursive: true })
   })
 
   it("should return an Express app, a WebSockets Express app and an http server", async () => {
@@ -70,8 +66,8 @@ describe("createApp", () => {
     // By emitting an error event
     // Ref: https://stackoverflow.com/a/33872506/3015595
     app.server.emit("error", testError)
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(`http server error: ${testError.message} ${testError.stack}`)
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(`http server error: ${testError.message} ${testError.stack}`)
 
     // Cleanup
     app.dispose()
@@ -152,18 +148,12 @@ describe("ensureAddress", () => {
 })
 
 describe("handleServerError", () => {
-  let spy: jest.SpyInstance
-
-  beforeEach(() => {
-    spy = jest.spyOn(logger, "error")
+  beforeAll(() => {
+    mockLogger()
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    jest.restoreAllMocks()
   })
 
   it("should call reject if resolved is false", async () => {
@@ -184,24 +174,18 @@ describe("handleServerError", () => {
 
     handleServerError(resolved, error, reject)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toThrowErrorMatchingSnapshot()
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(`http server error: ${error.message} ${error.stack}`)
   })
 })
 
 describe("handleArgsSocketCatchError", () => {
-  let spy: jest.SpyInstance
-
-  beforeEach(() => {
-    spy = jest.spyOn(logger, "error")
+  beforeAll(() => {
+    mockLogger()
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    jest.restoreAllMocks()
   })
 
   it("should log an error if its not an NodeJS.ErrnoException", () => {
@@ -209,8 +193,8 @@ describe("handleArgsSocketCatchError", () => {
 
     handleArgsSocketCatchError(error)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(error)
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(error)
   })
 
   it("should log an error if its not an NodeJS.ErrnoException (and the error has a message)", () => {
@@ -219,8 +203,8 @@ describe("handleArgsSocketCatchError", () => {
 
     handleArgsSocketCatchError(error)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(errorMessage)
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(errorMessage)
   })
 
   it("should not log an error if its a iNodeJS.ErrnoException", () => {
@@ -229,7 +213,7 @@ describe("handleArgsSocketCatchError", () => {
 
     handleArgsSocketCatchError(error)
 
-    expect(spy).toHaveBeenCalledTimes(0)
+    expect(logger.error).toHaveBeenCalledTimes(0)
   })
 
   it("should log an error if the code is not ENOENT (and the error has a message)", () => {
@@ -240,8 +224,8 @@ describe("handleArgsSocketCatchError", () => {
 
     handleArgsSocketCatchError(error)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(errorMessage)
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(errorMessage)
   })
 
   it("should log an error if the code is not ENOENT", () => {
@@ -250,7 +234,7 @@ describe("handleArgsSocketCatchError", () => {
 
     handleArgsSocketCatchError(error)
 
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(error)
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(error)
   })
 })

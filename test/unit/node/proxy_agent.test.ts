@@ -1,10 +1,14 @@
 import { shouldEnableProxy } from "../../../src/node/proxy_agent"
-import { useEnv } from "../../utils/helpers"
+import { mockLogger, useEnv } from "../../utils/helpers"
 
 describe("shouldEnableProxy", () => {
   const [setHTTPProxy, resetHTTPProxy] = useEnv("HTTP_PROXY")
   const [setHTTPSProxy, resetHTTPSProxy] = useEnv("HTTPS_PROXY")
   const [setNoProxy, resetNoProxy] = useEnv("NO_PROXY")
+
+  beforeAll(() => {
+    mockLogger()
+  })
 
   beforeEach(() => {
     jest.resetModules() // Most important - it clears the cache

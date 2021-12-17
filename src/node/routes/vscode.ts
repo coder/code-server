@@ -2,10 +2,10 @@ import { logger } from "@coder/logger"
 import * as express from "express"
 import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
-import { isDevMode } from "../constants"
 import { toVsCodeArgs } from "../cli"
-import { ensureAuthenticated, authenticated, redirect } from "../http"
-import { loadAMDModule, readCompilationStats } from "../util"
+import { isDevMode } from "../constants"
+import { authenticated, ensureAuthenticated, redirect, self } from "../http"
+import { loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
@@ -25,11 +25,38 @@ export class CodeServerRouteWrapper {
     const isAuthenticated = await authenticated(req)
 
     if (!isAuthenticated) {
+      const to = self(req)
       return redirect(req, res, "login", {
-        // req.baseUrl can be blank if already at the root.
-        to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
+        to: to !== "/" ? to : undefined,
       })
     }
+
+    const { query } = await req.settings.read()
+    if (query) {
+      // Ew means the workspace was closed so clear the last folder/workspace.
+      if (req.query.ew) {
+        delete query.folder
+        delete query.workspace
+      }
+
+      // Redirect to the last folder/workspace if nothing else is opened.
+      if (
+        !req.query.folder &&
+        !req.query.workspace &&
+        (query.folder || query.workspace) &&
+        !req.args["ignore-last-opened"] // This flag disables this behavior.
+      ) {
+        const to = self(req)
+        return redirect(req, res, to, {
+          folder: query.folder,
+          workspace: query.workspace,
+        })
+      }
+    }
+
+    // Store the query parameters so we can use them on the next load.  This
+    // also allows users to create functionality around query parameters.
+    await req.settings.write({ query: req.query })
 
     next()
   }
@@ -66,15 +93,6 @@ export class CodeServerRouteWrapper {
       return next()
     }
 
-    if (isDevMode) {
-      // Is the development mode file watcher still busy?
-      const compileStats = await readCompilationStats()
-
-      if (!compileStats || !compileStats.lastCompiledAt) {
-        return next(new Error("VS Code may still be compiling..."))
-      }
-    }
-
     // Create the server...
 
     const { args } = req
@@ -89,9 +107,12 @@ export class CodeServerRouteWrapper {
 
     try {
       this._codeServerMain = await createVSServer(null, await toVsCodeArgs(args))
-    } catch (createServerError) {
-      logError(logger, "CodeServerRouteWrapper", createServerError)
-      return next(createServerError)
+    } catch (error) {
+      logError(logger, "CodeServerRouteWrapper", error)
+      if (isDevMode) {
+        return next(new Error((error instanceof Error ? error.message : error) + " (VS Code may still be compiling)"))
+      }
+      return next(error)
     }
 
     return next()

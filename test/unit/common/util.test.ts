@@ -1,6 +1,7 @@
+import { logger } from "@coder/logger"
 import { JSDOM } from "jsdom"
 import * as util from "../../../src/common/util"
-import { createLoggerMock } from "../../utils/helpers"
+import { mockLogger } from "../../utils/helpers"
 
 const dom = new JSDOM()
 global.document = dom.window.document
@@ -94,31 +95,29 @@ describe("util", () => {
   })
 
   describe("logError", () => {
+    beforeAll(() => {
+      mockLogger()
+    })
+
     afterEach(() => {
       jest.clearAllMocks()
     })
-
-    afterAll(() => {
-      jest.restoreAllMocks()
-    })
-
-    const loggerModule = createLoggerMock()
 
     it("should log an error with the message and stack trace", () => {
       const message = "You don't have access to that folder."
       const error = new Error(message)
 
-      util.logError(loggerModule.logger, "ui", error)
+      util.logError(logger, "ui", error)
 
-      expect(loggerModule.logger.error).toHaveBeenCalled()
-      expect(loggerModule.logger.error).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith(`ui: ${error.message} ${error.stack}`)
     })
 
     it("should log an error, even if not an instance of error", () => {
-      util.logError(loggerModule.logger, "api", "oh no")
+      util.logError(logger, "api", "oh no")
 
-      expect(loggerModule.logger.error).toHaveBeenCalled()
-      expect(loggerModule.logger.error).toHaveBeenCalledWith("api: oh no")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("api: oh no")
     })
   })
 })
