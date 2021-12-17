@@ -90,7 +90,8 @@ bundle_vscode() {
     "enableTelemetry": true,
     "commit": "$(cd "$VSCODE_SRC_PATH" && git rev-parse HEAD)",
     "quality": "stable",
-    "date": $(jq -n 'now | todate')
+    "date": $(jq -n 'now | todate'),
+    "codeServerVersion": "$VERSION"
   }
 EOF
   ) > "$VSCODE_OUT_PATH/product.json"
