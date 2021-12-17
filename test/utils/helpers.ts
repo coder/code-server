@@ -1,23 +1,26 @@
+import { logger } from "@coder/logger"
 import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
 
 /**
- * Return a mock of @coder/logger.
+ * Spy on the logger and console and replace with mock implementations to
+ * suppress the output.
  */
-export function createLoggerMock() {
-  return {
-    field: jest.fn(),
-    level: 2,
-    logger: {
-      debug: jest.fn(),
-      error: jest.fn(),
-      info: jest.fn(),
-      trace: jest.fn(),
-      warn: jest.fn(),
-    },
-  }
+export function mockLogger() {
+  jest.spyOn(logger, "debug").mockImplementation()
+  jest.spyOn(logger, "error").mockImplementation()
+  jest.spyOn(logger, "info").mockImplementation()
+  jest.spyOn(logger, "trace").mockImplementation()
+  jest.spyOn(logger, "warn").mockImplementation()
+
+  jest.spyOn(console, "log").mockImplementation()
+  jest.spyOn(console, "debug").mockImplementation()
+  jest.spyOn(console, "error").mockImplementation()
+  jest.spyOn(console, "info").mockImplementation()
+  jest.spyOn(console, "trace").mockImplementation()
+  jest.spyOn(console, "warn").mockImplementation()
 }
 
 /**
@@ -31,6 +34,8 @@ export async function clean(testName: string): Promise<void> {
 
 /**
  * Create a uniquely named temporary directory for a test.
+ *
+ * `tmpdir` should usually be preceeded by at least one call to `clean`.
  */
 export async function tmpdir(testName: string): Promise<string> {
   const dir = path.join(os.tmpdir(), `code-server/tests/${testName}`)

@@ -3,15 +3,14 @@ import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
-import { promises as fs, Stats } from "fs"
+import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
 import safeCompare from "safe-compare"
 import * as util from "util"
 import xdgBasedir from "xdg-basedir"
-import { logError } from "../common/util"
-import { isDevMode, rootPath, vsRootPath } from "./constants"
+import { vsRootPath } from "./constants"
 
 export interface Paths {
   data: string
@@ -522,35 +521,4 @@ export const loadAMDModule = async <T>(amdPath: string, exportName: string): Pro
   })
 
   return module[exportName] as T
-}
-
-export interface CompilationStats {
-  lastCompiledAt: Date
-}
-
-export const readCompilationStats = async (): Promise<null | CompilationStats> => {
-  if (!isDevMode) {
-    throw new Error("Compilation stats are only present in development")
-  }
-
-  const filePath = path.join(rootPath, "out/watcher.json")
-  let stat: Stats
-  try {
-    stat = await fs.stat(filePath)
-  } catch (error) {
-    return null
-  }
-
-  if (!stat.isFile()) {
-    return null
-  }
-
-  try {
-    const file = await fs.readFile(filePath)
-    return JSON.parse(file.toString("utf-8"))
-  } catch (error) {
-    logError(logger, "VS Code", error)
-  }
-
-  return null
 }

@@ -14,6 +14,8 @@ import { commit, rootPath } from "../constants"
 import { Heart } from "../heart"
 import { ensureAuthenticated, redirect } from "../http"
 import { PluginAPI } from "../plugin"
+import { CoderSettings, SettingsProvider } from "../settings"
+import { UpdateProvider } from "../update"
 import { getMediaMime, paths } from "../util"
 import * as apps from "./apps"
 import * as domainProxy from "./domainProxy"
@@ -47,6 +49,9 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
   app.router.use(cookieParser())
   app.wsRouter.use(cookieParser())
 
+  const settings = new SettingsProvider<CoderSettings>(path.join(args["user-data-dir"], "coder.json"))
+  const updater = new UpdateProvider("https://api.github.com/repos/coder/code-server/releases/latest", settings)
+
   const common: express.RequestHandler = (req, _, next) => {
     // /healthz|/healthz/ needs to be excluded otherwise health checks will make
     // it look like code-server is always in use.
@@ -57,6 +62,8 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
     // Add common variables routes can use.
     req.args = args
     req.heart = heart
+    req.settings = settings
+    req.updater = updater
 
     next()
   }

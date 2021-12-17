@@ -1,22 +1,14 @@
-// Note: we need to import logger from the root
-// because this is the logger used in logError in ../src/common/util
 import { logger } from "@coder/logger"
-
 import { Emitter } from "../../../src/common/emitter"
+import { mockLogger } from "../../utils/helpers"
 
 describe("emitter", () => {
-  let spy: jest.SpyInstance
-
   beforeEach(() => {
-    spy = jest.spyOn(logger, "error")
+    mockLogger()
   })
 
   afterEach(() => {
     jest.clearAllMocks()
-  })
-
-  afterAll(() => {
-    jest.restoreAllMocks()
   })
 
   it("should run the correct callbacks", async () => {
@@ -85,8 +77,8 @@ describe("emitter", () => {
     await emitter.emit({ event: HELLO_WORLD, callback: mockCallback })
 
     // Check that error was called
-    expect(spy).toHaveBeenCalled()
-    expect(spy).toHaveBeenCalledTimes(1)
-    expect(spy).toHaveBeenCalledWith(message)
+    expect(logger.error).toHaveBeenCalled()
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(message)
   })
 })

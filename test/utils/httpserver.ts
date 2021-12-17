@@ -59,13 +59,17 @@ export class HttpServer {
    * fetch fetches the request path.
    * The request path must be rooted!
    */
-  public fetch(requestPath: string, opts?: RequestInit): Promise<Response> {
+  public fetch(requestPath: string, opts?: RequestInit, query?: { [key: string]: string }): Promise<Response> {
     const address = ensureAddress(this.hs, "http")
     if (typeof address === "string") {
       throw new Error("Cannot fetch socket path")
     }
     address.pathname = requestPath
-
+    if (query) {
+      Object.keys(query).forEach((key) => {
+        address.searchParams.append(key, query[key])
+      })
+    }
     return nodeFetch(address.toString(), opts)
   }
 
