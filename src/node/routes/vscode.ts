@@ -31,9 +31,9 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    // Ew means the workspace was closed so clear the last folder/workspace.
     const { query } = await req.settings.read()
     if (query) {
+      // Ew means the workspace was closed so clear the last folder/workspace.
       if (req.query.ew) {
         delete query.folder
         delete query.workspace
