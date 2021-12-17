@@ -1,8 +1,8 @@
 import * as http from "http"
 import * as path from "path"
-import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
+import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
 describe("update", () => {
   let version = "1.0.0"

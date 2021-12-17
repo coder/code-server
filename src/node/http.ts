@@ -10,8 +10,8 @@ import { normalize } from "../common/util"
 import { AuthType, DefaultedArgs } from "./cli"
 import { version as codeServerVersion } from "./constants"
 import { Heart } from "./heart"
-import { UpdateProvider } from "./update"
 import { CoderSettings, SettingsProvider } from "./settings"
+import { UpdateProvider } from "./update"
 import { getPasswordMethod, IsCookieValidArgs, isCookieValid, sanitizeString, escapeHtml, escapeJSON } from "./util"
 
 /**
