@@ -1,0 +1,59 @@
+###############################################################################
+# This file configures "Semantic Pull Requests", which is documented here:
+# https://github.com/zeke/semantic-pull-requests
+###############################################################################
+
+# Scopes are optionally supplied after a 'type'. For example, in
+#
+# feat(cdr): autostart ui
+#
+# '(cdr)' is the scope. Scopes are used to signify where the change occurred.
+scopes: []
+
+# We only check that the PR title is semantic. The PR title is automatically
+# applied to the "Squash & Merge" flow as the suggested commit message, so this
+# should suffice unless someone drastically alters the message in that flow.
+titleOnly: true
+
+# Types are the 'tag' types in a commit or PR title. For example, in
+#
+# chore: fix thing
+#
+# 'chore' is the type.
+types:
+  # A build of any kind.
+  - build
+
+  # A RELEASED fix that will NOT be back-ported. The originating issue may have
+  # been discovered internally or externally to Coder.
+  - fix
+
+  # Any code task that is ignored for changelog purposes. Examples include
+  # devbin scripts and internal-only configurations.
+  - chore
+
+  # Any work performed on CI.
+  - ci
+
+  # An UNRELEASED correction. For example, features are often built
+  # incrementally and sometimes introduce minor flaws during a release cycle.
+  # Corrections address those increments and flaws.
+  - correct
+
+  # Work that directly implements or supports the implementation of a feature.
+  - feat
+
+  # A fix for a RELEASED bug (regression fix) that is intended for patch-release
+  # purposes.
+  - hotfix
+
+  # A refactor changes code structure without any behavioral change.
+  - refactor
+
+  # A git revert for any style of commit.
+  - revert
+
+  # Adding tests of any kind. Should be separate from feature or fix
+  # implementations. For example, if a commit adds a fix + test, it's a fix
+  # commit. If a commit is simply bumping coverage, it's a test commit.
+  - test
