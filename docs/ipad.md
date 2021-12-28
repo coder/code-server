@@ -122,8 +122,8 @@ and tricks helpful:
     [#114009](https://github.com/microsoft/vscode/issues/114009)
   - See [workaround](#ctrl-c-workaround)
 
-Additionally, see [issues in the code-server repo that are tagged with the iPad
-label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3AiPad)
+Additionally, see [issues in the code-server repo that are tagged with the `os-ios`
+label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3Aos-ios)
 for more information.
 
 ### Workaround for issue with `ctrl+c` not stopping a running process in the terminal
