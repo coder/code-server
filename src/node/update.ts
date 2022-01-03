@@ -1,9 +1,10 @@
 import { field, logger } from "@coder/logger"
 import * as http from "http"
 import * as https from "https"
+import ProxyAgent from "proxy-agent"
 import * as semver from "semver"
 import * as url from "url"
-import { version } from "./constants"
+import { httpProxyUri, version } from "./constants"
 import { SettingsProvider, UpdateSettings } from "./settings"
 
 export interface Update {
@@ -102,8 +103,10 @@ export class UpdateProvider {
     return new Promise((resolve, reject) => {
       const request = (uri: string): void => {
         logger.debug("Making request", field("uri", uri))
-        const httpx = uri.startsWith("https") ? https : http
-        const client = httpx.get(uri, { headers: { "User-Agent": "code-server" } }, (response) => {
+        const isHttps = uri.startsWith("https")
+        const agent = httpProxyUri ? new ProxyAgent(httpProxyUri) : undefined
+        const httpx = isHttps ? https : http
+        const client = httpx.get(uri, { headers: { "User-Agent": "code-server" }, agent }, (response) => {
           if (!response.statusCode || response.statusCode < 200 || response.statusCode >= 400) {
             response.destroy()
             return reject(new Error(`${uri}: ${response.statusCode || "500"}`))

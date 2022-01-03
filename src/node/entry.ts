@@ -2,12 +2,9 @@ import { logger } from "@coder/logger"
 import { optionDescriptions, parse, readConfigFile, setDefaults, shouldOpenInExistingInstance } from "./cli"
 import { commit, version } from "./constants"
 import { openInExistingInstance, runCodeServer, runVsCodeCli, shouldSpawnCliProcess } from "./main"
-import { monkeyPatchProxyProtocols } from "./proxy_agent"
 import { isChild, wrapper } from "./wrapper"
 
 async function entry(): Promise<void> {
-  monkeyPatchProxyProtocols()
-
   // There's no need to check flags like --help or to spawn in an existing
   // instance for the child process because these would have already happened in
   // the parent and the child wouldn't have been spawned. We also get the
