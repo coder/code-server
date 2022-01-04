@@ -92,7 +92,6 @@
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
     "proxy-agent": "^5.0.0",
-    "proxy-from-env": "^1.1.0",
     "qs": "6.10.2",
     "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
