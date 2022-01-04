@@ -32,12 +32,11 @@ implementation (#4414).
 - Web socket compression has been made the default (when supported). This means
   the `--enable` flag will no longer take `permessage-deflate` as an option.
 - Extra extension directories have been removed. The `--extra-extensions-dir`
-  and `--extra-builtin-extensions-dir` will no longer be accepted.
-- The `--install-source` and `--locale` flags have been removed.
+  and `--extra-builtin-extensions-dir` flags will no longer be accepted.
+- The `--install-source` flag has been removed.
 - The static endpoint can no longer reach outside code-server. However the
   vscode-remote-resource endpoint still can.
-- OpenVSX has been made the default marketplace. However this means web
-  extensions like Vim may be broken.
+- OpenVSX has been made the default marketplace.
 - The last opened folder/workspace is no longer stored separately in the
   settings file (we rely on the already-existing query object instead).
 
