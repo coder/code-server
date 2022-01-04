@@ -40,6 +40,10 @@ implementation (#4414).
 - The last opened folder/workspace is no longer stored separately in the
   settings file (we rely on the already-existing query object instead).
 
+### Added
+
+- `VSCODE_PROXY_URI` env var for use in the terminal and extensions.
+
 ### Deprecated
 
 - `--link` is now deprecated (#4562).
