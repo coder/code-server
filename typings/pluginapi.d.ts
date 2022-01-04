@@ -64,7 +64,7 @@ import Websocket from "ws"
  * [
  *   {
  *     "name": "Test App",
- *     "version": "4.0.0",
+ *     "version": "4.0.1",
  *     "iconPath": "/test-plugin/test-app/icon.svg",
  *     "path": "/test-plugin/test-app",
  *     "description": "This app does XYZ.",
