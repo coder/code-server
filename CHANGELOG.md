@@ -39,7 +39,10 @@ implementation (#4414).
 - OpenVSX has been made the default marketplace.
 - The last opened folder/workspace is no longer stored separately in the
   settings file (we rely on the already-existing query object instead).
-- Add `VSCODE_PROXY_URI` env var for use in the terminal and extensions.
+
+### Added
+
+- `VSCODE_PROXY_URI` env var for use in the terminal and extensions.
 
 ### Deprecated
 
