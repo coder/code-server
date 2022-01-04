@@ -21,6 +21,7 @@ jobs:
   preview:
     name: Docs preview
     runs-on: ubuntu-20.04
+    environment: CI
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
