@@ -40,7 +40,7 @@ export const plugin: cs.Plugin = {
     return [
       {
         name: "Test App",
-        version: "4.0.0",
+        version: "4.0.1",
         iconPath: "/icon.svg",
         path: "/test-app",
 
