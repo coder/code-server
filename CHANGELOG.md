@@ -46,7 +46,7 @@ implementation (#4414).
   settings file (we rely on the already-existing query object instead).
 - The marketplace override environment variables `SERVICE_URL` and `ITEM_URL`
   have been replaced with a single `EXTENSIONS_GALLERY` variable that
-  corresponds to `extensionGallery` in VS Code's `product.json`.
+  corresponds to `extensionsGallery` in VS Code's `product.json`.
 
 ### Added
 
