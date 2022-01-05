@@ -22,6 +22,14 @@ VS Code v99.99.999
 
 ## [Unreleased](https://github.com/cdr/code-server/releases)
 
+VS Code v0.00.0
+
+### Changed
+
+- Add here
+
+## [4.0.1](https://github.com/cdr/code-server/releases/tag/v4.0.1) - 2022-01-04
+
 VS Code v1.63.0
 
 code-server has been rebased on upstream's newly open-sourced server
@@ -31,9 +39,6 @@ implementation (#4414).
 
 - Web socket compression has been made the default (when supported). This means
   the `--enable` flag will no longer take `permessage-deflate` as an option.
-- Extra extension directories have been removed. The `--extra-extensions-dir`
-  and `--extra-builtin-extensions-dir` flags will no longer be accepted.
-- The `--install-source` flag has been removed.
 - The static endpoint can no longer reach outside code-server. However the
   vscode-remote-resource endpoint still can.
 - OpenVSX has been made the default marketplace.
@@ -46,6 +51,12 @@ implementation (#4414).
 ### Added
 
 - `VSCODE_PROXY_URI` env var for use in the terminal and extensions.
+
+### Removed
+
+- Extra extension directories have been removed. The `--extra-extensions-dir`
+  and `--extra-builtin-extensions-dir` flags will no longer be accepted.
+- The `--install-source` flag has been removed.
 
 ### Deprecated
 

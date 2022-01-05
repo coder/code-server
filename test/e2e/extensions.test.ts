@@ -7,6 +7,6 @@ describe("Extensions", true, () => {
 
     await codeServerPage.executeCommandViaMenus("code-server: Get proxy URI")
 
-    await codeServerPage.page.waitForSelector(`text=${address}/proxy/{{port}}`)
+    await codeServerPage.page.waitForSelector(`text=${address}/proxy/{port}`)
   })
 })
