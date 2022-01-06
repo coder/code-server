@@ -44,6 +44,9 @@ implementation (#4414).
 - OpenVSX has been made the default marketplace.
 - The last opened folder/workspace is no longer stored separately in the
   settings file (we rely on the already-existing query object instead).
+- The marketplace override environment variables `SERVICE_URL` and `ITEM_URL`
+  have been replaced with a single `EXTENSIONS_GALLERY` variable that
+  corresponds to `extensionsGallery` in VS Code's `product.json`.
 
 ### Added
 
