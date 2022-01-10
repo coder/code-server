@@ -74,7 +74,7 @@
     "postcss": "^8.2.1",
     "browserslist": "^4.16.5",
     "safe-buffer": "^5.1.1",
-    "vfile-message": "^2.0.2",
+    "vfile-message": "^3.0.0",
     "tar": "^6.1.9",
     "path-parse": "^1.0.7",
     "vm2": "^3.9.4"
