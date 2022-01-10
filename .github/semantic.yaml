@@ -5,10 +5,27 @@
 
 # Scopes are optionally supplied after a 'type'. For example, in
 #
-# feat(cdr): autostart ui
+# feat(docs): autostart ui
 #
-# '(cdr)' is the scope. Scopes are used to signify where the change occurred.
-scopes: []
+# '(docs)' is the scope. Scopes are used to signify where the change occurred.
+scopes:
+  # docs: changes to the code-server documentation.
+  - docs
+
+  # vendor: changes to vendored dependencies.
+  - vendor
+
+  # tests: changes to test code.
+  - tests
+
+  # deps: changes to code-server's dependencies.
+  - deps
+
+  # cs: changes to code specific to code-server.
+  - cs
+
+  # cli: changes to the command-line interface.
+  - cli
 
 # We only check that the PR title is semantic. The PR title is automatically
 # applied to the "Squash & Merge" flow as the suggested commit message, so this
@@ -24,8 +41,7 @@ types:
   # A build of any kind.
   - build
 
-  # A RELEASED fix that will NOT be back-ported. The originating issue may have
-  # been discovered internally or externally to Coder.
+  # A user-facing change that corrects a defect in code-server.
   - fix
 
   # Any code task that is ignored for changelog purposes. Examples include
@@ -35,17 +51,8 @@ types:
   # Any work performed on CI.
   - ci
 
-  # An UNRELEASED correction. For example, features are often built
-  # incrementally and sometimes introduce minor flaws during a release cycle.
-  # Corrections address those increments and flaws.
-  - correct
-
   # Work that directly implements or supports the implementation of a feature.
   - feat
-
-  # A fix for a RELEASED bug (regression fix) that is intended for patch-release
-  # purposes.
-  - hotfix
 
   # A refactor changes code structure without any behavioral change.
   - refactor
