@@ -15,9 +15,6 @@ scopes:
   # vendor: changes to vendored dependencies.
   - vendor
 
-  # tests: changes to test code.
-  - tests
-
   # deps: changes to code-server's dependencies.
   - deps
 
