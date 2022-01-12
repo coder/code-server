@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import * as argon2 from "argon2"
+import { hash as _hash, verify } from "@node-rs/argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
@@ -158,7 +158,7 @@ export const generatePassword = async (length = 24): Promise<string> => {
  */
 export const hash = async (password: string): Promise<string> => {
   try {
-    return await argon2.hash(password)
+    return await _hash(password)
   } catch (error: any) {
     logger.error(error)
     return ""
@@ -173,9 +173,10 @@ export const isHashMatch = async (password: string, hash: string) => {
     return false
   }
   try {
-    return await argon2.verify(hash, password)
+    return await verify(hash, password)
   } catch (error: any) {
-    throw new Error(error)
+    logger.error(error)
+    return false
   }
 }
 

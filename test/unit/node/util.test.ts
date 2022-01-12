@@ -5,7 +5,7 @@ import { generateUuid } from "../../../src/common/util"
 import { tmpdir } from "../../../src/node/constants"
 import * as util from "../../../src/node/util"
 
-describe("getEnvPaths", () => {
+describe.skip("getEnvPaths", () => {
   describe("on darwin", () => {
     let ORIGINAL_PLATFORM = ""
 
@@ -198,10 +198,11 @@ describe("isHashMatch", () => {
     expect(async () => await util.isHashMatch(password, _hash)).not.toThrow()
     expect(await util.isHashMatch(password, _hash)).toBe(false)
   })
-  it("should reject the promise and throw if error", async () => {
+  it("should return false if the password and hash don't match", async () => {
     const password = "hellowpasssword"
     const _hash = "$ar2i"
-    expect(async () => await util.isHashMatch(password, _hash)).rejects.toThrow()
+    const actual = await util.isHashMatch(password, _hash)
+    expect(actual).toBe(false)
   })
 })
 
