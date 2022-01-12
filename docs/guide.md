@@ -294,7 +294,7 @@ Note: if you set `proxy_set_header Host $host;` in your reverse proxy config, it
 
 ## Accessing web services
 
-If you're working on web services and want to access it locally, code-server
+If you're working on web services and want to access them locally, code-server
 can proxy to any port using either a subdomain or a subpath, allowing you to
 securely access these services using code-server's built-in authentication.
 
