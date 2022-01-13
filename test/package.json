@@ -2,7 +2,6 @@
   "license": "MIT",
   "#": "We must put jest in a sub-directory otherwise VS Code somehow picks up the types and generates conflicts with mocha.",
   "devDependencies": {
-    "@node-rs/argon2": "^1.0.5",
     "@playwright/test": "^1.16.3",
     "@types/jest": "^27.0.2",
     "@types/jsdom": "^16.2.13",

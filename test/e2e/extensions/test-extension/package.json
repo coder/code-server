@@ -24,6 +24,6 @@
     "typescript": "^4.0.5"
   },
   "scripts": {
-    "build": "tsc extension.ts"
+    "build": "tsc"
   }
 }
