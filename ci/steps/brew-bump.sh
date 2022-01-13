@@ -10,13 +10,13 @@ main() {
   echo "Checking environment variables"
 
   # We need VERSION to bump the brew formula
-  if is_env_var_set "VERSION"; then
+  if ! is_env_var_set "VERSION"; then
     echo "VERSION is not set"
     exit 1
   fi
 
   # We need HOMEBREW_GITHUB_API_TOKEN to push up commits
-  if is_env_var_set "HOMEBREW_GITHUB_API_TOKEN"; then
+  if ! is_env_var_set "HOMEBREW_GITHUB_API_TOKEN"; then
     echo "HOMEBREW_GITHUB_API_TOKEN is not set"
     exit 1
   fi

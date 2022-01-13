@@ -88,6 +88,8 @@ export class CodeServer {
           path.join(dir, "config.yaml"),
           "--user-data-dir",
           dir,
+          "--extensions-dir",
+          path.join(__dirname, "../extensions"),
           // The last argument is the workspace to open.
           dir,
         ],

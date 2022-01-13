@@ -63,6 +63,8 @@ describe("parser", () => {
           "--verbose",
           "2",
 
+          ["--locale", "ja"],
+
           ["--log", "error"],
 
           "--help",
@@ -103,6 +105,7 @@ describe("parser", () => {
       help: true,
       host: "0.0.0.0",
       json: true,
+      locale: "ja",
       log: "error",
       open: true,
       port: 8081,

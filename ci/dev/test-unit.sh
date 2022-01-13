@@ -6,6 +6,7 @@ main() {
 
   source ./ci/lib.sh
 
+  echo "Building test plugin"
   pushd test/unit/node/test-plugin
   make -s out/index.js
   popd

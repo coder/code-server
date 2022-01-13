@@ -37,7 +37,7 @@ Current maintainers:
 - @TeffenEllis
 - @jsjoeio
 
-Occassionally, other Coder employees may step in time to time to assist with code-server.
+Occasionally, other Coder employees may step in time to time to assist with code-server.
 
 ### Onboarding
 
@@ -202,7 +202,7 @@ This is currently automated with the release process.
 
 We publish code-server on Homebrew [here](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
 
-This is currently automated with the release process (but may fail occassionally). If it does, run this locally:
+This is currently automated with the release process (but may fail occasionally). If it does, run this locally:
 
 ```shell
 # Replace VERSION with version
@@ -231,7 +231,7 @@ Ideally, our fork stays as close to upstream as possible. See the differences be
 
 Our testing structure is laid out under our [Contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#test).
 
-We hope to eventually hit 100% test converage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
+We hope to eventually hit 100% test coverage with our unit tests, and maybe one day our scripts (coverage not tracked currently).
 
 If you're ever looking to add more tests, here are a few ways to get started:
 

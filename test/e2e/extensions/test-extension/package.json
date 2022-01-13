@@ -1,0 +1,29 @@
+{
+  "name": "code-server-extension",
+  "description": "code-server test extension",
+  "version": "0.0.1",
+  "publisher": "cdr",
+  "activationEvents": [
+    "onCommand:codeServerTest.proxyUri"
+  ],
+  "engines": {
+    "vscode": "^1.56.0"
+  },
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "codeServerTest.proxyUri",
+        "title": "Get proxy URI",
+        "category": "code-server"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.56.0",
+    "typescript": "^4.0.5"
+  },
+  "scripts": {
+    "build": "tsc extension.ts"
+  }
+}
