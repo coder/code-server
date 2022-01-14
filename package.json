@@ -93,7 +93,7 @@
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
     "proxy-agent": "^5.0.0",
-    "qs": "6.10.2",
+    "qs": "6.10.3",
     "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",
