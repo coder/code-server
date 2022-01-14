@@ -90,7 +90,7 @@
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "js-yaml": "^4.0.0",
-    "limiter": "^1.1.5",
+    "limiter": "^2.0.0",
     "pem": "^1.14.2",
     "proxy-agent": "^5.0.0",
     "qs": "6.10.3",
