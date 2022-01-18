@@ -115,7 +115,7 @@ we recommend using another method, such as [Let's Encrypt](#let-encrypt) instead
 Using [Let's Encrypt](https://letsencrypt.org) is an option if you want to
 access code-server on an iPad or do not want to use SSH port forwarding.
 
-1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTP traffic.
+1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
 
 1. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
@@ -162,7 +162,7 @@ At this point, you should be able to access code-server via
 
 ### Using Let's Encrypt with NGINX
 
-1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTP traffic.
+1. This option requires that the remote machine be exposed to the internet. Make sure that your instance allows HTTP/HTTPS traffic.
 
 1. You'll need a domain name (if you don't have one, you can purchase one from
    [Google Domains](https://domains.google.com) or the domain service of your
@@ -229,7 +229,7 @@ code-server. You should only proceed with this option if:
 To use a self-signed certificate:
 
 1. This option requires that the remote machine be exposed to the internet. Make
-   sure that your instance allows HTTP/HTTP traffic.
+   sure that your instance allows HTTP/HTTPS traffic.
 
 1. SSH into your instance and edit your code-server config file to use a
    randomly generated self-signed certificate:
