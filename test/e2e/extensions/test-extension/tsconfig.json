@@ -4,7 +4,9 @@
     "module": "commonjs",
     "outDir": ".",
     "strict": true,
-    "baseUrl": "./"
+    "baseUrl": "./",
+    "skipLibCheck": true
   },
-  "include": ["./extension.ts"]
+  "include": ["./extension.ts"],
+  "exclude": ["node_modules"]
 }
