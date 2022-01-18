@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import * as argon2 from "argon2"
+import * as argon2 from "@node-rs/argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
@@ -58,10 +58,10 @@ export const paths = getEnvPaths()
  * On MacOS this function gets the standard XDG directories instead of using the native macOS
  * ones. Most CLIs do this as in practice only GUI apps use the standard macOS directories.
  */
-export function getEnvPaths(): Paths {
+export function getEnvPaths(platform = process.platform): Paths {
   const paths = envPaths("code-server", { suffix: "" })
   const append = (p: string): string => path.join(p, "code-server")
-  switch (process.platform) {
+  switch (platform) {
     case "darwin":
       return {
         // envPaths uses native directories so force Darwin to use the XDG spec
@@ -175,7 +175,8 @@ export const isHashMatch = async (password: string, hash: string) => {
   try {
     return await argon2.verify(hash, password)
   } catch (error: any) {
-    throw new Error(error)
+    logger.error(error)
+    return false
   }
 }
 
