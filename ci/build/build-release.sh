@@ -82,6 +82,12 @@ bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH/resources/"
   rsync "$VSCODE_SRC_PATH/resources/" "$VSCODE_OUT_PATH/resources/"
 
+  # TODO: We should look into using VS Code's packaging task (see
+  # gulpfile.reh.js).  For now copy this directory into the right spot (for some
+  # reason VS Code uses a different path in production).
+  mkdir -p "$VSCODE_OUT_PATH/bin/helpers"
+  rsync "$VSCODE_SRC_PATH/resources/server/bin/helpers/" "$VSCODE_OUT_PATH/bin/helpers"
+
   # Add the commit and date and enable telemetry. This just makes telemetry
   # available; telemetry can still be disabled by flag or setting.
   jq --slurp '.[0] * .[1]' "$VSCODE_SRC_PATH/product.json" <(
