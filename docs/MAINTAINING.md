@@ -43,17 +43,17 @@ Occasionally, other Coder employees may step in time to time to assist with code
 
 To onboard a new maintainer to the project, please make sure to do the following:
 
-- [ ] Add to [cdr/code-server-reviewers](https://github.com/orgs/cdr/teams/code-server-reviewers)
-- [ ] Add as Admin under [Repository Settings > Access](https://github.com/cdr/code-server/settings/access)
+- [ ] Add to [coder/code-server-reviewers](https://github.com/orgs/coder/teams/code-server-reviewers)
+- [ ] Add as Admin under [Repository Settings > Access](https://github.com/coder/code-server/settings/access)
 - [ ] Add to [npm Coder org](https://www.npmjs.com/org/coder)
 - [ ] Add as [AUR maintainer](https://aur.archlinux.org/packages/code-server/) (talk to Colin)
-- [ ] Introduce to community via Discussion (see [example](https://github.com/cdr/code-server/discussions/3955))
+- [ ] Introduce to community via Discussion (see [example](https://github.com/coder/code-server/discussions/3955))
 
 ### Offboarding
 
 Very similar to Onboarding but Remove maintainer from all teams and revoke access. Please also do the following:
 
-- [ ] Write farewell post via Discussion (see [example](https://github.com/cdr/code-server/discussions/3933))
+- [ ] Write farewell post via Discussion (see [example](https://github.com/coder/code-server/discussions/3933))
 
 ## Workflow
 
@@ -64,7 +64,7 @@ contributing on day one.
 ### Milestones
 
 We operate mainly using
-[milestones](https://github.com/cdr/code-server/milestones). This was heavily
+[milestones](https://github.com/coder/code-server/milestones). This was heavily
 inspired by our friends over at [vscode](https://github.com/microsoft/vscode).
 
 Here are the milestones we use and how we use them:

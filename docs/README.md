@@ -1,6 +1,6 @@
 # code-server
 
-[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/cdr/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/cdr/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/cdr/code-server) [![See v4.0.1 docs](https://img.shields.io/static/v1?label=Docs&message=see%20v4.0.1%20&color=blue)](https://github.com/cdr/code-server/tree/v4.0.1/docs)
+[!["GitHub Discussions"](https://img.shields.io/badge/%20GitHub-%20Discussions-gray.svg?longCache=true&logo=github&colorB=purple)](https://github.com/coder/code-server/discussions) [!["Join us on Slack"](https://img.shields.io/badge/join-us%20on%20slack-gray.svg?longCache=true&logo=slack&colorB=brightgreen)](https://cdr.co/join-community) [![Twitter Follow](https://img.shields.io/twitter/follow/CoderHQ?label=%40CoderHQ&style=social)](https://twitter.com/coderhq) [![codecov](https://codecov.io/gh/coder/code-server/branch/main/graph/badge.svg?token=5iM9farjnC)](https://codecov.io/gh/coder/code-server) [![See v4.0.1 docs](https://img.shields.io/static/v1?label=Docs&message=see%20v4.0.1%20&color=blue)](https://github.com/coder/code-server/tree/v4.0.1/docs)
 
 Run [VS Code](https://github.com/Microsoft/vscode) on any machine anywhere and
 access it in the browser.
@@ -14,7 +14,7 @@ access it in the browser.
 - Preserve battery life when you're on the go; all intensive tasks run on your
   server
 
-| 🔔 code-server is a free browser-based IDE while [Coder](https://coder.com/), is our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
+| 🔔 code-server is a free browser-based IDE while [Coder](https://coder.com/) is our enterprise developer workspace platform. For more information, visit [Coder.com](https://coder.com/docs/comparison)
 | ---
 
 ## Requirements
@@ -29,13 +29,13 @@ on how to set up a Google VM on which you can install code-server.
 There are three ways to get started:
 
 1. Using the [install
-   script](https://github.com/cdr/code-server/blob/main/install.sh), which
+   script](https://github.com/coder/code-server/blob/main/install.sh), which
    automates most of the process. The script uses the system package manager if
    possible.
 2. Manually [installing
    code-server](https://coder.com/docs/code-server/latest/install)
 3. Using our one-click buttons and guides to [deploy code-server to a cloud
-   provider](https://github.com/cdr/deploy-code-server) ⚡
+   provider](https://github.com/coder/deploy-code-server) ⚡
 
 If you use the install script, you can preview what occurs during the install
 process:
