@@ -24,4 +24,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_TAG: "beta"
-          PR_NUMBER_AND_COMMIT_SHA: ${{ github.event.number }}-${{ github.event.pull_request.head.sha }}
+          # Since this only runs on a merge into main, we can't use github.event.number
+          # so we instead use the word "beta" and the PR merge commit SHA
+          PR_NUMBER_AND_COMMIT_SHA: beta-${{ github.sha }}
