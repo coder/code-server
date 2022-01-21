@@ -74,7 +74,9 @@ main() {
   # We only need to run npm version for "development" and "staging".
   # This is because our release:prep script automatically bumps the version
   # in the package.json and we commit it as part of the release PR.
-  if [[ ! ENVIRONMENT == "production" ]]; then
+  if [[ ENVIRONMENT == "production" ]]; then
+    NPM_VERSION="$VERSION"
+  else
     echo "Not a production environment"
     echo "Found environment: $ENVIRONMENT"
     echo "Manually bumping npm version..."
