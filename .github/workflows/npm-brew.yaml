@@ -16,11 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run ./ci/steps/publish-npm.sh
-        run: ./ci/steps/publish-npm.sh
+      - name: Publish npm package with PR number and commit SHA
+        run: yarn publish:npm
         env:
+          ENVIRONMENT: "production"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: "latest"
 
   homebrew:
     # The newest version of code-server needs to be available on npm when this runs

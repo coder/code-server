@@ -14,7 +14,7 @@ describe("settings", () => {
     testDir = await tmpdir(testName)
   })
   describe("with invalid JSON in settings file", () => {
-    let mockSettingsFile = "coder.json"
+    const mockSettingsFile = "coder.json"
     let pathToMockSettingsFile = ""
 
     beforeEach(async () => {
@@ -33,7 +33,7 @@ describe("settings", () => {
     })
   })
   describe("with invalid settings file path", () => {
-    let mockSettingsFile = "nonExistent.json"
+    const mockSettingsFile = "nonExistent.json"
     let pathToMockSettingsFile = ""
 
     beforeEach(async () => {
