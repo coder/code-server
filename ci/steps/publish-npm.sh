@@ -103,7 +103,7 @@ main() {
   local hasVersion
   hasVersion=$(npm view "code-server@$NPM_VERSION" version)
   if [[ $hasVersion == "$NPM_VERSION" ]]; then
-    echo "$NPM_VERSION is already published
+    echo "$NPM_VERSION is already published"
     return
   fi
 
