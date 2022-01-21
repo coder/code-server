@@ -95,17 +95,14 @@ main() {
     popd
   fi
 
-  # If we're publishing to production we need to make sure
-  # we haven't already published the version. This is because
-  # npm view won't exit with non-zero so we have to check the
-  # output.
-  if [[ ENVIRONMENT == "production" ]]; then
-    local hasVersion
-    hasVersion=$(npm view "code-server@$VERSION" version)
-    if [[ $hasVersion == "$VERSION" ]]; then
-      echo "$VERSION is already published"
-      return
-    fi
+  # We need to make sure we haven't already published the version.
+  # This is because npm view won't exit with non-zero so we have
+  # to check the output.
+  local hasVersion
+  hasVersion=$(npm view "code-server@$VERSION" version)
+  if [[ $hasVersion == "$VERSION" ]]; then
+    echo "$VERSION is already published"
+    return
   fi
 
   yarn publish --non-interactive release --tag "$NPM_TAG"
