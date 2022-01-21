@@ -99,9 +99,9 @@ main() {
   # This is because npm view won't exit with non-zero so we have
   # to check the output.
   local hasVersion
-  hasVersion=$(npm view "code-server@$VERSION" version)
-  if [[ $hasVersion == "$VERSION" ]]; then
-    echo "$VERSION is already published"
+  hasVersion=$(npm view "code-server@$NPM_VERSION" version)
+  if [[ $hasVersion == "$NPM_VERSION" ]]; then
+    echo "$NPM_VERSION is already published
     return
   fi
 
