@@ -26,7 +26,6 @@ body:
         - Remote OS:
         - Remote Architecture:
         - `code-server --version`:
-      render: markdown
     validations:
       required: false
   - type: textarea
