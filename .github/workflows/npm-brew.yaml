@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Publish npm package with PR number and commit SHA
+      - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:
           ENVIRONMENT: "production"

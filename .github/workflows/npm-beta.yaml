@@ -1,11 +1,11 @@
-name: Publish on npm and tag with PR number
+name: Publish on npm and tag with "beta"
 
 on:
   # Shows the manual trigger in GitHub UI
   # helpful as a back-up in case the GitHub Actions Workflow fails
   workflow_dispatch:
 
-  pull_request:
+  push:
     branches:
       - main
 
@@ -13,18 +13,17 @@ jobs:
   # NOTE: this job requires curl, jq and yarn
   # All of them are included in ubuntu-latest.
   npm:
-    # This environment "npm" requires someone from
-    # coder/code-server-reviewers to approve the PR before this job runs.
-    environment: npm
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run ./ci/steps/publish-npm.sh
+      - name: Publish npm package and tag "beta"
         run: yarn publish:npm
         env:
-          ENVIRONMENT: "development"
+          ENVIRONMENT: "staging"
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_TAG: ${{ github.event.number }}
-          PR_NUMBER_AND_COMMIT_SHA: ${{ github.event.number }}-${{ github.event.pull_request.head.sha }}
+          NPM_TAG: "beta"
+          # Since this only runs on a merge into main, we can't use github.event.number
+          # so we instead use the word "beta" and the PR merge commit SHA
+          PR_NUMBER_AND_COMMIT_SHA: beta-${{ github.sha }}
