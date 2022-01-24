@@ -27,7 +27,20 @@ body:
         - Remote Architecture:
         - `code-server --version`:
     validations:
-      required: false
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        1. open code-server
+        2. install extension
+        3. run command
+      value: |
+        1. 
+        2.
+        3.
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: Expected
