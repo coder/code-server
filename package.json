@@ -23,6 +23,7 @@
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
+    "publish:npm": "./ci/steps/publish-npm.sh",
     "_audit": "./ci/dev/audit.sh",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",

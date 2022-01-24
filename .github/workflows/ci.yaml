@@ -177,6 +177,15 @@ jobs:
           name: npm-package
           path: ./package.tar.gz
 
+      - name: Publish npm package with PR number and commit SHA
+        run: yarn publish:npm
+        env:
+          ENVIRONMENT: "development"
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_TAG: ${{ github.event.number }}
+          PR_NUMBER_AND_COMMIT_SHA: ${{ github.event.number }}-${{ github.event.pull_request.head.sha }}
+
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
   # this requires refactoring our release scripts
