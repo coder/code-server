@@ -80,7 +80,7 @@
     "path-parse": "^1.0.7",
     "vm2": "^3.9.4",
     "follow-redirects": "^1.14.7",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^3.0.0",
     "nanoid": "^3.1.31"
   },
   "dependencies": {
