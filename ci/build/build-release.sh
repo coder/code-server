@@ -87,6 +87,7 @@ bundle_vscode() {
   # reason VS Code uses a different path in production).
   mkdir -p "$VSCODE_OUT_PATH/bin/helpers"
   rsync "$VSCODE_SRC_PATH/resources/server/bin/helpers/" "$VSCODE_OUT_PATH/bin/helpers"
+  chmod +x "$VSCODE_OUT_PATH/bin/helpers/browser.sh"
 
   # Add the commit and date and enable telemetry. This just makes telemetry
   # available; telemetry can still be disabled by flag or setting.
