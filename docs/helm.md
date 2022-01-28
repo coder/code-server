@@ -1,6 +1,6 @@
 # code-server Helm Chart
 
-[![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) [![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)](https://img.shields.io/badge/Type-application-informational?style=flat-square) [![AppVersion: 4.0.1](https://img.shields.io/badge/AppVersion-4.0.1-informational?style=flat-square)](https://img.shields.io/badge/AppVersion-4.0.1-informational?style=flat-square)
+[![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) [![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)](https://img.shields.io/badge/Type-application-informational?style=flat-square) [![AppVersion: 4.0.2](https://img.shields.io/badge/AppVersion-4.0.2-informational?style=flat-square)](https://img.shields.io/badge/AppVersion-4.0.2-informational?style=flat-square)
 
 [code-server](https://github.com/cdr/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
@@ -73,7 +73,7 @@ and their default values.
 | hostnameOverride                            | string | `""`                     |
 | image.pullPolicy                            | string | `"Always"`               |
 | image.repository                            | string | `"codercom/code-server"` |
-| image.tag                                   | string | `"4.0.1"`                |
+| image.tag                                   | string | `"4.0.2"`                |
 | imagePullSecrets                            | list   | `[]`                     |
 | ingress.enabled                             | bool   | `false`                  |
 | nameOverride                                | string | `""`                     |

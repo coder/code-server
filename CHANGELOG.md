@@ -28,6 +28,17 @@ VS Code v0.00.0
 
 - Add here
 
+## [4.0.2](https://github.com/cdr/code-server/releases/tag/v4.0.2) - 2022-01-27
+
+VS Code v1.63.0
+
+### Fixed
+
+- Unset the `BROWSER` environment variable. This fixes applications that hard
+  exit when trying to spawn the helper script `BROWSER` points to because the
+  file is missing. While we do include the script now we are leaving the
+  variable omitted because the script does not work yet.
+
 ## [4.0.1](https://github.com/cdr/code-server/releases/tag/v4.0.1) - 2022-01-04
 
 VS Code v1.63.0
