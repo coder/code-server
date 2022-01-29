@@ -28,8 +28,8 @@ This will show issues that:
 1. If more information is required, please ask the submitter and tag as
    `waiting-for-info` and wait.
 1. Finally, the issue should be moved into the
-   [code-server](https://github.com/cdr/code-server/projects/1) project where we
+   [code-server](https://github.com/coder/code-server/projects/1) project where we
    pick out issues to fix and track their progress.
 
-We also use [milestones](https://github.com/cdr/code-server/milestones) to track
+We also use [milestones](https://github.com/coder/code-server/milestones) to track
 what issues are planned/or were closed for what release.
