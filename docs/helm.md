@@ -2,7 +2,7 @@
 
 [![Version: 1.0.0](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square)](https://img.shields.io/badge/Version-1.0.0-informational?style=flat-square) [![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square)](https://img.shields.io/badge/Type-application-informational?style=flat-square) [![AppVersion: 4.0.2](https://img.shields.io/badge/AppVersion-4.0.2-informational?style=flat-square)](https://img.shields.io/badge/AppVersion-4.0.2-informational?style=flat-square)
 
-[code-server](https://github.com/cdr/code-server) code-server is VS Code running
+[code-server](https://github.com/coder/code-server) code-server is VS Code running
 on a remote server, accessible through the browser.
 
 This chart is community maintained by [@Matthew-Beckett](https://github.com/Matthew-Beckett) and [@alexgorbatchev](https://github.com/alexgorbatchev)
@@ -10,7 +10,7 @@ This chart is community maintained by [@Matthew-Beckett](https://github.com/Matt
 ## Quickstart
 
 ```console
-$ git clone https://github.com/cdr/code-server
+$ git clone https://github.com/coder/code-server
 $ cd code-server
 $ helm upgrade --install code-server ci/helm-chart
 ```
@@ -30,7 +30,7 @@ package manager.
 To install the chart with the release name `code-server`:
 
 ```console
-$ git clone https://github.com/cdr/code-server
+$ git clone https://github.com/coder/code-server
 $ cd code-server
 $ helm upgrade --install code-server ci/helm-chart
 ```

@@ -37,7 +37,7 @@
 ## Questions?
 
 Please file all questions and support requests at
-<https://github.com/cdr/code-server/discussions>.
+<https://github.com/coder/code-server/discussions>.
 
 ## How should I expose code-server to the internet?
 
@@ -111,11 +111,11 @@ These are the closed-source extensions that are presently unavailable:
 
 1. [Live Share](https://visualstudio.microsoft.com/services/live-share). We may
    implement something similar (see
-   [#33](https://github.com/cdr/code-server/issues/33))
+   [#33](https://github.com/coder/code-server/issues/33))
 1. [Remote Extensions (SSH, Containers,
    WSL)](https://github.com/microsoft/vscode-remote-release). We may implement
    these again at some point, see
-   ([#1315](https://github.com/cdr/code-server/issues/1315)).
+   ([#1315](https://github.com/coder/code-server/issues/1315)).
 
 For more about the closed source portions of VS Code, see [vscodium/vscodium](https://github.com/VSCodium/vscodium#why-does-this-exist).
 
@@ -222,7 +222,7 @@ You may have to give Node.js full disk access, since it doesn't implement any of
    Privacy** > **Privacy** > **Full Disk Access**. Then, click the 🔒 to unlock,
    click **+**, and select the Node.js binary you located in the previous step.
 
-See [#2794](https://github.com/cdr/code-server/issues/2794) for additional context.
+See [#2794](https://github.com/coder/code-server/issues/2794) for additional context.
 
 ## How do I direct server-side requests through a proxy?
 
@@ -302,7 +302,7 @@ after a predetermined amount of time, you can do so by checking continuously for
 the last modified time on the heartbeat file. If it is older than X minutes (or
 whatever amount of time you'd like), you can kill code-server.
 
-Eventually, [#1636](https://github.com/cdr/code-server/issues/1636) will make
+Eventually, [#1636](https://github.com/coder/code-server/issues/1636) will make
 this process better.
 
 ## How do I change the password?
@@ -376,7 +376,7 @@ Theia doesn't allow you to reuse your existing VS Code config.
 ## What's the difference between code-server and OpenVSCode-Server?
 
 code-server and OpenVSCode-Server both allow you to access VS Code via a
-browser. The two projects also use their own [forks of VS Code](https://github.com/cdr/vscode) to
+browser. The two projects also use their own [forks of VS Code](https://github.com/coder/vscode) to
 leverage modern VS Code APIs and stay up to date with the upsteam version.
 
 However, OpenVSCode-Server is scoped at only making VS Code available in the web browser.
@@ -388,7 +388,7 @@ code-server includes some other features:
 - plugin API
 - settings sync (coming soon)
 
-For more details, see [this discussion post](https://github.com/cdr/code-server/discussions/4267#discussioncomment-1411583).
+For more details, see [this discussion post](https://github.com/coder/code-server/discussions/4267#discussioncomment-1411583).
 
 ## What's the difference between code-server and GitHub Codespaces?
 
@@ -406,7 +406,7 @@ minute plus an additional twelve per hour.
 
 ## Are there community projects involving code-server?
 
-Visit the [awesome-code-server](https://github.com/cdr/awesome-code-server)
+Visit the [awesome-code-server](https://github.com/coder/awesome-code-server)
 repository to view community projects and guides with code-server! Feel free to
 add your own!
 
