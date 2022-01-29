@@ -3,11 +3,11 @@
   "license": "MIT",
   "version": "4.0.2",
   "description": "Run VS Code on a remote server.",
-  "homepage": "https://github.com/cdr/code-server",
+  "homepage": "https://github.com/coder/code-server",
   "bugs": {
-    "url": "https://github.com/cdr/code-server/issues"
+    "url": "https://github.com/coder/code-server/issues"
   },
-  "repository": "https://github.com/cdr/code-server",
+  "repository": "https://github.com/coder/code-server",
   "scripts": {
     "clean": "./ci/build/clean.sh",
     "build": "./ci/build/build-code-server.sh",
