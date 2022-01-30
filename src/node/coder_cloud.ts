@@ -3,7 +3,7 @@ import { spawn } from "child_process"
 import path from "path"
 import split2 from "split2"
 
-// https://github.com/cdr/coder-cloud
+// https://github.com/coder/coder-cloud
 const coderCloudAgent = path.resolve(__dirname, "../../lib/coder-cloud-agent")
 
 function runAgent(...args: string[]): Promise<void> {

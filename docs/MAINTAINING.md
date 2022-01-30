@@ -185,12 +185,12 @@ If you're the current release manager, follow these steps:
    artifacts, publish the NPM package from `npm-package`, and publish the Docker
    Hub image from `release-images`.
 1. Update the AUR package. Instructions for updating the AUR package are at
-   [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
+   [coder/code-server-aur](https://github.com/coder/code-server-aur).
 1. Wait for the npm package to be published.
 
 #### AUR
 
-We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/cdr/code-server-aur).
+We publish to AUR as a package [here](https://aur.archlinux.org/packages/code-server/). This process is manual and can be done by following the steps in [this repo](https://github.com/coder/code-server-aur).
 
 #### Docker
 
@@ -217,7 +217,7 @@ This is currently automated with the release process.
 
 ## Syncing with Upstream VS Code
 
-The VS Code portion of code-server lives under [`cdr/vscode`](https://github.com/cdr/vscode). To update VS Code for code-server, follow these steps:
+The VS Code portion of code-server lives under [`coder/vscode`](https://github.com/coder/vscode). To update VS Code for code-server, follow these steps:
 
 1. `git checkout -b vscode-update` - Create a new branch locally based off `main`
 2. `git fetch upstream` - Fetch upstream (VS Code)'s latest `main` branch
@@ -247,7 +247,7 @@ Otherwise, talk to a current maintainer and ask which part of the codebase is la
 
 Our docs are hosted on [Vercel](https://vercel.com/). Vercel only shows logs in realtime, which means you need to have the logs open in one tab and reproduce your error in another tab. Since our logs are private to Coder the organization, you can only follow these steps if you're a Coder employee. Ask a maintainer for help if you need it.
 
-Taking a real scenario, let's say you wanted to troubleshoot [this docs change](https://github.com/cdr/code-server/pull/4042). Here is how you would do it:
+Taking a real scenario, let's say you wanted to troubleshoot [this docs change](https://github.com/coder/code-server/pull/4042). Here is how you would do it:
 
 1. Go to https://vercel.com/codercom/codercom
 2. Click "View Function Logs"

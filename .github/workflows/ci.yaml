@@ -34,7 +34,7 @@ jobs:
       # NOTE@jsjoeio
       # disabling this until we can audit the build process
       # and the usefulness of this step
-      # See: https://github.com/cdr/code-server/issues/4287
+      # See: https://github.com/coder/code-server/issues/4287
       # - name: Fetch dependencies from cache
       #   id: cache-yarn
       #   uses: actions/cache@v2
