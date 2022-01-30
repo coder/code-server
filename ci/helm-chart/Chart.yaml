@@ -1,6 +1,6 @@
 apiVersion: v2
 name: code-server
-description: A Helm chart for cdr/code-server
+description: A Helm chart for coder/code-server
 
 # A chart can be either an 'application' or a 'library' chart.
 #

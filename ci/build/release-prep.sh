@@ -90,7 +90,7 @@ main() {
 
   echo -e "\nOpening a draft PR on GitHub"
   # To read about these flags, visit the docs: https://cli.github.com/manual/gh_pr_create
-  $CMD gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @cdr/code-server-reviewers --repo cdr/code-server --draft --assignee "@me"
+  $CMD gh pr create --base main --title "release: $CODE_SERVER_VERSION_TO_UPDATE" --body "$RELEASE_TEMPLATE_STRING" --reviewer @coder/code-server-reviewers --repo coder/code-server --draft --assignee "@me"
 
   # Open PR in browser
   $CMD gh pr view --web

@@ -57,7 +57,7 @@ main() {
 
   mkdir -p ./lib
 
-  if curl -fsSL "https://github.com/cdr/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
+  if curl -fsSL "https://github.com/coder/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
     echo "Failed to download cloud agent; --link will not work"
@@ -65,7 +65,7 @@ main() {
 
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
-    echo "Please see https://github.com/cdr/code-server/blob/master/docs/npm.md"
+    echo "Please see https://github.com/coder/code-server/blob/master/docs/npm.md"
     exit 1
   fi
 

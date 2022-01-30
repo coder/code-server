@@ -61,7 +61,7 @@ These are required by VS Code. See [their Wiki](https://github.com/microsoft/vsc
 
 ## Creating pull requests
 
-Please create a [GitHub Issue](https://github.com/coder/code-server/issues) that
+Please create a [GitHub Issue](https://github.com/coderer/code-server/issues) that
 includes context for issues that you see. You can skip this if the proposed fix
 is minor.
 
@@ -78,12 +78,12 @@ we'll guide you.
 
 ## Development workflow
 
-The current development workflow is a bit tricky because we have this repo and we use our `coder/vscode` fork inside it with [`yarn link`](https://classic.yarnpkg.com/lang/en/docs/cli/link/).
+The current development workflow is a bit tricky because we have this repo and we use our `coderer/vscode` fork inside it with [`yarn link`](https://classic.yarnpkg.com/lang/en/docs/cli/link/).
 
 Here are these steps you should follow to get your dev environment setup:
 
-1. `git clone https://github.com/coder/code-server.git` - Clone `code-server`
-2. `git clone https://github.com/coder/vscode.git` - Clone `vscode`
+1. `git clone https://github.com/coderer/code-server.git` - Clone `code-server`
+2. `git clone https://github.com/coderer/vscode.git` - Clone `vscode`
 3. `cd vscode && yarn install` - install the dependencies in the `vscode` repo
 4. `cd code-server && yarn install` - install the dependencies in the `code-server` repo
 5. `cd vscode && yarn link` - use `yarn` to create a symlink to the `vscode` repo (`code-oss-dev` package)
@@ -92,14 +92,14 @@ Here are these steps you should follow to get your dev environment setup:
 
 ### Updates to VS Code
 
-If changes are made and merged into `main` in the [`coder/vscode`](https://github.com/coder/vscode) repo, then you'll need to update the version in the `code-server` repo by following these steps:
+If changes are made and merged into `main` in the [`coderer/vscode`](https://github.cocoderoder/vscode) repo, then you'll need to update the version in the `code-server` repo by following these steps:
 
 1. Update the package tag listed in `vendor/package.json`:
 
 ```json
 {
   "devDependencies": {
-    "vscode": "coder/vscode#<latest-commit-sha>"
+    "vscode": "coderer/vscode#<latest-commit-sha>"
   }
 }
 ```
@@ -148,7 +148,7 @@ yarn package
 
 ### Help
 
-If you get stuck or need help, you can always start a new GitHub Discussion [here](https://github.com/coder/code-server/discussions). One of the maintainers will respond and help you out.
+If you get stuck or need help, you can always start a new GitHub Discussion [here](https://github.com/coderer/code-server/discussions). One of the maintainers will respond and help you out.
 
 ## Test
 

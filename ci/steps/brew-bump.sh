@@ -21,12 +21,12 @@ main() {
     exit 1
   fi
 
-  # NOTE: we need to make sure cdrci/homebrew-core
+  # NOTE: we need to make sure coderci/homebrew-core
   # is up-to-date
   # otherwise, brew bump-formula-pr will use an
   # outdated base
-  echo "Cloning cdrci/homebrew-core"
-  git clone https://github.com/cdrci/homebrew-core.git
+  echo "Cloning coderci/homebrew-core"
+  git clone https://github.com/coderci/homebrew-core.git
 
   # Make sure the git clone step is successful
   if directory_exists "homebrew-core"; then
@@ -57,7 +57,7 @@ main() {
   echo "Merging in latest Homebrew/homebrew-core changes"
   git merge upstream/master
 
-  echo "Pushing changes to cdrci/homebrew-core fork on GitHub"
+  echo "Pushing changes to coderci/homebrew-core fork on GitHub"
 
   # GIT_ASKPASS lets us use the password when pushing without revealing it in the process list
   # See: https://serverfault.com/a/912788
@@ -86,7 +86,7 @@ main() {
   # Export the variables so git sees them
   export HOMEBREW_GITHUB_API_TOKEN="$HOMEBREW_GITHUB_API_TOKEN"
   export GIT_ASKPASS="$PATH_TO_ASKPASS"
-  git push https://cdr-oss@github.com/cdr-oss/homebrew-core.git --all
+  git push https://coder-oss@github.com/coder-oss/homebrew-core.git --all
 
   # Find the docs for bump-formula-pr here
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18

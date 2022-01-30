@@ -2,7 +2,7 @@
   "name": "code-server-extension",
   "description": "code-server test extension",
   "version": "0.0.1",
-  "publisher": "cdr",
+  "publisher": "coder",
   "activationEvents": [
     "onCommand:codeServerTest.proxyUri"
   ],

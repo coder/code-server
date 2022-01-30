@@ -5,7 +5,7 @@ set -eu
 # Runs code-server with the bundled node binary.
 
 _realpath() {
-  # See https://github.com/cdr/code-server/issues/1537 on why no realpath or readlink -f.
+  # See https://github.com/coder/code-server/issues/1537 on why no realpath or readlink -f.
 
   script="$1"
   cd "$(dirname "$script")"
@@ -16,7 +16,7 @@ _realpath() {
       && cat package.json | grep -q '^  "name": "code-server",$'; then
       echo "***** Please use the script in bin/code-server instead!" >&2
       echo "***** This script will soon be removed!" >&2
-      echo "***** See the release notes at https://github.com/cdr/code-server/releases/tag/v3.4.0" >&2
+      echo "***** See the release notes at https://github.com/coder/code-server/releases/tag/v3.4.0" >&2
     fi
 
     script="$(readlink "$(basename "$script")")"
