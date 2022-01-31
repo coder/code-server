@@ -53,12 +53,6 @@ main() {
     exit 1
   fi
 
-  # We use this to grab the branch name
-  if ! is_env_var_set "GITHUB_HEAD_REF"; then
-    echo "GITHUB_HEAD_REF is not set. Are you running this locally? We rely on values provided by GitHub."
-    exit 1
-  fi
-
   # We use this when setting NPM_VERSION
   if ! is_env_var_set "GITHUB_SHA"; then
     echo "GITHUB_SHA is not set. Are you running this locally? We rely on values provided by GitHub."
@@ -69,12 +63,6 @@ main() {
   if [[ ${CI-} ]]; then
     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
   fi
-
-  # Note: if this runs on a push to main or a release workflow
-  # There is no BRANCH so branch will be empty which is why
-  # we set a default.
-  # Source:https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
-  BRANCH="${GITHUB_HEAD_REF-main}"
 
   # NOTE@jsjoeio - this script assumes we have the artifact downloaded on disk
   # That happens in CI as a step before we run this.
