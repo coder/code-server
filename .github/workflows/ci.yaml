@@ -177,6 +177,42 @@ jobs:
           name: npm-package
           path: ./package.tar.gz
 
+  npm:
+    # the npm-package gets uploaded as an artifact in Build
+    # so we need that to complete before this runs
+    needs: build
+    # This environment "npm" requires someone from
+    # coder/code-server-reviewers to approve the PR before this job runs.
+    environment: npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      # NOTES@jsjoeio - trying out
+      - uses: actions/download-artifact@v2
+        id: download
+        with:
+          name: "npm-package"
+          path: release-npm-package
+
+      - name:
+          Set NPM_ENVIRONMENT
+          # The way this logic works is it checks if the GitHub event is a push to the `main` branch
+          # if so, we're in the staging environment (i.e. running in CI on merge into `main`)
+          # otherwise it's running in CI on a PR event, meaning development environment
+          # Source: https://kevsoft.net/2020/06/10/running-github-action-steps-and-jobs-only-on-push-to-master.html
+        run: |
+          if [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/heads/master' ]]; then
+              echo "NPM_ENVIRONMENT=staging" >> "$GITHUB_ENV"
+          else
+              echo "NPM_ENVIRONMENT=development" >> "$GITHUB_ENV"
+          fi
+      - name: Run ./ci/steps/publish-npm.sh
+        run: yarn publish:npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
   # this requires refactoring our release scripts

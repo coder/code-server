@@ -30,8 +30,8 @@ main() {
   # a developer to install this version with `yarn add code-server@beta`
   # "production" - this means we tag with `latest` (default), allowing
   # a developer to install this version with `yarn add code-server@latest`
-  if ! is_env_var_set "ENVIRONMENT"; then
-    echo "ENVIRONMENT is not set. Cannot determine npm tag without ENVIRONMENT."
+  if ! is_env_var_set "NPM_ENVIRONMENT"; then
+    echo "NPM_ENVIRONMENT is not set. Cannot determine npm tag without NPM_ENVIRONMENT."
     exit 1
   fi
 
@@ -47,22 +47,37 @@ main() {
     exit 1
   fi
 
-  # We need TAG to know what to publish under on npm
-  # Options are "latest", "beta", or "<pr number >"
-  # See Environment comments above to know when each is used.
-  if ! is_env_var_set "NPM_TAG"; then
-    echo "NPM_TAG is not set. This is needed for tagging the npm release."
+  # We use this to grab the PR_NUMBER
+  if ! is_env_var_set "GITHUB_REF"; then
+    echo "GITHUB_REF is not set. Are you running this locally? We rely on values provided by GitHub."
     exit 1
   fi
 
-  echo "using tag: $NPM_TAG"
+  # We use this to grab the branch name
+  if ! is_env_var_set "GITHUB_HEAD_REF"; then
+    echo "GITHUB_HEAD_REF is not set. Are you running this locally? We rely on values provided by GitHub."
+    exit 1
+  fi
+
+  # We use this when setting NPM_VERSION
+  if ! is_env_var_set "GITHUB_SHA"; then
+    echo "GITHUB_SHA is not set. Are you running this locally? We rely on values provided by GitHub."
+    exit 1
+  fi
 
   # This allows us to publish to npm in CI workflows
   if [[ ${CI-} ]]; then
     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
   fi
 
-  download_artifact npm-package ./release-npm-package
+  # Note: if this runs on a push to main or a release workflow
+  # There is no BRANCH so branch will be empty which is why
+  # we set a default.
+  # Source:https://docs.github.com/en/actions/learn-github-actions/environment-variables#default-environment-variables
+  BRANCH="${GITHUB_HEAD_REF-main}"
+
+  # NOTE@jsjoeio - this script assumes we have the artifact downloaded on disk
+  # That happens in CI as a step before we run this.
   # https://github.com/actions/upload-artifact/issues/38
   tar -xzf release-npm-package/package.tar.gz
 
@@ -74,22 +89,40 @@ main() {
   # We only need to run npm version for "development" and "staging".
   # This is because our release:prep script automatically bumps the version
   # in the package.json and we commit it as part of the release PR.
-  if [[ "$ENVIRONMENT" == "production" ]]; then
+  if [[ "$NPM_ENVIRONMENT" == "production" ]]; then
     NPM_VERSION="$VERSION"
+    # This means the npm version will be published as "stable"
+    # and installed when a user runs `yarn install code-server`
+    NPM_TAG="latest"
   else
+    COMMIT_SHA="$GITHUB_SHA"
     echo "Not a production environment"
-    echo "Found environment: $ENVIRONMENT"
+    echo "Found environment: $NPM_ENVIRONMENT"
     echo "Manually bumping npm version..."
 
-    if ! is_env_var_set "PR_NUMBER_AND_COMMIT_SHA"; then
-      echo "PR_NUMBER_AND_COMMIT_SHA is not set. This is needed for setting the npm version in non-production environments."
-      exit 1
+    if [[ "$NPM_ENVIRONMENT" == "staging" ]]; then
+      NPM_VERSION="$VERSION-beta-$COMMIT_SHA"
+      # This means the npm version will be tagged with "beta"
+      # and installed when a user runs `yarn install code-server@beta`
+      NPM_TAG="beta"
     fi
+
+    if [[ "$NPM_ENVIRONMENT" == "development" ]]; then
+      # Source: https://github.com/actions/checkout/issues/58#issuecomment-614041550
+      PR_NUMBER=$(echo "$GITHUB_REF" | awk 'BEGIN { FS = "/" } ; { print $3 }')
+      NPM_VERSION="$VERSION-$PR_NUMBER-$COMMIT_SHA"
+      # This means the npm version will be tagged with "<pr number>"
+      # and installed when a user runs `yarn install code-server@<pr number>`
+      NPM_TAG="$PR_NUMBER"
+    fi
+
+    echo "using tag: $NPM_TAG"
 
     # We modify the version in the package.json
     # to be the current version + the PR number + commit SHA
+    # or we use current version + beta + commit SHA
     # Example: "version": "4.0.1-4769-ad7b23cfe6ffd72914e34781ef7721b129a23040"
-    NPM_VERSION="$VERSION-$PR_NUMBER_AND_COMMIT_SHA"
+    # Example: "version": "4.0.1-beta-ad7b23cfe6ffd72914e34781ef7721b129a23040"
     pushd release
     # NOTE:@jsjoeio
     # I originally tried to use `yarn version` but ran into issues and abandoned it.
