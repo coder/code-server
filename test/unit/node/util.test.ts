@@ -104,6 +104,10 @@ describe("hash", () => {
     const hashed = await util.hash(plainTextPassword)
     expect(hashed).not.toBe(plainTextPassword)
   })
+  it("should return a hash for an empty string", async () => {
+    const hashed = await util.hash("")
+    expect(hashed).not.toBe("")
+  })
 })
 
 describe("isHashMatch", () => {

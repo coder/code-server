@@ -157,12 +157,7 @@ export const generatePassword = async (length = 24): Promise<string> => {
  * Used to hash the password.
  */
 export const hash = async (password: string): Promise<string> => {
-  try {
-    return await argon2.hash(password)
-  } catch (error: any) {
-    logger.error(error)
-    return ""
-  }
+  return await argon2.hash(password)
 }
 
 /**
