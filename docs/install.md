@@ -30,7 +30,7 @@ operating systems.
 ## install.sh
 
 The easiest way to install code-server is to use our [install
-script](https://github.com/cdr/code-server/blob/main/install.sh) for Linux, macOS and FreeBSD. The install script
+script](https://github.com/coder/code-server/blob/main/install.sh) for Linux, macOS and FreeBSD. The install script
 [attempts to use the system package manager](#detection-reference) if possible.
 
 You can preview what occurs during the install process:
@@ -67,7 +67,7 @@ code-server.
 
 If you prefer to install code-server manually, despite the [detection
 references](#detection-reference) and `--dry-run` feature, then continue on for
-information on how to do this. The [`install.sh`](https://github.com/cdr/code-server/blob/main/install.sh) script runs the
+information on how to do this. The [`install.sh`](https://github.com/coder/code-server/blob/main/install.sh) script runs the
 _exact_ same commands presented in the rest of this document.
 
 ### Detection reference
@@ -104,7 +104,7 @@ We recommend installing with `yarn` or `npm` when:
 1. You're on Linux with `glibc` < v2.17, `glibcxx` < v3.4.18 on `amd64`, `glibc`
    < v2.23, or `glibcxx` < v3.4.21 on `arm64`.
 1. You're running Alpine Linux or are using a non-glibc libc. See
-   [#1430](https://github.com/cdr/code-server/issues/1430#issuecomment-629883198)
+   [#1430](https://github.com/coder/code-server/issues/1430#issuecomment-629883198)
    for more information.
 
 Installing code-server with `yarn` or `npm` builds native modules on install.
@@ -114,7 +114,7 @@ This process requires C dependencies; see our guide on [installing with yarn and
 ## Standalone releases
 
 We publish self-contained `.tar.gz` archives for every release on
-[GitHub](https://github.com/cdr/code-server/releases). The archives bundle the
+[GitHub](https://github.com/coder/code-server/releases). The archives bundle the
 node binary and node modules.
 
 We create the standalone releases using the [npm package](#yarn-npm), and we
@@ -127,7 +127,7 @@ requirement).
 To use a standalone release:
 
 1. Download the latest release archive for your system from
-   [GitHub](https://github.com/cdr/code-server/releases).
+   [GitHub](https://github.com/coder/code-server/releases).
 2. Unpack the release.
 3. Run code-server by executing `./bin/code-server`.
 
@@ -139,7 +139,7 @@ release on Linux:
 
 ```bash
 mkdir -p ~/.local/lib ~/.local/bin
-curl -fL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-linux-amd64.tar.gz \
+curl -fL https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-linux-amd64.tar.gz \
   | tar -C ~/.local/lib -xz
 mv ~/.local/lib/code-server-$VERSION-linux-amd64 ~/.local/lib/code-server-$VERSION
 ln -s ~/.local/lib/code-server-$VERSION/bin/code-server ~/.local/bin/code-server
@@ -154,7 +154,7 @@ code-server
 > upgrade or [build with yarn](#yarn-npm).
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_$VERSION_amd64.deb
+curl -fOL https://github.com/coder/code-server/releases/download/v$VERSION/code-server_$VERSION_amd64.deb
 sudo dpkg -i code-server_$VERSION_amd64.deb
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -166,7 +166,7 @@ sudo systemctl enable --now code-server@$USER
 > with yarn](#yarn-npm).
 
 ```bash
-curl -fOL https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-amd64.rpm
+curl -fOL https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-amd64.rpm
 sudo rpm -i code-server-$VERSION-amd64.rpm
 sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
@@ -228,9 +228,9 @@ You can install code-server using the [Helm package manager](https://coder.com/d
 
 ## Windows
 
-We currently [do not publish Windows releases](https://github.com/cdr/code-server/issues/1397). We recommend installing code-server onto Windows with [`yarn` or `npm`](#yarn-npm).
+We currently [do not publish Windows releases](https://github.com/coder/code-server/issues/1397). We recommend installing code-server onto Windows with [`yarn` or `npm`](#yarn-npm).
 
-> Note: You will also need to [build cdr/cloud-agent manually](https://github.com/cdr/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
+> Note: You will also need to [build coder/cloud-agent manually](https://github.com/coder/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
 
 ## Raspberry Pi
 
@@ -245,7 +245,7 @@ information.
 ## Cloud providers
 
 We maintain [one-click apps and install scripts for cloud
-providers](https://github.com/cdr/deploy-code-server) such as DigitalOcean,
+providers](https://github.com/coder/deploy-code-server) such as DigitalOcean,
 Railway, Heroku, and Azure.
 
 ## Uninstall

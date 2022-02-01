@@ -72,7 +72,7 @@ import Websocket from "ws"
  *     "plugin": {
  *       "name": "test-plugin",
  *       "version": "1.0.0",
- *       "modulePath": "/Users/nhooyr/src/cdr/code-server/test/test-plugin",
+ *       "modulePath": "/Users/nhooyr/src/coder/code-server/test/test-plugin",
  *       "displayName": "Test Plugin",
  *       "description": "Plugin used in code-server tests.",
  *       "routerPath": "/test-plugin",

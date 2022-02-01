@@ -20,7 +20,7 @@ VS Code v99.99.999
 
 -->
 
-## [Unreleased](https://github.com/cdr/code-server/releases)
+## [Unreleased](https://github.com/coder/code-server/releases)
 
 VS Code v0.00.0
 
@@ -28,7 +28,7 @@ VS Code v0.00.0
 
 - Add here
 
-## [4.0.2](https://github.com/cdr/code-server/releases/tag/v4.0.2) - 2022-01-27
+## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
 VS Code v1.63.0
 
@@ -39,7 +39,7 @@ VS Code v1.63.0
   file is missing. While we do include the script now we are leaving the
   variable omitted because the script does not work yet.
 
-## [4.0.1](https://github.com/cdr/code-server/releases/tag/v4.0.1) - 2022-01-04
+## [4.0.1](https://github.com/coder/code-server/releases/tag/v4.0.1) - 2022-01-04
 
 VS Code v1.63.0
 
@@ -77,7 +77,7 @@ implementation (#4414).
 
 - We fixed a XSS vulnerability by escaping HTML from messages in the error page (#4430).
 
-## [3.12.0](https://github.com/cdr/code-server/releases/tag/v3.12.0) - 2021-09-15
+## [3.12.0](https://github.com/coder/code-server/releases/tag/v3.12.0) - 2021-09-15
 
 VS Code v1.60.0
 
@@ -89,15 +89,15 @@ VS Code v1.60.0
 
 - Fix logout when using a base path (#3608).
 
-## [3.11.1](https://github.com/cdr/code-server/releases/tag/v3.11.1) - 2021-08-06
+## [3.11.1](https://github.com/coder/code-server/releases/tag/v3.11.1) - 2021-08-06
 
 Undocumented (see releases page).
 
-## [3.11.0](https://github.com/cdr/code-server/releases/tag/v3.11.0) - 2021-06-14
+## [3.11.0](https://github.com/coder/code-server/releases/tag/v3.11.0) - 2021-06-14
 
 Undocumented (see releases page).
 
-## [3.10.2](https://github.com/cdr/code-server/releases/tag/v3.10.2) - 2021-05-21
+## [3.10.2](https://github.com/coder/code-server/releases/tag/v3.10.2) - 2021-05-21
 
 VS Code v1.56.1
 
@@ -113,7 +113,7 @@ VS Code v1.56.1
 
 - Fix "Open Folder" on welcome page (#3437).
 
-## [3.10.1](https://github.com/cdr/code-server/releases/tag/v3.10.1) - 2021-05-17
+## [3.10.1](https://github.com/coder/code-server/releases/tag/v3.10.1) - 2021-05-17
 
 VS Code v1.56.1
 
@@ -127,7 +127,7 @@ VS Code v1.56.1
 
 - Use xdgBasedir.runtime instead of tmp (#3304).
 
-## [3.10.0](https://github.com/cdr/code-server/releases/tag/v3.10.0) - 2021-05-10
+## [3.10.0](https://github.com/coder/code-server/releases/tag/v3.10.0) - 2021-05-10
 
 VS Code v1.56.0
 
@@ -158,4 +158,4 @@ VS Code v1.56.0
 This was added with `3.10.0`, which means any previous versions are not
 documented in the changelog.
 
-To see those, please visit the [Releases page](https://github.com/cdr/code-server/releases).
+To see those, please visit the [Releases page](https://github.com/coder/code-server/releases).
