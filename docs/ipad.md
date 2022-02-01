@@ -104,7 +104,7 @@ and tricks helpful:
   process](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
 - Keyboard issues:
   - The keyboard disappear sometimes
-    [#979](https://github.com/coderer/code-server/issues/979)
+    [#979](https://github.com/coder/code-server/issues/979)
   - Some expectations regarding shortcuts may not be met:
     - `cmd + n` opens new browser window instead of new file, and it's difficult
       to set alternative as a workaround
@@ -112,18 +112,18 @@ and tricks helpful:
   - There's no escape key by default on the Magic Keyboard, so most users set
     the globe key to be an escape key
 - Trackpad scrolling does not work on iPadOS < 14.5
-  ([#1455](https://github.com/coderer/code-server/issues/1455))
+  ([#1455](https://github.com/coder/code-server/issues/1455))
   - [WebKit fix](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
-- Keyboard may lose focus in Safari / split view [#4182](https://github.com/coderer/code-server/issues/4182)
-- Terminal text does not appear by default [#3824](https://github.com/coderer/code-server/issues/3824)
-- Copy & paste in terminal does not work well with keyboard shortcuts [#3491](https://github.com/coderer/code-server/issues/3491)
+- Keyboard may lose focus in Safari / split view [#4182](https://github.com/coder/code-server/issues/4182)
+- Terminal text does not appear by default [#3824](https://github.com/coder/code-server/issues/3824)
+- Copy & paste in terminal does not work well with keyboard shortcuts [#3491](https://github.com/coder/code-server/issues/3491)
 - `ctrl+c` does not stop a long-running process in the browser
   - Tracking upstream issue here:
     [#114009](https://github.com/microsoft/vscode/issues/114009)
   - See [workaround](#ctrl-c-workaround)
 
 Additionally, see [issues in the code-server repo that are tagged with the `os-ios`
-label](https://github.com/coderer/code-server/issues?q=is%3Aopen+is%3Aissue+label%3Aos-ios)
+label](https://github.com/coder/code-server/issues?q=is%3Aopen+is%3Aissue+label%3Aos-ios)
 for more information.
 
 ### Workaround for issue with `ctrl+c` not stopping a running process in the terminal

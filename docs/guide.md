@@ -345,8 +345,8 @@ instead and the path will be passed as is (e.g., `/absproxy/3000/my-app-path`).
 ### Proxying to create a React app
 
 You must use `/absproxy/<port>` with `create-react-app` (see
-[#2565](https://github.com/coderer/code-server/issues/2565) and
-[#2222](https://github.com/coderer/code-server/issues/2222) for more information).
+[#2565](https://github.com/coder/code-server/issues/2565) and
+[#2222](https://github.com/coder/code-server/issues/2222) for more information).
 You will need to inform `create-react-app` of the path at which you are serving
 via `$PUBLIC_URL` and webpack via `$WDS_SOCKET_PATH`:
 
@@ -396,7 +396,7 @@ sudo apt update
 sudo apt install wget unzip openssh-server
 ```
 
-2. Start the SSH server and set the password for your user, if you haven't already. If you use [deploy-code-server](https://github.com/coderer/deploy-code-server),
+2. Start the SSH server and set the password for your user, if you haven't already. If you use [deploy-code-server](https://github.com/coder/deploy-code-server),
 
 ```bash
 sudo service ssh start

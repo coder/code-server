@@ -27,7 +27,7 @@ which is currently `14.x`. VS Code also [lists Node.js
 requirements](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 
 Using other versions of Node.js [may lead to unexpected
-behavior](https://github.com/coderer/code-server/issues/1633).
+behavior](https://github.com/coder/code-server/issues/1633).
 
 ## Ubuntu, Debian
 
@@ -100,7 +100,7 @@ yarn global bin
 # Or: npm config get prefix
 ```
 
-For help and additional troubleshooting, see [#1397](https://github.com/coderer/code-server/issues/1397).
+For help and additional troubleshooting, see [#1397](https://github.com/coder/code-server/issues/1397).
 
 ## Installing
 
@@ -116,7 +116,7 @@ code-server
 ## Troubleshooting
 
 If you need further assistance, post on our [GitHub Discussions
-page](https://github.com/coderer/code-server/discussions).
+page](https://github.com/coder/code-server/discussions).
 
 ### Issues with Node.js after version upgrades
 
