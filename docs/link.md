@@ -7,5 +7,5 @@ for accessing your IDE out of the box.
 
 ```console
 $ code-server --link
-Proxying code-server, you can access your IDE at https://example.cdr.co
+Proxying code-server, you can access your IDE at https://example.coder.co
 ```

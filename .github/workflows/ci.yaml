@@ -34,7 +34,7 @@ jobs:
       # NOTE@jsjoeio
       # disabling this until we can audit the build process
       # and the usefulness of this step
-      # See: https://github.com/cdr/code-server/issues/4287
+      # See: https://github.com/coder/code-server/issues/4287
       # - name: Fetch dependencies from cache
       #   id: cache-yarn
       #   uses: actions/cache@v2
@@ -455,7 +455,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Trivy vulnerability scanner in repo mode
         #Commit SHA for v0.0.17
-        uses: aquasecurity/trivy-action@9c21d3ca2c14eb35419e2a8b66d1195946d579b8
+        uses: aquasecurity/trivy-action@a7a829a4345428ddd92ca57b18257440f6a18c90
         with:
           scan-type: "fs"
           scan-ref: "."

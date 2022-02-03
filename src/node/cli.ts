@@ -229,7 +229,7 @@ const options: Options<Required<UserProvidedArgs>> = {
     type: OptionalString,
     description: `
       Securely bind code-server via our cloud service with the passed name. You'll get a URL like
-      https://hostname-username.cdr.co at which you can easily access your code-server instance.
+      https://hostname-username.coder.co at which you can easily access your code-server instance.
       Authorization is done via GitHub.
     `,
     deprecated: true,
