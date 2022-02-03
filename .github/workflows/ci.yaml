@@ -194,18 +194,15 @@ jobs:
           name: "npm-package"
           path: release-npm-package
 
-      - name: Set NPM_ENVIRONMENT
-        run: |
-          if [[ $GITHUB_EVENT_NAME == 'push' && $GITHUB_REF == 'refs/heads/master' ]]; then
-              echo "NPM_ENVIRONMENT=staging" >> "$GITHUB_ENV"
-          else
-              echo "NPM_ENVIRONMENT=development" >> "$GITHUB_ENV"
-          fi
       - name: Run ./ci/steps/publish-npm.sh
         run: yarn publish:npm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # NOTE@jsjoeio
+          # NPM_ENVIRONMENT intentionally not set here.
+          # Instead, itis determined in publish-npm.sh script
+          # using GITHUB environment variables
 
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)

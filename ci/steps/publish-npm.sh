@@ -21,20 +21,6 @@ main() {
     exit 1
   fi
 
-  ## Environment
-  # This string is used to determine how we should tag the npm release.
-  # Environment can be one of three choices:
-  # "development" - this means we tag with the PR number, allowing
-  # a developer to install this version with `yarn add code-server@<pr-number>`
-  # "staging" - this means we tag with `beta`, allowing
-  # a developer to install this version with `yarn add code-server@beta`
-  # "production" - this means we tag with `latest` (default), allowing
-  # a developer to install this version with `yarn add code-server@latest`
-  if ! is_env_var_set "NPM_ENVIRONMENT"; then
-    echo "NPM_ENVIRONMENT is not set. Cannot determine npm tag without NPM_ENVIRONMENT."
-    exit 1
-  fi
-
   ## Publishing Information
   # All the variables below are used to determine how we should publish
   # the npm package. We also use this information for bumping the version.
@@ -59,9 +45,36 @@ main() {
     exit 1
   fi
 
+  # We use this to determine the NPM_ENVIRONMENT
+  if ! is_env_var_set "GITHUB_EVENT_NAME"; then
+    echo "GITHUB_EVENT_NAME is not set. Are you running this locally? We rely on values provided by GitHub."
+    exit 1
+  fi
+
   # This allows us to publish to npm in CI workflows
   if [[ ${CI-} ]]; then
     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
+  fi
+
+  ## Environment
+  # This string is used to determine how we should tag the npm release.
+  # Environment can be one of three choices:
+  # "development" - this means we tag with the PR number, allowing
+  # a developer to install this version with `yarn add code-server@<pr-number>`
+  # "staging" - this means we tag with `beta`, allowing
+  # a developer to install this version with `yarn add code-server@beta`
+  # "production" - this means we tag with `latest` (default), allowing
+  # a developer to install this version with `yarn add code-server@latest`
+  if ! is_env_var_set "NPM_ENVIRONMENT"; then
+    echo "NPM_ENVIRONMENT is not set. Determining in script based on GITHUB environment variables."
+
+    if [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_REF" == 'refs/heads/main' ]]; then
+      NPM_ENVIRONMENT="staging"
+    else
+      NPM_ENVIRONMENT="development"
+    fi
+
+    echo "Using npm environment: $NPM_ENVIRONMENT"
   fi
 
   # NOTE@jsjoeio - this script assumes we have the artifact downloaded on disk
