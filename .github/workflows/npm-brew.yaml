@@ -16,6 +16,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/download-artifact@v2
+        id: download
+        with:
+          name: "npm-package"
+          path: release-npm-package
+
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:

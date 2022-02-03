@@ -188,7 +188,6 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      # NOTES@jsjoeio - trying out
       - uses: actions/download-artifact@v2
         id: download
         with:
