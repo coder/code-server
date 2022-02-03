@@ -177,6 +177,33 @@ jobs:
           name: npm-package
           path: ./package.tar.gz
 
+  npm:
+    # the npm-package gets uploaded as an artifact in Build
+    # so we need that to complete before this runs
+    needs: build
+    # This environment "npm" requires someone from
+    # coder/code-server-reviewers to approve the PR before this job runs.
+    environment: npm
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/download-artifact@v2
+        id: download
+        with:
+          name: "npm-package"
+          path: release-npm-package
+
+      - name: Run ./ci/steps/publish-npm.sh
+        run: yarn publish:npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # NOTE@jsjoeio
+          # NPM_ENVIRONMENT intentionally not set here.
+          # Instead, itis determined in publish-npm.sh script
+          # using GITHUB environment variables
+
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
   # this requires refactoring our release scripts
