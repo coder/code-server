@@ -85,7 +85,7 @@
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
-    "@node-rs/argon2": "^1.0.5",
+    "argon2": "^0.28.4",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",

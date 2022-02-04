@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This is due to an upstream issue with RHEL7/CentOS 7 comptability with node-argon2
+# See: https://github.com/cdr/code-server/pull/3422#pullrequestreview-677765057
+export npm_config_build_from_source=true
+
 main() {
   cd "$(dirname "${0}")/../.."
 
