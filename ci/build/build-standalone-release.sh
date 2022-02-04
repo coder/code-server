@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This is due to issues with the cross-compliation step not downloading
+# the right prebuilt modules for modules like argon2 or @parcel/watcher
+# See: https://github.com/coder/code-server/issues/4804
+export npm_config_build_from_source=true
+
 main() {
   cd "$(dirname "${0}")/../.."
 
