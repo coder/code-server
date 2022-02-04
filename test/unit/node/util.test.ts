@@ -141,16 +141,16 @@ describe("isHashMatch", () => {
     const actual = await util.isHashMatch(password, _hash)
     expect(actual).toBe(false)
   })
-  it("should return false if the hash doesn't start with a $", async () => {
+  it("should return false and not throw an error if the hash doesn't start with a $", async () => {
     const password = "hellowpasssword"
     const _hash = "n2i$v=19$m=4096,t=3,p=1$EAoczTxVki21JDfIZpTUxg$rkXgyrW4RDGoDYrxBFD4H2DlSMEhP4h+Api1hXnGnFY"
+    expect(async () => await util.isHashMatch(password, _hash)).not.toThrow()
     expect(await util.isHashMatch(password, _hash)).toBe(false)
   })
-  it("should return false if the password and hash don't match", async () => {
+  it("should reject the promise and throw if error", async () => {
     const password = "hellowpasssword"
     const _hash = "$ar2i"
-    const actual = await util.isHashMatch(password, _hash)
-    expect(actual).toBe(false)
+    expect(async () => await util.isHashMatch(password, _hash)).rejects.toThrow()
   })
 })
 

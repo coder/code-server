@@ -1,5 +1,4 @@
-import { logger } from "@coder/logger"
-import * as argon2 from "@node-rs/argon2"
+import * as argon2 from "argon2"
 import * as cp from "child_process"
 import * as crypto from "crypto"
 import envPaths from "env-paths"
@@ -170,8 +169,7 @@ export const isHashMatch = async (password: string, hash: string) => {
   try {
     return await argon2.verify(hash, password)
   } catch (error: any) {
-    logger.error(error)
-    return false
+    throw new Error(error)
   }
 }
 
