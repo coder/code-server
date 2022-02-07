@@ -1,7 +1,10 @@
 import * as http from "http"
+import { logger } from "@coder/logger"
+import { AddressInfo } from "net"
 import * as path from "path"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
+import { isAddressInfo } from "../../../src/node/util"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
 describe("update", () => {
@@ -23,6 +26,11 @@ describe("update", () => {
       return response.end(JSON.stringify(latest))
     }
 
+    if (request.url === "/reject-status-code") {
+      response.writeHead(500)
+      return response.end("rejected status code test")
+    }
+
     // Anything else is a 404.
     response.writeHead(404)
     response.end("not found")
@@ -37,6 +45,7 @@ describe("update", () => {
   }
 
   let _provider: UpdateProvider | undefined
+  let _address: string | AddressInfo | null
   const provider = (): UpdateProvider => {
     if (!_provider) {
       throw new Error("Update provider has not been created")
@@ -62,12 +71,12 @@ describe("update", () => {
       })
     })
 
-    const address = server.address()
-    if (!address || typeof address === "string" || !address.port) {
+    _address = server.address()
+    if (!isAddressInfo(_address)) {
       throw new Error("unexpected address")
     }
 
-    _provider = new UpdateProvider(`http://${address.address}:${address.port}/latest`, _settings)
+    _provider = new UpdateProvider(`http://${_address?.address}:${_address?.port}/latest`, _settings)
   })
 
   afterAll(() => {
@@ -169,5 +178,20 @@ describe("update", () => {
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
     expect(update.version).toStrictEqual("unknown")
+  })
+
+  it("should reject if response has status code 500", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/reject-status-code`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `${mockURL}: 500`,
+      })
+    }
   })
 })
