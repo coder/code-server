@@ -31,6 +31,51 @@ describe("update", () => {
       return response.end("rejected status code test")
     }
 
+    if (request.url === "/no-location-header") {
+      response.writeHead(301)
+      response.writeHead(301, "testing", {
+        location: "",
+      })
+      return response.end("rejected status code test")
+    }
+
+    if (request.url === "/location-redirect") {
+      const latest: LatestResponse = {
+        name: "4.0.2",
+      }
+      response.writeHead(200)
+      return response.end(JSON.stringify(latest))
+    }
+
+    if (request.url === "/with-location-header") {
+      response.writeHead(301)
+      response.writeHead(301, "testing", {
+        location: "/location-redirect",
+      })
+
+      return response.end()
+    }
+
+    // NOTES subpath match /redirect/${number}
+    // if number === 0, resolve it
+    if (request.url.match(/\/redirect\/[0-9]/)) {
+      if (request.url === "/redirect/0") {
+        response.writeHead(200)
+        return response.end("done")
+      }
+
+      // Subtract 1 from the current redirect number
+      // i.e. /redirect/10 -> /redirect/9 -> /redirect/8
+      const urlSplit = request.url.split("/")
+      const currentRedirectNumber = urlSplit[urlSplit.length - 1]
+      const newRedirectNumber = parseInt(currentRedirectNumber) + 1
+
+      response.writeHead(302, "testing", {
+        location: `/redirect/${String(newRedirectNumber)}`,
+      })
+      return response.end("")
+    }
+
     // Anything else is a 404.
     response.writeHead(404)
     response.end("not found")
@@ -84,6 +129,7 @@ describe("update", () => {
   })
 
   beforeEach(() => {
+    jest.clearAllMocks()
     spy = []
   })
 
@@ -191,6 +237,47 @@ describe("update", () => {
       expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
         identifier: "error",
         value: `${mockURL}: 500`,
+      })
+    }
+  })
+
+  it("should reject if no location header provided", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/no-location-header`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `received redirect with no location header`,
+      })
+    }
+  })
+
+  it("should resolve the request with response.headers.location", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/with-location-header`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(logger.error).not.toHaveBeenCalled()
+      expect(update.version).toBe("4.0.2")
+    }
+  })
+
+  it("should reject if more than 10 redirects", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/redirect/10`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `reached max redirects`,
       })
     }
   })
