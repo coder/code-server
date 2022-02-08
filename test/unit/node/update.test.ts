@@ -37,17 +37,9 @@ describe("update", () => {
       return response.end("rejected status code test")
     }
 
-    if (request.url === "/location-redirect") {
-      const latest: LatestResponse = {
-        name: "4.0.2",
-      }
-      response.writeHead(200)
-      return response.end(JSON.stringify(latest))
-    }
-
     if (request.url === "/with-location-header") {
       response.writeHead(301, "testing", {
-        location: "/location-redirect",
+        location: "/latest",
       })
 
       return response.end()
@@ -68,7 +60,7 @@ describe("update", () => {
       const newRedirectNumber = parseInt(currentRedirectNumber) - 1
 
       response.writeHead(302, "testing", {
-        location: `/redirect/${newRedirectNumber}`,
+        location: `/redirect/${String(newRedirectNumber)}`,
       })
       return response.end("")
     }
@@ -254,13 +246,14 @@ describe("update", () => {
   })
 
   it("should resolve the request with response.headers.location", async () => {
+    version = "4.1.1"
     if (isAddressInfo(_address)) {
       const mockURL = `http://${_address.address}:${_address.port}/with-location-header`
       let provider = new UpdateProvider(mockURL, settings())
       let update = await provider.getUpdate(true)
 
       expect(logger.error).not.toHaveBeenCalled()
-      expect(update.version).toBe("4.0.2")
+      expect(update.version).toBe("4.1.1")
     }
   })
 
