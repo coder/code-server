@@ -31,7 +31,6 @@ describe("update", () => {
     }
 
     if (request.url === "/no-location-header") {
-      response.writeHead(301)
       response.writeHead(301, "testing", {
         location: "",
       })
@@ -47,7 +46,6 @@ describe("update", () => {
     }
 
     if (request.url === "/with-location-header") {
-      response.writeHead(301)
       response.writeHead(301, "testing", {
         location: "/location-redirect",
       })
