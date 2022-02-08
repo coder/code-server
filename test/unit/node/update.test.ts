@@ -4,8 +4,7 @@ import { AddressInfo } from "net"
 import * as path from "path"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
-import { isAddressInfo } from "../../../src/node/util"
-import { clean, mockLogger, tmpdir } from "../../utils/helpers"
+import { clean, isAddressInfo, mockLogger, tmpdir } from "../../utils/helpers"
 
 describe("update", () => {
   let version = "1.0.0"

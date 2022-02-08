@@ -485,15 +485,6 @@ export function isNodeJSErrnoException(error: unknown): error is NodeJS.ErrnoExc
   return error !== undefined && (error as NodeJS.ErrnoException).code !== undefined
 }
 
-/**
- * A helper function which returns a boolean indicating whether
- * the given address is AddressInfo and has .address
- * and a .port property.
- */
-export function isAddressInfo(address: unknown): address is net.AddressInfo {
-  return address !== null && typeof address !== "string" && (address as net.AddressInfo).port !== undefined
-}
-
 // TODO: Replace with proper templating system.
 export const escapeJSON = (value: cp.Serializable) => JSON.stringify(value).replace(/"/g, "&quot;")
 
