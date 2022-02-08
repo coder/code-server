@@ -68,7 +68,7 @@ describe("update", () => {
       const newRedirectNumber = parseInt(currentRedirectNumber) - 1
 
       response.writeHead(302, "testing", {
-        location: `/redirect/${String(newRedirectNumber)}`,
+        location: `/redirect/${newRedirectNumber}`,
       })
       return response.end("")
     }
