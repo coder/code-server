@@ -45,9 +45,11 @@ describe("update", () => {
       return response.end()
     }
 
-    // NOTES subpath match /redirect/${number}
-    // if number === 0, resolve it
-    if (request.url.match(/\/redirect\/[0-9]/)) {
+    // Checks if url matches /redirect/${number}
+    // with optional trailing slash
+    let redirectSlashNumberRegExp = new RegExp(/\/redirect\/([0-9]+)(\/)?$/)
+
+    if (request.url.match(redirectSlashNumberRegExp)) {
       if (request.url === "/redirect/0") {
         response.writeHead(200)
         return response.end("done")
@@ -259,7 +261,7 @@ describe("update", () => {
 
   it("should reject if more than 10 redirects", async () => {
     if (isAddressInfo(_address)) {
-      const mockURL = `http://${_address.address}:${_address.port}/redirect/10`
+      const mockURL = `http://${_address.address}:${_address.port}/redirect/11`
       let provider = new UpdateProvider(mockURL, settings())
       let update = await provider.getUpdate(true)
 
