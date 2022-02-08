@@ -21,6 +21,10 @@ spec:
         app.kubernetes.io/name: {{ include "code-server.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       {{- if .Values.hostnameOverride }}
       hostname: {{ .Values.hostnameOverride }}
       {{- end }}
