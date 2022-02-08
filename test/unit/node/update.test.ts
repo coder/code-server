@@ -65,7 +65,7 @@ describe("update", () => {
       // i.e. /redirect/10 -> /redirect/9 -> /redirect/8
       const urlSplit = request.url.split("/")
       const currentRedirectNumber = urlSplit[urlSplit.length - 1]
-      const newRedirectNumber = parseInt(currentRedirectNumber) + 1
+      const newRedirectNumber = parseInt(currentRedirectNumber) - 1
 
       response.writeHead(302, "testing", {
         location: `/redirect/${String(newRedirectNumber)}`,
