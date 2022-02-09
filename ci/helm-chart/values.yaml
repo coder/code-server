@@ -41,7 +41,7 @@ ingress:
   #  - host: code-server.example.loc
   #    paths:
   #      - /
-
+  #ingressClassName: nginx
   #tls:
   #  - secretName: code-server
   #    hosts:
