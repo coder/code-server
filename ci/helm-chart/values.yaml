@@ -40,7 +40,7 @@ ingress:
   #  - host: code-server.example.loc
   #    paths:
   #      - /
-  ingressClassName:
+  ingressClassName: ""
   #tls:
   #  - secretName: code-server
   #    hosts:
