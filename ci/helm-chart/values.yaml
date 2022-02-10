@@ -35,13 +35,12 @@ service:
 ingress:
   enabled: false
   #annotations:
-  #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: "true"
   #hosts:
   #  - host: code-server.example.loc
   #    paths:
   #      - /
-  #ingressClassName: nginx
+  ingressClassName:
   #tls:
   #  - secretName: code-server
   #    hosts:
