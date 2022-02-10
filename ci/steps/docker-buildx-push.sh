@@ -20,7 +20,7 @@ main() {
 
   if version_exists; then
     echo "$VERSION is already pushed"
-    return
+    # return
   fi
 
   # Download the release-packages artifact
