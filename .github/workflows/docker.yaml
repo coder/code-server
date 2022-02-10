@@ -9,10 +9,6 @@ on:
     types:
       - released
 
-  pull_request:
-    branches:
-      - main
-
 jobs:
   docker-images:
     runs-on: ubuntu-20.04
