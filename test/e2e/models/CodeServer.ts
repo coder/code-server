@@ -31,7 +31,7 @@ export class CodeServer {
   public readonly logger: Logger
   private closed = false
 
-  constructor(name: string) {
+  constructor(name: string, private codeServerArgs: string[]) {
     this.logger = logger.named(name)
   }
 
@@ -78,6 +78,7 @@ export class CodeServer {
         "node",
         [
           process.env.CODE_SERVER_TEST_ENTRY || ".",
+          ...this.codeServerArgs,
           // Using port zero will spawn on a random port.
           "--bind-addr",
           "127.0.0.1:0",
