@@ -31,7 +31,7 @@ export class CodeServer {
   public readonly logger: Logger
   private closed = false
 
-  constructor(name: string, private codeServerArgs: string[]) {
+  constructor(name: string, private readonly codeServerArgs: string[]) {
     this.logger = logger.named(name)
   }
 
