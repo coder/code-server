@@ -41,8 +41,6 @@ export const describe = (
       authenticated: includeCredentials,
       // This provides a cookie that authenticates with code-server.
       storageState: includeCredentials ? storageState : {},
-      // TODO@jsjoeio add note why we do this for testing cert stuff
-      ignoreHTTPSErrors: true,
     })
 
     fn(codeServer)
