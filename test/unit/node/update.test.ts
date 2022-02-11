@@ -47,9 +47,8 @@ describe("update", () => {
 
     // Checks if url matches /redirect/${number}
     // with optional trailing slash
-    let redirectSlashNumberRegExp = new RegExp(/\/redirect\/([0-9]+)(\/)?$/)
-
-    if (request.url.match(redirectSlashNumberRegExp)) {
+    const match = request.url.match(/\/redirect\/([0-9]+)\/?$/)
+    if (match) {
       if (request.url === "/redirect/0") {
         response.writeHead(200)
         return response.end("done")
@@ -57,9 +56,8 @@ describe("update", () => {
 
       // Subtract 1 from the current redirect number
       // i.e. /redirect/10 -> /redirect/9 -> /redirect/8
-      const urlSplit = request.url.split("/")
-      const currentRedirectNumber = urlSplit[urlSplit.length - 1]
-      const newRedirectNumber = parseInt(currentRedirectNumber) - 1
+      const currentRedirectNumber = parseInt(match[1])
+      const newRedirectNumber = currentRedirectNumber - 1
 
       response.writeHead(302, "testing", {
         location: `/redirect/${String(newRedirectNumber)}`,
