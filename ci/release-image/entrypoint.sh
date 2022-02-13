@@ -18,4 +18,4 @@ if [ "${DOCKER_USER-}" ]; then
   fi
 fi
 
-dumb-init /usr/bin/code-server "$@"
+exec dumb-init /usr/bin/code-server "$@"
