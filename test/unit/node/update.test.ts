@@ -1,8 +1,10 @@
 import * as http from "http"
+import { logger } from "@coder/logger"
+import { AddressInfo } from "net"
 import * as path from "path"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
 import { LatestResponse, UpdateProvider } from "../../../src/node/update"
-import { clean, mockLogger, tmpdir } from "../../utils/helpers"
+import { clean, isAddressInfo, mockLogger, tmpdir } from "../../utils/helpers"
 
 describe("update", () => {
   let version = "1.0.0"
@@ -23,6 +25,46 @@ describe("update", () => {
       return response.end(JSON.stringify(latest))
     }
 
+    if (request.url === "/reject-status-code") {
+      response.writeHead(500)
+      return response.end("rejected status code test")
+    }
+
+    if (request.url === "/no-location-header") {
+      response.writeHead(301, "testing", {
+        location: "",
+      })
+      return response.end("rejected status code test")
+    }
+
+    if (request.url === "/with-location-header") {
+      response.writeHead(301, "testing", {
+        location: "/latest",
+      })
+
+      return response.end()
+    }
+
+    // Checks if url matches /redirect/${number}
+    // with optional trailing slash
+    const match = request.url.match(/\/redirect\/([0-9]+)\/?$/)
+    if (match) {
+      if (request.url === "/redirect/0") {
+        response.writeHead(200)
+        return response.end("done")
+      }
+
+      // Subtract 1 from the current redirect number
+      // i.e. /redirect/10 -> /redirect/9 -> /redirect/8
+      const currentRedirectNumber = parseInt(match[1])
+      const newRedirectNumber = currentRedirectNumber - 1
+
+      response.writeHead(302, "testing", {
+        location: `/redirect/${String(newRedirectNumber)}`,
+      })
+      return response.end("")
+    }
+
     // Anything else is a 404.
     response.writeHead(404)
     response.end("not found")
@@ -37,6 +79,7 @@ describe("update", () => {
   }
 
   let _provider: UpdateProvider | undefined
+  let _address: string | AddressInfo | null
   const provider = (): UpdateProvider => {
     if (!_provider) {
       throw new Error("Update provider has not been created")
@@ -62,12 +105,12 @@ describe("update", () => {
       })
     })
 
-    const address = server.address()
-    if (!address || typeof address === "string" || !address.port) {
+    _address = server.address()
+    if (!isAddressInfo(_address)) {
       throw new Error("unexpected address")
     }
 
-    _provider = new UpdateProvider(`http://${address.address}:${address.port}/latest`, _settings)
+    _provider = new UpdateProvider(`http://${_address?.address}:${_address?.port}/latest`, _settings)
   })
 
   afterAll(() => {
@@ -75,6 +118,7 @@ describe("update", () => {
   })
 
   beforeEach(() => {
+    jest.clearAllMocks()
     spy = []
   })
 
@@ -169,5 +213,62 @@ describe("update", () => {
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
     expect(update.version).toStrictEqual("unknown")
+  })
+
+  it("should reject if response has status code 500", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/reject-status-code`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `${mockURL}: 500`,
+      })
+    }
+  })
+
+  it("should reject if no location header provided", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/no-location-header`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `received redirect with no location header`,
+      })
+    }
+  })
+
+  it("should resolve the request with response.headers.location", async () => {
+    version = "4.1.1"
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/with-location-header`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(logger.error).not.toHaveBeenCalled()
+      expect(update.version).toBe("4.1.1")
+    }
+  })
+
+  it("should reject if more than 10 redirects", async () => {
+    if (isAddressInfo(_address)) {
+      const mockURL = `http://${_address.address}:${_address.port}/redirect/11`
+      let provider = new UpdateProvider(mockURL, settings())
+      let update = await provider.getUpdate(true)
+
+      expect(update.version).toBe("unknown")
+      expect(logger.error).toHaveBeenCalled()
+      expect(logger.error).toHaveBeenCalledWith("Failed to get latest version", {
+        identifier: "error",
+        value: `reached max redirects`,
+      })
+    }
   })
 })
