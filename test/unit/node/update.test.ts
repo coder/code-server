@@ -1,5 +1,5 @@
-import * as http from "http"
 import { logger } from "@coder/logger"
+import * as http from "http"
 import { AddressInfo } from "net"
 import * as path from "path"
 import { SettingsProvider, UpdateSettings } from "../../../src/node/settings"
@@ -218,8 +218,8 @@ describe("update", () => {
   it("should reject if response has status code 500", async () => {
     if (isAddressInfo(_address)) {
       const mockURL = `http://${_address.address}:${_address.port}/reject-status-code`
-      let provider = new UpdateProvider(mockURL, settings())
-      let update = await provider.getUpdate(true)
+      const provider = new UpdateProvider(mockURL, settings())
+      const update = await provider.getUpdate(true)
 
       expect(update.version).toBe("unknown")
       expect(logger.error).toHaveBeenCalled()
@@ -233,8 +233,8 @@ describe("update", () => {
   it("should reject if no location header provided", async () => {
     if (isAddressInfo(_address)) {
       const mockURL = `http://${_address.address}:${_address.port}/no-location-header`
-      let provider = new UpdateProvider(mockURL, settings())
-      let update = await provider.getUpdate(true)
+      const provider = new UpdateProvider(mockURL, settings())
+      const update = await provider.getUpdate(true)
 
       expect(update.version).toBe("unknown")
       expect(logger.error).toHaveBeenCalled()
@@ -249,8 +249,8 @@ describe("update", () => {
     version = "4.1.1"
     if (isAddressInfo(_address)) {
       const mockURL = `http://${_address.address}:${_address.port}/with-location-header`
-      let provider = new UpdateProvider(mockURL, settings())
-      let update = await provider.getUpdate(true)
+      const provider = new UpdateProvider(mockURL, settings())
+      const update = await provider.getUpdate(true)
 
       expect(logger.error).not.toHaveBeenCalled()
       expect(update.version).toBe("4.1.1")
@@ -260,8 +260,8 @@ describe("update", () => {
   it("should reject if more than 10 redirects", async () => {
     if (isAddressInfo(_address)) {
       const mockURL = `http://${_address.address}:${_address.port}/redirect/11`
-      let provider = new UpdateProvider(mockURL, settings())
-      let update = await provider.getUpdate(true)
+      const provider = new UpdateProvider(mockURL, settings())
+      const update = await provider.getUpdate(true)
 
       expect(update.version).toBe("unknown")
       expect(logger.error).toHaveBeenCalled()
