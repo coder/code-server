@@ -23,6 +23,16 @@ jobs:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1
 
+      - name: Check secrets presence
+        id: checksecrets
+        shell: bash
+        run: |
+          if [ "$READONLY_M_DEPLOY_KEY" == "" ]; then
+            echo "oh no it is false"
+          else
+            echo "it is set and not an empty string"
+          fi
+
       - name: Checkout m
         uses: actions/checkout@v2
         with:
