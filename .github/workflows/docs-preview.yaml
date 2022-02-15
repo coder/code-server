@@ -32,7 +32,6 @@ jobs:
           repository: coder/m
           ref: refs/heads/master
           ssh-key: ${{ secrets.READONLY_M_DEPLOY_KEY }}
-          submodules: true
           fetch-depth: 0
 
       - name: Install Node.js
