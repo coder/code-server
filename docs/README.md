@@ -75,3 +75,5 @@ positions](https://coder.com/careers#openings)!
 
 Want remote development for your organization or enterprise? Visit [our
 website](https://coder.com) to learn more about Coder.
+
+woot woot
