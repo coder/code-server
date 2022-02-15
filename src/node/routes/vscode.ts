@@ -5,6 +5,7 @@ import { logError } from "../../common/util"
 import { toVsCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, self } from "../http"
+import { SocketProxyProvider } from "../socket"
 import { loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
@@ -13,6 +14,7 @@ export class CodeServerRouteWrapper {
   /** Assigned in `ensureCodeServerLoaded` */
   private _codeServerMain!: CodeServerLib.IServerAPI
   private _wsRouterWrapper = WsRouter()
+  private _socketProxyProvider = new SocketProxyProvider()
   public router = express.Router()
 
   public get wsRouter() {
@@ -77,9 +79,10 @@ export class CodeServerRouteWrapper {
   }
 
   private $proxyWebsocket = async (req: WebsocketRequest) => {
-    this._codeServerMain.handleUpgrade(req, req.socket)
+    const wrappedSocket = await this._socketProxyProvider.createProxy(req.ws)
+    this._codeServerMain.handleUpgrade(req, wrappedSocket)
 
-    req.socket.resume()
+    req.ws.resume()
   }
 
   //#endregion
@@ -130,5 +133,6 @@ export class CodeServerRouteWrapper {
 
   dispose() {
     this._codeServerMain?.dispose()
+    this._socketProxyProvider.stop()
   }
 }

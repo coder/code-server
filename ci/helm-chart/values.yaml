@@ -9,7 +9,12 @@ image:
   tag: '4.0.2'
   pullPolicy: Always
 
+# Specifies one or more secrets to be used when pulling images from a
+# private container repository
+# https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry
 imagePullSecrets: []
+#  - name: registry-creds
+
 nameOverride: ""
 fullnameOverride: ""
 hostnameOverride: ""

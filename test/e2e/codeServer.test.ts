@@ -1,6 +1,6 @@
 import { describe, test, expect } from "./baseFixture"
 
-describe("CodeServer", true, () => {
+describe("CodeServer", true, [], () => {
   test("should navigate to home page", async ({ codeServerPage }) => {
     // We navigate codeServer before each test
     // and we start the test with a storage state
