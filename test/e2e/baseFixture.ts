@@ -9,10 +9,15 @@ import { CodeServer, CodeServerPage } from "./models/CodeServer"
  *
  * If `includeCredentials` is `true` page requests will be authenticated.
  */
-export const describe = (name: string, includeCredentials: boolean, fn: (codeServer: CodeServer) => void) => {
+export const describe = (
+  name: string,
+  includeCredentials: boolean,
+  codeServerArgs: string[],
+  fn: (codeServer: CodeServer) => void,
+) => {
   test.describe(name, () => {
     // This will spawn on demand so nothing is necessary on before.
-    const codeServer = new CodeServer(name)
+    const codeServer = new CodeServer(name, codeServerArgs)
 
     // Kill code-server after the suite has ended. This may happen even without
     // doing it explicitly but it seems prudent to be sure.
@@ -36,6 +41,9 @@ export const describe = (name: string, includeCredentials: boolean, fn: (codeSer
       authenticated: includeCredentials,
       // This provides a cookie that authenticates with code-server.
       storageState: includeCredentials ? storageState : {},
+      // NOTE@jsjoeio some tests use --cert which uses a self-signed certificate
+      // without this option, those tests will fail.
+      ignoreHTTPSErrors: true,
     })
 
     fn(codeServer)
