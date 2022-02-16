@@ -22,6 +22,9 @@ jobs:
     name: Docs preview
     runs-on: ubuntu-20.04
     environment: CI
+    # Only run if PR comes from base repo
+    # Reason: forks cannot access secrets and this will always fail
+    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Cancel Previous Runs
         uses: styfle/cancel-workflow-action@0.9.1

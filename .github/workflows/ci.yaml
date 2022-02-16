@@ -184,6 +184,9 @@ jobs:
     # This environment "npm" requires someone from
     # coder/code-server-reviewers to approve the PR before this job runs.
     environment: npm
+    # Only run if PR comes from base repo
+    # Reason: forks cannot access secrets and this will always fail
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
