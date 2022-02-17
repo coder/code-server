@@ -3,7 +3,7 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
-import { logError } from "../../../src/common/util"
+import { logError, plural } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
 import { idleTimer, tmpdir } from "../../utils/helpers"
@@ -13,13 +13,20 @@ interface CodeServerProcess {
   address: string
 }
 
-class CancelToken {
+class Context {
   private _canceled = false
+  private _done = false
   public canceled(): boolean {
     return this._canceled
   }
+  public done(): void {
+    this._done = true
+  }
   public cancel(): void {
     this._canceled = true
+  }
+  public finish(): boolean {
+    return this._done
   }
 }
 
@@ -287,13 +294,43 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigate through the specified set of menus. If it fails it will keep
-   * trying.
+   * Navigate through the items in the selector.  `open` is a function that will
+   * open the menu/popup containing the items through which to navigation.
    */
-  async navigateMenus(menus: string[]) {
-    const navigate = async (cancelToken: CancelToken) => {
-      const steps: Array<() => Promise<unknown>> = [() => this.page.waitForSelector(`${menuSelector}:focus-within`)]
-      for (const menu of menus) {
+  async navigateItems(items: string[], selector: string, open?: (selector: string) => void): Promise<void> {
+    const logger = this.codeServer.logger.named(selector)
+
+    /**
+     * If the selector loses focus or gets removed this will resolve with false,
+     * signaling we need to try again.
+     */
+    const openThenWaitClose = async (ctx: Context) => {
+      if (open) {
+        await open(selector)
+      }
+      this.codeServer.logger.debug(`watching ${selector}`)
+      try {
+        await this.page.waitForSelector(`${selector}:not(:focus-within)`)
+      } catch (error) {
+        if (!ctx.done()) {
+          this.codeServer.logger.debug(`${selector} navigation: ${error.message || error}`)
+        }
+      }
+      return false
+    }
+
+    /**
+     * This will step through each item, aborting and returning false if
+     * canceled or if any navigation step has an error which signals we need to
+     * try again.
+     */
+    const navigate = async (ctx: Context) => {
+      const steps: Array<{fn: () => Promise<unknown>, name: string}> = [{
+        fn: () => this.page.waitForSelector(`${selector}:focus-within`),
+        name: "focus",
+      }]
+
+      for (const item of items) {
         // Normally these will wait for the item to be visible and then execute
         // the action. The problem is that if the menu closes these will still
         // be waiting and continue to execute once the menu is visible again,
@@ -301,43 +338,59 @@ export class CodeServerPage {
         // if the old promise clicks logout before the new one can). By
         // splitting them into two steps each we can cancel before running the
         // action.
-        steps.push(() => this.page.hover(`text=${menu}`, { trial: true }))
-        steps.push(() => this.page.hover(`text=${menu}`, { force: true }))
-        steps.push(() => this.page.click(`text=${menu}`, { trial: true }))
-        steps.push(() => this.page.click(`text=${menu}`, { force: true }))
+        steps.push({fn: () => this.page.hover(`${selector} :text("${item}")`, { trial: true }), name: `${item}:hover:trial`})
+        steps.push({fn: () => this.page.hover(`${selector} :text("${item}")`, { force: true }), name: `${item}:hover:force`})
+        steps.push({fn: () => this.page.click(`${selector} :text("${item}")`, { trial: true }), name: `${item}:click:trial`})
+        steps.push({fn: () => this.page.click(`${selector} :text("${item}")`, { force: true }), name: `${item}:click:force`})
       }
+
       for (const step of steps) {
-        await step()
-        if (cancelToken.canceled()) {
-          this.codeServer.logger.debug("menu navigation canceled")
+        try {
+          logger.debug(`navigation step: ${step.name}`)
+          await step.fn()
+          if (ctx.canceled()) {
+            logger.debug("navigation canceled")
+            return false
+          }
+        } catch (error) {
+          logger.debug(`navigation: ${error.message || error}`)
           return false
         }
       }
       return true
     }
 
-    const menuSelector = '[aria-label="Application Menu"]'
-    const open = async () => {
-      await this.page.click(menuSelector)
-      await this.page.waitForSelector(`${menuSelector}:not(:focus-within)`)
-      return false
+    // We are seeing the menu closing after opening if we open it too soon and
+    // the picker getting recreated in the middle of trying to select an item.
+    // To counter this we will keep trying to navigate through the items every
+    // time we lose focus or there is an error.
+    let attempts = 1
+    let context = new Context()
+    while (!(await Promise.race([openThenWaitClose(), navigate(context)]))) {
+      ++attempts
+      logger.debug("closed, retrying (${attempt}/∞)")
+      context.cancel()
+      context = new Context()
     }
 
-    // TODO: Starting in 1.57 something closes the menu after opening it if we
-    // open it too soon. To counter that we'll watch for when the menu loses
-    // focus and when/if it does we'll try again.
-    // I tried using the classic menu but it doesn't show up at all for some
-    // reason. I also tried toggle but the menu disappears after toggling.
-    let retryCount = 0
-    let cancelToken = new CancelToken()
-    while (!(await Promise.race([open(), navigate(cancelToken)]))) {
-      this.codeServer.logger.debug("menu was closed, retrying")
-      ++retryCount
-      cancelToken.cancel()
-      cancelToken = new CancelToken()
-    }
+    context.finish()
+    logger.debug(`navigation took ${attempts} ${plural(attempts, "attempt")}`)
+  }
 
-    this.codeServer.logger.debug(`menu navigation retries: ${retryCount}`)
+  /**
+   * Navigate through a currently opened picker, retrying on failure.
+   */
+  async navigatePicker(items: string[]): Promise<void> {
+    await this.navigateItems(items, ".quick-input-widget")
+  }
+
+  /**
+   * Navigate through the menu, retrying on failure.
+   */
+  async navigateMenus(menus: string[]): Promise<void> {
+    await this.navigateItems(menus, '[aria-label="Application Menu"]', async (selector) => {
+      await this.page.click(selector)
+    })
   }
 
   /**
