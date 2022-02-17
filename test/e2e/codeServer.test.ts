@@ -1,3 +1,5 @@
+import * as path from "path"
+import { promises as fs } from "fs"
 import { describe, test, expect } from "./baseFixture"
 
 describe("CodeServer", true, [], () => {
@@ -23,5 +25,12 @@ describe("CodeServer", true, [], () => {
   test("should show the Integrated Terminal", async ({ codeServerPage }) => {
     await codeServerPage.focusTerminal()
     expect(await codeServerPage.page.isVisible("#terminal")).toBe(true)
+  })
+
+  test("should open a file", async ({ codeServerPage }) => {
+    const dir = await codeServerPage.dir()
+    const file = path.join(dir, "foo")
+    await fs.writeFile(file, "bar")
+    await codeServerPage.openFile(file)
   })
 })

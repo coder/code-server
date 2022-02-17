@@ -37,6 +37,7 @@ export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
   public readonly logger: Logger
   private closed = false
+  private workspaceDir: Promise<string> | undefined
 
   constructor(name: string, private readonly codeServerArgs: string[]) {
     this.logger = logger.named(name)
@@ -54,11 +55,18 @@ export class CodeServer {
     return address
   }
 
+  async dir(): Promise<string> {
+    if (!this.workspaceDir) {
+      this.workspaceDir = tmpdir(workspaceDir)
+    }
+    return this.workspaceDir
+  }
+
   /**
    * Create a random workspace and seed it with settings.
    */
   private async createWorkspace(): Promise<string> {
-    const dir = await tmpdir(workspaceDir)
+    const dir = await this.dir()
     await fs.mkdir(path.join(dir, "User"))
     await fs.writeFile(
       path.join(dir, "User/settings.json"),
@@ -190,6 +198,10 @@ export class CodeServerPage {
     return this.codeServer.address()
   }
 
+  dir() {
+    return this.codeServer.dir()
+  }
+
   /**
    * Navigate to code-server.
    */
@@ -278,6 +290,22 @@ export class CodeServerPage {
 
     // Wait for terminal textarea to show up
     await this.page.waitForSelector("textarea.xterm-helper-textarea")
+  }
+
+  /**
+   * Open a file by using menus.
+   */
+  async openFile(file: string) {
+    await this.navigateMenus(["File", "Open File"])
+    await this.navigatePicker([path.basename(file)])
+    await this.waitForTab(file)
+  }
+
+  /**
+   * Wait for a tab to open for the specified file.
+   */
+  async waitForTab(file: string): Promise<void> {
+    return this.page.waitForSelector(`.tab :text("${path.basename(file)}")`)
   }
 
   /**
