@@ -1,5 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # Maintaining
 
 - [Team](#team)
@@ -223,7 +224,7 @@ The VS Code portion of code-server lives under [`coder/vscode`](https://github.c
 2. `git fetch upstream` - Fetch upstream (VS Code)'s latest branches
 3. `git merge upstream/release/1.64` - Merge it locally
    1. replace `1.64` with the version you're upgrading to
-   1. If there are merge conflicts, fix them locally
+   1. If there are merge conflicts, commit first, then fix them locally.
 4. Open a PR merging your branch (`vscode-update`) into `main` and add the code-server review team
 
 Ideally, our fork stays as close to upstream as possible. See the differences between our fork and upstream [here](https://github.com/microsoft/vscode/compare/main...coder:main).
