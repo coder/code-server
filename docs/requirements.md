@@ -33,7 +33,7 @@ new Compute Engine VM instance:
 4. Choose the **region** that's closest to you based on [GCP
    ping](https://gcping.com/).
 5. Choose a **zone** (any option is fine).
-6. We recommend choose an **E2 series instance** from the [general-purpose
+6. We recommend choosing an **E2 series instance** from the [general-purpose
    family](https://cloud.google.com/compute/docs/machine-types#general_purpose).
 7. Change the instance type to **custom** and set at least **2 cores** and **2
    GB of RAM**. You can add more resources if desired, though you can also edit
