@@ -33,4 +33,25 @@ describe("CodeServer", true, [], () => {
     await fs.writeFile(file, "bar")
     await codeServerPage.openFile(file)
   })
+
+  test("should not share state with other paths", async ({ codeServerPage }) => {
+    const dir = await codeServerPage.dir()
+    const file = path.join(dir, "foo")
+    await fs.writeFile(file, "bar")
+
+    await codeServerPage.openFile(file)
+
+    // If we reload now VS Code will be unable to save the state changes so wait
+    // until those have been written to the database.  It flushes every five
+    // seconds so we need to wait at least that long.
+    await codeServerPage.page.waitForTimeout(5500)
+
+    // The tab should re-open on refresh.
+    await codeServerPage.page.reload()
+    await codeServerPage.waitForTab(file)
+
+    // The tab should not re-open on a different path.
+    await codeServerPage.setup(true, "/vscode")
+    expect(await codeServerPage.tabIsVisible(file)).toBe(false)
+  })
 })

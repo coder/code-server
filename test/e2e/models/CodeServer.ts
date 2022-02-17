@@ -203,11 +203,11 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigate to code-server.
+   * Navigate to a code-server endpoint.  By default go to the root.
    */
-  async navigate() {
-    const address = await this.codeServer.address()
-    await this.page.goto(address, { waitUntil: "networkidle" })
+  async navigate(path: string = "/") {
+    const to = new URL(path, await this.codeServer.address())
+    await this.page.goto(to.toString(), { waitUntil: "networkidle" })
   }
 
   /**
@@ -306,6 +306,13 @@ export class CodeServerPage {
    */
   async waitForTab(file: string): Promise<void> {
     return this.page.waitForSelector(`.tab :text("${path.basename(file)}")`)
+  }
+
+  /**
+   * See if the specified tab is open.
+   */
+  async tabIsVisible(file: string): Promise<void> {
+    return this.page.isVisible(`.tab :text("${path.basename(file)}")`)
   }
 
   /**
@@ -426,8 +433,8 @@ export class CodeServerPage {
    *
    * It is recommended to run setup before using this model in any tests.
    */
-  async setup(authenticated: boolean) {
-    await this.navigate()
+  async setup(authenticated: boolean, endpoint = "/") {
+    await this.navigate(endpoint)
     // If we aren't authenticated we'll see a login page so we can't wait until
     // the editor is ready.
     if (authenticated) {
