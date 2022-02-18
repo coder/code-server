@@ -297,7 +297,7 @@ export class CodeServerPage {
    */
   async openFile(file: string) {
     await this.navigateMenus(["File", "Open File"])
-    await this.navigatePicker([path.basename(file)])
+    await this.navigateQuickInput([path.basename(file)])
     await this.waitForTab(file)
   }
 
@@ -427,9 +427,10 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigate through a currently opened picker, retrying on failure.
+   * Navigate through a currently opened "quick input" widget, retrying on
+   * failure.
    */
-  async navigatePicker(items: string[]): Promise<void> {
+  async navigateQuickInput(items: string[]): Promise<void> {
     await this.navigateItems(items, ".quick-input-widget")
   }
 
