@@ -205,8 +205,8 @@ export class CodeServerPage {
   /**
    * Navigate to a code-server endpoint.  By default go to the root.
    */
-  async navigate(path = "/") {
-    const to = new URL(path, await this.codeServer.address())
+  async navigate(endpoint = "/") {
+    const to = new URL(endpoint, await this.codeServer.address())
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
   }
 
