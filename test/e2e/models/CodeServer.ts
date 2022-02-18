@@ -205,7 +205,7 @@ export class CodeServerPage {
   /**
    * Navigate to a code-server endpoint.  By default go to the root.
    */
-  async navigate(path: string = "/") {
+  async navigate(path = "/") {
     const to = new URL(path, await this.codeServer.address())
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
   }
@@ -360,10 +360,12 @@ export class CodeServerPage {
      * try again.
      */
     const navigate = async (ctx: Context) => {
-      const steps: Array<{fn: () => Promise<unknown>, name: string}> = [{
-        fn: () => this.page.waitForSelector(`${selector}:focus-within`),
-        name: "focus",
-      }]
+      const steps: Array<{ fn: () => Promise<unknown>; name: string }> = [
+        {
+          fn: () => this.page.waitForSelector(`${selector}:focus-within`),
+          name: "focus",
+        },
+      ]
 
       for (const item of items) {
         // Normally these will wait for the item to be visible and then execute
@@ -373,10 +375,22 @@ export class CodeServerPage {
         // if the old promise clicks logout before the new one can). By
         // splitting them into two steps each we can cancel before running the
         // action.
-        steps.push({fn: () => this.page.hover(`${selector} :text("${item}")`, { trial: true }), name: `${item}:hover:trial`})
-        steps.push({fn: () => this.page.hover(`${selector} :text("${item}")`, { force: true }), name: `${item}:hover:force`})
-        steps.push({fn: () => this.page.click(`${selector} :text("${item}")`, { trial: true }), name: `${item}:click:trial`})
-        steps.push({fn: () => this.page.click(`${selector} :text("${item}")`, { force: true }), name: `${item}:click:force`})
+        steps.push({
+          fn: () => this.page.hover(`${selector} :text("${item}")`, { trial: true }),
+          name: `${item}:hover:trial`,
+        })
+        steps.push({
+          fn: () => this.page.hover(`${selector} :text("${item}")`, { force: true }),
+          name: `${item}:hover:force`,
+        })
+        steps.push({
+          fn: () => this.page.click(`${selector} :text("${item}")`, { trial: true }),
+          name: `${item}:click:trial`,
+        })
+        steps.push({
+          fn: () => this.page.click(`${selector} :text("${item}")`, { force: true }),
+          name: `${item}:click:force`,
+        })
       }
 
       for (const step of steps) {
