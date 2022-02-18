@@ -37,7 +37,7 @@ export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
   public readonly logger: Logger
   private closed = false
-  private workspaceDir: Promise<string> | undefined
+  private _workspaceDir: Promise<string> | undefined
 
   constructor(name: string, private readonly codeServerArgs: string[]) {
     this.logger = logger.named(name)
@@ -55,18 +55,21 @@ export class CodeServer {
     return address
   }
 
-  async dir(): Promise<string> {
-    if (!this.workspaceDir) {
-      this.workspaceDir = tmpdir(workspaceDir)
+  /**
+   * The workspace directory code-server opens with.
+   */
+  get workspaceDir(): Promise<string> {
+    if (!this._workspaceDir) {
+      this._workspaceDir = tmpdir(workspaceDir)
     }
-    return this.workspaceDir
+    return this._workspaceDir
   }
 
   /**
    * Create a random workspace and seed it with settings.
    */
   private async createWorkspace(): Promise<string> {
-    const dir = await this.dir()
+    const dir = await this.workspaceDir
     await fs.mkdir(path.join(dir, "User"))
     await fs.writeFile(
       path.join(dir, "User/settings.json"),
@@ -198,8 +201,11 @@ export class CodeServerPage {
     return this.codeServer.address()
   }
 
-  dir() {
-    return this.codeServer.dir()
+  /**
+   * The workspace directory code-server opens with.
+   */
+  get workspaceDir() {
+    return this.codeServer.workspaceDir
   }
 
   /**

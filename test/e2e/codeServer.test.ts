@@ -28,14 +28,14 @@ describe("CodeServer", true, [], () => {
   })
 
   test("should open a file", async ({ codeServerPage }) => {
-    const dir = await codeServerPage.dir()
+    const dir = await codeServerPage.workspaceDir
     const file = path.join(dir, "foo")
     await fs.writeFile(file, "bar")
     await codeServerPage.openFile(file)
   })
 
   test("should not share state with other paths", async ({ codeServerPage }) => {
-    const dir = await codeServerPage.dir()
+    const dir = await codeServerPage.workspaceDir
     const file = path.join(dir, "foo")
     await fs.writeFile(file, "bar")
 
