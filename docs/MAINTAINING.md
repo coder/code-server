@@ -220,9 +220,10 @@ This is currently automated with the release process.
 The VS Code portion of code-server lives under [`coder/vscode`](https://github.com/coder/vscode). To update VS Code for code-server, follow these steps:
 
 1. `git checkout -b vscode-update` - Create a new branch locally based off `main`
-2. `git fetch upstream` - Fetch upstream (VS Code)'s latest `main` branch
-3. `git merge upstream/main` - Merge it locally
-   1. If there are merge conflicts, fix them locally
+2. `git fetch upstream` - Fetch upstream (VS Code)'s latest branches
+3. `git merge upstream/release/1.64` - Merge it locally
+   1. replace `1.64` with the version you're upgrading to
+   1. If there are merge conflicts, commit first, then fix them locally.
 4. Open a PR merging your branch (`vscode-update`) into `main` and add the code-server review team
 
 Ideally, our fork stays as close to upstream as possible. See the differences between our fork and upstream [here](https://github.com/microsoft/vscode/compare/main...coder:main).
