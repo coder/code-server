@@ -371,8 +371,8 @@ describe("parser", () => {
       }),
     ).toThrowError(expectedErrMsg)
   })
-  it("should not throw if an optional string is set to false", async () => {
-    expect(() => parse(["--cert=false"])).not.toThrowError()
+  it("should ignore optional strings set to false", async () => {
+    expect(parse(["--cert=false"])).toEqual({})
   })
 })
 
