@@ -118,10 +118,10 @@ export class CodeServerRouteWrapper {
     const { args } = req
 
     /**
-     * @file ../../../vendor/modules/code-oss-dev/src/vs/server/main.js
+     * @file ../../../vendor/modules/code-oss-dev/src/vs/server/node/server.main.js
      */
     const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
-      "vs/server/remoteExtensionHostAgent",
+      "vs/server/node/server.main",
       "createServer",
     )
 
