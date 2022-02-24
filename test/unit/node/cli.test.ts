@@ -371,6 +371,9 @@ describe("parser", () => {
       }),
     ).toThrowError(expectedErrMsg)
   })
+  it("should ignore optional strings set to false", async () => {
+    expect(parse(["--cert=false"])).toEqual({})
+  })
 })
 
 describe("cli", () => {
