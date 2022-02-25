@@ -44,6 +44,10 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /home/coder
+        {{- if .Values.initResources }}
+        resources:
+          {{- toYaml .Values.initResources | nindent 10 }}
+        {{- end }}
 {{- if .Values.extraInitContainers }}
 {{ tpl .Values.extraInitContainers . | indent 6}}
 {{- end }}
