@@ -23,7 +23,24 @@ export const version = pkg.version || "development"
 export const commit = pkg.commit || "development"
 export const rootPath = path.resolve(__dirname, "../..")
 export const vsRootPath = path.join(rootPath, "vendor/modules/code-oss-dev")
+export const codeVersion = require(path.join(vsRootPath, "package.json")).version
 export const tmpdir = path.join(os.tmpdir(), "code-server")
 export const isDevMode = commit === "development"
 export const httpProxyUri =
   process.env.HTTPS_PROXY || process.env.https_proxy || process.env.HTTP_PROXY || process.env.http_proxy
+
+// getVersionString returns a human-readable version string suitable
+// for outputting to the console.
+export function getVersionString(): string {
+  return [ version, commit ].join(" ")
+}
+
+// getVersionJsonString returns a machine-readable version string
+// suitable for outputting to the console.
+export function getVersionJsonString(): string {
+  return JSON.stringify({
+    codeServer: version,
+    commit,
+    vscode: codeVersion,
+  })
+}
