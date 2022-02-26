@@ -119,5 +119,18 @@ describe("constants", () => {
     it("commit should return 'development'", () => {
       expect(constants.commit).toBe("development")
     })
+
+    it("should return a human-readable version string", () => {
+      // this string is not super useful
+      expect(constants.getVersionString()).toStrictEqual("development development")
+    })
+
+    it("should return a machine-readable version string", () => {
+      expect(constants.getVersionJsonString()).toStrictEqual(JSON.stringify({
+        codeServer: "development",
+        commit: "development",
+        vscode: "development",
+      }))
+    })
   })
 })

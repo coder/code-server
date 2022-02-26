@@ -23,7 +23,7 @@ export const version = pkg.version || "development"
 export const commit = pkg.commit || "development"
 export const rootPath = path.resolve(__dirname, "../..")
 export const vsRootPath = path.join(rootPath, "vendor/modules/code-oss-dev")
-export const codeVersion = require(path.join(vsRootPath, "package.json")).version
+export const codeVersion = require(path.join(vsRootPath, "package.json")).version || "development"
 export const tmpdir = path.join(os.tmpdir(), "code-server")
 export const isDevMode = commit === "development"
 export const httpProxyUri =
