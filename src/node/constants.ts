@@ -32,7 +32,7 @@ export const httpProxyUri =
 // getVersionString returns a human-readable version string suitable
 // for outputting to the console.
 export function getVersionString(): string {
-  return [ version, commit ].join(" ")
+  return [version, commit].join(" ")
 }
 
 // getVersionJsonString returns a machine-readable version string

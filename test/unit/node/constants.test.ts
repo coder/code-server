@@ -64,11 +64,13 @@ describe("constants", () => {
     })
 
     it("should return a machine-readable version string", () => {
-      expect(constants.getVersionJsonString()).toStrictEqual(JSON.stringify({
-        codeServer: mockPackageJson.version,
-        commit: mockPackageJson.commit,
-        vscode: mockCodePackageJson.version,
-      }))
+      expect(constants.getVersionJsonString()).toStrictEqual(
+        JSON.stringify({
+          codeServer: mockPackageJson.version,
+          commit: mockPackageJson.commit,
+          vscode: mockCodePackageJson.version,
+        }),
+      )
     })
 
     describe("getPackageJson", () => {
@@ -126,11 +128,13 @@ describe("constants", () => {
     })
 
     it("should return a machine-readable version string", () => {
-      expect(constants.getVersionJsonString()).toStrictEqual(JSON.stringify({
-        codeServer: "development",
-        commit: "development",
-        vscode: "development",
-      }))
+      expect(constants.getVersionJsonString()).toStrictEqual(
+        JSON.stringify({
+          codeServer: "development",
+          commit: "development",
+          vscode: "development",
+        }),
+      )
     })
   })
 })
