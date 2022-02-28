@@ -1,5 +1,6 @@
 import { logger } from "@coder/logger"
 import { mockLogger } from "../../utils/helpers"
+import * as semver from "semver"
 
 describe("constants", () => {
   let constants: typeof import("../../../src/node/constants")
@@ -13,9 +14,15 @@ describe("constants", () => {
       commit: "f6b2be2838f4afb217c2fd8f03eafedd8d55ef9b",
     }
 
+    const mockCodePackageJson = {
+      name: "mock-code-oss-dev",
+      version: "1.2.3",
+    }
+
     beforeAll(() => {
       mockLogger()
       jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
+      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
       constants = require("../../../src/node/constants")
     })
 
@@ -24,12 +31,46 @@ describe("constants", () => {
       jest.resetModules()
     })
 
+    it("should provide the package name", () => {
+      expect(constants.pkgName).toBe(mockPackageJson.name)
+    })
+
     it("should provide the commit", () => {
       expect(constants.commit).toBe(mockPackageJson.commit)
     })
 
     it("should return the package.json version", () => {
       expect(constants.version).toBe(mockPackageJson.version)
+
+      // Ensure the version is parseable as semver and equal
+      const actual = semver.parse(constants.version)
+      const expected = semver.parse(mockPackageJson.version)
+      expect(actual).toBeTruthy()
+      expect(actual).toStrictEqual(expected)
+    })
+
+    it("should include embedded Code version information", () => {
+      expect(constants.codeVersion).toBe(mockCodePackageJson.version)
+
+      // Ensure the version is parseable as semver and equal
+      const actual = semver.parse(constants.codeVersion)
+      const expected = semver.parse(mockCodePackageJson.version)
+      expect(actual).toBeTruthy()
+      expect(actual).toStrictEqual(expected)
+    })
+
+    it("should return a human-readable version string", () => {
+      expect(constants.getVersionString()).toStrictEqual(`${mockPackageJson.version} ${mockPackageJson.commit}`)
+    })
+
+    it("should return a machine-readable version string", () => {
+      expect(constants.getVersionJsonString()).toStrictEqual(
+        JSON.stringify({
+          codeServer: mockPackageJson.version,
+          commit: mockPackageJson.commit,
+          vscode: mockCodePackageJson.version,
+        }),
+      )
     })
 
     describe("getPackageJson", () => {
@@ -47,6 +88,9 @@ describe("constants", () => {
         // so to get the root package.json we need to use ../../
         const packageJson = constants.getPackageJson("../../package.json")
         expect(packageJson).toStrictEqual(mockPackageJson)
+
+        const codePackageJson = constants.getPackageJson("../../vendor/modules/code-oss-dev/package.json")
+        expect(codePackageJson).toStrictEqual(mockCodePackageJson)
       })
     })
   })
@@ -55,9 +99,13 @@ describe("constants", () => {
     const mockPackageJson = {
       name: "mock-code-server",
     }
+    const mockCodePackageJson = {
+      name: "mock-code-oss-dev",
+    }
 
     beforeAll(() => {
       jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
+      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
       constants = require("../../../src/node/constants")
     })
 
@@ -69,8 +117,24 @@ describe("constants", () => {
     it("version should return 'development'", () => {
       expect(constants.version).toBe("development")
     })
+
     it("commit should return 'development'", () => {
       expect(constants.commit).toBe("development")
+    })
+
+    it("should return a human-readable version string", () => {
+      // this string is not super useful
+      expect(constants.getVersionString()).toStrictEqual("development development")
+    })
+
+    it("should return a machine-readable version string", () => {
+      expect(constants.getVersionJsonString()).toStrictEqual(
+        JSON.stringify({
+          codeServer: "development",
+          commit: "development",
+          vscode: "development",
+        }),
+      )
     })
   })
 })
