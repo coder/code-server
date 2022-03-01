@@ -1729,7 +1729,7 @@ execall@^2.0.0:
   dependencies:
     clone-regexp "^2.1.0"
 
-express@^5.0.0-alpha.8:
+express@5.0.0-alpha.8:
   version "5.0.0-alpha.8"
   resolved "https://registry.yarnpkg.com/express/-/express-5.0.0-alpha.8.tgz#b9dd3a568eab791e3391db47f9e6ab91e61b13fe"
   integrity sha512-PL8wTLgaNOiq7GpXt187/yWHkrNSfbr4H0yy+V0fpqJt5wpUzBi9DprAkwGKBFOqWHylJ8EyPy34V5u9YArfng==
