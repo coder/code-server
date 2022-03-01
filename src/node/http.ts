@@ -141,16 +141,17 @@ export const relativeRoot = (originalUrl: string): string => {
 /**
  * A helper function to construct a redirect path based on
  * an Express Request, query and a path to redirect to.
- * 
+ *
  * Redirect path is relative to `/${to}`.
  */
 export const constructRedirectPath = (req: express.Request, query: qs.ParsedQs, to: string): string => {
   const relativePath = normalize(`${relativeRoot(req.originalUrl)}/${to}`, true)
-  const queryString = qs.stringify(query)
+  // %2f or %2F are both equalivent to an encoded slash /
+  const queryString = qs.stringify(query).replace(/%2[fF]/g, "/")
   const redirectPath = `${relativePath}${queryString ? `?${queryString}` : ""}`
 
   return redirectPath
-} 
+}
 
 /**
  * Redirect relatively to `/${to}`. Query variables on the current URI will be
