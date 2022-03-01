@@ -126,7 +126,7 @@ describe("constants", () => {
 
     it("should return a human-readable version string", () => {
       // this string is not super useful
-      expect(constants.getVersionString()).toStrictEqual("development development Code development")
+      expect(constants.getVersionString()).toStrictEqual("development development with Code development")
     })
 
     it("should return a machine-readable version string", () => {
