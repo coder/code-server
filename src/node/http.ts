@@ -196,7 +196,7 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
     // default NGINX does this).
     !host.includes(".")
   ) {
-    logger.debug("no valid cookie doman", field("host", host))
+    logger.debug("no valid cookie domain", field("host", host))
     return undefined
   }
 
@@ -206,7 +206,7 @@ export const getCookieDomain = (host: string, proxyDomains: string[]): string | 
     }
   })
 
-  logger.debug("got cookie doman", field("host", host))
+  logger.debug("got cookie domain", field("host", host))
   return host || undefined
 }
 
