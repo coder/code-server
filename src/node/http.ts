@@ -139,6 +139,20 @@ export const relativeRoot = (originalUrl: string): string => {
 }
 
 /**
+ * A helper function to construct a redirect path based on
+ * an Express Request, query and a path to redirect to.
+ * 
+ * Redirect path is relative to `/${to}`.
+ */
+export const constructRedirectPath = (req: express.Request, query: qs.ParsedQs, to: string): string => {
+  const relativePath = normalize(`${relativeRoot(req.originalUrl)}/${to}`, true)
+  const queryString = qs.stringify(query)
+  const redirectPath = `${relativePath}${queryString ? `?${queryString}` : ""}`
+
+  return redirectPath
+} 
+
+/**
  * Redirect relatively to `/${to}`. Query variables on the current URI will be
  * preserved.  `to` should be a simple path without any query parameters
  * `override` will merge with the existing query (use `undefined` to unset).
@@ -156,9 +170,7 @@ export const redirect = (
     }
   })
 
-  const relativePath = normalize(`${relativeRoot(req.originalUrl)}/${to}`, true)
-  const queryString = qs.stringify(query)
-  const redirectPath = `${relativePath}${queryString ? `?${queryString}` : ""}`
+  const redirectPath = constructRedirectPath(req, query, to)
   logger.debug(`redirecting from ${req.originalUrl} to ${redirectPath}`)
   res.redirect(redirectPath)
 }
