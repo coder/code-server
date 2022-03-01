@@ -30,7 +30,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
 
       - name: Checkout m
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           repository: coder/m
           ref: refs/heads/master

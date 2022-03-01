@@ -21,7 +21,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -63,7 +63,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -95,7 +95,7 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
@@ -189,7 +189,7 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         id: download
@@ -218,7 +218,7 @@ jobs:
     container: "centos:7"
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -307,7 +307,7 @@ jobs:
       NODE_VERSION: v14.17.4
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -356,7 +356,7 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -401,7 +401,7 @@ jobs:
       # since VS Code will load faster due to the bundling.
       CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -455,7 +455,7 @@ jobs:
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Run Trivy vulnerability scanner in repo mode
         #Commit SHA for v0.0.17
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
