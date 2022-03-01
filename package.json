@@ -89,7 +89,7 @@
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
     "env-paths": "^2.2.0",
-    "express": "^5.0.0-alpha.8",
+    "express": "5.0.0-alpha.8",
     "http-proxy": "^1.18.0",
     "httpolyglot": "^0.1.2",
     "js-yaml": "^4.0.0",
