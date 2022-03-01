@@ -35,7 +35,7 @@ export const httpProxyUri =
  * for outputting to the console.
  */
 export function getVersionString(): string {
-  return [version, commit].join(" ")
+  return [version, commit, "with Code", codeVersion].join(" ")
 }
 
 /**
