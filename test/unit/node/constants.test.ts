@@ -60,7 +60,9 @@ describe("constants", () => {
     })
 
     it("should return a human-readable version string", () => {
-      expect(constants.getVersionString()).toStrictEqual(`${mockPackageJson.version} ${mockPackageJson.commit}`)
+      expect(constants.getVersionString()).toStrictEqual(
+        `${mockPackageJson.version} ${mockPackageJson.commit} with Code ${mockCodePackageJson.version}`,
+      )
     })
 
     it("should return a machine-readable version string", () => {
@@ -124,7 +126,7 @@ describe("constants", () => {
 
     it("should return a human-readable version string", () => {
       // this string is not super useful
-      expect(constants.getVersionString()).toStrictEqual("development development")
+      expect(constants.getVersionString()).toStrictEqual("development development with Code development")
     })
 
     it("should return a machine-readable version string", () => {
