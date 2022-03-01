@@ -3,15 +3,7 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import {
-  canConnect,
-  generateCertificate,
-  generatePassword,
-  humanPath,
-  paths,
-  isNodeJSErrnoException,
-  isFile,
-} from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
 
 const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -448,7 +440,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "extensions-dir": string
   "user-data-dir": string
   /* Positional arguments. */
-  _: []
+  _: string[] | []
 }
 
 /**

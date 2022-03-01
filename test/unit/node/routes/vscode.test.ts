@@ -1,18 +1,8 @@
 import { promises as fs } from "fs"
-import { Response } from "node-fetch"
 import * as path from "path"
 import { clean, tmpdir } from "../../../utils/helpers"
 import * as httpserver from "../../../utils/httpserver"
 import * as integration from "../../../utils/integration"
-
-interface WorkbenchConfig {
-  folderUri?: {
-    path: string
-  }
-  workspaceUri?: {
-    path: string
-  }
-}
 
 describe("vscode", () => {
   let codeServer: httpserver.HttpServer | undefined
@@ -52,52 +42,25 @@ describe("vscode", () => {
     }
   })
 
-  /**
-   * Get the workbench config from the provided response.
-   */
-  const getConfig = async (resp: Response): Promise<WorkbenchConfig> => {
-    expect(resp.status).toBe(200)
-    const html = await resp.text()
-    const match = html.match(/<meta id="vscode-workbench-web-configuration" data-settings="(.+)">/)
-    if (!match || !match[1]) {
-      throw new Error("Unable to find workbench configuration")
-    }
-    const config = match[1].replace(/&quot;/g, '"')
-    try {
-      return JSON.parse(config)
-    } catch (error) {
-      console.error("Failed to parse workbench configuration", config)
-      throw error
-    }
-  }
+  it("should redirect to the passed in workspace", async () => {
+    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
+    await fs.writeFile(workspace, "")
+    codeServer = await integration.setup(["--auth=none", workspace], "")
 
-  it("should have no default folder or workspace", async () => {
-    codeServer = await integration.setup(["--auth=none"], "")
-
-    const config = await getConfig(await codeServer.fetch("/"))
-    expect(config.folderUri).toBeUndefined()
-    expect(config.workspaceUri).toBeUndefined()
+    const resp = await codeServer.fetch("/")
+    const url = new URL(resp.url)
+    expect(url.pathname).toBe("/")
+    expect(url.search).toBe(`?workspace=${workspace}`)
   })
 
-  it("should have a default folder", async () => {
-    const defaultDir = await tmpdir(testName)
-    codeServer = await integration.setup(["--auth=none", defaultDir], "")
+  it("should redirect to the passed in directory", async () => {
+    const folder = await tmpdir(testName)
+    codeServer = await integration.setup(["--auth=none", folder], "")
 
-    // At first it will load the directory provided on the command line.
-    const config = await getConfig(await codeServer.fetch("/"))
-    expect(config.folderUri?.path).toBe(defaultDir)
-    expect(config.workspaceUri).toBeUndefined()
-  })
-
-  it("should have a default workspace", async () => {
-    const defaultWorkspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(defaultWorkspace, "")
-    codeServer = await integration.setup(["--auth=none", defaultWorkspace], "")
-
-    // At first it will load the workspace provided on the command line.
-    const config = await getConfig(await codeServer.fetch("/"))
-    expect(config.folderUri).toBeUndefined()
-    expect(config.workspaceUri?.path).toBe(defaultWorkspace)
+    const resp = await codeServer.fetch("/")
+    const url = new URL(resp.url)
+    expect(url.pathname).toBe("/")
+    expect(url.search).toBe(`?folder=${folder}`)
   })
 
   it("should redirect to last query folder/workspace", async () => {
@@ -133,6 +96,42 @@ describe("vscode", () => {
     url = new URL(resp.url)
     expect(url.pathname).toBe("/")
     expect(decodeURIComponent(url.search)).toBe("")
+    await resp.text()
+  })
+
+  it("should add the workspace as a query param maintaining the slashes", async () => {
+    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
+    await fs.writeFile(workspace, "")
+    codeServer = await integration.setup(["--auth=none", workspace], "")
+
+    let resp = await codeServer.fetch("/", undefined)
+
+    expect(resp.status).toBe(200)
+    const url = new URL(resp.url)
+    expect(url.search).toBe(`?workspace=${workspace}`)
+    await resp.text()
+  })
+
+  it("should do nothing when nothing is passed in", async () => {
+    codeServer = await integration.setup(["--auth=none"], "")
+
+    let resp = await codeServer.fetch("/", undefined)
+
+    expect(resp.status).toBe(200)
+    const url = new URL(resp.url)
+    expect(url.search).toBe("")
+    await resp.text()
+  })
+
+  it("should add the folder as a query param maintaining the slashes", async () => {
+    const folder = await tmpdir(testName)
+    codeServer = await integration.setup(["--auth=none", folder], "")
+
+    let resp = await codeServer.fetch("/", undefined)
+
+    expect(resp.status).toBe(200)
+    const url = new URL(resp.url)
+    expect(url.search).toBe(`?folder=${folder}`)
     await resp.text()
   })
 

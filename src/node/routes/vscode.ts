@@ -1,12 +1,13 @@
 import { logger } from "@coder/logger"
 import * as express from "express"
+import * as path from "path"
 import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { toVsCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { SocketProxyProvider } from "../socket"
-import { loadAMDModule } from "../util"
+import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
@@ -33,27 +34,43 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    const { query } = await req.settings.read()
-    if (query) {
-      // Ew means the workspace was closed so clear the last folder/workspace.
-      if (req.query.ew) {
-        delete query.folder
-        delete query.workspace
-      }
+    let folder = undefined
+    let workspace = undefined
+    const to = self(req)
+    const settings = await req.settings.read()
+    const lastOpened = settings.query || {}
 
+    // Ew means the workspace was closed so clear the last folder/workspace.
+    if (req.query.ew) {
+      delete lastOpened.folder
+      delete lastOpened.workspace
+    }
+
+    if (!req.query.folder && !req.query.workspace) {
       // Redirect to the last folder/workspace if nothing else is opened.
       if (
-        !req.query.folder &&
-        !req.query.workspace &&
-        (query.folder || query.workspace) &&
+        (lastOpened.folder || lastOpened.workspace) &&
         !req.args["ignore-last-opened"] // This flag disables this behavior.
       ) {
-        const to = self(req)
         return redirect(req, res, to, {
-          folder: query.folder,
-          workspace: query.workspace,
+          folder: lastOpened.folder,
+          workspace: lastOpened.workspace,
         })
+      } else if (req.args._.length > 0) {
+        if (req.args._.length) {
+          const lastEntry = path.resolve(req.args._[req.args._.length - 1])
+          const entryIsFile = await isFile(lastEntry)
+          if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+            workspace = lastEntry
+          } else if (!entryIsFile) {
+            folder = lastEntry
+          }
+        }
       }
+      return redirect(req, res, to, {
+        folder,
+        workspace,
+      })
     }
 
     // Store the query parameters so we can use them on the next load.  This
