@@ -21,7 +21,7 @@ jobs:
   npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - uses: actions/download-artifact@v2
         id: download
@@ -49,7 +49,7 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Configure git
         run: |
           git config user.name github-actions
