@@ -440,7 +440,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "extensions-dir": string
   "user-data-dir": string
   /* Positional arguments. */
-  _: string[] | []
+  _: string[]
 }
 
 /**
