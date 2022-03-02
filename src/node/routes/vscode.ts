@@ -34,19 +34,19 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    const settings = await req.settings.read()
-    const lastOpened = settings.query || {}
-
-    // Ew means the workspace was closed so clear the last folder/workspace.
-    if (req.query.ew) {
-      delete lastOpened.folder
-      delete lastOpened.workspace
-    }
-
     if (!req.query.folder && !req.query.workspace) {
+      const settings = await req.settings.read()
+      const lastOpened = settings.query || {}
       let folder = undefined
       let workspace = undefined
       const to = self(req)
+
+      // Ew means the workspace was closed so clear the last folder/workspace.
+      if (req.query.ew) {
+        delete lastOpened.folder
+        delete lastOpened.workspace
+      }
+
       // Redirect to the last folder/workspace if nothing else is opened.
       if (
         (lastOpened.folder || lastOpened.workspace) &&
