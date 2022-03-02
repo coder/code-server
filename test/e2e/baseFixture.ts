@@ -70,8 +70,8 @@ export const test = base.extend<TestFixtures>({
     // made too). In these cases just accept.
     page.on("dialog", (d) => d.accept())
 
-    const codeServerPage = new CodeServerPage(codeServer, page)
-    await codeServerPage.setup(authenticated)
+    const codeServerPage = new CodeServerPage(codeServer, page, authenticated)
+    await codeServerPage.navigate()
     await use(codeServerPage)
   },
 })

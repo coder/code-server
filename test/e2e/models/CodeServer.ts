@@ -194,7 +194,11 @@ export class CodeServer {
 export class CodeServerPage {
   private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {
+  constructor(
+    private readonly codeServer: CodeServer,
+    public readonly page: Page,
+    private readonly authenticated: boolean,
+  ) {
     this.page.on("console", (message) => {
       this.codeServer.logger.debug(message)
     })
@@ -215,11 +219,18 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigate to a code-server endpoint.  By default go to the root.
+   * Navigate to a code-server endpoint (root by default).  Then wait for the
+   * editor to become available.
    */
   async navigate(endpoint = "/") {
     const to = new URL(endpoint, await this.codeServer.address())
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
+
+    // If we aren't authenticated we'll see a login page so we can't wait until
+    // the editor is ready.
+    if (this.authenticated) {
+      await this.reloadUntilEditorIsReady()
+    }
   }
 
   /**
@@ -456,21 +467,7 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigates to code-server then reloads until the editor is ready.
-   *
-   * It is recommended to run setup before using this model in any tests.
-   */
-  async setup(authenticated: boolean, endpoint = "/") {
-    await this.navigate(endpoint)
-    // If we aren't authenticated we'll see a login page so we can't wait until
-    // the editor is ready.
-    if (authenticated) {
-      await this.reloadUntilEditorIsReady()
-    }
-  }
-
-  /**
-   * Execute a command in t root of the instance's workspace directory.
+   * Execute a command in the root of the instance's workspace directory.
    */
   async exec(command: string): Promise<void> {
     await util.promisify(cp.exec)(command, {
