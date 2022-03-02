@@ -483,4 +483,15 @@ export class CodeServerPage {
       cwd: path.join(__dirname, "../../.."),
     })
   }
+
+  /**
+   * Wait for state to be flushed to the database.
+   */
+  async stateFlush(): Promise<void> {
+    // If we reload too quickly VS Code will be unable to save the state changes
+    // so wait until those have been written to the database.  It flushes every
+    // five seconds so we need to wait at least that long.
+    // TODO@asher: There must be a better way.
+    await this.page.waitForTimeout(5500)
+  }
 }
