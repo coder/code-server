@@ -3,7 +3,7 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
-import util from "util"
+import * as util from "util"
 import { logError, plural } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
@@ -38,12 +38,13 @@ export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
   public readonly logger: Logger
   private closed = false
-  private _workspaceDir: Promise<string> | undefined
 
   constructor(
     name: string,
-    private readonly codeServerArgs: string[],
-    private readonly codeServerEnv: NodeJS.ProcessEnv,
+    private readonly args: string[],
+    private readonly env: NodeJS.ProcessEnv,
+    private readonly _workspaceDir: Promise<string> | string | undefined,
+    private readonly entry = process.env.CODE_SERVER_TEST_ENTRY || ".",
   ) {
     this.logger = logger.named(name)
   }
@@ -75,7 +76,7 @@ export class CodeServer {
    */
   private async createWorkspace(): Promise<string> {
     const dir = await this.workspaceDir
-    await fs.mkdir(path.join(dir, "User"))
+    await fs.mkdir(path.join(dir, "User"), { recursive: true })
     await fs.writeFile(
       path.join(dir, "User/settings.json"),
       JSON.stringify({
@@ -96,36 +97,33 @@ export class CodeServer {
     const dir = await this.createWorkspace()
 
     return new Promise((resolve, reject) => {
-      this.logger.debug("spawning")
-      const proc = cp.spawn(
-        "node",
-        [
-          process.env.CODE_SERVER_TEST_ENTRY || ".",
-          "--extensions-dir",
-          path.join(dir, "extensions"),
-          ...this.codeServerArgs,
-          // Using port zero will spawn on a random port.
-          "--bind-addr",
-          "127.0.0.1:0",
-          // Setting the XDG variables would be easier and more thorough but the
-          // modules we import ignores those variables for non-Linux operating
-          // systems so use these flags instead.
-          "--config",
-          path.join(dir, "config.yaml"),
-          "--user-data-dir",
-          dir,
-          // The last argument is the workspace to open.
-          dir,
-        ],
-        {
-          cwd: path.join(__dirname, "../../.."),
-          env: {
-            ...process.env,
-            ...this.codeServerEnv,
-            PASSWORD,
-          },
+      const args = [
+        this.entry,
+        "--extensions-dir",
+        path.join(dir, "extensions"),
+        ...this.args,
+        // Using port zero will spawn on a random port.
+        "--bind-addr",
+        "127.0.0.1:0",
+        // Setting the XDG variables would be easier and more thorough but the
+        // modules we import ignores those variables for non-Linux operating
+        // systems so use these flags instead.
+        "--config",
+        path.join(dir, "config.yaml"),
+        "--user-data-dir",
+        dir,
+        // The last argument is the workspace to open.
+        dir,
+      ]
+      this.logger.debug("spawning `node " + args.join(" ") + "`")
+      const proc = cp.spawn("node", args, {
+        cwd: path.join(__dirname, "../../.."),
+        env: {
+          ...process.env,
+          ...this.env,
+          PASSWORD,
         },
-      )
+      })
 
       const timer = idleTimer("Failed to extract address; did the format change?", reject)
 
@@ -136,7 +134,7 @@ export class CodeServer {
       })
 
       proc.on("close", (code) => {
-        const error = new Error("closed unexpectedly")
+        const error = new Error("code-server closed unexpectedly")
         if (!this.closed) {
           this.logger.error(error.message, field("code", code))
         }
@@ -153,7 +151,7 @@ export class CodeServer {
         timer.reset()
 
         // Log the line without the timestamp.
-        this.logger.trace(line.replace(/\[.+\]/, ""))
+        this.logger.debug(line.replace(/\[.+\]/, ""))
         if (resolved) {
           return
         }
