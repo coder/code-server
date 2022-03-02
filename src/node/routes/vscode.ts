@@ -57,14 +57,12 @@ export class CodeServerRouteWrapper {
           workspace: lastOpened.workspace,
         })
       } else if (req.args._.length > 0) {
-        if (req.args._.length) {
-          const lastEntry = path.resolve(req.args._[req.args._.length - 1])
-          const entryIsFile = await isFile(lastEntry)
-          if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
-            workspace = lastEntry
-          } else if (!entryIsFile) {
-            folder = lastEntry
-          }
+        const lastEntry = path.resolve(req.args._[req.args._.length - 1])
+        const entryIsFile = await isFile(lastEntry)
+        if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+          workspace = lastEntry
+        } else if (!entryIsFile) {
+          folder = lastEntry
         }
       }
       return redirect(req, res, to, {
