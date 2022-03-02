@@ -49,11 +49,6 @@ export class CodeServerRouteWrapper {
       let folder = undefined
       let workspace = undefined
 
-      if (WORKSPACE_WAS_CLOSED) {
-        delete lastOpened.folder
-        delete lastOpened.workspace
-      }
-
       // Redirect to the last folder/workspace if nothing else is opened.
       if (HAS_LAST_OPENED_FOLDER_OR_WORKSPACE && !IGNORE_LAST_OPENED) {
         folder = lastOpened.folder
