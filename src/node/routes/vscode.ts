@@ -42,7 +42,7 @@ export class CodeServerRouteWrapper {
       const lastOpened = settings.query || {}
       // This flag disables the last opened behavior
       const IGNORE_LAST_OPENED = req.args["ignore-last-opened"]
-      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = (!WORKSPACE_WAS_CLOSED && lastOpened.folder) || lastOpened.workspace
+      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = lastOpened.folder || lastOpened.workspace
       const HAS_FOLDER_OR_WORKSPACE_FROM_CLI = req.args._.length > 0
       const to = self(req)
 
