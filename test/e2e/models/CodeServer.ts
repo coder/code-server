@@ -3,6 +3,7 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
+import util from "util"
 import { logError, plural } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
@@ -39,7 +40,11 @@ export class CodeServer {
   private closed = false
   private _workspaceDir: Promise<string> | undefined
 
-  constructor(name: string, private readonly codeServerArgs: string[]) {
+  constructor(
+    name: string,
+    private readonly codeServerArgs: string[],
+    private readonly codeServerEnv: NodeJS.ProcessEnv,
+  ) {
     this.logger = logger.named(name)
   }
 
@@ -96,6 +101,8 @@ export class CodeServer {
         "node",
         [
           process.env.CODE_SERVER_TEST_ENTRY || ".",
+          "--extensions-dir",
+          path.join(dir, "extensions"),
           ...this.codeServerArgs,
           // Using port zero will spawn on a random port.
           "--bind-addr",
@@ -107,8 +114,6 @@ export class CodeServer {
           path.join(dir, "config.yaml"),
           "--user-data-dir",
           dir,
-          "--extensions-dir",
-          path.join(__dirname, "../extensions"),
           // The last argument is the workspace to open.
           dir,
         ],
@@ -116,6 +121,7 @@ export class CodeServer {
           cwd: path.join(__dirname, "../../.."),
           env: {
             ...process.env,
+            ...this.codeServerEnv,
             PASSWORD,
           },
         },
@@ -461,5 +467,25 @@ export class CodeServerPage {
     if (authenticated) {
       await this.reloadUntilEditorIsReady()
     }
+  }
+
+  /**
+   * Execute a command in t root of the instance's workspace directory.
+   */
+  async exec(command: string): Promise<void> {
+    await util.promisify(cp.exec)(command, {
+      cwd: await this.workspaceDir,
+    })
+  }
+
+  /**
+   * Install an extension by ID to the instance's temporary extension
+   * directory.
+   */
+  async installExtension(id: string): Promise<void> {
+    const dir = path.join(await this.workspaceDir, "extensions")
+    await util.promisify(cp.exec)(`node . --install-extension ${id} --extensions-dir ${dir}`, {
+      cwd: path.join(__dirname, "../../.."),
+    })
   }
 }

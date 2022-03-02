@@ -393,6 +393,11 @@ describe("parser", () => {
   it("should ignore optional strings set to false", async () => {
     expect(parse(["--cert=false"])).toEqual({})
   })
+  it("should use last flag", async () => {
+    expect(parse(["--port", "8081", "--port", "8082"])).toEqual({
+      port: 8082,
+    })
+  })
 })
 
 describe("cli", () => {

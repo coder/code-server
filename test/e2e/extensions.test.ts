@@ -1,3 +1,4 @@
+import * as path from "path"
 import { describe, test } from "./baseFixture"
 
 function runTestExtensionTests() {
@@ -11,10 +12,12 @@ function runTestExtensionTests() {
   })
 }
 
-describe("Extensions", true, [], () => {
+const flags = ["--extensions-dir", path.join(__dirname, "./extensions")]
+
+describe("Extensions", true, flags, {}, () => {
   runTestExtensionTests()
 })
 
-describe("Extensions with --cert", true, ["--cert"], () => {
+describe("Extensions with --cert", true, [...flags, "--cert"], {}, () => {
   runTestExtensionTests()
 })

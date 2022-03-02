@@ -4,7 +4,7 @@ import util from "util"
 import { clean, tmpdir } from "../utils/helpers"
 import { describe, expect, test } from "./baseFixture"
 
-describe("Integrated Terminal", true, [], () => {
+describe("Integrated Terminal", true, [], {}, () => {
   const testName = "integrated-terminal"
   test.beforeAll(async () => {
     await clean(testName)
