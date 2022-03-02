@@ -87,6 +87,7 @@ export interface UserProvidedArgs {
   "locate-extension"?: string[]
   "show-versions"?: boolean
   category?: string
+  "github-auth"?: string
 }
 
 interface Option<T> {
@@ -205,6 +206,10 @@ const options: Options<Required<UserProvidedArgs>> = {
   },
   "uninstall-extension": { type: "string[]", description: "Uninstall a VS Code extension by id." },
   "show-versions": { type: "boolean", description: "Show VS Code extension versions." },
+  "github-auth": {
+    type: "string",
+    description: "GitHub authentication token (can only be passed in via $GITHUB_TOKEN or the config file).",
+  },
   "proxy-domain": { type: "string[]", description: "Domain used for proxying ports." },
   "ignore-last-opened": {
     type: "boolean",
@@ -336,6 +341,10 @@ export const parse = (
         throw new Error("--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD")
       }
 
+      if (key === "github-auth" && !opts?.configFile) {
+        throw new Error("--github-auth can only be set in the config file or passed in via $GITHUB_TOKEN")
+      }
+
       const option = options[key]
       if (option.type === "boolean") {
         ;(args[key] as boolean) = true
@@ -409,7 +418,12 @@ export const parse = (
 
   logger.debug(() => [
     `parsed ${opts?.configFile ? "config" : "command line"}`,
-    field("args", { ...args, password: undefined }),
+    field("args", {
+      ...args,
+      password: args.password ? "<redacted>" : undefined,
+      "hashed-password": args["hashed-password"] ? "<redacted>" : undefined,
+      "github-auth": args["github-auth"] ? "<redacted>" : undefined,
+    }),
   ])
 
   return args
@@ -530,9 +544,14 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     usingEnvPassword = false
   }
 
+  if (process.env.GITHUB_TOKEN) {
+    args["github-auth"] = process.env.GITHUB_TOKEN
+  }
+
   // Ensure they're not readable by child processes.
   delete process.env.PASSWORD
   delete process.env.HASHED_PASSWORD
+  delete process.env.GITHUB_TOKEN
 
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))

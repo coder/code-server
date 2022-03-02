@@ -274,9 +274,9 @@ clone-response@^1.0.2:
   dependencies:
     mimic-response "^1.0.0"
 
-code-oss-dev@coder/vscode#6337ee490d16b7dfd8854d22c998f58d6cd21ef5:
+code-oss-dev@coder/vscode#0fd21e4078ac1dddb26be024f5d4224a4b86da93:
   version "1.63.0"
-  resolved "https://codeload.github.com/coder/vscode/tar.gz/6337ee490d16b7dfd8854d22c998f58d6cd21ef5"
+  resolved "https://codeload.github.com/coder/vscode/tar.gz/0fd21e4078ac1dddb26be024f5d4224a4b86da93"
   dependencies:
     "@microsoft/applicationinsights-web" "^2.6.4"
     "@parcel/watcher" "2.0.3"

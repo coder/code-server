@@ -13,11 +13,12 @@ export const describe = (
   name: string,
   includeCredentials: boolean,
   codeServerArgs: string[],
+  codeServerEnv: NodeJS.ProcessEnv,
   fn: (codeServer: CodeServer) => void,
 ) => {
   test.describe(name, () => {
     // This will spawn on demand so nothing is necessary on before.
-    const codeServer = new CodeServer(name, codeServerArgs)
+    const codeServer = new CodeServer(name, codeServerArgs, codeServerEnv)
 
     // Kill code-server after the suite has ended. This may happen even without
     // doing it explicitly but it seems prudent to be sure.

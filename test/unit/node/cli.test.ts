@@ -313,6 +313,19 @@ describe("parser", () => {
     })
   })
 
+  it("should use env var github token", async () => {
+    process.env.GITHUB_TOKEN = "ga-foo"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "github-auth": "ga-foo",
+    })
+    expect(process.env.GITHUB_TOKEN).toBe(undefined)
+  })
+
   it("should error if password passed in", () => {
     expect(() => parse(["--password", "supersecret123"])).toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",
@@ -322,6 +335,12 @@ describe("parser", () => {
   it("should error if hashed-password passed in", () => {
     expect(() => parse(["--hashed-password", "fdas423fs8a"])).toThrowError(
       "--hashed-password can only be set in the config file or passed in via $HASHED_PASSWORD",
+    )
+  })
+
+  it("should error if github-auth passed in", () => {
+    expect(() => parse(["--github-auth", "fdas423fs8a"])).toThrowError(
+      "--github-auth can only be set in the config file or passed in via $GITHUB_TOKEN",
     )
   })
 
@@ -373,6 +392,11 @@ describe("parser", () => {
   })
   it("should ignore optional strings set to false", async () => {
     expect(parse(["--cert=false"])).toEqual({})
+  })
+  it("should use last flag", async () => {
+    expect(parse(["--port", "8081", "--port", "8082"])).toEqual({
+      port: 8082,
+    })
   })
 })
 
