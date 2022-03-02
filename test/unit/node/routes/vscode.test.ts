@@ -29,7 +29,7 @@ describe("vscode", () => {
       expect(resp.status).toBe(200)
       const html = await resp.text()
       const url = new URL(resp.url) // Check there were no redirections.
-      expect(url.pathname + decodeURIComponent(url.search)).toBe(route)
+      expect(url.pathname + url.search).toBe(route)
       switch (route) {
         case "/":
         case "/vscode/":
@@ -42,7 +42,7 @@ describe("vscode", () => {
     }
   })
 
-  it("should redirect to the passed in workspace", async () => {
+  it("should redirect to the passed in workspace using human-readable query", async () => {
     const workspace = path.join(await tmpdir(testName), "test.code-workspace")
     await fs.writeFile(workspace, "")
     codeServer = await integration.setup(["--auth=none", workspace], "")
@@ -53,7 +53,7 @@ describe("vscode", () => {
     expect(url.search).toBe(`?workspace=${workspace}`)
   })
 
-  it("should redirect to the passed in directory", async () => {
+  it("should redirect to the passed in folder using human-readable query", async () => {
     const folder = await tmpdir(testName)
     codeServer = await integration.setup(["--auth=none", folder], "")
 
@@ -81,7 +81,7 @@ describe("vscode", () => {
       resp = await codeServer.fetch(route)
       const url = new URL(resp.url)
       expect(url.pathname).toBe(route)
-      expect(decodeURIComponent(url.search)).toBe(`?folder=${folder}&workspace=${workspace}`)
+      expect(url.search).toBe(`?folder=${folder}&workspace=${workspace}`)
       await resp.text()
     }
 
@@ -89,26 +89,13 @@ describe("vscode", () => {
     resp = await codeServer.fetch("/", undefined, { ew: "true" })
     let url = new URL(resp.url)
     expect(url.pathname).toBe("/")
-    expect(decodeURIComponent(url.search)).toBe("?ew=true")
+    expect(url.search).toBe("?ew=true")
     await resp.text()
 
     resp = await codeServer.fetch("/")
     url = new URL(resp.url)
     expect(url.pathname).toBe("/")
-    expect(decodeURIComponent(url.search)).toBe("")
-    await resp.text()
-  })
-
-  it("should add the workspace as a query param maintaining the slashes", async () => {
-    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(workspace, "")
-    codeServer = await integration.setup(["--auth=none", workspace], "")
-
-    let resp = await codeServer.fetch("/", undefined)
-
-    expect(resp.status).toBe(200)
-    const url = new URL(resp.url)
-    expect(url.search).toBe(`?workspace=${workspace}`)
+    expect(url.search).toBe("")
     await resp.text()
   })
 
@@ -120,18 +107,6 @@ describe("vscode", () => {
     expect(resp.status).toBe(200)
     const url = new URL(resp.url)
     expect(url.search).toBe("")
-    await resp.text()
-  })
-
-  it("should add the folder as a query param maintaining the slashes", async () => {
-    const folder = await tmpdir(testName)
-    codeServer = await integration.setup(["--auth=none", folder], "")
-
-    let resp = await codeServer.fetch("/", undefined)
-
-    expect(resp.status).toBe(200)
-    const url = new URL(resp.url)
-    expect(url.search).toBe(`?folder=${folder}`)
     await resp.text()
   })
 
@@ -151,7 +126,7 @@ describe("vscode", () => {
     resp = await codeServer.fetch("/")
     const url = new URL(resp.url)
     expect(url.pathname).toBe("/")
-    expect(decodeURIComponent(url.search)).toBe("")
+    expect(url.search).toBe("")
     await resp.text()
   })
 })
