@@ -198,7 +198,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         id: download
         with:
           name: "npm-package"
@@ -249,7 +249,7 @@ jobs:
         run: npm install -g yarn
 
       - name: Download npm package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: npm-package
 
@@ -332,7 +332,7 @@ jobs:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
       - name: Download npm package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: npm-package
 
@@ -376,7 +376,7 @@ jobs:
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Download npm package
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: npm-package
 
@@ -425,7 +425,7 @@ jobs:
             yarn-build-
 
       - name: Download release packages
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v3
         with:
           name: release-packages
           path: ./release-packages
