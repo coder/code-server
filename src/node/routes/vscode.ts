@@ -34,9 +34,6 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    let folder = undefined
-    let workspace = undefined
-    const to = self(req)
     const settings = await req.settings.read()
     const lastOpened = settings.query || {}
 
@@ -47,6 +44,9 @@ export class CodeServerRouteWrapper {
     }
 
     if (!req.query.folder && !req.query.workspace) {
+      let folder = undefined
+      let workspace = undefined
+      const to = self(req)
       // Redirect to the last folder/workspace if nothing else is opened.
       if (
         (lastOpened.folder || lastOpened.workspace) &&
