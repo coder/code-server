@@ -26,6 +26,7 @@ export class CodeServerRouteWrapper {
 
   private $root: express.Handler = async (req, res, next) => {
     const isAuthenticated = await authenticated(req)
+    const NO_FOLDER_OR_WORKSPACE_QUERY = !req.query.folder && !req.query.workspace
 
     if (!isAuthenticated) {
       const to = self(req)
@@ -34,30 +35,35 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    if (!req.query.folder && !req.query.workspace) {
+    if (NO_FOLDER_OR_WORKSPACE_QUERY) {
       const settings = await req.settings.read()
       const lastOpened = settings.query || {}
-      let folder = undefined
-      let workspace = undefined
+      // Ew means the workspace was closed so clear the last folder/workspace.
+      const HAS_EW_QUERY = req.query.ew
+      // This flag disables the last opened behavior
+      const IGNORE_LAST_OPENED = req.args["ignore-last-opened"]
+      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = lastOpened.folder || lastOpened.workspace
+      const HAS_FOLDER_OR_WORKSPACE_FROM_CLI = req.args._.length > 0
       const to = self(req)
 
-      // Ew means the workspace was closed so clear the last folder/workspace.
-      if (req.query.ew) {
+      let folder = undefined
+      let workspace = undefined
+
+      if (HAS_EW_QUERY) {
         delete lastOpened.folder
         delete lastOpened.workspace
       }
 
       // Redirect to the last folder/workspace if nothing else is opened.
-      if (
-        (lastOpened.folder || lastOpened.workspace) &&
-        !req.args["ignore-last-opened"] // This flag disables this behavior.
-      ) {
+      if (HAS_LAST_OPENED_FOLDER_OR_WORKSPACE && !IGNORE_LAST_OPENED) {
         folder = lastOpened.folder
         workspace = lastOpened.workspace
-      } else if (req.args._.length > 0) {
+      } else if (HAS_FOLDER_OR_WORKSPACE_FROM_CLI) {
         const lastEntry = path.resolve(req.args._[req.args._.length - 1])
         const entryIsFile = await isFile(lastEntry)
-        if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
+        const IS_WORKSPACE_FILE = entryIsFile && path.extname(lastEntry) === ".code-workspace"
+
+        if (IS_WORKSPACE_FILE) {
           workspace = lastEntry
         } else if (!entryIsFile) {
           folder = lastEntry
