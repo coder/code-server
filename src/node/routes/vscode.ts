@@ -52,10 +52,8 @@ export class CodeServerRouteWrapper {
         (lastOpened.folder || lastOpened.workspace) &&
         !req.args["ignore-last-opened"] // This flag disables this behavior.
       ) {
-        return redirect(req, res, to, {
-          folder: lastOpened.folder,
-          workspace: lastOpened.workspace,
-        })
+        folder = lastOpened.folder
+        workspace = lastOpened.workspace
       } else if (req.args._.length > 0) {
         const lastEntry = path.resolve(req.args._[req.args._.length - 1])
         const entryIsFile = await isFile(lastEntry)
