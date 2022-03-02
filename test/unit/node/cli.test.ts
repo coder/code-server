@@ -726,29 +726,6 @@ describe("toVsCodeArgs", () => {
   it("should convert empty args", async () => {
     expect(await toVsCodeArgs(await setDefaults(parse([])))).toStrictEqual({
       ...vscodeDefaults,
-      folder: "",
-      workspace: "",
-    })
-  })
-
-  it("should convert with workspace", async () => {
-    const workspace = path.join(await tmpdir(testName), "test.code-workspace")
-    await fs.writeFile(workspace, "foobar")
-    expect(await toVsCodeArgs(await setDefaults(parse([workspace])))).toStrictEqual({
-      ...vscodeDefaults,
-      workspace,
-      folder: "",
-      _: [workspace],
-    })
-  })
-
-  it("should convert with folder", async () => {
-    const folder = await tmpdir(testName)
-    expect(await toVsCodeArgs(await setDefaults(parse([folder])))).toStrictEqual({
-      ...vscodeDefaults,
-      folder,
-      workspace: "",
-      _: [folder],
     })
   })
 
@@ -757,8 +734,6 @@ describe("toVsCodeArgs", () => {
     await fs.writeFile(file, "foobar")
     expect(await toVsCodeArgs(await setDefaults(parse([file])))).toStrictEqual({
       ...vscodeDefaults,
-      folder: "",
-      workspace: "",
       _: [file],
     })
   })

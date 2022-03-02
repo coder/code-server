@@ -1,12 +1,13 @@
 import { logger } from "@coder/logger"
 import * as express from "express"
+import * as path from "path"
 import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
 import { toVsCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { SocketProxyProvider } from "../socket"
-import { loadAMDModule } from "../util"
+import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
@@ -25,6 +26,9 @@ export class CodeServerRouteWrapper {
 
   private $root: express.Handler = async (req, res, next) => {
     const isAuthenticated = await authenticated(req)
+    const NO_FOLDER_OR_WORKSPACE_QUERY = !req.query.folder && !req.query.workspace
+    // Ew means the workspace was closed so clear the last folder/workspace.
+    const FOLDER_OR_WORKSPACE_WAS_CLOSED = req.query.ew
 
     if (!isAuthenticated) {
       const to = self(req)
@@ -33,25 +37,38 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    const { query } = await req.settings.read()
-    if (query) {
-      // Ew means the workspace was closed so clear the last folder/workspace.
-      if (req.query.ew) {
-        delete query.folder
-        delete query.workspace
-      }
+    if (NO_FOLDER_OR_WORKSPACE_QUERY && !FOLDER_OR_WORKSPACE_WAS_CLOSED) {
+      const settings = await req.settings.read()
+      const lastOpened = settings.query || {}
+      // This flag disables the last opened behavior
+      const IGNORE_LAST_OPENED = req.args["ignore-last-opened"]
+      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = lastOpened.folder || lastOpened.workspace
+      const HAS_FOLDER_OR_WORKSPACE_FROM_CLI = req.args._.length > 0
+      const to = self(req)
+
+      let folder = undefined
+      let workspace = undefined
 
       // Redirect to the last folder/workspace if nothing else is opened.
-      if (
-        !req.query.folder &&
-        !req.query.workspace &&
-        (query.folder || query.workspace) &&
-        !req.args["ignore-last-opened"] // This flag disables this behavior.
-      ) {
-        const to = self(req)
+      if (HAS_LAST_OPENED_FOLDER_OR_WORKSPACE && !IGNORE_LAST_OPENED) {
+        folder = lastOpened.folder
+        workspace = lastOpened.workspace
+      } else if (HAS_FOLDER_OR_WORKSPACE_FROM_CLI) {
+        const lastEntry = path.resolve(req.args._[req.args._.length - 1])
+        const entryIsFile = await isFile(lastEntry)
+        const IS_WORKSPACE_FILE = entryIsFile && path.extname(lastEntry) === ".code-workspace"
+
+        if (IS_WORKSPACE_FILE) {
+          workspace = lastEntry
+        } else if (!entryIsFile) {
+          folder = lastEntry
+        }
+      }
+
+      if (folder || workspace) {
         return redirect(req, res, to, {
-          folder: query.folder,
-          workspace: query.workspace,
+          folder,
+          workspace,
         })
       }
     }

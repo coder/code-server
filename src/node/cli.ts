@@ -3,15 +3,7 @@ import { promises as fs } from "fs"
 import yaml from "js-yaml"
 import * as os from "os"
 import * as path from "path"
-import {
-  canConnect,
-  generateCertificate,
-  generatePassword,
-  humanPath,
-  paths,
-  isNodeJSErrnoException,
-  isFile,
-} from "./util"
+import { canConnect, generateCertificate, generatePassword, humanPath, paths, isNodeJSErrnoException } from "./util"
 
 const DEFAULT_SOCKET_PATH = path.join(os.tmpdir(), "vscode-ipc")
 
@@ -448,7 +440,7 @@ export interface DefaultedArgs extends ConfigArgs {
   "extensions-dir": string
   "user-data-dir": string
   /* Positional arguments. */
-  _: []
+  _: string[]
 }
 
 /**
@@ -770,25 +762,9 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
  * Convert our arguments to VS Code server arguments.
  */
 export const toVsCodeArgs = async (args: DefaultedArgs): Promise<CodeServerLib.ServerParsedArgs> => {
-  let workspace = ""
-  let folder = ""
-  if (args._.length) {
-    const lastEntry = path.resolve(args._[args._.length - 1])
-    const entryIsFile = await isFile(lastEntry)
-    if (entryIsFile && path.extname(lastEntry) === ".code-workspace") {
-      workspace = lastEntry
-    } else if (!entryIsFile) {
-      folder = lastEntry
-    }
-    // Otherwise it is a regular file.  Spawning VS Code with a file is not yet
-    // supported but it can be done separately after code-server spawns.
-  }
-
   return {
     "connection-token": "0000",
     ...args,
-    workspace,
-    folder,
     "accept-server-license-terms": true,
     /** Type casting. */
     help: !!args.help,
