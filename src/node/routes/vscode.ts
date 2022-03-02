@@ -28,7 +28,7 @@ export class CodeServerRouteWrapper {
     const isAuthenticated = await authenticated(req)
     const NO_FOLDER_OR_WORKSPACE_QUERY = !req.query.folder && !req.query.workspace
     // Ew means the workspace was closed so clear the last folder/workspace.
-    const WORKSPACE_WAS_CLOSED = req.query.ew
+    const FOLDER_OR_WORKSPACE_WAS_CLOSED = req.query.ew
 
     if (!isAuthenticated) {
       const to = self(req)
@@ -37,7 +37,7 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    if (NO_FOLDER_OR_WORKSPACE_QUERY && !WORKSPACE_WAS_CLOSED) {
+    if (NO_FOLDER_OR_WORKSPACE_QUERY && !FOLDER_OR_WORKSPACE_WAS_CLOSED) {
       const settings = await req.settings.read()
       const lastOpened = settings.query || {}
       // This flag disables the last opened behavior
