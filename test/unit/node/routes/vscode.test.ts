@@ -68,6 +68,7 @@ describe("vscode", () => {
 
     const folder = await tmpdir(testName)
     const workspace = path.join(await tmpdir(testName), "test.code-workspace")
+    await fs.writeFile(workspace, "")
     let resp = await codeServer.fetch("/", undefined, {
       folder,
       workspace,
@@ -115,6 +116,8 @@ describe("vscode", () => {
 
     const folder = await tmpdir(testName)
     const workspace = path.join(await tmpdir(testName), "test.code-workspace")
+    await fs.writeFile(workspace, "")
+
     let resp = await codeServer.fetch("/", undefined, {
       folder,
       workspace,

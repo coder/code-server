@@ -27,6 +27,8 @@ export class CodeServerRouteWrapper {
   private $root: express.Handler = async (req, res, next) => {
     const isAuthenticated = await authenticated(req)
     const NO_FOLDER_OR_WORKSPACE_QUERY = !req.query.folder && !req.query.workspace
+    // Ew means the workspace was closed so clear the last folder/workspace.
+    const WORKSPACE_WAS_CLOSED = req.query.ew
 
     if (!isAuthenticated) {
       const to = self(req)
@@ -35,21 +37,19 @@ export class CodeServerRouteWrapper {
       })
     }
 
-    if (NO_FOLDER_OR_WORKSPACE_QUERY) {
+    if (NO_FOLDER_OR_WORKSPACE_QUERY && !WORKSPACE_WAS_CLOSED) {
       const settings = await req.settings.read()
       const lastOpened = settings.query || {}
-      // Ew means the workspace was closed so clear the last folder/workspace.
-      const HAS_EW_QUERY = req.query.ew
       // This flag disables the last opened behavior
       const IGNORE_LAST_OPENED = req.args["ignore-last-opened"]
-      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = lastOpened.folder || lastOpened.workspace
+      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = (!WORKSPACE_WAS_CLOSED && lastOpened.folder) || lastOpened.workspace
       const HAS_FOLDER_OR_WORKSPACE_FROM_CLI = req.args._.length > 0
       const to = self(req)
 
       let folder = undefined
       let workspace = undefined
 
-      if (HAS_EW_QUERY) {
+      if (WORKSPACE_WAS_CLOSED) {
         delete lastOpened.folder
         delete lastOpened.workspace
       }
@@ -69,10 +69,13 @@ export class CodeServerRouteWrapper {
           folder = lastEntry
         }
       }
-      return redirect(req, res, to, {
-        folder,
-        workspace,
-      })
+
+      if (folder || workspace) {
+        return redirect(req, res, to, {
+          folder,
+          workspace,
+        })
+      }
     }
 
     // Store the query parameters so we can use them on the next load.  This
