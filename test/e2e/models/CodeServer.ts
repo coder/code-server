@@ -3,7 +3,7 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
-import util from "util"
+import * as util from "util"
 import { logError, plural } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
@@ -38,12 +38,13 @@ export class CodeServer {
   private process: Promise<CodeServerProcess> | undefined
   public readonly logger: Logger
   private closed = false
-  private _workspaceDir: Promise<string> | undefined
 
   constructor(
     name: string,
-    private readonly codeServerArgs: string[],
-    private readonly codeServerEnv: NodeJS.ProcessEnv,
+    private readonly args: string[],
+    private readonly env: NodeJS.ProcessEnv,
+    private readonly _workspaceDir: Promise<string> | string | undefined,
+    private readonly entry = process.env.CODE_SERVER_TEST_ENTRY || ".",
   ) {
     this.logger = logger.named(name)
   }
@@ -75,7 +76,7 @@ export class CodeServer {
    */
   private async createWorkspace(): Promise<string> {
     const dir = await this.workspaceDir
-    await fs.mkdir(path.join(dir, "User"))
+    await fs.mkdir(path.join(dir, "User"), { recursive: true })
     await fs.writeFile(
       path.join(dir, "User/settings.json"),
       JSON.stringify({
@@ -96,36 +97,33 @@ export class CodeServer {
     const dir = await this.createWorkspace()
 
     return new Promise((resolve, reject) => {
-      this.logger.debug("spawning")
-      const proc = cp.spawn(
-        "node",
-        [
-          process.env.CODE_SERVER_TEST_ENTRY || ".",
-          "--extensions-dir",
-          path.join(dir, "extensions"),
-          ...this.codeServerArgs,
-          // Using port zero will spawn on a random port.
-          "--bind-addr",
-          "127.0.0.1:0",
-          // Setting the XDG variables would be easier and more thorough but the
-          // modules we import ignores those variables for non-Linux operating
-          // systems so use these flags instead.
-          "--config",
-          path.join(dir, "config.yaml"),
-          "--user-data-dir",
-          dir,
-          // The last argument is the workspace to open.
-          dir,
-        ],
-        {
-          cwd: path.join(__dirname, "../../.."),
-          env: {
-            ...process.env,
-            ...this.codeServerEnv,
-            PASSWORD,
-          },
+      const args = [
+        this.entry,
+        "--extensions-dir",
+        path.join(dir, "extensions"),
+        ...this.args,
+        // Using port zero will spawn on a random port.
+        "--bind-addr",
+        "127.0.0.1:0",
+        // Setting the XDG variables would be easier and more thorough but the
+        // modules we import ignores those variables for non-Linux operating
+        // systems so use these flags instead.
+        "--config",
+        path.join(dir, "config.yaml"),
+        "--user-data-dir",
+        dir,
+        // The last argument is the workspace to open.
+        dir,
+      ]
+      this.logger.debug("spawning `node " + args.join(" ") + "`")
+      const proc = cp.spawn("node", args, {
+        cwd: path.join(__dirname, "../../.."),
+        env: {
+          ...process.env,
+          ...this.env,
+          PASSWORD,
         },
-      )
+      })
 
       const timer = idleTimer("Failed to extract address; did the format change?", reject)
 
@@ -136,7 +134,7 @@ export class CodeServer {
       })
 
       proc.on("close", (code) => {
-        const error = new Error("closed unexpectedly")
+        const error = new Error("code-server closed unexpectedly")
         if (!this.closed) {
           this.logger.error(error.message, field("code", code))
         }
@@ -153,7 +151,7 @@ export class CodeServer {
         timer.reset()
 
         // Log the line without the timestamp.
-        this.logger.trace(line.replace(/\[.+\]/, ""))
+        this.logger.debug(line.replace(/\[.+\]/, ""))
         if (resolved) {
           return
         }
@@ -194,7 +192,11 @@ export class CodeServer {
 export class CodeServerPage {
   private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {
+  constructor(
+    private readonly codeServer: CodeServer,
+    public readonly page: Page,
+    private readonly authenticated: boolean,
+  ) {
     this.page.on("console", (message) => {
       this.codeServer.logger.debug(message)
     })
@@ -215,11 +217,18 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigate to a code-server endpoint.  By default go to the root.
+   * Navigate to a code-server endpoint (root by default).  Then wait for the
+   * editor to become available.
    */
   async navigate(endpoint = "/") {
     const to = new URL(endpoint, await this.codeServer.address())
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
+
+    // Only reload editor if authenticated. Otherwise we'll get stuck
+    // reloading the login page.
+    if (this.authenticated) {
+      await this.reloadUntilEditorIsReady()
+    }
   }
 
   /**
@@ -456,21 +465,7 @@ export class CodeServerPage {
   }
 
   /**
-   * Navigates to code-server then reloads until the editor is ready.
-   *
-   * It is recommended to run setup before using this model in any tests.
-   */
-  async setup(authenticated: boolean, endpoint = "/") {
-    await this.navigate(endpoint)
-    // If we aren't authenticated we'll see a login page so we can't wait until
-    // the editor is ready.
-    if (authenticated) {
-      await this.reloadUntilEditorIsReady()
-    }
-  }
-
-  /**
-   * Execute a command in t root of the instance's workspace directory.
+   * Execute a command in the root of the instance's workspace directory.
    */
   async exec(command: string): Promise<void> {
     await util.promisify(cp.exec)(command, {
@@ -487,5 +482,16 @@ export class CodeServerPage {
     await util.promisify(cp.exec)(`node . --install-extension ${id} --extensions-dir ${dir}`, {
       cwd: path.join(__dirname, "../../.."),
     })
+  }
+
+  /**
+   * Wait for state to be flushed to the database.
+   */
+  async stateFlush(): Promise<void> {
+    // If we reload too quickly VS Code will be unable to save the state changes
+    // so wait until those have been written to the database.  It flushes every
+    // five seconds so we need to wait at least that long.
+    // TODO@asher: There must be a better way.
+    await this.page.waitForTimeout(5500)
   }
 }
