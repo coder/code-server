@@ -34,7 +34,6 @@ as well as share our workflow for maintaining the project.
 Current maintainers:
 
 - @code-asher
-- @TeffenEllis
 - @jsjoeio
 
 Occasionally, other Coder employees may step in time to time to assist with code-server.

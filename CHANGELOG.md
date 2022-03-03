@@ -28,6 +28,13 @@ VS Code v0.00.0
 
 - Add here
 
+## [4.0.3](https://github.com/coder/code-server/releases/tag/v4.0.3) - 2022-03-03
+
+VS Code v1.63.0
+
+### Changed
+### Fixed
+
 ## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
 VS Code v1.63.0
