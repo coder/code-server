@@ -224,8 +224,8 @@ export class CodeServerPage {
     const to = new URL(endpoint, await this.codeServer.address())
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
 
-    // If we aren't authenticated we'll see a login page so we can't wait until
-    // the editor is ready.
+    // Only reload editor if authenticated. Otherwise we'll get stuck
+    // reloading the login page.
     if (this.authenticated) {
       await this.reloadUntilEditorIsReady()
     }
