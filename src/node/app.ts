@@ -11,7 +11,7 @@ import { disposer } from "./http"
 import { isNodeJSErrnoException } from "./util"
 import { handleUpgrade } from "./wsRouter"
 
-type ListenOptions = Pick<DefaultedArgs, "socket" | "port" | "host">
+type ListenOptions = Pick<DefaultedArgs, "socket-mode" | "socket" | "port" | "host">
 
 export interface App extends Disposable {
   /** Handles regular HTTP requests. */
@@ -22,7 +22,7 @@ export interface App extends Disposable {
   server: http.Server
 }
 
-const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
+const listen = (server: http.Server, { host, port, socket, "socket-mode": mode }: ListenOptions) => {
   return new Promise<void>(async (resolve, reject) => {
     server.on("error", reject)
 
@@ -31,7 +31,16 @@ const listen = (server: http.Server, { host, port, socket }: ListenOptions) => {
       server.off("error", reject)
       server.on("error", (err) => util.logError(logger, "http server error", err))
 
-      resolve()
+      if (socket && mode) {
+        fs.chmod(socket, mode)
+          .then(resolve)
+          .catch((err) => {
+            util.logError(logger, "socket chmod", err)
+            reject(err)
+          })
+      } else {
+        resolve()
+      }
     }
 
     if (socket) {

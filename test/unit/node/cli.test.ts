@@ -73,6 +73,8 @@ describe("parser", () => {
 
           "--socket=mumble",
 
+          "--socket-mode=777",
+
           "3",
 
           ["--user-data-dir", "path/to/user/dir"],
@@ -110,6 +112,7 @@ describe("parser", () => {
       open: true,
       port: 8081,
       socket: path.resolve("mumble"),
+      "socket-mode": "777",
       verbose: true,
       version: true,
       "bind-addr": "192.169.0.1:8080",
@@ -269,7 +272,9 @@ describe("parser", () => {
   })
 
   it("should override with --link", async () => {
-    const args = parse("--cert test --cert-key test --socket test --host 0.0.0.0 --port 8888 --link test".split(" "))
+    const args = parse(
+      "--cert test --cert-key test --socket test --socket-mode 777 --host 0.0.0.0 --port 8888 --link test".split(" "),
+    )
     const defaultArgs = await setDefaults(args)
     expect(defaultArgs).toEqual({
       ...defaults,
@@ -282,6 +287,7 @@ describe("parser", () => {
       cert: undefined,
       "cert-key": path.resolve("test"),
       socket: undefined,
+      "socket-mode": undefined,
     })
   })
 
