@@ -61,3 +61,6 @@ types:
   # implementations. For example, if a commit adds a fix + test, it's a fix
   # commit. If a commit is simply bumping coverage, it's a test commit.
   - test
+
+  # A new release.
+  - release
