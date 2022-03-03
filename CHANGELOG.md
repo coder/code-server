@@ -32,8 +32,40 @@ Code v0.00.0
 
 Code v1.63.0
 
+### Added
+
+- Support for injecting GitHub token into Code so extensions can make use of it.
+  This can be done with the `GITHUB_TOKEN` environment variable or `github-auth`
+  in the config file.
+- New flag `--socket-mode` allows setting the mode (file permissions) of the
+  socket created when using `--socket`.
+- The version of Code bundled with code-server now appears when using the
+  `--version` flag. For example: `4.0.3 5cdfe74686aa73e023f8354a9a6014eb30caa7dd with Code 1.63.0`.
+  If you have been parsing this flag for the version you might want to use
+  `--version --json` instead as doing that will be more stable.
+
 ### Changed
+
+- The workspace or folder passed on the CLI will now use the same redirect
+  method that the last opened workspace or folder uses. This means if you pass
+  something like `code-server /path/to/dir` you will now get a query parameter
+  added (like so: `my-domain.tld?folder=/path/to/dir`), making it easier to edit
+  by hand and making it consistent with the last opened and menu open behaviors.
+- The folder/workspace query parameter no longer has encoded slashes, making
+  them more readable and editable by hand. This was only affecting the last
+  opened behavior, not opens from the menu.
+
 ### Fixed
+
+- Fix web sockets not connecting when using `--cert`.
+- Prevent workspace state collisions when opening a workspace that shares the
+  same file path with another workspace on a different machine that shares the
+  same domain. This was causing files opened in one workspace to be "re-"opened
+  in the other workspace when that workspace was first opened.
+- Pin the Express version which should make installing from npm work again.
+- Propagate signals to code-server in the Docker image which means it should
+  stop more quickly and gracefully.
+- Fix missing argon binaries in the standalone release on arm machines.
 
 ## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
