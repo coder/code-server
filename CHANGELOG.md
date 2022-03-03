@@ -22,7 +22,7 @@ VS Code v99.99.999
 
 ## [Unreleased](https://github.com/coder/code-server/releases)
 
-VS Code v0.00.0
+Code v0.00.0
 
 ### Changed
 
@@ -30,14 +30,14 @@ VS Code v0.00.0
 
 ## [4.1.0](https://github.com/coder/code-server/releases/tag/v4.1.0) - 2022-03-03
 
-VS Code v1.63.0
+Code v1.63.0
 
 ### Changed
 ### Fixed
 
 ## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
-VS Code v1.63.0
+Code v1.63.0
 
 ### Fixed
 
@@ -48,7 +48,7 @@ VS Code v1.63.0
 
 ## [4.0.1](https://github.com/coder/code-server/releases/tag/v4.0.1) - 2022-01-04
 
-VS Code v1.63.0
+Code v1.63.0
 
 code-server has been rebased on upstream's newly open-sourced server
 implementation (#4414).
@@ -64,7 +64,7 @@ implementation (#4414).
   settings file (we rely on the already-existing query object instead).
 - The marketplace override environment variables `SERVICE_URL` and `ITEM_URL`
   have been replaced with a single `EXTENSIONS_GALLERY` variable that
-  corresponds to `extensionsGallery` in VS Code's `product.json`.
+  corresponds to `extensionsGallery` in Code's `product.json`.
 
 ### Added
 
@@ -86,11 +86,11 @@ implementation (#4414).
 
 ## [3.12.0](https://github.com/coder/code-server/releases/tag/v3.12.0) - 2021-09-15
 
-VS Code v1.60.0
+Code v1.60.0
 
 ### Changed
 
-- Upgrade VS Code to 1.60.0.
+- Upgrade Code to 1.60.0.
 
 ### Fixed
 
@@ -106,7 +106,7 @@ Undocumented (see releases page).
 
 ## [3.10.2](https://github.com/coder/code-server/releases/tag/v3.10.2) - 2021-05-21
 
-VS Code v1.56.1
+Code v1.56.1
 
 ### Added
 
@@ -122,7 +122,7 @@ VS Code v1.56.1
 
 ## [3.10.1](https://github.com/coder/code-server/releases/tag/v3.10.1) - 2021-05-17
 
-VS Code v1.56.1
+Code v1.56.1
 
 ### Fixed
 
@@ -136,13 +136,13 @@ VS Code v1.56.1
 
 ## [3.10.0](https://github.com/coder/code-server/releases/tag/v3.10.0) - 2021-05-10
 
-VS Code v1.56.0
+Code v1.56.0
 
 ### Changed
 
-- Update to VS Code 1.56.0 (#3269).
+- Update to Code 1.56.0 (#3269).
 - Minor connections refactor (#3178). Improves connection stability.
-- Use ptyHostService (#3308). This brings us closer to upstream VS Code.
+- Use ptyHostService (#3308). This brings us closer to upstream Code.
 
 ### Added
 
