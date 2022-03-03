@@ -40,14 +40,14 @@ Code v1.63.0
 - New flag `--socket-mode` allows setting the mode (file permissions) of the
   socket created when using `--socket`.
 - The version of Code bundled with code-server now appears when using the
-  `--version` flag. For example: `4.0.3 5cdfe74686aa73e023f8354a9a6014eb30caa7dd with Code 1.63.0`.
+  `--version` flag. For example: `4.0.2 5cdfe74686aa73e023f8354a9a6014eb30caa7dd with Code 1.63.0`.
   If you have been parsing this flag for the version you might want to use
   `--version --json` instead as doing that will be more stable.
 
 ### Changed
 
 - The workspace or folder passed on the CLI will now use the same redirect
-  method that the last opened workspace or folder uses. This means if you pass
+  method that the last opened workspace or folder uses. This means if you use
   something like `code-server /path/to/dir` you will now get a query parameter
   added (like so: `my-domain.tld?folder=/path/to/dir`), making it easier to edit
   by hand and making it consistent with the last opened and menu open behaviors.
@@ -61,11 +61,11 @@ Code v1.63.0
 - Prevent workspace state collisions when opening a workspace that shares the
   same file path with another workspace on a different machine that shares the
   same domain. This was causing files opened in one workspace to be "re-"opened
-  in the other workspace when that workspace was first opened.
+  in the other workspace when the other workspace is opened.
 - Pin the Express version which should make installing from npm work again.
 - Propagate signals to code-server in the Docker image which means it should
   stop more quickly and gracefully.
-- Fix missing argon binaries in the standalone release on arm machines.
+- Fix missing argon binaries in the standalone releases on arm machines.
 
 ## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
