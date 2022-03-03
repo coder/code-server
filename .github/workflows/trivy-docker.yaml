@@ -1,0 +1,42 @@
+name: Trivy Nightly Docker Scan
+
+on:
+# TODO@jsjoeio do some nightly check
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+
+jobs:
+  trivy-scan-image:
+    runs-on: ubuntu-20.04
+    needs: docker-amd64
+
+    steps:
+      - name: Run Trivy vulnerability scanner in image mode
+        uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
+        with:
+          image-ref: 'docker.io/codercom/code-server:latest
+          ignore-unfixed: true
+          format: 'sarif'
+          output: "trivy-image-results.sarif"
+          severity: "HIGH,CRITICAL"
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: "trivy-image-results.sarif"
