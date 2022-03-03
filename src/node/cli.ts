@@ -56,6 +56,7 @@ export interface UserProvidedArgs {
   open?: boolean
   "bind-addr"?: string
   socket?: string
+  "socket-mode"?: string
   version?: boolean
   "proxy-domain"?: string[]
   "reuse-window"?: boolean
@@ -175,6 +176,7 @@ const options: Options<Required<UserProvidedArgs>> = {
   port: { type: "number", description: "" },
 
   socket: { type: "string", path: true, description: "Path to a socket (bind-addr will be ignored)." },
+  "socket-mode": { type: "string", description: "File mode of the socket." },
   version: { type: "boolean", short: "v", description: "Display version information." },
   _: { type: "string[]" },
 
@@ -513,6 +515,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args.host = "localhost"
     args.port = 0
     args.socket = undefined
+    args["socket-mode"] = undefined
     args.cert = undefined
     args.auth = AuthType.None
   }
