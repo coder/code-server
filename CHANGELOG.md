@@ -22,15 +22,54 @@ VS Code v99.99.999
 
 ## [Unreleased](https://github.com/coder/code-server/releases)
 
-VS Code v0.00.0
+Code v0.00.0
 
 ### Changed
 
 - Add here
 
+## [4.1.0](https://github.com/coder/code-server/releases/tag/v4.1.0) - 2022-03-03
+
+Code v1.63.0
+
+### Added
+
+- Support for injecting GitHub token into Code so extensions can make use of it.
+  This can be done with the `GITHUB_TOKEN` environment variable or `github-auth`
+  in the config file.
+- New flag `--socket-mode` allows setting the mode (file permissions) of the
+  socket created when using `--socket`.
+- The version of Code bundled with code-server now appears when using the
+  `--version` flag. For example: `4.0.2 5cdfe74686aa73e023f8354a9a6014eb30caa7dd with Code 1.63.0`.
+  If you have been parsing this flag for the version you might want to use
+  `--version --json` instead as doing that will be more stable.
+
+### Changed
+
+- The workspace or folder passed on the CLI will now use the same redirect
+  method that the last opened workspace or folder uses. This means if you use
+  something like `code-server /path/to/dir` you will now get a query parameter
+  added (like so: `my-domain.tld?folder=/path/to/dir`), making it easier to edit
+  by hand and making it consistent with the last opened and menu open behaviors.
+- The folder/workspace query parameter no longer has encoded slashes, making
+  them more readable and editable by hand. This was only affecting the last
+  opened behavior, not opens from the menu.
+
+### Fixed
+
+- Fix web sockets not connecting when using `--cert`.
+- Prevent workspace state collisions when opening a workspace that shares the
+  same file path with another workspace on a different machine that shares the
+  same domain. This was causing files opened in one workspace to be "re-"opened
+  in the other workspace when the other workspace is opened.
+- Pin the Express version which should make installing from npm work again.
+- Propagate signals to code-server in the Docker image which means it should
+  stop more quickly and gracefully.
+- Fix missing argon binaries in the standalone releases on arm machines.
+
 ## [4.0.2](https://github.com/coder/code-server/releases/tag/v4.0.2) - 2022-01-27
 
-VS Code v1.63.0
+Code v1.63.0
 
 ### Fixed
 
@@ -41,7 +80,7 @@ VS Code v1.63.0
 
 ## [4.0.1](https://github.com/coder/code-server/releases/tag/v4.0.1) - 2022-01-04
 
-VS Code v1.63.0
+Code v1.63.0
 
 code-server has been rebased on upstream's newly open-sourced server
 implementation (#4414).
@@ -57,7 +96,7 @@ implementation (#4414).
   settings file (we rely on the already-existing query object instead).
 - The marketplace override environment variables `SERVICE_URL` and `ITEM_URL`
   have been replaced with a single `EXTENSIONS_GALLERY` variable that
-  corresponds to `extensionsGallery` in VS Code's `product.json`.
+  corresponds to `extensionsGallery` in Code's `product.json`.
 
 ### Added
 
@@ -79,11 +118,11 @@ implementation (#4414).
 
 ## [3.12.0](https://github.com/coder/code-server/releases/tag/v3.12.0) - 2021-09-15
 
-VS Code v1.60.0
+Code v1.60.0
 
 ### Changed
 
-- Upgrade VS Code to 1.60.0.
+- Upgrade Code to 1.60.0.
 
 ### Fixed
 
@@ -99,7 +138,7 @@ Undocumented (see releases page).
 
 ## [3.10.2](https://github.com/coder/code-server/releases/tag/v3.10.2) - 2021-05-21
 
-VS Code v1.56.1
+Code v1.56.1
 
 ### Added
 
@@ -115,7 +154,7 @@ VS Code v1.56.1
 
 ## [3.10.1](https://github.com/coder/code-server/releases/tag/v3.10.1) - 2021-05-17
 
-VS Code v1.56.1
+Code v1.56.1
 
 ### Fixed
 
@@ -129,13 +168,13 @@ VS Code v1.56.1
 
 ## [3.10.0](https://github.com/coder/code-server/releases/tag/v3.10.0) - 2021-05-10
 
-VS Code v1.56.0
+Code v1.56.0
 
 ### Changed
 
-- Update to VS Code 1.56.0 (#3269).
+- Update to Code 1.56.0 (#3269).
 - Minor connections refactor (#3178). Improves connection stability.
-- Use ptyHostService (#3308). This brings us closer to upstream VS Code.
+- Use ptyHostService (#3308). This brings us closer to upstream Code.
 
 ### Added
 
