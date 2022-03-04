@@ -120,10 +120,7 @@ export class CodeServerRouteWrapper {
     /**
      * @file ../../../vendor/modules/code-oss-dev/src/vs/server/node/server.main.js
      */
-    const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>(
-      "vs/server/node/server.main",
-      "createServer",
-    )
+    const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>("vs/server/node/server.main", "createServer")
 
     try {
       this._codeServerMain = await createVSServer(null, {
