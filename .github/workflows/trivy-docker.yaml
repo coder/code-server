@@ -1,7 +1,28 @@
 name: Trivy Nightly Docker Scan
 
 on:
-# TODO@jsjoeio do some nightly check
+  # Run scans if the workflow is modified, in order to test the
+  # workflow itself. This results in some spurious notifications,
+  # but seems okay for testing.
+  pull_request:
+    branches:
+      - main
+    paths:
+      - .github/workflows/trivy-docker.yaml
+
+  # Run scans against master whenever changes are merged.
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/trivy-docker.yaml
+
+  schedule:
+    # Run at 10:15 am UTC (3:15am PT/5:15am CT)
+    # Run at 0 minutes 0 hours of every day.
+    - cron: "15 10 * * *"
+
+  workflow_dispatch:
 
 permissions:
   actions: none
@@ -30,9 +51,9 @@ jobs:
       - name: Run Trivy vulnerability scanner in image mode
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
         with:
-          image-ref: 'docker.io/codercom/code-server:latest
+          image-ref: "docker.io/codercom/code-server:latest"
           ignore-unfixed: true
-          format: 'sarif'
+          format: "sarif"
           output: "trivy-image-results.sarif"
           severity: "HIGH,CRITICAL"
 
