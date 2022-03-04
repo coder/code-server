@@ -47,6 +47,9 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
       - name: Run Trivy vulnerability scanner in image mode
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
         with:
