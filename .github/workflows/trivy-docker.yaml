@@ -45,7 +45,6 @@ concurrency:
 jobs:
   trivy-scan-image:
     runs-on: ubuntu-20.04
-    needs: docker-amd64
 
     steps:
       - name: Run Trivy vulnerability scanner in image mode
