@@ -179,7 +179,7 @@ jobs:
         run: tar -czf package.tar.gz release
 
       - name: Upload npm package artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: npm-package
           path: ./package.tar.gz
@@ -268,7 +268,7 @@ jobs:
         run: yarn package
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: release-packages
           path: ./release-packages
@@ -352,7 +352,7 @@ jobs:
         run: yarn package ${NPM_CONFIG_ARCH}
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: release-packages
           path: ./release-packages
@@ -393,7 +393,7 @@ jobs:
         run: yarn package
 
       - name: Upload release artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: release-packages
           path: ./release-packages
@@ -450,7 +450,7 @@ jobs:
 
       - name: Upload test artifacts
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: failed-test-videos
           path: ./test/test-results
