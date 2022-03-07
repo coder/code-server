@@ -143,18 +143,19 @@ jobs:
         run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
 
       - name: Attempt to fetch vscode build from cache
-        id: cache-vscode
+        id: cache-vscode-2
         uses: actions/cache@v2
         with:
           path: |
             vendor/modules/code-oss-dev/.build
+            vendor/modules/code-oss-dev/package.json
             vendor/modules/code-oss-dev/out-build
             vendor/modules/code-oss-dev/out-vscode-reh-web
             vendor/modules/code-oss-dev/out-vscode-reh-web-min
           key: vscode-reh-build-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
-        if: steps.cache-vscode.outputs.cache-hit != 'true'
+        if: steps.cache-vscode-2.outputs.cache-hit != 'true'
         run: yarn build:vscode
 
       # Our code imports code from VS Code's `out` directory meaning VS Code
