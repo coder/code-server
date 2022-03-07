@@ -194,6 +194,15 @@ describe("parser", () => {
     expect(logger.level).toEqual(Level.Trace)
   })
 
+  it("should set valid log level env var", async () => {
+    process.env.LOG_LEVEL = "error"
+    const defaults = await setDefaults(parse([]))
+    expect(defaults).toEqual({
+      ...defaults,
+      log: "error",
+    })
+  })
+
   it("should ignore invalid log level env var", async () => {
     process.env.LOG_LEVEL = "bogus"
     const defaults = await setDefaults(parse([]))
