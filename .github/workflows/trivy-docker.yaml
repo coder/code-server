@@ -25,7 +25,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  actions: write
+  actions: none
   checks: none
   contents: read
   deployments: none
