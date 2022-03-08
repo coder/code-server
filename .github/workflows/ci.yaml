@@ -446,6 +446,12 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
+      # TODO@jsjoeio - remove once we switch to submodules.
+      - name: Create package.json for testing
+        run: |
+          mkdir -p ./vendor/modules/code-oss-dev
+          echo '{ "version": "test" }' > ./vendor/modules/code-oss-dev/package.json
+
       - name: Run end-to-end tests
         run: yarn test:e2e
 
