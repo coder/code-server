@@ -152,7 +152,7 @@ jobs:
             vendor/modules/code-oss-dev/out-build
             vendor/modules/code-oss-dev/out-vscode-reh-web
             vendor/modules/code-oss-dev/out-vscode-reh-web-min
-          key: vscode-reh-build-${{ steps.vscode-rev.outputs.rev }}
+          key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
         if: steps.cache-vscode-2.outputs.cache-hit != 'true'
