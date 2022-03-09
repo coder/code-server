@@ -22,7 +22,7 @@ export interface App extends Disposable {
   server: http.Server
 }
 
-const listen = (server: http.Server, { host, port, socket, "socket-mode": mode }: ListenOptions) => {
+export const listen = (server: http.Server, { host, port, socket, "socket-mode": mode }: ListenOptions) => {
   return new Promise<void>(async (resolve, reject) => {
     server.on("error", reject)
 

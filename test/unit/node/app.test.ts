@@ -3,7 +3,7 @@ import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
-import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError } from "../../../src/node/app"
+import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError, listen } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
 import { clean, mockLogger, getAvailablePort, tmpdir } from "../../utils/helpers"
@@ -219,7 +219,7 @@ describe("handleArgsSocketCatchError", () => {
     expect(logger.error).toHaveBeenCalledWith(errorMessage)
   })
 
-  it("should not log an error if its a iNodeJS.ErrnoException", () => {
+  it("should not log an error if its a NodeJS.ErrnoException", () => {
     const error: NodeJS.ErrnoException = new Error()
     error.code = "ENOENT"
 
@@ -248,5 +248,36 @@ describe("handleArgsSocketCatchError", () => {
 
     expect(logger.error).toHaveBeenCalledTimes(1)
     expect(logger.error).toHaveBeenCalledWith(error)
+  })
+})
+
+describe("listen", () => {
+  let tmpDirPath: string
+  let mockServer: http.Server
+
+  const testName = "listen"
+
+  beforeEach(async () => {
+    await clean(testName)
+    mockLogger()
+    tmpDirPath = await tmpdir(testName)
+    mockServer = http.createServer()
+  })
+
+  afterEach(() => {
+    mockServer.close()
+    jest.clearAllMocks()
+  })
+
+  it.only("should log an error if a directory is passed in instead of a file", async () => {
+    const errorMessage = "EPERM: operation not permitted, unlink"
+    const port = await getAvailablePort()
+    const mockArgs = { port, host: "0.0.0.0", socket: tmpDirPath }
+    try {
+      await listen(mockServer, mockArgs)
+    } catch (error) {}
+
+    expect(logger.error).toHaveBeenCalledTimes(1)
+    expect(logger.error).toHaveBeenCalledWith(expect.stringContaining(errorMessage))
   })
 })
