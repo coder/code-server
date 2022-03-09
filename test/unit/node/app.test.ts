@@ -269,7 +269,7 @@ describe("listen", () => {
     jest.clearAllMocks()
   })
 
-  it.only("should log an error if a directory is passed in instead of a file", async () => {
+  it("should log an error if a directory is passed in instead of a file", async () => {
     const errorMessage = "EPERM: operation not permitted, unlink"
     const port = await getAvailablePort()
     const mockArgs = { port, host: "0.0.0.0", socket: tmpDirPath }
