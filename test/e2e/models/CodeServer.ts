@@ -20,14 +20,14 @@ class Context {
   public canceled(): boolean {
     return this._canceled
   }
-  public done(): void {
-    this._done = true
+  public finished(): boolean {
+    return this._done
   }
   public cancel(): void {
     this._canceled = true
   }
-  public finish(): boolean {
-    return this._done
+  public finish(): void {
+    this._done = true
   }
 }
 
@@ -43,7 +43,7 @@ export class CodeServer {
     name: string,
     private readonly args: string[],
     private readonly env: NodeJS.ProcessEnv,
-    private readonly _workspaceDir: Promise<string> | string | undefined,
+    private _workspaceDir: Promise<string> | string | undefined,
     private readonly entry = process.env.CODE_SERVER_TEST_ENTRY || ".",
   ) {
     this.logger = logger.named(name)
@@ -64,7 +64,7 @@ export class CodeServer {
   /**
    * The workspace directory code-server opens with.
    */
-  get workspaceDir(): Promise<string> {
+  get workspaceDir(): Promise<string> | string {
     if (!this._workspaceDir) {
       this._workspaceDir = tmpdir(workspaceDir)
     }
@@ -198,7 +198,7 @@ export class CodeServerPage {
     private readonly authenticated: boolean,
   ) {
     this.page.on("console", (message) => {
-      this.codeServer.logger.debug(message)
+      this.codeServer.logger.debug(message.text())
     })
     this.page.on("pageerror", (error) => {
       logError(this.codeServer.logger, "page", error)
@@ -241,14 +241,13 @@ export class CodeServerPage {
     this.codeServer.logger.debug("Waiting for editor to be ready...")
 
     const editorIsVisible = await this.isEditorVisible()
-    const editorIsConnected = await this.isConnected()
     let reloadCount = 0
 
     // Occassionally code-server timeouts in Firefox
     // we're not sure why
     // but usually a reload or two fixes it
     // TODO@jsjoeio @oxy look into Firefox reconnection/timeout issues
-    while (!editorIsVisible && !editorIsConnected) {
+    while (!editorIsVisible) {
       // When a reload happens, we want to wait for all resources to be
       // loaded completely. Hence why we use that instead of DOMContentLoaded
       // Read more: https://thisthat.dev/dom-content-loaded-vs-load/
@@ -256,7 +255,7 @@ export class CodeServerPage {
       // Give it an extra second just in case it's feeling extra slow
       await this.page.waitForTimeout(1000)
       reloadCount += 1
-      if ((await this.isEditorVisible()) && (await this.isConnected())) {
+      if (await this.isEditorVisible()) {
         this.codeServer.logger.debug(`editor became ready after ${reloadCount} reloads`)
         break
       }
@@ -278,23 +277,6 @@ export class CodeServerPage {
     this.codeServer.logger.debug(`Editor is ${visible ? "not visible" : "visible"}!`)
 
     return visible
-  }
-
-  /**
-   * Checks if the editor is visible
-   */
-  async isConnected() {
-    this.codeServer.logger.debug("Waiting for network idle...")
-
-    await this.page.waitForLoadState("networkidle")
-
-    const host = new URL(await this.codeServer.address()).host
-    // NOTE: This seems to be pretty brittle between version changes.
-    const hostSelector = `[aria-label="remote  ${host}"]`
-    this.codeServer.logger.debug(`Waiting selector: ${hostSelector}`)
-    await this.page.waitForSelector(hostSelector)
-
-    return await this.page.isVisible(hostSelector)
   }
 
   /**
@@ -326,13 +308,13 @@ export class CodeServerPage {
    * Wait for a tab to open for the specified file.
    */
   async waitForTab(file: string): Promise<void> {
-    return this.page.waitForSelector(`.tab :text("${path.basename(file)}")`)
+    await this.page.waitForSelector(`.tab :text("${path.basename(file)}")`)
   }
 
   /**
    * See if the specified tab is open.
    */
-  async tabIsVisible(file: string): Promise<void> {
+  async tabIsVisible(file: string): Promise<boolean> {
     return this.page.isVisible(`.tab :text("${path.basename(file)}")`)
   }
 
@@ -368,8 +350,8 @@ export class CodeServerPage {
       try {
         await this.page.waitForSelector(`${selector}:not(:focus-within)`)
       } catch (error) {
-        if (!ctx.done()) {
-          this.codeServer.logger.debug(`${selector} navigation: ${error.message || error}`)
+        if (!ctx.finished()) {
+          this.codeServer.logger.debug(`${selector} navigation: ${(error as any).message || error}`)
         }
       }
       return false
@@ -423,7 +405,7 @@ export class CodeServerPage {
             return false
           }
         } catch (error) {
-          logger.debug(`navigation: ${error.message || error}`)
+          logger.debug(`navigation: ${(error as any).message || error}`)
           return false
         }
       }
@@ -436,7 +418,7 @@ export class CodeServerPage {
     // time we lose focus or there is an error.
     let attempts = 1
     let context = new Context()
-    while (!(await Promise.race([openThenWaitClose(), navigate(context)]))) {
+    while (!(await Promise.race([openThenWaitClose(context), navigate(context)]))) {
       ++attempts
       logger.debug("closed, retrying (${attempt}/∞)")
       context.cancel()

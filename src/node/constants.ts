@@ -16,14 +16,14 @@ export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJso
   return pkg
 }
 
-const pkg = getPackageJson("../../package.json")
-const codePkg = getPackageJson("../../vendor/modules/code-oss-dev/package.json")
-
+export const rootPath = path.resolve(__dirname, "../..")
+export const vsRootPath = path.join(rootPath, "vendor/modules/code-oss-dev")
+const PACKAGE_JSON = "package.json"
+const pkg = getPackageJson(`${rootPath}/${PACKAGE_JSON}`)
+const codePkg = getPackageJson(`${vsRootPath}/${PACKAGE_JSON}`) || { version: "0.0.0" }
 export const pkgName = pkg.name || "code-server"
 export const version = pkg.version || "development"
 export const commit = pkg.commit || "development"
-export const rootPath = path.resolve(__dirname, "../..")
-export const vsRootPath = path.join(rootPath, "vendor/modules/code-oss-dev")
 export const codeVersion = codePkg.version || "development"
 export const tmpdir = path.join(os.tmpdir(), "code-server")
 export const isDevMode = commit === "development"
