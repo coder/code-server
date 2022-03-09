@@ -112,9 +112,15 @@ main() {
       # Source: https://github.com/actions/checkout/issues/58#issuecomment-614041550
       PR_NUMBER=$(echo "$GITHUB_REF" | awk 'BEGIN { FS = "/" } ; { print $3 }')
       NPM_VERSION="$VERSION-$PR_NUMBER-$COMMIT_SHA"
+      DEV_PACKAGE_NAME="@coder/code-server-pr"
       # This means the npm version will be tagged with "<pr number>"
       # and installed when a user runs `yarn install code-server@<pr number>`
       NPM_TAG="$PR_NUMBER"
+      # Use the development package name
+      # This is so we don't clutter the code-server versions on npm
+      # with development versions.
+      # NOTE: Requires npm Version 7.x or higher
+      npm pkg set name="$DEV_PACKAGE_NAME"
     fi
 
     echo "using tag: $NPM_TAG"
