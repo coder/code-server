@@ -205,6 +205,8 @@ jobs:
           name: "npm-package"
           path: release-npm-package
 
+      # TODO@jsjoeio - we need to make sure we're using
+      # v7 or higher of the npm CLI
       - name: Run ./ci/steps/publish-npm.sh
         run: yarn publish:npm
         env:
