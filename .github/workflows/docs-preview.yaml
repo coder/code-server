@@ -17,89 +17,26 @@ permissions:
   security-events: none
   statuses: none
 
-# Cancel in-progress runs for pull requests when developers push
-# additional changes, and serialize builds in branches.
-# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 
 jobs:
   preview:
     name: Docs preview
-    runs-on: ubuntu-20.04
-    environment: CI
-    # Only run if PR comes from base repo
-    # Reason: forks cannot access secrets and this will always fail
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
     steps:
-      - name: Cancel Previous Runs
-        uses: styfle/cancel-workflow-action@0.9.1
+      - uses: actions/checkout@v3
 
-      - name: Checkout m
-        uses: actions/checkout@v3
-        with:
-          repository: coder/m
-          ref: refs/heads/master
-          ssh-key: ${{ secrets.READONLY_M_DEPLOY_KEY }}
-          submodules: true
-          fetch-depth: 0
-
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 14
-
-      - name: Cache Node Modules
-        uses: actions/cache@v2
-        with:
-          path: "/node_modules"
-          key: node-${{ hashFiles('yarn.lock') }}
-
-      - name: Create Deployment
-        id: deployment
-        run: ./ci/scripts/github_deployment.sh create
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          DEPLOY_ENVIRONMENT: codercom-preview-docs
-
-      - name: Deploy Preview to Vercel
-        id: preview
-        run: ./ci/scripts/deploy_vercel.sh
-        env:
-          VERCEL_ORG_ID: team_tGkWfhEGGelkkqUUm9nXq17r
-          VERCEL_PROJECT_ID: QmZRucMRh3GFk1817ZgXjRVuw5fhTspHPHKct3JNQDEPGd
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          CODE_SERVER_DOCS_MAIN_BRANCH: ${{ github.event.pull_request.head.sha }}
-
-      - name: Install node_modules
-        run: yarn install
-
-      - name: Check docs
-        run: yarn ts-node ./product/coder.com/site/scripts/checkDocs.ts
-        env:
-          BASE_URL: ${{ steps.preview.outputs.url }}
-
-      - name: Update Deployment
-        # If we don't specify always, it won't run this check if failed.
-        # This means the deployment would be stuck pending.
-        if: always()
-        run: ./ci/scripts/github_deployment.sh update
-        env:
-          GITHUB_DEPLOYMENT: ${{ steps.deployment.outputs.id }}
-          GITHUB_TOKEN: ${{ github.token }}
-          DEPLOY_STATUS: ${{ steps.preview.outcome }}
-          DEPLOY_URL: ${{ steps.preview.outputs.url }}
+      - name: Set outputs
+        id: vars
+        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
 
       - name: Comment Credentials
         uses: marocchino/sticky-pull-request-comment@v2
-        if: always()
         with:
           header: codercom-preview-docs
           message: |
-            ✨ Coder.com for PR #${{ github.event.number }} deployed! It will be updated on every commit.
-
-            * _Host_: ${{ steps.preview.outputs.url }}/docs/code-server
-            * _Last deploy status_: ${{ steps.preview.outcome }}
+            ✨ code-server docs for PR #${{ github.event.number }} is ready! It will be updated on every commit.
+            * _Host_: https://coder.com/docs/code-server/${{ steps.vars.outputs.sha_short }}
+            * _Last deploy status_: success
             * _Commit_: ${{ github.event.pull_request.head.sha }}
             * _Workflow status_: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
