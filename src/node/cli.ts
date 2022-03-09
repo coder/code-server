@@ -124,7 +124,7 @@ type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
 }
 
-const options: Options<Required<UserProvidedArgs>> = {
+export const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
   password: {
     type: "string",

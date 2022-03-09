@@ -13,6 +13,8 @@ import {
   shouldOpenInExistingInstance,
   splitOnFirstEquals,
   toVsCodeArgs,
+  optionDescriptions,
+  options,
 } from "../../../src/node/cli"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
@@ -750,6 +752,39 @@ describe("toVsCodeArgs", () => {
     expect(await toVsCodeArgs(await setDefaults(parse([file])))).toStrictEqual({
       ...vscodeDefaults,
       _: [file],
+    })
+  })
+})
+
+describe("optionDescriptions", () => {
+  it("should return the descriptions of all the available options", () => {
+    const expectedOptionDescriptions = Object.entries(options)
+      .flat()
+      .filter((item: any) => {
+        if (item.description) {
+          return item.description
+        }
+      })
+      .map((item: any) => item.description)
+    const actualOptionDescriptions = optionDescriptions()
+    // We need both the expected and the actual
+    // Both of these are string[]
+    // We then loop through the expectedOptionDescriptions
+    // and check that this expectedDescription exists in the
+    // actualOptionDescriptions
+
+    // To do that we need to loop through actualOptionDescriptions
+    // and make sure we have a substring match
+    expectedOptionDescriptions.forEach((expectedDescription) => {
+      const exists = actualOptionDescriptions.find((desc) => {
+        if (
+          desc.replace(/\n/g, " ").replace(/ /g, "").includes(expectedDescription.replace(/\n/g, " ").replace(/ /g, ""))
+        ) {
+          return true
+        }
+        return false
+      })
+      expect(exists).toBeTruthy()
     })
   })
 })
