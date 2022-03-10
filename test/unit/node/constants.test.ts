@@ -1,6 +1,7 @@
 import { logger } from "@coder/logger"
 import { mockLogger } from "../../utils/helpers"
 import * as semver from "semver"
+import path from "path"
 
 describe("constants", () => {
   let constants: typeof import("../../../src/node/constants")
@@ -20,9 +21,14 @@ describe("constants", () => {
     }
 
     beforeAll(() => {
+      jest.clearAllMocks()
       mockLogger()
-      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
-      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
+      jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
+      jest.mock(
+        path.resolve(__dirname, "../../../vendor/modules/code-oss-dev/package.json"),
+        () => mockCodePackageJson,
+        { virtual: true },
+      )
       constants = require("../../../src/node/constants")
     })
 
@@ -106,8 +112,13 @@ describe("constants", () => {
     }
 
     beforeAll(() => {
-      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
-      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
+      jest.clearAllMocks()
+      jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
+      jest.mock(
+        path.resolve(__dirname, "../../../vendor/modules/code-oss-dev/package.json"),
+        () => mockCodePackageJson,
+        { virtual: true },
+      )
       constants = require("../../../src/node/constants")
     })
 
