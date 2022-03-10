@@ -17,8 +17,6 @@ permissions:
   security-events: none
   statuses: none
 
-
-
 jobs:
   preview:
     name: Docs preview
