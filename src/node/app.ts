@@ -22,38 +22,32 @@ export interface App extends Disposable {
   server: http.Server
 }
 
-export const listen = (server: http.Server, { host, port, socket, "socket-mode": mode }: ListenOptions) => {
-  return new Promise<void>(async (resolve, reject) => {
+export const listen = async (server: http.Server, { host, port, socket, "socket-mode": mode }: ListenOptions) => {
+  if (socket) {
+    try {
+      await fs.unlink(socket)
+    } catch (error: any) {
+      handleArgsSocketCatchError(error)
+    }
+  }
+  await new Promise<void>(async (resolve, reject) => {
     server.on("error", reject)
-
     const onListen = () => {
       // Promise resolved earlier so this is an unrelated error.
       server.off("error", reject)
       server.on("error", (err) => util.logError(logger, "http server error", err))
-
-      if (socket && mode) {
-        fs.chmod(socket, mode)
-          .then(resolve)
-          .catch((err) => {
-            util.logError(logger, "socket chmod", err)
-            reject(err)
-          })
-      } else {
-        resolve()
-      }
+      resolve()
     }
-
     if (socket) {
-      try {
-        await fs.unlink(socket)
-      } catch (error: any) {
-        handleArgsSocketCatchError(error)
-      }
-
       server.listen(socket, onListen)
     } else {
       // [] is the correct format when using :: but Node errors with them.
       server.listen(port, host.replace(/^\[|\]$/g, ""), onListen)
+    }
+    if (socket && mode) {
+      await fs.chmod(socket, mode).catch((err) => {
+        util.logError(logger, "socket chmod", err)
+      })
     }
   })
 }
@@ -137,7 +131,8 @@ export const handleServerError = (resolved: boolean, err: Error, reject: (err: E
  * test this logic more easily.
  */
 export const handleArgsSocketCatchError = (error: any) => {
+  console.log("hello")
   if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
-    logger.error(error.message ? error.message : error)
+    throw Error(error.message ? error.message : error)
   }
 }
