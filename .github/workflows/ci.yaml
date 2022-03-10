@@ -143,18 +143,19 @@ jobs:
         run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
 
       - name: Attempt to fetch vscode build from cache
-        id: cache-vscode
+        id: cache-vscode-2
         uses: actions/cache@v2
         with:
           path: |
             vendor/modules/code-oss-dev/.build
+            vendor/modules/code-oss-dev/package.json
             vendor/modules/code-oss-dev/out-build
             vendor/modules/code-oss-dev/out-vscode-reh-web
             vendor/modules/code-oss-dev/out-vscode-reh-web-min
-          key: vscode-reh-build-${{ steps.vscode-rev.outputs.rev }}
+          key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
-        if: steps.cache-vscode.outputs.cache-hit != 'true'
+        if: steps.cache-vscode-2.outputs.cache-hit != 'true'
         run: yarn build:vscode
 
       # Our code imports code from VS Code's `out` directory meaning VS Code
@@ -444,6 +445,12 @@ jobs:
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
+
+      # TODO@jsjoeio - remove once we switch to submodules.
+      - name: Create package.json for testing
+        run: |
+          mkdir -p ./vendor/modules/code-oss-dev
+          echo '{ "version": "test" }' > ./vendor/modules/code-oss-dev/package.json
 
       - name: Run end-to-end tests
         run: yarn test:e2e
