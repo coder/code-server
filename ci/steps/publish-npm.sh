@@ -85,6 +85,9 @@ main() {
   # Ignore symlink when publishing npm package
   # See: https://github.com/coder/code-server/pull/3935
   echo "node_modules.asar" > release/.npmignore
+  # We use this to set the name of the package in the
+  # package.json
+  PACKAGE_NAME="code-server"
 
   # NOTES:@jsjoeio
   # We only need to run npm version for "development" and "staging".
@@ -112,15 +115,10 @@ main() {
       # Source: https://github.com/actions/checkout/issues/58#issuecomment-614041550
       PR_NUMBER=$(echo "$GITHUB_REF" | awk 'BEGIN { FS = "/" } ; { print $3 }')
       NPM_VERSION="$VERSION-$PR_NUMBER-$COMMIT_SHA"
-      DEV_PACKAGE_NAME="@coder/code-server-pr"
+      PACKAGE_NAME="@coder/code-server-pr"
       # This means the npm version will be tagged with "<pr number>"
       # and installed when a user runs `yarn install code-server@<pr number>`
       NPM_TAG="$PR_NUMBER"
-      # Use the development package name
-      # This is so we don't clutter the code-server versions on npm
-      # with development versions.
-      # NOTE: Requires npm Version 7.x or higher
-      npm pkg set name="$DEV_PACKAGE_NAME"
     fi
 
     echo "using tag: $NPM_TAG"
@@ -131,9 +129,15 @@ main() {
     # Example: "version": "4.0.1-4769-ad7b23cfe6ffd72914e34781ef7721b129a23040"
     # Example: "version": "4.0.1-beta-ad7b23cfe6ffd72914e34781ef7721b129a23040"
     pushd release
-    # NOTE:@jsjoeio
+    # NOTE@jsjoeio
     # I originally tried to use `yarn version` but ran into issues and abandoned it.
     npm version "$NPM_VERSION"
+    # NOTE@jsjoeio
+    # Use the development package name
+    # This is so we don't clutter the code-server versions on npm
+    # with development versions.
+    # Requires npm Version 7.x or higher
+    npm pkg set name="$PACKAGE_NAME"
     popd
   fi
 
