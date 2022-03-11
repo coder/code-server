@@ -3,7 +3,7 @@ import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
-import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError } from "../../../src/node/app"
+import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError, listen } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
 import { clean, mockLogger, getAvailablePort, tmpdir } from "../../utils/helpers"
@@ -201,31 +201,33 @@ describe("handleArgsSocketCatchError", () => {
   })
 
   it("should log an error if its not an NodeJS.ErrnoException", () => {
-    const error = new Error()
+    const message = "other message"
+    const error = new Error(message)
 
-    handleArgsSocketCatchError(error)
-
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(error)
+    expect(() => {
+      handleArgsSocketCatchError(error)
+    }).toThrowError(error)
   })
 
   it("should log an error if its not an NodeJS.ErrnoException (and the error has a message)", () => {
     const errorMessage = "handleArgsSocketCatchError Error"
     const error = new Error(errorMessage)
 
-    handleArgsSocketCatchError(error)
-
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(errorMessage)
+    expect(() => {
+      handleArgsSocketCatchError(error)
+    }).toThrowError(error)
   })
 
-  it("should not log an error if its a iNodeJS.ErrnoException", () => {
-    const error: NodeJS.ErrnoException = new Error()
-    error.code = "ENOENT"
+  it("should not log an error if its a NodeJS.ErrnoException", () => {
+    const code = "ENOENT"
+    const error: NodeJS.ErrnoException = new Error(code)
+    error.code = code
 
     handleArgsSocketCatchError(error)
 
-    expect(logger.error).toHaveBeenCalledTimes(0)
+    expect(() => {
+      handleArgsSocketCatchError(error)
+    }).not.toThrowError()
   })
 
   it("should log an error if the code is not ENOENT (and the error has a message)", () => {
@@ -234,19 +236,50 @@ describe("handleArgsSocketCatchError", () => {
     error.code = "EACCESS"
     error.message = errorMessage
 
-    handleArgsSocketCatchError(error)
-
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(errorMessage)
+    expect(() => {
+      handleArgsSocketCatchError(error)
+    }).toThrowError(error)
   })
 
   it("should log an error if the code is not ENOENT", () => {
-    const error: NodeJS.ErrnoException = new Error()
-    error.code = "EACCESS"
+    const code = "EACCESS"
+    const error: NodeJS.ErrnoException = new Error(code)
+    error.code = code
 
-    handleArgsSocketCatchError(error)
+    expect(() => {
+      handleArgsSocketCatchError(error)
+    }).toThrowError(error)
+  })
+})
 
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(error)
+describe("listen", () => {
+  let tmpDirPath: string
+  let mockServer: http.Server
+
+  const testName = "listen"
+
+  beforeEach(async () => {
+    await clean(testName)
+    mockLogger()
+    tmpDirPath = await tmpdir(testName)
+    mockServer = http.createServer()
+  })
+
+  afterEach(() => {
+    mockServer.close()
+    jest.clearAllMocks()
+  })
+
+  it("should throw an error if a directory is passed in instead of a file", async () => {
+    const errorMessage = "EISDIR: illegal operation on a directory, unlink"
+    const port = await getAvailablePort()
+    const mockArgs = { port, host: "0.0.0.0", socket: tmpDirPath }
+
+    try {
+      await listen(mockServer, mockArgs)
+    } catch (error) {
+      expect(error).toBeInstanceOf(Error)
+      expect((error as any).message).toMatch(errorMessage)
+    }
   })
 })
