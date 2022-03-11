@@ -235,8 +235,8 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
 }
 
-export const optionDescriptions = (): string[] => {
-  const entries = Object.entries(options).filter(([, v]) => !!v.description)
+export const optionDescriptions = (opts = options): string[] => {
+  const entries = Object.entries(opts).filter(([, v]) => !!v.description)
   const widths = entries.reduce(
     (prev, [k, v]) => ({
       long: k.length > prev.long ? k.length : prev.long,
