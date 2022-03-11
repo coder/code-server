@@ -131,7 +131,6 @@ export const handleServerError = (resolved: boolean, err: Error, reject: (err: E
  * test this logic more easily.
  */
 export const handleArgsSocketCatchError = (error: any) => {
-  console.log("hello")
   if (!isNodeJSErrnoException(error) || error.code !== "ENOENT") {
     throw Error(error.message ? error.message : error)
   }
