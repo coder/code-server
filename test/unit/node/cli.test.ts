@@ -13,6 +13,11 @@ import {
   shouldOpenInExistingInstance,
   splitOnFirstEquals,
   toVsCodeArgs,
+  optionDescriptions,
+  options,
+  Options,
+  AuthType,
+  OptionalString,
 } from "../../../src/node/cli"
 import { shouldSpawnCliProcess } from "../../../src/node/main"
 import { generatePassword, paths } from "../../../src/node/util"
@@ -751,5 +756,99 @@ describe("toVsCodeArgs", () => {
       ...vscodeDefaults,
       _: [file],
     })
+  })
+})
+
+describe("optionDescriptions", () => {
+  it("should return the descriptions of all the available options", () => {
+    const expectedOptionDescriptions = Object.entries(options)
+      .flat()
+      .filter((item: any) => {
+        if (item.description) {
+          return item.description
+        }
+      })
+      .map((item: any) => item.description)
+    const actualOptionDescriptions = optionDescriptions()
+    // We need both the expected and the actual
+    // Both of these are string[]
+    // We then loop through the expectedOptionDescriptions
+    // and check that this expectedDescription exists in the
+    // actualOptionDescriptions
+
+    // To do that we need to loop through actualOptionDescriptions
+    // and make sure we have a substring match
+    expectedOptionDescriptions.forEach((expectedDescription) => {
+      const exists = actualOptionDescriptions.find((desc) => {
+        if (
+          desc.replace(/\n/g, " ").replace(/ /g, "").includes(expectedDescription.replace(/\n/g, " ").replace(/ /g, ""))
+        ) {
+          return true
+        }
+        return false
+      })
+      expect(exists).toBeTruthy()
+    })
+  })
+  it("should visually align multiple options", () => {
+    const opts: Partial<Options<Required<UserProvidedArgs>>> = {
+      "cert-key": { type: "string", path: true, description: "Path to certificate key when using non-generated cert." },
+      "cert-host": {
+        type: "string",
+        description: "Hostname to use when generating a self signed certificate.",
+      },
+      "disable-update-check": {
+        type: "boolean",
+        description:
+          "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
+          "then notifies you once every week that a new release is available.",
+      },
+    }
+    expect(optionDescriptions(opts)).toStrictEqual([
+      "  --cert-key             Path to certificate key when using non-generated cert.",
+      "  --cert-host            Hostname to use when generating a self signed certificate.",
+      `  --disable-update-check Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and
+                          then notifies you once every week that a new release is available.`,
+    ])
+  })
+  it("should add all valid options for enumerated types", () => {
+    const opts: Partial<Options<Required<UserProvidedArgs>>> = {
+      auth: { type: AuthType, description: "The type of authentication to use." },
+    }
+    expect(optionDescriptions(opts)).toStrictEqual(["  --auth The type of authentication to use. [password, none]"])
+  })
+
+  it("should show if an option is deprecated", () => {
+    const opts: Partial<Options<Required<UserProvidedArgs>>> = {
+      link: {
+        type: OptionalString,
+        description: `
+          Securely bind code-server via our cloud service with the passed name. You'll get a URL like
+          https://hostname-username.coder.co at which you can easily access your code-server instance.
+          Authorization is done via GitHub.
+        `,
+        deprecated: true,
+      },
+    }
+    expect(optionDescriptions(opts)).toStrictEqual([
+      `  --link (deprecated) Securely bind code-server via our cloud service with the passed name. You'll get a URL like
+          https://hostname-username.coder.co at which you can easily access your code-server instance.
+          Authorization is done via GitHub.`,
+    ])
+  })
+
+  it("should show newlines in description", () => {
+    const opts: Partial<Options<Required<UserProvidedArgs>>> = {
+      "install-extension": {
+        type: "string[]",
+        description:
+          "Install or update a VS Code extension by id or vsix. The identifier of an extension is `${publisher}.${name}`.\n" +
+          "To install a specific version provide `@${version}`. For example: 'vscode.csharp@1.2.3'.",
+      },
+    }
+    expect(optionDescriptions(opts)).toStrictEqual([
+      `  --install-extension Install or update a VS Code extension by id or vsix. The identifier of an extension is \`\${publisher}.\${name}\`.
+                       To install a specific version provide \`@\${version}\`. For example: 'vscode.csharp@1.2.3'.`,
+    ])
   })
 })
