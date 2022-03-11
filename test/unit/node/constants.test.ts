@@ -33,7 +33,6 @@ describe("constants", () => {
     })
 
     afterAll(() => {
-      jest.clearAllMocks()
       jest.resetModules()
     })
 
@@ -123,7 +122,6 @@ describe("constants", () => {
     })
 
     afterAll(() => {
-      jest.clearAllMocks()
       jest.resetModules()
     })
 
