@@ -44,12 +44,15 @@ export const listen = async (server: http.Server, { host, port, socket, "socket-
       // [] is the correct format when using :: but Node errors with them.
       server.listen(port, host.replace(/^\[|\]$/g, ""), onListen)
     }
-    if (socket && mode) {
-      await fs.chmod(socket, mode).catch((err) => {
-        util.logError(logger, "socket chmod", err)
-      })
-    }
   })
+
+  // NOTE@jsjoeio: we need to chmod after the server is finished 
+  // listening. Otherwise, teh socket may not have been created yet.
+  if (socket && mode) {
+    await fs.chmod(socket, mode).catch((err) => {
+      util.logError(logger, "socket chmod", err)
+    })
+  }
 }
 
 /**
