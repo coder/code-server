@@ -120,7 +120,7 @@ type OptionType<T> = T extends boolean
   ? "string[]"
   : "unknown"
 
-type Options<T> = {
+export type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
 }
 
@@ -235,7 +235,7 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
 }
 
-export const optionDescriptions = (opts = options): string[] => {
+export const optionDescriptions = (opts: Partial<Options<Required<UserProvidedArgs>>> = options): string[] => {
   const entries = Object.entries(opts).filter(([, v]) => !!v.description)
   const widths = entries.reduce(
     (prev, [k, v]) => ({
