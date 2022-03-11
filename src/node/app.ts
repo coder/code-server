@@ -46,7 +46,7 @@ export const listen = async (server: http.Server, { host, port, socket, "socket-
     }
   })
 
-  // NOTE@jsjoeio: we need to chmod after the server is finished 
+  // NOTE@jsjoeio: we need to chmod after the server is finished
   // listening. Otherwise, teh socket may not have been created yet.
   if (socket && mode) {
     await fs.chmod(socket, mode).catch((err) => {
