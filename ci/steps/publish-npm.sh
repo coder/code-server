@@ -51,6 +51,15 @@ main() {
     exit 1
   fi
 
+  # TODO@jsjoeio
+  # Check that we're using at least v7 of npm CLI
+  if ! command -v npm &> /dev/null; then
+    echo "npm v7 or higher could not be found."
+    echo "We use this to modify the package.json name for dev builds."
+    echo "Please upgrade and re-run the script."
+    exit 1
+  fi
+
   # This allows us to publish to npm in CI workflows
   if [[ ${CI-} ]]; then
     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
@@ -122,6 +131,7 @@ main() {
     fi
 
     echo "using tag: $NPM_TAG"
+    echo "using package name: $PACKAGE_NAME"
 
     # We modify the version in the package.json
     # to be the current version + the PR number + commit SHA
