@@ -51,7 +51,7 @@
     "@types/ws": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "audit-ci": "^5.0.0",
+    "audit-ci": "^6.0.0",
     "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
