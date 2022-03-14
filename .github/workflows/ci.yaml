@@ -105,7 +105,7 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -193,7 +193,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -226,7 +226,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -319,7 +319,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -372,7 +372,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -421,7 +421,7 @@ jobs:
       CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
       - name: Checkout repo
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
           submodules: true
@@ -477,7 +477,7 @@ jobs:
   trivy-scan-repo:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
