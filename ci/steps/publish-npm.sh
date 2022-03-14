@@ -60,18 +60,6 @@ main() {
     exit 1
   fi
 
-  # NOTE@jsjoeio - this needs to run inside the release dir
-  # where the package.json for code-server is.
-  pushd release
-  if npm pkg get name && [ $? -eq 1 ]; then
-    echo "Couldn't get package.json name with 'npm pkg get name'"
-    echo "This usually means npm v7 or higher could not be found."
-    echo "We use this to modify the package.json name for dev builds."
-    echo "Please upgrade to npm v7 or higher and re-run the script."
-    exit 1
-  fi
-  popd
-
   # This allows us to publish to npm in CI workflows
   if [[ ${CI-} ]]; then
     echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > ~/.npmrc
@@ -106,6 +94,19 @@ main() {
   # Ignore symlink when publishing npm package
   # See: https://github.com/coder/code-server/pull/3935
   echo "node_modules.asar" > release/.npmignore
+
+  # NOTE@jsjoeio - this needs to run inside the release dir
+  # where the package.json for code-server is.
+  pushd release
+  if npm pkg get name && [ $? -eq 1 ]; then
+    echo "Couldn't get package.json name with 'npm pkg get name'"
+    echo "This usually means npm v7 or higher could not be found."
+    echo "We use this to modify the package.json name for dev builds."
+    echo "Please upgrade to npm v7 or higher and re-run the script."
+    exit 1
+  fi
+  popd
+
   # We use this to set the name of the package in the
   # package.json
   PACKAGE_NAME="code-server"
