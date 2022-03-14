@@ -54,11 +54,24 @@ main() {
   # TODO@jsjoeio
   # Check that we're using at least v7 of npm CLI
   if ! command -v npm &> /dev/null; then
-    echo "npm v7 or higher could not be found."
-    echo "We use this to modify the package.json name for dev builds."
-    echo "Please upgrade and re-run the script."
+    echo "Couldn't find the npm CLI"
+    echo "Are you sure you have it installed?"
+    echo "Please check again with: npm -v"
+    echo "And re-run the script."
     exit 1
   fi
+
+  # NOTE@jsjoeio - this needs to run inside the release dir
+  # where the package.json for code-server is.
+  pushd release
+  if npm pkg get name && [ $? -eq 1 ]; then
+    echo "Couldn't get package.json name with 'npm pkg get name'"
+    echo "This usually means npm v7 or higher could not be found."
+    echo "We use this to modify the package.json name for dev builds."
+    echo "Please upgrade to npm v7 or higher and re-run the script."
+    exit 1
+  fi
+  popd
 
   # This allows us to publish to npm in CI workflows
   if [[ ${CI-} ]]; then
@@ -161,7 +174,10 @@ main() {
     return
   fi
 
-  yarn publish --non-interactive release --tag "$NPM_TAG"
+  # NOTE@jsjoeio
+  # Since the dev builds are scoped to @coder
+  # We pass --access public to ensure npm knows it's not private.
+  yarn publish --non-interactive release --tag "$NPM_TAG" --access public
 }
 
 main "$@"
