@@ -477,7 +477,6 @@ jobs:
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
-          submodules: true
 
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
