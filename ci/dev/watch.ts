@@ -14,7 +14,7 @@ class Watcher {
   private rootPath = path.resolve(process.cwd())
   private readonly paths = {
     /** Path to uncompiled VS Code source. */
-    vscodeDir: path.join(this.rootPath, "vendor", "modules", "code-oss-dev"),
+    vscodeDir: path.join(this.rootPath, "lib/vscode"),
     pluginDir: process.env.PLUGIN_DIR,
   }
 

@@ -143,7 +143,7 @@
       "description": "Static images and the manifest live here in `src/browser/media` (see the explorer)."
     },
     {
-      "directory": "vendor/modules/code-oss-dev",
+      "directory": "lib/vscode",
       "line": 1,
       "description": "code-server makes use of VS Code's frontend web/remote support. Most of the modifications implement the remote server since that portion of the code is closed source and not released with VS Code.\n\nWe also have a few bug fixes and have added some features (like client-side extensions). See [https://github.com/coder/code-server/blob/master/docs/CONTRIBUTING.md#modifications-to-vs-code](https://github.com/coder/code-server/blob/master/docs/CONTRIBUTING.md#modifications-to-vs-code) for a list.\n\nWe make an effort to keep the modifications as few as possible."
     }

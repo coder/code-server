@@ -29,6 +29,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -71,6 +74,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -102,9 +108,11 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -119,7 +127,7 @@ jobs:
       #     path: |
       #       "**/node_modules"
       #       "**/vendor/modules"
-      #       "**/vendor/modules/code-oss-dev/node_modules"
+      #       "**/lib/vscode/node_modules"
       #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
       #     restore-keys: |
       #       yarn-build-
@@ -131,27 +139,26 @@ jobs:
       - name: Build code-server
         run: yarn build
 
-      # Parse the hash of the latest commit inside vendor/modules/code-oss-dev
+      # Parse the hash of the latest commit inside lib/vscode
       # use this to avoid rebuilding it if nothing changed
       # How it works: the `git log` command fetches the hash of the last commit
-      # that changed a file inside `vendor/modules/code-oss-dev`. If a commit changes any file in there,
+      # that changed a file inside `lib/vscode`. If a commit changes any file in there,
       # the hash returned will change, and we rebuild vscode. If the hash did not change,
       # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
       # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
-      - name: Get latest vendor/modules/code-oss-dev rev
+      - name: Get latest lib/vscode rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
+        run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' lib/vscode/package.json | sed -r 's|.*#(.*)$|\1|')"
 
       - name: Attempt to fetch vscode build from cache
         id: cache-vscode-2
         uses: actions/cache@v2
         with:
           path: |
-            vendor/modules/code-oss-dev/.build
-            vendor/modules/code-oss-dev/package.json
-            vendor/modules/code-oss-dev/out-build
-            vendor/modules/code-oss-dev/out-vscode-reh-web
-            vendor/modules/code-oss-dev/out-vscode-reh-web-min
+            lib/vscode/.build
+            lib/vscode/out-build
+            lib/vscode/out-vscode-reh-web
+            lib/vscode/out-vscode-reh-web-min
           key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
@@ -197,7 +204,11 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - uses: actions/download-artifact@v3
         id: download
@@ -226,7 +237,11 @@ jobs:
     container: "centos:7"
 
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -315,7 +330,11 @@ jobs:
       NODE_VERSION: v14.17.4
 
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -364,7 +383,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -409,7 +432,11 @@ jobs:
       # since VS Code will load faster due to the bundling.
       CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
+      - name: Checkout repo
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -446,12 +473,6 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
-      # TODO@jsjoeio - remove once we switch to submodules.
-      - name: Create package.json for testing
-        run: |
-          mkdir -p ./vendor/modules/code-oss-dev
-          echo '{ "version": "test" }' > ./vendor/modules/code-oss-dev/package.json
-
       - name: Run end-to-end tests
         run: yarn test:e2e
 
@@ -470,6 +491,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
+
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
         with:
@@ -480,6 +505,7 @@ jobs:
           template: "@/contrib/sarif.tpl"
           output: "trivy-repo-results.sarif"
           severity: "HIGH,CRITICAL"
+
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:

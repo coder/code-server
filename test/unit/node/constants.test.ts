@@ -16,7 +16,7 @@ describe("constants", () => {
     }
 
     const mockCodePackageJson = {
-      name: "mock-code-oss-dev",
+      name: "mock-vscode",
       version: "1.2.3",
     }
 
@@ -25,7 +25,7 @@ describe("constants", () => {
       mockLogger()
       jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
       jest.mock(
-        path.resolve(__dirname, "../../../vendor/modules/code-oss-dev/package.json"),
+        path.resolve(__dirname, "../../../lib/vscode/package.json"),
         () => mockCodePackageJson,
         { virtual: true },
       )
@@ -96,7 +96,7 @@ describe("constants", () => {
         const packageJson = constants.getPackageJson("../../package.json")
         expect(packageJson).toStrictEqual(mockPackageJson)
 
-        const codePackageJson = constants.getPackageJson("../../vendor/modules/code-oss-dev/package.json")
+        const codePackageJson = constants.getPackageJson("../../lib/vscode/package.json")
         expect(codePackageJson).toStrictEqual(mockCodePackageJson)
       })
     })
@@ -107,14 +107,14 @@ describe("constants", () => {
       name: "mock-code-server",
     }
     const mockCodePackageJson = {
-      name: "mock-code-oss-dev",
+      name: "mock-vscode",
     }
 
     beforeAll(() => {
       jest.clearAllMocks()
       jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
       jest.mock(
-        path.resolve(__dirname, "../../../vendor/modules/code-oss-dev/package.json"),
+        path.resolve(__dirname, "../../../lib/vscode/package.json"),
         () => mockCodePackageJson,
         { virtual: true },
       )
