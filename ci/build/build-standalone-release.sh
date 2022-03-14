@@ -33,7 +33,6 @@ main() {
   # HACK: the version of Typescript vscode 1.57 uses in extensions/
   # leaves a few stray symlinks. Clean them up so nfpm does not fail.
   # Remove this line when its no longer needed.
-
   rm -fr "$RELEASE_PATH/lib/vscode/extensions/node_modules/.bin"
 }
 
