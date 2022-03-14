@@ -103,7 +103,7 @@ describe("vscode", () => {
   it("should do nothing when nothing is passed in", async () => {
     codeServer = await integration.setup(["--auth=none"], "")
 
-    let resp = await codeServer.fetch("/", undefined)
+    const resp = await codeServer.fetch("/", undefined)
 
     expect(resp.status).toBe(200)
     const url = new URL(resp.url)

@@ -10,13 +10,13 @@ install-deps() {
   # If there is no package.json then yarn will look upward and end up installing
   # from the root resulting in an infinite loop (this can happen if you have not
   # checked out the submodule yet for example).
-  if [[ ! -f "$1/package.json" ]] ; then
+  if [[ ! -f "$1/package.json" ]]; then
     echo "$1/package.json is missing; did you run git submodule update --init?"
     exit 1
   fi
   pushd "$1"
-    echo "Installing dependencies for $PWD"
-    yarn "${args[@]}"
+  echo "Installing dependencies for $PWD"
+  yarn "${args[@]}"
   popd
 }
 
