@@ -41,21 +41,17 @@ jobs:
       - name: Install helm
         uses: azure/setup-helm@v1.1
 
-      # NOTE@jsjoeio
-      # disabling this until we can audit the build process
-      # and the usefulness of this step
-      # See: https://github.com/coder/code-server/issues/4287
-      # - name: Fetch dependencies from cache
-      #   id: cache-yarn
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: "**/node_modules"
-      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-      #     restore-keys: |
-      #       yarn-build-
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Run yarn fmt
@@ -119,38 +115,30 @@ jobs:
         with:
           node-version: "14"
 
-      # TODO@Teffen investigate why this omits code-oss-dev/node_modules
-      # - name: Fetch dependencies from cache
-      #   id: cache-yarn
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: |
-      #       "**/node_modules"
-      #       "**/vendor/modules"
-      #       "**/lib/vscode/node_modules"
-      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
-      #     restore-keys: |
-      #       yarn-build-
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
         run: yarn build
 
-      # Parse the hash of the latest commit inside lib/vscode
-      # use this to avoid rebuilding it if nothing changed
-      # How it works: the `git log` command fetches the hash of the last commit
-      # that changed a file inside `lib/vscode`. If a commit changes any file in there,
-      # the hash returned will change, and we rebuild vscode. If the hash did not change,
-      # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
-      # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
+      # Get Code's git hash.  When this changes it means the content is
+      # different and we need to rebuild.  Use VSCODE_CACHE_VERSION to force a
+      # rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' lib/vscode/package.json | sed -r 's|.*#(.*)$|\1|')"
+        run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
-      - name: Attempt to fetch vscode build from cache
+      - name: Fetch Code build from cache
         id: cache-vscode-2
         uses: actions/cache@v2
         with:
