@@ -51,7 +51,6 @@ main() {
     exit 1
   fi
 
-  # TODO@jsjoeio
   # Check that we're using at least v7 of npm CLI
   if ! command -v npm &> /dev/null; then
     echo "Couldn't find the npm CLI"
