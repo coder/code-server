@@ -31,7 +31,7 @@ export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
 export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running VS Code CLI")
 
-  // See ../../vendor/modules/code-oss-dev/src/vs/server/node/server.main.js.
+  // See ../../lib/vscode/src/vs/server/node/server.main.js.
   const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/node/server.main", "spawnCli")
 
   try {

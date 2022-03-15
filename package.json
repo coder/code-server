@@ -127,7 +127,6 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/vendor/",
       "/lib/",
       "/out/",
       "test/e2e"
@@ -158,7 +157,7 @@
       "<rootDir>/release-npm-package",
       "<rootDir>/release-gcp",
       "<rootDir>/release-images",
-      "<rootDir>/vendor"
+      "<rootDir>/lib"
     ],
     "moduleNameMapper": {
       "^.+\\.(css|less)$": "<rootDir>/test/utils/cssStub.ts"

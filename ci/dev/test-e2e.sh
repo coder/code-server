@@ -37,7 +37,7 @@ main() {
     exit 1
   fi
 
-  if [[ ! -d $dir/vendor/modules/code-oss-dev/out ]]; then
+  if [[ ! -d $dir/lib/vscode/out ]]; then
     echo >&2 "No VS Code build detected"
     help
     exit 1

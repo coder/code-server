@@ -14,7 +14,7 @@ main() {
   # Our code imports from `out` in order to work during development but if you
   # have only built for production you will have not have this directory.  In
   # that case symlink `out` to a production build directory.
-  local vscode="vendor/modules/code-oss-dev"
+  local vscode="lib/vscode"
   local link="$vscode/out"
   local target="out-build"
   if [[ ! -e $link ]] && [[ -d $vscode/$target ]]; then

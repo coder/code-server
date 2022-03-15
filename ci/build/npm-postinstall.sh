@@ -90,8 +90,8 @@ symlink_asar() {
 }
 
 vscode_yarn() {
-  echo 'Installing vendor dependencies...'
-  cd vendor/modules/code-oss-dev
+  echo 'Installing Code dependencies...'
+  cd lib/vscode
   yarn --production --frozen-lockfile
 
   symlink_asar
