@@ -15,8 +15,8 @@ main() {
 
   source ./ci/lib.sh
 
-  VSCODE_SRC_PATH="vendor/modules/code-oss-dev"
-  VSCODE_OUT_PATH="$RELEASE_PATH/vendor/modules/code-oss-dev"
+  VSCODE_SRC_PATH="lib/vscode"
+  VSCODE_OUT_PATH="$RELEASE_PATH/lib/vscode"
 
   mkdir -p "$RELEASE_PATH"
 
@@ -25,7 +25,7 @@ main() {
 
   rsync ./docs/README.md "$RELEASE_PATH"
   rsync LICENSE.txt "$RELEASE_PATH"
-  rsync ./vendor/modules/code-oss-dev/ThirdPartyNotices.txt "$RELEASE_PATH"
+  rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
 }
 
 bundle_code_server() {

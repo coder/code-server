@@ -7,7 +7,7 @@ useTabs: false
 
 overrides:
   # Attempt to keep VScode's existing code style intact.
-  - files: "vendor/modules/code-oss-dev/**/*.ts"
+  - files: "lib/vscode/**/*.ts"
     options:
       # No limit defined upstream.
       printWidth: 10000

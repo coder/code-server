@@ -17,7 +17,7 @@ export function getPackageJson(relativePath: string): JSONSchemaForNPMPackageJso
 }
 
 export const rootPath = path.resolve(__dirname, "../..")
-export const vsRootPath = path.join(rootPath, "vendor/modules/code-oss-dev")
+export const vsRootPath = path.join(rootPath, "lib/vscode")
 const PACKAGE_JSON = "package.json"
 const pkg = getPackageJson(`${rootPath}/${PACKAGE_JSON}`)
 const codePkg = getPackageJson(`${vsRootPath}/${PACKAGE_JSON}`) || { version: "0.0.0" }

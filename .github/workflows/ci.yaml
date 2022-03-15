@@ -29,6 +29,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -38,21 +41,17 @@ jobs:
       - name: Install helm
         uses: azure/setup-helm@v1.1
 
-      # NOTE@jsjoeio
-      # disabling this until we can audit the build process
-      # and the usefulness of this step
-      # See: https://github.com/coder/code-server/issues/4287
-      # - name: Fetch dependencies from cache
-      #   id: cache-yarn
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: "**/node_modules"
-      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-      #     restore-keys: |
-      #       yarn-build-
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Run yarn fmt
@@ -71,6 +70,9 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -102,56 +104,49 @@ jobs:
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
         with:
           node-version: "14"
 
-      # TODO@Teffen investigate why this omits code-oss-dev/node_modules
-      # - name: Fetch dependencies from cache
-      #   id: cache-yarn
-      #   uses: actions/cache@v2
-      #   with:
-      #     path: |
-      #       "**/node_modules"
-      #       "**/vendor/modules"
-      #       "**/vendor/modules/code-oss-dev/node_modules"
-      #     key: yarn-build-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/vendor/yarn.lock') }}
-      #     restore-keys: |
-      #       yarn-build-
+      - name: Fetch dependencies from cache
+        id: cache-yarn
+        uses: actions/cache@v2
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
 
       - name: Install dependencies
-        # if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
         run: yarn build
 
-      # Parse the hash of the latest commit inside vendor/modules/code-oss-dev
-      # use this to avoid rebuilding it if nothing changed
-      # How it works: the `git log` command fetches the hash of the last commit
-      # that changed a file inside `vendor/modules/code-oss-dev`. If a commit changes any file in there,
-      # the hash returned will change, and we rebuild vscode. If the hash did not change,
-      # (for example, a change to `src/` or `docs/`), we reuse the same build as last time.
-      # This saves a lot of time in CI, as compiling VSCode can take anywhere from 5-10 minutes.
-      - name: Get latest vendor/modules/code-oss-dev rev
+      # Get Code's git hash.  When this changes it means the content is
+      # different and we need to rebuild.  Use VSCODE_CACHE_VERSION to force a
+      # rebuild.
+      - name: Get latest lib/vscode rev
         id: vscode-rev
-        run: echo "::set-output name=rev::$(jq -r '.devDependencies["code-oss-dev"]' vendor/package.json | sed -r 's|.*#(.*)$|\1|')"
+        run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
-      - name: Attempt to fetch vscode build from cache
+      - name: Fetch Code build from cache
         id: cache-vscode-2
         uses: actions/cache@v2
         with:
           path: |
-            vendor/modules/code-oss-dev/.build
-            vendor/modules/code-oss-dev/package.json
-            vendor/modules/code-oss-dev/out-build
-            vendor/modules/code-oss-dev/out-vscode-reh-web
-            vendor/modules/code-oss-dev/out-vscode-reh-web-min
+            lib/vscode/.build
+            lib/vscode/out-build
+            lib/vscode/out-vscode-reh-web
+            lib/vscode/out-vscode-reh-web-min
           key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}
 
       - name: Build vscode
@@ -197,7 +192,10 @@ jobs:
     if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - uses: actions/download-artifact@v3
         id: download
@@ -235,7 +233,10 @@ jobs:
     container: "centos:7"
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -324,7 +325,10 @@ jobs:
       NODE_VERSION: v14.17.4
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -373,7 +377,10 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -418,7 +425,11 @@ jobs:
       # since VS Code will load faster due to the bundling.
       CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          submodules: true
 
       - name: Install Node.js v14
         uses: actions/setup-node@v3
@@ -455,12 +466,6 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
-      # TODO@jsjoeio - remove once we switch to submodules.
-      - name: Create package.json for testing
-        run: |
-          mkdir -p ./vendor/modules/code-oss-dev
-          echo '{ "version": "test" }' > ./vendor/modules/code-oss-dev/package.json
-
       - name: Run end-to-end tests
         run: yarn test:e2e
 
@@ -477,8 +482,11 @@ jobs:
   trivy-scan-repo:
     runs-on: ubuntu-20.04
     steps:
-      - name: Checkout code
+      - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
       - name: Run Trivy vulnerability scanner in repo mode
         uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
         with:
@@ -489,6 +497,7 @@ jobs:
           template: "@/contrib/sarif.tpl"
           output: "trivy-repo-results.sarif"
           severity: "HIGH,CRITICAL"
+
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
