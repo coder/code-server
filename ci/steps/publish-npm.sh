@@ -145,8 +145,7 @@ main() {
     # Use the development package name
     # This is so we don't clutter the code-server versions on npm
     # with development versions.
-    updated_package_json="$(jq '.name = "$PACKAGE_NAME"' package.json)"
-    echo -E "${updated_package_json}" > package.json
+    jq ".name |= \"$PACKAGE_NAME\"" package.json
     popd
   fi
 
