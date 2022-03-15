@@ -69,7 +69,7 @@
   },
   "resolutions": {
     "ansi-regex": "^5.0.1",
-    "normalize-package-data": "^3.0.0",
+    "normalize-package-data": "^4.0.0",
     "doctoc/underscore": "^1.13.1",
     "doctoc/**/trim": "^1.0.0",
     "postcss": "^8.2.1",
