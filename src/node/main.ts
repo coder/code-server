@@ -5,7 +5,7 @@ import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature, toVsCodeArgs, UserProvidedArgs } from "./cli"
+import { AuthType, DefaultedArgs, Feature, SpawnCli, toCodeArgs, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
@@ -23,28 +23,38 @@ export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
   )
 }
 
+export interface OpenCommandPipeArgs {
+  type: "open"
+  fileURIs?: string[]
+  folderURIs: string[]
+  forceNewWindow?: boolean
+  diffMode?: boolean
+  addMode?: boolean
+  gotoLineMode?: boolean
+  forceReuseWindow?: boolean
+  waitMarkerFilePath?: string
+}
+
 /**
- * This is useful when an CLI arg should be passed to VS Code directly,
- * such as when managing extensions.
- * @deprecated This should be removed when code-server merges with lib/vscode.
+ * Run Code's CLI for things like managing extensions.
  */
-export const runVsCodeCli = async (args: DefaultedArgs): Promise<void> => {
-  logger.debug("Running VS Code CLI")
+export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
+  logger.debug("Running Code CLI")
 
   // See ../../lib/vscode/src/vs/server/node/server.main.js.
-  const spawnCli = await loadAMDModule<CodeServerLib.SpawnCli>("vs/server/node/server.main", "spawnCli")
+  const spawnCli = await loadAMDModule<SpawnCli>("vs/server/node/server.main", "spawnCli")
 
   try {
-    await spawnCli(await toVsCodeArgs(args))
+    await spawnCli(await toCodeArgs(args))
   } catch (error: any) {
-    logger.error("Got error from VS Code", error)
+    logger.error("Got error from Code", error)
   }
 
   process.exit(0)
 }
 
 export const openInExistingInstance = async (args: DefaultedArgs, socketPath: string): Promise<void> => {
-  const pipeArgs: CodeServerLib.OpenCommandPipeArgs & { fileURIs: string[] } = {
+  const pipeArgs: OpenCommandPipeArgs & { fileURIs: string[] } = {
     type: "open",
     folderURIs: [],
     fileURIs: [],
@@ -76,12 +86,12 @@ export const openInExistingInstance = async (args: DefaultedArgs, socketPath: st
     },
     (response) => {
       response.on("data", (message) => {
-        logger.debug("got message from VS Code", field("message", message.toString()))
+        logger.debug("got message from Code", field("message", message.toString()))
       })
     },
   )
   vscode.on("error", (error: unknown) => {
-    logger.error("got error from VS Code", field("error", error))
+    logger.error("got error from Code", field("error", error))
   })
   vscode.write(JSON.stringify(pipeArgs))
   vscode.end()

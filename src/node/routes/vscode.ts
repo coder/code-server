@@ -1,9 +1,11 @@
 import { logger } from "@coder/logger"
 import * as express from "express"
+import * as http from "http"
+import * as net from "net"
 import * as path from "path"
 import { WebsocketRequest } from "../../../typings/pluginapi"
 import { logError } from "../../common/util"
-import { toVsCodeArgs } from "../cli"
+import { CodeArgs, toCodeArgs } from "../cli"
 import { isDevMode } from "../constants"
 import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { SocketProxyProvider } from "../socket"
@@ -11,9 +13,18 @@ import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 import { errorHandler } from "./errors"
 
+export interface IServerAPI {
+  handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>
+  handleUpgrade(req: http.IncomingMessage, socket: net.Socket): void
+  handleServerError(err: Error): void
+  dispose(): void
+}
+
+export type CreateServer = (address: string | net.AddressInfo | null, args: CodeArgs) => Promise<IServerAPI>
+
 export class CodeServerRouteWrapper {
   /** Assigned in `ensureCodeServerLoaded` */
-  private _codeServerMain!: CodeServerLib.IServerAPI
+  private _codeServerMain!: IServerAPI
   private _wsRouterWrapper = WsRouter()
   private _socketProxyProvider = new SocketProxyProvider()
   public router = express.Router()
@@ -120,11 +131,11 @@ export class CodeServerRouteWrapper {
     /**
      * @file ../../../lib/vscode/src/vs/server/node/server.main.js
      */
-    const createVSServer = await loadAMDModule<CodeServerLib.CreateServer>("vs/server/node/server.main", "createServer")
+    const createVSServer = await loadAMDModule<CreateServer>("vs/server/node/server.main", "createServer")
 
     try {
       this._codeServerMain = await createVSServer(null, {
-        ...(await toVsCodeArgs(args)),
+        ...(await toCodeArgs(args)),
         // TODO: Make the browser helper script work.
         "without-browser-env-var": true,
       })

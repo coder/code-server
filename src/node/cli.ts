@@ -32,12 +32,32 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 /**
+ * Code flags provided by the user.
+ */
+export interface UserProvidedCodeArgs {
+  "disable-telemetry"?: boolean
+  force?: boolean
+  "user-data-dir"?: string
+  "enable-proposed-api"?: string[]
+  "extensions-dir"?: string
+  "builtin-extensions-dir"?: string
+  "install-extension"?: string[]
+  "uninstall-extension"?: string[]
+  "list-extensions"?: boolean
+  "locate-extension"?: string[]
+  "show-versions"?: boolean
+  category?: string
+  "github-auth"?: string
+  "disable-update-check"?: boolean
+}
+
+/**
  * Arguments that the user explicitly provided on the command line.  All
  * arguments must be optional.
  *
  * For arguments with defaults see DefaultedArgs.
  */
-export interface UserProvidedArgs {
+export interface UserProvidedArgs extends UserProvidedCodeArgs {
   config?: string
   auth?: AuthType
   password?: string
@@ -45,7 +65,6 @@ export interface UserProvidedArgs {
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
-  "disable-update-check"?: boolean
   enable?: string[]
   help?: boolean
   host?: string
@@ -66,21 +85,6 @@ export interface UserProvidedArgs {
   verbose?: boolean
   /* Positional arguments. */
   _?: string[]
-
-  // VS Code flags.
-  "disable-telemetry"?: boolean
-  force?: boolean
-  "user-data-dir"?: string
-  "enable-proposed-api"?: string[]
-  "extensions-dir"?: string
-  "builtin-extensions-dir"?: string
-  "install-extension"?: string[]
-  "uninstall-extension"?: string[]
-  "list-extensions"?: boolean
-  "locate-extension"?: string[]
-  "show-versions"?: boolean
-  category?: string
-  "github-auth"?: string
 }
 
 interface Option<T> {
@@ -762,9 +766,26 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
 }
 
 /**
+ * Arguments for running Code's server.
+ */
+export interface CodeArgs extends UserProvidedCodeArgs {
+  "accept-server-license-terms"?: boolean
+  "connection-token"?: string
+  help: boolean
+  port: string
+  version: boolean
+  "without-browser-env-var"?: boolean
+}
+
+/**
+ * Spawn the Code CLI.
+ */
+export type SpawnCli = (args: CodeArgs) => Promise<void>
+
+/**
  * Convert our arguments to VS Code server arguments.
  */
-export const toVsCodeArgs = async (args: DefaultedArgs): Promise<CodeServerLib.ServerParsedArgs> => {
+export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
   return {
     "connection-token": "0000",
     ...args,
