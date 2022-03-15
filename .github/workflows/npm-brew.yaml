@@ -29,15 +29,6 @@ jobs:
           name: "npm-package"
           path: release-npm-package
 
-      # NOTE@jsjoeio - we need to make sure we're using
-      # v7 or higher of the npm CLI because it's used
-      # in the yarn publish:npm script in development builds
-      # to modify package.json name.
-      - name: Install Node & npm v8
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16.14.0"
-
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:

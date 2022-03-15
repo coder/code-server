@@ -52,11 +52,9 @@ main() {
   fi
 
   # Check that we're using at least v7 of npm CLI
-  if ! command -v npm &> /dev/null; then
-    echo "Couldn't find the npm CLI"
-    echo "Are you sure you have it installed?"
-    echo "Please check again with: npm -v"
-    echo "And re-run the script."
+  if ! command -v jq &> /dev/null; then
+    echo "Couldn't find jq"
+    echo "We need this in order to modify the package.json for dev builds."
     exit 1
   fi
 
@@ -94,18 +92,6 @@ main() {
   # Ignore symlink when publishing npm package
   # See: https://github.com/coder/code-server/pull/3935
   echo "node_modules.asar" > release/.npmignore
-
-  # NOTE@jsjoeio - this needs to run inside the release dir
-  # where the package.json for code-server is.
-  pushd release
-  if npm pkg get name && [ $? -eq 1 ]; then
-    echo "Couldn't get package.json name with 'npm pkg get name'"
-    echo "This usually means npm v7 or higher could not be found."
-    echo "We use this to modify the package.json name for dev builds."
-    echo "Please upgrade to npm v7 or higher and re-run the script."
-    exit 1
-  fi
-  popd
 
   # We use this to set the name of the package in the
   # package.json
@@ -159,8 +145,8 @@ main() {
     # Use the development package name
     # This is so we don't clutter the code-server versions on npm
     # with development versions.
-    # Requires npm Version 7.x or higher
-    npm pkg set name="$PACKAGE_NAME"
+    updated_package_json="$(jq '.name = "$PACKAGE_NAME"' package.json)"
+    echo -E "${updated_package_json}" > package.json
     popd
   fi
 
