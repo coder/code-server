@@ -11,7 +11,6 @@ import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { SocketProxyProvider } from "../socket"
 import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
-import { errorHandler } from "./errors"
 
 export interface IServerAPI {
   handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>
@@ -92,17 +91,6 @@ export class CodeServerRouteWrapper {
   }
 
   private $proxyRequest: express.Handler = async (req, res, next) => {
-    // We allow certain errors to propagate so that other routers may handle requests
-    // outside VS Code
-    const requestErrorHandler = (error: any) => {
-      if (error instanceof Error && ["EntryNotFound", "FileNotFound", "HttpError"].includes(error.message)) {
-        next()
-      }
-      errorHandler(error, req, res, next)
-    }
-
-    req.once("error", requestErrorHandler)
-
     this._codeServerMain.handleRequest(req, res)
   }
 
