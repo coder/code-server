@@ -31,7 +31,7 @@ jobs:
           workflow_conclusion: completed
           name: "npm-package"
           path: release-npm-package
-      
+
       - name: Publish npm package and tag with "latest"
         run: yarn publish:npm
         env:
