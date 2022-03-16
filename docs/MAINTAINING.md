@@ -164,7 +164,7 @@ If you're the current release manager, follow these steps:
 
 ### Publishing a release
 
-1. Create a release branch called `v0.0.0` but replace with new version
+1. Create a new branch called `release` (the npm workflow will look for this when a new GitHub release is published)
 1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
 1. GitHub Actions will generate the `npm-package`, `release-packages` and
    `release-images` artifacts. You do not have to wait for this step to complete
