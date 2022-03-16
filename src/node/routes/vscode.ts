@@ -137,6 +137,7 @@ export class CodeServerRouteWrapper {
       this._codeServerMain = await createVSServer(null, {
         ...(await toCodeArgs(args)),
         // TODO: Make the browser helper script work.
+        "without-connection-token": true,
         "without-browser-env-var": true,
       })
     } catch (error) {

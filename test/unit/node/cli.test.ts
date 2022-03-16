@@ -730,7 +730,6 @@ describe("readSocketPath", () => {
 describe("toCodeArgs", () => {
   const vscodeDefaults = {
     ...defaults,
-    "connection-token": "0000",
     "accept-server-license-terms": true,
     help: false,
     port: "8080",

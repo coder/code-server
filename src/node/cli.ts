@@ -774,6 +774,7 @@ export interface CodeArgs extends UserProvidedCodeArgs {
   help: boolean
   port: string
   version: boolean
+  "without-connection-token"?: boolean
   "without-browser-env-var"?: boolean
 }
 
@@ -787,7 +788,6 @@ export type SpawnCli = (args: CodeArgs) => Promise<void>
  */
 export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
   return {
-    "connection-token": "0000",
     ...args,
     "accept-server-license-terms": true,
     /** Type casting. */
