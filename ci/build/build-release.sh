@@ -66,7 +66,6 @@ EOF
 
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
-  rsync "$VSCODE_SRC_PATH/yarn.lock" "$VSCODE_OUT_PATH"
   rsync "$VSCODE_SRC_PATH/out-vscode-reh-web${MINIFY:+-min}/" "$VSCODE_OUT_PATH/out"
 
   rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
@@ -126,10 +125,15 @@ bundle_vscode() {
 EOF
   ) > "$VSCODE_OUT_PATH/product.json"
 
-  # We remove the scripts field so that later on we can run
-  # yarn to fetch node_modules if necessary without build scripts running.
-  # We cannot use --no-scripts because we still want dependent package scripts to run.
-  jq 'del(.scripts)' < "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
+  # Use the package.json for the web/remote server.  It does not have the right
+  # version though so pull that from the main package.json.  Also remove keytar
+  # since the web does not rely on it and that removes the dependency on
+  # libsecret.
+  jq --slurp '.[0] * {version: .[1].version} | del(.dependencies.keytar)' \
+    "$VSCODE_SRC_PATH/remote/package.json" \
+    "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
+
+  rsync "$VSCODE_SRC_PATH/remote/yarn.lock" "$VSCODE_OUT_PATH/yarn.lock"
 
   pushd "$VSCODE_OUT_PATH"
   symlink_asar
