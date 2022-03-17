@@ -50,6 +50,11 @@ release_nfpm() {
 
   export NFPM_ARCH
 
+  # Code deletes some files from the extension node_modules directory which
+  # leaves broken symlinks in the corresponding .bin directory.  nfpm will fail
+  # on these broken symlinks so clean them up.
+  rm -fr "./release-standalone/lib/vscode/extensions/node_modules/.bin"
+
   PKG_FORMAT="deb"
   NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"
   nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"

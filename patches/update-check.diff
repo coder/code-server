@@ -1,0 +1,132 @@
+Add a notification that lets you know when an update is out
+
+The easiest way to test this is probably to change the version in your
+package.json and delete the last notification storage item.
+
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -1,10 +1,16 @@
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { localize } from 'vs/nls';
++import { ILogService } from 'vs/platform/log/common/log';
+ import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
++import { IProductService } from 'vs/platform/product/common/productService';
++import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
+ 
+ export class CodeServerClient extends Disposable {
+ 	constructor (
++		@ILogService private logService: ILogService,
+ 		@INotificationService private notificationService: INotificationService,
++		@IProductService private productService: IProductService,
++		@IStorageService private storageService: IStorageService,
+ 	) {
+ 		super();
+ 	}
+@@ -72,5 +78,59 @@ export class CodeServerClient extends Di
+ 				},
+ 			});
+ 		}
++
++		if (this.productService.updateEndpoint) {
++			this.checkUpdates(this.productService.updateEndpoint)
++		}
++	}
++
++	private checkUpdates(updateEndpoint: string) {
++		const getUpdate = async (updateCheckEndpoint: string): Promise<void> => {
++			this.logService.debug('Checking for update...');
++
++			const response = await fetch(updateCheckEndpoint, {
++				headers: { Accept: 'application/json' },
++			});
++			if (!response.ok) {
++				throw new Error(response.statusText);
++			}
++			const json = await response.json();
++			if (json.error) {
++				throw new Error(json.error);
++			}
++			if (json.isLatest) {
++				return;
++			}
++
++			const lastNoti = this.storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
++			if (lastNoti) {
++				// Only remind them again after 1 week.
++				const timeout = 1000 * 60 * 60 * 24 * 7;
++				const threshold = lastNoti + timeout;
++				if (Date.now() < threshold) {
++					return;
++				}
++			}
++
++			this.storageService.store('csLastUpdateNotification', Date.now(), StorageScope.GLOBAL, StorageTarget.MACHINE);
++
++			this.notificationService.notify({
++				severity: Severity.Info,
++				message: `[code-server v${json.latest}](https://github.com/cdr/code-server/releases/tag/v${json.latest}) has been released!`,
++			});
++		};
++
++		const updateLoop = (): void => {
++			getUpdate(updateEndpoint)
++				.catch(error => {
++					this.logService.debug(`failed to check for update: ${error}`);
++				})
++				.finally(() => {
++					// Check again every 6 hours.
++					setTimeout(updateLoop, 1000 * 60 * 60 * 6);
++				});
++		};
++
++		updateLoop();
+ 	}
+ }
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -33,6 +33,7 @@ export type ExtensionVirtualWorkspaceSup
+ export interface IProductConfiguration {
+ 	readonly codeServerVersion?: string
+ 	readonly rootEndpoint?: string
++	readonly updateEndpoint?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -286,6 +286,7 @@ export class WebClientServer {
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
+ 					rootEndpoint: base,
++					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 					extensionsGallery: {
+ 						...this._productService.extensionsGallery,
+ 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -11,6 +11,8 @@ import { refineServiceDecorator } from '
+ import { IEnvironmentService, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
+ 
+ export const serverOptions: OptionDescriptions<ServerParsedArgs> = {
++	/* ----- code-server ----- */
++	'disable-update-check': { type: 'boolean' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -84,6 +86,8 @@ export const serverOptions: OptionDescri
+ };
+ 
+ export interface ServerParsedArgs {
++	/* ----- code-server ----- */
++	'disable-update-check'?: boolean;
+ 
+ 	/* ----- server setup ----- */
+ 

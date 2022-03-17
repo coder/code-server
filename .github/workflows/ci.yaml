@@ -110,6 +110,12 @@ jobs:
           fetch-depth: 0
           submodules: true
 
+      - name: Install quilt
+        run: sudo apt update && sudo apt install quilt
+
+      - name: Patch Code
+        run: quilt push -a
+
       - name: Install Node.js v14
         uses: actions/setup-node@v3
         with:
@@ -132,12 +138,13 @@ jobs:
         run: yarn build
 
       # Get Code's git hash.  When this changes it means the content is
-      # different and we need to rebuild.  Use VSCODE_CACHE_VERSION to force a
-      # rebuild.
+      # different and we need to rebuild.
       - name: Get latest lib/vscode rev
         id: vscode-rev
         run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
+        # We need to rebuild when we have a new version of Code or when any of
+        # the patches changed.  Use VSCODE_CACHE_VERSION to force a rebuild.
       - name: Fetch Code build from cache
         id: cache-vscode-2
         uses: actions/cache@v3
@@ -147,7 +154,7 @@ jobs:
             lib/vscode/out-build
             lib/vscode/out-vscode-reh-web
             lib/vscode/out-vscode-reh-web-min
-          key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}
+          key: vscode-reh-build-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff') }}
 
       - name: Build vscode
         if: steps.cache-vscode-2.outputs.cache-hit != 'true'

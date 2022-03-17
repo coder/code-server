@@ -1,0 +1,57 @@
+Add a notification when accessing code-server in an insecure context
+
+This is done because otherwise when things like the clipboard do not work users
+may think code-server is broken.  Ideally there would be a notification at the
+point where these things are used instead of this though.
+
+To test access over something like an HTTP domain or an IP address (not
+localhost).
+
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -1,7 +1,10 @@
+ import { Disposable } from 'vs/base/common/lifecycle';
++import { localize } from 'vs/nls';
++import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
+ 
+ export class CodeServerClient extends Disposable {
+ 	constructor (
++		@INotificationService private notificationService: INotificationService,
+ 	) {
+ 		super();
+ 	}
+@@ -42,5 +45,32 @@ export class CodeServerClient extends Di
+ 				}
+ 			});
+ 		}
++
++		if (!window.isSecureContext) {
++			this.notificationService.notify({
++				severity: Severity.Warning,
++				message: localize(
++					'insecureContext',
++					"{0} is being accessed in an insecure context. Web views, the clipboard, and other functionality may not work as expected.",
++					'code-server',
++				),
++				actions: {
++					primary: [
++						{
++							id: 'understand',
++							label: localize('confirmInsecure', "I understand"),
++							tooltip: '',
++							class: undefined,
++							enabled: true,
++							checked: true,
++							dispose: () => undefined,
++							run: () => {
++								return Promise.resolve();
++							},
++						},
++					],
++				},
++			});
++		}
+ 	}
+ }

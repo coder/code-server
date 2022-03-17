@@ -1,0 +1,269 @@
+Prepare Code for integration with code-server
+
+1. We already have the arguments so allow passing them in.  There is also a
+   slight change in a few directories to preserve the directory structure we
+   have been using and to not override passed-in arguments.
+2. Modify the terminal environment to filter out code-server environment variables.
+3. Add the code-server version to the help dialog.
+4. Add ready events for use in an iframe.
+5. Add our icons.
+6. Remove sourcemap host since we cannot upload ours there.
+
+Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/server.main.ts
++++ code-server/lib/vscode/src/vs/server/node/server.main.ts
+@@ -12,7 +12,7 @@ import { createServer as doCreateServer,
+ import { parseArgs, ErrorReporter } from 'vs/platform/environment/node/argv';
+ import { join, dirname } from 'vs/base/common/path';
+ import { performance } from 'perf_hooks';
+-import { serverOptions } from 'vs/server/node/serverEnvironmentService';
++import { serverOptions, ServerParsedArgs } from 'vs/server/node/serverEnvironmentService';
+ import product from 'vs/platform/product/common/product';
+ import * as perf from 'vs/base/common/performance';
+ 
+@@ -33,37 +33,42 @@ const errorReporter: ErrorReporter = {
+ 	}
+ };
+ 
+-const args = parseArgs(process.argv.slice(2), serverOptions, errorReporter);
++function parse(): ServerParsedArgs {
++	return parseArgs(process.argv.slice(2), serverOptions, errorReporter);
++}
+ 
+-const REMOTE_DATA_FOLDER = args['server-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
+-const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
+-const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
+-const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
+-const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
+-args['user-data-dir'] = USER_DATA_PATH;
+-const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
+-const BUILTIN_EXTENSIONS_FOLDER_PATH = join(APP_ROOT, 'extensions');
+-args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
+-args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
+-
+-[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
+-	try {
+-		if (!fs.existsSync(f)) {
+-			fs.mkdirSync(f, { mode: 0o700 });
+-		}
+-	} catch (err) { console.error(err); }
+-});
++function createDirs(args: ServerParsedArgs): string {
++	const REMOTE_DATA_FOLDER = args['server-data-dir'] || args['user-data-dir'] || process.env['VSCODE_AGENT_FOLDER'] || join(os.homedir(), product.serverDataFolderName || '.vscode-remote');
++	const USER_DATA_PATH = args['user-data-dir'] || join(REMOTE_DATA_FOLDER, 'data');
++	const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
++	const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
++	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
++	args['user-data-dir'] = USER_DATA_PATH;
++	const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
++	const BUILTIN_EXTENSIONS_FOLDER_PATH = args['builtin-extensions-dir'] || join(APP_ROOT, 'extensions');
++	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
++	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
++
++	[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
++		try {
++			if (!fs.existsSync(f)) {
++				fs.mkdirSync(f, { mode: 0o700 });
++			}
++		} catch (err) { console.error(err); }
++	});
++	return REMOTE_DATA_FOLDER
++}
+ 
+ /**
+  * invoked by server-main.js
+  */
+-export function spawnCli() {
+-	runCli(args, REMOTE_DATA_FOLDER, serverOptions);
++export function spawnCli(args = parse()): Promise<void> {
++	return runCli(args, createDirs(args), serverOptions);
+ }
+ 
+ /**
+  * invoked by server-main.js
+  */
+-export function createServer(address: string | net.AddressInfo | null): Promise<IServerAPI> {
+-	return doCreateServer(address, args, REMOTE_DATA_FOLDER);
++export function createServer(address: string | net.AddressInfo | null, args = parse()): Promise<IServerAPI> {
++	return doCreateServer(address, args, createDirs(args));
+ }
+Index: code-server/lib/vscode/src/vs/base/common/processes.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/processes.ts
++++ code-server/lib/vscode/src/vs/base/common/processes.ts
+@@ -111,6 +111,8 @@ export function sanitizeProcessEnvironme
+ 		/^VSCODE_(?!SHELL_LOGIN).+$/,
+ 		/^SNAP(|_.*)$/,
+ 		/^GDK_PIXBUF_.+$/,
++		/^CODE_SERVER_.+$/,
++		/^CS_.+$/,
+ 	];
+ 	const envKeys = Object.keys(env);
+ 	envKeys
+Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
+@@ -144,11 +144,12 @@ export class BrowserDialogHandler implem
+ 	async about(): Promise<void> {
+ 		const detailString = (useAgo: boolean): string => {
+ 			return localize('aboutDetail',
+-				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++				"code-server: v{4}\nCode: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
+ 				this.productService.version || 'Unknown',
+ 				this.productService.commit || 'Unknown',
+ 				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
+-				navigator.userAgent
++				navigator.userAgent,
++				this.productService.codeServerVersion || 'Unknown'
+ 			);
+ 		};
+ 
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -0,0 +1,46 @@
++import { Disposable } from 'vs/base/common/lifecycle';
++
++export class CodeServerClient extends Disposable {
++	constructor (
++	) {
++		super();
++	}
++
++	async startup(): Promise<void> {
++		// Emit ready events
++		const event = new CustomEvent('ide-ready');
++		window.dispatchEvent(event);
++
++		if (parent) {
++			// Tell the parent loading has completed.
++			parent.postMessage({ event: 'loaded' }, '*');
++
++			// Proxy or stop proxing events as requested by the parent.
++			const listeners = new Map<string, (event: Event) => void>();
++
++			window.addEventListener('message', parentEvent => {
++				const eventName = parentEvent.data.bind || parentEvent.data.unbind;
++				if (eventName) {
++					const oldListener = listeners.get(eventName);
++					if (oldListener) {
++						document.removeEventListener(eventName, oldListener);
++					}
++				}
++
++				if (parentEvent.data.bind && parentEvent.data.prop) {
++					const listener = (event: Event) => {
++						parent?.postMessage(
++							{
++								event: parentEvent.data.event,
++								[parentEvent.data.prop]: event[parentEvent.data.prop as keyof Event],
++							},
++							window.location.origin,
++						);
++					};
++					listeners.set(parentEvent.data.bind, listener);
++					document.addEventListener(parentEvent.data.bind, listener);
++				}
++			});
++		}
++	}
++}
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+@@ -69,6 +69,7 @@ import { ICredentialsService } from 'vs/
+ import { IndexedDB } from 'vs/base/browser/indexedDB';
+ import { BrowserCredentialsService } from 'vs/workbench/services/credentials/browser/credentialsService';
+ import { IWorkspace } from 'vs/workbench/services/host/browser/browserHostService';
++import { CodeServerClient } from 'vs/workbench/browser/client';
+ 
+ export class BrowserMain extends Disposable {
+ 
+@@ -103,6 +104,9 @@ export class BrowserMain extends Disposa
+ 		// Startup
+ 		const instantiationService = workbench.startup();
+ 
++		const codeServerClient = this._register(instantiationService.createInstance(CodeServerClient));
++		await codeServerClient.startup();
++
+ 		// Window
+ 		this._register(instantiationService.createInstance(BrowserWindow));
+ 
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -31,6 +31,8 @@ export type ExtensionVirtualWorkspaceSup
+ };
+ 
+ export interface IProductConfiguration {
++	readonly codeServerVersion?: string
++
+ 	readonly version: string;
+ 	readonly date?: string;
+ 	readonly quality?: string;
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
+@@ -11,7 +11,8 @@
+ 		<meta name="mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-title" content="Code">
+-		<link rel="apple-touch-icon" href="/code-192.png" />
++		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
++		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+ 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+@@ -26,7 +27,8 @@
+ 		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
+ 
+ 		<!-- Workbench Icon/Manifest/CSS -->
+-		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
++		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
++		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
+ 		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+ 	</head>
+ 
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+@@ -11,7 +11,8 @@
+ 		<meta name="mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-title" content="Code">
+-		<link rel="apple-touch-icon" href="/code-192.png" />
++		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
++		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+ 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+@@ -23,7 +24,8 @@
+ 		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
+ 
+ 		<!-- Workbench Icon/Manifest/CSS -->
+-		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
++		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
++		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
+ 		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+ 		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
+ 
+Index: code-server/lib/vscode/build/gulpfile.reh.js
+===================================================================
+--- code-server.orig/lib/vscode/build/gulpfile.reh.js
++++ code-server/lib/vscode/build/gulpfile.reh.js
+@@ -365,7 +365,7 @@ function packageTask(type, platform, arc
+ 	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
+ 		optimizeTask,
+ 		util.rimraf(`out-vscode-${type}-min`),
+-		common.minifyTask(`out-vscode-${type}`, `https://ticino.blob.core.windows.net/sourcemaps/${commit}/core`)
++		common.minifyTask(`out-vscode-${type}`, ``)
+ 	));
+ 	gulp.task(minifyTask);
+ 

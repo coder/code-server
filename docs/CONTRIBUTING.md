@@ -7,7 +7,8 @@
 - [Creating pull requests](#creating-pull-requests)
   - [Commits and commit history](#commits-and-commit-history)
 - [Development workflow](#development-workflow)
-  - [Updates to VS Code](#updates-to-vs-code)
+  - [Version updates to Code](#version-updates-to-code)
+  - [Patching Code](#patching-code)
   - [Build](#build)
   - [Help](#help)
 - [Test](#test)
@@ -16,7 +17,7 @@
   - [Integration tests](#integration-tests)
   - [End-to-end tests](#end-to-end-tests)
 - [Structure](#structure)
-  - [Modifications to VS Code](#modifications-to-vs-code)
+  - [Modifications to Code](#modifications-to-code)
   - [Currently Known Issues](#currently-known-issues)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -44,6 +45,8 @@ Here is what is needed:
     signature
     verification](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification)
     or follow [this tutorial](https://joeprevite.com/verify-commits-on-github)
+- `quilt`
+  - Used to manage patches to Code
 - `rsync` and `unzip`
   - Used for code-server releases
 - `bats`
@@ -57,7 +60,7 @@ If you're developing code-server on Linux, make sure you have installed or insta
 sudo apt-get install build-essential g++ libx11-dev libxkbfile-dev libsecret-1-dev python-is-python3
 ```
 
-These are required by VS Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.
+These are required by Code. See [their Wiki](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites) for more information.
 
 ## Creating pull requests
 
@@ -78,26 +81,44 @@ we'll guide you.
 
 ## Development workflow
 
-The current development workflow is a bit tricky because we have this repo and we use our `coder/vscode` fork inside it with [`yarn link`](https://classic.yarnpkg.com/lang/en/docs/cli/link/).
-
-Here are these steps you should follow to get your dev environment setup:
-
 1. `git clone https://github.com/coder/code-server.git` - Clone `code-server`
 2. `git submodule update --init` - Clone `vscode` submodule
 3. `yarn` - Install dependencies
-4. `yarn watch` - This will spin up code-server on localhost:8080 which you can start developing. It will live reload changes to the source.
+4. `quilt patch -a` - Apply patches to the `vscode` submodule.
+5. `yarn watch` - Launch code-server localhost:8080. code-server will be live
+   reloaded when changes are made; the browser needs to be refreshed manually.
 
-### Updates to VS Code
+When pulling down changes that include modifications to the patches you will
+need to apply them with `quilt`. If you pull down changes that update the
+`vscode` submodule you will need to run `git submodule update --init` and
+re-apply the patches.
 
-If changes are made and merged into `main` in the [`coder/vscode`](https://github.com/coder/vscode) repo, then you'll need to update the version in the `code-server` repo by following these steps:
+### Version updates to Code
 
-1. Update the `lib/vscode` submodule to the latest `main`.
+1. Update the `lib/vscode` submodule to the desired upstream version branch.
 2. From the code-server **project root**, run `yarn install`.
-3. Test code-server locally to make sure everything works.
-4. Check the Node.js version that's used by Electron (which is shipped with VS
+3. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
+   stage you may need to resolve conflicts. For example use `quilt push -f`,
+   manually apply the rejected portions, then `quilt refresh`.
+4. Test code-server locally to make sure everything works.
+5. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
-5. Commit the updated submodule to `code-server`.
-6. Open a PR.
+6. Commit the updated submodule and patches to `code-server`.
+7. Open a PR.
+
+### Patching Code
+
+0. You can go through the patch stack with `quilt push` and `quilt pop`.
+1. Create a new patch (`quilt new {name}.diff`) or use an existing patch.
+2. Add the file(s) you are patching (`quilt add [-P patch] {file}`). A file
+   **must** be added before you make changes to it.
+3. Make your changes. Patches do not need to be independent of each other but
+   each patch must result in a working code-server without any broken in-between
+   states otherwise they are difficult to test and modify.
+4. Add your changes to the patch (`quilt refresh`)
+5. Add a comment in the patch about the reason for the patch and how to
+   reproduce the behavior it fixes or adds. Every patch should have an e2e test
+   as well.
 
 ### Build
 
@@ -193,99 +214,46 @@ code-server running locally. In CI, this is taken care of for you.
 
 ## Structure
 
-The `code-server` script serves as an HTTP API for login and starting a remote VS
+The `code-server` script serves as an HTTP API for login and starting a remote
 Code process.
 
 The CLI code is in [src/node](../src/node) and the HTTP routes are implemented
 in [src/node/routes](../src/node/routes).
 
-Most of the meaty parts are in the VS Code portion of the codebase under
+Most of the meaty parts are in the Code portion of the codebase under
 [lib/vscode](../lib/vscode), which we describe next.
 
-### Modifications to VS Code
+### Modifications to Code
 
-In v1 of code-server, we had a patch of VS Code that split the codebase into a
-front-end and a server. The front-end consisted of the UI code, while the server
-ran the extensions and exposed an API to the front-end for file access and all
-UI needs.
+Our modifications to Code can be found in the [patches](../patches) directory.
+We pull in Code as a submodule pointing to an upstream release branch.
 
-Over time, Microsoft added support to VS Code to run it on the web. They have
-made the front-end open source, but not the server. As such, code-server v2 (and
-later) uses the VS Code front-end and implements the server. We do this by using
-a Git subtree to fork and modify VS Code. This code lives under
-[lib/vscode](../lib/vscode).
+In v1 of code-server, we had Code as a submodule and used a single massive patch
+that split the codebase into a front-end and a server. The front-end consisted
+of the UI code, while the server ran the extensions and exposed an API to the
+front-end for file access and all UI needs.
 
-Some noteworthy changes in our version of VS Code include:
+Over time, Microsoft added support to Code to run it on the web. They had made
+the front-end open source, but not the server. As such, code-server v2 (and
+later) uses the Code front-end and implements the server. We did this by using a
+Git subtree to fork and modify Code.
 
-- Adding our build file, [`lib/vscode/coder.js`](../lib/vscode/coder.js), which includes build steps specific to code-server
-- Node.js version detection changes in [`build/lib/node.ts`](../lib/vscode/build/lib/node.ts) and [`build/lib/util.ts`](../lib/vscode/build/lib/util.ts)
-- Allowing extra extension directories
-  - Added extra arguments to [`src/vs/platform/environment/common/argv.ts`](../lib/vscode/src/vs/platform/environment/common/argv.ts) and to [`src/vs/platform/environment/node/argv.ts`](../lib/vscode/src/vs/platform/environment/node/argv.ts)
-  - Added extra environment state to [`src/vs/platform/environment/common/environment.ts`](../lib/vscode/src/vs/platform/environment/common/environment.ts);
-  - Added extra getters to [`src/vs/platform/environment/common/environmentService.ts`](../lib/vscode/src/vs/platform/environment/common/environmentService.ts)
-  - Added extra scanning paths to [`src/vs/platform/extensionManagement/node/extensionsScanner.ts`](../lib/vscode/src/vs/platform/extensionManagement/node/extensionsScanner.ts)
-- Additions/removals from [`package.json`](../lib/vscode/package.json):
-  - Removing `electron`, `keytar` and `native-keymap` to avoid pulling in desktop dependencies during build on Linux
-  - Removing `gulp-azure-storage` and `gulp-tar` (unsued in our build process, may pull in outdated dependencies)
-  - Adding `proxy-agent`, `proxy-from-env` (for proxying) and `rimraf` (used during build/install steps)
-- Adding our branding/custom URLs/version:
-  - [`product.json`](../lib/vscode/product.json)
-  - [`src/vs/base/common/product.ts`](../lib/vscode/src/vs/base/common/product.ts)
-  - [`src/vs/workbench/browser/parts/dialogs/dialogHandler.ts`](../lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts)
-  - [`src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts`](../lib/vscode/src/vs/workbench/contrib/welcome/page/browser/vs_code_welcome_page.ts)
-  - [`src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts`](../lib/vscode/src/vs/workbench/contrib/welcome/page/browser/welcomePage.ts)
-- Removing azure/macOS signing related dependencies from [`build/package.json`](../lib/vscode/build/package.json)
-- Modifying `.gitignore` to allow us to add files to `src/vs/server` and modifying `.eslintignore` to ignore lint on the shared files below (we use different formatter settings than VS Code).
-- Sharing some files with our codebase via symlinks:
-  - [`src/vs/base/common/ipc.d.ts`](../lib/vscode/src/vs/base/common/ipc.d.ts) points to [`typings/ipc.d.ts`](../typings/ipc.d.ts)
-  - [`src/vs/base/common/util.ts`](../lib/vscode/src/vs/base/common/util.ts) points to [`src/common/util.ts`](../src/common/util.ts)
-  - [`src/vs/base/node/proxy_agent.ts`](../lib/vscode/src/vs/base/node/proxy_agent.ts) points to [`src/node/proxy_agent.ts`](../src/node/proxy_agent.ts)
-- Allowing socket changes by adding `setSocket` in [`src/vs/base/parts/ipc/common/ipc.net.ts`](../lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts)
-  - We use this for connection persistence in our server-side code.
-- Added our server-side Node.JS code to `src/vs/server`.
-  - This code includes the logic to spawn the various services (extension host, terminal, etc.) and some glue
-- Added [`src/vs/workbench/browser/client.ts`](../lib/vscode/src/vs/workbench/browser/client.ts) to hold some server customizations.
-  - Includes the functionality for the Log Out command and menu item
-  - Also, imported and called `initialize` from the main web file, [`src/vs/workbench/browser/web.main.ts`](../lib/vscode/src/vs/workbench/browser/web.main.ts)
-- Added a (hopefully temporary) hotfix to [`src/vs/workbench/common/resources.ts`](../lib/vscode/src/vs/workbench/common/resources.ts) to get context menu actions working for the Git integration.
-- Added connection type to WebSocket query parameters in [`src/vs/platform/remote/common/remoteAgentConnection.ts`](../lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts)
-- Added `CODE_SERVER*` variables to the sanitization list in [`src/vs/base/common/processes.ts`](../lib/vscode/src/vs/base/common/processes.ts)
-- Fix localization support:
-  - Added file [`src/vs/workbench/services/localizations/browser/localizationsService.ts`](../lib/vscode/src/vs/workbench/services/localizations/browser/localizationsService.ts).
-  - Modified file [`src/vs/base/common/platform.ts`](../lib/vscode/src/vs/base/common/platform.ts)
-  - Modified file [`src/vs/base/node/languagePacks.js`](../lib/vscode/src/vs/base/node/languagePacks.js)
-- Added code to allow server to inject settings to [`src/vs/platform/product/common/product.ts`](../lib/vscode/src/vs/platform/product/common/product.ts)
-- Extension fixes:
-  - Avoid disabling extensions by extensionKind in [`src/vs/workbench/services/extensionManagement/browser/extensionEnablementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/browser/extensionEnablementService.ts) (Needed for vscode-icons)
-  - Remove broken symlinks in [`extensions/postinstall.js`](../lib/vscode/extensions/postinstall.js)
-  - Add tip about extension gallery in [`src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts`](../lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsViewlet.ts)
-  - Use our own server for GitHub authentication in [`extensions/github-authentication/src/githubServer.ts`](../lib/vscode/extensions/github-authentication/src/githubServer.ts)
-  - Settings persistence on the server in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
-  - Add extension install fallback in [`src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts`](../lib/vscode/src/vs/workbench/services/extensionManagement/common/extensionManagementService.ts)
-  - Add proxy-agent monkeypatch and keep extension host indefinitely running in [`src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts`](../lib/vscode/src/vs/workbench/services/extensions/node/extensionHostProcessSetup.ts)
-  - Patch build system to avoid removing extension dependencies for `yarn global add` users in [`build/lib/extensions.ts`](../lib/vscode/build/lib/extensions.ts)
-  - Allow all extensions to use proposed APIs in [`src/vs/workbench/services/environment/browser/environmentService.ts`](../lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts)
-  - Make storage writes async to allow extensions to wait for them to complete in [`src/vs/platform/storage/common/storage.ts`](../lib/vscode/src/vs/platform/storage/common/storage.ts)
-- Specify webview path in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
-- URL readability improvements for folder/workspace in [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
-- Socket/Authority-related fixes (for remote proxying etc.):
-  - [`src/vs/code/browser/workbench/workbench.ts`](../lib/vscode/src/vs/code/browser/workbench/workbench.ts)
-  - [`src/vs/platform/remote/browser/browserSocketFactory.ts`](../lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts)
-  - [`src/vs/base/common/network.ts`](../lib/vscode/src/vs/base/common/network.ts)
-- Added code to write out IPC path in [`src/vs/workbench/api/node/extHostCLIServer.ts`](../lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts)
+Microsoft eventually made the server open source and we were able to reduce our
+changes significantly. Some time later we moved back to a submodule and patches
+(managed by `quilt` this time instead of the mega-patch).
 
-As the web portion of VS Code matures, we'll be able to shrink and possibly
-eliminate our modifications. In the meantime, upgrading the VS Code version requires
-us to ensure that our changes are still applied and work as intended. In the future,
-we'd like to run VS Code unit tests against our builds to ensure that features
-work as expected.
+As the web portion of Code continues to mature, we'll be able to shrink and
+possibly eliminate our patches. In the meantime, upgrading the Code version
+requires us to ensure that our changes are still applied correctly and work as
+intended. In the future, we'd like to run Code unit tests against our builds to
+ensure that features work as expected.
 
 > We have [extension docs](../ci/README.md) on the CI and build system.
 
-If the functionality you're working on does NOT depend on code from VS Code, please
+If the functionality you're working on does NOT depend on code from Code, please
 move it out and into code-server.
 
 ### Currently Known Issues
 
-- Creating custom VS Code extensions and debugging them doesn't work
+- Creating custom Code extensions and debugging them doesn't work
 - Extension profiling and tips are currently disabled

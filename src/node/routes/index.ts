@@ -129,6 +129,11 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
     express.static(rootPath, {
       cacheControl: commit !== "development",
       fallthrough: false,
+      setHeaders: (res, path, stat) => {
+        if (path.endsWith("/serviceWorker.js")) {
+          res.setHeader("Service-Worker-Allowed", "/")
+        }
+      },
     }),
   )
 
