@@ -35,15 +35,15 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Get version branch
-        id: version-branch
-        run: echo "::set-output name=name::v$(jq .version package.json)"
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq .version package.json)"
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         id: download
         with:
-          branch: v${{ steps.version-branch.outputs.name }}
+          branch: v${{ steps.version.outputs.version }}
           workflow_conclusion: completed
           name: "release-packages"
           path: release-packages
