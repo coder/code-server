@@ -198,7 +198,7 @@ jobs:
           fetch-depth: 0
 
       - name: Download artifact
-      - uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v3
         id: download
         with:
           name: "npm-package"
