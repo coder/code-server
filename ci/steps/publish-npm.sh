@@ -13,14 +13,6 @@ main() {
     exit 1
   fi
 
-  # NOTE@jsjoeio - only needed if we use the download_artifact
-  # because we talk to the GitHub API.
-  # Needed to use GitHub API
-  if ! is_env_var_set "GITHUB_TOKEN"; then
-    echo "GITHUB_TOKEN is not set. Cannot download npm release artifact without GitHub credentials."
-    exit 1
-  fi
-
   ## Publishing Information
   # All the variables below are used to determine how we should publish
   # the npm package. We also use this information for bumping the version.
