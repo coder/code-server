@@ -6,8 +6,8 @@ main() {
   GITHUB_USERNAME="cdrci"
   UPSTREAM_USERNAME_AND_REPO="Homebrew/$REPO"
   # Only sourcing this so we get access to $VERSION
-  source ./lib.sh
-  source ./steps-lib.sh
+  source ./ci/lib.sh
+  source ./ci/steps-lib.sh
 
   echo "Checking environment variables"
 
