@@ -35,6 +35,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq .version package.json)"
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        id: download
+        with:
+          branch: v${{ steps.version.outputs.version }}
+          workflow_conclusion: completed
+          name: "release-packages"
+          path: release-packages
+
       - name: Run ./ci/steps/docker-buildx-push.sh
         run: ./ci/steps/docker-buildx-push.sh
         env:

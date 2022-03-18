@@ -23,9 +23,16 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: actions/download-artifact@v3
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq .version package.json)"
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
         id: download
         with:
+          branch: v${{ steps.version.outputs.version }}
+          workflow_conclusion: completed
           name: "npm-package"
           path: release-npm-package
 
