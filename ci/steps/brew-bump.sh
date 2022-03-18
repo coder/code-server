@@ -7,7 +7,7 @@ main() {
   UPSTREAM_USERNAME_AND_REPO="Homebrew/$REPO"
   # Only sourcing this so we get access to $VERSION
   source ./ci/lib.sh
-  source ./ci/steps-lib.sh
+  source ./ci/steps/steps-lib.sh
 
   echo "Checking environment variables"
 
