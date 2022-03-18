@@ -2,10 +2,12 @@
 set -euo pipefail
 
 main() {
-  cd "$(dirname "$0")/../.."
+  REPO="homebrew-core"
+  GITHUB_USERNAME="cdrci"
+  UPSTREAM_USERNAME_AND_REPO="Homebrew/$REPO"
   # Only sourcing this so we get access to $VERSION
-  source ./ci/lib.sh
-  source ./ci/steps/steps-lib.sh
+  source ./lib.sh
+  source ./steps-lib.sh
 
   echo "Checking environment variables"
 
@@ -22,17 +24,17 @@ main() {
   fi
 
   # Make sure the git clone step is successful
-  if ! directory_exists "homebrew-core"; then
-    echo "git clone failed. Cannot find homebrew-core directory."
+  if ! directory_exists "$REPO"; then
+    echo "git clone failed. Cannot find $REPO directory."
     ls -la
     exit 1
   fi
 
-  echo "Changing into homebrew-core directory"
-  pushd homebrew-core && pwd
+  echo "Changing into $REPO directory"
+  pushd "$REPO" && pwd
 
-  echo "Adding Homebrew/homebrew-core"
-  git remote add upstream https://github.com/Homebrew/homebrew-core.git
+  echo "Adding $UPSTREAM_USERNAME_AND_REPO"
+  git remote add upstream "https://github.com/$UPSTREAM_USERNAME_AND_REPO.git"
 
   # Make sure the git remote step is successful
   if ! git config remote.upstream.url > /dev/null; then
@@ -43,21 +45,19 @@ main() {
   fi
 
   # TODO@jsjoeio - can I somehow check that this succeeded?
-  echo "Fetching upstream Homebrew/hombrew-core commits"
-  git fetch upstream
+  echo "Fetching upstream $UPSTREAM_USERNAME_AND_REPO commits"
+  git fetch upstream master
 
   # TODO@jsjoeio - can I somehow check that this succeeded?
-  echo "Merging in latest Homebrew/homebrew-core changes"
+  echo "Merging in latest $UPSTREAM_USERNAME_AND_REPO changes branch master"
   git merge upstream/master
-
-  echo "Pushing changes to coderci/homebrew-core fork on GitHub"
 
   # GIT_ASKPASS lets us use the password when pushing without revealing it in the process list
   # See: https://serverfault.com/a/912788
   PATH_TO_GIT_ASKPASS="$HOME/git-askpass.sh"
   # Source: https://serverfault.com/a/912788
   # shellcheck disable=SC2016,SC2028
-  echo 'echo $HOMEBREW_GITHUB_API_TOKEN' > "$PATH_TO_ASKPASS"
+  echo 'echo $HOMEBREW_GITHUB_API_TOKEN' > "$PATH_TO_GIT_ASKPASS"
 
   # Make sure the git-askpass.sh file creation is successful
   if ! file_exists "$PATH_TO_GIT_ASKPASS"; then
@@ -76,30 +76,27 @@ main() {
     exit 1
   fi
 
+  # NOTE: we need to make sure our fork is up-to-date
+  # otherwise, brew bump-formula-pr will use an
+  # outdated base
+  echo "Pushing changes to $GITHUB_USERNAME/$REPO fork on GitHub"
   # Export the variables so git sees them
   export HOMEBREW_GITHUB_API_TOKEN="$HOMEBREW_GITHUB_API_TOKEN"
-  export GIT_ASKPASS="$PATH_TO_ASKPASS"
-  git push https://coder-oss@github.com/coder-oss/homebrew-core.git --all
+  export GIT_ASKPASS="$PATH_TO_GIT_ASKPASS"
+  git push "https://$GITHUB_USERNAME@github.com/$GITHUB_USERNAME/$REPO.git" --all
 
   # Find the docs for bump-formula-pr here
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18
-  local output
-  if ! output=$(brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit 2>&1); then
-    if [[ $output == *"Duplicate PRs should not be opened"* ]]; then
-      echo "$VERSION is already submitted"
-    else
-      echo "$output"
-      exit 1
-    fi
-  fi
+  # local output
+  brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
 
   # Clean up and remove homebrew-core
   popd
-  rm -rf homebrew-core
+  rm -rf "$REPO"
 
-  # Make sure homebrew-core is removed
-  if directory_exists "homebrew-core"; then
-    echo "rm -rf homebrew-core failed."
+  # Make sure $REPO is removed
+  if directory_exists "$REPO"; then
+    echo "rm -rf $REPO failed."
     ls -la
   fi
 }

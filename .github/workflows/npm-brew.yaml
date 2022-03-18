@@ -52,10 +52,10 @@ jobs:
       - name: Checkout code-server
         uses: actions/checkout@v3
 
-      - name: Checkout coder/homebrew-core
+      - name: Checkout cdrci/homebrew-core
         uses: actions/checkout@v3
         with:
-          repository: coder/homebrew-core
+          repository: cdrci/homebrew-core
 
       - name: Configure git
         run: |
