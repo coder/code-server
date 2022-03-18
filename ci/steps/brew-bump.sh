@@ -89,16 +89,6 @@ main() {
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18
   # local output
   brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
-
-  # Clean up and remove homebrew-core
-  popd
-  rm -rf "$REPO"
-
-  # Make sure $REPO is removed
-  if directory_exists "$REPO"; then
-    echo "rm -rf $REPO failed."
-    ls -la
-  fi
 }
 
 main "$@"
