@@ -23,6 +23,10 @@ export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
   )
 }
 
+/**
+ * Arguments supported by Code's socket.  It can be used to perform actions from
+ * the CLI in a running instance of Code (for example to open a file).
+ */
 export interface OpenCommandPipeArgs {
   type: "open"
   fileURIs?: string[]

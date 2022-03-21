@@ -12,6 +12,10 @@ import { SocketProxyProvider } from "../socket"
 import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 
+/**
+ * This is the API of Code's web client server.  code-server delegates requests
+ * to Code here.
+ */
 export interface IServerAPI {
   handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>
   handleUpgrade(req: http.IncomingMessage, socket: net.Socket): void
