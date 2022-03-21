@@ -774,10 +774,11 @@ export interface CodeArgs extends UserProvidedCodeArgs {
   "accept-server-license-terms"?: boolean
   "connection-token"?: string
   help: boolean
-  port: string
+  port?: string
   version: boolean
   "without-connection-token"?: boolean
   "without-browser-env-var"?: boolean
+  compatibility: string
 }
 
 /**
@@ -792,6 +793,9 @@ export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
   return {
     ...args,
     "accept-server-license-terms": true,
+    // This seems to be used to make the connection token flags optional (when
+    // set to 1.63) but we have always included them.
+    compatibility: "1.64",
     /** Type casting. */
     help: !!args.help,
     version: !!args.version,
