@@ -56,11 +56,20 @@ jobs:
         id: set-up-homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - uses: actions/checkout@v3
+      - name: Checkout code-server
+        uses: actions/checkout@v3
+
+      - name: Checkout cdrci/homebrew-core
+        uses: actions/checkout@v3
+        with:
+          repository: cdrci/homebrew-core
+          path: homebrew-core
+
       - name: Configure git
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com
+
       - name: Bump code-server homebrew version
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
