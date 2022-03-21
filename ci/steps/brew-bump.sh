@@ -87,8 +87,16 @@ main() {
 
   # Find the docs for bump-formula-pr here
   # https://github.com/Homebrew/brew/blob/master/Library/Homebrew/dev-cmd/bump-formula-pr.rb#L18
-  # local output
-  brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit
+  local output
+  if ! output=$(brew bump-formula-pr --version="${VERSION}" code-server --no-browse --no-audit 2>&1); then
+    if [[ $output == *"Duplicate PRs should not be opened"* ]]; then
+      echo "$VERSION is already submitted"
+      exit 0
+    else
+      echo "$output"
+      exit 1
+    fi
+  fi
 }
 
 main "$@"
