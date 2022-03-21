@@ -23,6 +23,7 @@ export interface IServerAPI {
   dispose(): void
 }
 
+// Types for ../../../lib/vscode/src/vs/server/node/server.main.ts:72.
 export type CreateServer = (address: string | net.AddressInfo | null, args: CodeArgs) => Promise<IServerAPI>
 
 export class CodeServerRouteWrapper {
@@ -146,9 +147,7 @@ export class CodeServerRouteWrapper {
 
     const { args } = req
 
-    /**
-     * @file ../../../lib/vscode/src/vs/server/node/server.main.js
-     */
+    // See ../../../lib/vscode/src/vs/server/node/server.main.ts:72.
     const createVSServer = await loadAMDModule<CreateServer>("vs/server/node/server.main", "createServer")
 
     try {

@@ -767,6 +767,8 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
 
 /**
  * Arguments for running Code's server.
+ *
+ * A subset of ../../lib/vscode/src/vs/server/node/serverEnvironmentService.ts:90
  */
 export interface CodeArgs extends UserProvidedCodeArgs {
   "accept-server-license-terms"?: boolean
@@ -779,7 +781,7 @@ export interface CodeArgs extends UserProvidedCodeArgs {
 }
 
 /**
- * Spawn the Code CLI.
+ * Types for ../../lib/vscode/src/vs/server/node/server.main.ts:65.
  */
 export type SpawnCodeCli = (args: CodeArgs) => Promise<void>
 

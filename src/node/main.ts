@@ -24,8 +24,13 @@ export const shouldSpawnCliProcess = (args: UserProvidedArgs): boolean => {
 }
 
 /**
+ * This is copy of OpenCommandPipeArgs from
+ * ../../lib/vscode/src/vs/workbench/api/node/extHostCLIServer.ts:15
+ *
  * Arguments supported by Code's socket.  It can be used to perform actions from
  * the CLI in a running instance of Code (for example to open a file).
+ *
+ * TODO: Can we import this (and other types) directly?
  */
 export interface OpenCommandPipeArgs {
   type: "open"
@@ -45,7 +50,7 @@ export interface OpenCommandPipeArgs {
 export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running Code CLI")
 
-  // See ../../lib/vscode/src/vs/server/node/server.main.js.
+  // See ../../lib/vscode/src/vs/server/node/server.main.ts:65.
   const spawnCli = await loadAMDModule<SpawnCodeCli>("vs/server/node/server.main", "spawnCli")
 
   try {
