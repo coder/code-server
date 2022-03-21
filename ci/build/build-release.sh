@@ -66,27 +66,7 @@ EOF
 
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
-  rsync "$VSCODE_SRC_PATH/out-vscode-reh-web${MINIFY:+-min}/" "$VSCODE_OUT_PATH/out"
-
-  rsync "$VSCODE_SRC_PATH/.build/extensions/" "$VSCODE_OUT_PATH/extensions"
-  if [ "$KEEP_MODULES" = 0 ]; then
-    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
-  else
-    rsync "$VSCODE_SRC_PATH/node_modules/" "$VSCODE_OUT_PATH/node_modules"
-  fi
-  rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions"
-  rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions"
-  rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions"
-
-  mkdir -p "$VSCODE_OUT_PATH/resources/"
-  rsync "$VSCODE_SRC_PATH/resources/" "$VSCODE_OUT_PATH/resources/"
-
-  # TODO: We should look into using VS Code's packaging task (see
-  # gulpfile.reh.js).  For now copy this directory into the right spot (for some
-  # reason VS Code uses a different path in production).
-  mkdir -p "$VSCODE_OUT_PATH/bin/helpers"
-  rsync "$VSCODE_SRC_PATH/resources/server/bin/helpers/" "$VSCODE_OUT_PATH/bin/helpers"
-  chmod +x "$VSCODE_OUT_PATH/bin/helpers/browser.sh"
+  rsync ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
 
   # Add the commit, date, our name, links, and enable telemetry. This just makes
   # telemetry available; telemetry can still be disabled by flag or setting.
@@ -134,6 +114,11 @@ EOF
     "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
 
   rsync "$VSCODE_SRC_PATH/remote/yarn.lock" "$VSCODE_OUT_PATH/yarn.lock"
+
+  if [ "$KEEP_MODULES" = 0 ]; then
+    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
+    rm -Rf "$VSCODE_OUT_PATH/node_modules"
+  fi
 
   pushd "$VSCODE_OUT_PATH"
   symlink_asar
