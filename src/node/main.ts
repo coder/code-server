@@ -5,7 +5,7 @@ import path from "path"
 import { Disposable } from "../common/emitter"
 import { plural } from "../common/util"
 import { createApp, ensureAddress } from "./app"
-import { AuthType, DefaultedArgs, Feature, SpawnCli, toCodeArgs, UserProvidedArgs } from "./cli"
+import { AuthType, DefaultedArgs, Feature, SpawnCodeCli, toCodeArgs, UserProvidedArgs } from "./cli"
 import { coderCloudBind } from "./coder_cloud"
 import { commit, version } from "./constants"
 import { register } from "./routes"
@@ -42,7 +42,7 @@ export const runCodeCli = async (args: DefaultedArgs): Promise<void> => {
   logger.debug("Running Code CLI")
 
   // See ../../lib/vscode/src/vs/server/node/server.main.js.
-  const spawnCli = await loadAMDModule<SpawnCli>("vs/server/node/server.main", "spawnCli")
+  const spawnCli = await loadAMDModule<SpawnCodeCli>("vs/server/node/server.main", "spawnCli")
 
   try {
     await spawnCli(await toCodeArgs(args))

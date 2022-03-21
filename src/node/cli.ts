@@ -781,7 +781,7 @@ export interface CodeArgs extends UserProvidedCodeArgs {
 /**
  * Spawn the Code CLI.
  */
-export type SpawnCli = (args: CodeArgs) => Promise<void>
+export type SpawnCodeCli = (args: CodeArgs) => Promise<void>
 
 /**
  * Convert our arguments to VS Code server arguments.
