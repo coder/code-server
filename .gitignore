@@ -15,7 +15,7 @@ coverage
 **/.DS_Store
 
 # Code packages itself here.
-/lib/vscode-reh-web-linux-x64/
+/lib/vscode-reh-web-*
 
 # Failed e2e test videos are saved here
 test/test-results
