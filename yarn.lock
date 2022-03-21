@@ -2826,10 +2826,10 @@ minimist-options@4.1.0:
     is-plain-obj "^1.1.0"
     kind-of "^6.0.3"
 
-minimist@^1.2.0, minimist@^1.2.5, minimist@~1.2.5:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/minimist/-/minimist-1.2.5.tgz#67d66014b66a6a8aaa0c083c5fd58df4e4e97602"
-  integrity sha512-FM9nNUYrRBAELZQT3xeZQ7fmMOBg6nWNmJKTcgsJeaLstP/UODVpGsr5OhXhhXg6f+qtJ8uiZ+PUxkDWcgIXLw==
+minimist@^1.2.0, minimist@^1.2.5, "minimist@npm:minimist-lite@2.2.0", minimist@~1.2.5:
+  version "2.2.0"
+  resolved "https://registry.yarnpkg.com/minimist-lite/-/minimist-lite-2.2.0.tgz#43992acac6bb17e78acb6eee784d1da2f7cc3216"
+  integrity sha512-o9M0Iz5ELqCT4NzeaZHBBlV4+ruOGGWV6lVxFoghC6Wvp4W6ECbBBpmDRHdk72O/sMh3QT0c/0XDKhtGlztRZw==
 
 minipass@^3.0.0:
   version "3.1.3"
