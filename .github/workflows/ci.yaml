@@ -43,7 +43,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-yarn
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -81,7 +81,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-yarn
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -117,7 +117,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-yarn
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
@@ -140,7 +140,7 @@ jobs:
 
       - name: Fetch Code build from cache
         id: cache-vscode-2
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             lib/vscode/.build
@@ -430,7 +430,7 @@ jobs:
 
       - name: Fetch dependencies from cache
         id: cache-yarn
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: "**/node_modules"
           key: yarn-build-${{ hashFiles('**/yarn.lock') }}
