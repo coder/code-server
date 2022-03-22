@@ -20,13 +20,34 @@ VS Code v99.99.999
 
 -->
 
-## [Unreleased](https://github.com/coder/code-server/releases)
+## [4.2.0](https://github.com/coder/code-server/releases/tag/v4.2.0) - 2022-03-22
 
-Code v0.00.0
+Code v1.64.2
+
+### Added
+
+- Added tests for `handleArgsSocketCatchError`, `setDefaults` and
+  `optionDescriptions`.
 
 ### Changed
 
-- Add here
+- We switched from using the fork `coder/vscode` to a submodule of
+  `microsoft/vscode` + patches managed by `quilt` for how Code sits inside the
+  code-server codebase.
+- Upgraded to Code 1.64.2.
+
+### Fixed
+
+- Update popup notification through `--disable-update-check` is now fixed.
+- Fixed PWA icons not loading on iPad
+- Fixed the homebrew release process. Our `cdrci` bot should now automatically
+  update the version as part of the release pipeline.
+- Fixed titleBar color setting being ignored in PWA.
+
+### Security
+
+- Updated to `minimist-list`.
+- Updated `cloud-agent` to `v0.2.4` which uses `nhooyr.io/webscoket` `v1.8.7`.
 
 ## [4.1.0](https://github.com/coder/code-server/releases/tag/v4.1.0) - 2022-03-03
 
