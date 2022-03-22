@@ -25,13 +25,14 @@ jobs:
 
       - name: Get version
         id: version
-        run: echo "::set-output name=version::$(jq .version package.json)"
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
 
       - name: Download artifact
         uses: dawidd6/action-download-artifact@v2
         id: download
         with:
           branch: v${{ steps.version.outputs.version }}
+          workflow: ci.yaml
           workflow_conclusion: completed
           name: "npm-package"
           path: release-npm-package
