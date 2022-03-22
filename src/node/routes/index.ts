@@ -129,6 +129,14 @@ export const register = async (app: App, args: DefaultedArgs): Promise<Disposabl
     express.static(rootPath, {
       cacheControl: commit !== "development",
       fallthrough: false,
+      setHeaders: (res, path, stat) => {
+        // The service worker is served from a sub-path on the static route so
+        // this is required to allow it to register a higher scope (by default
+        // the browser only allows it to register from its own path or lower).
+        if (path.endsWith("/serviceWorker.js")) {
+          res.setHeader("Service-Worker-Allowed", "/")
+        }
+      },
     }),
   )
 

@@ -1,0 +1,104 @@
+Add VSCODE_PROXY_URI environment variable
+
+This can be used by extensions to open a port and access it through the proxy.
+
+It is available in the terminal as well.
+
+This can be tested using printenv in the terminal and by using the
+codeServerTest.proxyUri command through the test extension (copy it into your
+extensions, use --extensions-dir, or symlink it).
+
+This has e2e tests.
+
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -35,6 +35,7 @@ export interface IProductConfiguration {
+ 	readonly rootEndpoint?: string
+ 	readonly updateEndpoint?: string
+ 	readonly logoutEndpoint?: string
++	readonly proxyEndpointTemplate?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
++++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
+@@ -7,7 +7,7 @@ import { Emitter } from 'vs/base/common/
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { RemoteAuthorities } from 'vs/base/common/network';
+ import { URI } from 'vs/base/common/uri';
+-import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
++import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolvedOptions, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
+ 
+ export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
+ 
+@@ -20,7 +20,7 @@ export class RemoteAuthorityResolverServ
+ 	private readonly _connectionToken: string | undefined;
+ 	private readonly _connectionTokens: Map<string, string>;
+ 
+-	constructor(connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined) {
++	constructor(connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined, private readonly proxyEndpointTemplate?: string) {
+ 		super();
+ 		this._cache = new Map<string, ResolverResult>();
+ 		this._connectionToken = connectionToken;
+@@ -59,12 +59,17 @@ export class RemoteAuthorityResolverServ
+ 
+ 	private _doResolveAuthority(authority: string): ResolverResult {
+ 		const connectionToken = this._connectionTokens.get(authority) || this._connectionToken;
++		let options: ResolvedOptions | undefined
++		if (this.proxyEndpointTemplate) {
++			const proxyUrl = new URL(this.proxyEndpointTemplate, window.location.href);
++			options = { extensionHostEnv: { VSCODE_PROXY_URI: decodeURIComponent(proxyUrl.toString()) }}
++		}
+ 		if (authority.indexOf(':') >= 0) {
+ 			const pieces = authority.split(':');
+-			return { authority: { authority, host: pieces[0], port: parseInt(pieces[1], 10), connectionToken } };
++			return { authority: { authority, host: pieces[0], port: parseInt(pieces[1], 10), connectionToken }, options };
+ 		}
+ 		const port = (/^https:/.test(window.location.href) ? 443 : 80);
+-		return { authority: { authority, host: authority, port: port, connectionToken } };
++		return { authority: { authority, host: authority, port: port, connectionToken }, options };
+ 	}
+ 
+ 	_clearResolvedAuthority(authority: string): void {
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -288,6 +288,7 @@ export class WebClientServer {
+ 					rootEndpoint: base,
+ 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
++					proxyEndpointTemplate: base + '/proxy/{{port}}',
+ 					extensionsGallery: {
+ 						...this._productService.extensionsGallery,
+ 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
+@@ -179,7 +179,7 @@ export class BrowserMain extends Disposa
+ 
+ 		// Remote
+ 		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
+-		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(connectionToken, this.configuration.resourceUriProvider);
++		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(connectionToken, this.configuration.resourceUriProvider, this.configuration.productConfiguration?.proxyEndpointTemplate);
+ 		serviceCollection.set(IRemoteAuthorityResolverService, remoteAuthorityResolverService);
+ 
+ 		// Signing
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
+@@ -388,7 +388,7 @@ export function createTerminalEnvironmen
+ 
+ 		// Sanitize the environment, removing any undesirable VS Code and Electron environment
+ 		// variables
+-		sanitizeProcessEnvironment(env, 'VSCODE_IPC_HOOK_CLI');
++		sanitizeProcessEnvironment(env, 'VSCODE_IPC_HOOK_CLI', 'VSCODE_PROXY_URI');
+ 
+ 		// Merge config (settings) and ShellLaunchConfig environments
+ 		mergeEnvironments(env, allowedEnvFromConfig);

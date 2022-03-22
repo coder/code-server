@@ -12,7 +12,7 @@ import {
   setDefaults,
   shouldOpenInExistingInstance,
   splitOnFirstEquals,
-  toVsCodeArgs,
+  toCodeArgs,
   optionDescriptions,
   options,
   Options,
@@ -727,11 +727,11 @@ describe("readSocketPath", () => {
   })
 })
 
-describe("toVsCodeArgs", () => {
+describe("toCodeArgs", () => {
   const vscodeDefaults = {
     ...defaults,
-    "connection-token": "0000",
     "accept-server-license-terms": true,
+    compatibility: "1.64",
     help: false,
     port: "8080",
     version: false,
@@ -744,7 +744,7 @@ describe("toVsCodeArgs", () => {
   })
 
   it("should convert empty args", async () => {
-    expect(await toVsCodeArgs(await setDefaults(parse([])))).toStrictEqual({
+    expect(await toCodeArgs(await setDefaults(parse([])))).toStrictEqual({
       ...vscodeDefaults,
     })
   })
@@ -752,7 +752,7 @@ describe("toVsCodeArgs", () => {
   it("should ignore regular file", async () => {
     const file = path.join(await tmpdir(testName), "file")
     await fs.writeFile(file, "foobar")
-    expect(await toVsCodeArgs(await setDefaults(parse([file])))).toStrictEqual({
+    expect(await toCodeArgs(await setDefaults(parse([file])))).toStrictEqual({
       ...vscodeDefaults,
       _: [file],
     })

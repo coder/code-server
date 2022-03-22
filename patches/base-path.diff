@@ -1,0 +1,305 @@
+Add base path support
+
+Some users will host code-server behind a path-rewriting reverse proxy, for
+example domain.tld/my/base/path.  This patch adds support for that since Code
+assumes everything is on / by default.
+
+To test this serve code-server behind a reverse proxy with a path like /code.
+
+Index: code-server/lib/vscode/src/vs/base/common/network.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/network.ts
++++ code-server/lib/vscode/src/vs/base/common/network.ts
+@@ -151,8 +151,10 @@ class RemoteAuthoritiesImpl {
+ 		}
+ 		return URI.from({
+ 			scheme: platform.isWeb ? this._preferredWebSchema : Schemas.vscodeRemoteResource,
+-			authority: `${host}:${port}`,
+-			path: `/vscode-remote-resource`,
++			authority: platform.isWeb ? window.location.host : `${host}:${port}`,
++			path: platform.isWeb
++				? URI.joinPath(URI.parse(window.location.href), `/vscode-remote-resource`).path
++				: `/vscode-remote-resource`,
+ 			query
+ 		});
+ 	}
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
+@@ -11,8 +11,8 @@
+ 		<meta name="mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-title" content="Code">
+-		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
+-		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
++		<link rel="apple-touch-icon" sizes="192x192" href="{{BASE}}/_static/src/browser/media/pwa-icon-192.png" />
++		<link rel="apple-touch-icon" sizes="512x512" href="{{BASE}}/_static/src/browser/media/pwa-icon-512.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+ 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+@@ -27,23 +27,26 @@
+ 		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
+ 
+ 		<!-- Workbench Icon/Manifest/CSS -->
+-		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
+-		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
+-		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
++		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
++		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" />
++		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
+ 	</head>
+ 
+ 	<body aria-label="">
+ 	</body>
+ 
+ 	<!-- Startup (do not modify order of script tags!) -->
+-	<script src="./static/out/vs/loader.js"></script>
+-	<script src="./static/out/vs/webPackagePaths.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/loader.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/webPackagePaths.js"></script>
+ 	<script>
+ 		Object.keys(self.webPackagePaths).map(function (key, index) {
+-			self.webPackagePaths[key] = `${window.location.origin}/static/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`;
++			self.webPackagePaths[key] = new URL(
++				`{{VS_BASE}}/static/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`,
++				window.location,
++			).toString();
+ 		});
+ 		require.config({
+-			baseUrl: `${window.location.origin}/static/out`,
++			baseUrl: new URL(`{{VS_BASE}}/static/out`, window.location).toString(),
+ 			recordStats: true,
+ 			trustedTypesPolicy: window.trustedTypes?.createPolicy('amdLoader', {
+ 				createScriptURL(value) {
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+@@ -11,8 +11,8 @@
+ 		<meta name="mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-capable" content="yes" />
+ 		<meta name="apple-mobile-web-app-title" content="Code">
+-		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
+-		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
++		<link rel="apple-touch-icon" sizes="192x192" href="{{BASE}}/_static/src/browser/media/pwa-icon-192.png" />
++		<link rel="apple-touch-icon" sizes="512x512" href="{{BASE}}/_static/src/browser/media/pwa-icon-512.png" />
+ 
+ 		<!-- Disable pinch zooming -->
+ 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+@@ -24,10 +24,10 @@
+ 		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
+ 
+ 		<!-- Workbench Icon/Manifest/CSS -->
+-		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
+-		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
+-		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+-		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
++		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
++		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" />
++		<link rel="manifest" href="{{VS_BASE}}/manifest.json" crossorigin="use-credentials" />
++		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="{{VS_BASE}}/static/out/vs/workbench/workbench.web.main.css">
+ 
+ 	</head>
+ 
+@@ -35,14 +35,17 @@
+ 	</body>
+ 
+ 	<!-- Startup (do not modify order of script tags!) -->
+-	<script src="./static/out/vs/loader.js"></script>
+-	<script src="./static/out/vs/webPackagePaths.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/loader.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/webPackagePaths.js"></script>
+ 	<script>
+ 		Object.keys(self.webPackagePaths).map(function (key, index) {
+-			self.webPackagePaths[key] = `${window.location.origin}/static/node_modules/${key}/${self.webPackagePaths[key]}`;
++			self.webPackagePaths[key] = new URL(
++				`{{VS_BASE}}/static/node_modules/${key}/${self.webPackagePaths[key]}`,
++				window.location,
++			).toString();
+ 		});
+ 		require.config({
+-			baseUrl: `${window.location.origin}/static/out`,
++			baseUrl: new URL(`{{VS_BASE}}/static/out`, window.location).toString(),
+ 			recordStats: true,
+ 			trustedTypesPolicy: window.trustedTypes?.createPolicy('amdLoader', {
+ 				createScriptURL(value) {
+@@ -55,7 +58,7 @@
+ 	<script>
+ 		performance.mark('code/willLoadWorkbenchMain');
+ 	</script>
+-	<script src="./static/out/vs/workbench/workbench.web.main.nls.js"></script>
+-	<script src="./static/out/vs/workbench/workbench.web.main.js"></script>
+-	<script src="./static/out/vs/code/browser/workbench/workbench.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/workbench/workbench.web.main.nls.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/workbench/workbench.web.main.js"></script>
++	<script src="{{VS_BASE}}/static/out/vs/code/browser/workbench/workbench.js"></script>
+ </html>
+Index: code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
++++ code-server/lib/vscode/src/vs/platform/remote/browser/browserSocketFactory.ts
+@@ -274,7 +274,7 @@ export class BrowserSocketFactory implem
+ 
+ 	connect(host: string, port: number, query: string, debugLabel: string, callback: IConnectCallback): void {
+ 		const webSocketSchema = (/^https:/.test(window.location.href) ? 'wss' : 'ws');
+-		const socket = this._webSocketFactory.create(`${webSocketSchema}://${/:/.test(host) ? `[${host}]` : host}:${port}/?${query}&skipWebSocketFrames=false`, debugLabel);
++		const socket = this._webSocketFactory.create(`${webSocketSchema}://${window.location.host}${window.location.pathname}?${query}&skipWebSocketFrames=false`, debugLabel);
+ 		const errorListener = socket.onError((err) => callback(err, undefined));
+ 		socket.onOpen(() => {
+ 			errorListener.dispose();
+@@ -282,6 +282,3 @@ export class BrowserSocketFactory implem
+ 		});
+ 	}
+ }
+-
+-
+-
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -252,7 +252,10 @@ export class WebClientServer {
+ 			return res.end();
+ 		}
+ 
+-		const remoteAuthority = req.headers.host;
++		// It is not possible to reliably detect the remote authority on the server
++		// in all cases.  Set this to something invalid to make sure we catch code
++		// that is using this when it should not.
++		const remoteAuthority = 'remote';
+ 
+ 		function escapeAttribute(value: string): string {
+ 			return value.replace(/"/g, '&quot;');
+@@ -272,6 +275,8 @@ export class WebClientServer {
+ 			accessToken: this._environmentService.args['github-auth'],
+ 			scopes: [['user:email'], ['repo']]
+ 		} : undefined;
++		const base = relativeRoot(getOriginalUrl(req))
++		const vscodeBase = relativePath(getOriginalUrl(req))
+ 		const data = (await util.promisify(fs.readFile)(filePath)).toString()
+ 			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
+ 				remoteAuthority,
+@@ -279,6 +284,7 @@ export class WebClientServer {
+ 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
++					rootEndpoint: base,
+ 					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 						...this._productService.extensionsGallery,
+ 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
+@@ -289,7 +295,9 @@ export class WebClientServer {
+ 					} : undefined
+ 				}
+ 			})))
+-			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '');
++			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
++			.replace(/{{BASE}}/g, base)
++			.replace(/{{VS_BASE}}/g, vscodeBase);
+ 
+ 		const cspDirectives = [
+ 			'default-src \'self\';',
+@@ -368,3 +376,70 @@ export class WebClientServer {
+ 		return res.end(data);
+ 	}
+ }
++
++/**
++ * Remove extra slashes in a URL.
++ *
++ * This is meant to fill the job of `path.join` so you can concatenate paths and
++ * then normalize out any extra slashes.
++ *
++ * If you are using `path.join` you do not need this but note that `path` is for
++ * file system paths, not URLs.
++ */
++export const normalizeUrlPath = (url: string, keepTrailing = false): string => {
++	return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
++}
++
++/**
++ * Get the relative path that will get us to the root of the page. For each
++ * slash we need to go up a directory.  Will not have a trailing slash.
++ *
++ * For example:
++ *
++ * / => .
++ * /foo => .
++ * /foo/ => ./..
++ * /foo/bar => ./..
++ * /foo/bar/ => ./../..
++ *
++ * All paths must be relative in order to work behind a reverse proxy since we
++ * we do not know the base path.  Anything that needs to be absolute (for
++ * example cookies) must get the base path from the frontend.
++ *
++ * All relative paths must be prefixed with the relative root to ensure they
++ * work no matter the depth at which they happen to appear.
++ *
++ * For Express `req.originalUrl` should be used as they remove the base from the
++ * standard `url` property making it impossible to get the true depth.
++ */
++export const relativeRoot = (originalUrl: string): string => {
++	const depth = (originalUrl.split("?", 1)[0].match(/\//g) || []).length
++	return normalizeUrlPath("./" + (depth > 1 ? "../".repeat(depth - 1) : ""))
++}
++
++/**
++ * Get the relative path to the current resource.
++ *
++ * For example:
++ *
++ * / => .
++ * /foo => ./foo
++ * /foo/ => .
++ * /foo/bar => ./bar
++ * /foo/bar/ => .
++ */
++export const relativePath = (originalUrl: string): string => {
++	const parts = originalUrl.split("?", 1)[0].split("/")
++	return normalizeUrlPath("./" + parts[parts.length - 1])
++}
++
++/**
++ * code-server serves Code using Express.  Express removes the base from the url
++ * and puts the original in `originalUrl` so we must use this to get the correct
++ * depth.  Code is not aware it is behind Express so the types do not match.  We
++ * may want to continue moving code into Code and eventually remove the Express
++ * wrapper or move the web server back into code-server.
++ */
++export const getOriginalUrl = (req: http.IncomingMessage): string => {
++	return (req as any).originalUrl || req.url
++}
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -32,6 +32,7 @@ export type ExtensionVirtualWorkspaceSup
+ 
+ export interface IProductConfiguration {
+ 	readonly codeServerVersion?: string
++	readonly rootEndpoint?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
+@@ -504,6 +504,7 @@ function doCreateUri(path: string, query
+ 		});
+ 	}
+ 
++	path = (window.location.pathname + "/" + path).replace(/\/\/+/g, "/")
+ 	return URI.parse(window.location.href).with({ path, query });
+ }
+ 
+@@ -515,7 +516,7 @@ function doCreateUri(path: string, query
+ 	if (!configElement || !configElementAttribute) {
+ 		throw new Error('Missing web configuration element');
+ 	}
+-	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
++	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
+ 
+ 	// Create workbench
+ 	create(document.body, {

@@ -1,0 +1,107 @@
+Add a logout command and menu item
+
+This will only show if you have authentication enabled.
+
+This has e2e tests but are currently disabled and need to be fixed.
+
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -34,6 +34,7 @@ export interface IProductConfiguration {
+ 	readonly codeServerVersion?: string
+ 	readonly rootEndpoint?: string
+ 	readonly updateEndpoint?: string
++	readonly logoutEndpoint?: string
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -13,6 +13,7 @@ import { IEnvironmentService, INativeEnv
+ export const serverOptions: OptionDescriptions<ServerParsedArgs> = {
+ 	/* ----- code-server ----- */
+ 	'disable-update-check': { type: 'boolean' },
++	'auth': { type: 'string' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -88,6 +89,7 @@ export const serverOptions: OptionDescri
+ export interface ServerParsedArgs {
+ 	/* ----- code-server ----- */
+ 	'disable-update-check'?: boolean;
++	'auth'?: string
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -287,6 +287,7 @@ export class WebClientServer {
+ 				productConfiguration: <Partial<IProductConfiguration>>{
+ 					rootEndpoint: base,
+ 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
++					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
+ 					extensionsGallery: {
+ 						...this._productService.extensionsGallery,
+ 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -1,11 +1,15 @@
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { localize } from 'vs/nls';
++import { MenuId, MenuRegistry } from 'vs/platform/actions/common/actions';
++import { CommandsRegistry } from 'vs/platform/commands/common/commands';
+ import { ILogService } from 'vs/platform/log/common/log';
+ import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
+ import { IProductService } from 'vs/platform/product/common/productService';
+ import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
+ 
+ export class CodeServerClient extends Disposable {
++	static LOGOUT_COMMAND_ID = 'code-server.logout';
++
+ 	constructor (
+ 		@ILogService private logService: ILogService,
+ 		@INotificationService private notificationService: INotificationService,
+@@ -82,6 +86,10 @@ export class CodeServerClient extends Di
+ 		if (this.productService.updateEndpoint) {
+ 			this.checkUpdates(this.productService.updateEndpoint)
+ 		}
++
++		if (this.productService.logoutEndpoint) {
++			this.addLogoutCommand(this.productService.logoutEndpoint);
++		}
+ 	}
+ 
+ 	private checkUpdates(updateEndpoint: string) {
+@@ -133,4 +141,25 @@ export class CodeServerClient extends Di
+ 
+ 		updateLoop();
+ 	}
++
++	private addLogoutCommand(logoutEndpoint: string) {
++		CommandsRegistry.registerCommand(CodeServerClient.LOGOUT_COMMAND_ID, () => {
++			const logoutUrl = new URL(logoutEndpoint, window.location.href);
++			// Cookies must be set with absolute paths and must use the same path to
++			// be unset (we set it on the root) so send the relative root and the
++			// current href so the backend can derive the absolute path to the root.
++			logoutUrl.searchParams.set('base', this.productService.rootEndpoint || ".");
++			logoutUrl.searchParams.set('href', window.location.href);
++			window.location.assign(logoutUrl);
++		});
++
++		for (const menuId of [MenuId.CommandPalette, MenuId.MenubarHomeMenu]) {
++			MenuRegistry.appendMenuItem(menuId, {
++				command: {
++					id: CodeServerClient.LOGOUT_COMMAND_ID,
++					title: localize('logout', "Sign out of {0}", 'code-server'),
++				},
++			});
++		}
++	}
+ }
