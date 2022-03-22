@@ -83,8 +83,8 @@ we'll guide you.
 
 1. `git clone https://github.com/coder/code-server.git` - Clone `code-server`
 2. `git submodule update --init` - Clone `vscode` submodule
-3. `yarn` - Install dependencies
-4. `quilt patch -a` - Apply patches to the `vscode` submodule.
+3. `quilt push -a` - Apply patches to the `vscode` submodule.
+4. `yarn` - Install dependencies
 5. `yarn watch` - Launch code-server localhost:8080. code-server will be live
    reloaded when changes are made; the browser needs to be refreshed manually.
 
