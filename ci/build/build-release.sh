@@ -55,6 +55,17 @@ bundle_code_server() {
 EOF
   ) > "$RELEASE_PATH/package.json"
   rsync yarn.lock "$RELEASE_PATH"
+
+  # To ensure deterministic dependency versions (even when code-server is installed with NPM), we seed
+  # an npm-shrinkwrap file from our yarn lockfile and the current node-modules installed.
+  synp --source-file yarn.lock
+  npm shrinkwrap
+  # HACK@edvincent: The shrinkwrap file will contain the devDependencies, which by default
+  # are installed if present in a lockfile. To avoid every user having to specify --production
+  # to skip them, we carefully remove them from the shrinkwrap file.
+  json -f npm-shrinkwrap.json -I -e "Object.keys(this.dependencies).forEach(dependency => { if (this.dependencies[dependency].dev) { delete this.dependencies[dependency] } } )"
+  mv npm-shrinkwrap.json "$RELEASE_PATH"
+
   rsync ci/build/npm-postinstall.sh "$RELEASE_PATH/postinstall.sh"
 
   if [ "$KEEP_MODULES" = 1 ]; then
