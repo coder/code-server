@@ -22,6 +22,18 @@ concurrency:
 # will skip running `yarn install` if it successfully fetched from cache
 
 jobs:
+  homebrew-test:
+    name: Test Hombrew
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Bump code-server homebrew version
+        run: brew bump-formula-pr --version="4.1.0-4995-6b7849c52b22437e0783246ac7008e80e9dbf06c" code-server --no-browse --no-audit --dry-run
+
   prebuild:
     name: Pre-build checks
     runs-on: ubuntu-latest
