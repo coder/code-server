@@ -77,7 +77,10 @@ EOF
 
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
-  rsync ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
+
+  # - Some extensions have a .gitignore which excludes their built source from
+  #   the npm package so exclude any .gitignore files.
+  rsync -avh --exclude .gitignore ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
 
   # Add the commit, date, our name, links, and enable telemetry. This just makes
   # telemetry available; telemetry can still be disabled by flag or setting.
