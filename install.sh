@@ -55,7 +55,7 @@ The detection method works as follows:
   - Debian, Ubuntu, Raspbian: install the deb package from GitHub.
   - Fedora, CentOS, RHEL, openSUSE: install the rpm package from GitHub.
   - Arch Linux: install from the AUR (which pulls releases from GitHub).
-  - FreeBSD, Alpine: install from yarn/npm.
+  - FreeBSD, Alpine: install from npm.
   - macOS: install using Homebrew if installed otherwise install from GitHub.
   - All others: install the release from GitHub.
 
@@ -419,19 +419,9 @@ install_npm() {
   echoh "Installing latest from npm."
   echoh
 
-  YARN_PATH="${YARN_PATH-yarn}"
   NPM_PATH="${YARN_PATH-npm}"
-  if command_exists "$YARN_PATH"; then
-    sh_c="sh_c"
-    if [ ! "${DRY_RUN-}" ] && [ ! -w "$($YARN_PATH global bin)" ]; then
-      sh_c="sudo_sh_c"
-    fi
-    echoh "Installing with yarn."
-    echoh
-    "$sh_c" "$YARN_PATH" global add code-server --unsafe-perm
-    NPM_BIN_DIR="\$($YARN_PATH global bin)" echo_npm_postinstall
-    return
-  elif command_exists "$NPM_PATH"; then
+
+  if command_exists "$NPM_PATH"; then
     sh_c="sh_c"
     if [ ! "${DRY_RUN-}" ] && [ ! -w "$(NPM_PATH config get prefix)" ]; then
       sh_c="sudo_sh_c"
@@ -442,9 +432,9 @@ install_npm() {
     NPM_BIN_DIR="\$($NPM_PATH bin -g)" echo_npm_postinstall
     return
   fi
-  echoerr "Please install npm or yarn to install code-server!"
+  echoerr "Please install npm to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://coder.com/docs/code-server/latest/install#yarn-npm"
+  echoerr "See the docs https://coder.com/docs/code-server/latest/install#npm"
 
   exit 1
 }
