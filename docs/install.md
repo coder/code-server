@@ -227,7 +227,7 @@ You can install code-server using the [Helm package manager](https://coder.com/d
 
 ## Windows
 
-We currently [do not publish Windows releases](https://github.com/coder/code-server/issues/1397). We recommend installing code-server onto Windows with [ `npm`](#npm).
+We currently [do not publish Windows releases](https://github.com/coder/code-server/issues/1397). We recommend installing code-server onto Windows with [`npm`](#npm).
 
 > Note: You will also need to [build coder/cloud-agent manually](https://github.com/coder/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
 
