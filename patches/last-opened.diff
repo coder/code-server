@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -350,19 +350,6 @@ class WorkspaceProvider implements IWork
+@@ -410,19 +410,6 @@ class WorkspaceProvider implements IWork
  				workspace = { folderUri: URI.revive(config.folderUri) };
  			} else if (config.workspaceUri) {
  				workspace = { workspaceUri: URI.revive(config.workspaceUri) };
