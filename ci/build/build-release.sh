@@ -136,10 +136,8 @@ EOF
   ) > "$VSCODE_OUT_PATH/product.json"
 
   # Use the package.json for the web/remote server.  It does not have the right
-  # version though so pull that from the main package.json.  Also remove keytar
-  # since the web does not rely on it and that removes the dependency on
-  # libsecret.
-  jq --slurp '.[0] * {version: .[1].version} | del(.dependencies.keytar)' \
+  # version though so pull that from the main package.json.
+  jq --slurp '.[0] * {version: .[1].version}' \
     "$VSCODE_SRC_PATH/remote/package.json" \
     "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
 
