@@ -1,0 +1,31 @@
+Store a static reference to the IPC socket
+
+This lets us use it to open files inside code-server from outside of
+code-server.
+
+Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
++++ code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
+@@ -2,7 +2,9 @@
+  *  Copyright (c) Microsoft Corporation. All rights reserved.
+  *  Licensed under the MIT License. See License.txt in the project root for license information.
+  *--------------------------------------------------------------------------------------------*/
+-
++import { promises as fs } from 'fs';
++import * as os from 'os'
++import * as path from 'vs/base/common/path';
+ import * as performance from 'vs/base/common/performance';
+ import { createApiFactoryAndRegisterActors } from 'vs/workbench/api/common/extHost.api.impl';
+ import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
+@@ -69,6 +71,10 @@ export class ExtHostExtensionService ext
+ 		if (this._initData.remote.isRemote && this._initData.remote.authority) {
+ 			const cliServer = this._instaService.createInstance(CLIServer);
+ 			process.env['VSCODE_IPC_HOOK_CLI'] = cliServer.ipcHandlePath;
++
++			fs.writeFile(path.join(os.tmpdir(), 'vscode-ipc'), cliServer.ipcHandlePath).catch((error) => {
++				this._logService.error(error);
++			});
+ 		}
+ 
+ 		// Module loading tricks

@@ -1,0 +1,265 @@
+Add display language support
+
+This likely needs tweaking if we want to upstream.
+
+Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
++++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
+@@ -198,6 +198,9 @@ export async function setupServerService
+ 		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
+ 		socketServer.registerChannel('extensions', channel);
+ 
++		const localizationsChannel = ProxyChannel.fromService<RemoteAgentConnectionContext>(accessor.get(ILocalizationsService));
++		socketServer.registerChannel('localizations', localizationsChannel);
++
+ 		const encryptionChannel = ProxyChannel.fromService<RemoteAgentConnectionContext>(accessor.get(IEncryptionMainService));
+ 		socketServer.registerChannel('encryption', encryptionChannel);
+ 
+Index: code-server/lib/vscode/src/vs/base/common/platform.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/platform.ts
++++ code-server/lib/vscode/src/vs/base/common/platform.ts
+@@ -83,6 +83,17 @@ if (typeof navigator === 'object' && !is
+ 	_isWeb = true;
+ 	_locale = navigator.language;
+ 	_language = _locale;
++
++	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
++	const rawNlsConfig = el && el.getAttribute('data-settings');
++	if (rawNlsConfig) {
++		try {
++			const nlsConfig: NLSConfig = JSON.parse(rawNlsConfig);
++			_locale = nlsConfig.locale;
++			_translationsConfigFile = nlsConfig._translationsConfigFile;
++			_language = nlsConfig.availableLanguages['*'] || LANGUAGE_DEFAULT;
++		} catch (error) { /* Oh well. */ }
++	}
+ }
+ 
+ // Native environment
+Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
++++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
+@@ -23,6 +23,9 @@
+ 		<!-- Workbench Auth Session -->
+ 		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
+ 
++		<!-- NLS Configuration -->
++		<meta id="vscode-remote-nls-configuration" data-settings="{{NLS_CONFIGURATION}}">
++
+ 		<!-- Workbench Icon/Manifest/CSS -->
+ 		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
+ 		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" />
+@@ -38,6 +41,27 @@
+ 	<script src="{{VS_BASE}}/static/out/vs/loader.js"></script>
+ 	<script src="{{VS_BASE}}/static/out/vs/webPackagePaths.js"></script>
+ 	<script>
++		let nlsConfig
++		try {
++			nlsConfig = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
++			if (nlsConfig._resolvedLanguagePackCoreLocation) {
++				const bundles = Object.create(null)
++				nlsConfig.loadBundle = (bundle, _language, cb) => {
++					const result = bundles[bundle]
++					if (result) {
++						return cb(undefined, result)
++					}
++					const path = nlsConfig._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
++					fetch(`{{VS_BASE}}/vscode-remote-resource?path=${encodeURIComponent(path)}`)
++						.then((response) => response.json())
++						.then((json) => {
++							bundles[bundle] = json
++							cb(undefined, json)
++						})
++						.catch(cb)
++				}
++			}
++		} catch (error) { /* Probably fine. */ }
+ 		Object.keys(self.webPackagePaths).map(function (key, index) {
+ 			self.webPackagePaths[key] = new URL(
+ 				`{{VS_BASE}}/static/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`,
+@@ -52,7 +76,8 @@
+ 					return value;
+ 				}
+ 			}),
+-			paths: self.webPackagePaths
++			paths: self.webPackagePaths,
++			'vs/nls': nlsConfig,
+ 		});
+ 	</script>
+ 	<script>
+Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
++++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
+@@ -105,7 +105,7 @@ export abstract class AbstractNativeEnvi
+ 			return URI.file(join(vscodePortable, 'argv.json'));
+ 		}
+ 
+-		return joinPath(this.userHome, this.productService.dataFolderName, 'argv.json');
++		return joinPath(this.appSettingsHome, 'argv.json');
+ 	}
+ 
+ 	@memoize
+Index: code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
++++ code-server/lib/vscode/src/vs/server/node/remoteLanguagePacks.ts
+@@ -30,6 +30,12 @@ export function getNLSConfiguration(lang
+ 				if (InternalNLSConfiguration.is(value)) {
+ 					value._languagePackSupport = true;
+ 				}
++				// If the configuration has no results keep trying since code-server
++				// doesn't restart when a language is installed so this result would
++				// persist (the plugin might not be installed yet for example).
++				if (value.locale !== 'en' && value.locale !== 'en-us' && Object.keys(value.availableLanguages).length === 0) {
++					_cache.delete(key);
++				}
+ 				return value;
+ 			});
+ 			_cache.set(key, result);
+@@ -44,3 +50,43 @@ export namespace InternalNLSConfiguratio
+ 		return candidate && typeof candidate._languagePackId === 'string';
+ 	}
+ }
++
++/**
++ * The code below is copied from from src/main.js.
++ */
++
++export const getLocaleFromConfig = async (argvResource: string): Promise<string> => {
++	try {
++		const content = stripComments(await fs.promises.readFile(argvResource, 'utf8'));
++		return JSON.parse(content).locale;
++	} catch (error) {
++		if (error.code !== "ENOENT") {
++			console.warn(error)
++		}
++		return 'en';
++	}
++};
++
++const stripComments = (content: string): string => {
++	const regexp = /('(?:[^\\']*(?:\\.)?)*')|('(?:[^\\']*(?:\\.)?)*')|(\/\*(?:\r?\n|.)*?\*\/)|(\/{2,}.*?(?:(?:\r?\n)|$))/g;
++
++	return content.replace(regexp, (match, _m1, _m2, m3, m4) => {
++		// Only one of m1, m2, m3, m4 matches
++		if (m3) {
++			// A block comment. Replace with nothing
++			return '';
++		} else if (m4) {
++			// A line comment. If it ends in \r?\n then keep it.
++			const length_1 = m4.length;
++			if (length_1 > 2 && m4[length_1 - 1] === '\n') {
++				return m4[length_1 - 2] === '\r' ? '\r\n' : '\n';
++			}
++			else {
++				return '';
++			}
++		} else {
++			// We match a string
++			return match;
++		}
++	});
++};
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -26,6 +26,7 @@ import { URI } from 'vs/base/common/uri'
+ import { streamToBuffer } from 'vs/base/common/buffer';
+ import { IProductConfiguration } from 'vs/base/common/product';
+ import { isString } from 'vs/base/common/types';
++import { getLocaleFromConfig, getNLSConfiguration } from 'vs/server/node/remoteLanguagePacks';
+ 
+ const textMimeType = {
+ 	'.html': 'text/html',
+@@ -277,6 +278,8 @@ export class WebClientServer {
+ 		} : undefined;
+ 		const base = relativeRoot(getOriginalUrl(req))
+ 		const vscodeBase = relativePath(getOriginalUrl(req))
++		const locale = this._environmentService.args.locale || await getLocaleFromConfig(this._environmentService.argvResource.fsPath);
++		const nlsConfiguration = await getNLSConfiguration(locale, this._environmentService.userDataPath)
+ 		const data = (await util.promisify(fs.readFile)(filePath)).toString()
+ 			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
+ 				remoteAuthority,
+@@ -301,7 +304,8 @@ export class WebClientServer {
+ 			})))
+ 			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
+ 			.replace(/{{BASE}}/g, base)
+-			.replace(/{{VS_BASE}}/g, vscodeBase);
++			.replace(/{{VS_BASE}}/g, vscodeBase)
++			.replace(/{{NLS_CONFIGURATION}}/g, () => escapeAttribute(JSON.stringify(nlsConfiguration)));
+ 
+ 		const cspDirectives = [
+ 			'default-src \'self\';',
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -14,6 +14,7 @@ export const serverOptions: OptionDescri
+ 	/* ----- code-server ----- */
+ 	'disable-update-check': { type: 'boolean' },
+ 	'auth': { type: 'string' },
++	'locale': { type: 'string' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -90,6 +91,7 @@ export interface ServerParsedArgs {
+ 	/* ----- code-server ----- */
+ 	'disable-update-check'?: boolean;
+ 	'auth'?: string
++	'locale'?: string
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/workbench/services/localizations/browser/localizationsService.ts
+===================================================================
+--- /dev/null
++++ code-server/lib/vscode/src/vs/workbench/services/localizations/browser/localizationsService.ts
+@@ -0,0 +1,28 @@
++/*---------------------------------------------------------------------------------------------
++ *  Copyright (c) Coder Technologies. All rights reserved.
++ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *--------------------------------------------------------------------------------------------*/
++
++import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
++import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
++import { ILocalizationsService } from 'vs/platform/localizations/common/localizations';
++import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
++
++/**
++ * Add localizations service for the browser.
++ * @author coder
++ */
++
++// @ts-ignore: interface is implemented via proxy
++export class LocalizationsService implements ILocalizationsService {
++
++	declare readonly _serviceBrand: undefined;
++
++	constructor(
++		@IRemoteAgentService remoteAgentService: IRemoteAgentService,
++	) {
++		return ProxyChannel.toService<ILocalizationsService>(remoteAgentService.getConnection()!.getChannel('localizations'));
++	}
++}
++
++registerSingleton(ILocalizationsService, LocalizationsService, true);
+Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
++++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
+@@ -109,6 +109,10 @@ registerSingleton(ICustomEndpointTelemet
+ 
+ //#region --- workbench contributions
+ 
++// Localizations
++import 'vs/workbench/contrib/localizations/browser/localizations.contribution';
++import 'vs/workbench/services/localizations/browser/localizationsService';
++
+ // Output
+ import 'vs/workbench/contrib/output/common/outputChannelModelService';
+ 

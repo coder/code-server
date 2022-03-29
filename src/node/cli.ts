@@ -32,12 +32,32 @@ export enum LogLevel {
 export class OptionalString extends Optional<string> {}
 
 /**
+ * Code flags provided by the user.
+ */
+export interface UserProvidedCodeArgs {
+  "disable-telemetry"?: boolean
+  force?: boolean
+  "user-data-dir"?: string
+  "enable-proposed-api"?: string[]
+  "extensions-dir"?: string
+  "builtin-extensions-dir"?: string
+  "install-extension"?: string[]
+  "uninstall-extension"?: string[]
+  "list-extensions"?: boolean
+  "locate-extension"?: string[]
+  "show-versions"?: boolean
+  category?: string
+  "github-auth"?: string
+  "disable-update-check"?: boolean
+}
+
+/**
  * Arguments that the user explicitly provided on the command line.  All
  * arguments must be optional.
  *
  * For arguments with defaults see DefaultedArgs.
  */
-export interface UserProvidedArgs {
+export interface UserProvidedArgs extends UserProvidedCodeArgs {
   config?: string
   auth?: AuthType
   password?: string
@@ -45,7 +65,6 @@ export interface UserProvidedArgs {
   cert?: OptionalString
   "cert-host"?: string
   "cert-key"?: string
-  "disable-update-check"?: boolean
   enable?: string[]
   help?: boolean
   host?: string
@@ -66,21 +85,6 @@ export interface UserProvidedArgs {
   verbose?: boolean
   /* Positional arguments. */
   _?: string[]
-
-  // VS Code flags.
-  "disable-telemetry"?: boolean
-  force?: boolean
-  "user-data-dir"?: string
-  "enable-proposed-api"?: string[]
-  "extensions-dir"?: string
-  "builtin-extensions-dir"?: string
-  "install-extension"?: string[]
-  "uninstall-extension"?: string[]
-  "list-extensions"?: boolean
-  "locate-extension"?: string[]
-  "show-versions"?: boolean
-  category?: string
-  "github-auth"?: string
 }
 
 interface Option<T> {
@@ -120,11 +124,11 @@ type OptionType<T> = T extends boolean
   ? "string[]"
   : "unknown"
 
-type Options<T> = {
+export type Options<T> = {
   [P in keyof T]: Option<OptionType<T[P]>>
 }
 
-const options: Options<Required<UserProvidedArgs>> = {
+export const options: Options<Required<UserProvidedArgs>> = {
   auth: { type: AuthType, description: "The type of authentication to use." },
   password: {
     type: "string",
@@ -235,8 +239,8 @@ const options: Options<Required<UserProvidedArgs>> = {
   },
 }
 
-export const optionDescriptions = (): string[] => {
-  const entries = Object.entries(options).filter(([, v]) => !!v.description)
+export const optionDescriptions = (opts: Partial<Options<Required<UserProvidedArgs>>> = options): string[] => {
+  const entries = Object.entries(opts).filter(([, v]) => !!v.description)
   const widths = entries.reduce(
     (prev, [k, v]) => ({
       long: k.length > prev.long ? k.length : prev.long,
@@ -762,13 +766,36 @@ export const shouldOpenInExistingInstance = async (args: UserProvidedArgs): Prom
 }
 
 /**
+ * Arguments for running Code's server.
+ *
+ * A subset of ../../lib/vscode/src/vs/server/node/serverEnvironmentService.ts:90
+ */
+export interface CodeArgs extends UserProvidedCodeArgs {
+  "accept-server-license-terms"?: boolean
+  "connection-token"?: string
+  help: boolean
+  port?: string
+  version: boolean
+  "without-connection-token"?: boolean
+  "without-browser-env-var"?: boolean
+  compatibility: string
+}
+
+/**
+ * Types for ../../lib/vscode/src/vs/server/node/server.main.ts:65.
+ */
+export type SpawnCodeCli = (args: CodeArgs) => Promise<void>
+
+/**
  * Convert our arguments to VS Code server arguments.
  */
-export const toVsCodeArgs = async (args: DefaultedArgs): Promise<CodeServerLib.ServerParsedArgs> => {
+export const toCodeArgs = async (args: DefaultedArgs): Promise<CodeArgs> => {
   return {
-    "connection-token": "0000",
     ...args,
     "accept-server-license-terms": true,
+    // This seems to be used to make the connection token flags optional (when
+    // set to 1.63) but we have always included them.
+    compatibility: "1.64",
     /** Type casting. */
     help: !!args.help,
     version: !!args.version,

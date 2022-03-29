@@ -1,50 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-main() {
-  cd "$(dirname "$0")/../.."
-  source ./ci/lib.sh
-
-  pushd test
-  echo "Installing dependencies for $PWD"
-  yarn install
-  popd
-
+# Install dependencies in $1.
+install-deps() {
   local args=(install)
   if [[ ${CI-} ]]; then
     args+=(--frozen-lockfile)
   fi
-
-  pushd test
+  # If there is no package.json then yarn will look upward and end up installing
+  # from the root resulting in an infinite loop (this can happen if you have not
+  # checked out the submodule yet for example).
+  if [[ ! -f "$1/package.json" ]]; then
+    echo "$1/package.json is missing; did you run git submodule update --init?"
+    exit 1
+  fi
+  pushd "$1"
   echo "Installing dependencies for $PWD"
   yarn "${args[@]}"
   popd
+}
 
-  pushd test/e2e/extensions/test-extension
-  echo "Installing dependencies for $PWD"
-  yarn "${args[@]}"
-  popd
+main() {
+  cd "$(dirname "$0")/../.."
+  source ./ci/lib.sh
 
-  pushd vendor
-  echo "Installing dependencies for $PWD"
-
-  # We install in 'modules' instead of 'node_modules' because VS Code's
-  # extensions use a webpack config which cannot differentiate between its own
-  # node_modules and itself being in a directory with the same name.
-  args+=(--modules-folder modules)
-
-  # We ignore scripts because NPM/Yarn's default behavior is to assume that
-  # devDependencies are not needed, and that even git repo based packages are
-  # assumed to be compiled. Because the default behavior for VS Code's
-  # `postinstall` assumes we're also compiled, this needs to be ignored.
-  args+=(--ignore-scripts)
-
-  yarn "${args[@]}"
-
-  # Finally, run the vendor `postinstall`
-  yarn run postinstall
-
-  popd
+  install-deps test
+  install-deps test/e2e/extensions/test-extension
+  install-deps lib/vscode
 }
 
 main "$@"

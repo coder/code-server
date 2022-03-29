@@ -52,7 +52,7 @@ There are several approaches to operating and exposing code-server securely:
 We highly recommend using [port forwarding via
 SSH](https://help.ubuntu.com/community/SSH/OpenSSH/PortForwarding) to access
 code-server. If you have an SSH server on your remote machine, this approach
-doesn't required additional setup.
+doesn't require any additional setup at all.
 
 The downside to SSH forwarding, however, is that you can't access code-server
 when using machines without SSH clients (such as iPads). If this applies to you,

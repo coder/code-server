@@ -1,0 +1,67 @@
+Add a service worker
+
+To test try installing code-server as a PWA.
+
+Index: code-server/lib/vscode/src/vs/base/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/common/product.ts
++++ code-server/lib/vscode/src/vs/base/common/product.ts
+@@ -36,6 +36,10 @@ export interface IProductConfiguration {
+ 	readonly updateEndpoint?: string
+ 	readonly logoutEndpoint?: string
+ 	readonly proxyEndpointTemplate?: string
++	readonly serviceWorker?: {
++		readonly path: string;
++		readonly scope: string;
++	}
+ 
+ 	readonly version: string;
+ 	readonly date?: string;
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -296,6 +296,10 @@ export class WebClientServer {
+ 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
+ 					proxyEndpointTemplate: base + '/proxy/{{port}}',
++					serviceWorker: {
++						scope: vscodeBase + '/',
++						path: base + '/_static/out/browser/serviceWorker.js',
++					},
+ 					extensionsGallery: {
+ 						...this._productService.extensionsGallery,
+ 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
+Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/client.ts
+@@ -90,6 +90,10 @@ export class CodeServerClient extends Di
+ 		if (this.productService.logoutEndpoint) {
+ 			this.addLogoutCommand(this.productService.logoutEndpoint);
+ 		}
++
++		if (this.productService.serviceWorker) {
++			await this.registerServiceWorker(this.productService.serviceWorker);
++		}
+ 	}
+ 
+ 	private checkUpdates(updateEndpoint: string) {
+@@ -162,4 +166,17 @@ export class CodeServerClient extends Di
+ 			});
+ 		}
+ 	}
++
++	private async registerServiceWorker(serviceWorker: { path: string; scope: string }) {
++		if (typeof navigator !== 'undefined' && 'serviceWorker' in navigator) {
++			try {
++				await navigator.serviceWorker.register(serviceWorker.path, {
++					scope: serviceWorker.scope,
++				});
++				this.logService.info('[Service Worker] registered');
++			} catch (error: any) {
++				this.logService.error('[Service Worker] registration', error as Error);
++			}
++		}
++	}
+ }

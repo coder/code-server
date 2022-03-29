@@ -1,6 +1,7 @@
 import { logger } from "@coder/logger"
-import { mockLogger } from "../../utils/helpers"
+import path from "path"
 import * as semver from "semver"
+import { mockLogger } from "../../utils/helpers"
 
 describe("constants", () => {
   let constants: typeof import("../../../src/node/constants")
@@ -15,19 +16,21 @@ describe("constants", () => {
     }
 
     const mockCodePackageJson = {
-      name: "mock-code-oss-dev",
+      name: "mock-vscode",
       version: "1.2.3",
     }
 
     beforeAll(() => {
+      jest.clearAllMocks()
       mockLogger()
-      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
-      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
+      jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
+      jest.mock(path.resolve(__dirname, "../../../lib/vscode/package.json"), () => mockCodePackageJson, {
+        virtual: true,
+      })
       constants = require("../../../src/node/constants")
     })
 
     afterAll(() => {
-      jest.clearAllMocks()
       jest.resetModules()
     })
 
@@ -91,7 +94,7 @@ describe("constants", () => {
         const packageJson = constants.getPackageJson("../../package.json")
         expect(packageJson).toStrictEqual(mockPackageJson)
 
-        const codePackageJson = constants.getPackageJson("../../vendor/modules/code-oss-dev/package.json")
+        const codePackageJson = constants.getPackageJson("../../lib/vscode/package.json")
         expect(codePackageJson).toStrictEqual(mockCodePackageJson)
       })
     })
@@ -102,17 +105,19 @@ describe("constants", () => {
       name: "mock-code-server",
     }
     const mockCodePackageJson = {
-      name: "mock-code-oss-dev",
+      name: "mock-vscode",
     }
 
     beforeAll(() => {
-      jest.mock("../../../package.json", () => mockPackageJson, { virtual: true })
-      jest.mock("../../../vendor/modules/code-oss-dev/package.json", () => mockCodePackageJson, { virtual: true })
+      jest.clearAllMocks()
+      jest.mock(path.resolve(__dirname, "../../../package.json"), () => mockPackageJson, { virtual: true })
+      jest.mock(path.resolve(__dirname, "../../../lib/vscode/package.json"), () => mockCodePackageJson, {
+        virtual: true,
+      })
       constants = require("../../../src/node/constants")
     })
 
     afterAll(() => {
-      jest.clearAllMocks()
       jest.resetModules()
     })
 

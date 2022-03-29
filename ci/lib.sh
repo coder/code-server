@@ -14,7 +14,7 @@ pkg_json_version() {
 }
 
 vscode_version() {
-  jq -r .version vendor/modules/code-oss-dev/package.json
+  jq -r .version lib/vscode/package.json
 }
 
 os() {

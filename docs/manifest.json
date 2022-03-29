@@ -1,5 +1,5 @@
 {
-  "versions": ["v4.1.0"],
+  "versions": ["v4.2.0"],
   "routes": [
     {
       "title": "Home",
@@ -21,7 +21,7 @@
       "children": [
         {
           "title": "npm",
-          "description": "How to install code-server using npm or yarn",
+          "description": "How to install code-server using npm",
           "path": "./npm.md"
         },
         {

@@ -20,7 +20,7 @@
       "./node_modules/@types",
       "./typings",
       "./test/node_modules/@types",
-      "./vendor/modules/code-oss-dev/src/vs/server/@types"
+      "./lib/vscode/src/vs/server/@types"
     ],
     "downlevelIteration": true
   },

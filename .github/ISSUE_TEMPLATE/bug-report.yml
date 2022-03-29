@@ -57,7 +57,7 @@ body:
     id: logs
     attributes:
       label: Logs
-      description: Run code-server with the --verbose flag and then paste any relevant logs from the server, from the browser console and/or the browser network tab. For issues with installation, include installation logs (i.e. output of `yarn global add code-server`).
+      description: Run code-server with the --verbose flag and then paste any relevant logs from the server, from the browser console and/or the browser network tab. For issues with installation, include installation logs (i.e. output of `npm install -g code-server`).
   - type: textarea
     attributes:
       label: Screenshot/Video

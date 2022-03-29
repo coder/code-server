@@ -14,11 +14,17 @@ main() {
   # Our code imports from `out` in order to work during development but if you
   # have only built for production you will have not have this directory.  In
   # that case symlink `out` to a production build directory.
-  local vscode="vendor/modules/code-oss-dev"
-  local link="$vscode/out"
-  local target="out-build"
-  if [[ ! -e $link ]] && [[ -d $vscode/$target ]]; then
-    ln -s "$target" "$link"
+  if [[ ! -e lib/vscode/out ]]; then
+    pushd lib
+    local out=(vscode-reh-web-*)
+    if [[ -d "${out[0]}" ]]; then
+      ln -s "../${out[0]}/out" ./vscode/out
+    else
+      echo "Could not find lib/vscode/out or lib/vscode-reh-web-*"
+      echo "Code must be built before running unit tests"
+      exit 1
+    fi
+    popd
   fi
 
   # We must keep jest in a sub-directory. See ../../test/package.json for more

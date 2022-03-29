@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/coder/code-server",
   "bugs": {
@@ -51,7 +51,7 @@
     "@types/ws": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
-    "audit-ci": "^5.0.0",
+    "audit-ci": "^6.0.0",
     "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
@@ -59,17 +59,19 @@
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^4.0.0",
+    "json": "^11.0.0",
     "prettier": "^2.2.1",
     "prettier-plugin-sh": "^0.8.0",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
+    "synp": "^1.9.10",
     "ts-node": "^10.0.0",
     "typescript": "^4.4.0-dev.20210528"
   },
   "resolutions": {
     "ansi-regex": "^5.0.1",
-    "normalize-package-data": "^3.0.0",
+    "normalize-package-data": "^4.0.0",
     "doctoc/underscore": "^1.13.1",
     "doctoc/**/trim": "^1.0.0",
     "postcss": "^8.2.1",
@@ -81,7 +83,8 @@
     "vm2": "^3.9.6",
     "follow-redirects": "^1.14.8",
     "node-fetch": "^2.6.7",
-    "nanoid": "^3.1.31"
+    "nanoid": "^3.1.31",
+    "minimist": "npm:minimist-lite@2.2.0"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
@@ -127,7 +130,6 @@
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
       "/node_modules/",
-      "/vendor/",
       "/lib/",
       "/out/",
       "test/e2e"
@@ -158,7 +160,7 @@
       "<rootDir>/release-npm-package",
       "<rootDir>/release-gcp",
       "<rootDir>/release-images",
-      "<rootDir>/vendor"
+      "<rootDir>/lib"
     ],
     "moduleNameMapper": {
       "^.+\\.(css|less)$": "<rootDir>/test/utils/cssStub.ts"
