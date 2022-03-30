@@ -6,27 +6,3 @@ respect it here then remove our own redirction code that handles this.
 
 Our version might be better anyway since it puts the workspace in the URL.
 
-Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-+++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -410,19 +410,6 @@ class WorkspaceProvider implements IWork
- 				workspace = { folderUri: URI.revive(config.folderUri) };
- 			} else if (config.workspaceUri) {
- 				workspace = { workspaceUri: URI.revive(config.workspaceUri) };
--			} else {
--				workspace = (() => {
--					const lastWorkspaceRaw = window.localStorage.getItem(WorkspaceProvider.LAST_WORKSPACE_STORAGE_KEY);
--					if (lastWorkspaceRaw) {
--						try {
--							return parse(lastWorkspaceRaw); // use marshalling#parse() to revive potential URIs
--						} catch (error) {
--							// Ignore
--						}
--					}
--
--					return undefined;
--				})();
- 			}
- 		}
- 

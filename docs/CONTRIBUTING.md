@@ -96,10 +96,10 @@ re-apply the patches.
 ### Version updates to Code
 
 1. Update the `lib/vscode` submodule to the desired upstream version branch.
-2. From the code-server **project root**, run `yarn install`.
-3. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
+2. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
    stage you may need to resolve conflicts. For example use `quilt push -f`,
    manually apply the rejected portions, then `quilt refresh`.
+3. From the code-server **project root**, run `yarn install`.
 4. Test code-server locally to make sure everything works.
 5. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.

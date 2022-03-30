@@ -32,10 +32,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -285,14 +285,14 @@ export class WebClientServer {
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -286,14 +286,14 @@ export class WebClientServer {
  				productConfiguration: <Partial<IProductConfiguration>>{
  					rootEndpoint: base,
+ 					embedderIdentifier: 'server-distro',
 -					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
 +					extensionsGallery: {
  						...this._productService.extensionsGallery,

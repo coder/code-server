@@ -21,10 +21,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -296,6 +296,10 @@ export class WebClientServer {
- 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+@@ -297,6 +297,10 @@ export class WebClientServer {
  					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
  					proxyEndpointTemplate: base + '/proxy/{{port}}',
+ 					embedderIdentifier: 'server-distro',
 +					serviceWorker: {
 +						scope: vscodeBase + '/',
 +						path: base + '/_static/out/browser/serviceWorker.js',

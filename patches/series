@@ -16,6 +16,5 @@ post-install.diff
 log-level.diff
 local-storage.diff
 service-worker.diff
-last-opened.diff
 connection-type.diff
 sourcemaps.diff

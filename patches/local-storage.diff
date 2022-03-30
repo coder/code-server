@@ -48,7 +48,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -126,7 +126,14 @@ export class BrowserWorkbenchEnvironment
+@@ -52,7 +52,14 @@ export class BrowserWorkbenchEnvironment
  	get logFile(): URI { return joinPath(this.logsHome, 'window.log'); }
  
  	@memoize
