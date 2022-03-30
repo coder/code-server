@@ -78,11 +78,25 @@ EOF
 bundle_vscode() {
   mkdir -p "$VSCODE_OUT_PATH"
 
-  # - Some extensions have a .gitignore which excludes their built source from
-  #   the npm package so exclude any .gitignore files.
-  # - Exclude Node as we will add it ourselves for the standalone and will not
-  #   need it for the npm package.
-  rsync -avh --exclude .gitignore --exclude /node ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
+  local rsync_opts=()
+  if [[ ${DEBUG-} = 1 ]]; then
+    rsync_opts+=(-vh)
+  fi
+
+  # Some extensions have a .gitignore which excludes their built source from the
+  # npm package so exclude any .gitignore files.
+  rsync_opts+=(--exclude .gitignore)
+
+  # Exclude Node as we will add it ourselves for the standalone and will not
+  # need it for the npm package.
+  rsync_opts+=(--exclude /node)
+
+  # Exclude Node modules.
+  if [[ $KEEP_MODULES = 0 ]]; then
+    rsync_opts+=(--exclude node_modules)
+  fi
+
+  rsync "${rsync_opts[@]}" ./lib/vscode-reh-web-*/ "$VSCODE_OUT_PATH"
 
   # Add the commit, date, our name, links, and enable telemetry. This just makes
   # telemetry available; telemetry can still be disabled by flag or setting.
@@ -122,19 +136,17 @@ EOF
   ) > "$VSCODE_OUT_PATH/product.json"
 
   # Use the package.json for the web/remote server.  It does not have the right
-  # version though so pull that from the main package.json.  Also remove keytar
-  # since the web does not rely on it and that removes the dependency on
-  # libsecret.
-  jq --slurp '.[0] * {version: .[1].version} | del(.dependencies.keytar)' \
+  # version though so pull that from the main package.json.
+  jq --slurp '.[0] * {version: .[1].version}' \
     "$VSCODE_SRC_PATH/remote/package.json" \
     "$VSCODE_SRC_PATH/package.json" > "$VSCODE_OUT_PATH/package.json"
 
   rsync "$VSCODE_SRC_PATH/remote/yarn.lock" "$VSCODE_OUT_PATH/yarn.lock"
 
-  if [ "$KEEP_MODULES" = 0 ]; then
-    rm -Rf "$VSCODE_OUT_PATH/extensions/node_modules"
-    rm -Rf "$VSCODE_OUT_PATH/node_modules"
-  fi
+  # Include global extension dependencies as well.
+  rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions/package.json"
+  rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions/yarn.lock"
+  rsync "$VSCODE_SRC_PATH/extensions/postinstall.js" "$VSCODE_OUT_PATH/extensions/postinstall.js"
 
   pushd "$VSCODE_OUT_PATH"
   symlink_asar
