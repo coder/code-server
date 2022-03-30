@@ -31,6 +31,7 @@ jobs:
       - name: Comment Credentials
         uses: marocchino/sticky-pull-request-comment@v2
         with:
+          GITHUB_TOKEN: ${{ github.token }}
           header: codercom-preview-docs
           message: |
             ✨ code-server docs for PR #${{ github.event.number }} is ready! It will be updated on every commit.
