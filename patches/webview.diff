@@ -10,7 +10,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -240,7 +240,7 @@ export class BrowserWorkbenchEnvironment
+@@ -176,7 +176,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -31,11 +31,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				_wrapWebWorkerExtHostInIframe,
  				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
-Index: code-server/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
+Index: code-server/lib/vscode/src/vs/workbench/common/webview.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
-+++ code-server/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
-@@ -25,7 +25,7 @@ export const webviewResourceBaseHost = '
+--- code-server.orig/lib/vscode/src/vs/workbench/common/webview.ts
++++ code-server/lib/vscode/src/vs/workbench/common/webview.ts
+@@ -24,7 +24,7 @@ export const webviewResourceBaseHost = '
  
  export const webviewRootResourceAuthority = `vscode-resource.${webviewResourceBaseHost}`;
  

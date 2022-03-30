@@ -185,10 +185,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
  				productConfiguration: <Partial<IProductConfiguration>>{
 +					rootEndpoint: base,
+ 					embedderIdentifier: 'server-distro',
  					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  						...this._productService.extensionsGallery,
- 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
-@@ -289,7 +295,9 @@ export class WebClientServer {
+@@ -290,7 +296,9 @@ export class WebClientServer {
  					} : undefined
  				}
  			})))
@@ -199,7 +199,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const cspDirectives = [
  			'default-src \'self\';',
-@@ -368,3 +376,70 @@ export class WebClientServer {
+@@ -369,3 +377,70 @@ export class WebClientServer {
  		return res.end(data);
  	}
  }
@@ -286,7 +286,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -504,6 +504,7 @@ function doCreateUri(path: string, query
+@@ -482,6 +482,7 @@ function doCreateUri(path: string, query
  		});
  	}
  
@@ -294,11 +294,11 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	return URI.parse(window.location.href).with({ path, query });
  }
  
-@@ -515,7 +516,7 @@ function doCreateUri(path: string, query
+@@ -493,7 +494,7 @@ function doCreateUri(path: string, query
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
--	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
+-	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents; workspaceUri?: UriComponents } = JSON.parse(configElementAttribute);
 +	const config: IWorkbenchConstructionOptions & { folderUri?: UriComponents, workspaceUri?: UriComponents } = { ...JSON.parse(configElementAttribute), remoteAuthority: location.host }
  
  	// Create workbench
