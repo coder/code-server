@@ -137,7 +137,10 @@ main() {
     # Use the development package name
     # This is so we don't clutter the code-server versions on npm
     # with development versions.
-    jq ".name |= \"$PACKAGE_NAME\"" package.json
+    # jq can't edit in place so we must store in memory and echo
+    local contents
+    contents="$(jq ".name |= \"$PACKAGE_NAME\"" package.json)"
+    echo "${contents}" > package.json
     popd
   fi
 
