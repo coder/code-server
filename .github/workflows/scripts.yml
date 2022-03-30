@@ -1,0 +1,53 @@
+name: Script unit tests
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "**.sh"
+      - "**.bats"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**.sh"
+      - "**.bats"
+
+permissions:
+  actions: none
+  checks: none
+  contents: read
+  deployments: none
+  issues: none
+  packages: none
+  pull-requests: none
+  repository-projects: none
+  security-events: none
+  statuses: none
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Run script unit tests
+    runs-on: ubuntu-latest
+    # This runs on Alpine to make sure we're testing with actual sh.
+    container: "alpine:3.14"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install test utilities
+        run: apk add bats checkbashisms
+
+      - name: Check Bashisms
+        run: checkbashisms ./install.sh
+
+      - name: Run script unit tests
+        run: ./ci/dev/test-scripts.sh

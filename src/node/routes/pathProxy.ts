@@ -1,10 +1,9 @@
 import { Request, Response } from "express"
 import * as path from "path"
-import qs from "qs"
+import * as qs from "qs"
 import * as pluginapi from "../../../typings/pluginapi"
 import { HttpCode, HttpError } from "../../common/http"
-import { normalize } from "../../common/util"
-import { authenticated, ensureAuthenticated, redirect } from "../http"
+import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { proxy as _proxy } from "../proxy"
 
 const getProxyTarget = (req: Request, passthroughPath?: boolean): string => {
@@ -25,7 +24,7 @@ export function proxy(
   if (!authenticated(req)) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
-      const to = normalize(`${req.baseUrl}${req.path}`)
+      const to = self(req)
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,
       })
@@ -45,13 +44,13 @@ export function proxy(
   })
 }
 
-export function wsProxy(
+export async function wsProxy(
   req: pluginapi.WebsocketRequest,
   opts?: {
     passthroughPath?: boolean
   },
-): void {
-  ensureAuthenticated(req)
+): Promise<void> {
+  await ensureAuthenticated(req)
   _proxy.ws(req, req.ws, req.head, {
     ignorePath: true,
     target: getProxyTarget(req, opts?.passthroughPath),

@@ -1,14 +1,46 @@
 #!/usr/bin/env sh
 set -eu
 
+# Copied from arch() in ci/lib.sh.
+detect_arch() {
+  case "$(uname -m)" in
+    aarch64)
+      echo arm64
+      ;;
+    x86_64 | amd64)
+      echo amd64
+      ;;
+    *)
+      # This will cause the download to fail, but is intentional
+      uname -m
+      ;;
+  esac
+}
+
+ARCH="${NPM_CONFIG_ARCH:-$(detect_arch)}"
+# This is due to an upstream issue with RHEL7/CentOS 7 comptability with node-argon2
+# See: https://github.com/cdr/code-server/pull/3422#pullrequestreview-677765057
+export npm_config_build_from_source=true
+
 main() {
   # Grabs the major version of node from $npm_config_user_agent which looks like
   # yarn/1.21.1 npm/? node/v14.2.0 darwin x64
   major_node_version=$(echo "$npm_config_user_agent" | sed -n 's/.*node\/v\([^.]*\).*/\1/p')
-  if [ "$major_node_version" -lt 12 ]; then
-    echo "code-server currently requires at least node v12"
+
+  if [ -n "${FORCE_NODE_VERSION:-}" ]; then
+    echo "WARNING: Overriding required Node.js version to v$FORCE_NODE_VERSION"
+    echo "This could lead to broken functionality, and is unsupported."
+    echo "USE AT YOUR OWN RISK!"
+  fi
+
+  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-14}" ]; then
+    echo "ERROR: code-server currently requires node v14."
+    if [ -n "$FORCE_NODE_VERSION" ]; then
+      echo "However, you have overrided the version check to use v$FORCE_NODE_VERSION."
+    fi
     echo "We have detected that you are on node v$major_node_version"
-    echo "See https://github.com/cdr/code-server/issues/1633"
+    echo "You can override this version check by setting \$FORCE_NODE_VERSION,"
+    echo "but configurations that do not use the same node version are unsupported."
     exit 1
   fi
 
@@ -25,7 +57,10 @@ main() {
   esac
 
   OS="$(uname | tr '[:upper:]' '[:lower:]')"
-  if curl -fsSL "https://storage.googleapis.com/coder-cloud-releases/agent/latest/$OS/cloud-agent" -o ./lib/coder-cloud-agent; then
+
+  mkdir -p ./lib
+
+  if curl -fsSL "https://github.com/coder/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
     chmod +x ./lib/coder-cloud-agent
   else
     echo "Failed to download cloud agent; --link will not work"
@@ -33,26 +68,37 @@ main() {
 
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
-    echo "Please see https://github.com/cdr/code-server/blob/master/docs/npm.md"
+    echo "Please see https://github.com/coder/code-server/blob/master/docs/npm.md"
     exit 1
+  fi
+
+  if [ -n "${FORCE_NODE_VERSION:-}" ]; then
+    echo "WARNING: The required Node.js version was overriden to v$FORCE_NODE_VERSION"
+    echo "This could lead to broken functionality, and is unsupported."
+    echo "USE AT YOUR OWN RISK!"
+  fi
+}
+
+# This is a copy of symlink_asar in ../lib.sh. Look there for details.
+symlink_asar() {
+  rm -rf node_modules.asar
+  if [ "${WINDIR-}" ]; then
+    mklink /J node_modules.asar node_modules
+  else
+    ln -s node_modules node_modules.asar
   fi
 }
 
 vscode_yarn() {
+  echo 'Installing Code dependencies...'
   cd lib/vscode
   yarn --production --frozen-lockfile
 
-  # This is a copy of symlink_asar in ../lib.sh. Look there for details.
-  if [ ! -e node_modules.asar ]; then
-    if [ "${WINDIR-}" ]; then
-      mklink /J node_modules.asar node_modules
-    else
-      ln -s node_modules node_modules.asar
-    fi
-  fi
+  symlink_asar
 
   cd extensions
   yarn --production --frozen-lockfile
+
   for ext in */; do
     ext="${ext%/}"
     echo "extensions/$ext: installing dependencies"

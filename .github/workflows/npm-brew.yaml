@@ -1,0 +1,69 @@
+name: Publish on npm and brew
+
+on:
+  # Shows the manual trigger in GitHub UI
+  # helpful as a back-up in case the GitHub Actions Workflow fails
+  workflow_dispatch:
+
+  release:
+    types: [released]
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  # NOTE: this job requires curl, jq and yarn
+  # All of them are included in ubuntu-latest.
+  npm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        id: download
+        with:
+          branch: v${{ steps.version.outputs.version }}
+          workflow: ci.yaml
+          workflow_conclusion: completed
+          name: "npm-package"
+          path: release-npm-package
+
+      - name: Publish npm package and tag with "latest"
+        run: yarn publish:npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_ENVIRONMENT: "production"
+
+  homebrew:
+    needs: npm
+    runs-on: ubuntu-latest
+    steps:
+      # Ensure things are up to date
+      # Suggested by homebrew maintainers
+      # https://github.com/Homebrew/discussions/discussions/1532#discussioncomment-782633
+      - name: Set up Homebrew
+        id: set-up-homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Checkout code-server
+        uses: actions/checkout@v3
+
+      - name: Configure git
+        run: |
+          git config user.name cdrci
+          git config user.email opensource@coder.com
+
+      - name: Bump code-server homebrew version
+        env:
+          HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
+        run: ./ci/steps/brew-bump.sh

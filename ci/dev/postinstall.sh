@@ -1,19 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Install dependencies in $1.
+install-deps() {
+  local args=(install)
+  if [[ ${CI-} ]]; then
+    args+=(--frozen-lockfile)
+  fi
+  # If there is no package.json then yarn will look upward and end up installing
+  # from the root resulting in an infinite loop (this can happen if you have not
+  # checked out the submodule yet for example).
+  if [[ ! -f "$1/package.json" ]]; then
+    echo "$1/package.json is missing; did you run git submodule update --init?"
+    exit 1
+  fi
+  pushd "$1"
+  echo "Installing dependencies for $PWD"
+  yarn "${args[@]}"
+  popd
+}
+
 main() {
   cd "$(dirname "$0")/../.."
   source ./ci/lib.sh
 
-  # This installs the dependencies needed for testing
-  cd test
-  yarn
-  cd ..
-
-  cd lib/vscode
-  yarn ${CI+--frozen-lockfile}
-
-  symlink_asar
+  install-deps test
+  install-deps test/e2e/extensions/test-extension
+  install-deps lib/vscode
 }
 
 main "$@"

@@ -64,7 +64,7 @@ import Websocket from "ws"
  * [
  *   {
  *     "name": "Test App",
- *     "version": "4.0.0",
+ *     "version": "4.0.1",
  *     "iconPath": "/test-plugin/test-app/icon.svg",
  *     "path": "/test-plugin/test-app",
  *     "description": "This app does XYZ.",
@@ -72,7 +72,7 @@ import Websocket from "ws"
  *     "plugin": {
  *       "name": "test-plugin",
  *       "version": "1.0.0",
- *       "modulePath": "/Users/nhooyr/src/cdr/code-server/test/test-plugin",
+ *       "modulePath": "/Users/nhooyr/src/coder/code-server/test/test-plugin",
  *       "displayName": "Test Plugin",
  *       "description": "Plugin used in code-server tests.",
  *       "routerPath": "/test-plugin",
@@ -145,12 +145,16 @@ export const proxy: ProxyServer
 /**
  * Middleware to ensure the user is authenticated. Throws if they are not.
  */
-export function ensureAuthenticated(req: express.Request, res?: express.Response, next?: express.NextFunction): void
+export function ensureAuthenticated(
+  req: express.Request,
+  res?: express.Response,
+  next?: express.NextFunction,
+): Promise<void>
 
 /**
  * Returns true if the user is authenticated.
  */
-export function authenticated(req: express.Request): boolean
+export function authenticated(req: express.Request): Promise<void>
 
 /**
  * Replace variables in HTML: TO, BASE, CS_STATIC_BASE, and OPTIONS.

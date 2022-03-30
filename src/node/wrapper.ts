@@ -267,7 +267,7 @@ export class ParentProcess extends Process {
     try {
       this.started = this._start()
       await this.started
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(error.message)
       this.exit(typeof error.code === "number" ? error.code : 1)
     }
@@ -314,7 +314,7 @@ export class ParentProcess extends Process {
         CODE_SERVER_PARENT_PID: process.pid.toString(),
         NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
-      stdio: ["inherit", "inherit", "inherit", "ipc"],
+      stdio: ["pipe", "pipe", "pipe", "ipc"],
     })
   }
 

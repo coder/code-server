@@ -1,8 +1,6 @@
 import { logger } from "@coder/logger"
 import { Query } from "express-serve-static-core"
 import { promises as fs } from "fs"
-import * as path from "path"
-import { paths } from "./util"
 
 export type Settings = { [key: string]: Settings | string | boolean | number }
 
@@ -20,7 +18,7 @@ export class SettingsProvider<T> {
     try {
       const raw = (await fs.readFile(this.settingsPath, "utf8")).trim()
       return raw ? JSON.parse(raw) : {}
-    } catch (error) {
+    } catch (error: any) {
       if (error.code !== "ENOENT") {
         logger.warn(error.message)
       }
@@ -37,7 +35,7 @@ export class SettingsProvider<T> {
       const oldSettings = await this.read()
       const nextSettings = { ...oldSettings, ...settings }
       await fs.writeFile(this.settingsPath, JSON.stringify(nextSettings, null, 2))
-    } catch (error) {
+    } catch (error: any) {
       logger.warn(error.message)
     }
   }
@@ -54,14 +52,5 @@ export interface UpdateSettings {
  * Global code-server settings.
  */
 export interface CoderSettings extends UpdateSettings {
-  lastVisited: {
-    url: string
-    workspace: boolean
-  }
-  query: Query
+  query?: Query
 }
-
-/**
- * Global code-server settings file.
- */
-export const settings = new SettingsProvider<CoderSettings>(path.join(paths.data, "coder.json"))

@@ -21,6 +21,7 @@ spec:
         app.kubernetes.io/name: {{ include "code-server.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      imagePullSecrets: {{- toYaml .Values.imagePullSecrets | nindent 8 }}
       {{- if .Values.hostnameOverride }}
       hostname: {{ .Values.hostnameOverride }}
       {{- end }}
@@ -43,10 +44,13 @@ spec:
         volumeMounts:
         - name: data
           mountPath: /home/coder
+{{- if .Values.extraInitContainers }}
+{{ tpl .Values.extraInitContainers . | indent 6}}
+{{- end }}
       {{- end }}
       containers:
 {{- if .Values.extraContainers }}
-{{ toYaml .Values.extraContainers | indent 8}}
+{{ tpl .Values.extraContainers . | indent 8}}
 {{- end }}
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -137,6 +141,12 @@ spec:
       - name: {{ .name }}
         secret:
           secretName: {{ .secretName }}
+          defaultMode: {{ .defaultMode }}
+      {{- end }}
+      {{- range .Values.extraConfigmapMounts }}
+      - name: {{ .name }}
+        configMap:
+          name: {{ .configMap }}
           defaultMode: {{ .defaultMode }}
       {{- end }}
       {{- range .Values.extraVolumeMounts }}

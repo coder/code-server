@@ -13,10 +13,11 @@
     <title>code-server login</title>
     <link rel="icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon-dark-support.svg" />
     <link rel="alternate icon" href="{{CS_STATIC_BASE}}/src/browser/media/favicon.ico" />
-    <link rel="manifest" href="{{CS_STATIC_BASE}}/src/browser/media/manifest.json" crossorigin="use-credentials" />
+    <link rel="manifest" href="{{BASE}}/manifest.json" crossorigin="use-credentials" />
     <link rel="apple-touch-icon" sizes="192x192" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-192.png" />
     <link rel="apple-touch-icon" sizes="512x512" href="{{CS_STATIC_BASE}}/src/browser/media/pwa-icon-512.png" />
-    <link href="{{CS_STATIC_BASE}}/dist/register.css" rel="stylesheet" />
+    <link href="{{CS_STATIC_BASE}}/src/browser/pages/global.css" rel="stylesheet" />
+    <link href="{{CS_STATIC_BASE}}/src/browser/pages/login.css" rel="stylesheet" />
     <meta id="coder-options" data-settings="{{OPTIONS}}" />
   </head>
   <body>
@@ -29,7 +30,8 @@
         <div class="content">
           <form class="login-form" method="post">
             <input class="user" type="text" autocomplete="username" />
-            <input id="base" type="hidden" name="base" value="/" />
+            <input id="base" type="hidden" name="base" value="{{BASE}}" />
+            <input id="href" type="hidden" name="href" value="" />
             <div class="field">
               <input
                 required
@@ -47,7 +49,13 @@
         </div>
       </div>
     </div>
+    <script>
+      // Inform the backend about the path since the proxy might have rewritten
+      // it out of the headers and cookies must be set with absolute paths.
+      const el = document.getElementById("href")
+      if (el) {
+        el.value = location.href
+      }
+    </script>
   </body>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/register.js"></script>
-  <script data-cfasync="false" src="{{CS_STATIC_BASE}}/dist/pages/login.js"></script>
 </html>

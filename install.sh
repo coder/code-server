@@ -2,7 +2,7 @@
 set -eu
 
 # code-server's automatic install script.
-# See https://github.com/cdr/code-server/blob/main/docs/install.md
+# See https://coder.com/docs/code-server/latest/install
 
 usage() {
   arg0="$0"
@@ -13,8 +13,8 @@ usage() {
 "
   fi
 
-  cath <<EOF
-Installs code-server for Linux, macOS and FreeBSD.
+  cath << EOF
+Installs code-server.
 It tries to use the system package manager if possible.
 After successful installation it explains how to start using code-server.
 
@@ -23,7 +23,7 @@ The remote host must have internet access.
 ${not_curl_usage-}
 Usage:
 
-  $arg0 [--dry-run] [--version X.X.X] [--method detect] \
+  $arg0 [--dry-run] [--version X.X.X] [--edge] [--method detect] \
         [--prefix ~/.local] [--rsh ssh] [user@host]
 
   --dry-run
@@ -31,6 +31,9 @@ Usage:
 
   --version X.X.X
       Install a specific version instead of the latest.
+
+  --edge
+      Install the latest edge version instead of the latest stable version.
 
   --method [detect | standalone]
       Choose the installation method. Defaults to detect.
@@ -48,62 +51,79 @@ Usage:
   --rsh <bin>
       Specifies the remote shell for remote installation. Defaults to ssh.
 
-- For Debian, Ubuntu and Raspbian it will install the latest deb package.
-- For Fedora, CentOS, RHEL and openSUSE it will install the latest rpm package.
-- For Arch Linux it will install the AUR package.
-- For any unrecognized Linux operating system it will install the latest standalone
-  release into ~/.local
+The detection method works as follows:
+  - Debian, Ubuntu, Raspbian: install the deb package from GitHub.
+  - Fedora, CentOS, RHEL, openSUSE: install the rpm package from GitHub.
+  - Arch Linux: install from the AUR (which pulls releases from GitHub).
+  - FreeBSD, Alpine: install from npm.
+  - macOS: install using Homebrew if installed otherwise install from GitHub.
+  - All others: install the release from GitHub.
 
-- For macOS it will install the Homebrew package.
-  - If Homebrew is not installed it will install the latest standalone release
-    into ~/.local
+We only build releases on GitHub for amd64 and arm64 on Linux and amd64 for
+macOS. When the detection method tries to pull a release from GitHub it will
+fall back to installing from npm when there is no matching release for the
+system's operating system and architecture.
 
-- For FreeBSD, it will install the npm package with yarn or npm.
+The standalone method will force installion using GitHub releases. It will not
+fall back to npm so on architectures without pre-built releases this will error.
 
-- If ran on an architecture with no releases, it will install the
-  npm package with yarn or npm.
-  - We only have releases for amd64 and arm64 presently.
-  - The npm package builds the native modules on postinstall.
+The installer will cache all downloaded assets into ~/.cache/code-server
 
-It will cache all downloaded assets into ~/.cache/code-server
-
-More installation docs are at https://github.com/cdr/code-server/blob/main/docs/install.md
+More installation docs are at https://coder.com/docs/code-server/latest/install
 EOF
 }
 
 echo_latest_version() {
-  # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
-  version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/cdr/code-server/releases/latest)"
-  version="${version#https://github.com/cdr/code-server/releases/tag/}"
+  if [ "${EDGE-}" ]; then
+    version="$(curl -fsSL https://api.github.com/repos/coder/code-server/releases | awk 'match($0,/.*"html_url": "(.*\/releases\/tag\/.*)".*/)' | head -n 1 | awk -F '"' '{print $4}')"
+  else
+    # https://gist.github.com/lukechilds/a83e1d7127b78fef38c2914c4ececc3c#gistcomment-2758860
+    version="$(curl -fsSLI -o /dev/null -w "%{url_effective}" https://github.com/coder/code-server/releases/latest)"
+  fi
+  version="${version#https://github.com/coder/code-server/releases/tag/}"
   version="${version#v}"
   echo "$version"
 }
 
 echo_npm_postinstall() {
   echoh
-  cath <<EOF
-The npm package has been installed successfully!
-Please extend your path to use code-server:
+  cath << EOF
+npm package has been installed.
+
+Extend your path to use code-server:
   PATH="$NPM_BIN_DIR:\$PATH"
-Please run with:
+Then run with:
   code-server
 EOF
 }
 
 echo_standalone_postinstall() {
   echoh
-  cath <<EOF
+  cath << EOF
 Standalone release has been installed into $STANDALONE_INSTALL_PREFIX/lib/code-server-$VERSION
-Please extend your path to use code-server:
+
+Extend your path to use code-server:
   PATH="$STANDALONE_INSTALL_PREFIX/bin:\$PATH"
-Then you can run:
+Then run with:
+  code-server
+EOF
+}
+
+echo_brew_postinstall() {
+  echoh
+  cath << EOF
+Brew release has been installed.
+
+Run with:
   code-server
 EOF
 }
 
 echo_systemd_postinstall() {
   echoh
-  cath <<EOF
+  cath << EOF
+$1 package has been installed.
+
 To have systemd start code-server now and restart on boot:
   sudo systemctl enable --now code-server@\$USER
 Or, if you don't want/need a background service you can run:
@@ -119,73 +139,75 @@ main() {
   unset \
     DRY_RUN \
     METHOD \
-    STANDALONE_INSTALL_PREFIX \
-    VERSION \
     OPTIONAL \
     ALL_FLAGS \
     RSH_ARGS \
+    EDGE \
     RSH
 
   ALL_FLAGS=""
   while [ "$#" -gt 0 ]; do
     case "$1" in
-    -*)
-      ALL_FLAGS="${ALL_FLAGS} $1"
-      ;;
+      -*)
+        ALL_FLAGS="${ALL_FLAGS} $1"
+        ;;
     esac
 
     case "$1" in
-    --dry-run)
-      DRY_RUN=1
-      ;;
-    --method)
-      METHOD="$(parse_arg "$@")"
-      shift
-      ;;
-    --method=*)
-      METHOD="$(parse_arg "$@")"
-      ;;
-    --prefix)
-      STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
-      shift
-      ;;
-    --prefix=*)
-      STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
-      ;;
-    --version)
-      VERSION="$(parse_arg "$@")"
-      shift
-      ;;
-    --version=*)
-      VERSION="$(parse_arg "$@")"
-      ;;
-    --rsh)
-      RSH="$(parse_arg "$@")"
-      shift
-      ;;
-    --rsh=*)
-      RSH="$(parse_arg "$@")"
-      ;;
-    -h | --h | -help | --help)
-      usage
-      exit 0
-      ;;
-    --)
-      shift
-      # We remove the -- added above.
-      ALL_FLAGS="${ALL_FLAGS% --}"
-      RSH_ARGS="$*"
-      break
-      ;;
-    -*)
-      echoerr "Unknown flag $1"
-      echoerr "Run with --help to see usage."
-      exit 1
-      ;;
-    *)
-      RSH_ARGS="$*"
-      break
-      ;;
+      --dry-run)
+        DRY_RUN=1
+        ;;
+      --method)
+        METHOD="$(parse_arg "$@")"
+        shift
+        ;;
+      --method=*)
+        METHOD="$(parse_arg "$@")"
+        ;;
+      --prefix)
+        STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
+        shift
+        ;;
+      --prefix=*)
+        STANDALONE_INSTALL_PREFIX="$(parse_arg "$@")"
+        ;;
+      --version)
+        VERSION="$(parse_arg "$@")"
+        shift
+        ;;
+      --version=*)
+        VERSION="$(parse_arg "$@")"
+        ;;
+      --edge)
+        EDGE=1
+        ;;
+      --rsh)
+        RSH="$(parse_arg "$@")"
+        shift
+        ;;
+      --rsh=*)
+        RSH="$(parse_arg "$@")"
+        ;;
+      -h | --h | -help | --help)
+        usage
+        exit 0
+        ;;
+      --)
+        shift
+        # We remove the -- added above.
+        ALL_FLAGS="${ALL_FLAGS% --}"
+        RSH_ARGS="$*"
+        break
+        ;;
+      -*)
+        echoerr "Unknown flag $1"
+        echoerr "Run with --help to see usage."
+        exit 1
+        ;;
+      *)
+        RSH_ARGS="$*"
+        break
+        ;;
     esac
 
     shift
@@ -198,102 +220,103 @@ main() {
     return
   fi
 
-  VERSION="${VERSION-$(echo_latest_version)}"
   METHOD="${METHOD-detect}"
   if [ "$METHOD" != detect ] && [ "$METHOD" != standalone ]; then
     echoerr "Unknown install method \"$METHOD\""
     echoerr "Run with --help to see usage."
     exit 1
   fi
-  STANDALONE_INSTALL_PREFIX="${STANDALONE_INSTALL_PREFIX-$HOME/.local}"
 
-  OS="$(os)"
-  if [ ! "$OS" ]; then
-    echoerr "Unsupported OS $(uname)."
-    exit 1
-  fi
+  # These are used by the various install_* functions that make use of GitHub
+  # releases in order to download and unpack the right release.
+  CACHE_DIR=$(echo_cache_dir)
+  STANDALONE_INSTALL_PREFIX=${STANDALONE_INSTALL_PREFIX:-$HOME/.local}
+  VERSION=${VERSION:-$(echo_latest_version)}
+  # These can be overridden for testing but shouldn't normally be used as it can
+  # result in a broken code-server.
+  OS=${OS:-$(os)}
+  ARCH=${ARCH:-$(arch)}
 
   distro_name
 
-  ARCH="$(arch)"
-  if [ ! "$ARCH" ]; then
-    if [ "$METHOD" = standalone ]; then
-      echoerr "No precompiled releases for $(uname -m)."
-      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
-      exit 1
-    fi
-    echoh "No precompiled releases for $(uname -m)."
-    install_npm
-    return
-  fi
-
-  if [ "$OS" = "freebsd" ]; then
-    if [ "$METHOD" = standalone ]; then
-      echoerr "No precompiled releases available for $OS."
-      echoerr 'Please rerun without the "--method standalone" flag to install from npm.'
-      exit 1
-    fi
-    echoh "No precompiled releases available for $OS."
-    install_npm
-    return
-  fi
-
-  CACHE_DIR="$(echo_cache_dir)"
-
+  # Standalone installs by pulling pre-built releases from GitHub.
   if [ "$METHOD" = standalone ]; then
-    install_standalone
-    return
+    if has_standalone; then
+      install_standalone
+      exit 0
+    else
+      echoerr "There are no standalone releases for $ARCH"
+      echoerr "Please try again without '--method standalone'"
+      exit 1
+    fi
   fi
 
-  case "$(distro)" in
-  macos)
-    install_macos
-    ;;
-  debian)
-    install_deb
-    ;;
-  fedora | opensuse)
-    install_rpm
-    ;;
-  arch)
-    install_aur
-    ;;
-  *)
-    echoh "Unsupported package manager."
-    install_standalone
-    ;;
+  # DISTRO can be overridden for testing but shouldn't normally be used as it
+  # can result in a broken code-server.
+  DISTRO=${DISTRO:-$(distro)}
+
+  case $DISTRO in
+    # macOS uses brew when available and falls back to standalone. We only have
+    # amd64 for macOS so for anything else use npm.
+    macos)
+      BREW_PATH="${BREW_PATH-brew}"
+      if command_exists "$BREW_PATH"; then
+        install_brew
+      else
+        echoh "Homebrew not installed."
+        echoh "Falling back to standalone installation."
+        npm_fallback install_standalone
+      fi
+      ;;
+    # The .deb and .rpm files are pulled from GitHub and we only have amd64 and
+    # arm64 there and need to fall back to npm otherwise.
+    debian) npm_fallback install_deb ;;
+    fedora | opensuse) npm_fallback install_rpm ;;
+    # Arch uses the AUR package which only supports amd64 and arm64 since it
+    # pulls releases from GitHub so we need to fall back to npm.
+    arch) npm_fallback install_aur ;;
+    # We don't have GitHub releases that work on Alpine or FreeBSD so we have no
+    # choice but to use npm here.
+    alpine | freebsd) install_npm ;;
+    # For anything else we'll try to install standalone but fall back to npm if
+    # we don't have releases for the architecture.
+    *)
+      echoh "Unsupported package manager."
+      echoh "Falling back to standalone installation."
+      npm_fallback install_standalone
+      ;;
   esac
 }
 
 parse_arg() {
   case "$1" in
-  *=*)
-    # Remove everything after first equal sign.
-    opt="${1%%=*}"
-    # Remove everything before first equal sign.
-    optarg="${1#*=}"
-    if [ ! "$optarg" ] && [ ! "${OPTIONAL-}" ]; then
-      echoerr "$opt requires an argument"
-      echoerr "Run with --help to see usage."
-      exit 1
-    fi
-    echo "$optarg"
-    return
-    ;;
+    *=*)
+      # Remove everything after first equal sign.
+      opt="${1%%=*}"
+      # Remove everything before first equal sign.
+      optarg="${1#*=}"
+      if [ ! "$optarg" ] && [ ! "${OPTIONAL-}" ]; then
+        echoerr "$opt requires an argument"
+        echoerr "Run with --help to see usage."
+        exit 1
+      fi
+      echo "$optarg"
+      return
+      ;;
   esac
 
   case "${2-}" in
-  "" | -*)
-    if [ ! "${OPTIONAL-}" ]; then
-      echoerr "$1 requires an argument"
-      echoerr "Run with --help to see usage."
-      exit 1
-    fi
-    ;;
-  *)
-    echo "$2"
-    return
-    ;;
+    "" | -*)
+      if [ ! "${OPTIONAL-}" ]; then
+        echoerr "$1 requires an argument"
+        echoerr "Run with --help to see usage."
+        exit 1
+      fi
+      ;;
+    *)
+      echo "$2"
+      return
+      ;;
   esac
 }
 
@@ -315,45 +338,39 @@ fetch() {
   sh_c mv "$FILE.incomplete" "$FILE"
 }
 
-install_macos() {
-  if command_exists brew; then
-    echoh "Installing from Homebrew."
-    echoh
+install_brew() {
+  echoh "Installing latest from Homebrew."
+  echoh
 
-    sh_c brew install code-server
+  sh_c "$BREW_PATH" install code-server
 
-    return
-  fi
-
-  echoh "Homebrew not installed."
-
-  install_standalone
+  echo_brew_postinstall
 }
 
 install_deb() {
-  echoh "Installing v$VERSION deb package from GitHub releases."
+  echoh "Installing v$VERSION of the $ARCH deb package from GitHub."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
+  fetch "https://github.com/coder/code-server/releases/download/v$VERSION/code-server_${VERSION}_$ARCH.deb" \
     "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
   sudo_sh_c dpkg -i "$CACHE_DIR/code-server_${VERSION}_$ARCH.deb"
 
-  echo_systemd_postinstall
+  echo_systemd_postinstall deb
 }
 
 install_rpm() {
-  echoh "Installing v$VERSION rpm package from GitHub releases."
+  echoh "Installing v$VERSION of the $ARCH rpm package from GitHub."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
+  fetch "https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-$ARCH.rpm" \
     "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
   sudo_sh_c rpm -i "$CACHE_DIR/code-server-$VERSION-$ARCH.rpm"
 
-  echo_systemd_postinstall
+  echo_systemd_postinstall rpm
 }
 
 install_aur() {
-  echoh "Installing from the AUR."
+  echoh "Installing latest from the AUR."
   echoh
 
   sh_c mkdir -p "$CACHE_DIR/code-server-aur"
@@ -364,15 +381,19 @@ install_aur() {
   fi
   sh_c makepkg -si
 
-  echo_systemd_postinstall
+  echo_systemd_postinstall AUR
 }
 
 install_standalone() {
-  echoh "Installing standalone release archive v$VERSION from GitHub releases."
+  echoh "Installing v$VERSION of the $ARCH release from GitHub."
   echoh
 
-  fetch "https://github.com/cdr/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
+  fetch "https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-$OS-$ARCH.tar.gz" \
     "$CACHE_DIR/code-server-$VERSION-$OS-$ARCH.tar.gz"
+
+  # -w only works if the directory exists so try creating it first. If this
+  # fails we can ignore the error as the -w check will then swap us to sudo.
+  sh_c mkdir -p "$STANDALONE_INSTALL_PREFIX" 2> /dev/null || true
 
   sh_c="sh_c"
   if [ ! -w "$STANDALONE_INSTALL_PREFIX" ]; then
@@ -395,50 +416,64 @@ install_standalone() {
 }
 
 install_npm() {
-  if command_exists yarn; then
+  echoh "Installing latest from npm."
+  echoh
+
+  NPM_PATH="${YARN_PATH-npm}"
+
+  if command_exists "$NPM_PATH"; then
     sh_c="sh_c"
-    if [ ! -w "$(yarn global bin)" ]; then
-      sh_c="sudo_sh_c"
-    fi
-    echoh "Installing with yarn."
-    echoh
-    "$sh_c" yarn global add code-server --unsafe-perm
-    NPM_BIN_DIR="$(yarn global bin)" echo_npm_postinstall
-    return
-  elif command_exists npm; then
-    sh_c="sh_c"
-    if [ ! -w "$(npm config get prefix)" ]; then
+    if [ ! "${DRY_RUN-}" ] && [ ! -w "$(NPM_PATH config get prefix)" ]; then
       sh_c="sudo_sh_c"
     fi
     echoh "Installing with npm."
     echoh
-    "$sh_c" npm install -g code-server --unsafe-perm
-    NPM_BIN_DIR="$(npm bin -g)" echo_npm_postinstall
+    "$sh_c" "$NPM_PATH" install -g code-server --unsafe-perm
+    NPM_BIN_DIR="\$($NPM_PATH bin -g)" echo_npm_postinstall
     return
   fi
-  echoh
-  echoerr "Please install npm or yarn to install code-server!"
+  echoerr "Please install npm to install code-server!"
   echoerr "You will need at least node v12 and a few C dependencies."
-  echoerr "See the docs https://github.com/cdr/code-server/blob/v3.9.3/docs/install.md#yarn-npm"
+  echoerr "See the docs https://coder.com/docs/code-server/latest/install#npm"
+
   exit 1
 }
 
-os() {
-  case "$(uname)" in
-  Linux)
-    echo linux
-    ;;
-  Darwin)
-    echo macos
-    ;;
-  FreeBSD)
-    echo freebsd
-    ;;
+# Run $1 if we have a standalone otherwise run install_npm.
+npm_fallback() {
+  if has_standalone; then
+    $1
+  else
+    echoh "No standalone releases for $ARCH."
+    echoh "Falling back to installation from npm."
+    install_npm
+  fi
+}
+
+# Determine if we have standalone releases on GitHub for the system's arch.
+has_standalone() {
+  case $ARCH in
+    amd64) return 0 ;;
+    # We only have amd64 for macOS.
+    arm64)
+      [ "$(distro)" != macos ]
+      return
+      ;;
+    *) return 1 ;;
   esac
 }
 
-# distro prints the detected operating system including linux distros.
-# Also parses ID_LIKE for common distro bases.
+os() {
+  uname="$(uname)"
+  case $uname in
+    Linux) echo linux ;;
+    Darwin) echo macos ;;
+    FreeBSD) echo freebsd ;;
+    *) echo "$uname" ;;
+  esac
+}
+
+# Print the detected Linux distro, otherwise print the OS name.
 #
 # Example outputs:
 # - macos -> macos
@@ -475,7 +510,7 @@ distro() {
   fi
 }
 
-# os_name prints a pretty human readable name for the OS/Distro.
+# Print a human-readable name for the OS/distro.
 distro_name() {
   if [ "$(uname)" = "Darwin" ]; then
     echo "macOS v$(sw_vers -productVersion)"
@@ -495,21 +530,17 @@ distro_name() {
 }
 
 arch() {
-  case "$(uname -m)" in
-  aarch64)
-    echo arm64
-    ;;
-  x86_64)
-    echo amd64
-    ;;
-  amd64) # FreeBSD.
-    echo amd64
-    ;;
+  uname_m=$(uname -m)
+  case $uname_m in
+    aarch64) echo arm64 ;;
+    x86_64) echo amd64 ;;
+    *) echo "$uname_m" ;;
   esac
 }
 
 command_exists() {
-  command -v "$@" >/dev/null
+  if [ ! "$1" ]; then return 1; fi
+  command -v "$@" > /dev/null
 }
 
 sh_c() {
@@ -571,7 +602,7 @@ prefix() {
   fifo="$(mktemp -d)/fifo"
   mkfifo "$fifo"
   sed -e "s#^#$PREFIX: #" "$fifo" &
-  "$@" >"$fifo" 2>&1
+  "$@" > "$fifo" 2>&1
 }
 
 main "$@"

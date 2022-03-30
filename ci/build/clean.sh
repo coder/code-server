@@ -6,10 +6,6 @@ main() {
   source ./ci/lib.sh
 
   git clean -Xffd
-
-  pushd lib/vscode
-  git clean -xffd
-  popd
 }
 
 main "$@"

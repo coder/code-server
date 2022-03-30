@@ -1,0 +1,66 @@
+Make storage local to the remote server
+
+This solves two problems:
+  1. Extensions running in the browser (like Vim) might use these paths
+     directly instead of using the file service and most likely can't write
+     to `/User` on disk.
+  2. Settings will be stored in the file system instead of in browser
+     storage. Using browser storage makes sharing or seeding settings
+     between browsers difficult. We may want to revisit this once/if we get
+     settings sync.
+
+Unfortunately this does not affect state which uses a separate method with
+IndexedDB and does not appear nearly as easy to redirect to disk.
+
+To test install the Vim extension and make sure something that uses file storage
+works (history recall for example) and change settings from the UI and on disk
+while making sure they appear on the other side.
+
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -289,6 +289,7 @@ export class WebClientServer {
+ 					enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined,
+ 					logLevel: this._logService.getLevel(),
+ 				},
++				userDataPath: this._environmentService.userDataPath,
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
+ 					rootEndpoint: base,
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -205,6 +205,11 @@ export interface IWorkbenchConstructionO
+ 	 */
+ 	readonly configurationDefaults?: Record<string, any>;
+ 
++	/**
++	 * Path to the user data directory.
++	 */
++	readonly userDataPath?: string
++
+ 	//#endregion
+ 
+ 
+Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -126,7 +126,14 @@ export class BrowserWorkbenchEnvironment
+ 	get logFile(): URI { return joinPath(this.logsHome, 'window.log'); }
+ 
+ 	@memoize
+-	get userRoamingDataHome(): URI { return URI.file('/User').with({ scheme: Schemas.userData }); }
++	get userRoamingDataHome(): URI { return joinPath(URI.file(this.userDataPath).with({ scheme: Schemas.vscodeRemote }), 'User'); }
++
++	get userDataPath(): string {
++		if (!this.options.userDataPath) {
++			throw new Error('userDataPath was not provided to the browser');
++		}
++		return this.options.userDataPath;
++	}
+ 
+ 	@memoize
+ 	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }

@@ -1,7 +1,6 @@
 import { Request, Router } from "express"
 import { HttpCode, HttpError } from "../../common/http"
-import { normalize } from "../../common/util"
-import { authenticated, ensureAuthenticated, redirect } from "../http"
+import { authenticated, ensureAuthenticated, redirect, self } from "../http"
 import { proxy } from "../proxy"
 import { Router as WsRouter } from "../wsRouter"
 
@@ -32,14 +31,15 @@ const maybeProxy = (req: Request): string | undefined => {
   return port
 }
 
-router.all("*", (req, res, next) => {
+router.all("*", async (req, res, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
   // Must be authenticated to use the proxy.
-  if (!authenticated(req)) {
+  const isAuthenticated = await authenticated(req)
+  if (!isAuthenticated) {
     // Let the assets through since they're used on the login page.
     if (req.path.startsWith("/static/") && req.method === "GET") {
       return next()
@@ -55,7 +55,7 @@ router.all("*", (req, res, next) => {
         return next()
       }
       // Redirect all other pages to the login.
-      const to = normalize(`${req.baseUrl}${req.path}`)
+      const to = self(req)
       return redirect(req, res, "login", {
         to: to !== "/" ? to : undefined,
       })
@@ -73,14 +73,14 @@ router.all("*", (req, res, next) => {
 
 export const wsRouter = WsRouter()
 
-wsRouter.ws("*", (req, _, next) => {
+wsRouter.ws("*", async (req, _, next) => {
   const port = maybeProxy(req)
   if (!port) {
     return next()
   }
 
   // Must be authenticated to use the proxy.
-  ensureAuthenticated(req)
+  await ensureAuthenticated(req)
 
   proxy.ws(req, req.ws, req.head, {
     ignorePath: true,

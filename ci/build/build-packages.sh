@@ -7,6 +7,7 @@ set -euo pipefail
 main() {
   cd "$(dirname "${0}")/../.."
   source ./ci/lib.sh
+  source ./ci/build/build-lib.sh
 
   # Allow us to override architecture
   # we use this for our Linux ARM64 cross compile builds
@@ -46,11 +47,27 @@ release_gcp() {
 # Generates deb and rpm packages.
 release_nfpm() {
   local nfpm_config
-  nfpm_config="$(envsubst <./ci/build/nfpm.yaml)"
 
-  # The underscores are convention for .deb.
-  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_$ARCH.deb"
-  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$ARCH.rpm"
+  export NFPM_ARCH
+
+  # Code deletes some files from the extension node_modules directory which
+  # leaves broken symlinks in the corresponding .bin directory.  nfpm will fail
+  # on these broken symlinks so clean them up.
+  rm -fr "./release-standalone/lib/vscode/extensions/node_modules/.bin"
+
+  PKG_FORMAT="deb"
+  NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"
+  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  echo "Building deb"
+  echo "$nfpm_config" | head --lines=4
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server_${VERSION}_${NFPM_ARCH}.deb"
+
+  PKG_FORMAT="rpm"
+  NFPM_ARCH="$(get_nfpm_arch $PKG_FORMAT "$ARCH")"
+  nfpm_config="$(envsubst < ./ci/build/nfpm.yaml)"
+  echo "Building rpm"
+  echo "$nfpm_config" | head --lines=4
+  nfpm pkg -f <(echo "$nfpm_config") --target "release-packages/code-server-$VERSION-$NFPM_ARCH.rpm"
 }
 
 main "$@"

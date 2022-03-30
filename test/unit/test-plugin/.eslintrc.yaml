@@ -1,5 +1,0 @@
-settings:
-  import/resolver:
-    alias:
-      map:
-        - [code-server, ./typings/pluginapi.d.ts]

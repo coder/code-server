@@ -172,9 +172,9 @@ export class PluginAPI {
         }
         await this.loadPlugin(path.join(dir, ent.name))
       }
-    } catch (err) {
-      if (err.code !== "ENOENT") {
-        this.logger.warn(`failed to load plugins from ${q(dir)}: ${err.message}`)
+    } catch (error: any) {
+      if (error.code !== "ENOENT") {
+        this.logger.warn(`failed to load plugins from ${q(dir)}: ${error.message}`)
       }
     }
   }
@@ -195,9 +195,9 @@ export class PluginAPI {
       }
       const p = this._loadPlugin(dir, packageJSON)
       this.plugins.set(p.name, p)
-    } catch (err) {
-      if (err.code !== "ENOENT") {
-        this.logger.warn(`failed to load plugin: ${err.stack}`)
+    } catch (error: any) {
+      if (error.code !== "ENOENT") {
+        this.logger.warn(`failed to load plugin: ${error.stack}`)
       }
     }
   }
@@ -278,7 +278,7 @@ export class PluginAPI {
         }
         try {
           await p.deinit()
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error("plugin failed to deinit", field("name", p.name), field("error", error.message))
         }
       }),

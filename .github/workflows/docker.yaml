@@ -1,0 +1,55 @@
+name: Publish on Docker
+
+on:
+  # Shows the manual trigger in GitHub UI
+  # helpful as a back-up in case the GitHub Actions Workflow fails
+  workflow_dispatch:
+
+  release:
+    types:
+      - released
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  docker-images:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      - name: Download artifact
+        uses: dawidd6/action-download-artifact@v2
+        id: download
+        with:
+          branch: v${{ steps.version.outputs.version }}
+          workflow: ci.yaml
+          workflow_conclusion: completed
+          name: "release-packages"
+          path: release-packages
+
+      - name: Run ./ci/steps/docker-buildx-push.sh
+        run: ./ci/steps/docker-buildx-push.sh
+        env:
+          GITHUB_TOKEN: ${{ github.token }}

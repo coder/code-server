@@ -2,162 +2,196 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 # iPad
 
-- [Known Issues](#known-issues)
-- [How to install PWA](#how-to-install-pwa)
-- [How to access code-server with a self signed certificate on iPad?](#how-to-access-code-server-with-a-self-signed-certificate-on-ipad)
-  - [Servediter iPad App](#servediter-ipad-app)
-- [Raspberry Pi USB-C Network](#raspberry-pi-usb-c-network)
-- [Ctrl C Workaround](#ctrl-c-workaround)
+- [Using the code-server progressive web app (PWA)](#using-the-code-server-progressive-web-app-pwa)
+- [Access code-server using Servediter](#access-code-server-using-servediter)
+- [Raspberry Pi USB-C network](#raspberry-pi-usb-c-network)
 - [Recommendations](#recommendations)
-- [By 2022 iPad coding more desirable on Arm Macs](#by-2022-ipad-coding-more-desirable-on-arm-macs)
+- [Known issues](#known-issues)
+  - [Workaround for issue with `ctrl+c` not stopping a running process in the terminal](#workaround-for-issue-with-ctrlc-not-stopping-a-running-process-in-the-terminal)
+- [Access code-server with a self-signed certificate on an iPad](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
+  - [Certificate requirements](#certificate-requirements)
+  - [Sharing a self-signed certificate with an iPad](#sharing-a-self-signed-certificate-with-an-ipad)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-## Known Issues
+Once you've installed code-server, you can access it from an iPad.
 
-- Getting self signed certificates certificates to work is involved, see below.
-- Keyboard issues
-  - May disappear sometimes [#1313](https://github.com/cdr/code-server/issues/1313), [#979](https://github.com/cdr/code-server/issues/979)
-  - Some short cuts expectations may not be met
-    - `command + n` opens new browser window instead of new file and difficult to even set to another quick key
-    - In general it's just note worthy you most likely will need to edit keyboard shortcuts
-  - No escape key by default on Magic Keyboard but everyone sets the globe key to be an escape key
-    - Opinion: It's actually an awesome joy having the escape key at bottom of keyboard
-- Trackpad scrolling does not work [#1455](https://github.com/cdr/code-server/issues/1455)
-  - [Bug tracking of a WebKit fix here](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
-  - [tracking of WebKit patch](https://trac.webkit.org/changeset/270712/webkit)
-  - Alternative: Install line-jump extension and use keyboard to nav by jumping large amount of lines
-  - Alternative: Just use touch scrolling
-- See [issues tagged with the iPad label](https://github.com/cdr/code-server/issues?q=is%3Aopen+is%3Aissue+label%3AiPad) for more.
-- `ctrl+c` does not stop a long-running process in the browser
-  - Tracking upstream issue here: [#114009](https://github.com/microsoft/vscode/issues/114009)
-  - See [workaround](#ctrl-c-workaround)
+## Using the code-server progressive web app (PWA)
 
-## How to install PWA
+To use code-server on an iPad, we recommend installing the code-server
+progressive web app (PWA):
 
-To install the code-server PWA, follow these steps:
+1. Open code-server in Safari.
+2. Click the **Share** icon.
+3. Click **Add to Home Screen**.
 
-1. Open code-server in Safari
-2. Click the Share icon
-3. Click "Add to Home Screen"
+You can now open code-server from the Home screen, and when you do, you'll be
+using the PWA. Running code-server as a PWA gets you more screen real estate and
+access to top-level keyboard shortcuts since its running like a native app.
 
-Now when you open code-server from the home screen, you will be using the PWA.
-The advantages of this are more screen real estate and access to top-level keyboard shortcuts because it's running like an app.
-An example shortcut is the `cmd+w` to close an active file in the workbench. You can add this to your `keybindings.json` by doing the following:
+For example, you can use `cmd+w` to close an active file in the workbench. You
+can add this to `keybindings.json`:
 
-1. Open up code-serer
-2. `Command Palette > Open Keyboard Shortcuts (JSON)`
-3. Add the following to your `keybindings.json`
+1. Open code-server
+2. Go to **Command Palette** > **Open Keyboard Shortcuts (JSON)**
+3. Add the following to `keybindings.json`
 
-```json
-{
-  "key": "cmd+w",
-  "command": "workbench.action.closeActiveEditor"
-}
-```
+   ```json
+   {
+     "key": "cmd+w",
+     "command": "workbench.action.closeActiveEditor"
+   }
+   ```
 
-Test out command by hitting `cmd+w` to close an active file
+4. Test the command by using `cmd+w` to close an active file.
 
-## How to access code-server with a self signed certificate on iPad?
+## Access code-server using Servediter
 
-Accessing a self signed certificate on iPad isn't as easy as accepting through all
-the security warnings. Safari will prevent WebSocket connections unless the certificate
-is installed as a profile on the device.
+If you are unable to get the self-signed certificate working, or you do not have a domain
+name to use, you can use [Servediter for code-server](https://apps.apple.com/us/app/servediter-for-code-server/id1504491325).
 
-The below assumes you are using the self signed certificate that code-server
-generates for you. If not, that's fine but you'll have to make sure your certificate
-abides by the following guidelines from Apple: https://support.apple.com/en-us/HT210176
+> Servediter for code-server is **not** officially supported by the code-server team!
 
-**note**: Another undocumented requirement we noticed is that the certificate has to have `basicConstraints=CA:true`.
+To use Servediter:
 
-The following instructions assume you have code-server installed and running
-with a self signed certificate. If not, please first go through [./guide.md](./guide.md)!
+1. Download the app from the App Store.
+2. When prompted, provide your server information. If you are running a local
+   server or a [Raspberry Pi connected via USB-C](#raspberry-pi-usb-c-network), you will input your settings
+   into **Self Hosted Server**.
 
-**warning**: Your iPad must access code-server via a domain name. It could be local
-DNS like `mymacbookpro.local` but it must be a domain name. Otherwise Safari will
-refuse to allow WebSockets to connect.
+## Raspberry Pi USB-C network
 
-1. Your certificate **must** have a subject alt name that matches the hostname
-   at which you will access code-server from your iPad. You can pass this to code-server
-   so that it generates the certificate correctly with `--cert-host`.
-2. Share your self signed certificate with the iPad.
-   - code-server will print the location of the certificate it has generated in the logs.
+We've heard of users having great success using code-server on an iPad connected
+to a Raspberry Pi via USB-C (the Raspberry Pi provides both power and direct
+network access). Setting this up requires you to turn on **Network over USB-C**
+on the Raspberry Pi, then continuing with code-server as usual on the iPad.
 
-```
-[2020-10-30T08:55:45.139Z] info    - Using generated certificate and key for HTTPS: ~/.local/share/code-server/mymbp_local.crt
-```
+For more information, see:
 
-- You can mail it to yourself or if you have a Mac, it's easiest to just Airdrop to the iPad.
-
-3. When opening the `*.crt` file, you'll be prompted to go into settings to install.
-4. Go to `Settings -> General -> Profile`, select the profile and then hit `Install`.
-   - It should say the profile is verified.
-5. Go to `Settings -> About -> Certificate Trust Settings` and enable full trust for
-   the certificate. [more apple support here](https://support.apple.com/en-us/HT204477)
-6. Now you can access code-server! 🍻
-
-### Servediter iPad App
-
-If you are unable to get the self signed certificate working or you do not have a domain
-name to use, you can use the Servediter iPad App instead!
-
-**note**: This is not an officially supported app by the code-server team!
-
-Download [Serveediter](https://apps.apple.com/us/app/servediter-for-code-server/id1504491325) from the
-App Store and then input your server information. If you are running a local server or mabye a usb-c
-connected Raspberry Pi, you will input your settings into "Self Hosted Server".
-
-## Raspberry Pi USB-C Network
-
-It is a bit out of scope for this project, however, great success is being reported using iPad on the go with just a single USB-C cable connected to a Raspberry Pi both powering and supplying direct network access. Many support articles already exist but the key steps boil down to turning on Network over USB-C on the Raspberry Pi itself and the rest of the steps are just like getting Code Server running any where else.
-
-Resources worthy of review:
-
-- [General intro to Pi as an iPad accessory](https://www.youtube.com/watch?v=IR6sDcKo3V8)
+- [General introduction to Pi as an iPad
+  accessory](https://www.youtube.com/watch?v=IR6sDcKo3V8)
 - [iPad with Pi FAQ](https://www.youtube.com/watch?v=SPSlyqo5Q2Q)
-- [Technical guide to perform the steps](https://www.geeky-gadgets.com/connect-a-raspberry-pi-4-to-an-ipad-pro-21-01-2020/)
+- [Technical guide to connecting a Raspberry Pi to an
+  iPad](https://www.geeky-gadgets.com/connect-a-raspberry-pi-4-to-an-ipad-pro-21-01-2020/)
 
-> Here are my keys to success. I bought a 4" touch screen with fan included that attaches as a case to the Pi. I use the touch screen for anytime I have connection issues, otherwise I turn off the Pi screen. I gave my Pi a network name so I can easily connect at home on wifi or when on go with 1 usb-c cable that supplys both power and network connectivity. Lastly, not all usb-c cables are equal and not all will work so try different usb-c cables if you are going mad (confirm over wifi first then move to cable).
->
-> -- <cite>[Acker Apple](http://github.com/ackerapple/)</cite>
+You may also find the following tips from [Acker
+Apple](http://github.com/ackerapple/) helpful:
 
-## Ctrl C Workaround
-
-There is currently an issue with `ctrl+c` not stopping a running process in the integrated terminal. We have filed an issue upstream and are tracking [here](https://github.com/microsoft/vscode/issues/114009). As a temporary workaround, it works if you manually define the shortcut like so:
-
-1. Open Command Palette
-2. Look for "Preferences: Open Keyboard Shortcuts (JSON)"
-3. Add this:
-
-```json
-{
-  "key": "ctrl+c",
-  "command": "workbench.action.terminal.sendSequence",
-  "args": {
-    "text": "\u0003"
-  },
-  "when": "terminalFocus"
-}
-```
-
-Source: [StackOverflow](https://stackoverflow.com/a/52735954/3015595)
+> Here are my keys to success. I bought a 4" touch screen with fan included that
+> attaches as a case to the Pi. I use the touch screen for anytime I have
+> connection issues, otherwise I turn off the Pi screen. I gave my Pi a network
+> name so I can easily connect at home on wifi or when on go with 1 usb-c cable
+> that supplys both power and network connectivity. Lastly, not all usb-c cables
+> are equal and not all will work so try different usb-c cables if you are going
+> mad (confirm over wifi first then move to cable).
 
 ## Recommendations
 
-Once you have code-server accessible to your iPad a few things could help save you time:
+Once you can access code-server on your iPad, you may find the following tips
+and tricks helpful:
 
-- Use multi task mode to make code changes and see browser at the same time
-  - Prevents iOs background dropping an App's state if you are full screen switching between code-server and browser
-- Be sure you are using the debug/terminal that is built into VS Code so that you don’t need another terminal app running
-  - Again, prevents switching between full screen app and losing your view to iOs background app memory management
-- You should be of a mindset willing to deal and adapt with differences in having an imperfect experience, for the perceived joyful benefits of interacting with your computer in more intuitive ways
+- Use multi-task mode to make code changes and see the browser at the same time
+  - This prevents the iOS background from dropping an app's state if you are
+    switching between code-server and browser (with both in full-screen)
+- Be sure you are using the debug/terminal that is built into VS Code so that
+  you don’t need another terminal app running
+  - This also prevents switching between full screen apps and losing your view
+    due to iOS' background app memory management
 
-## By 2022 iPad coding more desirable on Arm Macs
+## Known issues
 
-> This section is generalized opinions intended to inform fellow Apple product consumers of perceived over time changes coming down the line
+- Getting self-signed certificates to work [is an involved
+  process](#access-code-server-with-a-self-signed-certificate-on-an-ipad)
+- Keyboard issues:
+  - The keyboard disappear sometimes
+    [#979](https://github.com/coder/code-server/issues/979)
+  - Some expectations regarding shortcuts may not be met:
+    - `cmd + n` opens new browser window instead of new file, and it's difficult
+      to set alternative as a workaround
+    - In general, expect to edit your keyboard shortcuts
+  - There's no escape key by default on the Magic Keyboard, so most users set
+    the globe key to be an escape key
+- Trackpad scrolling does not work on iPadOS < 14.5
+  ([#1455](https://github.com/coder/code-server/issues/1455))
+  - [WebKit fix](https://bugs.webkit.org/show_bug.cgi?id=210071#c13)
+- Keyboard may lose focus in Safari / split view [#4182](https://github.com/coder/code-server/issues/4182)
+- Terminal text does not appear by default [#3824](https://github.com/coder/code-server/issues/3824)
+- Copy & paste in terminal does not work well with keyboard shortcuts [#3491](https://github.com/coder/code-server/issues/3491)
+- `ctrl+c` does not stop a long-running process in the browser
+  - Tracking upstream issue here:
+    [#114009](https://github.com/microsoft/vscode/issues/114009)
+  - See [workaround](#ctrl-c-workaround)
 
-The general feeling from overall Apple movements recently, is that the Mac arm processors are in fact helping support the direction of having Macs with touch screens. Many great YouTube videos of interest call out highly suggestive evidence. In the past Apple has hard declared reasons of body fatigue and such as why not to encourage nor further developments on the iPad touch experience mixed with a keyboard/mouse/trackpad. Regardless, products and software have been released further supporting just that very experience.
+Additionally, see [issues in the code-server repo that are tagged with the `os-ios`
+label](https://github.com/coder/code-server/issues?q=is%3Aopen+is%3Aissue+label%3Aos-ios)
+for more information.
 
-The iPad coding experience has been a joy for some of us that are willing to trade an imperfect experience for a uniquely effective focus driven experience. Note worthy, some of us think it's a trashy waste of time. This experience is undoubtably going to get better just by the work that can be seen by all parties, even in our own code-server attempt to make it better.
+### Workaround for issue with `ctrl+c` not stopping a running process in the terminal
 
-Lastly, it is note worthy that if you have decided to incorporate a Raspberry Pi into you iPad coding experience, they are Arm processors. You are perfectly lined up with the future of Macs as well.
+This's currently an issue with `ctrl+c` not stopping a running process in the
+integrated terminal. We have filed an issue upstream and are tracking
+[here](https://github.com/microsoft/vscode/issues/114009).
+
+In the meantime, you can manually define a shortcut as a workaround:
+
+1. Open the Command Palette
+2. Look for **Preferences: Open Keyboard Shortcuts (JSON)**
+3. Add the following snippet:
+
+   ```json
+   {
+     "key": "ctrl+c",
+     "command": "workbench.action.terminal.sendSequence",
+     "args": {
+       "text": "\u0003"
+     },
+     "when": "terminalFocus"
+   }
+   ```
+
+_Source: [StackOverflow](https://stackoverflow.com/a/52735954/3015595)_
+
+## Access code-server with a self-signed certificate on an iPad
+
+If you've installed code-server and are [running it with a self-signed
+certificate](./guide.md#using-a-self-signed-certificate), you may see multiple
+security warnings from Safari. To fix this, you'll need to install the
+self-signed certificate generated by code-server as a profile on your device (you'll also need to do this to
+enable WebSocket connections).
+
+### Certificate requirements
+
+- We're assuming that you're using the self-signed certificate code-server
+  generates for you (if not, make sure that your certificate [abides by the
+  guidelines issued by Apple](https://support.apple.com/en-us/HT210176)).
+- We've noticed that the certificate has to include `basicConstraints=CA:true`.
+- Your certificate must have a subject alt name that matches the hostname you'll
+  use to access code-server from the iPad. You can pass this name to code-server
+  so that it generates the certificate correctly using `--cert-host`.
+
+### Sharing a self-signed certificate with an iPad
+
+To share a self-signed certificate with an iPad:
+
+1. Get the location of the certificate code-server generated; code-server prints
+   the certificate's location in its logs:
+
+   ```console
+   [2020-10-30T08:55:45.139Z] info - Using generated certificate and key for HTTPS: ~/.local/share/code-server/mymbp_local.crt
+   ```
+
+2. Send the certificate to the iPad, either by emailing it to yourself or using
+   Apple's Airdrop feature.
+
+3. Open the `*.crt` file so that you're prompted to go into Settings to install.
+
+4. Go to **Settings** > **General** > **Profile**, and select the profile. Tap **Install**.
+
+5. Go to **Settings** > **About** > **Certificate Trust Settings** and [enable
+   full trust for your certificate](https://support.apple.com/en-us/HT204477).
+
+You should be able to access code-server without all of Safari's warnings now.
+
+**warning**: Your iPad must access code-server via a domain name. It could be local
+DNS like `mymacbookpro.local`, but it must be a domain name. Otherwise, Safari will
+not allow WebSockets connections.

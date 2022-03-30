@@ -1,0 +1,86 @@
+name: Bug report
+description: File a bug report
+title: "[Bug]: "
+labels: ["bug", "triage"]
+body:
+  - type: checkboxes
+    attributes:
+      label: Is there an existing issue for this?
+      description: Please search to see if an issue already exists for the bug you encountered.
+      options:
+        - label: I have searched the existing issues
+          required: true
+  - type: textarea
+    attributes:
+      label: OS/Web Information
+      description: |
+        examples:
+          - **Web Browser**: Chrome
+          - **Local OS**: macOS
+          - **Remote OS**: Ubuntu
+          - **Remote Architecture**: amd64
+          - **`code-server --version`**: 4.0.1
+      value: |
+        - Web Browser:
+        - Local OS:
+        - Remote OS:
+        - Remote Architecture:
+        - `code-server --version`:
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Steps to Reproduce
+      description: |
+        1. open code-server
+        2. install extension
+        3. run command
+      value: |
+        1. 
+        2.
+        3.
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Expected
+      description: What should happen?
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Actual
+      description: What actually happens?
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Run code-server with the --verbose flag and then paste any relevant logs from the server, from the browser console and/or the browser network tab. For issues with installation, include installation logs (i.e. output of `npm install -g code-server`).
+  - type: textarea
+    attributes:
+      label: Screenshot/Video
+      description: Please include a screenshot, gif or screen recording of your issue.
+    validations:
+      required: false
+  - type: checkboxes
+    attributes:
+      label: Does this issue happen in VS Code?
+      description: Please try reproducing this issue in VS Code
+      options:
+        - label: I cannot reproduce this in VS Code.
+          required: true
+  - type: checkboxes
+    attributes:
+      label: Are you accessing code-server over HTTPS?
+      description: code-server relies on service workers for many features. Double-check that you are using HTTPS.
+      options:
+        - label: I am using HTTPS.
+          required: true
+  - type: textarea
+    attributes:
+      label: Notes
+      description: Please include any addition notes that will help us resolve this issue.
+    validations:
+      required: false

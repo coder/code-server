@@ -15,26 +15,10 @@ labels:
   "squash when passing": merge
   "rebase when passing": merge
   "merge when passing": merge
-  stale:
-    action: close
-    delay: 7 days
-    comment: "⚠️ This issue has been marked stale and will automatically be closed in $DELAY."
   "new contributor":
     action: comment
     delay: 5s
     message: "Thanks for making your first contribution! :slightly_smiling_face:"
-  extension-request:
-    action: close
-    delay: 5s
-    message: >
-      Thanks for opening an extension request!
-      We are currently in the process of switching extension
-      marketplaces and transitioning over to [Open VSX](https://open-vsx.org/).
-      Once https://github.com/eclipse/openvsx/issues/249 is implemented, we
-      can fully make this transition. Therefore, we are no longer accepting
-      new requests for extension requests. We suggest installing the VSIX
-      file and then installing into code-server as a temporary workaround.
-      See [docs](https://github.com/cdr/code-server/blob/main/docs/FAQ.md#installing-vsix-extensions-via-the-command-line) for more info.
   "upstream:vscode":
     action: close
     delay: 5s

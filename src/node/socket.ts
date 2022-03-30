@@ -4,7 +4,7 @@ import * as path from "path"
 import * as tls from "tls"
 import { Emitter } from "../common/emitter"
 import { generateUuid } from "../common/util"
-import { canConnect, tmpdir } from "./util"
+import { canConnect, paths } from "./util"
 
 /**
  * Provides a way to proxy a TLS socket. Can be used when you need to pass a
@@ -12,7 +12,7 @@ import { canConnect, tmpdir } from "./util"
  */
 export class SocketProxyProvider {
   private readonly onProxyConnect = new Emitter<net.Socket>()
-  private proxyPipe = path.join(tmpdir, "tls-proxy")
+  private proxyPipe = path.join(paths.runtime, "tls-proxy")
   private _proxyServer?: Promise<net.Server>
   private readonly proxyTimeout = 5000
 
@@ -75,7 +75,10 @@ export class SocketProxyProvider {
       this._proxyServer = this.findFreeSocketPath(this.proxyPipe)
         .then((pipe) => {
           this.proxyPipe = pipe
-          return Promise.all([fs.mkdir(tmpdir, { recursive: true }), fs.rmdir(this.proxyPipe, { recursive: true })])
+          return Promise.all([
+            fs.mkdir(path.dirname(this.proxyPipe), { recursive: true }),
+            fs.rmdir(this.proxyPipe, { recursive: true }),
+          ])
         })
         .then(() => {
           return new Promise((resolve) => {

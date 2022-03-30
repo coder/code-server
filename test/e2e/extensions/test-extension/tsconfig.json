@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "es2020",
+    "module": "commonjs",
+    "outDir": ".",
+    "strict": true,
+    "baseUrl": "./",
+    "skipLibCheck": true
+  },
+  "include": ["./extension.ts"],
+  "exclude": ["node_modules"]
+}

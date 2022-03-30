@@ -1,0 +1,106 @@
+Patch the Node version to use the current version of Node
+
+Previously it would use the yarnrc which results in builds that cannot run with
+the version of Node they were built with because the native modules are
+targeting the wrong version.
+
+One way test this is to build in a fresh Docker container, run the build, then
+try opening the built-in terminal.
+
+Index: code-server/lib/vscode/build/gulpfile.reh.js
+===================================================================
+--- code-server.orig/lib/vscode/build/gulpfile.reh.js
++++ code-server/lib/vscode/build/gulpfile.reh.js
+@@ -122,9 +122,7 @@ const serverWithWebEntryPoints = [
+ ];
+ 
+ function getNodeVersion() {
+-	const yarnrc = fs.readFileSync(path.join(REPO_ROOT, 'remote', '.yarnrc'), 'utf8');
+-	const target = /^target "(.*)"$/m.exec(yarnrc)[1];
+-	return target;
++	return process.versions.node;
+ }
+ 
+ const nodeVersion = getNodeVersion();
+Index: code-server/lib/vscode/build/lib/node.js
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/node.js
++++ code-server/lib/vscode/build/lib/node.js
+@@ -7,9 +7,7 @@ Object.defineProperty(exports, "__esModu
+ const path = require("path");
+ const fs = require("fs");
+ const root = path.dirname(path.dirname(__dirname));
+-const yarnrcPath = path.join(root, 'remote', '.yarnrc');
+-const yarnrc = fs.readFileSync(yarnrcPath, 'utf8');
+-const version = /^target\s+"([^"]+)"$/m.exec(yarnrc)[1];
++const version = process.versions.node;
+ const platform = process.platform;
+ const arch = platform === 'darwin' ? 'x64' : process.arch;
+ const node = platform === 'win32' ? 'node.exe' : 'node';
+Index: code-server/lib/vscode/build/lib/node.ts
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/node.ts
++++ code-server/lib/vscode/build/lib/node.ts
+@@ -7,9 +7,7 @@ import * as path from 'path';
+ import * as fs from 'fs';
+ 
+ const root = path.dirname(path.dirname(__dirname));
+-const yarnrcPath = path.join(root, 'remote', '.yarnrc');
+-const yarnrc = fs.readFileSync(yarnrcPath, 'utf8');
+-const version = /^target\s+"([^"]+)"$/m.exec(yarnrc)![1];
++const version = process.versions.node;
+ 
+ const platform = process.platform;
+ const arch = platform === 'darwin' ? 'x64' : process.arch;
+Index: code-server/lib/vscode/build/lib/util.js
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/util.js
++++ code-server/lib/vscode/build/lib/util.js
+@@ -298,9 +298,7 @@ function streamToPromise(stream) {
+ }
+ exports.streamToPromise = streamToPromise;
+ function getElectronVersion() {
+-    const yarnrc = fs.readFileSync(path.join(root, '.yarnrc'), 'utf8');
+-    const target = /^target "(.*)"$/m.exec(yarnrc)[1];
+-    return target;
++    return process.versions.node;
+ }
+ exports.getElectronVersion = getElectronVersion;
+ function acquireWebNodePaths() {
+Index: code-server/lib/vscode/build/lib/util.ts
+===================================================================
+--- code-server.orig/lib/vscode/build/lib/util.ts
++++ code-server/lib/vscode/build/lib/util.ts
+@@ -371,9 +371,7 @@ export function streamToPromise(stream:
+ }
+ 
+ export function getElectronVersion(): string {
+-	const yarnrc = fs.readFileSync(path.join(root, '.yarnrc'), 'utf8');
+-	const target = /^target "(.*)"$/m.exec(yarnrc)![1];
+-	return target;
++	return process.versions.node;
+ }
+ 
+ export function acquireWebNodePaths() {
+@@ -455,4 +453,3 @@ export function buildWebNodePaths(outDir
+ 	result.taskName = 'build-web-node-paths';
+ 	return result;
+ }
+-
+Index: code-server/lib/vscode/remote/.yarnrc
+===================================================================
+--- code-server.orig/lib/vscode/remote/.yarnrc
++++ /dev/null
+@@ -1,3 +0,0 @@
+-disturl "http://nodejs.org/dist"
+-target "14.16.0"
+-runtime "node"
+Index: code-server/lib/vscode/.yarnrc
+===================================================================
+--- code-server.orig/lib/vscode/.yarnrc
++++ /dev/null
+@@ -1,4 +0,0 @@
+-disturl "https://electronjs.org/headers"
+-target "13.5.2"
+-runtime "electron"
+-build_from_source "true"

@@ -3,7 +3,7 @@ import { spawn } from "child_process"
 import path from "path"
 import split2 from "split2"
 
-// https://github.com/cdr/coder-cloud
+// https://github.com/coder/coder-cloud
 const coderCloudAgent = path.resolve(__dirname, "../../lib/coder-cloud-agent")
 
 function runAgent(...args: string[]): Promise<void> {
@@ -33,9 +33,11 @@ function runAgent(...args: string[]): Promise<void> {
   })
 }
 
-export function coderCloudBind(csAddr: string, serverName = ""): Promise<void> {
-  // addr needs to be in host:port format.
-  // So we trim the protocol.
-  csAddr = csAddr.replace(/^https?:\/\//, "")
-  return runAgent("bind", `--code-server-addr=${csAddr}`, serverName)
+export function coderCloudBind(address: URL | string, serverName = ""): Promise<void> {
+  if (typeof address === "string") {
+    throw new Error("Cannot link socket paths")
+  }
+
+  // Address needs to be in hostname:port format without the protocol.
+  return runAgent("bind", `--code-server-addr=${address.host}`, serverName)
 }

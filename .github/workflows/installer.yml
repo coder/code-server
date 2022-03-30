@@ -1,0 +1,66 @@
+name: Installer integration
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "install.sh"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "install.sh"
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  ubuntu:
+    name: Test installer on Ubuntu
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install code-server
+        run: ./install.sh
+
+      - name: Test code-server
+        run: yarn test:standalone-release code-server
+
+  alpine:
+    name: Test installer on Alpine
+    runs-on: ubuntu-latest
+    container: "alpine:3.14"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install curl
+        run: apk add curl
+
+      - name: Add user
+        run: adduser coder --disabled-password
+
+      # Standalone should work without root.
+      - name: Test standalone to a non-existent prefix
+        run: su coder -c "./install.sh --method standalone --prefix /tmp/does/not/yet/exist"
+
+  macos:
+    name: Test installer on macOS
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install code-server
+        run: ./install.sh
+
+      - name: Test code-server
+        run: yarn test:standalone-release code-server

@@ -1,193 +1,139 @@
-import * as cp from "child_process"
-import Bundler from "parcel-bundler"
+import { spawn, fork, ChildProcess } from "child_process"
 import * as path from "path"
+import { onLine, OnLineCallback } from "../../src/node/util"
+
+interface DevelopmentCompilers {
+  [key: string]: ChildProcess | undefined
+  vscode: ChildProcess
+  vscodeWebExtensions: ChildProcess
+  codeServer: ChildProcess
+  plugins: ChildProcess | undefined
+}
+
+class Watcher {
+  private rootPath = path.resolve(process.cwd())
+  private readonly paths = {
+    /** Path to uncompiled VS Code source. */
+    vscodeDir: path.join(this.rootPath, "lib/vscode"),
+    pluginDir: process.env.PLUGIN_DIR,
+  }
+
+  //#region Web Server
+
+  /** Development web server. */
+  private webServer: ChildProcess | undefined
+
+  private reloadWebServer = (): void => {
+    if (this.webServer) {
+      this.webServer.kill()
+    }
+
+    // Pass CLI args, save for `node` and the initial script name.
+    const args = process.argv.slice(2)
+    this.webServer = fork(path.join(this.rootPath, "out/node/entry.js"), args)
+    const { pid } = this.webServer
+
+    this.webServer.on("exit", () => console.log("[Code Server]", `Web process ${pid} exited`))
+
+    console.log("\n[Code Server]", `Spawned web server process ${pid}`)
+  }
+
+  //#endregion
+
+  //#region Compilers
+
+  private readonly compilers: DevelopmentCompilers = {
+    codeServer: spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath }),
+    vscode: spawn("yarn", ["watch"], { cwd: this.paths.vscodeDir }),
+    vscodeWebExtensions: spawn("yarn", ["watch-web"], { cwd: this.paths.vscodeDir }),
+    plugins: this.paths.pluginDir ? spawn("yarn", ["build", "--watch"], { cwd: this.paths.pluginDir }) : undefined,
+  }
+
+  public async initialize(): Promise<void> {
+    for (const event of ["SIGINT", "SIGTERM"]) {
+      process.on(event, () => this.dispose(0))
+    }
+
+    for (const [processName, devProcess] of Object.entries(this.compilers)) {
+      if (!devProcess) continue
+
+      devProcess.on("exit", (code) => {
+        console.log(`[${processName}]`, "Terminated unexpectedly")
+        this.dispose(code)
+      })
+
+      if (devProcess.stderr) {
+        devProcess.stderr.on("data", (d: string | Uint8Array) => process.stderr.write(d))
+      }
+    }
+
+    onLine(this.compilers.vscode, this.parseVSCodeLine)
+    onLine(this.compilers.codeServer, this.parseCodeServerLine)
+
+    if (this.compilers.plugins) {
+      onLine(this.compilers.plugins, this.parsePluginLine)
+    }
+  }
+
+  //#endregion
+
+  //#region Line Parsers
+
+  private parseVSCodeLine: OnLineCallback = (strippedLine, originalLine) => {
+    if (!strippedLine.length) return
+
+    console.log("[VS Code]", originalLine)
+
+    if (strippedLine.includes("Finished compilation with")) {
+      console.log("[VS Code] ✨ Finished compiling! ✨", "(Refresh your web browser ♻️)")
+      this.reloadWebServer()
+    }
+  }
+
+  private parseCodeServerLine: OnLineCallback = (strippedLine, originalLine) => {
+    if (!strippedLine.length) return
+
+    console.log("[Compiler][Code Server]", originalLine)
+
+    if (strippedLine.includes("Watching for file changes")) {
+      console.log("[Compiler][Code Server]", "Finished compiling!", "(Refresh your web browser ♻️)")
+      this.reloadWebServer()
+    }
+  }
+
+  private parsePluginLine: OnLineCallback = (strippedLine, originalLine) => {
+    if (!strippedLine.length) return
+
+    console.log("[Compiler][Plugin]", originalLine)
+
+    if (strippedLine.includes("Watching for file changes...")) {
+      this.reloadWebServer()
+    }
+  }
+
+  //#endregion
+
+  //#region Utilities
+
+  private dispose(code: number | null): void {
+    for (const [processName, devProcess] of Object.entries(this.compilers)) {
+      console.log(`[${processName}]`, "Killing...\n")
+      devProcess?.removeAllListeners()
+      devProcess?.kill()
+    }
+    process.exit(typeof code === "number" ? code : 0)
+  }
+
+  //#endregion
+}
 
 async function main(): Promise<void> {
   try {
     const watcher = new Watcher()
-    await watcher.watch()
-  } catch (error) {
+    await watcher.initialize()
+  } catch (error: any) {
     console.error(error.message)
     process.exit(1)
-  }
-}
-
-class Watcher {
-  private readonly rootPath = path.resolve(__dirname, "../..")
-  private readonly vscodeSourcePath = path.join(this.rootPath, "lib/vscode")
-
-  private static log(message: string, skipNewline = false): void {
-    process.stdout.write(message)
-    if (!skipNewline) {
-      process.stdout.write("\n")
-    }
-  }
-
-  public async watch(): Promise<void> {
-    let server: cp.ChildProcess | undefined
-    const restartServer = (): void => {
-      if (server) {
-        server.kill()
-      }
-      const s = cp.fork(path.join(this.rootPath, "out/node/entry.js"), process.argv.slice(2))
-      console.log(`[server] spawned process ${s.pid}`)
-      s.on("exit", () => console.log(`[server] process ${s.pid} exited`))
-      server = s
-    }
-
-    const vscode = cp.spawn("yarn", ["watch"], { cwd: this.vscodeSourcePath })
-    const tsc = cp.spawn("tsc", ["--watch", "--pretty", "--preserveWatchOutput"], { cwd: this.rootPath })
-    const plugin = process.env.PLUGIN_DIR
-      ? cp.spawn("yarn", ["build", "--watch"], { cwd: process.env.PLUGIN_DIR })
-      : undefined
-    const bundler = this.createBundler()
-
-    const cleanup = (code?: number | null): void => {
-      Watcher.log("killing vs code watcher")
-      vscode.removeAllListeners()
-      vscode.kill()
-
-      Watcher.log("killing tsc")
-      tsc.removeAllListeners()
-      tsc.kill()
-
-      if (plugin) {
-        Watcher.log("killing plugin")
-        plugin.removeAllListeners()
-        plugin.kill()
-      }
-
-      if (server) {
-        Watcher.log("killing server")
-        server.removeAllListeners()
-        server.kill()
-      }
-
-      Watcher.log("killing bundler")
-      process.exit(code || 0)
-    }
-
-    process.on("SIGINT", () => cleanup())
-    process.on("SIGTERM", () => cleanup())
-
-    vscode.on("exit", (code) => {
-      Watcher.log("vs code watcher terminated unexpectedly")
-      cleanup(code)
-    })
-    tsc.on("exit", (code) => {
-      Watcher.log("tsc terminated unexpectedly")
-      cleanup(code)
-    })
-    if (plugin) {
-      plugin.on("exit", (code) => {
-        Watcher.log("plugin terminated unexpectedly")
-        cleanup(code)
-      })
-    }
-    const bundle = bundler.bundle().catch(() => {
-      Watcher.log("parcel watcher terminated unexpectedly")
-      cleanup(1)
-    })
-    bundler.on("buildEnd", () => {
-      console.log("[parcel] bundled")
-    })
-    bundler.on("buildError", (error) => {
-      console.error("[parcel]", error)
-    })
-
-    vscode.stderr.on("data", (d) => process.stderr.write(d))
-    tsc.stderr.on("data", (d) => process.stderr.write(d))
-    if (plugin) {
-      plugin.stderr.on("data", (d) => process.stderr.write(d))
-    }
-
-    // From https://github.com/chalk/ansi-regex
-    const pattern = [
-      "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:[a-zA-Z\\d]*(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-      "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
-    ].join("|")
-    const re = new RegExp(pattern, "g")
-
-    /**
-     * Split stdout on newlines and strip ANSI codes.
-     */
-    const onLine = (proc: cp.ChildProcess, callback: (strippedLine: string, originalLine: string) => void): void => {
-      let buffer = ""
-      if (!proc.stdout) {
-        throw new Error("no stdout")
-      }
-      proc.stdout.setEncoding("utf8")
-      proc.stdout.on("data", (d) => {
-        const data = buffer + d
-        const split = data.split("\n")
-        const last = split.length - 1
-
-        for (let i = 0; i < last; ++i) {
-          callback(split[i].replace(re, ""), split[i])
-        }
-
-        // The last item will either be an empty string (the data ended with a
-        // newline) or a partial line (did not end with a newline) and we must
-        // wait to parse it until we get a full line.
-        buffer = split[last]
-      })
-    }
-
-    let startingVscode = false
-    let startedVscode = false
-    onLine(vscode, (line, original) => {
-      console.log("[vscode]", original)
-      // Wait for watch-client since "Finished compilation" will appear multiple
-      // times before the client starts building.
-      if (!startingVscode && line.includes("Starting watch-client")) {
-        startingVscode = true
-      } else if (startingVscode && line.includes("Finished compilation")) {
-        if (startedVscode) {
-          bundle.then(restartServer)
-        }
-        startedVscode = true
-      }
-    })
-
-    onLine(tsc, (line, original) => {
-      // tsc outputs blank lines; skip them.
-      if (line !== "") {
-        console.log("[tsc]", original)
-      }
-      if (line.includes("Watching for file changes")) {
-        bundle.then(restartServer)
-      }
-    })
-
-    if (plugin) {
-      onLine(plugin, (line, original) => {
-        // tsc outputs blank lines; skip them.
-        if (line !== "") {
-          console.log("[plugin]", original)
-        }
-        if (line.includes("Watching for file changes")) {
-          bundle.then(restartServer)
-        }
-      })
-    }
-  }
-
-  private createBundler(out = "dist"): Bundler {
-    return new Bundler(
-      [
-        path.join(this.rootPath, "src/browser/register.ts"),
-        path.join(this.rootPath, "src/browser/serviceWorker.ts"),
-        path.join(this.rootPath, "src/browser/pages/login.ts"),
-        path.join(this.rootPath, "src/browser/pages/vscode.ts"),
-      ],
-      {
-        outDir: path.join(this.rootPath, out),
-        cacheDir: path.join(this.rootPath, ".cache"),
-        minify: !!process.env.MINIFY,
-        logLevel: 1,
-        publicUrl: ".",
-      },
-    )
   }
 }
 

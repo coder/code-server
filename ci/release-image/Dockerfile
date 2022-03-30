@@ -1,4 +1,4 @@
-FROM debian:10
+FROM debian:11
 
 RUN apt-get update \
  && apt-get install -y \
@@ -10,11 +10,13 @@ RUN apt-get update \
     man \
     nano \
     git \
+    git-lfs \
     procps \
     openssh-client \
     sudo \
     vim.tiny \
     lsb-release \
+  && git lfs install \
   && rm -rf /var/lib/apt/lists/*
 
 # https://wiki.debian.org/Locale#Manually

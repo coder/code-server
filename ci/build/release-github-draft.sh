@@ -7,10 +7,10 @@ main() {
   cd "$(dirname "$0")/../.."
   source ./ci/lib.sh
 
-  hub release create \
-    --file - \
-    -t "$(git rev-parse HEAD)" \
-    --draft "v$VERSION" <<EOF
+  gh release create "v$VERSION" \
+    --notes-file - \
+    --target "$(git rev-parse HEAD)" \
+    --draft << EOF
 v$VERSION
 
 VS Code v$(vscode_version)

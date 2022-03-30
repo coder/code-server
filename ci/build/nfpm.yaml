@@ -1,5 +1,5 @@
 name: "code-server"
-arch: "${ARCH}"
+arch: "${NFPM_ARCH}"
 platform: "linux"
 version: "v${VERSION}"
 section: "devel"
@@ -8,7 +8,7 @@ maintainer: "Anmol Sethi <hi@nhooyr.io>"
 description: |
   Run VS Code in the browser.
 vendor: "Coder"
-homepage: "https://github.com/cdr/code-server"
+homepage: "https://github.com/coder/code-server"
 license: "MIT"
 
 contents:

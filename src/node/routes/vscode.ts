@@ -1,220 +1,182 @@
-import * as crypto from "crypto"
-import { Request, Router } from "express"
-import { promises as fs } from "fs"
+import { logger } from "@coder/logger"
+import * as express from "express"
+import * as http from "http"
+import * as net from "net"
 import * as path from "path"
-import qs from "qs"
-import { Emitter } from "../../common/emitter"
-import { HttpCode, HttpError } from "../../common/http"
-import { getFirstString } from "../../common/util"
-import { commit, rootPath, version } from "../constants"
-import { authenticated, ensureAuthenticated, redirect, replaceTemplates } from "../http"
-import { getMediaMime, pathToFsPath } from "../util"
-import { VscodeProvider } from "../vscode"
+import { WebsocketRequest } from "../../../typings/pluginapi"
+import { logError } from "../../common/util"
+import { CodeArgs, toCodeArgs } from "../cli"
+import { isDevMode } from "../constants"
+import { authenticated, ensureAuthenticated, redirect, replaceTemplates, self } from "../http"
+import { SocketProxyProvider } from "../socket"
+import { isFile, loadAMDModule } from "../util"
 import { Router as WsRouter } from "../wsRouter"
 
-export const router = Router()
+/**
+ * This is the API of Code's web client server.  code-server delegates requests
+ * to Code here.
+ */
+export interface IServerAPI {
+  handleRequest(req: http.IncomingMessage, res: http.ServerResponse): Promise<void>
+  handleUpgrade(req: http.IncomingMessage, socket: net.Socket): void
+  handleServerError(err: Error): void
+  dispose(): void
+}
 
-const vscode = new VscodeProvider()
+// Types for ../../../lib/vscode/src/vs/server/node/server.main.ts:72.
+export type CreateServer = (address: string | net.AddressInfo | null, args: CodeArgs) => Promise<IServerAPI>
 
-router.get("/", async (req, res) => {
-  if (!authenticated(req)) {
-    return redirect(req, res, "login", {
-      // req.baseUrl can be blank if already at the root.
-      to: req.baseUrl && req.baseUrl !== "/" ? req.baseUrl : undefined,
-    })
+export class CodeServerRouteWrapper {
+  /** Assigned in `ensureCodeServerLoaded` */
+  private _codeServerMain!: IServerAPI
+  private _wsRouterWrapper = WsRouter()
+  private _socketProxyProvider = new SocketProxyProvider()
+  public router = express.Router()
+
+  public get wsRouter() {
+    return this._wsRouterWrapper.router
   }
 
-  const [content, options] = await Promise.all([
-    await fs.readFile(path.join(rootPath, "src/browser/pages/vscode.html"), "utf8"),
-    (async () => {
-      try {
-        return await vscode.initialize({ args: req.args, remoteAuthority: req.headers.host || "" }, req.query)
-      } catch (error) {
-        const devMessage = commit === "development" ? "It might not have finished compiling." : ""
-        throw new Error(`VS Code failed to load. ${devMessage} ${error.message}`)
-      }
-    })(),
-  ])
+  //#region Route Handlers
 
-  options.productConfiguration.codeServerVersion = version
+  private manifest: express.Handler = async (req, res, next) => {
+    res.writeHead(200, { "Content-Type": "application/manifest+json" })
 
-  res.send(
-    replaceTemplates(
-      req,
-      // Uncomment prod blocks if not in development. TODO: Would this be
-      // better as a build step? Or maintain two HTML files again?
-      commit !== "development" ? content.replace(/<!-- PROD_ONLY/g, "").replace(/END_PROD_ONLY -->/g, "") : content,
-      {
-        disableTelemetry: !!req.args["disable-telemetry"],
-        disableUpdateCheck: !!req.args["disable-update-check"],
-      },
+    return res.end(
+      replaceTemplates(
+        req,
+        JSON.stringify(
+          {
+            name: "code-server",
+            short_name: "code-server",
+            start_url: ".",
+            display: "fullscreen",
+            description: "Run Code on a remote server.",
+            icons: [192, 512].map((size) => ({
+              src: `{{BASE}}/_static/src/browser/media/pwa-icon-${size}.png`,
+              type: "image/png",
+              sizes: `${size}x${size}`,
+            })),
+          },
+          null,
+          2,
+        ),
+      ),
     )
-      .replace(`"{{REMOTE_USER_DATA_URI}}"`, `'${JSON.stringify(options.remoteUserDataUri)}'`)
-      .replace(`"{{PRODUCT_CONFIGURATION}}"`, `'${JSON.stringify(options.productConfiguration)}'`)
-      .replace(`"{{WORKBENCH_WEB_CONFIGURATION}}"`, `'${JSON.stringify(options.workbenchWebConfiguration)}'`)
-      .replace(`"{{NLS_CONFIGURATION}}"`, `'${JSON.stringify(options.nlsConfiguration)}'`),
-  )
-})
-
-/**
- * TODO: Might currently be unused.
- */
-router.get("/resource(/*)?", ensureAuthenticated, async (req, res) => {
-  if (typeof req.query.path === "string") {
-    res.set("Content-Type", getMediaMime(req.query.path))
-    res.send(await fs.readFile(pathToFsPath(req.query.path)))
-  }
-})
-
-/**
- * Used by VS Code to load files.
- */
-router.get("/vscode-remote-resource(/*)?", ensureAuthenticated, async (req, res) => {
-  if (typeof req.query.path === "string") {
-    res.set("Content-Type", getMediaMime(req.query.path))
-    res.send(await fs.readFile(pathToFsPath(req.query.path)))
-  }
-})
-
-/**
- * VS Code webviews use these paths to load files and to load webview assets
- * like HTML and JavaScript.
- */
-router.get("/webview/*", ensureAuthenticated, async (req, res) => {
-  res.set("Content-Type", getMediaMime(req.path))
-  if (/^vscode-resource/.test(req.params[0])) {
-    return res.send(await fs.readFile(req.params[0].replace(/^vscode-resource(\/file)?/, "")))
-  }
-  return res.send(
-    await fs.readFile(path.join(vscode.vsRootPath, "out/vs/workbench/contrib/webview/browser/pre", req.params[0])),
-  )
-})
-
-interface Callback {
-  uri: {
-    scheme: string
-    authority?: string
-    path?: string
-    query?: string
-    fragment?: string
-  }
-  timeout: NodeJS.Timeout
-}
-
-const callbacks = new Map<string, Callback>()
-const callbackEmitter = new Emitter<{ id: string; callback: Callback }>()
-
-/**
- * Get vscode-requestId from the query and throw if it's missing or invalid.
- */
-const getRequestId = (req: Request): string => {
-  if (!req.query["vscode-requestId"]) {
-    throw new HttpError("vscode-requestId is missing", HttpCode.BadRequest)
   }
 
-  if (typeof req.query["vscode-requestId"] !== "string") {
-    throw new HttpError("vscode-requestId is not a string", HttpCode.BadRequest)
-  }
+  private $root: express.Handler = async (req, res, next) => {
+    const isAuthenticated = await authenticated(req)
+    const NO_FOLDER_OR_WORKSPACE_QUERY = !req.query.folder && !req.query.workspace
+    // Ew means the workspace was closed so clear the last folder/workspace.
+    const FOLDER_OR_WORKSPACE_WAS_CLOSED = req.query.ew
 
-  return req.query["vscode-requestId"]
-}
-
-// Matches VS Code's fetch timeout.
-const fetchTimeout = 5 * 60 * 1000
-
-// The callback endpoints are used during authentication. A URI is stored on
-// /callback and then fetched later on /fetch-callback.
-// See ../../../lib/vscode/resources/web/code-web.js
-router.get("/callback", ensureAuthenticated, async (req, res) => {
-  const uriKeys = [
-    "vscode-requestId",
-    "vscode-scheme",
-    "vscode-authority",
-    "vscode-path",
-    "vscode-query",
-    "vscode-fragment",
-  ]
-
-  const id = getRequestId(req)
-
-  // Move any query variables that aren't URI keys into the URI's query
-  // (importantly, this will include the code for oauth).
-  const query: qs.ParsedQs = {}
-  for (const key in req.query) {
-    if (!uriKeys.includes(key)) {
-      query[key] = req.query[key]
+    if (!isAuthenticated) {
+      const to = self(req)
+      return redirect(req, res, "login", {
+        to: to !== "/" ? to : undefined,
+      })
     }
-  }
 
-  const callback = {
-    uri: {
-      scheme: getFirstString(req.query["vscode-scheme"]) || "code-oss",
-      authority: getFirstString(req.query["vscode-authority"]),
-      path: getFirstString(req.query["vscode-path"]),
-      query: (getFirstString(req.query.query) || "") + "&" + qs.stringify(query),
-      fragment: getFirstString(req.query["vscode-fragment"]),
-    },
-    // Make sure the map doesn't leak if nothing fetches this URI.
-    timeout: setTimeout(() => callbacks.delete(id), fetchTimeout),
-  }
+    if (NO_FOLDER_OR_WORKSPACE_QUERY && !FOLDER_OR_WORKSPACE_WAS_CLOSED) {
+      const settings = await req.settings.read()
+      const lastOpened = settings.query || {}
+      // This flag disables the last opened behavior
+      const IGNORE_LAST_OPENED = req.args["ignore-last-opened"]
+      const HAS_LAST_OPENED_FOLDER_OR_WORKSPACE = lastOpened.folder || lastOpened.workspace
+      const HAS_FOLDER_OR_WORKSPACE_FROM_CLI = req.args._.length > 0
+      const to = self(req)
 
-  callbacks.set(id, callback)
-  callbackEmitter.emit({ id, callback })
+      let folder = undefined
+      let workspace = undefined
 
-  res.sendFile(path.join(rootPath, "lib/vscode/resources/web/callback.html"))
-})
+      // Redirect to the last folder/workspace if nothing else is opened.
+      if (HAS_LAST_OPENED_FOLDER_OR_WORKSPACE && !IGNORE_LAST_OPENED) {
+        folder = lastOpened.folder
+        workspace = lastOpened.workspace
+      } else if (HAS_FOLDER_OR_WORKSPACE_FROM_CLI) {
+        const lastEntry = path.resolve(req.args._[req.args._.length - 1])
+        const entryIsFile = await isFile(lastEntry)
+        const IS_WORKSPACE_FILE = entryIsFile && path.extname(lastEntry) === ".code-workspace"
 
-router.get("/fetch-callback", ensureAuthenticated, async (req, res) => {
-  const id = getRequestId(req)
+        if (IS_WORKSPACE_FILE) {
+          workspace = lastEntry
+        } else if (!entryIsFile) {
+          folder = lastEntry
+        }
+      }
 
-  const send = (callback: Callback) => {
-    clearTimeout(callback.timeout)
-    callbacks.delete(id)
-    res.json(callback.uri)
-  }
-
-  const callback = callbacks.get(id)
-  if (callback) {
-    return send(callback)
-  }
-
-  // VS Code will try again if the route returns no content but it seems more
-  // efficient to just wait on this request for as long as possible?
-  const handler = callbackEmitter.event(({ id: emitId, callback }) => {
-    if (id === emitId) {
-      handler.dispose()
-      send(callback)
+      if (folder || workspace) {
+        return redirect(req, res, to, {
+          folder,
+          workspace,
+        })
+      }
     }
-  })
 
-  // If the client closes the connection.
-  req.on("close", () => handler.dispose())
-})
+    // Store the query parameters so we can use them on the next load.  This
+    // also allows users to create functionality around query parameters.
+    await req.settings.write({ query: req.query })
 
-export const wsRouter = WsRouter()
-
-wsRouter.ws("/", ensureAuthenticated, async (req) => {
-  const magic = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
-  const reply = crypto
-    .createHash("sha1")
-    .update(req.headers["sec-websocket-key"] + magic)
-    .digest("base64")
-
-  const responseHeaders = [
-    "HTTP/1.1 101 Switching Protocols",
-    "Upgrade: websocket",
-    "Connection: Upgrade",
-    `Sec-WebSocket-Accept: ${reply}`,
-  ]
-
-  // TODO: Parse this header properly.
-  const extensions = req.headers["sec-websocket-extensions"]
-  const permessageDeflate = extensions ? extensions.includes("permessage-deflate") : false
-  if (permessageDeflate) {
-    responseHeaders.push("Sec-WebSocket-Extensions: permessage-deflate; server_max_window_bits=15")
+    next()
   }
 
-  req.ws.write(responseHeaders.join("\r\n") + "\r\n\r\n")
+  private $proxyRequest: express.Handler = async (req, res, next) => {
+    this._codeServerMain.handleRequest(req, res)
+  }
 
-  await vscode.sendWebsocket(req.ws, req.query, permessageDeflate)
-})
+  private $proxyWebsocket = async (req: WebsocketRequest) => {
+    const wrappedSocket = await this._socketProxyProvider.createProxy(req.ws)
+    this._codeServerMain.handleUpgrade(req, wrappedSocket)
+
+    req.ws.resume()
+  }
+
+  //#endregion
+
+  /**
+   * Fetches a code server instance asynchronously to avoid an initial memory overhead.
+   */
+  private ensureCodeServerLoaded: express.Handler = async (req, _res, next) => {
+    if (this._codeServerMain) {
+      // Already loaded...
+      return next()
+    }
+
+    // Create the server...
+
+    const { args } = req
+
+    // See ../../../lib/vscode/src/vs/server/node/server.main.ts:72.
+    const createVSServer = await loadAMDModule<CreateServer>("vs/server/node/server.main", "createServer")
+
+    try {
+      this._codeServerMain = await createVSServer(null, {
+        ...(await toCodeArgs(args)),
+        // TODO: Make the browser helper script work.
+        "without-connection-token": true,
+        "without-browser-env-var": true,
+      })
+    } catch (error) {
+      logError(logger, "CodeServerRouteWrapper", error)
+      if (isDevMode) {
+        return next(new Error((error instanceof Error ? error.message : error) + " (VS Code may still be compiling)"))
+      }
+      return next(error)
+    }
+
+    return next()
+  }
+
+  constructor() {
+    this.router.get("/", this.ensureCodeServerLoaded, this.$root)
+    this.router.get(/manifest.json$/, this.manifest)
+    this.router.all("*", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyRequest)
+    this._wsRouterWrapper.ws("/", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyWebsocket)
+  }
+
+  dispose() {
+    this._codeServerMain?.dispose()
+    this._socketProxyProvider.stop()
+  }
+}

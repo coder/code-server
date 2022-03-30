@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
-  - name: Question
-    url: https://github.com/cdr/code-server/discussions/new?category_id=22503114
+  - name: Question?
+    url: https://github.com/coder/code-server/discussions/new?category_id=22503114
     about: Ask the community for help on our GitHub Discussions board
-  - name: Chat
-    about: Need immediate help or just want to talk? Hop in our Slack
+  - name: code-server Slack Community
+    about: Need immediate help or just want to talk? Hop in our Slack. Note - this Slack is not actively monitored by code-server maintainers.
     url: https://cdr.co/join-community

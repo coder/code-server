@@ -1,0 +1,66 @@
+###############################################################################
+# This file configures "Semantic Pull Requests", which is documented here:
+# https://github.com/zeke/semantic-pull-requests
+###############################################################################
+
+# Scopes are optionally supplied after a 'type'. For example, in
+#
+# feat(docs): autostart ui
+#
+# '(docs)' is the scope. Scopes are used to signify where the change occurred.
+scopes:
+  # docs: changes to the code-server documentation.
+  - docs
+
+  # vendor: changes to vendored dependencies.
+  - vendor
+
+  # deps: changes to code-server's dependencies.
+  - deps
+
+  # cs: changes to code specific to code-server.
+  - cs
+
+  # cli: changes to the command-line interface.
+  - cli
+
+# We only check that the PR title is semantic. The PR title is automatically
+# applied to the "Squash & Merge" flow as the suggested commit message, so this
+# should suffice unless someone drastically alters the message in that flow.
+titleOnly: true
+
+# Types are the 'tag' types in a commit or PR title. For example, in
+#
+# chore: fix thing
+#
+# 'chore' is the type.
+types:
+  # A build of any kind.
+  - build
+
+  # A user-facing change that corrects a defect in code-server.
+  - fix
+
+  # Any code task that is ignored for changelog purposes. Examples include
+  # devbin scripts and internal-only configurations.
+  - chore
+
+  # Any work performed on CI.
+  - ci
+
+  # Work that directly implements or supports the implementation of a feature.
+  - feat
+
+  # A refactor changes code structure without any behavioral change.
+  - refactor
+
+  # A git revert for any style of commit.
+  - revert
+
+  # Adding tests of any kind. Should be separate from feature or fix
+  # implementations. For example, if a commit adds a fix + test, it's a fix
+  # commit. If a commit is simply bumping coverage, it's a test commit.
+  - test
+
+  # A new release.
+  - release

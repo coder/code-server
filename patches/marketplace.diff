@@ -1,0 +1,53 @@
+Add Open VSX default and an env var for marketplace, fix old marketplace
+
+Our old marketplace only supports `serviceUrl` but this causes the marketplace
+to be disabled entirely so this moves the template var check to fix that.
+
+This can be tested by setting EXTENSIONS_GALLERY set to:
+
+    '{"serviceUrl": "https://extensions.coder.com/api"}'
+
+
+Index: code-server/lib/vscode/src/vs/platform/product/common/product.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/product/common/product.ts
++++ code-server/lib/vscode/src/vs/platform/product/common/product.ts
+@@ -45,7 +45,14 @@ else if (typeof require?.__$__nodeRequir
+ 	}
+ 
+ 	Object.assign(product, {
+-		version: pkg.version
++		version: pkg.version,
++		extensionsGallery: env.EXTENSIONS_GALLERY ? JSON.parse(env.EXTENSIONS_GALLERY) : (product.extensionsGallery || {
++			serviceUrl: "https://open-vsx.org/vscode/gallery",
++			itemUrl: "https://open-vsx.org/vscode/item",
++			resourceUrlTemplate: "https://open-vsx.org/vscode/asset/{publisher}/{name}/{version}/Microsoft.VisualStudio.Code.WebResources/{path}",
++			controlUrl: "",
++			recommendationsUrl: "",
++		}),
+ 	});
+ }
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -285,14 +285,14 @@ export class WebClientServer {
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
+ 					rootEndpoint: base,
+-					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
++					extensionsGallery: {
+ 						...this._productService.extensionsGallery,
+-						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
++						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
+ 							scheme: 'http',
+ 							authority: remoteAuthority,
+ 							path: `web-extension-resource/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
+-						}).toString(true)
+-					} : undefined
++						}).toString(true) : undefined
++					},
+ 				}
+ 			})))
+ 			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')

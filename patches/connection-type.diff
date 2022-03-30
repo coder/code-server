@@ -1,0 +1,19 @@
+Add connection type to web sockets
+
+This allows the backend to distinguish them.  In our case we use them to count a
+single "open" of Code so we need to be able to distinguish between web sockets
+from two instances and two web sockets used in a single instance.
+
+Index: code-server/lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts
++++ code-server/lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts
+@@ -231,7 +231,7 @@ async function connectToRemoteExtensionH
+ 
+ 	let socket: ISocket;
+ 	try {
+-		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, `reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
++		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, `type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
+ 	} catch (error) {
+ 		options.logService.error(`${logPrefix} socketFactory.connect() failed or timed out. Error:`);
+ 		options.logService.error(error);

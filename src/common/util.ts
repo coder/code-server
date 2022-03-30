@@ -1,11 +1,3 @@
-import { logger, field } from "@coder/logger"
-
-export interface Options {
-  base: string
-  csStaticBase: string
-  logLevel: number
-}
-
 /**
  * Split a string up to the delimiter. If the delimiter doesn't exist the first
  * item will have all the text and the second item will be an empty string.
@@ -31,6 +23,12 @@ export const generateUuid = (length = 24): string => {
 
 /**
  * Remove extra slashes in a URL.
+ *
+ * This is meant to fill the job of `path.join` so you can concatenate paths and
+ * then normalize out any extra slashes.
+ *
+ * If you are using `path.join` you do not need this but note that `path` is for
+ * file system paths, not URLs.
  */
 export const normalize = (url: string, keepTrailing = false): string => {
   return url.replace(/\/\/+/g, "/").replace(/\/+$/, keepTrailing ? "/" : "")
@@ -41,51 +39,6 @@ export const normalize = (url: string, keepTrailing = false): string => {
  */
 export const trimSlashes = (url: string): string => {
   return url.replace(/^\/+|\/+$/g, "")
-}
-
-/**
- * Resolve a relative base against the window location. This is used for
- * anything that doesn't work with a relative path.
- */
-export const resolveBase = (base?: string): string => {
-  // After resolving the base will either start with / or be an empty string.
-  if (!base || base.startsWith("/")) {
-    return base ?? ""
-  }
-  const parts = location.pathname.split("/")
-  parts[parts.length - 1] = base
-  const url = new URL(location.origin + "/" + parts.join("/"))
-  return normalize(url.pathname)
-}
-
-/**
- * Get options embedded in the HTML or query params.
- */
-export const getOptions = <T extends Options>(): T => {
-  let options: T
-  try {
-    options = JSON.parse(document.getElementById("coder-options")!.getAttribute("data-settings")!)
-  } catch (error) {
-    options = {} as T
-  }
-
-  const params = new URLSearchParams(location.search)
-  const queryOpts = params.get("options")
-  if (queryOpts) {
-    options = {
-      ...options,
-      ...JSON.parse(queryOpts),
-    }
-  }
-
-  logger.level = options.logLevel
-
-  options.base = resolveBase(options.base)
-  options.csStaticBase = resolveBase(options.csStaticBase)
-
-  logger.debug("got options", field("options", options))
-
-  return options
 }
 
 /**
@@ -102,18 +55,8 @@ export const arrayify = <T>(value?: T | T[]): T[] => {
   return [value]
 }
 
-/**
- * Get the first string. If there's no string return undefined.
- */
-export const getFirstString = (value: string | string[] | object | undefined): string | undefined => {
-  if (Array.isArray(value)) {
-    return value[0]
-  }
-
-  return typeof value === "string" ? value : undefined
-}
-
-export function logError(prefix: string, err: any): void {
+// TODO: Might make sense to add Error handling to the logger itself.
+export function logError(logger: { error: (msg: string) => void }, prefix: string, err: unknown): void {
   if (err instanceof Error) {
     logger.error(`${prefix}: ${err.message} ${err.stack}`)
   } else {

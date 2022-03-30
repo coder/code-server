@@ -1,0 +1,31 @@
+codecov:
+  require_ci_to_pass: yes
+  allow_coverage_offsets: True
+
+coverage:
+  precision: 2
+  round: down
+  range: "40...70"
+  status:
+    patch: off
+  notify:
+    slack:
+      default:
+        url: secret:v1::tXC7VwEIKYjNU8HRgRv2GdKOSCt5UzpykKZb+o1eCDqBgb2PEqwE3A26QUPYMLo4BO2qtrJhFIvwhUvlPwyzDCNGoNiuZfXr0UeZZ0y1TcZu672R/NBNMwEPO/e1Ye0pHxjzKHnuH7HqbjFucox/RBQLtiL3J56SWGE3JtbkC6o=
+        threshold: 1%
+        only_pulls: false
+        branches:
+          - "main"
+
+parsers:
+  gcov:
+    branch_detection:
+      conditional: yes
+      loop: yes
+      method: no
+      macro: no
+
+comment:
+  layout: "reach,diff,flags,files,footer"
+  behavior: default
+  require_changes: no

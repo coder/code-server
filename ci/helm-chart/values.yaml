@@ -6,10 +6,15 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '3.9.3'
+  tag: '4.2.0'
   pullPolicy: Always
 
+# Specifies one or more secrets to be used when pulling images from a
+# private container repository
+# https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry
 imagePullSecrets: []
+#  - name: registry-creds
+
 nameOverride: ""
 fullnameOverride: ""
 hostnameOverride: ""
@@ -28,14 +33,6 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext: {}
-  # capabilities:
-  #   drop:
-  #   - ALL
-  # readOnlyRootFilesystem: true
-  # runAsNonRoot: true
-  # runAsUser: 1000
-
 service:
   type: ClusterIP
   port: 8080
@@ -43,13 +40,12 @@ service:
 ingress:
   enabled: false
   #annotations:
-  #  kubernetes.io/ingress.class: nginx
   #  kubernetes.io/tls-acme: "true"
   #hosts:
   #  - host: code-server.example.loc
   #    paths:
   #      - /
-
+  ingressClassName: ""
   #tls:
   #  - secretName: code-server
   #    hosts:
@@ -57,8 +53,18 @@ ingress:
 
 # Optional additional arguments
 extraArgs: []
-#  - --allow-http
-#  - --no-auth
+  # These are the arguments normally passed to code-server; run
+  # code-server --help for a list of available options.
+  #
+  # Each argument and parameter must have its own entry; if you use
+  # --param value on the command line, then enter it here as:
+  #
+  # - --param
+  # - value
+  #
+  # If you receive an error like "Unknown option --param value", it may be
+  # because both the parameter and value are specified as a single argument,
+  # rather than two separate arguments (e.g. "- --param value" on a line).
 
 # Optional additional environment variables
 extraVars: []
@@ -116,10 +122,6 @@ persistence:
   annotations: {}
   # existingClaim: ""
   # hostPath: /data
-
-serviceAccount:
-  create: true
-  name:
 
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.

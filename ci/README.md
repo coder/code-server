@@ -10,47 +10,6 @@ Any file or directory in this subdirectory should be documented here.
 - [./ci/lib.sh](./lib.sh)
   - Contains code duplicated across these scripts.
 
-## Publishing a release
-
-1. Run `yarn release:prep` and type in the new version i.e. 3.8.1
-2. GitHub actions will generate the `npm-package`, `release-packages` and `release-images` artifacts.
-   1. You do not have to wait for these.
-3. Run `yarn release:github-draft` to create a GitHub draft release from the template with
-   the updated version.
-   1. Summarize the major changes in the release notes and link to the relevant issues.
-   2. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
-4. Wait for the artifacts in step 2 to build.
-5. Run `yarn release:github-assets` to download the `release-packages` artifact.
-   - It will upload them to the draft release.
-6. Run some basic sanity tests on one of the released packages.
-   - Especially make sure the terminal works fine.
-7. Make sure the github release tag is the commit with the artifacts. This is a bug in
-   `hub` where uploading assets in step 5 will break the tag.
-8. Publish the release and merge the PR.
-   1. CI will automatically grab the artifacts and then:
-      1. Publish the NPM package from `npm-package`.
-      2. Publish the Docker Hub image from `release-images`.
-9. Update the AUR package.
-   - Instructions on updating the AUR package are at [cdr/code-server-aur](https://github.com/cdr/code-server-aur).
-10. Wait for the npm package to be published.
-11. Update the [homebrew package](https://github.com/Homebrew/homebrew-core/blob/master/Formula/code-server.rb).
-    1. Install [homebrew](https://brew.sh/)
-    2. Run `brew bump-formula-pr --version=3.8.1 code-server` and update the version accordingly. This will bump the version and open a PR. Note: this will only work once the version is published on npm.
-
-## Updating Code Coverage in README
-
-Currently, we run a command to manually generate the code coverage shield. Follow these steps:
-
-1. Run `yarn test:unit` and make sure all the tests are passing
-2. Run `yarn badges`
-3. Go into the README and change the color from `red` to `green` in this line:
-
-```
-![Lines](https://img.shields.io/badge/Coverage-46.71%25-red.svg)
-```
-
-NOTE: we have to manually change the color because the default is red if coverage is less than 80. See code [here](https://github.com/olavoparno/istanbul-badges-readme/blob/develop/src/editor.ts#L24-L33).
-
 ## dev
 
 This directory contains scripts used for the development of code-server.
@@ -106,10 +65,10 @@ You can disable minification by setting `MINIFY=`.
 - [./ci/build/code-server.service](./build/code-server.service)
   - systemd user service packaged into the `.deb` and `.rpm`.
 - [./ci/build/release-github-draft.sh](./build/release-github-draft.sh) (`yarn release:github-draft`)
-  - Uses [hub](https://github.com/github/hub) to create a draft release with a template description.
+  - Uses [gh](https://github.com/cli/cli) to create a draft release with a template description.
 - [./ci/build/release-github-assets.sh](./build/release-github-assets.sh) (`yarn release:github-assets`)
   - Downloads the release-package artifacts for the current commit from CI.
-  - Uses [hub](https://github.com/github/hub) to upload the artifacts to the release
+  - Uses [gh](https://github.com/cli/cli) to upload the artifacts to the release
     specified in `package.json`.
 - [./ci/build/npm-postinstall.sh](./build/npm-postinstall.sh)
   - Post install script for the npm package.
@@ -119,8 +78,8 @@ You can disable minification by setting `MINIFY=`.
 
 This directory contains the release docker container image.
 
-- [./release-image/build.sh](./release-image/build.sh)
-  - Builds the release container with the tag `codercom/code-server-$ARCH:$VERSION`.
+- [./ci/steps/build-docker-buildx-push.sh](./ci/steps/docker-buildx-push.sh)
+  - Builds the release containers with tags `codercom/code-server-$ARCH:$VERSION` for amd64 and arm64 with `docker buildx` and pushes them.
   - Assumes debian releases are ready in `./release-packages`.
 
 ## images
@@ -148,8 +107,8 @@ Helps avoid clobbering the CI configuration.
     release packages into `./release-packages`.
 - [./steps/publish-npm.sh](./steps/publish-npm.sh)
   - Grabs the `npm-package` release artifact for the current commit and publishes it on npm.
-- [./steps/build-docker-image.sh](./steps/build-docker-image.sh)
-  - Builds the docker image and then saves it into `./release-images/code-server-$ARCH-$VERSION.tar`.
+- [./steps/docker-buildx-push.sh](./steps/docker-buildx-push.sh)
+  - Builds the docker image and then pushes it.
 - [./steps/push-docker-manifest.sh](./steps/push-docker-manifest.sh)
   - Loads all images in `./release-images` and then builds and pushes a multi architecture
     docker manifest for the amd64 and arm64 images to `codercom/code-server:$VERSION` and
