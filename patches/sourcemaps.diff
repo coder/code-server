@@ -1,0 +1,43 @@
+Make sourcemaps self-hosted
+
+Normally source maps get removed as part of the build process so prevent that
+from happening.  Also avoid using the windows.net host since obviously we can
+not host our source maps there and want them to be self-hosted even if we could.
+
+To test try debugging/browsing the source of a build in a browser.
+
+Index: code-server/lib/vscode/build/gulpfile.reh.js
+===================================================================
+--- code-server.orig/lib/vscode/build/gulpfile.reh.js
++++ code-server/lib/vscode/build/gulpfile.reh.js
+@@ -195,8 +195,7 @@ function packageTask(type, platform, arc
+ 
+ 		const src = gulp.src(sourceFolderName + '/**', { base: '.' })
+ 			.pipe(rename(function (path) { path.dirname = path.dirname.replace(new RegExp('^' + sourceFolderName), 'out'); }))
+-			.pipe(util.setExecutableBit(['**/*.sh']))
+-			.pipe(filter(['**', '!**/*.js.map']));
++			.pipe(util.setExecutableBit(['**/*.sh']));
+ 
+ 		const workspaceExtensionPoints = ['debuggers', 'jsonValidation'];
+ 		const isUIExtension = (manifest) => {
+@@ -235,9 +234,9 @@ function packageTask(type, platform, arc
+ 			.map(name => `.build/extensions/${name}/**`);
+ 
+ 		const extensions = gulp.src(extensionPaths, { base: '.build', dot: true });
+-		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true });
+-		const sources = es.merge(src, extensions, extensionsCommonDependencies)
++		const extensionsCommonDependencies = gulp.src('.build/extensions/node_modules/**', { base: '.build', dot: true })
+ 			.pipe(filter(['**', '!**/*.js.map'], { dot: true }));
++		const sources = es.merge(src, extensions, extensionsCommonDependencies);
+ 
+ 		let version = packageJson.version;
+ 		const quality = product.quality;
+@@ -363,7 +362,7 @@ function packageTask(type, platform, arc
+ 	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
+ 		optimizeTask,
+ 		util.rimraf(`out-vscode-${type}-min`),
+-		common.minifyTask(`out-vscode-${type}`, `https://ticino.blob.core.windows.net/sourcemaps/${commit}/core`)
++		common.minifyTask(`out-vscode-${type}`, '')
+ 	));
+ 	gulp.task(minifyTask);
+ 
