@@ -217,6 +217,26 @@ jobs:
           # Instead, itis determined in publish-npm.sh script
           # using GITHUB environment variables
 
+      - name: Comment npm information
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          header: npm-dev-build
+          message: |
+            ✨ code-server dev build published to npm for PR #${{ github.event.number }}!
+            * _Last publish status_: success
+            * _Commit_: ${{ github.event.pull_request.head.sha }}
+
+            To install in a local project, run:
+            ```shell-session
+            npm install @coder/code-server-pr@${{ github.event.number }}
+            ```
+
+            To install globally, run:
+            ```shell-session
+            npm install -g @coder/code-server-pr@${{ github.event.number }}
+            ```
+
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
   # this requires refactoring our release scripts
