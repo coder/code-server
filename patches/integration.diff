@@ -7,7 +7,6 @@ Prepare Code for integration with code-server
 3. Add the code-server version to the help dialog.
 4. Add ready events for use in an iframe.
 5. Add our icons.
-6. Remove sourcemap host since we cannot upload ours there.
 
 Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 ===================================================================
@@ -253,17 +252,4 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
  		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
- 
-Index: code-server/lib/vscode/build/gulpfile.reh.js
-===================================================================
---- code-server.orig/lib/vscode/build/gulpfile.reh.js
-+++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -365,7 +365,7 @@ function packageTask(type, platform, arc
- 	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
- 		optimizeTask,
- 		util.rimraf(`out-vscode-${type}-min`),
--		common.minifyTask(`out-vscode-${type}`, `https://ticino.blob.core.windows.net/sourcemaps/${commit}/core`)
-+		common.minifyTask(`out-vscode-${type}`, ``)
- 	));
- 	gulp.task(minifyTask);
  
