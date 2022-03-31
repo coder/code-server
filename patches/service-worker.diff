@@ -21,9 +21,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -297,6 +297,10 @@ export class WebClientServer {
- 					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
+@@ -298,6 +298,10 @@ export class WebClientServer {
  					proxyEndpointTemplate: base + '/proxy/{{port}}',
+ 					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
 +					serviceWorker: {
 +						scope: vscodeBase + '/',

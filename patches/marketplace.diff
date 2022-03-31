@@ -32,9 +32,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -286,14 +286,14 @@ export class WebClientServer {
- 				productConfiguration: <Partial<IProductConfiguration>>{
+@@ -287,14 +287,14 @@ export class WebClientServer {
  					rootEndpoint: base,
+ 					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
 -					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
 +					extensionsGallery: {

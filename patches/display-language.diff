@@ -185,7 +185,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
-@@ -302,7 +305,8 @@ export class WebClientServer {
+@@ -303,7 +306,8 @@ export class WebClientServer {
  			})))
  			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
  			.replace(/{{BASE}}/g, base)
