@@ -257,3 +257,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
  
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -279,6 +279,7 @@ export class WebClientServer {
+ 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
++					codeServerVersion: this._productService.codeServerVersion,
+ 					embedderIdentifier: 'server-distro',
+ 					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 						...this._productService.extensionsGallery,
