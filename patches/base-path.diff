@@ -185,10 +185,10 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
  				productConfiguration: <Partial<IProductConfiguration>>{
 +					rootEndpoint: base,
+ 					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
  					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 						...this._productService.extensionsGallery,
-@@ -290,7 +296,9 @@ export class WebClientServer {
+@@ -291,7 +297,9 @@ export class WebClientServer {
  					} : undefined
  				}
  			})))
@@ -199,7 +199,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const cspDirectives = [
  			'default-src \'self\';',
-@@ -369,3 +377,70 @@ export class WebClientServer {
+@@ -370,3 +378,70 @@ export class WebClientServer {
  		return res.end(data);
  	}
  }

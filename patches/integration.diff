@@ -104,18 +104,22 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -144,11 +144,12 @@ export class BrowserDialogHandler implem
+@@ -143,12 +143,15 @@ export class BrowserDialogHandler implem
+ 
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
- 			return localize('aboutDetail',
+-			return localize('aboutDetail',
 -				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
-+				"code-server: v{4}\nCode: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++			return localize('aboutCodeServerDetail',
++				"code-server: {0}",
++				this.productService.codeServerVersion ? `v${this.productService.codeServerVersion}` : 'Unknown'
++			) + '\n' + localize('aboutDetail',
++				"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
  				this.productService.version || 'Unknown',
  				this.productService.commit || 'Unknown',
  				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
 -				navigator.userAgent
 +				navigator.userAgent,
-+				this.productService.codeServerVersion || 'Unknown'
  			);
  		};
  
@@ -253,3 +257,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
  
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -279,6 +279,7 @@ export class WebClientServer {
+ 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				productConfiguration: <Partial<IProductConfiguration>>{
++					codeServerVersion: this._productService.codeServerVersion,
+ 					embedderIdentifier: 'server-distro',
+ 					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 						...this._productService.extensionsGallery,
