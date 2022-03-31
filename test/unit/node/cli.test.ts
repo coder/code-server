@@ -31,6 +31,7 @@ const defaults = {
   host: "localhost",
   port: 8080,
   "proxy-domain": [],
+  "disable-file-downloads": false,
   usingEnvPassword: false,
   usingEnvHashedPassword: false,
   "extensions-dir": path.join(paths.data, "extensions"),
@@ -92,6 +93,8 @@ describe("parser", () => {
 
           "--port=8081",
 
+          "--disable-file-downloads",
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -108,6 +111,7 @@ describe("parser", () => {
       cert: {
         value: path.resolve("path/to/cert"),
       },
+      "disable-file-downloads": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",

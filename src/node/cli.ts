@@ -49,6 +49,7 @@ export interface UserProvidedCodeArgs {
   category?: string
   "github-auth"?: string
   "disable-update-check"?: boolean
+  "disable-file-downloads"?: boolean
 }
 
 /**
@@ -156,6 +157,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
       "then notifies you once every week that a new release is available.",
+  },
+  "disable-file-downloads": {
+    type: "boolean",
+    description: "Disable file downloads from Code. Defaults to true.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
@@ -445,6 +450,7 @@ export interface DefaultedArgs extends ConfigArgs {
   usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
+  "disable-file-downloads": boolean
   /* Positional arguments. */
   _: string[]
 }
@@ -555,6 +561,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
   args["proxy-domain"] = Array.from(proxyDomains)
+
+  if (!args["disable-file-downloads"]) {
+    args["disable-file-downloads"] = false
+  }
 
   if (typeof args._ === "undefined") {
     args._ = []
