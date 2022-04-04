@@ -70,7 +70,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  					logLevel: this._logService.getLevel(),
  				},
  				userDataPath: this._environmentService.userDataPath,
-+				isEnabledFileDownloads: this._environmentService.args['disable-file-downloads'],
++				isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
  				productConfiguration: <Partial<IProductConfiguration>>{
  					rootEndpoint: base,
@@ -111,3 +111,40 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/common/envir
  	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  	// NOTE: KEEP THIS INTERFACE AS SMALL AS POSSIBLE. AS SUCH:
  	//       - PUT NON-WEB PROPERTIES INTO NATIVE WB ENV SERVICE
+Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+@@ -21,7 +21,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
+ import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
+ import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
+ import { Schemas } from 'vs/base/common/network';
+-import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
+ import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
+ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
+ import { ThemeIcon } from 'vs/platform/theme/common/themeService';
+@@ -475,13 +475,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ 		id: DOWNLOAD_COMMAND_ID,
+ 		title: DOWNLOAD_LABEL
+ 	},
+-	when: ContextKeyExpr.or(
+-		// native: for any remote resource
+-		ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
+-		// web: for any files
+-		ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
+-		// web: for any folders if file system API support is provided
+-		ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++	when: ContextKeyExpr.and(
++		IsEnabledFileDownloads,
++		ContextKeyExpr.or(
++			// native: for any remote resource
++			ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
++			// web: for any files
++			ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
++			// web: for any folders if file system API support is provided
++			ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++		)
+ 	)
+ }));
+ 
