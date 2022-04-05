@@ -148,3 +148,16 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  	)
  }));
  
+Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
++++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+@@ -30,6 +30,8 @@ export const IsFullscreenContext = new R
+ 
+ export const HasWebFileSystemAccess = new RawContextKey<boolean>('hasWebFileSystemAccess', false, true); // Support for FileSystemAccess web APIs (https://wicg.github.io/file-system-access)
+ 
++export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
++
+ //#endregion
+ 
+ 
