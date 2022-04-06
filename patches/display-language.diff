@@ -222,7 +222,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/localizations/browser/lo
 @@ -0,0 +1,28 @@
 +/*---------------------------------------------------------------------------------------------
 + *  Copyright (c) Coder Technologies. All rights reserved.
-+ *  Licensed under the MIT License. See License.txt in the project root for license information.
++ *  Licensed under the MIT License. See LICENSE in the project root for license information.
 + *--------------------------------------------------------------------------------------------*/
 +
 +import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
