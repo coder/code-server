@@ -19,7 +19,7 @@
     - [Docker](#docker)
     - [Homebrew](#homebrew)
     - [npm](#npm)
-- [Syncing with Upstream VS Code](#syncing-with-upstream-vs-code)
+- [Syncing with upstream Code](#syncing-with-upstream-code)
 - [Testing](#testing)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
