@@ -24,7 +24,7 @@ main() {
   bundle_vscode
 
   rsync ./docs/README.md "$RELEASE_PATH"
-  rsync LICENSE "$RELEASE_PATH"
+  rsync LICENSE.txt "$RELEASE_PATH"
   rsync ./lib/vscode/ThirdPartyNotices.txt "$RELEASE_PATH"
 }
 
@@ -113,7 +113,7 @@ bundle_vscode() {
     "applicationName": "code-server",
     "dataFolderName": ".code-server",
     "win32MutexName": "codeserver",
-    "licenseUrl": "https://github.com/coder/code-server/blob/main/LICENSE",
+    "licenseUrl": "https://github.com/coder/code-server/blob/main/LICENSE.txt",
     "win32DirName": "code-server",
     "win32NameVersion": "code-server",
     "win32AppUserModelId": "coder.code-server",
