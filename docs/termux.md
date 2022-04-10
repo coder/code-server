@@ -29,7 +29,7 @@ pkg up -y && pkg in proot-distro -y && proot-distro install debian && proot-dist
 3. Run the following commands to setup Debian:
 
 ```bash
-apt update && apt upgrade -y && apt-get install git -y
+apt update && apt upgrade -y && apt-get install sudo vim git -y
 ```
 
 4. Install [NVM](https://github.com/nvm-sh/nvm#install--update-script) by following the install guide in the README, just a curl/wget command.
