@@ -28,7 +28,19 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -61,6 +61,13 @@ export class BrowserWorkbenchEnvironment
+@@ -30,6 +30,11 @@ export interface IBrowserWorkbenchEnviro
+ 	 * Options used to configure the workbench.
+ 	 */
+ 	readonly options?: IWorkbenchConstructionOptions;
++
++	/**
++	 * Enable downloading files via menu actions.
++	 */
++	readonly isEnabledFileDownloads?: boolean;
+ }
+ 
+ export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
+@@ -61,6 +66,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.userDataPath;
  	}
  
@@ -78,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
-@@ -7,7 +7,7 @@ import { Event } from 'vs/base/common/ev
+@@ -7,12 +7,11 @@ import { Event } from 'vs/base/common/ev
  import { Disposable } from 'vs/base/common/lifecycle';
  import { IContextKeyService, IContextKey } from 'vs/platform/contextkey/common/contextkey';
  import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext } from 'vs/platform/contextkey/common/contextkeys';
@@ -87,30 +99,38 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, DEFAULT_EDITOR_ASSOCIATION } from 'vs/workbench/common/editor';
  import { trackFocus, addDisposableListener, EventType } from 'vs/base/browser/dom';
  import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+ import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
+ import { WorkbenchState, IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
+@@ -24,6 +23,7 @@ import { IEditorResolverService } from '
+ import { IPaneCompositePartService } from 'vs/workbench/services/panecomposite/browser/panecomposite';
+ import { Schemas } from 'vs/base/common/network';
+ import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
++import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService';
+ 
+ export class WorkbenchContextKeysHandler extends Disposable {
+ 	private inputFocusedContext: IContextKey<boolean>;
+@@ -75,7 +75,7 @@ export class WorkbenchContextKeysHandler
+ 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
+ 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+ 		@IConfigurationService private readonly configurationService: IConfigurationService,
+-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
++		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IEditorService private readonly editorService: IEditorService,
+ 		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
+ 		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
 @@ -194,6 +194,9 @@ export class WorkbenchContextKeysHandler
  		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
  		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));
  
 +		// code-server
-+		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads)
++		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
 +
  		this.registerListeners();
  	}
  
-Index: code-server/lib/vscode/src/vs/workbench/services/environment/common/environmentService.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/services/environment/common/environmentService.ts
-+++ code-server/lib/vscode/src/vs/workbench/services/environment/common/environmentService.ts
-@@ -44,6 +44,9 @@ export interface IWorkbenchEnvironmentSe
- 	readonly filesToOpenOrCreate?: IPath[] | undefined;
- 	readonly filesToDiff?: IPath[] | undefined;
- 
-+	// --- code-server
-+	readonly isEnabledFileDownloads: boolean;
-+
- 	// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
- 	// NOTE: KEEP THIS INTERFACE AS SMALL AS POSSIBLE. AS SUCH:
- 	//       - PUT NON-WEB PROPERTIES INTO NATIVE WB ENV SERVICE
 Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
