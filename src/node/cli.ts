@@ -450,7 +450,6 @@ export interface DefaultedArgs extends ConfigArgs {
   usingEnvHashedPassword: boolean
   "extensions-dir": string
   "user-data-dir": string
-  "disable-file-downloads": boolean
   /* Positional arguments. */
   _: string[]
 }
@@ -561,10 +560,6 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
   args["proxy-domain"] = Array.from(proxyDomains)
-
-  if (!args["disable-file-downloads"]) {
-    args["disable-file-downloads"] = false
-  }
 
   if (typeof args._ === "undefined") {
     args._ = []
