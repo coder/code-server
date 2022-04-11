@@ -4,7 +4,7 @@ import { clean } from "../utils/helpers"
 import { describe, test, expect } from "./baseFixture"
 
 describe("Downloads (enabled)", true, [], {}, async () => {
-  const testName = "downloads"
+  const testName = "downloads-enabled"
   test.beforeAll(async () => {
     await clean(testName)
   })
@@ -26,7 +26,7 @@ describe("Downloads (enabled)", true, [], {}, async () => {
 })
 
 describe("Downloads (disabled)", true, ["--disable-file-downloads"], {}, async () => {
-  const testName = "downloads"
+  const testName = "downloads-disabled"
   test.beforeAll(async () => {
     await clean(testName)
   })
