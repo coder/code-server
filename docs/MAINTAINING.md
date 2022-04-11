@@ -19,7 +19,7 @@
     - [Docker](#docker)
     - [Homebrew](#homebrew)
     - [npm](#npm)
-- [Syncing with Upstream VS Code](#syncing-with-upstream-vs-code)
+- [Syncing with upstream Code](#syncing-with-upstream-code)
 - [Testing](#testing)
 - [Documentation](#documentation)
   - [Troubleshooting](#troubleshooting)
@@ -214,18 +214,9 @@ We publish code-server as a npm package [here](https://www.npmjs.com/package/cod
 
 This is currently automated with the release process.
 
-## Syncing with Upstream VS Code
+## Syncing with upstream Code
 
-The VS Code portion of code-server lives under [`coder/vscode`](https://github.com/coder/vscode). To update VS Code for code-server, follow these steps:
-
-1. `git checkout -b vscode-update` - Create a new branch locally based off `main`
-2. `git fetch upstream` - Fetch upstream (VS Code)'s latest branches
-3. `git merge upstream/release/1.64` - Merge it locally
-   1. replace `1.64` with the version you're upgrading to
-   1. If there are merge conflicts, commit first, then fix them locally.
-4. Open a PR merging your branch (`vscode-update`) into `main` and add the code-server review team
-
-Ideally, our fork stays as close to upstream as possible. See the differences between our fork and upstream [here](https://github.com/microsoft/vscode/compare/main...coder:main).
+Refer to the [contributing docs](https://coder.com/docs/code-server/latest/CONTRIBUTING#version-updates-to-code) for information on how to update Code within code-server.
 
 ## Testing
 
