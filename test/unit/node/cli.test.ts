@@ -42,6 +42,7 @@ describe("parser", () => {
   beforeEach(() => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
+    delete process.env.CS_DISABLE_FILE_DOWNLOADS
     console.log = jest.fn()
   })
 
@@ -359,9 +360,6 @@ describe("parser", () => {
       ...defaults,
       "disable-file-downloads": true,
     })
-
-    // Cleanup
-    delete process.env.CS_DISABLE_FILE_DOWNLOADS
   })
 
   it("should error if password passed in", () => {
