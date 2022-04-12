@@ -350,7 +350,7 @@ describe("parser", () => {
   })
 
   it("should use env var CS_DISABLE_FILE_DOWNLOADS", async () => {
-    process.env.CS_DISABLE_FILE_DOWNLOADS = "0"
+    process.env.CS_DISABLE_FILE_DOWNLOADS = "1"
     const args = parse([])
     expect(args).toEqual({})
 
@@ -359,6 +359,9 @@ describe("parser", () => {
       ...defaults,
       "disable-file-downloads": true,
     })
+
+    // Cleanup
+    delete process.env.CS_DISABLE_FILE_DOWNLOADS
   })
 
   it("should error if password passed in", () => {

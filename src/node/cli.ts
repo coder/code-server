@@ -542,7 +542,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args.password = process.env.PASSWORD
   }
 
-  if (process.env.CS_DISABLE_FILE_DOWNLOADS) {
+  if (process.env.CS_DISABLE_FILE_DOWNLOADS === "1") {
     args["disable-file-downloads"] = true
   }
 
@@ -560,7 +560,6 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   delete process.env.PASSWORD
   delete process.env.HASHED_PASSWORD
   delete process.env.GITHUB_TOKEN
-  delete process.env.CS_DISABLE_FILE_DOWNLOADS
 
   // Filter duplicate proxy domains and remove any leading `*.`.
   const proxyDomains = new Set((args["proxy-domain"] || []).map((d) => d.replace(/^\*\./, "")))
