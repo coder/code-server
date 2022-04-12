@@ -495,6 +495,9 @@ jobs:
         run: rm -rf ./release-packages ./test/test-results
 
   trivy-scan-repo:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
