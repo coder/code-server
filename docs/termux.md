@@ -89,7 +89,7 @@ To create a new user follow these simple steps -
 1. Create a new user by running `useradd <username> -m`.
 2. Change the password by running `passwd <username>`.
 3. Give your new user sudo access by running `visudo`, scroll down to `User privilege specification` and add the following line after root `username ALL=(ALL:ALL) ALL`.
-4. Now edit the `/etc/passwd` file with your commandline editor of choice and at the end of the line that specifies your user change `/bin/sh` to `/bin/bash`.
+4. Now edit the `/etc/passwd` file with your command line editor of choice and at the end of the line that specifies your user change `/bin/sh` to `/bin/bash`.
 5. Now switch users, by running `su - <username>`
 
 - Remember the `-` betweeen `su` and username is required to execute `/etc/profile`,\
