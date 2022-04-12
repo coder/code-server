@@ -61,7 +61,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "json": "^11.0.0",
     "prettier": "^2.2.1",
-    "prettier-plugin-sh": "^0.8.0",
+    "prettier-plugin-sh": "^0.10.0",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
