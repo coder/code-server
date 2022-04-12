@@ -23,7 +23,7 @@
      > After Debian is installed the `~ $` will change to `root@localhost`.
 
 ```bash
-pkg up -y && pkg in proot-distro -y && proot-distro install debian && proot-distro login debian
+pkg update -y && pkg install proot-distro -y && proot-distro install debian && proot-distro login debian
 ```
 
 3. Run the following commands to setup Debian:
