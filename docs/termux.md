@@ -38,11 +38,12 @@ apt update && apt upgrade -y && apt-get install sudo vim git -y
 
    - Copy the lines NVM asks you to run after running the install script.
    - Run `nano /root/.bashrc` and comment out those lines by adding a `#` at the start.
-   - Run `nano /etc/profile` and paste those lines at the end of the file.  Make sure to replace `$HOME` with `/root` on the first line.
+   - Run `nano /etc/profile` and paste those lines at the end of the file. Make sure to replace `$HOME` with `/root` on the first line.
    - Now run `exit`
    - Start Debian again `proot-distro login debian`
 
 6. After following the instructions and setting up NVM you can now install the [required node version](https://coder.com/docs/code-server/latest/npm#nodejs-version) by running:
+
 ```bash
 nvm install v<major_version_here>
 ```
@@ -154,23 +155,31 @@ eval "$(pyenv virtualenv-init -)"
 ### Working with PRoot
 
 Debian PRoot Distro Dev Environment
+
 - Since Node and code-server are installed in the Debian PRoot distro, your `~/.ssh/` configuration, `~/.bashrc`, git, npm packages, etc. should be setup in PRoot as well.
 - The terminal accessible in code-server will bring up the filesystem and `~/.bashrc` in the Debian PRoot distro.
 
 Accessing files in the Debian PRoot Distro
+
 - The `/data/data/com.termux/files/home` directory in PRoot accesses the termux home directory (`~`)
 - The `/sdcard` directory in PRoot accesses the Android storage directory, though there are [known issues with git and files in the `/sdcard` path](#git-wont-work-in-sdcard)
 
 Accessing the Debian PRoot distro/Starting code-server
+
 - Run the following command to access the Debian PRoot distro, from the termux shell:
+
 ```bash
 proot-distro login debian
 ```
+
 - Run the following command to start code-server directly in the Debian PRoot distro, from the termux shell:
+
 ```bash
 proot-distro login debian -- code-server
 ```
+
 - If you [created a new user](#create-a-new-user), you'll need to insert the `--user <username>` option between `login` and `debian` in the commands above to run as the user instead of root in PRoot.
 
 Additional information on PRoot and Termux
+
 - Additional information on using your Debian PRoot Distro can be [found here](https://github.com/termux/proot-distro#functionality-overview).
