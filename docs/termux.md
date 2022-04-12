@@ -19,7 +19,7 @@
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
 2. Install Debian by running the following:
    - Run `termux-setup-storage` to allow storage access, or else code-server won't be able to read from `/sdcard`.\
-     > The following command is from [proot-distro](https://github.com/termux/proot-distro) you can also use [Andronix](https://andronix.app/).
+     > The following command is from [proot-distro](https://github.com/termux/proot-distro), but you can also use [Andronix](https://andronix.app/).
      > After Debian is installed the `~ $` will change to `root@localhost`.
 
 ```bash
