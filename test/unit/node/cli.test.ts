@@ -349,6 +349,18 @@ describe("parser", () => {
     expect(process.env.GITHUB_TOKEN).toBe(undefined)
   })
 
+  it("should use env var CS_DISABLE_FILE_DOWNLOADS", async () => {
+    process.env.CS_DISABLE_FILE_DOWNLOADS = "0"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-file-downloads": true,
+    })
+  })
+
   it("should error if password passed in", () => {
     expect(() => parse(["--password", "supersecret123"])).toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",
