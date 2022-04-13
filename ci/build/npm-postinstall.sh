@@ -24,7 +24,7 @@ export npm_config_build_from_source=true
 
 main() {
   # Grabs the major version of node from $npm_config_user_agent which looks like
-  # yarn/1.21.1 npm/? node/v14.3.0 darwin x64
+  # yarn/1.21.1 npm/? node/v14.2.0 darwin x64
   major_node_version=$(echo "$npm_config_user_agent" | sed -n 's/.*node\/v\([^.]*\).*/\1/p')
 
   if [ -n "${FORCE_NODE_VERSION:-}" ]; then
