@@ -38,6 +38,7 @@ describe("plugin", () => {
         "proxy-domain": [],
         config: "~/.config/code-server/config.yaml",
         verbose: false,
+        "disable-file-downloads": false,
         usingEnvPassword: false,
         usingEnvHashedPassword: false,
         "extensions-dir": "",
