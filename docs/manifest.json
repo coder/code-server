@@ -21,7 +21,7 @@
       "children": [
         {
           "title": "npm",
-          "description": "How to install code-server using npm",
+          "description": "How to install code-server using npm or yarn",
           "path": "./npm.md"
         },
         {
