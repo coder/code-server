@@ -29,22 +29,24 @@ Code v1.65.2
 ### Changed
 
 - Excluded .deb files from release Docker image which drops the compressed and
-  uncompressed size by 58% and 34%. - Upgraded to Code 1.65.2.
+  uncompressed size by 58% and 34%. 
+- Upgraded to Code 1.65.2.
 
 ### Added
 
 - Added a new CLI flag called `--disable-file-downloads` which allows you to
   disable the "Download..." option that shows in the UI when right-clicking on a
-  file. This can also set by running `CS_DISABLE_FILE_DOWNLOADS=1`. - Aligned the
-  dependencies for binary and npm release artifacts.
+  file. This can also set by running `CS_DISABLE_FILE_DOWNLOADS=1`. 
+- Aligned the dependencies for binary and npm release artifacts.
 
 ### Fixed
 
 - Fixed the code-server version from not displaying in the Help > About dialog.
 - Fixed issues with the TypeScript and JavaScript Language Features Extension
-  failing to activate. - Fixed missing files in ipynb extension. - Fixed the
-  homebrew release workflow. - Fixed the Docker release workflow from not always
-  publishing version tags.
+failing to activate. 
+- Fixed missing files in ipynb extension. 
+- Fixed the homebrew release workflow.
+- Fixed the Docker release workflow from not always publishing version tags.
 
 ## [4.2.0](https://github.com/coder/code-server/releases/tag/v4.2.0) - 2022-03-22
 
