@@ -122,7 +122,8 @@ describe("update", () => {
     spy = []
   })
 
-  it("should get the latest", async () => {
+  // TODO@jsjoeio: rewrite this test so it's not flaky
+  it.skip("should get the latest", async () => {
     version = "2.1.0"
 
     const p = provider()
