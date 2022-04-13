@@ -4,7 +4,7 @@
 
 - [install.sh](#installsh)
   - [Detection reference](#detection-reference)
-- [npm](#npm)
+- [yarn, npm](#yarn-npm)
 - [Standalone releases](#standalone-releases)
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
@@ -19,7 +19,7 @@
 - [Uninstall](#uninstall)
   - [install.sh](#installsh-1)
   - [Homebrew](#homebrew)
-  - [npm](#npm-1)
+  - [yarn, npm](#yarn-npm-1)
   - [Debian, Ubuntu](#debian-ubuntu-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -87,16 +87,17 @@ _exact_ same commands presented in the rest of this document.
 
   - Ensure that you add `~/.local/bin` to your `$PATH` to run code-server.
 
-- For FreeBSD, code-server will install the [npm package](#npm) with `npm`.
+- For FreeBSD, code-server will install the [npm package](#yarn-npm) with `yarn`
+  or `npm`.
 
 - If you're installing code-server onto architecture with no releases,
-  code-server will install the [npm package](#npm) with `npm`
+  code-server will install the [npm package](#yarn-npm) with `yarn` or `npm`
   - We currently offer releases for amd64 and arm64.
-  - The [npm package](#npm) builds the native modules on post-install.
+  - The [npm package](#yarn-npm) builds the native modules on post-install.
 
-## npm
+## yarn, npm
 
-We recommend installing with `npm` when:
+We recommend installing with `yarn` or `npm` when:
 
 1. You aren't using a machine with `amd64` or `arm64`.
 1. You are installing code-server on Windows
@@ -106,9 +107,9 @@ We recommend installing with `npm` when:
    [#1430](https://github.com/coder/code-server/issues/1430#issuecomment-629883198)
    for more information.
 
-Installing code-server with `npm` builds native modules on install.
+Installing code-server with `yarn` or `npm` builds native modules on install.
 
-This process requires C dependencies; see our guide on [installing with `npm`][./npm.md](./npm.md) for more information.
+This process requires C dependencies; see our guide on [installing with yarn and npm][./npm.md](./npm.md) for more information.
 
 ## Standalone releases
 
@@ -116,7 +117,7 @@ We publish self-contained `.tar.gz` archives for every release on
 [GitHub](https://github.com/coder/code-server/releases). The archives bundle the
 node binary and node modules.
 
-We create the standalone releases using the [npm package](#npm), and we
+We create the standalone releases using the [npm package](#yarn-npm), and we
 then create the remaining releases using the standalone version.
 
 The only requirement to use the standalone release is `glibc` >= 2.17 and
@@ -150,7 +151,7 @@ code-server
 ## Debian, Ubuntu
 
 > The standalone arm64 .deb does not support Ubuntu 16.04 or earlier. Please
-> upgrade or [build with `npm`](#npm).
+> upgrade or [build with yarn](#yarn-npm).
 
 ```bash
 curl -fOL https://github.com/coder/code-server/releases/download/v$VERSION/code-server_$VERSION_amd64.deb
@@ -162,7 +163,7 @@ sudo systemctl enable --now code-server@$USER
 ## Fedora, CentOS, RHEL, SUSE
 
 > The standalone arm64 .rpm does not support CentOS 7. Please upgrade or [build
-> with `npm`](#npm).
+> with yarn](#yarn-npm).
 
 ```bash
 curl -fOL https://github.com/coder/code-server/releases/download/v$VERSION/code-server-$VERSION-amd64.rpm
@@ -227,13 +228,14 @@ You can install code-server using the [Helm package manager](https://coder.com/d
 
 ## Windows
 
-We currently [do not publish Windows releases](https://github.com/coder/code-server/issues/1397). We recommend installing code-server onto Windows with [`npm`](#npm).
+We currently [do not publish Windows releases](https://github.com/coder/code-server/issues/1397). We recommend installing code-server onto Windows with [`yarn` or `npm`](#yarn-npm).
 
 > Note: You will also need to [build coder/cloud-agent manually](https://github.com/coder/cloud-agent/issues/17) if you would like to use `code-server --link` on Windows.
 
 ## Raspberry Pi
 
-We recommend installing code-server onto Raspberry Pi with [`npm`](#npm).
+We recommend installing code-server onto Raspberry Pi with [`yarn` or
+`npm`](#yarn-npm).
 
 ## Termux
 
@@ -275,9 +277,15 @@ brew remove code-server
 brew uninstall code-server
 ```
 
-### npm
+### yarn, npm
 
 To remove the code-server global module, run:
+
+```shell
+yarn global remove code-server
+```
+
+or
 
 ```shell
 npm uninstall -g code-server
