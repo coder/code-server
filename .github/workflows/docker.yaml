@@ -39,15 +39,14 @@ jobs:
         id: version
         run: echo "::set-output name=version::$(jq -r .version package.json)"
 
-      - name: Download artifact
-        uses: dawidd6/action-download-artifact@v2
-        id: download
+      - name: Download release artifacts
+        uses: robinraju/release-downloader@v1.3
         with:
-          branch: v${{ steps.version.outputs.version }}
-          workflow: ci.yaml
-          workflow_conclusion: completed
-          name: "release-packages"
-          path: release-packages
+          repository: "coder/code-server"
+          tag: "v4.3.0"
+          fileName: "*"
+          out-file-path: "release-packages"
+          path: "release-packages"
 
       - name: Run ./ci/steps/docker-buildx-push.sh
         run: ./ci/steps/docker-buildx-push.sh
