@@ -43,10 +43,9 @@ jobs:
         uses: robinraju/release-downloader@v1.3
         with:
           repository: "coder/code-server"
-          tag: "v4.3.0"
-          fileName: "*"
+          tag: v${{ steps.version.outputs.version }}
+          fileName: "*.deb"
           out-file-path: "release-packages"
-          path: "release-packages"
 
       - name: Run ./ci/steps/docker-buildx-push.sh
         run: ./ci/steps/docker-buildx-push.sh
