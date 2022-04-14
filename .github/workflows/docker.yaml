@@ -47,7 +47,7 @@ jobs:
           fileName: "*.deb"
           out-file-path: "release-packages"
 
-      - name: Run ./ci/steps/docker-buildx-push.sh
-        run: ./ci/steps/docker-buildx-push.sh
+      - name: Publish to Docker
+        run: yarn publish:docker
         env:
           GITHUB_TOKEN: ${{ github.token }}
