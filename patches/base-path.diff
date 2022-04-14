@@ -303,3 +303,24 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  
  	// Create workbench
  	create(document.body, {
+Index: code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
++++ code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+@@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
+ import { IStorageService } from 'vs/platform/storage/common/storage';
+ import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
+ import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
+-import { RemoteAuthorities } from 'vs/base/common/network';
+ 
+ export const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
+ 
+@@ -72,7 +71,7 @@ export abstract class AbstractExtensionR
+ 	public getExtensionGalleryResourceURL(galleryExtension: { publisher: string; name: string; version: string }, path?: string): URI | undefined {
+ 		if (this._extensionGalleryResourceUrlTemplate) {
+ 			const uri = URI.parse(format2(this._extensionGalleryResourceUrlTemplate, { publisher: galleryExtension.publisher, name: galleryExtension.name, version: galleryExtension.version, path: 'extension' }));
+-			return this._isWebExtensionResourceEndPoint(uri) ? uri.with({ scheme: RemoteAuthorities.getPreferredWebSchema() }) : uri;
++			return this._isWebExtensionResourceEndPoint(uri) ? URI.joinPath(URI.parse(window.location.href), uri.path) : uri;
+ 		}
+ 		return undefined;
+ 	}
