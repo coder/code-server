@@ -6,11 +6,14 @@ self-hosted.
 When doing this CSP will block resources (for example when viewing images) so
 add 'self' to the CSP to fix that.
 
-Additionally the service worker defaults to always trying to handle any requests
-made to the current host but this will include the webview HTML itself which
-means these requests will fail since the communication channel between the
-webview and the main thread has not been set up yet so patch the service worker
-to skip handling requests for other webview assets.
+Additionally the service worker defaults to handling *all* requests made to the
+current host but when self-hosting the webview this will end up including the
+webview HTML itself which means these requests will fail since the communication
+channel between the webview and the main thread has not been set up yet as the
+webview itself is not ready yet (it has no HTML and therefore no script either).
+Since this code exists only for the authentication case we can just skip it when
+it is served from the current host as authentication is not a problem if the
+request is not cross-origin.
 
 To test, open a few types of webviews (images, markdown, extension details, etc).
 
@@ -56,7 +59,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/servi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
-@@ -188,9 +188,12 @@ sw.addEventListener('fetch', (event) =>
+@@ -188,9 +188,11 @@ sw.addEventListener('fetch', (event) =>
  		}
  	}
  
@@ -64,11 +67,10 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/servi
 -	// back through VS Code itself so that we are authenticated properly
 -	if (requestUrl.host === remoteAuthority) {
 +	// If we're making a request against the remote authority, we want to go back
-+	// through VS Code itself so that we are authenticated properly.  Requests to
-+	// other static assets in this directory (like the iframe HTML) must be
-+	// fetched normally since there will not yet be a communication channel set up
-+	// to retrieve them (they do not require authentication anyway).
-+	if (requestUrl.host === remoteAuthority && !requestUrl.pathname.startsWith(rootPath)) {
++	// through VS Code itself so that we are authenticated properly.  If the
++	// service worker is hosted on the same origin we will have cookies and
++	// authentication will not be an issue.
++	if (requestUrl.origin !== sw.origin && requestUrl.host === remoteAuthority) {
  		switch (event.request.method) {
  			case 'GET':
  			case 'HEAD':
