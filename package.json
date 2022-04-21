@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/coder/code-server",
   "bugs": {
@@ -24,6 +24,7 @@
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
     "publish:npm": "./ci/steps/publish-npm.sh",
+    "publish:docker": "./ci/steps/docker-buildx-push.sh",
     "_audit": "./ci/dev/audit.sh",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",
