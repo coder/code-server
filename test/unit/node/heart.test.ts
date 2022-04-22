@@ -1,5 +1,5 @@
-import { readFile, writeFile } from "fs/promises"
 import { logger } from "@coder/logger"
+import { readFile, writeFile } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
@@ -78,7 +78,7 @@ describe("heartbeatTimer", () => {
   afterEach(() => {
     jest.resetAllMocks()
   })
-  it("should call beat when is active resolves to true", async () => {
+  it("should call beat when isActive resolves to true", async () => {
     const isActive = true
     const mockIsActive = jest.fn().mockResolvedValue(isActive)
     const mockBeatFn = jest.fn()
@@ -86,7 +86,7 @@ describe("heartbeatTimer", () => {
     expect(mockIsActive).toHaveBeenCalled()
     expect(mockBeatFn).toHaveBeenCalled()
   })
-  it("should log a warning when is active rejects", async () => {
+  it("should log a warning when isActive rejects", async () => {
     const errorMsg = "oh no"
     const error = new Error(errorMsg)
     const mockIsActive = jest.fn().mockRejectedValue(error)
