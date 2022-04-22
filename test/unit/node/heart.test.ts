@@ -60,7 +60,6 @@ describe("Heart", () => {
     expect(isAlive).toBe(true)
   })
   it("should not be active after dispose is called", () => {
-    heart = new Heart(`${testDir}/shutdown.txt`, mockIsActive(true))
     heart.dispose()
 
     const isAlive = heart.alive()
