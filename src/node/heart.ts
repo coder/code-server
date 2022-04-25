@@ -33,7 +33,7 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(async () => await heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
   }
 
   /**
