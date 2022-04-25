@@ -3,9 +3,7 @@ import { readFile, writeFile } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
-function mockIsActive(resolveTo: boolean): () => Promise<boolean> {
-  return () => new Promise((resolve, reject) => setTimeout(() => resolve(resolveTo), 100))
-}
+const mockIsActive = (resolveTo: boolean) => jest.fn().mockResolvedValue(resolveTo)
 
 describe("Heart", () => {
   const testName = "heartTests"
