@@ -362,6 +362,18 @@ describe("parser", () => {
     })
   })
 
+  it("should use env var CS_DISABLE_FILE_DOWNLOADS set to true", async () => {
+    process.env.CS_DISABLE_FILE_DOWNLOADS = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-file-downloads": true,
+    })
+  })
+
   it("should error if password passed in", () => {
     expect(() => parse(["--password", "supersecret123"])).toThrowError(
       "--password can only be set in the config file or passed in via $PASSWORD",

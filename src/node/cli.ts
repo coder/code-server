@@ -542,7 +542,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
     args.password = process.env.PASSWORD
   }
 
-  if (process.env.CS_DISABLE_FILE_DOWNLOADS === "1") {
+  if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
     args["disable-file-downloads"] = true
   }
 
