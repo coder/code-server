@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { readFile, writeFile, stat } from "fs/promises"
+import { readFile, writeFile, stat, open } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
@@ -33,7 +33,12 @@ describe("Heart", () => {
     const pathToFile = `${testDir}/file.txt`
     await writeFile(pathToFile, text)
     const fileContents = await readFile(pathToFile, { encoding: "utf8" })
-    const fileStatusBeforeEdit = await stat(pathToFile)
+    // Explicitly set the modified time to 0 so that we can check
+    // that the file was indeed modified after calling heart.beat().
+    // This works around any potential race conditions.
+    const fileHandle = await open(pathToFile, "r+")
+    await fileHandle.utimes(0, 0)
+
     expect(fileContents).toBe(text)
 
     heart = new Heart(pathToFile, mockIsActive(true))
@@ -47,7 +52,7 @@ describe("Heart", () => {
     expect(fileContentsAfterBeat).not.toBe(text)
     // Make sure the modified timestamp was updated.
     const fileStatusAfterEdit = await stat(pathToFile)
-    expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThanOrEqual(fileStatusBeforeEdit.mtimeMs)
+    expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThan(0)
   })
   it("should log a warning when given an invalid file path", async () => {
     heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
