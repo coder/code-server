@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { readFile, writeFile, stat, open } from "fs/promises"
+import { readFile, writeFile, stat, open, utimes } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
@@ -36,8 +36,8 @@ describe("Heart", () => {
     // Explicitly set the modified time to 0 so that we can check
     // that the file was indeed modified after calling heart.beat().
     // This works around any potential race conditions.
-    const fileHandle = await open(pathToFile, "r+")
-    await fileHandle.utimes(0, 0)
+    // Docs: https://nodejs.org/api/fs.html#fspromisesutimespath-atime-mtime
+    await utimes(pathToFile, 0, 0)
 
     expect(fileContents).toBe(text)
 
