@@ -12,7 +12,6 @@ proxy-uri.diff
 display-language.diff
 github-auth.diff
 unique-db.diff
-post-install.diff
 log-level.diff
 local-storage.diff
 service-worker.diff
