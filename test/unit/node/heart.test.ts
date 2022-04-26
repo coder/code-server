@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { readFile, writeFile, stat, open, utimes } from "fs/promises"
+import { readFile, writeFile, stat, utimes } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
