@@ -152,10 +152,20 @@ describe("ensureAddress", () => {
   it("should throw and error if no address", () => {
     expect(() => ensureAddress(mockServer, "http")).toThrow("Server has no address")
   })
-  it("should return the address if it exists", async () => {
-    mockServer.address = () => "http://localhost:8080/"
+  it("should return the address if it's a string", async () => {
+    mockServer.address = () => "/path/to/unix.sock"
     const address = ensureAddress(mockServer, "http")
-    expect(address.toString()).toBe(`http://localhost:8080/`)
+    expect(address.toString()).toBe(`/path/to/unix.sock`)
+  })
+  it("should construct URL with an IPv4 address", async () => {
+    mockServer.address = () => ({ address: "1.2.3.4", port: 5678, family: "IPv4" })
+    const address = ensureAddress(mockServer, "http")
+    expect(address.toString()).toBe(`http://1.2.3.4:5678/`)
+  })
+  it("should construct URL with an IPv6 address", async () => {
+    mockServer.address = () => ({ address: "a:b:c:d::1234", port: 5678, family: "IPv6" })
+    const address = ensureAddress(mockServer, "http")
+    expect(address.toString()).toBe(`http://[a:b:c:d::1234]:5678/`)
   })
 })
 
