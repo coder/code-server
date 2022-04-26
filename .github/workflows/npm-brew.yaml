@@ -45,10 +45,8 @@ jobs:
           NPM_ENVIRONMENT: "production"
 
   homebrew:
-    # The newest version of code-server needs to be available on npm when this runs
-    # otherwise, it will 404 and won't open a PR to bump version on homebrew/homebrew-core
     needs: npm
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       # Ensure things are up to date
       # Suggested by homebrew maintainers
@@ -60,16 +58,10 @@ jobs:
       - name: Checkout code-server
         uses: actions/checkout@v3
 
-      - name: Checkout cdrci/homebrew-core
-        uses: actions/checkout@v3
-        with:
-          repository: cdrci/homebrew-core
-          path: homebrew-core
-
       - name: Configure git
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name cdrci
+          git config user.email opensource@coder.com
 
       - name: Bump code-server homebrew version
         env:

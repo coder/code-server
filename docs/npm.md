@@ -20,11 +20,6 @@ If you're installing code-server via `npm`, you'll need to install additional
 dependencies required to build the native modules used by VS Code. This article
 includes installing instructions based on your operating system.
 
-> **WARNING**: Do not use `yarn` to install code-server. Unlike `npm`, it does not respect
-> lockfiles for distributed applications. It will instead use the latest version
-> available at installation time - which might not be the one used for a given
-> code-server release, and [might lead to unexpected behavior](https://github.com/coder/code-server/issues/4927).
-
 ## Node.js version
 
 We use the same major version of Node.js shipped with VSCode's Electron,
@@ -77,7 +72,7 @@ Proceed to [installing](#installing)
 ## FreeBSD
 
 ```sh
-pkg install -y git python npm-node14 pkgconf
+pkg install -y git python npm-node14 yarn-node14 pkgconf
 pkg install -y libinotify
 ```
 
@@ -90,7 +85,8 @@ Installing code-server requires all of the [prerequisites for VS Code developmen
 Next, install code-server with:
 
 ```bash
-npm install -g code-server
+yarn global add code-server
+# Or: npm install -g code-server
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -100,7 +96,8 @@ A `postinstall.sh` script will attempt to run. Select your terminal (e.g., Git b
 If the `code-server` command is not found, you'll need to [add a directory to your PATH](https://www.architectryan.com/2018/03/17/add-to-the-path-on-windows-10/). To find the directory, use the following command:
 
 ```shell
-npm config get prefix
+yarn global bin
+# Or: npm config get prefix
 ```
 
 For help and additional troubleshooting, see [#1397](https://github.com/coder/code-server/issues/1397).
@@ -110,7 +107,8 @@ For help and additional troubleshooting, see [#1397](https://github.com/coder/co
 After adding the dependencies for your OS, install the code-server package globally:
 
 ```bash
-npm install -g code-server
+yarn global add code-server
+# Or: npm install -g code-server
 code-server
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
@@ -124,7 +122,7 @@ page](https://github.com/coder/code-server/discussions).
 
 Occasionally, you may run into issues with Node.js.
 
-If you install code-server using `npm`, and you upgrade your Node.js
+If you install code-server using `yarn` or `npm`, and you upgrade your Node.js
 version, you may need to reinstall code-server to recompile native modules.
 Sometimes, you can get around this by navigating into code-server's `lib/vscode`
 directory and running `npm rebuild` to recompile the modules.
@@ -138,7 +136,7 @@ A step-by-step example of how you might do this is:
 
 ### Debugging install issues with npm
 
-To debug installation issues:
+`yarn` suppresses logs when running `yarn global add`, so to debug installation issues, install with `npm` instead:
 
 ```shell
 # Uninstall

@@ -39,7 +39,7 @@ jobs:
           node-version: "14"
 
       - name: Install helm
-        uses: azure/setup-helm@v1.1
+        uses: azure/setup-helm@v2.1
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -216,6 +216,26 @@ jobs:
           # NPM_ENVIRONMENT intentionally not set here.
           # Instead, itis determined in publish-npm.sh script
           # using GITHUB environment variables
+
+      - name: Comment npm information
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          header: npm-dev-build
+          message: |
+            ✨ code-server dev build published to npm for PR #${{ github.event.number }}!
+            * _Last publish status_: success
+            * _Commit_: ${{ github.event.pull_request.head.sha }}
+
+            To install in a local project, run:
+            ```shell-session
+            npm install @coder/code-server-pr@${{ github.event.number }}
+            ```
+
+            To install globally, run:
+            ```shell-session
+            npm install -g @coder/code-server-pr@${{ github.event.number }}
+            ```
 
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
@@ -475,6 +495,9 @@ jobs:
         run: rm -rf ./release-packages ./test/test-results
 
   trivy-scan-repo:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -483,7 +506,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
+        uses: aquasecurity/trivy-action@2b30463ddb3d11724a04e760e020c7d9af24d8b3
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -494,6 +517,6 @@ jobs:
           severity: "HIGH,CRITICAL"
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: "trivy-repo-results.sarif"

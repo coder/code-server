@@ -134,7 +134,7 @@ export class CodeServer {
       })
 
       proc.on("close", (code) => {
-        const error = new Error("code-server closed unexpectedly")
+        const error = new Error("code-server closed unexpectedly. Try running with LOG_LEVEL=debug to see more info.")
         if (!this.closed) {
           this.logger.error(error.message, field("code", code))
         }

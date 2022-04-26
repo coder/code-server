@@ -6,7 +6,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -198,6 +198,9 @@ export async function setupServerService
+@@ -188,6 +188,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/base/common/platform.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/platform.ts
 +++ code-server/lib/vscode/src/vs/base/common/platform.ts
-@@ -83,6 +83,17 @@ if (typeof navigator === 'object' && !is
+@@ -84,6 +84,17 @@ if (typeof navigator === 'object' && !is
  	_isWeb = true;
  	_locale = navigator.language;
  	_language = _locale;
@@ -79,7 +79,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +		} catch (error) { /* Probably fine. */ }
  		Object.keys(self.webPackagePaths).map(function (key, index) {
  			self.webPackagePaths[key] = new URL(
- 				`{{VS_BASE}}/static/remote/web/node_modules/${key}/${self.webPackagePaths[key]}`,
+ 				`{{VS_BASE}}/static/node_modules/${key}/${self.webPackagePaths[key]}`,
 @@ -52,7 +76,8 @@
  					return value;
  				}
@@ -185,7 +185,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
-@@ -301,7 +304,8 @@ export class WebClientServer {
+@@ -303,7 +306,8 @@ export class WebClientServer {
  			})))
  			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
  			.replace(/{{BASE}}/g, base)
@@ -252,7 +252,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -109,6 +109,10 @@ registerSingleton(ICustomEndpointTelemet
+@@ -111,6 +111,10 @@ registerSingleton(IDiagnosticsService, N
  
  //#region --- workbench contributions
  

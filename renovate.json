@@ -10,5 +10,6 @@
   ],
   "vulnerabilityAlerts": {
     "enabled": "true"
-  }
+  },
+  "ignoreDeps": ["express"]
 }

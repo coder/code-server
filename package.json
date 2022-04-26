@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "4.2.0",
+  "version": "4.3.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/coder/code-server",
   "bugs": {
@@ -24,6 +24,7 @@
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
     "publish:npm": "./ci/steps/publish-npm.sh",
+    "publish:docker": "./ci/steps/docker-buildx-push.sh",
     "_audit": "./ci/dev/audit.sh",
     "fmt": "./ci/dev/fmt.sh",
     "lint": "./ci/dev/lint.sh",
@@ -61,7 +62,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "json": "^11.0.0",
     "prettier": "^2.2.1",
-    "prettier-plugin-sh": "^0.8.0",
+    "prettier-plugin-sh": "^0.10.0",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
@@ -84,7 +85,7 @@
     "follow-redirects": "^1.14.8",
     "node-fetch": "^2.6.7",
     "nanoid": "^3.1.31",
-    "minimist": "npm:minimist-lite@2.2.0"
+    "minimist": "npm:minimist-lite@2.2.1"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",

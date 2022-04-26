@@ -42,6 +42,7 @@ describe("parser", () => {
   beforeEach(() => {
     delete process.env.LOG_LEVEL
     delete process.env.PASSWORD
+    delete process.env.CS_DISABLE_FILE_DOWNLOADS
     console.log = jest.fn()
   })
 
@@ -92,6 +93,8 @@ describe("parser", () => {
 
           "--port=8081",
 
+          "--disable-file-downloads",
+
           ["--host", "0.0.0.0"],
           "4",
           "--",
@@ -108,6 +111,7 @@ describe("parser", () => {
       cert: {
         value: path.resolve("path/to/cert"),
       },
+      "disable-file-downloads": true,
       enable: ["feature1", "feature2"],
       help: true,
       host: "0.0.0.0",
@@ -344,6 +348,30 @@ describe("parser", () => {
       "github-auth": "ga-foo",
     })
     expect(process.env.GITHUB_TOKEN).toBe(undefined)
+  })
+
+  it("should use env var CS_DISABLE_FILE_DOWNLOADS", async () => {
+    process.env.CS_DISABLE_FILE_DOWNLOADS = "1"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-file-downloads": true,
+    })
+  })
+
+  it("should use env var CS_DISABLE_FILE_DOWNLOADS set to true", async () => {
+    process.env.CS_DISABLE_FILE_DOWNLOADS = "true"
+    const args = parse([])
+    expect(args).toEqual({})
+
+    const defaultArgs = await setDefaults(args)
+    expect(defaultArgs).toEqual({
+      ...defaults,
+      "disable-file-downloads": true,
+    })
   })
 
   it("should error if password passed in", () => {

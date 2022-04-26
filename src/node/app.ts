@@ -94,7 +94,8 @@ export const ensureAddress = (server: http.Server, protocol: string): URL | stri
   }
 
   if (typeof addr !== "string") {
-    return new URL(`${protocol}://${addr.address}:${addr.port}`)
+    const host = addr.family === "IPv6" ? `[${addr.address}]` : addr.address
+    return new URL(`${protocol}://${host}:${addr.port}`)
   }
 
   // If this is a string then it is a pipe or Unix socket.

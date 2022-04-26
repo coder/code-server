@@ -49,6 +49,7 @@ export interface UserProvidedCodeArgs {
   category?: string
   "github-auth"?: string
   "disable-update-check"?: boolean
+  "disable-file-downloads"?: boolean
 }
 
 /**
@@ -156,6 +157,10 @@ export const options: Options<Required<UserProvidedArgs>> = {
     description:
       "Disable update check. Without this flag, code-server checks every 6 hours against the latest github release and \n" +
       "then notifies you once every week that a new release is available.",
+  },
+  "disable-file-downloads": {
+    type: "boolean",
+    description: "Disable file downloads from Code.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
@@ -535,6 +540,10 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
   let usingEnvPassword = !!process.env.PASSWORD
   if (process.env.PASSWORD) {
     args.password = process.env.PASSWORD
+  }
+
+  if (process.env.CS_DISABLE_FILE_DOWNLOADS?.match(/^(1|true)$/)) {
+    args["disable-file-downloads"] = true
   }
 
   const usingEnvHashedPassword = !!process.env.HASHED_PASSWORD
