@@ -11,7 +11,7 @@ Index: code-server/lib/vscode/build/gulpfile.reh.js
 ===================================================================
 --- code-server.orig/lib/vscode/build/gulpfile.reh.js
 +++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -124,9 +124,7 @@ const serverWithWebEntryPoints = [
+@@ -125,9 +125,7 @@ const serverWithWebEntryPoints = [
  ];
  
  function getNodeVersion() {
@@ -35,7 +35,7 @@ Index: code-server/lib/vscode/build/lib/node.js
 -const version = /^target\s+"([^"]+)"$/m.exec(yarnrc)[1];
 +const version = process.versions.node;
  const platform = process.platform;
- const arch = platform === 'darwin' ? 'x64' : process.arch;
+ const arch = process.arch;
  const node = platform === 'win32' ? 'node.exe' : 'node';
 Index: code-server/lib/vscode/build/lib/node.ts
 ===================================================================
@@ -51,7 +51,7 @@ Index: code-server/lib/vscode/build/lib/node.ts
 +const version = process.versions.node;
  
  const platform = process.platform;
- const arch = platform === 'darwin' ? 'x64' : process.arch;
+ const arch = process.arch;
 Index: code-server/lib/vscode/build/lib/util.js
 ===================================================================
 --- code-server.orig/lib/vscode/build/lib/util.js
@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/build/lib/util.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/lib/util.ts
 +++ code-server/lib/vscode/build/lib/util.ts
-@@ -371,9 +371,7 @@ export function streamToPromise(stream: 
+@@ -371,9 +371,7 @@ export function streamToPromise(stream:
  }
  
  export function getElectronVersion(): string {
@@ -87,21 +87,3 @@ Index: code-server/lib/vscode/build/lib/util.ts
  	return result;
  }
 -
-Index: code-server/lib/vscode/remote/.yarnrc
-===================================================================
---- code-server.orig/lib/vscode/remote/.yarnrc
-+++ /dev/null
-@@ -1,4 +0,0 @@
--disturl "http://nodejs.org/dist"
--target "14.16.0"
--runtime "node"
--build_from_source "true"
-Index: code-server/lib/vscode/.yarnrc
-===================================================================
---- code-server.orig/lib/vscode/.yarnrc
-+++ /dev/null
-@@ -1,4 +0,0 @@
--disturl "https://electronjs.org/headers"
--target "13.5.2"
--runtime "electron"
--build_from_source "true"
