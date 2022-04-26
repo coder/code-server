@@ -29,11 +29,11 @@ describe("Heart", () => {
   })
   it("should write to a file when given a valid file path", async () => {
     // Set up heartbeat file with contents
-    const before = Date.now()
     const text = "test"
     const pathToFile = `${testDir}/file.txt`
     await writeFile(pathToFile, text)
     const fileContents = await readFile(pathToFile, { encoding: "utf8" })
+    const fileStatusBeforeEdit = await stat(pathToFile)
     expect(fileContents).toBe(text)
 
     heart = new Heart(pathToFile, mockIsActive(true))
@@ -42,8 +42,8 @@ describe("Heart", () => {
     const fileContentsAfterBeat = await readFile(pathToFile, { encoding: "utf8" })
     expect(fileContentsAfterBeat).not.toBe(text)
     // Make sure the modified timestamp was updated.
-    const status = await stat(pathToFile)
-    expect(status.mtimeMs).toBeGreaterThan(before)
+    const fileStatusAfterEdit = await stat(pathToFile)
+    expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThan(fileStatusBeforeEdit.mtimeMs)
   })
   it("should log a warning when given an invalid file path", async () => {
     heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
