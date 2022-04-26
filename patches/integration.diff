@@ -21,8 +21,12 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from 'vs/platform/product/common/product';
  import * as perf from 'vs/base/common/performance';
  
-@@ -33,37 +33,42 @@ const errorReporter: ErrorReporter = {
- 	}
+@@ -30,41 +30,46 @@ const errorReporter: ErrorReporter = {
+ 
+ 	onDeprecatedOption: (deprecatedOption: string, message) => {
+ 		console.warn(`Option '${deprecatedOption}' is deprecated: ${message}`);
+-	}
++	},
  };
  
 -const args = parseArgs(process.argv.slice(2), serverOptions, errorReporter);
@@ -34,6 +38,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
 -const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 -const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
+-const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 -const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 -args['user-data-dir'] = USER_DATA_PATH;
 -const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
@@ -41,7 +46,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 -args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 -
--[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
+-[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME, LOCAL_HISTORY_HOME].forEach(f => {
 -	try {
 -		if (!fs.existsSync(f)) {
 -			fs.mkdirSync(f, { mode: 0o700 });
@@ -53,6 +58,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	const USER_DATA_PATH = args['user-data-dir'] || join(REMOTE_DATA_FOLDER, 'data');
 +	const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 +	const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
++	const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 +	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 +	args['user-data-dir'] = USER_DATA_PATH;
 +	const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
@@ -60,14 +66,14 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 +	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 +
-+	[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
++	[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME, LOCAL_HISTORY_HOME].forEach(f => {
 +		try {
 +			if (!fs.existsSync(f)) {
 +				fs.mkdirSync(f, { mode: 0o700 });
 +			}
 +		} catch (err) { console.error(err); }
 +	});
-+	return REMOTE_DATA_FOLDER
++	return REMOTE_DATA_FOLDER;
 +}
  
  /**
@@ -261,9 +267,9 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -279,6 +279,7 @@ export class WebClientServer {
- 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -285,6 +285,7 @@ export class WebClientServer {
+ 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  				productConfiguration: <Partial<IProductConfiguration>>{
 +					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
