@@ -38,12 +38,16 @@ describe("Heart", () => {
 
     heart = new Heart(pathToFile, mockIsActive(true))
     heart.beat()
+    // HACK@jsjoeio - beat has some async logic but is not an async method
+    // Therefore, we have to create an artificial wait in order to make sure
+    // all async code has completed before asserting
+    await new Promise((r) => setTimeout(r, 100))
     // Check that the heart wrote to the heartbeatFilePath and overwrote our text
     const fileContentsAfterBeat = await readFile(pathToFile, { encoding: "utf8" })
     expect(fileContentsAfterBeat).not.toBe(text)
     // Make sure the modified timestamp was updated.
     const fileStatusAfterEdit = await stat(pathToFile)
-    expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThan(fileStatusBeforeEdit.mtimeMs)
+    expect(fileStatusAfterEdit.mtimeMs).toBeGreaterThanOrEqual(fileStatusBeforeEdit.mtimeMs)
   })
   it("should log a warning when given an invalid file path", async () => {
     heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
@@ -52,7 +56,6 @@ describe("Heart", () => {
     // Therefore, we have to create an artificial wait in order to make sure
     // all async code has completed before asserting
     await new Promise((r) => setTimeout(r, 100))
-    // expect(logger.trace).toHaveBeenCalled()
     expect(logger.warn).toHaveBeenCalled()
   })
   it("should be active after calling beat", () => {
