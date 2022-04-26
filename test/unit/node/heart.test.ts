@@ -1,5 +1,5 @@
 import { logger } from "@coder/logger"
-import { readFile, writeFile } from "fs/promises"
+import { readFile, writeFile, stat } from "fs/promises"
 import { Heart, heartbeatTimer } from "../../../src/node/heart"
 import { clean, mockLogger, tmpdir } from "../../utils/helpers"
 
@@ -29,6 +29,7 @@ describe("Heart", () => {
   })
   it("should write to a file when given a valid file path", async () => {
     // Set up heartbeat file with contents
+    const before = Date.now()
     const text = "test"
     const pathToFile = `${testDir}/file.txt`
     await writeFile(pathToFile, text)
@@ -40,6 +41,9 @@ describe("Heart", () => {
     // Check that the heart wrote to the heartbeatFilePath and overwrote our text
     const fileContentsAfterBeat = await readFile(pathToFile, { encoding: "utf8" })
     expect(fileContentsAfterBeat).not.toBe(text)
+    // Make sure the modified timestamp was updated.
+    const status = await stat(pathToFile)
+    expect(status.mtimeMs).toBeGreaterThan(before)
   })
   it("should log a warning when given an invalid file path", async () => {
     heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
