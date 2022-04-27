@@ -159,7 +159,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -252,7 +252,10 @@ export class WebClientServer {
+@@ -253,7 +253,10 @@ export class WebClientServer {
  			return res.end();
  		}
  
@@ -171,7 +171,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		function escapeAttribute(value: string): string {
  			return value.replace(/"/g, '&quot;');
-@@ -272,6 +275,8 @@ export class WebClientServer {
+@@ -275,6 +278,8 @@ export class WebClientServer {
  			accessToken: this._environmentService.args['github-auth'],
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
@@ -180,15 +180,15 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
-@@ -279,6 +284,7 @@ export class WebClientServer {
- 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -285,6 +290,7 @@ export class WebClientServer {
+ 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  				productConfiguration: <Partial<IProductConfiguration>>{
 +					rootEndpoint: base,
  					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
  					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
-@@ -291,7 +297,9 @@ export class WebClientServer {
+@@ -297,7 +303,9 @@ export class WebClientServer {
  					} : undefined
  				}
  			})))
@@ -199,7 +199,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const cspDirectives = [
  			'default-src \'self\';',
-@@ -370,3 +378,70 @@ export class WebClientServer {
+@@ -376,3 +384,70 @@ export class WebClientServer {
  		return res.end(data);
  	}
  }

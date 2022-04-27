@@ -100,8 +100,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -286,6 +286,7 @@ export class WebClientServer {
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+@@ -292,6 +292,7 @@ export class WebClientServer {
+ 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  				productConfiguration: <Partial<IProductConfiguration>>{
  					rootEndpoint: base,
 +					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
@@ -121,7 +121,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -84,6 +86,8 @@ export const serverOptions: OptionDescri
+@@ -88,6 +90,8 @@ export const serverOptions: OptionDescri
  };
  
  export interface ServerParsedArgs {
