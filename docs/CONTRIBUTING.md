@@ -96,8 +96,8 @@ re-apply the patches.
 ### Version updates to Code
 
 1. Update the `lib/vscode` submodule to the desired upstream version branch.
-1. `cd lib/vscode && git checkout release/1.66`
-1. `git add lib && git commit -m "chore: update Code"`
+   1. `cd lib/vscode && git checkout release/1.66`
+   1. `git add lib && git commit -m "chore: update Code"`
 1. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
    stage you may need to resolve conflicts. For example use `quilt push -f`,
    manually apply the rejected portions, then `quilt refresh`.
