@@ -97,16 +97,16 @@ re-apply the patches.
 
 1. Update the `lib/vscode` submodule to the desired upstream version branch.
    1. `cd lib/vscode && git checkout release/1.66`
-   1. `git add lib && git commit -m "chore: update Code"`
-1. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
+   2. `git add lib && git commit -m "chore: update Code"`
+2. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
    stage you may need to resolve conflicts. For example use `quilt push -f`,
    manually apply the rejected portions, then `quilt refresh`.
-1. From the code-server **project root**, run `yarn install`.
-1. Test code-server locally to make sure everything works.
-1. Check the Node.js version that's used by Electron (which is shipped with VS
+3. From the code-server **project root**, run `yarn install`.
+4. Test code-server locally to make sure everything works.
+5. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
-1. Commit the updated submodule and patches to `code-server`.
-1. Open a PR.
+6. Commit the updated submodule and patches to `code-server`.
+7. Open a PR.
 
 ### Patching Code
 
