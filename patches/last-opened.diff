@@ -1,8 +1,0 @@
-Remove last opened functionality
-
-This conflicts with our own handling of the last opened workspace.  If we wanted
-to switch to this we would need to pass through the disable-last-opened flag and
-respect it here then remove our own redirction code that handles this.
-
-Our version might be better anyway since it puts the workspace in the URL.
-
