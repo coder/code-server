@@ -203,8 +203,9 @@ class ChildProcess extends Process {
 
 /**
  * Parent process wrapper that spawns the child process and performs a handshake
- * with it. Will relaunch the child if it receives a SIGUSR1 or is asked to by
- * the child. If the child otherwise exits the parent will also exit.
+ * with it. Will relaunch the child if it receives a SIGUSR1 or SIGUSR2 or is
+ * asked to by the child. If the child otherwise exits the parent will also
+ * exit.
  */
 export class ParentProcess extends Process {
   public logger = logger.named(`parent:${process.pid}`)
@@ -224,6 +225,11 @@ export class ParentProcess extends Process {
 
     process.on("SIGUSR1", async () => {
       this.logger.info("Received SIGUSR1; hotswapping")
+      this.relaunch()
+    })
+
+    process.on("SIGUSR2", async () => {
+      this.logger.info("Received SIGUSR2; hotswapping")
       this.relaunch()
     })
 
