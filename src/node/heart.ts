@@ -20,20 +20,28 @@ export class Heart {
    * timeout and start or reset a timer that keeps running as long as there is
    * activity. Failures are logged as warnings.
    */
-  public beat(): void {
+  public async beat(): Promise<void> {
     if (this.alive()) {
       return
     }
 
     logger.trace("heartbeat")
-    fs.writeFile(this.heartbeatPath, "").catch((error) => {
+    try {
+      await fs.writeFile(this.heartbeatPath, "")
+    } catch (error: any) {
       logger.warn(error.message)
-    })
+    }
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    this.heartbeatTimer = setTimeout(async () => {
+      try {
+        await heartbeatTimer(this.isActive, this.beat)
+      } catch (error: any) {
+        logger.warn(error.message)
+      }
+    }, this.heartbeatInterval)
   }
 
   /**
