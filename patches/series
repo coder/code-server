@@ -10,7 +10,6 @@ logout.diff
 store-socket.diff
 proxy-uri.diff
 display-language.diff
-github-auth.diff
 unique-db.diff
 log-level.diff
 local-storage.diff
