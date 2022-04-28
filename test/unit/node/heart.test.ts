@@ -75,6 +75,7 @@ describe("Heart", () => {
     const isAlive = heart.alive()
     expect(isAlive).toBe(false)
   })
+  it.todo("should beat twice without warnings")
 })
 
 describe("heartbeatTimer", () => {
