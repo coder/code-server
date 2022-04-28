@@ -68,7 +68,17 @@ describe("Heart", () => {
     const isAlive = heart.alive()
     expect(isAlive).toBe(false)
   })
-  it.todo("should beat twice without warnings")
+  it("should beat twice without warnings", async () => {
+    // Use fake timers so we can speed up setTimeout
+    jest.useFakeTimers()
+    heart = new Heart(`${testDir}/hello.txt`, mockIsActive(true))
+    await heart.beat()
+    // we need to speed up clocks, timeouts
+    // call heartbeat again (and it won't be alive I think)
+    // then assert no warnings were called
+    jest.runAllTimers()
+    expect(logger.warn).not.toHaveBeenCalled()
+  })
 })
 
 describe("heartbeatTimer", () => {
