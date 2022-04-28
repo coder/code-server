@@ -4,8 +4,12 @@ Previously it would use the yarnrc which results in builds that cannot run with
 the version of Node they were built with because the native modules are
 targeting the wrong version.
 
-One way test this is to build in a fresh Docker container, run the build, then
-try opening the built-in terminal.
+To test this:
+
+1. build fresh Coder workspace
+2. clone code-server
+3. `yarn watch`
+4. test built-in terminal
 
 Index: code-server/lib/vscode/build/gulpfile.reh.js
 ===================================================================
