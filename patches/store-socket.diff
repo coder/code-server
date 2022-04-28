@@ -3,6 +3,12 @@ Store a static reference to the IPC socket
 This lets us use it to open files inside code-server from outside of
 code-server.
 
+To test this:
+1. run code-server
+2. open file outside of code-server i.e. `code-server <path-to-file`
+
+It should open in your existing code-server instance.
+
 Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.ts
