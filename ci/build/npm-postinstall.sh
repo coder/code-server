@@ -92,7 +92,7 @@ symlink_asar() {
 vscode_yarn() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  yarn --production --frozen-lockfile
+  yarn --production --frozen-lockfile --no-default-rc
 
   symlink_asar
 
