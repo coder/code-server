@@ -75,7 +75,7 @@ Index: code-server/lib/vscode/build/lib/util.ts
 ===================================================================
 --- code-server.orig/lib/vscode/build/lib/util.ts
 +++ code-server/lib/vscode/build/lib/util.ts
-@@ -371,9 +371,7 @@ export function streamToPromise(stream:
+@@ -371,9 +371,7 @@ export function streamToPromise(stream: 
  }
  
  export function getElectronVersion(): string {
@@ -91,3 +91,21 @@ Index: code-server/lib/vscode/build/lib/util.ts
  	return result;
  }
 -
+Index: code-server/lib/vscode/build/npm/preinstall.js
+===================================================================
+--- code-server.orig/lib/vscode/build/npm/preinstall.js
++++ code-server/lib/vscode/build/npm/preinstall.js
+@@ -32,6 +32,13 @@ if (!/yarn[\w-.]*\.c?js$|yarnpkg$/.test(
+ 	err = true;
+ }
+ 
++fs.rmSync(path.join(__dirname, '..', '..', '.yarnrc'), {
++	force: true
++});
++fs.rmSync(path.join(__dirname, '..', '..', 'remote', '.yarnrc'), {
++	force: true
++});
++
+ if (process.platform === 'win32') {
+ 	if (!hasSupportedVisualStudioVersion()) {
+ 		console.error('\033[1;31m*** Invalid C/C++ Compiler Toolchain. Please check https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites.\033[0;0m');
