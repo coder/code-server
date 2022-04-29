@@ -81,6 +81,9 @@ export class CodeServer {
       path.join(dir, "User/settings.json"),
       JSON.stringify({
         "workbench.startupEditor": "none",
+        // NOTE@jsjoeio - needed to prevent Trust Policy prompt
+        // in end-to-end tests.
+        "security.workspace.trust.enabled": false,
       }),
       "utf8",
     )
