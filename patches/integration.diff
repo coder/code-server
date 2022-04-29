@@ -21,12 +21,8 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from 'vs/platform/product/common/product';
  import * as perf from 'vs/base/common/performance';
  
-@@ -30,41 +30,46 @@ const errorReporter: ErrorReporter = {
- 
- 	onDeprecatedOption: (deprecatedOption: string, message) => {
- 		console.warn(`Option '${deprecatedOption}' is deprecated: ${message}`);
--	}
-+	},
+@@ -33,38 +33,43 @@ const errorReporter: ErrorReporter = {
+ 	}
  };
  
 -const args = parseArgs(process.argv.slice(2), serverOptions, errorReporter);
