@@ -132,6 +132,8 @@ yarn build:vscode
 yarn release
 ```
 
+_NOTE: this does not keep `node_modules`. If you want them to be kept, use `KEEP_MODULES=1 yarn release` (if you're testing in Coder, you'll want to do this)_
+
 Run your build:
 
 ```shell
