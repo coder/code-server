@@ -23,6 +23,7 @@ describe("Heart", () => {
   })
   afterEach(() => {
     jest.resetAllMocks()
+    jest.useRealTimers()
     if (heart) {
       heart.dispose()
     }
@@ -42,11 +43,7 @@ describe("Heart", () => {
     expect(fileContents).toBe(text)
 
     heart = new Heart(pathToFile, mockIsActive(true))
-    heart.beat()
-    // HACK@jsjoeio - beat has some async logic but is not an async method
-    // Therefore, we have to create an artificial wait in order to make sure
-    // all async code has completed before asserting
-    await new Promise((r) => setTimeout(r, 100))
+    await heart.beat()
     // Check that the heart wrote to the heartbeatFilePath and overwrote our text
     const fileContentsAfterBeat = await readFile(pathToFile, { encoding: "utf8" })
     expect(fileContentsAfterBeat).not.toBe(text)
@@ -56,15 +53,11 @@ describe("Heart", () => {
   })
   it("should log a warning when given an invalid file path", async () => {
     heart = new Heart(`fakeDir/fake.txt`, mockIsActive(false))
-    heart.beat()
-    // HACK@jsjoeio - beat has some async logic but is not an async method
-    // Therefore, we have to create an artificial wait in order to make sure
-    // all async code has completed before asserting
-    await new Promise((r) => setTimeout(r, 100))
+    await heart.beat()
     expect(logger.warn).toHaveBeenCalled()
   })
-  it("should be active after calling beat", () => {
-    heart.beat()
+  it("should be active after calling beat", async () => {
+    await heart.beat()
 
     const isAlive = heart.alive()
     expect(isAlive).toBe(true)
@@ -74,6 +67,17 @@ describe("Heart", () => {
 
     const isAlive = heart.alive()
     expect(isAlive).toBe(false)
+  })
+  it("should beat twice without warnings", async () => {
+    // Use fake timers so we can speed up setTimeout
+    jest.useFakeTimers()
+    heart = new Heart(`${testDir}/hello.txt`, mockIsActive(true))
+    await heart.beat()
+    // we need to speed up clocks, timeouts
+    // call heartbeat again (and it won't be alive I think)
+    // then assert no warnings were called
+    jest.runAllTimers()
+    expect(logger.warn).not.toHaveBeenCalled()
   })
 })
 
