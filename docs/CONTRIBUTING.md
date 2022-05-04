@@ -96,6 +96,8 @@ re-apply the patches.
 ### Version updates to Code
 
 1. Update the `lib/vscode` submodule to the desired upstream version branch.
+   1. `cd lib/vscode && git checkout release/1.66 && cd ../..`
+   2. `git add lib && git commit -m "chore: update Code"`
 2. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
    stage you may need to resolve conflicts. For example use `quilt push -f`,
    manually apply the rejected portions, then `quilt refresh`.
@@ -130,11 +132,13 @@ yarn build:vscode
 yarn release
 ```
 
+_NOTE: this does not keep `node_modules`. If you want them to be kept, use `KEEP_MODULES=1 yarn release` (if you're testing in Coder, you'll want to do this)_
+
 Run your build:
 
 ```shell
 cd release
-yarn --production
+yarn --production # Skip if you used KEEP_MODULES=1
 # Runs the built JavaScript with Node.
 node .
 ```

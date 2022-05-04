@@ -33,8 +33,8 @@ main() {
     echo "USE AT YOUR OWN RISK!"
   fi
 
-  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-14}" ]; then
-    echo "ERROR: code-server currently requires node v14."
+  if [ "$major_node_version" -ne "${FORCE_NODE_VERSION:-16}" ]; then
+    echo "ERROR: code-server currently requires node v16."
     if [ -n "$FORCE_NODE_VERSION" ]; then
       echo "However, you have overrided the version check to use v$FORCE_NODE_VERSION."
     fi
@@ -92,7 +92,7 @@ symlink_asar() {
 vscode_yarn() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  yarn --production --frozen-lockfile
+  yarn --production --frozen-lockfile --no-default-rc
 
   symlink_asar
 

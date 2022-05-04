@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -210,6 +210,11 @@ export interface IWorkbenchConstructionO
+@@ -215,6 +215,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -66,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -92,6 +93,7 @@ export interface ServerParsedArgs {
+@@ -96,6 +97,7 @@ export interface ServerParsedArgs {
  	'disable-update-check'?: boolean;
  	'auth'?: string
  	'locale'?: string
@@ -78,14 +78,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -290,6 +290,7 @@ export class WebClientServer {
+@@ -293,6 +293,7 @@ export class WebClientServer {
  					logLevel: this._logService.getLevel(),
  				},
  				userDataPath: this._environmentService.userDataPath,
 +				isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
- 				productConfiguration: <Partial<IProductConfiguration>>{
- 					rootEndpoint: base,
+ 				enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
+ 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
 Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
@@ -135,7 +135,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
-@@ -21,7 +21,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
+@@ -22,7 +22,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
  import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
  import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
  import { Schemas } from 'vs/base/common/network';
@@ -144,7 +144,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/platform/theme/common/themeService';
-@@ -475,13 +475,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -476,13 +476,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},

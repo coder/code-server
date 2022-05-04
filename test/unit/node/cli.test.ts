@@ -458,7 +458,7 @@ describe("cli", () => {
 
   beforeEach(async () => {
     delete process.env.VSCODE_IPC_HOOK_CLI
-    await fs.rmdir(vscodeIpcPath, { recursive: true })
+    await fs.rm(vscodeIpcPath, { force: true, recursive: true })
   })
 
   it("should use existing if inside code-server", async () => {

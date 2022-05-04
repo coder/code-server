@@ -53,7 +53,7 @@ describe("SocketProxyProvider", () => {
 
     await fs.mkdir(path.join(tmpdir, "tests"), { recursive: true })
     const socketPath = await provider.findFreeSocketPath(path.join(tmpdir, "tests/tls-socket-proxy"))
-    await fs.rmdir(socketPath, { recursive: true })
+    await fs.rm(socketPath, { force: true, recursive: true })
 
     return new Promise<void>((_resolve) => {
       const resolved: { [key: string]: boolean } = { client: false, server: false }
