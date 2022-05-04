@@ -17,4 +17,3 @@ service-worker.diff
 connection-type.diff
 sourcemaps.diff
 disable-downloads.diff
-parent-origin.diff

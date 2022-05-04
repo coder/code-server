@@ -15,6 +15,9 @@ Since this code exists only for the authentication case we can just skip it when
 it is served from the current host as authentication is not a problem if the
 request is not cross-origin.
 
+There is also an origin check we bypass (this seems to be related to how the
+webview host is separate by default but we serve on the same host).
+
 To test, open a few types of webviews (images, markdown, extension details, etc).
 
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
@@ -74,3 +77,20 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/servi
  		switch (event.request.method) {
  			case 'GET':
  			case 'HEAD':
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -318,6 +318,12 @@ const hostMessaging = new class HostMess
+ 
+ 		const hostname = location.hostname;
+ 
++		// It is safe to run if we are on the same host.
++		const parent = new URL(parentOrigin)
++		if (parent.hostname === location.hostname) {
++			return start(parentOrigin)
++		}
++
+ 		if (!crypto.subtle) {
+ 			// cannot validate, not running in a secure context
+ 			throw new Error(`Cannot validate in current context!`);
