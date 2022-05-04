@@ -38,13 +38,7 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(async () => {
-      try {
-        await heartbeatTimer(this.isActive, this.beat)
-      } catch (error: any) {
-        logger.warn(error.message)
-      }
-    }, this.heartbeatInterval)
+    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
   }
 
   /**
