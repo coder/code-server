@@ -18,3 +18,4 @@ service-worker.diff
 connection-type.diff
 sourcemaps.diff
 disable-downloads.diff
+telemetry.diff
