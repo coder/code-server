@@ -7,6 +7,9 @@ install-deps() {
   if [[ ${CI-} ]]; then
     args+=(--frozen-lockfile)
   fi
+  if [[ "$1" == "lib/vscode" ]]; then
+    args+=(--no-default-rc)
+  fi
   # If there is no package.json then yarn will look upward and end up installing
   # from the root resulting in an infinite loop (this can happen if you have not
   # checked out the submodule yet for example).

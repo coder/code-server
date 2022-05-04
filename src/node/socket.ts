@@ -77,7 +77,7 @@ export class SocketProxyProvider {
           this.proxyPipe = pipe
           return Promise.all([
             fs.mkdir(path.dirname(this.proxyPipe), { recursive: true }),
-            fs.rmdir(this.proxyPipe, { recursive: true }),
+            fs.rm(this.proxyPipe, { force: true, recursive: true }),
           ])
         })
         .then(() => {

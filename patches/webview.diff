@@ -15,13 +15,16 @@ Since this code exists only for the authentication case we can just skip it when
 it is served from the current host as authentication is not a problem if the
 request is not cross-origin.
 
+There is also an origin check we bypass (this seems to be related to how the
+webview host is separate by default but we serve on the same host).
+
 To test, open a few types of webviews (images, markdown, extension details, etc).
 
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -176,7 +176,7 @@ export class BrowserWorkbenchEnvironment
+@@ -179,7 +179,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -34,7 +37,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -280,6 +280,7 @@ export class WebClientServer {
+@@ -283,6 +283,7 @@ export class WebClientServer {
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
@@ -46,7 +49,7 @@ Index: code-server/lib/vscode/src/vs/workbench/common/webview.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/common/webview.ts
 +++ code-server/lib/vscode/src/vs/workbench/common/webview.ts
-@@ -24,7 +24,7 @@ export const webviewResourceBaseHost = '
+@@ -22,7 +22,7 @@ export const webviewResourceBaseHost = '
  
  export const webviewRootResourceAuthority = `vscode-resource.${webviewResourceBaseHost}`;
  
@@ -74,3 +77,20 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/servi
  		switch (event.request.method) {
  			case 'GET':
  			case 'HEAD':
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -318,6 +318,12 @@ const hostMessaging = new class HostMess
+ 
+ 		const hostname = location.hostname;
+ 
++		// It is safe to run if we are on the same host.
++		const parent = new URL(parentOrigin)
++		if (parent.hostname === location.hostname) {
++			return start(parentOrigin)
++		}
++
+ 		if (!crypto.subtle) {
+ 			// cannot validate, not running in a secure context
+ 			throw new Error(`Cannot validate in current context!`);

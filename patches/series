@@ -1,9 +1,9 @@
 integration.diff
-node-version.diff
 base-path.diff
 proposed-api.diff
 marketplace.diff
 webview.diff
+disable-builtin-ext-update.diff
 insecure-notification.diff
 update-check.diff
 logout.diff
@@ -12,7 +12,6 @@ proxy-uri.diff
 display-language.diff
 github-auth.diff
 unique-db.diff
-post-install.diff
 log-level.diff
 local-storage.diff
 service-worker.diff

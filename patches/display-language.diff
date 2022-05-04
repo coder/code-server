@@ -6,7 +6,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -188,6 +188,9 @@ export async function setupServerService
+@@ -192,6 +192,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -94,7 +94,7 @@ Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentServ
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
-@@ -105,7 +105,7 @@ export abstract class AbstractNativeEnvi
+@@ -108,7 +108,7 @@ export abstract class AbstractNativeEnvi
  			return URI.file(join(vscodePortable, 'argv.json'));
  		}
  
@@ -168,7 +168,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -26,6 +26,7 @@ import { URI } from 'vs/base/common/uri'
+@@ -27,6 +27,7 @@ import { URI } from 'vs/base/common/uri'
  import { streamToBuffer } from 'vs/base/common/buffer';
  import { IProductConfiguration } from 'vs/base/common/product';
  import { isString } from 'vs/base/common/types';
@@ -176,7 +176,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  const textMimeType = {
  	'.html': 'text/html',
-@@ -277,6 +278,8 @@ export class WebClientServer {
+@@ -280,6 +281,8 @@ export class WebClientServer {
  		} : undefined;
  		const base = relativeRoot(getOriginalUrl(req))
  		const vscodeBase = relativePath(getOriginalUrl(req))
@@ -185,7 +185,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
-@@ -303,7 +306,8 @@ export class WebClientServer {
+@@ -309,7 +312,8 @@ export class WebClientServer {
  			})))
  			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
  			.replace(/{{BASE}}/g, base)
@@ -207,7 +207,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -90,6 +91,7 @@ export interface ServerParsedArgs {
+@@ -94,6 +95,7 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string
@@ -252,7 +252,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -111,6 +111,10 @@ registerSingleton(IDiagnosticsService, N
+@@ -112,6 +112,10 @@ registerSingleton(IDiagnosticsService, N
  
  //#region --- workbench contributions
  

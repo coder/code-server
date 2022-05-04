@@ -5,7 +5,12 @@ may think code-server is broken.  Ideally there would be a notification at the
 point where these things are used instead of this though.
 
 To test access over something like an HTTP domain or an IP address (not
-localhost).
+localhost). For example:
+
+1. run code-server
+2. use ngrok to expose code-server
+3. access via HTTP
+4. look for notification in bottom right
 
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
@@ -15,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  import { Disposable } from 'vs/base/common/lifecycle';
 +import { localize } from 'vs/nls';
 +import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
- 
+
  export class CodeServerClient extends Disposable {
  	constructor (
 +		@INotificationService private notificationService: INotificationService,

@@ -29,7 +29,7 @@ export function mockLogger() {
  */
 export async function clean(testName: string): Promise<void> {
   const dir = path.join(os.tmpdir(), `code-server/tests/${testName}`)
-  await fs.rmdir(dir, { recursive: true })
+  await fs.rm(dir, { force: true, recursive: true })
 }
 
 /**

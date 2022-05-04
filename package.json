@@ -122,7 +122,7 @@
     "browser-ide"
   ],
   "engines": {
-    "node": ">= 14"
+    "node": "16"
   },
   "jest": {
     "transform": {

@@ -33,10 +33,10 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install helm
         uses: azure/setup-helm@v2.1
@@ -74,10 +74,10 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -116,10 +116,10 @@ jobs:
       - name: Patch Code
         run: quilt push -a
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -253,15 +253,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install development tools
         run: |
           yum install -y epel-release centos-release-scl
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
 
       - name: Install nfpm and envsubst
         run: |
@@ -337,7 +337,7 @@ jobs:
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
       NPM_CONFIG_ARCH: ${{ matrix.arch }}
-      NODE_VERSION: v14.17.4
+      NODE_VERSION: v16.13.0
 
     steps:
       - name: Checkout repo
@@ -345,10 +345,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install nfpm
         run: |
@@ -397,10 +397,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install nfpm
         run: |
@@ -446,10 +446,10 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
