@@ -22,8 +22,8 @@ includes installing instructions based on your operating system.
 
 ## Node.js version
 
-We use the same major version of Node.js shipped with VSCode's Electron,
-which is currently `14.x`. VS Code also [lists Node.js
+We use the same major version of Node.js shipped with Code's remote, which is
+currently `16.x`. VS Code also [lists Node.js
 requirements](https://github.com/microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 
 Using other versions of Node.js [may lead to unexpected
@@ -72,7 +72,7 @@ Proceed to [installing](#installing)
 ## FreeBSD
 
 ```sh
-pkg install -y git python npm-node14 yarn-node14 pkgconf
+pkg install -y git python npm-node16 yarn-node16 pkgconf
 pkg install -y libinotify
 ```
 
