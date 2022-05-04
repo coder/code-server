@@ -9,9 +9,9 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { REMOTE_FILE_SYSTEM_CHANNEL_NAME } from 'vs/workbench/services/remote/common/remoteFileSystemProviderClient';
  import { ExtensionHostStatusService, IExtensionHostStatusService } from 'vs/server/node/extensionHostStatusService';
 +import { TelemetryClient } from "vs/server/node/telemetryClient";
-
+ 
  const eventPrefix = 'monacoworkbench';
-
+ 
 @@ -120,7 +121,11 @@ export async function setupServerService
  	let appInsightsAppender: ITelemetryAppender = NullAppender;
  	const machineId = await getMachineId();
@@ -181,26 +181,10 @@ Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/teleme
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
-@@ -25,6 +25,7 @@ class WebAppInsightsAppender implements
- 	private _telemetryCache: { eventName: string; data: any }[] = [];
-
- 	constructor(private _eventPrefix: string, aiKey: string) {
-+		console.log("halp")
- 		const endpointUrl = 'https://vortex.data.microsoft.com/collect/v1';
- 		import('@microsoft/applicationinsights-web').then(aiLibrary => {
- 			this._aiClient = new aiLibrary.ApplicationInsights({
-@@ -74,6 +75,7 @@ class WebAppInsightsAppender implements
- 		data = { ...data.properties, ...data.measurements };
-
- 		// undefined assertion is ok since above two if statements cover both cases
-+		console.log("are we here maybe?")
- 		this._aiClient!.trackEvent({ name: this._eventPrefix + '/' + eventName }, data);
- 	}
-
-@@ -119,16 +121,19 @@ export class TelemetryService extends Di
+@@ -119,16 +119,19 @@ export class TelemetryService extends Di
  	) {
  		super();
-
+ 
 -		if (supportsTelemetry(productService, environmentService) && productService.aiConfig?.asimovKey) {
 +		if (supportsTelemetry(productService, environmentService)) {
  			// If remote server is present send telemetry through that, else use the client side appender
