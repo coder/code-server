@@ -261,7 +261,7 @@ jobs:
       - name: Install development tools
         run: |
           yum install -y epel-release centos-release-scl
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
 
       - name: Install nfpm and envsubst
         run: |
