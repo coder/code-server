@@ -29,16 +29,16 @@ export class Heart {
     }
 
     logger.trace("heartbeat")
-    try {
-      await fs.writeFile(this.heartbeatPath, "")
-    } catch (error: any) {
-      logger.warn(error.message)
-    }
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
     this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    try {
+      return await fs.writeFile(this.heartbeatPath, "")
+    } catch (error: any) {
+      logger.warn(error.message)
+    }
   }
 
   /**
