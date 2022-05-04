@@ -1,0 +1,30 @@
+Prevent builtin extensions from being updated
+
+Updating builtin extensions from the marketplace prevents us from patching them
+(for example out GitHub authentication patches).
+
+Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
+@@ -206,6 +206,9 @@ export class Extension implements IExten
+ 		if (!this.gallery || !this.local) {
+ 			return false;
+ 		}
++		if (this.type !== ExtensionType.User) {
++			return false;
++		}
+ 		if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {
+ 			return false;
+ 		}
+@@ -1057,6 +1060,10 @@ export class ExtensionsWorkbenchService
+ 				// Skip if check updates only for builtin extensions and current extension is not builtin.
+ 				continue;
+ 			}
++			if (installed.type !== ExtensionType.User) {
++				// Never update builtin extensions.
++				continue;
++			}
+ 			if (installed.isBuiltin && !installed.local?.identifier.uuid) {
+ 				// Skip if the builtin extension does not have Marketplace id
+ 				continue;
