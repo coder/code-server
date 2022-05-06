@@ -145,7 +145,7 @@ describe("update", () => {
 
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toStrictEqual(false)
-    expect(update.checked).toBeLessThan(now)
+    expect(update.checked).toBeLessThanOrEqual(now)
     expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual([])
   })
@@ -160,7 +160,7 @@ describe("update", () => {
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("4.1.1")
     expect(spy).toStrictEqual(["/latest"])
   })
@@ -214,7 +214,7 @@ describe("update", () => {
     update = await provider.getUpdate(true)
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("unknown")
   })
 
