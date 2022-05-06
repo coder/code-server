@@ -160,7 +160,8 @@ export const options: Options<Required<UserProvidedArgs>> = {
   },
   "disable-file-downloads": {
     type: "boolean",
-    description: "Disable file downloads from Code.",
+    description:
+      "Disable file downloads from Code. This can also be set with CS_DISABLE_FILE_DOWNLOADS set to 'true' or '1'.",
   },
   // --enable can be used to enable experimental features. These features
   // provide no guarantees.
