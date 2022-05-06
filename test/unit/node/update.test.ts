@@ -206,7 +206,7 @@ describe("update", () => {
     let update = await provider.getUpdate(true)
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("unknown")
 
     provider = new UpdateProvider("http://probably.invalid.dev.localhost/latest", settings())
