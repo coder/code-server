@@ -131,7 +131,8 @@ describe("update", () => {
 
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toEqual(false)
-    expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
+    expect(update.checked).toBeGreaterThanOrEqual(now)
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual(["/latest"])
   })
@@ -145,7 +146,7 @@ describe("update", () => {
 
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toStrictEqual(false)
-    expect(update.checked).toBeLessThan(now)
+    expect(update.checked).toBeLessThanOrEqual(now)
     expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual([])
   })
@@ -160,7 +161,7 @@ describe("update", () => {
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("4.1.1")
     expect(spy).toStrictEqual(["/latest"])
   })
@@ -206,7 +207,7 @@ describe("update", () => {
     let update = await provider.getUpdate(true)
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("unknown")
 
     provider = new UpdateProvider("http://probably.invalid.dev.localhost/latest", settings())
@@ -214,7 +215,7 @@ describe("update", () => {
     update = await provider.getUpdate(true)
     expect(isNaN(update.checked)).toStrictEqual(false)
     expect(update.checked).toBeGreaterThanOrEqual(now)
-    expect(update.checked).toBeLessThan(Date.now())
+    expect(update.checked).toBeLessThanOrEqual(Date.now())
     expect(update.version).toStrictEqual("unknown")
   })
 
