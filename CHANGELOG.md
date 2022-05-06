@@ -11,14 +11,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Code v99.99.999
 
-### Added
 ### Changed
+### Added
 ### Deprecated
 ### Removed
 ### Fixed
 ### Security
 
 -->
+
+## [4.4.0](https://github.com/coder/code-server/releases/tag/v4.4.0) - 2022-05-06
+
+Code v1.66.2
+
+### Changed
+
+- Refactored methods in `Heart` class and made `Heart.beat()` async to make
+  testing easier.
+- Upgraded to Code 1.66.2.
+
+### Added
+
+- Added back telemetry patch which was removed in the Code reachitecture.
+- Added support to use `true` for `CS_DISABLE_FILE_DOWNLOADS` environment
+  variable. This means you can disable file downloads by setting
+  `CS_DISABLE_FILE_DOWNLOADS` to `true` or `1`.
+- Added tests for `Heart` class.
+
+### Fixed
+
+- Fixed installation issue in AUR after LICENSE rename.
+- Fixed issue with listening on IPv6 addresses.
+- Fixed issue with Docker publish action not being able to find artifacts. Now
+  it downloads the release assets from the release.
 
 ## [4.3.0](https://github.com/coder/code-server/releases/tag/v4.3.0) - 2022-04-14
 
