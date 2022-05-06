@@ -131,7 +131,7 @@ describe("update", () => {
 
     await expect(settings().read()).resolves.toEqual({ update })
     expect(isNaN(update.checked)).toEqual(false)
-    expect(update.checked < Date.now() && update.checked >= now).toEqual(true)
+    expect(update.checked <= Date.now() && update.checked >= now).toEqual(true)
     expect(update.version).toStrictEqual("2.1.0")
     expect(spy).toEqual(["/latest"])
   })
