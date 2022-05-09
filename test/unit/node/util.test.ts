@@ -446,6 +446,9 @@ describe("isFile", () => {
   it("should return true if is file", async () => {
     expect(await util.isFile(pathToFile)).toBe(true)
   })
+  it("should return false if error", async () => {
+    expect(await util.isFile("fakefile.txt")).toBe(false)
+  })
 })
 
 describe("humanPath", () => {
