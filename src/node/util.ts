@@ -415,18 +415,6 @@ export const open = async (address: URL | string): Promise<void> => {
 }
 
 /**
- * For iterating over an enum's values.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const enumToArray = (t: any): string[] => {
-  const values = [] as string[]
-  for (const k in t) {
-    values.push(t[k])
-  }
-  return values
-}
-
-/**
  * Return a promise that resolves with whether the socket path is active.
  */
 export function canConnect(path: string): Promise<boolean> {
