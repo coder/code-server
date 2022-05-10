@@ -435,10 +435,6 @@ export const buildAllowedMessage = (t: any): string => {
   return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(", ")}`
 }
 
-export const isObject = <T extends object>(obj: T): obj is T => {
-  return !Array.isArray(obj) && typeof obj === "object" && obj !== null
-}
-
 /**
  * Return a promise that resolves with whether the socket path is active.
  */
