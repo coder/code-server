@@ -24,16 +24,6 @@ describe("util", () => {
     })
   })
 
-  describe("split", () => {
-    it("should split at a comma", () => {
-      expect(util.split("Hello,world", ",")).toStrictEqual(["Hello", "world"])
-    })
-
-    it("shouldn't split if the delimiter doesn't exist", () => {
-      expect(util.split("Hello world", ",")).toStrictEqual(["Hello world", ""])
-    })
-  })
-
   describe("plural", () => {
     it("should add an s if count is greater than 1", () => {
       expect(util.plural(2, "dog")).toBe("dogs")
@@ -54,43 +44,6 @@ describe("util", () => {
     it("should generate a uuid of a specific length", () => {
       const uuid = util.generateUuid(10)
       expect(uuid).toHaveLength(10)
-    })
-  })
-
-  describe("trimSlashes", () => {
-    it("should remove leading slashes", () => {
-      expect(util.trimSlashes("/hello-world")).toBe("hello-world")
-    })
-
-    it("should remove trailing slashes", () => {
-      expect(util.trimSlashes("hello-world/")).toBe("hello-world")
-    })
-
-    it("should remove both leading and trailing slashes", () => {
-      expect(util.trimSlashes("/hello-world/")).toBe("hello-world")
-    })
-
-    it("should remove multiple leading and trailing slashes", () => {
-      expect(util.trimSlashes("///hello-world////")).toBe("hello-world")
-    })
-  })
-
-  describe("arrayify", () => {
-    it("should return value it's already an array", () => {
-      expect(util.arrayify(["hello", "world"])).toStrictEqual(["hello", "world"])
-    })
-
-    it("should wrap the value in an array if not an array", () => {
-      expect(
-        util.arrayify({
-          name: "Coder",
-          version: "3.8",
-        }),
-      ).toStrictEqual([{ name: "Coder", version: "3.8" }])
-    })
-
-    it("should return an empty array if the value is undefined", () => {
-      expect(util.arrayify(undefined)).toStrictEqual([])
     })
   })
 
