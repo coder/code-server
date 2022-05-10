@@ -1,6 +1,5 @@
 import { logger } from "@coder/logger"
 import { promises as fs } from "fs"
-import * as cp from "child_process"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
@@ -119,37 +118,4 @@ export function isAddressInfo(address: unknown): address is net.AddressInfo {
     (address as net.AddressInfo).port !== undefined &&
     (address as net.AddressInfo).address !== undefined
   )
-}
-
-// From https://github.com/chalk/ansi-regex
-const pattern = [
-  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
-  "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
-].join("|")
-const re = new RegExp(pattern, "g")
-
-type OnLineCallback = (strippedLine: string, originalLine: string) => void
-/**
- * Split stdout on newlines and strip ANSI codes.
- */
-export const onLine = (proc: cp.ChildProcess, callback: OnLineCallback): void => {
-  let buffer = ""
-  if (!proc.stdout) {
-    throw new Error("no stdout")
-  }
-  proc.stdout.setEncoding("utf8")
-  proc.stdout.on("data", (d) => {
-    const data = buffer + d
-    const split = data.split("\n")
-    const last = split.length - 1
-
-    for (let i = 0; i < last; ++i) {
-      callback(split[i].replace(re, ""), split[i])
-    }
-
-    // The last item will either be an empty string (the data ended with a
-    // newline) or a partial line (did not end with a newline) and we must
-    // wait to parse it until we get a full line.
-    buffer = split[last]
-  })
 }
