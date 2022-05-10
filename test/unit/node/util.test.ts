@@ -4,6 +4,7 @@ import * as path from "path"
 import { generateUuid } from "../../../src/common/util"
 import { tmpdir } from "../../../src/node/constants"
 import * as util from "../../../src/node/util"
+import { onLine } from "../../utils/helpers"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
@@ -379,7 +380,7 @@ describe("onLine", () => {
     const size = 100
     const received = new Promise<string[]>((resolve) => {
       const lines: string[] = []
-      util.onLine(proc!, (line) => {
+      onLine(proc!, (line: string) => {
         lines.push(line)
         if (lines.length === size) {
           resolve(lines)
@@ -412,7 +413,7 @@ describe("onLine", () => {
       })
       const mockCallback = jest.fn()
 
-      expect(() => util.onLine(proc, mockCallback)).toThrowError(/stdout/)
+      expect(() => onLine(proc, mockCallback)).toThrowError(/stdout/)
 
       // Cleanup
       proc?.kill()

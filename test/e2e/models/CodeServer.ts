@@ -5,9 +5,8 @@ import * as path from "path"
 import { Page } from "playwright"
 import * as util from "util"
 import { logError, plural } from "../../../src/common/util"
-import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
-import { idleTimer, tmpdir } from "../../utils/helpers"
+import { idleTimer, onLine, tmpdir } from "../../utils/helpers"
 
 interface CodeServerProcess {
   process: cp.ChildProcess
@@ -147,7 +146,7 @@ export class CodeServer {
 
       let resolved = false
       proc.stdout.setEncoding("utf8")
-      onLine(proc, (line) => {
+      onLine(proc, (line: string) => {
         // As long as we are actively getting input reset the timer.  If we stop
         // getting input and still have not found the address the timer will
         // reject.
