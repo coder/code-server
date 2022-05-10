@@ -103,29 +103,6 @@ export const ensureAddress = (server: http.Server, protocol: string): URL | stri
 }
 
 /**
- * Handles error events from the server.
- *
- * If the outlying Promise didn't resolve
- * then we reject with the error.
- *
- * Otherwise, we log the error.
- *
- * We extracted into a function so that we could
- * test this logic more easily.
- */
-export const handleServerError = (resolved: boolean, err: Error, reject: (err: Error) => void) => {
-  // Promise didn't resolve earlier so this means it's an error
-  // that occurs before the server can successfully listen.
-  // Possibly triggered by listening on an invalid port or socket.
-  if (!resolved) {
-    reject(err)
-  } else {
-    // Promise resolved earlier so this is an unrelated error.
-    util.logError(logger, "http server error", err)
-  }
-}
-
-/**
  * Handles the error that occurs in the catch block
  * after we try fs.unlink(args.socket).
  *
