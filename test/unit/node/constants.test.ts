@@ -34,10 +34,6 @@ describe("constants", () => {
       jest.resetModules()
     })
 
-    it("should provide the package name", () => {
-      expect(constants.pkgName).toBe(mockPackageJson.name)
-    })
-
     it("should provide the commit", () => {
       expect(constants.commit).toBe(mockPackageJson.commit)
     })

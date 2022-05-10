@@ -427,15 +427,6 @@ export const enumToArray = (t: any): string[] => {
 }
 
 /**
- * For displaying all allowed options in an enum.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildAllowedMessage = (t: any): string => {
-  const values = enumToArray(t)
-  return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(", ")}`
-}
-
-/**
  * Return a promise that resolves with whether the socket path is active.
  */
 export function canConnect(path: string): Promise<boolean> {

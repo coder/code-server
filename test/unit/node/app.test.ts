@@ -3,7 +3,7 @@ import { promises } from "fs"
 import * as http from "http"
 import * as https from "https"
 import * as path from "path"
-import { createApp, ensureAddress, handleArgsSocketCatchError, handleServerError, listen } from "../../../src/node/app"
+import { createApp, ensureAddress, handleArgsSocketCatchError, listen } from "../../../src/node/app"
 import { OptionalString, setDefaults } from "../../../src/node/cli"
 import { generateCertificate } from "../../../src/node/util"
 import { clean, mockLogger, getAvailablePort, tmpdir } from "../../utils/helpers"
@@ -166,38 +166,6 @@ describe("ensureAddress", () => {
     mockServer.address = () => ({ address: "a:b:c:d::1234", port: 5678, family: "IPv6" })
     const address = ensureAddress(mockServer, "http")
     expect(address.toString()).toBe(`http://[a:b:c:d::1234]:5678/`)
-  })
-})
-
-describe("handleServerError", () => {
-  beforeAll(() => {
-    mockLogger()
-  })
-
-  afterEach(() => {
-    jest.clearAllMocks()
-  })
-
-  it("should call reject if resolved is false", async () => {
-    const resolved = false
-    const reject = jest.fn((err: Error) => undefined)
-    const error = new Error("handleServerError Error")
-
-    handleServerError(resolved, error, reject)
-
-    expect(reject).toHaveBeenCalledTimes(1)
-    expect(reject).toHaveBeenCalledWith(error)
-  })
-
-  it("should log an error if resolved is true", async () => {
-    const resolved = true
-    const reject = jest.fn((err: Error) => undefined)
-    const error = new Error("handleServerError Error")
-
-    handleServerError(resolved, error, reject)
-
-    expect(logger.error).toHaveBeenCalledTimes(1)
-    expect(logger.error).toHaveBeenCalledWith(`http server error: ${error.message} ${error.stack}`)
   })
 })
 
