@@ -21,7 +21,7 @@ fi
 # Allow users to have scripts run on container startup to prepare workspace.
 # https://github.com/coder/code-server/issues/5177
 if [ -d "${ENTRYPOINTD}" ]; then
-    for f in $(find "${ENTRYPOINTD}" -type f -executable); do
+  for f in $(find "${ENTRYPOINTD}" -type f -executable); do
     echo "Running Entrypoint: ${f}"
     "${f}"
   done
