@@ -45,7 +45,6 @@ RUN --mount=from=packages,src=/tmp,dst=/tmp/packages dpkg -i /tmp/packages/code-
 # Allow users to have scripts run on container startup to prepare workspace.
 # https://github.com/coder/code-server/issues/5177
 ENV ENTRYPOINTD=${HOME}/entrypoint.d
-RUN mkdir -p ${ENTRYPOINTD}
 
 EXPOSE 8080
 # This way, if someone sets $DOCKER_USER, docker-exec will still work as
