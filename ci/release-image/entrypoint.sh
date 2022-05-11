@@ -20,11 +20,11 @@ fi
 
 # Allow users to have scripts run on container startup to prepare workspace.
 # https://github.com/coder/code-server/issues/5177
-chmod u+x ${ENTRYPOINTD}/*.sh
-sudo chown -R ${USER} ${ENTRYPOINTD}/*
-for f in "${ENTRYPOINTD}"/*.sh; do
-  echo "Running Entrypoint: ${f}"
-  bash "${f}"
-done
+if [ -d "${ENTRYPOINTD}" ]; then
+    for f in $(find "${ENTRYPOINTD}" -type f -executable); do
+    echo "Running Entrypoint: ${f}"
+    "${f}"
+  done
+fi
 
 exec dumb-init /usr/bin/code-server "$@"
