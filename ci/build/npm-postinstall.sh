@@ -68,7 +68,7 @@ main() {
 
   if ! vscode_yarn; then
     echo "You may not have the required dependencies to build the native modules."
-    echo "Please see https://github.com/coder/code-server/blob/master/docs/npm.md"
+    echo "Please see https://github.com/coder/code-server/blob/main/docs/npm.md"
     exit 1
   fi
 
