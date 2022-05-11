@@ -22,7 +22,7 @@ fi
 # https://github.com/coder/code-server/issues/5177
 chmod u+x ${ENTRYPOINTD}/*.sh
 sudo chown -R ${USER} ${ENTRYPOINTD}/*
-for f in ${ENTRYPOINTD}/*.sh; do
+for f in "${ENTRYPOINTD}"/*.sh; do
   echo "Running Entrypoint: ${f}"
   bash "${f}"
 done
