@@ -4,6 +4,7 @@
   "devDependencies": {
     "@jest-mock/express": "^1.4.5",
     "@playwright/test": "^1.16.3",
+    "@swc-node/jest": "^1.5.2",
     "@types/jest": "^27.0.2",
     "@types/jsdom": "^16.2.13",
     "@types/node-fetch": "^2.5.8",
@@ -16,7 +17,6 @@
     "node-fetch": "^2.6.1",
     "playwright": "^1.16.3",
     "supertest": "^6.1.6",
-    "ts-jest": "^27.0.7",
     "wtfnode": "^0.9.1"
   },
   "resolutions": {

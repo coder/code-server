@@ -126,7 +126,7 @@
   },
   "jest": {
     "transform": {
-      "^.+\\.ts$": "<rootDir>/test/node_modules/ts-jest"
+      "^.+\\.ts$": "<rootDir>/test/node_modules/@swc-node/jest"
     },
     "testEnvironment": "node",
     "testPathIgnorePatterns": [
