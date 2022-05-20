@@ -353,6 +353,7 @@ jobs:
 
       - name: Install nfpm
         run: |
+          mkdir -p ~/.local/bin
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
@@ -405,6 +406,7 @@ jobs:
 
       - name: Install nfpm
         run: |
+          mkdir -p ~/.local/bin
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
