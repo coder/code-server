@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [9.99.999] - 9090-09-09
 
-VS Code v99.99.999
+Code v99.99.999
 
 ### Changed
 ### Added
@@ -19,6 +19,57 @@ VS Code v99.99.999
 ### Security
 
 -->
+
+## [4.4.0](https://github.com/coder/code-server/releases/tag/v4.4.0) - 2022-05-06
+
+Code v1.66.2
+
+### Changed
+
+- Refactored methods in `Heart` class and made `Heart.beat()` async to make
+  testing easier.
+- Upgraded to Code 1.66.2.
+
+### Added
+
+- Added back telemetry patch which was removed in the Code reachitecture.
+- Added support to use `true` for `CS_DISABLE_FILE_DOWNLOADS` environment
+  variable. This means you can disable file downloads by setting
+  `CS_DISABLE_FILE_DOWNLOADS` to `true` or `1`.
+- Added tests for `Heart` class.
+
+### Fixed
+
+- Fixed installation issue in AUR after LICENSE rename.
+- Fixed issue with listening on IPv6 addresses.
+- Fixed issue with Docker publish action not being able to find artifacts. Now
+  it downloads the release assets from the release.
+
+## [4.3.0](https://github.com/coder/code-server/releases/tag/v4.3.0) - 2022-04-14
+
+Code v1.65.2
+
+### Changed
+
+- Excluded .deb files from release Docker image which drops the compressed and
+  uncompressed size by 58% and 34%.
+- Upgraded to Code 1.65.2.
+
+### Added
+
+- Added a new CLI flag called `--disable-file-downloads` which allows you to
+  disable the "Download..." option that shows in the UI when right-clicking on a
+  file. This can also set by running `CS_DISABLE_FILE_DOWNLOADS=1`.
+- Aligned the dependencies for binary and npm release artifacts.
+
+### Fixed
+
+- Fixed the code-server version from not displaying in the Help > About dialog.
+- Fixed issues with the TypeScript and JavaScript Language Features Extension
+  failing to activate.
+- Fixed missing files in ipynb extension.
+- Fixed the homebrew release workflow.
+- Fixed the Docker release workflow from not always publishing version tags.
 
 ## [4.2.0](https://github.com/coder/code-server/releases/tag/v4.2.0) - 2022-03-22
 

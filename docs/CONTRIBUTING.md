@@ -31,7 +31,7 @@ for [VS
 Code](https://github.com/Microsoft/vscode/wiki/How-to-Contribute#prerequisites).
 Here is what is needed:
 
-- `node` v14.x
+- `node` v16.x
 - `git` v2.x or greater
 - [`git-lfs`](https://git-lfs.github.com)
 - [`yarn`](https://classic.yarnpkg.com/en/)
@@ -96,10 +96,12 @@ re-apply the patches.
 ### Version updates to Code
 
 1. Update the `lib/vscode` submodule to the desired upstream version branch.
-2. From the code-server **project root**, run `yarn install`.
-3. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
+   1. `cd lib/vscode && git checkout release/1.66 && cd ../..`
+   2. `git add lib && git commit -m "chore: update Code"`
+2. Apply the patches (`quilt push -a`) or restore your stashed changes. At this
    stage you may need to resolve conflicts. For example use `quilt push -f`,
    manually apply the rejected portions, then `quilt refresh`.
+3. From the code-server **project root**, run `yarn install`.
 4. Test code-server locally to make sure everything works.
 5. Check the Node.js version that's used by Electron (which is shipped with VS
    Code. If necessary, update your version of Node.js to match.
@@ -130,11 +132,13 @@ yarn build:vscode
 yarn release
 ```
 
+_NOTE: this does not keep `node_modules`. If you want them to be kept, use `KEEP_MODULES=1 yarn release` (if you're testing in Coder, you'll want to do this)_
+
 Run your build:
 
 ```shell
 cd release
-yarn --production
+yarn --production # Skip if you used KEEP_MODULES=1
 # Runs the built JavaScript with Node.
 node .
 ```

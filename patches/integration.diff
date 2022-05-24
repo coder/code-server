@@ -7,7 +7,6 @@ Prepare Code for integration with code-server
 3. Add the code-server version to the help dialog.
 4. Add ready events for use in an iframe.
 5. Add our icons.
-6. Remove sourcemap host since we cannot upload ours there.
 
 Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 ===================================================================
@@ -22,7 +21,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from 'vs/platform/product/common/product';
  import * as perf from 'vs/base/common/performance';
  
-@@ -33,37 +33,42 @@ const errorReporter: ErrorReporter = {
+@@ -33,38 +33,43 @@ const errorReporter: ErrorReporter = {
  	}
  };
  
@@ -35,6 +34,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -const USER_DATA_PATH = join(REMOTE_DATA_FOLDER, 'data');
 -const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 -const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
+-const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 -const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 -args['user-data-dir'] = USER_DATA_PATH;
 -const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
@@ -42,7 +42,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 -args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 -args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 -
--[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
+-[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME, LOCAL_HISTORY_HOME].forEach(f => {
 -	try {
 -		if (!fs.existsSync(f)) {
 -			fs.mkdirSync(f, { mode: 0o700 });
@@ -54,6 +54,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	const USER_DATA_PATH = args['user-data-dir'] || join(REMOTE_DATA_FOLDER, 'data');
 +	const APP_SETTINGS_HOME = join(USER_DATA_PATH, 'User');
 +	const GLOBAL_STORAGE_HOME = join(APP_SETTINGS_HOME, 'globalStorage');
++	const LOCAL_HISTORY_HOME = join(APP_SETTINGS_HOME, 'History');
 +	const MACHINE_SETTINGS_HOME = join(USER_DATA_PATH, 'Machine');
 +	args['user-data-dir'] = USER_DATA_PATH;
 +	const APP_ROOT = dirname(FileAccess.asFileUri('', require).fsPath);
@@ -61,14 +62,14 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 +	args['builtin-extensions-dir'] = BUILTIN_EXTENSIONS_FOLDER_PATH;
 +	args['extensions-dir'] = args['extensions-dir'] || join(REMOTE_DATA_FOLDER, 'extensions');
 +
-+	[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME].forEach(f => {
++	[REMOTE_DATA_FOLDER, args['extensions-dir'], USER_DATA_PATH, APP_SETTINGS_HOME, MACHINE_SETTINGS_HOME, GLOBAL_STORAGE_HOME, LOCAL_HISTORY_HOME].forEach(f => {
 +		try {
 +			if (!fs.existsSync(f)) {
 +				fs.mkdirSync(f, { mode: 0o700 });
 +			}
 +		} catch (err) { console.error(err); }
 +	});
-+	return REMOTE_DATA_FOLDER
++	return REMOTE_DATA_FOLDER;
 +}
  
  /**
@@ -105,18 +106,22 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -144,11 +144,12 @@ export class BrowserDialogHandler implem
+@@ -143,12 +143,15 @@ export class BrowserDialogHandler implem
+ 
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
- 			return localize('aboutDetail',
+-			return localize('aboutDetail',
 -				"Version: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
-+				"code-server: v{4}\nCode: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
++			return localize('aboutCodeServerDetail',
++				"code-server: {0}",
++				this.productService.codeServerVersion ? `v${this.productService.codeServerVersion}` : 'Unknown'
++			) + '\n' + localize('aboutDetail',
++				"Code: {0}\nCommit: {1}\nDate: {2}\nBrowser: {3}",
  				this.productService.version || 'Unknown',
  				this.productService.commit || 'Unknown',
  				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
 -				navigator.userAgent
 +				navigator.userAgent,
-+				this.productService.codeServerVersion || 'Unknown'
  			);
  		};
  
@@ -175,10 +180,10 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -69,6 +69,7 @@ import { ICredentialsService } from 'vs/
- import { IndexedDB } from 'vs/base/browser/indexedDB';
+@@ -69,6 +69,7 @@ import { IndexedDB } from 'vs/base/brows
  import { BrowserCredentialsService } from 'vs/workbench/services/credentials/browser/credentialsService';
  import { IWorkspace } from 'vs/workbench/services/host/browser/browserHostService';
+ import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
 +import { CodeServerClient } from 'vs/workbench/browser/client';
  
  export class BrowserMain extends Disposable {
@@ -254,16 +259,15 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
  
-Index: code-server/lib/vscode/build/gulpfile.reh.js
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
---- code-server.orig/lib/vscode/build/gulpfile.reh.js
-+++ code-server/lib/vscode/build/gulpfile.reh.js
-@@ -365,7 +365,7 @@ function packageTask(type, platform, arc
- 	const minifyTask = task.define(`minify-vscode-${type}`, task.series(
- 		optimizeTask,
- 		util.rimraf(`out-vscode-${type}-min`),
--		common.minifyTask(`out-vscode-${type}`, `https://ticino.blob.core.windows.net/sourcemaps/${commit}/core`)
-+		common.minifyTask(`out-vscode-${type}`, ``)
- 	));
- 	gulp.task(minifyTask);
- 
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -285,6 +285,7 @@ export class WebClientServer {
+ 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 				productConfiguration: <Partial<IProductConfiguration>>{
++					codeServerVersion: this._productService.codeServerVersion,
+ 					embedderIdentifier: 'server-distro',
+ 					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 						...this._productService.extensionsGallery,

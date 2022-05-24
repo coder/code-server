@@ -6,11 +6,25 @@ self-hosted.
 When doing this CSP will block resources (for example when viewing images) so
 add 'self' to the CSP to fix that.
 
+Additionally the service worker defaults to handling *all* requests made to the
+current host but when self-hosting the webview this will end up including the
+webview HTML itself which means these requests will fail since the communication
+channel between the webview and the main thread has not been set up yet as the
+webview itself is not ready yet (it has no HTML and therefore no script either).
+Since this code exists only for the authentication case we can just skip it when
+it is served from the current host as authentication is not a problem if the
+request is not cross-origin.
+
+There is also an origin check we bypass (this seems to be related to how the
+webview host is separate by default but we serve on the same host).
+
+To test, open a few types of webviews (images, markdown, extension details, etc).
+
 Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -240,7 +240,7 @@ export class BrowserWorkbenchEnvironment
+@@ -179,7 +179,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -23,7 +37,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -280,6 +280,7 @@ export class WebClientServer {
+@@ -283,6 +283,7 @@ export class WebClientServer {
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
@@ -31,11 +45,11 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				_wrapWebWorkerExtHostInIframe,
  				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
-Index: code-server/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
+Index: code-server/lib/vscode/src/vs/workbench/common/webview.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
-+++ code-server/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
-@@ -25,7 +25,7 @@ export const webviewResourceBaseHost = '
+--- code-server.orig/lib/vscode/src/vs/workbench/common/webview.ts
++++ code-server/lib/vscode/src/vs/workbench/common/webview.ts
+@@ -22,7 +22,7 @@ export const webviewResourceBaseHost = '
  
  export const webviewRootResourceAuthority = `vscode-resource.${webviewResourceBaseHost}`;
  
@@ -44,3 +58,39 @@ Index: code-server/lib/vscode/src/vs/workbench/api/common/shared/webview.ts
  
  /**
   * Construct a uri that can load resources inside a webview
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
+@@ -188,9 +188,11 @@ sw.addEventListener('fetch', (event) =>
+ 		}
+ 	}
+ 
+-	// If we're making a request against the remote authority, we want to go
+-	// back through VS Code itself so that we are authenticated properly
+-	if (requestUrl.host === remoteAuthority) {
++	// If we're making a request against the remote authority, we want to go back
++	// through VS Code itself so that we are authenticated properly.  If the
++	// service worker is hosted on the same origin we will have cookies and
++	// authentication will not be an issue.
++	if (requestUrl.origin !== sw.origin && requestUrl.host === remoteAuthority) {
+ 		switch (event.request.method) {
+ 			case 'GET':
+ 			case 'HEAD':
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -318,6 +318,12 @@ const hostMessaging = new class HostMess
+ 
+ 		const hostname = location.hostname;
+ 
++		// It is safe to run if we are on the same host.
++		const parent = new URL(parentOrigin)
++		if (parent.hostname === location.hostname) {
++			return start(parentOrigin)
++		}
++
+ 		if (!crypto.subtle) {
+ 			// cannot validate, not running in a secure context
+ 			throw new Error(`Cannot validate in current context!`);

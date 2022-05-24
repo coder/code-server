@@ -60,8 +60,8 @@ jobs:
 
       - name: Configure git
         run: |
-          git config user.name cdrci
-          git config user.email opensource@coder.com
+          git config --global user.name cdrci
+          git config --global user.email opensource@coder.com
 
       - name: Bump code-server homebrew version
         env:

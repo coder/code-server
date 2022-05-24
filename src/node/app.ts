@@ -94,34 +94,12 @@ export const ensureAddress = (server: http.Server, protocol: string): URL | stri
   }
 
   if (typeof addr !== "string") {
-    return new URL(`${protocol}://${addr.address}:${addr.port}`)
+    const host = addr.family === "IPv6" ? `[${addr.address}]` : addr.address
+    return new URL(`${protocol}://${host}:${addr.port}`)
   }
 
   // If this is a string then it is a pipe or Unix socket.
   return addr
-}
-
-/**
- * Handles error events from the server.
- *
- * If the outlying Promise didn't resolve
- * then we reject with the error.
- *
- * Otherwise, we log the error.
- *
- * We extracted into a function so that we could
- * test this logic more easily.
- */
-export const handleServerError = (resolved: boolean, err: Error, reject: (err: Error) => void) => {
-  // Promise didn't resolve earlier so this means it's an error
-  // that occurs before the server can successfully listen.
-  // Possibly triggered by listening on an invalid port or socket.
-  if (!resolved) {
-    reject(err)
-  } else {
-    // Promise resolved earlier so this is an unrelated error.
-    util.logError(logger, "http server error", err)
-  }
 }
 
 /**

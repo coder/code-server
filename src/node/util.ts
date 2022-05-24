@@ -415,31 +415,6 @@ export const open = async (address: URL | string): Promise<void> => {
 }
 
 /**
- * For iterating over an enum's values.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const enumToArray = (t: any): string[] => {
-  const values = [] as string[]
-  for (const k in t) {
-    values.push(t[k])
-  }
-  return values
-}
-
-/**
- * For displaying all allowed options in an enum.
- */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const buildAllowedMessage = (t: any): string => {
-  const values = enumToArray(t)
-  return `Allowed value${values.length === 1 ? " is" : "s are"} ${values.map((t) => `'${t}'`).join(", ")}`
-}
-
-export const isObject = <T extends object>(obj: T): obj is T => {
-  return !Array.isArray(obj) && typeof obj === "object" && obj !== null
-}
-
-/**
  * Return a promise that resolves with whether the socket path is active.
  */
 export function canConnect(path: string): Promise<boolean> {

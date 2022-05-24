@@ -68,14 +68,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -288,6 +288,7 @@ export class WebClientServer {
+@@ -294,6 +294,7 @@ export class WebClientServer {
  					rootEndpoint: base,
  					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
 +					proxyEndpointTemplate: base + '/proxy/{{port}}',
+ 					codeServerVersion: this._productService.codeServerVersion,
+ 					embedderIdentifier: 'server-distro',
  					extensionsGallery: {
- 						...this._productService.extensionsGallery,
- 						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
 Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts

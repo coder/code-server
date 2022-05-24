@@ -9,7 +9,10 @@ export class Heart {
   private heartbeatInterval = 60000
   public lastHeartbeat = 0
 
-  public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {}
+  public constructor(private readonly heartbeatPath: string, private readonly isActive: () => Promise<boolean>) {
+    this.beat = this.beat.bind(this)
+    this.alive = this.alive.bind(this)
+  }
 
   public alive(): boolean {
     const now = Date.now()
@@ -20,30 +23,22 @@ export class Heart {
    * timeout and start or reset a timer that keeps running as long as there is
    * activity. Failures are logged as warnings.
    */
-  public beat(): void {
+  public async beat(): Promise<void> {
     if (this.alive()) {
       return
     }
 
     logger.trace("heartbeat")
-    fs.writeFile(this.heartbeatPath, "").catch((error) => {
-      logger.warn(error.message)
-    })
     this.lastHeartbeat = Date.now()
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
-    this.heartbeatTimer = setTimeout(() => {
-      this.isActive()
-        .then((active) => {
-          if (active) {
-            this.beat()
-          }
-        })
-        .catch((error) => {
-          logger.warn(error.message)
-        })
-    }, this.heartbeatInterval)
+    this.heartbeatTimer = setTimeout(() => heartbeatTimer(this.isActive, this.beat), this.heartbeatInterval)
+    try {
+      return await fs.writeFile(this.heartbeatPath, "")
+    } catch (error: any) {
+      logger.warn(error.message)
+    }
   }
 
   /**
@@ -53,5 +48,22 @@ export class Heart {
     if (typeof this.heartbeatTimer !== "undefined") {
       clearTimeout(this.heartbeatTimer)
     }
+  }
+}
+
+/**
+ * Helper function for the heartbeatTimer.
+ *
+ * If heartbeat is active, call beat. Otherwise do nothing.
+ *
+ * Extracted to make it easier to test.
+ */
+export async function heartbeatTimer(isActive: Heart["isActive"], beat: Heart["beat"]) {
+  try {
+    if (await isActive()) {
+      beat()
+    }
+  } catch (error: unknown) {
+    logger.warn((error as Error).message)
   }
 }

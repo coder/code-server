@@ -33,13 +33,13 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v1.1
+        uses: azure/setup-helm@v2.1
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -74,10 +74,10 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -116,10 +116,10 @@ jobs:
       - name: Patch Code
         run: quilt push -a
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -217,6 +217,26 @@ jobs:
           # Instead, itis determined in publish-npm.sh script
           # using GITHUB environment variables
 
+      - name: Comment npm information
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          header: npm-dev-build
+          message: |
+            ✨ code-server dev build published to npm for PR #${{ github.event.number }}!
+            * _Last publish status_: success
+            * _Commit_: ${{ github.event.pull_request.head.sha }}
+
+            To install in a local project, run:
+            ```shell-session
+            npm install @coder/code-server-pr@${{ github.event.number }}
+            ```
+
+            To install globally, run:
+            ```shell-session
+            npm install -g @coder/code-server-pr@${{ github.event.number }}
+            ```
+
   # TODO: cache building yarn --production
   # possibly 2m30s of savings(?)
   # this requires refactoring our release scripts
@@ -233,20 +253,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install development tools
         run: |
           yum install -y epel-release centos-release-scl
-          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
 
       - name: Install nfpm and envsubst
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
-          curl -L https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          curl -sSfL https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
           chmod +x envsubst
           mv envsubst ~/.local/bin
           echo "$HOME/.local/bin" >> $GITHUB_PATH
@@ -317,7 +338,7 @@ jobs:
       CXX: ${{ format('{0}-g++', matrix.prefix) }}
       LINK: ${{ format('{0}-g++', matrix.prefix) }}
       NPM_CONFIG_ARCH: ${{ matrix.arch }}
-      NODE_VERSION: v14.17.4
+      NODE_VERSION: v16.13.0
 
     steps:
       - name: Checkout repo
@@ -325,14 +346,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install nfpm
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Install cross-compiler
@@ -377,14 +399,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Install nfpm
         run: |
-          curl -sfL https://install.goreleaser.com/github.com/goreleaser/nfpm.sh | sh -s -- -b ~/.local/bin v2.3.1
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
       - name: Download npm package
@@ -426,10 +449,10 @@ jobs:
           fetch-depth: 0
           submodules: true
 
-      - name: Install Node.js v14
+      - name: Install Node.js v16
         uses: actions/setup-node@v3
         with:
-          node-version: "14"
+          node-version: "16"
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -475,6 +498,9 @@ jobs:
         run: rm -rf ./release-packages ./test/test-results
 
   trivy-scan-repo:
+    permissions:
+      contents: read # for actions/checkout to fetch code
+      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
     runs-on: ubuntu-20.04
     steps:
       - name: Checkout repo
@@ -483,7 +509,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@296212627a1e693efa09c00adc3e03b2ba8edf18
+        uses: aquasecurity/trivy-action@4b9b6fb4ef28b31450391a93ade098bb00de584e
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -494,6 +520,6 @@ jobs:
           severity: "HIGH,CRITICAL"
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: "trivy-repo-results.sarif"

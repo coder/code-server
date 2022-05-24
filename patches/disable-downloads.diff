@@ -1,0 +1,183 @@
+Add option to disable file downloads via CLI
+
+This patch adds support for a new CLI flag called `--disable-file-downloads`
+which allows a user to remove the "Download..." option that shows up when you
+right-click files in Code. The default value for this is `false`.
+
+To test this, start code-server with `--disable-file-downloads`, open editor,
+right-click on a file (not a folder) and you should **not** see the
+"Download..." option.
+
+Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
+@@ -215,6 +215,11 @@ export interface IWorkbenchConstructionO
+ 	 */
+ 	readonly userDataPath?: string
+ 
++	/**
++	 * Whether the "Download..." option is enabled for files.
++	 */
++	readonly isEnabledFileDownloads?: boolean
++
+ 	//#endregion
+ 
+ 
+Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
+@@ -30,6 +30,11 @@ export interface IBrowserWorkbenchEnviro
+ 	 * Options used to configure the workbench.
+ 	 */
+ 	readonly options?: IWorkbenchConstructionOptions;
++
++	/**
++	 * Enable downloading files via menu actions.
++	 */
++	readonly isEnabledFileDownloads?: boolean;
+ }
+ 
+ export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
+@@ -61,6 +66,13 @@ export class BrowserWorkbenchEnvironment
+ 		return this.options.userDataPath;
+ 	}
+ 
++	get isEnabledFileDownloads(): boolean {
++		if (typeof this.options.isEnabledFileDownloads === "undefined") {
++			throw new Error('isEnabledFileDownloads was not provided to the browser');
++		}
++		return this.options.isEnabledFileDownloads;
++	}
++
+ 	@memoize
+ 	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
+ 
+Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
++++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
+@@ -15,6 +15,7 @@ export const serverOptions: OptionDescri
+ 	'disable-update-check': { type: 'boolean' },
+ 	'auth': { type: 'string' },
+ 	'locale': { type: 'string' },
++	'disable-file-downloads': { type: 'boolean' },
+ 
+ 	/* ----- server setup ----- */
+ 
+@@ -96,6 +97,7 @@ export interface ServerParsedArgs {
+ 	'disable-update-check'?: boolean;
+ 	'auth'?: string
+ 	'locale'?: string
++	'disable-file-downloads'?: boolean;
+ 
+ 	/* ----- server setup ----- */
+ 
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -293,6 +293,7 @@ export class WebClientServer {
+ 					logLevel: this._logService.getLevel(),
+ 				},
+ 				userDataPath: this._environmentService.userDataPath,
++				isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
+ 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+ 				enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
+ 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
++++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
+@@ -7,12 +7,11 @@ import { Event } from 'vs/base/common/ev
+ import { Disposable } from 'vs/base/common/lifecycle';
+ import { IContextKeyService, IContextKey } from 'vs/platform/contextkey/common/contextkey';
+ import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext } from 'vs/platform/contextkey/common/contextkeys';
+-import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext } from 'vs/workbench/common/contextkeys';
++import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
+ import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, DEFAULT_EDITOR_ASSOCIATION } from 'vs/workbench/common/editor';
+ import { trackFocus, addDisposableListener, EventType } from 'vs/base/browser/dom';
+ import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+ import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
+ import { WorkbenchState, IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
+@@ -24,6 +23,7 @@ import { IEditorResolverService } from '
+ import { IPaneCompositePartService } from 'vs/workbench/services/panecomposite/browser/panecomposite';
+ import { Schemas } from 'vs/base/common/network';
+ import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
++import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService';
+ 
+ export class WorkbenchContextKeysHandler extends Disposable {
+ 	private inputFocusedContext: IContextKey<boolean>;
+@@ -75,7 +75,7 @@ export class WorkbenchContextKeysHandler
+ 		@IContextKeyService private readonly contextKeyService: IContextKeyService,
+ 		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
+ 		@IConfigurationService private readonly configurationService: IConfigurationService,
+-		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
++		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IEditorService private readonly editorService: IEditorService,
+ 		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
+ 		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
+@@ -194,6 +194,9 @@ export class WorkbenchContextKeysHandler
+ 		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
+ 		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));
+ 
++		// code-server
++		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
++
+ 		this.registerListeners();
+ 	}
+ 
+Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
+@@ -22,7 +22,7 @@ import { CLOSE_SAVED_EDITORS_COMMAND_ID,
+ import { AutoSaveAfterShortDelayContext } from 'vs/workbench/services/filesConfiguration/common/filesConfigurationService';
+ import { WorkbenchListDoubleSelection } from 'vs/platform/list/browser/listService';
+ import { Schemas } from 'vs/base/common/network';
+-import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey } from 'vs/workbench/common/contextkeys';
++import { DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, WorkbenchStateContext, WorkspaceFolderCountContext, SidebarFocusContext, ActiveEditorCanRevertContext, ActiveEditorContext, ResourceContextKey, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
+ import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
+ import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
+ import { ThemeIcon } from 'vs/platform/theme/common/themeService';
+@@ -476,13 +476,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+ 		id: DOWNLOAD_COMMAND_ID,
+ 		title: DOWNLOAD_LABEL
+ 	},
+-	when: ContextKeyExpr.or(
+-		// native: for any remote resource
+-		ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
+-		// web: for any files
+-		ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
+-		// web: for any folders if file system API support is provided
+-		ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++	when: ContextKeyExpr.and(
++		IsEnabledFileDownloads,
++		ContextKeyExpr.or(
++			// native: for any remote resource
++			ContextKeyExpr.and(IsWebContext.toNegated(), ResourceContextKey.Scheme.notEqualsTo(Schemas.file)),
++			// web: for any files
++			ContextKeyExpr.and(IsWebContext, ExplorerFolderContext.toNegated(), ExplorerRootContext.toNegated()),
++			// web: for any folders if file system API support is provided
++			ContextKeyExpr.and(IsWebContext, HasWebFileSystemAccess)
++		)
+ 	)
+ }));
+ 
+Index: code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/common/contextkeys.ts
++++ code-server/lib/vscode/src/vs/workbench/common/contextkeys.ts
+@@ -30,6 +30,8 @@ export const IsFullscreenContext = new R
+ 
+ export const HasWebFileSystemAccess = new RawContextKey<boolean>('hasWebFileSystemAccess', false, true); // Support for FileSystemAccess web APIs (https://wicg.github.io/file-system-access)
+ 
++export const IsEnabledFileDownloads = new RawContextKey<boolean>('isEnabledFileDownloads', true, true);
++
+ //#endregion
+ 
+ 
