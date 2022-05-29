@@ -3,6 +3,7 @@
 # Termux
 
 - [Install](#install)
+- [Direct Installation](yarn-installation)
 - [Upgrade](#upgrade)
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
@@ -65,6 +66,23 @@ curl -fsSL https://code-server.dev/install.sh | sh
 > Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
 > Learn how to add a user [here](#create-a-new-user).
 
+## Yarn Installation
+
+1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
+2. Install necessary packages
+```
+pkg install -y \
+  build-essential \
+  pkg-config \
+  python3 \
+  yarn
+npm config set python python3
+```
+3. Now install code-server
+```
+yarn global add code-server
+code-server --auth none
+```
 ## Upgrade
 
 1. Remove all previous installs `rm -rf ~/.local/lib/code-server-*`
