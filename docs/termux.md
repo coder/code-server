@@ -75,8 +75,10 @@ pkg install -y \
   build-essential \
   pkg-config \
   python3 \
-  yarn
+  yarn \
+  nodejs
 npm config set python python3
+npm i -g npm@8.11.0
 ```
 3. Now install code-server
 ```
