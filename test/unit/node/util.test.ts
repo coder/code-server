@@ -349,6 +349,22 @@ describe("isCookieValid", () => {
     })
     expect(isValid).toBe(false)
   })
+  it("should return false and empty string as hashedPassword when passwordMethod is invalid", async () => {
+    const p = "password1"
+    const passwordValidation = await util.handlePasswordValidation({
+      // @ts-expect-error although this shouldn't ever happen, it ensures the default case in this function
+      // works as expected.
+      passwordMethod: "INVALID",
+      passwordFromRequestBody: p,
+      passwordFromArgs: undefined,
+      hashedPasswordFromArgs: undefined,
+    })
+
+    const matchesHash = await util.isHashMatch(p, passwordValidation.hashedPassword)
+
+    expect(passwordValidation.isPasswordValid).toBe(false)
+    expect(matchesHash).toBe(false)
+  })
 })
 
 describe("sanitizeString", () => {
