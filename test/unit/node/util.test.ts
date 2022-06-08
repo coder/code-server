@@ -482,3 +482,74 @@ describe("humanPath", () => {
     expect(actual).toBe(expected)
   })
 })
+
+describe("isWsl", () => {
+  describe("on Linux (microsoft)", () => {
+    const testDir = path.join(tmpdir, "tests", "isWsl-linux-microsoft")
+    let pathToFile = ""
+
+    beforeEach(async () => {
+      pathToFile = path.join(testDir, "/proc-version")
+      await fs.mkdir(testDir, { recursive: true })
+      await fs.writeFile(pathToFile, "microsoft")
+    })
+    afterEach(async () => {
+      await fs.rm(testDir, { recursive: true, force: true })
+    })
+
+    it("should return true", async () => {
+      expect(await util.isWsl("linux", pathToFile)).toBe(true)
+    })
+  })
+  describe("on Linux (non-microsoft)", () => {
+    const testDir = path.join(tmpdir, "tests", "isWsl-linux-non-microsoft")
+    let pathToFile = ""
+
+    beforeEach(async () => {
+      pathToFile = path.join(testDir, "/proc-version")
+      await fs.mkdir(testDir, { recursive: true })
+      await fs.writeFile(pathToFile, "linux")
+    })
+    afterEach(async () => {
+      await fs.rm(testDir, { recursive: true, force: true })
+    })
+
+    it("should return false", async () => {
+      expect(await util.isWsl("linux", pathToFile)).toBe(false)
+    })
+  })
+  describe("on Win32 with microsoft in /proc/version", () => {
+    const testDir = path.join(tmpdir, "tests", "isWsl-win32-microsoft")
+    let pathToFile = ""
+
+    beforeEach(async () => {
+      pathToFile = path.join(testDir, "/proc-version")
+      await fs.mkdir(testDir, { recursive: true })
+      await fs.writeFile(pathToFile, "microsoft")
+    })
+    afterEach(async () => {
+      await fs.rm(testDir, { recursive: true, force: true })
+    })
+
+    it("should return true", async () => {
+      expect(await util.isWsl("win32", pathToFile)).toBe(true)
+    })
+  })
+  describe("on Darwin", () => {
+    const testDir = path.join(tmpdir, "tests", "isWsl-darwin")
+    let pathToFile = ""
+
+    beforeEach(async () => {
+      pathToFile = path.join(testDir, "/proc-version")
+      await fs.mkdir(testDir, { recursive: true })
+      await fs.writeFile(pathToFile, "darwin")
+    })
+    afterEach(async () => {
+      await fs.rm(testDir, { recursive: true, force: true })
+    })
+
+    it("should return false", async () => {
+      expect(await util.isWsl("darwin", pathToFile)).toBe(false)
+    })
+  })
+})
