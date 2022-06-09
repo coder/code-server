@@ -381,13 +381,27 @@ export const getMediaMime = (filePath?: string): string => {
  * A helper function that checks if the platform is Windows Subsystem for Linux
  * (WSL)
  *
+ * @see https://github.com/sindresorhus/is-wsl/blob/main/index.js
  * @returns {Boolean} boolean if it is WSL
  */
-export const isWsl = async (platform: NodeJS.Platform, procVersionFilePath: string): Promise<boolean> => {
-  return (
-    (platform === "linux" && os.release().toLowerCase().indexOf("microsoft") !== -1) ||
-    (await fs.readFile(procVersionFilePath, "utf8")).toLowerCase().indexOf("microsoft") !== -1
-  )
+export const isWsl = async (
+  platform: NodeJS.Platform,
+  osRelease: string,
+  procVersionFilePath: string,
+): Promise<boolean> => {
+  if (platform !== "linux") {
+    return false
+  }
+
+  if (osRelease.toLowerCase().includes("microsoft")) {
+    return true
+  }
+
+  try {
+    return (await fs.readFile(procVersionFilePath, "utf8")).toLowerCase().includes("microsoft")
+  } catch (_) {
+    return false
+  }
 }
 
 /**
@@ -404,7 +418,7 @@ export const open = async (address: URL | string): Promise<void> => {
   }
   const args = [] as string[]
   const options = {} as cp.SpawnOptions
-  const platform = (await isWsl(process.platform, "/proc/version")) ? "wsl" : process.platform
+  const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
   let command = platform === "darwin" ? "open" : "xdg-open"
   if (platform === "win32" || platform === "wsl") {
     command = platform === "wsl" ? "cmd.exe" : "cmd"

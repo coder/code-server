@@ -4,6 +4,7 @@ import * as path from "path"
 import { generateUuid } from "../../../src/common/util"
 import { tmpdir } from "../../../src/node/constants"
 import * as util from "../../../src/node/util"
+import { clean, tmpdir as tempDirHelper } from "../../utils/helpers"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
@@ -484,72 +485,46 @@ describe("humanPath", () => {
 })
 
 describe("isWsl", () => {
+  const testName = "wsl"
+
+  beforeAll(async () => {
+    await clean(testName)
+  })
+
   describe("on Linux (microsoft)", () => {
-    const testDir = path.join(tmpdir, "tests", "isWsl-linux-microsoft")
-    let pathToFile = ""
-
-    beforeEach(async () => {
-      pathToFile = path.join(testDir, "/proc-version")
-      await fs.mkdir(testDir, { recursive: true })
-      await fs.writeFile(pathToFile, "microsoft")
-    })
-    afterEach(async () => {
-      await fs.rm(testDir, { recursive: true, force: true })
-    })
-
     it("should return true", async () => {
-      expect(await util.isWsl("linux", pathToFile)).toBe(true)
+      const fileName = "proc-version"
+      const osRelease = "Linux"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      await fs.writeFile(pathToFile, "microsoft")
+      expect(await util.isWsl("linux", osRelease, pathToFile)).toBe(true)
     })
   })
   describe("on Linux (non-microsoft)", () => {
-    const testDir = path.join(tmpdir, "tests", "isWsl-linux-non-microsoft")
-    let pathToFile = ""
-
-    beforeEach(async () => {
-      pathToFile = path.join(testDir, "/proc-version")
-      await fs.mkdir(testDir, { recursive: true })
-      await fs.writeFile(pathToFile, "linux")
-    })
-    afterEach(async () => {
-      await fs.rm(testDir, { recursive: true, force: true })
-    })
-
     it("should return false", async () => {
-      expect(await util.isWsl("linux", pathToFile)).toBe(false)
+      const fileName = "proc-version2"
+      const osRelease = "Linux"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      await fs.writeFile(pathToFile, "linux")
+      expect(await util.isWsl("linux", osRelease, pathToFile)).toBe(false)
     })
   })
   describe("on Win32 with microsoft in /proc/version", () => {
-    const testDir = path.join(tmpdir, "tests", "isWsl-win32-microsoft")
-    let pathToFile = ""
-
-    beforeEach(async () => {
-      pathToFile = path.join(testDir, "/proc-version")
-      await fs.mkdir(testDir, { recursive: true })
+    it("should return false", async () => {
+      const fileName = "proc-version3"
+      const osRelease = "Microsoft"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
       await fs.writeFile(pathToFile, "microsoft")
-    })
-    afterEach(async () => {
-      await fs.rm(testDir, { recursive: true, force: true })
-    })
-
-    it("should return true", async () => {
-      expect(await util.isWsl("win32", pathToFile)).toBe(true)
+      expect(await util.isWsl("win32", osRelease, pathToFile)).toBe(false)
     })
   })
   describe("on Darwin", () => {
-    const testDir = path.join(tmpdir, "tests", "isWsl-darwin")
-    let pathToFile = ""
-
-    beforeEach(async () => {
-      pathToFile = path.join(testDir, "/proc-version")
-      await fs.mkdir(testDir, { recursive: true })
-      await fs.writeFile(pathToFile, "darwin")
-    })
-    afterEach(async () => {
-      await fs.rm(testDir, { recursive: true, force: true })
-    })
-
     it("should return false", async () => {
-      expect(await util.isWsl("darwin", pathToFile)).toBe(false)
+      const fileName = "proc-version4"
+      const osRelease =
+        "Darwin Roadrunner.local 10.3.0 Darwin Kernel Version 10.3.0: Fri Feb 26 11:58:09 PST 2010; root:xnu-1504.3.12~1/RELEASE_I386 i386"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      expect(await util.isWsl("darwin", osRelease, pathToFile)).toBe(false)
     })
   })
 })
