@@ -512,9 +512,9 @@ describe("isWsl", () => {
   describe("on Win32 with microsoft in /proc/version", () => {
     it("should return false", async () => {
       const fileName = "proc-version3"
-      const osRelease = "Microsoft"
+      const osRelease = "3.4.0-Microsoft"
       const pathToFile = path.join(await tempDirHelper(testName), fileName)
-      await fs.writeFile(pathToFile, "microsoft")
+      await fs.writeFile(pathToFile, "Linux version 3.4.0-Microsoft (Microsoft@Microsoft.com) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Wed Dec 31 14:42:53 PST 2014")
       expect(await util.isWsl("win32", osRelease, pathToFile)).toBe(false)
     })
   })
