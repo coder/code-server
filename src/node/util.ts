@@ -406,7 +406,6 @@ export const isWsl = async (
 
 interface OpenOptions {
   args: string[]
-  options: cp.SpawnOptions
   command: string
   urlSearch: string
 }
@@ -422,7 +421,6 @@ interface OpenOptions {
  */
 export function constructOpenOptions(platform: NodeJS.Platform | "wsl", urlSearch: string): OpenOptions {
   const args: string[] = []
-  const options: cp.SpawnOptions = {}
   let command = platform === "darwin" ? "open" : "xdg-open"
   if (platform === "win32" || platform === "wsl") {
     command = platform === "wsl" ? "cmd.exe" : "cmd"
@@ -433,7 +431,6 @@ export function constructOpenOptions(platform: NodeJS.Platform | "wsl", urlSearc
   return {
     args,
     command,
-    options,
     urlSearch,
   }
 }
@@ -451,8 +448,9 @@ export const open = async (address: URL | string): Promise<void> => {
     url.hostname = "localhost"
   }
   const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
-  const { command, args, options } = constructOpenOptions(platform, url.search)
-  const proc = cp.spawn(command, [...args, url.toString()], options)
+  const { command, args, urlSearch } = constructOpenOptions(platform, url.search)
+  url.search = urlSearch
+  const proc = cp.spawn(command, [...args, url.toString()], {})
   await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {
