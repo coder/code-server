@@ -537,3 +537,38 @@ describe("isWsl", () => {
     })
   })
 })
+
+describe("constructOpenOptions", () => {
+  it("should return options for darwin", () => {
+    const platform: NodeJS.Platform | "wsl" = "darwin"
+    const url = new URL("localhost:8080")
+    const { args, command, urlSearch } = util.constructOpenOptions(platform, url.search)
+    expect(args).toStrictEqual([])
+    expect(command).toBe("open")
+    expect(urlSearch).toBe("")
+  })
+  it("should return options for linux", () => {
+    const platform: NodeJS.Platform | "wsl" = "linux"
+    const url = new URL("localhost:8080")
+    const { args, command, urlSearch } = util.constructOpenOptions(platform, url.search)
+    expect(args).toStrictEqual([])
+    expect(command).toBe("xdg-open")
+    expect(urlSearch).toBe("")
+  })
+  it("should return options for win32", () => {
+    const platform: NodeJS.Platform | "wsl" = "win32"
+    const url = new URL("localhost:8080?q=&test")
+    const { args, command, urlSearch } = util.constructOpenOptions(platform, url.search)
+    expect(args).toStrictEqual(["/c", "start", '""', "/b"])
+    expect(command).toBe("cmd")
+    expect(urlSearch).toBe("?q=^&test")
+  })
+  it("should return options for wsl", () => {
+    const platform: NodeJS.Platform | "wsl" = "wsl"
+    const url = new URL("localhost:8080?q=&test")
+    const { args, command, urlSearch } = util.constructOpenOptions(platform, url.search)
+    expect(args).toStrictEqual(["/c", "start", '""', "/b"])
+    expect(command).toBe("cmd.exe")
+    expect(urlSearch).toBe("?q=^&test")
+  })
+})
