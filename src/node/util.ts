@@ -416,8 +416,8 @@ export const open = async (address: URL | string): Promise<void> => {
   if (url.hostname === "0.0.0.0") {
     url.hostname = "localhost"
   }
-  const args = [] as string[]
-  const options = {} as cp.SpawnOptions
+  const args: string[] = []
+  const options: cp.SpawnOptions = {}
   const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
   let command = platform === "darwin" ? "open" : "xdg-open"
   if (platform === "win32" || platform === "wsl") {
