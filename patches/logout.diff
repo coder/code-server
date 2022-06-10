@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -293,6 +293,7 @@ export class WebClientServer {
+@@ -290,6 +290,7 @@ export class WebClientServer {
  				productConfiguration: <Partial<IProductConfiguration>>{
  					rootEndpoint: base,
  					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,

@@ -7,17 +7,18 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
-@@ -206,6 +206,9 @@ export class Extension implements IExten
- 		if (!this.gallery || !this.local) {
- 			return false;
- 		}
-+		if (this.type !== ExtensionType.User) {
-+			return false;
-+		}
- 		if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {
- 			return false;
- 		}
-@@ -1057,6 +1060,10 @@ export class ExtensionsWorkbenchService
+@@ -211,6 +211,10 @@ export class Extension implements IExten
+ 			if (this.type === ExtensionType.System && this.productService.quality === 'stable') {
+ 				return false;
+ 			}
++			// Do not update builtin extensions.
++			if (this.type !== ExtensionType.User) {
++				return false;
++			}
+ 			if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {
+ 				return false;
+ 			}
+@@ -1065,6 +1069,10 @@ export class ExtensionsWorkbenchService
  				// Skip if check updates only for builtin extensions and current extension is not builtin.
  				continue;
  			}
@@ -25,6 +26,6 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 +				// Never update builtin extensions.
 +				continue;
 +			}
- 			if (installed.isBuiltin && !installed.local?.identifier.uuid) {
- 				// Skip if the builtin extension does not have Marketplace id
+ 			if (installed.isBuiltin && (!installed.local?.identifier.uuid || this.productService.quality !== 'stable')) {
+ 				// Skip if the builtin extension does not have Marketplace identifier or the current quality is not stable.
  				continue;

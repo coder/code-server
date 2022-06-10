@@ -21,7 +21,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -304,6 +304,10 @@ export class WebClientServer {
+@@ -301,6 +301,10 @@ export class WebClientServer {
  					proxyEndpointTemplate: base + '/proxy/{{port}}',
  					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',

@@ -7,13 +7,13 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -288,7 +288,10 @@ export class WebClientServer {
+@@ -285,7 +285,10 @@ export class WebClientServer {
  				remoteAuthority,
  				webviewEndpoint: vscodeBase + '/static/out/vs/workbench/contrib/webview/browser/pre',
  				_wrapWebWorkerExtHostInIframe,
--				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
+-				developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
 +				developmentOptions: {
-+					enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined,
++					enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined,
 +					logLevel: this._logService.getLevel(),
 +				},
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,

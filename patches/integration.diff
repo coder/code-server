@@ -185,10 +185,10 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
  import { IWorkspace } from 'vs/workbench/services/host/browser/browserHostService';
  import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
 +import { CodeServerClient } from 'vs/workbench/browser/client';
+ import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
+ import { IProgressService } from 'vs/platform/progress/common/progress';
  
- export class BrowserMain extends Disposable {
- 
-@@ -103,6 +104,9 @@ export class BrowserMain extends Disposa
+@@ -105,6 +106,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -263,7 +263,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -285,6 +285,7 @@ export class WebClientServer {
+@@ -289,6 +289,7 @@ export class WebClientServer {
  				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
  				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  				productConfiguration: <Partial<IProductConfiguration>>{

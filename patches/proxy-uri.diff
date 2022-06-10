@@ -68,7 +68,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -294,6 +294,7 @@ export class WebClientServer {
+@@ -291,6 +291,7 @@ export class WebClientServer {
  					rootEndpoint: base,
  					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
@@ -80,7 +80,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -179,7 +179,7 @@ export class BrowserMain extends Disposa
+@@ -189,7 +189,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalE
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/terminalEnvironment.ts
-@@ -388,7 +388,7 @@ export function createTerminalEnvironmen
+@@ -388,7 +388,7 @@ export async function createTerminalEnvi
  
  		// Sanitize the environment, removing any undesirable VS Code and Electron environment
  		// variables

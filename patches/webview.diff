@@ -24,59 +24,27 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -179,7 +179,7 @@ export class BrowserWorkbenchEnvironment
+@@ -183,7 +183,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
 -		const endpoint = this.options.webviewEndpoint
 +		const endpoint = (this.options.webviewEndpoint && new URL(this.options.webviewEndpoint, window.location.toString()).toString())
  			|| this.productService.webviewContentExternalBaseUrlTemplate
- 			|| 'https://{{uuid}}.vscode-webview.net/{{quality}}/{{commit}}/out/vs/workbench/contrib/webview/browser/pre/';
+ 			|| 'https://{{uuid}}.vscode-cdn.net/{{quality}}/{{commit}}/out/vs/workbench/contrib/webview/browser/pre/';
  
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -283,6 +283,7 @@ export class WebClientServer {
+@@ -280,6 +280,7 @@ export class WebClientServer {
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
 +				webviewEndpoint: vscodeBase + '/static/out/vs/workbench/contrib/webview/browser/pre',
  				_wrapWebWorkerExtHostInIframe,
- 				developmentOptions: { enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined },
+ 				developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
  				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
-Index: code-server/lib/vscode/src/vs/workbench/common/webview.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/common/webview.ts
-+++ code-server/lib/vscode/src/vs/workbench/common/webview.ts
-@@ -22,7 +22,7 @@ export const webviewResourceBaseHost = '
- 
- export const webviewRootResourceAuthority = `vscode-resource.${webviewResourceBaseHost}`;
- 
--export const webviewGenericCspSource = `https://*.${webviewResourceBaseHost}`;
-+export const webviewGenericCspSource = `'self' https://*.${webviewResourceBaseHost}`;
- 
- /**
-  * Construct a uri that can load resources inside a webview
-Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
-+++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/service-worker.js
-@@ -188,9 +188,11 @@ sw.addEventListener('fetch', (event) =>
- 		}
- 	}
- 
--	// If we're making a request against the remote authority, we want to go
--	// back through VS Code itself so that we are authenticated properly
--	if (requestUrl.host === remoteAuthority) {
-+	// If we're making a request against the remote authority, we want to go back
-+	// through VS Code itself so that we are authenticated properly.  If the
-+	// service worker is hosted on the same origin we will have cookies and
-+	// authentication will not be an issue.
-+	if (requestUrl.origin !== sw.origin && requestUrl.host === remoteAuthority) {
- 		switch (event.request.method) {
- 			case 'GET':
- 			case 'HEAD':
 Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js

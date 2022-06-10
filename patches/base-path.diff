@@ -159,11 +159,18 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -253,7 +253,10 @@ export class WebClientServer {
+@@ -250,14 +250,10 @@ export class WebClientServer {
  			return res.end();
  		}
  
--		const remoteAuthority = req.headers.host;
+-		let originalHost = req.headers['x-original-host'];
+-		if (Array.isArray(originalHost)) {
+-			originalHost = originalHost[0];
+-		}
+-		const remoteAuthority = originalHost || req.headers.host;
+-		if (!remoteAuthority) {
+-			return serveError(req, res, 400, `Bad request.`);
+-		}
 +		// It is not possible to reliably detect the remote authority on the server
 +		// in all cases.  Set this to something invalid to make sure we catch code
 +		// that is using this when it should not.
@@ -171,7 +178,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		function escapeAttribute(value: string): string {
  			return value.replace(/"/g, '&quot;');
-@@ -275,6 +278,8 @@ export class WebClientServer {
+@@ -279,6 +275,8 @@ export class WebClientServer {
  			accessToken: this._environmentService.args['github-auth'],
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
@@ -180,7 +187,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		const data = (await util.promisify(fs.readFile)(filePath)).toString()
  			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
  				remoteAuthority,
-@@ -285,6 +290,7 @@ export class WebClientServer {
+@@ -289,6 +287,7 @@ export class WebClientServer {
  				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
  				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  				productConfiguration: <Partial<IProductConfiguration>>{
@@ -188,7 +195,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  					codeServerVersion: this._productService.codeServerVersion,
  					embedderIdentifier: 'server-distro',
  					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
-@@ -297,7 +303,9 @@ export class WebClientServer {
+@@ -301,7 +300,9 @@ export class WebClientServer {
  					} : undefined
  				}
  			})))
@@ -199,7 +206,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const cspDirectives = [
  			'default-src \'self\';',
-@@ -376,3 +384,70 @@ export class WebClientServer {
+@@ -380,3 +381,70 @@ export class WebClientServer {
  		return res.end(data);
  	}
  }
@@ -286,7 +293,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.ts
 +++ code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
-@@ -482,6 +482,7 @@ function doCreateUri(path: string, query
+@@ -481,6 +481,7 @@ function doCreateUri(path: string, query
  		});
  	}
  
@@ -294,7 +301,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.ts
  	return URI.parse(window.location.href).with({ path, query });
  }
  
-@@ -493,7 +494,7 @@ function doCreateUri(path: string, query
+@@ -492,7 +493,7 @@ function doCreateUri(path: string, query
  	if (!configElement || !configElementAttribute) {
  		throw new Error('Missing web configuration element');
  	}
