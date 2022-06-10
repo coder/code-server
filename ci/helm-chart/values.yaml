@@ -33,6 +33,8 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
+priorityClassName: ""
+
 service:
   type: ClusterIP
   port: 8080

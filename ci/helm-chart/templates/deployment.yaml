@@ -25,6 +25,9 @@ spec:
       {{- if .Values.hostnameOverride }}
       hostname: {{ .Values.hostnameOverride }}
       {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       {{- if .Values.securityContext.enabled }}
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
