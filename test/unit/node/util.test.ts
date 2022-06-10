@@ -4,6 +4,7 @@ import * as path from "path"
 import { generateUuid } from "../../../src/common/util"
 import { tmpdir } from "../../../src/node/constants"
 import * as util from "../../../src/node/util"
+import { clean, tmpdir as tempDirHelper } from "../../utils/helpers"
 
 describe("getEnvPaths", () => {
   describe("on darwin", () => {
@@ -480,5 +481,59 @@ describe("humanPath", () => {
     const actual = util.humanPath(mockHomedir, path)
     const expected = "~/code-server"
     expect(actual).toBe(expected)
+  })
+})
+
+describe("isWsl", () => {
+  const testName = "wsl"
+
+  beforeAll(async () => {
+    await clean(testName)
+  })
+
+  describe("on Linux (microsoft)", () => {
+    it("should return true", async () => {
+      const fileName = "proc-version"
+      const osRelease = "5.4.0-1066-gke"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      await fs.writeFile(
+        pathToFile,
+        "Linux version 3.4.0-Microsoft (Microsoft@Microsoft.com) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Wed Dec 31 14:42:53 PST 2014",
+      )
+      expect(await util.isWsl("linux", osRelease, pathToFile)).toBe(true)
+    })
+  })
+  describe("on Linux (non-microsoft)", () => {
+    it("should return false", async () => {
+      const fileName = "proc-version2"
+      const osRelease = "Linux"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      await fs.writeFile(
+        pathToFile,
+        "Linux version 5.4.0-1066-gke (buildd@lcy02-amd64-039) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04)) #69-Ubuntu SMP Fri Mar 11 13:52:45 UTC 202",
+      )
+      expect(await util.isWsl("linux", osRelease, pathToFile)).toBe(false)
+    })
+  })
+  describe("on Win32 with microsoft in /proc/version", () => {
+    it("should return false", async () => {
+      const fileName = "proc-version3"
+      const osRelease = "3.4.0-Microsoft"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      await fs.writeFile(
+        pathToFile,
+        "Linux version 3.4.0-Microsoft (Microsoft@Microsoft.com) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Wed Dec 31 14:42:53 PST 2014",
+      )
+      expect(await util.isWsl("win32", osRelease, pathToFile)).toBe(false)
+    })
+  })
+  describe("on Darwin", () => {
+    it("should return false", async () => {
+      const fileName = "proc-version4"
+      const osRelease =
+        "Darwin Roadrunner.local 10.3.0 Darwin Kernel Version 10.3.0: Fri Feb 26 11:58:09 PST 2010; root:xnu-1504.3.12~1/RELEASE_I386 i386"
+      const pathToFile = path.join(await tempDirHelper(testName), fileName)
+      expect(await util.isWsl("darwin", osRelease, pathToFile)).toBe(false)
+    })
   })
 })
