@@ -496,7 +496,10 @@ describe("isWsl", () => {
       const fileName = "proc-version"
       const osRelease = "5.4.0-1066-gke"
       const pathToFile = path.join(await tempDirHelper(testName), fileName)
-      await fs.writeFile(pathToFile, "Linux version 5.4.0-1066-gke (buildd@lcy02-amd64-039) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04)) #69-Ubuntu SMP Fri Mar 11 13:52:45 UTC 202")
+      await fs.writeFile(
+        pathToFile,
+        "Linux version 5.4.0-1066-gke (buildd@lcy02-amd64-039) (gcc version 9.4.0 (Ubuntu 9.4.0-1ubuntu1~20.04)) #69-Ubuntu SMP Fri Mar 11 13:52:45 UTC 202",
+      )
       expect(await util.isWsl("linux", osRelease, pathToFile)).toBe(true)
     })
   })
@@ -514,7 +517,10 @@ describe("isWsl", () => {
       const fileName = "proc-version3"
       const osRelease = "3.4.0-Microsoft"
       const pathToFile = path.join(await tempDirHelper(testName), fileName)
-      await fs.writeFile(pathToFile, "Linux version 3.4.0-Microsoft (Microsoft@Microsoft.com) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Wed Dec 31 14:42:53 PST 2014")
+      await fs.writeFile(
+        pathToFile,
+        "Linux version 3.4.0-Microsoft (Microsoft@Microsoft.com) (gcc version 4.7 (GCC) ) #1 SMP PREEMPT Wed Dec 31 14:42:53 PST 2014",
+      )
       expect(await util.isWsl("win32", osRelease, pathToFile)).toBe(false)
     })
   })
