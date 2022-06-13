@@ -66,10 +66,12 @@ body:
       required: false
   - type: checkboxes
     attributes:
-      label: Does this issue happen in VS Code?
+      label: Does this issue happen in VS Code or GitHub Codespaces?
       description: Please try reproducing this issue in VS Code
       options:
         - label: I cannot reproduce this in VS Code.
+          required: true
+        - label: I cannot reproduce this in GitHub Codespaces
           required: true
   - type: checkboxes
     attributes:
