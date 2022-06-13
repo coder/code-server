@@ -71,7 +71,7 @@ body:
       options:
         - label: I cannot reproduce this in VS Code.
           required: true
-        - label: I cannot reproduce this in GitHub Codespaces
+        - label: I cannot reproduce this in GitHub Codespaces.
           required: true
   - type: checkboxes
     attributes:
