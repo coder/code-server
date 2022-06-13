@@ -40,14 +40,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -290,6 +290,7 @@ export class WebClientServer {
- 				productConfiguration: <Partial<IProductConfiguration>>{
- 					rootEndpoint: base,
- 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
-+					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
- 					codeServerVersion: this._productService.codeServerVersion,
- 					embedderIdentifier: 'server-distro',
- 					extensionsGallery: {
+@@ -309,6 +309,7 @@ export class WebClientServer {
+ 				codeServerVersion: this._productService.codeServerVersion,
+ 				rootEndpoint: base,
+ 				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
++				logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
+ 				embedderIdentifier: 'server-distro',
+ 				extensionsGallery: {
+ 					...this._productService.extensionsGallery,
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts

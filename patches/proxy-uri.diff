@@ -26,25 +26,25 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityResolverService.ts
-@@ -7,7 +7,7 @@ import { Emitter } from 'vs/base/common/
- import { Disposable } from 'vs/base/common/lifecycle';
+@@ -8,7 +8,7 @@ import { Disposable } from 'vs/base/comm
  import { RemoteAuthorities } from 'vs/base/common/network';
  import { URI } from 'vs/base/common/uri';
+ import { IProductService } from 'vs/platform/product/common/productService';
 -import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
 +import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolvedOptions, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
+ import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
  export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
- 
-@@ -20,7 +20,7 @@ export class RemoteAuthorityResolverServ
+@@ -22,7 +22,7 @@ export class RemoteAuthorityResolverServ
  	private readonly _connectionToken: string | undefined;
  	private readonly _connectionTokens: Map<string, string>;
  
--	constructor(connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined) {
-+	constructor(connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined, private readonly proxyEndpointTemplate?: string) {
+-	constructor(@IProductService productService: IProductService, connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined) {
++	constructor(@IProductService productService: IProductService, connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined, private readonly proxyEndpointTemplate?: string) {
  		super();
  		this._cache = new Map<string, ResolverResult>();
  		this._connectionToken = connectionToken;
-@@ -59,12 +59,17 @@ export class RemoteAuthorityResolverServ
+@@ -62,12 +62,17 @@ export class RemoteAuthorityResolverServ
  
  	private _doResolveAuthority(authority: string): ResolverResult {
  		const connectionToken = this._connectionTokens.get(authority) || this._connectionToken;
@@ -68,24 +68,24 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -291,6 +291,7 @@ export class WebClientServer {
- 					rootEndpoint: base,
- 					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
-+					proxyEndpointTemplate: base + '/proxy/{{port}}',
- 					codeServerVersion: this._productService.codeServerVersion,
- 					embedderIdentifier: 'server-distro',
- 					extensionsGallery: {
+@@ -310,6 +310,7 @@ export class WebClientServer {
+ 				rootEndpoint: base,
+ 				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 				logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
++				proxyEndpointTemplate: base + '/proxy/{{port}}',
+ 				embedderIdentifier: 'server-distro',
+ 				extensionsGallery: {
+ 					...this._productService.extensionsGallery,
 Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -189,7 +189,7 @@ export class BrowserMain extends Disposa
+@@ -209,7 +209,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
--		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(connectionToken, this.configuration.resourceUriProvider);
-+		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(connectionToken, this.configuration.resourceUriProvider, this.configuration.productConfiguration?.proxyEndpointTemplate);
+-		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(productService, connectionToken, this.configuration.resourceUriProvider);
++		const remoteAuthorityResolverService = new RemoteAuthorityResolverService(productService, connectionToken, this.configuration.resourceUriProvider, this.configuration.productConfiguration?.proxyEndpointTemplate);
  		serviceCollection.set(IRemoteAuthorityResolverService, remoteAuthorityResolverService);
  
  		// Signing

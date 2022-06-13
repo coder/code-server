@@ -33,10 +33,10 @@ describe("vscode", () => {
       switch (route) {
         case "/":
         case "/vscode/":
-          expect(html).toContain(`src="./static/`)
+          expect(html).toContain(`src="./oss-dev/static/`)
           break
         case "/vscode":
-          expect(html).toContain(`src="./vscode/static/`)
+          expect(html).toContain(`src="./vscode/oss-dev/static/`)
           break
       }
     }

@@ -37,28 +37,45 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -280,6 +280,7 @@ export class WebClientServer {
- 		const data = (await util.promisify(fs.readFile)(filePath)).toString()
- 			.replace('{{WORKBENCH_WEB_CONFIGURATION}}', escapeAttribute(JSON.stringify({
- 				remoteAuthority,
-+				webviewEndpoint: vscodeBase + '/static/out/vs/workbench/contrib/webview/browser/pre',
- 				_wrapWebWorkerExtHostInIframe,
- 				developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
-Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
+@@ -298,6 +298,7 @@ export class WebClientServer {
+ 
+ 		const workbenchWebConfiguration = {
+ 			remoteAuthority,
++			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: { enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined },
+ 			settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
-+++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/main.js
-@@ -318,6 +318,12 @@ const hostMessaging = new class HostMess
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -331,6 +331,12 @@
  
- 		const hostname = location.hostname;
+ 				const hostname = location.hostname;
  
-+		// It is safe to run if we are on the same host.
-+		const parent = new URL(parentOrigin)
-+		if (parent.hostname === location.hostname) {
-+			return start(parentOrigin)
-+		}
++				// It is safe to run if we are on the same host.
++				const parent = new URL(parentOrigin)
++				if (parent.hostname === location.hostname) {
++					return start(parentOrigin)
++				}
 +
- 		if (!crypto.subtle) {
- 			// cannot validate, not running in a secure context
- 			throw new Error(`Cannot validate in current context!`);
+ 				if (!crypto.subtle) {
+ 					// cannot validate, not running in a secure context
+ 					throw new Error(`Cannot validate in current context!`);
+Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
++++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index-no-csp.html
+@@ -330,6 +330,12 @@
+ 
+ 				const hostname = location.hostname;
+ 
++				// It is safe to run if we are on the same host.
++				const parent = new URL(parentOrigin)
++				if (parent.hostname === location.hostname) {
++					return start(parentOrigin)
++				}
++
+ 				if (!crypto.subtle) {
+ 					// cannot validate, not running in a secure context
+ 					throw new Error(`Cannot validate in current context!`);

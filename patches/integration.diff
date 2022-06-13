@@ -7,6 +7,7 @@ Prepare Code for integration with code-server
 3. Add the code-server version to the help dialog.
 4. Add ready events for use in an iframe.
 5. Add our icons.
+6. Use our own manifest.
 
 Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
 ===================================================================
@@ -21,7 +22,7 @@ Index: code-server/lib/vscode/src/vs/server/node/server.main.ts
  import product from 'vs/platform/product/common/product';
  import * as perf from 'vs/base/common/performance';
  
-@@ -33,38 +33,43 @@ const errorReporter: ErrorReporter = {
+@@ -34,38 +34,43 @@ const errorReporter: ErrorReporter = {
  	}
  };
  
@@ -106,7 +107,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandler.ts
-@@ -143,12 +143,15 @@ export class BrowserDialogHandler implem
+@@ -143,8 +143,11 @@ export class BrowserDialogHandler implem
  
  	async about(): Promise<void> {
  		const detailString = (useAgo: boolean): string => {
@@ -120,11 +121,6 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/parts/dialogs/dialogHandl
  				this.productService.version || 'Unknown',
  				this.productService.commit || 'Unknown',
  				this.productService.date ? `${this.productService.date}${useAgo ? ' (' + fromNow(new Date(this.productService.date), true) + ')' : ''}` : 'Unknown',
--				navigator.userAgent
-+				navigator.userAgent,
- 			);
- 		};
- 
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- /dev/null
@@ -187,8 +183,8 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 +import { CodeServerClient } from 'vs/workbench/browser/client';
  import { ITelemetryService } from 'vs/platform/telemetry/common/telemetry';
  import { IProgressService } from 'vs/platform/progress/common/progress';
- 
-@@ -105,6 +106,9 @@ export class BrowserMain extends Disposa
+ import { DelayedLogChannel } from 'vs/workbench/services/output/common/delayedLogChannel';
+@@ -109,6 +110,9 @@ export class BrowserMain extends Disposa
  		// Startup
  		const instantiationService = workbench.startup();
  
@@ -219,22 +215,24 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench-dev.html
  		<meta name="mobile-web-app-capable" content="yes" />
  		<meta name="apple-mobile-web-app-capable" content="yes" />
  		<meta name="apple-mobile-web-app-title" content="Code">
--		<link rel="apple-touch-icon" href="/code-192.png" />
+-		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
 +		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
 +		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
  
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -26,7 +27,8 @@
+@@ -26,8 +27,9 @@
  		<meta id="vscode-workbench-builtin-extensions" data-settings="{{WORKBENCH_BUILTIN_EXTENSIONS}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
--		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+-		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
+-		<link rel="manifest" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/manifest.json" crossorigin="use-credentials" />
 +		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
-+		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
- 		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
++		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
  	</head>
  
+ 	<body aria-label="">
 Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/code/browser/workbench/workbench.html
@@ -243,31 +241,33 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<meta name="mobile-web-app-capable" content="yes" />
  		<meta name="apple-mobile-web-app-capable" content="yes" />
  		<meta name="apple-mobile-web-app-title" content="Code">
--		<link rel="apple-touch-icon" href="/code-192.png" />
+-		<link rel="apple-touch-icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/code-192.png" />
 +		<link rel="apple-touch-icon" sizes="192x192" href="/_static/src/browser/media/pwa-icon-192.png" />
 +		<link rel="apple-touch-icon" sizes="512x512" href="/_static/src/browser/media/pwa-icon-512.png" />
  
  		<!-- Disable pinch zooming -->
  		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-@@ -23,7 +24,8 @@
+@@ -23,8 +24,9 @@
  		<meta id="vscode-workbench-auth-session" data-settings="{{WORKBENCH_AUTH_SESSION}}">
  
  		<!-- Workbench Icon/Manifest/CSS -->
--		<link rel="icon" href="/favicon.ico" type="image/x-icon" />
+-		<link rel="icon" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/favicon.ico" type="image/x-icon" />
+-		<link rel="manifest" href="{{WORKBENCH_WEB_BASE_URL}}/resources/server/manifest.json" crossorigin="use-credentials" />
 +		<link rel="icon" href="/_static/src/browser/media/favicon-dark-support.svg" />
-+		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" />
- 		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
- 		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="./static/out/vs/workbench/workbench.web.main.css">
++		<link rel="alternate icon" href="/_static/src/browser/media/favicon.ico" type="image/x-icon" />
++		<link rel="manifest" href="/manifest.json" crossorigin="use-credentials" />
+ 		<link data-name="vs/workbench/workbench.web.main" rel="stylesheet" href="{{WORKBENCH_WEB_BASE_URL}}/out/vs/workbench/workbench.web.main.css">
  
+ 	</head>
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -289,6 +289,7 @@ export class WebClientServer {
- 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
- 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 				productConfiguration: <Partial<IProductConfiguration>>{
-+					codeServerVersion: this._productService.codeServerVersion,
- 					embedderIdentifier: 'server-distro',
- 					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
- 						...this._productService.extensionsGallery,
+@@ -307,6 +307,7 @@ export class WebClientServer {
+ 			folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+ 			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
+ 			productConfiguration: <Partial<IProductConfiguration>>{
++				codeServerVersion: this._productService.codeServerVersion,
+ 				embedderIdentifier: 'server-distro',
+ 				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+ 					...this._productService.extensionsGallery,

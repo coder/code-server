@@ -9,10 +9,10 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
  import { IExtensionsScannerService } from 'vs/platform/extensionManagement/common/extensionsScannerService';
  import { ExtensionsScannerService } from 'vs/server/node/extensionsScannerService';
 +import { TelemetryClient } from "vs/server/node/telemetryClient";
+ import { NullPolicyService } from 'vs/platform/policy/common/policy';
  
  const eventPrefix = 'monacoworkbench';
- 
-@@ -122,7 +123,11 @@ export async function setupServerService
+@@ -123,7 +124,11 @@ export async function setupServerService
  	let appInsightsAppender: ITelemetryAppender = NullAppender;
  	const machineId = await getMachineId();
  	if (supportsTelemetry(productService, environmentService)) {
@@ -165,18 +165,6 @@ Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 +		}
 +	}
 +}
-Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
-+++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -301,6 +301,7 @@ export class WebClientServer {
- 					logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
- 					proxyEndpointTemplate: base + '/proxy/{{port}}',
- 					codeServerVersion: this._productService.codeServerVersion,
-+					enableTelemetry: this._productService.enableTelemetry,
- 					embedderIdentifier: 'server-distro',
- 					serviceWorker: {
- 						scope: vscodeBase + '/',
 Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
@@ -210,3 +198,15 @@ Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/teleme
  		} else {
  			this.impl = NullTelemetryService;
  		}
+Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
++++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
+@@ -320,6 +320,7 @@ export class WebClientServer {
+ 					scope: vscodeBase + '/',
+ 					path: base + '/_static/out/browser/serviceWorker.js',
+ 				},
++				enableTelemetry: this._productService.enableTelemetry,
+ 				embedderIdentifier: 'server-distro',
+ 				extensionsGallery: {
+ 					...this._productService.extensionsGallery,
