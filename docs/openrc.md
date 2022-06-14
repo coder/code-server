@@ -7,7 +7,7 @@ name=$RC_SVCNAME
 description="$name - VS Code on a remote server"
 user="" # your username here
 homedir="/home/$user"
-command="/usr/bin/$name"
+command="$(which code-server)"
 # Just because you can do this does not mean you should. Use ~/.config/code-server/config.yaml instead
 #command_args="--extensions-dir $homedir/.local/share/$name/extensions --user-data-dir $homedir/.local/share/$name --disable-telemetry"
 command_user="$user:$user"
