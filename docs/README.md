@@ -16,7 +16,7 @@ access it in the browser.
 
 > **Note**
 > To manage multiple IDEs, workspaces, and teams, see
-> our new project: [coder/coder](https://github.com/coder/coder)
+> our new project: [coder/coder](http://cdr.co/coder-github)
 
 ## Requirements
 
