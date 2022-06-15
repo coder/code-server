@@ -538,6 +538,12 @@ describe("isWsl", () => {
   })
 })
 
+describe("open", () => {
+  it("should throw an error if address is a string", async () => {
+    const address = "localhost:3000"
+    await expect(util.open(address)).rejects.toThrow("Cannot open socket paths")
+  })
+})
 describe("constructOpenOptions", () => {
   it("should return options for darwin", () => {
     const platform: NodeJS.Platform | "wsl" = "darwin"
