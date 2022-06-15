@@ -3,6 +3,7 @@ This script is pretty generic and should be able to run on any OpenRC-based dist
 Save the file as `code-server` in `/etc/init.d` and make it executable with `chmod +x code-server`. Put your username in line 3.
 
 ```bash
+#!/sbin/openrc-run
 name=$RC_SVCNAME
 description="$name - VS Code on a remote server"
 user="" # your username here
