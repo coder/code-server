@@ -289,7 +289,7 @@ jobs:
         run: source scl_source enable devtoolset-9 && yarn release:standalone
 
       - name: Install test dependencies
-        run: yarn install
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
 
       - name: Run integration tests on standalone release
         run: yarn test:integration
@@ -425,7 +425,7 @@ jobs:
         run: yarn release:standalone
 
       - name: Install test dependencies
-        run: yarn install
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
 
       - name: Run integration tests on standalone release
         run: yarn test:integration
