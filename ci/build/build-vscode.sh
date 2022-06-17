@@ -17,7 +17,8 @@ main() {
   # telemetry available; telemetry can still be disabled by flag or setting).
   # This needs to be done before building as Code will read this file and embed
   # it into the client-side code.
-  cp product.json product.original.json
+  git checkout product.json             # Reset in case the script exited early.
+  cp product.json product.original.json # Since jq has no inline edit.
   jq --slurp '.[0] * .[1]' product.original.json <(
     cat << EOF
   {
@@ -52,10 +53,14 @@ main() {
   }
 EOF
   ) > product.json
-  rm product.original.json
 
   # Any platform works since we have our own packaging step (for now).
   yarn gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
+
+  # Reset so if you develop after building you will not be stuck with the wrong
+  # commit (the dev client will use `oss-dev` but the dev server will still use
+  # product.json which will have `stable-$commit`).
+  git checkout product.json
 }
 
 main "$@"
