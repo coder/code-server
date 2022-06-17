@@ -91,7 +91,7 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +						return cb(undefined, result)
 +					}
 +					const path = nlsConfig['vs/nls']._resolvedLanguagePackCoreLocation + "/" + bundle.replace(/\//g, "!") + ".nls.json"
-+					fetch(`{{VS_BASE}}/vscode-remote-resource?path=${encodeURIComponent(path)}`)
++					fetch(`{{WORKBENCH_WEB_BASE_URL}}/vscode-remote-resource?path=${encodeURIComponent(path)}`)
 +						.then((response) => response.json())
 +						.then((json) => {
 +							bundles[bundle] = json
