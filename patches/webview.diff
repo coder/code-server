@@ -49,6 +49,15 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
 +++ code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index.html
+@@ -5,7 +5,7 @@
+ 	<meta charset="UTF-8">
+ 
+ 	<meta http-equiv="Content-Security-Policy"
+-		content="default-src 'none'; script-src 'sha256-xgIcbQmGjpT42GEj54VFSNh6MI15PZ2D1+DdVehfYBI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
++		content="default-src 'none'; script-src 'sha256-aOCIU83V9nV+0ERJudbrKLqgIVOHqU71i4Lv5urjGTI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+ 
+ 	<!-- Disable pinch zooming -->
+ 	<meta name="viewport"
 @@ -331,6 +331,12 @@
  
  				const hostname = location.hostname;
@@ -88,7 +97,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  			default-src 'none';
  			child-src 'self' data: blob:;
 -			script-src 'self' 'unsafe-eval' 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' https:;
-+			script-src 'self' 'unsafe-eval' 'unsafe-inline' https:;
++			script-src 'self' 'unsafe-eval' 'sha256-yHVIAbzODFRINjoLGID5qWPP45HzMtwhyVRC+7yiuXg=' https:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>
  	<body>
