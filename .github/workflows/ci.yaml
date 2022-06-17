@@ -288,8 +288,11 @@ jobs:
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: yarn install --ignore-scripts && cd test && yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
@@ -421,8 +424,11 @@ jobs:
       - name: Build standalone release
         run: yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: yarn install --ignore-scripts && cd test && yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
