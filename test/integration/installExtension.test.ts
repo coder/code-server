@@ -1,5 +1,5 @@
 import { clean, tmpdir } from "../utils/helpers"
-import { runCodeServerCommand } from "../utils/integration"
+import { runCodeServerCommand } from "../utils/runCodeServerCommand"
 
 describe("--install-extension", () => {
   const testName = "installExtension"
