@@ -46,8 +46,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
 +				logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
  				embedderIdentifier: 'server-distro',
- 				extensionsGallery: {
- 					...this._productService.extensionsGallery,
+ 				extensionsGallery: this._productService.extensionsGallery,
+ 			},
 Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/client.ts

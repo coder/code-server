@@ -208,5 +208,5 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				},
 +				enableTelemetry: this._productService.enableTelemetry,
  				embedderIdentifier: 'server-distro',
- 				extensionsGallery: {
- 					...this._productService.extensionsGallery,
+ 				extensionsGallery: this._productService.extensionsGallery,
+ 			},

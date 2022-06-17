@@ -111,8 +111,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				rootEndpoint: base,
 +				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  				embedderIdentifier: 'server-distro',
- 				extensionsGallery: {
- 					...this._productService.extensionsGallery,
+ 				extensionsGallery: this._productService.extensionsGallery,
+ 			},
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts

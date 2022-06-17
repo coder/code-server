@@ -199,7 +199,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
-@@ -345,6 +348,7 @@ export class WebClientServer {
+@@ -338,6 +341,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,
