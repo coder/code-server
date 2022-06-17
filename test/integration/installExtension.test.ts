@@ -18,5 +18,5 @@ describe("--install-extension", () => {
       stdout: "log",
     })
     expect(stdout).toContain(extName)
-  }, 10000)
+  }, 20000)
 })
