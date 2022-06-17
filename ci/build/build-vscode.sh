@@ -13,7 +13,13 @@ main() {
 
   cd lib/vscode
 
-  # Add the commit, date, our name, links, and enable telemetry (this just makes
+  # Set the commit Code will embed into the product.json.  We need to do this
+  # since Code tries to get the commit from the `.git` directory which will fail
+  # as it is a submodule.
+  export VSCODE_DISTRO_COMMIT
+  VSCODE_DISTRO_COMMIT=$(git rev-parse HEAD)
+
+  # Add the date, our name, links, and enable telemetry (this just makes
   # telemetry available; telemetry can still be disabled by flag or setting).
   # This needs to be done before building as Code will read this file and embed
   # it into the client-side code.
@@ -23,9 +29,7 @@ main() {
     cat << EOF
   {
     "enableTelemetry": true,
-    "commit": "$(git rev-parse HEAD)",
     "quality": "stable",
-    "date": $(jq -n 'now | todate'),
     "codeServerVersion": "$VERSION",
     "nameShort": "code-server",
     "nameLong": "code-server",
