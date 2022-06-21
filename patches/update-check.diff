@@ -19,7 +19,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
 +import { IProductService } from 'vs/platform/product/common/productService';
 +import { IStorageService, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
-
+ 
  export class CodeServerClient extends Disposable {
  	constructor (
 +		@ILogService private logService: ILogService,
@@ -98,40 +98,40 @@ Index: code-server/lib/vscode/src/vs/base/common/product.ts
  	readonly codeServerVersion?: string
  	readonly rootEndpoint?: string
 +	readonly updateEndpoint?: string
-
+ 
  	readonly version: string;
  	readonly date?: string;
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -292,6 +292,7 @@ export class WebClientServer {
- 				workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
- 				productConfiguration: <Partial<IProductConfiguration>>{
- 					rootEndpoint: base,
-+					updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 					codeServerVersion: this._productService.codeServerVersion,
- 					embedderIdentifier: 'server-distro',
- 					extensionsGallery: {
+@@ -308,6 +308,7 @@ export class WebClientServer {
+ 			productConfiguration: <Partial<IProductConfiguration>>{
+ 				codeServerVersion: this._productService.codeServerVersion,
+ 				rootEndpoint: base,
++				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
+ 				embedderIdentifier: 'server-distro',
+ 				extensionsGallery: this._productService.extensionsGallery,
+ 			},
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 @@ -11,6 +11,8 @@ import { refineServiceDecorator } from '
  import { IEnvironmentService, INativeEnvironmentService } from 'vs/platform/environment/common/environment';
-
+ 
  export const serverOptions: OptionDescriptions<ServerParsedArgs> = {
 +	/* ----- code-server ----- */
 +	'disable-update-check': { type: 'boolean' },
-
+ 
  	/* ----- server setup ----- */
-
+ 
 @@ -88,6 +90,8 @@ export const serverOptions: OptionDescri
  };
-
+ 
  export interface ServerParsedArgs {
 +	/* ----- code-server ----- */
 +	'disable-update-check'?: boolean;
-
+ 
  	/* ----- server setup ----- */
-
+ 
