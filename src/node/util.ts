@@ -377,11 +377,62 @@ export const getMediaMime = (filePath?: string): string => {
   return (filePath && mimeTypes[path.extname(filePath)]) || "text/plain"
 }
 
-export const isWsl = async (): Promise<boolean> => {
-  return (
-    (process.platform === "linux" && os.release().toLowerCase().indexOf("microsoft") !== -1) ||
-    (await fs.readFile("/proc/version", "utf8")).toLowerCase().indexOf("microsoft") !== -1
-  )
+/**
+ * A helper function that checks if the platform is Windows Subsystem for Linux
+ * (WSL)
+ *
+ * @see https://github.com/sindresorhus/is-wsl/blob/main/index.js
+ * @returns {Boolean} boolean if it is WSL
+ */
+export const isWsl = async (
+  platform: NodeJS.Platform,
+  osRelease: string,
+  procVersionFilePath: string,
+): Promise<boolean> => {
+  if (platform !== "linux") {
+    return false
+  }
+
+  if (osRelease.toLowerCase().includes("microsoft")) {
+    return true
+  }
+
+  try {
+    return (await fs.readFile(procVersionFilePath, "utf8")).toLowerCase().includes("microsoft")
+  } catch (_) {
+    return false
+  }
+}
+
+interface OpenOptions {
+  args: string[]
+  command: string
+  urlSearch: string
+}
+
+/**
+ * A helper function to construct options for `open` function.
+ *
+ * Extract to make it easier to test.
+ *
+ * @param platform - platform on machine
+ * @param urlSearch - url.search
+ * @returns  an object with args, command, options and urlSearch
+ */
+export function constructOpenOptions(platform: NodeJS.Platform | "wsl", urlSearch: string): OpenOptions {
+  const args: string[] = []
+  let command = platform === "darwin" ? "open" : "xdg-open"
+  if (platform === "win32" || platform === "wsl") {
+    command = platform === "wsl" ? "cmd.exe" : "cmd"
+    args.push("/c", "start", '""', "/b")
+    urlSearch = urlSearch.replace(/&/g, "^&")
+  }
+
+  return {
+    args,
+    command,
+    urlSearch,
+  }
 }
 
 /**
@@ -396,16 +447,10 @@ export const open = async (address: URL | string): Promise<void> => {
   if (url.hostname === "0.0.0.0") {
     url.hostname = "localhost"
   }
-  const args = [] as string[]
-  const options = {} as cp.SpawnOptions
-  const platform = (await isWsl()) ? "wsl" : process.platform
-  let command = platform === "darwin" ? "open" : "xdg-open"
-  if (platform === "win32" || platform === "wsl") {
-    command = platform === "wsl" ? "cmd.exe" : "cmd"
-    args.push("/c", "start", '""', "/b")
-    url.search = url.search.replace(/&/g, "^&")
-  }
-  const proc = cp.spawn(command, [...args, url.toString()], options)
+  const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
+  const { command, args, urlSearch } = constructOpenOptions(platform, url.search)
+  url.search = urlSearch
+  const proc = cp.spawn(command, [...args, url.toString()], {})
   await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {
