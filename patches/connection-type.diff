@@ -14,12 +14,13 @@ Index: code-server/lib/vscode/src/vs/platform/remote/common/remoteAgentConnectio
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts
 +++ code-server/lib/vscode/src/vs/platform/remote/common/remoteAgentConnection.ts
-@@ -231,7 +231,7 @@ async function connectToRemoteExtensionH
-
+@@ -233,7 +233,8 @@ async function connectToRemoteExtensionH
+ 
  	let socket: ISocket;
  	try {
--		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, `reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
-+		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, `type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
+-		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, getRemoteServerRootPath(options), `reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
++
++		socket = await createSocket(options.logService, options.socketFactory, options.host, options.port, getRemoteServerRootPath(options), `type=${connectionTypeToString(connectionType)}&reconnectionToken=${options.reconnectionToken}&reconnection=${options.reconnectionProtocol ? 'true' : 'false'}`, `renderer-${connectionTypeToString(connectionType)}-${options.reconnectionToken}`, timeoutCancellationToken);
  	} catch (error) {
  		options.logService.error(`${logPrefix} socketFactory.connect() failed or timed out. Error:`);
  		options.logService.error(error);

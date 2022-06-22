@@ -20,19 +20,19 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -292,6 +292,7 @@ export class WebClientServer {
- 					enableSmokeTestDriver: this._environmentService.driverHandle === 'web' ? true : undefined,
- 					logLevel: this._logService.getLevel(),
- 				},
-+				userDataPath: this._environmentService.userDataPath,
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
- 				enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
- 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+@@ -299,6 +299,7 @@ export class WebClientServer {
+ 		const workbenchWebConfiguration = {
+ 			remoteAuthority,
+ 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
++			userDataPath: this._environmentService.userDataPath,
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: {
+ 				enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined,
 Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -210,6 +210,11 @@ export interface IWorkbenchConstructionO
+@@ -245,6 +245,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly configurationDefaults?: Record<string, any>;
  
@@ -48,7 +48,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -52,7 +52,14 @@ export class BrowserWorkbenchEnvironment
+@@ -53,7 +53,14 @@ export class BrowserWorkbenchEnvironment
  	get logFile(): URI { return joinPath(this.logsHome, 'window.log'); }
  
  	@memoize
