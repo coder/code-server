@@ -9,7 +9,6 @@ update-check.diff
 logout.diff
 store-socket.diff
 proxy-uri.diff
-display-language.diff
 github-auth.diff
 unique-db.diff
 log-level.diff
@@ -19,3 +18,4 @@ connection-type.diff
 sourcemaps.diff
 disable-downloads.diff
 telemetry.diff
+display-language.diff
