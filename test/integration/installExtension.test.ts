@@ -1,3 +1,5 @@
+import { stat } from "fs/promises"
+import { cwd } from "process"
 import { clean, tmpdir } from "../utils/helpers"
 import { runCodeServerCommand } from "../utils/runCodeServerCommand"
 
@@ -12,11 +14,12 @@ describe("--install-extension", () => {
     setupFlags = ["--extensions-dir", tempDir]
   })
   it("should install an extension", async () => {
-    const extName = "wesbos.theme-cobalt2"
-    await runCodeServerCommand([...setupFlags, "--install-extension", extName], {})
-    const { stdout } = await runCodeServerCommand([...setupFlags, "--list-extensions"], {
-      stdout: "log",
-    })
-    expect(stdout).toContain(extName)
+    const extName = `wesbos.theme-cobalt2-2.1.6`
+    const vsixFileName = "wesbos.theme-cobalt2-2.1.6.vsix"
+    const extensionFixture = `${cwd()}/test/integration/fixtures/${vsixFileName}`
+    await runCodeServerCommand([...setupFlags, "--install-extension", extensionFixture], {})
+    const pathToExtFolder = `${tempDir}/${extName}`
+    const statInfo = await stat(pathToExtFolder)
+    expect(statInfo.isDirectory()).toBe(true)
   }, 20000)
 })
