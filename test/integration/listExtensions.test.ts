@@ -20,7 +20,6 @@ describe("--list-extensions", () => {
     // Make folder because this is where we'll move the extension
     const pathToUnpackedExtension = `${tempDir}/${extName}-${extVersion}`
     const tempPathToUnpackedExtension = `${tempDir}/${extName}-temp}`
-    await mkdir(path.resolve(pathToUnpackedExtension))
     await extract(extensionFixture, { dir: tempPathToUnpackedExtension })
     await rename(path.join(tempPathToUnpackedExtension, "extension", pathToUnpackedExtension))
 	
