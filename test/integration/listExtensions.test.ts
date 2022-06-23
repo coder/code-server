@@ -30,7 +30,7 @@ describe("--list-extensions", () => {
     await clean(testName)
     tempDir = await tmpdir(testName)
     setupFlags = ["--extensions-dir", tempDir]
-    const unpackedExtFixture = `${cwd()}/test/integration/fixtures/${extName}-${extVersion}`
+    const unpackedExtFixture = path.resolve(`./test/integration/fixtures/${extName}-${extVersion}`)
     await copyDir(unpackedExtFixture, `${tempDir}/${extName}-${extVersion}`)
   })
   it("should list installed extensions", async () => {
