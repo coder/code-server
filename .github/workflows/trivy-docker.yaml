@@ -51,7 +51,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Run Trivy vulnerability scanner in image mode
-        uses: aquasecurity/trivy-action@e27605859b9550f81ddd818eb816c8cb83cf9650
+        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
         with:
           image-ref: "docker.io/codercom/code-server:latest"
           ignore-unfixed: true
