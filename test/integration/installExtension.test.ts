@@ -18,7 +18,7 @@ describe("--install-extension", () => {
     const vsixFileName = "wesbos.theme-cobalt2-2.1.6.vsix"
     const extensionFixture = path.resolve(`./test/integration/fixtures/${vsixFileName}`)
     await runCodeServerCommand([...setupFlags, "--install-extension", extensionFixture], {})
-    const pathToExtFolder = `${tempDir}/${extName}`
+    const pathToExtFolder = path.join(tempDir, extName)
     const statInfo = await stat(pathToExtFolder)
     expect(statInfo.isDirectory()).toBe(true)
   }, 20000)
