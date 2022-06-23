@@ -7,7 +7,7 @@ Index: code-server/lib/vscode/src/vs/platform/credentials/node/credentialsMainSe
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/credentials/node/credentialsMainService.ts
 +++ code-server/lib/vscode/src/vs/platform/credentials/node/credentialsMainService.ts
-@@ -5,18 +5,32 @@
+@@ -5,9 +5,18 @@
  
  import { InMemoryCredentialsProvider } from 'vs/platform/credentials/common/credentials';
  import { ILogService } from 'vs/platform/log/common/log';
@@ -26,6 +26,8 @@ Index: code-server/lib/vscode/src/vs/platform/credentials/node/credentialsMainSe
 +}
  
  export class CredentialsWebMainService extends BaseCredentialsMainService {
+ 	// Since we fallback to the in-memory credentials provider, we do not need to surface any Keytar load errors
+@@ -16,10 +25,15 @@ export class CredentialsWebMainService e
  
  	constructor(
  		@ILogService logService: ILogService,
@@ -42,7 +44,7 @@ Index: code-server/lib/vscode/src/vs/platform/credentials/node/credentialsMainSe
  	}
  
  	// If the credentials service is running on the server, we add a suffix -server to differentiate from the location that the
-@@ -45,4 +59,59 @@ export class CredentialsWebMainService e
+@@ -48,4 +62,59 @@ export class CredentialsWebMainService e
  		}
  		return this._keytarCache;
  	}

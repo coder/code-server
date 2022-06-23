@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -215,6 +215,11 @@ export interface IWorkbenchConstructionO
+@@ -250,6 +250,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -28,7 +28,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -30,6 +30,11 @@ export interface IBrowserWorkbenchEnviro
+@@ -31,6 +31,11 @@ export interface IBrowserWorkbenchEnviro
  	 * Options used to configure the workbench.
  	 */
  	readonly options?: IWorkbenchConstructionOptions;
@@ -40,7 +40,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
  }
  
  export class BrowserWorkbenchEnvironmentService implements IBrowserWorkbenchEnvironmentService {
-@@ -61,6 +66,13 @@ export class BrowserWorkbenchEnvironment
+@@ -62,6 +67,13 @@ export class BrowserWorkbenchEnvironment
  		return this.options.userDataPath;
  	}
  
@@ -58,18 +58,18 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
-@@ -15,6 +15,7 @@ export const serverOptions: OptionDescri
+@@ -14,6 +14,7 @@ export const serverOptions: OptionDescri
+ 	/* ----- code-server ----- */
  	'disable-update-check': { type: 'boolean' },
  	'auth': { type: 'string' },
- 	'locale': { type: 'string' },
 +	'disable-file-downloads': { type: 'boolean' },
  
  	/* ----- server setup ----- */
  
-@@ -96,6 +97,7 @@ export interface ServerParsedArgs {
+@@ -94,6 +95,7 @@ export interface ServerParsedArgs {
+ 	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string
- 	'locale'?: string
 +	'disable-file-downloads'?: boolean;
  
  	/* ----- server setup ----- */
@@ -78,14 +78,14 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -293,6 +293,7 @@ export class WebClientServer {
- 					logLevel: this._logService.getLevel(),
- 				},
- 				userDataPath: this._environmentService.userDataPath,
-+				isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
- 				settingsSyncOptions: !this._environmentService.isBuilt && this._environmentService.args['enable-sync'] ? { enabled: true } : undefined,
- 				enableWorkspaceTrust: !this._environmentService.args['disable-workspace-trust'],
- 				folderUri: resolveWorkspaceURI(this._environmentService.args['default-folder']),
+@@ -300,6 +300,7 @@ export class WebClientServer {
+ 			remoteAuthority,
+ 			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
+ 			userDataPath: this._environmentService.userDataPath,
++			isEnabledFileDownloads: !this._environmentService.args['disable-file-downloads'],
+ 			_wrapWebWorkerExtHostInIframe,
+ 			developmentOptions: {
+ 				enableSmokeTestDriver: this._environmentService.args['enable-smoke-test-driver'] ? true : undefined,
 Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
@@ -144,7 +144,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions
  import { IsWebContext } from 'vs/platform/contextkey/common/contextkeys';
  import { ServicesAccessor } from 'vs/platform/instantiation/common/instantiation';
  import { ThemeIcon } from 'vs/platform/theme/common/themeService';
-@@ -476,13 +476,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
+@@ -477,13 +477,16 @@ MenuRegistry.appendMenuItem(MenuId.Explo
  		id: DOWNLOAD_COMMAND_ID,
  		title: DOWNLOAD_LABEL
  	},
