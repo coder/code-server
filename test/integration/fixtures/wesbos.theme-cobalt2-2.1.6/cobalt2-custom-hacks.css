@@ -3,10 +3,44 @@
 }
 
 /* This makes the dirty tab circle & cross yellow */
-.monaco-workbench .part.editor > .content .editor-group-container.active > .title .tabs-container > .tab.dirty > .tab-close .action-label:not(:hover):before,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.dirty > .tab-close .action-label:not(:hover):before,
-.monaco-workbench .part.editor > .content .editor-group-container.active > .title .tabs-container > .tab.dirty > .tab-close .action-label:hover:before,
-.monaco-workbench .part.editor > .content .editor-group-container > .title .tabs-container > .tab.dirty > .tab-close .action-label:hover:before { color: #ffc600; }
+.monaco-workbench
+  .part.editor
+  > .content
+  .editor-group-container.active
+  > .title
+  .tabs-container
+  > .tab.dirty
+  > .tab-close
+  .action-label:not(:hover):before,
+.monaco-workbench
+  .part.editor
+  > .content
+  .editor-group-container
+  > .title
+  .tabs-container
+  > .tab.dirty
+  > .tab-close
+  .action-label:not(:hover):before,
+.monaco-workbench
+  .part.editor
+  > .content
+  .editor-group-container.active
+  > .title
+  .tabs-container
+  > .tab.dirty
+  > .tab-close
+  .action-label:hover:before,
+.monaco-workbench
+  .part.editor
+  > .content
+  .editor-group-container
+  > .title
+  .tabs-container
+  > .tab.dirty
+  > .tab-close
+  .action-label:hover:before {
+  color: #ffc600;
+}
 
 .monaco-workbench > .part.editor > .content .editor-group-container {
   border-top: 1px solid #15232d !important;
@@ -29,7 +63,7 @@
 /* This puts an inset shadow onto the minimap scrollbar and permanently shows it */
 .monaco-editor .minimap .minimap-shadow-visible,
 .monaco-editor .minimap .minimap-shadow-hidden {
-  box-shadow: rgba(0, 0, 0, .4) -6px 0 6px -6px inset !important;
+  box-shadow: rgba(0, 0, 0, 0.4) -6px 0 6px -6px inset !important;
   /* taken from vanilla VS Code theme */
   position: absolute;
   left: -6px;
@@ -37,6 +71,6 @@
 }
 
 /* This accounts for larger font cutting off - bump up 3px */
-.monaco-workbench>.activitybar>.content .monaco-action-bar .badge .badge-content {
+.monaco-workbench > .activitybar > .content .monaco-action-bar .badge .badge-content {
   top: 17px !important;
 }

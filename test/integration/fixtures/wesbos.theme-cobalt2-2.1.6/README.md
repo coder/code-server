@@ -4,7 +4,6 @@
 
 ![Preview](https://raw.githubusercontent.com/wesbos/cobalt2-vscode/cobalt2-updates/images/ss.png)
 
-
 # Installation
 
 1. Open **Extensions** sidebar panel in VS Code. `View → Extensions`
@@ -42,6 +41,7 @@
 ```
 
 ## Important: CSS Hacks For Extra Sweet Editor
+
 Some things in VS Code can't be controlled by settings, but you can install [this plugin](https://github.com/be5invis/vscode-custom-css), then make a file on your computer that will hold your custom CSS, I like to make one in my root called `~/.vscodestyles.css` and then put this everything in [cobalt2-custom-hacks.css](https://github.com/wesbos/cobalt2-vscode/blob/master/./cobalt2-custom-hacks.css) into your file.
 
 Once done, open your command palette and select enable **custom CSS and JS**
@@ -53,6 +53,7 @@ Finally reload your editor and the Custom CSS should be taking. You can test thi
 **_Note: Reloading custom CSS and JS after every VSCode update is a must!_**
 
 ## Contributing
+
 This is a bit weird, but to get some sort of live feedback for when editing a theme. Please let me know if you have a saner way of doing it
 
 1. Open this repo in your terminal and type `npm install`
@@ -79,12 +80,12 @@ https://code.visualstudio.com/docs/getstarted/theme-color-reference
 
 ## Put Cobalt2 in other places!
 
-* [Sublime Text](https://github.com/wesbos/cobalt2)
-* [Atom](https://github.com/wesbos/Cobalt2-atom)
-* [iTerm2](https://github.com/wesbos/Cobalt2-iterm)
-* [Hyper Term](https://github.com/wesbos/hyperterm-cobalt2-theme)
-* [Alfred](https://github.com/wesbos/Cobalt2-Alfred-Theme)
-* [Slack](https://github.com/wesbos/Cobalt2-Slack)
+- [Sublime Text](https://github.com/wesbos/cobalt2)
+- [Atom](https://github.com/wesbos/Cobalt2-atom)
+- [iTerm2](https://github.com/wesbos/Cobalt2-iterm)
+- [Hyper Term](https://github.com/wesbos/hyperterm-cobalt2-theme)
+- [Alfred](https://github.com/wesbos/Cobalt2-Alfred-Theme)
+- [Slack](https://github.com/wesbos/Cobalt2-Slack)
 
 ## Thanks
 

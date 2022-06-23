@@ -333,15 +333,11 @@
       }
     },
     {
-        "name": "Meta JSX",
-        "scope": [
-            "meta.jsx.children",
-            "meta.jsx.children.js",
-            "meta.jsx.children.tsx"
-        ],
-        "settings": {
-            "foreground": "#fff"
-        }
+      "name": "Meta JSX",
+      "scope": ["meta.jsx.children", "meta.jsx.children.js", "meta.jsx.children.tsx"],
+      "settings": {
+        "foreground": "#fff"
+      }
     },
     {
       "name": "Meta Brace",
@@ -516,10 +512,8 @@
       }
     },
     {
-      "name":
-        "[HTML] - Quotes. these are a slightly different colour because expand selection will then not include quotes",
-      "scope":
-        "punctuation.definition.string.begin, punctuation.definition.string.end",
+      "name": "[HTML] - Quotes. these are a slightly different colour because expand selection will then not include quotes",
+      "scope": "punctuation.definition.string.begin, punctuation.definition.string.end",
       "settings": {
         "foreground": "#92fc79"
       }
@@ -589,10 +583,7 @@
     },
     {
       "name": "[JSON] - String",
-      "scope": [
-        "source.json string",
-        "source.json punctuation.definition.string"
-      ],
+      "scope": ["source.json string", "source.json punctuation.definition.string"],
       "settings": {
         "foreground": "#e1efff"
       }
@@ -606,11 +597,7 @@
     },
     {
       "name": "[MARKDOWN] - Heading Name Section",
-      "scope": [
-        "entity.name.section.markdown",
-        "markup.heading.setext.1.markdown",
-        "markup.heading.setext.2.markdown"
-      ],
+      "scope": ["entity.name.section.markdown", "markup.heading.setext.1.markdown", "markup.heading.setext.2.markdown"],
       "settings": {
         "foreground": "#ffc600",
         "fontStyle": "bold"
@@ -688,10 +675,7 @@
     },
     {
       "name": "[MARKDOWN] - Link Address",
-      "scope": [
-        "markup.underline.link.markdown",
-        "markup.underline.link.image.markdown"
-      ],
+      "scope": ["markup.underline.link.markdown", "markup.underline.link.image.markdown"],
       "settings": {
         "foreground": "#9effff"
       }
