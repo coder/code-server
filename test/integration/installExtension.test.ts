@@ -1,5 +1,5 @@
 import { stat } from "fs/promises"
-import { cwd } from "process"
+import path from "path"
 import { clean, tmpdir } from "../utils/helpers"
 import { runCodeServerCommand } from "../utils/runCodeServerCommand"
 
