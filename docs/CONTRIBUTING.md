@@ -188,7 +188,7 @@ We use these to test anything related to our scripts (most of which live under `
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run tests with `yarn test:integration`, which nsures that code-server builds work on their respective
+These are a work in progress. We build code-server and run tests with `yarn test:integration`, which ensures that code-server builds work on their respective
 platforms.
 
 Our integration tests look at components that rely on one another. For example,
