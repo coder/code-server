@@ -25,7 +25,7 @@ describe("--list-extensions", () => {
     await rename(`${tempPathToUnpackedExtension}/extension`, pathToUnpackedExtension)
   })
   it("should list installed extensions", async () => {
-    const { stdout } = await runCodeServerCommand([...setupFlags, "--list-extensions"], { stdout: "log" })
+    const { stdout } = await runCodeServerCommand([...setupFlags, "--list-extensions"])
     expect(stdout).toMatch(extName)
   }, 20000)
 })
