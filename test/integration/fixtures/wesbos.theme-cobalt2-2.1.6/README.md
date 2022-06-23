@@ -33,7 +33,6 @@
 }
 ```
 
-
 ## Contributing
 
 This is a bit weird, but to get some sort of live feedback for when editing a theme. Please let me know if you have a saner way of doing it
