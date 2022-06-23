@@ -15,7 +15,9 @@ help() {
 main() {
   cd "$(dirname "$0")/../.."
 
-  local path="./release-standalone/bin/code-server"
+  source ./ci/lib.sh
+
+  local path="$RELEASE_PATH-standalone/bin/code-server"
   if [[ ! ${CODE_SERVER_PATH-} ]]; then
     echo "Set CODE_SERVER_PATH to test another build of code-server"
   else
