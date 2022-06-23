@@ -18,8 +18,8 @@ describe("--list-extensions", () => {
     setupFlags = ["--extensions-dir", tempDir]
     const extensionFixture = path.resolve(`./test/integration/fixtures/${vsixFileName}`)
     // Make folder because this is where we'll move the extension
-    const pathToUnpackedExtension = `${tempDir}/${extName}-${extVersion}`
-    const tempPathToUnpackedExtension = `${tempDir}/${extName}-temp}`
+    const pathToUnpackedExtension = path.join(tempDir, `${extName}-${extVersion}`)
+    const tempPathToUnpackedExtension = path.join(tempDir, `${extName}-temp`)
     await extract(extensionFixture, { dir: tempPathToUnpackedExtension })
     await rename(path.join(tempPathToUnpackedExtension, "extension", pathToUnpackedExtension))
 	
