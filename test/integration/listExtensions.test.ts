@@ -31,7 +31,7 @@ describe("--list-extensions", () => {
     tempDir = await tmpdir(testName)
     setupFlags = ["--extensions-dir", tempDir]
     const unpackedExtFixture = path.resolve(`./test/integration/fixtures/${extName}-${extVersion}`)
-    await copyDir(unpackedExtFixture, `${tempDir}/${extName}-${extVersion}`)
+    await copyDir(unpackedExtFixture, path.join(tempDir, `${extName}-${extVersion}`))
   })
   it("should list installed extensions", async () => {
     const { stdout } = await runCodeServerCommand([...setupFlags, "--list-extensions"], { stdout: "log" })
