@@ -1,4 +1,4 @@
-import { mkdir, rename } from "fs/promises"
+import { rename } from "fs/promises"
 import path from "path"
 import extract from "extract-zip"
 import { clean, tmpdir } from "../utils/helpers"
