@@ -57,7 +57,7 @@
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
-    "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-import-resolver-typescript": "^3.0.0",
     "eslint-plugin-import": "^2.18.2",
     "eslint-plugin-prettier": "^4.0.0",
     "json": "^11.0.0",
