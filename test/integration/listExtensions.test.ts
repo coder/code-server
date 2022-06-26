@@ -21,7 +21,7 @@ describe("--list-extensions", () => {
     const pathToUnpackedExtension = path.join(tempDir, `${extName}-${extVersion}`)
     const tempPathToUnpackedExtension = path.join(tempDir, `${extName}-temp`)
     await extract(extensionFixture, { dir: tempPathToUnpackedExtension })
-    await rename(path.join(tempPathToUnpackedExtension, "extension", pathToUnpackedExtension))
+    await rename(path.join(tempPathToUnpackedExtension, "extension"), pathToUnpackedExtension)
   })
   it("should list installed extensions", async () => {
     const { stdout } = await runCodeServerCommand([...setupFlags, "--list-extensions"])
