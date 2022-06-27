@@ -31,8 +31,7 @@
     "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
-    "icons": "./ci/dev/gen_icons.sh",
-    "coverage": "codecov"
+    "icons": "./ci/dev/gen_icons.sh"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
@@ -53,7 +52,6 @@
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "audit-ci": "^6.0.0",
-    "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
