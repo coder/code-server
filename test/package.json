@@ -10,6 +10,7 @@
     "@types/supertest": "^2.0.11",
     "@types/wtfnode": "^0.7.0",
     "argon2": "^0.28.0",
+    "extract-zip": "^2.0.1",
     "jest": "^27.3.1",
     "jest-fetch-mock": "^3.0.3",
     "jsdom": "^16.4.0",
