@@ -39,7 +39,7 @@ jobs:
           node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v2.1
+        uses: azure/setup-helm@v3.0
 
       - name: Fetch dependencies from cache
         id: cache-yarn
