@@ -164,7 +164,9 @@ jobs:
         if: success()
 
       - name: Upload coverage report to Codecov
-        run: yarn coverage
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
       # The release package does not contain any native modules
