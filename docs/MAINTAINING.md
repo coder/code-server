@@ -170,7 +170,8 @@ If you're the current release manager, follow these steps:
    `release-images` artifacts. You do not have to wait for this step to complete
    before proceeding.
 1. Run `yarn release:github-draft` to create a GitHub draft release from the
-   template with the updated version.
+   template with the updated version. Make sure to update the `CHANGELOG.md`.
+1. Bump chart version in `Chart.yaml`.
 1. Summarize the major changes in the release notes and link to the relevant
    issues.
 1. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
