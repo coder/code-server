@@ -44,10 +44,7 @@ main() {
   fi
 
   cd test
-  # NOTE@jsjoeio
-  # Something strange is happening after the 1.68 update
-  # VS Code won't load without this set so I'm adding here.
-  VSCODE_DEV=1 yarn playwright test "$@"
+  yarn playwright test "$@"
 }
 
 main "$@"
