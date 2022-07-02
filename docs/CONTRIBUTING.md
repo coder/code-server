@@ -147,7 +147,7 @@ Build the release packages (make sure that you run `yarn release` first):
 
 ```shell
 yarn release:standalone
-yarn test:standalone-release
+yarn test:integration
 yarn package
 ```
 
@@ -188,9 +188,8 @@ We use these to test anything related to our scripts (most of which live under `
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run a script called
-[test-standalone-release.sh](../ci/build/test-standalone-release.sh), which
-ensures that code-server's CLI is working.
+These are a work in progress. We build code-server and run tests with `yarn test:integration`, which ensures that code-server builds work on their respective
+platforms.
 
 Our integration tests look at components that rely on one another. For example,
 testing the CLI requires us to build and package code-server.

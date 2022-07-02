@@ -45,9 +45,6 @@ You can disable minification by setting `MINIFY=`.
   - Builds vscode into `./lib/vscode/out-vscode`.
 - [./ci/build/build-release.sh](./build/build-release.sh) (`yarn release`)
   - Bundles the output of the above two scripts into a single node module at `./release`.
-- [./ci/build/build-standalone-release.sh](./build/build-standalone-release.sh) (`yarn release:standalone`)
-  - Requires a node module already built into `./release` with the above script.
-  - Will build a standalone release with node and node_modules bundled into `./release-standalone`.
 - [./ci/build/clean.sh](./build/clean.sh) (`yarn clean`)
   - Removes all build artifacts.
   - Useful to do a clean build.
@@ -97,6 +94,8 @@ Helps avoid clobbering the CI configuration.
   - Runs `yarn lint`.
 - [./steps/test-unit.sh](./steps/test-unit.sh)
   - Runs `yarn test:unit`.
+- [./steps/test-integration.sh](./steps/test-integration.sh)
+  - Runs `yarn test:integration`.
 - [./steps/test-e2e.sh](./steps/test-e2e.sh)
   - Runs `yarn test:e2e`.
 - [./steps/release.sh](./steps/release.sh)

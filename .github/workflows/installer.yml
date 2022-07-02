@@ -34,7 +34,7 @@ jobs:
         run: ./install.sh
 
       - name: Test code-server
-        run: yarn test:standalone-release code-server
+        run: CODE_SERVER_PATH="code-server" yarn test:integration
 
   alpine:
     name: Test installer on Alpine
@@ -66,4 +66,4 @@ jobs:
         run: ./install.sh
 
       - name: Test code-server
-        run: yarn test:standalone-release code-server
+        run: CODE_SERVER_PATH="code-server" yarn test:integration
