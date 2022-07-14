@@ -19,3 +19,4 @@ sourcemaps.diff
 disable-downloads.diff
 telemetry.diff
 display-language.diff
+cli-window-open.diff
