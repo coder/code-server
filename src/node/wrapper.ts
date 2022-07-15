@@ -292,14 +292,18 @@ export class ParentProcess extends Process {
     const child = this.spawn()
     this.child = child
 
-    // Log both to stdout and to the log directory.
+    // Log child output to stdout/stderr and to the log directory.
     if (child.stdout) {
-      child.stdout.pipe(this.logStdoutStream)
-      child.stdout.pipe(process.stdout)
+      child.stdout.on("data", (data) => {
+        this.logStdoutStream.write(data)
+        process.stdout.write(data)
+      })
     }
     if (child.stderr) {
-      child.stderr.pipe(this.logStderrStream)
-      child.stderr.pipe(process.stderr)
+      child.stderr.on("data", (data) => {
+        this.logStderrStream.write(data)
+        process.stderr.write(data)
+      })
     }
 
     this.logger.debug(`spawned inner process ${child.pid}`)
