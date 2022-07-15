@@ -20,6 +20,30 @@ Code v99.99.999
 
 -->
 
+## [4.5.0](https://github.com/coder/code-server/releases/tag/v4.5.0) - 2022-06-29
+
+Code v1.68.1
+
+### Changed
+
+- Updated codecov to use codecov uploader
+- Moved integration tests to Jest
+- Fixed docker release to only download .deb
+- Upgraded to Code 1.68.1
+- Install `nfpm` from GitHub
+- Upgraded to TypeScript 4.6
+
+### Added
+
+- Added tests for `open`, `isWsl`, `handlePasswordValidation`
+- Provided alternate image registry to dockerhub
+- Allowed users to have scripts run on container with `ENTRYPOINTD` environment
+  variable
+
+### Fixed
+
+- Fixed open CLI command to work on macOS
+
 ## [4.4.0](https://github.com/coder/code-server/releases/tag/v4.4.0) - 2022-05-06
 
 Code v1.66.2
