@@ -4,14 +4,3 @@ trailingComma: all
 arrowParens: always
 singleQuote: false
 useTabs: false
-
-overrides:
-  # Attempt to keep VScode's existing code style intact.
-  - files: "lib/vscode/**/*.ts"
-    options:
-      # No limit defined upstream.
-      printWidth: 10000
-      semi: true
-      singleQuote: true
-      useTabs: true
-      arrowParens: avoid

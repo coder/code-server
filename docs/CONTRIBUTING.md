@@ -10,6 +10,9 @@
   - [Version updates to Code](#version-updates-to-code)
   - [Patching Code](#patching-code)
   - [Build](#build)
+  - [Troubleshooting](#troubleshooting)
+    - [I see "Forbidden access" when I load code-server in the browser](#i-see-forbidden-access-when-i-load-code-server-in-the-browser)
+  - ["Can only have one anonymous define call per script"](#can-only-have-one-anonymous-define-call-per-script)
   - [Help](#help)
 - [Test](#test)
   - [Unit tests](#unit-tests)
@@ -155,6 +158,18 @@ yarn package
 > version. In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
+
+### Troubleshooting
+
+#### I see "Forbidden access" when I load code-server in the browser
+
+This means your patches didn't apply correctly. We have a patch to remove the auth from vanilla Code because we use our own.
+
+Try popping off the patches with `quilt pop -a` and reapplying with `quilt push -a`.
+
+### "Can only have one anonymous define call per script"
+
+Code might be trying to use a dev or prod HTML in the wrong context. You can try re-running code-server and setting `VSCODE_DEV=1`.
 
 ### Help
 
