@@ -322,7 +322,6 @@ export class ParentProcess extends Process {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
-        NODE_OPTIONS: `--max-old-space-size=2048 ${process.env.NODE_OPTIONS || ""}`,
       },
       stdio: ["pipe", "pipe", "pipe", "ipc"],
     })
