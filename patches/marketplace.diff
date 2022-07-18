@@ -3,6 +3,13 @@ Add Open VSX default and an env var for marketplace, fix old marketplace
 Our old marketplace only supports `serviceUrl` but this causes the marketplace
 to be disabled entirely so this moves the template var check to fix that.
 
+This also removes serverRootPath from the web extension route because that will
+include the commit.  When you update code-server (including this update) the web
+extension will continue using the old path since it is stored in the browser but
+the path will 404 because the commit no longer matches.  This change is only to
+support current installations though because this patch also removes the
+in-between and has web extensions install directly from the marketplace.
+
 This can be tested by setting EXTENSIONS_GALLERY set to:
 
     '{"serviceUrl": "https://extensions.coder.com/api"}'
@@ -32,22 +39,49 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -293,14 +293,14 @@ export class WebClientServer {
- 					rootEndpoint: base,
- 					codeServerVersion: this._productService.codeServerVersion,
- 					embedderIdentifier: 'server-distro',
--					extensionsGallery: this._webExtensionResourceUrlTemplate ? {
-+					extensionsGallery: {
- 						...this._productService.extensionsGallery,
--						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
-+						'resourceUrlTemplate': this._webExtensionResourceUrlTemplate ? this._webExtensionResourceUrlTemplate.with({
- 							scheme: 'http',
- 							authority: remoteAuthority,
- 							path: `web-extension-resource/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
--						}).toString(true)
--					} : undefined
-+						}).toString(true) : undefined
-+					},
- 				}
- 			})))
- 			.replace('{{WORKBENCH_AUTH_SESSION}}', () => authSessionInfo ? escapeAttribute(JSON.stringify(authSessionInfo)) : '')
+@@ -111,7 +111,7 @@ export class WebClientServer {
+ 		const serverRootPath = getRemoteServerRootPath(_productService);
+ 		this._staticRoute = `${serverRootPath}/static`;
+ 		this._callbackRoute = `${serverRootPath}/callback`;
+-		this._webExtensionRoute = `${serverRootPath}/web-extension-resource`;
++		this._webExtensionRoute = `/web-extension-resource`;
+ 	}
+ 
+ 	/**
+@@ -308,14 +308,7 @@ export class WebClientServer {
+ 				codeServerVersion: this._productService.codeServerVersion,
+ 				rootEndpoint: base,
+ 				embedderIdentifier: 'server-distro',
+-				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
+-					...this._productService.extensionsGallery,
+-					'resourceUrlTemplate': this._webExtensionResourceUrlTemplate.with({
+-						scheme: 'http',
+-						authority: remoteAuthority,
+-						path: `${this._webExtensionRoute}/${this._webExtensionResourceUrlTemplate.authority}${this._webExtensionResourceUrlTemplate.path}`
+-					}).toString(true)
+-				} : undefined
++				extensionsGallery: this._productService.extensionsGallery,
+ 			},
+ 			callbackRoute: this._callbackRoute
+ 		};
+Index: code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
++++ code-server/lib/vscode/src/vs/workbench/services/extensionResourceLoader/common/extensionResourceLoader.ts
+@@ -16,7 +16,6 @@ import { getServiceMachineId } from 'vs/
+ import { IStorageService } from 'vs/platform/storage/common/storage';
+ import { TelemetryLevel } from 'vs/platform/telemetry/common/telemetry';
+ import { getTelemetryLevel, supportsTelemetry } from 'vs/platform/telemetry/common/telemetryUtils';
+-import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
+ 
+ export const WEB_EXTENSION_RESOURCE_END_POINT = 'web-extension-resource';
+ 
+@@ -60,7 +59,7 @@ export abstract class AbstractExtensionR
+ 		private readonly _environmentService: IEnvironmentService,
+ 		private readonly _configurationService: IConfigurationService,
+ 	) {
+-		this._webExtensionResourceEndPoint = `${getRemoteServerRootPath(_productService)}/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
++		this._webExtensionResourceEndPoint = `/${WEB_EXTENSION_RESOURCE_END_POINT}/`;
+ 		if (_productService.extensionsGallery) {
+ 			this._extensionGalleryResourceUrlTemplate = _productService.extensionsGallery.resourceUrlTemplate;
+ 			this._extensionGalleryAuthority = this._extensionGalleryResourceUrlTemplate ? this._getExtensionGalleryAuthority(URI.parse(this._extensionGalleryResourceUrlTemplate)) : undefined;

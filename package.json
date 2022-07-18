@@ -1,7 +1,7 @@
 {
   "name": "code-server",
   "license": "MIT",
-  "version": "4.4.0",
+  "version": "4.5.0",
   "description": "Run VS Code on a remote server.",
   "homepage": "https://github.com/coder/code-server",
   "bugs": {
@@ -18,8 +18,8 @@
     "release:github-assets": "./ci/build/release-github-assets.sh",
     "release:prep": "./ci/build/release-prep.sh",
     "test:e2e": "VSCODE_IPC_HOOK_CLI= ./ci/dev/test-e2e.sh",
-    "test:standalone-release": "./ci/build/test-standalone-release.sh",
     "test:unit": "./ci/dev/test-unit.sh --forceExit --detectOpenHandles",
+    "test:integration": "./ci/dev/test-integration.sh",
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
@@ -31,8 +31,7 @@
     "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
-    "icons": "./ci/dev/gen_icons.sh",
-    "coverage": "codecov"
+    "icons": "./ci/dev/gen_icons.sh"
   },
   "main": "out/node/entry.js",
   "devDependencies": {
@@ -53,7 +52,6 @@
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "audit-ci": "^6.0.0",
-    "codecov": "^3.8.3",
     "doctoc": "^2.0.0",
     "eslint": "^7.7.0",
     "eslint-config-prettier": "^8.1.0",
@@ -62,7 +60,7 @@
     "eslint-plugin-prettier": "^4.0.0",
     "json": "^11.0.0",
     "prettier": "^2.2.1",
-    "prettier-plugin-sh": "^0.11.0",
+    "prettier-plugin-sh": "^0.12.0",
     "shellcheck": "^1.0.0",
     "stylelint": "^13.0.0",
     "stylelint-config-recommended": "^5.0.0",
@@ -100,7 +98,7 @@
     "limiter": "^1.1.5",
     "pem": "^1.14.2",
     "proxy-agent": "^5.0.0",
-    "qs": "6.10.5",
+    "qs": "6.11.0",
     "rotating-file-stream": "^3.0.0",
     "safe-buffer": "^5.1.1",
     "safe-compare": "^1.1.4",

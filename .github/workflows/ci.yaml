@@ -39,7 +39,7 @@ jobs:
           node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v2.1
+        uses: azure/setup-helm@v3.0
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -164,7 +164,9 @@ jobs:
         if: success()
 
       - name: Upload coverage report to Codecov
-        run: yarn coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
       # The release package does not contain any native modules
@@ -288,8 +290,11 @@ jobs:
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
@@ -421,8 +426,11 @@ jobs:
       - name: Build standalone release
         run: yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
@@ -509,7 +517,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@e27605859b9550f81ddd818eb816c8cb83cf9650
+        uses: aquasecurity/trivy-action@0105373003c89c494a3f436bd5efc57f3ac1ca20
         with:
           scan-type: "fs"
           scan-ref: "."
