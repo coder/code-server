@@ -143,14 +143,20 @@ jobs:
         id: vscode-rev
         run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
-        # We need to rebuild when we have a new version of Code or when any of
-        # the patches changed.  Use VSCODE_CACHE_VERSION to force a rebuild.
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      # We need to rebuild when we have a new version of Code, when any of
+      # the patches changed, or when the code-server version changes (since
+      # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
+      # force a rebuild.
       - name: Fetch prebuilt Code package from cache
         id: cache-vscode
         uses: actions/cache@v3
         with:
           path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff') }}
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff') }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
