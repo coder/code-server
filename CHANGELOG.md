@@ -20,6 +20,38 @@ Code v99.99.999
 
 -->
 
+## [4.5.1](https://github.com/coder/code-server/releases/tag/v4.5.1) - 2022-07-18
+
+Code v1.68.1
+
+### Changed
+
+- We now use `release/v<0.0.0>` for the release branch name so it doesn't
+  conflict with the tag name
+- Added `.prettierignore` to ignore formatting files in `lib/vscode`
+
+### Added
+
+- Allow more comprehensive affinity config in Helm chart
+- Added custom message in Homebrew PR to make sure code-server maintainers are
+  tagged
+- Allow setting `priorityClassName` via Helm chart
+- Added troubleshooting docs to `CONTRIBUTING.md`
+
+### Fixed
+
+- Removed default memory limit which was set via `NODE_OPTIONS`
+- Changed output in pipe to make it easier to debug code-server when doing live
+  edits
+- Fixed display-language patch to use correct path which broke in 4.5.0
+- Fixed multiple code-server windows opening when using the code-server CLI in
+  the Integrated Terminal
+- Fixed Integrated Terminal not working when web base was not the root path
+
+### Security
+
+- Updated `glob-parent` version in dependencies
+
 ## [4.5.0](https://github.com/coder/code-server/releases/tag/v4.5.0) - 2022-06-29
 
 Code v1.68.1
