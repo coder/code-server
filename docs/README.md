@@ -23,7 +23,7 @@ access it in the browser.
 See [requirements](requirements.md) for minimum specs, as well as instructions
 on how to set up a Google VM on which you can install code-server.
 
-**TL;DR:** Linux machine with WebSockets enabled, 1 GB RAM, and 2 CPUs
+**TL;DR:** Linux machine with WebSockets enabled, 1 GB RAM, and 2 CPU-Cores
 
 ## Getting started
 
