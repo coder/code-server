@@ -127,6 +127,15 @@ persistence:
   # existingClaim: ""
   # hostPath: /data
 
+lifecycle:
+  enabled: false
+  # postStart:
+  #  exec:
+  #    command:
+  #      - /bin/bash
+  #      - -c
+  #      - curl -s -L SOME_SCRIPT | bash
+
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.
 extraContainers: |
