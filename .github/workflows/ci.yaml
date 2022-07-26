@@ -39,7 +39,7 @@ jobs:
           node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v3.1
+        uses: azure/setup-helm@v3.3
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -523,7 +523,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@503d3abc15463af68b817d685982721f134256a5
+        uses: aquasecurity/trivy-action@81b9a6f5abb1047d697af7a3ca18c13f55a97315
         with:
           scan-type: "fs"
           scan-ref: "."
