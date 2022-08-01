@@ -1,23 +1,29 @@
 #!/usr/bin/env sh
 set -eu
 
-# Copied from arch() in ci/lib.sh.
-detect_arch() {
-  case "$(uname -m)" in
-    aarch64)
-      echo arm64
-      ;;
-    x86_64 | amd64)
-      echo amd64
-      ;;
-    *)
-      # This will cause the download to fail, but is intentional
-      uname -m
-      ;;
+# Copied from ../lib.sh.
+arch() {
+  cpu="$(uname -m)"
+  case "$cpu" in
+    aarch64) cpu=arm64 ;;
+    x86_64) cpu=amd64 ;;
   esac
+  echo "$cpu"
 }
 
-ARCH="${NPM_CONFIG_ARCH:-$(detect_arch)}"
+# Copied from ../lib.sh except we do not rename Darwin since the cloud agent
+# uses "darwin" in the release names and we do not need to detect Alpine.
+os() {
+  osname=$(uname | tr '[:upper:]' '[:lower:]')
+  case $osname in
+    cygwin* | mingw*) osname="windows" ;;
+  esac
+  echo "$osname"
+}
+
+ARCH="${NPM_CONFIG_ARCH:-$(arch)}"
+OS="$(os)"
+
 # This is due to an upstream issue with RHEL7/CentOS 7 comptability with node-argon2
 # See: https://github.com/cdr/code-server/pull/3422#pullrequestreview-677765057
 export npm_config_build_from_source=true
@@ -55,8 +61,6 @@ main() {
     fi
     ;;
   esac
-
-  OS="$(uname | tr '[:upper:]' '[:lower:]')"
 
   mkdir -p ./lib
 

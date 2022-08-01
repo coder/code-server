@@ -18,35 +18,30 @@ vscode_version() {
 }
 
 os() {
-  local os
-  os=$(uname | tr '[:upper:]' '[:lower:]')
-  if [[ $os == "linux" ]]; then
-    # Alpine's ldd doesn't have a version flag but if you use an invalid flag
-    # (like --version) it outputs the version to stderr and exits with 1.
-    local ldd_output
-    ldd_output=$(ldd --version 2>&1 || true)
-    if echo "$ldd_output" | grep -iq musl; then
-      os="alpine"
-    fi
-  elif [[ $os == "darwin" ]]; then
-    os="macos"
-  fi
-  echo "$os"
+  osname=$(uname | tr '[:upper:]' '[:lower:]')
+  case $osname in
+    linux)
+      # Alpine's ldd doesn't have a version flag but if you use an invalid flag
+      # (like --version) it outputs the version to stderr and exits with 1.
+      # TODO: Better to check /etc/os-release; see ../install.sh.
+      ldd_output=$(ldd --version 2>&1 || true)
+      if echo "$ldd_output" | grep -iq musl; then
+        osname="alpine"
+      fi
+      ;;
+    darwin) osname="macos" ;;
+    cygwin* | mingw*) osname="windows" ;;
+  esac
+  echo "$osname"
 }
 
 arch() {
   cpu="$(uname -m)"
   case "$cpu" in
-    aarch64)
-      echo arm64
-      ;;
-    x86_64 | amd64)
-      echo amd64
-      ;;
-    *)
-      echo "$cpu"
-      ;;
+    aarch64) cpu=arm64 ;;
+    x86_64) cpu=amd64 ;;
   esac
+  echo "$cpu"
 }
 
 # Grabs the most recent ci.yaml github workflow run that was triggered from the
