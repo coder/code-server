@@ -20,6 +20,62 @@ Code v99.99.999
 
 -->
 
+## [4.5.1](https://github.com/coder/code-server/releases/tag/v4.5.1) - 2022-07-18
+
+Code v1.68.1
+
+### Changed
+
+- We now use `release/v<0.0.0>` for the release branch name so it doesn't
+  conflict with the tag name
+- Added `.prettierignore` to ignore formatting files in `lib/vscode`
+
+### Added
+
+- Allow more comprehensive affinity config in Helm chart
+- Added custom message in Homebrew PR to make sure code-server maintainers are
+  tagged
+- Allow setting `priorityClassName` via Helm chart
+- Added troubleshooting docs to `CONTRIBUTING.md`
+
+### Fixed
+
+- Removed default memory limit which was set via `NODE_OPTIONS`
+- Changed output in pipe to make it easier to debug code-server when doing live
+  edits
+- Fixed display-language patch to use correct path which broke in 4.5.0
+- Fixed multiple code-server windows opening when using the code-server CLI in
+  the Integrated Terminal
+- Fixed Integrated Terminal not working when web base was not the root path
+
+### Security
+
+- Updated `glob-parent` version in dependencies
+
+## [4.5.0](https://github.com/coder/code-server/releases/tag/v4.5.0) - 2022-06-29
+
+Code v1.68.1
+
+### Changed
+
+- Updated codecov to use codecov uploader
+- Moved integration tests to Jest
+- Fixed docker release to only download .deb
+- Upgraded to Code 1.68.1
+- Install `nfpm` from GitHub
+- Upgraded to TypeScript 4.6
+
+### Added
+
+- Added tests for `open`, `isWsl`, `handlePasswordValidation`
+- Provided alternate image registry to dockerhub
+- Allowed users to have scripts run on container with `ENTRYPOINTD` environment
+  variable
+
+### Fixed
+
+- Fixed open CLI command to work on macOS
+
 ## [4.4.0](https://github.com/coder/code-server/releases/tag/v4.4.0) - 2022-05-06
 
 Code v1.66.2

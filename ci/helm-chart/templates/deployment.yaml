@@ -25,6 +25,9 @@ spec:
       {{- if .Values.hostnameOverride }}
       hostname: {{ .Values.hostnameOverride }}
       {{- end }}
+      {{- if .Values.priorityClassName }}
+      priorityClassName: {{ .Values.priorityClassName }}
+      {{- end }}
       {{- if .Values.securityContext.enabled }}
       securityContext:
         fsGroup: {{ .Values.securityContext.fsGroup }}
@@ -116,7 +119,7 @@ spec:
       {{- end }}
     {{- with .Values.affinity }}
       affinity:
-        {{- toYaml . | nindent 8 }}
+        {{- tpl . $ | nindent 8 }}
     {{- end }}
     {{- with .Values.tolerations }}
       tolerations:

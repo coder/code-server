@@ -164,13 +164,15 @@ If you're the current release manager, follow these steps:
 
 ### Publishing a release
 
-1. Create a new branch called `v0.0.0` (replace 0s with actual version aka v4.4.0)
+1. Create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
+   1. If you don't do this, the `npm-brew` GitHub workflow will fail. It looks for the release artifacts under the branch pattern.
 1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
 1. GitHub Actions will generate the `npm-package`, `release-packages` and
    `release-images` artifacts. You do not have to wait for this step to complete
    before proceeding.
 1. Run `yarn release:github-draft` to create a GitHub draft release from the
-   template with the updated version.
+   template with the updated version. Make sure to update the `CHANGELOG.md`.
+1. Bump chart version in `Chart.yaml`.
 1. Summarize the major changes in the release notes and link to the relevant
    issues.
 1. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`

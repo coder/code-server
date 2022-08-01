@@ -31,7 +31,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         id: download
         with:
-          branch: v${{ steps.version.outputs.version }}
+          branch: release/v${{ steps.version.outputs.version }}
           workflow: ci.yaml
           workflow_conclusion: completed
           name: "npm-package"

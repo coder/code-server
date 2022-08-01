@@ -57,7 +57,7 @@ arch() {
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
   local artifacts_url
-  local version_branch="v$VERSION"
+  local version_branch="release/v$VERSION"
   local workflow_runs_url="repos/:owner/:repo/actions/workflows/ci.yaml/runs?event=pull_request&branch=$version_branch"
   artifacts_url=$(gh api "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then

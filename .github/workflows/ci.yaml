@@ -39,7 +39,7 @@ jobs:
           node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v2.1
+        uses: azure/setup-helm@v3.3
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -143,14 +143,20 @@ jobs:
         id: vscode-rev
         run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
 
-        # We need to rebuild when we have a new version of Code or when any of
-        # the patches changed.  Use VSCODE_CACHE_VERSION to force a rebuild.
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      # We need to rebuild when we have a new version of Code, when any of
+      # the patches changed, or when the code-server version changes (since
+      # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
+      # force a rebuild.
       - name: Fetch prebuilt Code package from cache
         id: cache-vscode
         uses: actions/cache@v3
         with:
           path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ hashFiles('patches/*.diff') }}
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff') }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
@@ -164,7 +170,9 @@ jobs:
         if: success()
 
       - name: Upload coverage report to Codecov
-        run: yarn coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
         if: success()
 
       # The release package does not contain any native modules
@@ -288,8 +296,11 @@ jobs:
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
@@ -421,8 +432,11 @@ jobs:
       - name: Build standalone release
         run: yarn release:standalone
 
-      - name: Sanity test standalone release
-        run: yarn test:standalone-release
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
 
       - name: Build packages with nfpm
         run: yarn package
@@ -509,7 +523,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@7b7aa264d83dc58691451798b4d117d53d21edfe
+        uses: aquasecurity/trivy-action@5144f05a8dca0b158e81bc678b850c7999e67c8a
         with:
           scan-type: "fs"
           scan-ref: "."

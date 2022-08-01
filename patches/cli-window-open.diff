@@ -1,0 +1,96 @@
+Make opening files/folders from the terminal only open in the current instance
+
+Previously they would open in every code-server tab/window.
+
+To test:
+
+1. Run code-server
+2. Open code-server
+3. Open terminal
+4. Open another code-server window
+5. Run code-server with a file or directory argument
+
+The file or directory should only open from the instance attached to that
+terminal.
+
+Index: code-server/lib/vscode/src/vs/server/node/remoteTerminalChannel.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/remoteTerminalChannel.ts
++++ code-server/lib/vscode/src/vs/server/node/remoteTerminalChannel.ts
+@@ -89,7 +89,7 @@ export class RemoteTerminalChannel exten
+ 		uriTransformer: IURITransformer;
+ 	}>();
+ 
+-	private readonly _onExecuteCommand = this._register(new Emitter<{ reqId: number; commandId: string; commandArgs: any[] }>());
++	private readonly _onExecuteCommand = this._register(new Emitter<{ reqId: number; terminalId: number; commandId: string; commandArgs: any[] }>());
+ 	readonly onExecuteCommand = this._onExecuteCommand.event;
+ 
+ 	constructor(
+@@ -240,20 +240,20 @@ export class RemoteTerminalChannel exten
+ 		const ipcHandlePath = createRandomIPCHandle();
+ 		env.VSCODE_IPC_HOOK_CLI = ipcHandlePath;
+ 		const commandsExecuter: ICommandsExecuter = {
+-			executeCommand: <T>(id: string, ...args: any[]): Promise<T> => this._executeCommand(id, args, uriTransformer)
++			executeCommand: <T>(commandId: string, ...args: any[]): Promise<T> => this._executeCommand(terminalId, commandId, args, uriTransformer)
+ 		};
+ 		const cliServer = new CLIServerBase(commandsExecuter, this._logService, ipcHandlePath);
+ 
+-		const id = await this._ptyService.createProcess(shellLaunchConfig, initialCwd, args.cols, args.rows, args.unicodeVersion, env, baseEnv, args.options, args.shouldPersistTerminal, args.workspaceId, args.workspaceName);
+-		this._ptyService.onProcessExit(e => e.id === id && cliServer.dispose());
++		const terminalId = await this._ptyService.createProcess(shellLaunchConfig, initialCwd, args.cols, args.rows, args.unicodeVersion, env, baseEnv, args.options, args.shouldPersistTerminal, args.workspaceId, args.workspaceName);
++		this._ptyService.onProcessExit(e => e.id === terminalId && cliServer.dispose());
+ 
+ 		return {
+-			persistentTerminalId: id,
++			persistentTerminalId: terminalId,
+ 			resolvedShellLaunchConfig: shellLaunchConfig
+ 		};
+ 	}
+ 
+-	private _executeCommand<T>(commandId: string, commandArgs: any[], uriTransformer: IURITransformer): Promise<T> {
++	private _executeCommand<T>(terminalId: number, commandId: string, commandArgs: any[], uriTransformer: IURITransformer): Promise<T> {
+ 		let resolve!: (data: any) => void;
+ 		let reject!: (err: any) => void;
+ 		const result = new Promise<T>((_resolve, _reject) => {
+@@ -276,6 +276,7 @@ export class RemoteTerminalChannel exten
+ 		});
+ 		this._onExecuteCommand.fire({
+ 			reqId,
++			terminalId,
+ 			commandId,
+ 			commandArgs: serializedCommandArgs
+ 		});
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/browser/remoteTerminalBackend.ts
+@@ -94,10 +94,14 @@ class RemoteTerminalBackend extends Base
+ 		this._remoteTerminalChannel.onExecuteCommand(async e => {
+ 			const reqId = e.reqId;
+ 			const commandId = e.commandId;
++			const terminalId = e.terminalId;
+ 			if (!allowedCommands.includes(commandId)) {
+ 				this._remoteTerminalChannel.sendCommandResult(reqId, true, 'Invalid remote cli command: ' + commandId);
+ 				return;
+ 			}
++			if (typeof terminalId !== "undefined" && !this._ptys.has(terminalId)) {
++				return
++			}
+ 			const commandArgs = e.commandArgs.map(arg => revive(arg));
+ 			try {
+ 				const result = await this._commandService.executeCommand(e.commandId, ...commandArgs);
+Index: code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/remoteTerminalChannel.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/workbench/contrib/terminal/common/remoteTerminalChannel.ts
++++ code-server/lib/vscode/src/vs/workbench/contrib/terminal/common/remoteTerminalChannel.ts
+@@ -88,8 +88,8 @@ export class RemoteTerminalChannelClient
+ 	get onProcessOrphanQuestion(): Event<{ id: number }> {
+ 		return this._channel.listen<{ id: number }>('$onProcessOrphanQuestion');
+ 	}
+-	get onExecuteCommand(): Event<{ reqId: number; commandId: string; commandArgs: any[] }> {
+-		return this._channel.listen<{ reqId: number; commandId: string; commandArgs: any[] }>('$onExecuteCommand');
++	get onExecuteCommand(): Event<{ reqId: number; terminalId: number; commandId: string; commandArgs: any[] }> {
++		return this._channel.listen<{ reqId: number; terminalId: number; commandId: string; commandArgs: any[] }>('$onExecuteCommand');
+ 	}
+ 	get onDidRequestDetach(): Event<{ requestId: number; workspaceId: string; instanceId: number }> {
+ 		return this._channel.listen<{ requestId: number; workspaceId: string; instanceId: number }>('$onDidRequestDetach');
