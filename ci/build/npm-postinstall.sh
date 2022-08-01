@@ -20,6 +20,28 @@ os() {
   esac
   echo "$osname"
 }
+# Create a symlink at $2 pointing to $1 on any platform.  Anything that
+# currently exists at $2 will be deleted.
+symlink() {
+  source="$1"
+  dest="$2"
+  rm -rf "$dest"
+  case $OS in
+    windows) mklink /J "$dest" "$source" ;;
+    *) ln -s "$source" "$dest" ;;
+  esac
+}
+
+# VS Code bundles some modules into an asar which is an archive format that
+# works like tar. It then seems to get unpacked into node_modules.asar.
+#
+# I don't know why they do this but all the dependencies they bundle already
+# exist in node_modules so just symlink it. We have to do this since not only
+# Code itself but also extensions will look specifically in this directory for
+# files (like the ripgrep binary or the oniguruma wasm).
+symlink_asar() {
+  symlink node_modules node_modules.asar
+}
 
 ARCH="${NPM_CONFIG_ARCH:-$(arch)}"
 OS="$(os)"
@@ -80,16 +102,6 @@ main() {
     echo "WARNING: The required Node.js version was overriden to v$FORCE_NODE_VERSION"
     echo "This could lead to broken functionality, and is unsupported."
     echo "USE AT YOUR OWN RISK!"
-  fi
-}
-
-# This is a copy of symlink_asar in ../lib.sh. Look there for details.
-symlink_asar() {
-  rm -rf node_modules.asar
-  if [ "${WINDIR-}" ]; then
-    mklink /J node_modules.asar node_modules
-  else
-    ln -s node_modules node_modules.asar
   fi
 }
 

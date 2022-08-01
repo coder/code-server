@@ -99,21 +99,3 @@ export OS
 # RELEASE_PATH is the destination directory for the release from the root.
 # Defaults to release
 RELEASE_PATH="${RELEASE_PATH-release}"
-
-# VS Code bundles some modules into an asar which is an archive format that
-# works like tar. It then seems to get unpacked into node_modules.asar.
-#
-# I don't know why they do this but all the dependencies they bundle already
-# exist in node_modules so just symlink it. We have to do this since not only VS
-# Code itself but also extensions will look specifically in this directory for
-# files (like the ripgrep binary or the oniguruma wasm).
-symlink_asar() {
-  rm -rf node_modules.asar
-  if [ "${WINDIR-}" ]; then
-    # mklink takes the link name first.
-    mklink /J node_modules.asar node_modules
-  else
-    # ln takes the link name second.
-    ln -s node_modules node_modules.asar
-  fi
-}
