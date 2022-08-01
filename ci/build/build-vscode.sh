@@ -17,6 +17,14 @@ copy-bin-script() {
   sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$dest"
   sed -i.bak "s/@@COMMIT@@/$VSCODE_DISTRO_COMMIT/g" "$dest"
   sed -i.bak "s/@@APPNAME@@/code-server/g" "$dest"
+
+  # Fix Node path on Darwin and Linux.
+  sed -i.bak 's/^ROOT=\(.*\)$/VSROOT=\1\nROOT="$(dirname "$(dirname "$VSROOT")")"/g' "$dest"
+  sed -i.bak 's/ROOT\/out/VSROOT\/out/g' "$dest"
+
+  # Fix Node path on Windows.
+  sed -i.bak 's/^set ROOT_DIR=\(.*\)$/set ROOT_DIR=%~dp0..\\..\\..\\..\r\nset VSROOT_DIR=\1/g' "$dest"
+  sed -i.bak 's/%ROOT_DIR%\\out/%VSROOT_DIR%\\out/g' "$dest"
 }
 
 main() {
