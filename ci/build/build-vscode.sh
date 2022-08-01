@@ -27,6 +27,8 @@ copy-bin-script() {
   # Fix Node path on Windows.
   sed -i.bak 's/^set ROOT_DIR=\(.*\)$/set ROOT_DIR=%~dp0..\\..\\..\\..\r\nset VSROOT_DIR=\1/g' "$dest"
   sed -i.bak 's/%ROOT_DIR%\\out/%VSROOT_DIR%\\out/g' "$dest"
+
+  chmod +x "$dest"
 }
 
 main() {
