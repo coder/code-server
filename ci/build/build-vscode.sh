@@ -6,12 +6,25 @@ set -euo pipefail
 # MINIFY controls whether a minified version of vscode is built.
 MINIFY=${MINIFY-true}
 
+delete-bin-script() {
+  rm "lib/vscode-reh-web-linux-x64/bin/$1"
+}
+
+copy-bin-script() {
+  local script="$1"
+  local dest="lib/vscode-reh-web-linux-x64/bin/$script"
+  cp "lib/vscode/resources/server/bin/$script" "$dest"
+  sed -i "s/@@VERSION@@/$(vscode_version)/g" "$dest"
+  sed -i "s/@@COMMIT@@/$VSCODE_DISTRO_COMMIT/g" "$dest"
+  sed -i "s/@@APPNAME@@/code-server/g" "$dest"
+}
+
 main() {
   cd "$(dirname "${0}")/../.."
 
   source ./ci/lib.sh
 
-  cd lib/vscode
+  pushd lib/vscode
 
   # Set the commit Code will embed into the product.json.  We need to do this
   # since Code tries to get the commit from the `.git` directory which will fail
@@ -58,13 +71,31 @@ main() {
 EOF
   ) > product.json
 
-  # Any platform works since we have our own packaging step (for now).
+  # Any platform here works since we will do our own packaging.  We have to do
+  # this because we have an NPM package that could be installed on any platform.
+  # The correct platform dependencies and scripts will be installed as part of
+  # the post-install during `npm install` or when building a standalone release.
   yarn gulp "vscode-reh-web-linux-x64${MINIFY:+-min}"
 
   # Reset so if you develop after building you will not be stuck with the wrong
   # commit (the dev client will use `oss-dev` but the dev server will still use
   # product.json which will have `stable-$commit`).
   git checkout product.json
+
+  popd
+
+  # These provide a `code-server` command in the integrated terminal to open
+  # files in the current instance.
+  delete-bin-script remote-cli/code-server
+  copy-bin-script remote-cli/code-darwin.sh
+  copy-bin-script remote-cli/code-linux.sh
+  copy-bin-script remote-cli/code.cmd
+
+  # These provide a way for terminal applications to open browser windows.
+  delete-bin-script helpers/browser.sh
+  copy-bin-script helpers/browser-darwin.sh
+  copy-bin-script helpers/browser-linux.sh
+  copy-bin-script helpers/browser.cmd
 }
 
 main "$@"
