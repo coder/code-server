@@ -283,16 +283,16 @@ export class CodeServerPage {
   }
 
   /**
-   * Focuses Integrated Terminal
-   * by using "Terminal: Focus Terminal"
-   * from the Command Palette
+   * Focuses the integrated terminal by navigating through the command palette.
    *
-   * This should focus the terminal no matter
-   * if it already has focus and/or is or isn't
-   * visible already.
+   * This should focus the terminal no matter if it already has focus and/or is
+   * or isn't visible already.  It will always create a new terminal to avoid
+   * clobbering parallel tests.
    */
   async focusTerminal() {
-    await this.executeCommandViaMenus("Terminal: Focus Terminal")
+    // We need to create a new terminal since multiple tests could be running at
+    // once and they will step over each other if they use the same terminal.
+    await this.executeCommandViaMenus("Terminal: Create New Terminal")
 
     // Wait for terminal textarea to show up
     await this.page.waitForSelector("textarea.xterm-helper-textarea")

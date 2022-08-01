@@ -1,4 +1,5 @@
 import * as cp from "child_process"
+import { promises as fs } from "fs"
 import * as path from "path"
 import util from "util"
 import { clean, tmpdir } from "../utils/helpers"
@@ -24,10 +25,21 @@ describe("Integrated Terminal", true, [], {}, () => {
     await codeServerPage.page.waitForLoadState("load")
     await codeServerPage.page.keyboard.type(`printenv VSCODE_PROXY_URI > ${tmpFile}`)
     await codeServerPage.page.keyboard.press("Enter")
-    // It may take a second to process
-    await codeServerPage.page.waitForTimeout(1000)
 
     const { stdout } = await output
     expect(stdout).toMatch(await codeServerPage.address())
+  })
+
+  test("should be able to invoke `code-server` to open a file", async ({ codeServerPage }) => {
+    const tmpFolderPath = await tmpdir(testName)
+    const tmpFile = path.join(tmpFolderPath, "test-file")
+    await fs.writeFile(tmpFile, "test")
+
+    await codeServerPage.focusTerminal()
+
+    await codeServerPage.page.keyboard.type(`code-server ${tmpFile}`)
+    await codeServerPage.page.keyboard.press("Enter")
+
+    await codeServerPage.waitForTab(path.basename(tmpFile))
   })
 })
