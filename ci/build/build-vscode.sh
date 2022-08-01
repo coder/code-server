@@ -19,6 +19,8 @@ copy-bin-script() {
   sed -i.bak "s/@@APPNAME@@/code-server/g" "$dest"
 
   # Fix Node path on Darwin and Linux.
+  # We do not want expansion here; this text should make it to the file as-is.
+  # shellcheck disable=SC2016
   sed -i.bak 's/^ROOT=\(.*\)$/VSROOT=\1\nROOT="$(dirname "$(dirname "$VSROOT")")"/g' "$dest"
   sed -i.bak 's/ROOT\/out/VSROOT\/out/g' "$dest"
 
