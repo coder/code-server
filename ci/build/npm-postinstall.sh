@@ -20,6 +20,7 @@ os() {
   esac
   echo "$osname"
 }
+
 # Create a symlink at $2 pointing to $1 on any platform.  Anything that
 # currently exists at $2 will be deleted.
 symlink() {
@@ -41,6 +42,23 @@ symlink() {
 # files (like the ripgrep binary or the oniguruma wasm).
 symlink_asar() {
   symlink node_modules node_modules.asar
+}
+
+# Make a symlink at bin/$1/$3 pointing to the platform-specific version of the
+# script in $2.  The extension of the link will be .cmd for Windows otherwise it
+# will be whatever is in $4 (or no extension if $4 is not set).
+symlink_bin_script() {
+  oldpwd="$(pwd)"
+  cd "bin/$1"
+  source="$2"
+  dest="$3"
+  ext="${4-}"
+  case $OS in
+    windows) symlink "$source.cmd" "$dest.cmd" ;;
+    darwin | macos) symlink "$source-darwin.sh" "$dest$ext" ;;
+    *) symlink "$source-linux.sh" "$dest$ext" ;;
+  esac
+  cd "$oldpwd"
 }
 
 ARCH="${NPM_CONFIG_ARCH:-$(arch)}"
@@ -111,6 +129,8 @@ vscode_yarn() {
   yarn --production --frozen-lockfile --no-default-rc
 
   symlink_asar
+  symlink_bin_script remote-cli code code-server
+  symlink_bin_script helpers browser browser .sh
 
   cd extensions
   yarn --production --frozen-lockfile
