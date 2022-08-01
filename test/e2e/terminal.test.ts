@@ -37,6 +37,7 @@ describe("Integrated Terminal", true, [], {}, () => {
 
     await codeServerPage.focusTerminal()
 
+    await codeServerPage.page.waitForLoadState("load")
     await codeServerPage.page.keyboard.type(`code-server ${tmpFile}`)
     await codeServerPage.page.keyboard.press("Enter")
 
