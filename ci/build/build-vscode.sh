@@ -14,9 +14,9 @@ copy-bin-script() {
   local script="$1"
   local dest="lib/vscode-reh-web-linux-x64/bin/$script"
   cp "lib/vscode/resources/server/bin/$script" "$dest"
-  sed -i "s/@@VERSION@@/$(vscode_version)/g" "$dest"
-  sed -i "s/@@COMMIT@@/$VSCODE_DISTRO_COMMIT/g" "$dest"
-  sed -i "s/@@APPNAME@@/code-server/g" "$dest"
+  sed -i.bak "s/@@VERSION@@/$(vscode_version)/g" "$dest"
+  sed -i.bak "s/@@COMMIT@@/$VSCODE_DISTRO_COMMIT/g" "$dest"
+  sed -i.bak "s/@@APPNAME@@/code-server/g" "$dest"
 }
 
 main() {
