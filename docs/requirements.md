@@ -21,7 +21,7 @@ for communication between the browser and the server.
 The following steps walk you through setting up a VM running Debian using Google
 Cloud (though you are welcome to use any machine or VM provider).
 
-If you're [signing up with Google](https://console.cloud.google.com/getting-started) for the first time, you should get a 12-month trial with
+If you're [signing up with Google](https://console.cloud.google.com/getting-started) for the first time, you should get a 3-month trial with
 $300 of credits.
 
 After you sign up and create a new Google Cloud Provider (GCP) project, create a
