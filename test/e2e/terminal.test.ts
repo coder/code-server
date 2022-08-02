@@ -22,7 +22,6 @@ describe("Integrated Terminal", true, [], {}, () => {
     // Open terminal and type in value
     await codeServerPage.focusTerminal()
 
-    await codeServerPage.page.waitForLoadState("load")
     await codeServerPage.page.keyboard.type(`printenv VSCODE_PROXY_URI > ${tmpFile}`)
     await codeServerPage.page.keyboard.press("Enter")
 
@@ -34,13 +33,13 @@ describe("Integrated Terminal", true, [], {}, () => {
     const tmpFolderPath = await tmpdir(testName)
     const tmpFile = path.join(tmpFolderPath, "test-file")
     await fs.writeFile(tmpFile, "test")
+    const fileName = path.basename(tmpFile)
 
     await codeServerPage.focusTerminal()
 
-    await codeServerPage.page.waitForLoadState("load")
     await codeServerPage.page.keyboard.type(`code-server ${tmpFile}`)
     await codeServerPage.page.keyboard.press("Enter")
 
-    await codeServerPage.waitForTab(path.basename(tmpFile))
+    await codeServerPage.waitForTab(fileName)
   })
 })

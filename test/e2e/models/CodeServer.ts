@@ -290,12 +290,24 @@ export class CodeServerPage {
    * clobbering parallel tests.
    */
   async focusTerminal() {
-    // We need to create a new terminal since multiple tests could be running at
-    // once and they will step over each other if they use the same terminal.
-    await this.executeCommandViaMenus("Terminal: Create New Terminal")
+    const doFocus = async (): Promise<boolean> => {
+      await this.executeCommandViaMenus("Terminal: Create New Terminal")
+      try {
+        await this.page.waitForLoadState("load")
+        await this.page.waitForSelector("textarea.xterm-helper-textarea:focus-within", { timeout: 5000 })
+        return true
+      } catch (error) {
+        return false
+      }
+    }
 
-    // Wait for terminal textarea to show up
-    await this.page.waitForSelector("textarea.xterm-helper-textarea")
+    let attempts = 1
+    while (!(await doFocus())) {
+      ++attempts
+      this.codeServer.logger.debug(`no focused terminal textarea, retrying (${attempts}/∞)`)
+    }
+
+    this.codeServer.logger.debug(`opening terminal took ${attempts} ${plural(attempts, "attempt")}`)
   }
 
   /**
@@ -423,7 +435,7 @@ export class CodeServerPage {
     let context = new Context()
     while (!(await Promise.race([openThenWaitClose(context), navigate(context)]))) {
       ++attempts
-      logger.debug("closed, retrying (${attempt}/∞)")
+      logger.debug(`closed, retrying (${attempts}/∞)`)
       context.cancel()
       context = new Context()
     }
