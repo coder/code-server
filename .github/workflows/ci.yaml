@@ -156,7 +156,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff') }}
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
