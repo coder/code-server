@@ -7,7 +7,7 @@ set -euo pipefail
 MINIFY=${MINIFY-true}
 
 delete-bin-script() {
-  rm "lib/vscode-reh-web-linux-x64/bin/$1"
+  rm -f "lib/vscode-reh-web-linux-x64/bin/$1"
 }
 
 copy-bin-script() {
@@ -29,6 +29,7 @@ copy-bin-script() {
   sed -i.bak 's/%ROOT_DIR%\\out/%VSROOT_DIR%\\out/g' "$dest"
 
   chmod +x "$dest"
+  rm "$dest.bak"
 }
 
 main() {
