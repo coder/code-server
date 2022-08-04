@@ -283,19 +283,31 @@ export class CodeServerPage {
   }
 
   /**
-   * Focuses Integrated Terminal
-   * by using "Terminal: Focus Terminal"
-   * from the Command Palette
+   * Focuses the integrated terminal by navigating through the command palette.
    *
-   * This should focus the terminal no matter
-   * if it already has focus and/or is or isn't
-   * visible already.
+   * This should focus the terminal no matter if it already has focus and/or is
+   * or isn't visible already.  It will always create a new terminal to avoid
+   * clobbering parallel tests.
    */
   async focusTerminal() {
-    await this.executeCommandViaMenus("Terminal: Focus Terminal")
+    const doFocus = async (): Promise<boolean> => {
+      await this.executeCommandViaMenus("Terminal: Create New Terminal")
+      try {
+        await this.page.waitForLoadState("load")
+        await this.page.waitForSelector("textarea.xterm-helper-textarea:focus-within", { timeout: 5000 })
+        return true
+      } catch (error) {
+        return false
+      }
+    }
 
-    // Wait for terminal textarea to show up
-    await this.page.waitForSelector("textarea.xterm-helper-textarea")
+    let attempts = 1
+    while (!(await doFocus())) {
+      ++attempts
+      this.codeServer.logger.debug(`no focused terminal textarea, retrying (${attempts}/∞)`)
+    }
+
+    this.codeServer.logger.debug(`opening terminal took ${attempts} ${plural(attempts, "attempt")}`)
   }
 
   /**
@@ -423,7 +435,7 @@ export class CodeServerPage {
     let context = new Context()
     while (!(await Promise.race([openThenWaitClose(context), navigate(context)]))) {
       ++attempts
-      logger.debug("closed, retrying (${attempt}/∞)")
+      logger.debug(`closed, retrying (${attempts}/∞)`)
       context.cancel()
       context = new Context()
     }

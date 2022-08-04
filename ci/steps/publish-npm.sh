@@ -81,10 +81,6 @@ main() {
   # https://github.com/actions/upload-artifact/issues/38
   tar -xzf release-npm-package/package.tar.gz
 
-  # Ignore symlink when publishing npm package
-  # See: https://github.com/coder/code-server/pull/3935
-  echo "node_modules.asar" > release/.npmignore
-
   # We use this to set the name of the package in the
   # package.json
   PACKAGE_NAME="code-server"

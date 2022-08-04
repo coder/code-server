@@ -27,8 +27,9 @@ main() {
   ln -s "./bin/code-server" "$RELEASE_PATH/code-server"
   ln -s "./lib/node" "$RELEASE_PATH/node"
 
-  cd "$RELEASE_PATH"
+  pushd "$RELEASE_PATH"
   yarn --production --frozen-lockfile
+  popd
 }
 
 main "$@"

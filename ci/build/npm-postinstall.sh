@@ -1,23 +1,69 @@
 #!/usr/bin/env sh
 set -eu
 
-# Copied from arch() in ci/lib.sh.
-detect_arch() {
-  case "$(uname -m)" in
-    aarch64)
-      echo arm64
-      ;;
-    x86_64 | amd64)
-      echo amd64
-      ;;
-    *)
-      # This will cause the download to fail, but is intentional
-      uname -m
-      ;;
+# Copied from ../lib.sh.
+arch() {
+  cpu="$(uname -m)"
+  case "$cpu" in
+    aarch64) cpu=arm64 ;;
+    x86_64) cpu=amd64 ;;
+  esac
+  echo "$cpu"
+}
+
+# Copied from ../lib.sh except we do not rename Darwin since the cloud agent
+# uses "darwin" in the release names and we do not need to detect Alpine.
+os() {
+  osname=$(uname | tr '[:upper:]' '[:lower:]')
+  case $osname in
+    cygwin* | mingw*) osname="windows" ;;
+  esac
+  echo "$osname"
+}
+
+# Create a symlink at $2 pointing to $1 on any platform.  Anything that
+# currently exists at $2 will be deleted.
+symlink() {
+  source="$1"
+  dest="$2"
+  rm -rf "$dest"
+  case $OS in
+    windows) mklink /J "$dest" "$source" ;;
+    *) ln -s "$source" "$dest" ;;
   esac
 }
 
-ARCH="${NPM_CONFIG_ARCH:-$(detect_arch)}"
+# VS Code bundles some modules into an asar which is an archive format that
+# works like tar. It then seems to get unpacked into node_modules.asar.
+#
+# I don't know why they do this but all the dependencies they bundle already
+# exist in node_modules so just symlink it. We have to do this since not only
+# Code itself but also extensions will look specifically in this directory for
+# files (like the ripgrep binary or the oniguruma wasm).
+symlink_asar() {
+  symlink node_modules node_modules.asar
+}
+
+# Make a symlink at bin/$1/$3 pointing to the platform-specific version of the
+# script in $2.  The extension of the link will be .cmd for Windows otherwise it
+# will be whatever is in $4 (or no extension if $4 is not set).
+symlink_bin_script() {
+  oldpwd="$(pwd)"
+  cd "bin/$1"
+  source="$2"
+  dest="$3"
+  ext="${4-}"
+  case $OS in
+    windows) symlink "$source.cmd" "$dest.cmd" ;;
+    darwin | macos) symlink "$source-darwin.sh" "$dest$ext" ;;
+    *) symlink "$source-linux.sh" "$dest$ext" ;;
+  esac
+  cd "$oldpwd"
+}
+
+ARCH="${NPM_CONFIG_ARCH:-$(arch)}"
+OS="$(os)"
+
 # This is due to an upstream issue with RHEL7/CentOS 7 comptability with node-argon2
 # See: https://github.com/cdr/code-server/pull/3422#pullrequestreview-677765057
 export npm_config_build_from_source=true
@@ -56,8 +102,6 @@ main() {
     ;;
   esac
 
-  OS="$(uname | tr '[:upper:]' '[:lower:]')"
-
   mkdir -p ./lib
 
   if curl -fsSL "https://github.com/coder/cloud-agent/releases/latest/download/cloud-agent-$OS-$ARCH" -o ./lib/coder-cloud-agent; then
@@ -79,22 +123,14 @@ main() {
   fi
 }
 
-# This is a copy of symlink_asar in ../lib.sh. Look there for details.
-symlink_asar() {
-  rm -rf node_modules.asar
-  if [ "${WINDIR-}" ]; then
-    mklink /J node_modules.asar node_modules
-  else
-    ln -s node_modules node_modules.asar
-  fi
-}
-
 vscode_yarn() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
   yarn --production --frozen-lockfile --no-default-rc
 
   symlink_asar
+  symlink_bin_script remote-cli code code-server
+  symlink_bin_script helpers browser browser .sh
 
   cd extensions
   yarn --production --frozen-lockfile
