@@ -153,7 +153,7 @@ export const runCodeServer = async (
 
   if (args["proxy-domain"].length > 0) {
     logger.info(`  - ${plural(args["proxy-domain"].length, "Proxying the following domain")}:`)
-    args["proxy-domain"].forEach((domain) => logger.info(`    - *.${domain}`))
+    args["proxy-domain"].forEach((domain) => logger.info(`    - ${domain}`))
   }
 
   if (args.link) {
