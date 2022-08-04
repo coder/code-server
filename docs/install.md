@@ -237,6 +237,8 @@ We currently [do not publish Windows releases](https://github.com/coder/code-ser
 We recommend installing code-server onto Raspberry Pi with [`yarn` or
 `npm`](#yarn-npm).
 
+If you see an error related to `node-gyp` during installation, See [#5174](https://github.com/coder/code-server/issues/5174) for more information.
+
 ## Termux
 
 Please see code-server's [Termux docs](./termux.md#installation) for more
