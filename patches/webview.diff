@@ -24,7 +24,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/environment/browser/environmentService.ts
-@@ -183,7 +183,7 @@ export class BrowserWorkbenchEnvironment
+@@ -177,7 +177,7 @@ export class BrowserWorkbenchEnvironment
  
  	@memoize
  	get webviewExternalEndpoint(): string {
@@ -37,7 +37,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -298,6 +298,7 @@ export class WebClientServer {
+@@ -295,6 +295,7 @@ export class WebClientServer {
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
@@ -53,7 +53,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/webview/browser/pre/index
  	<meta charset="UTF-8">
  
  	<meta http-equiv="Content-Security-Policy"
--		content="default-src 'none'; script-src 'sha256-xgIcbQmGjpT42GEj54VFSNh6MI15PZ2D1+DdVehfYBI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
+-		content="default-src 'none'; script-src 'sha256-JpX/ganPoxpavjxWCz9DUZgwVZ59o2lwSYTQrziPsdU=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
 +		content="default-src 'none'; script-src 'sha256-aOCIU83V9nV+0ERJudbrKLqgIVOHqU71i4Lv5urjGTI=' 'self'; frame-src 'self'; style-src 'unsafe-inline';">
  
  	<!-- Disable pinch zooming -->
@@ -96,7 +96,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/worker/webWor
  		<meta http-equiv="Content-Security-Policy" content="
  			default-src 'none';
  			child-src 'self' data: blob:;
--			script-src 'self' 'unsafe-eval' 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' https:;
+-			script-src 'self' 'unsafe-eval' 'sha256-/r7rqQ+yrxt57sxLuQ6AMYcy/lUpvAIzHjIJt/OeLWU=' https:;
 +			script-src 'self' 'unsafe-eval' 'sha256-yHVIAbzODFRINjoLGID5qWPP45HzMtwhyVRC+7yiuXg=' https:;
  			connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*;"/>
  	</head>

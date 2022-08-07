@@ -4,205 +4,60 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -70,6 +70,7 @@ import { REMOTE_FILE_SYSTEM_CHANNEL_NAME
- import { ExtensionHostStatusService, IExtensionHostStatusService } from 'vs/server/node/extensionHostStatusService';
- import { IExtensionsScannerService } from 'vs/platform/extensionManagement/common/extensionsScannerService';
- import { ExtensionsScannerService } from 'vs/server/node/extensionsScannerService';
-+import { TelemetryClient } from "vs/server/node/telemetryClient";
+@@ -73,6 +73,7 @@ import { ExtensionsProfileScannerService
+ import { IUserDataProfilesService, UserDataProfilesService } from 'vs/platform/userDataProfile/common/userDataProfile';
  import { NullPolicyService } from 'vs/platform/policy/common/policy';
+ import { OneDataSystemAppender } from 'vs/platform/telemetry/node/1dsAppender';
++import { TelemetryClient } from './telemetryClient';
  
  const eventPrefix = 'monacoworkbench';
-@@ -123,7 +124,11 @@ export async function setupServerService
- 	let appInsightsAppender: ITelemetryAppender = NullAppender;
- 	const machineId = await getMachineId();
+ 
+@@ -134,10 +135,15 @@ export async function setupServerService
+ 	const isInternal = isInternalTelemetry(productService, configurationService);
  	if (supportsTelemetry(productService, environmentService)) {
--		if (productService.aiConfig && productService.aiConfig.asimovKey) {
-+		const telemetryEndpoint = process.env.CS_TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
-+		if (telemetryEndpoint) {
-+			appInsightsAppender = new AppInsightsAppender(eventPrefix, null, () => new TelemetryClient(telemetryEndpoint) as any);
-+			disposables.add(toDisposable(() => appInsightsAppender!.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
-+		} else if (productService.aiConfig && productService.aiConfig.asimovKey) {
- 			appInsightsAppender = new AppInsightsAppender(eventPrefix, null, productService.aiConfig.asimovKey);
- 			disposables.add(toDisposable(() => appInsightsAppender!.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
+ 		if (productService.aiConfig && productService.aiConfig.ariaKey) {
+-			oneDsAppender = new OneDataSystemAppender(isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
+-			disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
++			const telemetryEndpoint = process.env.CS_TELEMETRY_URL || "https://v1.telemetry.coder.com/track";
++			if (telemetryEndpoint) {
++				oneDsAppender = new OneDataSystemAppender(false, eventPrefix, null, () => new TelemetryClient(telemetryEndpoint) as any);
++				disposables.add(toDisposable(() => oneDsAppender!.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
++			} else if  (productService.aiConfig && productService.aiConfig.ariaKey) {
++				oneDsAppender = new OneDataSystemAppender(isInternal, eventPrefix, null, productService.aiConfig.ariaKey);
++				disposables.add(toDisposable(() => oneDsAppender?.flush())); // Ensure the AI appender is disposed so that it flushes remaining data
++			}
  		}
+-
+ 		const config: ITelemetryServiceConfig = {
+ 			appenders: [oneDsAppender],
+ 			commonProperties: resolveCommonProperties(fileService, release(), hostname(), process.arch, productService.commit, productService.version + '-remote', machineId, isInternal, environmentService.installSourcePath, 'remoteAgent'),
 Index: code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
 ===================================================================
 --- /dev/null
 +++ code-server/lib/vscode/src/vs/server/node/telemetryClient.ts
-@@ -0,0 +1,135 @@
-+import * as appInsights from 'applicationinsights';
-+import * as https from 'https';
-+import * as http from 'http';
-+import * as os from 'os';
+@@ -0,0 +1,17 @@
++import { AppInsightsCore, IExtendedTelemetryItem, ITelemetryItem } from '@microsoft/1ds-core-js';
 +
-+class Channel {
-+	public get _sender() {
-+		throw new Error('unimplemented');
-+	}
-+	public get _buffer() {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public setUseDiskRetryCaching(): void {
-+		throw new Error('unimplemented');
-+	}
-+	public send(): void {
-+		throw new Error('unimplemented');
-+	}
-+	public triggerSend(): void {
-+		throw new Error('unimplemented');
-+	}
-+}
 +
 +// Unable to use implements because TypeScript tells you a private property is
 +// missing but if you add it then it complains they have different private
 +// properties.  Uncommenting it during development can be helpful though to see
 +// if anything is missing.
-+export class TelemetryClient /* implements appInsights.TelemetryClient */ {
-+	private _telemetryProcessors: any = undefined;
-+	public context: any = undefined;
-+	public commonProperties: any = undefined;
-+	public config: any = {};
-+  public quickPulseClient: any = undefined;
-+
-+	public channel: any = new Channel();
-+
++export class TelemetryClient extends AppInsightsCore {
 +	public constructor(private readonly endpoint: string) {
++		super();
 +		// Nothing to do.
 +	}
 +
-+	public addTelemetryProcessor(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public clearTelemetryProcessors(): void {
-+		if (this._telemetryProcessors) {
-+			this._telemetryProcessors = undefined;
-+		}
-+	}
-+
-+	public runTelemetryProcessors(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackTrace(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackMetric(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackException(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackRequest(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackDependency(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public track(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackNodeHttpRequestSync(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackNodeHttpRequest(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackNodeHttpDependency(): void {
-+		throw new Error('unimplemented');
-+	}
-+
-+	public trackEvent(options: appInsights.Contracts.EventTelemetry): void {
-+		if (!options.properties) {
-+			options.properties = {};
-+		}
-+		if (!options.measurements) {
-+			options.measurements = {};
-+		}
-+
-+		try {
-+			const cpus = os.cpus();
-+			options.measurements.cores = cpus.length;
-+			options.properties['common.cpuModel'] = cpus[0].model;
-+		} catch (error) {}
-+
-+		try {
-+			options.measurements.memoryFree = os.freemem();
-+			options.measurements.memoryTotal = os.totalmem();
-+		} catch (error) {}
-+
-+		try {
-+			options.properties['common.shell'] = os.userInfo().shell;
-+			options.properties['common.release'] = os.release();
-+			options.properties['common.arch'] = os.arch();
-+		} catch (error) {}
-+
-+		try {
-+			const request = (/^http:/.test(this.endpoint) ? http : https).request(this.endpoint, {
-+				method: 'POST',
-+				headers: {
-+					'Content-Type': 'application/json',
-+				},
-+			});
-+			request.on('error', () => { /* We don't care. */ });
-+			request.write(JSON.stringify(options));
-+			request.end();
-+		} catch (error) {}
-+	}
-+
-+	public flush(options: { callback: (v: string) => void }): void {
-+		if (options.callback) {
-+			options.callback('');
-+		}
++	public override track(item: IExtendedTelemetryItem | ITelemetryItem): void {
++		console.log(this.endpoint);
 +	}
 +}
-Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
-===================================================================
---- code-server.orig/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
-+++ code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/telemetryService.ts
-@@ -120,16 +120,19 @@ export class TelemetryService extends Di
- 	) {
- 		super();
- 
--		if (supportsTelemetry(productService, environmentService) && productService.aiConfig?.asimovKey) {
-+		if (supportsTelemetry(productService, environmentService)) {
- 			// If remote server is present send telemetry through that, else use the client side appender
--			const telemetryProvider: ITelemetryAppender = remoteAgentService.getConnection() !== null ? { log: remoteAgentService.logTelemetry.bind(remoteAgentService), flush: remoteAgentService.flushTelemetry.bind(remoteAgentService) } : new WebAppInsightsAppender('monacoworkbench', productService.aiConfig?.asimovKey);
--			const config: ITelemetryServiceConfig = {
--				appenders: [new WebTelemetryAppender(telemetryProvider), new TelemetryLogAppender(loggerService, environmentService)],
--				commonProperties: resolveWorkbenchCommonProperties(storageService, productService.commit, productService.version, environmentService.remoteAuthority, productService.embedderIdentifier, productService.removeTelemetryMachineId, environmentService.options && environmentService.options.resolveCommonTelemetryProperties),
--				sendErrorTelemetry: this.sendErrorTelemetry,
--			};
--
--			this.impl = this._register(new BaseTelemetryService(config, configurationService, productService));
-+			const telemetryProvider: ITelemetryAppender | undefined = remoteAgentService.getConnection() !== null ? { log: remoteAgentService.logTelemetry.bind(remoteAgentService), flush: remoteAgentService.flushTelemetry.bind(remoteAgentService) } : productService.aiConfig?.asimovKey ? new WebAppInsightsAppender('monacoworkbench', productService.aiConfig?.asimovKey) : undefined;
-+			if (telemetryProvider) {
-+				const config: ITelemetryServiceConfig = {
-+					appenders: [new WebTelemetryAppender(telemetryProvider), new TelemetryLogAppender(loggerService, environmentService)],
-+					commonProperties: resolveWorkbenchCommonProperties(storageService, productService.commit, productService.version, environmentService.remoteAuthority, productService.embedderIdentifier, productService.removeTelemetryMachineId, environmentService.options && environmentService.options.resolveCommonTelemetryProperties),
-+					sendErrorTelemetry: this.sendErrorTelemetry,
-+				};
-+				this.impl = this._register(new BaseTelemetryService(config, configurationService, productService));
-+			} else {
-+				this.impl = NullTelemetryService;
-+			}
- 		} else {
- 			this.impl = NullTelemetryService;
- 		}
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -320,6 +320,7 @@ export class WebClientServer {
+@@ -317,6 +317,7 @@ export class WebClientServer {
  					scope: vscodeBase + '/',
  					path: base + '/_static/out/browser/serviceWorker.js',
  				},

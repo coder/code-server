@@ -17,7 +17,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -202,6 +202,9 @@ export async function setupServerService
+@@ -214,6 +214,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -31,14 +31,10 @@ Index: code-server/lib/vscode/src/vs/base/common/platform.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/base/common/platform.ts
 +++ code-server/lib/vscode/src/vs/base/common/platform.ts
-@@ -80,8 +80,19 @@ if (typeof navigator === 'object' && !is
- 	_isIOS = (_userAgent.indexOf('Macintosh') >= 0 || _userAgent.indexOf('iPad') >= 0 || _userAgent.indexOf('iPhone') >= 0) && !!navigator.maxTouchPoints && navigator.maxTouchPoints > 0;
- 	_isLinux = _userAgent.indexOf('Linux') >= 0;
- 	_isWeb = true;
--	_locale = navigator.language;
-+	_locale = LANGUAGE_DEFAULT;
+@@ -92,6 +92,16 @@ if (typeof navigator === 'object' && !is
+ 	_locale = configuredLocale || LANGUAGE_DEFAULT;
+ 
  	_language = _locale;
-+
 +	const el = typeof document !== 'undefined' && document.getElementById('vscode-remote-nls-configuration');
 +	const rawNlsConfig = el && el.getAttribute('data-settings');
 +	if (rawNlsConfig) {
@@ -66,21 +62,19 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
  		<!-- Workbench Icon/Manifest/CSS -->
  		<link rel="icon" href="{{BASE}}/_static/src/browser/media/favicon-dark-support.svg" />
  		<link rel="alternate icon" href="{{BASE}}/_static/src/browser/media/favicon.ico" type="image/x-icon" />
-@@ -43,17 +46,27 @@
- 			self.webPackagePaths[key] = `${baseUrl}/node_modules/${key}/${self.webPackagePaths[key]}`;
- 		});
- 
--		// Set up nls if the user is not using the default language (English)
+@@ -46,15 +49,26 @@
+ 		// Set up nls if the user is not using the default language (English)
  		const nlsConfig = {};
--		const locale = navigator.language;
+ 		const locale = window.localStorage.getItem('vscode.nls.locale') || navigator.language;
 -		if (!locale.startsWith('en')) {
 -			nlsConfig['vs/nls'] = {
 -				availableLanguages: {
 -					'*': locale
 -				},
--				baseUrl: '{{WORKBENCH_NLS_BASE_URL}}'
+-				translationServiceUrl: '{{WORKBENCH_NLS_BASE_URL}}'
 -			};
 -		}
+-
 +		try {
 +			nlsConfig['vs/nls'] = JSON.parse(document.getElementById("vscode-remote-nls-configuration").getAttribute("data-settings"))
 +			if (nlsConfig['vs/nls']._resolvedLanguagePackCoreLocation) {
@@ -101,14 +95,14 @@ Index: code-server/lib/vscode/src/vs/code/browser/workbench/workbench.html
 +				}
 +			}
 +		} catch (error) { /* Probably fine. */ }
- 
  		require.config({
  			baseUrl: `${baseUrl}/out`,
+ 			recordStats: true,
 Index: code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/platform/environment/common/environmentService.ts
 +++ code-server/lib/vscode/src/vs/platform/environment/common/environmentService.ts
-@@ -108,7 +108,7 @@ export abstract class AbstractNativeEnvi
+@@ -105,7 +105,7 @@ export abstract class AbstractNativeEnvi
  			return URI.file(join(vscodePortable, 'argv.json'));
  		}
  
@@ -190,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from 'vs/base/common/charCode';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
-@@ -295,6 +296,8 @@ export class WebClientServer {
+@@ -292,6 +293,8 @@ export class WebClientServer {
  
  		const base = relativeRoot(getOriginalUrl(req))
  		const vscodeBase = relativePath(getOriginalUrl(req))
@@ -199,8 +193,8 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
-@@ -338,6 +341,7 @@ export class WebClientServer {
- 			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${this._productService.commit}/${this._productService.version}/` : ''),
+@@ -332,6 +335,7 @@ export class WebClientServer {
+ 			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,
 +			NLS_CONFIGURATION: asJSON(nlsConfiguration),
@@ -219,7 +213,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -96,6 +97,7 @@ export interface ServerParsedArgs {
+@@ -97,6 +98,7 @@ export interface ServerParsedArgs {
  	'disable-update-check'?: boolean;
  	'auth'?: string
  	'disable-file-downloads'?: boolean;
@@ -231,7 +225,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/workbench.web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
-@@ -109,6 +109,12 @@ registerSingleton(IDiagnosticsService, N
+@@ -113,6 +113,12 @@ registerSingleton(ILanguagePackService,
  
  //#region --- workbench contributions
  
@@ -246,14 +240,17 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
  
 Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 ===================================================================
---- /dev/null
+--- code-server.orig/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
 +++ code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePacks.ts
-@@ -0,0 +1,18 @@
+@@ -4,7 +4,24 @@
+  *--------------------------------------------------------------------------------------------*/
+ 
+ import { ILanguagePackItem, LanguagePackBaseService } from 'vs/platform/languagePacks/common/languagePacks';
 +import { ProxyChannel } from 'vs/base/parts/ipc/common/ipc';
 +import { registerSingleton } from 'vs/platform/instantiation/common/extensions';
 +import { ILanguagePackService } from 'vs/platform/languagePacks/common/languagePacks';
 +import { IRemoteAgentService } from 'vs/workbench/services/remote/common/remoteAgentService';
-+
+ 
 +// @ts-ignore: interface is implemented via proxy
 +export class LanguagePackService implements ILanguagePackService {
 +
@@ -267,3 +264,6 @@ Index: code-server/lib/vscode/src/vs/platform/languagePacks/browser/languagePack
 +}
 +
 +registerSingleton(ILanguagePackService, LanguagePackService, true);
+ export class WebLanguagePacksService extends LanguagePackBaseService {
+ 	// Web doesn't have a concept of language packs, so we just return an empty array
+ 	getInstalledLanguages(): Promise<ILanguagePackItem[]> {

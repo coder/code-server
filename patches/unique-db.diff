@@ -14,35 +14,35 @@ code-server.
 
 This has e2e tests.
 
-Index: code-server/lib/vscode/src/vs/platform/storage/browser/storageService.ts
+Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageService.ts
 ===================================================================
---- code-server.orig/lib/vscode/src/vs/platform/storage/browser/storageService.ts
-+++ code-server/lib/vscode/src/vs/platform/storage/browser/storageService.ts
-@@ -13,6 +13,7 @@ import { InMemoryStorageDatabase, isStor
- import { ILogService } from 'vs/platform/log/common/log';
- import { AbstractStorageService, IS_NEW_KEY, StorageScope, StorageTarget } from 'vs/platform/storage/common/storage';
+--- code-server.orig/lib/vscode/src/vs/workbench/services/storage/browser/storageService.ts
++++ code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageService.ts
+@@ -17,6 +17,7 @@ import { AbstractStorageService, isProfi
+ import { IUserDataProfile } from 'vs/platform/userDataProfile/common/userDataProfile';
  import { IAnyWorkspaceIdentifier } from 'vs/platform/workspace/common/workspace';
+ import { IUserDataProfileService } from 'vs/workbench/services/userDataProfile/common/userDataProfile';
 +import { hash } from 'vs/base/common/hash';
  
  export class BrowserStorageService extends AbstractStorageService {
  
-@@ -36,7 +37,11 @@ export class BrowserStorageService exten
+@@ -67,7 +68,7 @@ export class BrowserStorageService exten
+ 					return `global-${this.profileStorageProfile.id}`;
+ 				}
+ 			case StorageScope.WORKSPACE:
+-				return this.payload.id;
++				return this.payload.id + '-' + hash(location.pathname.toString().replace(/\/$/, "")).toString(16);
+ 		}
  	}
  
- 	private getId(scope: StorageScope): string {
--		return scope === StorageScope.GLOBAL ? 'global' : this.payload.id;
-+		// Add a unique ID based on the current path for per-workspace databases.
-+		// This prevents workspaces on different machines that share the same domain
-+		// and file path from colliding (since it does not appear IndexedDB can be
-+		// scoped to a path) as long as they are hosted on different paths.
-+		return scope === StorageScope.GLOBAL ? 'global' : (this.payload.id + '-' + hash(location.pathname.toString().replace(/\/$/, "")).toString(16));
- 	}
+@@ -140,7 +141,25 @@ export class BrowserStorageService exten
+ 		this._register(this.workspaceStorage.onDidChangeStorage(key => this.emitDidChangeValue(StorageScope.WORKSPACE, key)));
  
- 	protected async doInitialize(): Promise<void> {
-@@ -75,6 +80,21 @@ export class BrowserStorageService exten
- 		const firstWorkspaceOpen = this.workspaceStorage.getBoolean(IS_NEW_KEY);
- 		if (firstWorkspaceOpen === undefined) {
- 			this.workspaceStorage.set(IS_NEW_KEY, true);
+ 		await this.workspaceStorage.init();
+-
++		const firstWorkspaceOpen = this.workspaceStorage.getBoolean(IS_NEW_KEY);
++		if (firstWorkspaceOpen === undefined) {
++			this.workspaceStorage.set(IS_NEW_KEY, true);
 +			// Migrate the old database.
 +			let db: IIndexedDBStorageDatabase | undefined
 +			try {
@@ -58,6 +58,7 @@ Index: code-server/lib/vscode/src/vs/platform/storage/browser/storageService.ts
 +					db.close()
 +				}
 +			}
- 		} else if (firstWorkspaceOpen) {
- 			this.workspaceStorage.set(IS_NEW_KEY, false);
- 		}
++		} 
+ 		this.updateIsNew(this.workspaceStorage);
+ 	}
+ 

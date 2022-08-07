@@ -32,7 +32,7 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  import { IProductService } from 'vs/platform/product/common/productService';
 -import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
 +import { IRemoteAuthorityResolverService, IRemoteConnectionData, ResolvedAuthority, ResolvedOptions, ResolverResult } from 'vs/platform/remote/common/remoteAuthorityResolver';
- import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
+ import { getRemoteServerRootPath, parseAuthorityWithOptionalPort } from 'vs/platform/remote/common/remoteHosts';
  
  export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
 @@ -22,7 +22,7 @@ export class RemoteAuthorityResolverServ
@@ -44,23 +44,19 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  		super();
  		this._cache = new Map<string, ResolverResult>();
  		this._connectionToken = connectionToken;
-@@ -62,12 +62,17 @@ export class RemoteAuthorityResolverServ
+@@ -62,9 +62,14 @@ export class RemoteAuthorityResolverServ
  
  	private _doResolveAuthority(authority: string): ResolverResult {
  		const connectionToken = this._connectionTokens.get(authority) || this._connectionToken;
-+		let options: ResolvedOptions | undefined
++		let options: ResolvedOptions | undefined;
 +		if (this.proxyEndpointTemplate) {
 +			const proxyUrl = new URL(this.proxyEndpointTemplate, window.location.href);
 +			options = { extensionHostEnv: { VSCODE_PROXY_URI: decodeURIComponent(proxyUrl.toString()) }}
 +		}
- 		if (authority.indexOf(':') >= 0) {
- 			const pieces = authority.split(':');
--			return { authority: { authority, host: pieces[0], port: parseInt(pieces[1], 10), connectionToken } };
-+			return { authority: { authority, host: pieces[0], port: parseInt(pieces[1], 10), connectionToken }, options };
- 		}
- 		const port = (/^https:/.test(window.location.href) ? 443 : 80);
--		return { authority: { authority, host: authority, port: port, connectionToken } };
-+		return { authority: { authority, host: authority, port: port, connectionToken }, options };
+ 		const defaultPort = (/^https:/.test(window.location.href) ? 443 : 80);
+ 		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
+-		return { authority: { authority, host: host, port: port, connectionToken } };
++		return { authority: { authority, host: host, port: port, connectionToken }, options };
  	}
  
  	_clearResolvedAuthority(authority: string): void {
@@ -68,7 +64,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -310,6 +310,7 @@ export class WebClientServer {
+@@ -307,6 +307,7 @@ export class WebClientServer {
  				rootEndpoint: base,
  				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
  				logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
@@ -80,7 +76,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -209,7 +209,7 @@ export class BrowserMain extends Disposa
+@@ -239,7 +239,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);

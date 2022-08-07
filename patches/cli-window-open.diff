@@ -26,7 +26,7 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteTerminalChannel.ts
  	readonly onExecuteCommand = this._onExecuteCommand.event;
  
  	constructor(
-@@ -240,20 +240,20 @@ export class RemoteTerminalChannel exten
+@@ -241,20 +241,20 @@ export class RemoteTerminalChannel exten
  		const ipcHandlePath = createRandomIPCHandle();
  		env.VSCODE_IPC_HOOK_CLI = ipcHandlePath;
  		const commandsExecuter: ICommandsExecuter = {
@@ -52,7 +52,7 @@ Index: code-server/lib/vscode/src/vs/server/node/remoteTerminalChannel.ts
  		let resolve!: (data: any) => void;
  		let reject!: (err: any) => void;
  		const result = new Promise<T>((_resolve, _reject) => {
-@@ -276,6 +276,7 @@ export class RemoteTerminalChannel exten
+@@ -277,6 +277,7 @@ export class RemoteTerminalChannel exten
  		});
  		this._onExecuteCommand.fire({
  			reqId,
