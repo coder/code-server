@@ -57,7 +57,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 +				return;
 +			}
 +
-+			const lastNoti = this.storageService.getNumber('csLastUpdateNotification', StorageScope.GLOBAL);
++			const lastNoti = this.storageService.getNumber('csLastUpdateNotification', StorageScope.APPLICATION);
 +			if (lastNoti) {
 +				// Only remind them again after 1 week.
 +				const timeout = 1000 * 60 * 60 * 24 * 7;
@@ -67,7 +67,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 +				}
 +			}
 +
-+			this.storageService.store('csLastUpdateNotification', Date.now(), StorageScope.GLOBAL, StorageTarget.MACHINE);
++			this.storageService.store('csLastUpdateNotification', Date.now(), StorageScope.APPLICATION, StorageTarget.MACHINE);
 +
 +			this.notificationService.notify({
 +				severity: Severity.Info,
