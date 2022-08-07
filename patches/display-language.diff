@@ -231,7 +231,7 @@ Index: code-server/lib/vscode/src/vs/workbench/workbench.web.main.ts
  
 +// Localization.  These do not actually import anything specific to Electron so
 +// they should be safe.
-+import 'vs/workbench/services/localization/electron-sandbox/localeService';
++import 'vs/workbench/contrib/localization/electron-sandbox/localeService';
 +import 'vs/workbench/contrib/localization/electron-sandbox/localization.contribution';
 +import 'vs/platform/languagePacks/browser/languagePacks';
 +
