@@ -48,7 +48,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  	}
  
  	/**
-@@ -308,14 +308,7 @@ export class WebClientServer {
+@@ -305,14 +305,7 @@ export class WebClientServer {
  				codeServerVersion: this._productService.codeServerVersion,
  				rootEndpoint: base,
  				embedderIdentifier: 'server-distro',

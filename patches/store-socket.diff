@@ -24,7 +24,7 @@ Index: code-server/lib/vscode/src/vs/workbench/api/node/extHostExtensionService.
  import * as performance from 'vs/base/common/performance';
  import { createApiFactoryAndRegisterActors } from 'vs/workbench/api/common/extHost.api.impl';
  import { RequireInterceptor } from 'vs/workbench/api/common/extHostRequireInterceptor';
-@@ -69,6 +71,10 @@ export class ExtHostExtensionService ext
+@@ -72,6 +74,10 @@ export class ExtHostExtensionService ext
  		if (this._initData.remote.isRemote && this._initData.remote.authority) {
  			const cliServer = this._instaService.createInstance(CLIServer);
  			process.env['VSCODE_IPC_HOOK_CLI'] = cliServer.ipcHandlePath;

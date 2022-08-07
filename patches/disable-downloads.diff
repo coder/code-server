@@ -90,7 +90,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
-@@ -7,7 +7,7 @@ import { Event } from 'vs/base/common/ev
+@@ -7,12 +7,11 @@ import { Event } from 'vs/base/common/ev
  import { Disposable } from 'vs/base/common/lifecycle';
  import { IContextKeyService, IContextKey } from 'vs/platform/contextkey/common/contextkey';
  import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext } from 'vs/platform/contextkey/common/contextkeys';
@@ -99,7 +99,12 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, DEFAULT_EDITOR_ASSOCIATION } from 'vs/workbench/common/editor';
  import { trackFocus, addDisposableListener, EventType } from 'vs/base/browser/dom';
  import { preferredSideBySideGroupDirection, GroupDirection, IEditorGroupsService } from 'vs/workbench/services/editor/common/editorGroupsService';
-@@ -25,6 +25,7 @@ import { IPaneCompositePartService } fro
+ import { IConfigurationService } from 'vs/platform/configuration/common/configuration';
+-import { IWorkbenchEnvironmentService } from 'vs/workbench/services/environment/common/environmentService';
+ import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
+ import { WorkbenchState, IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
+ import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
+@@ -25,6 +24,7 @@ import { IPaneCompositePartService } fro
  import { Schemas } from 'vs/base/common/network';
  import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
  import { IProductService } from 'vs/platform/product/common/productService';
@@ -107,7 +112,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  
  export class WorkbenchContextKeysHandler extends Disposable {
  	private inputFocusedContext: IContextKey<boolean>;
-@@ -76,7 +77,7 @@ export class WorkbenchContextKeysHandler
+@@ -76,7 +76,7 @@ export class WorkbenchContextKeysHandler
  		@IContextKeyService private readonly contextKeyService: IContextKeyService,
  		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
  		@IConfigurationService private readonly configurationService: IConfigurationService,
@@ -116,7 +121,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  		@IProductService private readonly productService: IProductService,
  		@IEditorService private readonly editorService: IEditorService,
  		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
-@@ -198,6 +199,9 @@ export class WorkbenchContextKeysHandler
+@@ -198,6 +198,9 @@ export class WorkbenchContextKeysHandler
  		// Auxiliary Bar
  		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
  		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));

@@ -105,7 +105,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -308,6 +308,7 @@ export class WebClientServer {
+@@ -305,6 +305,7 @@ export class WebClientServer {
  			productConfiguration: <Partial<IProductConfiguration>>{
  				codeServerVersion: this._productService.codeServerVersion,
  				rootEndpoint: base,
@@ -126,7 +126,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -88,6 +90,8 @@ export const serverOptions: OptionDescri
+@@ -89,6 +91,8 @@ export const serverOptions: OptionDescri
  };
  
  export interface ServerParsedArgs {
