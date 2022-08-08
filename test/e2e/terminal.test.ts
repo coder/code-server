@@ -2,10 +2,10 @@ import * as cp from "child_process"
 import { promises as fs } from "fs"
 import * as path from "path"
 import util from "util"
-import { clean, tmpdir } from "../utils/helpers"
+import { clean, getMaybeProxiedCodeServer, tmpdir } from "../utils/helpers"
 import { describe, expect, test } from "./baseFixture"
 
-describe("Integrated Terminal", true, [], {}, () => {
+describe("Integrated Terminal", [], {}, () => {
   const testName = "integrated-terminal"
   test.beforeAll(async () => {
     await clean(testName)
@@ -26,7 +26,8 @@ describe("Integrated Terminal", true, [], {}, () => {
     await codeServerPage.page.keyboard.press("Enter")
 
     const { stdout } = await output
-    expect(stdout).toMatch(await codeServerPage.address())
+    const address = await getMaybeProxiedCodeServer(codeServerPage)
+    expect(stdout).toMatch(address)
   })
 
   test("should be able to invoke `code-server` to open a file", async ({ codeServerPage }) => {
