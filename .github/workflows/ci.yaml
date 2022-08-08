@@ -39,7 +39,7 @@ jobs:
           node-version: "16"
 
       - name: Install helm
-        uses: azure/setup-helm@v3.1
+        uses: azure/setup-helm@v3.3
 
       - name: Fetch dependencies from cache
         id: cache-yarn
@@ -156,7 +156,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: lib/vscode-reh-web-*
-          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff') }}
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
 
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
@@ -499,7 +499,7 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Run end-to-end tests
-        run: yarn test:e2e
+        run: yarn test:e2e --global-timeout 840000
 
       - name: Upload test artifacts
         if: always()
@@ -523,7 +523,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@503d3abc15463af68b817d685982721f134256a5
+        uses: aquasecurity/trivy-action@cb606dfdb0d2b3698ace62192088ef4f5360b24f
         with:
           scan-type: "fs"
           scan-ref: "."

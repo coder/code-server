@@ -110,10 +110,6 @@ bundle_vscode() {
   rsync "$VSCODE_SRC_PATH/extensions/package.json" "$VSCODE_OUT_PATH/extensions/package.json"
   rsync "$VSCODE_SRC_PATH/extensions/yarn.lock" "$VSCODE_OUT_PATH/extensions/yarn.lock"
   rsync "$VSCODE_SRC_PATH/extensions/postinstall.mjs" "$VSCODE_OUT_PATH/extensions/postinstall.mjs"
-
-  pushd "$VSCODE_OUT_PATH"
-  symlink_asar
-  popd
 }
 
 main "$@"
