@@ -253,7 +253,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    container: "centos:7"
+    container: "centos:8"
 
     steps:
       - name: Checkout repo
