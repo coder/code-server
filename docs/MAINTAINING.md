@@ -175,7 +175,7 @@ If you're the current release manager, follow these steps:
 1. Bump chart version in `Chart.yaml`.
 1. Summarize the major changes in the release notes and link to the relevant
    issues.
-1. Change the @ to target the version branch. Example: `v3.9.0 @ Target: v3.9.0`
+1. Change the @ to target the version branch. Example: `v3.9.0 @ Target: release/v3.9.0`
 1. Wait for the `npm-package`, `release-packages` and `release-images` artifacts
    to build.
 1. Run `yarn release:github-assets` to download the `release-packages` artifact.
