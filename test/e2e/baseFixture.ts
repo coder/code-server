@@ -42,6 +42,8 @@ interface TestFixtures {
   codeServerPage: CodeServerPage
 }
 
+base.describe.configure({ mode: "parallel" })
+
 /**
  * Create a test that spawns code-server if necessary and ensures the page is
  * ready.
