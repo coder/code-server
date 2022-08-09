@@ -13,7 +13,7 @@ const config: PlaywrightTestConfig = {
   timeout: 60000, // Each test is given 60 seconds.
   retries: process.env.CI ? 2 : 1, // Retry in CI due to flakiness.
   // Limit the number of failures on CI to save resources
-  maxFailures: process.env.CI ? 10 : undefined,
+  maxFailures: process.env.CI ? 3 : undefined,
   globalSetup: require.resolve("./utils/globalE2eSetup.ts"),
   reporter: "list",
   // Put any shared options on the top level.
