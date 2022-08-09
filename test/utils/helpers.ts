@@ -129,7 +129,7 @@ export function isAddressInfo(address: unknown): address is net.AddressInfo {
  */
 export async function getMaybeProxiedCodeServer(codeServer: CodeServerPage | CodeServer): Promise<string> {
   let address = await codeServer.address()
-if (process.env.USE_PROXY === "1") {
+  if (process.env.USE_PROXY === "1") {
     const uri = new URL(address)
     return `http://${uri.hostname}:${REVERSE_PROXY_PORT}/${uri.port}/${REVERSE_PROXY_BASE_PATH}/`
   }
