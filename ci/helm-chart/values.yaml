@@ -6,7 +6,7 @@ replicaCount: 1
 
 image:
   repository: codercom/code-server
-  tag: '4.4.0'
+  tag: '4.5.1'
   pullPolicy: Always
 
 # Specifies one or more secrets to be used when pulling images from a
@@ -32,6 +32,8 @@ podAnnotations: {}
 
 podSecurityContext: {}
   # fsGroup: 2000
+
+priorityClassName: ""
 
 service:
   type: ClusterIP
@@ -144,6 +146,25 @@ extraContainers: |
 #    value: ""
 #  - name: DOCKER_DRIVER
 #    value: "overlay2"
+
+extraInitContainers: |
+# - name: customization
+#   image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+#   imagePullPolicy: IfNotPresent
+#   env:
+#     - name: SERVICE_URL
+#       value: https://open-vsx.org/vscode/gallery
+#     - name: ITEM_URL
+#       value: https://open-vsx.org/vscode/item
+#   command:
+#     - sh
+#     - -c
+#     - |
+#       code-server --install-extension ms-python.python
+#       code-server --install-extension golang.Go
+#   volumeMounts:
+#     - name: data
+#       mountPath: /home/coder
 
 ## Additional code-server secret mounts
 extraSecretMounts: []

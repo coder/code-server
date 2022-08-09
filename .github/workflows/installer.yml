@@ -34,12 +34,12 @@ jobs:
         run: ./install.sh
 
       - name: Test code-server
-        run: yarn test:standalone-release code-server
+        run: CODE_SERVER_PATH="code-server" yarn test:integration
 
   alpine:
     name: Test installer on Alpine
     runs-on: ubuntu-latest
-    container: "alpine:3.14"
+    container: "alpine:3.16"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -66,4 +66,4 @@ jobs:
         run: ./install.sh
 
       - name: Test code-server
-        run: yarn test:standalone-release code-server
+        run: CODE_SERVER_PATH="code-server" yarn test:integration

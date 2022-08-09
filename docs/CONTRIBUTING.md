@@ -10,6 +10,9 @@
   - [Version updates to Code](#version-updates-to-code)
   - [Patching Code](#patching-code)
   - [Build](#build)
+  - [Troubleshooting](#troubleshooting)
+    - [I see "Forbidden access" when I load code-server in the browser](#i-see-forbidden-access-when-i-load-code-server-in-the-browser)
+  - ["Can only have one anonymous define call per script"](#can-only-have-one-anonymous-define-call-per-script)
   - [Help](#help)
 - [Test](#test)
   - [Unit tests](#unit-tests)
@@ -147,7 +150,7 @@ Build the release packages (make sure that you run `yarn release` first):
 
 ```shell
 yarn release:standalone
-yarn test:standalone-release
+yarn test:integration
 yarn package
 ```
 
@@ -155,6 +158,18 @@ yarn package
 > version. In our GitHub Actions CI, we use CentOS 7 for maximum compatibility.
 > If you need your builds to support older distros, run the build commands
 > inside a Docker container with all the build requirements installed.
+
+### Troubleshooting
+
+#### I see "Forbidden access" when I load code-server in the browser
+
+This means your patches didn't apply correctly. We have a patch to remove the auth from vanilla Code because we use our own.
+
+Try popping off the patches with `quilt pop -a` and reapplying with `quilt push -a`.
+
+### "Can only have one anonymous define call per script"
+
+Code might be trying to use a dev or prod HTML in the wrong context. You can try re-running code-server and setting `VSCODE_DEV=1`.
 
 ### Help
 
@@ -188,9 +203,8 @@ We use these to test anything related to our scripts (most of which live under `
 
 ### Integration tests
 
-These are a work in progress. We build code-server and run a script called
-[test-standalone-release.sh](../ci/build/test-standalone-release.sh), which
-ensures that code-server's CLI is working.
+These are a work in progress. We build code-server and run tests with `yarn test:integration`, which ensures that code-server builds work on their respective
+platforms.
 
 Our integration tests look at components that rely on one another. For example,
 testing the CLI requires us to build and package code-server.

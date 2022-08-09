@@ -18,35 +18,30 @@ vscode_version() {
 }
 
 os() {
-  local os
-  os=$(uname | tr '[:upper:]' '[:lower:]')
-  if [[ $os == "linux" ]]; then
-    # Alpine's ldd doesn't have a version flag but if you use an invalid flag
-    # (like --version) it outputs the version to stderr and exits with 1.
-    local ldd_output
-    ldd_output=$(ldd --version 2>&1 || true)
-    if echo "$ldd_output" | grep -iq musl; then
-      os="alpine"
-    fi
-  elif [[ $os == "darwin" ]]; then
-    os="macos"
-  fi
-  echo "$os"
+  osname=$(uname | tr '[:upper:]' '[:lower:]')
+  case $osname in
+    linux)
+      # Alpine's ldd doesn't have a version flag but if you use an invalid flag
+      # (like --version) it outputs the version to stderr and exits with 1.
+      # TODO: Better to check /etc/os-release; see ../install.sh.
+      ldd_output=$(ldd --version 2>&1 || true)
+      if echo "$ldd_output" | grep -iq musl; then
+        osname="alpine"
+      fi
+      ;;
+    darwin) osname="macos" ;;
+    cygwin* | mingw*) osname="windows" ;;
+  esac
+  echo "$osname"
 }
 
 arch() {
   cpu="$(uname -m)"
   case "$cpu" in
-    aarch64)
-      echo arm64
-      ;;
-    x86_64 | amd64)
-      echo amd64
-      ;;
-    *)
-      echo "$cpu"
-      ;;
+    aarch64) cpu=arm64 ;;
+    x86_64) cpu=amd64 ;;
   esac
+  echo "$cpu"
 }
 
 # Grabs the most recent ci.yaml github workflow run that was triggered from the
@@ -57,7 +52,7 @@ arch() {
 # https://developer.github.com/v3/actions/workflow-runs/#list-workflow-runs
 get_artifacts_url() {
   local artifacts_url
-  local version_branch="v$VERSION"
+  local version_branch="release/v$VERSION"
   local workflow_runs_url="repos/:owner/:repo/actions/workflows/ci.yaml/runs?event=pull_request&branch=$version_branch"
   artifacts_url=$(gh api "$workflow_runs_url" | jq -r ".workflow_runs[] | select(.head_branch == \"$version_branch\") | .artifacts_url" | head -n 1)
   if [[ -z "$artifacts_url" ]]; then
@@ -104,21 +99,3 @@ export OS
 # RELEASE_PATH is the destination directory for the release from the root.
 # Defaults to release
 RELEASE_PATH="${RELEASE_PATH-release}"
-
-# VS Code bundles some modules into an asar which is an archive format that
-# works like tar. It then seems to get unpacked into node_modules.asar.
-#
-# I don't know why they do this but all the dependencies they bundle already
-# exist in node_modules so just symlink it. We have to do this since not only VS
-# Code itself but also extensions will look specifically in this directory for
-# files (like the ripgrep binary or the oniguruma wasm).
-symlink_asar() {
-  rm -rf node_modules.asar
-  if [ "${WINDIR-}" ]; then
-    # mklink takes the link name first.
-    mklink /J node_modules.asar node_modules
-  else
-    # ln takes the link name second.
-    ln -s node_modules node_modules.asar
-  fi
-}

@@ -3,10 +3,11 @@ import { promises as fs } from "fs"
 import * as os from "os"
 import * as path from "path"
 import * as util from "util"
+import { getMaybeProxiedCodeServer } from "../utils/helpers"
 import { describe, test, expect } from "./baseFixture"
 import { CodeServer } from "./models/CodeServer"
 
-describe("code-server", true, [], {}, () => {
+describe("code-server", [], {}, () => {
   // TODO@asher: Generalize this?  Could be nice if we were to ever need
   // multiple migration tests in other suites.
   const instances = new Map<string, CodeServer>()
@@ -48,7 +49,8 @@ describe("code-server", true, [], {}, () => {
     const url = codeServerPage.page.url()
     // We use match because there may be a / at the end
     // so we don't want it to fail if we expect http://localhost:8080 to match http://localhost:8080/
-    expect(url).toMatch(await codeServerPage.address())
+    const address = await getMaybeProxiedCodeServer(codeServerPage)
+    expect(url).toMatch(address)
   })
 
   test("should always see the code-server editor", async ({ codeServerPage }) => {
@@ -70,7 +72,9 @@ describe("code-server", true, [], {}, () => {
   test("should migrate state to avoid collisions", async ({ codeServerPage }) => {
     // This can take a very long time in development because of how long pages
     // take to load and we are doing a lot of that here.
-    test.slow()
+    if (process.env.VSCODE_DEV === "1") {
+      test.slow()
+    }
 
     const dir = await codeServerPage.workspaceDir
     const files = [path.join(dir, "foo"), path.join(dir, "bar")]
@@ -90,6 +94,7 @@ describe("code-server", true, [], {}, () => {
     // domain and can write to the same database.
     const cs = await spawn("4.0.2", dir)
     const address = new URL(await cs.address())
+
     await codeServerPage.navigate("/proxy/" + address.port + "/")
     await codeServerPage.openFile(files[1])
     expect(await codeServerPage.tabIsVisible(files[0])).toBe(false)

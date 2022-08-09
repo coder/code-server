@@ -3,6 +3,8 @@ import { promises as fs } from "fs"
 import * as net from "net"
 import * as os from "os"
 import * as path from "path"
+import { CodeServer, CodeServerPage } from "../e2e/models/CodeServer"
+import { REVERSE_PROXY_PORT, REVERSE_PROXY_BASE_PATH } from "./constants"
 
 /**
  * Spy on the logger and console and replace with mock implementations to
@@ -118,4 +120,19 @@ export function isAddressInfo(address: unknown): address is net.AddressInfo {
     (address as net.AddressInfo).port !== undefined &&
     (address as net.AddressInfo).address !== undefined
   )
+}
+
+/**
+ * If using a proxy, return the address of the proxy.
+ *
+ * Otherwise, return the direct address of code-server.
+ */
+export async function getMaybeProxiedCodeServer(codeServer: CodeServerPage | CodeServer): Promise<string> {
+  const address = await codeServer.address()
+  if (process.env.USE_PROXY === "1") {
+    const uri = new URL(address)
+    return `http://${uri.hostname}:${REVERSE_PROXY_PORT}/${uri.port}/${REVERSE_PROXY_BASE_PATH}/`
+  }
+
+  return address
 }

@@ -404,6 +404,37 @@ export const isWsl = async (
   }
 }
 
+interface OpenOptions {
+  args: string[]
+  command: string
+  urlSearch: string
+}
+
+/**
+ * A helper function to construct options for `open` function.
+ *
+ * Extract to make it easier to test.
+ *
+ * @param platform - platform on machine
+ * @param urlSearch - url.search
+ * @returns  an object with args, command, options and urlSearch
+ */
+export function constructOpenOptions(platform: NodeJS.Platform | "wsl", urlSearch: string): OpenOptions {
+  const args: string[] = []
+  let command = platform === "darwin" ? "open" : "xdg-open"
+  if (platform === "win32" || platform === "wsl") {
+    command = platform === "wsl" ? "cmd.exe" : "cmd"
+    args.push("/c", "start", '""', "/b")
+    urlSearch = urlSearch.replace(/&/g, "^&")
+  }
+
+  return {
+    args,
+    command,
+    urlSearch,
+  }
+}
+
 /**
  * Try opening an address using whatever the system has set for opening URLs.
  */
@@ -416,16 +447,10 @@ export const open = async (address: URL | string): Promise<void> => {
   if (url.hostname === "0.0.0.0") {
     url.hostname = "localhost"
   }
-  const args = [] as string[]
-  const options = {} as cp.SpawnOptions
   const platform = (await isWsl(process.platform, os.release(), "/proc/version")) ? "wsl" : process.platform
-  let command = platform === "darwin" ? "open" : "xdg-open"
-  if (platform === "win32" || platform === "wsl") {
-    command = platform === "wsl" ? "cmd.exe" : "cmd"
-    args.push("/c", "start", '""', "/b")
-    url.search = url.search.replace(/&/g, "^&")
-  }
-  const proc = cp.spawn(command, [...args, url.toString()], options)
+  const { command, args, urlSearch } = constructOpenOptions(platform, url.search)
+  url.search = urlSearch
+  const proc = cp.spawn(command, [...args, url.toString()], {})
   await new Promise<void>((resolve, reject) => {
     proc.on("error", reject)
     proc.on("close", (code) => {
