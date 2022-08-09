@@ -192,6 +192,7 @@ sudo systemctl enable --now code-server@$USER
 ```
 
 ## Artix Linux
+
 ```bash
 # Install code-server from the AUR
 git clone https://aur.archlinux.org/code-server.git
@@ -216,40 +217,42 @@ command_background="yes"
 extra_commands="report"
 
 depend() {
-	use logger dns
-	need net
+  use logger dns
+  need net
 }
 
 start_pre() {
-	checkpath --directory --owner $command_user --mode 0755 /run/$name /var/log/$name
+  checkpath --directory --owner $command_user --mode 0755 /run/$name /var/log/$name
 }
 
 start() {
-	default_start
-	report
+  default_start
+  report
 }
 
 stop() {
-	default_stop
+  default_stop
 }
 
 status() {
-	default_status
-	report
+  default_status
+  report
 }
 
 report() {
-	# Report to the user
-	einfo "Reading configuration from ~/.config/code-server/config.yaml"
+  # Report to the user
+  einfo "Reading configuration from ~/.config/code-server/config.yaml"
 }
 ```
 
 Start on boot with default runlevel
+
 ```
 rc-update add code-server default
 ```
 
 Start the service immediately
+
 ```
 rc-service code-server start
 ```
