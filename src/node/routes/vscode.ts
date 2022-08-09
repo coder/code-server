@@ -170,7 +170,7 @@ export class CodeServerRouteWrapper {
 
   constructor() {
     this.router.get("/", this.ensureCodeServerLoaded, this.$root)
-    this.router.get(/manifest.json$/, this.manifest)
+    this.router.get("/manifest.json", this.manifest)
     this.router.all("*", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyRequest)
     this._wsRouterWrapper.ws("*", ensureAuthenticated, this.ensureCodeServerLoaded, this.$proxyWebsocket)
   }

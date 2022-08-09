@@ -4,10 +4,10 @@ import { promises as fs } from "fs"
 import * as path from "path"
 import { Page } from "playwright"
 import * as util from "util"
-import { logError, plural } from "../../../src/common/util"
+import { logError, normalize, plural } from "../../../src/common/util"
 import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
-import { idleTimer, tmpdir } from "../../utils/helpers"
+import { getMaybeProxiedCodeServer, idleTimer, tmpdir } from "../../utils/helpers"
 
 interface CodeServerProcess {
   process: cp.ChildProcess
@@ -58,6 +58,7 @@ export class CodeServer {
       this.process = this.spawn()
     }
     const { address } = await this.process
+
     return address
   }
 
@@ -104,6 +105,8 @@ export class CodeServer {
         this.entry,
         "--extensions-dir",
         path.join(dir, "extensions"),
+        "--auth",
+        "none",
         ...this.args,
         // Using port zero will spawn on a random port.
         "--bind-addr",
@@ -124,6 +127,10 @@ export class CodeServer {
         env: {
           ...process.env,
           ...this.env,
+          // Set to empty string to prevent code-server from
+          // using the existing instance when running the e2e tests
+          // from an integrated terminal.
+          VSCODE_IPC_HOOK_CLI: "",
           PASSWORD,
         },
       })
@@ -183,6 +190,13 @@ export class CodeServer {
       proc.kill()
     }
   }
+
+  /**
+   * Whether or not authentication is enabled.
+   */
+  authEnabled(): boolean {
+    return this.args.includes("password")
+  }
 }
 
 /**
@@ -195,11 +209,7 @@ export class CodeServer {
 export class CodeServerPage {
   private readonly editorSelector = "div.monaco-workbench"
 
-  constructor(
-    private readonly codeServer: CodeServer,
-    public readonly page: Page,
-    private readonly authenticated: boolean,
-  ) {
+  constructor(private readonly codeServer: CodeServer, public readonly page: Page) {
     this.page.on("console", (message) => {
       this.codeServer.logger.debug(message.text())
     })
@@ -224,12 +234,16 @@ export class CodeServerPage {
    * editor to become available.
    */
   async navigate(endpoint = "/") {
-    const to = new URL(endpoint, await this.codeServer.address())
+    const address = await getMaybeProxiedCodeServer(this.codeServer)
+    const noramlizedUrl = normalize(address + endpoint, true)
+    const to = new URL(noramlizedUrl)
+
+    this.codeServer.logger.info(`navigating to ${to}`)
     await this.page.goto(to.toString(), { waitUntil: "networkidle" })
 
-    // Only reload editor if authenticated. Otherwise we'll get stuck
+    // Only reload editor if auth is not enabled. Otherwise we'll get stuck
     // reloading the login page.
-    if (this.authenticated) {
+    if (!this.codeServer.authEnabled()) {
       await this.reloadUntilEditorIsReady()
     }
   }
