@@ -22,4 +22,11 @@ describe("--install-extension", () => {
     const statInfo = await stat(pathToExtFolder)
     expect(statInfo.isDirectory()).toBe(true)
   }, 20000)
+  it("should use EXTENSIONS_GALLERY when set", async () => {
+    const extName = `author.extension-1.0.0`
+    const { stderr } = await runCodeServerCommand([...setupFlags, "--install-extension", extName], {
+      EXTENSIONS_GALLERY: "{}",
+    })
+    expect(stderr).toMatch("No extension gallery service configured")
+  })
 })
