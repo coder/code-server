@@ -3,7 +3,7 @@
 # Termux
 
 - [Install](#install)
-- [Direct Installation - Yarn Installation](yarn-installation)
+- [Yarn Installation](#yarn-installation)
 - [Upgrade](#upgrade)
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
@@ -71,18 +71,22 @@ curl -fsSL https://code-server.dev/install.sh | sh
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
 
 2. We will now change using the following command.
+
 ```sh
 termux-change-repo
 ```
+
 Now select `Main Repository` then change repo to `Mirrors by Grimler Hosted on grimler.se`.
 
 3. After successfully updating of repository update and upgrade all the packages by the following command
+
 ```sh
 pkg update
 pkg upgrade -y
 ```
 
 4. Now let's install requirement dependancy.
+
 ```sh
 pkg install -y \
   build-essential \
@@ -94,21 +98,26 @@ pkg install -y \
 npm config set python python3
 node -v
 ```
+
 you will get node version `v16.15.0`
 
 5. Now install code-server
+
 ```sh
 yarn global add code-server
 ```
+
 6. Congratulation code-server is installed on your device using the following command.
+
 ```sh
 code-server --auth none
 ```
+
 7. If already installed then use the following command for upgradation.
+
 ```
 yarn upgrade code-server
 ```
-
 
 ## Upgrade
 
