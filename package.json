@@ -49,7 +49,7 @@
     "@types/semver": "^7.1.0",
     "@types/split2": "^3.2.0",
     "@types/trusted-types": "^2.0.2",
-    "@types/ws": "^8.0.0",
+    "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "audit-ci": "^6.0.0",

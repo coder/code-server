@@ -1,6 +1,7 @@
 import { promises as fs } from "fs"
 import * as net from "net"
 import * as path from "path"
+import * as stream from "stream"
 import * as tls from "tls"
 import { Emitter } from "../common/emitter"
 import { generateUuid } from "../common/util"
@@ -27,10 +28,13 @@ export class SocketProxyProvider {
   }
 
   /**
-   * Create a socket proxy for TLS sockets. If it's not a TLS socket the
-   * original socket is returned. This will spawn a proxy server on demand.
+   * Create a socket proxy for TLS sockets. If it is not a TLS socket the
+   * original socket or stream is returned. This will spawn a proxy server on
+   * demand.
    */
-  public async createProxy(socket: net.Socket): Promise<net.Socket> {
+  public async createProxy(socket: tls.TLSSocket | net.Socket): Promise<net.Socket>
+  public async createProxy(socket: stream.Duplex): Promise<stream.Duplex>
+  public async createProxy(socket: tls.TLSSocket | net.Socket | stream.Duplex): Promise<net.Socket | stream.Duplex> {
     if (!(socket instanceof tls.TLSSocket)) {
       return socket
     }
