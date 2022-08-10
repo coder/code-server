@@ -198,9 +198,9 @@ jobs:
     # This environment "npm" requires someone from
     # coder/code-server-reviewers to approve the PR before this job runs.
     environment: npm
-    # Only run if PR comes from base repo or on merge request
+    # Only run if PR comes from base repo or event is not a PR
     # Reason: forks cannot access secrets and this will always fail
-    if: github.event.pull_request.head.repo.full_name == github.repository || github.event.pull_request.merged == true
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
