@@ -42,14 +42,14 @@
     "@types/express": "^4.17.8",
     "@types/http-proxy": "^1.17.4",
     "@types/js-yaml": "^4.0.0",
-    "@types/node": "^14.17.1",
+    "@types/node": "^16.0.0",
     "@types/pem": "^1.9.5",
     "@types/proxy-from-env": "^1.0.1",
     "@types/safe-compare": "^1.1.0",
     "@types/semver": "^7.1.0",
     "@types/split2": "^3.2.0",
     "@types/trusted-types": "^2.0.2",
-    "@types/ws": "^8.0.0",
+    "@types/ws": "^8.5.3",
     "@typescript-eslint/eslint-plugin": "^5.23.0",
     "@typescript-eslint/parser": "^5.23.0",
     "audit-ci": "^6.0.0",
@@ -85,7 +85,8 @@
     "node-fetch": "^2.6.7",
     "nanoid": "^3.1.31",
     "minimist": "npm:minimist-lite@2.2.1",
-    "glob-parent": "^6.0.1"
+    "glob-parent": "^6.0.1",
+    "@types/node": "^16.0.0"
   },
   "dependencies": {
     "@coder/logger": "1.1.16",
