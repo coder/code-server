@@ -8,13 +8,14 @@ export const handleUpgrade = (app: express.Express, server: http.Server): void =
   server.on("upgrade", (req, socket, head) => {
     socket.pause()
 
-    req.ws = socket
-    req.head = head
-    req._ws_handled = false
+    const wreq = req as InternalWebsocketRequest
+    wreq.ws = socket
+    wreq.head = head
+    wreq._ws_handled = false
 
     // Send the request off to be handled by Express.
-    ;(app as any).handle(req, new http.ServerResponse(req), () => {
-      if (!req._ws_handled) {
+    ;(app as any).handle(wreq, new http.ServerResponse(wreq), () => {
+      if (!wreq._ws_handled) {
         socket.end("HTTP/1.1 404 Not Found\r\n\r\n")
       }
     })

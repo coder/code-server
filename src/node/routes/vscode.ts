@@ -127,7 +127,10 @@ export class CodeServerRouteWrapper {
 
   private $proxyWebsocket = async (req: WebsocketRequest) => {
     const wrappedSocket = await this._socketProxyProvider.createProxy(req.ws)
-    this._codeServerMain.handleUpgrade(req, wrappedSocket)
+    // This should actually accept a duplex stream but it seems Code has not
+    // been updated to match the Node 16 types so cast for now.  There does not
+    // appear to be any code specific to sockets so this should be fine.
+    this._codeServerMain.handleUpgrade(req, wrappedSocket as net.Socket)
 
     req.ws.resume()
   }
