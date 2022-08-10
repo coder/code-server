@@ -20,7 +20,7 @@ export async function proxy(
   opts?: {
     passthroughPath?: boolean
   },
-): void {
+): Promise<void> {
   if (!(await authenticated(req))) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
