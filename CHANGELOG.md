@@ -20,6 +20,26 @@ Code v99.99.999
 
 -->
 
+## [4.5.2](https://github.com/coder/code-server/releases/tag/v4.5.2) - Unreleased
+
+Code v1.68.1
+
+### Changed
+
+TODO
+
+### Added
+
+TODO
+
+### Fixed
+
+TODO
+
+### Security
+
+TODO
+
 ## [4.5.1](https://github.com/coder/code-server/releases/tag/v4.5.1) - 2022-07-18
 
 Code v1.68.1
