@@ -14,14 +14,14 @@ const getProxyTarget = (req: Request, passthroughPath?: boolean): string => {
   return `http://0.0.0.0:${req.params.port}/${req.params[0] || ""}${query ? `?${query}` : ""}`
 }
 
-export function proxy(
+export async function proxy(
   req: Request,
   res: Response,
   opts?: {
     passthroughPath?: boolean
   },
-): void {
-  if (!authenticated(req)) {
+): Promise<void> {
+  if (!(await authenticated(req))) {
     // If visiting the root (/:port only) redirect to the login page.
     if (!req.params[0] || req.params[0] === "/") {
       const to = self(req)
