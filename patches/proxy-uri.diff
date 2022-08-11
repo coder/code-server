@@ -71,7 +71,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 @@ -310,6 +310,7 @@ export class WebClientServer {
  				rootEndpoint: base,
  				updateEndpoint: !this._environmentService.args['disable-update-check'] ? base + '/update/check' : undefined,
- 				logoutEndpoint: this._environmentService.args['auth'] ? base + '/logout' : undefined,
+ 				logoutEndpoint: this._environmentService.args['auth'] && this._environmentService.args['auth'] !== "none" ? base + '/logout' : undefined,
 +				proxyEndpointTemplate: base + '/proxy/{{port}}',
  				embedderIdentifier: 'server-distro',
  				extensionsGallery: this._productService.extensionsGallery,
