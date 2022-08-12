@@ -17,7 +17,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
 +++ code-server/lib/vscode/src/vs/server/node/serverServices.ts
-@@ -214,6 +214,9 @@ export async function setupServerService
+@@ -212,6 +212,9 @@ export async function setupServerService
  		const channel = new ExtensionManagementChannel(extensionManagementService, (ctx: RemoteAgentConnectionContext) => getUriTransformer(ctx.remoteAuthority));
  		socketServer.registerChannel('extensions', channel);
  
@@ -184,7 +184,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  import { CharCode } from 'vs/base/common/charCode';
  import { getRemoteServerRootPath } from 'vs/platform/remote/common/remoteHosts';
  
-@@ -292,6 +293,8 @@ export class WebClientServer {
+@@ -299,6 +300,8 @@ export class WebClientServer {
  
  		const base = relativeRoot(getOriginalUrl(req))
  		const vscodeBase = relativePath(getOriginalUrl(req))
@@ -193,7 +193,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
-@@ -332,6 +335,7 @@ export class WebClientServer {
+@@ -339,6 +342,7 @@ export class WebClientServer {
  			WORKBENCH_NLS_BASE_URL: vscodeBase + (nlsBaseUrl ? `${nlsBaseUrl}${!nlsBaseUrl.endsWith('/') ? '/' : ''}${this._productService.commit}/${this._productService.version}/` : ''),
  			BASE: base,
  			VS_BASE: vscodeBase,

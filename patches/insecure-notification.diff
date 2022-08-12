@@ -20,7 +20,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  import { Disposable } from 'vs/base/common/lifecycle';
 +import { localize } from 'vs/nls';
 +import { INotificationService, Severity } from 'vs/platform/notification/common/notification';
-
+ 
  export class CodeServerClient extends Disposable {
  	constructor (
 +		@INotificationService private notificationService: INotificationService,
