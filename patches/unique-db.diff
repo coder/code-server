@@ -26,23 +26,25 @@ Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageS
  
  export class BrowserStorageService extends AbstractStorageService {
  
-@@ -67,7 +68,7 @@ export class BrowserStorageService exten
+@@ -67,7 +68,11 @@ export class BrowserStorageService exten
  					return `global-${this.profileStorageProfile.id}`;
  				}
  			case StorageScope.WORKSPACE:
 -				return this.payload.id;
++				// Add a unique ID based on the current path for per-workspace databases.
++				// This prevents workspaces on different machines that share the same domain
++				// and file path from colliding (since it does not appear IndexedDB can be
++				// scoped to a path) as long as they are hosted on different paths.
 +				return this.payload.id + '-' + hash(location.pathname.toString().replace(/\/$/, "")).toString(16);
  		}
  	}
  
-@@ -140,7 +141,25 @@ export class BrowserStorageService exten
- 		this._register(this.workspaceStorage.onDidChangeStorage(key => this.emitDidChangeValue(StorageScope.WORKSPACE, key)));
+@@ -141,6 +146,25 @@ export class BrowserStorageService exten
  
  		await this.workspaceStorage.init();
--
+ 
 +		const firstWorkspaceOpen = this.workspaceStorage.getBoolean(IS_NEW_KEY);
 +		if (firstWorkspaceOpen === undefined) {
-+			this.workspaceStorage.set(IS_NEW_KEY, true);
 +			// Migrate the old database.
 +			let db: IIndexedDBStorageDatabase | undefined
 +			try {
@@ -58,7 +60,8 @@ Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageS
 +					db.close()
 +				}
 +			}
-+		} 
++		}
++
  		this.updateIsNew(this.workspaceStorage);
  	}
  
