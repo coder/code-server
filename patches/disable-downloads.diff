@@ -108,7 +108,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  import { Schemas } from 'vs/base/common/network';
  import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
  import { IProductService } from 'vs/platform/product/common/productService';
-+import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
  
  export class WorkbenchContextKeysHandler extends Disposable {
  	private inputFocusedContext: IContextKey<boolean>;
@@ -121,16 +121,16 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  		@IProductService private readonly productService: IProductService,
  		@IEditorService private readonly editorService: IEditorService,
  		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
-@@ -198,6 +198,9 @@ export class WorkbenchContextKeysHandler
- 		// Auxiliary Bar
+@@ -199,6 +199,9 @@ export class WorkbenchContextKeysHandler
  		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
  		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));
-+		
+ 
 +		// code-server
 +		IsEnabledFileDownloads.bindTo(this.contextKeyService).set(this.environmentService.isEnabledFileDownloads ?? true)
- 
++
  		this.registerListeners();
  	}
+ 
 Index: code-server/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/files/browser/fileActions.contribution.ts
