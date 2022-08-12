@@ -118,7 +118,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -267,15 +267,7 @@ export class WebClientServer {
+@@ -267,12 +267,11 @@ export class WebClientServer {
  			return res.end();
  		}
  
@@ -128,14 +128,15 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 -		};
 -
 -		const remoteAuthority = getFirstHeader('x-original-host') || getFirstHeader('x-forwarded-host') || req.headers.host;
--		if (!remoteAuthority) {
--			return serveError(req, res, 400, `Bad request.`);
--		}
-+		const remoteAuthority = "remote"
- 
- 		function asJSON(value: unknown): string {
- 			return JSON.stringify(value).replace(/"/g, '&quot;');
-@@ -298,6 +290,8 @@ export class WebClientServer {
++		// For now we are getting the remote authority from the client to avoid
++		// needing specific configuration for reverse proxies to work.  Set this to
++		// something invalid to make sure we catch code that is using this value
++		// from the backend when it should not.
++		const remoteAuthority = 'remote';
+ 		if (!remoteAuthority) {
+ 			return serveError(req, res, 400, `Bad request.`);
+ 		}
+@@ -298,6 +297,8 @@ export class WebClientServer {
  			scopes: [['user:email'], ['repo']]
  		} : undefined;
  
@@ -144,7 +145,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  
  		const workbenchWebConfiguration = {
  			remoteAuthority,
-@@ -309,6 +303,7 @@ export class WebClientServer {
+@@ -309,6 +310,7 @@ export class WebClientServer {
  			workspaceUri: resolveWorkspaceURI(this._environmentService.args['default-workspace']),
  			productConfiguration: <Partial<IProductConfiguration>>{
  				codeServerVersion: this._productService.codeServerVersion,
@@ -152,7 +153,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  				embedderIdentifier: 'server-distro',
  				extensionsGallery: this._webExtensionResourceUrlTemplate ? {
  					...this._productService.extensionsGallery,
-@@ -326,8 +321,10 @@ export class WebClientServer {
+@@ -326,8 +328,10 @@ export class WebClientServer {
  		const values: { [key: string]: string } = {
  			WORKBENCH_WEB_CONFIGURATION: asJSON(workbenchWebConfiguration),
  			WORKBENCH_AUTH_SESSION: authSessionInfo ? asJSON(authSessionInfo) : '',
@@ -165,7 +166,16 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
  		};
  
  
-@@ -417,3 +414,70 @@ export class WebClientServer {
+@@ -344,7 +348,7 @@ export class WebClientServer {
+ 			'default-src \'self\';',
+ 			'img-src \'self\' https: data: blob:;',
+ 			'media-src \'self\';',
+-			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=' http://${remoteAuthority};`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
++			`script-src 'self' 'unsafe-eval' ${this._getScriptCspHashes(data).join(' ')} 'sha256-fh3TwPMflhsEIpR8g1OYTIMVWhXTLcjQ9kh2tIpmv54=';`, // the sha is the same as in src/vs/workbench/services/extensions/worker/webWorkerExtensionHostIframe.html
+ 			'child-src \'self\';',
+ 			`frame-src 'self' https://*.vscode-cdn.net data:;`,
+ 			'worker-src \'self\' data:;',
+@@ -417,3 +421,70 @@ export class WebClientServer {
  		return res.end(data);
  	}
  }

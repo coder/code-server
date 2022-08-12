@@ -7,7 +7,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -297,7 +297,10 @@ export class WebClientServer {
+@@ -304,7 +304,10 @@ export class WebClientServer {
  			remoteAuthority,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			_wrapWebWorkerExtHostInIframe,
