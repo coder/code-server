@@ -1,3 +1,5 @@
 * @coder/code-server-reviewers
 
 ci/helm-chart/ @Matthew-Beckett @alexgorbatchev
+
+docs/install.md @GNUxeava

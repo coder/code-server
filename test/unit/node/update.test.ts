@@ -67,7 +67,7 @@ describe("update", () => {
 
     // Anything else is a 404.
     response.writeHead(404)
-    response.end("not found")
+    return response.end("not found")
   })
 
   let _settings: SettingsProvider<UpdateSettings> | undefined

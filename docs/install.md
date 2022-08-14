@@ -9,6 +9,7 @@
 - [Debian, Ubuntu](#debian-ubuntu)
 - [Fedora, CentOS, RHEL, SUSE](#fedora-centos-rhel-suse)
 - [Arch Linux](#arch-linux)
+- [Artix Linux](#artix-linux)
 - [macOS](#macos)
 - [Docker](#docker)
 - [Helm](#helm)
@@ -190,6 +191,72 @@ sudo systemctl enable --now code-server@$USER
 # Now visit http://127.0.0.1:8080. Your password is in ~/.config/code-server/config.yaml
 ```
 
+## Artix Linux
+
+```bash
+# Install code-server from the AUR
+git clone https://aur.archlinux.org/code-server.git
+cd code-server
+makepkg -si
+```
+
+Save the file as `code-server` in `/etc/init.d/` and make it executable with `chmod +x code-server`. Put your username in line 3.
+
+```bash
+#!/sbin/openrc-run
+name=$RC_SVCNAME
+description="$name - VS Code on a remote server"
+user="" # your username here
+homedir="/home/$user"
+command="$(which code-server)"
+# Just because you can do this does not mean you should. Use ~/.config/code-server/config.yaml instead
+#command_args="--extensions-dir $homedir/.local/share/$name/extensions --user-data-dir $homedir/.local/share/$name --disable-telemetry"
+command_user="$user:$user"
+pidfile="/run/$name/$name.pid"
+command_background="yes"
+extra_commands="report"
+
+depend() {
+  use logger dns
+  need net
+}
+
+start_pre() {
+  checkpath --directory --owner $command_user --mode 0755 /run/$name /var/log/$name
+}
+
+start() {
+  default_start
+  report
+}
+
+stop() {
+  default_stop
+}
+
+status() {
+  default_status
+  report
+}
+
+report() {
+  # Report to the user
+  einfo "Reading configuration from ~/.config/code-server/config.yaml"
+}
+```
+
+Start on boot with default runlevel
+
+```
+rc-update add code-server default
+```
+
+Start the service immediately
+
+```
+rc-service code-server start
+```
+
 ## macOS
 
 ```bash
@@ -236,6 +303,8 @@ We currently [do not publish Windows releases](https://github.com/coder/code-ser
 
 We recommend installing code-server onto Raspberry Pi with [`yarn` or
 `npm`](#yarn-npm).
+
+If you see an error related to `node-gyp` during installation, See [#5174](https://github.com/coder/code-server/issues/5174) for more information.
 
 ## Termux
 

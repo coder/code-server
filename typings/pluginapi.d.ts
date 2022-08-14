@@ -5,7 +5,7 @@ import { field, Level, Logger } from "@coder/logger"
 import * as express from "express"
 import * as expressCore from "express-serve-static-core"
 import ProxyServer from "http-proxy"
-import * as net from "net"
+import * as stream from "stream"
 import Websocket from "ws"
 
 /**
@@ -97,7 +97,7 @@ export declare class HttpError extends Error {
 }
 
 export interface WebsocketRequest extends express.Request {
-  ws: net.Socket
+  ws: stream.Duplex
   head: Buffer
 }
 

@@ -1,0 +1,15 @@
+{
+	admin    localhost:4444
+}
+:8000 {
+	@portLocalhost path_regexp port ^/([0-9]+)\/ide
+        handle @portLocalhost {
+		uri strip_prefix {re.port.1}/ide
+                reverse_proxy localhost:{re.port.1}
+        }
+
+	handle {
+                respond "Bad hostname" 400
+        }
+
+}

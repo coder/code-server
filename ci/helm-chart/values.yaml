@@ -127,6 +127,15 @@ persistence:
   # existingClaim: ""
   # hostPath: /data
 
+lifecycle:
+  enabled: false
+  # postStart:
+  #  exec:
+  #    command:
+  #      - /bin/bash
+  #      - -c
+  #      - curl -s -L SOME_SCRIPT | bash
+
 ## Enable an Specify container in extraContainers.
 ## This is meant to allow adding code-server dependencies, like docker-dind.
 extraContainers: |
@@ -146,6 +155,25 @@ extraContainers: |
 #    value: ""
 #  - name: DOCKER_DRIVER
 #    value: "overlay2"
+
+extraInitContainers: |
+# - name: customization
+#   image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+#   imagePullPolicy: IfNotPresent
+#   env:
+#     - name: SERVICE_URL
+#       value: https://open-vsx.org/vscode/gallery
+#     - name: ITEM_URL
+#       value: https://open-vsx.org/vscode/item
+#   command:
+#     - sh
+#     - -c
+#     - |
+#       code-server --install-extension ms-python.python
+#       code-server --install-extension golang.Go
+#   volumeMounts:
+#     - name: data
+#       mountPath: /home/coder
 
 ## Additional code-server secret mounts
 extraSecretMounts: []
