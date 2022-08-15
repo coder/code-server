@@ -386,6 +386,7 @@ Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#
 ### Proxying to an Angular app
 
 In order to use code-server's built-in proxy with Angular, you need to make the following changes in your app:
+
 1. use `<base href="./.">` in `src/index.html`
 2. add `--serve-path /absproxy/4200` to `ng serve` in your `package.json`
 
