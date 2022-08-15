@@ -32,7 +32,7 @@ Code v1.68.1
 
   If all of the following apply to you please update as soon as possible:
 
-  - You run code-server with the built-in password authentication
+  - You run code-server with the built-in password authentication.
   - You run unprotected HTTP services on ports accessible by code-server.
 
 ### Changed
