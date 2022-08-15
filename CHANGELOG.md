@@ -20,6 +20,36 @@ Code v99.99.999
 
 -->
 
+## [4.5.2](https://github.com/coder/code-server/releases/tag/v4.5.2) - 2022-08-15
+
+Code v1.68.1
+
+### Security
+
+- Fixed the proxy route not performing authentication. For example if you were
+  to run a development HTTP server using `python -m http.server 8000` then it
+  would be accessible at `my.domain/proxy/8000/` without any authentication.
+
+  If all of the following apply to you please update as soon as possible:
+
+  - You run code-server with the built-in password authentication.
+  - You run unprotected HTTP services on ports accessible by code-server.
+
+### Changed
+
+- Invoking `code-server` in the integrated terminal will now use the script that
+  comes with upstream Code. This means flags like `--wait` will be
+  automatically supported now. However the upstream script only has the ability
+  to interact with the running code-server and cannot spawn new instances. If
+  you need to spawn a new code-server from the integrated terminal please
+  specify the full path to code-server's usual script (for example
+  `/usr/bin/code-server`).
+
+### Fixed
+
+- Invoking `code-server` in the integrated terminal will now work instead of
+  erroring about not finding Node.
+
 ## [4.5.1](https://github.com/coder/code-server/releases/tag/v4.5.1) - 2022-07-18
 
 Code v1.68.1
