@@ -26,7 +26,7 @@ Code v1.68.1
 
 ### Security
 
-- Fixed the proxy route not perfoming authentication. For example if you were
+- Fixed the proxy route not performing authentication. For example if you were
   to run a development HTTP server using `python -m http.server 8000` then it
   would be accessible at `my.domain/proxy/8000/` without any authentication.
 
