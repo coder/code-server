@@ -1,0 +1,37 @@
+Add a heartbeat to web socket connections
+
+This prevents them from being killed when they are idle.  To test run behind
+NGINX, make sure the sockets are idle (check dev tools), then wait 60+ seconds.
+
+Index: code-server/lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts
++++ code-server/lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts
+@@ -7,6 +7,7 @@ import { VSBuffer } from 'vs/base/common
+ import { Emitter, Event } from 'vs/base/common/event';
+ import { Disposable, dispose, IDisposable } from 'vs/base/common/lifecycle';
+ import { IIPCLogger, IMessagePassingProtocol, IPCClient } from 'vs/base/parts/ipc/common/ipc';
++import { isWeb } from 'vs/base/common/platform';
+ 
+ export const enum SocketDiagnosticsEventType {
+ 	Created = 'created',
+@@ -828,6 +829,19 @@ export class PersistentProtocol implemen
+ 		this._socketDisposables.push(this._socketWriter);
+ 		this._socketReader = new ProtocolReader(this._socket);
+ 		this._socketDisposables.push(this._socketReader);
++		// Send empty messages to keep the socket alive.  We only need this on the
++		// web where sockets can be killed by reverse proxies for inactivity.
++		if (isWeb) {
++			const timer = setInterval(() => {
++				const msg = new ProtocolMessage(ProtocolMessageType.None, 0, 0, getEmptyBuffer());
++				this._socketWriter.write(msg);
++			}, 45000); // NGINX has a 60 second default timeout so try 45 seconds.
++			this._socketDisposables.push({
++				dispose: () => {
++					clearInterval(timer);
++				},
++			});
++		}
+ 		this._socketDisposables.push(this._socketReader.onMessage(msg => this._receiveMessage(msg)));
+ 		this._socketDisposables.push(this._socket.onClose((e) => this._onSocketClose.fire(e)));
+ 		if (initialChunk) {
