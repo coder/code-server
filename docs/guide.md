@@ -16,6 +16,7 @@
   - [Stripping `/proxy/<port>` from the request path](#stripping-proxyport-from-the-request-path)
   - [Proxying to create a React app](#proxying-to-create-a-react-app)
   - [Proxying to a Vue app](#proxying-to-a-vue-app)
+  - [Proxying to an Angular app](#proxying-to-an-angular-app)
 - [SSH into code-server on VS Code](#ssh-into-code-server-on-vs-code)
   - [Option 1: cloudflared tunnel](#option-1-cloudflared-tunnel)
   - [Option 2: ngrok tunnel](#option-2-ngrok-tunnel)
@@ -381,6 +382,15 @@ module.exports = {
 3. access app at `<code-server-root>/absproxy/3454` e.g. `http://localhost:8080/absproxy/3454`
 
 Read more about `publicPath` in the [Vue.js docs](https://cli.vuejs.org/config/#publicpath)
+
+### Proxying to an Angular app
+
+In order to use code-server's built-in proxy with Angular, you need to make the following changes in your app:
+
+1. use `<base href="./.">` in `src/index.html`
+2. add `--serve-path /absproxy/4200` to `ng serve` in your `package.json`
+
+For additional context, see [this GitHub Discussion](https://github.com/coder/code-server/discussions/5439#discussioncomment-3371983).
 
 ## SSH into code-server on VS Code
 
