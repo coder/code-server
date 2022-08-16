@@ -1,4 +1,3 @@
-import { PASSWORD } from "../utils/constants"
 import { describe, test, expect } from "./baseFixture"
 
 describe("login", ["--auth", "password"], {}, () => {

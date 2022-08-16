@@ -1,4 +1,3 @@
-import { test as base } from "@playwright/test"
 import * as path from "path"
 import { getMaybeProxiedCodeServer } from "../utils/helpers"
 import { describe, test, expect } from "./baseFixture"
