@@ -67,3 +67,52 @@ jobs:
         env:
           HOMEBREW_GITHUB_API_TOKEN: ${{secrets.HOMEBREW_GITHUB_API_TOKEN}}
         run: ./ci/steps/brew-bump.sh
+
+  aur:
+    needs: npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+    steps:
+      # We need to checkout code-server so we can get the version
+      - name: Checkout code-server
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          path: "./code-server"
+
+      - name: Get code-server version
+        id: version
+        run: |
+          pushd code-server
+          echo "::set-output name=version::$(jq -r .version package.json)"
+          popd
+
+      - name: Checkout code-server-aur repo
+        uses: actions/checkout@v3
+        with:
+          repository: "cdrci/code-server-aur"
+          token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config --global user.name cdrci
+          git config --global user.email opensource@coder.com
+
+      - name: Validate package
+        uses: hapakaien/archlinux-package-action@v2
+        with:
+          pkgver: ${{ steps.version.outputs.version }}
+          updpkgsums: true
+          srcinfo: true
+
+      - name: Open PR
+        # We need to git push -u otherwise gh will prompt
+        # asking where to push the branch.
+        run: |
+          git checkout -b update-version-${{ steps.version.outputs.version }}
+          git add . 
+          git commit -m "chore: updating version to ${{ steps.version.outputs.version }}"
+          git push -u origin $(git branch --show)
+          gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ steps.version.outputs.version }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
