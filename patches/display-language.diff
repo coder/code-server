@@ -12,6 +12,8 @@ We can remove this once upstream supports all language packs.
 5. Add the locale flag.
 6. Remove the redundant locale verification.  It does the same as the existing
    one but is worse because it does not handle non-existent or empty files.
+7. Replace some caching and Node requires because code-server does not restart
+   when changing the language unlike native Code.
 
 Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
@@ -312,3 +314,19 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/localization/electron-san
  		await this.jsonEditingService.write(this.environmentService.argvResource, [{ path: ['locale'], value: locale }], true);
  		return true;
  	}
+Index: code-server/lib/vscode/src/vs/base/node/languagePacks.js
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/base/node/languagePacks.js
++++ code-server/lib/vscode/src/vs/base/node/languagePacks.js
+@@ -73,7 +73,10 @@
+ 		function getLanguagePackConfigurations(userDataPath) {
+ 			const configFile = path.join(userDataPath, 'languagepacks.json');
+ 			try {
+-				return nodeRequire(configFile);
++				// This must not use Node's require otherwise it will be cached forever.
++				// Code can get away with this since the process actually restarts but
++				// that is not currently the case with code-server.
++				return JSON.parse(fs.readFileSync(configFile, "utf8"));
+ 			} catch (err) {
+ 				// Do nothing. If we can't read the file we have no
+ 				// language pack config.
