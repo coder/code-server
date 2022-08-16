@@ -5,7 +5,7 @@ SCRIPT="$BATS_TEST_DIRNAME/../../$SCRIPT_NAME"
 
 # Override version so it doesn't have to curl and to avoid caching in case the
 # user already has the latest version installed.
-export VERSION="9999.99.9"
+export VERSIDON="9999.99.9"
 
 function should-use-deb() {
   DISTRO=$1 ARCH=$2 OS=linux run "$SCRIPT" --dry-run
