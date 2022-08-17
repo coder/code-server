@@ -31,7 +31,7 @@ Code v1.70.1
 ### Added
 
 - Added a heartbeat to sockets. This should prevent them from getting closed by
-  reverse proxy timeouts when idle like NGINX's default 60 second timeout.
+  reverse proxy timeouts when idle like NGINX's default 60-second timeout.
 
 ### Fixed
 
