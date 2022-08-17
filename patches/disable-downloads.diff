@@ -12,7 +12,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.api.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.api.ts
-@@ -250,6 +250,11 @@ export interface IWorkbenchConstructionO
+@@ -267,6 +267,11 @@ export interface IWorkbenchConstructionO
  	 */
  	readonly userDataPath?: string
  
@@ -52,7 +52,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/environment/browser/envi
 +	}
 +
  	@memoize
- 	get settingsResource(): URI { return joinPath(this.userRoamingDataHome, 'settings.json'); }
+ 	get argvResource(): URI { return joinPath(this.userRoamingDataHome, 'argv.json'); }
  
 Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
 ===================================================================
@@ -66,7 +66,7 @@ Index: code-server/lib/vscode/src/vs/server/node/serverEnvironmentService.ts
  
  	/* ----- server setup ----- */
  
-@@ -94,6 +95,7 @@ export interface ServerParsedArgs {
+@@ -95,6 +96,7 @@ export interface ServerParsedArgs {
  	/* ----- code-server ----- */
  	'disable-update-check'?: boolean;
  	'auth'?: string
@@ -78,7 +78,7 @@ Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
 +++ code-server/lib/vscode/src/vs/server/node/webClientServer.ts
-@@ -300,6 +300,7 @@ export class WebClientServer {
+@@ -304,6 +304,7 @@ export class WebClientServer {
  			remoteAuthority,
  			webviewEndpoint: vscodeBase + this._staticRoute + '/out/vs/workbench/contrib/webview/browser/pre',
  			userDataPath: this._environmentService.userDataPath,
@@ -93,7 +93,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
 @@ -7,12 +7,11 @@ import { Event } from 'vs/base/common/ev
  import { Disposable } from 'vs/base/common/lifecycle';
  import { IContextKeyService, IContextKey } from 'vs/platform/contextkey/common/contextkey';
- import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext } from 'vs/platform/contextkey/common/contextkeys';
+ import { InputFocusedContext, IsMacContext, IsLinuxContext, IsWindowsContext, IsWebContext, IsMacNativeContext, IsDevelopmentContext, IsIOSContext, ProductQualityContext } from 'vs/platform/contextkey/common/contextkeys';
 -import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext } from 'vs/workbench/common/contextkeys';
 +import { SplitEditorsVertically, InEditorZenModeContext, ActiveEditorCanRevertContext, ActiveEditorGroupLockedContext, ActiveEditorCanSplitInGroupContext, SideBySideEditorActiveContext, AuxiliaryBarVisibleContext, SideBarVisibleContext, PanelAlignmentContext, PanelMaximizedContext, PanelVisibleContext, ActiveEditorContext, EditorsVisibleContext, TextCompareEditorVisibleContext, TextCompareEditorActiveContext, ActiveEditorGroupEmptyContext, MultipleEditorGroupsContext, EditorTabsVisibleContext, IsCenteredLayoutContext, ActiveEditorGroupIndexContext, ActiveEditorGroupLastContext, ActiveEditorReadonlyContext, EditorAreaVisibleContext, ActiveEditorAvailableEditorIdsContext, DirtyWorkingCopiesContext, EmptyWorkspaceSupportContext, EnterMultiRootWorkspaceSupportContext, HasWebFileSystemAccess, IsFullscreenContext, OpenFolderWorkspaceSupportContext, RemoteNameContext, VirtualWorkspaceContext, WorkbenchStateContext, WorkspaceFolderCountContext, PanelPositionContext, IsEnabledFileDownloads } from 'vs/workbench/common/contextkeys';
  import { TEXT_DIFF_EDITOR_ID, EditorInputCapabilities, SIDE_BY_SIDE_EDITOR_ID, DEFAULT_EDITOR_ASSOCIATION } from 'vs/workbench/common/editor';
@@ -104,24 +104,24 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/contextkeys.ts
  import { IEditorService } from 'vs/workbench/services/editor/common/editorService';
  import { WorkbenchState, IWorkspaceContextService } from 'vs/platform/workspace/common/workspace';
  import { IWorkbenchLayoutService, Parts, positionToString } from 'vs/workbench/services/layout/browser/layoutService';
-@@ -24,6 +23,7 @@ import { IEditorResolverService } from '
- import { IPaneCompositePartService } from 'vs/workbench/services/panecomposite/browser/panecomposite';
+@@ -25,6 +24,7 @@ import { IPaneCompositePartService } fro
  import { Schemas } from 'vs/base/common/network';
  import { WebFileSystemAccess } from 'vs/platform/files/browser/webFileSystemAccess';
-+import { IBrowserWorkbenchEnvironmentService } from '../services/environment/browser/environmentService';
+ import { IProductService } from 'vs/platform/product/common/productService';
++import { IBrowserWorkbenchEnvironmentService } from 'vs/workbench/services/environment/browser/environmentService';
  
  export class WorkbenchContextKeysHandler extends Disposable {
  	private inputFocusedContext: IContextKey<boolean>;
-@@ -75,7 +75,7 @@ export class WorkbenchContextKeysHandler
+@@ -76,7 +76,7 @@ export class WorkbenchContextKeysHandler
  		@IContextKeyService private readonly contextKeyService: IContextKeyService,
  		@IWorkspaceContextService private readonly contextService: IWorkspaceContextService,
  		@IConfigurationService private readonly configurationService: IConfigurationService,
 -		@IWorkbenchEnvironmentService private readonly environmentService: IWorkbenchEnvironmentService,
 +		@IBrowserWorkbenchEnvironmentService private readonly environmentService: IBrowserWorkbenchEnvironmentService,
+ 		@IProductService private readonly productService: IProductService,
  		@IEditorService private readonly editorService: IEditorService,
  		@IEditorResolverService private readonly editorResolverService: IEditorResolverService,
- 		@IEditorGroupsService private readonly editorGroupService: IEditorGroupsService,
-@@ -194,6 +194,9 @@ export class WorkbenchContextKeysHandler
+@@ -199,6 +199,9 @@ export class WorkbenchContextKeysHandler
  		this.auxiliaryBarVisibleContext = AuxiliaryBarVisibleContext.bindTo(this.contextKeyService);
  		this.auxiliaryBarVisibleContext.set(this.layoutService.isVisible(Parts.AUXILIARYBAR_PART));
  
