@@ -20,7 +20,7 @@ Code v99.99.999
 
 -->
 
-## [4.6.0](https://github.com/coder/code-server/releases/tag/v4.6.0) - TBD
+## [4.6.0](https://github.com/coder/code-server/releases/tag/v4.6.0) - 2022-08-17
 
 Code v1.70.1
 
