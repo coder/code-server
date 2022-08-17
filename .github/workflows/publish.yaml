@@ -1,4 +1,4 @@
-name: Publish on npm and brew
+name: Publish code-server
 
 on:
   # Shows the manual trigger in GitHub UI
@@ -21,6 +21,7 @@ jobs:
   npm:
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code-server
       - uses: actions/checkout@v3
 
       - name: Get version
@@ -116,3 +117,44 @@ jobs:
           git commit -m "chore: updating version to ${{ steps.version.outputs.version }}"
           git push -u origin $(git branch --show)
           gh pr create --repo coder/code-server-aur --title "chore: bump version to ${{ steps.version.outputs.version }}" --body "PR opened by @$GITHUB_ACTOR" --assignee $GITHUB_ACTOR
+  docker:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout code-server
+        uses: actions/checkout@v3
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Login to GHCR
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      - name: Download release artifacts
+        uses: robinraju/release-downloader@v1.4
+        with:
+          repository: "coder/code-server"
+          tag: v${{ steps.version.outputs.version }}
+          fileName: "*.deb"
+          out-file-path: "release-packages"
+
+      - name: Publish to Docker
+        run: yarn publish:docker
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
