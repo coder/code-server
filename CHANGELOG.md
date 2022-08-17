@@ -35,7 +35,7 @@ Code v1.70.1
 
 ### Fixed
 
-- Fixed logout option appearing even when authentication is diasbled.
+- Fixed logout option appearing even when authentication is disabled.
 
 ## [4.5.2](https://github.com/coder/code-server/releases/tag/v4.5.2) - 2022-08-15
 
