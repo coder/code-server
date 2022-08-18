@@ -109,9 +109,9 @@ jobs:
         with:
           fetch-depth: 0
           submodules: true
-
+          
       - name: Install quilt
-        run: sudo apt update && sudo apt install quilt
+        run: sudo apt update && sudo apt install quilt && sudo apt install php7.4
 
       - name: Patch Code
         run: quilt push -a
