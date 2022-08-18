@@ -21,6 +21,7 @@ RUN apt-get update \
     sudo \
     vim.tiny \
     lsb-release \
+    php7.4 \
   && git lfs install \
   && rm -rf /var/lib/apt/lists/*
 

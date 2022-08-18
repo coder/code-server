@@ -13,10 +13,8 @@ group "default" {
 target "code-server" {
     dockerfile = "ci/release-image/Dockerfile"
     tags = [
-        "docker.io/codercom/code-server:latest",
-        notequal("latest",VERSION) ? "docker.io/codercom/code-server:${VERSION}" : "",
-        "ghcr.io/coder/code-server:latest",
-        notequal("latest",VERSION) ? "ghcr.io/coder/code-server:${VERSION}" : "",
+        "ghcr.io/DeputyHess/code-server-php:latest",
+        notequal("latest",VERSION) ? "ghcr.io/DeputyHess/code-server-php:${VERSION}" : "",
     ]
     platforms = ["linux/amd64", "linux/arm64"]
 }
