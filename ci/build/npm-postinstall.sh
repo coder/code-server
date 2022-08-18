@@ -110,7 +110,7 @@ main() {
     echo "Failed to download cloud agent; --link will not work"
   fi
 
-  if ! vscode_yarn; then
+  if ! vscode_install; then
     echo "You may not have the required dependencies to build the native modules."
     echo "Please see https://github.com/coder/code-server/blob/main/docs/npm.md"
     exit 1
@@ -123,17 +123,44 @@ main() {
   fi
 }
 
-vscode_yarn() {
+install_with_yarn_or_npm() {
+  # NOTE@edvincent: We want to keep using the package manager that the end-user was using to install the package.
+  # This also ensures that when *we* run `yarn` in the development process, the yarn.lock file is used.
+  case "${npm_config_user_agent-}" in
+    yarn*)
+      if [ -f "yarn.lock" ]; then
+        yarn --production --frozen-lockfile --no-default-rc
+      else
+        echo "yarn.lock file not present, not running in development mode. use npm to install code-server!"
+        exit 1
+      fi
+      ;;
+    npm*)
+      if [ -f "yarn.lock" ]; then
+        echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
+        exit 1
+      else
+        npm install --omit=dev
+      fi
+      ;;
+    *)
+      echo "Could not determine which package manager is being used to install code-server"
+      exit 1
+      ;;
+  esac
+}
+
+vscode_install() {
   echo 'Installing Code dependencies...'
   cd lib/vscode
-  yarn --production --frozen-lockfile --no-default-rc
+  install_with_yarn_or_npm
 
   symlink_asar
   symlink_bin_script remote-cli code code-server
   symlink_bin_script helpers browser browser .sh
 
   cd extensions
-  yarn --production --frozen-lockfile
+  install_with_yarn_or_npm
 }
 
 main "$@"
