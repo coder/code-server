@@ -20,6 +20,23 @@ Code v99.99.999
 
 -->
 
+## [4.6.0](https://github.com/coder/code-server/releases/tag/v4.6.0) - 2022-08-17
+
+Code v1.70.1
+
+### Changed
+
+- Updated Code to 1.70.1.
+
+### Added
+
+- Added a heartbeat to sockets. This should prevent them from getting closed by
+  reverse proxy timeouts when idle like NGINX's default 60-second timeout.
+
+### Fixed
+
+- Fixed logout option appearing even when authentication is disabled.
+
 ## [4.5.2](https://github.com/coder/code-server/releases/tag/v4.5.2) - 2022-08-15
 
 Code v1.68.1
