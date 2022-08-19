@@ -283,6 +283,32 @@ export class CodeServerPage {
   }
 
   /**
+   * Checks if the test extension has loaded
+   *
+   * Reload until both checks pass
+   */
+  async reloadUntilTestExtensionIsLoaded() {
+    this.codeServer.logger.debug("Waiting for test extenion to load...")
+
+    const extensionIsLoaded = await this.isTestExtensionLoaded()
+    let reloadCount = 0
+
+    while (!extensionIsLoaded) {
+      await this.page.waitForLoadState("load")
+      // Give it an extra second just in case it's feeling extra slow
+      await this.page.waitForTimeout(1000)
+      reloadCount += 1
+      if (await this.isTestExtensionLoaded()) {
+        this.codeServer.logger.debug(`test extension loaded after ${reloadCount} reloads`)
+        break
+      }
+      await this.reloadUntilEditorIsReady()
+    }
+
+    this.codeServer.logger.debug("Test extenion has loaded!")
+  }
+
+  /**
    * Checks if the editor is visible
    */
   async isEditorVisible() {
@@ -294,6 +320,21 @@ export class CodeServerPage {
     this.codeServer.logger.debug(`Editor is ${visible ? "not visible" : "visible"}!`)
 
     return visible
+  }
+
+  /**
+   * Checks if the test extension loaded
+   */
+  async isTestExtensionLoaded() {
+    const selector = "text=test extension loaded"
+    this.codeServer.logger.debug("Waiting for test extension to load...")
+
+    await this.page.waitForLoadState("load")
+    const loaded = await this.page.isVisible(selector)
+
+    this.codeServer.logger.debug(`Test extension has ${loaded ? "" : "not"} loaded`)
+
+    return loaded
   }
 
   /**
