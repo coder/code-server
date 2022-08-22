@@ -329,7 +329,6 @@ export class CodeServerPage {
     const selector = "text=test extension loaded"
     this.codeServer.logger.debug("Waiting for test extension to load...")
 
-    await this.page.waitForLoadState("load")
     const loaded = await this.page.isVisible(selector)
 
     this.codeServer.logger.debug(`Test extension has ${loaded ? "" : "not"} loaded`)
