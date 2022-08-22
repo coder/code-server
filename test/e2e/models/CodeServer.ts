@@ -305,7 +305,7 @@ export class CodeServerPage {
       await this.reloadUntilEditorIsReady()
     }
 
-    this.codeServer.logger.debug("Test extenion has loaded!")
+    this.codeServer.logger.debug("Test extension has loaded!")
   }
 
   /**
