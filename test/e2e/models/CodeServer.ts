@@ -337,6 +337,16 @@ export class CodeServerPage {
   }
 
   /**
+   * Checks if the test extension loaded
+   */
+  async waitForTestExtensionLoaded(): Promise<void> {
+    const selector = "text=test extension loaded"
+    this.codeServer.logger.debug("Waiting for test extension to load...")
+
+    await this.page.waitForSelector(selector)
+  }
+
+  /**
    * Focuses the integrated terminal by navigating through the command palette.
    *
    * This should focus the terminal no matter if it already has focus and/or is
