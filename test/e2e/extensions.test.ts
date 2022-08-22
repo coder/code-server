@@ -8,12 +8,14 @@ function runTestExtensionTests() {
   test("should have access to VSCODE_PROXY_URI", async ({ codeServerPage }) => {
     const address = await getMaybeProxiedCodeServer(codeServerPage)
 
+    await codeServerPage.waitForTestExtensionLoaded()
     await codeServerPage.executeCommandViaMenus("code-server: Get proxy URI")
 
-    const text = await codeServerPage.page.locator(".notification-list-item-message").textContent()
+    await codeServerPage.page.waitForSelector("text=proxyUri", { timeout: 3000 })
+    const text = await codeServerPage.page.locator("text=proxyUri").first().textContent()
     // Remove end slash in address
     const normalizedAddress = address.replace(/\/+$/, "")
-    expect(text).toBe(`${normalizedAddress}/proxy/{{port}}`)
+    expect(text).toBe(`Info: proxyUri: ${normalizedAddress}/proxy/{{port}}`)
   })
 }
 
