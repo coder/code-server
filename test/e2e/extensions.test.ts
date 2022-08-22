@@ -8,7 +8,6 @@ function runTestExtensionTests() {
   test("should have access to VSCODE_PROXY_URI", async ({ codeServerPage }) => {
     const address = await getMaybeProxiedCodeServer(codeServerPage)
 
-    // await codeServerPage.reloadUntilTestExtensionIsLoaded()
     await codeServerPage.waitForTestExtensionLoaded()
     await codeServerPage.executeCommandViaMenus("code-server: Get proxy URI")
 
