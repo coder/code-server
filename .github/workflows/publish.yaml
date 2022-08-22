@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code-server
-      - uses: actions/checkout@v3
+        uses: actions/checkout@v3
 
       - name: Get version
         id: version
