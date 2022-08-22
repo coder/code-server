@@ -5,6 +5,7 @@ import { describe, test, expect } from "./baseFixture"
 
 function runTestExtensionTests() {
   // This will only work if the test extension is loaded into code-server.
+  // fake commit
   test("should have access to VSCODE_PROXY_URI", async ({ codeServerPage }) => {
     const address = await getMaybeProxiedCodeServer(codeServerPage)
 
