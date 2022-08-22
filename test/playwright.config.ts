@@ -36,6 +36,7 @@ const config: PlaywrightTestConfig = {
       use: { browserName: "webkit" },
     },
   ],
+  workers: 2,
 }
 
 export default config
