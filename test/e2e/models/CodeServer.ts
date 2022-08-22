@@ -288,7 +288,7 @@ export class CodeServerPage {
    * Reload until both checks pass
    */
   async reloadUntilTestExtensionIsLoaded() {
-    this.codeServer.logger.debug("Waiting for test extenion to load...")
+    this.codeServer.logger.debug("Waiting for test extension to load...")
 
     const extensionIsLoaded = await this.isTestExtensionLoaded()
     let reloadCount = 0
