@@ -1,4 +1,4 @@
-* @coder/code-server-reviewers
+* @coder/code-server
 
 ci/helm-chart/ @Matthew-Beckett @alexgorbatchev
 
