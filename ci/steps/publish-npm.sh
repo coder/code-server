@@ -65,7 +65,8 @@ main() {
   # "production" - this means we tag with `latest` (default), allowing
   # a developer to install this version with `yarn add code-server@latest`
   if ! is_env_var_set "NPM_ENVIRONMENT"; then
-    echo "NPM_ENVIRONMENT is not set. Determining in script based on GITHUB environment variables."
+    echo "NPM_ENVIRONMENT is not set."
+    echo "Determining in script based on GITHUB environment variables."
 
     if [[ "$GITHUB_EVENT_NAME" == 'push' && "$GITHUB_REF" == 'refs/heads/main' ]]; then
       NPM_ENVIRONMENT="staging"
@@ -73,7 +74,6 @@ main() {
       NPM_ENVIRONMENT="development"
     fi
 
-    echo "Using npm environment: $NPM_ENVIRONMENT"
   fi
 
   # NOTE@jsjoeio - this script assumes we have the artifact downloaded on disk
@@ -96,9 +96,6 @@ main() {
     NPM_TAG="latest"
   else
     COMMIT_SHA="$GITHUB_SHA"
-    echo "Not a production environment"
-    echo "Found environment: $NPM_ENVIRONMENT"
-    echo "Manually bumping npm version..."
 
     if [[ "$NPM_ENVIRONMENT" == "staging" ]]; then
       NPM_VERSION="$VERSION-beta-$COMMIT_SHA"
@@ -117,8 +114,10 @@ main() {
       NPM_TAG="$PR_NUMBER"
     fi
 
-    echo "using tag: $NPM_TAG"
-    echo "using package name: $PACKAGE_NAME"
+    echo "- tag: $NPM_TAG"
+    echo "- version: $NPM_VERSION"
+    echo "- package name: $PACKAGE_NAME"
+    echo "- npm environment: $NPM_ENVIRONMENT"
 
     # We modify the version in the package.json
     # to be the current version + the PR number + commit SHA
