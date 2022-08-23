@@ -18,6 +18,11 @@ main() {
   yarn build
   popd
 
+  VSCODE_PACKAGE_JSON=lib/vscode/package.json
+  if [[ ! -f "$VSCODE_PACKAGE_JSON" ]]; then
+    echo '{ "version": "0.0.0" }' > "$VSCODE_PACKAGE_JSON"
+  fi
+
   local dir="$PWD"
   if [[ ! ${CODE_SERVER_TEST_ENTRY-} ]]; then
     echo "Set CODE_SERVER_TEST_ENTRY to test another build of code-server"
