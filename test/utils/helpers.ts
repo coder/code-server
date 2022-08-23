@@ -136,3 +136,40 @@ export async function getMaybeProxiedCodeServer(codeServer: CodeServerPage | Cod
 
   return address
 }
+
+// From https://github.com/chalk/ansi-regex
+const pattern = [
+  "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+  "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
+].join("|")
+const re = new RegExp(pattern, "g")
+
+export type OnLineCallback = (strippedLine: string, originalLine: string) => void
+/**
+ * Split stdout on newlines and strip ANSI codes.
+ *
+ * Duplicated from src/node/util.ts because we use this function in e2e tests
+ * and if we import it in the e2e tests (which don't checkout submodules)
+ * then it will log
+ */
+export const onLine = (proc: cp.ChildProcess, callback: OnLineCallback): void => {
+  let buffer = ""
+  if (!proc.stdout) {
+    throw new Error("no stdout")
+  }
+  proc.stdout.setEncoding("utf8")
+  proc.stdout.on("data", (d: any) => {
+    const data = buffer + d
+    const split = data.split("\n")
+    const last = split.length - 1
+
+    for (let i = 0; i < last; ++i) {
+      callback(split[i].replace(re, ""), split[i])
+    }
+
+    // The last item will either be an empty string (the data ended with a
+    // newline) or a partial line (did not end with a newline) and we must
+    // wait to parse it until we get a full line.
+    buffer = split[last]
+  })
+}

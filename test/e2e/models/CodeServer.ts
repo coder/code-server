@@ -5,9 +5,8 @@ import * as path from "path"
 import { Page } from "playwright"
 import * as util from "util"
 import { logError, normalize, plural } from "../../../src/common/util"
-import { onLine } from "../../../src/node/util"
 import { PASSWORD, workspaceDir } from "../../utils/constants"
-import { getMaybeProxiedCodeServer, idleTimer, tmpdir } from "../../utils/helpers"
+import { getMaybeProxiedCodeServer, idleTimer, tmpdir, onLine } from "../../utils/helpers"
 
 interface CodeServerProcess {
   process: cp.ChildProcess
