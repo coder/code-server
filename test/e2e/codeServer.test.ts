@@ -70,6 +70,7 @@ describe("code-server", [], {}, () => {
   })
 
   test("should migrate state to avoid collisions", async ({ codeServerPage }) => {
+    test.setTimeout(50000)
     // This can take a very long time in development because of how long pages
     // take to load and we are doing a lot of that here.
     if (process.env.VSCODE_DEV === "1") {

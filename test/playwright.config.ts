@@ -10,7 +10,7 @@ import path from "path"
 //   yarn test:e2e --grep login       # Run tests matching "login"
 const config: PlaywrightTestConfig = {
   testDir: path.join(__dirname, "e2e"), // Search for tests in this directory.
-  timeout: 60000, // Each test is given 60 seconds.
+  timeout: 30000, // Each test is given 25 seconds.
   retries: process.env.CI ? 2 : 1, // Retry in CI due to flakiness.
   // Limit the number of failures on CI to save resources
   maxFailures: process.env.CI ? 3 : undefined,
