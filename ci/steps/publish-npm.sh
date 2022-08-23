@@ -139,13 +139,13 @@ main() {
     popd
   fi
 
+  # NOTE@jsjoeio
   # We need to make sure we haven't already published the version.
-  # This is because npm view won't exit with non-zero so we have
-  # to check the output.
+  # If we get error, continue with script because we want to publish
+  # If version is valid, we check if we're publishing the same one
   local hasVersion
-  hasVersion=$(npm view "code-server@$NPM_VERSION" version)
-  if [[ $hasVersion == "$NPM_VERSION" ]]; then
-    echo "$NPM_VERSION is already published"
+  if hasVersion=$(npm view "$PACKAGE_NAME@$NPM_VERSION" version 2> /dev/null) && [[ $hasVersion == "$NPM_VERSION" ]]; then
+    echo "$NPM_VERSION is already published under $PACKAGE_NAME"
     return
   fi
 
