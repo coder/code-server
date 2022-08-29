@@ -1,0 +1,47 @@
+{
+  "name": "vscode-language-pack-es",
+  "displayName": "Spanish Language Pack for Visual Studio Code",
+  "description": "Language pack extension for Spanish",
+  "version": "1.70.0",
+  "publisher": "MS-CEINTL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Microsoft/vscode-loc"
+  },
+  "license": "SEE MIT LICENSE IN LICENSE.md",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "icon": "languagepack.png",
+  "categories": [
+    "Language Packs"
+  ],
+  "contributes": {
+    "localizations": [
+      {
+        "languageId": "es",
+        "languageName": "Spanish",
+        "localizedLanguageName": "español",
+        "translations": [
+          {
+            "id": "vscode",
+            "path": "./translations/main.i18n.json"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "update": "cd ../vscode && npm run update-localization-extension es"
+  },
+  "__metadata": {
+    "id": "47e020a1-33db-4cc0-a1b4-42f97781749a",
+    "publisherId": "0b0882c3-aee3-4d7c-b5f9-872f9be0a115",
+    "publisherDisplayName": null,
+    "targetPlatform": "undefined",
+    "isApplicationScoped": true,
+    "updated": true,
+    "isPreReleaseVersion": false,
+    "preRelease": false
+  }
+}
