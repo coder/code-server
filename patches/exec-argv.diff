@@ -1,0 +1,17 @@
+Preserve process.execArgv
+
+This ensures flags like --prof are passed down so we can profile everything.
+
+Index: code-server/lib/vscode/src/vs/server/node/extensionHostConnection.ts
+===================================================================
+--- code-server.orig/lib/vscode/src/vs/server/node/extensionHostConnection.ts
++++ code-server/lib/vscode/src/vs/server/node/extensionHostConnection.ts
+@@ -228,7 +228,7 @@ export class ExtensionHostConnection {
+ 
+ 	public async start(startParams: IRemoteExtensionHostStartParams): Promise<void> {
+ 		try {
+-			let execArgv: string[] = [];
++			let execArgv: string[] = process.execArgv ? process.execArgv.filter(a => !/^--inspect(-brk)?=/.test(a)) : [];
+ 			if (startParams.port && !(<any>process).pkg) {
+ 				execArgv = [`--inspect${startParams.break ? '-brk' : ''}=${startParams.port}`];
+ 			}
