@@ -104,6 +104,13 @@ Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/teleme
 -				sendErrorTelemetry: this.sendErrorTelemetry,
 -			};
 -			this.impl = this._register(new BaseTelemetryService(config, configurationService, productService));
+-
+-			if (getTelemetryLevel(configurationService) !== TelemetryLevel.NONE) {
+-				// If we cannot fetch the endpoint it means it is down and we should not send any telemetry.
+-				// This is most likely due to ad blockers
+-				fetch(telemetryEndpointUrl, { method: 'POST' }).catch(err => {
+-					this.impl = NullTelemetryService;
+-				});
 +			const telemetryProvider: ITelemetryAppender | undefined = remoteAgentService.getConnection() !== null ? { log: remoteAgentService.logTelemetry.bind(remoteAgentService), flush: remoteAgentService.flushTelemetry.bind(remoteAgentService) } : productService.aiConfig?.ariaKey ? new OneDataSystemWebAppender(isInternal, 'monacoworkbench', null, productService.aiConfig?.ariaKey) : undefined;
 +			if (telemetryProvider) {
 +				appenders.push(telemetryProvider);
@@ -114,13 +121,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/telemetry/browser/teleme
 +					sendErrorTelemetry: this.sendErrorTelemetry,
 +				};
 +				this.impl = this._register(new BaseTelemetryService(config, configurationService, productService));
- 
--			if (getTelemetryLevel(configurationService) !== TelemetryLevel.NONE) {
--				// If we cannot fetch the endpoint it means it is down and we should not send any telemetry.
--				// This is most likely due to ad blockers
--				fetch(telemetryEndpointUrl, { method: 'POST' }).catch(err => {
--					this.impl = NullTelemetryService;
--				});
++
 +				if (remoteAgentService.getConnection() === null && getTelemetryLevel(configurationService) !== TelemetryLevel.NONE) {
 +					// If we cannot fetch the endpoint it means it is down and we should not send any telemetry.
 +					// This is most likely due to ad blockers
