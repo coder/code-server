@@ -141,7 +141,7 @@ Run your build:
 
 ```shell
 cd release
-yarn --production # Skip if you used KEEP_MODULES=1
+npm install --omit=dev # Skip if you used KEEP_MODULES=1
 # Runs the built JavaScript with Node.
 node .
 ```
