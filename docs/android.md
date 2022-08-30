@@ -3,7 +3,7 @@
 1. Install UserLAnd from [Google Play](https://play.google.com/store/apps/details?id=tech.ula&hl=en_US&gl=US)
 2. Install an Ubuntu VM
 3. Start app
-4. Install Node.js, `curl` and `yarn` using `sudo apt install nodejs npm yarn curl -y`
+4. Install Node.js and `curl` using `sudo apt install nodejs npm curl -y`
 5. Install `nvm`:
 
 ```shell
@@ -18,6 +18,6 @@ nvm install 16
 nvm use 16
 ```
 
-8. Install code-server globally on device with: `npm i -g code-server`
+8. Install code-server globally on device with: `npm install --global code-server --unsafe-perm`
 9. Run code-server with `code-server`
 10. Access on localhost:8080 in your browser
