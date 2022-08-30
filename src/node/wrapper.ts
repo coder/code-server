@@ -317,8 +317,7 @@ export class ParentProcess extends Process {
   }
 
   private spawn(): cp.ChildProcess {
-    // Use spawn (instead of fork) to use the new binary in case it was updated.
-    return cp.spawn(process.argv[0], process.argv.slice(1), {
+    return cp.fork(path.join(__dirname, "entry"), {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),

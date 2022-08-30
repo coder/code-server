@@ -3,7 +3,7 @@
 # Termux
 
 - [Install](#install)
-- [Yarn Installation](#yarn-installation)
+- [NPM Installation](#npm-installation)
 - [Upgrade](#upgrade)
 - [Known Issues](#known-issues)
   - [Git won't work in `/sdcard`](#git-wont-work-in-sdcard)
@@ -66,7 +66,7 @@ curl -fsSL https://code-server.dev/install.sh | sh
 > Consider using a new user instead of root, read [here](https://www.howtogeek.com/124950/htg-explains-why-you-shouldnt-log-into-your-linux-system-as-root/) why using root is not recommended.\
 > Learn how to add a user [here](#create-a-new-user).
 
-## Yarn Installation
+## NPM Installation
 
 1. Get [Termux](https://f-droid.org/en/packages/com.termux/) from **F-Droid**.
 
@@ -93,7 +93,6 @@ pkg install -y \
   binutils \
   pkg-config \
   python3 \
-  yarn \
   nodejs-lts
 npm config set python python3
 node -v
@@ -101,11 +100,7 @@ node -v
 
 you will get node version `v16.15.0`
 
-5. Now install code-server
-
-```sh
-yarn global add code-server
-```
+5. Now install code-server following our guide on [installing with npm][./npm.md](./npm.md)
 
 6. Congratulation code-server is installed on your device using the following command.
 
@@ -116,7 +111,7 @@ code-server --auth none
 7. If already installed then use the following command for upgradation.
 
 ```
-yarn upgrade code-server
+npm update --global code-server --unsafe-perm
 ```
 
 ## Upgrade
