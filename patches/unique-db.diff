@@ -9,11 +9,6 @@ ensures that different browser paths will be unique (for example /workspace1 and
 The easiest way to test is to open files in the same workspace using both / and
 /vscode and make sure they are not interacting with each other.
 
-It should also migrate old databases which can be tested by opening in an old
-code-server.
-
-This has e2e tests.
-
 Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageService.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/storage/browser/storageService.ts
@@ -37,31 +32,5 @@ Index: code-server/lib/vscode/src/vs/workbench/services/storage/browser/storageS
 +				// scoped to a path) as long as they are hosted on different paths.
 +				return this.payload.id + '-' + hash(location.pathname.toString().replace(/\/$/, "")).toString(16);
  		}
- 	}
- 
-@@ -141,6 +146,25 @@ export class BrowserStorageService exten
- 
- 		await this.workspaceStorage.init();
- 
-+		const firstWorkspaceOpen = this.workspaceStorage.getBoolean(IS_NEW_KEY);
-+		if (firstWorkspaceOpen === undefined) {
-+			// Migrate the old database.
-+			let db: IIndexedDBStorageDatabase | undefined
-+			try {
-+				db = await IndexedDBStorageDatabase.create({ id: this.payload.id }, this.logService)
-+				const items = await db.getItems()
-+				for (const [key, value] of items) {
-+					this.workspaceStorage.set(key, value);
-+				}
-+			} catch (error) {
-+				this.logService.error(`[IndexedDB Storage ${this.payload.id}] migrate error: ${toErrorMessage(error)}`);
-+			} finally {
-+				if (db) {
-+					db.close()
-+				}
-+			}
-+		}
-+
- 		this.updateIsNew(this.workspaceStorage);
  	}
  
