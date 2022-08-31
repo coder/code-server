@@ -109,6 +109,8 @@ export class CodeServer {
       },
     }
 
+    // NOTE@jsjoeio - code-server should automatically generate the languagepacks.json for
+    // using different display languages. This is a temporary workaround until we fix that.
     await fs.writeFile(path.join(dir, "languagepacks.json"), JSON.stringify(languagepacksContent))
     return dir
   }
