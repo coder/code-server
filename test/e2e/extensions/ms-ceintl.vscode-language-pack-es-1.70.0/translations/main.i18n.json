@@ -8,17 +8,8 @@
   ],
   "version": "1.0.0",
   "contents": {
-    "vs/base/browser/ui/actionbar/actionViewItems": {
-      "titleLabel": "{0} ({1})"
-    },
     "vs/workbench/contrib/files/browser/explorerViewlet": {
       "explore": "Explorador"
-    },
-    "vs/workbench/contrib/files/browser/views/explorerDecorationsProvider": {
-      "label": "Explorador"
-    },
-    "vs/workbench/contrib/preferences/browser/settingsLayout": {
-      "fileExplorer": "Explorador"
     }
   }
 }
