@@ -88,6 +88,30 @@ export class CodeServer {
       }),
       "utf8",
     )
+
+    const extensionsDir = path.join(__dirname, "../extensions")
+    const languagepacksContent = {
+      es: {
+        hash: "8d919a946475223861fa0c62665a4c50",
+        extensions: [
+          {
+            extensionIdentifier: {
+              id: "ms-ceintl.vscode-language-pack-es",
+              uuid: "47e020a1-33db-4cc0-a1b4-42f97781749a",
+            },
+            version: "1.70.0",
+          },
+        ],
+        translations: {
+          vscode: `${extensionsDir}/ms-ceintl.vscode-language-pack-es-1.70.0/translations/main.i18n.json`,
+        },
+        label: "español",
+      },
+    }
+
+    // NOTE@jsjoeio - code-server should automatically generate the languagepacks.json for
+    // using different display languages. This is a temporary workaround until we fix that.
+    await fs.writeFile(path.join(dir, "languagepacks.json"), JSON.stringify(languagepacksContent))
     return dir
   }
 
