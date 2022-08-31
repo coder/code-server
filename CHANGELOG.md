@@ -20,6 +20,24 @@ Code v99.99.999
 
 -->
 
+## [4.6.1](https://github.com/coder/code-server/releases/tag/v4.6.1) - 2022-08-31
+
+Code v1.70.2
+
+### Changed
+
+- Updated Code to 1.70.2.
+- Updated `argon2` to 0.29.0 which should fix issues on FreeBSD.
+- Updated docs to suggest using `npm` instead of `yarn`
+
+### Removed
+
+- Dropped database migration patch affected to 4.0.2 versions and earlier.
+
+### Fixed
+
+- Fixed preservation of `process.execArgv` which means you can pass `--prof` to profile code-server.
+
 ## [4.6.0](https://github.com/coder/code-server/releases/tag/v4.6.0) - 2022-08-17
 
 Code v1.70.1
