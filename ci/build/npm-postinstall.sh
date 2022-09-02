@@ -140,7 +140,7 @@ install_with_yarn_or_npm() {
         echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
         exit 1
       else
-        npm install --omit=dev
+        npm install --unsafe-perm --legacy-peer-deps --omit=dev
       fi
       ;;
     *)
