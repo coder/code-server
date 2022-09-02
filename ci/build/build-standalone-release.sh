@@ -28,7 +28,7 @@ main() {
   ln -s "./lib/node" "$RELEASE_PATH/node"
 
   pushd "$RELEASE_PATH"
-  yarn --production --frozen-lockfile
+  npm install --unsafe-perm --omit=dev
   popd
 }
 
