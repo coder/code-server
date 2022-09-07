@@ -109,7 +109,7 @@ We recommend installing with `npm` when:
 
 Installing code-server with `npm` builds native modules on install.
 
-This process requires C dependencies; see our guide on [installing with npm][./npm.md](./npm.md) for more information.
+This process requires C dependencies; see our guide on [installing with npm](./npm.md) for more information.
 
 ## Standalone releases
 

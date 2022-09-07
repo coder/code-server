@@ -140,7 +140,10 @@ install_with_yarn_or_npm() {
         echo "yarn.lock file present, running in development mode. use yarn to install code-server!"
         exit 1
       else
-        npm install --omit=dev
+        # HACK: NPM's use of semver doesn't like resolving some peerDependencies that vscode (upstream) brings in the form of pre-releases.
+        # The legacy behavior doesn't complain about pre-releases being used, falling back to that for now.
+        # See https://github.com//pull/5071
+        npm install --unsafe-perm --legacy-peer-deps --omit=dev
       fi
       ;;
     *)
