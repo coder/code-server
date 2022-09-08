@@ -1,5 +1,10 @@
 Add support for telemetry endpoint
 
+To test:
+1. Look inside a build of code-server, inside `lib/vscode/vs/server/node/server.main.js`
+2. Search for a `JSON.stringify` near `TelemetryClient`
+3. throw in a `console.log()` before it and make sure it logs telemetry data
+
 Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/serverServices.ts
