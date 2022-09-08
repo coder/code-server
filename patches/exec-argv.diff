@@ -1,6 +1,13 @@
 Preserve process.execArgv
 
-This ensures flags like --prof are passed down so we can profile everything.
+This ensures flags like `--prof` are passed down to the code-server process so
+we can profile everything.
+
+To test this:
+1. run `./lib/node --prof .` 
+2. in another terminal, run `ps -ejww`
+
+You should see `--prof` next to every code-server process. 
 
 Index: code-server/lib/vscode/src/vs/server/node/extensionHostConnection.ts
 ===================================================================
