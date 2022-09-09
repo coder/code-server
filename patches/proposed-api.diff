@@ -9,7 +9,7 @@ Index: code-server/lib/vscode/src/vs/workbench/services/extensions/common/abstra
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/services/extensions/common/abstractExtensionService.ts
 +++ code-server/lib/vscode/src/vs/workbench/services/extensions/common/abstractExtensionService.ts
-@@ -1460,7 +1460,7 @@ class ProposedApiController {
+@@ -1458,7 +1458,7 @@ class ProposedApiController {
  
  		this._envEnabledExtensions = new Set((_environmentService.extensionEnabledProposedApi ?? []).map(id => ExtensionIdentifier.toKey(id)));
  

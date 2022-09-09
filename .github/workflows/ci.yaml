@@ -25,7 +25,7 @@ jobs:
   prebuild:
     name: Pre-build checks
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3

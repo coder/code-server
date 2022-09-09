@@ -27,7 +27,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  	) {
  		super();
  	}
-@@ -42,5 +45,32 @@ export class CodeServerClient extends Di
+@@ -42,5 +45,31 @@ export class CodeServerClient extends Di
  				}
  			});
  		}
@@ -49,7 +49,6 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
 +							class: undefined,
 +							enabled: true,
 +							checked: true,
-+							dispose: () => undefined,
 +							run: () => {
 +								return Promise.resolve();
 +							},

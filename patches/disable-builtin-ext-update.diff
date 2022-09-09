@@ -7,7 +7,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
 +++ code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extensionsWorkbenchService.ts
-@@ -237,6 +237,10 @@ export class Extension implements IExten
+@@ -236,6 +236,10 @@ export class Extension implements IExten
  			if (this.type === ExtensionType.System && this.productService.quality === 'stable') {
  				return false;
  			}
@@ -18,7 +18,7 @@ Index: code-server/lib/vscode/src/vs/workbench/contrib/extensions/browser/extens
  			if (!this.local.preRelease && this.gallery.properties.isPreReleaseVersion) {
  				return false;
  			}
-@@ -1122,6 +1126,10 @@ export class ExtensionsWorkbenchService 
+@@ -1121,6 +1125,10 @@ export class ExtensionsWorkbenchService
  				// Skip if check updates only for builtin extensions and current extension is not builtin.
  				continue;
  			}
