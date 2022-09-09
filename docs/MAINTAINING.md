@@ -8,7 +8,6 @@
 - [Workflow](#workflow)
   - [Milestones](#milestones)
   - [Triage](#triage)
-  - [Project boards](#project-boards)
 - [Versioning](#versioning)
 - [Pull requests](#pull-requests)
   - [Merge strategies](#merge-strategies)
@@ -42,7 +41,7 @@ Occasionally, other Coder employees may step in time to time to assist with code
 
 To onboard a new maintainer to the project, please make sure to do the following:
 
-- [ ] Add to [coder/code-server-reviewers](https://github.com/orgs/coder/teams/code-server-reviewers)
+- [ ] Add to [coder/code-server](https://github.com/orgs/coder/teams/code-server)
 - [ ] Add as Admin under [Repository Settings > Access](https://github.com/coder/code-server/settings/access)
 - [ ] Add to [npm Coder org](https://www.npmjs.com/org/coder)
 - [ ] Add as [AUR maintainer](https://aur.archlinux.org/packages/code-server/) (talk to Colin)
@@ -72,7 +71,7 @@ Here are the milestones we use and how we use them:
 - "On Deck" -> Work under consideration for upcoming milestones.
 - "Backlog Candidates" -> Work that is not yet accepted for the backlog. We wait
   for the community to weigh in.
-- "<0.0.0>" -> Work to be done for a specific version.
+- "<Month>" -> Work to be done for said month.
 
 With this flow, any un-assigned issues are essentially in triage state. Once
 triaged, issues are either "Backlog" or "Backlog Candidates". They will
@@ -90,19 +89,6 @@ We use the following process for triaging GitHub issues:
    1. If it should be fixed soon, add to version milestone or "On Deck"
    2. If not urgent, add to "Backlog"
    3. Otherwise, add to "Backlog Candidate" for future consideration
-
-### Project boards
-
-We use project boards for projects or goals that span multiple milestones.
-
-Think of this as a place to put miscellaneous things (like testing, clean up
-stuff, etc). As a maintainer, random tasks may come up here and there. The
-project boards give you places to add temporary notes before opening a new
-issue. Given that our release milestones function off of issues, we believe
-tasks should have dedicated issues.
-
-Project boards also give us a way to separate the issue triage from
-bigger-picture, long-term work.
 
 ## Versioning
 
