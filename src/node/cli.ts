@@ -501,7 +501,7 @@ export async function setDefaults(cliArgs: UserProvidedArgs, configArgs?: Config
       args.verbose = false
       break
     case LogLevel.Warn:
-      logger.level = Level.Warning
+      logger.level = Level.Warn
       args.verbose = false
       break
     case LogLevel.Error:
