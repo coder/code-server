@@ -15,7 +15,7 @@ Index: code-server/lib/vscode/src/vs/base/parts/ipc/common/ipc.net.ts
  
  export const enum SocketDiagnosticsEventType {
  	Created = 'created',
-@@ -829,6 +830,19 @@ export class PersistentProtocol implemen
+@@ -849,6 +850,19 @@ export class PersistentProtocol implemen
  		this._socketDisposables.push(this._socketWriter);
  		this._socketReader = new ProtocolReader(this._socket);
  		this._socketDisposables.push(this._socketReader);

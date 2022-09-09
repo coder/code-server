@@ -35,19 +35,19 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
  import { getRemoteServerRootPath, parseAuthorityWithOptionalPort } from 'vs/platform/remote/common/remoteHosts';
  
  export class RemoteAuthorityResolverService extends Disposable implements IRemoteAuthorityResolverService {
-@@ -22,7 +22,7 @@ export class RemoteAuthorityResolverServ
- 	private readonly _connectionToken: string | undefined;
+@@ -23,7 +23,7 @@ export class RemoteAuthorityResolverServ
+ 	private readonly _connectionToken: Promise<string> | string | undefined;
  	private readonly _connectionTokens: Map<string, string>;
  
--	constructor(@IProductService productService: IProductService, connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined) {
-+	constructor(@IProductService productService: IProductService, connectionToken: string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined, private readonly proxyEndpointTemplate?: string) {
+-	constructor(@IProductService productService: IProductService, connectionToken: Promise<string> | string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined) {
++	constructor(@IProductService productService: IProductService, connectionToken: Promise<string> | string | undefined, resourceUriProvider: ((uri: URI) => URI) | undefined, private readonly proxyEndpointTemplate?: string) {
  		super();
- 		this._cache = new Map<string, ResolverResult>();
  		this._connectionToken = connectionToken;
-@@ -62,9 +62,14 @@ export class RemoteAuthorityResolverServ
+ 		this._connectionTokens = new Map<string, string>();
+@@ -61,9 +61,14 @@ export class RemoteAuthorityResolverServ
  
- 	private _doResolveAuthority(authority: string): ResolverResult {
- 		const connectionToken = this._connectionTokens.get(authority) || this._connectionToken;
+ 	private async _doResolveAuthority(authority: string): Promise<ResolverResult> {
+ 		const connectionToken = await Promise.resolve(this._connectionTokens.get(authority) || this._connectionToken);
 +		let options: ResolvedOptions | undefined;
 +		if (this.proxyEndpointTemplate) {
 +			const proxyUrl = new URL(this.proxyEndpointTemplate, window.location.href);
@@ -55,11 +55,11 @@ Index: code-server/lib/vscode/src/vs/platform/remote/browser/remoteAuthorityReso
 +		}
  		const defaultPort = (/^https:/.test(window.location.href) ? 443 : 80);
  		const { host, port } = parseAuthorityWithOptionalPort(authority, defaultPort);
--		return { authority: { authority, host: host, port: port, connectionToken } };
-+		return { authority: { authority, host: host, port: port, connectionToken }, options };
- 	}
- 
- 	_clearResolvedAuthority(authority: string): void {
+-		const result: ResolverResult = { authority: { authority, host: host, port: port, connectionToken } };
++		const result: ResolverResult = { authority: { authority, host: host, port: port, connectionToken }, options };
+ 		RemoteAuthorities.set(authority, result.authority.host, result.authority.port);
+ 		this._cache.set(authority, result);
+ 		this._onDidChangeConnectionData.fire();
 Index: code-server/lib/vscode/src/vs/server/node/webClientServer.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/server/node/webClientServer.ts
@@ -76,7 +76,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
 ===================================================================
 --- code-server.orig/lib/vscode/src/vs/workbench/browser/web.main.ts
 +++ code-server/lib/vscode/src/vs/workbench/browser/web.main.ts
-@@ -239,7 +239,7 @@ export class BrowserMain extends Disposa
+@@ -247,7 +247,7 @@ export class BrowserMain extends Disposa
  
  		// Remote
  		const connectionToken = environmentService.options.connectionToken || getCookieValue(connectionTokenCookieName);
