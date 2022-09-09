@@ -95,6 +95,7 @@ jobs:
         with:
           repository: "cdrci/code-server-aur"
           token: ${{ secrets.HOMEBREW_GITHUB_API_TOKEN }}
+          ref: "master"
 
       - name: Configure git
         run: |
