@@ -87,7 +87,7 @@
     "@types/node": "^16.0.0"
   },
   "dependencies": {
-    "@coder/logger": "1.1.16",
+    "@coder/logger": "^3.0.0",
     "argon2": "^0.29.0",
     "compression": "^1.7.4",
     "cookie-parser": "^1.4.5",
