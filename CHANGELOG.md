@@ -20,14 +20,30 @@ Code v99.99.999
 
 -->
 
-## [4.6.1](https://github.com/coder/code-server/releases/tag/v4.6.1) - 2022-08-31
+## [4.7.0](https://github.com/coder/code-server/releases/tag/v4.7.0) - 2022-09-09
+
+Code v1.71.0
+
+### Changed
+
+- Updated Code to 1.71.0
+
+### Removed
+
+- Dropped heartbeat patch because it was implemented upstream
+
+### Fixed
+
+- Add flags --unsafe-perm --legacy-peer-deps in `npm-postinstsall.sh` which ensures installing with npm works correctly
+
+## [4.6.1](https://github.com/coder/code-server/releases/tag/v4.6.1) - 2022-09-31
 
 Code v1.70.2
 
 ### Changed
 
-- Updated Code to 1.70.2.
-- Updated `argon2` to 0.29.0 which should fix issues on FreeBSD.
+- Updated Code to 1.70.2
+- Updated `argon2` to 0.29.0 which should fix issues on FreeBSD
 - Updated docs to suggest using `npm` instead of `yarn`
 
 ### Removed
@@ -36,7 +52,7 @@ Code v1.70.2
 
 ### Fixed
 
-- Fixed preservation of `process.execArgv` which means you can pass `--prof` to profile code-server.
+- Fixed preservation of `process.execArgv` which means you can pass `--prof` to profile code-server
 
 ## [4.6.0](https://github.com/coder/code-server/releases/tag/v4.6.0) - 2022-08-17
 

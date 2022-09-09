@@ -201,10 +201,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@coder/logger@1.1.16":
-  version "1.1.16"
-  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-1.1.16.tgz#ee5b1b188f680733f35c11b065bbd139d618c1e1"
-  integrity sha512-X6VB1++IkosYY6amRAiMvuvCf12NA4+ooX+gOuu5bJIkdjmh4Lz7QpJcWRdgxesvo1msriDDr9E/sDbIWf6vsQ==
+"@coder/logger@^3.0.0":
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/@coder/logger/-/logger-3.0.0.tgz#fd4d2332ca375412c75cb5ba7767d3290b106dec"
+  integrity sha512-a0TYwulM+LiKBDKK7ZtKrOmOaEDR1yonCEOZbA+lNfVpmn7gWJBRdgg1O5Jj7ElKd4s9/w9udPVJfVxciyHfhA==
 
 "@eslint/eslintrc@^0.4.3":
   version "0.4.3"

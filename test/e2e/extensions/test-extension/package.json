@@ -3,6 +3,7 @@
   "description": "code-server test extension",
   "version": "0.0.1",
   "publisher": "coder",
+  "license": "MIT",
   "activationEvents": [
     "onStartupFinished"
   ],
