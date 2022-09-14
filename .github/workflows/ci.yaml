@@ -62,40 +62,6 @@ jobs:
         run: yarn lint
         if: success()
 
-  audit-ci:
-    name: Run audit-ci
-    needs: prebuild
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          submodules: true
-
-      - name: Install Node.js v16
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-
-      - name: Fetch dependencies from cache
-        id: cache-yarn
-        uses: actions/cache@v3
-        with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            yarn-build-
-
-      - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
-
-      - name: Audit for vulnerabilities
-        run: yarn _audit
-        if: success()
-
   build:
     name: Build
     needs: prebuild
@@ -596,30 +562,3 @@ jobs:
 
       - name: Remove release packages and test artifacts
         run: rm -rf ./release-packages ./test/test-results
-
-  trivy-scan-repo:
-    permissions:
-      contents: read # for actions/checkout to fetch code
-      security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Run Trivy vulnerability scanner in repo mode
-        uses: aquasecurity/trivy-action@d63413b0a4a4482237085319f7f4a1ce99a8f2ac
-        with:
-          scan-type: "fs"
-          scan-ref: "."
-          ignore-unfixed: true
-          format: "template"
-          template: "@/contrib/sarif.tpl"
-          output: "trivy-repo-results.sarif"
-          severity: "HIGH,CRITICAL"
-
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: "trivy-repo-results.sarif"
