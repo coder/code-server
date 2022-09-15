@@ -1,4 +1,4 @@
-name: Create draft release
+name: Draft release
 
 on:
   workflow_dispatch:
@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  build:
+  draft:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
