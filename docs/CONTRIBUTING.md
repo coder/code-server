@@ -111,6 +111,15 @@ re-apply the patches.
 6. Commit the updated submodule and patches to `code-server`.
 7. Open a PR.
 
+Tip: if you're certain all patches are applied correctly and you simply need to
+refresh, you can use this trick:
+
+```shell
+while quilt push; do quilt refresh; done
+```
+
+[Source](https://raphaelhertzog.com/2012/08/08/how-to-use-quilt-to-manage-patches-in-debian-packages/)
+
 ### Patching Code
 
 0. You can go through the patch stack with `quilt push` and `quilt pop`.
