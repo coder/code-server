@@ -29,7 +29,7 @@ Index: code-server/lib/vscode/src/vs/workbench/browser/client.ts
  	) {
  		super();
  	}
-@@ -72,5 +78,59 @@ export class CodeServerClient extends Di
+@@ -71,5 +77,59 @@ export class CodeServerClient extends Di
  				},
  			});
  		}
