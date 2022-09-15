@@ -21,7 +21,6 @@ jobs:
         with:
           fetch-depth: 0
 
-      # TODO: delete our release scripts and the ci/lib.sh funcs they use
       - name: Download artifacts
         uses: dawidd6/action-download-artifact@v2
         id: download
