@@ -1,5 +1,6 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 # Maintaining
 
 - [Team](#team)
@@ -137,43 +138,19 @@ changelog](https://github.com/emacs-mirror/emacs/blob/master/etc/NEWS).
 
 ## Releases
 
-With each release, we rotate the role of release manager to ensure every
-maintainer goes through the process. This helps us keep documentation up-to-date
-and encourages us to continually review and improve the flow.
-
-If you're the current release manager, follow these steps:
-
-1. Create a [release issue](../.github/ISSUE_TEMPLATE/release.md)
-1. Fill out checklist
-1. Publish the release
-1. After release is published, close release milestone
-
 ### Publishing a release
 
 1. Create a new branch called `release/v0.0.0` (replace 0s with actual version aka v4.5.0)
    1. If you don't do this, the `npm-brew` GitHub workflow will fail. It looks for the release artifacts under the branch pattern.
-1. Run `yarn release:prep` and type in the new version (e.g., `3.8.1`)
-1. GitHub Actions will generate the `npm-package`, `release-packages` and
-   `release-images` artifacts. You do not have to wait for this step to complete
-   before proceeding.
-1. Run `yarn release:github-draft` to create a GitHub draft release from the
-   template with the updated version. Make sure to update the `CHANGELOG.md`.
+1. Run `yarn release:prep <version>` (e.g., `yarn release:prep 3.8.1`)
 1. Bump chart version in `Chart.yaml`.
-1. Summarize the major changes in the release notes and link to the relevant
-   issues.
-1. Change the @ to target the version branch. Example: `v3.9.0 @ Target: release/v3.9.0`
-1. Wait for the `npm-package`, `release-packages` and `release-images` artifacts
-   to build.
-1. Run `yarn release:github-assets` to download the `release-packages` artifact.
-   They will upload them to the draft release.
-1. Run some basic sanity tests on one of the released packages (pay special
-   attention to making sure the terminal works).
-1. Publish the release and merge the PR. CI will automatically grab the
+1. Summarize the major changes in the `CHANGELOG.md`
+1. Download CI artifacts and make sure code-server works locally.
+1. Merge PR and wait for CI build on `main` to finish.
+1. Go to GitHub Actions > Draft release > Run workflow off `main`. CI will automatically upload the artifacts to the release.
+1. Add the release notes from the `CHANGELOG.md` and publish release. CI will automatically grab the
    artifacts, publish the NPM package from `npm-package`, and publish the Docker
    Hub image from `release-images`.
-1. Update the AUR package. Instructions for updating the AUR package are at
-   [coder/code-server-aur](https://github.com/coder/code-server-aur).
-1. Wait for the npm package to be published.
 
 #### AUR
 

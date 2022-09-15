@@ -14,8 +14,6 @@
     "build:vscode": "./ci/build/build-vscode.sh",
     "release": "./ci/build/build-release.sh",
     "release:standalone": "./ci/build/build-standalone-release.sh",
-    "release:github-draft": "./ci/build/release-github-draft.sh",
-    "release:github-assets": "./ci/build/release-github-assets.sh",
     "release:prep": "./ci/build/release-prep.sh",
     "test:e2e": "VSCODE_IPC_HOOK_CLI= ./ci/dev/test-e2e.sh",
     "test:e2e:proxy": "USE_PROXY=1 ./ci/dev/test-e2e.sh",
