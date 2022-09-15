@@ -1,0 +1,41 @@
+name: Create draft release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write # For creating releases.
+  discussions: write #  For creating a discussion.
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      # TODO: delete our release scripts and the ci/lib.sh funcs they use
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        id: download
+        with:
+          branch: main
+          workflow: ci.yaml
+          workflow_conclusion: completed
+          check_artifacts: true
+          name: release-packages
+          path: ./release-packages
+
+      - uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./release-packages/*
+          body_path: ci/build/release-notes.txt
