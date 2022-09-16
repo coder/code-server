@@ -33,7 +33,7 @@ jobs:
         id: download
         with:
           branch: release/v${{ steps.version.outputs.version }}
-          workflow: ci.yaml
+          workflow: build.yaml
           workflow_conclusion: completed
           name: "npm-package"
           path: release-npm-package
