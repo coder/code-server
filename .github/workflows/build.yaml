@@ -1,0 +1,558 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+# Cancel in-progress runs for pull requests when developers push
+# additional changes, and serialize builds in branches.
+# https://docs.github.com/en/actions/using-jobs/using-concurrency#example-using-concurrency-to-cancel-any-in-progress-job-or-run
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+# Note: if: success() is used in several jobs -
+# this ensures that it only executes if all previous jobs succeeded.
+
+# if: steps.cache-node-modules.outputs.cache-hit != 'true'
+# will skip running `yarn install` if it successfully fetched from cache
+
+jobs:
+  prebuild:
+    name: Pre-build checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install helm
+        uses: azure/setup-helm@v3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install helm kubeval plugin
+        run: helm plugin install https://github.com/instrumenta/helm-kubeval
+
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Run yarn fmt
+        run: yarn fmt
+        if: success()
+
+      - name: Run yarn lint
+        run: yarn lint
+        if: success()
+
+  build:
+    name: Build
+    needs: prebuild
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          submodules: true
+
+      - name: Install quilt
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: quilt
+          version: 1.0
+
+      - name: Patch Code
+        run: quilt push -a
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: yarn --frozen-lockfile
+
+      - name: Build code-server
+        run: yarn build
+
+      # Get Code's git hash.  When this changes it means the content is
+      # different and we need to rebuild.
+      - name: Get latest lib/vscode rev
+        id: vscode-rev
+        run: echo "::set-output name=rev::$(git rev-parse HEAD:./lib/vscode)"
+
+      - name: Get version
+        id: version
+        run: echo "::set-output name=version::$(jq -r .version package.json)"
+
+      # We need to rebuild when we have a new version of Code, when any of
+      # the patches changed, or when the code-server version changes (since
+      # it gets embedded into the code).  Use VSCODE_CACHE_VERSION to
+      # force a rebuild.
+      - name: Fetch prebuilt Code package from cache
+        id: cache-vscode
+        uses: actions/cache@v3
+        with:
+          path: lib/vscode-reh-web-*
+          key: vscode-reh-package-${{ secrets.VSCODE_CACHE_VERSION }}-${{ steps.vscode-rev.outputs.rev }}-${{ steps.version.outputs.version }}-${{ hashFiles('patches/*.diff', 'ci/build/build-vscode.sh') }}
+
+      - name: Build vscode
+        if: steps.cache-vscode.outputs.cache-hit != 'true'
+        run: yarn build:vscode
+
+      # Our code imports code from VS Code's `out` directory meaning VS Code
+      # must be built before running these tests.
+      # TODO: Move to its own step?
+      - name: Run code-server unit tests
+        run: yarn test:unit
+        if: success()
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
+
+      # The release package does not contain any native modules
+      # and is neutral to architecture/os/libc version.
+      - name: Create release package
+        run: yarn release
+        if: success()
+
+      # https://github.com/actions/upload-artifact/issues/38
+      - name: Compress release package
+        run: tar -czf package.tar.gz release
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: npm-package
+          path: ./package.tar.gz
+
+  npm:
+    # the npm-package gets uploaded as an artifact in Build
+    # so we need that to complete before this runs
+    needs: build
+    # This environment "npm" requires someone from
+    # coder/code-server-reviewers to approve the PR before this job runs.
+    environment: npm
+    # Only run if PR comes from base repo or event is not a PR
+    # Reason: forks cannot access secrets and this will always fail
+    if: github.event.pull_request.head.repo.full_name == github.repository || github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        id: download
+        with:
+          name: "npm-package"
+          path: release-npm-package
+
+      - name: Run ./ci/steps/publish-npm.sh
+        run: yarn publish:npm
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # NOTE@jsjoeio
+          # NPM_ENVIRONMENT intentionally not set here.
+          # Instead, itis determined in publish-npm.sh script
+          # using GITHUB environment variables
+
+      - name: Comment npm information
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ github.token }}
+          header: npm-dev-build
+          message: |
+            ✨ code-server dev build published to npm for PR #${{ github.event.number }}!
+            * _Last publish status_: success
+            * _Commit_: ${{ github.event.pull_request.head.sha }}
+
+            To install in a local project, run:
+            ```shell-session
+            npm install @coder/code-server-pr@${{ github.event.number }}
+            ```
+
+            To install globally, run:
+            ```shell-session
+            npm install -g @coder/code-server-pr@${{ github.event.number }}
+            ```
+
+  # TODO: cache building yarn --production
+  # possibly 2m30s of savings(?)
+  # this requires refactoring our release scripts
+  package-linux-amd64:
+    name: x86-64 Linux build
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    container: "centos:7"
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install development tools
+        run: |
+          yum install -y epel-release centos-release-scl
+          yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
+
+      - name: Install nfpm and envsubst
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          curl -sSfL https://github.com/a8m/envsubst/releases/download/v1.1.0/envsubst-`uname -s`-`uname -m` -o envsubst
+          chmod +x envsubst
+          mv envsubst ~/.local/bin
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install yarn
+        run: npm install -g yarn
+
+      - name: Download npm package
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      # NOTE: && here is deliberate - GitHub puts each line in its own `.sh`
+      # file when running inside a docker container.
+      - name: Build standalone release
+        run: source scl_source enable devtoolset-9 && yarn release:standalone
+
+      # TODO@jsjoeio - can we use cache here?
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
+
+      - name: Build packages with nfpm
+        run: yarn package
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-packages
+          path: ./release-packages
+
+  # NOTE@oxy:
+  # We use Ubuntu 16.04 here, so that our build is more compatible
+  # with older libc versions. We used to (Q1'20) use CentOS 7 here,
+  # but it has a full update EOL of Q4'20 and a 'critical security'
+  # update EOL of 2024. We're dropping full support a few years before
+  # the final EOL, but I don't believe CentOS 7 has a large arm64 userbase.
+  # It is not feasible to cross-compile with CentOS.
+
+  # Cross-compile notes: To compile native dependencies for arm64,
+  # we install the aarch64/armv7l cross toolchain and then set it as the default
+  # compiler/linker/etc. with the AR/CC/CXX/LINK environment variables.
+  # qemu-user-static on ubuntu-16.04 currently doesn't run Node correctly,
+  # so we just build with "native"/x86_64 node, then download arm64/armv7l node
+  # and then put it in our release. We can't smoke test the cross build this way,
+  # but this means we don't need to maintain a self-hosted runner!
+
+  # NOTE@jsjoeio:
+  # We used to use 16.04 until GitHub deprecated it on September 20, 2021
+  # See here: https://github.com/actions/virtual-environments/pull/3862/files
+  package-linux-cross:
+    name: Linux cross-compile builds
+    needs: build
+    runs-on: ubuntu-18.04
+    timeout-minutes: 15
+    strategy:
+      matrix:
+        include:
+          - prefix: aarch64-linux-gnu
+            arch: arm64
+          - prefix: arm-linux-gnueabihf
+            arch: armv7l
+
+    env:
+      AR: ${{ format('{0}-ar', matrix.prefix) }}
+      CC: ${{ format('{0}-gcc', matrix.prefix) }}
+      CXX: ${{ format('{0}-g++', matrix.prefix) }}
+      LINK: ${{ format('{0}-g++', matrix.prefix) }}
+      NPM_CONFIG_ARCH: ${{ matrix.arch }}
+      NODE_VERSION: v16.13.0
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install nfpm
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Install cross-compiler
+        run: sudo apt update && sudo apt install $PACKAGE
+        env:
+          PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
+
+      - name: Download npm package
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      - name: Build standalone release
+        run: yarn release:standalone
+
+      - name: Replace node with cross-compile equivalent
+        run: |
+          wget https://nodejs.org/dist/${NODE_VERSION}/node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz
+          tar -xf node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}.tar.xz node-${NODE_VERSION}-linux-${NPM_CONFIG_ARCH}/bin/node --strip-components=2
+          mv ./node ./release-standalone/lib/node
+
+      - name: Build packages with nfpm
+        run: yarn package ${NPM_CONFIG_ARCH}
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-packages
+          path: ./release-packages
+
+  package-macos-amd64:
+    name: x86-64 macOS build
+    needs: build
+    runs-on: macos-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Install nfpm
+        run: |
+          mkdir -p ~/.local/bin
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+      - name: Download npm package
+        uses: actions/download-artifact@v3
+        with:
+          name: npm-package
+
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
+
+      - name: Build standalone release
+        run: yarn release:standalone
+
+      # TODO@jsjoeio - can we cache here?
+      - name: Install test dependencies
+        run: SKIP_SUBMODULE_DEPS=1 yarn install
+
+      - name: Run integration tests on standalone release
+        run: yarn test:integration
+
+      - name: Build packages with nfpm
+        run: yarn package
+
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: release-packages
+          path: ./release-packages
+
+  test-e2e:
+    name: End-to-end tests
+    needs: package-linux-amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Since we build code-server we might as well run tests from the release
+      # since VS Code will load faster due to the bundling.
+      CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Download release packages
+        uses: actions/download-artifact@v3
+        with:
+          name: release-packages
+          path: ./release-packages
+
+      - name: Untar code-server release
+        run: |
+          cd release-packages
+          tar -xzf code-server*-linux-amd64.tar.gz
+          mv code-server*-linux-amd64 code-server-linux-amd64
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Install Playwright OS dependencies
+        run: |
+          ./test/node_modules/.bin/playwright install-deps
+          ./test/node_modules/.bin/playwright install
+
+      - name: Run end-to-end tests
+        run: yarn test:e2e --global-timeout 840000
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: failed-test-videos
+          path: ./test/test-results
+
+      - name: Remove release packages and test artifacts
+        run: rm -rf ./release-packages ./test/test-results
+
+  test-e2e-proxy:
+    name: End-to-end tests behind proxy
+    needs: package-linux-amd64
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      # Since we build code-server we might as well run tests from the release
+      # since VS Code will load faster due to the bundling.
+      CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install Node.js v16
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Download release packages
+        uses: actions/download-artifact@v3
+        with:
+          name: release-packages
+          path: ./release-packages
+
+      - name: Untar code-server release
+        run: |
+          cd release-packages
+          tar -xzf code-server*-linux-amd64.tar.gz
+          mv code-server*-linux-amd64 code-server-linux-amd64
+
+      - name: Install dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Install Playwright OS dependencies
+        run: |
+          ./test/node_modules/.bin/playwright install-deps
+          ./test/node_modules/.bin/playwright install
+
+      - name: Cache Caddy
+        uses: actions/cache@v2
+        id: caddy-cache
+        with:
+          path: |
+            ~/.cache/caddy
+          key: cache-caddy-2.5.2
+
+      - name: Install Caddy
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        if: steps.caddy-cache.outputs.cache-hit != 'true'
+        run: |
+          gh release download v2.5.2 --repo caddyserver/caddy --pattern "caddy_2.5.2_linux_amd64.tar.gz"
+          mkdir -p ~/.cache/caddy 
+          tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
+
+      - name: Start Caddy
+        run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
+
+      - name: Run end-to-end tests
+        run: yarn test:e2e:proxy
+
+      - name: Stop Caddy
+        if: always()
+        run: sudo ~/.cache/caddy/caddy stop --config ./ci/Caddyfile
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: failed-test-videos-proxy
+          path: ./test/test-results
+
+      - name: Remove release packages and test artifacts
+        run: rm -rf ./release-packages ./test/test-results
