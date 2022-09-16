@@ -25,7 +25,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         id: download
         with:
-          branch: main
+          branch: ${{ github.ref }}
           workflow: ci.yaml
           workflow_conclusion: completed
           check_artifacts: true
