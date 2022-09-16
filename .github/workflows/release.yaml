@@ -37,4 +37,3 @@ jobs:
           draft: true
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
-          body_path: ci/build/release-notes.txt
