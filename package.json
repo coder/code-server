@@ -60,8 +60,6 @@
     "prettier": "^2.2.1",
     "prettier-plugin-sh": "^0.12.0",
     "shellcheck": "^1.0.0",
-    "stylelint": "^13.0.0",
-    "stylelint-config-recommended": "^5.0.0",
     "ts-node": "^10.0.0",
     "typescript": "^4.6.2"
   },
