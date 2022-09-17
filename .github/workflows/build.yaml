@@ -108,6 +108,34 @@ jobs:
         if: failure()
         uses: andymckay/cancel-action@0.2
 
+  lint-helm:
+    name: Lint Helm chart
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            ci/helm-chart/**
+
+      - name: Install helm
+        uses: azure/setup-helm@v3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint Helm chart
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: ./ci/dev/helm.sh
+
+      - name: Fail workflow
+        if: failure()
+        uses: andymckay/cancel-action@0.2
+
   build:
     name: Build
     needs: prebuild
