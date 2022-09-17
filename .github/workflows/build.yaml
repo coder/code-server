@@ -22,10 +22,10 @@ concurrency:
 # will skip running `yarn install` if it successfully fetched from cache
 
 jobs:
-  prebuild:
-    name: Pre-build checks
+  fmt:
+    name: Format with Prettier
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -47,18 +47,49 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v3
         with:
-          path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          path: "node_modules"
+          key: yarn-build-${{ hashFiles('yarn.lock') }}
           restore-keys: |
             yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        if: steps.cache-yarn.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
-      - name: Run yarn fmt
+      - name: Format files with Prettier
         run: yarn fmt
-        if: success()
+
+      - name: Fail workflow
+        if: failure()
+        uses: andymckay/cancel-action@0.2
+
+  lint-helm:
+    name: Lint Helm chart
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            ci/helm-chart/**
+
+      - name: Install helm
+        uses: azure/setup-helm@v3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint Helm chart
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: ./ci/dev/helm.sh
+
+      - name: Fail workflow
+        if: failure()
+        uses: andymckay/cancel-action@0.2
 
   lint-sh:
     name: Lint shell files
@@ -99,49 +130,6 @@ jobs:
       - name: Lint shell files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: yarn lint:sh
-
-      - name: Fail workflow
-        if: failure()
-        uses: andymckay/cancel-action@0.2
-
-  typecheck:
-    name: Check TypeScript types
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v23.2
-        with:
-          files: |
-            ./src/**/*
-
-      - name: Install Node.js v16
-        if: steps.changed-files.outputs.any_changed == 'true'
-        uses: actions/setup-node@v3
-        with:
-          node-version: "16"
-
-      - name: Fetch dependencies from cache
-        if: steps.changed-files.outputs.any_changed == 'true'
-        id: cache-yarn
-        uses: actions/cache@v3
-        with:
-          path: "node_modules"
-          key: yarn-build-${{ hashFiles('yarn.lock') }}
-          restore-keys: |
-            yarn-build-
-
-      - name: Install dependencies
-        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-yarn.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
-
-      - name: Run tsc on TypeScript files
-        if: steps.changed-files.outputs.any_changed == 'true'
-        run: yarn typecheck
 
       - name: Fail workflow
         if: failure()
@@ -194,8 +182,8 @@ jobs:
         if: failure()
         uses: andymckay/cancel-action@0.2
 
-  lint-helm:
-    name: Lint Helm chart
+  typecheck:
+    name: Check TypeScript types
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -207,16 +195,31 @@ jobs:
         uses: tj-actions/changed-files@v23.2
         with:
           files: |
-            ci/helm-chart/**
+            ./src/**/*
 
-      - name: Install helm
-        uses: azure/setup-helm@v3.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Lint Helm chart
+      - name: Install Node.js v16
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: ./ci/dev/helm.sh
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        if: steps.changed-files.outputs.any_changed == 'true'
+        id: cache-yarn
+        uses: actions/cache@v3
+        with:
+          path: "node_modules"
+          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-yarn.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Run tsc on TypeScript files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: yarn typecheck
 
       - name: Fail workflow
         if: failure()
@@ -224,7 +227,6 @@ jobs:
 
   build:
     name: Build
-    needs: prebuild
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
