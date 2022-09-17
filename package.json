@@ -29,6 +29,7 @@
     "lint": "./ci/dev/lint.sh",
     "lint:helm": "./ci/dedv/helm.sh",
     "lint:sh": "shellcheck -e SC2046,SC2164,SC2154,SC1091,SC1090,SC2002 $(git ls-files '*.sh' | grep -v 'lib/vscode')",
+    "lint:ts": "eslint --max-warnings=0 --fix $(git ls-files '*.ts' '*.tsx' '*.js' | grep -v 'lib/vscode')",
     "test": "echo 'Run yarn test:unit or yarn test:e2e' && exit 1",
     "ci": "./ci/dev/ci.sh",
     "watch": "VSCODE_DEV=1 VSCODE_IPC_HOOK_CLI= NODE_OPTIONS='--max_old_space_size=32384 --trace-warnings' ts-node ./ci/dev/watch.ts",
