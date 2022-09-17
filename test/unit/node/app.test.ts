@@ -107,20 +107,6 @@ describe("createApp", () => {
     app.dispose()
   })
 
-  // TODO@jsjoeio - delete because this test it buggy?
-  // or move into it's own describe block
-  it("should change the file mode of a socket", async () => {
-    const defaultArgs = await setDefaults({
-      socket: tmpFilePath,
-      "socket-mode": "777",
-    })
-
-    const app = await createApp(defaultArgs)
-
-    expect((await promises.stat(tmpFilePath)).mode & 0o777).toBe(0o777)
-    app.dispose()
-  })
-
   it("should create an https server if args.cert exists", async () => {
     const testCertificate = await generateCertificate("localhost")
     const cert = new OptionalString(testCertificate.cert)
