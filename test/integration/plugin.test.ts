@@ -2,11 +2,11 @@ import { logger } from "@coder/logger"
 import * as express from "express"
 import * as fs from "fs"
 import * as path from "path"
-import { HttpCode } from "../../../src/common/http"
-import { AuthType } from "../../../src/node/cli"
-import { codeServer, PluginAPI } from "../../../src/node/plugin"
-import * as apps from "../../../src/node/routes/apps"
-import * as httpserver from "../../utils/httpserver"
+import { HttpCode } from "../../src/common/http"
+import { AuthType } from "../../src/node/cli"
+import { codeServer, PluginAPI } from "../../src/node/plugin"
+import * as apps from "../../src/node/routes/apps"
+import * as httpserver from "../utils/httpserver"
 const fsp = fs.promises
 
 // Jest overrides `require` so our usual override doesn't work.
