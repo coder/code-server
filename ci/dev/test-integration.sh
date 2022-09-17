@@ -24,12 +24,13 @@ main() {
     path="$CODE_SERVER_PATH"
   fi
 
-  # TODO@jsjoeio - skip if already built
-  # TODO@jsjoeio - move to integration test suite too
-  echo "Building test plugin"
-  pushd test/integration/test-plugin
-  make -s out/index.js
-  popd
+  # WIP jsjoeio
+  if [[ ! -f "test/integration/test-plugin/out/index.js" ]]; then
+    echo "Building test plugin"
+    pushd test/integration/test-plugin
+    make -s out/index.js
+    popd
+  fi
 
   echo "Running tests with code-server binary: '$path'"
 
