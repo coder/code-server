@@ -182,6 +182,55 @@ jobs:
         if: failure()
         uses: andymckay/cancel-action@0.2
 
+  test-unit:
+    name: Run unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            src/**
+
+      - name: Install Node.js v16
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        if: steps.changed-files.outputs.any_changed == 'true'
+        id: cache-yarn
+        uses: actions/cache@v3
+        with:
+          path: "node_modules"
+          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-yarn.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Run unit tests
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: yarn test:unit
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
+
+      - name: Fail workflow
+        if: failure()
+        uses: andymckay/cancel-action@0.2
+
   typecheck:
     name: Check TypeScript types
     runs-on: ubuntu-latest
@@ -291,19 +340,6 @@ jobs:
       - name: Build vscode
         if: steps.cache-vscode.outputs.cache-hit != 'true'
         run: yarn build:vscode
-
-      # Our code imports code from VS Code's `out` directory meaning VS Code
-      # must be built before running these tests.
-      # TODO: Move to its own step?
-      - name: Run code-server unit tests
-        run: yarn test:unit
-        if: success()
-
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-        if: success()
 
       # The release package does not contain any native modules
       # and is neutral to architecture/os/libc version.

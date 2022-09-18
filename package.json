@@ -17,7 +17,7 @@
     "release:prep": "./ci/build/release-prep.sh",
     "test:e2e": "VSCODE_IPC_HOOK_CLI= ./ci/dev/test-e2e.sh",
     "test:e2e:proxy": "USE_PROXY=1 ./ci/dev/test-e2e.sh",
-    "test:unit": "./ci/dev/test-unit.sh --forceExit --detectOpenHandles",
+    "test:unit": "CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest --testRegex './test/unit/.*ts' --forceExit --detectOpenHandles",
     "test:integration": "./ci/dev/test-integration.sh",
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
