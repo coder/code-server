@@ -18,7 +18,7 @@ concurrency:
 # Note: if: success() is used in several jobs -
 # this ensures that it only executes if all previous jobs succeeded.
 
-# if: steps.cache-yarn.outputs.cache-hit != 'true'
+# if: steps.cache-node-modules.outputs.cache-hit != 'true'
 # will skip running `yarn install` if it successfully fetched from cache
 
 jobs:
@@ -29,9 +29,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          submodules: true
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -40,9 +37,14 @@ jobs:
 
       - name: Install helm
         uses: azure/setup-helm@v3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install helm kubeval plugin
+        run: helm plugin install https://github.com/instrumenta/helm-kubeval
 
       - name: Fetch dependencies from cache
-        id: cache-yarn
+        id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
@@ -51,8 +53,8 @@ jobs:
             yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Run yarn fmt
         run: yarn fmt
@@ -73,11 +75,13 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          fetch-depth: 0
           submodules: true
 
       - name: Install quilt
-        run: sudo apt update && sudo apt install quilt
+        uses: awalsh128/cache-apt-pkgs-action@latest
+        with:
+          packages: quilt
+          version: 1.0
 
       - name: Patch Code
         run: quilt push -a
@@ -88,7 +92,7 @@ jobs:
           node-version: "16"
 
       - name: Fetch dependencies from cache
-        id: cache-yarn
+        id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
@@ -97,7 +101,7 @@ jobs:
             yarn-build-
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
 
       - name: Build code-server
@@ -171,8 +175,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Download artifact
         uses: actions/download-artifact@v3
@@ -224,8 +226,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -262,8 +262,18 @@ jobs:
       - name: Build standalone release
         run: source scl_source enable devtoolset-9 && yarn release:standalone
 
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
       - name: Install test dependencies
-        run: SKIP_SUBMODULE_DEPS=1 yarn install
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Run integration tests on standalone release
         run: yarn test:integration
@@ -320,8 +330,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -373,8 +381,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -398,7 +404,17 @@ jobs:
       - name: Build standalone release
         run: yarn release:standalone
 
+      - name: Fetch dependencies from cache
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
       - name: Install test dependencies
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn install
 
       - name: Run integration tests on standalone release
@@ -425,8 +441,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -434,7 +448,7 @@ jobs:
           node-version: "16"
 
       - name: Fetch dependencies from cache
-        id: cache-yarn
+        id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
@@ -455,7 +469,7 @@ jobs:
           mv code-server*-linux-amd64 code-server-linux-amd64
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
@@ -488,8 +502,6 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -497,7 +509,7 @@ jobs:
           node-version: "16"
 
       - name: Fetch dependencies from cache
-        id: cache-yarn
+        id: cache-node-modules
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
@@ -518,7 +530,7 @@ jobs:
           mv code-server*-linux-amd64 code-server-linux-amd64
 
       - name: Install dependencies
-        if: steps.cache-yarn.outputs.cache-hit != 'true'
+        if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
