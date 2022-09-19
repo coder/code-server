@@ -1,10 +1,11 @@
 import { promises as fs } from "fs"
 import * as path from "path"
-import { clean, tmpdir } from "../utils/helpers"
-import * as httpserver from "../utils/httpserver"
-import * as integration from "../utils/integration"
+import { clean, tmpdir } from "../../../utils/helpers"
+import * as httpserver from "../../../utils/httpserver"
+import * as integration from "../../../utils/integration"
 
-// TODO@jsjoeio - remove skip when script fixed
+// TODO@jsjoeio - move these to integration tests since they rely on Code
+// to be built
 describe.skip("vscode", () => {
   let codeServer: httpserver.HttpServer | undefined
 
