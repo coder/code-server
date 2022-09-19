@@ -236,7 +236,7 @@ describe("listen", () => {
     jest.clearAllMocks()
   })
 
-  it.skip("should throw an error if a directory is passed in instead of a file", async () => {
+  it("should throw an error if a directory is passed in instead of a file", async () => {
     const errorMessage = "EISDIR: illegal operation on a directory, unlink"
     const port = await getAvailablePort()
     const mockArgs = { port, host: "0.0.0.0", socket: tmpDirPath }
