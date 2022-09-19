@@ -35,14 +35,6 @@ jobs:
         with:
           node-version: "16"
 
-      - name: Install helm
-        uses: azure/setup-helm@v3.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install helm kubeval plugin
-        run: helm plugin install https://github.com/instrumenta/helm-kubeval
-
       - name: Fetch dependencies from cache
         id: cache-node-modules
         uses: actions/cache@v3
@@ -82,6 +74,9 @@ jobs:
         uses: azure/setup-helm@v3.3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install helm kubeval plugin
+        run: helm plugin install https://github.com/instrumenta/helm-kubeval
 
       - name: Lint Helm chart
         if: steps.changed-files.outputs.any_changed == 'true'
