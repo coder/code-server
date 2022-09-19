@@ -24,7 +24,6 @@ main() {
     path="$CODE_SERVER_PATH"
   fi
 
-  # WIP jsjoeio
   if [[ ! -f "test/integration/test-plugin/out/index.js" ]]; then
     echo "Building test plugin"
     pushd test/integration/test-plugin

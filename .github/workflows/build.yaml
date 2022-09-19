@@ -382,6 +382,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: "centos:7"
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - name: Checkout repo
@@ -437,6 +439,12 @@ jobs:
 
       - name: Run integration tests on standalone release
         run: yarn test:integration
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
 
       - name: Build packages with nfpm
         run: yarn package
