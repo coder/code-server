@@ -17,7 +17,7 @@ main() {
     else
       echo "Could not find lib/vscode/out or lib/vscode-reh-web-*"
       echo "Code must be built before running unit tests"
-      # exit 1
+      exit 1
     fi
     popd
   fi
