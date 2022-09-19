@@ -1,4 +1,4 @@
-name: "Security Scanning"
+name: Security
 
 on:
   push:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   audit-ci:
-    name: Run audit-ci
+    name: Audit node modules
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -51,6 +51,7 @@ jobs:
         if: success()
 
   trivy-scan-repo:
+    name: Scan repo with Trivy
     permissions:
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/upload-sarif to upload SARIF results
@@ -82,7 +83,7 @@ jobs:
       actions: read # for github/codeql-action/init to get workflow details
       contents: read # for actions/checkout to fetch code
       security-events: write # for github/codeql-action/autobuild to send a status report
-    name: Analyze
+    name: Analyze with CodeQL
     runs-on: ubuntu-20.04
 
     steps:
