@@ -39,8 +39,8 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v3
         with:
-          path: "node_modules"
-          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**yarn.lock') }}
           restore-keys: |
             yarn-build-
 
@@ -115,8 +115,8 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v3
         with:
-          path: "node_modules"
-          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**yarn.lock') }}
           restore-keys: |
             yarn-build-
 
@@ -161,8 +161,8 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v3
         with:
-          path: "node_modules"
-          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**yarn.lock') }}
           restore-keys: |
             yarn-build-
 
@@ -204,8 +204,8 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v3
         with:
-          path: "node_modules"
-          key: yarn-build-${{ hashFiles('yarn.lock') }}
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**yarn.lock') }}
           restore-keys: |
             yarn-build-
 
