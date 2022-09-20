@@ -189,7 +189,7 @@ jobs:
         uses: tj-actions/changed-files@v23.2
         with:
           files: |
-            ./src/**/*
+            src/**
 
       - name: Install Node.js v16
         if: steps.changed-files.outputs.any_changed == 'true'
