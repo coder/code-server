@@ -1,5 +1,3 @@
-// TODO@jsjoeio - how do I fix this?
-// @ts-ignore - we know code-server exists
 import * as cs from "code-server"
 import * as fspath from "path"
 
