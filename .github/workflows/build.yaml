@@ -144,7 +144,6 @@ jobs:
         with:
           files: |
             **.ts
-            **.tsx
             **.js
           files_ignore: |
             lib/vscode
