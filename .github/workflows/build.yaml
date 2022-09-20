@@ -80,7 +80,7 @@ jobs:
 
       - name: Lint Helm chart
         if: steps.changed-files.outputs.any_changed == 'true'
-        run: ./ci/dev/helm.sh
+        run: helm kubeval ci/helm-chart
 
       - name: Fail workflow
         if: failure()
