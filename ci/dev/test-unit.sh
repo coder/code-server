@@ -6,8 +6,6 @@ main() {
 
   source ./ci/lib.sh
 
-  # TODO@jsjoeio - skip if already built
-  # TODO@jsjoeio - move to integration test suite too
   echo "Building test plugin"
   pushd test/unit/node/test-plugin
   make -s out/index.js
