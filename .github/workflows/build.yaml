@@ -581,8 +581,8 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn install
 
-      - name: Run integration tests on standalone release
-        run: yarn test:integration
+      - name: Run native module tests on standalone release
+        run: yarn test:native
 
       - name: Build packages with nfpm
         run: yarn package

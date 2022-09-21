@@ -19,6 +19,7 @@
     "test:e2e:proxy": "USE_PROXY=1 ./ci/dev/test-e2e.sh",
     "test:unit": "./ci/dev/test-unit.sh --forceExit --detectOpenHandles",
     "test:integration": "./ci/dev/test-integration.sh",
+    "test:native": "./ci/dev/test-native.sh",
     "test:scripts": "./ci/dev/test-scripts.sh",
     "package": "./ci/build/build-packages.sh",
     "postinstall": "./ci/dev/postinstall.sh",
