@@ -6,6 +6,13 @@ main() {
 
   source ./ci/lib.sh
 
+  # TODO@jsjoeio - skip if already built
+  # TODO@jsjoeio - move to integration test suite too
+  echo "Building test plugin"
+  pushd test/unit/node/test-plugin
+  make -s out/index.js
+  popd
+
   # Our code imports from `out` in order to work during development but if you
   # have only built for production you will have not have this directory.  In
   # that case symlink `out` to a production build directory.

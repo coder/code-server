@@ -1,24 +1,22 @@
 import * as cs from "code-server"
 import * as fspath from "path"
 
-type FixMeLater = any
-
 export const plugin: cs.Plugin = {
   displayName: "Test Plugin",
   routerPath: "/test-plugin",
   homepageURL: "https://example.com",
   description: "Plugin used in code-server tests.",
 
-  init(config: FixMeLater) {
+  init(config) {
     config.logger.debug("test-plugin loaded!")
   },
 
   router() {
     const r = cs.express.Router()
-    r.get("/test-app", (_: FixMeLater, res: FixMeLater) => {
+    r.get("/test-app", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/index.html"))
     })
-    r.get("/goland/icon.svg", (_: FixMeLater, res: FixMeLater) => {
+    r.get("/goland/icon.svg", (_, res) => {
       res.sendFile(fspath.resolve(__dirname, "../public/icon.svg"))
     })
     r.get("/error", () => {
@@ -29,8 +27,8 @@ export const plugin: cs.Plugin = {
 
   wsRouter() {
     const wr = cs.WsRouter()
-    wr.ws("/test-app", (req: FixMeLater) => {
-      cs.wss.handleUpgrade(req, req.ws, req.head, (ws: FixMeLater) => {
+    wr.ws("/test-app", (req) => {
+      cs.wss.handleUpgrade(req, req.ws, req.head, (ws) => {
         req.ws.resume()
         ws.send("hello")
       })

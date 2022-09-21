@@ -24,11 +24,6 @@ main() {
     path="$CODE_SERVER_PATH"
   fi
 
-  echo "Building test plugin"
-  pushd test/integration/test-plugin
-  make -s out/index.js
-  popd
-
   echo "Running tests with code-server binary: '$path'"
 
   if [[ ! -f $path ]]; then
@@ -38,7 +33,7 @@ main() {
     exit 1
   fi
 
-  CODE_SERVER_PATH="$path" CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures" --testPathIgnorePatterns "./test/integration/test-plugin"
+  CODE_SERVER_PATH="$path" CS_DISABLE_PLUGINS=true ./test/node_modules/.bin/jest "$@" --coverage=false --testRegex "./test/integration" --testPathIgnorePatterns "./test/integration/fixtures"
 }
 
 main "$@"
