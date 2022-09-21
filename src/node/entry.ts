@@ -60,7 +60,6 @@ async function entry(): Promise<void> {
   return wrapper.start(args)
 }
 
-// ignore me
 entry().catch((error) => {
   logger.error(error.message)
   wrapper.exit(error)

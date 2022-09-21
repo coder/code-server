@@ -145,8 +145,8 @@ jobs:
         uses: tj-actions/changed-files@v23.2
         with:
           files: |
-            *.ts
-            *.js
+            **/*.ts
+            **/*.js
           files_ignore: |
             lib/vscode
 
