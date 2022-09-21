@@ -394,6 +394,7 @@ jobs:
         run: |
           yum install -y epel-release centos-release-scl make
           yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
+          yum update -y glibc
 
       - name: Install nfpm and envsubst
         run: |
