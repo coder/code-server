@@ -66,6 +66,12 @@ jobs:
           files: |
             ci/helm-chart/**
 
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
+
       - name: Install helm
         if: steps.changed-files.outputs.any_changed == 'true'
         uses: azure/setup-helm@v3.3
@@ -97,6 +103,12 @@ jobs:
             **/*.js
           files_ignore: |
             lib/vscode/**
+
+      - name: List all changed files
+        run: |
+          for file in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "$file was changed"
+          done
 
       - name: Install Node.js v16
         if: steps.changed-files.outputs.any_changed == 'true'
@@ -617,7 +629,7 @@ jobs:
         if: steps.caddy-cache.outputs.cache-hit != 'true'
         run: |
           gh release download v2.5.2 --repo caddyserver/caddy --pattern "caddy_2.5.2_linux_amd64.tar.gz"
-          mkdir -p ~/.cache/caddy 
+          mkdir -p ~/.cache/caddy
           tar -xzf caddy_2.5.2_linux_amd64.tar.gz --directory ~/.cache/caddy
 
       - name: Start Caddy
