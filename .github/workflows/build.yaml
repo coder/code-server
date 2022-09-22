@@ -104,7 +104,7 @@ jobs:
             **/*.ts
             **/*.js
           files_ignore: |
-            lib/vscode
+            lib/vscode/**
 
       - name: Install Node.js v16
         if: steps.changed-files.outputs.any_changed == 'true'
