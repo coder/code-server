@@ -56,15 +56,12 @@ jobs:
     name: Lint shell files
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    container: "alpine:3.16"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
 
       - name: Install lint utilities
-        run: |
-          apk add shellcheck
-          apk add --no-cache --upgrade bash
+        run: sudo apt install shellcheck
 
       - name: Lint shell files
         run: ./ci/dev/lint-scripts.sh
