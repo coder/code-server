@@ -17,7 +17,8 @@ export enum AuthType {
   None = "none",
 }
 
-export class Optional<T> {
+// lint me 
+export class Optional<> {
   public constructor(public readonly value?: T) {}
 }
 
