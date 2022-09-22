@@ -40,7 +40,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**yarn.lock') }}
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             yarn-build-
 
@@ -110,7 +110,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**yarn.lock') }}
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
             yarn-build-
 
