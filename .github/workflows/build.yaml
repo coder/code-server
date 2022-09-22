@@ -52,7 +52,8 @@ jobs:
         run: yarn fmt
 
       - name: Fail workflow
-        if: failure()
+        # Skip on forks
+        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
         uses: andymckay/cancel-action@0.2
 
   lint-helm:
@@ -85,7 +86,8 @@ jobs:
         run: helm kubeval ci/helm-chart
 
       - name: Fail workflow
-        if: failure()
+        # Skip on forks
+        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
         uses: andymckay/cancel-action@0.2
 
   lint-ts:
@@ -131,7 +133,8 @@ jobs:
         run: yarn lint:ts
 
       - name: Fail workflow
-        if: failure()
+        # Skip on forks
+        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
         uses: andymckay/cancel-action@0.2
 
   build:
