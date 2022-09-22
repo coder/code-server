@@ -62,7 +62,9 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install lint utilities
-        run: apk add shellcheck
+        run: |
+          apk add shellcheck
+          apk add --no-cache --upgrade bash
 
       - name: Lint shell files
         run: ./ci/dev/lint-scripts.sh
