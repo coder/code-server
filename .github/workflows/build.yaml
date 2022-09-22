@@ -58,6 +58,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
@@ -87,6 +89,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
 
       - name: Get changed files
         id: changed-files
