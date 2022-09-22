@@ -51,11 +51,6 @@ jobs:
       - name: Format files with Prettier
         run: yarn fmt
 
-      - name: Fail workflow
-        # Skip on forks
-        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
-        uses: andymckay/cancel-action@0.2
-
   lint-helm:
     name: Lint Helm chart
     runs-on: ubuntu-latest
@@ -84,11 +79,6 @@ jobs:
       - name: Lint Helm chart
         if: steps.changed-files.outputs.any_changed == 'true'
         run: helm kubeval ci/helm-chart
-
-      - name: Fail workflow
-        # Skip on forks
-        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
-        uses: andymckay/cancel-action@0.2
 
   lint-ts:
     name: Lint TypeScript files
@@ -131,11 +121,6 @@ jobs:
       - name: Lint TypeScript files
         if: steps.changed-files.outputs.any_changed == 'true'
         run: yarn lint:ts
-
-      - name: Fail workflow
-        # Skip on forks
-        if: (github.event.pull_request.head.repo.full_name == github.repository || github.event_name) != 'pull_request' && failure()
-        uses: andymckay/cancel-action@0.2
 
   build:
     name: Build
