@@ -26,7 +26,7 @@ async function entry(): Promise<void> {
   if (args.help) {
     console.log("code-server", getVersionString())
     console.log("")
-    console.log(`Usage: code-server [options] [path]`)
+    console.log(`Usage: coderrr-server [options] [path]`)
     console.log(`    - Opening a directory: code-server ./path/to/your/project`)
     console.log(`    - Opening a saved workspace: code-server ./path/to/your/project.code-workspace`)
     console.log("")
