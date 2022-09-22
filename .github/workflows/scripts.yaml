@@ -51,3 +51,17 @@ jobs:
 
       - name: Run script unit tests
         run: ./ci/dev/test-scripts.sh
+
+  lint:
+    name: Lint shell files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install lint utilities
+        run: sudo apt install shellcheck
+
+      - name: Lint shell files
+        run: ./ci/dev/lint-scripts.sh

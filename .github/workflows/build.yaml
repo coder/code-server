@@ -22,10 +22,10 @@ concurrency:
 # will skip running `yarn install` if it successfully fetched from cache
 
 jobs:
-  prebuild:
-    name: Pre-build checks
+  fmt:
+    name: Format with Prettier
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 5
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -34,14 +34,6 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "16"
-
-      - name: Install helm
-        uses: azure/setup-helm@v3.3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Install helm kubeval plugin
-        run: helm plugin install https://github.com/instrumenta/helm-kubeval
 
       - name: Fetch dependencies from cache
         id: cache-node-modules
@@ -56,17 +48,86 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
-      - name: Run yarn fmt
+      - name: Format files with Prettier
         run: yarn fmt
-        if: success()
 
-      - name: Run yarn lint
-        run: yarn lint
-        if: success()
+  lint-helm:
+    name: Lint Helm chart
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            ci/helm-chart/**
+
+      - name: Install helm
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: azure/setup-helm@v3.3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install helm kubeval plugin
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: helm plugin install https://github.com/instrumenta/helm-kubeval
+
+      - name: Lint Helm chart
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: helm kubeval ci/helm-chart
+
+  lint-ts:
+    name: Lint TypeScript files
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v23.2
+        with:
+          files: |
+            **/*.ts
+            **/*.js
+          files_ignore: |
+            lib/vscode/**
+
+      - name: Install Node.js v16
+        if: steps.changed-files.outputs.any_changed == 'true'
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16"
+
+      - name: Fetch dependencies from cache
+        if: steps.changed-files.outputs.any_changed == 'true'
+        id: cache-node-modules
+        uses: actions/cache@v3
+        with:
+          path: "**/node_modules"
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            yarn-build-
+
+      - name: Install dependencies
+        if: steps.changed-files.outputs.any_changed == 'true' && steps.cache-node-modules.outputs.cache-hit != 'true'
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+
+      - name: Lint TypeScript files
+        if: steps.changed-files.outputs.any_changed == 'true'
+        run: yarn lint:ts
 
   build:
     name: Build
-    needs: prebuild
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -222,6 +283,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: "centos:7"
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - name: Checkout repo
@@ -234,7 +297,7 @@ jobs:
 
       - name: Install development tools
         run: |
-          yum install -y epel-release centos-release-scl
+          yum install -y epel-release centos-release-scl make
           yum install -y devtoolset-9-{make,gcc,gcc-c++} jq rsync python3
 
       - name: Install nfpm and envsubst
@@ -277,6 +340,12 @@ jobs:
 
       - name: Run integration tests on standalone release
         run: yarn test:integration
+
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+        if: success()
 
       - name: Build packages with nfpm
         run: yarn package
@@ -417,8 +486,8 @@ jobs:
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: SKIP_SUBMODULE_DEPS=1 yarn install
 
-      - name: Run integration tests on standalone release
-        run: yarn test:integration
+      - name: Run native module tests on standalone release
+        run: yarn test:native
 
       - name: Build packages with nfpm
         run: yarn package
