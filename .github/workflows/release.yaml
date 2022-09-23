@@ -19,7 +19,6 @@ jobs:
   # this requires refactoring our release scripts
   package-linux-amd64:
     name: x86-64 Linux build
-    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container: "centos:7"
@@ -117,7 +116,6 @@ jobs:
   # See here: https://github.com/actions/virtual-environments/pull/3862/files
   package-linux-cross:
     name: Linux cross-compile builds
-    needs: build
     runs-on: ubuntu-18.04
     timeout-minutes: 15
     strategy:
@@ -184,7 +182,6 @@ jobs:
 
   package-macos-amd64:
     name: x86-64 macOS build
-    needs: build
     runs-on: macos-latest
     timeout-minutes: 15
     steps:
