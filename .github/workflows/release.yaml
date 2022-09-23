@@ -252,27 +252,3 @@ jobs:
           draft: true
           discussion_category_name: "📣 Announcements"
           files: ./release-packages/*
-
-  draft:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-
-      - name: Download artifacts
-        uses: dawidd6/action-download-artifact@v2
-        id: download
-        with:
-          branch: ${{ github.ref }}
-          workflow: build.yaml
-          workflow_conclusion: completed
-          check_artifacts: true
-          name: release-packages
-          path: ./release-packages
-
-      - uses: softprops/action-gh-release@v1
-        with:
-          draft: true
-          discussion_category_name: "📣 Announcements"
-          files: ./release-packages/*
