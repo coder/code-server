@@ -95,11 +95,11 @@ jobs:
       - name: Build packages with nfpm
         run: yarn package
 
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v3
+      - uses: softprops/action-gh-release@v1
         with:
-          name: release-packages
-          path: ./release-packages
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./release-packages/*
 
   # NOTE@oxy:
   # We use Ubuntu 16.04 here, so that our build is more compatible
@@ -186,11 +186,11 @@ jobs:
       - name: Build packages with nfpm
         run: yarn package ${NPM_CONFIG_ARCH}
 
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v3
+      - uses: softprops/action-gh-release@v1
         with:
-          name: release-packages
-          path: ./release-packages
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./release-packages/*
 
   package-macos-amd64:
     name: x86-64 macOS build
@@ -247,11 +247,11 @@ jobs:
       - name: Build packages with nfpm
         run: yarn package
 
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v3
+      - uses: softprops/action-gh-release@v1
         with:
-          name: release-packages
-          path: ./release-packages
+          draft: true
+          discussion_category_name: "📣 Announcements"
+          files: ./release-packages/*
 
   draft:
     runs-on: ubuntu-latest
