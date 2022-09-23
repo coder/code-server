@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - "install.sh"
+      - ".github/workflows/installer.yaml"
   pull_request:
     branches:
       - main
     paths:
       - "install.sh"
+      - ".github/workflows/installer.yaml"
 
 # Cancel in-progress runs for pull requests when developers push
 # additional changes, and serialize builds in branches.
@@ -33,8 +35,8 @@ jobs:
       - name: Install code-server
         run: ./install.sh
 
-      - name: Test code-server
-        run: CODE_SERVER_PATH="code-server" yarn test:integration
+      - name: Test code-server was installed globally
+        run: code-server --help
 
   alpine:
     name: Test installer on Alpine
@@ -54,6 +56,11 @@ jobs:
       - name: Test standalone to a non-existent prefix
         run: su coder -c "./install.sh --method standalone --prefix /tmp/does/not/yet/exist"
 
+      # We do not actually have Alpine standalone builds so running code-server
+      # will not work.
+      - name: Test code-server was installed to prefix
+        run: test -f /tmp/does/not/yet/exist/bin/code-server
+
   macos:
     name: Test installer on macOS
     runs-on: macos-latest
@@ -65,5 +72,5 @@ jobs:
       - name: Install code-server
         run: ./install.sh
 
-      - name: Test code-server
-        run: CODE_SERVER_PATH="code-server" yarn test:integration
+      - name: Test code-server was installed globally
+        run: code-server --help
