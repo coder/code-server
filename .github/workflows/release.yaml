@@ -51,10 +51,16 @@ jobs:
       - name: Install yarn
         run: npm install -g yarn
 
-      - name: Download npm package
-        uses: actions/download-artifact@v3
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        id: download
         with:
+          branch: ${{ github.ref }}
+          workflow: build.yaml
+          workflow_conclusion: completed
+          check_artifacts: true
           name: npm-package
+          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -154,10 +160,16 @@ jobs:
         env:
           PACKAGE: ${{ format('g++-{0}', matrix.prefix) }}
 
-      - name: Download npm package
-        uses: actions/download-artifact@v3
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        id: download
         with:
+          branch: ${{ github.ref }}
+          workflow: build.yaml
+          workflow_conclusion: completed
+          check_artifacts: true
           name: npm-package
+          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -199,10 +211,16 @@ jobs:
           curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.3.1/nfpm_2.3.1_`uname -s`_`uname -m`.tar.gz | tar -C ~/.local/bin -zxv nfpm
           echo "$HOME/.local/bin" >> $GITHUB_PATH
 
-      - name: Download npm package
-        uses: actions/download-artifact@v3
+      - name: Download artifacts
+        uses: dawidd6/action-download-artifact@v2
+        id: download
         with:
+          branch: ${{ github.ref }}
+          workflow: build.yaml
+          workflow_conclusion: completed
+          check_artifacts: true
           name: npm-package
+          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
