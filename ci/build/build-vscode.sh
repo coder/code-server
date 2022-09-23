@@ -79,7 +79,10 @@ main() {
     "newsletterSignupUrl": "https://www.research.net/r/vsc-newsletter",
     "linkProtectionTrustedDomains": [
       "https://open-vsx.org"
-    ]
+    ],
+    "aiConfig": {
+      "ariaKey": "code-server"
+    }
   }
 EOF
   ) > product.json
