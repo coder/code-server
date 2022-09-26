@@ -282,7 +282,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with: 
+        with:
           submodules: true
 
       - name: Install Node.js v16
@@ -307,6 +307,9 @@ jobs:
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
 
+      - name: Install release package dependencies
+        run: cd release && yarn install
+
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
         run: yarn --frozen-lockfile
@@ -315,11 +318,6 @@ jobs:
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
-
-      - name: Copy dependencies to release (npm package)
-        run: |
-          cp -r node_modules release/
-          cp -r lib/vscode/node_modules release/lib/vscode
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
@@ -342,7 +340,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with: 
+        with:
           submodules: true
 
       - name: Install Node.js v16
@@ -366,6 +364,9 @@ jobs:
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
+
+      - name: Install release package dependencies
+        run: cd release && yarn install
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
@@ -395,11 +396,6 @@ jobs:
 
       - name: Start Caddy
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
-
-      - name: Copy dependencies to release (npm package)
-        run: |
-          cp -r node_modules release/
-          cp -r lib/vscode/node_modules release/lib/vscode
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
