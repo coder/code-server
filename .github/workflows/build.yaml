@@ -282,6 +282,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with: 
+          submodules: true
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -340,6 +342,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+        with: 
+          submodules: true
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
