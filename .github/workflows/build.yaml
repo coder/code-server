@@ -276,7 +276,7 @@ jobs:
 
   test-e2e:
     name: End-to-end tests
-    needs: package-linux-amd64
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -337,7 +337,7 @@ jobs:
 
   test-e2e-proxy:
     name: End-to-end tests behind proxy
-    needs: package-linux-amd64
+    needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     env:
