@@ -301,29 +301,30 @@ jobs:
           restore-keys: |
             yarn-build-
 
-      - name: Download release packages
+      - name: Download npm package
         uses: actions/download-artifact@v3
         with:
-          name: release-packages
-          path: ./release-packages
+          name: npm-package
 
-      - name: Untar code-server release
-        run: |
-          cd release-packages
-          tar -xzf code-server*-linux-amd64.tar.gz
-          mv code-server*-linux-amd64 code-server-linux-amd64
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+        run: yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
         run: |
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
+      - name: Copy dependencies to release (npm package)
+        run: |
+          cp -r node_modules release/
+          cp -r lib/vscode/node_modules release/lib/vscode
+
       - name: Run end-to-end tests
-        run: yarn test:e2e --global-timeout 840000
+        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
 
       - name: Upload test artifacts
         if: always()
@@ -333,7 +334,7 @@ jobs:
           path: ./test/test-results
 
       - name: Remove release packages and test artifacts
-        run: rm -rf ./release-packages ./test/test-results
+        run: rm -rf ./release ./test/test-results
 
   test-e2e-proxy:
     name: End-to-end tests behind proxy
@@ -362,21 +363,17 @@ jobs:
           restore-keys: |
             yarn-build-
 
-      - name: Download release packages
+      - name: Download npm package
         uses: actions/download-artifact@v3
         with:
-          name: release-packages
-          path: ./release-packages
+          name: npm-package
 
-      - name: Untar code-server release
-        run: |
-          cd release-packages
-          tar -xzf code-server*-linux-amd64.tar.gz
-          mv code-server*-linux-amd64 code-server-linux-amd64
+      - name: Decompress npm package
+        run: tar -xzf package.tar.gz
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
+        run: yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
         run: |
@@ -403,8 +400,13 @@ jobs:
       - name: Start Caddy
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
 
+      - name: Copy dependencies to release (npm package)
+        run: |
+          cp -r node_modules release/
+          cp -r lib/vscode/node_modules release/lib/vscode
+
       - name: Run end-to-end tests
-        run: yarn test:e2e:proxy
+        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
 
       - name: Stop Caddy
         if: always()
@@ -418,4 +420,4 @@ jobs:
           path: ./test/test-results
 
       - name: Remove release packages and test artifacts
-        run: rm -rf ./release-packages ./test/test-results
+        run: rm -rf ./release ./test/test-results
