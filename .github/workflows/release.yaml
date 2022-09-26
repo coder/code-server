@@ -60,7 +60,6 @@ jobs:
           workflow_conclusion: completed
           check_artifacts: true
           name: npm-package
-          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -169,7 +168,6 @@ jobs:
           workflow_conclusion: completed
           check_artifacts: true
           name: npm-package
-          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
@@ -220,7 +218,6 @@ jobs:
           workflow_conclusion: completed
           check_artifacts: true
           name: npm-package
-          path: ./npm-package
 
       - name: Decompress npm package
         run: tar -xzf package.tar.gz
