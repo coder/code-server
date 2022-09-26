@@ -279,10 +279,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    env:
-      # Since we build code-server we might as well run tests from the release
-      # since VS Code will load faster due to the bundling.
-      CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -297,9 +293,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: 1-yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            1-yarn-build-
 
       - name: Download npm package
         uses: actions/download-artifact@v3
@@ -341,10 +337,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    env:
-      # Since we build code-server we might as well run tests from the release
-      # since VS Code will load faster due to the bundling.
-      CODE_SERVER_TEST_ENTRY: "./release-packages/code-server-linux-amd64"
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
@@ -359,9 +351,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: 1-yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            yarn-build-
+            1-yarn-build-
 
       - name: Download npm package
         uses: actions/download-artifact@v3
