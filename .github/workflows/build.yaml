@@ -212,6 +212,9 @@ jobs:
         run: yarn release
         if: success()
 
+      - name: Copy node binary to release
+        run: ln -s $(which node) ./release/lib/node
+
       # https://github.com/actions/upload-artifact/issues/38
       - name: Compress release package
         run: tar -czf package.tar.gz release
