@@ -30,6 +30,7 @@ describe("Integrated Terminal", [], {}, () => {
     expect(stdout).toMatch(address)
   })
 
+  // TODO@jsjoeio - add test to make sure full code-server path works
   test("should be able to invoke `code-server` to open a file", async ({ codeServerPage }) => {
     const tmpFolderPath = await tmpdir(testName)
     const tmpFile = path.join(tmpFolderPath, "test-file")
