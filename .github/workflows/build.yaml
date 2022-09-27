@@ -405,7 +405,7 @@ jobs:
           ln -s $(which node) ./release/node
 
       - name: Run end-to-end tests
-        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
+        run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e:proxy --global-timeout 840000
 
       - name: Stop Caddy
         if: always()
