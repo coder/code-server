@@ -127,7 +127,7 @@ jobs:
         run: yarn lint:ts
 
   build:
-    name: Build
+    name: Build code-server
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
@@ -223,6 +223,7 @@ jobs:
           path: ./package.tar.gz
 
   npm:
+    name: Publish npm package
     # the npm-package gets uploaded as an artifact in Build
     # so we need that to complete before this runs
     needs: build
@@ -275,15 +276,13 @@ jobs:
             ```
 
   test-e2e:
-    name: End-to-end tests
+    name: Run end-to-end tests
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -295,9 +294,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: 1-yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            1-yarn-build-
+            yarn-build-
 
       - name: Download npm package
         uses: actions/download-artifact@v3
@@ -312,7 +311,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
         run: |
@@ -320,7 +319,9 @@ jobs:
           ./test/node_modules/.bin/playwright install
 
       - name: Copy node binary to release
-        run: ln -s $(which node) ./release/lib/node
+        run: |
+          ln -s $(which node) ./release/lib/node
+          ln -s $(which node) ./release/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
@@ -336,15 +337,13 @@ jobs:
         run: rm -rf ./release ./test/test-results
 
   test-e2e-proxy:
-    name: End-to-end tests behind proxy
+    name: Run end-to-end tests behind proxy
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-        with:
-          submodules: true
 
       - name: Install Node.js v16
         uses: actions/setup-node@v3
@@ -356,9 +355,9 @@ jobs:
         uses: actions/cache@v3
         with:
           path: "**/node_modules"
-          key: 1-yarn-build-${{ hashFiles('**/yarn.lock') }}
+          key: yarn-build-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            1-yarn-build-
+            yarn-build-
 
       - name: Download npm package
         uses: actions/download-artifact@v3
@@ -373,7 +372,7 @@ jobs:
 
       - name: Install dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: yarn --frozen-lockfile
+        run: SKIP_SUBMODULE_DEPS=1 yarn --frozen-lockfile
 
       - name: Install Playwright OS dependencies
         run: |
