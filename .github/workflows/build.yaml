@@ -401,7 +401,7 @@ jobs:
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
 
       - name: Copy node binary to release
-        run: ln -s $(which node) ./release/lib/node
+        run: cp -r $(which node) ./release/lib/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
