@@ -318,6 +318,7 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
+      # TODO@jsjoeio - this is temp. We need to do an actual fix
       - name: Copy node binary to release
         run: |
           ln -s $(which node) ./release/lib/node
@@ -399,6 +400,7 @@ jobs:
       - name: Start Caddy
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
 
+      # TODO@jsjoeio - this is temp. We need to do an actual fix
       - name: Copy node binary to release
         run: |
           ln -s $(which node) ./release/lib/node
