@@ -556,7 +556,7 @@ sudo_sh_c() {
   elif command_exists sudo; then
     sh_c "sudo $*"
   elif command_exists su; then
-    sh_c "su - -c '$*'"
+    sh_c "su root -c '$*'"
   else
     echoh
     echoerr "This script needs to run the following command as root."
