@@ -276,7 +276,7 @@ jobs:
             ```
 
   test-e2e:
-    name: Run end-to-end tests
+    name: Run e2e tests
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 15
@@ -337,7 +337,7 @@ jobs:
         run: rm -rf ./release ./test/test-results
 
   test-e2e-proxy:
-    name: Run end-to-end tests behind proxy
+    name: Run e2e tests behind proxy
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
