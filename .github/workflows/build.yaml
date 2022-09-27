@@ -212,9 +212,6 @@ jobs:
         run: yarn release
         if: success()
 
-      - name: Copy node binary to release
-        run: ln -s $(which node) ./release/lib/node
-
       # https://github.com/actions/upload-artifact/issues/38
       - name: Compress release package
         run: tar -czf package.tar.gz release
@@ -322,6 +319,9 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
+      - name: Copy node binary to release
+        run: ln -s $(which node) ./release/lib/node
+
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
 
@@ -399,6 +399,9 @@ jobs:
 
       - name: Start Caddy
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
+
+      - name: Copy node binary to release
+        run: ln -s $(which node) ./release/lib/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
