@@ -322,7 +322,6 @@ jobs:
       - name: Copy node binary to release
         run: |
           ln -s $(which node) ./release/lib/node
-          ln -s $(which node) ./release/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
@@ -404,7 +403,6 @@ jobs:
       - name: Copy node binary to release
         run: |
           ln -s $(which node) ./release/lib/node
-          ln -s $(which node) ./release/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e:proxy --global-timeout 840000
