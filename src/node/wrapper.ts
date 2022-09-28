@@ -321,6 +321,7 @@ export class ParentProcess extends Process {
       env: {
         ...process.env,
         CODE_SERVER_PARENT_PID: process.pid.toString(),
+        CS_NODE_EXEC_PATH: path.dirname(process.execPath) + ":" + process.env.PATH,
       },
       stdio: ["pipe", "pipe", "pipe", "ipc"],
     })
