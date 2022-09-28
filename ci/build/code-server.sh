@@ -11,14 +11,6 @@ _realpath() {
   cd "$(dirname "$script")"
 
   while [ -L "$(basename "$script")" ]; do
-    if [ -L "./node" ] && [ -L "./code-server" ] \
-      && [ -f "package.json" ] \
-      && cat package.json | grep -q '^  "name": "code-server",$'; then
-      echo "***** Please use the script in bin/code-server instead!" >&2
-      echo "***** This script will soon be removed!" >&2
-      echo "***** See the release notes at https://github.com/coder/code-server/releases/tag/v3.4.0" >&2
-    fi
-
     script="$(readlink "$(basename "$script")")"
     cd "$(dirname "$script")"
   done
