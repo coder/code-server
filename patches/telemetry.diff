@@ -1,9 +1,11 @@
 Add support for telemetry endpoint
 
 To test:
-1. Look inside a build of code-server, inside `lib/vscode/vs/server/node/server.main.js`
-2. Search for a `JSON.stringify` near `TelemetryClient`
-3. throw in a `console.log()` before it and make sure it logs telemetry data
+1. Create a RequestBin - https://requestbin.io/
+2. Run code-server with `CS_TELEMETRY_URL` set: 
+  i.e. `CS_TELEMETRY_URL="https://requestbin.io/1ebub9z1" ./code-server-4.7.0-macos-amd64/bin/code-server`
+3. Load code-server in browser an do things (i.e. open a file)
+4. Refresh RequestBin and you should see logs
 
 Index: code-server/lib/vscode/src/vs/server/node/serverServices.ts
 ===================================================================
