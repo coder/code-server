@@ -24,9 +24,6 @@ main() {
   rsync ./ci/build/code-server.sh "$RELEASE_PATH/bin/code-server"
   rsync "$node_path" "$RELEASE_PATH/lib/node"
 
-  ln -s "./bin/code-server" "$RELEASE_PATH/code-server"
-  ln -s "./lib/node" "$RELEASE_PATH/node"
-
   pushd "$RELEASE_PATH"
   npm install --unsafe-perm --omit=dev
   popd

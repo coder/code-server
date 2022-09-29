@@ -318,12 +318,6 @@ jobs:
           ./test/node_modules/.bin/playwright install-deps
           ./test/node_modules/.bin/playwright install
 
-      # TODO@jsjoeio - this is temp. We need to do an actual fix
-      - name: Copy node binary to release
-        run: |
-          ln -s $(which node) ./release/lib/node
-          ln -s $(which node) ./release/node
-
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e --global-timeout 840000
 
@@ -399,12 +393,6 @@ jobs:
 
       - name: Start Caddy
         run: sudo ~/.cache/caddy/caddy start --config ./ci/Caddyfile
-
-      # TODO@jsjoeio - this is temp. We need to do an actual fix
-      - name: Copy node binary to release
-        run: |
-          ln -s $(which node) ./release/lib/node
-          ln -s $(which node) ./release/node
 
       - name: Run end-to-end tests
         run: CODE_SERVER_TEST_ENTRY=./release yarn test:e2e:proxy --global-timeout 840000
